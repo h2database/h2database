@@ -481,18 +481,16 @@ public class Transfer {
         case Value.BLOB: {
             writeInt(BLOB);
             if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
-                if (v instanceof ValueLobDb) {
-                    ValueLobDb lob = (ValueLobDb) v;
-                    if (lob.isStored()) {
-                        writeLong(-1);
-                        writeInt(lob.getTableId());
-                        writeLong(lob.getLobId());
-                        if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
-                            writeBytes(calculateLobMac(lob.getLobId()));
-                        }
-                        writeLong(lob.getType().getPrecision());
-                        break;
+                ValueLob lob = (ValueLob) v;
+                if (lob.isStored()) {
+                    writeLong(-1);
+                    writeInt(lob.getTableId());
+                    writeLong(lob.getLobId());
+                    if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
+                        writeBytes(calculateLobMac(lob.getLobId()));
                     }
+                    writeLong(lob.getType().getPrecision());
+                    break;
                 }
             }
             long length = v.getType().getPrecision();
@@ -512,18 +510,16 @@ public class Transfer {
         case Value.CLOB: {
             writeInt(CLOB);
             if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
-                if (v instanceof ValueLobDb) {
-                    ValueLobDb lob = (ValueLobDb) v;
-                    if (lob.isStored()) {
-                        writeLong(-1);
-                        writeInt(lob.getTableId());
-                        writeLong(lob.getLobId());
-                        if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
-                            writeBytes(calculateLobMac(lob.getLobId()));
-                        }
-                        writeLong(lob.getType().getPrecision());
-                        break;
+                ValueLob lob = (ValueLob) v;
+                if (lob.isStored()) {
+                    writeLong(-1);
+                    writeInt(lob.getTableId());
+                    writeLong(lob.getLobId());
+                    if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
+                        writeBytes(calculateLobMac(lob.getLobId()));
                     }
+                    writeLong(lob.getType().getPrecision());
+                    break;
                 }
             }
             long length = v.getType().getPrecision();
@@ -723,7 +719,7 @@ public class Transfer {
                         hmac = null;
                     }
                     long precision = readLong();
-                    return ValueLobDb.create(
+                    return ValueLob.create(
                             Value.BLOB, session.getDataHandler(), tableId, id, hmac, precision);
                 }
             }
@@ -748,7 +744,7 @@ public class Transfer {
                         hmac = null;
                     }
                     long precision = readLong();
-                    return ValueLobDb.create(
+                    return ValueLob.create(
                             Value.CLOB, session.getDataHandler(), tableId, id, hmac, precision);
                 }
                 if (length < 0) {

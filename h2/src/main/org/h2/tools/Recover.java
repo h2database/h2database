@@ -5,7 +5,6 @@
  */
 package org.h2.tools;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -79,7 +78,6 @@ import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLobDb;
 import org.h2.value.ValueLong;
 
 /**
@@ -202,26 +200,11 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public static Reader readClob(String fileName) throws IOException {
-        return new BufferedReader(new InputStreamReader(readBlob(fileName),
-                StandardCharsets.UTF_8));
-    }
-
-    /**
-     * INTERNAL
-     */
-    public static InputStream readBlob(String fileName) throws IOException {
-        return new BufferedInputStream(FileUtils.newInputStream(fileName));
-    }
-
-    /**
-     * INTERNAL
-     */
-    public static ValueLobDb readBlobDb(Connection conn, long lobId,
+    public static ValueLob readBlobDb(Connection conn, long lobId,
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
-        ValueLobDb lob = ValueLobDb.create(Value.BLOB, h, LobStorageFrontend.TABLE_TEMP,
+        ValueLob lob = ValueLob.create(Value.BLOB, h, LobStorageFrontend.TABLE_TEMP,
                 lobId, null, precision);
         lob.setRecoveryReference(true);
         return lob;
@@ -238,11 +221,11 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public static ValueLobDb readClobDb(Connection conn, long lobId,
+    public static ValueLob readClobDb(Connection conn, long lobId,
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
-        ValueLobDb lob =  ValueLobDb.create(Value.CLOB, h, LobStorageFrontend.TABLE_TEMP,
+        ValueLob lob =  ValueLob.create(Value.CLOB, h, LobStorageFrontend.TABLE_TEMP,
                 lobId, null, precision);
         lob.setRecoveryReference(true);
         return lob;
@@ -425,19 +408,6 @@ public class Recover extends Tool implements DataHandler {
             ValueLob lob = (ValueLob) v;
             byte[] small = lob.getSmall();
             if (small == null) {
-                String file = lob.getFileName();
-                String type = lob.getValueType() == Value.BLOB ? "BLOB" : "CLOB";
-                if (lob.isCompressed()) {
-                    dumpLob(file, true);
-                    file += ".comp";
-                }
-                builder.append("READ_").append(type).append("('").append(file).append(".txt')");
-                return;
-            }
-        } else if (v instanceof ValueLobDb) {
-            ValueLobDb lob = (ValueLobDb) v;
-            byte[] small = lob.getSmall();
-            if (small == null) {
                 int type = lob.getValueType();
                 long id = lob.getLobId();
                 long precision = lob.getType().getPrecision();
@@ -473,10 +443,6 @@ public class Recover extends Tool implements DataHandler {
         stat = new Stats();
         try {
             writer = getWriter(fileName, ".sql");
-            writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" +
-                    this.getClass().getName() + ".readBlob\";");
-            writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" +
-                    this.getClass().getName() + ".readClob\";");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_DB FOR \"" +
                     this.getClass().getName() + ".readBlobDb\";");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_DB FOR \"" +
@@ -559,6 +525,8 @@ public class Recover extends Tool implements DataHandler {
             dumpPageStore(writer, pageCount);
             writeSchemaSET(writer);
             writeSchema(writer);
+            writer.println("DROP ALIAS READ_BLOB_DB;");
+            writer.println("DROP ALIAS READ_CLOB_DB;");
             try {
                 dumpPageLogStream(writer, logKey, logFirstTrunkPage,
                         logFirstDataPage, pageCount);
@@ -591,14 +559,6 @@ public class Recover extends Tool implements DataHandler {
 
     private void dumpMVStoreFile(PrintWriter writer, String fileName) {
         writer.println("-- MVStore");
-        writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" +
-                this.getClass().getName() + ".readBlob\";");
-        writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" +
-                this.getClass().getName() + ".readClob\";");
-        writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_DB FOR \"" +
-                this.getClass().getName() + ".readBlobDb\";");
-        writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_DB FOR \"" +
-                this.getClass().getName() + ".readClobDb\";");
         writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_MAP FOR \"" +
                 this.getClass().getName() + ".readBlobMap\";");
         writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_MAP FOR \"" +
@@ -1633,10 +1593,6 @@ public class Recover extends Tool implements DataHandler {
             setStorage(objectId);
             writer.println("DROP TABLE " + storageName + ";");
         }
-        writer.println("DROP ALIAS READ_BLOB;");
-        writer.println("DROP ALIAS READ_CLOB;");
-        writer.println("DROP ALIAS READ_BLOB_DB;");
-        writer.println("DROP ALIAS READ_CLOB_DB;");
         if (deleteLobs) {
             writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE `TABLE` = " +
                     LobStorageFrontend.TABLE_TEMP + ";");

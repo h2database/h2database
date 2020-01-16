@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import org.h2.value.Value;
-import org.h2.value.ValueLobDb;
+import org.h2.value.ValueLob;
 
 /**
  * A mechanism to store and retrieve lob data.
@@ -42,7 +42,7 @@ public interface LobStorageInterface {
      * @param length the length
      * @return the new lob
      */
-    ValueLobDb copyLob(ValueLobDb old, int tableId, long length);
+    ValueLob copyLob(ValueLob old, int tableId, long length);
 
     /**
      * Get the input stream for the given lob.
@@ -52,7 +52,7 @@ public interface LobStorageInterface {
      * @param byteCount the number of bytes to read, or -1 if not known
      * @return the stream
      */
-    InputStream getInputStream(ValueLobDb lob, byte[] hmac, long byteCount)
+    InputStream getInputStream(ValueLob lob, byte[] hmac, long byteCount)
             throws IOException;
 
     /**
@@ -60,7 +60,7 @@ public interface LobStorageInterface {
      *
      * @param lob the lob
      */
-    void removeLob(ValueLobDb lob);
+    void removeLob(ValueLob lob);
 
     /**
      * Remove all LOBs for this table.

@@ -1317,17 +1317,17 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case VARBINARY:
         case GEOMETRY:
         case JSON:
-            return ValueLobDb.createSmallLob(BLOB, getBytesNoCopy());
+            return ValueLob.createSmallLob(BLOB, getBytesNoCopy());
         case UUID:
-            return ValueLobDb.createSmallLob(BLOB, getBytes());
+            return ValueLob.createSmallLob(BLOB, getBytes());
         case TIMESTAMP_TZ:
             throw getDataConversionError(BLOB);
         }
-        return ValueLobDb.createSmallLob(BLOB, getString().getBytes(StandardCharsets.UTF_8));
+        return ValueLob.createSmallLob(BLOB, getString().getBytes(StandardCharsets.UTF_8));
     }
 
     protected Value convertToClob() {
-        return ValueLobDb.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
+        return ValueLob.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
     }
 
     private ValueUuid convertToUuid() {

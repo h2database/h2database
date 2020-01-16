@@ -43,7 +43,7 @@ import org.h2.util.SmallMap;
 import org.h2.value.DataType;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
-import org.h2.value.ValueLobDb;
+import org.h2.value.ValueLob;
 
 /**
  * One server thread is opened per client connection.
@@ -531,7 +531,7 @@ public class TcpServerThread implements Runnable {
             if (in.getPos() != offset) {
                 LobStorageInterface lobStorage = session.getDataHandler().getLobStorage();
                 // only the lob id is used
-                ValueLobDb lob = ValueLobDb.create(Value.BLOB, null, -1, lobId, hmac, -1);
+                ValueLob lob = ValueLob.create(Value.BLOB, null, -1, lobId, hmac, -1);
                 InputStream lobIn = lobStorage.getInputStream(lob, hmac, -1);
                 in = new CachedInputStream(lobIn);
                 lobs.put(lobId, in);
@@ -585,12 +585,10 @@ public class TcpServerThread implements Runnable {
 
     private void writeValue(Value v) throws IOException {
         if (DataType.isLargeObject(v.getValueType())) {
-            if (v instanceof ValueLobDb) {
-                ValueLobDb lob = (ValueLobDb) v;
-                if (lob.isStored()) {
-                    long id = lob.getLobId();
-                    lobs.put(id, new CachedInputStream(null));
-                }
+            ValueLob lob = (ValueLob) v;
+            if (lob.isStored()) {
+                long id = lob.getLobId();
+                lobs.put(id, new CachedInputStream(null));
             }
         }
         transfer.writeValue(v);

@@ -52,7 +52,7 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueJson;
-import org.h2.value.ValueLobDb;
+import org.h2.value.ValueLob;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
@@ -475,7 +475,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         case Value.BLOB:
         case Value.CLOB: {
             buff.put(type == Value.BLOB ? BLOB : CLOB);
-            ValueLobDb lob = (ValueLobDb) v;
+            ValueLob lob = (ValueLob) v;
             byte[] small = lob.getSmall();
             if (small == null) {
                 buff.putVarInt(-3).
@@ -747,12 +747,12 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             if (smallLen >= 0) {
                 byte[] small = Utils.newBytes(smallLen);
                 buff.get(small, 0, smallLen);
-                return ValueLobDb.createSmallLob(type == BLOB ? Value.BLOB : Value.CLOB, small);
+                return ValueLob.createSmallLob(type == BLOB ? Value.BLOB : Value.CLOB, small);
             } else if (smallLen == -3) {
                 int tableId = readVarInt(buff);
                 long lobId = readVarLong(buff);
                 long precision = readVarLong(buff);
-                return ValueLobDb.create(type == BLOB ? Value.BLOB : Value.CLOB,
+                return ValueLob.create(type == BLOB ? Value.BLOB : Value.CLOB,
                         handler, tableId, lobId, null, precision);
             } else {
                 throw DbException.get(ErrorCode.FILE_CORRUPTED_1,

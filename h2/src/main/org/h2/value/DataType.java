@@ -717,7 +717,7 @@ public class DataType {
                 if (session == null) {
                     String s = rs.getString(columnIndex);
                     v = s == null ? ValueNull.INSTANCE :
-                        ValueLobDb.createSmallLob(Value.CLOB, s.getBytes(StandardCharsets.UTF_8));
+                        ValueLob.createSmallLob(Value.CLOB, s.getBytes(StandardCharsets.UTF_8));
                 } else {
                     Reader in = rs.getCharacterStream(columnIndex);
                     if (in == null) {
@@ -734,7 +734,7 @@ public class DataType {
             case Value.BLOB: {
                 if (session == null) {
                     byte[] buff = rs.getBytes(columnIndex);
-                    return buff == null ? ValueNull.INSTANCE : ValueLobDb.createSmallLob(Value.BLOB, buff);
+                    return buff == null ? ValueNull.INSTANCE : ValueLob.createSmallLob(Value.BLOB, buff);
                 }
                 InputStream in = rs.getBinaryStream(columnIndex);
                 v = (in == null) ? ValueNull.INSTANCE : session.getDataHandler().getLobStorage().createBlob(in, -1);
@@ -1203,10 +1203,10 @@ public class DataType {
             return Value.NUMERIC;
         } else if (ResultSet.class.isAssignableFrom(x)) {
             return Value.RESULT_SET;
-        } else if (ValueLobDb.class.isAssignableFrom(x)) {
+        } else if (ValueLob.class.isAssignableFrom(x)) {
             return Value.BLOB;
 // FIXME no way to distinguish between these 2 types
-//        } else if (ValueLobDb.class.isAssignableFrom(x)) {
+//        } else if (ValueLob.class.isAssignableFrom(x)) {
 //            return Value.CLOB;
         } else if (Date.class.isAssignableFrom(x)) {
             return Value.DATE;

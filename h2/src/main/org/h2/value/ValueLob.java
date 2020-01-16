@@ -63,7 +63,8 @@ public class ValueLob extends Value {
      * @param dataSize the length of the input, in bytes
      * @return the smaller input stream
      */
-    private static InputStream rangeInputStream(InputStream inputStream, long oneBasedOffset, long length, long dataSize) {
+    private static InputStream rangeInputStream(InputStream inputStream, long oneBasedOffset, long length,
+            long dataSize) {
         if (dataSize > 0) {
             rangeCheck(oneBasedOffset - 1, length, dataSize);
         } else {

@@ -12,7 +12,7 @@ import org.h2.message.Trace;
 import org.h2.store.DataHandler;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.TimeZoneProvider;
-import org.h2.value.Value;
+import org.h2.value.ValueLob;
 
 /**
  * A local or remote session. A session represents a database connection.
@@ -178,8 +178,9 @@ public interface SessionInterface extends CastDataProvider, Closeable {
      * Add a temporary LOB, which is closed when the session commits.
      *
      * @param v the value
+     * @return the specified value
      */
-    void addTemporaryLob(Value v);
+    ValueLob addTemporaryLob(ValueLob v);
 
     /**
      * Check if this session is remote or embedded.

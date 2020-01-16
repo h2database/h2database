@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.h2.message.DbException;
-import org.h2.value.ValueLobDb;
+import org.h2.value.ValueLob;
 
 /**
  * An input stream that reads from a remote LOB.
@@ -38,7 +38,7 @@ class LobStorageRemoteInputStream extends InputStream {
      */
     private long remainingBytes;
 
-    public LobStorageRemoteInputStream(DataHandler handler, ValueLobDb lob,
+    public LobStorageRemoteInputStream(DataHandler handler, ValueLob lob,
             byte[] hmac, long byteCount) {
         this.handler = handler;
         this.lob = lob.getLobId();

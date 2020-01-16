@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.upgrade.DbUpgrade;
 
 /**
  * The database driver. An application should not use this class directly. The
@@ -61,10 +60,6 @@ public class Driver implements java.sql.Driver, JdbcDriverBackwardsCompat {
             }
             if (url.equals(DEFAULT_URL)) {
                 return DEFAULT_CONNECTION.get();
-            }
-            Connection c = DbUpgrade.connectOrUpgrade(url, info);
-            if (c != null) {
-                return c;
             }
             return new JdbcConnection(url, info);
         } catch (Exception e) {

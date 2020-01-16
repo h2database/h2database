@@ -201,7 +201,6 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
             File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
             File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
-            File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
             File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
             File.pathSeparator + "ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar" +
             File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar" +
@@ -420,10 +419,6 @@ public class Build extends BuildBase {
     }
 
     private void downloadTest() {
-        // for TestUpgrade
-        download("ext/h2mig_pagestore_addon.jar",
-                "https://h2database.com/h2mig_pagestore_addon.jar",
-                "6dfafe1b86959c3ba4f7cf03e99535e8b9719965");
         // for TestOldVersion
         downloadUsingMaven("ext/h2-1.2.127.jar",
                 "com/h2database", "h2", "1.2.127",
@@ -976,7 +971,6 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
-                File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar" +
                 File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar" +
@@ -1154,8 +1148,7 @@ public class Build extends BuildBase {
             args = args.plus("-target", version, "-source", version);
         }
         javac(args, files);
-        String cp = "bin" + File.pathSeparator + "temp" +
-                File.pathSeparator + "ext/h2mig_pagestore_addon.jar";
+        String cp = "bin" + File.pathSeparator + "temp";
         execJava(args("-Xmx512m", "-cp", cp,
                 "-Dh2.ftpPassword=" + password,
                 "org.h2.build.doc.UploadBuild"));

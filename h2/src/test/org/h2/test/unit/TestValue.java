@@ -48,7 +48,7 @@ import org.h2.value.ValueFloat;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
-import org.h2.value.ValueLobDb;
+import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
@@ -192,14 +192,14 @@ public class TestValue extends TestDb {
             }
         };
 
-        v = ValueLobDb.createSmallLob(Value.CLOB, spaces.getBytes(), 100);
+        v = ValueLob.createSmallLob(Value.CLOB, spaces.getBytes(), 100);
         assertEquals(100, v.getType().getPrecision());
         assertEquals(10, v.convertPrecision(10).getType().getPrecision());
         assertEquals(10, v.convertPrecision(10).getString().length());
         assertEquals("          ", v.convertPrecision(10).getString());
         assertEquals(10, v.convertPrecision(10).getType().getPrecision());
 
-        v = ValueLobDb.createSmallLob(Value.BLOB, spaces.getBytes(), 100);
+        v = ValueLob.createSmallLob(Value.BLOB, spaces.getBytes(), 100);
         assertEquals(100, v.getType().getPrecision());
         assertEquals(10, v.convertPrecision(10).getType().getPrecision());
         assertEquals(10, v.convertPrecision(10).getBytes().length);
@@ -291,7 +291,7 @@ public class TestValue extends TestDb {
         testDataType(Value.NULL, Void.class);
         testDataType(Value.NUMERIC, BigDecimal.class);
         testDataType(Value.RESULT_SET, ResultSet.class);
-        testDataType(Value.BLOB, ValueLobDb.class);
+        testDataType(Value.BLOB, ValueLob.class);
         // see FIXME in DataType.getTypeFromClass
         //testDataType(Value.CLOB, Value.ValueClob.class);
         testDataType(Value.DATE, Date.class);
@@ -483,7 +483,7 @@ public class TestValue extends TestDb {
 
     private static Value createLob(DataHandler dh, int type, byte[] bytes) {
         if (dh == null) {
-            return ValueLobDb.createSmallLob(type, bytes);
+            return ValueLob.createSmallLob(type, bytes);
         }
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         if (type == Value.BLOB) {

@@ -83,8 +83,6 @@ Advanced
     Pluggable File System</a><br />
 <a href="#file_system_split">
     Split File System</a><br />
-<a href="#database_upgrade">
-    Database Upgrade</a><br />
 <a href="#java_objects_serialization">
     Java Objects Serialization</a><br />
 <a href="#limits_limitations">
@@ -1825,43 +1823,6 @@ The file name format is: <code>split:&lt;x&gt;:&lt;fileName&gt;</code> where the
 For 1 MiB block sizes, use x = 20 (because 2^20 is 1 MiB).
 The following file name means the logical file is split into 1 MiB blocks: <code>split:20:~/test.h2.db</code>.
 An example database URL for this case is <code>jdbc:h2:split:20:~/test</code>.
-</p>
-
-<h2 id="database_upgrade">Database Upgrade</h2>
-<p>
-In version 1.2, H2 introduced a new file store implementation which is incompatible to the one used in versions &lt; 1.2.
-To automatically convert databases to the new file store, it is necessary to include an additional jar file.
-The file can be found at <a href="https://h2database.com/h2mig_pagestore_addon.jar">https://h2database.com/h2mig_pagestore_addon.jar</a> .
-If this file is in the classpath, every connect to an older database will result in a conversion process.
-</p>
-<p>
-The conversion itself is done internally via <code>'script to'</code> and <code>'runscript from'</code>. After the conversion process, the files will be
-renamed from
-</p>
-<ul>
-<li><code>dbName.data.db</code> to <code>dbName.data.db.backup</code>
-</li><li><code>dbName.index.db</code> to <code>dbName.index.db.backup</code>
-</li></ul>
-<p>
-by default. Also, the temporary script will be written to the database directory instead of a temporary directory.
-Both defaults can be customized via
-</p>
-<ul>
-<li><code>org.h2.upgrade.DbUpgrade.setDeleteOldDb(boolean)</code>
-</li><li><code>org.h2.upgrade.DbUpgrade.setScriptInTmpDir(boolean)</code>
-</li></ul>
-<p>
-prior opening a database connection.
-</p>
-<p>
-Since version 1.2.140 it is possible to let the old h2 classes (v 1.2.128) connect to the database.
-The automatic upgrade .jar file must be present, and the URL must start with <code>jdbc:h2v1_1:</code>
-(the JDBC driver class is <code>org.h2.upgrade.v1_1.Driver</code>).
-If the database should automatically connect using the old version if a database with the old format exists
-(without upgrade), and use the new version otherwise, then append <code>;NO_UPGRADE=TRUE</code>
-to the database URL.
-Please note the old driver did not process the system property <code>"h2.baseDir"</code> correctly,
-so that using this setting is not supported when upgrading.
 </p>
 
 <h2 id="java_objects_serialization">Java Objects Serialization</h2>

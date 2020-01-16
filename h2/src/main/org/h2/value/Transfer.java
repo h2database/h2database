@@ -480,20 +480,14 @@ public class Transfer {
             break;
         case Value.BLOB: {
             writeInt(BLOB);
-            if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
-                if (v instanceof ValueLobDb) {
-                    ValueLobDb lob = (ValueLobDb) v;
-                    if (lob.isStored()) {
-                        writeLong(-1);
-                        writeInt(lob.getTableId());
-                        writeLong(lob.getLobId());
-                        if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
-                            writeBytes(calculateLobMac(lob.getLobId()));
-                        }
-                        writeLong(lob.getType().getPrecision());
-                        break;
-                    }
-                }
+            ValueLob lob = (ValueLob) v;
+            if (lob.isStored()) {
+                writeLong(-1);
+                writeInt(lob.getTableId());
+                writeLong(lob.getLobId());
+                writeBytes(calculateLobMac(lob.getLobId()));
+                writeLong(lob.getType().getPrecision());
+                break;
             }
             long length = v.getType().getPrecision();
             if (length < 0) {
@@ -511,20 +505,14 @@ public class Transfer {
         }
         case Value.CLOB: {
             writeInt(CLOB);
-            if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
-                if (v instanceof ValueLobDb) {
-                    ValueLobDb lob = (ValueLobDb) v;
-                    if (lob.isStored()) {
-                        writeLong(-1);
-                        writeInt(lob.getTableId());
-                        writeLong(lob.getLobId());
-                        if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
-                            writeBytes(calculateLobMac(lob.getLobId()));
-                        }
-                        writeLong(lob.getType().getPrecision());
-                        break;
-                    }
-                }
+            ValueLob lob = (ValueLob) v;
+            if (lob.isStored()) {
+                writeLong(-1);
+                writeInt(lob.getTableId());
+                writeLong(lob.getLobId());
+                writeBytes(calculateLobMac(lob.getLobId()));
+                writeLong(lob.getType().getPrecision());
+                break;
             }
             long length = v.getType().getPrecision();
             if (length < 0) {
@@ -712,20 +700,12 @@ public class Transfer {
             return ValueStringFixed.get(readString());
         case BLOB: {
             long length = readLong();
-            if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
-                if (length == -1) {
-                    int tableId = readInt();
-                    long id = readLong();
-                    byte[] hmac;
-                    if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
-                        hmac = readBytes();
-                    } else {
-                        hmac = null;
-                    }
-                    long precision = readLong();
-                    return ValueLobDb.create(
-                            Value.BLOB, session.getDataHandler(), tableId, id, hmac, precision);
-                }
+            if (length == -1) {
+                int tableId = readInt();
+                long id = readLong();
+                byte[] hmac = readBytes();
+                long precision = readLong();
+                return ValueLob.create(Value.BLOB, session.getDataHandler(), tableId, id, hmac, precision);
             }
             Value v = session.getDataHandler().getLobStorage().createBlob(in, length);
             int magic = readInt();
@@ -737,24 +717,16 @@ public class Transfer {
         }
         case CLOB: {
             long length = readLong();
-            if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
-                if (length == -1) {
-                    int tableId = readInt();
-                    long id = readLong();
-                    byte[] hmac;
-                    if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
-                        hmac = readBytes();
-                    } else {
-                        hmac = null;
-                    }
-                    long precision = readLong();
-                    return ValueLobDb.create(
-                            Value.CLOB, session.getDataHandler(), tableId, id, hmac, precision);
-                }
-                if (length < 0) {
-                    throw DbException.get(
-                            ErrorCode.CONNECTION_BROKEN_1, "length="+ length);
-                }
+            if (length == -1) {
+                int tableId = readInt();
+                long id = readLong();
+                byte[] hmac = readBytes();
+                long precision = readLong();
+                return ValueLob.create(Value.CLOB, session.getDataHandler(), tableId, id, hmac, precision);
+            }
+            if (length < 0) {
+                throw DbException.get(
+                        ErrorCode.CONNECTION_BROKEN_1, "length="+ length);
             }
             Value v = session.getDataHandler().getLobStorage().
                     createClob(new DataReader(in), length);

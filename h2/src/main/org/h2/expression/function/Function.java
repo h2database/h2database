@@ -88,6 +88,7 @@ import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueJson;
+import org.h2.value.ValueLob;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
@@ -1715,12 +1716,13 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             session.getUser().checkAdmin();
             String fileName = v0.getString();
             boolean blob = args.length == 1;
+            ValueLob lob;
             try {
                 long fileLength = FileUtils.size(fileName);
                 final InputStream in = FileUtils.newInputStream(fileName);
                 try {
                     if (blob) {
-                        result = database.getLobStorage().createBlob(in, fileLength);
+                        lob = database.getLobStorage().createBlob(in, fileLength);
                     } else {
                         Reader reader;
                         if (v1 == ValueNull.INSTANCE) {
@@ -1728,12 +1730,12 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                         } else {
                             reader = new InputStreamReader(in, v1.getString());
                         }
-                        result = database.getLobStorage().createClob(reader, fileLength);
+                        lob = database.getLobStorage().createClob(reader, fileLength);
                     }
                 } finally {
                     IOUtils.closeSilently(in);
                 }
-                session.addTemporaryLob(result);
+                result = session.addTemporaryLob(lob);
             } catch (IOException e) {
                 throw DbException.convertIOException(e, fileName);
             }

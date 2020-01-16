@@ -19,6 +19,7 @@ import org.h2.mvstore.db.MVTempResult;
 import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueLob;
 import org.h2.value.ValueRow;
 
 /**
@@ -299,11 +300,12 @@ public class LocalResult implements ResultInterface, ResultTarget {
     private void cloneLobs(Value[] values) {
         for (int i = 0; i < values.length; i++) {
             Value v = values[i];
-            Value v2 = v.copyToResult();
-            if (v2 != v) {
-                containsLobs = true;
-                session.addTemporaryLob(v2);
-                values[i] = v2;
+            if (v instanceof ValueLob) {
+                ValueLob v2 = ((ValueLob) v).copyToResult();
+                if (v2 != v) {
+                    containsLobs = true;
+                    values[i] = session.addTemporaryLob(v2);
+                }
             }
         }
     }

@@ -42,6 +42,7 @@ import org.h2.value.CompareMode;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueLob;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTimestampTimeZone;
 
@@ -167,9 +168,6 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     @Override
     public boolean hasPendingTransaction() {
-        if (clientVersion < Constants.TCP_PROTOCOL_VERSION_10) {
-            return true;
-        }
         for (int i = 0, count = 0; i < transferList.size(); i++) {
             Transfer transfer = transferList.get(i);
             try {
@@ -753,9 +751,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                 traceOperation("LOB_READ", (int) lobId);
                 transfer.writeInt(SessionRemote.LOB_READ);
                 transfer.writeLong(lobId);
-                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_12) {
-                    transfer.writeBytes(hmac);
-                }
+                transfer.writeBytes(hmac);
                 transfer.writeLong(offset);
                 transfer.writeInt(length);
                 done(transfer);
@@ -825,8 +821,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     }
 
     @Override
-    public void addTemporaryLob(Value v) {
+    public ValueLob addTemporaryLob(ValueLob v) {
         // do nothing
+        return v;
     }
 
     @Override

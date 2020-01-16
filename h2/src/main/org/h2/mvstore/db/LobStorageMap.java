@@ -27,7 +27,7 @@ import org.h2.store.RangeInputStream;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
-import org.h2.value.ValueLobDb;
+import org.h2.value.ValueLob;
 
 /**
  * This class stores LOB objects in the database, in maps. This is the back-end
@@ -141,7 +141,7 @@ public class LobStorageMap implements LobStorageInterface {
     }
 
     @Override
-    public Value createBlob(InputStream in, long maxLength) {
+    public ValueLob createBlob(InputStream in, long maxLength) {
         init();
         int type = Value.BLOB;
         try {
@@ -156,7 +156,7 @@ public class LobStorageMap implements LobStorageInterface {
                 if (len < small.length) {
                     small = Arrays.copyOf(small, len);
                 }
-                return ValueLobDb.createSmallLob(type, small);
+                return ValueLob.createSmallLob(type, small);
             }
             if (maxLength != -1) {
                 in = new RangeInputStream(in, 0L, maxLength);
@@ -170,7 +170,7 @@ public class LobStorageMap implements LobStorageInterface {
     }
 
     @Override
-    public Value createClob(Reader reader, long maxLength) {
+    public ValueLob createClob(Reader reader, long maxLength) {
         init();
         int type = Value.CLOB;
         try {
@@ -190,16 +190,16 @@ public class LobStorageMap implements LobStorageInterface {
                             "len > maxinplace, " + utf8.length + " > "
                                     + database.getMaxLengthInplaceLob());
                 }
-                return ValueLobDb.createSmallLob(type, utf8);
+                return ValueLob.createSmallLob(type, utf8);
             }
             if (maxLength < 0) {
                 maxLength = Long.MAX_VALUE;
             }
             CountingReaderInputStream in = new CountingReaderInputStream(reader,
                     maxLength);
-            ValueLobDb lob = createLob(in, type);
+            ValueLob lob = createLob(in, type);
             // the length is not correct
-            lob = ValueLobDb.create(type, database, lob.getTableId(),
+            lob = ValueLob.create(type, database, lob.getTableId(),
                     lob.getLobId(), null, in.getLength());
             return lob;
         } catch (IllegalStateException e) {
@@ -209,7 +209,7 @@ public class LobStorageMap implements LobStorageInterface {
         }
     }
 
-    private ValueLobDb createLob(InputStream in, int type) throws IOException {
+    private ValueLob createLob(InputStream in, int type) throws IOException {
         byte[] streamStoreId;
         try {
             streamStoreId = streamStore.put(in);
@@ -223,7 +223,7 @@ public class LobStorageMap implements LobStorageInterface {
         lobMap.put(lobId, value);
         Object[] key = { streamStoreId, lobId };
         refMap.put(key, Boolean.TRUE);
-        ValueLobDb lob = ValueLobDb.create(
+        ValueLob lob = ValueLob.create(
                 type, database, tableId, lobId, null, length);
         if (TRACE) {
             trace("create " + tableId + "/" + lobId);
@@ -247,7 +247,7 @@ public class LobStorageMap implements LobStorageInterface {
     }
 
     @Override
-    public ValueLobDb copyLob(ValueLobDb old, int tableId, long length) {
+    public ValueLob copyLob(ValueLob old, int tableId, long length) {
         init();
         int type = old.getValueType();
         long oldLobId = old.getLobId();
@@ -263,7 +263,7 @@ public class LobStorageMap implements LobStorageInterface {
         lobMap.put(lobId, value);
         Object[] key = { streamStoreId, lobId };
         refMap.put(key, Boolean.TRUE);
-        ValueLobDb lob = ValueLobDb.create(
+        ValueLob lob = ValueLob.create(
                 type, database, tableId, lobId, null, length);
         if (TRACE) {
             trace("copy " + old.getTableId() + "/" + old.getLobId() +
@@ -273,7 +273,7 @@ public class LobStorageMap implements LobStorageInterface {
     }
 
     @Override
-    public InputStream getInputStream(ValueLobDb lob, byte[] hmac, long byteCount)
+    public InputStream getInputStream(ValueLob lob, byte[] hmac, long byteCount)
             throws IOException {
         init();
         Object[] value = lobMap.get(lob.getLobId());
@@ -316,7 +316,7 @@ public class LobStorageMap implements LobStorageInterface {
     }
 
     @Override
-    public void removeLob(ValueLobDb lob) {
+    public void removeLob(ValueLob lob) {
         init();
         int tableId = lob.getTableId();
         long lobId = lob.getLobId();

@@ -22,6 +22,7 @@ import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.util.Utils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
+import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 
 /**
@@ -300,8 +301,8 @@ public class CommandRemote implements CommandInterface {
         try {
             for (ParameterInterface p : parameters) {
                 Value v = p.getParamValue();
-                if (v != null) {
-                    v.remove();
+                if (v instanceof ValueLob) {
+                    ((ValueLob) v).remove();
                 }
             }
         } catch (DbException e) {

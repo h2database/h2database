@@ -5,8 +5,12 @@
  */
 package org.h2.test.db;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -48,6 +52,7 @@ public class TestOpenClose extends TestDb {
         testBackup();
         testCase();
         testReconnectFast();
+        test1_1();
         deleteDb("openClose");
     }
 
@@ -222,6 +227,23 @@ public class TestOpenClose extends TestDb {
     synchronized int getNextId() {
         return nextId++;
     }
+
+    private void test1_1() throws IOException {
+        Path old = Paths.get(getBaseDir()).resolve("db" + Constants.SUFFIX_OLD_DATABASE_FILE);
+        Files.createFile(old);
+        try {
+            try {
+                DriverManager.getConnection("jdbc:h2:" + getBaseDir() + "/db");
+            } catch (SQLException e) {
+                assertEquals(ErrorCode.FILE_VERSION_ERROR_1, e.getErrorCode());
+                return;
+            }
+            fail("Old 1.1 database isn't detected");
+        } finally {
+            Files.deleteIfExists(old);
+        }
+    }
+
 
     /**
      * A database event listener used in this test.

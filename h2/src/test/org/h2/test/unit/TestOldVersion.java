@@ -89,33 +89,15 @@ public class TestOldVersion extends TestDb {
         prep.setString(3, new String(new char[100000]));
         prep.execute();
         conn.close();
-        conn = DriverManager.getConnection("jdbc:h2:" + getBaseDir() +
-                "/oldVersion", new Properties());
-        stat = conn.createStatement();
-        checkResult(stat.executeQuery("select * from test order by id"));
-        stat.execute("create table test2 as select * from test");
-        checkResult(stat.executeQuery("select * from test2 order by id"));
-        stat.execute("delete from test");
-        conn.close();
-    }
-
-    private void checkResult(ResultSet rs) throws SQLException {
-        rs.next();
-        assertEquals(0, rs.getInt(1));
-        assertEquals(null, rs.getBytes(2));
-        assertEquals(null, rs.getString(3));
-        rs.next();
-        assertEquals(1, rs.getInt(1));
-        assertEquals(new byte[0], rs.getBytes(2));
-        assertEquals("", rs.getString(3));
-        rs.next();
-        assertEquals(2, rs.getInt(1));
-        assertEquals(new byte[5], rs.getBytes(2));
-        assertEquals("\u1234\u1234\u1234\u1234\u1234", rs.getString(3));
-        rs.next();
-        assertEquals(3, rs.getInt(1));
-        assertEquals(new byte[100000], rs.getBytes(2));
-        assertEquals(new String(new char[100000]), rs.getString(3));
+        try {
+            conn = DriverManager.getConnection("jdbc:h2:" + getBaseDir() +
+                    "/oldVersion", new Properties());
+            conn.createStatement().executeQuery("select * from test");
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.FILE_VERSION_ERROR_1, e.getErrorCode());
+            return;
+        }
+        fail("Old 1.2 database isn't detected");
     }
 
     private void testOldClientNewServer() throws Exception {

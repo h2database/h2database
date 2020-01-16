@@ -269,10 +269,21 @@ public class DbException extends RuntimeException {
      *
      * @param param the name of the parameter
      * @param value the value passed
-     * @return the IllegalArgumentException object
+     * @return the exception
      */
     public static DbException getInvalidValueException(String param, Object value) {
         return get(INVALID_VALUE_2, value == null ? "null" : value.toString(), param);
+    }
+
+    /**
+     * Gets a file version exception.
+     *
+     * @param dataFileName the name of the database
+     * @return the exception
+     */
+    public static DbException getFileVersionError(String dataFileName) {
+        return DbException.get(FILE_VERSION_ERROR_1, "Old database: " + dataFileName
+                + " - please convert the database to a SQL script and re-create it.");
     }
 
     /**

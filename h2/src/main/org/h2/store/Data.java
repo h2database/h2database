@@ -909,7 +909,7 @@ public class Data {
                 return ValueLob.create(type == BLOB ? Value.BLOB : Value.CLOB, handler, tableId,
                         lobId, null, precision);
             } else {
-                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "lob type: " + smallLen);
+                throw getOldLobException(smallLen);
             }
         }
         case ARRAY:
@@ -966,6 +966,19 @@ public class Data {
                 return ValueString.get(readString(type - STRING_0_31));
             }
             throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
+        }
+    }
+
+    private DbException getOldLobException(int smallLen) {
+        if (handler == null) {
+            return DbException.get(ErrorCode.FILE_CORRUPTED_1, "lob type: " + smallLen);
+        } else {
+            String s = handler.toString();
+            int idx = s.lastIndexOf(':');
+            if (idx >= 0) {
+                s = s.substring(0, idx);
+            }
+            return DbException.getFileVersionError(s);
         }
     }
 

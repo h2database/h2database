@@ -536,7 +536,7 @@ public class Database implements DataHandler, CastDataProvider {
             boolean existsPage = FileUtils.exists(pageFileName);
             boolean existsMv = FileUtils.exists(mvFileName);
             if (existsData && (!existsPage && !existsMv)) {
-                throw getFileVersionError(dataFileName);
+                throw DbException.getFileVersionError(dataFileName);
             }
             if (existsPage && !FileUtils.canWrite(pageFileName)) {
                 readOnly = true;
@@ -701,7 +701,7 @@ public class Database implements DataHandler, CastDataProvider {
             // PageStore has problems due to changes in referential constraints
             // that lead to database corruption (#1247).
             // LOBs from 1.2.x releases are also not supported.
-            throw getFileVersionError(databaseName + Constants.SUFFIX_PAGE_FILE);
+            throw DbException.getFileVersionError(databaseName + Constants.SUFFIX_PAGE_FILE);
         }
         getLobStorage().init();
         systemSession.commit(true);
@@ -714,11 +714,6 @@ public class Database implements DataHandler, CastDataProvider {
                 setWriteDelay(writeDelay);
             }
         }
-    }
-
-    private static DbException getFileVersionError(String dataFileName) {
-        return DbException.get(ErrorCode.FILE_VERSION_ERROR_1, "Old database: " + dataFileName
-                + " - please convert the database to a SQL script and re-create it.");
     }
 
     private void executeMeta() {

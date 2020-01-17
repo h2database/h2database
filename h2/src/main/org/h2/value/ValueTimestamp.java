@@ -152,7 +152,7 @@ public class ValueTimestamp extends Value {
     }
 
     @Override
-    public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
+    public Value convertScale(CastDataProvider provider, int targetScale) {
         if (targetScale >= MAXIMUM_SCALE) {
             return this;
         }

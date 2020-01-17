@@ -1701,13 +1701,12 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
 
     /**
      * Convert the scale.
-     *
-     * @param onlyToSmallerScale if the scale should not reduced
+     * @param provider the cast information provider
      * @param targetScale the requested scale
      * @return the value
      */
     @SuppressWarnings("unused")
-    public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
+    public Value convertScale(CastDataProvider provider, int targetScale) {
         return this;
     }
 

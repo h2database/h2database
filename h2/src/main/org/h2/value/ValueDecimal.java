@@ -193,11 +193,12 @@ public class ValueDecimal extends Value {
     }
 
     @Override
-    public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
-        if (value.scale() == targetScale || onlyToSmallerScale && value.scale() < targetScale) {
+    public Value convertScale(CastDataProvider provider, int targetScale) {
+        int scale = value.scale();
+        if (scale == targetScale || scale < targetScale && provider.getMode().convertOnlyToSmallerScale) {
             return this;
         }
-        return ValueDecimal.get(ValueDecimal.setScale(value, targetScale));
+        return ValueDecimal.get(setScale(value, targetScale));
     }
 
     @Override

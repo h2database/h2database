@@ -175,7 +175,7 @@ public class ValueTimestampTimeZone extends Value {
     }
 
     @Override
-    public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
+    public Value convertScale(CastDataProvider provider, int targetScale) {
         if (targetScale >= ValueTimestamp.MAXIMUM_SCALE) {
             return this;
         }

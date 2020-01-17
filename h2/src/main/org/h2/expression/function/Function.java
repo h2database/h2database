@@ -93,6 +93,7 @@ import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
+import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
@@ -901,18 +902,19 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         case CURRENT_TIME:
             result = session.currentTimestamp().convertTo(Value.TIME_TZ, session) //
-                    .convertScale(false, v0 == null ? 0 : v0.getInt());
+                    .convertScale(session, v0 == null ? ValueTime.DEFAULT_SCALE : v0.getInt());
             break;
         case LOCALTIME:
             result = session.currentTimestamp().convertTo(Value.TIME, session) //
-                    .convertScale(false, v0 == null ? 0 : v0.getInt());
+                    .convertScale(session, v0 == null ? ValueTime.DEFAULT_SCALE : v0.getInt());
             break;
         case CURRENT_TIMESTAMP:
-            result = session.currentTimestamp().convertScale(false, v0 == null ? 6 : v0.getInt());
+            result = session.currentTimestamp()
+                    .convertScale(session, v0 == null ? ValueTimestamp.DEFAULT_SCALE : v0.getInt());
             break;
         case LOCALTIMESTAMP:
             result = session.currentTimestamp().convertTo(Value.TIMESTAMP, session) //
-                    .convertScale(false, v0 == null ? 6 : v0.getInt());
+                    .convertScale(session, v0 == null ? ValueTimestamp.DEFAULT_SCALE : v0.getInt());
             break;
         case DAY_NAME: {
             int dayOfWeek = DateTimeUtils.getSundayDayOfWeek(DateTimeUtils.dateAndTimeFromValue(v0, session)[0]);

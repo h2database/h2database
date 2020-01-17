@@ -147,7 +147,7 @@ public class ValueTimeTimeZone extends Value {
     }
 
     @Override
-    public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
+    public Value convertScale(CastDataProvider provider, int targetScale) {
         if (targetScale >= ValueTime.MAXIMUM_SCALE) {
             return this;
         }

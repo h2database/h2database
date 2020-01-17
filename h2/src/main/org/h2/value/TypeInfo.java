@@ -501,8 +501,7 @@ public class TypeInfo {
      *             if value cannot be casted to this data type
      */
     public Value cast(Value value, CastDataProvider provider, boolean convertPrecision, Object column) {
-        value = value.convertTo(this, provider, column) //
-                .convertScale(provider.getMode().convertOnlyToSmallerScale, scale);
+        value = value.convertTo(this, provider, column).convertScale(provider, scale);
         if (convertPrecision) {
             value = value.convertPrecision(precision);
         } else if (!value.checkPrecision(precision)) {

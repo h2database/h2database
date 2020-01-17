@@ -121,7 +121,7 @@ class AggregateDataDefault extends AggregateData {
     }
 
     @Override
-    Value getValue(Session session, int dataType) {
+    Value getValue(Session session) {
         Value v = null;
         switch (aggregateType) {
         case SUM:

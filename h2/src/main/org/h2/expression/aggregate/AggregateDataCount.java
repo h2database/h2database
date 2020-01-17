@@ -31,8 +31,8 @@ class AggregateDataCount extends AggregateData {
     }
 
     @Override
-    Value getValue(Session session, int dataType) {
-        return ValueLong.get(count).convertTo(dataType);
+    Value getValue(Session session) {
+        return ValueLong.get(count);
     }
 
 }

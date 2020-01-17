@@ -89,8 +89,7 @@ abstract class AggregateData {
      * Get the aggregate result.
      *
      * @param session the session
-     * @param dataType the datatype of the computed result
      * @return the value
      */
-    abstract Value getValue(Session session, int dataType);
+    abstract Value getValue(Session session);
 }

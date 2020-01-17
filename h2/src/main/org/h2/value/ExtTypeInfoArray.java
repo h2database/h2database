@@ -36,13 +36,13 @@ public final class ExtTypeInfoArray extends ExtTypeInfo {
         int length = values.length;
         for (int i = 0; i < length; i++) {
             Value v = values[i];
-            Value v2 = v.convertTo(componentType, provider, null);
+            Value v2 = v.convertTo(componentType, provider);
             if (v != v2) {
                 Value[] newValues = new Value[length];
                 System.arraycopy(values, 0, newValues, 0, i);
                 newValues[i] = v2;
                 while (++i < length) {
-                    newValues[i] = values[i].convertTo(componentType, provider, null);
+                    newValues[i] = values[i].convertTo(componentType, provider);
                 }
                 return ValueArray.get(newValues);
             }

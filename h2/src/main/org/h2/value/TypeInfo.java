@@ -8,7 +8,6 @@ package org.h2.value;
 import java.util.Objects;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
-import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 
@@ -480,48 +479,6 @@ public class TypeInfo {
      */
     public ExtTypeInfo getExtTypeInfo() {
         return extTypeInfo;
-    }
-
-    /**
-     * Casts a specified value to this data type taking precision and scale into
-     * account.
-     *
-     * @param value
-     *            value to cast
-     * @param provider
-     *            the cast information provider
-     * @param convertPrecision
-     *            if {@code true}, value is truncated to the precision of data
-     *            type when possible, if {@code false} an exception in thrown
-     *            for too large values
-     * @param column
-     *            column, or null
-     * @return casted value
-     * @throws DbException
-     *             if value cannot be casted to this data type
-     */
-    public Value cast(Value value, CastDataProvider provider, boolean convertPrecision, Object column) {
-        value = value.convertTo(this, provider, column).convertScale(provider, scale);
-        if (convertPrecision) {
-            value = value.convertPrecision(precision);
-        } else if (!value.checkPrecision(precision)) {
-            throw getValueTooLongException(value, column);
-        }
-        return value;
-    }
-
-    private DbException getValueTooLongException(Value value, Object column) {
-        String s = value.getTraceSQL();
-        if (s.length() > 127) {
-            s = s.substring(0, 128) + "...";
-        }
-        StringBuilder builder = new StringBuilder();
-        if (column != null) {
-            builder.append(column).append(' ');
-        }
-        getSQL(builder);
-        return DbException.get(ErrorCode.VALUE_TOO_LONG_2, builder.toString(),
-                s + " (" + value.getType().getPrecision() + ')');
     }
 
     /**

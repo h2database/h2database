@@ -702,15 +702,71 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     }
 
     /**
-     * Convert a value to the specified type.
+     * Convert a value to the specified type without taking scale and precision
+     * into account.
      *
-     * @param targetType the type of the returned value
-     * @param provider the cast information provider
-     * @param column the column (if any), used for to improve the error message if conversion fails
+     * @param targetType
+     *            the type of the returned value
+     * @param provider
+     *            the cast information provider
+     * @return the converted value
+     */
+    public final Value convertTo(TypeInfo targetType, CastDataProvider provider) {
+        return convertTo(targetType.getValueType(), targetType.getExtTypeInfo(), provider, null);
+    }
+
+    /**
+     * Convert a value to the specified type without taking scale and precision
+     * into account.
+     *
+     * @param targetType
+     *            the type of the returned value
+     * @param provider
+     *            the cast information provider
+     * @param column
+     *            the column, used for to improve the error message if
+     *            conversion fails
      * @return the converted value
      */
     public final Value convertTo(TypeInfo targetType, CastDataProvider provider, Object column) {
         return convertTo(targetType.getValueType(), targetType.getExtTypeInfo(), provider, column);
+    }
+
+    /**
+     * Cast a value to the specified type. The scale is set if applicable. The
+     * value is truncated to a required precision.
+     *
+     * @param targetType
+     *            the type of the returned value
+     * @param provider
+     *            the cast information provider
+     * @return the converted value
+     */
+    public final Value castTo(TypeInfo targetType, CastDataProvider provider) {
+        return convertTo(targetType.getValueType(), targetType.getExtTypeInfo(), provider, null)
+                .convertScale(provider, targetType.getScale()).convertPrecision(targetType.getPrecision());
+    }
+
+    /**
+     * Cast a value to the specified type for assignment. The scale is set if
+     * applicable. If precision is too large an exception is thrown.
+     *
+     * @param targetType
+     *            the type of the returned value
+     * @param provider
+     *            the cast information provider
+     * @param column
+     *            the column, used for to improve the error message if
+     *            conversion fails
+     * @return the converted value
+     */
+    public final Value convertForAssignTo(TypeInfo targetType, CastDataProvider provider, Object column) {
+        Value value = convertTo(targetType.getValueType(), targetType.getExtTypeInfo(), provider, column)
+                .convertScale(provider, targetType.getScale());
+        if (!value.checkPrecision(targetType.getPrecision())) {
+            throw value.getValueTooLongException(targetType, column);
+        }
+        return value;
     }
 
     /**
@@ -1611,11 +1667,25 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @param targetType Target data type.
      * @return instance of the DbException.
      */
-    DbException getDataConversionError(int targetType) {
+    final DbException getDataConversionError(int targetType) {
         DataType from = DataType.getDataType(getValueType());
         DataType to = DataType.getDataType(targetType);
         throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, (from != null ? from.name : "type=" + getValueType())
                 + " to " + (to != null ? to.name : "type=" + targetType));
+    }
+
+    private DbException getValueTooLongException(TypeInfo targetType, Object column) {
+        String s = getTraceSQL();
+        if (s.length() > 127) {
+            s = s.substring(0, 128) + "...";
+        }
+        StringBuilder builder = new StringBuilder();
+        if (column != null) {
+            builder.append(column).append(' ');
+        }
+        targetType.getSQL(builder);
+        return DbException.get(ErrorCode.VALUE_TOO_LONG_2, builder.toString(),
+                s + " (" + getType().getPrecision() + ')');
     }
 
     /**

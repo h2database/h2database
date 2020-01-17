@@ -103,10 +103,10 @@ public class BinaryOperation extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        Value l = left.getValue(session).convertTo(type, session, null);
+        Value l = left.getValue(session).convertTo(type, session);
         Value r = right.getValue(session);
         if (convertRight) {
-            r = r.convertTo(type, session, null);
+            r = r.convertTo(type, session);
         }
         switch (opType) {
         case PLUS:

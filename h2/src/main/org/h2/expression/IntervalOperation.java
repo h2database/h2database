@@ -259,7 +259,7 @@ public class IntervalOperation extends Expression {
                 result = IntervalUtils.intervalFromAbsolute(IntervalQualifier.DAY_TO_SECOND, diff);
             }
             if (forcedType != null) {
-                result = forcedType.cast(result, session, true, null);
+                result = result.castTo(forcedType, session);
             }
             return result;
         }

@@ -125,7 +125,7 @@ public class TableFunction extends Function {
                         Column c = columns[j];
                         v = l[row];
                         if (!unnest) {
-                            v = c.getType().cast(v, session, true, c);
+                            v = v.convertForAssignTo(c.getType(), session, c);
                         }
                     }
                     r[j] = v;

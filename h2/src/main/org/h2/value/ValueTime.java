@@ -173,13 +173,13 @@ public class ValueTime extends Value {
 
     @Override
     public Value add(Value v) {
-        ValueTime t = (ValueTime) v.convertTo(Value.TIME);
+        ValueTime t = (ValueTime) v;
         return ValueTime.fromNanos(nanos + t.getNanos());
     }
 
     @Override
     public Value subtract(Value v) {
-        ValueTime t = (ValueTime) v.convertTo(Value.TIME);
+        ValueTime t = (ValueTime) v;
         return ValueTime.fromNanos(nanos - t.getNanos());
     }
 

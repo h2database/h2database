@@ -670,7 +670,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 }
             }
         }
-        return v.convertTo(type.getValueType());
+        return v;
     }
 
     @Override

@@ -217,7 +217,7 @@ public class ValueTimestamp extends Value {
 
     @Override
     public Value add(Value v) {
-        ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
+        ValueTimestamp t = (ValueTimestamp) v;
         long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(dateValue)
                 + DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
         long nanos = timeNanos + t.timeNanos;
@@ -230,7 +230,7 @@ public class ValueTimestamp extends Value {
 
     @Override
     public Value subtract(Value v) {
-        ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
+        ValueTimestamp t = (ValueTimestamp) v;
         long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(dateValue)
                 - DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
         long nanos = timeNanos - t.timeNanos;

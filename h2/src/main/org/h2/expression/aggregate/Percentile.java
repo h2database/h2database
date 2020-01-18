@@ -134,7 +134,7 @@ final class Percentile {
         }
         Value v = array[rowIdx1];
         if (!interpolate) {
-            return v.convertTo(dataType);
+            return v;
         }
         return interpolate(v, array[rowIdx2], factor, dataType, session, compareMode);
     }
@@ -245,13 +245,13 @@ final class Percentile {
             }
             return interpolate(v, v2, factor, dataType, session, session.getDatabase().getCompareMode());
         }
-        return v.convertTo(dataType);
+        return v;
     }
 
     private static Value interpolate(Value v0, Value v1, BigDecimal factor, int dataType, Session session,
             CompareMode compareMode) {
         if (v0.compareTo(v1, session, compareMode) == 0) {
-            return v0.convertTo(dataType);
+            return v0;
         }
         switch (dataType) {
         case Value.TINYINT:
@@ -270,14 +270,13 @@ final class Percentile {
                     interpolateDecimal(
                             BigDecimal.valueOf(v0.getDouble()), BigDecimal.valueOf(v1.getDouble()), factor));
         case Value.TIME: {
-            ValueTime t0 = (ValueTime) v0.convertTo(Value.TIME), t1 = (ValueTime) v1.convertTo(Value.TIME);
+            ValueTime t0 = (ValueTime) v0, t1 = (ValueTime) v1;
             BigDecimal n0 = BigDecimal.valueOf(t0.getNanos());
             BigDecimal n1 = BigDecimal.valueOf(t1.getNanos());
             return ValueTime.fromNanos(interpolateDecimal(n0, n1, factor).longValue());
         }
         case Value.TIME_TZ: {
-            ValueTimeTimeZone t0 = (ValueTimeTimeZone) v0.convertTo(Value.TIME_TZ),
-                    t1 = (ValueTimeTimeZone) v1.convertTo(Value.TIME_TZ);
+            ValueTimeTimeZone t0 = (ValueTimeTimeZone) v0, t1 = (ValueTimeTimeZone) v1;
             BigDecimal n0 = BigDecimal.valueOf(t0.getNanos());
             BigDecimal n1 = BigDecimal.valueOf(t1.getNanos());
             BigDecimal offset = BigDecimal.valueOf(t0.getTimeZoneOffsetSeconds())
@@ -301,15 +300,14 @@ final class Percentile {
             return ValueTimeTimeZone.fromNanos(timeNanos, intOffset);
         }
         case Value.DATE: {
-            ValueDate d0 = v0.convertToDate(session), d1 = v1.convertToDate(session);
+            ValueDate d0 = (ValueDate) v0, d1 = (ValueDate) v1;
             BigDecimal a0 = BigDecimal.valueOf(DateTimeUtils.absoluteDayFromDateValue(d0.getDateValue()));
             BigDecimal a1 = BigDecimal.valueOf(DateTimeUtils.absoluteDayFromDateValue(d1.getDateValue()));
             return ValueDate.fromDateValue(
                     DateTimeUtils.dateValueFromAbsoluteDay(interpolateDecimal(a0, a1, factor).longValue()));
         }
         case Value.TIMESTAMP: {
-            ValueTimestamp ts0 = (ValueTimestamp) v0.convertTo(Value.TIMESTAMP),
-                    ts1 = (ValueTimestamp) v1.convertTo(Value.TIMESTAMP);
+            ValueTimestamp ts0 = (ValueTimestamp) v0, ts1 = (ValueTimestamp) v1;
             BigDecimal a0 = timestampToDecimal(ts0.getDateValue(), ts0.getTimeNanos());
             BigDecimal a1 = timestampToDecimal(ts1.getDateValue(), ts1.getTimeNanos());
             BigInteger[] dr = interpolateDecimal(a0, a1, factor).toBigInteger()
@@ -324,8 +322,7 @@ final class Percentile {
                     DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay), timeNanos);
         }
         case Value.TIMESTAMP_TZ: {
-            ValueTimestampTimeZone ts0 = (ValueTimestampTimeZone) v0.convertTo(Value.TIMESTAMP_TZ),
-                    ts1 = (ValueTimestampTimeZone) v1.convertTo(Value.TIMESTAMP_TZ);
+            ValueTimestampTimeZone ts0 = (ValueTimestampTimeZone) v0, ts1 = (ValueTimestampTimeZone) v1;
             BigDecimal a0 = timestampToDecimal(ts0.getDateValue(), ts0.getTimeNanos());
             BigDecimal a1 = timestampToDecimal(ts1.getDateValue(), ts1.getTimeNanos());
             BigDecimal offset = BigDecimal.valueOf(ts0.getTimeZoneOffsetSeconds())
@@ -367,7 +364,7 @@ final class Percentile {
                                     .toBigInteger());
         default:
             // Use the same rules as PERCENTILE_DISC
-            return (factor.compareTo(HALF) > 0 ? v1 : v0).convertTo(dataType);
+            return (factor.compareTo(HALF) > 0 ? v1 : v0);
         }
     }
 

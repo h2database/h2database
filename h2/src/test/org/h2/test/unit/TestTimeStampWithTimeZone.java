@@ -185,11 +185,11 @@ public class TestTimeStampWithTimeZone extends TestDb {
 
     private void testConversionsImpl(String timeStr, boolean testReverse, CastDataProvider provider) {
         ValueTimestamp ts = ValueTimestamp.parse(timeStr, null);
-        ValueDate d = (ValueDate) ts.convertTo(Value.DATE, provider);
+        ValueDate d = ts.convertToDate(provider);
         ValueTime t = (ValueTime) ts.convertTo(Value.TIME, provider);
         ValueTimestampTimeZone tstz = ValueTimestampTimeZone.parse(timeStr, null);
         assertEquals(ts, tstz.convertTo(Value.TIMESTAMP, provider));
-        assertEquals(d, tstz.convertTo(Value.DATE, provider));
+        assertEquals(d, tstz.convertToDate(provider));
         assertEquals(t, tstz.convertTo(Value.TIME, provider));
         assertEquals(LegacyDateTimeUtils.toTimestamp(provider, null, ts),
                 LegacyDateTimeUtils.toTimestamp(provider, null, tstz));

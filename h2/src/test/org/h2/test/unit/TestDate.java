@@ -450,8 +450,8 @@ public class TestDate extends TestBase {
             ValueTimestamp ts2 = ValueTimestamp.parse("19999-08-07 13:14:15.16", null);
             ValueTime t1 = (ValueTime) ts1.convertTo(Value.TIME);
             ValueTime t2 = (ValueTime) ts2.convertTo(Value.TIME);
-            ValueDate d1 = (ValueDate) ts1.convertTo(Value.DATE);
-            ValueDate d2 = (ValueDate) ts2.convertTo(Value.DATE);
+            ValueDate d1 = ts1.convertToDate(null);
+            ValueDate d2 = ts2.convertToDate(null);
             assertEquals("-0999-08-07 13:14:15.16", ts1.getString());
             assertEquals("-0999-08-07", d1.getString());
             assertEquals("13:14:15.16", t1.getString());

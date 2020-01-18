@@ -191,10 +191,8 @@ public class IndexCursor implements Cursor {
             // if an object needs to overlap with both a and b,
             // then it needs to overlap with the union of a and b
             // (not the intersection)
-            ValueGeometry vg = (ValueGeometry) row.getValue(columnId).
-                    convertTo(Value.GEOMETRY);
-            v = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).
-                    getEnvelopeUnion(vg);
+            ValueGeometry vg = row.getValue(columnId).convertToGeometry(null);
+            v = v.convertToGeometry(null).getEnvelopeUnion(vg);
         }
         if (columnId == SearchRow.ROWID_INDEX) {
             row.setKey(v.getLong());

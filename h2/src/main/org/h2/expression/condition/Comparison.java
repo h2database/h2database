@@ -24,7 +24,6 @@ import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
-import org.h2.value.ValueGeometry;
 import org.h2.value.ValueNull;
 
 /**
@@ -336,9 +335,7 @@ public class Comparison extends Condition {
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                 result = ValueNull.INSTANCE;
             } else {
-                ValueGeometry lg = (ValueGeometry) l.convertTo(Value.GEOMETRY);
-                ValueGeometry rg = (ValueGeometry) r.convertTo(Value.GEOMETRY);
-                result = ValueBoolean.get(lg.intersectsBoundingBox(rg));
+                result = ValueBoolean.get(l.convertToGeometry(null).intersectsBoundingBox(r.convertToGeometry(null)));
             }
             break;
         }

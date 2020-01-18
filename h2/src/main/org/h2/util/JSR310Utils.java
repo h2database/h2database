@@ -61,7 +61,7 @@ public class JSR310Utils {
      * @return the LocalDate
      */
     public static Object valueToLocalDate(Value value, CastDataProvider provider) {
-        long dateValue = ((ValueDate) value.convertTo(Value.DATE, provider)).getDateValue();
+        long dateValue = value.convertToDate(provider).getDateValue();
         if (dateValue > MAX_DATE_VALUE) {
             dateValue = MAX_DATE_VALUE;
         } else if (dateValue < MIN_DATE_VALUE) {

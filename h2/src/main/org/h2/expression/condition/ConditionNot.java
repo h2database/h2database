@@ -37,7 +37,7 @@ public class ConditionNot extends Condition {
         if (v == ValueNull.INSTANCE) {
             return v;
         }
-        return v.convertTo(Value.BOOLEAN).negate();
+        return v.convertToBoolean().negate();
     }
 
     @Override

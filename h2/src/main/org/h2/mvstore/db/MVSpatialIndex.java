@@ -267,8 +267,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
     private SpatialKey getKey(SearchRow row) {
         Value v = row.getValue(columnIds[0]);
         double[] env;
-        if (v == ValueNull.INSTANCE ||
-                (env = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getEnvelopeNoCopy()) == null) {
+        if (v == ValueNull.INSTANCE || (env = v.convertToGeometry(null).getEnvelopeNoCopy()) == null) {
             return new SpatialKey(row.getKey());
         }
         return new SpatialKey(row.getKey(),

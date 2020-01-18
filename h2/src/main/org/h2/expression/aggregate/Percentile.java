@@ -301,7 +301,7 @@ final class Percentile {
             return ValueTimeTimeZone.fromNanos(timeNanos, intOffset);
         }
         case Value.DATE: {
-            ValueDate d0 = (ValueDate) v0.convertTo(Value.DATE), d1 = (ValueDate) v1.convertTo(Value.DATE);
+            ValueDate d0 = v0.convertToDate(session), d1 = v1.convertToDate(session);
             BigDecimal a0 = BigDecimal.valueOf(DateTimeUtils.absoluteDayFromDateValue(d0.getDateValue()));
             BigDecimal a1 = BigDecimal.valueOf(DateTimeUtils.absoluteDayFromDateValue(d1.getDateValue()));
             return ValueDate.fromDateValue(

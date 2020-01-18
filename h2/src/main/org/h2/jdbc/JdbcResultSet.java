@@ -65,7 +65,6 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueResultSet;
 import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 
@@ -1069,7 +1068,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public byte[] getBytes(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getBytes", columnIndex);
-            return get(columnIndex).convertTo(Value.VARBINARY, conn).getBytes();
+            return get(columnIndex).convertTo(Value.VARBINARY).getBytes();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1087,7 +1086,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public byte[] getBytes(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getBytes", columnLabel);
-            return get(columnLabel).convertTo(Value.VARBINARY, conn).getBytes();
+            return get(columnLabel).convertTo(Value.VARBINARY).getBytes();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3998,7 +3997,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else if (type == ResultSet.class) {
             int id = getNextId(TraceObject.RESULT_SET);
             return (T) new JdbcResultSet(conn, null, null,
-                    ((ValueResultSet) value.convertTo(Value.RESULT_SET)).getResult(), id, false, true, false);
+                    value.convertToResultSet().getResult(), id, false, true, false);
         } else if (type == Interval.class) {
             if (!(value instanceof ValueInterval)) {
                 value = value.convertTo(Value.INTERVAL_DAY_TO_SECOND);
@@ -4006,7 +4005,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             ValueInterval v = (ValueInterval) value;
             return (T) new Interval(v.getQualifier(), false, v.getLeading(), v.getRemaining());
         } else if (DataType.isGeometryClass(type)) {
-            return (T) value.convertTo(Value.GEOMETRY).getObject();
+            return (T) value.convertToGeometry(null).getObject();
         } else if (type == LocalDate.class) {
             return (T) JSR310Utils.valueToLocalDate(value, conn);
         } else if (type == LocalTime.class) {

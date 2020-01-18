@@ -385,9 +385,9 @@ public class WindowFunction extends DataAnalysisOperation {
             Value v = ordered.get(i)[0];
             if (v != ValueNull.INSTANCE) {
                 if (value == null) {
-                    value = v.convertTo(Value.DOUBLE);
+                    value = v.convertToDouble();
                 } else {
-                    value = value.add(v.convertTo(Value.DOUBLE));
+                    value = value.add(v.convertToDouble());
                 }
             }
         }
@@ -402,7 +402,7 @@ public class WindowFunction extends DataAnalysisOperation {
             } else {
                 v = row[0];
                 if (v != ValueNull.INSTANCE) {
-                    v = v.convertTo(Value.DOUBLE).divide(value, ValueDouble.PRECISION);
+                    v = v.convertToDouble().divide(value, ValueDouble.PRECISION);
                 }
             }
             result.put(row[rowIdColumn].getInt(), v);

@@ -398,15 +398,14 @@ public class TestValue extends TestDb {
 
         UUID origUUID = UUID.fromString(uuidStr);
         ValueJavaObject valObj = ValueJavaObject.getNoCopy(origUUID, null, null);
-        Value valUUID = valObj.convertTo(Value.UUID);
-        assertTrue(valUUID instanceof ValueUuid);
+        ValueUuid valUUID = valObj.convertToUuid();
         assertTrue(valUUID.getString().equals(uuidStr));
         assertTrue(valUUID.getObject().equals(origUUID));
 
         ValueJavaObject voString = ValueJavaObject.getNoCopy(
                 new String("This is not a ValueUuid object"), null, null);
         try {
-            voString.convertTo(Value.UUID);
+            voString.convertToUuid();
             fail();
         } catch (DbException expected) {
         }

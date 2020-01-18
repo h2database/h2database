@@ -61,7 +61,7 @@ class AggregateDataEnvelope extends AggregateData {
         if (v == ValueNull.INSTANCE) {
             return;
         }
-        envelope = GeometryUtils.union(envelope, ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getEnvelopeNoCopy());
+        envelope = GeometryUtils.union(envelope, v.convertToGeometry(null).getEnvelopeNoCopy());
     }
 
     @Override

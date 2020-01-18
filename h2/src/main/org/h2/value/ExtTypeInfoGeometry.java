@@ -52,9 +52,9 @@ public final class ExtTypeInfoGeometry extends ExtTypeInfo {
     }
 
     @Override
-    public Value cast(Value value, CastDataProvider provider) {
+    public ValueGeometry cast(Value value, CastDataProvider provider) {
         if (value.getValueType() != Value.GEOMETRY) {
-            value = value.convertTo(Value.GEOMETRY);
+            value = value.convertToGeometry(null);
         }
         ValueGeometry g = (ValueGeometry) value;
         if (type != 0 && g.getTypeAndDimensionSystem() != type || srid != null && g.getSRID() != srid) {

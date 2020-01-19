@@ -901,20 +901,22 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = session.currentTimestamp().convertToDate(session);
             break;
         case CURRENT_TIME:
-            result = session.currentTimestamp().convertTo(TypeInfo.TYPE_TIME_TZ, session) //
-                    .convertScale(session, v0 == null ? ValueTime.DEFAULT_SCALE : v0.getInt());
+            result = session.currentTimestamp().castTo(
+                    TypeInfo.getTypeInfo(Value.TIME_TZ, 0L, v0 == null ? ValueTime.DEFAULT_SCALE : v0.getInt(), null),
+                    session);
             break;
         case LOCALTIME:
-            result = session.currentTimestamp().convertTo(TypeInfo.TYPE_TIME, session) //
-                    .convertScale(session, v0 == null ? ValueTime.DEFAULT_SCALE : v0.getInt());
+            result = session.currentTimestamp().castTo(
+                    TypeInfo.getTypeInfo(Value.TIME, 0L, v0 == null ? ValueTime.DEFAULT_SCALE : v0.getInt(), null),
+                    session);
             break;
         case CURRENT_TIMESTAMP:
-            result = session.currentTimestamp()
-                    .convertScale(session, v0 == null ? ValueTimestamp.DEFAULT_SCALE : v0.getInt());
+            result = session.currentTimestamp().castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP_TZ, 0L,
+                    v0 == null ? ValueTimestamp.DEFAULT_SCALE : v0.getInt(), null), session);
             break;
         case LOCALTIMESTAMP:
-            result = session.currentTimestamp().convertTo(TypeInfo.TYPE_TIMESTAMP, session) //
-                    .convertScale(session, v0 == null ? ValueTimestamp.DEFAULT_SCALE : v0.getInt());
+            result = session.currentTimestamp().castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L,
+                    v0 == null ? ValueTimestamp.DEFAULT_SCALE : v0.getInt(), null), session);
             break;
         case DAY_NAME: {
             int dayOfWeek = DateTimeUtils.getSundayDayOfWeek(DateTimeUtils.dateAndTimeFromValue(v0, session)[0]);

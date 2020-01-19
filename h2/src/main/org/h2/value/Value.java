@@ -825,7 +825,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case BIGINT:
             return convertToBigint(column);
         case NUMERIC:
-            return convertToDecimal(targetType, provider, conversionMode, column);
+            return convertToNumeric(targetType, provider, conversionMode, column);
         case DOUBLE:
             return convertToDouble();
         case REAL:
@@ -1172,7 +1172,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
     }
 
-    private Value convertToDecimal(TypeInfo targetType, CastDataProvider provider, int conversionMode, Object column) {
+    private Value convertToNumeric(TypeInfo targetType, CastDataProvider provider, int conversionMode, Object column) {
         Value v;
         switch (getValueType()) {
         case NUMERIC:
@@ -1218,7 +1218,12 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             }
         }
         if (conversionMode != CONVERT_TO) {
-            v = v.convertScale(provider, targetType.getScale());
+            int targetScale = targetType.getScale();
+            BigDecimal value = v.getBigDecimal();
+            int scale = value.scale();
+            if (scale != targetScale && (scale >= targetScale || !provider.getMode().convertOnlyToSmallerScale)) {
+                v = ValueDecimal.get(ValueDecimal.setScale(value, targetScale));
+            }
             if (conversionMode == CAST_TO) {
                 v = v.convertPrecision(targetType.getPrecision());
             } else if (!v.checkPrecision(targetType.getPrecision())) {
@@ -1356,11 +1361,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         return ValueDate.parse(getString().trim());
     }
 
-    private Value convertToTime(TypeInfo targetType, CastDataProvider provider, int conversionMode) {
-        Value v;
+    private ValueTime convertToTime(TypeInfo targetType, CastDataProvider provider, int conversionMode) {
+        ValueTime v;
         switch (getValueType()) {
         case TIME:
-            v = this;
+            v = (ValueTime) this;
             break;
         case TIME_TZ:
             v = ValueTime.fromNanos(getLocalTimeNanos(provider));
@@ -1387,16 +1392,23 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             throw getDataConversionError(TIME);
         }
         if (conversionMode != CONVERT_TO) {
-            v = v.convertScale(provider, targetType.getScale());
+            int targetScale = targetType.getScale();
+            if (targetScale < ValueTime.MAXIMUM_SCALE) {
+                long n = v.getNanos();
+                long n2 = DateTimeUtils.convertScale(n, targetScale, DateTimeUtils.NANOS_PER_DAY);
+                if (n2 != n) {
+                    v = ValueTime.fromNanos(n2);
+                }
+            }
         }
         return v;
     }
 
-    private Value convertToTimeTimeZone(TypeInfo targetType, CastDataProvider provider, int conversionMode) {
-        Value v;
+    private ValueTimeTimeZone convertToTimeTimeZone(TypeInfo targetType, CastDataProvider provider, int conversionMode) {
+        ValueTimeTimeZone v;
         switch (getValueType()) {
         case TIME_TZ:
-            v = this;
+            v = (ValueTimeTimeZone) this;
             break;
         case TIME:
             v = ValueTimeTimeZone.fromNanos(((ValueTime) this).getNanos(),
@@ -1422,16 +1434,23 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             throw getDataConversionError(TIME_TZ);
         }
         if (conversionMode != CONVERT_TO) {
-            v = v.convertScale(provider, targetType.getScale());
+            int targetScale = targetType.getScale();
+            if (targetScale < ValueTime.MAXIMUM_SCALE) {
+                long n = v.getNanos();
+                long n2 = DateTimeUtils.convertScale(n, targetScale, DateTimeUtils.NANOS_PER_DAY);
+                if (n2 != n) {
+                    v = ValueTimeTimeZone.fromNanos(n2, v.getTimeZoneOffsetSeconds());
+                }
+            }
         }
         return v;
     }
 
-    private Value convertToTimestamp(TypeInfo targetType, CastDataProvider provider, int conversionMode) {
-        Value v;
+    private ValueTimestamp convertToTimestamp(TypeInfo targetType, CastDataProvider provider, int conversionMode) {
+        ValueTimestamp v;
         switch (getValueType()) {
         case TIMESTAMP:
-            v = this;
+            v = (ValueTimestamp) this;
             break;
         case TIME:
             v = ValueTimestamp.fromDateValueAndNanos(provider.currentTimestamp().getDateValue(),
@@ -1461,7 +1480,19 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             throw getDataConversionError(TIMESTAMP);
         }
         if (conversionMode != CONVERT_TO) {
-            v = v.convertScale(provider, targetType.getScale());
+            int targetScale = targetType.getScale();
+            if (targetScale < ValueTimestamp.MAXIMUM_SCALE) {
+                long dv = v.getDateValue(), n = v.getTimeNanos();
+                long n2 = DateTimeUtils.convertScale(n, targetScale,
+                        dv == DateTimeUtils.MAX_DATE_VALUE ? DateTimeUtils.NANOS_PER_DAY : Long.MAX_VALUE);
+                if (n2 != n) {
+                    if (n2 >= DateTimeUtils.NANOS_PER_DAY) {
+                        n2 -= DateTimeUtils.NANOS_PER_DAY;
+                        dv = DateTimeUtils.incrementDateValue(dv);
+                    }
+                    v = ValueTimestamp.fromDateValueAndNanos(dv, n2);
+                }
+            }
         }
         return v;
     }
@@ -1473,11 +1504,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                 (ts.getTimeZoneOffsetSeconds() - localOffset) * DateTimeUtils.NANOS_PER_DAY);
     }
 
-    private Value convertToTimestampTimeZone(TypeInfo targetType, CastDataProvider provider, int conversionMode) {
-        Value v;
+    private ValueTimestampTimeZone convertToTimestampTimeZone(TypeInfo targetType, CastDataProvider provider, int conversionMode) {
+        ValueTimestampTimeZone v;
         switch (getValueType()) {
         case TIMESTAMP_TZ:
-            v = this;
+            v = (ValueTimestampTimeZone) this;
             break;
         case TIME: {
             long dateValue = provider.currentTimestamp().getDateValue();
@@ -1513,7 +1544,20 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             throw getDataConversionError(TIMESTAMP_TZ);
         }
         if (conversionMode != CONVERT_TO) {
-            v = v.convertScale(provider, targetType.getScale());
+            int targetScale = targetType.getScale();
+            if (targetScale < ValueTimestamp.MAXIMUM_SCALE) {
+                long dv = v.getDateValue();
+                long n = v.getTimeNanos();
+                long n2 = DateTimeUtils.convertScale(n, targetScale,
+                        dv == DateTimeUtils.MAX_DATE_VALUE ? DateTimeUtils.NANOS_PER_DAY : Long.MAX_VALUE);
+                if (n2 != n) {
+                    if (n2 >= DateTimeUtils.NANOS_PER_DAY) {
+                        n2 -= DateTimeUtils.NANOS_PER_DAY;
+                        dv = DateTimeUtils.incrementDateValue(dv);
+                    }
+                    v = ValueTimestampTimeZone.fromDateValueAndNanos(dv, n2, v.getTimeZoneOffsetSeconds());
+                }
+            }
         }
         return v;
     }
@@ -1846,15 +1890,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                 0L);
     }
 
-    private Value convertToIntervalDayTime(TypeInfo targetType, int conversionMode, Object column) {
-        Value v = convertToIntervalDayTime(targetType.getValueType(), column);
+    private ValueInterval convertToIntervalDayTime(TypeInfo targetType, int conversionMode, Object column) {
+        ValueInterval v = convertToIntervalDayTime(targetType.getValueType(), column);
         if (conversionMode != CONVERT_TO) {
-            v = v.convertScale(null, targetType.getScale());
-            if (conversionMode == CAST_TO) {
-                v = v.convertPrecision(targetType.getPrecision());
-            } else if (!v.checkPrecision(targetType.getPrecision())) {
-                throw v.getValueTooLongException(targetType, column);
-            }
+            v = v.setPrecisionAndScale(targetType, column);
         }
         return v;
     }
@@ -2175,17 +2214,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      */
     public boolean containsNull() {
         return false;
-    }
-
-    /**
-     * Convert the scale.
-     * @param provider the cast information provider
-     * @param targetScale the requested scale
-     * @return the value
-     */
-    @SuppressWarnings("unused")
-    public Value convertScale(CastDataProvider provider, int targetScale) {
-        return this;
     }
 
     /**

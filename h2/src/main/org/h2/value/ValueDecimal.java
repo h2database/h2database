@@ -193,15 +193,6 @@ public class ValueDecimal extends Value {
     }
 
     @Override
-    public Value convertScale(CastDataProvider provider, int targetScale) {
-        int scale = value.scale();
-        if (scale == targetScale || scale < targetScale && provider.getMode().convertOnlyToSmallerScale) {
-            return this;
-        }
-        return ValueDecimal.get(setScale(value, targetScale));
-    }
-
-    @Override
     public Value convertPrecision(long precision) {
         int p = MathUtils.convertLongToInt(precision);
         if (value.precision() <= p) {

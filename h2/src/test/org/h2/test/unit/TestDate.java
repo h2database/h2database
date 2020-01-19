@@ -237,30 +237,28 @@ public class TestDate extends TestBase {
         assertEquals("2001-01-01 01:01:01.123456789",
                 t1.getString());
         assertEquals("2001-01-01 01:01:01.123456789",
-                t1.convertScale(provider, 10).getString());
-        assertEquals("2001-01-01 01:01:01.123456789",
-                t1.convertScale(provider, 9).getString());
+                t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 9, null), provider).getString());
         assertEquals("2001-01-01 01:01:01.12345679",
-                t1.convertScale(provider, 8).getString());
+                t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 8, null), provider).getString());
         assertEquals("2001-01-01 01:01:01.1234568",
-                t1.convertScale(provider, 7).getString());
+                t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 7, null), provider).getString());
         assertEquals("2001-01-01 01:01:01.123457",
-                t1.convertScale(provider, 6).getString());
+                t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 6, null), provider).getString());
         assertEquals("2001-01-01 01:01:01.12346",
-                t1.convertScale(provider, 5).getString());
+                t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 5, null), provider).getString());
         assertEquals("2001-01-01 01:01:01.1235",
-                t1.convertScale(provider, 4).getString());
+                t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 4, null), provider).getString());
         assertEquals("2001-01-01 01:01:01.123",
-                t1.convertScale(provider, 3).getString());
+                t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 3, null), provider).getString());
         assertEquals("2001-01-01 01:01:01.12",
-                t1.convertScale(provider, 2).getString());
+                t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 2, null), provider).getString());
         assertEquals("2001-01-01 01:01:01.1",
-                t1.convertScale(provider, 1).getString());
+                t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 1, null), provider).getString());
         assertEquals("2001-01-01 01:01:01",
-                t1.convertScale(provider, 0).getString());
+                t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 0, null), provider).getString());
         t1 = ValueTimestamp.parse("-2001-01-01 01:01:01.123456789", null);
         assertEquals("-2001-01-01 01:01:01.123457",
-                t1.convertScale(provider, 6).getString());
+                t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 6, null), provider).getString());
         // classes do not match
         assertFalse(ValueTimestamp.parse("2001-01-01", null).
                 equals(ValueDate.parse("2001-01-01")));

@@ -193,42 +193,42 @@ public class ValueInterval extends Value {
         return true;
     }
 
-    @Override
-    public Value convertScale(CastDataProvider provider, int targetScale) {
-        if (targetScale >= MAXIMUM_SCALE) {
-            return this;
+    ValueInterval setPrecisionAndScale(TypeInfo targetType, Object column) {
+        int targetScale = targetType.getScale();
+        ValueInterval v = this;
+        convertScale: if (targetScale < ValueInterval.MAXIMUM_SCALE) {
+            long range;
+            switch (valueType) {
+            case INTERVAL_SECOND:
+                range = NANOS_PER_SECOND;
+                break;
+            case INTERVAL_DAY_TO_SECOND:
+                range = NANOS_PER_DAY;
+                break;
+            case INTERVAL_HOUR_TO_SECOND:
+                range = NANOS_PER_HOUR;
+                break;
+            case INTERVAL_MINUTE_TO_SECOND:
+                range = NANOS_PER_MINUTE;
+                break;
+            default:
+                break convertScale;
+            }
+            long l = leading;
+            long r = DateTimeUtils.convertScale(remaining, targetScale,
+                    l == 999_999_999_999_999_999L ? range : Long.MAX_VALUE);
+            if (r != remaining) {
+                if (r >= range) {
+                    l++;
+                    r -= range;
+                }
+                v = ValueInterval.from(v.getQualifier(), v.isNegative(), l, r);
+            }
         }
-        if (targetScale < 0) {
-            throw DbException.getInvalidValueException("scale", targetScale);
+        if (!v.checkPrecision(targetType.getPrecision())) {
+            throw v.getValueTooLongException(targetType, column);
         }
-        long range;
-        switch (valueType) {
-        case INTERVAL_SECOND:
-            range = NANOS_PER_SECOND;
-            break;
-        case INTERVAL_DAY_TO_SECOND:
-            range = NANOS_PER_DAY;
-            break;
-        case INTERVAL_HOUR_TO_SECOND:
-            range = NANOS_PER_HOUR;
-            break;
-        case INTERVAL_MINUTE_TO_SECOND:
-            range = NANOS_PER_MINUTE;
-            break;
-        default:
-            return this;
-        }
-        long l = leading;
-        long r = DateTimeUtils.convertScale(remaining, targetScale,
-                l == 999_999_999_999_999_999L ? range : Long.MAX_VALUE);
-        if (r == remaining) {
-            return this;
-        }
-        if (r >= range) {
-            l++;
-            r -= range;
-        }
-        return from(getQualifier(), negative, l, r);
+        return v;
     }
 
     @Override

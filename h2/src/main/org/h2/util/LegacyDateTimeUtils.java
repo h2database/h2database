@@ -14,6 +14,7 @@ import java.sql.Timestamp;
 import java.util.TimeZone;
 
 import org.h2.engine.CastDataProvider;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueNull;
@@ -174,7 +175,7 @@ public final class LegacyDateTimeUtils {
         case Value.NULL:
             return null;
         default:
-            value = value.convertTo(Value.TIME, provider);
+            value = value.convertTo(TypeInfo.TYPE_TIME, provider);
             //$FALL-THROUGH$
         case Value.TIME:
             return new Time(
@@ -196,7 +197,7 @@ public final class LegacyDateTimeUtils {
         case Value.NULL:
             return null;
         default:
-            value = value.convertTo(Value.TIMESTAMP, provider);
+            value = value.convertTo(TypeInfo.TYPE_TIMESTAMP, provider);
             //$FALL-THROUGH$
         case Value.TIMESTAMP: {
             ValueTimestamp v = (ValueTimestamp) value;

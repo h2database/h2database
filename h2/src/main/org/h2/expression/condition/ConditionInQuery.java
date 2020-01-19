@@ -66,7 +66,7 @@ public class ConditionInQuery extends PredicateWithSubquery {
         }
         int columnCount = query.getColumnCount();
         if (columnCount != 1) {
-            l = l.convertTo(Value.ROW);
+            l = l.convertTo(TypeInfo.TYPE_ROW);
             Value[] leftValue = ((ValueRow) l).getList();
             if (columnCount == leftValue.length && rows.containsDistinct(leftValue)) {
                 return ValueBoolean.TRUE;

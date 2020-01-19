@@ -269,16 +269,16 @@ public class TestDate extends TestBase {
                 provider.currentTimeZone.getTimeZoneOffsetUTC(0L));
         assertEquals("2001-01-01 01:01:01",
                 ValueTimestamp.parse("2001-01-01", null).add(
-                ValueTime.parse("01:01:01").convertTo(Value.TIMESTAMP, provider)).getString());
+                ValueTime.parse("01:01:01").convertTo(TypeInfo.TYPE_TIMESTAMP, provider)).getString());
         assertEquals("1010-10-10 00:00:00",
                 ValueTimestamp.parse("1010-10-10 10:10:10", null).subtract(
-                ValueTime.parse("10:10:10").convertTo(Value.TIMESTAMP, provider)).getString());
+                ValueTime.parse("10:10:10").convertTo(TypeInfo.TYPE_TIMESTAMP, provider)).getString());
         assertEquals("-2001-01-01 01:01:01",
                 ValueTimestamp.parse("-2001-01-01", null).add(
-                ValueTime.parse("01:01:01").convertTo(Value.TIMESTAMP, provider)).getString());
+                ValueTime.parse("01:01:01").convertTo(TypeInfo.TYPE_TIMESTAMP, provider)).getString());
         assertEquals("-1010-10-10 00:00:00",
                 ValueTimestamp.parse("-1010-10-10 10:10:10", null).subtract(
-                ValueTime.parse("10:10:10").convertTo(Value.TIMESTAMP, provider)).getString());
+                ValueTime.parse("10:10:10").convertTo(TypeInfo.TYPE_TIMESTAMP, provider)).getString());
 
         assertEquals(0, DateTimeUtils.absoluteDayFromDateValue(
                 ValueTimestamp.parse("1970-01-01", null).getDateValue()));
@@ -448,8 +448,8 @@ public class TestDate extends TestBase {
         try {
             ValueTimestamp ts1 = ValueTimestamp.parse("-999-08-07 13:14:15.16", null);
             ValueTimestamp ts2 = ValueTimestamp.parse("19999-08-07 13:14:15.16", null);
-            ValueTime t1 = (ValueTime) ts1.convertTo(Value.TIME);
-            ValueTime t2 = (ValueTime) ts2.convertTo(Value.TIME);
+            ValueTime t1 = (ValueTime) ts1.convertTo(TypeInfo.TYPE_TIME);
+            ValueTime t2 = (ValueTime) ts2.convertTo(TypeInfo.TYPE_TIME);
             ValueDate d1 = ts1.convertToDate(null);
             ValueDate d2 = ts2.convertToDate(null);
             assertEquals("-0999-08-07 13:14:15.16", ts1.getString());

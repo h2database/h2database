@@ -147,6 +147,11 @@ public class TypeInfo {
     public static final TypeInfo TYPE_INTERVAL_DAY;
 
     /**
+     * INTERVAL YEAR TO MONTH type with maximum parameters.
+     */
+    public static final TypeInfo TYPE_INTERVAL_YEAR_TO_MONTH;
+
+    /**
      * INTERVAL DAY TO SECOND type with maximum parameters.
      */
     public static final TypeInfo TYPE_INTERVAL_DAY_TO_SECOND;
@@ -241,6 +246,7 @@ public class TypeInfo {
                     null);
         }
         TYPE_INTERVAL_DAY = infos[Value.INTERVAL_DAY];
+        TYPE_INTERVAL_YEAR_TO_MONTH = infos[Value.INTERVAL_YEAR_TO_MONTH];
         TYPE_INTERVAL_DAY_TO_SECOND = infos[Value.INTERVAL_DAY_TO_SECOND];
         TYPE_INTERVAL_HOUR_TO_SECOND = infos[Value.INTERVAL_HOUR_TO_SECOND];
         infos[Value.ROW] = TYPE_ROW = new TypeInfo(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);

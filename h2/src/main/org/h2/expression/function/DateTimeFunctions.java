@@ -52,6 +52,7 @@ import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
 import org.h2.util.StringUtils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
@@ -386,7 +387,7 @@ public final class DateTimeFunctions {
             if (value instanceof ValueInterval) {
                 ValueInterval interval = (ValueInterval) value;
                 if (interval.getQualifier().isYearMonth()) {
-                    interval = (ValueInterval) interval.convertTo(Value.INTERVAL_YEAR_TO_MONTH);
+                    interval = (ValueInterval) interval.convertTo(TypeInfo.TYPE_INTERVAL_YEAR_TO_MONTH);
                     long leading = interval.getLeading();
                     long remaining = interval.getRemaining();
                     BigInteger bi = BigInteger.valueOf(leading).multiply(BigInteger.valueOf(31557600))

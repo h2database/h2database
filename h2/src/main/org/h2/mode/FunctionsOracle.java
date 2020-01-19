@@ -66,7 +66,7 @@ public final class FunctionsOracle extends FunctionsBase {
         Value result;
         switch (info.type) {
         case SYS_GUID:
-            result = ValueUuid.getNewRandom().convertTo(Value.VARBINARY);
+            result = ValueUuid.getNewRandom().convertTo(TypeInfo.TYPE_VARBINARY);
             break;
         default:
             throw DbException.throwInternalError("type=" + info.type);

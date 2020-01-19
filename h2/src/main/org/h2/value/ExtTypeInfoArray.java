@@ -27,9 +27,9 @@ public final class ExtTypeInfoArray extends ExtTypeInfo {
     }
 
     @Override
-    public Value cast(Value value, CastDataProvider provider) {
+    public ValueArray cast(Value value, CastDataProvider provider) {
         if (value.getValueType() != Value.ARRAY) {
-            value = value.convertTo(Value.ARRAY);
+            value = value.convertTo(TypeInfo.TYPE_ARRAY);
         }
         ValueArray a = (ValueArray) value;
         Value[] values = a.getList();

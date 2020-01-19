@@ -15,6 +15,7 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.table.Column;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueInt;
@@ -107,7 +108,7 @@ public class TableFunction extends Function {
                 } else {
                     int type = v.getValueType();
                     if (type != Value.ARRAY && type != Value.ROW) {
-                        v = v.convertTo(Value.ARRAY);
+                        v = v.convertTo(TypeInfo.TYPE_ARRAY);
                     }
                     Value[] l = ((ValueCollectionBase) v).getList();
                     list[i] = l;

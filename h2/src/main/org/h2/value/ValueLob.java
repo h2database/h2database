@@ -343,27 +343,51 @@ public class ValueLob extends Value {
     }
 
     @Override
-    protected Value convertToBlob() {
-        if (handler != null) {
-            return handler.getLobStorage().createBlob(getInputStream(), -1);
+    protected Value convertToBlob(TypeInfo targetType, int conversionMode, Object column) {
+        Value v;
+        if (valueType == BLOB) {
+            v = this;
+        } else if (handler != null) {
+            v = handler.getLobStorage().createBlob(getInputStream(), -1);
         } else if (small != null) {
-            return ValueLob.createSmallLob(BLOB, small);
+            v = ValueLob.createSmallLob(BLOB, small);
+        } else {
+            v = ValueLob.createSmallLob(BLOB, getBytesNoCopy());
         }
-        return ValueLob.createSmallLob(BLOB, getBytesNoCopy());
+        if (conversionMode != CONVERT_TO) {
+            if (conversionMode == CAST_TO) {
+                v = v.convertPrecision(targetType.getPrecision());
+            } else if (!v.checkPrecision(targetType.getPrecision())) {
+                throw v.getValueTooLongException(targetType, column);
+            }
+        }
+        return v;
     }
 
     @Override
-    protected Value convertToClob() {
-        if (handler != null) {
-            return handler.getLobStorage().createClob(getReader(), -1);
+    protected Value convertToClob(TypeInfo targetType, int conversionMode, Object column) {
+        Value v;
+        if (valueType == CLOB) {
+            v = this;
+        } else if (handler != null) {
+            v = handler.getLobStorage().createClob(getReader(), -1);
         } else if (small != null) {
             byte[] bytes = new String(small, StandardCharsets.UTF_8).getBytes(StandardCharsets.UTF_8);
             if (Arrays.equals(bytes, small)) {
                 bytes = small;
             }
-            return ValueLob.createSmallLob(CLOB, bytes);
+            v = ValueLob.createSmallLob(CLOB, bytes);
+        } else {
+            v = ValueLob.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
         }
-        return ValueLob.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
+        if (conversionMode != CONVERT_TO) {
+            if (conversionMode == CAST_TO) {
+                v = v.convertPrecision(targetType.getPrecision());
+            } else if (!v.checkPrecision(targetType.getPrecision())) {
+                throw v.getValueTooLongException(targetType, column);
+            }
+        }
+        return v;
     }
 
     /**

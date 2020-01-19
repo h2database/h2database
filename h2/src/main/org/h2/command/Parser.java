@@ -3893,7 +3893,7 @@ public class Parser {
         case Function.DATEADD:
         case Function.DATEDIFF: {
             if (currentTokenType == LITERAL) {
-                function.addParameter(ValueExpression.get(currentValue.convertTo(Value.VARCHAR)));
+                function.addParameter(ValueExpression.get(currentValue.convertTo(TypeInfo.TYPE_VARCHAR)));
             } else {
                 function.addParameter(ValueExpression.get(ValueString.get(currentToken)));
             }

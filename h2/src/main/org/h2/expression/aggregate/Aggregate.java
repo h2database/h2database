@@ -203,7 +203,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         switch (aggregateType) {
         case LISTAGG:
             if (v != ValueNull.INSTANCE) {
-                v = updateCollecting(session, v.convertTo(Value.VARCHAR), remembered);
+                v = updateCollecting(session, v.convertTo(TypeInfo.TYPE_VARCHAR), remembered);
             }
             if (args.length >= 2) {
                 ((AggregateDataCollecting) data).setSharedArgument(

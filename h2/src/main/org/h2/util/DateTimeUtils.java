@@ -12,6 +12,7 @@ import java.time.Instant;
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueTime;
@@ -466,7 +467,7 @@ public class DateTimeUtils {
         } else if (value instanceof ValueTimeTimeZone) {
             timeNanos = ((ValueTimeTimeZone) value).getNanos();
         } else {
-            ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, provider);
+            ValueTimestamp v = (ValueTimestamp) value.convertTo(TypeInfo.TYPE_TIMESTAMP, provider);
             dateValue = v.getDateValue();
             timeNanos = v.getTimeNanos();
         }

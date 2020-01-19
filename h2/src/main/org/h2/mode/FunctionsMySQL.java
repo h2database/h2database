@@ -108,7 +108,7 @@ public class FunctionsMySQL extends FunctionsBase {
             seconds = DateTimeUtils.absoluteDayFromDateValue(t.getDateValue()) * DateTimeUtils.SECONDS_PER_DAY
                     + timeNanos / DateTimeUtils.NANOS_PER_SECOND - t.getTimeZoneOffsetSeconds();
         } else {
-            ValueTimestamp t = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, session);
+            ValueTimestamp t = (ValueTimestamp) value.convertTo(TypeInfo.TYPE_TIMESTAMP, session);
             long timeNanos = t.getTimeNanos();
             seconds = session.currentTimeZone().getEpochSecondsFromLocal(t.getDateValue(), timeNanos);
         }
@@ -240,7 +240,7 @@ public class FunctionsMySQL extends FunctionsBase {
                 break;
             default:
                 try {
-                    v0 = v0.convertTo(Value.TIMESTAMP, session);
+                    v0 = v0.convertTo(TypeInfo.TYPE_TIMESTAMP, session);
                 } catch (DbException ex) {
                     result = ValueNull.INSTANCE;
                     break;

@@ -901,11 +901,11 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = session.currentTimestamp().convertToDate(session);
             break;
         case CURRENT_TIME:
-            result = session.currentTimestamp().convertTo(Value.TIME_TZ, session) //
+            result = session.currentTimestamp().convertTo(TypeInfo.TYPE_TIME_TZ, session) //
                     .convertScale(session, v0 == null ? ValueTime.DEFAULT_SCALE : v0.getInt());
             break;
         case LOCALTIME:
-            result = session.currentTimestamp().convertTo(Value.TIME, session) //
+            result = session.currentTimestamp().convertTo(TypeInfo.TYPE_TIME, session) //
                     .convertScale(session, v0 == null ? ValueTime.DEFAULT_SCALE : v0.getInt());
             break;
         case CURRENT_TIMESTAMP:
@@ -913,7 +913,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     .convertScale(session, v0 == null ? ValueTimestamp.DEFAULT_SCALE : v0.getInt());
             break;
         case LOCALTIMESTAMP:
-            result = session.currentTimestamp().convertTo(Value.TIMESTAMP, session) //
+            result = session.currentTimestamp().convertTo(TypeInfo.TYPE_TIMESTAMP, session) //
                     .convertScale(session, v0 == null ? ValueTimestamp.DEFAULT_SCALE : v0.getInt());
             break;
         case DAY_NAME: {
@@ -1619,15 +1619,15 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case ARRAY_CONCAT: {
-            final ValueArray array = (ValueArray) v0.convertTo(Value.ARRAY);
-            final ValueArray array2 = (ValueArray) v1.convertTo(Value.ARRAY);
+            final ValueArray array = (ValueArray) v0.convertTo(TypeInfo.TYPE_ARRAY);
+            final ValueArray array2 = (ValueArray) v1.convertTo(TypeInfo.TYPE_ARRAY);
             final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + array2.getList().length);
             System.arraycopy(array2.getList(), 0, res, array.getList().length, array2.getList().length);
             result = ValueArray.get(res);
             break;
         }
         case ARRAY_APPEND: {
-            final ValueArray array = (ValueArray) v0.convertTo(Value.ARRAY);
+            final ValueArray array = (ValueArray) v0.convertTo(TypeInfo.TYPE_ARRAY);
             final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + 1);
             res[array.getList().length] = v1;
             result = ValueArray.get(res);
@@ -1635,7 +1635,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         }
         case ARRAY_SLICE: {
             result = null;
-            final ValueArray array = (ValueArray) v0.convertTo(Value.ARRAY);
+            final ValueArray array = (ValueArray) v0.convertTo(TypeInfo.TYPE_ARRAY);
             // SQL is 1-based
             int index1 = v1.getInt() - 1;
             // 1-based and inclusive as postgreSQL (-1+1)
@@ -1764,7 +1764,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             if (v2.getBoolean() //
                     && DataType.isNumericType(valueType = v0.getValueType()) && valueType != Value.NUMERIC) {
                 result = v0.checkPrecision(precision) ? v0 //
-                        : v0.convertTo(Value.NUMERIC).convertPrecision(precision).convertTo(valueType);
+                        : v0.convertTo(TypeInfo.TYPE_NUMERIC).convertPrecision(precision).convertTo(valueType);
             } else {
                 result = v0.convertPrecision(precision);
             }
@@ -2011,7 +2011,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             start--;
             end--;
             if (start == 0 && end == s.length) {
-                return stringValue.convertTo(Value.VARBINARY);
+                return stringValue.convertTo(TypeInfo.TYPE_VARBINARY);
             }
             return ValueBytes.getNoCopy(Arrays.copyOfRange(s, start, end));
         } else {
@@ -2391,7 +2391,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             baos.write(',');
         }
         JSONByteArrayTarget.encodeString(baos, key).write(':');
-        byte[] b = value.convertTo(Value.JSON).getBytesNoCopy();
+        byte[] b = value.convertTo(TypeInfo.TYPE_JSON).getBytesNoCopy();
         baos.write(b, 0, b.length);
     }
 
@@ -2472,7 +2472,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         if (baos.size() > 1) {
             baos.write(',');
         }
-        byte[] b = value.convertTo(Value.JSON).getBytesNoCopy();
+        byte[] b = value.convertTo(TypeInfo.TYPE_JSON).getBytesNoCopy();
         baos.write(b, 0, b.length);
     }
 

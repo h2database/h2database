@@ -21,6 +21,7 @@ import org.h2.test.TestDb;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.TimeZoneProvider;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueTime;
@@ -186,19 +187,21 @@ public class TestTimeStampWithTimeZone extends TestDb {
     private void testConversionsImpl(String timeStr, boolean testReverse, CastDataProvider provider) {
         ValueTimestamp ts = ValueTimestamp.parse(timeStr, null);
         ValueDate d = ts.convertToDate(provider);
-        ValueTime t = (ValueTime) ts.convertTo(Value.TIME, provider);
+        ValueTime t = (ValueTime) ts.convertTo(TypeInfo.TYPE_TIME, provider);
         ValueTimestampTimeZone tstz = ValueTimestampTimeZone.parse(timeStr, null);
-        assertEquals(ts, tstz.convertTo(Value.TIMESTAMP, provider));
+        assertEquals(ts, tstz.convertTo(TypeInfo.TYPE_TIMESTAMP, provider));
         assertEquals(d, tstz.convertToDate(provider));
-        assertEquals(t, tstz.convertTo(Value.TIME, provider));
+        assertEquals(t, tstz.convertTo(TypeInfo.TYPE_TIME, provider));
         assertEquals(LegacyDateTimeUtils.toTimestamp(provider, null, ts),
                 LegacyDateTimeUtils.toTimestamp(provider, null, tstz));
         if (testReverse) {
-            assertEquals(0, tstz.compareTo(ts.convertTo(Value.TIMESTAMP_TZ, provider), null, null));
-            assertEquals(d.convertTo(Value.TIMESTAMP, provider).convertTo(Value.TIMESTAMP_TZ, provider),
-                    d.convertTo(Value.TIMESTAMP_TZ, provider));
-            assertEquals(t.convertTo(Value.TIMESTAMP, provider).convertTo(Value.TIMESTAMP_TZ, provider),
-                    t.convertTo(Value.TIMESTAMP_TZ, provider));
+            assertEquals(0, tstz.compareTo(ts.convertTo(TypeInfo.TYPE_TIMESTAMP_TZ, provider), null, null));
+            assertEquals(d.convertTo(TypeInfo.TYPE_TIMESTAMP, provider)
+                    .convertTo(TypeInfo.TYPE_TIMESTAMP_TZ, provider),
+                    d.convertTo(TypeInfo.TYPE_TIMESTAMP_TZ, provider));
+            assertEquals(t.convertTo(TypeInfo.TYPE_TIMESTAMP, provider)
+                    .convertTo(TypeInfo.TYPE_TIMESTAMP_TZ, provider),
+                    t.convertTo(TypeInfo.TYPE_TIMESTAMP_TZ, provider));
         }
     }
 

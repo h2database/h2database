@@ -54,6 +54,7 @@ import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueByte;
@@ -4000,7 +4001,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                     value.convertToResultSet().getResult(), id, false, true, false);
         } else if (type == Interval.class) {
             if (!(value instanceof ValueInterval)) {
-                value = value.convertTo(Value.INTERVAL_DAY_TO_SECOND);
+                value = value.convertTo(TypeInfo.TYPE_INTERVAL_DAY_TO_SECOND);
             }
             ValueInterval v = (ValueInterval) value;
             return (T) new Interval(v.getQualifier(), false, v.getLeading(), v.getRemaining());

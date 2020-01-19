@@ -57,7 +57,7 @@ public class Format extends Expression {
         case Value.CLOB:
             return ValueJson.fromJson(value.getString());
         default:
-            return value.convertTo(Value.JSON);
+            return value.convertTo(TypeInfo.TYPE_JSON);
         }
     }
 

@@ -58,6 +58,7 @@ import org.h2.test.ap.TestAnnotationProcessor;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueTimestamp;
@@ -331,7 +332,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         if (args.length == 0) {
             return null;
         }
-        return args[0].convertTo(Value.VARCHAR);
+        return args[0].convertTo(TypeInfo.TYPE_VARCHAR);
     }
 
     private void testDefaultConnection() throws SQLException {

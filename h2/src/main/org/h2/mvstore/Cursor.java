@@ -147,7 +147,7 @@ public final class Cursor<K,V> implements Iterator<K> {
             Page<K,V> root = cp.page;
             MVMap<K,V> map = root.map;
             long index = map.getKeyIndex(next());
-            last = map.getKey(index + n);
+            last = map.getKey(index + (reverse ? -n : n));
             this.cursorPos = traverseDown(root, last, reverse);
         }
     }

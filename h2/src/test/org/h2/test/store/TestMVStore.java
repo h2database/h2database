@@ -84,6 +84,7 @@ public class TestMVStore extends TestBase {
         testFileHeader();
         testFileHeaderCorruption();
         testIndexSkip();
+        testIndexSkipReverse();
         testMinMaxNextKey();
         testStoreVersion();
         testIterateOldVersion();
@@ -1054,6 +1055,23 @@ public class TestMVStore extends TestBase {
         assertEquals(24, map.keyList().get(12).intValue());
         assertEquals(-14, map.keyList().indexOf(25));
         assertEquals(map.size(), map.keyList().size());
+    }
+
+    private void testIndexSkipReverse() {
+        MVStore s = openStore(null, 4);
+        MVMap<Integer, Integer> map = s.openMap("test");
+        for (int i = 0; i < 100; i += 2) {
+            map.put(i, 10 * i);
+        }
+
+        Cursor<Integer, Integer> c = map.cursor(50, null, true);
+        // skip must reset the root of the cursor
+        c.skip(10);
+        for (int i = 30; i >= 0; i -= 2) {
+            assertTrue(c.hasNext());
+            assertEquals(i, c.next().intValue());
+        }
+        assertFalse(c.hasNext());
     }
 
     private void testMinMaxNextKey() {

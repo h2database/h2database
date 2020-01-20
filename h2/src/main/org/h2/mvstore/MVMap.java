@@ -165,32 +165,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Get the first key of this page.
-     *
-     * @param p the page
-     * @return the key, or null
-     */
-    public final K firstKey(Page<K,V> p) {
-        return getFirstLast(p, true);
-    }
-
-    /**
      * Get the last key, or null if the map is empty.
      *
      * @return the last key, or null
      */
     public final K lastKey() {
         return getFirstLast(false);
-    }
-
-    /**
-     * Get the last key of this page.
-     *
-     * @param p the page
-     * @return the key, or null
-     */
-    public final K lastKey(Page<K,V> p) {
-        return getFirstLast(p, false);
     }
 
     /**

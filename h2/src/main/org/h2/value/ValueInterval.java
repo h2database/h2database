@@ -15,7 +15,6 @@ import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.h2.api.ErrorCode;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.CastDataProvider;
@@ -229,14 +228,6 @@ public class ValueInterval extends Value {
             throw v.getValueTooLongException(targetType, column);
         }
         return v;
-    }
-
-    @Override
-    public Value convertPrecision(long precision) {
-        if (checkPrecision(precision)) {
-            return this;
-        }
-        throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, getTraceSQL());
     }
 
     @Override

@@ -343,8 +343,8 @@ public class ValueLob extends Value {
     }
 
     @Override
-    protected Value convertToBlob(TypeInfo targetType, int conversionMode, Object column) {
-        Value v;
+    protected ValueLob convertToBlob(TypeInfo targetType, int conversionMode, Object column) {
+        ValueLob v;
         if (valueType == BLOB) {
             v = this;
         } else if (handler != null) {
@@ -365,8 +365,8 @@ public class ValueLob extends Value {
     }
 
     @Override
-    protected Value convertToClob(TypeInfo targetType, int conversionMode, Object column) {
-        Value v;
+    protected ValueLob convertToClob(TypeInfo targetType, int conversionMode, Object column) {
+        ValueLob v;
         if (valueType == CLOB) {
             v = this;
         } else if (handler != null) {
@@ -808,9 +808,14 @@ public class ValueLob extends Value {
         }
         return (int) m;
     }
-
-    @Override
-    public Value convertPrecision(long precision) {
+    
+    /**
+     * Convert the precision to the requested value.
+     *
+     * @param precision the new precision
+     * @return the truncated or this value
+     */
+    ValueLob convertPrecision(long precision) {
         if (this.precision <= precision) {
             return this;
         }

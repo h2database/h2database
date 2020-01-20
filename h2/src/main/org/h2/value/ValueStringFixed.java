@@ -58,9 +58,4 @@ public class ValueStringFixed extends ValueString {
         return (ValueStringFixed) Value.cache(obj);
     }
 
-    @Override
-    protected ValueString getNew(String s) {
-        return ValueStringFixed.get(s);
-    }
-
 }

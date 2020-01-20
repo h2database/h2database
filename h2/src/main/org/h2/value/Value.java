@@ -15,6 +15,8 @@ import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Arrays;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.CastDataProvider;
@@ -1560,11 +1562,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         return v;
     }
 
-    private Value convertToVarbinary(TypeInfo targetType, int conversionMode, Object column) {
-        Value v;
+    private ValueBytes convertToVarbinary(TypeInfo targetType, int conversionMode, Object column) {
+        ValueBytes v;
         switch (getValueType()) {
         case VARBINARY:
-            v = this;
+            v = (ValueBytes) this;
             break;
         case JAVA_OBJECT:
         case BLOB:
@@ -1586,7 +1588,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INT: {
             byte[] b = new byte[4];
             Bits.writeInt(b, 0, getInt());
-            v =  ValueBytes.getNoCopy(b);
+            v = ValueBytes.getNoCopy(b);
             break;
         }
         case BIGINT: {
@@ -1604,7 +1606,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {
-                v = v.convertPrecision(targetType.getPrecision());
+                int p = MathUtils.convertLongToInt(targetType.getPrecision());
+                byte[] value = v.getBytesNoCopy();
+                if (value.length > p) {
+                    v = ValueBytes.getNoCopy(Arrays.copyOf(value, p));
+                }
             } else if (!v.checkPrecision(targetType.getPrecision())) {
                 throw v.getValueTooLongException(targetType, column);
             }
@@ -1704,11 +1710,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         throw getDataConversionError(ENUM);
     }
 
-    protected Value convertToBlob(TypeInfo targetType, int conversionMode, Object column) {
-        Value v;
+    protected ValueLob convertToBlob(TypeInfo targetType, int conversionMode, Object column) {
+        ValueLob v;
         switch (getValueType()) {
         case BLOB:
-            v = this;
+            v = (ValueLob) this;
             break;
         case VARBINARY:
         case GEOMETRY:
@@ -1734,8 +1740,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         return v;
     }
 
-    protected Value convertToClob(TypeInfo targetType, int conversionMode, Object column) {
-        Value v = getValueType() == Value.CLOB ? this
+    protected ValueLob convertToClob(TypeInfo targetType, int conversionMode, Object column) {
+        ValueLob v = getValueType() == Value.CLOB ? (ValueLob) this
                 : ValueLob.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {
@@ -1821,12 +1827,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         return extTypeInfo != null ? extTypeInfo.cast(result, null) : result;
     }
 
-    private Value convertToIntervalYearMonth(TypeInfo targetType, int conversionMode, Object column) {
-        Value v = convertToIntervalYearMonth(targetType.getValueType(), column);
+    private ValueInterval convertToIntervalYearMonth(TypeInfo targetType, int conversionMode, Object column) {
+        ValueInterval v = convertToIntervalYearMonth(targetType.getValueType(), column);
         if (conversionMode != CONVERT_TO) {
-            if (conversionMode == CAST_TO) {
-                v = v.convertPrecision(targetType.getPrecision());
-            } else if (!v.checkPrecision(targetType.getPrecision())) {
+            if (!v.checkPrecision(targetType.getPrecision())) {
                 throw v.getValueTooLongException(targetType, column);
             }
         }
@@ -2014,12 +2018,13 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
     }
 
-    private Value convertToArray(TypeInfo targetType, CastDataProvider provider, int conversionMode, Object column) {
+    private ValueArray convertToArray(TypeInfo targetType, CastDataProvider provider, int conversionMode,
+            Object column) {
         ExtTypeInfoArray extTypeInfo = (ExtTypeInfoArray) targetType.getExtTypeInfo();
         int valueType = getValueType();
-        Value v;
+        ValueArray v;
         if (valueType == ARRAY) {
-            v = this;
+            v = (ValueArray) this;
         } else {
             Value[] a;
             switch (valueType) {
@@ -2043,7 +2048,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {
-                v = v.convertPrecision(targetType.getPrecision());
+                int p = MathUtils.convertLongToInt(targetType.getPrecision());
+                Value[] values = v.getList();
+                if (values.length > p) {
+                    v = ValueArray.get(v.getComponentType(), Arrays.copyOf(values, p));
+                }
             } else if (!v.checkPrecision(targetType.getPrecision())) {
                 throw v.getValueTooLongException(targetType, column);
             }
@@ -2212,19 +2221,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      */
     public boolean containsNull() {
         return false;
-    }
-
-    /**
-     * Convert the precision to the requested value. The precision of the
-     * returned value may be somewhat larger than requested, because values with
-     * a fixed precision are not truncated.
-     *
-     * @param precision the new precision
-     * @return the new value
-     */
-    @SuppressWarnings("unused")
-    public Value convertPrecision(long precision) {
-        return this;
     }
 
     private static byte convertToByte(long x, Object column) {

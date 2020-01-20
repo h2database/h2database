@@ -10,7 +10,6 @@ import java.sql.SQLException;
 
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
-import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -76,15 +75,6 @@ public class ValueString extends Value {
          * 1 to 4 UTF-16 chars: 96 bytes
          */
         return value.length() * 2 + 94;
-    }
-
-    @Override
-    public Value convertPrecision(long precision) {
-        int p = MathUtils.convertLongToInt(precision);
-        if (value.length() <= p) {
-            return this;
-        }
-        return getNew(value.substring(0, p));
     }
 
     @Override
@@ -162,17 +152,6 @@ public class ValueString extends Value {
         return Value.cache(obj);
         // this saves memory, but is really slow
         // return new ValueString(s.intern());
-    }
-
-    /**
-     * Create a new String value of the current class.
-     * This method is meant to be overridden by subclasses.
-     *
-     * @param s the string
-     * @return the value
-     */
-    protected Value getNew(String s) {
-        return ValueString.get(s);
     }
 
 }

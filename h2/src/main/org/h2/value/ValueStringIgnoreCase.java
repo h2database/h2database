@@ -78,9 +78,4 @@ public class ValueStringIgnoreCase extends ValueString {
         return obj;
     }
 
-    @Override
-    protected ValueString getNew(String s) {
-        return ValueStringIgnoreCase.get(s);
-    }
-
 }

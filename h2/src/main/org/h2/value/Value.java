@@ -1826,7 +1826,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case NULL:
             throw DbException.throwInternalError();
         }
-        return extTypeInfo != null ? extTypeInfo.cast(result, null) : result;
+        if (extTypeInfo != null) {
+            int type = extTypeInfo.getType();
+            Integer srid = extTypeInfo.getSrid();
+            if (type != 0 && result.getTypeAndDimensionSystem() != type || srid != null && result.getSRID() != srid) {
+                throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1,
+                        ExtTypeInfoGeometry.toSQL(result.getTypeAndDimensionSystem(), result.getSRID())
+                                + " <> " + extTypeInfo.toString());
+            }
+        }
+        return result;
     }
 
     private ValueInterval convertToIntervalYearMonth(TypeInfo targetType, int conversionMode, Object column) {
@@ -2046,7 +2055,23 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             v = ValueArray.get(a);
         }
         if (extTypeInfo != null) {
-            v = extTypeInfo.cast(v, provider);
+            TypeInfo componentType = extTypeInfo.getComponentType();
+            Value[] values = v.getList();
+            int length = values.length;
+            loop: for (int i = 0; i < length; i++) {
+                Value v1 = values[i];
+                Value v2 = v1.convertTo(componentType, provider);
+                if (v1 != v2) {
+                    Value[] newValues = new Value[length];
+                    System.arraycopy(values, 0, newValues, 0, i);
+                    newValues[i] = v2;
+                    while (++i < length) {
+                        newValues[i] = values[i].convertTo(componentType, provider);
+                    }
+                    v = ValueArray.get(newValues);
+                    break loop;
+                }
+            }
         }
         if (conversionMode != CONVERT_TO) {
             Value[] values = v.getList();

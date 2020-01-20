@@ -5,23 +5,10 @@
  */
 package org.h2.value;
 
-import org.h2.engine.CastDataProvider;
-
 /**
  * Extended parameters of a data type.
  */
 public abstract class ExtTypeInfo {
-
-    /**
-     * Casts a specified value to this data type.
-     *
-     * @param value
-     *            value to cast
-     * @param provider
-     *            the cast information provider
-     * @return casted value
-     */
-    public abstract Value cast(Value value, CastDataProvider provider);
 
     /**
      * Returns SQL including parentheses that should be appended to a type name.

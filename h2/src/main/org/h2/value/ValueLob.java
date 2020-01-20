@@ -817,7 +817,7 @@ public class ValueLob extends Value {
         }
         return (int) m;
     }
-    
+
     /**
      * Convert the precision to the requested value.
      *

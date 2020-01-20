@@ -1405,7 +1405,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         return v;
     }
 
-    private ValueTimeTimeZone convertToTimeTimeZone(TypeInfo targetType, CastDataProvider provider, int conversionMode) {
+    private ValueTimeTimeZone convertToTimeTimeZone(TypeInfo targetType, CastDataProvider provider,
+            int conversionMode) {
         ValueTimeTimeZone v;
         switch (getValueType()) {
         case TIME_TZ:
@@ -1505,7 +1506,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                 (ts.getTimeZoneOffsetSeconds() - localOffset) * DateTimeUtils.NANOS_PER_DAY);
     }
 
-    private ValueTimestampTimeZone convertToTimestampTimeZone(TypeInfo targetType, CastDataProvider provider, int conversionMode) {
+    private ValueTimestampTimeZone convertToTimestampTimeZone(TypeInfo targetType, CastDataProvider provider,
+            int conversionMode) {
         ValueTimestampTimeZone v;
         switch (getValueType()) {
         case TIMESTAMP_TZ:

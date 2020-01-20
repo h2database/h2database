@@ -171,11 +171,6 @@ public class ValueDecimal extends Value {
     }
 
     @Override
-    public boolean checkPrecision(long prec) {
-        return value.precision() <= prec;
-    }
-
-    @Override
     public int hashCode() {
         return value.hashCode();
     }

@@ -357,7 +357,7 @@ public class ValueLob extends Value {
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {
                 v = v.convertPrecision(targetType.getPrecision());
-            } else if (!v.checkPrecision(targetType.getPrecision())) {
+            } else if (v.precision > targetType.getPrecision()) {
                 throw v.getValueTooLongException(targetType, column);
             }
         }
@@ -383,7 +383,7 @@ public class ValueLob extends Value {
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {
                 v = v.convertPrecision(targetType.getPrecision());
-            } else if (!v.checkPrecision(targetType.getPrecision())) {
+            } else if (v.precision > targetType.getPrecision()) {
                 throw v.getValueTooLongException(targetType, column);
             }
         }
@@ -627,6 +627,15 @@ public class ValueLob extends Value {
             StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
         }
         return builder;
+    }
+
+    /**
+     * Returns the precision.
+     *
+     * @return the precision
+     */
+    long getPrecision() {
+        return precision;
     }
 
     /**

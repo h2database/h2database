@@ -116,12 +116,6 @@ public class ValueTime extends Value {
     }
 
     @Override
-    public boolean checkPrecision(long precision) {
-        // TIME data type does not have precision parameter
-        return true;
-    }
-
-    @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         return Long.compare(nanos, ((ValueTime) o).nanos);
     }

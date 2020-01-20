@@ -141,12 +141,6 @@ public class ValueTimeTimeZone extends Value {
     }
 
     @Override
-    public boolean checkPrecision(long precision) {
-        // TIME WITH TIME ZONE data type does not have precision parameter
-        return true;
-    }
-
-    @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         ValueTimeTimeZone t = (ValueTimeTimeZone) o;
         return Long.compare(nanos - timeZoneOffsetSeconds * DateTimeUtils.NANOS_PER_SECOND,

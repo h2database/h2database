@@ -180,9 +180,15 @@ public class ValueInterval extends Value {
         return 48;
     }
 
-    @Override
-    public boolean checkPrecision(long prec) {
-        if (prec < 18) {
+    /**
+     * Check if the precision is smaller or equal than the given precision.
+     *
+     * @param prec the maximum precision
+     * @return true if the precision of this value is smaller or equal to the
+     *         given precision
+     */
+    boolean checkPrecision(long prec) {
+        if (prec < MAXIMUM_PRECISION) {
             for (long l = leading, p = 1, precision = 0; l >= p; p *= 10) {
                 if (++precision > prec) {
                     return false;

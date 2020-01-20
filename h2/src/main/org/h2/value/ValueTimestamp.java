@@ -146,12 +146,6 @@ public class ValueTimestamp extends Value {
     }
 
     @Override
-    public boolean checkPrecision(long precision) {
-        // TIMESTAMP data type does not have precision parameter
-        return true;
-    }
-
-    @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         ValueTimestamp t = (ValueTimestamp) o;
         int c = Long.compare(dateValue, t.dateValue);

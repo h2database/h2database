@@ -169,12 +169,6 @@ public class ValueTimestampTimeZone extends Value {
     }
 
     @Override
-    public boolean checkPrecision(long precision) {
-        // TIMESTAMP WITH TIME ZONE data type does not have precision parameter
-        return true;
-    }
-
-    @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         ValueTimestampTimeZone t = (ValueTimestampTimeZone) o;
         // Maximum time zone offset is +/-18 hours so difference in days between local

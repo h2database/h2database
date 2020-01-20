@@ -1174,11 +1174,12 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
     }
 
-    private Value convertToNumeric(TypeInfo targetType, CastDataProvider provider, int conversionMode, Object column) {
-        Value v;
+    private ValueDecimal convertToNumeric(TypeInfo targetType, CastDataProvider provider, int conversionMode,
+            Object column) {
+        ValueDecimal v;
         switch (getValueType()) {
         case NUMERIC:
-            v = this;
+            v = (ValueDecimal) this;
             break;
         case BOOLEAN:
             v = getBoolean() ? ValueDecimal.ONE : ValueDecimal.ZERO;
@@ -1226,7 +1227,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             if (scale != targetScale && (scale >= targetScale || !provider.getMode().convertOnlyToSmallerScale)) {
                 v = ValueDecimal.get(ValueDecimal.setScale(value, targetScale));
             }
-            if (!v.checkPrecision(targetType.getPrecision())) {
+            if (v.getBigDecimal().precision() > targetType.getPrecision()) {
                 throw v.getValueTooLongException(targetType, column);
             }
         }
@@ -1605,13 +1606,14 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             throw getDataConversionError(VARBINARY);
         }
         if (conversionMode != CONVERT_TO) {
+            byte[] value = v.getBytesNoCopy();
+            int length = value.length;
             if (conversionMode == CAST_TO) {
                 int p = MathUtils.convertLongToInt(targetType.getPrecision());
-                byte[] value = v.getBytesNoCopy();
-                if (value.length > p) {
+                if (length > p) {
                     v = ValueBytes.getNoCopy(Arrays.copyOf(value, p));
                 }
-            } else if (!v.checkPrecision(targetType.getPrecision())) {
+            } else if (length > targetType.getPrecision()) {
                 throw v.getValueTooLongException(targetType, column);
             }
         }
@@ -1733,7 +1735,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {
                 v = v.convertPrecision(targetType.getPrecision());
-            } else if (!v.checkPrecision(targetType.getPrecision())) {
+            } else if (v.getPrecision() > targetType.getPrecision()) {
                 throw v.getValueTooLongException(targetType, column);
             }
         }
@@ -1746,7 +1748,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {
                 v = v.convertPrecision(targetType.getPrecision());
-            } else if (!v.checkPrecision(targetType.getPrecision())) {
+            } else if (v.getPrecision() > targetType.getPrecision()) {
                 throw v.getValueTooLongException(targetType, column);
             }
         }
@@ -2047,13 +2049,14 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             v = extTypeInfo.cast(v, provider);
         }
         if (conversionMode != CONVERT_TO) {
+            Value[] values = v.getList();
+            int cardinality = values.length;
             if (conversionMode == CAST_TO) {
                 int p = MathUtils.convertLongToInt(targetType.getPrecision());
-                Value[] values = v.getList();
-                if (values.length > p) {
+                if (cardinality > p) {
                     v = ValueArray.get(v.getComponentType(), Arrays.copyOf(values, p));
                 }
-            } else if (!v.checkPrecision(targetType.getPrecision())) {
+            } else if (cardinality > targetType.getPrecision()) {
                 throw v.getValueTooLongException(targetType, column);
             }
         }
@@ -2275,17 +2278,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
 
     private static String getColumnName(Object column) {
         return column == null ? "" : column.toString();
-    }
-
-    /**
-     * Check if the precision is smaller or equal than the given precision.
-     *
-     * @param precision the maximum precision
-     * @return true if the precision of this value is smaller or equal to the
-     *         given precision
-     */
-    public boolean checkPrecision(long precision) {
-        return getType().getPrecision() <= precision;
     }
 
     @Override

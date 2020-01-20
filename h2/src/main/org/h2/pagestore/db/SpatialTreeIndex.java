@@ -30,7 +30,6 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
-import org.h2.value.ValueGeometry;
 import org.h2.value.ValueNull;
 
 /**
@@ -139,8 +138,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
         }
         Value v = row.getValue(columnIds[0]);
         double[] env;
-        if (v == ValueNull.INSTANCE ||
-                (env = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getEnvelopeNoCopy()) == null) {
+        if (v == ValueNull.INSTANCE || (env = v.convertToGeometry(null).getEnvelopeNoCopy()) == null) {
             return new SpatialKey(row.getKey());
         }
         return new SpatialKey(row.getKey(),

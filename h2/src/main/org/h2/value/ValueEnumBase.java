@@ -28,9 +28,9 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
-    public Value add(final Value v) {
-        final Value iv = v.convertTo(Value.INT);
-        return convertTo(Value.INT).add(iv);
+    public Value add(Value v) {
+        ValueInt iv = v.convertToInt(null);
+        return convertToInt(null).add(iv);
     }
 
     @Override
@@ -40,8 +40,8 @@ public class ValueEnumBase extends Value {
 
     @Override
     public Value divide(Value v, long divisorPrecision) {
-        final Value iv = v.convertTo(Value.INT);
-        return convertTo(Value.INT).divide(iv, divisorPrecision);
+        ValueInt iv = v.convertToInt(null);
+        return convertToInt(null).divide(iv, divisorPrecision);
     }
 
     @Override
@@ -115,28 +115,27 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
-    public Value modulus(final Value v) {
-        final Value iv = v.convertTo(Value.INT);
-        return convertTo(Value.INT).modulus(iv);
+    public Value modulus(Value v) {
+        ValueInt iv = v.convertToInt(null);
+        return convertToInt(null).modulus(iv);
     }
 
     @Override
-    public Value multiply(final Value v) {
-        final Value iv = v.convertTo(Value.INT);
-        return convertTo(Value.INT).multiply(iv);
+    public Value multiply(Value v) {
+        ValueInt iv = v.convertToInt(null);
+        return convertToInt(null).multiply(iv);
     }
 
 
     @Override
-    public void set(final PreparedStatement prep, final int parameterIndex)
-            throws SQLException {
-            prep.setInt(parameterIndex, ordinal);
+    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+        prep.setInt(parameterIndex, ordinal);
     }
 
     @Override
-    public Value subtract(final Value v) {
-        final Value iv = v.convertTo(Value.INT);
-        return convertTo(Value.INT).subtract(iv);
+    public Value subtract(Value v) {
+        ValueInt iv = v.convertToInt(null);
+        return convertToInt(null).subtract(iv);
     }
 
 }

@@ -42,8 +42,8 @@ public class ConcatenationOperation extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        Value l = left.getValue(session).convertTo(type, session, null);
-        Value r = right.getValue(session).convertTo(type, session, null);
+        Value l = left.getValue(session).convertTo(type, session);
+        Value r = right.getValue(session).convertTo(type, session);
         switch (type.getValueType()) {
         case Value.ARRAY: {
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {

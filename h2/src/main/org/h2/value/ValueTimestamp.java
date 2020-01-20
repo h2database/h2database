@@ -146,34 +146,6 @@ public class ValueTimestamp extends Value {
     }
 
     @Override
-    public boolean checkPrecision(long precision) {
-        // TIMESTAMP data type does not have precision parameter
-        return true;
-    }
-
-    @Override
-    public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
-        if (targetScale >= MAXIMUM_SCALE) {
-            return this;
-        }
-        if (targetScale < 0) {
-            throw DbException.getInvalidValueException("scale", targetScale);
-        }
-        long dv = dateValue;
-        long n = timeNanos;
-        long n2 = DateTimeUtils.convertScale(n, targetScale,
-                dv == DateTimeUtils.MAX_DATE_VALUE ? DateTimeUtils.NANOS_PER_DAY : Long.MAX_VALUE);
-        if (n2 == n) {
-            return this;
-        }
-        if (n2 >= DateTimeUtils.NANOS_PER_DAY) {
-            n2 -= DateTimeUtils.NANOS_PER_DAY;
-            dv = DateTimeUtils.incrementDateValue(dv);
-        }
-        return fromDateValueAndNanos(dv, n2);
-    }
-
-    @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         ValueTimestamp t = (ValueTimestamp) o;
         int c = Long.compare(dateValue, t.dateValue);
@@ -217,7 +189,7 @@ public class ValueTimestamp extends Value {
 
     @Override
     public Value add(Value v) {
-        ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
+        ValueTimestamp t = (ValueTimestamp) v;
         long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(dateValue)
                 + DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
         long nanos = timeNanos + t.timeNanos;
@@ -230,7 +202,7 @@ public class ValueTimestamp extends Value {
 
     @Override
     public Value subtract(Value v) {
-        ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
+        ValueTimestamp t = (ValueTimestamp) v;
         long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(dateValue)
                 - DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
         long nanos = timeNanos - t.timeNanos;

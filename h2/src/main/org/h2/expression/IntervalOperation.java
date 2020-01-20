@@ -228,8 +228,8 @@ public class IntervalOperation extends Expression {
                 if (lType == Value.TIME && rType == Value.TIME) {
                     diff = ((ValueTime) l).getNanos() - ((ValueTime) r).getNanos();
                 } else {
-                    ValueTimeTimeZone left = (ValueTimeTimeZone) l.convertTo(Value.TIME_TZ, session),
-                            right = (ValueTimeTimeZone) r.convertTo(Value.TIME_TZ, session);
+                    ValueTimeTimeZone left = (ValueTimeTimeZone) l.convertTo(TypeInfo.TYPE_TIME_TZ, session),
+                            right = (ValueTimeTimeZone) r.convertTo(TypeInfo.TYPE_TIME_TZ, session);
                     diff = left.getNanos() - right.getNanos()
                             + (right.getTimeZoneOffsetSeconds() - left.getTimeZoneOffsetSeconds())
                             * DateTimeUtils.NANOS_PER_SECOND;
@@ -251,15 +251,15 @@ public class IntervalOperation extends Expression {
             } else {
                 BigInteger diff = nanosFromValue(session, l).subtract(nanosFromValue(session, r));
                 if (lType == Value.TIMESTAMP_TZ || rType == Value.TIMESTAMP_TZ) {
-                    l = l.convertTo(Value.TIMESTAMP_TZ, session);
-                    r = r.convertTo(Value.TIMESTAMP_TZ, session);
+                    l = l.convertTo(TypeInfo.TYPE_TIMESTAMP_TZ, session);
+                    r = r.convertTo(TypeInfo.TYPE_TIMESTAMP_TZ, session);
                     diff = diff.add(BigInteger.valueOf((((ValueTimestampTimeZone) r).getTimeZoneOffsetSeconds()
                             - ((ValueTimestampTimeZone) l).getTimeZoneOffsetSeconds()) * NANOS_PER_SECOND));
                 }
                 result = IntervalUtils.intervalFromAbsolute(IntervalQualifier.DAY_TO_SECOND, diff);
             }
             if (forcedType != null) {
-                result = forcedType.cast(result, session, true, null);
+                result = result.castTo(forcedType, session);
             }
             return result;
         }

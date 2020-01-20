@@ -7,8 +7,6 @@ package org.h2.value;
 
 import java.util.Objects;
 
-import org.h2.engine.CastDataProvider;
-
 /**
  * Extended parameters of the ARRAY data type.
  */
@@ -24,30 +22,6 @@ public final class ExtTypeInfoArray extends ExtTypeInfo {
      */
     public ExtTypeInfoArray(TypeInfo componentType) {
         this.componentType = componentType;
-    }
-
-    @Override
-    public Value cast(Value value, CastDataProvider provider) {
-        if (value.getValueType() != Value.ARRAY) {
-            value = value.convertTo(Value.ARRAY);
-        }
-        ValueArray a = (ValueArray) value;
-        Value[] values = a.getList();
-        int length = values.length;
-        for (int i = 0; i < length; i++) {
-            Value v = values[i];
-            Value v2 = v.convertTo(componentType, provider, null);
-            if (v != v2) {
-                Value[] newValues = new Value[length];
-                System.arraycopy(values, 0, newValues, 0, i);
-                newValues[i] = v2;
-                while (++i < length) {
-                    newValues[i] = values[i].convertTo(componentType, provider, null);
-                }
-                return ValueArray.get(newValues);
-            }
-        }
-        return a;
     }
 
     @Override

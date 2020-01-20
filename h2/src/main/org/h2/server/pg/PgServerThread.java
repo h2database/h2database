@@ -540,8 +540,7 @@ public class PgServerThread implements Runnable {
         return DateTimeUtils.absoluteDayFromDateValue(dateValue) - 10_957;
     }
 
-    private void writeDataColumn(JdbcResultSet rs, int column, int pgType, boolean text)
-            throws IOException, SQLException {
+    private void writeDataColumn(JdbcResultSet rs, int column, int pgType, boolean text) throws IOException {
         Value v = rs.get(column);
         if (v == ValueNull.INSTANCE) {
             writeInt(-1);
@@ -589,13 +588,13 @@ public class PgServerThread implements Runnable {
                 break;
             }
             case PgServer.PG_TYPE_DATE: {
-                ValueDate d = (ValueDate) v.convertTo(Value.DATE, (JdbcConnection) rs.getStatement().getConnection());
+                ValueDate d = (ValueDate) v;
                 writeInt(4);
                 writeInt((int) (toPostgreDays(d.getDateValue())));
                 break;
             }
             case PgServer.PG_TYPE_TIME: {
-                ValueTime t = (ValueTime) v.convertTo(Value.TIME, (JdbcConnection) rs.getStatement().getConnection());
+                ValueTime t = (ValueTime) v;
                 writeInt(8);
                 long m = t.getNanos();
                 if (INTEGER_DATE_TYPES) {
@@ -609,8 +608,7 @@ public class PgServerThread implements Runnable {
                 break;
             }
             case PgServer.PG_TYPE_TIMESTAMP_NO_TMZONE: {
-                ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP,
-                        (JdbcConnection) rs.getStatement().getConnection());
+                ValueTimestamp t = (ValueTimestamp) v;
                 writeInt(8);
                 long m = toPostgreDays(t.getDateValue()) * 86_400;
                 long nanos = t.getTimeNanos();

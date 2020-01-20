@@ -87,7 +87,7 @@ public class TableValueConstructor extends Query {
         for (ArrayList<Expression> row : rows) {
             Value[] values = new Value[count];
             for (int i = 0; i < count; i++) {
-                values[i] = row.get(i).getValue(session).convertTo(columns[i].getType(), session, null);
+                values[i] = row.get(i).getValue(session).convertTo(columns[i].getType(), session);
             }
             result.addRow(values);
         }
@@ -142,7 +142,7 @@ public class TableValueConstructor extends Query {
             for (ArrayList<Expression> row : rows) {
                 Value[] values = new Value[resultColumnCount];
                 for (int i = 0; i < visibleColumnCount; i++) {
-                    values[i] = row.get(i).getValue(session).convertTo(columns[i].getType(), session, null);
+                    values[i] = row.get(i).getValue(session).convertTo(columns[i].getType(), session);
                 }
                 columnResolver.currentRow = values;
                 for (int i = visibleColumnCount; i < resultColumnCount; i++) {

@@ -155,13 +155,4 @@ public class ValueBytes extends Value {
                 && Arrays.equals(value, ((ValueBytes) other).value);
     }
 
-    @Override
-    public Value convertPrecision(long precision) {
-        int p = MathUtils.convertLongToInt(precision);
-        if (value.length <= p) {
-            return this;
-        }
-        return getNoCopy(Arrays.copyOf(value, p));
-    }
-
 }

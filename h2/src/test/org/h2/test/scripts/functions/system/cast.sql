@@ -76,7 +76,7 @@ select cast(cast(0.1 as real) as decimal(1, 1));
 >> 0.1
 
 select cast(cast(95605327.73 as float) as decimal(10, 8));
->> 95605327.73
+> exception VALUE_TOO_LONG_2
 
 select cast(cast('01020304-0506-0708-090a-0b0c0d0e0f00' as uuid) as binary);
 >> X'0102030405060708090a0b0c0d0e0f00'

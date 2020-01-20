@@ -19,6 +19,7 @@ import org.h2.result.ResultExternal;
 import org.h2.result.SortOrder;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.TempFileDeleter;
+import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
@@ -245,7 +246,7 @@ public abstract class MVTempResult implements ResultExternal {
         for (int i = 0, l = resultColumnCount; i < l; i++) {
             TypeInfo type = expressions[i].getType();
             if (type.getValueType() == Value.ENUM) {
-                row[i] = type.getExtTypeInfo().cast(row[i], null);
+                row[i] = row[i].convertToEnum((ExtTypeInfoEnum) type.getExtTypeInfo());
             }
         }
     }

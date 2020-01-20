@@ -141,28 +141,6 @@ public class ValueTimeTimeZone extends Value {
     }
 
     @Override
-    public boolean checkPrecision(long precision) {
-        // TIME WITH TIME ZONE data type does not have precision parameter
-        return true;
-    }
-
-    @Override
-    public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
-        if (targetScale >= ValueTime.MAXIMUM_SCALE) {
-            return this;
-        }
-        if (targetScale < 0) {
-            throw DbException.getInvalidValueException("scale", targetScale);
-        }
-        long n = nanos;
-        long n2 = DateTimeUtils.convertScale(n, targetScale, DateTimeUtils.NANOS_PER_DAY);
-        if (n2 == n) {
-            return this;
-        }
-        return fromNanos(n2, timeZoneOffsetSeconds);
-    }
-
-    @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         ValueTimeTimeZone t = (ValueTimeTimeZone) o;
         return Long.compare(nanos - timeZoneOffsetSeconds * DateTimeUtils.NANOS_PER_SECOND,

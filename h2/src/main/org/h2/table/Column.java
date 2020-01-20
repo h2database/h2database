@@ -381,7 +381,7 @@ public class Column implements HasSQL {
             }
         }
         try {
-            value = type.cast(value, session, false, name);
+            value = value.convertForAssignTo(type, session, name);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
                 e = getDataConversionError(value, e);

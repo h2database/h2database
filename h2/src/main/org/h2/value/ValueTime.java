@@ -116,28 +116,6 @@ public class ValueTime extends Value {
     }
 
     @Override
-    public boolean checkPrecision(long precision) {
-        // TIME data type does not have precision parameter
-        return true;
-    }
-
-    @Override
-    public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
-        if (targetScale >= MAXIMUM_SCALE) {
-            return this;
-        }
-        if (targetScale < 0) {
-            throw DbException.getInvalidValueException("scale", targetScale);
-        }
-        long n = nanos;
-        long n2 = DateTimeUtils.convertScale(n, targetScale, DateTimeUtils.NANOS_PER_DAY);
-        if (n2 == n) {
-            return this;
-        }
-        return fromNanos(n2);
-    }
-
-    @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         return Long.compare(nanos, ((ValueTime) o).nanos);
     }
@@ -173,13 +151,13 @@ public class ValueTime extends Value {
 
     @Override
     public Value add(Value v) {
-        ValueTime t = (ValueTime) v.convertTo(Value.TIME);
+        ValueTime t = (ValueTime) v;
         return ValueTime.fromNanos(nanos + t.getNanos());
     }
 
     @Override
     public Value subtract(Value v) {
-        ValueTime t = (ValueTime) v.convertTo(Value.TIME);
+        ValueTime t = (ValueTime) v;
         return ValueTime.fromNanos(nanos - t.getNanos());
     }
 

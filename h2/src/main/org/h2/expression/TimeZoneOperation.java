@@ -51,7 +51,7 @@ public class TimeZoneOperation extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        Value a = arg.getValue(session).convertTo(type, session, null);
+        Value a = arg.getValue(session).convertTo(type, session);
         int valueType = a.getValueType();
         if ((valueType == Value.TIMESTAMP_TZ || valueType == Value.TIME_TZ) && timeZone != null) {
             Value b = timeZone.getValue(session);
@@ -106,7 +106,7 @@ public class TimeZoneOperation extends Expression {
      * @return the time zone offset in seconds
      */
     public static int parseInterval(Value interval) {
-        ValueInterval i = (ValueInterval) interval.convertTo(Value.INTERVAL_HOUR_TO_SECOND);
+        ValueInterval i = (ValueInterval) interval.convertTo(TypeInfo.TYPE_INTERVAL_HOUR_TO_SECOND);
         long h = i.getLeading(), seconds = i.getRemaining();
         if (h > 18 || h == 18 && seconds != 0 || seconds % DateTimeUtils.NANOS_PER_SECOND != 0) {
             throw DbException.getInvalidValueException("time zone", i.getTraceSQL());

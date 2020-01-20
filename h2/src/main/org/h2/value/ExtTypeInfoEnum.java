@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Locale;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 
 /**
@@ -108,35 +107,6 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
             this.type = type = new TypeInfo(Value.ENUM, p, 0, p, this);
         }
         return type;
-    }
-
-    @Override
-    public Value cast(Value value, CastDataProvider provider) {
-        switch (value.getValueType()) {
-        case Value.ENUM:
-            if (value instanceof ValueEnum && ((ValueEnum) value).getEnumerators().equals(this)) {
-                return value;
-            }
-            //$FALL-THROUGH$
-        case Value.VARCHAR:
-        case Value.CHAR:
-        case Value.VARCHAR_IGNORECASE:
-            ValueEnum v = getValueOrNull(value.getString());
-            if (v != null) {
-                return v;
-            }
-            break;
-        default:
-            int ordinal = value.getInt();
-            if (ordinal >= 0 && ordinal < enumerators.length) {
-                return new ValueEnum(this, enumerators[ordinal], ordinal);
-            }
-        }
-        String s = value.getTraceSQL();
-        if (s.length() > 127) {
-            s = s.substring(0, 128) + "...";
-        }
-        throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED, toString(), s);
     }
 
     /**

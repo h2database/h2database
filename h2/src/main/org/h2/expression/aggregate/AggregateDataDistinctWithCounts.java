@@ -56,7 +56,7 @@ class AggregateDataDistinctWithCounts extends AggregateData {
     }
 
     @Override
-    Value getValue(Session session, int dataType) {
+    Value getValue(Session session) {
         return null;
     }
 

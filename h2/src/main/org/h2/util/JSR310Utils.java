@@ -22,6 +22,7 @@ import org.h2.api.IntervalQualifier;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueInterval;
@@ -61,7 +62,7 @@ public class JSR310Utils {
      * @return the LocalDate
      */
     public static Object valueToLocalDate(Value value, CastDataProvider provider) {
-        long dateValue = ((ValueDate) value.convertTo(Value.DATE, provider)).getDateValue();
+        long dateValue = value.convertToDate(provider).getDateValue();
         if (dateValue > MAX_DATE_VALUE) {
             dateValue = MAX_DATE_VALUE;
         } else if (dateValue < MIN_DATE_VALUE) {
@@ -83,7 +84,7 @@ public class JSR310Utils {
      * @return the LocalTime
      */
     public static Object valueToLocalTime(Value value, CastDataProvider provider) {
-        return LocalTime.ofNanoOfDay(((ValueTime) value.convertTo(Value.TIME, provider)).getNanos());
+        return LocalTime.ofNanoOfDay(((ValueTime) value.convertTo(TypeInfo.TYPE_TIME, provider)).getNanos());
     }
 
     /**
@@ -98,7 +99,7 @@ public class JSR310Utils {
      * @return the LocalDateTime
      */
     public static Object valueToLocalDateTime(Value value, CastDataProvider provider) {
-        ValueTimestamp valueTimestamp = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, provider);
+        ValueTimestamp valueTimestamp = (ValueTimestamp) value.convertTo(TypeInfo.TYPE_TIMESTAMP, provider);
         return localDateTimeFromDateNanos(valueTimestamp.getDateValue(), valueTimestamp.getTimeNanos());
     }
 
@@ -114,8 +115,8 @@ public class JSR310Utils {
      * @return the Instant
      */
     public static Object valueToInstant(Value value, CastDataProvider provider) {
-        ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ,
-                provider);
+        ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value
+                .convertTo(TypeInfo.TYPE_TIMESTAMP_TZ, provider);
         long timeNanos = valueTimestampTimeZone.getTimeNanos();
         long epochSecond = DateTimeUtils.absoluteDayFromDateValue( //
                 valueTimestampTimeZone.getDateValue()) * DateTimeUtils.SECONDS_PER_DAY //
@@ -163,8 +164,8 @@ public class JSR310Utils {
     }
 
     private static Object valueToOffsetDateTime(Value value, CastDataProvider provider, boolean zoned) {
-        ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ,
-                provider);
+        ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value
+                .convertTo(TypeInfo.TYPE_TIMESTAMP_TZ, provider);
         long dateValue = valueTimestampTimeZone.getDateValue();
         long timeNanos = valueTimestampTimeZone.getTimeNanos();
         LocalDateTime localDateTime = (LocalDateTime) localDateTimeFromDateNanos(dateValue, timeNanos);
@@ -188,7 +189,7 @@ public class JSR310Utils {
      * @return the OffsetTime
      */
     public static Object valueToOffsetTime(Value value, CastDataProvider provider) {
-        ValueTimeTimeZone valueTimeTimeZone = (ValueTimeTimeZone) value.convertTo(Value.TIME_TZ, provider);
+        ValueTimeTimeZone valueTimeTimeZone = (ValueTimeTimeZone) value.convertTo(TypeInfo.TYPE_TIME_TZ, provider);
         return OffsetTime.of(LocalTime.ofNanoOfDay(valueTimeTimeZone.getNanos()),
                 ZoneOffset.ofTotalSeconds(valueTimeTimeZone.getTimeZoneOffsetSeconds()));
     }
@@ -204,7 +205,7 @@ public class JSR310Utils {
      */
     public static Object valueToPeriod(Value value) {
         if (!(value instanceof ValueInterval)) {
-            value = value.convertTo(Value.INTERVAL_YEAR_TO_MONTH);
+            value = value.convertTo(TypeInfo.TYPE_INTERVAL_YEAR_TO_MONTH);
         }
         if (!DataType.isYearMonthIntervalType(value.getValueType())) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, (Throwable) null, value.getString());
@@ -230,7 +231,7 @@ public class JSR310Utils {
      */
     public static Object valueToDuration(Value value) {
         if (!(value instanceof ValueInterval)) {
-            value = value.convertTo(Value.INTERVAL_DAY_TO_SECOND);
+            value = value.convertTo(TypeInfo.TYPE_INTERVAL_DAY_TO_SECOND);
         }
         if (DataType.isYearMonthIntervalType(value.getValueType())) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, (Throwable) null, value.getString());

@@ -169,48 +169,43 @@ public class TestValue extends TestDb {
         String spaces = new String(new char[100]).replace((char) 0, ' ');
 
         v = ValueArray.get(new Value[] { ValueString.get("hello"), ValueString.get("world") });
+        TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ARRAY, 1L, 0, null);
         assertEquals(2, v.getType().getPrecision());
-        assertEquals(1, v.convertPrecision(1).getType().getPrecision());
+        assertEquals(1, v.castTo(typeInfo, null).getType().getPrecision());
         v = ValueArray.get(new Value[]{ValueString.get(""), ValueString.get("")});
         assertEquals(2, v.getType().getPrecision());
-        assertEquals("ARRAY ['']", v.convertPrecision(1).toString());
+        assertEquals("ARRAY ['']", v.castTo(typeInfo, null).toString());
 
         v = ValueBytes.get(spaces.getBytes());
+        typeInfo = TypeInfo.getTypeInfo(Value.VARBINARY, 10L, 0, null);
         assertEquals(100, v.getType().getPrecision());
-        assertEquals(10, v.convertPrecision(10).getType().getPrecision());
-        assertEquals(10, v.convertPrecision(10).getBytes().length);
-        assertEquals(32, v.convertPrecision(10).getBytes()[9]);
-        assertEquals(10, v.convertPrecision(10).getType().getPrecision());
-
-        final Value vd = ValueDecimal.get(new BigDecimal("1234567890.123456789"));
-        assertEquals(19, vd.getType().getPrecision());
-        assertEquals("1234567890", vd.convertPrecision(10).getString());
-        new AssertThrows(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1) {
-            @Override
-            public void test() {
-                vd.convertPrecision(0);
-            }
-        };
+        assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
+        assertEquals(10, v.castTo(typeInfo, null).getBytes().length);
+        assertEquals(32, v.castTo(typeInfo, null).getBytes()[9]);
+        assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
 
         v = ValueLob.createSmallLob(Value.CLOB, spaces.getBytes(), 100);
+        typeInfo = TypeInfo.getTypeInfo(Value.CLOB, 10L, 0, null);
         assertEquals(100, v.getType().getPrecision());
-        assertEquals(10, v.convertPrecision(10).getType().getPrecision());
-        assertEquals(10, v.convertPrecision(10).getString().length());
-        assertEquals("          ", v.convertPrecision(10).getString());
-        assertEquals(10, v.convertPrecision(10).getType().getPrecision());
+        assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
+        assertEquals(10, v.castTo(typeInfo, null).getString().length());
+        assertEquals("          ", v.castTo(typeInfo, null).getString());
+        assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
 
         v = ValueLob.createSmallLob(Value.BLOB, spaces.getBytes(), 100);
+        typeInfo = TypeInfo.getTypeInfo(Value.BLOB, 10L, 0, null);
         assertEquals(100, v.getType().getPrecision());
-        assertEquals(10, v.convertPrecision(10).getType().getPrecision());
-        assertEquals(10, v.convertPrecision(10).getBytes().length);
-        assertEquals(32, v.convertPrecision(10).getBytes()[9]);
-        assertEquals(10, v.convertPrecision(10).getType().getPrecision());
+        assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
+        assertEquals(10, v.castTo(typeInfo, null).getBytes().length);
+        assertEquals(32, v.castTo(typeInfo, null).getBytes()[9]);
+        assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
 
         v = ValueString.get(spaces);
+        typeInfo = TypeInfo.getTypeInfo(Value.VARCHAR, 10L, 0, null);
         assertEquals(100, v.getType().getPrecision());
-        assertEquals(10, v.convertPrecision(10).getType().getPrecision());
-        assertEquals("          ", v.convertPrecision(10).getString());
-        assertEquals("          ", v.convertPrecision(10).getString());
+        assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
+        assertEquals("          ", v.castTo(typeInfo, null).getString());
+        assertEquals("          ", v.castTo(typeInfo, null).getString());
 
     }
 
@@ -367,14 +362,14 @@ public class TestValue extends TestDb {
         ValueArray src = ValueArray.get(
                 new Value[] {ValueString.get("1"), ValueString.get("22"), ValueString.get("333")});
         assertEquals(3, src.getType().getPrecision());
-        assertSame(src, src.convertPrecision(3));
+        assertSame(src, src.castTo(TypeInfo.getTypeInfo(Value.ARRAY, 3L, 0, null), null));
         ValueArray exp = ValueArray.get(
                 new Value[] {ValueString.get("1"), ValueString.get("22")});
-        Value got = src.convertPrecision(2);
+        Value got = src.castTo(TypeInfo.getTypeInfo(Value.ARRAY, 2L, 0, null), null);
         assertEquals(exp, got);
         assertEquals(Value.VARCHAR, ((ValueArray) got).getComponentType().getValueType());
         exp = ValueArray.get(TypeInfo.TYPE_VARCHAR, new Value[0]);
-        got = src.convertPrecision(0);
+        got = src.castTo(TypeInfo.getTypeInfo(Value.ARRAY, 0L, 0, null), null);
         assertEquals(exp, got);
         assertEquals(Value.VARCHAR, ((ValueArray) got).getComponentType().getValueType());
     }
@@ -398,15 +393,14 @@ public class TestValue extends TestDb {
 
         UUID origUUID = UUID.fromString(uuidStr);
         ValueJavaObject valObj = ValueJavaObject.getNoCopy(origUUID, null, null);
-        Value valUUID = valObj.convertTo(Value.UUID);
-        assertTrue(valUUID instanceof ValueUuid);
+        ValueUuid valUUID = valObj.convertToUuid();
         assertTrue(valUUID.getString().equals(uuidStr));
         assertTrue(valUUID.getObject().equals(origUUID));
 
         ValueJavaObject voString = ValueJavaObject.getNoCopy(
                 new String("This is not a ValueUuid object"), null, null);
         try {
-            voString.convertTo(Value.UUID);
+            voString.convertToUuid();
             fail();
         } catch (DbException expected) {
         }

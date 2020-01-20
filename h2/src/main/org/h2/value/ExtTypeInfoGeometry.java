@@ -6,9 +6,7 @@
 package org.h2.value;
 
 import java.util.Objects;
-import org.h2.api.ErrorCode;
-import org.h2.engine.CastDataProvider;
-import org.h2.message.DbException;
+
 import org.h2.util.geometry.EWKTUtils;
 
 /**
@@ -20,7 +18,7 @@ public final class ExtTypeInfoGeometry extends ExtTypeInfo {
 
     private final Integer srid;
 
-    private static String toSQL(int type, Integer srid) {
+    static String toSQL(int type, Integer srid) {
         if (type == 0 && srid == null) {
             return "";
         }
@@ -49,19 +47,6 @@ public final class ExtTypeInfoGeometry extends ExtTypeInfo {
     public ExtTypeInfoGeometry(int type, Integer srid) {
         this.type = type;
         this.srid = srid;
-    }
-
-    @Override
-    public Value cast(Value value, CastDataProvider provider) {
-        if (value.getValueType() != Value.GEOMETRY) {
-            value = value.convertTo(Value.GEOMETRY);
-        }
-        ValueGeometry g = (ValueGeometry) value;
-        if (type != 0 && g.getTypeAndDimensionSystem() != type || srid != null && g.getSRID() != srid) {
-            throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1,
-                    toSQL(g.getTypeAndDimensionSystem(), g.getSRID()) + " <> " + toString());
-        }
-        return g;
     }
 
     @Override

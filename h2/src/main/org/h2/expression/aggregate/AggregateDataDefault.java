@@ -86,7 +86,7 @@ class AggregateDataDefault extends AggregateData {
             break;
         }
         case EVERY:
-            v = v.convertTo(Value.BOOLEAN);
+            v = v.convertToBoolean();
             if (value == null) {
                 value = v;
             } else {
@@ -94,7 +94,7 @@ class AggregateDataDefault extends AggregateData {
             }
             break;
         case ANY:
-            v = v.convertTo(Value.BOOLEAN);
+            v = v.convertToBoolean();
             if (value == null) {
                 value = v;
             } else {
@@ -121,7 +121,7 @@ class AggregateDataDefault extends AggregateData {
     }
 
     @Override
-    Value getValue(Session session, int dataType) {
+    Value getValue(Session session) {
         Value v = null;
         switch (aggregateType) {
         case SUM:

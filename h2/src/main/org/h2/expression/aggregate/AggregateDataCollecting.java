@@ -24,7 +24,7 @@ import org.h2.value.ValueRow;
  * values or a distinct aggregate.
  *
  * <p>
- * NULL values are not collected. {@link #getValue(Session, int)} method
+ * NULL values are not collected. {@link #getValue(Session)} method
  * returns {@code null}. Use {@link #getArray()} for instances of this class
  * instead.
  * </p>
@@ -74,7 +74,7 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
     }
 
     @Override
-    Value getValue(Session session, int dataType) {
+    Value getValue(Session session) {
         return null;
     }
 

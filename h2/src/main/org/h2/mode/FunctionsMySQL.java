@@ -108,7 +108,7 @@ public class FunctionsMySQL extends FunctionsBase {
             seconds = DateTimeUtils.absoluteDayFromDateValue(t.getDateValue()) * DateTimeUtils.SECONDS_PER_DAY
                     + timeNanos / DateTimeUtils.NANOS_PER_SECOND - t.getTimeZoneOffsetSeconds();
         } else {
-            ValueTimestamp t = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, session);
+            ValueTimestamp t = (ValueTimestamp) value.convertTo(TypeInfo.TYPE_TIMESTAMP, session);
             long timeNanos = t.getTimeNanos();
             seconds = session.currentTimeZone().getEpochSecondsFromLocal(t.getDateValue(), timeNanos);
         }
@@ -234,19 +234,21 @@ public class FunctionsMySQL extends FunctionsBase {
             break;
         case DATE:
             switch (v0.getValueType()) {
+            case Value.NULL:
             case Value.DATE:
                 result = v0;
                 break;
             default:
                 try {
-                    v0 = v0.convertTo(Value.TIMESTAMP, session);
+                    v0 = v0.convertTo(TypeInfo.TYPE_TIMESTAMP, session);
                 } catch (DbException ex) {
-                    v0 = ValueNull.INSTANCE;
+                    result = ValueNull.INSTANCE;
+                    break;
                 }
                 //$FALL-THROUGH$
             case Value.TIMESTAMP:
             case Value.TIMESTAMP_TZ:
-                result = v0.convertTo(Value.DATE, session);
+                result = v0.convertToDate(session);
             }
             break;
         case LAST_INSERT_ID:
@@ -257,7 +259,7 @@ public class FunctionsMySQL extends FunctionsBase {
                     session.setLastIdentity(ValueLong.get(0));
                     result = v0;
                 } else {
-                    result = v0.convertTo(Value.BIGINT);
+                    result = v0.convertToBigint(null);
                     session.setLastIdentity(result);
                 }
             }

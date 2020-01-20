@@ -21,6 +21,7 @@ import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.TimeZoneProvider;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
@@ -535,7 +536,7 @@ public class ToChar {
         } else {
             TimeZoneProvider tz = session.currentTimeZone();
             if (tzd) {
-                ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, session);
+                ValueTimestamp v = (ValueTimestamp) value.convertTo(TypeInfo.TYPE_TIMESTAMP, session);
                 return tz.getShortId(tz.getEpochSecondsFromLocal(v.getDateValue(), v.getTimeNanos()));
             }
             return tz.getId();

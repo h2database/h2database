@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -93,6 +94,7 @@ import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
+import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
@@ -897,22 +899,25 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueString.get(StringUtils.xmlStartDoc(), database);
             break;
         case CURRENT_DATE:
-            result = session.currentTimestamp().convertTo(Value.DATE, session);
+            result = session.currentTimestamp().convertToDate(session);
             break;
         case CURRENT_TIME:
-            result = session.currentTimestamp().convertTo(Value.TIME_TZ, session) //
-                    .convertScale(false, v0 == null ? 0 : v0.getInt());
+            result = session.currentTimestamp().castTo(
+                    TypeInfo.getTypeInfo(Value.TIME_TZ, 0L, v0 == null ? ValueTime.DEFAULT_SCALE : v0.getInt(), null),
+                    session);
             break;
         case LOCALTIME:
-            result = session.currentTimestamp().convertTo(Value.TIME, session) //
-                    .convertScale(false, v0 == null ? 0 : v0.getInt());
+            result = session.currentTimestamp().castTo(
+                    TypeInfo.getTypeInfo(Value.TIME, 0L, v0 == null ? ValueTime.DEFAULT_SCALE : v0.getInt(), null),
+                    session);
             break;
         case CURRENT_TIMESTAMP:
-            result = session.currentTimestamp().convertScale(false, v0 == null ? 6 : v0.getInt());
+            result = session.currentTimestamp().castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP_TZ, 0L,
+                    v0 == null ? ValueTimestamp.DEFAULT_SCALE : v0.getInt(), null), session);
             break;
         case LOCALTIMESTAMP:
-            result = session.currentTimestamp().convertTo(Value.TIMESTAMP, session) //
-                    .convertScale(false, v0 == null ? 6 : v0.getInt());
+            result = session.currentTimestamp().castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L,
+                    v0 == null ? ValueTimestamp.DEFAULT_SCALE : v0.getInt(), null), session);
             break;
         case DAY_NAME: {
             int dayOfWeek = DateTimeUtils.getSundayDayOfWeek(DateTimeUtils.dateAndTimeFromValue(v0, session)[0]);
@@ -974,7 +979,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         case CAST:
         case CONVERT:
-            result = type.cast(v0, session, true, null);
+            result = v0.castTo(type, session);
             if (domain != null) {
                 domain.checkConstraints(session, result);
             }
@@ -1001,7 +1006,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             if (v0 == ValueNull.INSTANCE) {
                 result = getNullOrValue(session, args, values, 1);
             }
-            result = result.convertTo(type, session, null);
+            result = result.convertTo(type, session);
             break;
         }
         case CASEWHEN: {
@@ -1011,7 +1016,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             } else {
                 v = getNullOrValue(session, args, values, 1);
             }
-            result = v.convertTo(type, session, null);
+            result = v.convertTo(type, session);
             break;
         }
         case DECODE: {
@@ -1027,7 +1032,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             Value v = index < 0 ? ValueNull.INSTANCE :
                     getNullOrValue(session, args, values, index);
-            result = v.convertTo(type, session, null);
+            result = v.convertTo(type, session);
             break;
         }
         case NVL2: {
@@ -1037,7 +1042,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             } else {
                 v = getNullOrValue(session, args, values, 1);
             }
-            result = v.convertTo(type, session, null);
+            result = v.convertTo(type, session);
             break;
         }
         case COALESCE: {
@@ -1045,7 +1050,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
                 if (v != ValueNull.INSTANCE) {
-                    result = v.convertTo(type, session, null);
+                    result = v.convertTo(type, session);
                     break;
                 }
             }
@@ -1057,7 +1062,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
                 if (v != ValueNull.INSTANCE) {
-                    v = v.convertTo(type, session, null);
+                    v = v.convertTo(type, session);
                     if (result == ValueNull.INSTANCE) {
                         result = v;
                     } else {
@@ -1108,7 +1113,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 then = args[args.length - 1];
             }
             Value v = then == null ? ValueNull.INSTANCE : then.getValue(session);
-            result = v.convertTo(type, session, null);
+            result = v.convertTo(type, session);
             break;
         }
         case ARRAY_GET: {
@@ -1617,15 +1622,15 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case ARRAY_CONCAT: {
-            final ValueArray array = (ValueArray) v0.convertTo(Value.ARRAY);
-            final ValueArray array2 = (ValueArray) v1.convertTo(Value.ARRAY);
+            final ValueArray array = (ValueArray) v0.convertTo(TypeInfo.TYPE_ARRAY);
+            final ValueArray array2 = (ValueArray) v1.convertTo(TypeInfo.TYPE_ARRAY);
             final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + array2.getList().length);
             System.arraycopy(array2.getList(), 0, res, array.getList().length, array2.getList().length);
             result = ValueArray.get(res);
             break;
         }
         case ARRAY_APPEND: {
-            final ValueArray array = (ValueArray) v0.convertTo(Value.ARRAY);
+            final ValueArray array = (ValueArray) v0.convertTo(TypeInfo.TYPE_ARRAY);
             final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + 1);
             res[array.getList().length] = v1;
             result = ValueArray.get(res);
@@ -1633,7 +1638,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         }
         case ARRAY_SLICE: {
             result = null;
-            final ValueArray array = (ValueArray) v0.convertTo(Value.ARRAY);
+            final ValueArray array = (ValueArray) v0.convertTo(TypeInfo.TYPE_ARRAY);
             // SQL is 1-based
             int index1 = v1.getInt() - 1;
             // 1-based and inclusive as postgreSQL (-1+1)
@@ -1756,18 +1761,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case TRUNCATE_VALUE: {
-            long precision = v1.getLong();
-            int valueType;
-            if (v2.getBoolean() //
-                    && DataType.isNumericType(valueType = v0.getValueType()) && valueType != Value.NUMERIC) {
-                result = v0.checkPrecision(precision) ? v0 //
-                        : v0.convertTo(Value.NUMERIC).convertPrecision(precision).convertTo(valueType);
-            } else {
-                result = v0.convertPrecision(precision);
-            }
+        case TRUNCATE_VALUE:
+            result = truncateValue(session, v0, v1.getLong(), v2.getBoolean());
             break;
-        }
         case XMLTEXT:
             if (v1 == null) {
                 result = ValueString.get(StringUtils.xmlText(v0.getString()), database);
@@ -1864,6 +1860,47 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         return result;
+    }
+
+    private static Value truncateValue(Session session, Value value, long precision, boolean force) {
+        if (precision <= 0) {
+            throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Long.toString(precision), "1",
+                    "" + Integer.MAX_VALUE);
+        }
+        TypeInfo t = value.getType();
+        int valueType = t.getValueType();
+        if (DataType.getDataType(valueType).supportsPrecision) {
+            if (precision < t.getPrecision()) {
+                if (valueType == Value.NUMERIC) {
+                    return ValueDecimal.get(value.getBigDecimal().round(new MathContext(
+                            MathUtils.convertLongToInt(precision))));
+                } else {
+                    return value.castTo(TypeInfo.getTypeInfo(valueType, precision, t.getScale(), t.getExtTypeInfo()),
+                            session);
+                }
+            }
+        } else if (force) {
+            BigDecimal bd;
+            switch (valueType) {
+            case Value.TINYINT:
+            case Value.SMALLINT:
+            case Value.INT:
+                bd = BigDecimal.valueOf(value.getInt());
+                break;
+            case Value.BIGINT:
+                bd = BigDecimal.valueOf(value.getLong());
+                break;
+            case Value.REAL:
+            case Value.DOUBLE:
+                bd = value.getBigDecimal();
+                break;
+            default:
+                return value;
+            }
+            bd = bd.round(new MathContext(MathUtils.convertLongToInt(precision)));
+            return ValueDecimal.get(bd).convertTo(valueType);
+        }
+        return value;
     }
 
     private Sequence getSequence(Session session, Value v0, Value v1) {
@@ -2009,7 +2046,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             start--;
             end--;
             if (start == 0 && end == s.length) {
-                return stringValue.convertTo(Value.VARBINARY);
+                return stringValue.convertTo(TypeInfo.TYPE_VARBINARY);
             }
             return ValueBytes.getNoCopy(Arrays.copyOfRange(s, start, end));
         } else {
@@ -2389,7 +2426,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             baos.write(',');
         }
         JSONByteArrayTarget.encodeString(baos, key).write(':');
-        byte[] b = value.convertTo(Value.JSON).getBytesNoCopy();
+        byte[] b = value.convertTo(TypeInfo.TYPE_JSON).getBytesNoCopy();
         baos.write(b, 0, b.length);
     }
 
@@ -2470,7 +2507,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         if (baos.size() > 1) {
             baos.write(',');
         }
-        byte[] b = value.convertTo(Value.JSON).getBytesNoCopy();
+        byte[] b = value.convertTo(TypeInfo.TYPE_JSON).getBytesNoCopy();
         baos.write(b, 0, b.length);
     }
 

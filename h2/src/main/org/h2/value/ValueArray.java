@@ -7,10 +7,7 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Arrays;
-
 import org.h2.engine.CastDataProvider;
-import org.h2.util.MathUtils;
 
 /**
  * Implementation of the ARRAY data type.
@@ -167,15 +164,6 @@ public class ValueArray extends ValueCollectionBase {
             }
         }
         return true;
-    }
-
-    @Override
-    public Value convertPrecision(long precision) {
-        int p = MathUtils.convertLongToInt(precision);
-        if (values.length <= p) {
-            return this;
-        }
-        return get(getComponentType(), Arrays.copyOf(values, p));
     }
 
 }

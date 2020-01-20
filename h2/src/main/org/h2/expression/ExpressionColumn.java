@@ -21,7 +21,7 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.value.ExtTypeInfo;
+import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -211,9 +211,9 @@ public class ExpressionColumn extends Expression {
          * ENUM values are stored as integers.
          */
         if (value != ValueNull.INSTANCE) {
-            ExtTypeInfo extTypeInfo = column.getType().getExtTypeInfo();
-            if (extTypeInfo != null) {
-                return extTypeInfo.cast(value, session);
+            TypeInfo type = column.getType();
+            if (type.getValueType() == Value.ENUM) {
+                return value.convertToEnum((ExtTypeInfoEnum) type.getExtTypeInfo());
             }
         }
         return value;

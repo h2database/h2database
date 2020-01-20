@@ -203,7 +203,7 @@ public class WindowFunction extends DataAnalysisOperation {
             break;
         case LEAD:
         case LAG:
-            getLeadLag(result, ordered, rowIdColumn);
+            getLeadLag(result, ordered, rowIdColumn, session);
             break;
         case FIRST_VALUE:
         case LAST_VALUE:
@@ -281,10 +281,11 @@ public class WindowFunction extends DataAnalysisOperation {
         }
     }
 
-    private void getLeadLag(HashMap<Integer, Value> result, ArrayList<Value[]> ordered, int rowIdColumn) {
+    private void getLeadLag(HashMap<Integer, Value> result, ArrayList<Value[]> ordered, int rowIdColumn,
+            Session session) {
         int size = ordered.size();
         int numExpressions = getNumExpressions();
-        int dataType = args[0].getType().getValueType();
+        TypeInfo dataType = args[0].getType();
         for (int i = 0; i < size; i++) {
             Value[] row = ordered.get(i);
             int rowId = row[rowIdColumn].getInt();
@@ -336,7 +337,7 @@ public class WindowFunction extends DataAnalysisOperation {
             }
             if (v == null) {
                 if (numExpressions >= 3) {
-                    v = row[2].convertTo(dataType);
+                    v = row[2].convertTo(dataType, session);
                 } else {
                     v = ValueNull.INSTANCE;
                 }
@@ -385,9 +386,9 @@ public class WindowFunction extends DataAnalysisOperation {
             Value v = ordered.get(i)[0];
             if (v != ValueNull.INSTANCE) {
                 if (value == null) {
-                    value = v.convertTo(Value.DOUBLE);
+                    value = v.convertToDouble();
                 } else {
-                    value = value.add(v.convertTo(Value.DOUBLE));
+                    value = value.add(v.convertToDouble());
                 }
             }
         }
@@ -402,7 +403,7 @@ public class WindowFunction extends DataAnalysisOperation {
             } else {
                 v = row[0];
                 if (v != ValueNull.INSTANCE) {
-                    v = v.convertTo(Value.DOUBLE).divide(value, ValueDouble.PRECISION);
+                    v = v.convertToDouble().divide(value, ValueDouble.PRECISION);
                 }
             }
             result.put(row[rowIdColumn].getInt(), v);

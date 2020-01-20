@@ -203,7 +203,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         switch (aggregateType) {
         case LISTAGG:
             if (v != ValueNull.INSTANCE) {
-                v = updateCollecting(session, v.convertTo(Value.VARCHAR), remembered);
+                v = updateCollecting(session, v.convertTo(TypeInfo.TYPE_VARCHAR), remembered);
             }
             if (args.length >= 2) {
                 ((AggregateDataCollecting) data).setSharedArgument(
@@ -418,11 +418,10 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                     return ValueNull.INSTANCE;
                 }
                 AggregateDataDefault d = new AggregateDataDefault(aggregateType, type.getValueType());
-                int dataType = type.getValueType();
                 for (Value v : c) {
                     d.add(session, v);
                 }
-                return d.getValue(session, dataType);
+                return d.getValue(session);
             }
             break;
         case HISTOGRAM:
@@ -517,7 +516,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         default:
             // Avoid compiler warning
         }
-        return data.getValue(session, type.getValueType());
+        return data.getValue(session);
     }
 
     private Value getHypotheticalSet(Session session, AggregateData data) {
@@ -671,7 +670,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 }
             }
         }
-        return v.convertTo(type.getValueType());
+        return v;
     }
 
     @Override

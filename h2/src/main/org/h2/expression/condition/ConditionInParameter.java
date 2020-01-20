@@ -18,6 +18,7 @@ import org.h2.index.IndexCondition;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -86,7 +87,7 @@ public class ConditionInParameter extends Condition {
                 }
             }
         } else {
-            for (Value r : ((ValueArray) value.convertTo(Value.ARRAY)).getList()) {
+            for (Value r : ((ValueArray) value.convertTo(TypeInfo.TYPE_ARRAY)).getList()) {
                 Value cmp = Comparison.compare(session, l, r, Comparison.EQUAL);
                 if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;

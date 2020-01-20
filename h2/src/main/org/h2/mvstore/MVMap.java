@@ -694,7 +694,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the iterator
      */
     public final Iterator<K> keyIterator(K from) {
-        return new Cursor<>(getRootPage(), from);
+        return cursor(from, null, false);
+    }
+
+    public final Iterator<K> keyIteratorReverse(K from) {
+        return cursor(from, null, true);
     }
 
     final boolean rewritePage(long pagePos) {
@@ -721,7 +725,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the cursor
      */
     public final Cursor<K, V> cursor(K from) {
-        return new Cursor<>(getRootPage(), from);
+        return cursor(from, null, false);
+    }
+
+    public final Cursor<K, V> cursor(K from, K to, boolean reverse) {
+        return new Cursor<>(getRootPage(), from, to, reverse);
     }
 
     @Override
@@ -731,7 +739,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
             @Override
             public Iterator<Entry<K, V>> iterator() {
-                final Cursor<K, V> cursor = new Cursor<>(root, null);
+                final Cursor<K, V> cursor = new Cursor<>(root, null, null, false);
                 return new Iterator<Entry<K, V>>() {
 
                     @Override

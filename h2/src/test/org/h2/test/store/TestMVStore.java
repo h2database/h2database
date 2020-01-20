@@ -106,6 +106,7 @@ public class TestMVStore extends TestBase {
         testRandom();
         testKeyValueClasses();
         testIterate();
+        testIterateReverse();
         testCloseTwice();
         testSimple();
 
@@ -313,7 +314,7 @@ public class TestMVStore extends TestBase {
         }
     }
 
-    private void testVersionsToKeep() throws Exception {
+    private void testVersionsToKeep() {
         try (MVStore s = new MVStore.Builder().open()) {
             assertEquals(5, s.getVersionsToKeep());
             MVMap<Integer, Integer> map = s.openMap("data");
@@ -354,14 +355,14 @@ public class TestMVStore extends TestBase {
             assertEquals("version 2", m.openVersion(2).get(1));
             new AssertThrows(IllegalArgumentException.class) {
                 @Override
-                public void test() throws Exception {
+                public void test() {
                     m.openVersion(1);
                 }
             };
         }
     }
 
-    private void testRemoveMap() throws Exception {
+    private void testRemoveMap() {
         String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         try (MVStore s = new MVStore.Builder().
@@ -381,7 +382,7 @@ public class TestMVStore extends TestBase {
         }
     }
 
-    private void testIsEmpty() throws Exception {
+    private void testIsEmpty() {
         try (MVStore s = new MVStore.Builder().
                 pageSplitSize(50).
                 open()) {
@@ -397,7 +398,7 @@ public class TestMVStore extends TestBase {
         }
     }
 
-    private void testOffHeapStorage() throws Exception {
+    private void testOffHeapStorage() {
         OffHeapStore offHeap = new OffHeapStore();
         int count = 1000;
         try (MVStore s = new MVStore.Builder().
@@ -421,7 +422,7 @@ public class TestMVStore extends TestBase {
         }
     }
 
-    private void testNewerWriteVersion() throws Exception {
+    private void testNewerWriteVersion() {
         String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = new MVStore.Builder().
@@ -471,7 +472,7 @@ public class TestMVStore extends TestBase {
 
     }
 
-    private void testCompactFully() throws Exception {
+    private void testCompactFully() {
         String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = new MVStore.Builder().
@@ -1071,11 +1072,10 @@ public class TestMVStore extends TestBase {
             assertEquals(20, map.higherKey(10).intValue());
             assertEquals(10, map.lowerKey(20).intValue());
 
-            final MVMap<Integer, Integer> m = map;
-            assertEquals(10, m.ceilingKey(null).intValue());
-            assertEquals(10, m.higherKey(null).intValue());
-            assertNull(m.lowerKey(null));
-            assertNull(m.floorKey(null));
+            assertEquals(10, map.ceilingKey(null).intValue());
+            assertEquals(10, map.higherKey(null).intValue());
+            assertNull(map.lowerKey(null));
+            assertNull(map.floorKey(null));
         }
 
         for (int i = 3; i < 20; i++) {
@@ -1936,13 +1936,14 @@ public class TestMVStore extends TestBase {
     }
 
     private void testIterate() {
+        int size = config.big ? 1000 : 10;
         String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         try (MVStore s = openStore(fileName)) {
             MVMap<Integer, String> m = s.openMap("data");
             Iterator<Integer> it = m.keyIterator(null);
             assertFalse(it.hasNext());
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < size; i++) {
                 m.put(i, "hello " + i);
             }
             s.commit();
@@ -1951,15 +1952,47 @@ public class TestMVStore extends TestBase {
             assertThrows(UnsupportedOperationException.class, it).remove();
 
             it = m.keyIterator(null);
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < size; i++) {
                 assertTrue(it.hasNext());
                 assertEquals(i, it.next().intValue());
             }
             assertFalse(it.hasNext());
             assertThrows(NoSuchElementException.class, it).next();
-            for (int j = 0; j < 10; j++) {
+            for (int j = 0; j < size; j++) {
                 it = m.keyIterator(j);
-                for (int i = j; i < 10; i++) {
+                for (int i = j; i < size; i++) {
+                    assertTrue(it.hasNext());
+                    assertEquals(i, it.next().intValue());
+                }
+                assertFalse(it.hasNext());
+            }
+        }
+    }
+
+    private void testIterateReverse() {
+        int size = config.big ? 1000 : 10;
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
+        try (MVStore s = openStore(fileName)) {
+            MVMap<Integer, String> m = s.openMap("data");
+            for (int i = 0; i < size; i++) {
+                m.put(i, "hello " + i);
+            }
+            s.commit();
+            Iterator<Integer> it = m.keyIteratorReverse(null);
+            it.next();
+            assertThrows(UnsupportedOperationException.class, it).remove();
+
+            it = m.keyIteratorReverse(null);
+            for (int i = size - 1; i >= 0; i--) {
+                assertTrue(it.hasNext());
+                assertEquals(i, it.next().intValue());
+            }
+            assertFalse(it.hasNext());
+            assertThrows(NoSuchElementException.class, it).next();
+            for (int j = 0; j < size; j++) {
+                it = m.keyIteratorReverse(j);
+                for (int i = j; i >= 0; i--) {
                     assertTrue(it.hasNext());
                     assertEquals(i, it.next().intValue());
                 }

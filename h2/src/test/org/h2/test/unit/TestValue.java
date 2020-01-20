@@ -182,16 +182,6 @@ public class TestValue extends TestDb {
         assertEquals(32, v.convertPrecision(10).getBytes()[9]);
         assertEquals(10, v.convertPrecision(10).getType().getPrecision());
 
-        final Value vd = ValueDecimal.get(new BigDecimal("1234567890.123456789"));
-        assertEquals(19, vd.getType().getPrecision());
-        assertEquals("1234567890", vd.convertPrecision(10).getString());
-        new AssertThrows(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1) {
-            @Override
-            public void test() {
-                vd.convertPrecision(0);
-            }
-        };
-
         v = ValueLob.createSmallLob(Value.CLOB, spaces.getBytes(), 100);
         assertEquals(100, v.getType().getPrecision());
         assertEquals(10, v.convertPrecision(10).getType().getPrecision());

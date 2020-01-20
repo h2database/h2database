@@ -1224,9 +1224,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             if (scale != targetScale && (scale >= targetScale || !provider.getMode().convertOnlyToSmallerScale)) {
                 v = ValueDecimal.get(ValueDecimal.setScale(value, targetScale));
             }
-            if (conversionMode == CAST_TO) {
-                v = v.convertPrecision(targetType.getPrecision());
-            } else if (!v.checkPrecision(targetType.getPrecision())) {
+            if (!v.checkPrecision(targetType.getPrecision())) {
                 throw v.getValueTooLongException(targetType, column);
             }
         }

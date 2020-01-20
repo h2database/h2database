@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -1760,18 +1761,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case TRUNCATE_VALUE: {
-            long precision = v1.getLong();
-            int valueType;
-            if (v2.getBoolean() //
-                    && DataType.isNumericType(valueType = v0.getValueType()) && valueType != Value.NUMERIC) {
-                result = v0.checkPrecision(precision) ? v0 //
-                        : v0.convertTo(TypeInfo.TYPE_NUMERIC).convertPrecision(precision).convertTo(valueType);
-            } else {
-                result = v0.convertPrecision(precision);
-            }
+        case TRUNCATE_VALUE:
+            result = truncateValue(session, v0, v1.getLong(), v2.getBoolean());
             break;
-        }
         case XMLTEXT:
             if (v1 == null) {
                 result = ValueString.get(StringUtils.xmlText(v0.getString()), database);
@@ -1868,6 +1860,47 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         return result;
+    }
+
+    private static Value truncateValue(Session session, Value value, long precision, boolean force) {
+        if (precision <= 0) {
+            throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Long.toString(precision), "1",
+                    "" + Integer.MAX_VALUE);
+        }
+        TypeInfo t = value.getType();
+        int valueType = t.getValueType();
+        if (DataType.getDataType(valueType).supportsPrecision) {
+            if (precision < t.getPrecision()) {
+                if (valueType == Value.NUMERIC) {
+                    return ValueDecimal.get(value.getBigDecimal().round(new MathContext(
+                            MathUtils.convertLongToInt(precision))));
+                } else {
+                    return value.castTo(TypeInfo.getTypeInfo(valueType, precision, t.getScale(), t.getExtTypeInfo()),
+                            session);
+                }
+            }
+        } else if (force) {
+            BigDecimal bd;
+            switch (valueType) {
+            case Value.TINYINT:
+            case Value.SMALLINT:
+            case Value.INT:
+                bd = BigDecimal.valueOf(value.getInt());
+                break;
+            case Value.BIGINT:
+                bd = BigDecimal.valueOf(value.getLong());
+                break;
+            case Value.REAL:
+            case Value.DOUBLE:
+                bd = value.getBigDecimal();
+                break;
+            default:
+                return value;
+            }
+            bd = bd.round(new MathContext(MathUtils.convertLongToInt(precision)));
+            return ValueDecimal.get(bd).convertTo(valueType);
+        }
+        return value;
     }
 
     private Sequence getSequence(Session session, Value v0, Value v1) {

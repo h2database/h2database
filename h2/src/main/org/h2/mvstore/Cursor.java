@@ -149,7 +149,7 @@ public final class Cursor<K,V> implements Iterator<K> {
     private static <K,V> CursorPos<K,V> traverseDown(Page<K,V> p, K key) {
         CursorPos<K,V> cursorPos = key == null ? p.getPrependCursorPos(null) : CursorPos.traverseDown(p, key);
         if (cursorPos.index < 0) {
-            cursorPos.index = -cursorPos.index - 1;
+            cursorPos.index = ~cursorPos.index;
         }
         return cursorPos;
     }

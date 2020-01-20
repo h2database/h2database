@@ -855,8 +855,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param updatedRootReference the new
      * @return whether updating worked
      */
-    final boolean compareAndSetRoot(RootReference<K,V> expectedRootReference, RootReference<K,V> updatedRootReference)
-    {
+    final boolean compareAndSetRoot(RootReference<K,V> expectedRootReference,
+                                    RootReference<K,V> updatedRootReference) {
         return root.compareAndSet(expectedRootReference, updatedRootReference);
     }
 
@@ -878,8 +878,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param version to rollback to
      * @return true if rollback was a success, false if there was not enough in-memory history
      */
-    boolean rollbackRoot(long version)
-    {
+    boolean rollbackRoot(long version) {
         RootReference<K,V> rootReference = flushAndGetRoot();
         RootReference<K,V> previous;
         while (rootReference.version >= version && (previous = rootReference.previous) != null) {
@@ -1733,7 +1732,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             if (!locked) {
                 if (attempt++ == 0) {
                     beforeWrite();
-                } else if (attempt > 3 || rootReference.isLocked()) {
+                }
+                if (attempt > 3 || rootReference.isLocked()) {
                     rootReference = lockRoot(rootReference, attempt);
                     locked = true;
                 }
@@ -1881,7 +1881,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (lockedRootReference != null) {
             return lockedRootReference;
         }
-
+        assert !rootReference.isLockedByCurrentThread() : rootReference;
         RootReference<K,V> oldRootReference = rootReference.previous;
         int contention = 1;
         if (oldRootReference != null) {

@@ -1552,7 +1552,7 @@ public abstract class Page<K,V> implements Cloneable
         @Override
         public CursorPos<K,V> getAppendCursorPos(CursorPos<K,V> cursorPos) {
             int keyCount = getKeyCount();
-            return new CursorPos<>(this, -keyCount - 1, cursorPos);
+            return new CursorPos<>(this, ~keyCount, cursorPos);
         }
 
         @Override

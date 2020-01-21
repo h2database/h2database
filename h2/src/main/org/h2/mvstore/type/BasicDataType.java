@@ -61,7 +61,7 @@ public abstract class BasicDataType<T> implements DataType<T> {
             }
             x = (low + high) >>> 1;
         }
-        return -(low + 1);
+        return ~low;
     }
 
     @Override

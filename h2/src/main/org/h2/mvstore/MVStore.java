@@ -2251,7 +2251,7 @@ public class MVStore implements AutoCloseable
                 try {
                     Chunk chunk = getChunk(pos);
                     int pageOffset = DataUtils.getPageOffset(pos);
-                    ByteBuffer buff = chunk.readBufferForPage(fileStore, pageOffset, pos, map.getId());
+                    ByteBuffer buff = chunk.readBufferForPage(fileStore, pageOffset, pos);
                     p = Page.read(buff, pos, map);
                     if (p.pageNo < 0) {
                         p.pageNo = calculatePageNo(pos);

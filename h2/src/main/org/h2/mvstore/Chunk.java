@@ -19,7 +19,7 @@ import java.util.HashMap;
  * There are at most 67 million (2^26) chunks,
  * each chunk is at most 2 GB large.
  */
-public class Chunk
+public final class Chunk
 {
 
     /**
@@ -315,7 +315,7 @@ public class Chunk
         if (tocPos > 0) {
             DataUtils.appendMap(buff, ATTR_TOC, tocPos);
         }
-        if (occupancy.nextSetBit(0) >= 0) {
+        if (!occupancy.isEmpty()) {
             DataUtils.appendMap(buff, ATTR_OCCUPANCY,
                     StringUtils.convertBytesToHex(occupancy.toByteArray()));
         }
@@ -361,10 +361,9 @@ public class Chunk
      *
      * @param fileStore to use
      * @param pos page pos
-     * @param expectedMapId expected map id for the page
      * @return ByteBuffer containing page data.
      */
-    ByteBuffer readBufferForPage(FileStore fileStore, int offset,  long pos, int expectedMapId) {
+    ByteBuffer readBufferForPage(FileStore fileStore, int offset, long pos) {
         assert isSaved() : this;
         while (true) {
             long originalBlock = block;

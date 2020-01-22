@@ -50,7 +50,7 @@ public class UnaryOperation extends Expression {
         if (type.getValueType() == Value.UNKNOWN) {
             type = TypeInfo.TYPE_NUMERIC_FLOATING_POINT;
         } else if (type.getValueType() == Value.ENUM) {
-            type = TypeInfo.TYPE_INT;
+            type = TypeInfo.TYPE_INTEGER;
         }
         if (arg.isConstant()) {
             return ValueExpression.get(getValue(session));

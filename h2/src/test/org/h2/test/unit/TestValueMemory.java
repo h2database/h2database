@@ -174,7 +174,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
             return ValueByte.get((byte) random.nextInt());
         case Value.SMALLINT:
             return ValueShort.get((short) random.nextInt());
-        case Value.INT:
+        case Value.INTEGER:
             return ValueInt.get(random.nextInt());
         case Value.BIGINT:
             return ValueLong.get(random.nextLong());

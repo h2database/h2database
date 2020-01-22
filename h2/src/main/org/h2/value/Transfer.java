@@ -44,26 +44,26 @@ public class Transfer {
 
     private static final int NULL = 0;
     private static final int BOOLEAN = 1;
-    private static final int BYTE = 2;
-    private static final int SHORT = 3;
-    private static final int INT = 4;
-    private static final int LONG = 5;
-    private static final int DECIMAL = 6;
+    private static final int TINYINT = 2;
+    private static final int SMALLINT = 3;
+    private static final int INTEGER = 4;
+    private static final int BIGINT = 5;
+    private static final int NUMERIC = 6;
     private static final int DOUBLE = 7;
-    private static final int FLOAT = 8;
+    private static final int REAL = 8;
     private static final int TIME = 9;
     private static final int DATE = 10;
     private static final int TIMESTAMP = 11;
-    private static final int BYTES = 12;
-    private static final int STRING = 13;
-    private static final int STRING_IGNORECASE = 14;
+    private static final int VARBINARY = 12;
+    private static final int VARCHAR = 13;
+    private static final int VARCHAR_IGNORECASE = 14;
     private static final int BLOB = 15;
     private static final int CLOB = 16;
     private static final int ARRAY = 17;
     private static final int RESULT_SET = 18;
     private static final int JAVA_OBJECT = 19;
     private static final int UUID = 20;
-    private static final int STRING_FIXED = 21;
+    private static final int CHAR = 21;
     private static final int GEOMETRY = 22;
     private static final int TIMESTAMP_TZ = 24;
     private static final int ENUM = 25;
@@ -374,7 +374,7 @@ public class Transfer {
             writeInt(NULL);
             break;
         case Value.VARBINARY:
-            writeInt(BYTES);
+            writeInt(VARBINARY);
             writeBytes(v.getBytesNoCopy());
             break;
         case Value.JAVA_OBJECT:
@@ -393,7 +393,7 @@ public class Transfer {
             writeBoolean(v.getBoolean());
             break;
         case Value.TINYINT:
-            writeInt(BYTE);
+            writeInt(TINYINT);
             writeByte(v.getByte());
             break;
         case Value.TIME:
@@ -443,7 +443,7 @@ public class Transfer {
             break;
         }
         case Value.NUMERIC:
-            writeInt(DECIMAL);
+            writeInt(NUMERIC);
             writeString(v.getString());
             break;
         case Value.DOUBLE:
@@ -451,31 +451,31 @@ public class Transfer {
             writeDouble(v.getDouble());
             break;
         case Value.REAL:
-            writeInt(FLOAT);
+            writeInt(REAL);
             writeFloat(v.getFloat());
             break;
-        case Value.INT:
-            writeInt(INT);
+        case Value.INTEGER:
+            writeInt(INTEGER);
             writeInt(v.getInt());
             break;
         case Value.BIGINT:
-            writeInt(LONG);
+            writeInt(BIGINT);
             writeLong(v.getLong());
             break;
         case Value.SMALLINT:
-            writeInt(SHORT);
+            writeInt(SMALLINT);
             writeInt(v.getShort());
             break;
         case Value.VARCHAR:
-            writeInt(STRING);
+            writeInt(VARCHAR);
             writeString(v.getString());
             break;
         case Value.VARCHAR_IGNORECASE:
-            writeInt(STRING_IGNORECASE);
+            writeInt(VARCHAR_IGNORECASE);
             writeString(v.getString());
             break;
         case Value.CHAR:
-            writeInt(STRING_FIXED);
+            writeInt(CHAR);
             writeString(v.getString());
             break;
         case Value.BLOB: {
@@ -604,7 +604,7 @@ public class Transfer {
                 writeByte((byte) ordinal);
                 writeLong(interval.getLeading());
             } else {
-                writeInt(STRING);
+                writeInt(VARCHAR);
                 writeString(v.getString());
             }
             break;
@@ -627,7 +627,7 @@ public class Transfer {
                 writeLong(interval.getLeading());
                 writeLong(interval.getRemaining());
             } else {
-                writeInt(STRING);
+                writeInt(VARCHAR);
                 writeString(v.getString());
             }
             break;
@@ -651,7 +651,7 @@ public class Transfer {
         switch (type) {
         case NULL:
             return ValueNull.INSTANCE;
-        case BYTES:
+        case VARBINARY:
             return ValueBytes.getNoCopy(readBytes());
         case UUID:
             return ValueUuid.get(readLong(), readLong());
@@ -659,7 +659,7 @@ public class Transfer {
             return ValueJavaObject.getNoCopy(null, readBytes(), session.getDataHandler());
         case BOOLEAN:
             return ValueBoolean.get(readBoolean());
-        case BYTE:
+        case TINYINT:
             return ValueByte.get(readByte());
         case DATE:
             return ValueDate.fromDateValue(readLong());
@@ -675,28 +675,28 @@ public class Transfer {
             return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
                     version >= Constants.TCP_PROTOCOL_VERSION_19 ? timeZoneOffset : timeZoneOffset * 60);
         }
-        case DECIMAL:
+        case NUMERIC:
             return ValueDecimal.get(new BigDecimal(readString()));
         case DOUBLE:
             return ValueDouble.get(readDouble());
-        case FLOAT:
+        case REAL:
             return ValueFloat.get(readFloat());
         case ENUM: {
             final int ordinal = readInt();
             final String label = readString();
             return ValueEnumBase.get(label, ordinal);
         }
-        case INT:
+        case INTEGER:
             return ValueInt.get(readInt());
-        case LONG:
+        case BIGINT:
             return ValueLong.get(readLong());
-        case SHORT:
+        case SMALLINT:
             return ValueShort.get((short) readInt());
-        case STRING:
+        case VARCHAR:
             return ValueString.get(readString());
-        case STRING_IGNORECASE:
+        case VARCHAR_IGNORECASE:
             return ValueStringIgnoreCase.get(readString());
-        case STRING_FIXED:
+        case CHAR:
             return ValueStringFixed.get(readString());
         case BLOB: {
             long length = readLong();

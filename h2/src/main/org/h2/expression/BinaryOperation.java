@@ -173,7 +173,7 @@ public class BinaryOperation extends Expression {
             if (dataType == Value.NUMERIC) {
                 optimizeNumeric(leftType, rightType);
             } else if (dataType == Value.ENUM) {
-                type = TypeInfo.TYPE_INT;
+                type = TypeInfo.TYPE_INTEGER;
             } else if (DataType.isStringType(dataType)
                     && opType == OpType.PLUS && session.getDatabase().getMode().allowPlusForStringConcat) {
                 return new ConcatenationOperation(left, right).optimize(session);
@@ -321,7 +321,7 @@ public class BinaryOperation extends Expression {
                 r = t;
             }
             switch (l) {
-            case Value.INT: {
+            case Value.INTEGER: {
                 // Oracle date add
                 return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
                         ValueExpression.get(ValueString.get("DAY")), left, right).optimize(session);
@@ -348,7 +348,7 @@ public class BinaryOperation extends Expression {
             case Value.TIMESTAMP:
             case Value.TIMESTAMP_TZ:
                 switch (r) {
-                case Value.INT: {
+                case Value.INTEGER: {
                     if (forcedType != null) {
                         throw getUnexpectedForcedTypeException();
                     }

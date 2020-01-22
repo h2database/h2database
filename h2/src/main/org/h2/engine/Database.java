@@ -640,11 +640,11 @@ public class Database implements DataHandler, CastDataProvider {
         lobSession = new Session(this, systemUser, ++nextSessionId);
         CreateTableData data = new CreateTableData();
         ArrayList<Column> cols = data.columns;
-        Column columnId = new Column("ID", Value.INT);
+        Column columnId = new Column("ID", Value.INTEGER);
         columnId.setNullable(false);
         cols.add(columnId);
-        cols.add(new Column("HEAD", Value.INT));
-        cols.add(new Column("TYPE", Value.INT));
+        cols.add(new Column("HEAD", Value.INTEGER));
+        cols.add(new Column("TYPE", Value.INTEGER));
         cols.add(new Column("SQL", Value.VARCHAR));
         boolean create = true;
         if (pageStore != null) {

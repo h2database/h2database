@@ -262,7 +262,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("ROUND", ROUND, VAR_ARGS, Value.NULL);
         addFunction("ROUNDMAGIC", ROUNDMAGIC, 1, Value.DOUBLE);
         addFunction("RSHIFT", RSHIFT, 2, Value.BIGINT);
-        addFunction("SIGN", SIGN, 1, Value.INT);
+        addFunction("SIGN", SIGN, 1, Value.INTEGER);
         addFunction("SIN", SIN, 1, Value.DOUBLE);
         addFunction("SINH", SINH, 1, Value.DOUBLE);
         addFunction("SQRT", SQRT, 1, Value.DOUBLE);
@@ -277,31 +277,31 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("SECURE_RAND", SECURE_RAND, 1, Value.VARBINARY);
         addFunction("COMPRESS", COMPRESS, VAR_ARGS, Value.VARBINARY);
         addFunction("EXPAND", EXPAND, 1, Value.VARBINARY);
-        addFunction("ZERO", ZERO, 0, Value.INT);
+        addFunction("ZERO", ZERO, 0, Value.INTEGER);
         addFunctionNotDeterministic("RANDOM_UUID", RANDOM_UUID, 0, Value.UUID);
         addFunctionNotDeterministic("UUID", RANDOM_UUID, 0, Value.UUID);
         addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.BIGINT);
         // string
-        addFunction("ASCII", ASCII, 1, Value.INT);
+        addFunction("ASCII", ASCII, 1, Value.INTEGER);
         addFunction("BIT_LENGTH", BIT_LENGTH, 1, Value.BIGINT);
         addFunction("CHAR", CHAR, 1, Value.VARCHAR);
         addFunction("CHR", CHAR, 1, Value.VARCHAR);
-        addFunction("CHAR_LENGTH", CHAR_LENGTH, 1, Value.INT);
+        addFunction("CHAR_LENGTH", CHAR_LENGTH, 1, Value.INTEGER);
         // same as CHAR_LENGTH
-        addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.INT);
+        addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.INTEGER);
         addFunctionWithNull("CONCAT", CONCAT, VAR_ARGS, Value.VARCHAR);
         addFunctionWithNull("CONCAT_WS", CONCAT_WS, VAR_ARGS, Value.VARCHAR);
-        addFunction("DIFFERENCE", DIFFERENCE, 2, Value.INT);
+        addFunction("DIFFERENCE", DIFFERENCE, 2, Value.INTEGER);
         addFunction("HEXTORAW", HEXTORAW, 1, Value.NULL);
         addFunctionWithNull("INSERT", INSERT, 4, Value.VARCHAR);
         addFunction("LCASE", LCASE, 1, Value.VARCHAR);
         addFunction("LEFT", LEFT, 2, Value.VARCHAR);
         addFunction("LENGTH", LENGTH, 1, Value.BIGINT);
         // 2 or 3 arguments
-        addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INT);
+        addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INTEGER);
         // same as LOCATE with 2 arguments
-        addFunction("POSITION", LOCATE, 2, Value.INT);
-        addFunction("INSTR", INSTR, VAR_ARGS, Value.INT);
+        addFunction("POSITION", LOCATE, 2, Value.INTEGER);
+        addFunction("INSTR", INSTR, VAR_ARGS, Value.INTEGER);
         addFunction("LTRIM", LTRIM, VAR_ARGS, Value.VARCHAR);
         addFunction("OCTET_LENGTH", OCTET_LENGTH, 1, Value.BIGINT);
         addFunction("RAWTOHEX", RAWTOHEX, 1, Value.VARCHAR);
@@ -316,7 +316,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("UCASE", UCASE, 1, Value.VARCHAR);
         addFunction("LOWER", LOWER, 1, Value.VARCHAR);
         addFunction("UPPER", UPPER, 1, Value.VARCHAR);
-        addFunction("POSITION", POSITION, 2, Value.INT);
+        addFunction("POSITION", POSITION, 2, Value.INTEGER);
         addFunction("TRIM", TRIM, VAR_ARGS, Value.VARCHAR);
         addFunction("STRINGENCODE", STRINGENCODE, 1, Value.VARCHAR);
         addFunction("STRINGDECODE", STRINGDECODE, 1, Value.VARCHAR);
@@ -367,47 +367,47 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("DAYNAME", DAY_NAME,
                 1, Value.VARCHAR);
         addFunction("DAY", DAY_OF_MONTH,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("DAY_OF_MONTH", DAY_OF_MONTH,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("DAY_OF_WEEK", DAY_OF_WEEK,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("DAY_OF_YEAR", DAY_OF_YEAR,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("DAYOFMONTH", DAY_OF_MONTH,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("DAYOFWEEK", DAY_OF_WEEK,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("DAYOFYEAR", DAY_OF_YEAR,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("HOUR", HOUR,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("MINUTE", MINUTE,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("MONTH", MONTH,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("MONTHNAME", MONTH_NAME,
                 1, Value.VARCHAR);
         addFunction("QUARTER", QUARTER,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("SECOND", SECOND,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("WEEK", WEEK,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("YEAR", YEAR,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("EXTRACT", EXTRACT,
-                2, Value.INT);
+                2, Value.INTEGER);
         addFunctionWithNull("FORMATDATETIME", FORMATDATETIME,
                 VAR_ARGS, Value.VARCHAR);
         addFunctionWithNull("PARSEDATETIME", PARSEDATETIME,
                 VAR_ARGS, Value.TIMESTAMP);
         addFunction("ISO_YEAR", ISO_YEAR,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("ISO_WEEK", ISO_WEEK,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("ISO_DAY_OF_WEEK", ISO_DAY_OF_WEEK,
-                1, Value.INT);
+                1, Value.INTEGER);
         addFunction("DATE_TRUNC", DATE_TRUNC, 2, Value.NULL);
         // system
         addFunctionNotDeterministic("CURRENT_CATALOG", CURRENT_CATALOG, 0, Value.VARCHAR, false);
@@ -430,7 +430,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("DATABASE_PATH", DATABASE_PATH,
                 0, Value.VARCHAR);
         addFunctionNotDeterministic("LOCK_TIMEOUT", LOCK_TIMEOUT,
-                0, Value.INT);
+                0, Value.INTEGER);
         addFunctionWithNull("IFNULL", IFNULL,
                 2, Value.NULL);
         addFunctionWithNull("ISNULL", IFNULL,
@@ -464,19 +464,19 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("CSVREAD", CSVREAD,
                 VAR_ARGS, Value.RESULT_SET, false, false, true, false);
         addFunction("CSVWRITE", CSVWRITE,
-                VAR_ARGS, Value.INT, false, false, true, false);
+                VAR_ARGS, Value.INTEGER, false, false, true, false);
         addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE,
-                0, Value.INT);
+                0, Value.INTEGER);
         addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED,
-                0, Value.INT);
+                0, Value.INTEGER);
         addFunctionNotDeterministic("LOCK_MODE", LOCK_MODE,
-                0, Value.INT);
+                0, Value.INTEGER);
         addFunctionNotDeterministic("CURRENT_SCHEMA", CURRENT_SCHEMA, 0, Value.VARCHAR, false);
         addFunctionNotDeterministic("SCHEMA", CURRENT_SCHEMA, 0, Value.VARCHAR);
         addFunctionNotDeterministic("SESSION_ID", SESSION_ID,
-                0, Value.INT);
-        addFunction("CARDINALITY", CARDINALITY, 1, Value.INT);
-        addFunction("ARRAY_LENGTH", CARDINALITY, 1, Value.INT);
+                0, Value.INTEGER);
+        addFunction("CARDINALITY", CARDINALITY, 1, Value.INTEGER);
+        addFunction("ARRAY_LENGTH", CARDINALITY, 1, Value.INTEGER);
         addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
                 6, Value.RESULT_SET);
         addFunctionWithNull("LEAST", LEAST,
@@ -1496,7 +1496,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                         database);
                 break;
             case Value.SMALLINT:
-            case Value.INT:
+            case Value.INTEGER:
             case Value.BIGINT:
             case Value.NUMERIC:
             case Value.DOUBLE:
@@ -1884,7 +1884,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             switch (valueType) {
             case Value.TINYINT:
             case Value.SMALLINT:
-            case Value.INT:
+            case Value.INTEGER:
                 bd = BigDecimal.valueOf(value.getInt());
                 break;
             case Value.BIGINT:
@@ -2703,7 +2703,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 typeInfo = TypeInfo.getTypeInfo(Value.NUMERIC, ValueLong.PRECISION + ValueTimestamp.MAXIMUM_SCALE,
                         ValueTimestamp.MAXIMUM_SCALE, null);
             } else {
-                typeInfo = TypeInfo.TYPE_INT;
+                typeInfo = TypeInfo.TYPE_INTEGER;
             }
             break;
         }
@@ -2857,7 +2857,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             TypeInfo type = p0.getType();
             typeInfo = type;
             if (typeInfo.getValueType() == Value.NULL) {
-                typeInfo = TypeInfo.TYPE_INT;
+                typeInfo = TypeInfo.TYPE_INTEGER;
             }
             break;
         }

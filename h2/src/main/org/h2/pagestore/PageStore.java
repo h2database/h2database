@@ -1591,10 +1591,10 @@ public class PageStore implements CacheWriter {
     private void openMetaIndex() {
         CreateTableData data = new CreateTableData();
         ArrayList<Column> cols = data.columns;
-        cols.add(new Column("ID", Value.INT));
-        cols.add(new Column("TYPE", Value.INT));
-        cols.add(new Column("PARENT", Value.INT));
-        cols.add(new Column("HEAD", Value.INT));
+        cols.add(new Column("ID", Value.INTEGER));
+        cols.add(new Column("TYPE", Value.INTEGER));
+        cols.add(new Column("PARENT", Value.INTEGER));
+        cols.add(new Column("HEAD", Value.INTEGER));
         cols.add(new Column("OPTIONS", Value.VARCHAR));
         cols.add(new Column("COLUMNS", Value.VARCHAR));
         metaSchema = new Schema(database, 0, "", null, true);
@@ -1676,7 +1676,7 @@ public class PageStore implements CacheWriter {
                 throw DbException.throwInternalError(row.toString());
             }
             for (int i = 0, len = columns.length; i < len; i++) {
-                Column col = new Column("C" + i, Value.INT);
+                Column col = new Column("C" + i, Value.INTEGER);
                 data.columns.add(col);
             }
             data.schema = metaSchema;

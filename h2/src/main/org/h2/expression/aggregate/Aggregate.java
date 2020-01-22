@@ -764,7 +764,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             switch (type.getValueType()) {
             case Value.TINYINT:
             case Value.SMALLINT:
-            case Value.INT:
+            case Value.INTEGER:
             case Value.BIGINT:
             case Value.NUMERIC:
             case Value.DOUBLE:

@@ -2733,7 +2733,7 @@ public class Parser {
                 boolean canBeNumber = !readIf(EQUAL);
                 SelectOrderBy order = new SelectOrderBy();
                 Expression expr = readExpression();
-                if (canBeNumber && expr instanceof ValueExpression && expr.getType().getValueType() == Value.INT) {
+                if (canBeNumber && expr instanceof ValueExpression && expr.getType().getValueType() == Value.INTEGER) {
                     order.columnIndexExpr = expr;
                 } else if (expr instanceof Parameter) {
                     recompileAlways = true;
@@ -4021,7 +4021,7 @@ public class Parser {
             }
             if (readIf(WITH)) {
                 read("ORDINALITY");
-                columns.add(new Column("NORD", Value.INT));
+                columns.add(new Column("NORD", Value.INTEGER));
             }
             TableFunction tf = (TableFunction) function;
             tf.setColumns(columns);
@@ -5871,7 +5871,7 @@ public class Parser {
                 column.setPrimaryKey(true);
             }
         } else if (readIf("SERIAL")) {
-            column = new Column(columnName, TypeInfo.TYPE_INT, "SERIAL");
+            column = new Column(columnName, TypeInfo.TYPE_INTEGER, "SERIAL");
             parseAutoIncrement(column);
             // PostgreSQL compatibility
             if (!database.getMode().serialColumnIsNotPK) {

@@ -44,7 +44,7 @@ public class TypeInfo {
     /**
      * INTEGER type with parameters.
      */
-    public static final TypeInfo TYPE_INT;
+    public static final TypeInfo TYPE_INTEGER;
 
     /**
      * BIGINT type with parameters.
@@ -198,7 +198,8 @@ public class TypeInfo {
                 ValueByte.DISPLAY_SIZE, null);
         infos[Value.SMALLINT] = TYPE_SMALLINT = new TypeInfo(Value.SMALLINT, ValueShort.PRECISION, 0,
                 ValueShort.DISPLAY_SIZE, null);
-        infos[Value.INT] = TYPE_INT = new TypeInfo(Value.INT, ValueInt.PRECISION, 0, ValueInt.DISPLAY_SIZE, null);
+        infos[Value.INTEGER] = TYPE_INTEGER = new TypeInfo(Value.INTEGER, ValueInt.PRECISION, 0, ValueInt.DISPLAY_SIZE,
+                null);
         infos[Value.BIGINT] = TYPE_BIGINT = new TypeInfo(Value.BIGINT, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE,
                 null);
         infos[Value.NUMERIC] = TYPE_NUMERIC = new TypeInfo(Value.NUMERIC, Integer.MAX_VALUE, //
@@ -297,7 +298,7 @@ public class TypeInfo {
         case Value.BOOLEAN:
         case Value.TINYINT:
         case Value.SMALLINT:
-        case Value.INT:
+        case Value.INTEGER:
         case Value.BIGINT:
         case Value.DOUBLE:
         case Value.REAL:
@@ -611,7 +612,7 @@ public class TypeInfo {
         case Value.BOOLEAN:
         case Value.TINYINT:
         case Value.SMALLINT:
-        case Value.INT:
+        case Value.INTEGER:
             return getTypeInfo(Value.NUMERIC, precision, 0, null);
         case Value.BIGINT:
             return TYPE_NUMERIC_BIGINT;

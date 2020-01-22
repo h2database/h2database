@@ -223,7 +223,7 @@ public class TestValue extends TestDb {
         testValueResultSetTest(ValueResultSet.get(null, rs, 2), 2, true);
 
         SimpleResult result = new SimpleResult();
-        result.addColumn("ID", "ID", Value.INT, 0, 0);
+        result.addColumn("ID", "ID", Value.INTEGER, 0, 0);
         result.addColumn("NAME", "NAME", Value.VARCHAR, 255, 0);
         result.addRow(ValueInt.get(1), ValueString.get("Hello"));
         result.addRow(ValueInt.get(2), ValueString.get("World"));
@@ -242,7 +242,7 @@ public class TestValue extends TestDb {
         assertEquals("ID", res.getAlias(0));
         assertEquals("ID", res.getColumnName(0));
         TypeInfo type = res.getColumnType(0);
-        assertEquals(Value.INT, type.getValueType());
+        assertEquals(Value.INTEGER, type.getValueType());
         assertEquals(ValueInt.PRECISION, type.getPrecision());
         assertEquals(0, type.getScale());
         assertEquals(ValueInt.DISPLAY_SIZE, type.getDisplaySize());
@@ -274,7 +274,7 @@ public class TestValue extends TestDb {
         testDataType(Value.NULL, void.class);
         testDataType(Value.ARRAY, String[].class);
         testDataType(Value.VARCHAR, String.class);
-        testDataType(Value.INT, Integer.class);
+        testDataType(Value.INTEGER, Integer.class);
         testDataType(Value.BIGINT, Long.class);
         testDataType(Value.BOOLEAN, Boolean.class);
         testDataType(Value.DOUBLE, Double.class);
@@ -502,7 +502,7 @@ public class TestValue extends TestDb {
 
         testTypeInfoCheck(Value.TINYINT, 3, 0, 4, TypeInfo.TYPE_TINYINT, TypeInfo.getTypeInfo(Value.TINYINT));
         testTypeInfoCheck(Value.SMALLINT, 5, 0, 6, TypeInfo.TYPE_SMALLINT, TypeInfo.getTypeInfo(Value.SMALLINT));
-        testTypeInfoCheck(Value.INT, 10, 0, 11, TypeInfo.TYPE_INT, TypeInfo.getTypeInfo(Value.INT));
+        testTypeInfoCheck(Value.INTEGER, 10, 0, 11, TypeInfo.TYPE_INTEGER, TypeInfo.getTypeInfo(Value.INTEGER));
         testTypeInfoCheck(Value.BIGINT, 19, 0, 20, TypeInfo.TYPE_BIGINT, TypeInfo.getTypeInfo(Value.BIGINT));
 
         testTypeInfoCheck(Value.REAL, 7, 0, 15, TypeInfo.TYPE_REAL, TypeInfo.getTypeInfo(Value.REAL));

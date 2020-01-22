@@ -256,7 +256,7 @@ final class Percentile {
         switch (dataType) {
         case Value.TINYINT:
         case Value.SMALLINT:
-        case Value.INT:
+        case Value.INTEGER:
             return ValueDecimal.get(
                     interpolateDecimal(BigDecimal.valueOf(v0.getInt()), BigDecimal.valueOf(v1.getInt()), factor));
         case Value.BIGINT:

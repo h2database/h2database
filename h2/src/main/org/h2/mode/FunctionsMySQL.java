@@ -43,7 +43,7 @@ public class FunctionsMySQL extends FunctionsBase {
 
     static {
         FUNCTIONS.put("UNIX_TIMESTAMP", new FunctionInfo("UNIX_TIMESTAMP", UNIX_TIMESTAMP,
-                VAR_ARGS, Value.INT, false, false, true, false));
+                VAR_ARGS, Value.INTEGER, false, false, true, false));
         FUNCTIONS.put("FROM_UNIXTIME", new FunctionInfo("FROM_UNIXTIME", FROM_UNIXTIME,
                 VAR_ARGS, Value.VARCHAR, false, true, true, false));
         FUNCTIONS.put("DATE", new FunctionInfo("DATE", DATE,

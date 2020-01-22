@@ -72,7 +72,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     /**
      * The value type for INTEGER values.
      */
-    public static final int INT = 4;
+    public static final int INTEGER = 4;
 
     /**
      * The value type for BIGINT values.
@@ -403,7 +403,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             return 21_000;
         case SMALLINT:
             return 22_000;
-        case INT:
+        case INTEGER:
             return 23_000;
         case BIGINT:
             return 24_000;
@@ -822,7 +822,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             return convertToTinyint(column);
         case SMALLINT:
             return convertToSmallint(column);
-        case INT:
+        case INTEGER:
             return convertToInt(column);
         case BIGINT:
             return convertToBigint(column);
@@ -902,7 +902,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             return (ValueBoolean) this;
         case TINYINT:
         case SMALLINT:
-        case INT:
+        case INTEGER:
         case BIGINT:
         case NUMERIC:
         case DOUBLE:
@@ -958,7 +958,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             return ValueByte.get(getBoolean() ? (byte) 1 : (byte) 0);
         case SMALLINT:
         case ENUM:
-        case INT:
+        case INTEGER:
             return ValueByte.get(convertToByte(getInt(), column));
         case BIGINT:
         case INTERVAL_YEAR:
@@ -1017,7 +1017,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case TINYINT:
             return ValueShort.get(getByte());
         case ENUM:
-        case INT:
+        case INTEGER:
             return ValueShort.get(convertToShort(getInt(), column));
         case BIGINT:
         case INTERVAL_YEAR:
@@ -1069,7 +1069,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      */
     public final ValueInt convertToInt(Object column) {
         switch (getValueType()) {
-        case INT:
+        case INTEGER:
             return (ValueInt) this;
         case BOOLEAN:
             return ValueInt.get(getBoolean() ? 1 : 0);
@@ -1105,7 +1105,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
         //$FALL-THROUGH$
         case TIMESTAMP_TZ:
-            throw getDataConversionError(INT);
+            throw getDataConversionError(INTEGER);
         case NULL:
             throw DbException.throwInternalError();
         }
@@ -1134,7 +1134,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case TINYINT:
         case SMALLINT:
         case ENUM:
-        case INT:
+        case INTEGER:
         case INTERVAL_YEAR:
         case INTERVAL_MONTH:
         case INTERVAL_DAY:
@@ -1187,7 +1187,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case TINYINT:
         case SMALLINT:
         case ENUM:
-        case INT:
+        case INTEGER:
             v =  ValueDecimal.get(BigDecimal.valueOf(getInt()));
             break;
         case BIGINT:
@@ -1247,7 +1247,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             return getBoolean() ? ValueDouble.ONE : ValueDouble.ZERO;
         case TINYINT:
         case SMALLINT:
-        case INT:
+        case INTEGER:
             return ValueDouble.get(getInt());
         case BIGINT:
         case INTERVAL_YEAR:
@@ -1295,7 +1295,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             return getBoolean() ? ValueFloat.ONE : ValueFloat.ZERO;
         case TINYINT:
         case SMALLINT:
-        case INT:
+        case INTEGER:
             return ValueFloat.get(getInt());
         case BIGINT:
         case INTERVAL_YEAR:
@@ -1588,7 +1588,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             v = ValueBytes.getNoCopy(new byte[] { (byte) (x >> 8), (byte) x });
             break;
         }
-        case INT: {
+        case INTEGER: {
             byte[] b = new byte[4];
             Bits.writeInt(b, 0, getInt());
             v = ValueBytes.getNoCopy(b);
@@ -1692,7 +1692,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
         case TINYINT:
         case SMALLINT:
-        case INT:
+        case INTEGER:
         case BIGINT:
         case NUMERIC:
             return extTypeInfo.getValue(getInt());
@@ -1855,7 +1855,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         switch (getValueType()) {
         case TINYINT:
         case SMALLINT:
-        case INT:
+        case INTEGER:
             leading = getInt();
             break;
         case BIGINT:
@@ -1918,7 +1918,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         switch (getValueType()) {
         case TINYINT:
         case SMALLINT:
-        case INT:
+        case INTEGER:
             leading = getInt();
             break;
         case BIGINT:
@@ -2006,7 +2006,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             return ValueJson.get(getBoolean());
         case TINYINT:
         case SMALLINT:
-        case INT:
+        case INTEGER:
             return ValueJson.get(getInt());
         case BIGINT:
             return ValueJson.get(getLong());

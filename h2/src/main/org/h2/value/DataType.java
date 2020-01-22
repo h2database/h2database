@@ -231,11 +231,11 @@ public class DataType {
                 createNumeric(ValueShort.PRECISION, 0, false),
                 new String[]{"SMALLINT", "YEAR", "INT2"}
         );
-        add(Value.INT, Types.INTEGER,
+        add(Value.INTEGER, Types.INTEGER,
                 createNumeric(ValueInt.PRECISION, 0, false),
                 new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"}
         );
-        add(Value.INT, Types.INTEGER,
+        add(Value.INTEGER, Types.INTEGER,
                 createNumeric(ValueInt.PRECISION, 0, true),
                 new String[]{"SERIAL"}
         );
@@ -685,7 +685,7 @@ public class DataType {
                 v = rs.wasNull() ? ValueNull.INSTANCE : ValueFloat.get(value);
                 break;
             }
-            case Value.INT: {
+            case Value.INTEGER: {
                 int value = rs.getInt(columnIndex);
                 v = rs.wasNull() ? ValueNull.INSTANCE : ValueInt.get(value);
                 break;
@@ -874,7 +874,7 @@ public class DataType {
             }
             // "java.lang.Short";
             return Short.class.getName();
-        case Value.INT:
+        case Value.INTEGER:
             // "java.lang.Integer";
             return Integer.class.getName();
         case Value.BIGINT:
@@ -1095,7 +1095,7 @@ public class DataType {
         case Types.BOOLEAN:
             return Value.BOOLEAN;
         case Types.INTEGER:
-            return Value.INT;
+            return Value.INTEGER;
         case Types.SMALLINT:
             return Value.SMALLINT;
         case Types.TINYINT:
@@ -1180,7 +1180,7 @@ public class DataType {
         if (String.class == x) {
             return Value.VARCHAR;
         } else if (Integer.class == x) {
-            return Value.INT;
+            return Value.INTEGER;
         } else if (Long.class == x) {
             return Value.BIGINT;
         } else if (Boolean.class == x) {
@@ -1653,7 +1653,7 @@ public class DataType {
         case Value.BOOLEAN:
         case Value.TINYINT:
         case Value.SMALLINT:
-        case Value.INT:
+        case Value.INTEGER:
         case Value.BIGINT:
         // Negative zeroes and NaNs are normalized
         case Value.DOUBLE:
@@ -1699,7 +1699,7 @@ public class DataType {
         case Value.NUMERIC:
         case Value.DOUBLE:
         case Value.REAL:
-        case Value.INT:
+        case Value.INTEGER:
         case Value.BIGINT:
         case Value.SMALLINT:
         case Value.INTERVAL_YEAR:
@@ -1752,7 +1752,7 @@ public class DataType {
             return Value.BIGINT;
         case Value.REAL:
             return Value.DOUBLE;
-        case Value.INT:
+        case Value.INTEGER:
             return Value.BIGINT;
         case Value.BIGINT:
             return Value.NUMERIC;

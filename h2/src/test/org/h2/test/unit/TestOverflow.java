@@ -36,7 +36,7 @@ public class TestOverflow extends TestBase {
     @Override
     public void test() {
         test(Value.TINYINT, Byte.MIN_VALUE, Byte.MAX_VALUE);
-        test(Value.INT, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        test(Value.INTEGER, Integer.MIN_VALUE, Integer.MAX_VALUE);
         test(Value.BIGINT, Long.MIN_VALUE, Long.MAX_VALUE);
         test(Value.SMALLINT, Short.MIN_VALUE, Short.MAX_VALUE);
     }

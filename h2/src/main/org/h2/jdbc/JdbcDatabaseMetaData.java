@@ -3212,7 +3212,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
         Properties clientInfo = conn.getClientInfo();
         SimpleResult result = new SimpleResult();
         result.addColumn("NAME", "NAME", TypeInfo.TYPE_VARCHAR);
-        result.addColumn("MAX_LEN", "MAX_LEN", TypeInfo.TYPE_INT);
+        result.addColumn("MAX_LEN", "MAX_LEN", TypeInfo.TYPE_INTEGER);
         result.addColumn("DEFAULT_VALUE", "DEFAULT_VALUE", TypeInfo.TYPE_VARCHAR);
         result.addColumn("DESCRIPTION", "DESCRIPTION", TypeInfo.TYPE_VARCHAR);
         // Non-standard column

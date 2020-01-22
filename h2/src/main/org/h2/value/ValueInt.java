@@ -128,12 +128,12 @@ public class ValueInt extends Value {
 
     @Override
     public TypeInfo getType() {
-        return TypeInfo.TYPE_INT;
+        return TypeInfo.TYPE_INTEGER;
     }
 
     @Override
     public int getValueType() {
-        return INT;
+        return INTEGER;
     }
 
     @Override

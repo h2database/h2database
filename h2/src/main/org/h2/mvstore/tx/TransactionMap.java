@@ -819,8 +819,8 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
      */
     private static final class CommittedIterator<K,V,X> extends TMIterator<K,V,X>
     {
-        CommittedIterator(TransactionMap<K, V> transactionMap, K from, K to, boolean reverese, boolean forEntries) {
-            super(transactionMap, from, to, transactionMap.getSnapshot(), reverese, forEntries);
+        CommittedIterator(TransactionMap<K, V> transactionMap, K from, K to, boolean reverse, boolean forEntries) {
+            super(transactionMap, from, to, transactionMap.getSnapshot(), reverse, forEntries);
             fetchNext();
         }
 
@@ -974,7 +974,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
         X current;
 
         TMIterator(TransactionMap<K, V> transactionMap, K from, K to, Snapshot<K, VersionedValue<V>> snapshot,
-                   boolean reverse, boolean forEntries) {
+                boolean reverse, boolean forEntries) {
             Transaction transaction = transactionMap.getTransaction();
             this.transactionId = transaction.transactionId;
             this.forEntries = forEntries;

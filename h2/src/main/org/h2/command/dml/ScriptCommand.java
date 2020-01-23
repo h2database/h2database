@@ -59,7 +59,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
-import org.h2.value.ValueString;
+import org.h2.value.ValueVarchar;
 
 /**
  * This class represents the statement
@@ -703,10 +703,10 @@ public class ScriptCommand extends ScriptBase {
             }
             out.write(buffer, 0, len);
             if (!insert) {
-                result.addRow(ValueString.get(s));
+                result.addRow(ValueVarchar.get(s));
             }
         } else {
-            result.addRow(ValueString.get(s));
+            result.addRow(ValueVarchar.get(s));
         }
     }
 

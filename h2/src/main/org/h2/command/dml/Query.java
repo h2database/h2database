@@ -35,7 +35,7 @@ import org.h2.util.HasSQL;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 
 /**
@@ -510,7 +510,7 @@ public abstract class Query extends Prepared {
                 continue;
             }
             int idx = initExpression(session, expressions, expressionSQL, e, visible, mustBeInResult, filters);
-            o.columnIndexExpr = ValueExpression.get(ValueInt.get(idx + 1));
+            o.columnIndexExpr = ValueExpression.get(ValueInteger.get(idx + 1));
             o.expression = expressions.get(idx).getNonAliasExpression();
         }
     }

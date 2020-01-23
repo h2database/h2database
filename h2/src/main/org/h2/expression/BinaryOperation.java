@@ -14,10 +14,10 @@ import org.h2.table.TableFilter;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueDecimal;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueString;
+import org.h2.value.ValueNumeric;
+import org.h2.value.ValueVarchar;
 
 /**
  * A mathematical expression, or string concatenation.
@@ -173,7 +173,7 @@ public class BinaryOperation extends Expression {
             if (dataType == Value.NUMERIC) {
                 optimizeNumeric(leftType, rightType);
             } else if (dataType == Value.ENUM) {
-                type = TypeInfo.TYPE_INT;
+                type = TypeInfo.TYPE_INTEGER;
             } else if (DataType.isStringType(dataType)
                     && opType == OpType.PLUS && session.getDatabase().getMode().allowPlusForStringConcat) {
                 return new ConcatenationOperation(left, right).optimize(session);
@@ -220,7 +220,7 @@ public class BinaryOperation extends Expression {
             break;
         case DIVIDE:
             // Precision and scale are implementation-defined.
-            scale = ValueDecimal.getQuotientScale(leftScale, rightPrecision, rightScale);
+            scale = ValueNumeric.getQuotientScale(leftScale, rightPrecision, rightScale);
             // Divider can be effectively multiplied by no more than
             // 10^rightScale, so add rightScale to its precision and adjust the
             // result to the changes in scale.
@@ -321,20 +321,21 @@ public class BinaryOperation extends Expression {
                 r = t;
             }
             switch (l) {
-            case Value.INT: {
+            case Value.INTEGER:
                 // Oracle date add
                 return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
-                        ValueExpression.get(ValueString.get("DAY")), left, right).optimize(session);
-            }
+                        ValueExpression.get(ValueVarchar.get("DAY")), left, right).optimize(session);
             case Value.NUMERIC:
             case Value.REAL:
-            case Value.DOUBLE: {
+            case Value.DOUBLE:
                 // Oracle date add
-                return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
-                        ValueExpression.get(ValueString.get("SECOND")),
-                        new BinaryOperation(OpType.MULTIPLY, ValueExpression.get(ValueInt.get(60 * 60 * 24)), left),
-                        right).optimize(session);
-            }
+                return Function
+                        .getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
+                                ValueExpression.get(ValueVarchar.get("SECOND")),
+                                new BinaryOperation(OpType.MULTIPLY,
+                                        ValueExpression.get(ValueInteger.get(60 * 60 * 24)), left),
+                                right)
+                        .optimize(session);
             case Value.TIME:
             case Value.TIME_TZ:
                 if (DataType.isDateTimeType(r)) {
@@ -348,13 +349,13 @@ public class BinaryOperation extends Expression {
             case Value.TIMESTAMP:
             case Value.TIMESTAMP_TZ:
                 switch (r) {
-                case Value.INT: {
+                case Value.INTEGER: {
                     if (forcedType != null) {
                         throw getUnexpectedForcedTypeException();
                     }
                     // Oracle date subtract
                     return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
-                            ValueExpression.get(ValueString.get("DAY")), //
+                            ValueExpression.get(ValueVarchar.get("DAY")), //
                             new UnaryOperation(right), //
                             left).optimize(session);
                 }
@@ -366,9 +367,9 @@ public class BinaryOperation extends Expression {
                     }
                     // Oracle date subtract
                     return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
-                                ValueExpression.get(ValueString.get("SECOND")),
+                                ValueExpression.get(ValueVarchar.get("SECOND")),
                                 new UnaryOperation(new BinaryOperation(OpType.MULTIPLY, //
-                                        ValueExpression.get(ValueInt.get(60 * 60 * 24)), right)), //
+                                        ValueExpression.get(ValueInteger.get(60 * 60 * 24)), right)), //
                                 left).optimize(session);
                 }
                 case Value.TIME:

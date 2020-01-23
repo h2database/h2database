@@ -18,15 +18,15 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
- * Implementation of the BINARY data type.
+ * Implementation of the VARBINARY data type.
  * It is also the base class for ValueJavaObject.
  */
-public class ValueBytes extends Value {
+public class ValueVarbinary extends Value {
 
     /**
      * Empty value.
      */
-    public static final ValueBytes EMPTY = new ValueBytes(Utils.EMPTY_BYTES);
+    public static final ValueVarbinary EMPTY = new ValueVarbinary(Utils.EMPTY_BYTES);
 
     /**
      * The value.
@@ -43,18 +43,18 @@ public class ValueBytes extends Value {
      */
     protected int hash;
 
-    protected ValueBytes(byte[] v) {
+    protected ValueVarbinary(byte[] v) {
         this.value = v;
     }
 
     /**
-     * Get or create a bytes value for the given byte array.
+     * Get or create a VARBINARY value for the given byte array.
      * Clone the data.
      *
      * @param b the byte array
      * @return the value
      */
-    public static ValueBytes get(byte[] b) {
+    public static ValueVarbinary get(byte[] b) {
         if (b.length == 0) {
             return EMPTY;
         }
@@ -63,21 +63,21 @@ public class ValueBytes extends Value {
     }
 
     /**
-     * Get or create a bytes value for the given byte array.
+     * Get or create a VARBINARY value for the given byte array.
      * Do not clone the date.
      *
      * @param b the byte array
      * @return the value
      */
-    public static ValueBytes getNoCopy(byte[] b) {
+    public static ValueVarbinary getNoCopy(byte[] b) {
         if (b.length == 0) {
             return EMPTY;
         }
-        ValueBytes obj = new ValueBytes(b);
+        ValueVarbinary obj = new ValueVarbinary(b);
         if (b.length > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }
-        return (ValueBytes) Value.cache(obj);
+        return (ValueVarbinary) Value.cache(obj);
     }
 
     @Override
@@ -113,7 +113,7 @@ public class ValueBytes extends Value {
 
     @Override
     public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
-        byte[] v2 = ((ValueBytes) v).value;
+        byte[] v2 = ((ValueVarbinary) v).value;
         if (mode.isBinaryUnsigned()) {
             return Bits.compareNotNullUnsigned(value, v2);
         }
@@ -151,8 +151,8 @@ public class ValueBytes extends Value {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueBytes
-                && Arrays.equals(value, ((ValueBytes) other).value);
+        return other instanceof ValueVarbinary
+                && Arrays.equals(value, ((ValueVarbinary) other).value);
     }
 
 }

@@ -10,7 +10,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.value.Value;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueBigint;
 
 /**
  * Page Store implementation of a row.
@@ -39,7 +39,7 @@ public final class PageStoreRow {
         @Override
         public Value getValue(int i) {
             if (i == ROWID_INDEX) {
-                return ValueLong.get(key);
+                return ValueBigint.get(key);
             }
             throw DbException.throwInternalError();
         }

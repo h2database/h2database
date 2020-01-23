@@ -32,33 +32,33 @@ import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
-import org.h2.value.ValueByte;
-import org.h2.value.ValueBytes;
+import org.h2.value.ValueChar;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
-import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueFloat;
 import org.h2.value.ValueGeometry;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueNumeric;
+import org.h2.value.ValueReal;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueRow;
-import org.h2.value.ValueShort;
-import org.h2.value.ValueString;
-import org.h2.value.ValueStringFixed;
-import org.h2.value.ValueStringIgnoreCase;
+import org.h2.value.ValueSmallint;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueTinyint;
 import org.h2.value.ValueUuid;
+import org.h2.value.ValueVarbinary;
+import org.h2.value.ValueVarchar;
+import org.h2.value.ValueVarcharIgnoreCase;
 
 /**
  * This class represents a byte buffer that contains persistent data of a page.
@@ -80,44 +80,44 @@ public class Data {
     public static final int LENGTH_LONG = 8;
 
     private static final byte NULL = 0;
-    private static final byte BYTE = 2;
-    private static final byte SHORT = 3;
-    private static final byte INT = 4;
-    private static final byte LONG = 5;
-    private static final byte DECIMAL = 6;
+    private static final byte TINYINT = 2;
+    private static final byte SMALLINT = 3;
+    private static final byte INTEGER = 4;
+    private static final byte BIGINT = 5;
+    private static final byte NUMERIC = 6;
     private static final byte DOUBLE = 7;
-    private static final byte FLOAT = 8;
+    private static final byte REAL = 8;
     private static final byte TIME = 9;
     private static final byte DATE = 10;
     private static final byte TIMESTAMP = 11;
-    private static final byte BYTES = 12;
-    private static final byte STRING = 13;
-    private static final byte STRING_IGNORECASE = 14;
+    private static final byte VARBINARY = 12;
+    private static final byte VARCHAR = 13;
+    private static final byte VARCHAR_IGNORECASE = 14;
     private static final byte BLOB = 15;
     private static final byte CLOB = 16;
     private static final byte ARRAY = 17;
     private static final byte RESULT_SET = 18;
     private static final byte JAVA_OBJECT = 19;
     private static final byte UUID = 20;
-    private static final byte STRING_FIXED = 21;
+    private static final byte CHAR = 21;
     private static final byte GEOMETRY = 22;
     private static final byte TIMESTAMP_TZ = 24;
     private static final byte ENUM = 25;
     private static final byte INTERVAL = 26;
     private static final byte ROW = 27;
     private static final byte INT_0_15 = 32;
-    private static final byte LONG_0_7 = 48;
-    private static final byte DECIMAL_0_1 = 56;
-    private static final byte DECIMAL_SMALL_0 = 58;
-    private static final byte DECIMAL_SMALL = 59;
+    private static final byte BIGINT_0_7 = 48;
+    private static final byte NUMERIC_0_1 = 56;
+    private static final byte NUMERIC_SMALL_0 = 58;
+    private static final byte NUMERIC_SMALL = 59;
     private static final byte DOUBLE_0_1 = 60;
-    private static final byte FLOAT_0_1 = 62;
+    private static final byte REAL_0_1 = 62;
     private static final byte BOOLEAN_FALSE = 64;
     private static final byte BOOLEAN_TRUE = 65;
     private static final byte INT_NEG = 66;
-    private static final byte LONG_NEG = 67;
-    private static final byte STRING_0_31 = 68;
-    private static final int BYTES_0_31 = 100;
+    private static final byte BIGINT_NEG = 67;
+    private static final byte VARCHAR_0_31 = 68;
+    private static final int VARBINARY_0_31 = 100;
     private static final int LOCAL_TIME = 132;
     private static final int LOCAL_DATE = 133;
     private static final int LOCAL_TIMESTAMP = 134;
@@ -467,15 +467,15 @@ public class Data {
             writeByte(v.getBoolean() ? BOOLEAN_TRUE : BOOLEAN_FALSE);
             break;
         case Value.TINYINT:
-            writeByte(BYTE);
+            writeByte(TINYINT);
             writeByte(v.getByte());
             break;
         case Value.SMALLINT:
-            writeByte(SHORT);
+            writeByte(SMALLINT);
             writeShortInt(v.getShort());
             break;
         case Value.ENUM:
-        case Value.INT: {
+        case Value.INTEGER: {
             int x = v.getInt();
             if (x < 0) {
                 writeByte(INT_NEG);
@@ -483,7 +483,7 @@ public class Data {
             } else if (x < 16) {
                 writeByte((byte) (INT_0_15 + x));
             } else {
-                writeByte(type == Value.INT ? INT : ENUM);
+                writeByte(type == Value.INTEGER ? INTEGER : ENUM);
                 writeVarInt(x);
             }
             break;
@@ -491,12 +491,12 @@ public class Data {
         case Value.BIGINT: {
             long x = v.getLong();
             if (x < 0) {
-                writeByte(LONG_NEG);
+                writeByte(BIGINT_NEG);
                 writeVarLong(-x);
             } else if (x < 8) {
-                writeByte((byte) (LONG_0_7 + x));
+                writeByte((byte) (BIGINT_0_7 + x));
             } else {
-                writeByte(LONG);
+                writeByte(BIGINT);
                 writeVarLong(x);
             }
             break;
@@ -504,24 +504,24 @@ public class Data {
         case Value.NUMERIC: {
             BigDecimal x = v.getBigDecimal();
             if (BigDecimal.ZERO.equals(x)) {
-                writeByte(DECIMAL_0_1);
+                writeByte(NUMERIC_0_1);
             } else if (BigDecimal.ONE.equals(x)) {
-                writeByte((byte) (DECIMAL_0_1 + 1));
+                writeByte((byte) (NUMERIC_0_1 + 1));
             } else {
                 int scale = x.scale();
                 BigInteger b = x.unscaledValue();
                 int bits = b.bitLength();
                 if (bits <= 63) {
                     if (scale == 0) {
-                        writeByte(DECIMAL_SMALL_0);
+                        writeByte(NUMERIC_SMALL_0);
                         writeVarLong(b.longValue());
                     } else {
-                        writeByte(DECIMAL_SMALL);
+                        writeByte(NUMERIC_SMALL);
                         writeVarInt(scale);
                         writeVarLong(b.longValue());
                     }
                 } else {
-                    writeByte(DECIMAL);
+                    writeByte(NUMERIC);
                     writeVarInt(scale);
                     byte[] bytes = b.toByteArray();
                     writeVarInt(bytes.length);
@@ -614,10 +614,10 @@ public class Data {
             byte[] b = v.getBytesNoCopy();
             int len = b.length;
             if (len < 32) {
-                writeByte((byte) (BYTES_0_31 + len));
+                writeByte((byte) (VARBINARY_0_31 + len));
                 write(b, 0, len);
             } else {
-                writeByte(BYTES);
+                writeByte(VARBINARY);
                 writeVarInt(len);
                 write(b, 0, len);
             }
@@ -634,20 +634,20 @@ public class Data {
             String s = v.getString();
             int len = s.length();
             if (len < 32) {
-                writeByte((byte) (STRING_0_31 + len));
+                writeByte((byte) (VARCHAR_0_31 + len));
                 writeStringWithoutLength(s, len);
             } else {
-                writeByte(STRING);
+                writeByte(VARCHAR);
                 writeString(s);
             }
             break;
         }
         case Value.VARCHAR_IGNORECASE:
-            writeByte(STRING_IGNORECASE);
+            writeByte(VARCHAR_IGNORECASE);
             writeString(v.getString());
             break;
         case Value.CHAR:
-            writeByte(STRING_FIXED);
+            writeByte(CHAR);
             writeString(v.getString());
             break;
         case Value.DOUBLE: {
@@ -668,13 +668,13 @@ public class Data {
         case Value.REAL: {
             float x = v.getFloat();
             if (x == 1.0f) {
-                writeByte((byte) (FLOAT_0_1 + 1));
+                writeByte((byte) (REAL_0_1 + 1));
             } else {
                 int f = Float.floatToIntBits(x);
-                if (f == ValueFloat.ZERO_BITS) {
-                    writeByte(FLOAT_0_1);
+                if (f == ValueReal.ZERO_BITS) {
+                    writeByte(REAL_0_1);
                 } else {
-                    writeByte(FLOAT);
+                    writeByte(REAL);
                     writeVarInt(Integer.reverse(f));
                 }
             }
@@ -794,35 +794,35 @@ public class Data {
         case BOOLEAN_FALSE:
             return ValueBoolean.FALSE;
         case INT_NEG:
-            return ValueInt.get(-readVarInt());
+            return ValueInteger.get(-readVarInt());
         case ENUM:
-        case INT:
-            return ValueInt.get(readVarInt());
-        case LONG_NEG:
-            return ValueLong.get(-readVarLong());
+        case INTEGER:
+            return ValueInteger.get(readVarInt());
+        case BIGINT_NEG:
+            return ValueBigint.get(-readVarLong());
         case Value.BIGINT:
-            return ValueLong.get(readVarLong());
-        case BYTE:
-            return ValueByte.get(readByte());
-        case SHORT:
-            return ValueShort.get(readShortInt());
-        case DECIMAL_0_1:
-            return ValueDecimal.ZERO;
-        case DECIMAL_0_1 + 1:
-            return ValueDecimal.ONE;
-        case DECIMAL_SMALL_0:
-            return ValueDecimal.get(BigDecimal.valueOf(readVarLong()));
-        case DECIMAL_SMALL: {
+            return ValueBigint.get(readVarLong());
+        case TINYINT:
+            return ValueTinyint.get(readByte());
+        case SMALLINT:
+            return ValueSmallint.get(readShortInt());
+        case NUMERIC_0_1:
+            return ValueNumeric.ZERO;
+        case NUMERIC_0_1 + 1:
+            return ValueNumeric.ONE;
+        case NUMERIC_SMALL_0:
+            return ValueNumeric.get(BigDecimal.valueOf(readVarLong()));
+        case NUMERIC_SMALL: {
             int scale = readVarInt();
-            return ValueDecimal.get(BigDecimal.valueOf(readVarLong(), scale));
+            return ValueNumeric.get(BigDecimal.valueOf(readVarLong(), scale));
         }
-        case DECIMAL: {
+        case NUMERIC: {
             int scale = readVarInt();
             int len = readVarInt();
             byte[] buff = Utils.newBytes(len);
             read(buff, 0, len);
             BigInteger b = new BigInteger(buff);
-            return ValueDecimal.get(new BigDecimal(b, scale));
+            return ValueNumeric.get(new BigDecimal(b, scale));
         }
         case LOCAL_DATE:
             return ValueDate.fromDateValue(readVarLong());
@@ -857,11 +857,11 @@ public class Data {
             int tz = readTimeZone();
             return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tz);
         }
-        case BYTES: {
+        case VARBINARY: {
             int len = readVarInt();
             byte[] b = Utils.newBytes(len);
             read(b, 0, len);
-            return ValueBytes.getNoCopy(b);
+            return ValueVarbinary.getNoCopy(b);
         }
         case GEOMETRY: {
             int len = readVarInt();
@@ -877,24 +877,24 @@ public class Data {
         }
         case UUID:
             return ValueUuid.get(readLong(), readLong());
-        case STRING:
-            return ValueString.get(readString());
-        case STRING_IGNORECASE:
-            return ValueStringIgnoreCase.get(readString());
-        case STRING_FIXED:
-            return ValueStringFixed.get(readString());
-        case FLOAT_0_1:
-            return ValueFloat.ZERO;
-        case FLOAT_0_1 + 1:
-            return ValueFloat.ONE;
+        case VARCHAR:
+            return ValueVarchar.get(readString());
+        case VARCHAR_IGNORECASE:
+            return ValueVarcharIgnoreCase.get(readString());
+        case CHAR:
+            return ValueChar.get(readString());
+        case REAL_0_1:
+            return ValueReal.ZERO;
+        case REAL_0_1 + 1:
+            return ValueReal.ONE;
         case DOUBLE_0_1:
             return ValueDouble.ZERO;
         case DOUBLE_0_1 + 1:
             return ValueDouble.ONE;
         case DOUBLE:
             return ValueDouble.get(Double.longBitsToDouble(Long.reverse(readVarLong())));
-        case FLOAT:
-            return ValueFloat.get(Float.intBitsToFloat(Integer.reverse(readVarInt())));
+        case REAL:
+            return ValueReal.get(Float.intBitsToFloat(Integer.reverse(readVarInt())));
         case BLOB:
         case CLOB: {
             int smallLen = readVarInt();
@@ -954,16 +954,16 @@ public class Data {
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {
-                return ValueInt.get(type - INT_0_15);
-            } else if (type >= LONG_0_7 && type < LONG_0_7 + 8) {
-                return ValueLong.get(type - LONG_0_7);
-            } else if (type >= BYTES_0_31 && type < BYTES_0_31 + 32) {
-                int len = type - BYTES_0_31;
+                return ValueInteger.get(type - INT_0_15);
+            } else if (type >= BIGINT_0_7 && type < BIGINT_0_7 + 8) {
+                return ValueBigint.get(type - BIGINT_0_7);
+            } else if (type >= VARBINARY_0_31 && type < VARBINARY_0_31 + 32) {
+                int len = type - VARBINARY_0_31;
                 byte[] b = Utils.newBytes(len);
                 read(b, 0, len);
-                return ValueBytes.getNoCopy(b);
-            } else if (type >= STRING_0_31 && type < STRING_0_31 + 32) {
-                return ValueString.get(readString(type - STRING_0_31));
+                return ValueVarbinary.getNoCopy(b);
+            } else if (type >= VARCHAR_0_31 && type < VARCHAR_0_31 + 32) {
+                return ValueVarchar.get(readString(type - VARCHAR_0_31));
             }
             throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
         }
@@ -1013,7 +1013,7 @@ public class Data {
         case Value.SMALLINT:
             return 3;
         case Value.ENUM:
-        case Value.INT: {
+        case Value.INTEGER: {
             int x = v.getInt();
             if (x < 0) {
                 return 1 + getVarIntLen(-x);
@@ -1050,7 +1050,7 @@ public class Data {
                 return 1;
             }
             int f = Float.floatToIntBits(x);
-            if (f == ValueFloat.ZERO_BITS) {
+            if (f == ValueReal.ZERO_BITS) {
                 return 1;
             }
             return 1 + getVarIntLen(Integer.reverse(f));

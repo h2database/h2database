@@ -7,7 +7,7 @@ package org.h2.result;
 
 import org.h2.engine.Constants;
 import org.h2.value.Value;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueBigint;
 
 /**
  * The default implementation of a row in a table.
@@ -37,7 +37,7 @@ public class DefaultRow extends Row
 
     @Override
     public Value getValue(int i) {
-        return i == ROWID_INDEX ? ValueLong.get(key) : data[i];
+        return i == ROWID_INDEX ? ValueBigint.get(key) : data[i];
     }
 
     @Override

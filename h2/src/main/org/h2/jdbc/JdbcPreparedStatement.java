@@ -40,17 +40,17 @@ import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
-import org.h2.value.ValueByte;
-import org.h2.value.ValueBytes;
-import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueFloat;
-import org.h2.value.ValueInt;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueShort;
-import org.h2.value.ValueString;
+import org.h2.value.ValueNumeric;
+import org.h2.value.ValueReal;
+import org.h2.value.ValueSmallint;
+import org.h2.value.ValueTinyint;
+import org.h2.value.ValueVarbinary;
+import org.h2.value.ValueVarchar;
 
 /**
  * Represents a prepared statement.
@@ -388,7 +388,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setInt("+parameterIndex+", "+x+");");
             }
-            setParameter(parameterIndex, ValueInt.get(x));
+            setParameter(parameterIndex, ValueInteger.get(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -407,7 +407,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setString(" + parameterIndex + ", " + quote(x) + ");");
             }
-            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : ValueString.get(x));
+            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : ValueVarchar.get(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -426,7 +426,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setBigDecimal(" + parameterIndex + ", " + quoteBigDecimal(x) + ");");
             }
-            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : ValueDecimal.get(x));
+            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : ValueNumeric.get(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -648,7 +648,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setByte("+parameterIndex+", "+x+");");
             }
-            setParameter(parameterIndex, ValueByte.get(x));
+            setParameter(parameterIndex, ValueTinyint.get(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -667,7 +667,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setShort("+parameterIndex+", (short) "+x+");");
             }
-            setParameter(parameterIndex, ValueShort.get(x));
+            setParameter(parameterIndex, ValueSmallint.get(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -686,7 +686,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setLong("+parameterIndex+", "+x+"L);");
             }
-            setParameter(parameterIndex, ValueLong.get(x));
+            setParameter(parameterIndex, ValueBigint.get(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -705,7 +705,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setFloat("+parameterIndex+", "+x+"f);");
             }
-            setParameter(parameterIndex, ValueFloat.get(x));
+            setParameter(parameterIndex, ValueReal.get(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -991,7 +991,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setBytes(" + parameterIndex + ", " + quoteBytes(x) + ");");
             }
-            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : ValueBytes.get(x));
+            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : ValueVarbinary.get(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1579,7 +1579,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setNString(" + parameterIndex + ", " + quote(x) + ");");
             }
-            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : ValueString.get(x));
+            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : ValueVarchar.get(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }

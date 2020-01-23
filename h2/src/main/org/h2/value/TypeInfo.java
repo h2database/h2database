@@ -44,7 +44,7 @@ public class TypeInfo {
     /**
      * INTEGER type with parameters.
      */
-    public static final TypeInfo TYPE_INT;
+    public static final TypeInfo TYPE_INTEGER;
 
     /**
      * BIGINT type with parameters.
@@ -194,21 +194,22 @@ public class TypeInfo {
         infos[Value.NULL] = TYPE_NULL = new TypeInfo(Value.NULL, ValueNull.PRECISION, 0, ValueNull.DISPLAY_SIZE, null);
         infos[Value.BOOLEAN] = TYPE_BOOLEAN = new TypeInfo(Value.BOOLEAN, ValueBoolean.PRECISION, 0,
                 ValueBoolean.DISPLAY_SIZE, null);
-        infos[Value.TINYINT] = TYPE_TINYINT = new TypeInfo(Value.TINYINT, ValueByte.PRECISION, 0,
-                ValueByte.DISPLAY_SIZE, null);
-        infos[Value.SMALLINT] = TYPE_SMALLINT = new TypeInfo(Value.SMALLINT, ValueShort.PRECISION, 0,
-                ValueShort.DISPLAY_SIZE, null);
-        infos[Value.INT] = TYPE_INT = new TypeInfo(Value.INT, ValueInt.PRECISION, 0, ValueInt.DISPLAY_SIZE, null);
-        infos[Value.BIGINT] = TYPE_BIGINT = new TypeInfo(Value.BIGINT, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE,
-                null);
+        infos[Value.TINYINT] = TYPE_TINYINT = new TypeInfo(Value.TINYINT, ValueTinyint.PRECISION, 0,
+                ValueTinyint.DISPLAY_SIZE, null);
+        infos[Value.SMALLINT] = TYPE_SMALLINT = new TypeInfo(Value.SMALLINT, ValueSmallint.PRECISION, 0,
+                ValueSmallint.DISPLAY_SIZE, null);
+        infos[Value.INTEGER] = TYPE_INTEGER = new TypeInfo(Value.INTEGER, ValueInteger.PRECISION, 0,
+                ValueInteger.DISPLAY_SIZE, null);
+        infos[Value.BIGINT] = TYPE_BIGINT = new TypeInfo(Value.BIGINT, ValueBigint.PRECISION, 0,
+        ValueBigint.DISPLAY_SIZE, null);
         infos[Value.NUMERIC] = TYPE_NUMERIC = new TypeInfo(Value.NUMERIC, Integer.MAX_VALUE, //
-                ValueDecimal.MAXIMUM_SCALE, Integer.MAX_VALUE, null);
-        TYPE_NUMERIC_BIGINT = new TypeInfo(Value.NUMERIC, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE, null);
-        TYPE_NUMERIC_FLOATING_POINT = new TypeInfo(Value.NUMERIC, ValueDecimal.DEFAULT_PRECISION,
-                ValueDecimal.DEFAULT_PRECISION / 2, ValueDecimal.DEFAULT_PRECISION + 2, null);
+                ValueNumeric.MAXIMUM_SCALE, Integer.MAX_VALUE, null);
+        TYPE_NUMERIC_BIGINT = new TypeInfo(Value.NUMERIC, ValueBigint.PRECISION, 0, ValueBigint.DISPLAY_SIZE, null);
+        TYPE_NUMERIC_FLOATING_POINT = new TypeInfo(Value.NUMERIC, ValueNumeric.DEFAULT_PRECISION,
+                ValueNumeric.DEFAULT_PRECISION / 2, ValueNumeric.DEFAULT_PRECISION + 2, null);
         infos[Value.DOUBLE] = TYPE_DOUBLE = new TypeInfo(Value.DOUBLE, ValueDouble.PRECISION, 0,
                 ValueDouble.DISPLAY_SIZE, null);
-        infos[Value.REAL] = TYPE_REAL = new TypeInfo(Value.REAL, ValueFloat.PRECISION, 0, ValueFloat.DISPLAY_SIZE,
+        infos[Value.REAL] = TYPE_REAL = new TypeInfo(Value.REAL, ValueReal.PRECISION, 0, ValueReal.DISPLAY_SIZE,
                 null);
         infos[Value.TIME] = TYPE_TIME = new TypeInfo(Value.TIME, ValueTime.MAXIMUM_PRECISION, ValueTime.MAXIMUM_SCALE,
                 ValueTime.MAXIMUM_PRECISION, null);
@@ -297,7 +298,7 @@ public class TypeInfo {
         case Value.BOOLEAN:
         case Value.TINYINT:
         case Value.SMALLINT:
-        case Value.INT:
+        case Value.INTEGER:
         case Value.BIGINT:
         case Value.DOUBLE:
         case Value.REAL:
@@ -312,7 +313,7 @@ public class TypeInfo {
             return TYPE_UNKNOWN;
         case Value.NUMERIC:
             if (precision < 0) {
-                precision = ValueDecimal.DEFAULT_PRECISION;
+                precision = ValueNumeric.DEFAULT_PRECISION;
             } else if (precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
             }
@@ -611,7 +612,7 @@ public class TypeInfo {
         case Value.BOOLEAN:
         case Value.TINYINT:
         case Value.SMALLINT:
-        case Value.INT:
+        case Value.INTEGER:
             return getTypeInfo(Value.NUMERIC, precision, 0, null);
         case Value.BIGINT:
             return TYPE_NUMERIC_BIGINT;

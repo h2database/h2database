@@ -6,7 +6,7 @@
 package org.h2.result;
 
 import org.h2.value.Value;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueBigint;
 
 /**
  * Class Sparse.
@@ -34,7 +34,7 @@ public final class Sparse extends DefaultRow {
     @Override
     public Value getValue(int i) {
         if (i == ROWID_INDEX) {
-            return ValueLong.get(getKey());
+            return ValueBigint.get(getKey());
         }
         int index = map[i];
         return index > 0 ? super.getValue(index - 1) : null;

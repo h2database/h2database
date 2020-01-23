@@ -16,7 +16,7 @@ import org.h2.message.DbException;
 /**
  * Implementation of the REAL data type.
  */
-public class ValueFloat extends Value {
+public class ValueReal extends Value {
 
     /**
      * The precision in digits.
@@ -24,7 +24,7 @@ public class ValueFloat extends Value {
     static final int PRECISION = 7;
 
     /**
-     * The maximum display size of a float.
+     * The maximum display size of a REAL.
      * Example: -1.12345676E-20
      */
     static final int DISPLAY_SIZE = 15;
@@ -37,30 +37,30 @@ public class ValueFloat extends Value {
     /**
      * The value 0.
      */
-    public static final ValueFloat ZERO = new ValueFloat(0f);
+    public static final ValueReal ZERO = new ValueReal(0f);
 
     /**
      * The value 1.
      */
-    public static final ValueFloat ONE = new ValueFloat(1f);
+    public static final ValueReal ONE = new ValueReal(1f);
 
-    private static final ValueFloat NAN = new ValueFloat(Float.NaN);
+    private static final ValueReal NAN = new ValueReal(Float.NaN);
 
     private final float value;
 
-    private ValueFloat(float value) {
+    private ValueReal(float value) {
         this.value = value;
     }
 
     @Override
     public Value add(Value v) {
-        ValueFloat v2 = (ValueFloat) v;
+        ValueReal v2 = (ValueReal) v;
         return get(value + v2.value);
     }
 
     @Override
     public Value subtract(Value v) {
-        ValueFloat v2 = (ValueFloat) v;
+        ValueReal v2 = (ValueReal) v;
         return get(value - v2.value);
     }
 
@@ -71,13 +71,13 @@ public class ValueFloat extends Value {
 
     @Override
     public Value multiply(Value v) {
-        ValueFloat v2 = (ValueFloat) v;
+        ValueReal v2 = (ValueReal) v;
         return get(value * v2.value);
     }
 
     @Override
     public Value divide(Value v, long divisorPrecision) {
-        ValueFloat v2 = (ValueFloat) v;
+        ValueReal v2 = (ValueReal) v;
         if (v2.value == 0.0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
@@ -86,7 +86,7 @@ public class ValueFloat extends Value {
 
     @Override
     public Value modulus(Value v) {
-        ValueFloat other = (ValueFloat) v;
+        ValueReal other = (ValueReal) v;
         if (other.value == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
@@ -119,7 +119,7 @@ public class ValueFloat extends Value {
 
     @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
-        return Float.compare(value, ((ValueFloat) o).value);
+        return Float.compare(value, ((ValueReal) o).value);
     }
 
     @Override
@@ -173,12 +173,12 @@ public class ValueFloat extends Value {
     }
 
     /**
-     * Get or create float value for the given float.
+     * Get or create a REAL value for the given float.
      *
      * @param d the float
      * @return the value
      */
-    public static ValueFloat get(float d) {
+    public static ValueReal get(float d) {
         if (d == 1.0F) {
             return ONE;
         } else if (d == 0.0F) {
@@ -187,15 +187,15 @@ public class ValueFloat extends Value {
         } else if (Float.isNaN(d)) {
             return NAN;
         }
-        return (ValueFloat) Value.cache(new ValueFloat(d));
+        return (ValueReal) Value.cache(new ValueReal(d));
     }
 
     @Override
     public boolean equals(Object other) {
-        if (!(other instanceof ValueFloat)) {
+        if (!(other instanceof ValueReal)) {
             return false;
         }
-        return compareTypeSafe((ValueFloat) other, null, null) == 0;
+        return compareTypeSafe((ValueReal) other, null, null) == 0;
     }
 
 }

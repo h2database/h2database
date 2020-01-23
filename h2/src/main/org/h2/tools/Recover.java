@@ -42,12 +42,12 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.StreamStore;
-import org.h2.mvstore.type.MetaType;
 import org.h2.mvstore.db.LobStorageMap;
 import org.h2.mvstore.db.ValueDataType;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.MetaType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.pagestore.Page;
 import org.h2.pagestore.PageFreeList;
@@ -76,9 +76,9 @@ import org.h2.util.Tool;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLong;
 
 /**
  * Helps recovering a corrupted database.
@@ -1230,7 +1230,7 @@ public class Recover extends Tool implements DataHandler {
             long key = s.readVarLong();
             Value data;
             if (positionOnly) {
-                data = ValueLong.get(key);
+                data = ValueBigint.get(key);
             } else {
                 try {
                     data = s.readValue();
@@ -1291,7 +1291,7 @@ public class Recover extends Tool implements DataHandler {
             long key = s.readVarLong();
             Value data;
             if (positionOnly) {
-                data = ValueLong.get(key);
+                data = ValueBigint.get(key);
             } else {
                 try {
                     data = s.readValue();

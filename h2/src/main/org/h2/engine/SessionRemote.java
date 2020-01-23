@@ -41,10 +41,10 @@ import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueString;
 import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueVarchar;
 
 /**
  * The client side part of a session when using the server mode. This object
@@ -898,7 +898,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             }
         } else {
             try (CommandInterface command = prepareCommand("SET LOCK_MODE ?", 0)) {
-                command.getParameters().get(0).setValue(ValueInt.get(isolationLevel.getLockMode()), false);
+                command.getParameters().get(0).setValue(ValueInteger.get(isolationLevel.getLockMode()), false);
                 command.executeUpdate(null);
             }
         }
@@ -913,9 +913,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                     "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN (?, ?, ?)",
                     Integer.MAX_VALUE)) {
                 ArrayList<? extends ParameterInterface> parameters = command.getParameters();
-                parameters.get(0).setValue(ValueString.get("DATABASE_TO_UPPER"), false);
-                parameters.get(1).setValue(ValueString.get("DATABASE_TO_LOWER"), false);
-                parameters.get(2).setValue(ValueString.get("CASE_INSENSITIVE_IDENTIFIERS"), false);
+                parameters.get(0).setValue(ValueVarchar.get("DATABASE_TO_UPPER"), false);
+                parameters.get(1).setValue(ValueVarchar.get("DATABASE_TO_LOWER"), false);
+                parameters.get(2).setValue(ValueVarchar.get("CASE_INSENSITIVE_IDENTIFIERS"), false);
                 try (ResultInterface result = command.executeQuery(Integer.MAX_VALUE, false)) {
                     while (result.next()) {
                         Value[] row = result.currentRow();
@@ -952,8 +952,8 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                     "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN (?, ?)",
                     Integer.MAX_VALUE)) {
                 ArrayList<? extends ParameterInterface> parameters = command.getParameters();
-                parameters.get(0).setValue(ValueString.get("MODE"), false);
-                parameters.get(1).setValue(ValueString.get("TIME ZONE"), false);
+                parameters.get(0).setValue(ValueVarchar.get("MODE"), false);
+                parameters.get(1).setValue(ValueVarchar.get("TIME ZONE"), false);
                 try (ResultInterface result = command.executeQuery(Integer.MAX_VALUE, false)) {
                     while (result.next()) {
                         Value[] row = result.currentRow();

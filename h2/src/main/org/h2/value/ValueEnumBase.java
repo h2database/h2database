@@ -29,7 +29,7 @@ public class ValueEnumBase extends Value {
 
     @Override
     public Value add(Value v) {
-        ValueInt iv = v.convertToInt(null);
+        ValueInteger iv = v.convertToInt(null);
         return convertToInt(null).add(iv);
     }
 
@@ -40,7 +40,7 @@ public class ValueEnumBase extends Value {
 
     @Override
     public Value divide(Value v, long divisorPrecision) {
-        ValueInt iv = v.convertToInt(null);
+        ValueInteger iv = v.convertToInt(null);
         return convertToInt(null).divide(iv, divisorPrecision);
     }
 
@@ -116,13 +116,13 @@ public class ValueEnumBase extends Value {
 
     @Override
     public Value modulus(Value v) {
-        ValueInt iv = v.convertToInt(null);
+        ValueInteger iv = v.convertToInt(null);
         return convertToInt(null).modulus(iv);
     }
 
     @Override
     public Value multiply(Value v) {
-        ValueInt iv = v.convertToInt(null);
+        ValueInteger iv = v.convertToInt(null);
         return convertToInt(null).multiply(iv);
     }
 
@@ -134,7 +134,7 @@ public class ValueEnumBase extends Value {
 
     @Override
     public Value subtract(Value v) {
-        ValueInt iv = v.convertToInt(null);
+        ValueInteger iv = v.convertToInt(null);
         return convertToInt(null).subtract(iv);
     }
 

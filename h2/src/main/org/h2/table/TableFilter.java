@@ -32,7 +32,7 @@ import org.h2.util.HasSQL;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueNull;
 
 /**
@@ -1016,7 +1016,7 @@ public class TableFilter implements ColumnResolver {
             return null;
         }
         Column[] sys = new Column[3];
-        sys[0] = new Column("oid", Value.INT);
+        sys[0] = new Column("oid", Value.INTEGER);
         sys[0].setTable(table, 0);
         sys[1] = new Column("ctid", Value.VARCHAR);
         sys[1].setTable(table, 0);
@@ -1037,7 +1037,7 @@ public class TableFilter implements ColumnResolver {
         }
         int columnId = column.getColumnId();
         if (columnId == -1) {
-            return ValueLong.get(currentSearchRow.getKey());
+            return ValueBigint.get(currentSearchRow.getKey());
         }
         if (current == null) {
             Value v = currentSearchRow.getValue(columnId);

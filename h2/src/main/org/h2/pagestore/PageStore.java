@@ -56,8 +56,8 @@ import org.h2.util.IntIntHashMap;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
-import org.h2.value.ValueString;
+import org.h2.value.ValueInteger;
+import org.h2.value.ValueVarchar;
 
 /**
  * This class represents a file that is organized as a number of pages. Page 0
@@ -1591,10 +1591,10 @@ public class PageStore implements CacheWriter {
     private void openMetaIndex() {
         CreateTableData data = new CreateTableData();
         ArrayList<Column> cols = data.columns;
-        cols.add(new Column("ID", Value.INT));
-        cols.add(new Column("TYPE", Value.INT));
-        cols.add(new Column("PARENT", Value.INT));
-        cols.add(new Column("HEAD", Value.INT));
+        cols.add(new Column("ID", Value.INTEGER));
+        cols.add(new Column("TYPE", Value.INTEGER));
+        cols.add(new Column("PARENT", Value.INTEGER));
+        cols.add(new Column("HEAD", Value.INTEGER));
         cols.add(new Column("OPTIONS", Value.VARCHAR));
         cols.add(new Column("COLUMNS", Value.VARCHAR));
         metaSchema = new Schema(database, 0, "", null, true);
@@ -1676,7 +1676,7 @@ public class PageStore implements CacheWriter {
                 throw DbException.throwInternalError(row.toString());
             }
             for (int i = 0, len = columns.length; i < len; i++) {
-                Column col = new Column("C" + i, Value.INT);
+                Column col = new Column("C" + i, Value.INTEGER);
                 data.columns.add(col);
             }
             data.schema = metaSchema;
@@ -1795,12 +1795,12 @@ public class PageStore implements CacheWriter {
             }
             options.append(',').append(mode.isBinaryUnsigned()).append(',').append(mode.isUuidUnsigned());
             Row row = metaTable.getTemplateRow();
-            row.setValue(0, ValueInt.get(index.getId()));
-            row.setValue(1, ValueInt.get(type));
-            row.setValue(2, ValueInt.get(table.getId()));
-            row.setValue(3, ValueInt.get(index.getRootPageId()));
-            row.setValue(4, ValueString.get(options.toString()));
-            row.setValue(5, ValueString.get(columnList));
+            row.setValue(0, ValueInteger.get(index.getId()));
+            row.setValue(1, ValueInteger.get(type));
+            row.setValue(2, ValueInteger.get(table.getId()));
+            row.setValue(3, ValueInteger.get(index.getRootPageId()));
+            row.setValue(4, ValueVarchar.get(options.toString()));
+            row.setValue(5, ValueVarchar.get(columnList));
             row.setKey(index.getId() + 1);
             metaIndex.add(session, row);
         }

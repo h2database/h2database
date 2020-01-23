@@ -53,7 +53,7 @@ public abstract class TableBase extends Table {
         switch (first.column.getType().getValueType()) {
         case Value.TINYINT:
         case Value.SMALLINT:
-        case Value.INT:
+        case Value.INTEGER:
         case Value.BIGINT:
             return first.column.getColumnId();
         default:

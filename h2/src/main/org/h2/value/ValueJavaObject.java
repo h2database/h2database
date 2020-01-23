@@ -19,7 +19,7 @@ import org.h2.util.Utils;
 /**
  * Implementation of the OBJECT data type.
  */
-public class ValueJavaObject extends ValueBytes {
+public class ValueJavaObject extends ValueVarbinary {
 
     private static final ValueJavaObject EMPTY =
             new ValueJavaObject(Utils.EMPTY_BYTES, null);

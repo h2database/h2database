@@ -14,9 +14,9 @@ import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
-import org.h2.value.ValueBytes;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueString;
+import org.h2.value.ValueVarbinary;
+import org.h2.value.ValueVarchar;
 
 /**
  * Character string concatenation as in {@code 'Hello' || 'World'}, binary
@@ -63,7 +63,7 @@ public class ConcatenationOperation extends Expression {
             int leftLength = leftBytes.length, rightLength = rightBytes.length;
             byte[] bytes = Arrays.copyOf(leftBytes, leftLength + rightLength);
             System.arraycopy(rightBytes, 0, bytes, leftLength, rightLength);
-            return ValueBytes.getNoCopy(bytes);
+            return ValueVarbinary.getNoCopy(bytes);
         }
         default: {
             if (l == ValueNull.INSTANCE) {
@@ -80,7 +80,7 @@ public class ConcatenationOperation extends Expression {
             String s1 = l.getString(), s2 = r.getString();
             StringBuilder buff = new StringBuilder(s1.length() + s2.length());
             buff.append(s1).append(s2);
-            return ValueString.get(buff.toString());
+            return ValueVarchar.get(buff.toString());
         }
         }
     }

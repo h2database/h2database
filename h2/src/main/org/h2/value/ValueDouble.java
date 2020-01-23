@@ -24,7 +24,7 @@ public class ValueDouble extends Value {
     public static final int PRECISION = 17;
 
     /**
-     * The maximum display size of a double.
+     * The maximum display size of a DOUBLE.
      * Example: -3.3333333333333334E-100
      */
     public static final int DISPLAY_SIZE = 24;
@@ -168,7 +168,7 @@ public class ValueDouble extends Value {
     }
 
     /**
-     * Get or create double value for the given double.
+     * Get or create a DOUBLE value for the given double.
      *
      * @param d the double
      * @return the value

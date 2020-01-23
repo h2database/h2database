@@ -17,32 +17,32 @@ import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 
 /**
- * Implementation of the DECIMAL data type.
+ * Implementation of the NUMERIC data type.
  */
-public class ValueDecimal extends Value {
+public class ValueNumeric extends Value {
 
     /**
      * The value 'zero'.
      */
-    public static final ValueDecimal ZERO = new ValueDecimal(BigDecimal.ZERO);
+    public static final ValueNumeric ZERO = new ValueNumeric(BigDecimal.ZERO);
 
     /**
      * The value 'one'.
      */
-    public static final ValueDecimal ONE = new ValueDecimal(BigDecimal.ONE);
+    public static final ValueNumeric ONE = new ValueNumeric(BigDecimal.ONE);
 
     /**
-     * The default precision for a decimal value.
+     * The default precision for a NUMERIC value.
      */
     static final int DEFAULT_PRECISION = 65535;
 
     /**
-     * The default scale for a decimal value.
+     * The default scale for a NUMERIC value.
      */
     static final int DEFAULT_SCALE = 0;
 
     /**
-     * The default display size for a decimal value.
+     * The default display size for a NUMERIC value.
      */
     static final int DEFAULT_DISPLAY_SIZE = 65535;
 
@@ -59,7 +59,7 @@ public class ValueDecimal extends Value {
     private final BigDecimal value;
     private TypeInfo type;
 
-    private ValueDecimal(BigDecimal value) {
+    private ValueNumeric(BigDecimal value) {
         if (value == null) {
             throw new IllegalArgumentException("null");
         } else if (value.getClass() != BigDecimal.class) {
@@ -71,34 +71,34 @@ public class ValueDecimal extends Value {
 
     @Override
     public Value add(Value v) {
-        ValueDecimal dec = (ValueDecimal) v;
-        return ValueDecimal.get(value.add(dec.value));
+        ValueNumeric dec = (ValueNumeric) v;
+        return ValueNumeric.get(value.add(dec.value));
     }
 
     @Override
     public Value subtract(Value v) {
-        ValueDecimal dec = (ValueDecimal) v;
-        return ValueDecimal.get(value.subtract(dec.value));
+        ValueNumeric dec = (ValueNumeric) v;
+        return ValueNumeric.get(value.subtract(dec.value));
     }
 
     @Override
     public Value negate() {
-        return ValueDecimal.get(value.negate());
+        return ValueNumeric.get(value.negate());
     }
 
     @Override
     public Value multiply(Value v) {
-        ValueDecimal dec = (ValueDecimal) v;
-        return ValueDecimal.get(value.multiply(dec.value));
+        ValueNumeric dec = (ValueNumeric) v;
+        return ValueNumeric.get(value.multiply(dec.value));
     }
 
     @Override
     public Value divide(Value v, long divisorPrecision) {
-        BigDecimal divisor = ((ValueDecimal) v).value;
+        BigDecimal divisor = ((ValueNumeric) v).value;
         if (divisor.signum() == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
-        return ValueDecimal.get(value.divide(divisor,
+        return ValueNumeric.get(value.divide(divisor,
                 getQuotientScale(value.scale(), divisorPrecision, divisor.scale()), RoundingMode.HALF_DOWN));
     }
 
@@ -119,13 +119,13 @@ public class ValueDecimal extends Value {
     }
 
     @Override
-    public ValueDecimal modulus(Value v) {
-        ValueDecimal dec = (ValueDecimal) v;
+    public ValueNumeric modulus(Value v) {
+        ValueNumeric dec = (ValueNumeric) v;
         if (dec.value.signum() == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
         BigDecimal bd = value.remainder(dec.value);
-        return ValueDecimal.get(bd);
+        return ValueNumeric.get(bd);
     }
 
     @Override
@@ -152,7 +152,7 @@ public class ValueDecimal extends Value {
 
     @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
-        return value.compareTo(((ValueDecimal) o).value);
+        return value.compareTo(((ValueNumeric) o).value);
     }
 
     @Override
@@ -187,33 +187,33 @@ public class ValueDecimal extends Value {
     }
 
     /**
-     * Get or create big decimal value for the given big decimal.
+     * Get or create a NUMERIC value for the given big decimal.
      *
      * @param dec the big decimal
      * @return the value
      */
-    public static ValueDecimal get(BigDecimal dec) {
+    public static ValueNumeric get(BigDecimal dec) {
         if (BigDecimal.ZERO.equals(dec)) {
             return ZERO;
         } else if (BigDecimal.ONE.equals(dec)) {
             return ONE;
         }
-        return (ValueDecimal) Value.cache(new ValueDecimal(dec));
+        return (ValueNumeric) Value.cache(new ValueNumeric(dec));
     }
 
     /**
-     * Get or create big decimal value for the given big integer.
+     * Get or create a NUMERIC value for the given big integer.
      *
      * @param bigInteger the big integer
      * @return the value
      */
-    public static ValueDecimal get(BigInteger bigInteger) {
+    public static ValueNumeric get(BigInteger bigInteger) {
         if (bigInteger.signum() == 0) {
             return ZERO;
         } else if (BigInteger.ONE.equals(bigInteger)) {
             return ONE;
         }
-        return (ValueDecimal) Value.cache(new ValueDecimal(new BigDecimal(bigInteger)));
+        return (ValueNumeric) Value.cache(new ValueNumeric(new BigDecimal(bigInteger)));
     }
 
     @Override
@@ -222,8 +222,8 @@ public class ValueDecimal extends Value {
         // value and scale (thus 2.0 is not equal to 2.00 when using equals;
         // however -0.0 and 0.0 are). Can not use compareTo because 2.0 and 2.00
         // have different hash codes
-        return other instanceof ValueDecimal &&
-                value.equals(((ValueDecimal) other).value);
+        return other instanceof ValueNumeric &&
+                value.equals(((ValueNumeric) other).value);
     }
 
     @Override

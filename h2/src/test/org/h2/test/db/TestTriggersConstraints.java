@@ -21,7 +21,7 @@ import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.TriggerAdapter;
 import org.h2.util.Task;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueBigint;
 
 /**
  * Tests for trigger and constraints.
@@ -350,7 +350,7 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
                 if (rs.next()) {
                     JdbcConnection jconn = (JdbcConnection) conn;
                     Session session = (Session) jconn.getSession();
-                    session.setLastTriggerIdentity(ValueLong.get(rs.getLong(1)));
+                    session.setLastTriggerIdentity(ValueBigint.get(rs.getLong(1)));
                 }
             }
         }

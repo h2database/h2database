@@ -22,12 +22,12 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueBigint;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueString;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueVarchar;
 
 /**
  * This class implements some MySQL-specific functions.
@@ -43,7 +43,7 @@ public class FunctionsMySQL extends FunctionsBase {
 
     static {
         FUNCTIONS.put("UNIX_TIMESTAMP", new FunctionInfo("UNIX_TIMESTAMP", UNIX_TIMESTAMP,
-                VAR_ARGS, Value.INT, false, false, true, false));
+                VAR_ARGS, Value.INTEGER, false, false, true, false));
         FUNCTIONS.put("FROM_UNIXTIME", new FunctionInfo("FROM_UNIXTIME", FROM_UNIXTIME,
                 VAR_ARGS, Value.VARCHAR, false, true, true, false));
         FUNCTIONS.put("DATE", new FunctionInfo("DATE", DATE,
@@ -226,10 +226,10 @@ public class FunctionsMySQL extends FunctionsBase {
         Value result;
         switch (info.type) {
         case UNIX_TIMESTAMP:
-            result = ValueInt.get(unixTimestamp(session, v0 == null ? session.currentTimestamp() : v0));
+            result = ValueInteger.get(unixTimestamp(session, v0 == null ? session.currentTimestamp() : v0));
             break;
         case FROM_UNIXTIME:
-            result = ValueString.get(
+            result = ValueVarchar.get(
                     v1 == null ? fromUnixTime(v0.getInt()) : fromUnixTime(v0.getInt(), v1.getString()));
             break;
         case DATE:
@@ -256,7 +256,7 @@ public class FunctionsMySQL extends FunctionsBase {
                 result = session.getLastIdentity();
             } else {
                 if (v0 == ValueNull.INSTANCE) {
-                    session.setLastIdentity(ValueLong.get(0));
+                    session.setLastIdentity(ValueBigint.get(0));
                     result = v0;
                 } else {
                     result = v0.convertToBigint(null);

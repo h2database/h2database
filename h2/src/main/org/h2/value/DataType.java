@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import org.h2.api.ErrorCode;
+import org.h2.api.H2Type;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Mode;
@@ -224,27 +225,27 @@ public class DataType {
                 new String[]{"BOOLEAN", "BIT", "BOOL"}
         );
         add(Value.TINYINT, Types.TINYINT,
-                createNumeric(ValueByte.PRECISION, 0, false),
+                createNumeric(ValueTinyint.PRECISION, 0, false),
                 new String[]{"TINYINT"}
         );
         add(Value.SMALLINT, Types.SMALLINT,
-                createNumeric(ValueShort.PRECISION, 0, false),
+                createNumeric(ValueSmallint.PRECISION, 0, false),
                 new String[]{"SMALLINT", "YEAR", "INT2"}
         );
-        add(Value.INT, Types.INTEGER,
-                createNumeric(ValueInt.PRECISION, 0, false),
+        add(Value.INTEGER, Types.INTEGER,
+                createNumeric(ValueInteger.PRECISION, 0, false),
                 new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"}
         );
-        add(Value.INT, Types.INTEGER,
-                createNumeric(ValueInt.PRECISION, 0, true),
+        add(Value.INTEGER, Types.INTEGER,
+                createNumeric(ValueInteger.PRECISION, 0, true),
                 new String[]{"SERIAL"}
         );
         add(Value.BIGINT, Types.BIGINT,
-                createNumeric(ValueLong.PRECISION, 0, false),
+                createNumeric(ValueBigint.PRECISION, 0, false),
                 new String[]{"BIGINT", "INT8", "LONG"}
         );
         add(Value.BIGINT, Types.BIGINT,
-                createNumeric(ValueLong.PRECISION, 0, true),
+                createNumeric(ValueBigint.PRECISION, 0, true),
                 new String[]{"IDENTITY", "BIGSERIAL"}
         );
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
@@ -255,7 +256,7 @@ public class DataType {
             addDecimal();
         }
         add(Value.REAL, Types.REAL,
-                createNumeric(ValueFloat.PRECISION, 0, false),
+                createNumeric(ValueReal.PRECISION, 0, false),
                 new String[] {"REAL", "FLOAT4"}
         );
         add(Value.DOUBLE, Types.DOUBLE,
@@ -464,10 +465,10 @@ public class DataType {
         DataType dataType = new DataType();
         dataType.minPrecision = 1;
         dataType.maxPrecision = Integer.MAX_VALUE;
-        dataType.defaultPrecision = ValueDecimal.DEFAULT_PRECISION;
-        dataType.defaultScale = ValueDecimal.DEFAULT_SCALE;
-        dataType.maxScale = ValueDecimal.MAXIMUM_SCALE;
-        dataType.minScale = ValueDecimal.MINIMUM_SCALE;
+        dataType.defaultPrecision = ValueNumeric.DEFAULT_PRECISION;
+        dataType.defaultScale = ValueNumeric.DEFAULT_SCALE;
+        dataType.maxScale = ValueNumeric.MAXIMUM_SCALE;
+        dataType.minScale = ValueNumeric.MINIMUM_SCALE;
         dataType.params = "PRECISION,SCALE";
         dataType.supportsPrecision = true;
         dataType.supportsScale = true;
@@ -571,7 +572,7 @@ public class DataType {
                  */
                 Object o = rs.getObject(columnIndex);
                 if (o instanceof byte[]) {
-                    v = ValueBytes.getNoCopy((byte[]) o);
+                    v = ValueVarbinary.getNoCopy((byte[]) o);
                 } else if (o != null) {
                     v = ValueUuid.get((UUID) o);
                 } else {
@@ -597,7 +598,7 @@ public class DataType {
             }
             case Value.TINYINT: {
                 byte value = rs.getByte(columnIndex);
-                v = rs.wasNull() ? ValueNull.INSTANCE : ValueByte.get(value);
+                v = rs.wasNull() ? ValueNull.INSTANCE : ValueTinyint.get(value);
                 break;
             }
             case Value.DATE: {
@@ -672,7 +673,7 @@ public class DataType {
             }
             case Value.NUMERIC: {
                 BigDecimal value = rs.getBigDecimal(columnIndex);
-                v = value == null ? ValueNull.INSTANCE : ValueDecimal.get(value);
+                v = value == null ? ValueNull.INSTANCE : ValueNumeric.get(value);
                 break;
             }
             case Value.DOUBLE: {
@@ -682,37 +683,37 @@ public class DataType {
             }
             case Value.REAL: {
                 float value = rs.getFloat(columnIndex);
-                v = rs.wasNull() ? ValueNull.INSTANCE : ValueFloat.get(value);
+                v = rs.wasNull() ? ValueNull.INSTANCE : ValueReal.get(value);
                 break;
             }
-            case Value.INT: {
+            case Value.INTEGER: {
                 int value = rs.getInt(columnIndex);
-                v = rs.wasNull() ? ValueNull.INSTANCE : ValueInt.get(value);
+                v = rs.wasNull() ? ValueNull.INSTANCE : ValueInteger.get(value);
                 break;
             }
             case Value.BIGINT: {
                 long value = rs.getLong(columnIndex);
-                v = rs.wasNull() ? ValueNull.INSTANCE : ValueLong.get(value);
+                v = rs.wasNull() ? ValueNull.INSTANCE : ValueBigint.get(value);
                 break;
             }
             case Value.SMALLINT: {
                 short value = rs.getShort(columnIndex);
-                v = rs.wasNull() ? ValueNull.INSTANCE : ValueShort.get(value);
+                v = rs.wasNull() ? ValueNull.INSTANCE : ValueSmallint.get(value);
                 break;
             }
             case Value.VARCHAR_IGNORECASE: {
                 String s = rs.getString(columnIndex);
-                v = (s == null) ? ValueNull.INSTANCE : ValueStringIgnoreCase.get(s);
+                v = (s == null) ? ValueNull.INSTANCE : ValueVarcharIgnoreCase.get(s);
                 break;
             }
             case Value.CHAR: {
                 String s = rs.getString(columnIndex);
-                v = (s == null) ? ValueNull.INSTANCE : ValueStringFixed.get(s);
+                v = (s == null) ? ValueNull.INSTANCE : ValueChar.get(s);
                 break;
             }
             case Value.VARCHAR: {
                 String s = rs.getString(columnIndex);
-                v = (s == null) ? ValueNull.INSTANCE : ValueString.get(s);
+                v = (s == null) ? ValueNull.INSTANCE : ValueVarchar.get(s);
                 break;
             }
             case Value.CLOB: {
@@ -774,7 +775,7 @@ public class DataType {
             }
             case Value.ENUM: {
                 int value = rs.getInt(columnIndex);
-                v = rs.wasNull() ? ValueNull.INSTANCE : ValueInt.get(value);
+                v = rs.wasNull() ? ValueNull.INSTANCE : ValueInteger.get(value);
                 break;
             }
             case Value.ROW: {
@@ -874,7 +875,7 @@ public class DataType {
             }
             // "java.lang.Short";
             return Short.class.getName();
-        case Value.INT:
+        case Value.INTEGER:
             // "java.lang.Integer";
             return Integer.class.getName();
         case Value.BIGINT:
@@ -1064,7 +1065,9 @@ public class DataType {
      * @return the value type
      */
     public static int convertSQLTypeToValueType(SQLType sqlType) {
-        if (sqlType instanceof JDBCType) {
+        if (sqlType instanceof H2Type) {
+            return sqlType.getVendorTypeNumber();
+        } else if (sqlType instanceof JDBCType) {
             return convertSQLTypeToValueType(sqlType.getVendorTypeNumber());
         } else {
             throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, sqlType == null ? "<null>"
@@ -1095,7 +1098,7 @@ public class DataType {
         case Types.BOOLEAN:
             return Value.BOOLEAN;
         case Types.INTEGER:
-            return Value.INT;
+            return Value.INTEGER;
         case Types.SMALLINT:
             return Value.SMALLINT;
         case Types.TINYINT:
@@ -1180,7 +1183,7 @@ public class DataType {
         if (String.class == x) {
             return Value.VARCHAR;
         } else if (Integer.class == x) {
-            return Value.INT;
+            return Value.INTEGER;
         } else if (Long.class == x) {
             return Value.BIGINT;
         } else if (Boolean.class == x) {
@@ -1261,7 +1264,7 @@ public class DataType {
         } else if (type == Value.JAVA_OBJECT) {
             return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
         } else if (x instanceof String) {
-            return ValueString.get((String) x);
+            return ValueVarchar.get((String) x);
         } else if (x instanceof Value) {
             Value v = (Value) x;
             if (v instanceof ValueLob) {
@@ -1269,25 +1272,25 @@ public class DataType {
             }
             return v;
         } else if (x instanceof Long) {
-            return ValueLong.get((Long) x);
+            return ValueBigint.get((Long) x);
         } else if (x instanceof Integer) {
-            return ValueInt.get((Integer) x);
+            return ValueInteger.get((Integer) x);
         } else if (x instanceof BigInteger) {
-            return ValueDecimal.get((BigInteger) x);
+            return ValueNumeric.get((BigInteger) x);
         } else if (x instanceof BigDecimal) {
-            return ValueDecimal.get((BigDecimal) x);
+            return ValueNumeric.get((BigDecimal) x);
         } else if (x instanceof Boolean) {
             return ValueBoolean.get((Boolean) x);
         } else if (x instanceof Byte) {
-            return ValueByte.get((Byte) x);
+            return ValueTinyint.get((Byte) x);
         } else if (x instanceof Short) {
-            return ValueShort.get((Short) x);
+            return ValueSmallint.get((Short) x);
         } else if (x instanceof Float) {
-            return ValueFloat.get((Float) x);
+            return ValueReal.get((Float) x);
         } else if (x instanceof Double) {
             return ValueDouble.get((Double) x);
         } else if (x instanceof byte[]) {
-            return ValueBytes.get((byte[]) x);
+            return ValueVarbinary.get((byte[]) x);
         } else if (x instanceof Date) {
             return LegacyDateTimeUtils.fromDate(session, null, (Date) x);
         } else if (x instanceof Time) {
@@ -1320,7 +1323,7 @@ public class DataType {
             }
             return ValueArray.get(v);
         } else if (x instanceof Character) {
-            return ValueStringFixed.get(((Character) x).toString());
+            return ValueChar.get(((Character) x).toString());
         } else if (isGeometry(x)) {
             return ValueGeometry.getFromGeometry(x);
         } else if (clazz == LocalDate.class) {
@@ -1653,7 +1656,7 @@ public class DataType {
         case Value.BOOLEAN:
         case Value.TINYINT:
         case Value.SMALLINT:
-        case Value.INT:
+        case Value.INTEGER:
         case Value.BIGINT:
         // Negative zeroes and NaNs are normalized
         case Value.DOUBLE:
@@ -1699,7 +1702,7 @@ public class DataType {
         case Value.NUMERIC:
         case Value.DOUBLE:
         case Value.REAL:
-        case Value.INT:
+        case Value.INTEGER:
         case Value.BIGINT:
         case Value.SMALLINT:
         case Value.INTERVAL_YEAR:
@@ -1752,7 +1755,7 @@ public class DataType {
             return Value.BIGINT;
         case Value.REAL:
             return Value.DOUBLE;
-        case Value.INT:
+        case Value.INTEGER:
             return Value.BIGINT;
         case Value.BIGINT:
             return Value.NUMERIC;

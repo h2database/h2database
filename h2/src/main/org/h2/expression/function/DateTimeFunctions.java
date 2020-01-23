@@ -55,9 +55,9 @@ import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
-import org.h2.value.ValueDecimal;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
+import org.h2.value.ValueNumeric;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
@@ -381,7 +381,7 @@ public final class DateTimeFunctions {
         Value result;
         int field = getDatePart(part);
         if (field != EPOCH) {
-            result = ValueInt.get(getIntDatePart(session, value, field));
+            result = ValueInteger.get(getIntDatePart(session, value, field));
         } else {
             // Case where we retrieve the EPOCH time.
             if (value instanceof ValueInterval) {
@@ -395,9 +395,9 @@ public final class DateTimeFunctions {
                     if (interval.isNegative()) {
                         bi = bi.negate();
                     }
-                    return ValueDecimal.get(bi);
+                    return ValueNumeric.get(bi);
                 } else {
-                    return ValueDecimal.get(new BigDecimal(IntervalUtils.intervalToAbsolute(interval))
+                    return ValueNumeric.get(new BigDecimal(IntervalUtils.intervalToAbsolute(interval))
                             .divide(BD_NANOS_PER_SECOND));
                 }
             }
@@ -410,11 +410,11 @@ public final class DateTimeFunctions {
             if (value instanceof ValueTime) {
                 // In order to retrieve the EPOCH time we only have to convert the time
                 // in nanoseconds (previously retrieved) in seconds.
-                result = ValueDecimal.get(BigDecimal.valueOf(timeNanos).divide(BD_NANOS_PER_SECOND));
+                result = ValueNumeric.get(BigDecimal.valueOf(timeNanos).divide(BD_NANOS_PER_SECOND));
             } else if (value instanceof ValueDate) {
                 // Case where the value is of type date '2000:01:01', we have to retrieve the
                 // total number of days and multiply it by the number of seconds in a day.
-                result = ValueDecimal.get(BigInteger.valueOf(DateTimeUtils.absoluteDayFromDateValue(dateValue))
+                result = ValueNumeric.get(BigInteger.valueOf(DateTimeUtils.absoluteDayFromDateValue(dateValue))
                         .multiply(BI_SECONDS_PER_DAY));
             } else {
                 BigDecimal bd = BigDecimal.valueOf(timeNanos).divide(BD_NANOS_PER_SECOND).add(BigDecimal
@@ -425,17 +425,17 @@ public final class DateTimeFunctions {
                     // We retrieve the time zone offset in seconds
                     // Sum the time in nanoseconds and the total number of days in seconds
                     // and adding the timeZone offset in seconds.
-                    result = ValueDecimal.get(bd.subtract(
+                    result = ValueNumeric.get(bd.subtract(
                             BigDecimal.valueOf(((ValueTimestampTimeZone) value).getTimeZoneOffsetSeconds())));
                 } else if (value instanceof ValueTimeTimeZone) {
-                    result = ValueDecimal.get(bd.subtract(
+                    result = ValueNumeric.get(bd.subtract(
                             BigDecimal.valueOf(((ValueTimeTimeZone) value).getTimeZoneOffsetSeconds())));
                 } else {
                     // By default, we have the date and the time ('2000:01:01 10:00:00') if no type
                     // is given.
                     // We just have to sum the time in nanoseconds and the total number of days in
                     // seconds.
-                    result = ValueDecimal.get(bd);
+                    result = ValueNumeric.get(bd);
                 }
             }
         }

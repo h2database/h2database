@@ -16,7 +16,7 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueString;
+import org.h2.value.ValueVarchar;
 
 /**
  * A parameter of a prepared statement.
@@ -87,7 +87,7 @@ public class Parameter extends Expression implements ParameterInterface {
     @Override
     public Expression optimize(Session session) {
         if (session.getDatabase().getMode().treatEmptyStringsAsNull) {
-            if (value instanceof ValueString && value.getString().isEmpty()) {
+            if (value instanceof ValueVarchar && value.getString().isEmpty()) {
                 value = ValueNull.INSTANCE;
             }
         }

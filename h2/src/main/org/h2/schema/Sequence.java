@@ -14,8 +14,8 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.value.Value;
-import org.h2.value.ValueDecimal;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueBigint;
+import org.h2.value.ValueNumeric;
 
 /**
  * A sequence is created using the statement
@@ -315,9 +315,9 @@ public class Sequence extends SchemaObjectBase {
         }
         Value result;
         if (database.getMode().decimalSequences) {
-            result = ValueDecimal.get(BigDecimal.valueOf(resultAsLong));
+            result = ValueNumeric.get(BigDecimal.valueOf(resultAsLong));
         } else {
-            result = ValueLong.get(resultAsLong);
+            result = ValueBigint.get(resultAsLong);
         }
         if (session != null) {
             session.setCurrentValueFor(this, result);

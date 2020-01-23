@@ -29,31 +29,31 @@ import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
-import org.h2.value.ValueByte;
-import org.h2.value.ValueBytes;
+import org.h2.value.ValueChar;
 import org.h2.value.ValueDate;
-import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueFloat;
 import org.h2.value.ValueGeometry;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueJson;
-import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueNumeric;
+import org.h2.value.ValueReal;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueRow;
-import org.h2.value.ValueShort;
-import org.h2.value.ValueString;
-import org.h2.value.ValueStringFixed;
-import org.h2.value.ValueStringIgnoreCase;
+import org.h2.value.ValueSmallint;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueTinyint;
 import org.h2.value.ValueUuid;
+import org.h2.value.ValueVarbinary;
+import org.h2.value.ValueVarchar;
+import org.h2.value.ValueVarcharIgnoreCase;
 
 /**
  * Tests the memory consumption of values. Values can estimate how much memory
@@ -123,8 +123,8 @@ public class TestValueMemory extends TestBase implements DataHandler {
     }
 
     private void testCompare() {
-        ValueDecimal a = ValueDecimal.get(new BigDecimal("0.0"));
-        ValueDecimal b = ValueDecimal.get(new BigDecimal("-0.00"));
+        ValueNumeric a = ValueNumeric.get(new BigDecimal("0.0"));
+        ValueNumeric b = ValueNumeric.get(new BigDecimal("-0.00"));
         assertTrue(a.hashCode() != b.hashCode());
         assertFalse(a.equals(b));
     }
@@ -171,20 +171,20 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.BOOLEAN:
             return ValueBoolean.FALSE;
         case Value.TINYINT:
-            return ValueByte.get((byte) random.nextInt());
+            return ValueTinyint.get((byte) random.nextInt());
         case Value.SMALLINT:
-            return ValueShort.get((short) random.nextInt());
-        case Value.INT:
-            return ValueInt.get(random.nextInt());
+            return ValueSmallint.get((short) random.nextInt());
+        case Value.INTEGER:
+            return ValueInteger.get(random.nextInt());
         case Value.BIGINT:
-            return ValueLong.get(random.nextLong());
+            return ValueBigint.get(random.nextLong());
         case Value.NUMERIC:
-            return ValueDecimal.get(new BigDecimal(random.nextInt()));
+            return ValueNumeric.get(new BigDecimal(random.nextInt()));
             // + "12123344563456345634565234523451312312"
         case Value.DOUBLE:
             return ValueDouble.get(random.nextDouble());
         case Value.REAL:
-            return ValueFloat.get(random.nextFloat());
+            return ValueReal.get(random.nextFloat());
         case Value.TIME:
             return ValueTime.fromNanos(randomTimeNanos());
         case Value.TIME_TZ:
@@ -197,11 +197,11 @@ public class TestValueMemory extends TestBase implements DataHandler {
             return ValueTimestampTimeZone.fromDateValueAndNanos(
                     randomDateValue(), randomTimeNanos(), randomZoneOffset());
         case Value.VARBINARY:
-            return ValueBytes.get(randomBytes(random.nextInt(1000)));
+            return ValueVarbinary.get(randomBytes(random.nextInt(1000)));
         case Value.VARCHAR:
-            return ValueString.get(randomString(random.nextInt(100)));
+            return ValueVarchar.get(randomString(random.nextInt(100)));
         case Value.VARCHAR_IGNORECASE:
-            return ValueStringIgnoreCase.get(randomString(random.nextInt(100)));
+            return ValueVarcharIgnoreCase.get(randomString(random.nextInt(100)));
         case Value.BLOB: {
             int len = (int) Math.abs(random.nextGaussian() * 10);
             byte[] data = randomBytes(len);
@@ -223,7 +223,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.UUID:
             return ValueUuid.get(random.nextLong(), random.nextLong());
         case Value.CHAR:
-            return ValueStringFixed.get(randomString(random.nextInt(100)));
+            return ValueChar.get(randomString(random.nextInt(100)));
         case Value.GEOMETRY:
             return ValueGeometry.get("POINT (" + random.nextInt(100) + ' ' + random.nextInt(100) + ')');
         case Value.INTERVAL_YEAR:

@@ -14,15 +14,15 @@ import org.h2.util.StringUtils;
 
 /**
  * Implementation of the VARCHAR data type.
- * It is also the base class for other ValueString* classes.
+ * It is also the base class for ValueVarcharIgnoreCase and ValueChar classes.
  */
-public class ValueString extends Value {
+public class ValueVarchar extends Value {
 
     /**
      * Empty string. Should not be used in places where empty string can be
      * treated as {@code NULL} depending on database mode.
      */
-    public static final ValueString EMPTY = new ValueString("");
+    public static final ValueVarchar EMPTY = new ValueVarchar("");
 
     /**
      * The string data.
@@ -31,7 +31,7 @@ public class ValueString extends Value {
 
     private TypeInfo type;
 
-    protected ValueString(String value) {
+    protected ValueVarchar(String value) {
         this.value = value;
     }
 
@@ -42,13 +42,13 @@ public class ValueString extends Value {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueString
-                && value.equals(((ValueString) other).value);
+        return other instanceof ValueVarchar
+                && value.equals(((ValueVarchar) other).value);
     }
 
     @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
-        return mode.compareString(value, ((ValueString) o).value, false);
+        return mode.compareString(value, ((ValueVarchar) o).value, false);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class ValueString extends Value {
     }
 
     /**
-     * Get or create a string value for the given string.
+     * Get or create a VARCHAR value for the given string.
      *
      * @param s the string
      * @return the value
@@ -135,7 +135,7 @@ public class ValueString extends Value {
     }
 
     /**
-     * Get or create a string value for the given string.
+     * Get or create a VARCHAR value for the given string.
      *
      * @param s the string
      * @param provider the cast information provider, or {@code null}
@@ -145,7 +145,7 @@ public class ValueString extends Value {
         if (s.isEmpty()) {
             return provider != null && provider.getMode().treatEmptyStringsAsNull ? ValueNull.INSTANCE : EMPTY;
         }
-        ValueString obj = new ValueString(StringUtils.cache(s));
+        ValueVarchar obj = new ValueVarchar(StringUtils.cache(s));
         if (s.length() > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }

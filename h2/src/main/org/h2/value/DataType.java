@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import org.h2.api.ErrorCode;
+import org.h2.api.H2Type;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Mode;
@@ -1064,7 +1065,9 @@ public class DataType {
      * @return the value type
      */
     public static int convertSQLTypeToValueType(SQLType sqlType) {
-        if (sqlType instanceof JDBCType) {
+        if (sqlType instanceof H2Type) {
+            return sqlType.getVendorTypeNumber();
+        } else if (sqlType instanceof JDBCType) {
             return convertSQLTypeToValueType(sqlType.getVendorTypeNumber());
         } else {
             throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, sqlType == null ? "<null>"

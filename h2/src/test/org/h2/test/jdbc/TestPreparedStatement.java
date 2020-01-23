@@ -39,6 +39,7 @@ import java.util.TimeZone;
 import java.util.UUID;
 
 import org.h2.api.ErrorCode;
+import org.h2.api.H2Type;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
@@ -643,7 +644,7 @@ public class TestPreparedStatement extends TestDb {
 
     private void testSetObject2(Connection conn) throws SQLException {
         try (PreparedStatement prep = conn.prepareStatement("VALUES (?1, ?1 IS OF(INTEGER), ?1 IS OF(BIGINT))")) {
-            for (int i = 1; i <= 5; i++) {
+            for (int i = 1; i <= 6; i++) {
                 testSetObject2SetObjectType(prep, i, (long) i);
                 try (ResultSet rs = prep.executeQuery()) {
                     rs.next();
@@ -685,6 +686,9 @@ public class TestPreparedStatement extends TestDb {
             break;
         case 5:
             prep.setObject(1, value, JDBCType.INTEGER, 0);
+            break;
+        case 6:
+            prep.setObject(1, value, H2Type.INTEGER, 0);
         }
     }
 

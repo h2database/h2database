@@ -27,6 +27,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 import org.h2.api.ErrorCode;
+import org.h2.api.H2Type;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -740,14 +741,14 @@ public class TestUpdatableResultSet extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V INT)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES (?1, ?1)");
-        for (int i = 1; i <= 8; i++) {
+        for (int i = 1; i <= 12; i++) {
             prep.setInt(1, i);
             prep.executeUpdate();
         }
         prep = conn.prepareStatement("TABLE TEST ORDER BY ID", ResultSet.TYPE_FORWARD_ONLY,
                 ResultSet.CONCUR_UPDATABLE);
         try (ResultSet rs = prep.executeQuery()) {
-            for (int i = 1; i <= 8; i++) {
+            for (int i = 1; i <= 12; i++) {
             rs.next();
                 assertEquals(i, rs.getInt(1));
                 assertEquals(i, rs.getInt(2));
@@ -757,7 +758,7 @@ public class TestUpdatableResultSet extends TestDb {
             assertFalse(rs.next());
         }
         try (ResultSet rs = prep.executeQuery()) {
-            for (int i = 1; i <= 8; i++) {
+            for (int i = 1; i <= 12; i++) {
                 assertTrue(rs.next());
                 assertEquals(i, rs.getInt(1));
                 assertEquals(i * 10, rs.getInt(2));
@@ -767,7 +768,7 @@ public class TestUpdatableResultSet extends TestDb {
             assertFalse(rs.next());
         }
         try (ResultSet rs = prep.executeQuery()) {
-            for (int i = 1; i <= 8; i++) {
+            for (int i = 1; i <= 12; i++) {
                 assertTrue(rs.next());
                 assertEquals(i, rs.getInt(1));
                 assertNull(rs.getObject(2));
@@ -792,16 +793,28 @@ public class TestUpdatableResultSet extends TestDb {
             rs.updateObject(2, value, JDBCType.INTEGER);
             break;
         case 5:
-            rs.updateObject("V", value, 0);
+            rs.updateObject(2, value, H2Type.INTEGER);
             break;
         case 6:
-            rs.updateObject("V", value, JDBCType.INTEGER);
+            rs.updateObject("V", value, 0);
             break;
         case 7:
-            rs.updateObject(2, value, JDBCType.INTEGER, 0);
+            rs.updateObject("V", value, JDBCType.INTEGER);
             break;
         case 8:
+            rs.updateObject("V", value, H2Type.INTEGER);
+            break;
+        case 9:
+            rs.updateObject(2, value, JDBCType.INTEGER, 0);
+            break;
+        case 10:
+            rs.updateObject(2, value, H2Type.INTEGER, 0);
+            break;
+        case 11:
             rs.updateObject("V", value, JDBCType.INTEGER, 0);
+            break;
+        case 12:
+            rs.updateObject("V", value, H2Type.INTEGER, 0);
         }
     }
 

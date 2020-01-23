@@ -1035,6 +1035,13 @@ public class Select extends Query {
         if (group != null) {
             int size = group.size();
             int expSize = expressionSQL.size();
+            int fullExpSize = expressions.size();
+            if (fullExpSize > expSize) {
+                expressionSQL.ensureCapacity(fullExpSize);
+                for (int i = expSize; i < fullExpSize; i++) {
+                    expressionSQL.add(expressions.get(i).getSQL(HasSQL.DEFAULT_SQL_FLAGS));
+                }
+            }
             groupIndex = new int[size];
             for (int i = 0; i < size; i++) {
                 Expression expr = group.get(i);

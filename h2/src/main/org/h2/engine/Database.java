@@ -87,7 +87,7 @@ import org.h2.value.CaseInsensitiveConcurrentMap;
 import org.h2.value.CaseInsensitiveMap;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueTimestampTimeZone;
 
 /**
@@ -1060,7 +1060,7 @@ public class Database implements DataHandler, CastDataProvider {
     public void removeMeta(Session session, int id) {
         if (id > 0 && !starting) {
             SearchRow r = meta.getRowFactory().createRow();
-            r.setValue(0, ValueInt.get(id));
+            r.setValue(0, ValueInteger.get(id));
             boolean wasLocked = lockMeta(session);
             try {
                 Cursor cursor = metaIdIndex.find(session, r, r);
@@ -1607,7 +1607,7 @@ public class Database implements DataHandler, CastDataProvider {
 
     private void checkMetaFree(Session session, int id) {
         SearchRow r = meta.getRowFactory().createRow();
-        r.setValue(0, ValueInt.get(id));
+        r.setValue(0, ValueInteger.get(id));
         Cursor cursor = metaIdIndex.find(session, r, r);
         if (cursor.next()) {
             DbException.throwInternalError();

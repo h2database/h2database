@@ -12,7 +12,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueBigint;
 
 /**
  * Represents the ROWNUM function.
@@ -30,7 +30,7 @@ public class Rownum extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        return ValueLong.get(prepared.getCurrentRowNumber());
+        return ValueBigint.get(prepared.getCurrentRowNumber());
     }
 
     @Override

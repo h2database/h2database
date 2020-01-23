@@ -20,7 +20,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 
 /**
  * A base class for data analysis operations such as aggregates and window
@@ -478,7 +478,7 @@ public abstract class DataAnalysisOperation extends Expression {
                 array[ne++] = bound.getValue().getValue(session);
             }
         }
-        array[ne] = ValueInt.get(groupRowId);
+        array[ne] = ValueInteger.get(groupRowId);
         @SuppressWarnings("unchecked")
         ArrayList<Value[]> data = (ArrayList<Value[]>) getWindowData(session, groupData, true);
         data.add(array);

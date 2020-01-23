@@ -12,13 +12,13 @@ import org.h2.util.StringUtils;
 /**
  * Implementation of the VARCHAR_IGNORECASE data type.
  */
-public class ValueStringIgnoreCase extends ValueString {
+public class ValueVarcharIgnoreCase extends ValueVarchar {
 
-    private static final ValueStringIgnoreCase EMPTY =
-            new ValueStringIgnoreCase("");
+    private static final ValueVarcharIgnoreCase EMPTY =
+            new ValueVarcharIgnoreCase("");
     private int hash;
 
-    protected ValueStringIgnoreCase(String value) {
+    protected ValueVarcharIgnoreCase(String value) {
         super(value);
     }
 
@@ -29,13 +29,13 @@ public class ValueStringIgnoreCase extends ValueString {
 
     @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
-        return mode.compareString(value, ((ValueStringIgnoreCase) o).value, true);
+        return mode.compareString(value, ((ValueVarcharIgnoreCase) o).value, true);
     }
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueString
-                && value.equalsIgnoreCase(((ValueString) other).value);
+        return other instanceof ValueVarchar
+                && value.equalsIgnoreCase(((ValueVarchar) other).value);
     }
 
     @Override
@@ -54,22 +54,22 @@ public class ValueStringIgnoreCase extends ValueString {
     }
 
     /**
-     * Get or create a case insensitive string value for the given string.
+     * Get or create a VARCHAR_IGNORECASE value for the given string.
      * The value will have the same case as the passed string.
      *
      * @param s the string
      * @return the value
      */
-    public static ValueStringIgnoreCase get(String s) {
+    public static ValueVarcharIgnoreCase get(String s) {
         int length = s.length();
         if (length == 0) {
             return EMPTY;
         }
-        ValueStringIgnoreCase obj = new ValueStringIgnoreCase(StringUtils.cache(s));
+        ValueVarcharIgnoreCase obj = new ValueVarcharIgnoreCase(StringUtils.cache(s));
         if (length > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }
-        ValueStringIgnoreCase cache = (ValueStringIgnoreCase) Value.cache(obj);
+        ValueVarcharIgnoreCase cache = (ValueVarcharIgnoreCase) Value.cache(obj);
         // the cached object could have the wrong case
         // (it would still be 'equal', but we don't like to store it)
         if (cache.value.equals(s)) {

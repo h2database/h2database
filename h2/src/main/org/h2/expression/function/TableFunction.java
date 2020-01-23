@@ -18,7 +18,7 @@ import org.h2.table.Column;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueCollectionBase;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 
@@ -132,7 +132,7 @@ public class TableFunction extends Function {
                     r[j] = v;
                 }
                 if (addNumber) {
-                    r[len] = ValueInt.get(row + 1);
+                    r[len] = ValueInteger.get(row + 1);
                 }
                 result.addRow(r);
             }

@@ -30,9 +30,9 @@ import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
-import org.h2.value.ValueDecimal;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueNumeric;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestampTimeZone;
@@ -207,8 +207,8 @@ public class IntervalOperation extends Expression {
                     opType == IntervalOpType.INTERVAL_PLUS_INTERVAL ? a1.add(a2) : a1.subtract(a2));
         }
         case INTERVAL_DIVIDE_INTERVAL:
-            return ValueDecimal.get(IntervalUtils.intervalToAbsolute((ValueInterval) l)).divide(
-                    ValueDecimal.get(IntervalUtils.intervalToAbsolute((ValueInterval) r)),
+            return ValueNumeric.get(IntervalUtils.intervalToAbsolute((ValueInterval) l)).divide(
+                    ValueNumeric.get(IntervalUtils.intervalToAbsolute((ValueInterval) r)),
                     DataType.isYearMonthIntervalType(l.getValueType()) ? INTERVAL_YEAR_DIGITS : INTERVAL_DAY_DIGITS);
         case DATETIME_PLUS_INTERVAL:
         case DATETIME_MINUS_INTERVAL:

@@ -33,7 +33,7 @@ import org.h2.util.TimeZoneProvider;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 
 /**
@@ -667,7 +667,7 @@ public class Set extends Prepared {
     }
 
     public void setInt(int value) {
-        this.expression = ValueExpression.get(ValueInt.get(value));
+        this.expression = ValueExpression.get(ValueInteger.get(value));
     }
 
     public void setExpression(Expression expression) {

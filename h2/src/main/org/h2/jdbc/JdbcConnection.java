@@ -40,8 +40,8 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.IsolationLevel;
 import org.h2.engine.Mode;
-import org.h2.engine.SessionInterface.StaticSettings;
 import org.h2.engine.SessionInterface;
+import org.h2.engine.SessionInterface.StaticSettings;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -54,13 +54,13 @@ import org.h2.util.TimeZoneProvider;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
-import org.h2.value.ValueBytes;
 import org.h2.value.ValueCollectionBase;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
-import org.h2.value.ValueString;
 import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueVarbinary;
+import org.h2.value.ValueVarchar;
 
 /**
  * <p>
@@ -731,7 +731,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             setQueryTimeout = prepareCommand("SET QUERY_TIMEOUT ?",
                     setQueryTimeout);
             setQueryTimeout.getParameters().get(0)
-                    .setValue(ValueInt.get(seconds * 1000), false);
+                    .setValue(ValueInteger.get(seconds * 1000), false);
             setQueryTimeout.executeUpdate(null);
             queryTimeoutCache = seconds;
         } catch (Exception e) {
@@ -751,7 +751,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                                 + "WHERE NAME=?",
                         getQueryTimeout);
                 getQueryTimeout.getParameters().get(0)
-                        .setValue(ValueString.get("QUERY_TIMEOUT"), false);
+                        .setValue(ValueVarchar.get("QUERY_TIMEOUT"), false);
                 ResultInterface result = getQueryTimeout.executeQuery(0, false);
                 result.next();
                 int queryTimeout = result.currentRow()[0].getInt();
@@ -1520,7 +1520,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             int id = getNextId(TraceObject.CLOB);
             debugCodeAssign("Clob", TraceObject.CLOB, id, "createClob()");
             checkClosed();
-            return new JdbcClob(this, ValueString.EMPTY, JdbcLob.State.NEW, id);
+            return new JdbcClob(this, ValueVarchar.EMPTY, JdbcLob.State.NEW, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1537,7 +1537,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             int id = getNextId(TraceObject.BLOB);
             debugCodeAssign("Blob", TraceObject.BLOB, id, "createClob()");
             checkClosed();
-            return new JdbcBlob(this, ValueBytes.EMPTY, JdbcLob.State.NEW, id);
+            return new JdbcBlob(this, ValueVarbinary.EMPTY, JdbcLob.State.NEW, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1554,7 +1554,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             int id = getNextId(TraceObject.CLOB);
             debugCodeAssign("NClob", TraceObject.CLOB, id, "createNClob()");
             checkClosed();
-            return new JdbcClob(this, ValueString.EMPTY, JdbcLob.State.NEW, id);
+            return new JdbcClob(this, ValueVarchar.EMPTY, JdbcLob.State.NEW, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1571,7 +1571,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             int id = getNextId(TraceObject.SQLXML);
             debugCodeAssign("SQLXML", TraceObject.SQLXML, id, "createSQLXML()");
             checkClosed();
-            return new JdbcSQLXML(this, ValueString.EMPTY, JdbcLob.State.NEW, id);
+            return new JdbcSQLXML(this, ValueVarchar.EMPTY, JdbcLob.State.NEW, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }

@@ -15,7 +15,7 @@ import org.h2.message.DbException;
 /**
  * Implementation of the SMALLINT data type.
  */
-public class ValueShort extends Value {
+public class ValueSmallint extends Value {
 
     /**
      * The precision in digits.
@@ -23,29 +23,29 @@ public class ValueShort extends Value {
     static final int PRECISION = 5;
 
     /**
-     * The maximum display size of a short.
+     * The maximum display size of a SMALLINT.
      * Example: -32768
      */
     static final int DISPLAY_SIZE = 6;
 
     private final short value;
 
-    private ValueShort(short value) {
+    private ValueSmallint(short value) {
         this.value = value;
     }
 
     @Override
     public Value add(Value v) {
-        ValueShort other = (ValueShort) v;
+        ValueSmallint other = (ValueSmallint) v;
         return checkRange(value + other.value);
     }
 
-    private static ValueShort checkRange(int x) {
+    private static ValueSmallint checkRange(int x) {
         if ((short) x != x) {
             throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1,
                     Integer.toString(x));
         }
-        return ValueShort.get((short) x);
+        return ValueSmallint.get((short) x);
     }
 
     @Override
@@ -60,19 +60,19 @@ public class ValueShort extends Value {
 
     @Override
     public Value subtract(Value v) {
-        ValueShort other = (ValueShort) v;
+        ValueSmallint other = (ValueSmallint) v;
         return checkRange(value - other.value);
     }
 
     @Override
     public Value multiply(Value v) {
-        ValueShort other = (ValueShort) v;
+        ValueSmallint other = (ValueSmallint) v;
         return checkRange(value * other.value);
     }
 
     @Override
     public Value divide(Value v, long divisorPrecision) {
-        ValueShort other = (ValueShort) v;
+        ValueSmallint other = (ValueSmallint) v;
         if (other.value == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
@@ -81,11 +81,11 @@ public class ValueShort extends Value {
 
     @Override
     public Value modulus(Value v) {
-        ValueShort other = (ValueShort) v;
+        ValueSmallint other = (ValueSmallint) v;
         if (other.value == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
-        return ValueShort.get((short) (value % other.value));
+        return ValueSmallint.get((short) (value % other.value));
     }
 
     @Override
@@ -115,7 +115,7 @@ public class ValueShort extends Value {
 
     @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
-        return Integer.compare(value, ((ValueShort) o).value);
+        return Integer.compare(value, ((ValueSmallint) o).value);
     }
 
     @Override
@@ -140,18 +140,18 @@ public class ValueShort extends Value {
     }
 
     /**
-     * Get or create a short value for the given short.
+     * Get or create a SMALLINT value for the given short.
      *
      * @param i the short
      * @return the value
      */
-    public static ValueShort get(short i) {
-        return (ValueShort) Value.cache(new ValueShort(i));
+    public static ValueSmallint get(short i) {
+        return (ValueSmallint) Value.cache(new ValueSmallint(i));
     }
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueShort && value == ((ValueShort) other).value;
+        return other instanceof ValueSmallint && value == ((ValueSmallint) other).value;
     }
 
 }

@@ -22,7 +22,7 @@ import org.h2.result.SortOrder;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 
 /**
  * Index tests.
@@ -735,8 +735,8 @@ public class TestIndex extends TestDb {
             }
         }
         SimpleResultSet rs = new SimpleResultSet();
-        rs.addColumn("ID", Types.INTEGER, ValueInt.PRECISION, 0);
-        rs.addColumn("VALUE", Types.INTEGER, ValueInt.PRECISION, 0);
+        rs.addColumn("ID", Types.INTEGER, ValueInteger.PRECISION, 0);
+        rs.addColumn("VALUE", Types.INTEGER, ValueInteger.PRECISION, 0);
         rs.addRow(1, 10);
         rs.addRow(2, 20);
         rs.addRow(3, 30);

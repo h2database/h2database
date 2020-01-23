@@ -271,20 +271,20 @@ import org.h2.value.ExtTypeInfoGeometry;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
-import org.h2.value.ValueBytes;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueDate;
-import org.h2.value.ValueDecimal;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJson;
-import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueNumeric;
 import org.h2.value.ValueRow;
-import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueVarbinary;
+import org.h2.value.ValueVarchar;
 
 /**
  * The parser is used to convert a SQL statement string to an command object.
@@ -1392,7 +1392,7 @@ public class Parser {
                     for (int i = 0; i < columnCount; i++) {
                         command.setAssignment(columns.get(i),
                                 Function.getFunctionWithArgs(database, Function.ARRAY_GET, expression,
-                                        ValueExpression.get(ValueInt.get(i + 1))));
+                                        ValueExpression.get(ValueInteger.get(i + 1))));
                     }
                 }
             } else {
@@ -1527,7 +1527,7 @@ public class Parser {
             String s = currentToken;
             read();
             CompareLike like = new CompareLike(database, function,
-                    ValueExpression.get(ValueString.get('%' + s + '%')), null, false);
+                    ValueExpression.get(ValueVarchar.get('%' + s + '%')), null, false);
             select.addCondition(like);
         }
         select.init();
@@ -1568,13 +1568,13 @@ public class Parser {
             buff.append("TABLE_NAME, TABLE_SCHEMA FROM "
                     + "INFORMATION_SCHEMA.TABLES "
                     + "WHERE TABLE_SCHEMA=? ORDER BY TABLE_NAME");
-            paramValues.add(ValueString.get(schema));
+            paramValues.add(ValueVarchar.get(schema));
         } else if (readIf("COLUMNS")) {
             // for MySQL compatibility
             read(FROM);
             String tableName = readIdentifierWithSchema();
             String schemaName = getSchema().getName();
-            paramValues.add(ValueString.get(tableName));
+            paramValues.add(ValueVarchar.get(tableName));
             if (readIf(FROM)) {
                 schemaName = readUniqueIdentifier();
             }
@@ -1592,7 +1592,7 @@ public class Parser {
                     + "FROM INFORMATION_SCHEMA.COLUMNS C "
                     + "WHERE C.TABLE_NAME=? AND C.TABLE_SCHEMA=? "
                     + "ORDER BY C.ORDINAL_POSITION");
-            paramValues.add(ValueString.get(schemaName));
+            paramValues.add(ValueVarchar.get(schemaName));
         } else if (readIf("DATABASES") || readIf("SCHEMAS")) {
             // for MySQL compatibility
             buff.append("SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA");
@@ -2766,7 +2766,7 @@ public class Parser {
                     read("NEXT");
                 }
                 if (readIf(ROW) || readIf("ROWS")) {
-                    command.setLimit(ValueExpression.get(ValueInt.get(1)));
+                    command.setLimit(ValueExpression.get(ValueInteger.get(1)));
                 } else {
                     Expression limit = readExpression().optimize(session);
                     command.setLimit(limit);
@@ -3883,7 +3883,7 @@ public class Parser {
             break;
         }
         case Function.EXTRACT: {
-            function.addParameter(ValueExpression.get(ValueString.get(currentToken)));
+            function.addParameter(ValueExpression.get(ValueVarchar.get(currentToken)));
             read();
             read(FROM);
             function.addParameter(readExpression());
@@ -3895,7 +3895,7 @@ public class Parser {
             if (currentTokenType == LITERAL) {
                 function.addParameter(ValueExpression.get(currentValue.convertTo(TypeInfo.TYPE_VARCHAR)));
             } else {
-                function.addParameter(ValueExpression.get(ValueString.get(currentToken)));
+                function.addParameter(ValueExpression.get(ValueVarchar.get(currentToken)));
             }
             read();
             read(COMMA);
@@ -3920,7 +3920,7 @@ public class Parser {
                     function.addParameter(readExpression());
                 }
             } else if (readIf(FOR)) {
-                function.addParameter(ValueExpression.get(ValueInt.get(0)));
+                function.addParameter(ValueExpression.get(ValueInteger.get(0)));
                 function.addParameter(readExpression());
             } else {
                 read(COMMA);
@@ -4417,12 +4417,12 @@ public class Parser {
                         r.getValue(session).getLong() == Integer.MIN_VALUE) {
                     // convert Integer.MIN_VALUE to type 'int'
                     // (Integer.MAX_VALUE+1 is of type 'long')
-                    r = ValueExpression.get(ValueInt.get(Integer.MIN_VALUE));
+                    r = ValueExpression.get(ValueInteger.get(Integer.MIN_VALUE));
                 } else if (rType == Value.NUMERIC &&
                         r.getValue(session).getBigDecimal().compareTo(Value.MIN_LONG_DECIMAL) == 0) {
                     // convert Long.MIN_VALUE to type 'long'
                     // (Long.MAX_VALUE+1 is of type 'decimal')
-                    r = ValueExpression.get(ValueLong.MIN);
+                    r = ValueExpression.get(ValueBigint.MIN);
                 }
                 read();
             } else {
@@ -4722,7 +4722,7 @@ public class Parser {
                 // N: SQL-92 "National Language" strings
                 text = StringUtils.replaceAll(text, "\\\\", "\\");
                 read();
-                return ValueExpression.get(ValueString.get(text));
+                return ValueExpression.get(ValueVarchar.get(text));
             }
             break;
         case 'J':
@@ -4830,7 +4830,7 @@ public class Parser {
         case 'X':
             if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR //
                     && equalsToken("X", name)) {
-                return ValueExpression.get(ValueBytes.getNoCopy(readBinaryLiteral()));
+                return ValueExpression.get(ValueVarbinary.getNoCopy(readBinaryLiteral()));
             }
             break;
         }
@@ -4855,7 +4855,7 @@ public class Parser {
                 builder.append(currentValue.getString());
                 read();
             } while (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR);
-            return ValueString.get(builder.toString());
+            return ValueVarchar.get(builder.toString());
         }
         return value;
     }
@@ -5331,7 +5331,7 @@ public class Parser {
                         break loop;
                     }
                     checkLiterals(false);
-                    currentValue = ValueInt.get((int) number);
+                    currentValue = ValueInteger.get((int) number);
                     currentTokenType = LITERAL;
                     currentToken = "0";
                     parseIndex = i;
@@ -5371,7 +5371,7 @@ public class Parser {
             }
             currentToken = "'";
             checkLiterals(true);
-            currentValue = ValueString.get(result, database);
+            currentValue = ValueVarchar.get(result, database);
             parseIndex = i;
             currentTokenType = LITERAL;
             return;
@@ -5384,7 +5384,7 @@ public class Parser {
             String result = sqlCommand.substring(begin, i);
             currentToken = "'";
             checkLiterals(true);
-            currentValue = ValueString.get(result, database);
+            currentValue = ValueVarchar.get(result, database);
             parseIndex = i;
             currentTokenType = LITERAL;
             return;
@@ -5410,7 +5410,7 @@ public class Parser {
                         "parameter index", number);
             }
         }
-        currentValue = ValueInt.get((int) number);
+        currentValue = ValueInteger.get((int) number);
         currentTokenType = LITERAL;
         currentToken = "0";
         parseIndex = i;
@@ -5435,7 +5435,7 @@ public class Parser {
                 throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, sqlCommand.substring(i, i + 1));
             }
             checkLiterals(true);
-            currentValue = ValueBytes.getNoCopy(StringUtils.convertHexToBytes(sqlCommand.substring(start, i)));
+            currentValue = ValueVarbinary.getNoCopy(StringUtils.convertHexToBytes(sqlCommand.substring(start, i)));
             parseIndex = i;
         } else {
             long number = 0;
@@ -5452,7 +5452,7 @@ public class Parser {
                     addExpected("Hex number");
                     throw getSyntaxError();
                 } else {
-                    currentValue = ValueInt.get((int) number);
+                    currentValue = ValueInteger.get((int) number);
                     break;
                 }
                 if (number > Integer.MAX_VALUE) {
@@ -5460,7 +5460,7 @@ public class Parser {
                         c = chars[++i];
                     } while ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'));
                     String sub = sqlCommand.substring(start, i);
-                    currentValue = ValueDecimal.get(new BigInteger(sub, 16));
+                    currentValue = ValueNumeric.get(new BigInteger(sub, 16));
                     break;
                 }
             }
@@ -5509,17 +5509,17 @@ public class Parser {
         checkLiterals(false);
         if (integer && i - start <= 19) {
             BigInteger bi = new BigInteger(sqlCommand.substring(start, i));
-            if (bi.compareTo(ValueLong.MAX_BI) <= 0) {
+            if (bi.compareTo(ValueBigint.MAX_BI) <= 0) {
                 // parse constants like "10000000L"
                 c = chars[i];
                 if (c == 'L' || c == 'l') {
                     parseIndex++;
                 }
-                currentValue = ValueLong.get(bi.longValue());
+                currentValue = ValueBigint.get(bi.longValue());
                 currentTokenType = LITERAL;
                 return;
             }
-            currentValue = ValueDecimal.get(bi);
+            currentValue = ValueNumeric.get(bi);
         } else {
             BigDecimal bd;
             try {
@@ -5527,7 +5527,7 @@ public class Parser {
             } catch (NumberFormatException e) {
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, sqlCommand.substring(start, i));
             }
-            currentValue = ValueDecimal.get(bd);
+            currentValue = ValueNumeric.get(bd);
         }
         currentTokenType = LITERAL;
     }
@@ -5960,9 +5960,9 @@ public class Parser {
     private void parseAutoIncrement(Column column) {
         SequenceOptions options = new SequenceOptions();
         if (readIf(OPEN_PAREN)) {
-            options.setStartValue(ValueExpression.get(ValueLong.get(readLong())));
+            options.setStartValue(ValueExpression.get(ValueBigint.get(readLong())));
             if (readIf(COMMA)) {
-                options.setIncrement(ValueExpression.get(ValueLong.get(readLong())));
+                options.setIncrement(ValueExpression.get(ValueBigint.get(readLong())));
             }
             read(CLOSE_PAREN);
         }
@@ -7019,7 +7019,7 @@ public class Parser {
         } else if (readIf("IDENTIFIED")) {
             read("BY");
             // uppercase if not quoted
-            command.setPassword(ValueExpression.get(ValueString
+            command.setPassword(ValueExpression.get(ValueVarchar
                     .get(readColumnIdentifier())));
         } else {
             throw getSyntaxError();
@@ -7512,14 +7512,14 @@ public class Parser {
                 } else if (readIf("CYCLE")) {
                     options.setCycle(false);
                 } else if (readIf("CACHE")) {
-                    options.setCacheSize(ValueExpression.get(ValueLong.get(1)));
+                    options.setCacheSize(ValueExpression.get(ValueBigint.get(1)));
                 } else {
                     break;
                 }
             } else if (readIf("CACHE")) {
                 options.setCacheSize(readExpression());
             } else if (readIf("NOCACHE")) {
-                options.setCacheSize(ValueExpression.get(ValueLong.get(1)));
+                options.setCacheSize(ValueExpression.get(ValueBigint.get(1)));
             } else if (command != null) {
                 if (readIf("BELONGS_TO_TABLE")) {
                     command.setBelongsToTable(true);
@@ -7882,7 +7882,7 @@ public class Parser {
 
     private Expression readExpressionOrIdentifier() {
         if (isIdentifier()) {
-            return ValueExpression.get(ValueString.get(readAliasIdentifier()));
+            return ValueExpression.get(ValueVarchar.get(readAliasIdentifier()));
         }
         return readExpression();
     }
@@ -7890,7 +7890,7 @@ public class Parser {
     private Prepared parseUse() {
         readIfEqualOrTo();
         Set command = new Set(session, SetTypes.SCHEMA);
-        command.setExpression(ValueExpression.get(ValueString.get(readAliasIdentifier())));
+        command.setExpression(ValueExpression.get(ValueVarchar.get(readAliasIdentifier())));
         return command;
     }
 

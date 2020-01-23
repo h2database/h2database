@@ -32,7 +32,7 @@ import org.h2.util.HasSQL;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueNull;
 
 /**
@@ -1037,7 +1037,7 @@ public class TableFilter implements ColumnResolver {
         }
         int columnId = column.getColumnId();
         if (columnId == -1) {
-            return ValueLong.get(currentSearchRow.getKey());
+            return ValueBigint.get(currentSearchRow.getKey());
         }
         if (current == null) {
             Value v = currentSearchRow.getValue(columnId);

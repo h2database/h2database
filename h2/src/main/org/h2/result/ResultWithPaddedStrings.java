@@ -10,7 +10,7 @@ import org.h2.engine.SessionInterface;
 import org.h2.util.MathUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueString;
+import org.h2.value.ValueVarchar;
 
 /**
  * Result with padded fixed length strings.
@@ -71,7 +71,7 @@ public class ResultWithPaddedStrings implements ResultInterface {
                      * no difference between ValueStringFixed and ValueString
                      * for JDBC layer anyway.
                      */
-                    row[i] = ValueString.get(rightPadWithSpaces(s, MathUtils.convertLongToInt(precision)));
+                    row[i] = ValueVarchar.get(rightPadWithSpaces(s, MathUtils.convertLongToInt(precision)));
                 }
             }
         }

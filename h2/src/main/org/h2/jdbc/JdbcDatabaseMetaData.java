@@ -25,8 +25,8 @@ import org.h2.message.TraceObject;
 import org.h2.result.SimpleResult;
 import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
-import org.h2.value.ValueInt;
-import org.h2.value.ValueString;
+import org.h2.value.ValueInteger;
+import org.h2.value.ValueVarchar;
 
 /**
  * Represents the meta data for a database.
@@ -3218,8 +3218,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
         // Non-standard column
         result.addColumn("VALUE", "VALUE", TypeInfo.TYPE_VARCHAR);
         for (Entry<Object, Object> entry : clientInfo.entrySet()) {
-            result.addRow(ValueString.get((String) entry.getKey()), ValueInt.get(Integer.MAX_VALUE),
-                    ValueString.EMPTY, ValueString.EMPTY, ValueString.get((String) entry.getValue()));
+            result.addRow(ValueVarchar.get((String) entry.getKey()), ValueInteger.get(Integer.MAX_VALUE),
+                    ValueVarchar.EMPTY, ValueVarchar.EMPTY, ValueVarchar.get((String) entry.getValue()));
         }
         int id = getNextId(TraceObject.RESULT_SET);
         if (isDebugEnabled()) {

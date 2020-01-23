@@ -18,8 +18,8 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 
 /**
@@ -187,7 +187,7 @@ public class WindowFunction extends DataAnalysisOperation {
         switch (type) {
         case ROW_NUMBER:
             for (int i = 0, size = ordered.size(); i < size;) {
-                result.put(ordered.get(i)[rowIdColumn].getInt(), ValueLong.get(++i));
+                result.put(ordered.get(i)[rowIdColumn].getInt(), ValueBigint.get(++i));
             }
             break;
         case RANK:
@@ -237,7 +237,7 @@ public class WindowFunction extends DataAnalysisOperation {
                 int nm = number - 1;
                 v = nm == 0 ? ValueDouble.ZERO : ValueDouble.get((double) nm / (size - 1));
             } else {
-                v = ValueLong.get(number);
+                v = ValueBigint.get(number);
             }
             result.put(row[rowIdColumn].getInt(), v);
         }
@@ -277,7 +277,7 @@ public class WindowFunction extends DataAnalysisOperation {
             } else {
                 v = i / (perTile + 1) + 1;
             }
-            result.put(orderedData.get(i)[rowIdColumn].getInt(), ValueLong.get(v));
+            result.put(orderedData.get(i)[rowIdColumn].getInt(), ValueBigint.get(v));
         }
     }
 

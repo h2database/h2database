@@ -5,7 +5,6 @@
  */
 package org.h2.mvstore.db;
 
-import org.h2.mvstore.DataUtils;
 import static org.h2.mvstore.DataUtils.readString;
 import static org.h2.mvstore.DataUtils.readVarInt;
 import static org.h2.mvstore.DataUtils.readVarLong;
@@ -20,6 +19,7 @@ import org.h2.engine.CastDataProvider;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.rtree.SpatialDataType;
 import org.h2.mvstore.rtree.SpatialKey;
@@ -39,33 +39,33 @@ import org.h2.value.CompareMode;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
-import org.h2.value.ValueByte;
-import org.h2.value.ValueBytes;
+import org.h2.value.ValueChar;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
-import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueFloat;
 import org.h2.value.ValueGeometry;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueNumeric;
+import org.h2.value.ValueReal;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueRow;
-import org.h2.value.ValueShort;
-import org.h2.value.ValueString;
-import org.h2.value.ValueStringFixed;
-import org.h2.value.ValueStringIgnoreCase;
+import org.h2.value.ValueSmallint;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueTinyint;
 import org.h2.value.ValueUuid;
+import org.h2.value.ValueVarbinary;
+import org.h2.value.ValueVarchar;
+import org.h2.value.ValueVarcharIgnoreCase;
 
 /**
  * A row type.
@@ -463,7 +463,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 buff.put((byte) (REAL_0_1 + 1));
             } else {
                 int f = Float.floatToIntBits(x);
-                if (f == ValueFloat.ZERO_BITS) {
+                if (f == ValueReal.ZERO_BITS) {
                     buff.put(REAL_0_1);
                 } else {
                     buff.put(REAL).
@@ -595,7 +595,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 writeValue(buff, row.getValue(i), false);
             }
         }
-        writeValue(buff, ValueLong.get(row.getKey()), false);
+        writeValue(buff, ValueBigint.get(row.getKey()), false);
     }
 
     public static void writeLong(WriteBuffer buff, long x) {
@@ -641,28 +641,28 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         case BOOLEAN_FALSE:
             return ValueBoolean.FALSE;
         case INT_NEG:
-            return ValueInt.get(-readVarInt(buff));
+            return ValueInteger.get(-readVarInt(buff));
         case ENUM:
         case INTEGER:
-            return ValueInt.get(readVarInt(buff));
+            return ValueInteger.get(readVarInt(buff));
         case BIGINT_NEG:
-            return ValueLong.get(-readVarLong(buff));
+            return ValueBigint.get(-readVarLong(buff));
         case BIGINT:
-            return ValueLong.get(readVarLong(buff));
+            return ValueBigint.get(readVarLong(buff));
         case TINYINT:
-            return ValueByte.get(buff.get());
+            return ValueTinyint.get(buff.get());
         case SMALLINT:
-            return ValueShort.get(buff.getShort());
+            return ValueSmallint.get(buff.getShort());
         case NUMERIC_0_1:
-            return ValueDecimal.ZERO;
+            return ValueNumeric.ZERO;
         case NUMERIC_0_1 + 1:
-            return ValueDecimal.ONE;
+            return ValueNumeric.ONE;
         case NUMERIC_SMALL_0:
-            return ValueDecimal.get(BigDecimal.valueOf(
+            return ValueNumeric.get(BigDecimal.valueOf(
                     readVarLong(buff)));
         case NUMERIC_SMALL: {
             int scale = readVarInt(buff);
-            return ValueDecimal.get(BigDecimal.valueOf(
+            return ValueNumeric.get(BigDecimal.valueOf(
                     readVarLong(buff), scale));
         }
         case NUMERIC: {
@@ -671,7 +671,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             byte[] buff2 = Utils.newBytes(len);
             buff.get(buff2, 0, len);
             BigInteger b = new BigInteger(buff2);
-            return ValueDecimal.get(new BigDecimal(b, scale));
+            return ValueNumeric.get(new BigDecimal(b, scale));
         }
         case DATE: {
             return ValueDate.fromDateValue(readVarLong(buff));
@@ -704,7 +704,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             int len = readVarInt(buff);
             byte[] b = Utils.newBytes(len);
             buff.get(b, 0, len);
-            return ValueBytes.getNoCopy(b);
+            return ValueVarbinary.getNoCopy(b);
         }
         case JAVA_OBJECT: {
             int len = readVarInt(buff);
@@ -715,11 +715,11 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         case UUID:
             return ValueUuid.get(buff.getLong(), buff.getLong());
         case VARCHAR:
-            return ValueString.get(readString(buff));
+            return ValueVarchar.get(readString(buff));
         case VARCHAR_IGNORECASE:
-            return ValueStringIgnoreCase.get(readString(buff));
+            return ValueVarcharIgnoreCase.get(readString(buff));
         case CHAR:
-            return ValueStringFixed.get(readString(buff));
+            return ValueChar.get(readString(buff));
         case INTERVAL: {
             int ordinal = buff.get();
             boolean negative = ordinal < 0;
@@ -730,9 +730,9 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                     ordinal < 5 ? 0 : readVarLong(buff));
         }
         case REAL_0_1:
-            return ValueFloat.ZERO;
+            return ValueReal.ZERO;
         case REAL_0_1 + 1:
-            return ValueFloat.ONE;
+            return ValueReal.ONE;
         case DOUBLE_0_1:
             return ValueDouble.ZERO;
         case DOUBLE_0_1 + 1:
@@ -740,7 +740,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         case DOUBLE:
             return ValueDouble.get(Double.longBitsToDouble(Long.reverse(readVarLong(buff))));
         case REAL:
-            return ValueFloat.get(Float.intBitsToFloat(Integer.reverse(readVarInt(buff))));
+            return ValueReal.get(Float.intBitsToFloat(Integer.reverse(readVarInt(buff))));
         case BLOB:
         case CLOB: {
             int smallLen = readVarInt(buff);
@@ -824,16 +824,16 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {
-                return ValueInt.get(type - INT_0_15);
+                return ValueInteger.get(type - INT_0_15);
             } else if (type >= BIGINT_0_7 && type < BIGINT_0_7 + 8) {
-                return ValueLong.get(type - BIGINT_0_7);
+                return ValueBigint.get(type - BIGINT_0_7);
             } else if (type >= VARBINARY_0_31 && type < VARBINARY_0_31 + 32) {
                 int len = type - VARBINARY_0_31;
                 byte[] b = Utils.newBytes(len);
                 buff.get(b, 0, len);
-                return ValueBytes.getNoCopy(b);
+                return ValueVarbinary.getNoCopy(b);
             } else if (type >= VARCHAR_0_31 && type < VARCHAR_0_31 + 32) {
-                return ValueString.get(readString(buff, type - VARCHAR_0_31));
+                return ValueVarchar.get(readString(buff, type - VARCHAR_0_31));
             }
             throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
         }

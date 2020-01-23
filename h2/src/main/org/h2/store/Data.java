@@ -32,33 +32,33 @@ import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
-import org.h2.value.ValueByte;
-import org.h2.value.ValueBytes;
+import org.h2.value.ValueChar;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
-import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueFloat;
 import org.h2.value.ValueGeometry;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueNumeric;
+import org.h2.value.ValueReal;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueRow;
-import org.h2.value.ValueShort;
-import org.h2.value.ValueString;
-import org.h2.value.ValueStringFixed;
-import org.h2.value.ValueStringIgnoreCase;
+import org.h2.value.ValueSmallint;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueTinyint;
 import org.h2.value.ValueUuid;
+import org.h2.value.ValueVarbinary;
+import org.h2.value.ValueVarchar;
+import org.h2.value.ValueVarcharIgnoreCase;
 
 /**
  * This class represents a byte buffer that contains persistent data of a page.
@@ -671,7 +671,7 @@ public class Data {
                 writeByte((byte) (REAL_0_1 + 1));
             } else {
                 int f = Float.floatToIntBits(x);
-                if (f == ValueFloat.ZERO_BITS) {
+                if (f == ValueReal.ZERO_BITS) {
                     writeByte(REAL_0_1);
                 } else {
                     writeByte(REAL);
@@ -794,27 +794,27 @@ public class Data {
         case BOOLEAN_FALSE:
             return ValueBoolean.FALSE;
         case INT_NEG:
-            return ValueInt.get(-readVarInt());
+            return ValueInteger.get(-readVarInt());
         case ENUM:
         case INTEGER:
-            return ValueInt.get(readVarInt());
+            return ValueInteger.get(readVarInt());
         case BIGINT_NEG:
-            return ValueLong.get(-readVarLong());
+            return ValueBigint.get(-readVarLong());
         case Value.BIGINT:
-            return ValueLong.get(readVarLong());
+            return ValueBigint.get(readVarLong());
         case TINYINT:
-            return ValueByte.get(readByte());
+            return ValueTinyint.get(readByte());
         case SMALLINT:
-            return ValueShort.get(readShortInt());
+            return ValueSmallint.get(readShortInt());
         case NUMERIC_0_1:
-            return ValueDecimal.ZERO;
+            return ValueNumeric.ZERO;
         case NUMERIC_0_1 + 1:
-            return ValueDecimal.ONE;
+            return ValueNumeric.ONE;
         case NUMERIC_SMALL_0:
-            return ValueDecimal.get(BigDecimal.valueOf(readVarLong()));
+            return ValueNumeric.get(BigDecimal.valueOf(readVarLong()));
         case NUMERIC_SMALL: {
             int scale = readVarInt();
-            return ValueDecimal.get(BigDecimal.valueOf(readVarLong(), scale));
+            return ValueNumeric.get(BigDecimal.valueOf(readVarLong(), scale));
         }
         case NUMERIC: {
             int scale = readVarInt();
@@ -822,7 +822,7 @@ public class Data {
             byte[] buff = Utils.newBytes(len);
             read(buff, 0, len);
             BigInteger b = new BigInteger(buff);
-            return ValueDecimal.get(new BigDecimal(b, scale));
+            return ValueNumeric.get(new BigDecimal(b, scale));
         }
         case LOCAL_DATE:
             return ValueDate.fromDateValue(readVarLong());
@@ -861,7 +861,7 @@ public class Data {
             int len = readVarInt();
             byte[] b = Utils.newBytes(len);
             read(b, 0, len);
-            return ValueBytes.getNoCopy(b);
+            return ValueVarbinary.getNoCopy(b);
         }
         case GEOMETRY: {
             int len = readVarInt();
@@ -878,15 +878,15 @@ public class Data {
         case UUID:
             return ValueUuid.get(readLong(), readLong());
         case VARCHAR:
-            return ValueString.get(readString());
+            return ValueVarchar.get(readString());
         case VARCHAR_IGNORECASE:
-            return ValueStringIgnoreCase.get(readString());
+            return ValueVarcharIgnoreCase.get(readString());
         case CHAR:
-            return ValueStringFixed.get(readString());
+            return ValueChar.get(readString());
         case REAL_0_1:
-            return ValueFloat.ZERO;
+            return ValueReal.ZERO;
         case REAL_0_1 + 1:
-            return ValueFloat.ONE;
+            return ValueReal.ONE;
         case DOUBLE_0_1:
             return ValueDouble.ZERO;
         case DOUBLE_0_1 + 1:
@@ -894,7 +894,7 @@ public class Data {
         case DOUBLE:
             return ValueDouble.get(Double.longBitsToDouble(Long.reverse(readVarLong())));
         case REAL:
-            return ValueFloat.get(Float.intBitsToFloat(Integer.reverse(readVarInt())));
+            return ValueReal.get(Float.intBitsToFloat(Integer.reverse(readVarInt())));
         case BLOB:
         case CLOB: {
             int smallLen = readVarInt();
@@ -954,16 +954,16 @@ public class Data {
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {
-                return ValueInt.get(type - INT_0_15);
+                return ValueInteger.get(type - INT_0_15);
             } else if (type >= BIGINT_0_7 && type < BIGINT_0_7 + 8) {
-                return ValueLong.get(type - BIGINT_0_7);
+                return ValueBigint.get(type - BIGINT_0_7);
             } else if (type >= VARBINARY_0_31 && type < VARBINARY_0_31 + 32) {
                 int len = type - VARBINARY_0_31;
                 byte[] b = Utils.newBytes(len);
                 read(b, 0, len);
-                return ValueBytes.getNoCopy(b);
+                return ValueVarbinary.getNoCopy(b);
             } else if (type >= VARCHAR_0_31 && type < VARCHAR_0_31 + 32) {
-                return ValueString.get(readString(type - VARCHAR_0_31));
+                return ValueVarchar.get(readString(type - VARCHAR_0_31));
             }
             throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
         }
@@ -1050,7 +1050,7 @@ public class Data {
                 return 1;
             }
             int f = Float.floatToIntBits(x);
-            if (f == ValueFloat.ZERO_BITS) {
+            if (f == ValueReal.ZERO_BITS) {
                 return 1;
             }
             return 1 + getVarIntLen(Integer.reverse(f));

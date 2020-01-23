@@ -42,14 +42,14 @@ import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueJson;
-import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
-import org.h2.value.ValueString;
+import org.h2.value.ValueVarchar;
 
 /**
  * Implements the integrated aggregate functions, such as COUNT, MAX, SUM.
@@ -351,7 +351,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case COUNT:
         case COUNT_ALL:
             Table table = select.getTopTableFilter().getTable();
-            return ValueLong.get(table.getRowCount(session));
+            return ValueBigint.get(table.getRowCount(session));
         case MIN:
         case MAX: {
             boolean first = aggregateType == AggregateType.MIN;
@@ -403,7 +403,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         switch (aggregateType) {
         case COUNT:
             if (distinct) {
-                return ValueLong.get(((AggregateDataCollecting) data).getCount());
+                return ValueBigint.get(((AggregateDataCollecting) data).getCount());
             }
             break;
         case SUM:
@@ -526,7 +526,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             switch (aggregateType) {
             case RANK:
             case DENSE_RANK:
-                return ValueInt.get(1);
+                return ValueInteger.get(1);
             case PERCENT_RANK:
                 return ValueDouble.ZERO;
             case CUME_DIST:
@@ -561,7 +561,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 int nm = number - 1;
                 v = nm == 0 ? ValueDouble.ZERO : ValueDouble.get((double) nm / (size - 1));
             } else {
-                v = ValueLong.get(number);
+                v = ValueBigint.get(number);
             }
             if (sort.compare(row, arg) == 0) {
                 return v;
@@ -613,7 +613,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
             builder.append(s);
         }
-        return ValueString.get(builder.toString());
+        return ValueVarchar.get(builder.toString());
     }
 
     private static Value getHistogram(Session session, AggregateData data) {
@@ -625,7 +625,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         int i = 0;
         for (Entry<Value, LongDataCounter> entry : distinctValues.entrySet()) {
             LongDataCounter d = entry.getValue();
-            values[i] = ValueRow.get(new Value[] { entry.getKey(), ValueLong.get(d.count) });
+            values[i] = ValueRow.get(new Value[] { entry.getKey(), ValueBigint.get(d.count) });
             i++;
         }
         Database db = session.getDatabase();
@@ -715,7 +715,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case COUNT:
             if (args[0].isConstant()) {
                 if (args[0].getValue(session) == ValueNull.INSTANCE) {
-                    return ValueExpression.get(ValueLong.get(0L));
+                    return ValueExpression.get(ValueBigint.get(0L));
                 }
                 if (!distinct) {
                     Aggregate aggregate = new Aggregate(AggregateType.COUNT_ALL, new Expression[0], select, false);

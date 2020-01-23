@@ -19,7 +19,7 @@ import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueNull;
 
 /**
@@ -272,7 +272,7 @@ public class JdbcArray extends TraceObject implements Array {
             Value[] values = array.getList();
             count = checkRange(index, count, values.length);
             for (int i = (int) index; i < index + count; i++) {
-                rs.addRow(ValueLong.get(i), values[i - 1]);
+                rs.addRow(ValueBigint.get(i), values[i - 1]);
             }
         }
         return new JdbcResultSet(conn, null, null, rs, id, false, true, false);

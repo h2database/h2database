@@ -16,17 +16,17 @@ import org.h2.message.DbException;
 /**
  * Implementation of the BIGINT data type.
  */
-public class ValueLong extends Value {
+public class ValueBigint extends Value {
 
     /**
      * The smallest {@code ValueLong} value.
      */
-    public static final ValueLong MIN = get(Long.MIN_VALUE);
+    public static final ValueBigint MIN = get(Long.MIN_VALUE);
 
     /**
      * The largest {@code ValueLong} value.
      */
-    public static final ValueLong MAX = get(Long.MAX_VALUE);
+    public static final ValueBigint MAX = get(Long.MAX_VALUE);
 
     /**
      * The largest Long value, as a BigInteger.
@@ -39,31 +39,31 @@ public class ValueLong extends Value {
     public static final int PRECISION = 19;
 
     /**
-     * The maximum display size of a long.
+     * The maximum display size of a BIGINT.
      * Example: 9223372036854775808
      */
     public static final int DISPLAY_SIZE = 20;
 
     private static final int STATIC_SIZE = 100;
-    private static final ValueLong[] STATIC_CACHE;
+    private static final ValueBigint[] STATIC_CACHE;
 
     private final long value;
 
     static {
-        STATIC_CACHE = new ValueLong[STATIC_SIZE];
+        STATIC_CACHE = new ValueBigint[STATIC_SIZE];
         for (int i = 0; i < STATIC_SIZE; i++) {
-            STATIC_CACHE[i] = new ValueLong(i);
+            STATIC_CACHE[i] = new ValueBigint(i);
         }
     }
 
-    private ValueLong(long value) {
+    private ValueBigint(long value) {
         this.value = value;
     }
 
     @Override
     public Value add(Value v) {
         long x = value;
-        long y = ((ValueLong) v).value;
+        long y = ((ValueBigint) v).value;
         long result = x + y;
         /*
          * If signs of both summands are different from the sign of the sum there is an
@@ -72,7 +72,7 @@ public class ValueLong extends Value {
         if (((x ^ result) & (y ^ result)) < 0) {
             throw getOverflow();
         }
-        return ValueLong.get(result);
+        return ValueBigint.get(result);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class ValueLong extends Value {
         if (value == Long.MIN_VALUE) {
             throw getOverflow();
         }
-        return ValueLong.get(-value);
+        return ValueBigint.get(-value);
     }
 
     private DbException getOverflow() {
@@ -96,7 +96,7 @@ public class ValueLong extends Value {
     @Override
     public Value subtract(Value v) {
         long x = value;
-        long y = ((ValueLong) v).value;
+        long y = ((ValueBigint) v).value;
         long result = x - y;
         /*
          * If minuend and subtrahend have different signs and minuend and difference
@@ -105,13 +105,13 @@ public class ValueLong extends Value {
         if (((x ^ y) & (x ^ result)) < 0) {
             throw getOverflow();
         }
-        return ValueLong.get(result);
+        return ValueBigint.get(result);
     }
 
     @Override
     public Value multiply(Value v) {
         long x = value;
-        long y = ((ValueLong) v).value;
+        long y = ((ValueBigint) v).value;
         long result = x * y;
         // Check whether numbers are large enough to overflow and second value != 0
         if ((Math.abs(x) | Math.abs(y)) >>> 31 != 0 && y != 0
@@ -121,12 +121,12 @@ public class ValueLong extends Value {
                 || x == Long.MIN_VALUE && y == -1)) {
             throw getOverflow();
         }
-        return ValueLong.get(result);
+        return ValueBigint.get(result);
     }
 
     @Override
     public Value divide(Value v, long divisorPrecision) {
-        long y = ((ValueLong) v).value;
+        long y = ((ValueBigint) v).value;
         if (y == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
@@ -134,16 +134,16 @@ public class ValueLong extends Value {
         if (x == Long.MIN_VALUE && y == -1) {
             throw getOverflow();
         }
-        return ValueLong.get(x / y);
+        return ValueBigint.get(x / y);
     }
 
     @Override
     public Value modulus(Value v) {
-        ValueLong other = (ValueLong) v;
+        ValueBigint other = (ValueBigint) v;
         if (other.value == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
-        return ValueLong.get(this.value % other.value);
+        return ValueBigint.get(this.value % other.value);
     }
 
     @Override
@@ -168,7 +168,7 @@ public class ValueLong extends Value {
 
     @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
-        return Long.compare(value, ((ValueLong) o).value);
+        return Long.compare(value, ((ValueBigint) o).value);
     }
 
     @Override
@@ -193,21 +193,21 @@ public class ValueLong extends Value {
     }
 
     /**
-     * Get or create a long value for the given long.
+     * Get or create a BIGINT value for the given long.
      *
      * @param i the long
      * @return the value
      */
-    public static ValueLong get(long i) {
+    public static ValueBigint get(long i) {
         if (i >= 0 && i < STATIC_SIZE) {
             return STATIC_CACHE[(int) i];
         }
-        return (ValueLong) Value.cache(new ValueLong(i));
+        return (ValueBigint) Value.cache(new ValueBigint(i));
     }
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueLong && value == ((ValueLong) other).value;
+        return other instanceof ValueBigint && value == ((ValueBigint) other).value;
     }
 
 }

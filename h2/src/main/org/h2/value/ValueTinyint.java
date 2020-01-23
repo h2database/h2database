@@ -13,9 +13,9 @@ import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 
 /**
- * Implementation of the BYTE data type.
+ * Implementation of the TINYINT data type.
  */
-public class ValueByte extends Value {
+public class ValueTinyint extends Value {
 
     /**
      * The precision in digits.
@@ -23,29 +23,29 @@ public class ValueByte extends Value {
     static final int PRECISION = 3;
 
     /**
-     * The display size for a byte.
+     * The display size for a TINYINT.
      * Example: -127
      */
     static final int DISPLAY_SIZE = 4;
 
     private final byte value;
 
-    private ValueByte(byte value) {
+    private ValueTinyint(byte value) {
         this.value = value;
     }
 
     @Override
     public Value add(Value v) {
-        ValueByte other = (ValueByte) v;
+        ValueTinyint other = (ValueTinyint) v;
         return checkRange(value + other.value);
     }
 
-    private static ValueByte checkRange(int x) {
+    private static ValueTinyint checkRange(int x) {
         if ((byte) x != x) {
             throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1,
                     Integer.toString(x));
         }
-        return ValueByte.get((byte) x);
+        return ValueTinyint.get((byte) x);
     }
 
     @Override
@@ -60,19 +60,19 @@ public class ValueByte extends Value {
 
     @Override
     public Value subtract(Value v) {
-        ValueByte other = (ValueByte) v;
+        ValueTinyint other = (ValueTinyint) v;
         return checkRange(value - other.value);
     }
 
     @Override
     public Value multiply(Value v) {
-        ValueByte other = (ValueByte) v;
+        ValueTinyint other = (ValueTinyint) v;
         return checkRange(value * other.value);
     }
 
     @Override
     public Value divide(Value v, long divisorPrecision) {
-        ValueByte other = (ValueByte) v;
+        ValueTinyint other = (ValueTinyint) v;
         if (other.value == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
@@ -81,11 +81,11 @@ public class ValueByte extends Value {
 
     @Override
     public Value modulus(Value v) {
-        ValueByte other = (ValueByte) v;
+        ValueTinyint other = (ValueTinyint) v;
         if (other.value == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
-        return ValueByte.get((byte) (value % other.value));
+        return ValueTinyint.get((byte) (value % other.value));
     }
 
     @Override
@@ -115,7 +115,7 @@ public class ValueByte extends Value {
 
     @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
-        return Integer.compare(value, ((ValueByte) o).value);
+        return Integer.compare(value, ((ValueTinyint) o).value);
     }
 
     @Override
@@ -140,18 +140,18 @@ public class ValueByte extends Value {
     }
 
     /**
-     * Get or create byte value for the given byte.
+     * Get or create a TINYINT value for the given byte.
      *
      * @param i the byte
      * @return the value
      */
-    public static ValueByte get(byte i) {
-        return (ValueByte) Value.cache(new ValueByte(i));
+    public static ValueTinyint get(byte i) {
+        return (ValueTinyint) Value.cache(new ValueTinyint(i));
     }
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueByte && value == ((ValueByte) other).value;
+        return other instanceof ValueTinyint && value == ((ValueTinyint) other).value;
     }
 
 }

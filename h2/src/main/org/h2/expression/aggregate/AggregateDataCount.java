@@ -7,7 +7,7 @@ package org.h2.expression.aggregate;
 
 import org.h2.engine.Session;
 import org.h2.value.Value;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueNull;
 
 /**
@@ -32,7 +32,7 @@ class AggregateDataCount extends AggregateData {
 
     @Override
     Value getValue(Session session) {
-        return ValueLong.get(count);
+        return ValueBigint.get(count);
     }
 
 }

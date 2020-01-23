@@ -652,7 +652,7 @@ public class Transfer {
         case NULL:
             return ValueNull.INSTANCE;
         case VARBINARY:
-            return ValueBytes.getNoCopy(readBytes());
+            return ValueVarbinary.getNoCopy(readBytes());
         case UUID:
             return ValueUuid.get(readLong(), readLong());
         case JAVA_OBJECT:
@@ -660,7 +660,7 @@ public class Transfer {
         case BOOLEAN:
             return ValueBoolean.get(readBoolean());
         case TINYINT:
-            return ValueByte.get(readByte());
+            return ValueTinyint.get(readByte());
         case DATE:
             return ValueDate.fromDateValue(readLong());
         case TIME:
@@ -676,28 +676,28 @@ public class Transfer {
                     version >= Constants.TCP_PROTOCOL_VERSION_19 ? timeZoneOffset : timeZoneOffset * 60);
         }
         case NUMERIC:
-            return ValueDecimal.get(new BigDecimal(readString()));
+            return ValueNumeric.get(new BigDecimal(readString()));
         case DOUBLE:
             return ValueDouble.get(readDouble());
         case REAL:
-            return ValueFloat.get(readFloat());
+            return ValueReal.get(readFloat());
         case ENUM: {
             final int ordinal = readInt();
             final String label = readString();
             return ValueEnumBase.get(label, ordinal);
         }
         case INTEGER:
-            return ValueInt.get(readInt());
+            return ValueInteger.get(readInt());
         case BIGINT:
-            return ValueLong.get(readLong());
+            return ValueBigint.get(readLong());
         case SMALLINT:
-            return ValueShort.get((short) readInt());
+            return ValueSmallint.get((short) readInt());
         case VARCHAR:
-            return ValueString.get(readString());
+            return ValueVarchar.get(readString());
         case VARCHAR_IGNORECASE:
-            return ValueStringIgnoreCase.get(readString());
+            return ValueVarcharIgnoreCase.get(readString());
         case CHAR:
-            return ValueStringFixed.get(readString());
+            return ValueChar.get(readString());
         case BLOB: {
             long length = readLong();
             if (length == -1) {

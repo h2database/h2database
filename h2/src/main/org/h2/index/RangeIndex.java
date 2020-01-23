@@ -15,7 +15,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.RangeTable;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueBigint;
 
 /**
  * An index for the SYSTEM_RANGE table.
@@ -89,7 +89,7 @@ public class RangeIndex extends VirtualTableIndex {
         long max = rangeTable.getMax(session);
         long step = rangeTable.getStep(session);
         return new SingleRowCursor((step > 0 ? min <= max : min >= max)
-                ? Row.get(new Value[]{ ValueLong.get(first ^ min >= max ? min : max) }, 1) : null);
+                ? Row.get(new Value[]{ ValueBigint.get(first ^ min >= max ? min : max) }, 1) : null);
     }
 
     @Override

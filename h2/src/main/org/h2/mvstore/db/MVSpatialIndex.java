@@ -5,7 +5,6 @@
  */
 package org.h2.mvstore.db;
 
-import org.h2.mvstore.MVMap;
 import static org.h2.util.geometry.GeometryUtils.MAX_X;
 import static org.h2.util.geometry.GeometryUtils.MAX_Y;
 import static org.h2.util.geometry.GeometryUtils.MIN_X;
@@ -23,6 +22,7 @@ import org.h2.index.IndexCondition;
 import org.h2.index.IndexType;
 import org.h2.index.SpatialIndex;
 import org.h2.message.DbException;
+import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
 import org.h2.mvstore.rtree.MVRTreeMap;
 import org.h2.mvstore.rtree.MVRTreeMap.RTreeCursor;
@@ -37,8 +37,8 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueGeometry;
-import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.VersionedValue;
 
@@ -148,7 +148,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
             }
         }
         try {
-            map.put(key, ValueLong.get(0));
+            map.put(key, ValueBigint.get(0));
         } catch (IllegalStateException e) {
             throw mvTable.convertException(e);
         }

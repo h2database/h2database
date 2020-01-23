@@ -11,7 +11,7 @@ import java.util.Random;
 
 import org.h2.test.TestBase;
 import org.h2.value.Value;
-import org.h2.value.ValueString;
+import org.h2.value.ValueVarchar;
 
 /**
  * Tests numeric overflow on various data types.
@@ -124,7 +124,7 @@ public class TestOverflow extends TestBase {
     }
 
     private void add(long l) {
-        values.add(ValueString.get("" + l).convertTo(dataType));
+        values.add(ValueVarchar.get("" + l).convertTo(dataType));
     }
 
 }

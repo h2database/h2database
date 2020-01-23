@@ -29,7 +29,7 @@ import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueUuid;
 
@@ -420,7 +420,7 @@ public class Column implements HasSQL {
             }
             if (update) {
                 sequence.modify(null, now + inc, null, null, null);
-                session.setLastIdentity(ValueLong.get(now));
+                session.setLastIdentity(ValueBigint.get(now));
                 sequence.flush(session);
             }
         }

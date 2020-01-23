@@ -57,11 +57,11 @@ import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueString;
 import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueVarchar;
 import org.h2.value.VersionedValue;
 
 /**
@@ -99,8 +99,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private int lockTimeout;
 
     private WeakHashMap<Sequence, Value> currentValueFor;
-    private Value lastIdentity = ValueLong.get(0);
-    private Value lastScopeIdentity = ValueLong.get(0);
+    private Value lastIdentity = ValueBigint.get(0);
+    private Value lastScopeIdentity = ValueBigint.get(0);
     private Value lastTriggerIdentity;
 
     private int firstUncommittedLog = Session.LOG_WRITTEN;
@@ -1682,7 +1682,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             if (transaction == null || !transaction.hasChanges()) {
                 return ValueNull.INSTANCE;
             }
-            return ValueString.get(Long.toString(getTransaction().getSequenceNum()));
+            return ValueVarchar.get(Long.toString(getTransaction().getSequenceNum()));
         }
         if (!database.isPersistent()) {
             return ValueNull.INSTANCE;
@@ -1690,7 +1690,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (undoLog == null || undoLog.size() == 0) {
             return ValueNull.INSTANCE;
         }
-        return ValueString.get(firstUncommittedLog + "-" + firstUncommittedPos +
+        return ValueVarchar.get(firstUncommittedLog + "-" + firstUncommittedPos +
                 "-" + id);
     }
 

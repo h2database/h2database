@@ -9,9 +9,9 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 
 /**
@@ -105,14 +105,14 @@ class AggregateDataDefault extends AggregateData {
             if (value == null) {
                 value = v.convertTo(dataType);
             } else {
-                value = ValueLong.get(value.getLong() & v.getLong()).convertTo(dataType);
+                value = ValueBigint.get(value.getLong() & v.getLong()).convertTo(dataType);
             }
             break;
         case BIT_OR:
             if (value == null) {
                 value = v.convertTo(dataType);
             } else {
-                value = ValueLong.get(value.getLong() | v.getLong()).convertTo(dataType);
+                value = ValueBigint.get(value.getLong() | v.getLong()).convertTo(dataType);
             }
             break;
         default:
@@ -177,8 +177,8 @@ class AggregateDataDefault extends AggregateData {
             return ValueNull.INSTANCE;
         }
         int type = Value.getHigherOrder(a.getValueType(), Value.BIGINT);
-        Value b = ValueLong.get(by).convertTo(type);
-        a = a.convertTo(type).divide(b, ValueLong.PRECISION);
+        Value b = ValueBigint.get(by).convertTo(type);
+        a = a.convertTo(type).divide(b, ValueBigint.PRECISION);
         return a;
     }
 

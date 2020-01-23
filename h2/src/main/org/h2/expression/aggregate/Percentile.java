@@ -29,9 +29,9 @@ import org.h2.util.IntervalUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
-import org.h2.value.ValueDecimal;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueNumeric;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
@@ -257,16 +257,16 @@ final class Percentile {
         case Value.TINYINT:
         case Value.SMALLINT:
         case Value.INTEGER:
-            return ValueDecimal.get(
+            return ValueNumeric.get(
                     interpolateDecimal(BigDecimal.valueOf(v0.getInt()), BigDecimal.valueOf(v1.getInt()), factor));
         case Value.BIGINT:
-            return ValueDecimal.get(
+            return ValueNumeric.get(
                     interpolateDecimal(BigDecimal.valueOf(v0.getLong()), BigDecimal.valueOf(v1.getLong()), factor));
         case Value.NUMERIC:
-            return ValueDecimal.get(interpolateDecimal(v0.getBigDecimal(), v1.getBigDecimal(), factor));
+            return ValueNumeric.get(interpolateDecimal(v0.getBigDecimal(), v1.getBigDecimal(), factor));
         case Value.REAL:
         case Value.DOUBLE:
-            return ValueDecimal.get(
+            return ValueNumeric.get(
                     interpolateDecimal(
                             BigDecimal.valueOf(v0.getDouble()), BigDecimal.valueOf(v1.getDouble()), factor));
         case Value.TIME: {

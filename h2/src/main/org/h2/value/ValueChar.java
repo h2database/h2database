@@ -11,11 +11,11 @@ import org.h2.util.StringUtils;
 /**
  * Implementation of the CHAR data type.
  */
-public class ValueStringFixed extends ValueString {
+public class ValueChar extends ValueVarchar {
 
-    private static final ValueStringFixed EMPTY = new ValueStringFixed("");
+    private static final ValueChar EMPTY = new ValueChar("");
 
-    protected ValueStringFixed(String value) {
+    protected ValueChar(String value) {
         super(value);
     }
 
@@ -39,23 +39,23 @@ public class ValueStringFixed extends ValueString {
     }
 
     /**
-     * Get or create a fixed length string value for the given string.
+     * Get or create a CHAR value for the given string.
      * Spaces at the end of the string will be removed.
      *
      * @param s the string
      * @return the value
      */
-    public static ValueStringFixed get(String s) {
+    public static ValueChar get(String s) {
         s = trimRight(s);
         int length = s.length();
         if (length == 0) {
             return EMPTY;
         }
-        ValueStringFixed obj = new ValueStringFixed(StringUtils.cache(s));
+        ValueChar obj = new ValueChar(StringUtils.cache(s));
         if (length > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }
-        return (ValueStringFixed) Value.cache(obj);
+        return (ValueChar) Value.cache(obj);
     }
 
 }

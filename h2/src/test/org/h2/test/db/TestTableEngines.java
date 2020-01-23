@@ -40,7 +40,7 @@ import org.h2.table.TableType;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 
 /**
@@ -731,7 +731,7 @@ public class TestTableEngines extends TestDb {
 
             EndlessTable(CreateTableData data) {
                 super(data);
-                row = Row.get(new Value[] { ValueInt.get(1), ValueNull.INSTANCE }, 0);
+                row = Row.get(new Value[] { ValueInteger.get(1), ValueNull.INSTANCE }, 0);
                 scanIndex = new Auto(this);
             }
 

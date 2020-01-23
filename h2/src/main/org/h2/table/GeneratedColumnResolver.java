@@ -9,7 +9,7 @@ import java.util.HashMap;
 
 import org.h2.result.Row;
 import org.h2.value.Value;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueBigint;
 
 /**
  * Column resolver for generated columns.
@@ -88,7 +88,7 @@ class GeneratedColumnResolver implements ColumnResolver {
     public Value getValue(Column column) {
         int columnId = column.getColumnId();
         if (columnId == -1) {
-            return ValueLong.get(current.getKey());
+            return ValueBigint.get(current.getKey());
         }
         return current.getValue(columnId);
     }

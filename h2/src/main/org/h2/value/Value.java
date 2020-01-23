@@ -845,9 +845,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case VARBINARY:
             return convertToVarbinary(targetType, conversionMode, column);
         case VARCHAR:
-            return ValueString.get(convertToVarchar(targetType, conversionMode, column));
+            return ValueVarchar.get(convertToVarchar(targetType, conversionMode, column));
         case VARCHAR_IGNORECASE:
-            return ValueStringIgnoreCase.get(convertToVarchar(targetType, conversionMode, column));
+            return ValueVarcharIgnoreCase.get(convertToVarchar(targetType, conversionMode, column));
         case CHAR:
             return convertToChar(targetType, conversionMode, column);
         case JAVA_OBJECT:
@@ -950,16 +950,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      *            conversion fails
      * @return the TINYINT value
      */
-    public final ValueByte convertToTinyint(Object column) {
+    public final ValueTinyint convertToTinyint(Object column) {
         switch (getValueType()) {
         case TINYINT:
-            return (ValueByte) this;
+            return (ValueTinyint) this;
         case BOOLEAN:
-            return ValueByte.get(getBoolean() ? (byte) 1 : (byte) 0);
+            return ValueTinyint.get(getBoolean() ? (byte) 1 : (byte) 0);
         case SMALLINT:
         case ENUM:
         case INTEGER:
-            return ValueByte.get(convertToByte(getInt(), column));
+            return ValueTinyint.get(convertToByte(getInt(), column));
         case BIGINT:
         case INTERVAL_YEAR:
         case INTERVAL_MONTH:
@@ -974,16 +974,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INTERVAL_HOUR_TO_MINUTE:
         case INTERVAL_HOUR_TO_SECOND:
         case INTERVAL_MINUTE_TO_SECOND:
-            return ValueByte.get(convertToByte(getLong(), column));
+            return ValueTinyint.get(convertToByte(getLong(), column));
         case NUMERIC:
-            return ValueByte.get(convertToByte(convertToLong(getBigDecimal(), column), column));
+            return ValueTinyint.get(convertToByte(convertToLong(getBigDecimal(), column), column));
         case REAL:
         case DOUBLE:
-            return ValueByte.get(convertToByte(convertToLong(getDouble(), column), column));
+            return ValueTinyint.get(convertToByte(convertToLong(getDouble(), column), column));
         case VARBINARY: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 1) {
-                return ValueByte.get(bytes[0]);
+                return ValueTinyint.get(bytes[0]);
             }
         }
         //$FALL-THROUGH$
@@ -994,7 +994,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
         String s = getString();
         try {
-            return ValueByte.get(Byte.parseByte(s.trim()));
+            return ValueTinyint.get(Byte.parseByte(s.trim()));
         } catch (NumberFormatException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
         }
@@ -1008,17 +1008,17 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      *            conversion fails
      * @return the SMALLINT value
      */
-    public final ValueShort convertToSmallint(Object column) {
+    public final ValueSmallint convertToSmallint(Object column) {
         switch (getValueType()) {
         case SMALLINT:
-            return (ValueShort) this;
+            return (ValueSmallint) this;
         case BOOLEAN:
-            return ValueShort.get(getBoolean() ? (short) 1 : (short) 0);
+            return ValueSmallint.get(getBoolean() ? (short) 1 : (short) 0);
         case TINYINT:
-            return ValueShort.get(getByte());
+            return ValueSmallint.get(getByte());
         case ENUM:
         case INTEGER:
-            return ValueShort.get(convertToShort(getInt(), column));
+            return ValueSmallint.get(convertToShort(getInt(), column));
         case BIGINT:
         case INTERVAL_YEAR:
         case INTERVAL_MONTH:
@@ -1033,16 +1033,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INTERVAL_HOUR_TO_MINUTE:
         case INTERVAL_HOUR_TO_SECOND:
         case INTERVAL_MINUTE_TO_SECOND:
-            return ValueShort.get(convertToShort(getLong(), column));
+            return ValueSmallint.get(convertToShort(getLong(), column));
         case NUMERIC:
-            return ValueShort.get(convertToShort(convertToLong(getBigDecimal(), column), column));
+            return ValueSmallint.get(convertToShort(convertToLong(getBigDecimal(), column), column));
         case REAL:
         case DOUBLE:
-            return ValueShort.get(convertToShort(convertToLong(getDouble(), column), column));
+            return ValueSmallint.get(convertToShort(convertToLong(getDouble(), column), column));
         case VARBINARY: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 2) {
-                return ValueShort.get((short) ((bytes[0] << 8) + (bytes[1] & 0xff)));
+                return ValueSmallint.get((short) ((bytes[0] << 8) + (bytes[1] & 0xff)));
             }
         }
         //$FALL-THROUGH$
@@ -1053,7 +1053,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
         String s = getString();
         try {
-            return ValueShort.get(Short.parseShort(s.trim()));
+            return ValueSmallint.get(Short.parseShort(s.trim()));
         } catch (NumberFormatException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
         }
@@ -1067,16 +1067,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      *            conversion fails
      * @return the INT value
      */
-    public final ValueInt convertToInt(Object column) {
+    public final ValueInteger convertToInt(Object column) {
         switch (getValueType()) {
         case INTEGER:
-            return (ValueInt) this;
+            return (ValueInteger) this;
         case BOOLEAN:
-            return ValueInt.get(getBoolean() ? 1 : 0);
+            return ValueInteger.get(getBoolean() ? 1 : 0);
         case TINYINT:
         case ENUM:
         case SMALLINT:
-            return ValueInt.get(getInt());
+            return ValueInteger.get(getInt());
         case BIGINT:
         case INTERVAL_YEAR:
         case INTERVAL_MONTH:
@@ -1091,16 +1091,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INTERVAL_HOUR_TO_MINUTE:
         case INTERVAL_HOUR_TO_SECOND:
         case INTERVAL_MINUTE_TO_SECOND:
-            return ValueInt.get(convertToInt(getLong(), column));
+            return ValueInteger.get(convertToInt(getLong(), column));
         case NUMERIC:
-            return ValueInt.get(convertToInt(convertToLong(getBigDecimal(), column), column));
+            return ValueInteger.get(convertToInt(convertToLong(getBigDecimal(), column), column));
         case REAL:
         case DOUBLE:
-            return ValueInt.get(convertToInt(convertToLong(getDouble(), column), column));
+            return ValueInteger.get(convertToInt(convertToLong(getDouble(), column), column));
         case VARBINARY: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 4) {
-                return ValueInt.get(Bits.readInt(bytes, 0));
+                return ValueInteger.get(Bits.readInt(bytes, 0));
             }
         }
         //$FALL-THROUGH$
@@ -1111,7 +1111,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
         String s = getString();
         try {
-            return ValueInt.get(Integer.parseInt(s.trim()));
+            return ValueInteger.get(Integer.parseInt(s.trim()));
         } catch (NumberFormatException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
         }
@@ -1125,12 +1125,12 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      *            conversion fails
      * @return the BIGINT value
      */
-    public final ValueLong convertToBigint(Object column) {
+    public final ValueBigint convertToBigint(Object column) {
         switch (getValueType()) {
         case BIGINT:
-            return (ValueLong) this;
+            return (ValueBigint) this;
         case BOOLEAN:
-            return ValueLong.get(getBoolean() ? 1 : 0);
+            return ValueBigint.get(getBoolean() ? 1 : 0);
         case TINYINT:
         case SMALLINT:
         case ENUM:
@@ -1148,16 +1148,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INTERVAL_HOUR_TO_MINUTE:
         case INTERVAL_HOUR_TO_SECOND:
         case INTERVAL_MINUTE_TO_SECOND:
-            return ValueLong.get(getInt());
+            return ValueBigint.get(getInt());
         case NUMERIC:
-            return ValueLong.get(convertToLong(getBigDecimal(), column));
+            return ValueBigint.get(convertToLong(getBigDecimal(), column));
         case REAL:
         case DOUBLE:
-            return ValueLong.get(convertToLong(getDouble(), column));
+            return ValueBigint.get(convertToLong(getDouble(), column));
         case VARBINARY: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 8) {
-                return ValueLong.get(Bits.readLong(bytes, 0));
+                return ValueBigint.get(Bits.readLong(bytes, 0));
             }
         }
         //$FALL-THROUGH$
@@ -1168,30 +1168,30 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
         String s = getString();
         try {
-            return ValueLong.get(Long.parseLong(s.trim()));
+            return ValueBigint.get(Long.parseLong(s.trim()));
         } catch (NumberFormatException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
         }
     }
 
-    private ValueDecimal convertToNumeric(TypeInfo targetType, CastDataProvider provider, int conversionMode,
+    private ValueNumeric convertToNumeric(TypeInfo targetType, CastDataProvider provider, int conversionMode,
             Object column) {
-        ValueDecimal v;
+        ValueNumeric v;
         switch (getValueType()) {
         case NUMERIC:
-            v = (ValueDecimal) this;
+            v = (ValueNumeric) this;
             break;
         case BOOLEAN:
-            v = getBoolean() ? ValueDecimal.ONE : ValueDecimal.ZERO;
+            v = getBoolean() ? ValueNumeric.ONE : ValueNumeric.ZERO;
             break;
         case TINYINT:
         case SMALLINT:
         case ENUM:
         case INTEGER:
-            v =  ValueDecimal.get(BigDecimal.valueOf(getInt()));
+            v =  ValueNumeric.get(BigDecimal.valueOf(getInt()));
             break;
         case BIGINT:
-            v = ValueDecimal.get(BigDecimal.valueOf(getLong()));
+            v = ValueNumeric.get(BigDecimal.valueOf(getLong()));
             break;
         case DOUBLE:
         case REAL:
@@ -1208,14 +1208,14 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INTERVAL_HOUR_TO_MINUTE:
         case INTERVAL_HOUR_TO_SECOND:
         case INTERVAL_MINUTE_TO_SECOND:
-            v = ValueDecimal.get(getBigDecimal());
+            v = ValueNumeric.get(getBigDecimal());
             break;
         case TIMESTAMP_TZ:
             throw getDataConversionError(NUMERIC);
         default:
             String s = getString();
             try {
-                v = ValueDecimal.get(new BigDecimal(s.trim()));
+                v = ValueNumeric.get(new BigDecimal(s.trim()));
             } catch (NumberFormatException e) {
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
             }
@@ -1225,7 +1225,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             BigDecimal value = v.getBigDecimal();
             int scale = value.scale();
             if (scale != targetScale && (scale >= targetScale || !provider.getMode().convertOnlyToSmallerScale)) {
-                v = ValueDecimal.get(ValueDecimal.setScale(value, targetScale));
+                v = ValueNumeric.get(ValueNumeric.setScale(value, targetScale));
             }
             if (v.getBigDecimal().precision() > targetType.getPrecision()) {
                 throw v.getValueTooLongException(targetType, column);
@@ -1287,23 +1287,23 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      *
      * @return the REAL value
      */
-    public final ValueFloat convertToReal() {
+    public final ValueReal convertToReal() {
         switch (getValueType()) {
         case REAL:
-            return (ValueFloat) this;
+            return (ValueReal) this;
         case BOOLEAN:
-            return getBoolean() ? ValueFloat.ONE : ValueFloat.ZERO;
+            return getBoolean() ? ValueReal.ONE : ValueReal.ZERO;
         case TINYINT:
         case SMALLINT:
         case INTEGER:
-            return ValueFloat.get(getInt());
+            return ValueReal.get(getInt());
         case BIGINT:
         case INTERVAL_YEAR:
         case INTERVAL_MONTH:
         case INTERVAL_DAY:
         case INTERVAL_HOUR:
         case INTERVAL_MINUTE:
-            return ValueFloat.get(getLong());
+            return ValueReal.get(getLong());
         case NUMERIC:
         case INTERVAL_SECOND:
         case INTERVAL_YEAR_TO_MONTH:
@@ -1313,9 +1313,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INTERVAL_HOUR_TO_MINUTE:
         case INTERVAL_HOUR_TO_SECOND:
         case INTERVAL_MINUTE_TO_SECOND:
-            return ValueFloat.get(getBigDecimal().floatValue());
+            return ValueReal.get(getBigDecimal().floatValue());
         case DOUBLE:
-            return ValueFloat.get((float) getDouble());
+            return ValueReal.get((float) getDouble());
         case ENUM:
         case TIMESTAMP_TZ:
             throw getDataConversionError(REAL);
@@ -1324,7 +1324,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
         String s = getString();
         try {
-            return ValueFloat.get(Float.parseFloat(s.trim()));
+            return ValueReal.get(Float.parseFloat(s.trim()));
         } catch (NumberFormatException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
         }
@@ -1565,43 +1565,43 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         return v;
     }
 
-    private ValueBytes convertToVarbinary(TypeInfo targetType, int conversionMode, Object column) {
-        ValueBytes v;
+    private ValueVarbinary convertToVarbinary(TypeInfo targetType, int conversionMode, Object column) {
+        ValueVarbinary v;
         switch (getValueType()) {
         case VARBINARY:
-            v = (ValueBytes) this;
+            v = (ValueVarbinary) this;
             break;
         case JAVA_OBJECT:
         case BLOB:
         case GEOMETRY:
         case JSON:
-            v = ValueBytes.getNoCopy(getBytesNoCopy());
+            v = ValueVarbinary.getNoCopy(getBytesNoCopy());
             break;
         case UUID:
-            v = ValueBytes.getNoCopy(getBytes());
+            v = ValueVarbinary.getNoCopy(getBytes());
             break;
         case TINYINT:
-            v = ValueBytes.getNoCopy(new byte[] { getByte() });
+            v = ValueVarbinary.getNoCopy(new byte[] { getByte() });
             break;
         case SMALLINT: {
             int x = getShort();
-            v = ValueBytes.getNoCopy(new byte[] { (byte) (x >> 8), (byte) x });
+            v = ValueVarbinary.getNoCopy(new byte[] { (byte) (x >> 8), (byte) x });
             break;
         }
         case INTEGER: {
             byte[] b = new byte[4];
             Bits.writeInt(b, 0, getInt());
-            v = ValueBytes.getNoCopy(b);
+            v = ValueVarbinary.getNoCopy(b);
             break;
         }
         case BIGINT: {
             byte[] b = new byte[8];
             Bits.writeLong(b, 0, getLong());
-            v = ValueBytes.getNoCopy(b);
+            v = ValueVarbinary.getNoCopy(b);
             break;
         }
         default:
-            v = ValueBytes.getNoCopy(getString().getBytes(StandardCharsets.UTF_8));
+            v = ValueVarbinary.getNoCopy(getString().getBytes(StandardCharsets.UTF_8));
             break;
         case ENUM:
         case TIMESTAMP_TZ:
@@ -1613,7 +1613,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             if (conversionMode == CAST_TO) {
                 int p = MathUtils.convertLongToInt(targetType.getPrecision());
                 if (length > p) {
-                    v = ValueBytes.getNoCopy(Arrays.copyOf(value, p));
+                    v = ValueVarbinary.getNoCopy(Arrays.copyOf(value, p));
                 }
             } else if (length > targetType.getPrecision()) {
                 throw v.getValueTooLongException(targetType, column);
@@ -1636,7 +1636,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         return s;
     }
 
-    private ValueStringFixed convertToChar(TypeInfo targetType, int conversionMode, Object column) {
+    private ValueChar convertToChar(TypeInfo targetType, int conversionMode, Object column) {
         String s = getString();
         int p = MathUtils.convertLongToInt(targetType.getPrecision()), l = s.length();
         if (conversionMode == CAST_TO && l > p) {
@@ -1648,7 +1648,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         if (conversionMode == ASSIGN_TO && l > p) {
             throw getValueTooLongException(targetType, column);
         }
-        return ValueStringFixed.get(s.substring(0, l));
+        return ValueChar.get(s.substring(0, l));
     }
 
     /**
@@ -2045,11 +2045,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                 a = ((ValueRow) this).getList();
                 break;
             case BLOB:
-                a = new Value[] { ValueBytes.get(getBytesNoCopy()) };
+                a = new Value[] { ValueVarbinary.get(getBytesNoCopy()) };
                 break;
             case CLOB:
             case RESULT_SET:
-                a = new Value[] { ValueString.get(getString()) };
+                a = new Value[] { ValueVarchar.get(getString()) };
                 break;
             default:
                 a = new Value[] { this };

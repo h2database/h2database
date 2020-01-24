@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.Arrays;
 
 import org.h2.engine.CastDataProvider;
@@ -596,20 +594,6 @@ public class ValueLob extends Value {
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
-        long p = precision;
-        if (p > Integer.MAX_VALUE || p <= 0) {
-            p = -1;
-        }
-        if (valueType == Value.BLOB) {
-            prep.setBinaryStream(parameterIndex, getInputStream(), (int) p);
-        } else {
-            prep.setCharacterStream(parameterIndex, getReader(), (int) p);
-        }
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if ((sqlFlags & REPLACE_LOBS_FOR_TRACE) != 0
                 && (small == null || precision > SysProperties.MAX_TRACE_DATA_LENGTH)) {
@@ -634,7 +618,7 @@ public class ValueLob extends Value {
      *
      * @return the precision
      */
-    long getPrecision() {
+    public long getPrecision() {
         return precision;
     }
 

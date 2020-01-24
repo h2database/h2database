@@ -13,8 +13,6 @@ import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.Arrays;
 
 import org.h2.api.ErrorCode;
@@ -351,16 +349,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @return the object
      */
     public abstract Object getObject();
-
-    /**
-     * Set the value as a parameter in a prepared statement.
-     *
-     * @param prep the prepared statement
-     * @param parameterIndex the parameter index
-     */
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     public abstract int hashCode();

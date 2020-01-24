@@ -5,15 +5,11 @@
  */
 package org.h2.value;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Types;
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JSR310Utils;
-import org.h2.util.LegacyDateTimeUtils;
 
 /**
  * Implementation of the TIMESTAMP data type.
@@ -174,17 +170,6 @@ public class ValueTimestamp extends Value {
     @Override
     public Object getObject() {
         return JSR310Utils.valueToLocalDateTime(this, null);
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        try {
-            prep.setObject(parameterIndex, JSR310Utils.valueToLocalDateTime(this, null), Types.TIMESTAMP);
-            return;
-        } catch (SQLException ignore) {
-            // Nothing to do
-        }
-        prep.setTimestamp(parameterIndex, LegacyDateTimeUtils.toTimestamp(null, null, this));
     }
 
     @Override

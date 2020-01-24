@@ -5,10 +5,6 @@
  */
 package org.h2.value;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Types;
-
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
 import org.h2.store.DataHandler;
@@ -69,13 +65,6 @@ public class ValueJavaObject extends ValueVarbinary {
         return JAVA_OBJECT;
     }
 
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
-        Object obj = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
-        prep.setObject(parameterIndex, obj, Types.JAVA_OBJECT);
-    }
-
     /**
      * Value which serializes java object only for I/O operations.
      * Used when property {@link SysProperties#serializeJavaObject} is disabled.
@@ -89,12 +78,6 @@ public class ValueJavaObject extends ValueVarbinary {
         NotSerialized(Object javaObject, byte[] v, DataHandler dataHandler) {
             super(v, dataHandler);
             this.javaObject = javaObject;
-        }
-
-        @Override
-        public void set(PreparedStatement prep, int parameterIndex)
-                throws SQLException {
-            prep.setObject(parameterIndex, getObject(), Types.JAVA_OBJECT);
         }
 
         @Override

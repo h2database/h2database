@@ -12,8 +12,6 @@ import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
@@ -338,11 +336,6 @@ public class ValueInterval extends Value {
      */
     public long getRemaining() {
         return remaining;
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        prep.setString(parameterIndex, getString());
     }
 
     @Override

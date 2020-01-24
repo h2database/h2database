@@ -14,9 +14,11 @@ import java.io.ObjectStreamClass;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Properties;
@@ -26,9 +28,14 @@ import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.util.Utils.ClassFactory;
+import org.h2.value.DataType;
+import org.h2.value.Value;
+import org.h2.value.ValueJavaObject;
+import org.h2.value.ValueLob;
 
 /**
  * This is a utility class with JDBC helper functions.
@@ -413,6 +420,164 @@ public class JdbcUtils {
             return is.readObject();
         } catch (Throwable e) {
             throw DbException.get(ErrorCode.DESERIALIZATION_FAILED_1, e, e.toString());
+        }
+    }
+
+    /**
+     * Set a value as a parameter in a prepared statement.
+     *
+     * @param prep
+     *            the prepared statement
+     * @param parameterIndex
+     *            the parameter index
+     * @param value
+     *            the value
+     * @param dataHandler
+     *            the data handler
+     */
+    public static void set(PreparedStatement prep, int parameterIndex, Value value, DataHandler dataHandler)
+            throws SQLException {
+        if (prep instanceof JdbcPreparedStatement) {
+            if (value instanceof ValueLob) {
+                setLob(prep, parameterIndex, (ValueLob) value);
+            } else {
+                prep.setObject(parameterIndex, value);
+            }
+        } else {
+            setOther(prep, parameterIndex, value, dataHandler);
+        }
+    }
+
+    private static void setOther(PreparedStatement prep, int parameterIndex, Value value, DataHandler dataHandler)
+                throws SQLException {
+        int valueType = value.getValueType();
+        switch (valueType) {
+        case Value.NULL:
+            prep.setNull(parameterIndex, Types.NULL);
+            break;
+        case Value.BOOLEAN:
+            prep.setBoolean(parameterIndex, value.getBoolean());
+            break;
+        case Value.TINYINT:
+            prep.setByte(parameterIndex, value.getByte());
+            break;
+        case Value.SMALLINT:
+            prep.setShort(parameterIndex, value.getShort());
+            break;
+        case Value.INTEGER:
+            prep.setInt(parameterIndex, value.getInt());
+            break;
+        case Value.BIGINT:
+            prep.setLong(parameterIndex, value.getLong());
+            break;
+        case Value.NUMERIC:
+            prep.setBigDecimal(parameterIndex, value.getBigDecimal());
+            break;
+        case Value.DOUBLE:
+            prep.setDouble(parameterIndex, value.getDouble());
+            break;
+        case Value.REAL:
+            prep.setFloat(parameterIndex, value.getFloat());
+            break;
+        case Value.TIME:
+            try {
+                prep.setObject(parameterIndex, JSR310Utils.valueToLocalTime(value, null), Types.TIME);
+            } catch (SQLException ignore) {
+                prep.setTime(parameterIndex, LegacyDateTimeUtils.toTime(null, null, value));
+            }
+            break;
+        case Value.DATE:
+            try {
+                prep.setObject(parameterIndex, JSR310Utils.valueToLocalDate(value, null), Types.DATE);
+            } catch (SQLException ignore) {
+                prep.setDate(parameterIndex, LegacyDateTimeUtils.toDate(null, null, value));
+            }
+            break;
+        case Value.TIMESTAMP:
+            try {
+                prep.setObject(parameterIndex, JSR310Utils.valueToLocalDateTime(value, null), Types.TIMESTAMP);
+            } catch (SQLException ignore) {
+                prep.setTimestamp(parameterIndex, LegacyDateTimeUtils.toTimestamp(null, null, value));
+            }
+            break;
+        case Value.VARBINARY:
+        case Value.GEOMETRY:
+        case Value.JSON:
+            prep.setBytes(parameterIndex, value.getBytesNoCopy());
+            break;
+        case Value.VARCHAR:
+        case Value.VARCHAR_IGNORECASE:
+        case Value.ENUM:
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE:
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND:
+            prep.setString(parameterIndex, value.getString());
+            break;
+        case Value.BLOB:
+        case Value.CLOB:
+            setLob(prep, parameterIndex, (ValueLob) value);
+            break;
+        case Value.ARRAY:
+            prep.setArray(parameterIndex, prep.getConnection().createArrayOf("NULL", (Object[]) value.getObject()));
+            break;
+        case Value.JAVA_OBJECT:
+            prep.setObject(parameterIndex,
+                    value.getClass() == ValueJavaObject.class
+                            ? JdbcUtils.deserialize(value.getBytesNoCopy(), dataHandler)
+                            : /* ValueJavaObject.NotSerialized */ value.getObject(),
+                    Types.JAVA_OBJECT);
+            break;
+        case Value.UUID:
+            prep.setBytes(parameterIndex, value.getBytes());
+            break;
+        case Value.CHAR:
+            try {
+                prep.setObject(parameterIndex, value.getString(), Types.CHAR);
+            } catch (SQLException ignore) {
+                prep.setString(parameterIndex, value.getString());
+            }
+            break;
+        case Value.TIMESTAMP_TZ:
+            try {
+                prep.setObject(parameterIndex, JSR310Utils.valueToOffsetDateTime(value, null),
+                        Types.TIMESTAMP_WITH_TIMEZONE);
+                return;
+            } catch (SQLException ignore) {
+                prep.setString(parameterIndex, value.getString());
+            }
+            break;
+        case Value.TIME_TZ:
+            try {
+                prep.setObject(parameterIndex, JSR310Utils.valueToOffsetTime(value, null), Types.TIME_WITH_TIMEZONE);
+                return;
+            } catch (SQLException ignore) {
+                prep.setString(parameterIndex, value.getString());
+            }
+            break;
+        default:
+            throw DbException.getUnsupportedException(DataType.getDataType(valueType).name);
+        }
+    }
+
+    private static void setLob(PreparedStatement prep, int parameterIndex, ValueLob value) throws SQLException {
+        long p = value.getPrecision();
+        if (p > Integer.MAX_VALUE) {
+            p = -1;
+        }
+        if (value.getValueType() == Value.BLOB) {
+            prep.setBinaryStream(parameterIndex, value.getInputStream(), (int) p);
+        } else {
+            prep.setCharacterStream(parameterIndex, value.getReader(), (int) p);
         }
     }
 

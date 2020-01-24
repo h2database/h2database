@@ -6,8 +6,7 @@
 package org.h2.value;
 
 import static org.h2.util.geometry.EWKBUtils.EWKB_SRID;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
@@ -310,11 +309,6 @@ public class ValueGeometry extends Value {
     @Override
     public byte[] getBytesNoCopy() {
         return bytes;
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        prep.setBytes(parameterIndex, bytes);
     }
 
     @Override

@@ -5,9 +5,6 @@
  */
 package org.h2.value;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
 import org.h2.util.StringUtils;
@@ -59,12 +56,6 @@ public class ValueVarchar extends Value {
     @Override
     public Object getObject() {
         return value;
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
-        prep.setString(parameterIndex, value);
     }
 
     @Override

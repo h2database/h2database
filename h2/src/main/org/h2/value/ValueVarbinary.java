@@ -6,8 +6,6 @@
 package org.h2.value;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.Arrays;
 
 import org.h2.engine.CastDataProvider;
@@ -136,12 +134,6 @@ public class ValueVarbinary extends Value {
     @Override
     public Object getObject() {
         return getBytes();
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
-        prep.setBytes(parameterIndex, value);
     }
 
     @Override

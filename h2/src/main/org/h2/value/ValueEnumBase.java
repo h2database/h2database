@@ -5,9 +5,6 @@
  */
 package org.h2.value;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
 import org.h2.engine.CastDataProvider;
 import org.h2.util.StringUtils;
 
@@ -124,12 +121,6 @@ public class ValueEnumBase extends Value {
     public Value multiply(Value v) {
         ValueInteger iv = v.convertToInt(null);
         return convertToInt(null).multiply(iv);
-    }
-
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        prep.setInt(parameterIndex, ordinal);
     }
 
     @Override

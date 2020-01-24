@@ -8,8 +8,6 @@ package org.h2.value;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.Arrays;
 
 import org.h2.api.ErrorCode;
@@ -119,11 +117,6 @@ public class ValueJson extends Value {
     @Override
     public int getMemory() {
         return value.length + 24;
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        prep.setBytes(parameterIndex, value);
     }
 
     @Override

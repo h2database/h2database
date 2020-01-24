@@ -28,6 +28,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.schema.Schema;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
@@ -526,7 +527,7 @@ public class TableLink extends Table {
                     if (params != null) {
                         for (int i = 0, size = params.size(); i < size; i++) {
                             Value v = params.get(i);
-                            v.set(prep, i + 1);
+                            JdbcUtils.set(prep, i + 1, v, database);
                         }
                     }
                     prep.execute();

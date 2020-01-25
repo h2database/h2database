@@ -20,6 +20,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.h2.api.ErrorCode;
+import org.h2.api.JavaObjectSerializer;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
@@ -2000,6 +2001,11 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     @Override
     public Mode getMode() {
         return database.getMode();
+    }
+
+    @Override
+    public JavaObjectSerializer getJavaObjectSerializer() {
+        return database.getJavaObjectSerializer();
     }
 
     @Override

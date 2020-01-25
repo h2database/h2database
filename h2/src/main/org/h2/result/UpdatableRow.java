@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.store.DataHandler;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -181,7 +180,6 @@ public class UpdatableRow {
     }
 
     private void setKey(PreparedStatement prep, int start, Value[] current) throws SQLException {
-        DataHandler dataHandler = conn.getSession().getDataHandler();
         for (int i = 0, size = key.size(); i < size; i++) {
             String col = key.get(i);
             int idx = getColumnIndex(col);
@@ -191,7 +189,7 @@ public class UpdatableRow {
                 // as multiple such rows could exist
                 throw DbException.get(ErrorCode.NO_DATA_AVAILABLE);
             }
-            JdbcUtils.set(prep, start + i, v, dataHandler);
+            JdbcUtils.set(prep, start + i, v, conn);
         }
     }
 
@@ -276,14 +274,13 @@ public class UpdatableRow {
         // - like this optimistic ('no') locking is possible
         appendKeyCondition(builder);
         PreparedStatement prep = conn.prepareStatement(builder.toString());
-        DataHandler dataHandler = conn.getSession().getDataHandler();
         int j = 1;
         for (int i = 0; i < columnCount; i++) {
             Value v = updateRow[i];
             if (v == null) {
                 v = current[i];
             }
-            JdbcUtils.set(prep, j++, v, dataHandler);
+            JdbcUtils.set(prep, j++, v, conn);
         }
         setKey(prep, j, current);
         int count = prep.executeUpdate();
@@ -318,11 +315,10 @@ public class UpdatableRow {
         }
         builder.append(')');
         PreparedStatement prep = conn.prepareStatement(builder.toString());
-        DataHandler dataHandler = conn.getSession().getDataHandler();
         for (int i = 0, j = 0; i < columnCount; i++) {
             Value v = row[i];
             if (v != null) {
-                JdbcUtils.set(prep, j++ + 1, v, dataHandler);
+                JdbcUtils.set(prep, j++ + 1, v, conn);
             }
         }
         int count = prep.executeUpdate();

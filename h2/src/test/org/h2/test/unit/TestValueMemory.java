@@ -14,7 +14,6 @@ import java.util.IdentityHashMap;
 import java.util.Random;
 
 import org.h2.api.IntervalQualifier;
-import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.Constants;
 import org.h2.result.SimpleResult;
 import org.h2.store.DataHandler;
@@ -219,7 +218,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.RESULT_SET:
             return ValueResultSet.get(new SimpleResult());
         case Value.JAVA_OBJECT:
-            return ValueJavaObject.getNoCopy(null, randomBytes(random.nextInt(100)), this);
+            return ValueJavaObject.getNoCopy(null, randomBytes(random.nextInt(100)), null);
         case Value.UUID:
             return ValueUuid.get(random.nextLong(), random.nextLong());
         case Value.CHAR:
@@ -351,11 +350,6 @@ public class TestValueMemory extends TestBase implements DataHandler {
     public int readLob(long lobId, byte[] hmac, long offset, byte[] buff,
             int off, int length) {
         return -1;
-    }
-
-    @Override
-    public JavaObjectSerializer getJavaObjectSerializer() {
-        return null;
     }
 
     @Override

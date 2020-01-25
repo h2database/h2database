@@ -335,7 +335,8 @@ public class Comparison extends Condition {
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                 result = ValueNull.INSTANCE;
             } else {
-                result = ValueBoolean.get(l.convertToGeometry(null).intersectsBoundingBox(r.convertToGeometry(null)));
+                result = ValueBoolean.get(l.convertToGeometry(null, session)
+                        .intersectsBoundingBox(r.convertToGeometry(null, session)));
             }
             break;
         }

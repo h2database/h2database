@@ -5,6 +5,7 @@
  */
 package org.h2.engine;
 
+import org.h2.api.JavaObjectSerializer;
 import org.h2.util.TimeZoneProvider;
 import org.h2.value.ValueTimestampTimeZone;
 
@@ -34,5 +35,12 @@ public interface CastDataProvider {
      * @return the database mode
      */
     Mode getMode();
+
+    /**
+     * Returns the custom Java object serializer, or {@code null}.
+     *
+     * @return the custom Java object serializer, or {@code null}
+     */
+    JavaObjectSerializer getJavaObjectSerializer();
 
 }

@@ -5,9 +5,9 @@
  */
 package org.h2.value;
 
+import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
-import org.h2.store.DataHandler;
 import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
@@ -17,13 +17,10 @@ import org.h2.util.Utils;
  */
 public class ValueJavaObject extends ValueVarbinary {
 
-    private static final ValueJavaObject EMPTY =
-            new ValueJavaObject(Utils.EMPTY_BYTES, null);
-    private final DataHandler dataHandler;
+    private static final ValueJavaObject EMPTY = new ValueJavaObject(Utils.EMPTY_BYTES);
 
-    protected ValueJavaObject(byte[] v, DataHandler dataHandler) {
+    protected ValueJavaObject(byte[] v) {
         super(v);
-        this.dataHandler = dataHandler;
     }
 
     /**
@@ -32,22 +29,21 @@ public class ValueJavaObject extends ValueVarbinary {
      *
      * @param javaObject the object
      * @param b the byte array
-     * @param dataHandler provides the object serializer
+     * @param javaObjectSerializer the object serializer
      * @return the value
      */
-    public static ValueJavaObject getNoCopy(Object javaObject, byte[] b,
-            DataHandler dataHandler) {
+    public static ValueJavaObject getNoCopy(Object javaObject, byte[] b, JavaObjectSerializer javaObjectSerializer) {
         if (b != null && b.length == 0) {
             return EMPTY;
         }
         ValueJavaObject obj;
         if (SysProperties.serializeJavaObject) {
             if (b == null) {
-                b = JdbcUtils.serialize(javaObject, dataHandler);
+                b = JdbcUtils.serialize(javaObject, javaObjectSerializer);
             }
-            obj = new ValueJavaObject(b, dataHandler);
+            obj = new ValueJavaObject(b);
         } else {
-            obj = new NotSerialized(javaObject, b, dataHandler);
+            obj = new NotSerialized(javaObject, b, javaObjectSerializer);
         }
         if (b == null || b.length > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
@@ -75,9 +71,12 @@ public class ValueJavaObject extends ValueVarbinary {
 
         private Object javaObject;
 
-        NotSerialized(Object javaObject, byte[] v, DataHandler dataHandler) {
-            super(v, dataHandler);
+        private final JavaObjectSerializer javaObjectSerializer;
+
+        NotSerialized(Object javaObject, byte[] v, JavaObjectSerializer javaObjectSerializer) {
+            super(v);
             this.javaObject = javaObject;
+            this.javaObjectSerializer = javaObjectSerializer;
         }
 
         @Override
@@ -159,7 +158,7 @@ public class ValueJavaObject extends ValueVarbinary {
         @Override
         public Object getObject() {
             if (javaObject == null) {
-                javaObject = JdbcUtils.deserialize(value, getDataHandler());
+                javaObject = JdbcUtils.deserialize(value, javaObjectSerializer);
             }
             return javaObject;
         }
@@ -186,8 +185,4 @@ public class ValueJavaObject extends ValueVarbinary {
 
     }
 
-    @Override
-    protected DataHandler getDataHandler() {
-        return dataHandler;
-    }
 }

@@ -1530,7 +1530,7 @@ public class TestLob extends TestDb {
         conn.createStatement().execute("drop table test");
         stat.execute("create table test(v other)");
         prep = conn.prepareStatement("insert into test values(?)");
-        prep.setObject(1, JdbcUtils.serialize("", conn.getSession().getDataHandler()));
+        prep.setObject(1, JdbcUtils.serialize("", conn.getJavaObjectSerializer()));
         prep.execute();
         rs = stat.executeQuery("select v from test");
         while (rs.next()) {

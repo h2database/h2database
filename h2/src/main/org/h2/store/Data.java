@@ -20,6 +20,7 @@ import java.util.GregorianCalendar;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
+import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -152,10 +153,13 @@ public class Data {
      */
     private final DataHandler handler;
 
+    private final JavaObjectSerializer javaObjectSerializer;
+
     private final boolean storeLocalTime;
 
-    private Data(DataHandler handler, byte[] data, boolean storeLocalTime) {
+    private Data(DataHandler handler, JavaObjectSerializer javaObjectSerializer, byte[] data, boolean storeLocalTime) {
         this.handler = handler;
+        this.javaObjectSerializer = javaObjectSerializer;
         this.data = data;
         this.storeLocalTime = storeLocalTime;
     }
@@ -335,14 +339,16 @@ public class Data {
      * handler will decide what type of buffer is created.
      *
      * @param handler the data handler
+     * @param javaObjectSerializer the Java object serializer
      * @param capacity the initial capacity of the buffer
      * @param storeLocalTime
      *            store DATE, TIME, and TIMESTAMP values with local time storage
      *            format
      * @return the buffer
      */
-    public static Data create(DataHandler handler, int capacity, boolean storeLocalTime) {
-        return new Data(handler, new byte[capacity], storeLocalTime);
+    public static Data create(DataHandler handler, JavaObjectSerializer javaObjectSerializer, int capacity,
+            boolean storeLocalTime) {
+        return new Data(handler, javaObjectSerializer, new byte[capacity], storeLocalTime);
     }
 
     /**
@@ -350,14 +356,16 @@ public class Data {
      * handler will decide what type of buffer is created.
      *
      * @param handler the data handler
+     * @param javaObjectSerializer the Java object serializer
      * @param buff the data
      * @param storeLocalTime
      *            store DATE, TIME, and TIMESTAMP values with local time storage
      *            format
      * @return the buffer
      */
-    public static Data create(DataHandler handler, byte[] buff, boolean storeLocalTime) {
-        return new Data(handler, buff, storeLocalTime);
+    public static Data create(DataHandler handler, JavaObjectSerializer javaObjectSerializer, byte[] buff,
+            boolean storeLocalTime) {
+        return new Data(handler, javaObjectSerializer, buff, storeLocalTime);
     }
 
     /**
@@ -873,7 +881,7 @@ public class Data {
             int len = readVarInt();
             byte[] b = Utils.newBytes(len);
             read(b, 0, len);
-            return ValueJavaObject.getNoCopy(null, b, handler);
+            return ValueJavaObject.getNoCopy(null, b, javaObjectSerializer);
         }
         case UUID:
             return ValueUuid.get(readLong(), readLong());
@@ -1464,7 +1472,7 @@ public class Data {
     public static void copyString(Reader source, OutputStream target)
             throws IOException {
         char[] buff = new char[Constants.IO_BUFFER_SIZE];
-        Data d = new Data(null, new byte[3 * Constants.IO_BUFFER_SIZE], false);
+        Data d = new Data(null, null, new byte[3 * Constants.IO_BUFFER_SIZE], false);
         while (true) {
             int l = source.read(buff);
             if (l < 0) {

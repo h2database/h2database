@@ -26,11 +26,11 @@ import javax.naming.Context;
 import javax.sql.DataSource;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.message.DbException;
-import org.h2.store.DataHandler;
 import org.h2.util.Utils.ClassFactory;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -354,17 +354,13 @@ public class JdbcUtils {
      * the connection info if set, or the default serializer.
      *
      * @param obj the object to serialize
-     * @param dataHandler provides the object serializer (may be null)
+     * @param javaObjectSerializer the object serializer (may be null)
      * @return the byte array
      */
-    public static byte[] serialize(Object obj, DataHandler dataHandler) {
+    public static byte[] serialize(Object obj, JavaObjectSerializer javaObjectSerializer) {
         try {
-            JavaObjectSerializer handlerSerializer = null;
-            if (dataHandler != null) {
-                handlerSerializer = dataHandler.getJavaObjectSerializer();
-            }
-            if (handlerSerializer != null) {
-                return handlerSerializer.serialize(obj);
+            if (javaObjectSerializer != null) {
+                return javaObjectSerializer.serialize(obj);
             }
             if (serializer != null) {
                 return serializer.serialize(obj);
@@ -383,18 +379,14 @@ public class JdbcUtils {
      * specified by the connection info.
      *
      * @param data the byte array
-     * @param dataHandler provides the object serializer (may be null)
+     * @param javaObjectSerializer the object serializer (may be null)
      * @return the object
      * @throws DbException if serialization fails
      */
-    public static Object deserialize(byte[] data, DataHandler dataHandler) {
+    public static Object deserialize(byte[] data, JavaObjectSerializer javaObjectSerializer) {
         try {
-            JavaObjectSerializer dbJavaObjectSerializer = null;
-            if (dataHandler != null) {
-                dbJavaObjectSerializer = dataHandler.getJavaObjectSerializer();
-            }
-            if (dbJavaObjectSerializer != null) {
-                return dbJavaObjectSerializer.deserialize(data);
+            if (javaObjectSerializer != null) {
+                return javaObjectSerializer.deserialize(data);
             }
             if (serializer != null) {
                 return serializer.deserialize(data);
@@ -432,10 +424,10 @@ public class JdbcUtils {
      *            the parameter index
      * @param value
      *            the value
-     * @param dataHandler
-     *            the data handler
+     * @param provider
+     *            the cast information provider
      */
-    public static void set(PreparedStatement prep, int parameterIndex, Value value, DataHandler dataHandler)
+    public static void set(PreparedStatement prep, int parameterIndex, Value value, CastDataProvider provider)
             throws SQLException {
         if (prep instanceof JdbcPreparedStatement) {
             if (value instanceof ValueLob) {
@@ -444,11 +436,11 @@ public class JdbcUtils {
                 prep.setObject(parameterIndex, value);
             }
         } else {
-            setOther(prep, parameterIndex, value, dataHandler);
+            setOther(prep, parameterIndex, value, provider);
         }
     }
 
-    private static void setOther(PreparedStatement prep, int parameterIndex, Value value, DataHandler dataHandler)
+    private static void setOther(PreparedStatement prep, int parameterIndex, Value value, CastDataProvider provider)
                 throws SQLException {
         int valueType = value.getValueType();
         switch (valueType) {
@@ -533,7 +525,7 @@ public class JdbcUtils {
         case Value.JAVA_OBJECT:
             prep.setObject(parameterIndex,
                     value.getClass() == ValueJavaObject.class
-                            ? JdbcUtils.deserialize(value.getBytesNoCopy(), dataHandler)
+                            ? JdbcUtils.deserialize(value.getBytesNoCopy(), provider.getJavaObjectSerializer())
                             : /* ValueJavaObject.NotSerialized */ value.getObject(),
                     Types.JAVA_OBJECT);
             break;

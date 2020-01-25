@@ -22,7 +22,6 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
-import org.h2.store.DataHandler;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.HasSQL;
@@ -839,17 +838,17 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case CHAR:
             return convertToChar(targetType, conversionMode, column);
         case JAVA_OBJECT:
-            return convertToJavaObject();
+            return convertToJavaObject(provider);
         case ENUM:
-            return convertToEnum((ExtTypeInfoEnum) targetType.getExtTypeInfo());
+            return convertToEnum((ExtTypeInfoEnum) targetType.getExtTypeInfo(), provider);
         case BLOB:
             return convertToBlob(targetType, conversionMode, column);
         case CLOB:
             return convertToClob(targetType, conversionMode, column);
         case UUID:
-            return convertToUuid();
+            return convertToUuid(provider);
         case GEOMETRY:
-            return convertToGeometry((ExtTypeInfoGeometry) targetType.getExtTypeInfo());
+            return convertToGeometry((ExtTypeInfoGeometry) targetType.getExtTypeInfo(), provider);
         case INTERVAL_YEAR:
         case INTERVAL_MONTH:
         case INTERVAL_YEAR_TO_MONTH:
@@ -1643,33 +1642,39 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * Converts this value to a JAVA_OBJECT value. May not be called on a NULL
      * value.
      *
+     * @param provider
+     *            the cast information provider
      * @return the JAVA_OBJECT value
      */
-    public final ValueJavaObject convertToJavaObject() {
+    public final ValueJavaObject convertToJavaObject(CastDataProvider provider) {
         switch (getValueType()) {
         case JAVA_OBJECT:
             return (ValueJavaObject) this;
         case VARBINARY:
         case BLOB:
-            return ValueJavaObject.getNoCopy(null, getBytesNoCopy(), getDataHandler());
+            return ValueJavaObject.getNoCopy(null, getBytesNoCopy(), provider.getJavaObjectSerializer());
         case GEOMETRY:
-            return ValueJavaObject.getNoCopy(getObject(), null, getDataHandler());
+            return ValueJavaObject.getNoCopy(getObject(), null, provider.getJavaObjectSerializer());
         case ENUM:
         case TIMESTAMP_TZ:
             throw getDataConversionError(JAVA_OBJECT);
         case NULL:
             throw DbException.throwInternalError();
         }
-        return ValueJavaObject.getNoCopy(null, StringUtils.convertHexToBytes(getString().trim()), getDataHandler());
+        return ValueJavaObject.getNoCopy(null, StringUtils.convertHexToBytes(getString().trim()),
+                provider.getJavaObjectSerializer());
     }
 
     /**
      * Converts this value to an ENUM value. May not be called on a NULL value.
      *
-     * @param extTypeInfo the extended data type information
+     * @param extTypeInfo
+     *            the extended data type information
+     * @param provider
+     *            the cast information provider
      * @return the ENUM value
      */
-    public final ValueEnum convertToEnum(ExtTypeInfoEnum extTypeInfo) {
+    public final ValueEnum convertToEnum(ExtTypeInfoEnum extTypeInfo, CastDataProvider provider) {
         switch (getValueType()) {
         case ENUM: {
             ValueEnum v = (ValueEnum) this;
@@ -1691,7 +1696,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case NULL:
             throw DbException.throwInternalError();
         case JAVA_OBJECT:
-            Object object = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
+            Object object = JdbcUtils.deserialize(getBytesNoCopy(), provider.getJavaObjectSerializer());
             if (object instanceof String) {
                 return extTypeInfo.getValue((String) object);
             } else if (object instanceof Integer) {
@@ -1748,16 +1753,18 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     /**
      * Converts this value to a UUID value. May not be called on a NULL value.
      *
+     * @param provider
+     *            the cast information provider
      * @return the UUID value
      */
-    public final ValueUuid convertToUuid() {
+    public final ValueUuid convertToUuid(CastDataProvider provider) {
         switch (getValueType()) {
         case UUID:
             return (ValueUuid) this;
         case VARBINARY:
             return ValueUuid.get(getBytesNoCopy());
         case JAVA_OBJECT:
-            Object object = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
+            Object object = JdbcUtils.deserialize(getBytesNoCopy(), provider.getJavaObjectSerializer());
             if (object instanceof java.util.UUID) {
                 return ValueUuid.get((java.util.UUID) object);
             }
@@ -1774,10 +1781,13 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * Converts this value to a GEOMETRY value. May not be called on a NULL
      * value.
      *
-     * @param extTypeInfo the extended data type information, or null
+     * @param extTypeInfo
+     *            the extended data type information, or null
+     * @param provider
+     *            the cast information provider
      * @return the GEOMETRY value
      */
-    public final ValueGeometry convertToGeometry(ExtTypeInfoGeometry extTypeInfo) {
+    public final ValueGeometry convertToGeometry(ExtTypeInfoGeometry extTypeInfo, CastDataProvider provider) {
         ValueGeometry result;
         switch (getValueType()) {
         case GEOMETRY:
@@ -1787,7 +1797,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             result = ValueGeometry.getFromEWKB(getBytesNoCopy());
             break;
         case JAVA_OBJECT:
-            Object object = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
+            Object object = JdbcUtils.deserialize(getBytesNoCopy(), provider.getJavaObjectSerializer());
             if (DataType.isGeometry(object)) {
                 result = ValueGeometry.getFromGeometry(object);
                 break;
@@ -2202,8 +2212,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             int dataType = getHigherOrder(leftType, rightType);
             if (dataType == ENUM) {
                 ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, v);
-                l = l.convertToEnum(enumerators);
-                v = v.convertToEnum(enumerators);
+                l = l.convertToEnum(enumerators, provider);
+                v = v.convertToEnum(enumerators, provider);
             } else {
                 l = l.convertTo(dataType, provider);
                 v = v.convertTo(dataType, provider);
@@ -2323,15 +2333,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         rs.addColumn("X", "X", getType());
         rs.addRow(this);
         return rs;
-    }
-
-    /**
-     * Return the data handler for the values that support it
-     * (actually only Java objects).
-     * @return the data handler
-     */
-    protected DataHandler getDataHandler() {
-        return null;
     }
 
 }

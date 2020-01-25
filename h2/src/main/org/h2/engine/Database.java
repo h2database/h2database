@@ -268,10 +268,10 @@ public class Database implements DataHandler, CastDataProvider {
             fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
         }
         this.databaseURL = ci.getURL();
-        String listener = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
-        if (listener != null) {
-            listener = StringUtils.trim(listener, true, true, "'");
-            setEventListenerClass(listener);
+        String s = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
+        if (s != null) {
+            s = StringUtils.trim(s, true, true, "'");
+            setEventListenerClass(s);
         }
         String modeName = ci.removeProperty("MODE", null);
         if (modeName != null) {
@@ -282,8 +282,11 @@ public class Database implements DataHandler, CastDataProvider {
         }
         this.logMode =
                 ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
-        this.javaObjectSerializerName =
-                ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
+        s = ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
+        if (s != null) {
+            s = StringUtils.trim(s, true, true, "'");
+            javaObjectSerializerName = s;
+        }
         this.allowBuiltinAliasOverride =
                 ci.getProperty("BUILTIN_ALIAS_OVERRIDE", false);
         boolean closeAtVmShutdown =

@@ -11,9 +11,8 @@ import org.h2.util.StringUtils;
 
 /**
  * Implementation of the VARCHAR data type.
- * It is also the base class for ValueVarcharIgnoreCase and ValueChar classes.
  */
-public class ValueVarchar extends Value {
+public final class ValueVarchar extends ValueStringBase {
 
     /**
      * Empty string. Should not be used in places where empty string can be
@@ -21,93 +20,13 @@ public class ValueVarchar extends Value {
      */
     public static final ValueVarchar EMPTY = new ValueVarchar("");
 
-    /**
-     * The string data.
-     */
-    protected final String value;
-
-    private TypeInfo type;
-
-    protected ValueVarchar(String value) {
-        this.value = value;
+    private ValueVarchar(String value) {
+        super(value);
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return StringUtils.quoteStringSQL(builder, value);
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        return other instanceof ValueVarchar
-                && value.equals(((ValueVarchar) other).value);
-    }
-
-    @Override
-    public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
-        return mode.compareString(value, ((ValueVarchar) o).value, false);
-    }
-
-    @Override
-    public String getString() {
-        return value;
-    }
-
-    @Override
-    public Object getObject() {
-        return value;
-    }
-
-    @Override
-    public int getMemory() {
-        /*
-         * Java 11 with -XX:-UseCompressedOops
-         * Empty string: 88 bytes
-         * 1 to 4 UTF-16 chars: 96 bytes
-         */
-        return value.length() * 2 + 94;
-    }
-
-    @Override
-    public int hashCode() {
-        // TODO hash performance: could build a quicker hash
-        // by hashing the size and a few characters
-        return value.hashCode();
-
-        // proposed code:
-//        private int hash = 0;
-//
-//        public int hashCode() {
-//            int h = hash;
-//            if (h == 0) {
-//                String s = value;
-//                int l = s.length();
-//                if (l > 0) {
-//                    if (l < 16)
-//                        h = s.hashCode();
-//                    else {
-//                        h = l;
-//                        for (int i = 1; i <= l; i <<= 1)
-//                            h = 31 *
-//                                (31 * h + s.charAt(i - 1)) +
-//                                s.charAt(l - i);
-//                    }
-//                    hash = h;
-//                }
-//            }
-//            return h;
-//        }
-
-    }
-
-    @Override
-    public final TypeInfo getType() {
-        TypeInfo type = this.type;
-        if (type == null) {
-            int length = value.length();
-            this.type = type = new TypeInfo(getValueType(), length, 0, length, null);
-        }
-        return type;
     }
 
     @Override

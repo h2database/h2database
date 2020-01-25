@@ -11,11 +11,11 @@ import org.h2.util.StringUtils;
 /**
  * Implementation of the CHAR data type.
  */
-public class ValueChar extends ValueVarchar {
+public final class ValueChar extends ValueStringBase {
 
     private static final ValueChar EMPTY = new ValueChar("");
 
-    protected ValueChar(String value) {
+    private ValueChar(String value) {
         super(value);
     }
 
@@ -36,6 +36,11 @@ public class ValueChar extends ValueVarchar {
     @Override
     public int getValueType() {
         return CHAR;
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return StringUtils.quoteStringSQL(builder, value);
     }
 
     /**

@@ -12,13 +12,16 @@ import org.h2.util.StringUtils;
 /**
  * Implementation of the VARCHAR_IGNORECASE data type.
  */
-public class ValueVarcharIgnoreCase extends ValueVarchar {
+public final class ValueVarcharIgnoreCase extends ValueStringBase {
 
-    private static final ValueVarcharIgnoreCase EMPTY =
-            new ValueVarcharIgnoreCase("");
+    private static final ValueVarcharIgnoreCase EMPTY = new ValueVarcharIgnoreCase("");
+
+    /**
+     * The hash code.
+     */
     private int hash;
 
-    protected ValueVarcharIgnoreCase(String value) {
+    private ValueVarcharIgnoreCase(String value) {
         super(value);
     }
 
@@ -28,8 +31,8 @@ public class ValueVarcharIgnoreCase extends ValueVarchar {
     }
 
     @Override
-    public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
-        return mode.compareString(value, ((ValueVarcharIgnoreCase) o).value, true);
+    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
+        return mode.compareString(value, ((ValueStringBase) v).value, true);
     }
 
     @Override

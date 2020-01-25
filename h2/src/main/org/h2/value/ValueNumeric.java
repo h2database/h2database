@@ -128,7 +128,12 @@ public class ValueNumeric extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return builder.append(getString());
+        String s = getString();
+        if ((sqlFlags & NO_CASTS) == 0 && value.scale() == 0 && value.compareTo(MAX_LONG_DECIMAL) <= 0
+                && value.compareTo(MIN_LONG_DECIMAL) >= 0) {
+            return builder.append("CAST(").append(value).append(" AS NUMERIC(").append(value.precision()).append("))");
+        }
+        return builder.append(s);
     }
 
     @Override

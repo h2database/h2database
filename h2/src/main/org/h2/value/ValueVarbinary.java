@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 
 import org.h2.engine.SysProperties;
 import org.h2.util.MathUtils;
-import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -77,12 +76,6 @@ public final class ValueVarbinary extends ValueBytesBase {
     @Override
     public int getValueType() {
         return VARBINARY;
-    }
-
-    @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append("X'");
-        return StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
     }
 
     @Override

@@ -126,8 +126,10 @@ public class ValueUuid extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append('\'');
-        return addString(builder).append('\'');
+        if ((sqlFlags & NO_CASTS) == 0) {
+            return addString(builder.append("CAST('")).append("' AS UUID)");
+        }
+        return addString(builder.append('\'')).append('\'');
     }
 
     @Override

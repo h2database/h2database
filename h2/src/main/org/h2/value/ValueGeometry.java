@@ -258,9 +258,10 @@ public final class ValueGeometry extends ValueBytesBase {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        // Using bytes is faster than converting to EWKT.
-        builder.append("X'");
-        return StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append("'::Geometry");
+        if ((sqlFlags & NO_CASTS) == 0) {
+            return super.getSQL(builder.append("CAST("), DEFAULT_SQL_FLAGS).append(" AS GEOMETRY)");
+        }
+        return super.getSQL(builder, DEFAULT_SQL_FLAGS);
     }
 
     @Override

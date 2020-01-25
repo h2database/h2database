@@ -93,6 +93,13 @@ public class ValueReal extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        if ((sqlFlags & NO_CASTS) == 0) {
+            return getSQL(builder.append("CAST(")).append(" AS REAL)");
+        }
+        return getSQL(builder);
+    }
+
+    private StringBuilder getSQL(StringBuilder builder) {
         if (value == Float.POSITIVE_INFINITY) {
             builder.append("POWER(0, -1)");
         } else if (value == Float.NEGATIVE_INFINITY) {

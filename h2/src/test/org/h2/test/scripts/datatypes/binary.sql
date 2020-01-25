@@ -117,3 +117,6 @@ SELECT 0xZ;
 
 SET MODE Regular;
 > ok
+
+EXPLAIN VALUES X'';
+>> VALUES (X'')

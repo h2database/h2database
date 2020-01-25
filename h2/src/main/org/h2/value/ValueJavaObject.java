@@ -64,8 +64,10 @@ public class ValueJavaObject extends ValueBytesBase {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append("X'");
-        return StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
+        if ((sqlFlags & NO_CASTS) == 0) {
+            return super.getSQL(builder.append("CAST("), DEFAULT_SQL_FLAGS).append(" AS JAVA_OBJECT)");
+        }
+        return super.getSQL(builder, DEFAULT_SQL_FLAGS);
     }
 
     @Override

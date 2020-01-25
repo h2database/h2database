@@ -87,6 +87,9 @@ public class ValueTinyint extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        if ((sqlFlags & NO_CASTS) == 0) {
+            return builder.append("CAST(").append(value).append(" AS TINYINT)");
+        }
         return builder.append(value);
     }
 

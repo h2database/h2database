@@ -52,8 +52,11 @@ public final class ValueVarcharIgnoreCase extends ValueStringBase {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append("CAST(");
-        return StringUtils.quoteStringSQL(builder, value).append(" AS VARCHAR_IGNORECASE)");
+        if ((sqlFlags & NO_CASTS) == 0) {
+            return StringUtils.quoteStringSQL(builder.append("CAST("), value).append(" AS VARCHAR_IGNORECASE(")
+                    .append(value.length()).append("))");
+        }
+        return StringUtils.quoteStringSQL(builder, value);
     }
 
     /**

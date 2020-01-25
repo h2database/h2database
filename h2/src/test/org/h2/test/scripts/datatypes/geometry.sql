@@ -251,3 +251,6 @@ SELECT CAST('{"type":"GeometryCollection","geometries":[{"type":"GeometryCollect
 
 SELECT CAST('{"type":"Unknown","coordinates":[1,2]}' FORMAT JSON AS GEOMETRY);
 > exception DATA_CONVERSION_ERROR_1
+
+EXPLAIN VALUES CAST('POINT EMPTY' AS GEOMETRY);
+>> VALUES (CAST(X'00000000017ff80000000000007ff8000000000000' AS GEOMETRY))

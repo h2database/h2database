@@ -2,3 +2,6 @@
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
+
+EXPLAIN VALUES CAST(X'' AS JAVA_OBJECT);
+>> VALUES (CAST(X'' AS JAVA_OBJECT))

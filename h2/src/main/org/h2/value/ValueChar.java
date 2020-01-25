@@ -40,6 +40,10 @@ public final class ValueChar extends ValueStringBase {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        if ((sqlFlags & NO_CASTS) == 0) {
+            return StringUtils.quoteStringSQL(builder.append("CAST("), value).append(" AS CHAR(")
+                    .append(value.length()).append("))");
+        }
         return StringUtils.quoteStringSQL(builder, value);
     }
 

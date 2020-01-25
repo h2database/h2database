@@ -87,6 +87,9 @@ public class ValueSmallint extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        if ((sqlFlags & NO_CASTS) == 0) {
+            return builder.append("CAST(").append(value).append(" AS SMALLINT)");
+        }
         return builder.append(value);
     }
 

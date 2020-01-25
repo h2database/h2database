@@ -146,6 +146,9 @@ public class ValueBigint extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        if ((sqlFlags & NO_CASTS) == 0 && (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE)) {
+            return builder.append("CAST(").append(value).append(" AS BIGINT)");
+        }
         return builder.append(value);
     }
 

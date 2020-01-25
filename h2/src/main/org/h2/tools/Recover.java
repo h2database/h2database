@@ -428,7 +428,7 @@ public class Recover extends Tool implements DataHandler {
                 return;
             }
         }
-        v.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
+        v.getSQL(builder, HasSQL.NO_CASTS);
     }
 
     private void setDatabaseName(String name) {
@@ -975,7 +975,7 @@ public class Recover extends Tool implements DataHandler {
                                 if (i > 0) {
                                     builder.append(", ");
                                 }
-                                row.getValue(i).getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
+                                row.getValue(i).getSQL(builder, HasSQL.NO_CASTS);
                             }
                             builder.append(");");
                             writer.println(builder.toString());

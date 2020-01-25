@@ -16,7 +16,7 @@ import org.h2.util.StringUtils;
  */
 public class ValueEnumBase extends Value {
 
-    private final String label;
+    final String label;
     private final int ordinal;
 
     protected ValueEnumBase(final String label, final int ordinal) {

@@ -9,6 +9,7 @@ import java.util.Arrays;
 
 import org.h2.engine.CastDataProvider;
 import org.h2.util.Bits;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -48,6 +49,12 @@ abstract class ValueBytesBase extends Value {
             return Bits.compareNotNullUnsigned(value, v2);
         }
         return Bits.compareNotNullSigned(value, v2);
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        builder.append("X'");
+        return StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
     }
 
     @Override

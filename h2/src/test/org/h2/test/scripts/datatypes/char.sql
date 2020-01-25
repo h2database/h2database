@@ -75,3 +75,6 @@ DROP TABLE TEST;
 
 SET MODE Regular;
 > ok
+
+EXPLAIN VALUES CAST('a' AS CHAR(1));
+>> VALUES (CAST('a' AS CHAR(1)))

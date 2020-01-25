@@ -99,6 +99,8 @@ public class ValueDouble extends Value {
             builder.append("(-POWER(0, -1))");
         } else if (Double.isNaN(value)) {
             builder.append("SQRT(-1)");
+        } else if ((sqlFlags & NO_CASTS) == 0) {
+            builder.append("CAST(").append(value).append(" AS DOUBLE)");
         } else {
             builder.append(value);
         }

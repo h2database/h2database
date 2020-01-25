@@ -100,7 +100,6 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     private TempFileDeleter tempFileDeleter;
 
     private JavaObjectSerializer javaObjectSerializer;
-    private volatile boolean javaObjectSerializerInitialized;
 
     private final CompareMode compareMode = CompareMode.getInstance(null, 0);
 
@@ -456,6 +455,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             traceSystem.close();
             throw e;
         }
+        initJavaObjectSerializer();
     }
 
     private void switchOffCluster() {
@@ -770,31 +770,21 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     @Override
     public JavaObjectSerializer getJavaObjectSerializer() {
-        initJavaObjectSerializer();
         return javaObjectSerializer;
     }
 
     private void initJavaObjectSerializer() {
-        if (javaObjectSerializerInitialized) {
-            return;
-        }
-        synchronized (this) {
-            if (javaObjectSerializerInitialized) {
-                return;
-            }
-            String serializerFQN = readSerializationSettings();
-            if (serializerFQN != null) {
-                serializerFQN = serializerFQN.trim();
-                if (!serializerFQN.isEmpty() && !serializerFQN.equals("null")) {
-                    try {
-                        javaObjectSerializer = (JavaObjectSerializer) JdbcUtils
-                                .loadUserClass(serializerFQN).getDeclaredConstructor().newInstance();
-                    } catch (Exception e) {
-                        throw DbException.convert(e);
-                    }
+        String serializerFQN = readSerializationSettings();
+        if (serializerFQN != null) {
+            serializerFQN = serializerFQN.trim();
+            if (!serializerFQN.isEmpty() && !serializerFQN.equals("null")) {
+                try {
+                    javaObjectSerializer = (JavaObjectSerializer) JdbcUtils
+                            .loadUserClass(serializerFQN).getDeclaredConstructor().newInstance();
+                } catch (Exception e) {
+                    throw DbException.convert(e);
                 }
             }
-            javaObjectSerializerInitialized = true;
         }
     }
 

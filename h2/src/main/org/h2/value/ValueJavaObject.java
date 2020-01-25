@@ -10,12 +10,13 @@ import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
 import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
- * Implementation of the OBJECT data type.
+ * Implementation of the JAVA_OBJECT data type.
  */
-public class ValueJavaObject extends ValueVarbinary {
+public class ValueJavaObject extends ValueBytesBase {
 
     private static final ValueJavaObject EMPTY = new ValueJavaObject(Utils.EMPTY_BYTES);
 
@@ -61,17 +62,30 @@ public class ValueJavaObject extends ValueVarbinary {
         return JAVA_OBJECT;
     }
 
+    @Override
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        builder.append("X'");
+        return StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
+    }
+
+    @Override
+    public String getString() {
+        return StringUtils.convertBytesToHex(getBytesNoCopy());
+    }
+
     /**
      * Value which serializes java object only for I/O operations.
      * Used when property {@link SysProperties#serializeJavaObject} is disabled.
      *
      * @author Sergi Vladykin
      */
-    private static class NotSerialized extends ValueJavaObject {
+    private static final class NotSerialized extends ValueJavaObject {
 
         private Object javaObject;
 
         private final JavaObjectSerializer javaObjectSerializer;
+
+        private TypeInfo type;
 
         NotSerialized(Object javaObject, byte[] v, JavaObjectSerializer javaObjectSerializer) {
             super(v);

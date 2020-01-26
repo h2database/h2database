@@ -213,7 +213,7 @@ public class ExpressionColumn extends Expression {
         if (value != ValueNull.INSTANCE) {
             TypeInfo type = column.getType();
             if (type.getValueType() == Value.ENUM) {
-                return value.convertToEnum((ExtTypeInfoEnum) type.getExtTypeInfo(), session);
+                return value.convertToEnum((ExtTypeInfoEnum) type.getExtTypeInfo());
             }
         }
         return value;

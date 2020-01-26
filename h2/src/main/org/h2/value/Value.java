@@ -840,7 +840,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case JAVA_OBJECT:
             return convertToJavaObject(provider);
         case ENUM:
-            return convertToEnum((ExtTypeInfoEnum) targetType.getExtTypeInfo(), provider);
+            return convertToEnum((ExtTypeInfoEnum) targetType.getExtTypeInfo());
         case BLOB:
             return convertToBlob(targetType, conversionMode, column);
         case CLOB:
@@ -848,7 +848,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case UUID:
             return convertToUuid(provider);
         case GEOMETRY:
-            return convertToGeometry((ExtTypeInfoGeometry) targetType.getExtTypeInfo(), provider);
+            return convertToGeometry((ExtTypeInfoGeometry) targetType.getExtTypeInfo());
         case INTERVAL_YEAR:
         case INTERVAL_MONTH:
         case INTERVAL_YEAR_TO_MONTH:
@@ -915,6 +915,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
         //$FALL-THROUGH$
         case TIME:
+        case TIME_TZ:
         case DATE:
         case TIMESTAMP:
         case TIMESTAMP_TZ:
@@ -1670,11 +1671,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      *
      * @param extTypeInfo
      *            the extended data type information
-     * @param provider
-     *            the cast information provider
      * @return the ENUM value
      */
-    public final ValueEnum convertToEnum(ExtTypeInfoEnum extTypeInfo, CastDataProvider provider) {
+    public final ValueEnum convertToEnum(ExtTypeInfoEnum extTypeInfo) {
         switch (getValueType()) {
         case ENUM: {
             ValueEnum v = (ValueEnum) this;
@@ -1695,14 +1694,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             return extTypeInfo.getValue(getString());
         case NULL:
             throw DbException.throwInternalError();
-        case JAVA_OBJECT:
-            Object object = JdbcUtils.deserialize(getBytesNoCopy(), provider.getJavaObjectSerializer());
-            if (object instanceof String) {
-                return extTypeInfo.getValue((String) object);
-            } else if (object instanceof Integer) {
-                return extTypeInfo.getValue((int) object);
-            }
-            //$FALL-THROUGH$
         }
         throw getDataConversionError(ENUM);
     }
@@ -1783,11 +1774,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      *
      * @param extTypeInfo
      *            the extended data type information, or null
-     * @param provider
-     *            the cast information provider
      * @return the GEOMETRY value
      */
-    public final ValueGeometry convertToGeometry(ExtTypeInfoGeometry extTypeInfo, CastDataProvider provider) {
+    public final ValueGeometry convertToGeometry(ExtTypeInfoGeometry extTypeInfo) {
         ValueGeometry result;
         switch (getValueType()) {
         case GEOMETRY:
@@ -1797,12 +1786,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             result = ValueGeometry.getFromEWKB(getBytesNoCopy());
             break;
         case JAVA_OBJECT:
-            Object object = JdbcUtils.deserialize(getBytesNoCopy(), provider.getJavaObjectSerializer());
-            if (DataType.isGeometry(object)) {
-                result = ValueGeometry.getFromGeometry(object);
-                break;
-            }
-            //$FALL-THROUGH$
         case TIMESTAMP_TZ:
             throw getDataConversionError(GEOMETRY);
         case JSON: {
@@ -2212,8 +2195,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             int dataType = getHigherOrder(leftType, rightType);
             if (dataType == ENUM) {
                 ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, v);
-                l = l.convertToEnum(enumerators, provider);
-                v = v.convertToEnum(enumerators, provider);
+                l = l.convertToEnum(enumerators);
+                v = v.convertToEnum(enumerators);
             } else {
                 l = l.convertTo(dataType, provider);
                 v = v.convertTo(dataType, provider);

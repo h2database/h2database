@@ -138,7 +138,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
         }
         Value v = row.getValue(columnIds[0]);
         double[] env;
-        if (v == ValueNull.INSTANCE || (env = v.convertToGeometry(null, database).getEnvelopeNoCopy()) == null) {
+        if (v == ValueNull.INSTANCE || (env = v.convertToGeometry(null).getEnvelopeNoCopy()) == null) {
             return new SpatialKey(row.getKey());
         }
         return new SpatialKey(row.getKey(),

@@ -422,7 +422,11 @@ public class JdbcUtils {
     }
 
     /**
-     * De-serialize the byte array to a UUID object.
+     * De-serialize the byte array to a UUID object. This method is called on
+     * the server side where regular de-serialization of user-supplied Java
+     * objects may create a security hole if object was maliciously crafted.
+     * Unlike {@link #deserialize(byte[], JavaObjectSerializer)}, this method
+     * does not try to de-serialize instances of other classes.
      *
      * @param data the byte array
      * @return the UUID object

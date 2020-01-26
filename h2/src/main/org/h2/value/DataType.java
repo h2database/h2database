@@ -315,7 +315,7 @@ public class DataType {
                 // UNIQUEIDENTIFIER is the MSSQL mode equivalent
                 new String[]{"UUID", "UNIQUEIDENTIFIER"}
         );
-        add(Value.JAVA_OBJECT, Types.OTHER,
+        add(Value.JAVA_OBJECT, Types.JAVA_OBJECT,
                 createString(false),
                 new String[]{"OTHER", "OBJECT", "JAVA_OBJECT"}
         );
@@ -1001,13 +1001,12 @@ public class DataType {
                     return Value.UUID;
                 }
                 break;
-            case Types.OTHER:
-            case Types.JAVA_OBJECT:
-                if (sqlTypeName.equalsIgnoreCase("geometry")) {
-                    return Value.GEOMETRY;
-                } else if (sqlTypeName.equalsIgnoreCase("json")) {
-                    return Value.JSON;
+            case Types.OTHER: {
+                DataType type = TYPES_BY_NAME.get(StringUtils.toUpperEnglish(sqlTypeName));
+                if (type != null) {
+                    return type.type;
                 }
+            }
         }
         return convertSQLTypeToValueType(sqlType);
     }
@@ -1051,10 +1050,6 @@ public class DataType {
         case Types.JAVA_OBJECT:
         case Types.BLOB:
             return true;
-        case Types.OTHER:
-            if (meta.getColumnTypeName(column).equals("OTHER")) {
-                return true;
-            }
         }
         return false;
     }
@@ -1116,6 +1111,7 @@ public class DataType {
         case Types.LONGVARBINARY:
             return Value.VARBINARY;
         case Types.OTHER:
+            return Value.UNKNOWN;
         case Types.JAVA_OBJECT:
             return Value.JAVA_OBJECT;
         case Types.DATE:

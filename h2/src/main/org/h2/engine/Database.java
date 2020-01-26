@@ -173,6 +173,7 @@ public class Database implements DataHandler, CastDataProvider {
     private Role publicRole;
     private final AtomicLong modificationDataId = new AtomicLong();
     private final AtomicLong modificationMetaId = new AtomicLong();
+    private final AtomicLong remoteSettingsId = new AtomicLong();
     private CompareMode compareMode;
     private String cluster = Constants.CLUSTERING_DISABLED;
     private boolean readOnly;
@@ -389,6 +390,14 @@ public class Database implements DataHandler, CastDataProvider {
         // (because MetaTable returns modificationDataId)
         modificationDataId.incrementAndGet();
         return modificationMetaId.incrementAndGet() - 1;
+    }
+
+    public long getRemoteSettingsId() {
+        return remoteSettingsId.get();
+    }
+
+    public long getNextRemoteSettingsId() {
+        return remoteSettingsId.incrementAndGet();
     }
 
     public int getPowerOffCount() {
@@ -2556,6 +2565,7 @@ public class Database implements DataHandler, CastDataProvider {
 
     public void setMode(Mode mode) {
         this.mode = mode;
+        getNextRemoteSettingsId();
     }
 
     @Override
@@ -2949,6 +2959,7 @@ public class Database implements DataHandler, CastDataProvider {
         synchronized (this) {
             javaObjectSerializerInitialized = false;
             javaObjectSerializerName = serializerName;
+            getNextRemoteSettingsId();
         }
     }
 

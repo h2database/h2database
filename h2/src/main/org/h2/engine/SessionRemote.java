@@ -455,7 +455,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             traceSystem.close();
             throw e;
         }
-        initJavaObjectSerializer();
+        getDynamicSettings();
     }
 
     private void switchOffCluster() {
@@ -770,44 +770,10 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     @Override
     public JavaObjectSerializer getJavaObjectSerializer() {
+        if (staticSettings == null) {
+            getDynamicSettings();
+        }
         return javaObjectSerializer;
-    }
-
-    private void initJavaObjectSerializer() {
-        String serializerFQN = readSerializationSettings();
-        if (serializerFQN != null) {
-            serializerFQN = serializerFQN.trim();
-            if (!serializerFQN.isEmpty() && !serializerFQN.equals("null")) {
-                try {
-                    javaObjectSerializer = (JavaObjectSerializer) JdbcUtils
-                            .loadUserClass(serializerFQN).getDeclaredConstructor().newInstance();
-                } catch (Exception e) {
-                    throw DbException.convert(e);
-                }
-            }
-        }
-    }
-
-    /**
-     * Read the serializer name from the persistent database settings.
-     *
-     * @return the serializer
-     */
-    private String readSerializationSettings() {
-        String javaObjectSerializerFQN = null;
-        CommandInterface ci = prepareCommand(
-                "SELECT `VALUE` FROM INFORMATION_SCHEMA.SETTINGS "+
-                " WHERE NAME='JAVA_OBJECT_SERIALIZER'", Integer.MAX_VALUE);
-        try {
-            ResultInterface result = ci.executeQuery(0, false);
-            if (result.next()) {
-                Value[] row = result.currentRow();
-                javaObjectSerializerFQN = row[0].getString();
-            }
-        } finally {
-            ci.close();
-        }
-        return javaObjectSerializerFQN;
     }
 
     @Override
@@ -938,12 +904,14 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         if (settings == null) {
             String modeName = ModeEnum.REGULAR.name();
             TimeZoneProvider timeZone = DateTimeUtils.getTimeZone();
+            String javaObjectSerializerName = null;
             try (CommandInterface command = prepareCommand(
-                    "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN (?, ?)",
+                    "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN (?, ?, ?)",
                     Integer.MAX_VALUE)) {
                 ArrayList<? extends ParameterInterface> parameters = command.getParameters();
                 parameters.get(0).setValue(ValueVarchar.get("MODE"), false);
                 parameters.get(1).setValue(ValueVarchar.get("TIME ZONE"), false);
+                parameters.get(2).setValue(ValueVarchar.get("JAVA_OBJECT_SERIALIZER"), false);
                 try (ResultInterface result = command.executeQuery(Integer.MAX_VALUE, false)) {
                     while (result.next()) {
                         Value[] row = result.currentRow();
@@ -954,6 +922,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                             break;
                         case "TIME ZONE":
                             timeZone = TimeZoneProvider.ofId(value);
+                            break;
+                        case "JAVA_OBJECT_SERIALIZER":
+                            javaObjectSerializerName = value;
                         }
                     }
                 }
@@ -963,6 +934,18 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                 mode = Mode.getRegular();
             }
             dynamicSettings = settings = new DynamicSettings(mode, timeZone);
+            if (javaObjectSerializerName != null
+                    && !(javaObjectSerializerName = javaObjectSerializerName.trim()).isEmpty()
+                    && !javaObjectSerializerName.equals("null")) {
+                try {
+                    javaObjectSerializer = (JavaObjectSerializer) JdbcUtils
+                            .loadUserClass(javaObjectSerializerName).getDeclaredConstructor().newInstance();
+                } catch (Exception e) {
+                    throw DbException.convert(e);
+                }
+            } else {
+                javaObjectSerializer = null;
+            }
         }
         return settings;
     }

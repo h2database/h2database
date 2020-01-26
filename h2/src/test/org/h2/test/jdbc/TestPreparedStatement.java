@@ -622,8 +622,8 @@ public class TestPreparedStatement extends TestDb {
         prep.setObject(3, null);
         prep.execute();
         prep.setInt(1, 2);
-        prep.setObject(2, 101, Types.OTHER);
-        prep.setObject(3, 103, Types.OTHER);
+        prep.setObject(2, 101, Types.JAVA_OBJECT);
+        prep.setObject(3, 103, Types.JAVA_OBJECT);
         prep.execute();
         PreparedStatement p2 = conn.prepareStatement(
                 "SELECT * FROM TEST ORDER BY ID");
@@ -1364,13 +1364,13 @@ public class TestPreparedStatement extends TestDb {
         prep.setObject(13, new java.util.Date(java.sql.Date.valueOf(
                 "2001-02-03").getTime()));
         prep.setObject(14, new byte[] { 10, 20, 30 });
-        prep.setObject(15, 'a', Types.OTHER);
+        prep.setObject(15, 'a', Types.JAVA_OBJECT);
         prep.setObject(16, "2001-01-02", Types.DATE);
         // converting to null seems strange...
         prep.setObject(17, "2001-01-02", Types.NULL);
         prep.setObject(18, "3.725", Types.DOUBLE);
         prep.setObject(19, "23:22:21", Types.TIME);
-        prep.setObject(20, new java.math.BigInteger("12345"), Types.OTHER);
+        prep.setObject(20, new java.math.BigInteger("12345"), Types.JAVA_OBJECT);
         prep.setArray(21, conn.createArrayOf("TINYINT", new Object[] {(byte) 1}));
         prep.setArray(22, conn.createArrayOf("SMALLINT", new Object[] {(short) -2}));
         rs = prep.executeQuery();

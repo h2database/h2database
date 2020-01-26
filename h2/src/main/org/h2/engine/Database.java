@@ -173,6 +173,9 @@ public class Database implements DataHandler, CastDataProvider {
     private Role publicRole;
     private final AtomicLong modificationDataId = new AtomicLong();
     private final AtomicLong modificationMetaId = new AtomicLong();
+    /**
+     * Used to trigger the client side to reload some of the settings.
+     */
     private final AtomicLong remoteSettingsId = new AtomicLong();
     private CompareMode compareMode;
     private String cluster = Constants.CLUSTERING_DISABLED;

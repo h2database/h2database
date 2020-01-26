@@ -737,7 +737,7 @@ public class TestSpatial extends TestDb {
     public static ResultSet pointTable(double x, double y) {
         GeometryFactory factory = new GeometryFactory();
         SimpleResultSet rs = new SimpleResultSet();
-        rs.addColumn("THE_GEOM", Types.JAVA_OBJECT, "GEOMETRY", 0, 0);
+        rs.addColumn("THE_GEOM", Types.OTHER, "GEOMETRY", 0, 0);
         rs.addRow(factory.createPoint(new Coordinate(x, y)));
         return rs;
     }

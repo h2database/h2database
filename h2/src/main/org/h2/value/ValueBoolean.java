@@ -5,9 +5,6 @@
  */
 package org.h2.value;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
 import org.h2.engine.CastDataProvider;
 
 /**
@@ -91,12 +88,6 @@ public class ValueBoolean extends Value {
     @Override
     public Object getObject() {
         return value;
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
-        prep.setBoolean(parameterIndex, value);
     }
 
     /**

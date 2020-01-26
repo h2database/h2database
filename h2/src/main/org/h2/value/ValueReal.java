@@ -6,8 +6,6 @@
 package org.h2.value;
 
 import java.math.BigDecimal;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
@@ -95,6 +93,13 @@ public class ValueReal extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        if ((sqlFlags & NO_CASTS) == 0) {
+            return getSQL(builder.append("CAST(")).append(" AS REAL)");
+        }
+        return getSQL(builder);
+    }
+
+    private StringBuilder getSQL(StringBuilder builder) {
         if (value == Float.POSITIVE_INFINITY) {
             builder.append("POWER(0, -1)");
         } else if (value == Float.NEGATIVE_INFINITY) {
@@ -164,12 +169,6 @@ public class ValueReal extends Value {
     @Override
     public Object getObject() {
         return value;
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
-        prep.setFloat(parameterIndex, value);
     }
 
     /**

@@ -10,7 +10,6 @@ import java.sql.Date;
 import java.sql.Time;
 import java.util.concurrent.TimeUnit;
 
-import org.h2.api.JavaObjectSerializer;
 import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.result.SimpleResult;
 import org.h2.store.Data;
@@ -70,7 +69,7 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
     private static void testPerformance() {
-        Data data = Data.create(null, 1024, false);
+        Data data = Data.create(null, null, 1024, false);
         for (int j = 0; j < 4; j++) {
             long time = System.nanoTime();
             for (int i = 0; i < 100000; i++) {
@@ -170,8 +169,8 @@ public class TestDataPage extends TestBase implements DataHandler {
         testValue(LegacyDateTimeUtils.fromTimestamp(null, System.currentTimeMillis(), 0));
         testValue(LegacyDateTimeUtils.fromTimestamp(null, 0L, 0));
         testValue(ValueTimestampTimeZone.parse("2000-01-01 10:00:00+00", null));
-        testValue(ValueJavaObject.getNoCopy(null, new byte[0], this));
-        testValue(ValueJavaObject.getNoCopy(null, new byte[100], this));
+        testValue(ValueJavaObject.getNoCopy(null, new byte[0], null));
+        testValue(ValueJavaObject.getNoCopy(null, new byte[100], null));
         for (int i = 0; i < 300; i++) {
             testValue(ValueVarbinary.getNoCopy(new byte[i]));
         }
@@ -224,7 +223,7 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
     private void testValue(Value v, boolean storeLocalTime) {
-        Data data = Data.create(null, 1024, storeLocalTime);
+        Data data = Data.create(null, null, 1024, storeLocalTime);
         data.checkCapacity((int) v.getType().getPrecision());
         data.writeValue(v);
         data.writeInt(123);
@@ -236,7 +235,7 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
     private void testAll() {
-        Data page = Data.create(this, 128, false);
+        Data page = Data.create(this, null, 128, false);
 
         char[] data = new char[0x10000];
         for (int i = 0; i < data.length; i++) {
@@ -344,11 +343,6 @@ public class TestDataPage extends TestBase implements DataHandler {
     public int readLob(long lobId, byte[] hmac, long offset, byte[] buff,
             int off, int length) {
         return -1;
-    }
-
-    @Override
-    public JavaObjectSerializer getJavaObjectSerializer() {
-        return null;
     }
 
     @Override

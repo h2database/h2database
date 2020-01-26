@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import org.h2.api.ErrorCode;
-import org.h2.api.JavaObjectSerializer;
 import org.h2.command.Prepared;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -254,11 +253,6 @@ abstract class ScriptBase extends Prepared implements DataHandler {
     public int readLob(long lobId, byte[] hmac, long offset, byte[] buff,
             int off, int length) {
         throw DbException.throwInternalError();
-    }
-
-    @Override
-    public JavaObjectSerializer getJavaObjectSerializer() {
-        return session.getDataHandler().getJavaObjectSerializer();
     }
 
     @Override

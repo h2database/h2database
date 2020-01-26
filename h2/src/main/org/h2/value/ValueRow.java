@@ -5,9 +5,6 @@
  */
 package org.h2.value;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
@@ -84,11 +81,6 @@ public class ValueRow extends ValueCollectionBase {
             }
         }
         return 0;
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        throw getUnsupportedExceptionForOperation("PreparedStatement.set");
     }
 
     @Override

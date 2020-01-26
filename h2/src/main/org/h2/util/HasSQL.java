@@ -22,6 +22,11 @@ public interface HasSQL {
     int REPLACE_LOBS_FOR_TRACE = 2;
 
     /**
+     * Don't add casts around literals.
+     */
+    int NO_CASTS = 4;
+
+    /**
      * Default flags.
      */
     int DEFAULT_SQL_FLAGS = 0;

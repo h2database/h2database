@@ -8,9 +8,6 @@ package org.h2.value;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Types;
 
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
@@ -138,12 +135,6 @@ public class ValueNull extends Value {
     @Override
     public Object getObject() {
         return null;
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
-        prep.setNull(parameterIndex, Types.NULL);
     }
 
     @Override

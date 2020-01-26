@@ -5,7 +5,6 @@
  */
 package org.h2.value;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -158,11 +157,6 @@ public class ValueResultSet extends Value {
     @Override
     public ResultInterface getResult() {
         return result.createShallowCopy(null);
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex) {
-        throw getUnsupportedExceptionForOperation("PreparedStatement.set");
     }
 
     @Override

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
@@ -178,8 +179,7 @@ public class UpdatableRow {
         }
     }
 
-    private void setKey(PreparedStatement prep, int start, Value[] current)
-            throws SQLException {
+    private void setKey(PreparedStatement prep, int start, Value[] current) throws SQLException {
         for (int i = 0, size = key.size(); i < size; i++) {
             String col = key.get(i);
             int idx = getColumnIndex(col);
@@ -189,7 +189,7 @@ public class UpdatableRow {
                 // as multiple such rows could exist
                 throw DbException.get(ErrorCode.NO_DATA_AVAILABLE);
             }
-            v.set(prep, start + i);
+            JdbcUtils.set(prep, start + i, v, conn);
         }
     }
 
@@ -280,7 +280,7 @@ public class UpdatableRow {
             if (v == null) {
                 v = current[i];
             }
-            v.set(prep, j++);
+            JdbcUtils.set(prep, j++, v, conn);
         }
         setKey(prep, j, current);
         int count = prep.executeUpdate();
@@ -318,7 +318,7 @@ public class UpdatableRow {
         for (int i = 0, j = 0; i < columnCount; i++) {
             Value v = row[i];
             if (v != null) {
-                v.set(prep, j++ + 1);
+                JdbcUtils.set(prep, j++ + 1, v, conn);
             }
         }
         int count = prep.executeUpdate();

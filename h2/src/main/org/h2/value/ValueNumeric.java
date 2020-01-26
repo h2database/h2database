@@ -8,8 +8,6 @@ package org.h2.value;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
@@ -130,7 +128,12 @@ public class ValueNumeric extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return builder.append(getString());
+        String s = getString();
+        if ((sqlFlags & NO_CASTS) == 0 && value.scale() == 0 && value.compareTo(MAX_LONG_DECIMAL) <= 0
+                && value.compareTo(MIN_LONG_DECIMAL) >= 0) {
+            return builder.append("CAST(").append(value).append(" AS NUMERIC(").append(value.precision()).append("))");
+        }
+        return builder.append(s);
     }
 
     @Override
@@ -178,12 +181,6 @@ public class ValueNumeric extends Value {
     @Override
     public Object getObject() {
         return value;
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
-        prep.setBigDecimal(parameterIndex, value);
     }
 
     /**

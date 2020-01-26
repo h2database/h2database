@@ -6,8 +6,6 @@
 package org.h2.value;
 
 import java.math.BigDecimal;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
@@ -101,6 +99,8 @@ public class ValueDouble extends Value {
             builder.append("(-POWER(0, -1))");
         } else if (Double.isNaN(value)) {
             builder.append("SQRT(-1)");
+        } else if ((sqlFlags & NO_CASTS) == 0) {
+            builder.append("CAST(").append(value).append(" AS DOUBLE)");
         } else {
             builder.append(value);
         }
@@ -159,12 +159,6 @@ public class ValueDouble extends Value {
     @Override
     public Object getObject() {
         return value;
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
-        prep.setDouble(parameterIndex, value);
     }
 
     /**

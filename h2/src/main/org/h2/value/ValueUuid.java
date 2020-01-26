@@ -5,8 +5,6 @@
  */
 package org.h2.value;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.UUID;
 
 import org.h2.api.ErrorCode;
@@ -128,8 +126,10 @@ public class ValueUuid extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append('\'');
-        return addString(builder).append('\'');
+        if ((sqlFlags & NO_CASTS) == 0) {
+            return addString(builder.append("CAST('")).append("' AS UUID)");
+        }
+        return addString(builder.append('\'')).append('\'');
     }
 
     @Override
@@ -200,12 +200,6 @@ public class ValueUuid extends Value {
     @Override
     public byte[] getBytes() {
         return Bits.uuidToBytes(high, low);
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
-        prep.setBytes(parameterIndex, getBytes());
     }
 
     /**

@@ -3090,7 +3090,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case CAST: {
-            args[0].getSQL(builder, sqlFlags).append(" AS ");
+            Expression a = args[0];
+            a.getSQL(builder, a instanceof ValueExpression ? sqlFlags | NO_CASTS : sqlFlags).append(" AS ");
             if (domain != null) {
                 domain.getSQL(builder, sqlFlags);
             } else {

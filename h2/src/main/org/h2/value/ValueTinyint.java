@@ -5,9 +5,6 @@
  */
 package org.h2.value;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
@@ -90,6 +87,9 @@ public class ValueTinyint extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        if ((sqlFlags & NO_CASTS) == 0) {
+            return builder.append("CAST(").append(value).append(" AS TINYINT)");
+        }
         return builder.append(value);
     }
 
@@ -131,12 +131,6 @@ public class ValueTinyint extends Value {
     @Override
     public Object getObject() {
         return value;
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
-        prep.setByte(parameterIndex, value);
     }
 
     /**

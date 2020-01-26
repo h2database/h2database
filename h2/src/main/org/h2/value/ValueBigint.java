@@ -6,8 +6,6 @@
 package org.h2.value;
 
 import java.math.BigInteger;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
@@ -148,6 +146,9 @@ public class ValueBigint extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        if ((sqlFlags & NO_CASTS) == 0 && (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE)) {
+            return builder.append("CAST(").append(value).append(" AS BIGINT)");
+        }
         return builder.append(value);
     }
 
@@ -184,12 +185,6 @@ public class ValueBigint extends Value {
     @Override
     public Object getObject() {
         return value;
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
-        prep.setLong(parameterIndex, value);
     }
 
     /**

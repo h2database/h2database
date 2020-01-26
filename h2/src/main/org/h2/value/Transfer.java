@@ -656,7 +656,7 @@ public class Transfer {
         case UUID:
             return ValueUuid.get(readLong(), readLong());
         case JAVA_OBJECT:
-            return ValueJavaObject.getNoCopy(null, readBytes(), session.getDataHandler());
+            return ValueJavaObject.getNoCopy(null, readBytes(), null);
         case BOOLEAN:
             return ValueBoolean.get(readBoolean());
         case TINYINT:

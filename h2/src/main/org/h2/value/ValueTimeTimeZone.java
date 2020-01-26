@@ -5,10 +5,6 @@
  */
 package org.h2.value;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Types;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
@@ -166,17 +162,6 @@ public class ValueTimeTimeZone extends Value {
     @Override
     public Object getObject() {
         return JSR310Utils.valueToOffsetTime(this, null);
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        try {
-            prep.setObject(parameterIndex, JSR310Utils.valueToOffsetTime(this, null), Types.TIME_WITH_TIMEZONE);
-            return;
-        } catch (SQLException ignore) {
-            // Nothing to do
-        }
-        prep.setString(parameterIndex, getString());
     }
 
 }

@@ -152,7 +152,7 @@ public enum H2Type implements SQLType {
     /**
      * The INTERVAL DAY TO SECOND data type.
      */
-    INTERVAL_DAY_TO_SECOND("INTERVAL DAY_TO_SECOND", Value.INTERVAL_DAY_TO_SECOND),
+    INTERVAL_DAY_TO_SECOND("INTERVAL DAY TO SECOND", Value.INTERVAL_DAY_TO_SECOND),
 
     /**
      * The INTERVAL HOUR TO MINUTE data type.

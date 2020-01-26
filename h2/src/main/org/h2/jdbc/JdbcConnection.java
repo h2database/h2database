@@ -34,6 +34,7 @@ import java.util.concurrent.Executor;
 import java.util.regex.Pattern;
 
 import org.h2.api.ErrorCode;
+import org.h2.api.JavaObjectSerializer;
 import org.h2.command.CommandInterface;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.ConnectionInfo;
@@ -1975,8 +1976,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         }
         case Value.JAVA_OBJECT:
             if (SysProperties.serializeJavaObject) {
-                return JdbcUtils.deserialize(v.getBytesNoCopy(),
-                        session.getDataHandler());
+                return JdbcUtils.deserialize(v.getBytesNoCopy(), session.getJavaObjectSerializer());
             }
             break;
         case Value.RESULT_SET: {
@@ -2033,6 +2033,15 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
         return session.currentTimeZone();
+    }
+
+    @Override
+    public JavaObjectSerializer getJavaObjectSerializer() {
+        SessionInterface session = this.session;
+        if (session == null) {
+            throw DbException.get(ErrorCode.OBJECT_CLOSED);
+        }
+        return session.getJavaObjectSerializer();
     }
 
 }

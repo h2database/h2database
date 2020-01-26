@@ -749,10 +749,11 @@ public class DataType {
                 if (SysProperties.serializeJavaObject) {
                     byte[] buff = rs.getBytes(columnIndex);
                     v = buff == null ? ValueNull.INSTANCE :
-                        ValueJavaObject.getNoCopy(null, buff, session.getDataHandler());
+                        ValueJavaObject.getNoCopy(null, buff, session.getJavaObjectSerializer());
                 } else {
                     Object o = rs.getObject(columnIndex);
-                    v = o == null ? ValueNull.INSTANCE : ValueJavaObject.getNoCopy(o, null, session.getDataHandler());
+                    v = o == null ? ValueNull.INSTANCE
+                            : ValueJavaObject.getNoCopy(o, null, session.getJavaObjectSerializer());
                 }
                 break;
             }
@@ -1262,7 +1263,7 @@ public class DataType {
         if (x == null) {
             return ValueNull.INSTANCE;
         } else if (type == Value.JAVA_OBJECT) {
-            return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
+            return ValueJavaObject.getNoCopy(x, null, session.getJavaObjectSerializer());
         } else if (x instanceof String) {
             return ValueVarchar.get((String) x);
         } else if (x instanceof Value) {
@@ -1386,7 +1387,7 @@ public class DataType {
                 throw DbException.convert(e);
             }
         } else {
-            return ValueJavaObject.getNoCopy(x, null, dataHandler);
+            return ValueJavaObject.getNoCopy(x, null, session.getJavaObjectSerializer());
         }
         return session.addTemporaryLob(lob);
     }
@@ -1820,7 +1821,7 @@ public class DataType {
         }
         if (v.getValueType() == Value.JAVA_OBJECT) {
             Object o = SysProperties.serializeJavaObject ? JdbcUtils.deserialize(v.getBytes(),
-                    conn.getSession().getDataHandler()) : v.getObject();
+                    conn.getJavaObjectSerializer()) : v.getObject();
             if (paramClass.isAssignableFrom(o.getClass())) {
                 return o;
             }

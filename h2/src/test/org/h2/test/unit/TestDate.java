@@ -15,6 +15,7 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
+import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
@@ -58,6 +59,11 @@ public class TestDate extends TestBase {
         @Override
         public TimeZoneProvider currentTimeZone() {
             return currentTimeZone;
+        }
+
+        @Override
+        public JavaObjectSerializer getJavaObjectSerializer() {
+            return null;
         }
 
     }

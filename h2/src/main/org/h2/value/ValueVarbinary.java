@@ -6,22 +6,15 @@
 package org.h2.value;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.Arrays;
 
-import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
-import org.h2.util.Bits;
 import org.h2.util.MathUtils;
-import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
  * Implementation of the VARBINARY data type.
- * It is also the base class for ValueJavaObject.
  */
-public class ValueVarbinary extends Value {
+public final class ValueVarbinary extends ValueBytesBase {
 
     /**
      * Empty value.
@@ -29,22 +22,12 @@ public class ValueVarbinary extends Value {
     public static final ValueVarbinary EMPTY = new ValueVarbinary(Utils.EMPTY_BYTES);
 
     /**
-     * The value.
-     */
-    protected byte[] value;
-
-    /**
      * Associated TypeInfo.
      */
-    protected TypeInfo type;
+    private TypeInfo type;
 
-    /**
-     * The hash code.
-     */
-    protected int hash;
-
-    protected ValueVarbinary(byte[] v) {
-        this.value = v;
+    protected ValueVarbinary(byte[] value) {
+        super(value);
     }
 
     /**
@@ -96,63 +79,8 @@ public class ValueVarbinary extends Value {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append("X'");
-        return StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
-    }
-
-    @Override
-    public byte[] getBytesNoCopy() {
-        return value;
-    }
-
-    @Override
-    public byte[] getBytes() {
-        return Utils.cloneByteArray(getBytesNoCopy());
-    }
-
-    @Override
-    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
-        byte[] v2 = ((ValueVarbinary) v).value;
-        if (mode.isBinaryUnsigned()) {
-            return Bits.compareNotNullUnsigned(value, v2);
-        }
-        return Bits.compareNotNullSigned(value, v2);
-    }
-
-    @Override
     public String getString() {
         return new String(value, StandardCharsets.UTF_8);
-    }
-
-    @Override
-    public int hashCode() {
-        if (hash == 0) {
-            hash = Utils.getByteArrayHash(value);
-        }
-        return hash;
-    }
-
-    @Override
-    public Object getObject() {
-        return getBytes();
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
-        prep.setBytes(parameterIndex, value);
-    }
-
-    @Override
-    public int getMemory() {
-        return value.length + 24;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        return other instanceof ValueVarbinary
-                && Arrays.equals(value, ((ValueVarbinary) other).value);
     }
 
 }

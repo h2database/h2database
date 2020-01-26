@@ -173,6 +173,7 @@ public class Database implements DataHandler, CastDataProvider {
     private Role publicRole;
     private final AtomicLong modificationDataId = new AtomicLong();
     private final AtomicLong modificationMetaId = new AtomicLong();
+    private final AtomicLong remoteSettingsId = new AtomicLong();
     private CompareMode compareMode;
     private String cluster = Constants.CLUSTERING_DISABLED;
     private boolean readOnly;
@@ -268,10 +269,10 @@ public class Database implements DataHandler, CastDataProvider {
             fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
         }
         this.databaseURL = ci.getURL();
-        String listener = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
-        if (listener != null) {
-            listener = StringUtils.trim(listener, true, true, "'");
-            setEventListenerClass(listener);
+        String s = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
+        if (s != null) {
+            s = StringUtils.trim(s, true, true, "'");
+            setEventListenerClass(s);
         }
         String modeName = ci.removeProperty("MODE", null);
         if (modeName != null) {
@@ -282,8 +283,11 @@ public class Database implements DataHandler, CastDataProvider {
         }
         this.logMode =
                 ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
-        this.javaObjectSerializerName =
-                ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
+        s = ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
+        if (s != null) {
+            s = StringUtils.trim(s, true, true, "'");
+            javaObjectSerializerName = s;
+        }
         this.allowBuiltinAliasOverride =
                 ci.getProperty("BUILTIN_ALIAS_OVERRIDE", false);
         boolean closeAtVmShutdown =
@@ -386,6 +390,14 @@ public class Database implements DataHandler, CastDataProvider {
         // (because MetaTable returns modificationDataId)
         modificationDataId.incrementAndGet();
         return modificationMetaId.incrementAndGet() - 1;
+    }
+
+    public long getRemoteSettingsId() {
+        return remoteSettingsId.get();
+    }
+
+    public long getNextRemoteSettingsId() {
+        return remoteSettingsId.incrementAndGet();
     }
 
     public int getPowerOffCount() {
@@ -2553,6 +2565,7 @@ public class Database implements DataHandler, CastDataProvider {
 
     public void setMode(Mode mode) {
         this.mode = mode;
+        getNextRemoteSettingsId();
     }
 
     @Override
@@ -2946,6 +2959,7 @@ public class Database implements DataHandler, CastDataProvider {
         synchronized (this) {
             javaObjectSerializerInitialized = false;
             javaObjectSerializerName = serializerName;
+            getNextRemoteSettingsId();
         }
     }
 

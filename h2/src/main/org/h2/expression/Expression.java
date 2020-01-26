@@ -318,7 +318,7 @@ public abstract class Expression implements HasSQL {
      * @return the alias name
      */
     public String getAlias() {
-        return getUnenclosedSQL(new StringBuilder(), QUOTE_ONLY_WHEN_REQUIRED).toString();
+        return getUnenclosedSQL(new StringBuilder(), QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS).toString();
     }
 
     /**

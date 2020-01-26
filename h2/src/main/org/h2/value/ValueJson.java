@@ -8,16 +8,11 @@ package org.h2.value;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.Arrays;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
-import org.h2.util.Bits;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 import org.h2.util.json.JSONByteArrayTarget;
 import org.h2.util.json.JSONBytesSource;
 import org.h2.util.json.JSONItemType;
@@ -27,7 +22,7 @@ import org.h2.util.json.JSONStringTarget;
 /**
  * Implementation of the JSON data type.
  */
-public class ValueJson extends Value {
+public final class ValueJson extends ValueBytesBase {
 
     private static final byte[] NULL_BYTES = "null".getBytes(StandardCharsets.ISO_8859_1),
             TRUE_BYTES = "true".getBytes(StandardCharsets.ISO_8859_1),
@@ -53,15 +48,8 @@ public class ValueJson extends Value {
      */
     public static final ValueJson ZERO = new ValueJson(new byte[] { '0' });
 
-    private final byte[] value;
-
-    /**
-     * The hash code.
-     */
-    private int hash;
-
     private ValueJson(byte[] value) {
-        this.value = value;
+        super(value);
     }
 
     @Override
@@ -85,21 +73,6 @@ public class ValueJson extends Value {
         return new String(value, StandardCharsets.UTF_8);
     }
 
-    @Override
-    public byte[] getBytes() {
-        return value.clone();
-    }
-
-    @Override
-    public byte[] getBytesNoCopy() {
-        return value;
-    }
-
-    @Override
-    public Object getObject() {
-        return value;
-    }
-
     /**
      * Returns JSON item type.
      *
@@ -114,34 +87,6 @@ public class ValueJson extends Value {
         default:
             return JSONItemType.SCALAR;
         }
-    }
-
-    @Override
-    public int getMemory() {
-        return value.length + 24;
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        prep.setBytes(parameterIndex, value);
-    }
-
-    @Override
-    public int hashCode() {
-        if (hash == 0) {
-            hash = Utils.getByteArrayHash(value);
-        }
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        return other instanceof ValueJson && Arrays.equals(value, ((ValueJson) other).value);
-    }
-
-    @Override
-    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
-        return Bits.compareNotNullUnsigned(value, ((ValueJson) v).value);
     }
 
     /**

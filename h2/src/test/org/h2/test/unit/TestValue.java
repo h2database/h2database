@@ -24,6 +24,7 @@ import java.util.TimeZone;
 import java.util.UUID;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.jdbc.JdbcConnection;
@@ -390,17 +391,18 @@ public class TestValue extends TestDb {
 
         // Test conversion from ValueJavaObject to ValueUuid
         String uuidStr = "12345678-1234-4321-8765-123456789012";
+        CastDataProvider provider = new TestDate.SimpleCastDataProvider();
 
         UUID origUUID = UUID.fromString(uuidStr);
         ValueJavaObject valObj = ValueJavaObject.getNoCopy(origUUID, null, null);
-        ValueUuid valUUID = valObj.convertToUuid();
+        ValueUuid valUUID = valObj.convertToUuid(provider);
         assertTrue(valUUID.getString().equals(uuidStr));
         assertTrue(valUUID.getObject().equals(origUUID));
 
         ValueJavaObject voString = ValueJavaObject.getNoCopy(
                 new String("This is not a ValueUuid object"), null, null);
         try {
-            voString.convertToUuid();
+            voString.convertToUuid(provider);
             fail();
         } catch (DbException expected) {
         }

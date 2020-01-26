@@ -5,8 +5,6 @@
  */
 package org.h2.value;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import org.h2.engine.CastDataProvider;
 
 /**
@@ -125,11 +123,6 @@ public class ValueArray extends ValueCollectionBase {
             }
         }
         return Integer.compare(l, ol);
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        prep.setArray(parameterIndex, prep.getConnection().createArrayOf("NULL", (Object[]) getObject()));
     }
 
     @Override

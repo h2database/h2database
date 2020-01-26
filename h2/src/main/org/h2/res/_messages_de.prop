@@ -61,7 +61,7 @@
 90024=Fehler beim Umbenennen der Datei {0} nach {1}
 90025=Kann Datei {0} nicht löschen
 90026=Serialisierung fehlgeschlagen, Grund: {0}
-90027=De-Serialisierung fehlgeschlagen, Grund: {1}
+90027=De-Serialisierung fehlgeschlagen, Grund: {0}
 90028=Eingabe/Ausgabe Fehler: {0}
 90029=Im Moment nicht auf einer veränderbaren Zeile
 90030=Datei fehlerhaft beim Lesen des Datensatzes: {0}. Mögliche Lösung: Recovery Werkzeug verwenden

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -36,6 +37,7 @@ import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueUuid;
 
 /**
  * This is a utility class with JDBC helper functions.
@@ -75,6 +77,10 @@ public class JdbcUtils {
         "sqlserver:", "com.microsoft.sqlserver.jdbc.SQLServerDriver",
         "teradata:", "com.ncr.teradata.TeraDriver",
     };
+
+    private static final byte[] UUID_PREFIX =
+            "\254\355\0\5sr\0\16java.util.UUID\274\231\3\367\230m\205/\2\0\2J\0\14leastSigBitsJ\0\13mostSigBitsxp"
+            .getBytes(StandardCharsets.ISO_8859_1);
 
     private static boolean allowAllClasses;
     private static HashSet<String> allowedClassNames;
@@ -413,6 +419,25 @@ public class JdbcUtils {
         } catch (Throwable e) {
             throw DbException.get(ErrorCode.DESERIALIZATION_FAILED_1, e, e.toString());
         }
+    }
+
+    /**
+     * De-serialize the byte array to a UUID object.
+     *
+     * @param data the byte array
+     * @return the UUID object
+     * @throws DbException if serialization fails
+     */
+    public static ValueUuid deserializeUuid(byte[] data) {
+        uuid: if (data.length == 80) {
+            for (int i = 0; i < 64; i++) {
+                if (data[i] != UUID_PREFIX[i]) {
+                    break uuid;
+                }
+            }
+            return ValueUuid.get(Bits.readLong(data, 72), Bits.readLong(data, 64));
+        }
+        throw DbException.get(ErrorCode.DESERIALIZATION_FAILED_1, "Is not a UUID");
     }
 
     /**

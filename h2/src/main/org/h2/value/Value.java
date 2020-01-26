@@ -846,7 +846,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case CLOB:
             return convertToClob(targetType, conversionMode, column);
         case UUID:
-            return convertToUuid(provider);
+            return convertToUuid();
         case GEOMETRY:
             return convertToGeometry((ExtTypeInfoGeometry) targetType.getExtTypeInfo());
         case INTERVAL_YEAR:
@@ -1744,22 +1744,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     /**
      * Converts this value to a UUID value. May not be called on a NULL value.
      *
-     * @param provider
-     *            the cast information provider
      * @return the UUID value
      */
-    public final ValueUuid convertToUuid(CastDataProvider provider) {
+    public final ValueUuid convertToUuid() {
         switch (getValueType()) {
         case UUID:
             return (ValueUuid) this;
         case VARBINARY:
             return ValueUuid.get(getBytesNoCopy());
         case JAVA_OBJECT:
-            Object object = JdbcUtils.deserialize(getBytesNoCopy(), provider.getJavaObjectSerializer());
-            if (object instanceof java.util.UUID) {
-                return ValueUuid.get((java.util.UUID) object);
-            }
-            //$FALL-THROUGH$
+            return JdbcUtils.deserializeUuid(getBytesNoCopy());
         case TIMESTAMP_TZ:
             throw getDataConversionError(UUID);
         case NULL:

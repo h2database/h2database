@@ -770,7 +770,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     @Override
     public JavaObjectSerializer getJavaObjectSerializer() {
-        if (staticSettings == null) {
+        if (dynamicSettings == null) {
             getDynamicSettings();
         }
         return javaObjectSerializer;

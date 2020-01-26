@@ -745,8 +745,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @param provider
      *            the cast information provider
      * @param column
-     *            the column, used for to improve the error message if
-     *            conversion fails
+     *            the column, used to improve the error message if conversion
+     *            fails
      * @return the converted value
      */
     public final Value convertTo(TypeInfo targetType, CastDataProvider provider, Object column) {
@@ -755,7 +755,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
 
     /**
      * Cast a value to the specified type. The scale is set if applicable. The
-     * value is truncated to a required precision.
+     * value is truncated to the required precision.
      *
      * @param targetType
      *            the type of the returned value
@@ -776,8 +776,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @param provider
      *            the cast information provider
      * @param column
-     *            the column, used for to improve the error message if
-     *            conversion fails
+     *            the column, used to improve the error message if conversion
+     *            fails
      * @return the converted value
      */
     public final Value convertForAssignTo(TypeInfo targetType, CastDataProvider provider, Object column) {
@@ -790,7 +790,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @param targetType the type of the returned value
      * @param provider the cast information provider
      * @param conversionMode conversion mode
-     * @param column the column (if any), used for to improve the error message if conversion fails
+     * @param column the column (if any), used to improve the error message if conversion fails
      * @return the converted value
      */
     private Value convertTo(TypeInfo targetType, CastDataProvider provider, int conversionMode, Object column) {

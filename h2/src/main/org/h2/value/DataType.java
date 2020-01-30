@@ -317,7 +317,7 @@ public class DataType {
         );
         add(Value.JAVA_OBJECT, Types.JAVA_OBJECT,
                 createString(false),
-                new String[]{"OTHER", "OBJECT", "JAVA_OBJECT"}
+                new String[]{"JAVA_OBJECT", "OBJECT", "OTHER"}
         );
         add(Value.BLOB, Types.BLOB,
                 createLob(false),

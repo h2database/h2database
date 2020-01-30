@@ -17,7 +17,7 @@ import org.h2.util.MathUtils;
 /**
  * Implementation of the NUMERIC data type.
  */
-public class ValueNumeric extends Value {
+public final class ValueNumeric extends Value {
 
     /**
      * The value 'zero'.

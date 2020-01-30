@@ -13,11 +13,8 @@ import org.h2.util.JSR310Utils;
 
 /**
  * Implementation of the TIMESTAMP WITH TIME ZONE data type.
- *
- * @see <a href="https://en.wikipedia.org/wiki/ISO_8601#Time_zone_designators">
- *      ISO 8601 Time zone designators</a>
  */
-public class ValueTimestampTimeZone extends Value {
+public final class ValueTimestampTimeZone extends Value {
 
     /**
      * The default precision and display size of the textual representation of a timestamp.

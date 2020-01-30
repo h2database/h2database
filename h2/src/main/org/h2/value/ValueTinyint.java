@@ -12,7 +12,7 @@ import org.h2.message.DbException;
 /**
  * Implementation of the TINYINT data type.
  */
-public class ValueTinyint extends Value {
+public final class ValueTinyint extends Value {
 
     /**
      * The precision in digits.

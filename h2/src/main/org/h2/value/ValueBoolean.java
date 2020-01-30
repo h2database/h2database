@@ -10,7 +10,7 @@ import org.h2.engine.CastDataProvider;
 /**
  * Implementation of the BOOLEAN data type.
  */
-public class ValueBoolean extends Value {
+public final class ValueBoolean extends Value {
 
     /**
      * The precision in digits.

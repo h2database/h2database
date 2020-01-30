@@ -10,7 +10,7 @@ import org.h2.util.StringUtils;
 /**
  * ENUM value.
  */
-public class ValueEnum extends ValueEnumBase {
+public final class ValueEnum extends ValueEnumBase {
 
     private final ExtTypeInfoEnum enumerators;
 

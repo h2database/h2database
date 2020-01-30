@@ -14,7 +14,7 @@ import org.h2.message.DbException;
 /**
  * Implementation of the BIGINT data type.
  */
-public class ValueBigint extends Value {
+public final class ValueBigint extends Value {
 
     /**
      * The smallest {@code ValueLong} value.

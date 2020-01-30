@@ -10,7 +10,7 @@ import org.h2.engine.CastDataProvider;
 /**
  * Implementation of the ARRAY data type.
  */
-public class ValueArray extends ValueCollectionBase {
+public final class ValueArray extends ValueCollectionBase {
 
     /**
      * Empty array.

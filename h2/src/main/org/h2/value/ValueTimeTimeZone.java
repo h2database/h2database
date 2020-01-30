@@ -14,7 +14,7 @@ import org.h2.util.JSR310Utils;
 /**
  * Implementation of the TIME WITH TIME ZONE data type.
  */
-public class ValueTimeTimeZone extends Value {
+public final class ValueTimeTimeZone extends Value {
 
     /**
      * The default precision and display size of the textual representation of a

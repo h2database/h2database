@@ -14,7 +14,7 @@ import org.h2.util.JSR310Utils;
 /**
  * Implementation of the DATE data type.
  */
-public class ValueDate extends Value {
+public final class ValueDate extends Value {
 
     /**
      * The default precision and display size of the textual representation of a date.

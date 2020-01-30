@@ -15,7 +15,7 @@ import org.h2.message.DbException;
 /**
  * Implementation of NULL. NULL is not a regular data type.
  */
-public class ValueNull extends Value {
+public final class ValueNull extends Value {
 
     /**
      * The main NULL instance.

@@ -14,7 +14,7 @@ import org.h2.util.JSR310Utils;
 /**
  * Implementation of the TIME data type.
  */
-public class ValueTime extends Value {
+public final class ValueTime extends Value {
 
     /**
      * The default precision and display size of the textual representation of a time.

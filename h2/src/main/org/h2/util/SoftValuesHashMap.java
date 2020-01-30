@@ -21,12 +21,12 @@ import java.util.Set;
  * @param <K> the key type
  * @param <V> the value type
  */
-public class SoftHashMap<K, V> extends AbstractMap<K, V> {
+public class SoftValuesHashMap<K, V> extends AbstractMap<K, V> {
 
     private final Map<K, SoftValue<V>> map;
     private final ReferenceQueue<V> queue = new ReferenceQueue<>();
 
-    public SoftHashMap() {
+    public SoftValuesHashMap() {
         map = new HashMap<>();
     }
 

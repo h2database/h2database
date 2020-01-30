@@ -28,7 +28,6 @@ import org.h2.util.HasSQL;
 import org.h2.util.IntervalUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.StringUtils;
 import org.h2.util.geometry.GeoJsonUtils;
 
 /**
@@ -1611,6 +1610,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     }
 
     private String convertToVarchar(TypeInfo targetType, int conversionMode, Object column) {
+        if (getValueType() == JAVA_OBJECT) {
+            throw getDataConversionError(targetType.getValueType());
+        }
         String s = getString();
         if (conversionMode != CONVERT_TO) {
             int p = MathUtils.convertLongToInt(targetType.getPrecision());
@@ -1625,6 +1627,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     }
 
     private ValueChar convertToChar(TypeInfo targetType, int conversionMode, Object column) {
+        if (getValueType() == JAVA_OBJECT) {
+            throw getDataConversionError(targetType.getValueType());
+        }
         String s = getString();
         int p = MathUtils.convertLongToInt(targetType.getPrecision()), l = s.length();
         if (conversionMode == CAST_TO && l > p) {
@@ -1652,13 +1657,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case VARBINARY:
         case BLOB:
             return ValueJavaObject.getNoCopy(getBytesNoCopy());
-        case ENUM:
-        case TIMESTAMP_TZ:
-            throw getDataConversionError(JAVA_OBJECT);
         case NULL:
             throw DbException.throwInternalError();
+        default:
+            throw getDataConversionError(JAVA_OBJECT);
         }
-        return ValueJavaObject.getNoCopy(StringUtils.convertHexToBytes(getString().trim()));
     }
 
     /**

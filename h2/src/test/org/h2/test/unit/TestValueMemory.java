@@ -218,7 +218,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.RESULT_SET:
             return ValueResultSet.get(new SimpleResult());
         case Value.JAVA_OBJECT:
-            return ValueJavaObject.getNoCopy(null, randomBytes(random.nextInt(100)), null);
+            return ValueJavaObject.getNoCopy(randomBytes(random.nextInt(100)));
         case Value.UUID:
             return ValueUuid.get(random.nextLong(), random.nextLong());
         case Value.CHAR:

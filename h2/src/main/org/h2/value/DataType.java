@@ -746,15 +746,8 @@ public class DataType {
                 break;
             }
             case Value.JAVA_OBJECT: {
-                if (SysProperties.serializeJavaObject) {
-                    byte[] buff = rs.getBytes(columnIndex);
-                    v = buff == null ? ValueNull.INSTANCE :
-                        ValueJavaObject.getNoCopy(null, buff, session.getJavaObjectSerializer());
-                } else {
-                    Object o = rs.getObject(columnIndex);
-                    v = o == null ? ValueNull.INSTANCE
-                            : ValueJavaObject.getNoCopy(o, null, session.getJavaObjectSerializer());
-                }
+                byte[] buff = rs.getBytes(columnIndex);
+                v = buff == null ? ValueNull.INSTANCE : ValueJavaObject.getNoCopy(buff);
                 break;
             }
             case Value.ARRAY: {
@@ -1259,7 +1252,7 @@ public class DataType {
         if (x == null) {
             return ValueNull.INSTANCE;
         } else if (type == Value.JAVA_OBJECT) {
-            return ValueJavaObject.getNoCopy(x, null, session.getJavaObjectSerializer());
+            return ValueJavaObject.getNoCopy(JdbcUtils.serialize(x, session.getJavaObjectSerializer()));
         } else if (x instanceof String) {
             return ValueVarchar.get((String) x);
         } else if (x instanceof Value) {
@@ -1383,7 +1376,7 @@ public class DataType {
                 throw DbException.convert(e);
             }
         } else {
-            return ValueJavaObject.getNoCopy(x, null, session.getJavaObjectSerializer());
+            return ValueJavaObject.getNoCopy(JdbcUtils.serialize(x, session.getJavaObjectSerializer()));
         }
         return session.addTemporaryLob(lob);
     }
@@ -1800,8 +1793,7 @@ public class DataType {
      * @param paramClass the target class
      * @return the converted object
      */
-    public static Object convertTo(JdbcConnection conn, Value v,
-            Class<?> paramClass) {
+    public static Object convertTo(JdbcConnection conn, Value v, Class<?> paramClass) {
         if (paramClass == Time.class) {
             return LegacyDateTimeUtils.toTime(conn, null, v);
         } else if (paramClass == Date.class) {
@@ -1816,8 +1808,7 @@ public class DataType {
             return new JdbcArray(conn, v, 0);
         }
         if (v.getValueType() == Value.JAVA_OBJECT) {
-            Object o = SysProperties.serializeJavaObject ? JdbcUtils.deserialize(v.getBytes(),
-                    conn.getJavaObjectSerializer()) : v.getObject();
+            Object o = JdbcUtils.deserialize(v.getBytes(), conn.getJavaObjectSerializer());
             if (paramClass.isAssignableFrom(o.getClass())) {
                 return o;
             }

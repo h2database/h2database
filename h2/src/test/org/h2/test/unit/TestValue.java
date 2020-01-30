@@ -36,6 +36,7 @@ import org.h2.test.TestDb;
 import org.h2.test.utils.AssertThrows;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Bits;
+import org.h2.util.JdbcUtils;
 import org.h2.util.LegacyDateTimeUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
@@ -392,13 +393,13 @@ public class TestValue extends TestDb {
         String uuidStr = "12345678-1234-4321-8765-123456789012";
 
         UUID origUUID = UUID.fromString(uuidStr);
-        ValueJavaObject valObj = ValueJavaObject.getNoCopy(origUUID, null, null);
+        ValueJavaObject valObj = ValueJavaObject.getNoCopy(JdbcUtils.serialize(origUUID, null));
         ValueUuid valUUID = valObj.convertToUuid();
         assertTrue(valUUID.getString().equals(uuidStr));
         assertTrue(valUUID.getObject().equals(origUUID));
 
-        ValueJavaObject voString = ValueJavaObject.getNoCopy(
-                new String("This is not a ValueUuid object"), null, null);
+        ValueJavaObject voString = ValueJavaObject.getNoCopy(JdbcUtils.serialize(
+                new String("This is not a ValueUuid object"), null));
         try {
             voString.convertToUuid();
             fail();

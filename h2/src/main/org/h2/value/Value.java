@@ -838,7 +838,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case CHAR:
             return convertToChar(targetType, conversionMode, column);
         case JAVA_OBJECT:
-            return convertToJavaObject(provider);
+            return convertToJavaObject();
         case ENUM:
             return convertToEnum((ExtTypeInfoEnum) targetType.getExtTypeInfo());
         case BLOB:
@@ -1643,27 +1643,22 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * Converts this value to a JAVA_OBJECT value. May not be called on a NULL
      * value.
      *
-     * @param provider
-     *            the cast information provider
      * @return the JAVA_OBJECT value
      */
-    public final ValueJavaObject convertToJavaObject(CastDataProvider provider) {
+    public final ValueJavaObject convertToJavaObject() {
         switch (getValueType()) {
         case JAVA_OBJECT:
             return (ValueJavaObject) this;
         case VARBINARY:
         case BLOB:
-            return ValueJavaObject.getNoCopy(null, getBytesNoCopy(), provider.getJavaObjectSerializer());
-        case GEOMETRY:
-            return ValueJavaObject.getNoCopy(getObject(), null, provider.getJavaObjectSerializer());
+            return ValueJavaObject.getNoCopy(getBytesNoCopy());
         case ENUM:
         case TIMESTAMP_TZ:
             throw getDataConversionError(JAVA_OBJECT);
         case NULL:
             throw DbException.throwInternalError();
         }
-        return ValueJavaObject.getNoCopy(null, StringUtils.convertHexToBytes(getString().trim()),
-                provider.getJavaObjectSerializer());
+        return ValueJavaObject.getNoCopy(StringUtils.convertHexToBytes(getString().trim()));
     }
 
     /**

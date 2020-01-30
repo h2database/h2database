@@ -128,13 +128,7 @@ public final class RootReference<K,V>
      * @return the new, unlocked, root reference, or null if not successful
      */
     RootReference<K,V> updateRootPage(Page<K,V> newRootPage, long attemptCounter) {
-        if (holdCount == 0) {
-            RootReference<K,V> updatedRootReference = new RootReference<>(this, newRootPage, attemptCounter);
-            if (root.map.compareAndSetRoot(this, updatedRootReference)) {
-                return updatedRootReference;
-            }
-        }
-        return null;
+        return isFree() ? tryUpdate(new RootReference<>(this, newRootPage, attemptCounter)) : null;
     }
 
     /**
@@ -144,13 +138,7 @@ public final class RootReference<K,V>
      * @return the new, locked, root reference, or null if not successful
      */
     RootReference<K,V> tryLock(int attemptCounter) {
-        if (holdCount == 0 || ownerId == Thread.currentThread().getId()) {
-            RootReference<K,V> lockedRootReference = new RootReference<>(this, attemptCounter);
-            if (root.map.compareAndSetRoot(this, lockedRootReference)) {
-                return lockedRootReference;
-            }
-        }
-        return null;
+        return canUpdate() ? tryUpdate(new RootReference<>(this, attemptCounter)) : null;
     }
 
     /**
@@ -161,13 +149,7 @@ public final class RootReference<K,V>
      * @return the new, unlocked and updated, root reference, or null if not successful
      */
     RootReference<K,V> tryUnlockAndUpdateVersion(long version, int attempt) {
-        if (holdCount == 0 || ownerId == Thread.currentThread().getId()) {
-            RootReference<K,V> updatedRootReference = new RootReference<>(this, version, attempt);
-            if (root.map.compareAndSetRoot(this, updatedRootReference)) {
-                return updatedRootReference;
-            }
-        }
-        return null;
+        return canUpdate() ? tryUpdate(new RootReference<>(this, version, attempt)) : null;
     }
 
     /**
@@ -179,12 +161,7 @@ public final class RootReference<K,V>
      * @return the new root reference, or null if not successful
      */
     RootReference<K,V> updatePageAndLockedStatus(Page<K,V> page, boolean keepLocked, int appendCounter) {
-        assert isLockedByCurrentThread() : this;
-        RootReference<K,V> updatedRootReference = new RootReference<>(this, page, keepLocked, appendCounter);
-        if (root.map.compareAndSetRoot(this, updatedRootReference)) {
-            return updatedRootReference;
-        }
-        return null;
+        return canUpdate() ? tryUpdate(new RootReference<>(this, page, keepLocked, appendCounter)) : null;
     }
 
     /**
@@ -212,8 +189,22 @@ public final class RootReference<K,V>
         return holdCount != 0;
     }
 
+    private boolean isFree() {
+        return holdCount == 0;
+    }
+
+
+    private boolean canUpdate() {
+        return isFree() || ownerId == Thread.currentThread().getId();
+    }
+
     public boolean isLockedByCurrentThread() {
         return holdCount != 0 && ownerId == Thread.currentThread().getId();
+    }
+
+    private RootReference<K,V> tryUpdate(RootReference<K,V> updatedRootReference) {
+        assert canUpdate();
+        return root.map.compareAndSetRoot(this, updatedRootReference) ? updatedRootReference : null;
     }
 
     long getVersion() {

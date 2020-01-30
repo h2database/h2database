@@ -837,7 +837,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case CHAR:
             return convertToChar(targetType, conversionMode, column);
         case JAVA_OBJECT:
-            return convertToJavaObject();
+            return convertToJavaObject(targetType, conversionMode, column);
         case ENUM:
             return convertToEnum((ExtTypeInfoEnum) targetType.getExtTypeInfo());
         case BLOB:
@@ -1648,20 +1648,34 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * Converts this value to a JAVA_OBJECT value. May not be called on a NULL
      * value.
      *
+     * @param targetType
+     *            the type of the returned value
+     * @param conversionMode
+     *            conversion mode
+     * @param column
+     *            the column (if any), used to improve the error message if
+     *            conversion fails
      * @return the JAVA_OBJECT value
      */
-    public final ValueJavaObject convertToJavaObject() {
+    public final ValueJavaObject convertToJavaObject(TypeInfo targetType, int conversionMode, Object column) {
+        ValueJavaObject v;
         switch (getValueType()) {
         case JAVA_OBJECT:
-            return (ValueJavaObject) this;
+            v = (ValueJavaObject) this;
+            break;
         case VARBINARY:
         case BLOB:
-            return ValueJavaObject.getNoCopy(getBytesNoCopy());
+            v = ValueJavaObject.getNoCopy(getBytesNoCopy());
+            break;
         case NULL:
             throw DbException.throwInternalError();
         default:
             throw getDataConversionError(JAVA_OBJECT);
         }
+        if (conversionMode != CONVERT_TO && v.getBytesNoCopy().length > targetType.getPrecision()) {
+            throw v.getValueTooLongException(targetType, column);
+        }
+        return v;
     }
 
     /**

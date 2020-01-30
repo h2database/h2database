@@ -117,7 +117,7 @@ public class TypeInfo {
     public static final TypeInfo TYPE_RESULT_SET;
 
     /**
-     * JAVA_OBJECT type with parameters.
+     * JAVA_OBJECT type with maximum parameters.
      */
     public static final TypeInfo TYPE_JAVA_OBJECT;
 
@@ -304,7 +304,6 @@ public class TypeInfo {
         case Value.REAL:
         case Value.DATE:
         case Value.RESULT_SET:
-        case Value.JAVA_OBJECT:
         case Value.UUID:
         case Value.ROW:
         case Value.JSON:
@@ -375,6 +374,11 @@ public class TypeInfo {
                 precision = Integer.MAX_VALUE;
             }
             return new TypeInfo(Value.ARRAY, precision, 0, Integer.MAX_VALUE, extTypeInfo);
+        case Value.JAVA_OBJECT:
+            if (precision < 0 || precision > Integer.MAX_VALUE) {
+                return TYPE_JAVA_OBJECT;
+            }
+            return new TypeInfo(Value.JAVA_OBJECT, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
         case Value.CHAR:
             if (precision < 0 || precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
@@ -506,6 +510,7 @@ public class TypeInfo {
         case Value.VARBINARY:
         case Value.VARCHAR:
         case Value.VARCHAR_IGNORECASE:
+        case Value.JAVA_OBJECT:
         case Value.CHAR:
             builder.append(DataType.getDataType(valueType).name);
             if (precision < Integer.MAX_VALUE) {

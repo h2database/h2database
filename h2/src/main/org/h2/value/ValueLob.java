@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
@@ -39,7 +38,7 @@ import org.h2.util.Utils;
  * Small objects are kept in memory and stored in the record.
  * Large objects are either stored in the database, or in temporary files.
  */
-public class ValueLob extends Value {
+public final class ValueLob extends Value {
 
     private static final int BLOCK_COMPARISON_SIZE = 512;
 
@@ -202,7 +201,7 @@ public class ValueLob extends Value {
      * here.
      */
     private final byte[] small;
-    private final DataHandler handler;
+    private DataHandler handler;
     /**
      * For a BLOB, precision is length in bytes.
      * For a CLOB, precision is length in chars.
@@ -338,54 +337,6 @@ public class ValueLob extends Value {
     public static ValueLob create(int type, DataHandler handler,
             int tableId, long id, byte[] hmac, long precision) {
         return new ValueLob(type, handler, tableId, id, hmac, precision);
-    }
-
-    @Override
-    protected ValueLob convertToBlob(TypeInfo targetType, int conversionMode, Object column) {
-        ValueLob v;
-        if (valueType == BLOB) {
-            v = this;
-        } else if (handler != null) {
-            v = handler.getLobStorage().createBlob(getInputStream(), -1);
-        } else if (small != null) {
-            v = ValueLob.createSmallLob(BLOB, small);
-        } else {
-            v = ValueLob.createSmallLob(BLOB, getBytesNoCopy());
-        }
-        if (conversionMode != CONVERT_TO) {
-            if (conversionMode == CAST_TO) {
-                v = v.convertPrecision(targetType.getPrecision());
-            } else if (v.precision > targetType.getPrecision()) {
-                throw v.getValueTooLongException(targetType, column);
-            }
-        }
-        return v;
-    }
-
-    @Override
-    protected ValueLob convertToClob(TypeInfo targetType, int conversionMode, Object column) {
-        ValueLob v;
-        if (valueType == CLOB) {
-            v = this;
-        } else if (handler != null) {
-            v = handler.getLobStorage().createClob(getReader(), -1);
-        } else if (small != null) {
-            byte[] bytes = new String(small, StandardCharsets.UTF_8).getBytes(StandardCharsets.UTF_8);
-            if (Arrays.equals(bytes, small)) {
-                bytes = small;
-            }
-            v = ValueLob.createSmallLob(CLOB, bytes);
-        } else {
-            v = ValueLob.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
-        }
-        if (conversionMode != CONVERT_TO) {
-            if (conversionMode == CAST_TO) {
-                v = v.convertPrecision(targetType.getPrecision());
-            } else if (v.precision > targetType.getPrecision()) {
-                throw v.getValueTooLongException(targetType, column);
-            }
-        }
-        return v;
     }
 
     /**
@@ -640,6 +591,15 @@ public class ValueLob extends Value {
      */
     public byte[] getSmall() {
         return small;
+    }
+
+    /**
+     * Returns the data handler.
+     *
+     * @return the data handler, or {@code null}
+     */
+    public DataHandler getDataHandler() {
+        return handler;
     }
 
     @Override

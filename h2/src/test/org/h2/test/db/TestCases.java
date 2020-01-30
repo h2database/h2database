@@ -1139,7 +1139,7 @@ public class TestCases extends TestDb {
         stat.execute("drop table test");
         stat.execute("create table test(id identity)");
         stat.execute("insert into test values(1)");
-        assertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2, stat).
+        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, stat).
                 execute("alter table test alter column id date");
         conn.close();
         conn = getConnection("cases");

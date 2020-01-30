@@ -142,7 +142,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
         // but they should not contribute into total count.
         if (2 * undoLogsTotalSize > size) {
             // the undo log is larger than half of the map - scan the entries of the map directly
-            Cursor<K, VersionedValue<V>> cursor = new Cursor<>(mapRootPage, null);
+            Cursor<K, VersionedValue<V>> cursor = map.cursor(mapRootReference, null, null, false);
             while(cursor.hasNext()) {
                 cursor.next();
                 VersionedValue<?> currentValue = cursor.getValue();
@@ -159,7 +159,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
             // and then lookup relevant map entry.
             for (RootReference<Long,Record<?,?>> undoLogRootReference : undoLogRootReferences) {
                 if (undoLogRootReference != null) {
-                    Cursor<Long,Record<?,?>> cursor = new Cursor<>(undoLogRootReference.root, null);
+                    Cursor<Long,Record<?,?>> cursor = undoLogRootReference.root.map.cursor(undoLogRootReference, null, null, false);
                     while (cursor.hasNext()) {
                         cursor.next();
                         Record<?,?> op = cursor.getValue();
@@ -631,7 +631,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
     public K higherKey(K key) {
         RootReference<K,VersionedValue<V>> rootReference = getSnapshot().root;
         do {
-            key = map.higherKey(rootReference.root, key);
+            key = map.higherKey(rootReference, key);
         } while (key != null && getFromSnapshot(key) == null);
         return key;
     }
@@ -670,7 +670,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
     public K lowerKey(K key) {
         RootReference<K,VersionedValue<V>> rootReference = getSnapshot().root;
         do {
-            key = map.lowerKey(rootReference.root, key);
+            key = map.lowerKey(rootReference, key);
         } while (key != null && getFromSnapshot(key) == null);
         return key;
     }
@@ -883,7 +883,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
             super(transactionMap, from, to, transactionMap.getSnapshot(), reverse, forEntries);
             keyType = transactionMap.map.getKeyType();
             Snapshot<K,VersionedValue<V>> snapshot = transactionMap.getStatementSnapshot();
-            uncommittedCursor = new Cursor<>(snapshot.root.root, from, to);
+            uncommittedCursor = transactionMap.map.cursor(snapshot.root, from, to, reverse);
             fetchNext();
         }
 
@@ -978,7 +978,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
             Transaction transaction = transactionMap.getTransaction();
             this.transactionId = transaction.transactionId;
             this.forEntries = forEntries;
-            this.cursor = new Cursor<>(snapshot.root.root, from, to, reverse);
+            this.cursor = transactionMap.map.cursor(snapshot.root, from, to, reverse);
             this.committingTransactions = snapshot.committingTransactions;
         }
 

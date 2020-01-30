@@ -791,17 +791,6 @@ public abstract class Page<K,V> implements Cloneable
 
     public abstract int getRawChildPageCount();
 
-    @SuppressWarnings("rawtypes")
-    @Override
-    public final boolean equals(Object other) {
-        return other == this || other instanceof Page && isSaved() && ((Page) other).pos == pos;
-    }
-
-    @Override
-    public final int hashCode() {
-        return isSaved() ? (int) (pos | (pos >>> 32)) : super.hashCode();
-    }
-
     protected final boolean isPersistent() {
         return memory != IN_MEMORY;
     }

@@ -300,8 +300,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Get the smallest key that is larger than the given key, or null if no
-     * such key exists.
+     * Get the smallest key that is larger than the given key (next key in ascending order),
+     * or null if no such key exists.
      *
      * @param key the key
      * @return the result
@@ -314,12 +314,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Get the smallest key that is larger than the given key, for the given
      * root page, or null if no such key exists.
      *
-     * @param p the root page
-     * @param key the key
+     * @param rootRef the root reference of the map
+     * @param key to start from
      * @return the result
      */
-    public final K higherKey(Page<K,V> p, K key) {
-        return getMinMax(p, key, false, true);
+    public final K higherKey(RootReference<K,V> rootRef, K key) {
+        return getMinMax(rootRef, key, false, true);
     }
 
     /**
@@ -333,17 +333,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Get the smallest key that is larger or equal to this key, for the given root page.
-     *
-     * @param p the root page
-     * @param key the key
-     * @return the result
-     */
-    public final K ceilingKey(Page<K,V> p, K key) {
-        return getMinMax(p, key, false, false);
-    }
-
-    /**
      * Get the largest key that is smaller or equal to this key.
      *
      * @param key the key
@@ -351,17 +340,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     public final K floorKey(K key) {
         return getMinMax(key, true, false);
-    }
-
-    /**
-     * Get the largest key that is smaller or equal to this key, for the given root page.
-     *
-     * @param p the root page
-     * @param key the key
-     * @return the result
-     */
-    public final K floorKey(Page<K,V> p, K key) {
-        return getMinMax(p, key, true, false);
     }
 
     /**
@@ -379,12 +357,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Get the largest key that is smaller than the given key, for the given
      * root page, or null if no such key exists.
      *
-     * @param p the root page
+     * @param rootRef the root page
      * @param key the key
      * @return the result
      */
-    public final K lowerKey(Page<K,V> p, K key) {
-        return getMinMax(p, key, true, true);
+    public final K lowerKey(RootReference<K, V> rootRef, K key) {
+        return getMinMax(rootRef, key, true, true);
     }
 
     /**
@@ -396,7 +374,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the key, or null if no such key exists
      */
     private K getMinMax(K key, boolean min, boolean excluding) {
-        return getMinMax(getRootPage(), key, min, excluding);
+        return getMinMax(flushAndGetRoot(), key, min, excluding);
+    }
+
+    private K getMinMax(RootReference<K,V> rootRef, K key, boolean min, boolean excluding) {
+        return getMinMax(rootRef.root, key, min, excluding);
     }
 
     private K getMinMax(Page<K,V> p, K key, boolean min, boolean excluding) {
@@ -699,7 +681,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Get a cursor to iterate over a number of keys and values.
+     * Get a cursor to iterate over a number of keys and values in the latest version of this map.
      *
      * @param from the first key to return
      * @return the cursor
@@ -708,18 +690,39 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return cursor(from, null, false);
     }
 
+    /**
+     * Get a cursor to iterate over a number of keys and values in the latest version of this map.
+     *
+     * @param from the first key to return
+     * @param to the last key to return
+     * @param reverse if true, iterate in reverse (descending) order
+     * @return the cursor
+     */
     public final Cursor<K, V> cursor(K from, K to, boolean reverse) {
-        return new Cursor<>(getRootPage(), from, to, reverse);
+        return cursor(flushAndGetRoot(), from, to, reverse);
+    }
+
+    /**
+     * Get a cursor to iterate over a number of keys and values.
+     *
+     * @param rootReference of this map's version to iterate over
+     * @param from the first key to return
+     * @param to the last key to return
+     * @param reverse if true, iterate in reverse (descending) order
+     * @return the cursor
+     */
+    public Cursor<K, V> cursor(RootReference<K,V> rootReference, K from, K to, boolean reverse) {
+        return new Cursor<>(rootReference, from, to, reverse);
     }
 
     @Override
     public final Set<Map.Entry<K, V>> entrySet() {
-        final Page<K,V> root = this.getRootPage();
+        final RootReference<K,V> rootReference = flushAndGetRoot();
         return new AbstractSet<Entry<K, V>>() {
 
             @Override
             public Iterator<Entry<K, V>> iterator() {
-                final Cursor<K, V> cursor = new Cursor<>(root, null, null, false);
+                final Cursor<K, V> cursor = cursor(rootReference, null, null, false);
                 return new Iterator<Entry<K, V>>() {
 
                     @Override
@@ -752,12 +755,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     @Override
     public Set<K> keySet() {
-        final Page<K,V> root = getRootPage();
+        final RootReference<K,V> rootReference = flushAndGetRoot();
         return new AbstractSet<K>() {
 
             @Override
             public Iterator<K> iterator() {
-                return new Cursor<>(root, null);
+                return cursor(rootReference, null, null, false);
             }
 
             @Override
@@ -1666,7 +1669,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         /**
          * Makes a decision about how to proceed with the update.
          */
-        public Decision decide(V existingValue, V providedValue, CursorPos tip) {
+        public Decision decide(V existingValue, V providedValue, CursorPos<?,?> tip) {
             return decide(existingValue, providedValue);
         }
 
@@ -2036,7 +2039,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
 
         @Override
-        public Decision decide(V existingValue, V providedValue, CursorPos tip) {
+        public Decision decide(V existingValue, V providedValue, CursorPos<?,?> tip) {
             assert decision == null;
             decision = Decision.ABORT;
             if(!DataUtils.isLeafPosition(pagePos)) {

@@ -24,22 +24,20 @@ public final class Cursor<K,V> implements Iterator<K> {
     private V lastValue;
     private Page<K,V> lastPage;
 
-    public Cursor(Page<K,V> root, K from) {
-        this(root, from, null, false);
-    }
 
-    public Cursor(Page<K,V> root, K from, K to) {
-        this(root, from, to, false);
+    public Cursor(RootReference<K,V> rootReference, K from, K to) {
+        this(rootReference, from, to, false);
     }
 
     /**
-     * @param root node of the tree
+     * @param rootReference of the tree
      * @param from starting key (inclusive), if null start from the first / last key
      * @param to ending key (inclusive), if null there is no boundary
      * @param reverse true if tree should be iterated in key's descending order
      */
-    public Cursor(Page<K,V> root, K from, K to, boolean reverse) {
-        this.cursorPos = traverseDown(root, from, reverse);
+    public Cursor(RootReference<K,V> rootReference, K from, K to, boolean reverse) {
+        this.lastPage = rootReference.root;
+        this.cursorPos = traverseDown(lastPage, from, reverse);
         this.to = to;
         this.reverse = reverse;
     }
@@ -52,6 +50,7 @@ public final class Cursor<K,V> implements Iterator<K> {
                 Page<K,V> page = cursorPos.page;
                 int index = cursorPos.index;
                 if (reverse ? index < 0 : index >= upperBound(page)) {
+                    // traversal of this page is over, going up a level or stop if at the root already
                     CursorPos<K,V> tmp = cursorPos;
                     cursorPos = cursorPos.parent;
                     if(cursorPos == null)
@@ -61,6 +60,7 @@ public final class Cursor<K,V> implements Iterator<K> {
                     tmp.parent = keeper;
                     keeper = tmp;
                 } else {
+                    // traverse down to the leaf taking the leftmost path
                     while (!page.isLeaf()) {
                         page = page.getChildPage(index);
                         index = reverse ? upperBound(page) - 1 : 0;
@@ -156,12 +156,12 @@ public final class Cursor<K,V> implements Iterator<K> {
      * Fetch the next entry that is equal or larger than the given key, starting
      * from the given page. This method retains the stack.
      *
-     * @param p the page to start from
-     * @param key the key to search, null means search for the first key
+     * @param page to start from as a root
+     * @param key to search for, null means search for the first available key
      */
-    private static <K,V> CursorPos<K,V> traverseDown(Page<K,V> p, K key, boolean reverse) {
-        CursorPos<K,V> cursorPos = key != null ? CursorPos.traverseDown(p, key) :
-                reverse ? p.getAppendCursorPos(null) : p.getPrependCursorPos(null);
+    static <K,V> CursorPos<K,V> traverseDown(Page<K,V> page, K key, boolean reverse) {
+        CursorPos<K,V> cursorPos = key != null ? CursorPos.traverseDown(page, key) :
+                reverse ? page.getAppendCursorPos(null) : page.getPrependCursorPos(null);
         int index = cursorPos.index;
         if (index < 0) {
             index = ~index;

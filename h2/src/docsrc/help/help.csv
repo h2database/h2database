@@ -3661,15 +3661,22 @@ BINARY(1000)
 This type allows storing serialized Java objects. Internally, a byte array is used.
 The maximum size of serialized form is 2 GB, but the whole array is kept in memory when using this data type.
 The precision is a size constraint; only the actual data is persisted.
-Serialization and deserialization is done on the client side only.
+Serialization and deserialization is done on the client side only with one exclusion described below.
 Deserialization is only done when ""getObject"" is called.
 Java operations cannot be executed inside the database engine for security reasons.
 Use ""PreparedStatement.setObject"" with ""Types.JAVA_OBJECT"" or ""H2Type.JAVA_OBJECT""
 as a third argument to store values.
 
+If a [linked table](https://h2database.com/html/advanced.html#linked_tables) has a column with ""Types.JAVA_OBJECT""
+JDBC data type and its database is not an another H2, Java objects need to be serialized and deserialized during
+interaction between H2 and database that owns the table on the server side of H2.
+
+This data type needs special attention in secure environments.
+
 Mapped to ""java.lang.Object"" (or any subclass).
 ","
-OTHER
+JAVA_OBJECT
+JAVA_OBJECT(10000)
 "
 
 "Data Types","VARCHAR Type","

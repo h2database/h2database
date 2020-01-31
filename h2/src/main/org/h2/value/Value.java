@@ -1814,7 +1814,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         //$FALL-THROUGH$
         default:
             v = ValueLob.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
-        } 
+        }
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {
                 v = v.convertPrecision(targetType.getPrecision());

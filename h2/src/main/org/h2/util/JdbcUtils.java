@@ -35,7 +35,6 @@ import org.h2.message.DbException;
 import org.h2.util.Utils.ClassFactory;
 import org.h2.value.DataType;
 import org.h2.value.Value;
-import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueUuid;
 
@@ -553,9 +552,7 @@ public class JdbcUtils {
             break;
         case Value.JAVA_OBJECT:
             prep.setObject(parameterIndex,
-                    value.getClass() == ValueJavaObject.class
-                            ? JdbcUtils.deserialize(value.getBytesNoCopy(), provider.getJavaObjectSerializer())
-                            : /* ValueJavaObject.NotSerialized */ value.getObject(),
+                    JdbcUtils.deserialize(value.getBytesNoCopy(), provider.getJavaObjectSerializer()),
                     Types.JAVA_OBJECT);
             break;
         case Value.UUID:

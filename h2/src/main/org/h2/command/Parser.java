@@ -6523,11 +6523,12 @@ public class Parser {
         }
         if (currentTokenType == IDENTIFIER && !currentTokenQuoted) {
             // Standard char length units
-            if (!readIf("CHARACTERS") && !readIf("OCTETS") &&
-                    // Oracle syntax
-                    !readIf("CHAR")) {
-                // Oracle syntax
-                readIf("BYTE");
+            if (!readIf("CHARACTERS") && !readIf("OCTETS")) {
+                if (database.getMode().charAndByteLengthUnits) {
+                    if (!readIf("CHAR")) {
+                        readIf("BYTE");
+                    }
+                }
             }
         }
         return p;

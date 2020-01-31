@@ -12,7 +12,7 @@ import org.h2.message.DbException;
 /**
  * Implementation of the SMALLINT data type.
  */
-public class ValueSmallint extends Value {
+public final class ValueSmallint extends Value {
 
     /**
      * The precision in digits.

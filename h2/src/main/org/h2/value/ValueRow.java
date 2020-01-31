@@ -12,7 +12,7 @@ import org.h2.message.DbException;
 /**
  * Row value.
  */
-public class ValueRow extends ValueCollectionBase {
+public final class ValueRow extends ValueCollectionBase {
 
     /**
      * Empty row.

@@ -19,6 +19,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.h2.api.ErrorCode;
@@ -1156,18 +1157,18 @@ public class TestMVTableEngine extends TestDb {
                 "cl clob)");
         stat.execute("insert into test values(1000, '', '', null, 0, 0, 0, "
                 + "9, 2, 3, '10:00:00', '2001-01-01', "
-                + "'2010-10-10 10:10:10', x'00', 0, x'b1', 'clob')");
+                + "'2010-10-10 10:10:10', x'00', '01234567-89AB-CDEF-0123-456789ABCDEF', x'b1', 'clob')");
         stat.execute("insert into test values(1, 'vc', 'ch', true, 8, 16, 64, "
                 + "123.00, 64.0, 32.0, '10:00:00', '2001-01-01', "
-                + "'2010-10-10 10:10:10', x'00', 0, x'b1', 'clob')");
+                + "'2010-10-10 10:10:10', x'00', '01234567-89AB-CDEF-0123-456789ABCDEF', x'b1', 'clob')");
         stat.execute("insert into test values(-1, "
                 + "'quite a long string \u1234 \u00ff', 'ch', false, -8, -16, -64, "
                 + "0, 0, 0, '10:00:00', '2001-01-01', "
-                + "'2010-10-10 10:10:10', SECURE_RAND(100), 0, x'b1', 'clob')");
+                + "'2010-10-10 10:10:10', SECURE_RAND(100), RANDOM_UUID(), x'b1', 'clob')");
         stat.execute("insert into test values(-1000, space(1000), 'ch', "
                 + "false, -8, -16, -64, "
                 + "1, 1, 1, '10:00:00', '2001-01-01', "
-                + "'2010-10-10 10:10:10', SECURE_RAND(100), 0, x'b1', 'clob')");
+                + "'2010-10-10 10:10:10', SECURE_RAND(100), RANDOM_UUID(), x'b1', 'clob')");
         if (!config.memory) {
             conn.close();
             conn = getConnection(dbName);
@@ -1190,8 +1191,7 @@ public class TestMVTableEngine extends TestDb {
         assertEquals("2001-01-01", rs.getString(12));
         assertEquals("2010-10-10 10:10:10", rs.getString(13));
         assertEquals(1, rs.getBytes(14).length);
-        assertEquals("00000000-0000-0000-0000-000000000000",
-                rs.getString(15));
+        assertEquals(UUID.fromString("01234567-89AB-CDEF-0123-456789ABCDEF"), rs.getObject(15));
         assertEquals(1, rs.getBytes(16).length);
         assertEquals("clob", rs.getString(17));
         rs.next();
@@ -1209,8 +1209,7 @@ public class TestMVTableEngine extends TestDb {
         assertEquals("2001-01-01", rs.getString(12));
         assertEquals("2010-10-10 10:10:10", rs.getString(13));
         assertEquals(1, rs.getBytes(14).length);
-        assertEquals("00000000-0000-0000-0000-000000000000",
-                rs.getString(15));
+        assertEquals(UUID.fromString("01234567-89AB-CDEF-0123-456789ABCDEF"), rs.getObject(15));
         assertEquals(1, rs.getBytes(16).length);
         assertEquals("clob", rs.getString(17));
         rs.next();
@@ -1229,8 +1228,7 @@ public class TestMVTableEngine extends TestDb {
         assertEquals("2001-01-01", rs.getString(12));
         assertEquals("2010-10-10 10:10:10", rs.getString(13));
         assertEquals(100, rs.getBytes(14).length);
-        assertEquals("00000000-0000-0000-0000-000000000000",
-                rs.getString(15));
+        assertEquals(2, rs.getObject(15, UUID.class).variant());
         assertEquals(1, rs.getBytes(16).length);
         assertEquals("clob", rs.getString(17));
         rs.next();
@@ -1248,8 +1246,7 @@ public class TestMVTableEngine extends TestDb {
         assertEquals("2001-01-01", rs.getString(12));
         assertEquals("2010-10-10 10:10:10", rs.getString(13));
         assertEquals(100, rs.getBytes(14).length);
-        assertEquals("00000000-0000-0000-0000-000000000000",
-                rs.getString(15));
+        assertEquals(2, rs.getObject(15, UUID.class).variant());
         assertEquals(1, rs.getBytes(16).length);
         assertEquals("clob", rs.getString(17));
 

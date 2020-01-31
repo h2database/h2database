@@ -14,7 +14,7 @@ import org.h2.message.DbException;
 /**
  * Implementation of the DOUBLE data type.
  */
-public class ValueDouble extends Value {
+public final class ValueDouble extends Value {
 
     /**
      * The precision in digits.

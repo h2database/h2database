@@ -14,7 +14,7 @@ import org.h2.util.JSR310Utils;
 /**
  * Implementation of the TIMESTAMP data type.
  */
-public class ValueTimestamp extends Value {
+public final class ValueTimestamp extends Value {
 
     /**
      * The default precision and display size of the textual representation of a timestamp.

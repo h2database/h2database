@@ -14,7 +14,7 @@ import org.h2.message.DbException;
 /**
  * Implementation of the REAL data type.
  */
-public class ValueReal extends Value {
+public final class ValueReal extends Value {
 
     /**
      * The precision in digits.

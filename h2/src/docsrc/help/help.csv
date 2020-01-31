@@ -2858,7 +2858,7 @@ intType | booleanType | smallintType | bigintType
     | timeWithTimeZoneType | timestampType | timestampWithTimeZoneType
     | binaryType | varcharType | charType
     | blobType | clobType | arrayType | intervalType
-    | @h2@ { tinyintType | identityType | otherType | varcharIgnorecaseType
+    | @h2@ { tinyintType | identityType | javaObjectType | varcharIgnorecaseType
     | uuidType | enumType }
 ","
 A predefined data type.
@@ -3655,14 +3655,17 @@ Mapped to byte[].
 BINARY(1000)
 "
 
-"Data Types","OTHER Type","
-@h2@ OTHER
+"Data Types","JAVA_OBJECT Type","
+@h2@ { JAVA_OBJECT | OBJECT | OTHER } [ ( precisionInt ) ]
 ","
 This type allows storing serialized Java objects. Internally, a byte array is used.
+The maximum size of serialized form is 2 GB, but the whole array is kept in memory when using this data type.
+The precision is a size constraint; only the actual data is persisted.
 Serialization and deserialization is done on the client side only.
 Deserialization is only done when ""getObject"" is called.
 Java operations cannot be executed inside the database engine for security reasons.
-Use ""PreparedStatement.setObject"" to store values.
+Use ""PreparedStatement.setObject"" with ""Types.JAVA_OBJECT"" or ""H2Type.JAVA_OBJECT""
+as a third argument to store values.
 
 Mapped to ""java.lang.Object"" (or any subclass).
 ","

@@ -17,7 +17,7 @@ import org.h2.util.StringUtils;
 /**
  * Implementation of the UUID data type.
  */
-public class ValueUuid extends Value {
+public final class ValueUuid extends Value {
 
     /**
      * The precision of this value in number of bytes.
@@ -60,16 +60,15 @@ public class ValueUuid extends Value {
     /**
      * Get or create a UUID for the given 16 bytes.
      *
-     * @param binary the byte array (must be at least 16 bytes long)
+     * @param binary the byte array
      * @return the UUID
      */
     public static ValueUuid get(byte[] binary) {
-        if (binary.length < 16) {
-            return get(StringUtils.convertBytesToHex(binary));
+        int length = binary.length;
+        if (length != 16) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "UUID requires 16 bytes, got " + length);
         }
-        long high = Bits.readLong(binary, 0);
-        long low = Bits.readLong(binary, 8);
-        return (ValueUuid) Value.cache(new ValueUuid(high, low));
+        return get(Bits.readLong(binary, 0), Bits.readLong(binary, 8));
     }
 
     /**
@@ -101,27 +100,31 @@ public class ValueUuid extends Value {
      */
     public static ValueUuid get(String s) {
         long low = 0, high = 0;
-        for (int i = 0, j = 0, length = s.length(); i < length; i++) {
+        int j = 0;
+        for (int i = 0, length = s.length(); i < length; i++) {
             char c = s.charAt(i);
             if (c >= '0' && c <= '9') {
                 low = (low << 4) | (c - '0');
             } else if (c >= 'a' && c <= 'f') {
-                low = (low << 4) | (c - 'a' + 0xa);
+                low = (low << 4) | (c - ('a' - 0xa));
             } else if (c == '-') {
                 continue;
             } else if (c >= 'A' && c <= 'F') {
-                low = (low << 4) | (c - 'A' + 0xa);
+                low = (low << 4) | (c - ('A' - 0xa));
             } else if (c <= ' ') {
                 continue;
             } else {
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
             }
-            if (j++ == 15) {
+            if (++j == 16) {
                 high = low;
                 low = 0;
             }
         }
-        return (ValueUuid) Value.cache(new ValueUuid(high, low));
+        if (j != 32) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
+        }
+        return get(high, low);
     }
 
     @Override

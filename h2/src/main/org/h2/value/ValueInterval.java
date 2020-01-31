@@ -23,7 +23,7 @@ import org.h2.util.IntervalUtils;
 /**
  * Implementation of the INTERVAL data type.
  */
-public class ValueInterval extends Value {
+public final class ValueInterval extends Value {
 
     /**
      * The default leading field precision for intervals.

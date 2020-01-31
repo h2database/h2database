@@ -5,18 +5,14 @@
  */
 package org.h2.value;
 
-import org.h2.api.JavaObjectSerializer;
-import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
-import org.h2.util.Bits;
-import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
  * Implementation of the JAVA_OBJECT data type.
  */
-public class ValueJavaObject extends ValueBytesBase {
+public final class ValueJavaObject extends ValueBytesBase {
 
     private static final ValueJavaObject EMPTY = new ValueJavaObject(Utils.EMPTY_BYTES);
 
@@ -28,25 +24,16 @@ public class ValueJavaObject extends ValueBytesBase {
      * Get or create a java object value for the given byte array.
      * Do not clone the data.
      *
-     * @param javaObject the object
      * @param b the byte array
-     * @param javaObjectSerializer the object serializer
      * @return the value
      */
-    public static ValueJavaObject getNoCopy(Object javaObject, byte[] b, JavaObjectSerializer javaObjectSerializer) {
-        if (b != null && b.length == 0) {
+    public static ValueJavaObject getNoCopy(byte[] b) {
+        int length = b.length;
+        if (length == 0) {
             return EMPTY;
         }
-        ValueJavaObject obj;
-        if (SysProperties.serializeJavaObject) {
-            if (b == null) {
-                b = JdbcUtils.serialize(javaObject, javaObjectSerializer);
-            }
-            obj = new ValueJavaObject(b);
-        } else {
-            obj = new NotSerialized(javaObject, b, javaObjectSerializer);
-        }
-        if (b == null || b.length > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
+        ValueJavaObject obj = new ValueJavaObject(b);
+        if (length > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }
         return (ValueJavaObject) Value.cache(obj);
@@ -73,132 +60,6 @@ public class ValueJavaObject extends ValueBytesBase {
     @Override
     public String getString() {
         return StringUtils.convertBytesToHex(getBytesNoCopy());
-    }
-
-    /**
-     * Value which serializes java object only for I/O operations.
-     * Used when property {@link SysProperties#serializeJavaObject} is disabled.
-     *
-     * @author Sergi Vladykin
-     */
-    private static final class NotSerialized extends ValueJavaObject {
-
-        private Object javaObject;
-
-        private final JavaObjectSerializer javaObjectSerializer;
-
-        private TypeInfo type;
-
-        NotSerialized(Object javaObject, byte[] v, JavaObjectSerializer javaObjectSerializer) {
-            super(v);
-            this.javaObject = javaObject;
-            this.javaObjectSerializer = javaObjectSerializer;
-        }
-
-        @Override
-        public byte[] getBytesNoCopy() {
-            if (value == null) {
-                value = JdbcUtils.serialize(javaObject, null);
-            }
-            return value;
-        }
-
-        @Override
-        public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
-            Object o1 = getObject();
-            Object o2 = v.getObject();
-
-            boolean o1Comparable = o1 instanceof Comparable;
-            boolean o2Comparable = o2 instanceof Comparable;
-
-            if (o1Comparable && o2Comparable &&
-                    Utils.haveCommonComparableSuperclass(o1.getClass(), o2.getClass())) {
-                @SuppressWarnings("unchecked")
-                Comparable<Object> c1 = (Comparable<Object>) o1;
-                return c1.compareTo(o2);
-            }
-
-            // group by types
-            if (o1.getClass() != o2.getClass()) {
-                if (o1Comparable != o2Comparable) {
-                    return o1Comparable ? -1 : 1;
-                }
-                return o1.getClass().getName().compareTo(o2.getClass().getName());
-            }
-
-            // compare hash codes
-            int h1 = hashCode();
-            int h2 = v.hashCode();
-
-            if (h1 == h2) {
-                if (o1.equals(o2)) {
-                    return 0;
-                }
-                return Bits.compareNotNullSigned(getBytesNoCopy(), v.getBytesNoCopy());
-            }
-
-            return h1 > h2 ? 1 : -1;
-        }
-
-        @Override
-        public TypeInfo getType() {
-            TypeInfo type = this.type;
-            if (type == null) {
-                String string = getString();
-                this.type = type = createType(string);
-            }
-            return type;
-        }
-
-        private static TypeInfo createType(String string) {
-            return new TypeInfo(JAVA_OBJECT, 0, 0, string.length(), null);
-        }
-
-        @Override
-        public String getString() {
-            String str = getObject().toString();
-            if (type == null) {
-                type = createType(str);
-            }
-            return str;
-        }
-
-        @Override
-        public int hashCode() {
-            if (hash == 0) {
-                hash = getObject().hashCode();
-            }
-            return hash;
-        }
-
-        @Override
-        public Object getObject() {
-            if (javaObject == null) {
-                javaObject = JdbcUtils.deserialize(value, javaObjectSerializer);
-            }
-            return javaObject;
-        }
-
-        @Override
-        public int getMemory() {
-            if (value == null) {
-                return 40;
-            }
-            int mem = 40;
-            if (javaObject != null) {
-                mem *= 2;
-            }
-            return mem;
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if (!(other instanceof NotSerialized)) {
-                return false;
-            }
-            return getObject().equals(((NotSerialized) other).getObject());
-        }
-
     }
 
 }

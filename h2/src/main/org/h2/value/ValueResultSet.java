@@ -19,7 +19,7 @@ import org.h2.result.SimpleResult;
 /**
  * Implementation of the RESULT_SET data type.
  */
-public class ValueResultSet extends Value {
+public final class ValueResultSet extends Value {
 
     private final SimpleResult result;
 

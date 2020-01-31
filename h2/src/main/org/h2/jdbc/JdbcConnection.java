@@ -1975,10 +1975,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             return list;
         }
         case Value.JAVA_OBJECT:
-            if (SysProperties.serializeJavaObject) {
-                return JdbcUtils.deserialize(v.getBytesNoCopy(), session.getJavaObjectSerializer());
-            }
-            break;
+            return JdbcUtils.deserialize(v.getBytesNoCopy(), session.getJavaObjectSerializer());
         case Value.RESULT_SET: {
             int id = getNextId(TraceObject.RESULT_SET);
             return new JdbcResultSet(this, null, null, ((ValueResultSet) v).getResult(), id, false, true, false);

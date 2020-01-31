@@ -93,7 +93,7 @@ public class RowList implements AutoCloseable {
             file = db.openFile(fileName, "rw", false);
             file.setCheckedWriting(false);
             file.seek(FileStore.HEADER_LENGTH);
-            rowBuff = Data.create(db, db.getJavaObjectSerializer(), Constants.DEFAULT_PAGE_SIZE, true);
+            rowBuff = Data.create(db, Constants.DEFAULT_PAGE_SIZE, true);
             file.seek(FileStore.HEADER_LENGTH);
         }
         Data buff = rowBuff;

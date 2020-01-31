@@ -12,9 +12,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.h2.util.SoftHashMap;
+import org.h2.util.SoftValuesHashMap;
 
 /**
  * The global settings of a full text search.
@@ -49,9 +50,7 @@ final class FullTextSettings {
     /**
      * The prepared statement cache.
      */
-    private final SoftHashMap<Connection,
-            SoftHashMap<String, PreparedStatement>> cache =
-            new SoftHashMap<>();
+    private final WeakHashMap<Connection, SoftValuesHashMap<String, PreparedStatement>> cache = new WeakHashMap<>();
 
     /**
      * The whitespace characters.
@@ -204,9 +203,9 @@ final class FullTextSettings {
      */
     protected synchronized PreparedStatement prepare(Connection conn, String sql)
             throws SQLException {
-        SoftHashMap<String, PreparedStatement> c = cache.get(conn);
+        SoftValuesHashMap<String, PreparedStatement> c = cache.get(conn);
         if (c == null) {
-            c = new SoftHashMap<>();
+            c = new SoftValuesHashMap<>();
             cache.put(conn, c);
         }
         PreparedStatement prep = c.get(sql);

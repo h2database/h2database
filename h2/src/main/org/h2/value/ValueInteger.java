@@ -12,7 +12,7 @@ import org.h2.message.DbException;
 /**
  * Implementation of the INTEGER data type.
  */
-public class ValueInteger extends Value {
+public final class ValueInteger extends Value {
 
     /**
      * The precision in digits.

@@ -871,10 +871,8 @@ public class PageStore implements CacheWriter {
 
     private void readStaticHeader() {
         file.seek(FileStore.HEADER_LENGTH);
-        Data page = Data.create(database, database.getJavaObjectSerializer(), PAGE_SIZE_MIN - FileStore.HEADER_LENGTH,
-                false);
-        file.readFully(page.getBytes(), 0,
-                PAGE_SIZE_MIN - FileStore.HEADER_LENGTH);
+        Data page = Data.create(database, PAGE_SIZE_MIN - FileStore.HEADER_LENGTH, false);
+        file.readFully(page.getBytes(), 0, PAGE_SIZE_MIN - FileStore.HEADER_LENGTH);
         readCount++;
         setPageSize(page.readInt());
         int writeVersion = page.readByte();
@@ -944,8 +942,7 @@ public class PageStore implements CacheWriter {
     }
 
     private void writeStaticHeader() {
-        Data page = Data.create(database, database.getJavaObjectSerializer(), pageSize - FileStore.HEADER_LENGTH,
-                false);
+        Data page = Data.create(database, pageSize - FileStore.HEADER_LENGTH, false);
         page.writeInt(pageSize);
         page.writeByte((byte) WRITE_VERSION);
         page.writeByte((byte) READ_VERSION);
@@ -1285,7 +1282,7 @@ public class PageStore implements CacheWriter {
      * @return the data page.
      */
     public Data createData() {
-        return Data.create(database, database.getJavaObjectSerializer(), pageSize, false);
+        return Data.create(database, pageSize, false);
     }
 
     /**

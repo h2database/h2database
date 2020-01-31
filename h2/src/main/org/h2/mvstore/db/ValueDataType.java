@@ -710,7 +710,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             int len = readVarInt(buff);
             byte[] b = Utils.newBytes(len);
             buff.get(b, 0, len);
-            return ValueJavaObject.getNoCopy(null, b, provider.getJavaObjectSerializer());
+            return ValueJavaObject.getNoCopy(b);
         }
         case UUID:
             return ValueUuid.get(buff.getLong(), buff.getLong());

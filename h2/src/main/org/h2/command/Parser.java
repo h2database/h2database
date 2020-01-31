@@ -5045,10 +5045,10 @@ public class Parser {
         return i;
     }
 
-    private long readNonNegativeLong() {
+    private long readPositiveLong() {
         long v = readLong();
-        if (v < 0) {
-            throw DbException.getInvalidValueException("non-negative long", v);
+        if (v <= 0) {
+            throw DbException.getInvalidValueException("positive long", v);
         }
         return v;
     }
@@ -6436,6 +6436,7 @@ public class Parser {
     private Column parseArrayType(String columnName, TypeInfo componentType) {
         int precision = -1;
         if (readIf(OPEN_BRACKET)) {
+            // Maximum cardinality may be zero
             precision = readNonNegativeInt();
             read(CLOSE_BRACKET);
         }
@@ -6488,7 +6489,7 @@ public class Parser {
     }
 
     private long readPrecision() {
-        long p = readNonNegativeLong();
+        long p = readPositiveLong();
         if (currentTokenType == IDENTIFIER && !currentTokenQuoted && currentToken.length() == 1) {
             long mul;
             /*

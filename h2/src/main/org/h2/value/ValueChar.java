@@ -41,8 +41,9 @@ public final class ValueChar extends ValueStringBase {
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if ((sqlFlags & NO_CASTS) == 0) {
+            int length = value.length();
             return StringUtils.quoteStringSQL(builder.append("CAST("), value).append(" AS CHAR(")
-                    .append(value.length()).append("))");
+                    .append(length > 0 ? length : 1).append("))");
         }
         return StringUtils.quoteStringSQL(builder, value);
     }

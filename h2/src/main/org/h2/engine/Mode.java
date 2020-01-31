@@ -255,6 +255,11 @@ public class Mode {
     public boolean forBitData;
 
     /**
+     * If {@code true} 'CHAR' and 'BYTE' length units are allowed.
+     */
+    public boolean charAndByteLengthUnits;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -368,6 +373,7 @@ public class Mode {
                 Pattern.compile(".*\\..*");
         mode.alterTableModifyColumn = true;
         mode.decimalSequences = true;
+        mode.charAndByteLengthUnits = true;
         dt = DataType.createDate(/* 2001-01-01 23:59:59 */ 19, 19, "DATE", false, 0, 0);
         dt.type = Value.TIMESTAMP;
         dt.sqlType = Types.TIMESTAMP;

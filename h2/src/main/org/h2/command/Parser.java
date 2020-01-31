@@ -6118,7 +6118,7 @@ public class Parser {
         if ((dataType.supportsPrecision || dataType.supportsScale) && readIf(OPEN_PAREN)) {
             if (!readIf("MAX")) {
                 if (dataType.supportsPrecision) {
-                    precision = readPrecision();
+                    precision = readPrecision(t);
                     if (dataType.supportsScale) {
                         if (readIf(COMMA)) {
                             scale = readInt();
@@ -6488,9 +6488,12 @@ public class Parser {
                 extTypeInfo != null ? "GEOMETRY" + extTypeInfo.getCreateSQL() : "GEOMETRY");
     }
 
-    private long readPrecision() {
+    private long readPrecision(int valueType) {
         long p = readPositiveLong();
-        if (currentTokenType == IDENTIFIER && !currentTokenQuoted && currentToken.length() == 1) {
+        if (currentTokenType != IDENTIFIER || currentTokenQuoted) {
+            return p;
+        }
+        if ((valueType == Value.BLOB || valueType == Value.CLOB) && currentToken.length() == 1) {
             long mul;
             /*
              * Convert a-z to A-Z. This method is safe, because only A-Z
@@ -6520,14 +6523,18 @@ public class Parser {
             }
             p *= mul;
             read();
+            if (currentTokenType != IDENTIFIER || currentTokenQuoted) {
+                return p;
+            }
         }
-        if (currentTokenType == IDENTIFIER && !currentTokenQuoted) {
-            // Standard char length units
+        switch (valueType) {
+        case Value.VARCHAR:
+        case Value.VARCHAR_IGNORECASE:
+        case Value.CLOB:
+        case Value.CHAR:
             if (!readIf("CHARACTERS") && !readIf("OCTETS")) {
-                if (database.getMode().charAndByteLengthUnits) {
-                    if (!readIf("CHAR")) {
-                        readIf("BYTE");
-                    }
+                if (database.getMode().charAndByteLengthUnits && !readIf("CHAR")) {
+                    readIf("BYTE");
                 }
             }
         }

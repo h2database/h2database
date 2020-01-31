@@ -3683,13 +3683,15 @@ JAVA_OBJECT(10000)
 { VARCHAR | { CHARACTER | CHAR } VARYING
     | { NCHAR | { NATIONAL { CHARACTER | CHAR } } } VARYING
     | @c@ { LONGVARCHAR | VARCHAR2 | NVARCHAR | NVARCHAR2 }
-    | @h2@ { VARCHAR_CASESENSITIVE } } [ ( precisionInt ) ]
+    | @h2@ { VARCHAR_CASESENSITIVE } }
+[ ( precisionInt [CHARACTERS|OCTETS] ) ]
 ","
 A Unicode String.
 Use two single quotes ('') to create a quote.
 
 The maximum precision is ""Integer.MAX_VALUE"".
 The precision is a size constraint; only the actual data is persisted.
+Precision, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
 
 The whole text is loaded into memory when using this data type.
 For large text data CLOB should be used; see there for details.
@@ -3701,13 +3703,15 @@ VARCHAR(255)
 "
 
 "Data Types","VARCHAR_IGNORECASE Type","
-@h2@ VARCHAR_IGNORECASE [ ( precisionInt ) ]
+@h2@ VARCHAR_IGNORECASE
+[ ( precisionInt [CHARACTERS|OCTETS] ) ]
 ","
 Same as VARCHAR, but not case sensitive when comparing.
 Stored in mixed case.
 
 The maximum precision is ""Integer.MAX_VALUE"".
 The precision is a size constraint; only the actual data is persisted.
+Precision, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
 
 The whole text is loaded into memory when using this data type.
 For large text data CLOB should be used; see there for details.
@@ -3719,14 +3723,15 @@ VARCHAR_IGNORECASE
 "
 
 "Data Types","CHAR Type","
-{ CHAR | CHARACTER | NCHAR | NATIONAL { CHARACTER | CHAR } } [ ( precisionInt ) ]
+{ CHAR | CHARACTER | NCHAR | NATIONAL { CHARACTER | CHAR } }
+[ ( precisionInt [CHARACTERS|OCTETS] ) ]
 ","
 A Unicode String.
 This type is supported for compatibility with other databases and older applications.
 The difference to VARCHAR is that trailing spaces are ignored and not persisted.
 
 The maximum precision is ""Integer.MAX_VALUE"".
-The precision is a size constraint; only the actual data is persisted.
+Precision, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
 
 The whole text is kept in memory when using this data type.
 For large text data CLOB should be used; see there for details.

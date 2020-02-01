@@ -5,14 +5,18 @@
  */
 package org.h2.test.unit;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Random;
 
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
 import org.h2.security.SHA256;
+import org.h2.security.SHA3;
 import org.h2.test.TestBase;
 import org.h2.util.StringUtils;
 
@@ -34,6 +38,7 @@ public class TestSecurity extends TestBase {
     public void test() throws SQLException {
         testConnectWithHash();
         testSHA();
+        testSHA3();
         testAES();
         testBlockCiphers();
         testRemoveAnonFromLegacyAlgorithms();
@@ -175,6 +180,38 @@ public class TestSecurity extends TestBase {
         String hash = StringUtils.convertBytesToHex(
                 SHA256.getHash(message.getBytes(), true)).toUpperCase();
         assertEquals(expected, hash);
+    }
+
+    private void testSHA3() {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA3-224");
+            Random r = new Random();
+            byte[] bytes1 = new byte[r.nextInt(1025)];
+            byte[] bytes2 = new byte[256];
+            r.nextBytes(bytes1);
+            r.nextBytes(bytes2);
+            testSHA3(md, SHA3.getSha3_224(), bytes1, bytes2);
+            testSHA3(MessageDigest.getInstance("SHA3-256"), SHA3.getSha3_256(), bytes1, bytes2);
+            testSHA3(MessageDigest.getInstance("SHA3-384"), SHA3.getSha3_384(), bytes1, bytes2);
+            testSHA3(MessageDigest.getInstance("SHA3-512"), SHA3.getSha3_512(), bytes1, bytes2);
+        } catch (NoSuchAlgorithmException e) {
+            // Java 8 doesn't support SHA-3
+        }
+    }
+
+    private void testSHA3(MessageDigest md1, SHA3 md2, byte[] bytes1, byte[] bytes2) {
+        md1.update(bytes1);
+        md2.update(bytes1);
+        md1.update(bytes2, 0, 1);
+        md2.update(bytes2, 0, 1);
+        md1.update(bytes2, 1, 33);
+        md2.update(bytes2, 1, 33);
+        md1.update(bytes2, 34, 222);
+        md2.update(bytes2, 34, 222);
+        assertEquals(md1.digest(), md2.digest());
+        md1.update(bytes2, 1, 1);
+        md2.update(bytes2, 1, 1);
+        assertEquals(md1.digest(), md2.digest());
     }
 
     private void testBlockCiphers() {

@@ -56,6 +56,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
+import org.h2.security.SHA3;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
@@ -2007,15 +2008,36 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     }
 
     private static Value getHash(String algorithm, Value value, int iterations) {
-        if (!"SHA256".equalsIgnoreCase(algorithm)) {
-            throw DbException.getInvalidValueException("algorithm", algorithm);
-        }
         if (iterations <= 0) {
             throw DbException.getInvalidValueException("iterations", iterations);
         }
-        MessageDigest md = hashImpl(value, "SHA-256");
-        if (md == null) {
-            return ValueNull.INSTANCE;
+        MessageDigest md;
+        switch (StringUtils.toUpperEnglish(algorithm)) {
+        case "MD5":
+        case "SHA-1":
+        case "SHA-224":
+        case "SHA-256":
+        case "SHA-384":
+        case "SHA-512":
+            md = hashImpl(value, algorithm);
+            break;
+        case "SHA256":
+            md = hashImpl(value, "SHA-256");
+            break;
+        case "SHA3-224":
+            md = hashImpl(value, SHA3.getSha3_224());
+            break;
+        case "SHA3-256":
+            md = hashImpl(value, SHA3.getSha3_256());
+            break;
+        case "SHA3-384":
+            md = hashImpl(value, SHA3.getSha3_384());
+            break;
+        case "SHA3-512":
+            md = hashImpl(value, SHA3.getSha3_512());
+            break;
+        default:
+            throw DbException.getInvalidValueException("algorithm", algorithm);
         }
         byte[] b = md.digest();
         for (int i = 1; i < iterations; i++) {
@@ -2293,42 +2315,39 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     private static MessageDigest hashImpl(Value value, String algorithm) {
         MessageDigest md;
-        switch (value.getValueType()) {
-        case Value.NULL:
-            return null;
-        case Value.VARCHAR:
-        case Value.CHAR:
-        case Value.VARCHAR_IGNORECASE:
-            try {
-                md = MessageDigest.getInstance(algorithm);
+        try {
+            md = MessageDigest.getInstance(algorithm);
+        } catch (Exception ex) {
+            throw DbException.convert(ex);
+        }
+        return hashImpl(value, md);
+    }
+
+    private static MessageDigest hashImpl(Value value, MessageDigest md) {
+        try {
+            switch (value.getValueType()) {
+            case Value.VARCHAR:
+            case Value.CHAR:
+            case Value.VARCHAR_IGNORECASE:
                 md.update(value.getString().getBytes(StandardCharsets.UTF_8));
-            } catch (Exception ex) {
-                throw DbException.convert(ex);
-            }
-            break;
-        case Value.BLOB:
-        case Value.CLOB:
-            try {
-                md = MessageDigest.getInstance(algorithm);
+                break;
+            case Value.BLOB:
+            case Value.CLOB: {
                 byte[] buf = new byte[4096];
                 try (InputStream is = value.getInputStream()) {
                     for (int r; (r = is.read(buf)) > 0; ) {
                         md.update(buf, 0, r);
                     }
                 }
-            } catch (Exception ex) {
-                throw DbException.convert(ex);
+                break;
             }
-            break;
-        default:
-            try {
-                md = MessageDigest.getInstance(algorithm);
+            default:
                 md.update(value.getBytesNoCopy());
-            } catch (Exception ex) {
-                throw DbException.convert(ex);
             }
+            return md;
+        } catch (Exception ex) {
+            throw DbException.convert(ex);
         }
-        return md;
     }
 
     private Value regexpReplace(String input, String regexp, String replacement, String regexpMode) {

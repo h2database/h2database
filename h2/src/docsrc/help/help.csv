@@ -2673,7 +2673,7 @@ Boolean value or condition.
 ""UNIQUE"" predicate tests absence of duplicate rows in the specified subquery and returns ""TRUE"" or ""FALSE"".
 Rows with ""NULL"" value in any column are ignored.
 
-""INTERSECTS"" checks whether 2D bounding boxes of specified geometries intersects with each other
+""INTERSECTS"" checks whether 2D bounding boxes of specified geometries intersect with each other
 and returns ""TRUE"" or ""FALSE"".
 ","
 ID<>2
@@ -4492,10 +4492,21 @@ CALL TRIM(CHAR(0) FROM UTF8TOSTRING(
 @h2@ HASH(algorithmString, expression [, iterationInt])
 ","
 Calculate the hash value using an algorithm, and repeat this process for a number of iterations.
-Currently, the only algorithm supported is SHA256.
+
+This function supports MD5, SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA3-224, SHA3-256, SHA3-384, and SHA3-512
+algorithms.
+SHA-224, SHA-384, and SHA-512 may be unavailable in some JREs.
+
+MD5 and SHA-1 algorithms should not be considered as secure.
+
+If this function is used to encrypt a password, a random salt should be concatenated with a password and this salt and
+result of the function should be stored to prevent a rainbow table attack and number of iterations should be large
+enough to slow down a dictionary or a brute force attack.
+
 This method returns bytes.
 ","
-CALL HASH('SHA256', STRINGTOUTF8('Password'), 1000)
+CALL HASH('SHA-256', 'Text', 1000)
+CALL HASH('SHA3-256', X'0102')
 "
 
 "Functions (Numeric)","TRUNCATE","

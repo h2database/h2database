@@ -452,7 +452,7 @@ public class ScriptCommand extends ScriptBase {
         if (!tempLobTableCreated) {
             add("CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM" +
                     "(ID INT NOT NULL, PART INT NOT NULL, " +
-                    "CDATA VARCHAR, BDATA BINARY)",
+                    "CDATA VARCHAR, BDATA VARBINARY)",
                     true);
             add("CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY " +
                     "ON SYSTEM_LOB_STREAM(ID, PART)", true);

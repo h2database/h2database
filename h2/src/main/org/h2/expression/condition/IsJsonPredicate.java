@@ -87,6 +87,7 @@ public class IsJsonPredicate extends Condition {
         boolean result;
         switch (l.getValueType()) {
         case Value.VARBINARY:
+        case Value.BINARY:
         case Value.BLOB: {
             byte[] bytes = l.getBytesNoCopy();
             JSONValidationTarget target = withUniqueKeys ? new JSONValidationTargetWithUniqueKeys()

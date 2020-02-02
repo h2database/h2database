@@ -481,7 +481,7 @@ public class TestResultSet extends TestDb {
         trace("testSubstringPrecision");
         stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR(10))");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'WorldPeace')");
-        checkPrecision(0, "SELECT SUBSTR(NAME, 12, 4) FROM TEST");
+        checkPrecision(1, "SELECT SUBSTR(NAME, 12, 4) FROM TEST");
         checkPrecision(9, "SELECT SUBSTR(NAME, 2) FROM TEST");
         checkPrecision(10, "SELECT SUBSTR(NAME, ID) FROM TEST");
         checkPrecision(4, "SELECT SUBSTR(NAME, 2, 4) FROM TEST");

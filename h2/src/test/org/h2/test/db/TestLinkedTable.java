@@ -458,7 +458,7 @@ public class TestLinkedTable extends TestDb {
         stat.execute("CREATE TEMP TABLE TEST_TEMP(ID INT PRIMARY KEY)");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, " +
                 "NAME VARCHAR(200), XT TINYINT, XD DECIMAL(10,2), " +
-                "XTS TIMESTAMP, XBY BINARY(255), XBO BIT, XSM SMALLINT, " +
+                "XTS TIMESTAMP, XBY VARBINARY(255), XBO BIT, XSM SMALLINT, " +
                 "XBI BIGINT, XBL BLOB, XDA DATE, XTI TIME, XCL CLOB, XDO DOUBLE)");
         stat.execute("CREATE INDEX IDXNAME ON TEST(NAME)");
         stat.execute("INSERT INTO TEST VALUES(0, NULL, NULL, NULL, NULL, " +

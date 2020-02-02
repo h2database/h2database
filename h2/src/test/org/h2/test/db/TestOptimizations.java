@@ -172,7 +172,7 @@ public class TestOptimizations extends TestDb {
     private void testAnalyzeLob() throws Exception {
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
-        stat.execute("create table test(v varchar, b binary, cl clob, bl blob) as " +
+        stat.execute("create table test(v varchar, b varbinary, cl clob, bl blob) as " +
                 "select ' ', '00', ' ', '00' from system_range(1, 100)");
         stat.execute("analyze");
         ResultSet rs = stat.executeQuery("select column_name, selectivity " +

@@ -1944,6 +1944,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case Value.BLOB:
         case Value.CLOB:
         case Value.VARBINARY:
+        case Value.BINARY:
         case Value.JAVA_OBJECT:
             return v.getType().getPrecision();
         default:

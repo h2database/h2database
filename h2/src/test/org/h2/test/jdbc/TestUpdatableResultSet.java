@@ -304,7 +304,7 @@ public class TestUpdatableResultSet extends TestDb {
         Statement stat = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
                 ResultSet.CONCUR_UPDATABLE);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), "
-                + "DEC DECIMAL(10,2), BOO BIT, BYE TINYINT, BIN BINARY(100), "
+                + "DEC DECIMAL(10,2), BOO BIT, BYE TINYINT, BIN VARBINARY(100), "
                 + "D DATE, T TIME, TS TIMESTAMP(9), TSTZ TIMESTAMP(9) WITH TIME ZONE, DB DOUBLE, R REAL, L BIGINT, "
                 + "O_I INT, SH SMALLINT, CL CLOB, BL BLOB)");
         final int clobIndex = 16, blobIndex = 17;

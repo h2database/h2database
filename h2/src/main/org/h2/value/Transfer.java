@@ -71,6 +71,7 @@ public class Transfer {
     private static final int ROW = 27;
     private static final int JSON = 28;
     private static final int TIME_TZ = 29;
+    private static final int BINARY = 30;
 
     private Socket socket;
     private DataInputStream in;
@@ -377,6 +378,10 @@ public class Transfer {
             writeInt(VARBINARY);
             writeBytes(v.getBytesNoCopy());
             break;
+        case Value.BINARY:
+            writeInt(BINARY);
+            writeBytes(v.getBytesNoCopy());
+            break;
         case Value.JAVA_OBJECT:
             writeInt(JAVA_OBJECT);
             writeBytes(v.getBytesNoCopy());
@@ -653,6 +658,8 @@ public class Transfer {
             return ValueNull.INSTANCE;
         case VARBINARY:
             return ValueVarbinary.getNoCopy(readBytes());
+        case BINARY:
+            return ValueBinary.getNoCopy(readBytes());
         case UUID:
             return ValueUuid.get(readLong(), readLong());
         case JAVA_OBJECT:

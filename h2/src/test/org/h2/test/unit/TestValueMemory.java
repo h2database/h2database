@@ -29,6 +29,7 @@ import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
+import org.h2.value.ValueBinary;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueChar;
 import org.h2.value.ValueDate;
@@ -246,6 +247,8 @@ public class TestValueMemory extends TestBase implements DataHandler {
                     random.nextBoolean(), random.nextInt(Integer.MAX_VALUE), random.nextInt(12));
         case Value.JSON:
             return ValueJson.fromJson("{\"key\":\"value\"}");
+        case Value.BINARY:
+            return ValueBinary.get(randomBytes(random.nextInt(1000)));
         default:
             throw new AssertionError("type=" + type);
         }

@@ -9,10 +9,10 @@ select cast(null as varchar(255)) xn, cast(' 10' as int) x10, cast(' 20 ' as int
 > null 10  20
 > rows: 1
 
-select cast(128 as binary);
+select cast(128 as varbinary);
 >> X'00000080'
 
-select cast(65535 as binary);
+select cast(65535 as varbinary);
 >> X'0000ffff'
 
 select cast(X'ff' as tinyint);
@@ -30,31 +30,31 @@ select cast(X'000000ff' as int);
 select cast(X'000000000000ffff' as long);
 >> 65535
 
-select cast(cast(65535 as long) as binary);
+select cast(cast(65535 as long) as varbinary);
 >> X'000000000000ffff'
 
-select cast(cast(-1 as tinyint) as binary);
+select cast(cast(-1 as tinyint) as varbinary);
 >> X'ff'
 
-select cast(cast(-1 as smallint) as binary);
+select cast(cast(-1 as smallint) as varbinary);
 >> X'ffff'
 
-select cast(cast(-1 as int) as binary);
+select cast(cast(-1 as int) as varbinary);
 >> X'ffffffff'
 
-select cast(cast(-1 as long) as binary);
+select cast(cast(-1 as long) as varbinary);
 >> X'ffffffffffffffff'
 
-select cast(cast(1 as tinyint) as binary);
+select cast(cast(1 as tinyint) as varbinary);
 >> X'01'
 
-select cast(cast(1 as smallint) as binary);
+select cast(cast(1 as smallint) as varbinary);
 >> X'0001'
 
-select cast(cast(1 as int) as binary);
+select cast(cast(1 as int) as varbinary);
 >> X'00000001'
 
-select cast(cast(1 as long) as binary);
+select cast(cast(1 as long) as varbinary);
 >> X'0000000000000001'
 
 select cast(X'ff' as tinyint);
@@ -78,7 +78,7 @@ select cast(cast(0.1 as real) as decimal(1, 1));
 select cast(cast(95605327.73 as float) as decimal(10, 8));
 > exception VALUE_TOO_LONG_2
 
-select cast(cast('01020304-0506-0708-090a-0b0c0d0e0f00' as uuid) as binary);
+select cast(cast('01020304-0506-0708-090a-0b0c0d0e0f00' as uuid) as varbinary);
 >> X'0102030405060708090a0b0c0d0e0f00'
 
 call cast('null' as uuid);

@@ -256,9 +256,14 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     public static final int TIME_TZ = 41;
 
     /**
+     * The value type for BINARY values.
+     */
+    public static final int BINARY = 42;
+
+    /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = TIME_TZ + 1;
+    public static final int TYPE_COUNT = BINARY + 1;
 
     /**
      * Empty array of values.
@@ -436,6 +441,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             return 32_000;
         case TIMESTAMP_TZ:
             return 34_000;
+        case BINARY:
+            return 39_000;
         case VARBINARY:
             return 40_000;
         case BLOB:
@@ -831,6 +838,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             return convertToTimestampTimeZone(targetType, provider, conversionMode);
         case VARBINARY:
             return convertToVarbinary(targetType, conversionMode, column);
+        case BINARY:
+            return convertToBinary(targetType, conversionMode, column);
         case VARCHAR:
             return ValueVarchar.get(convertToVarchar(targetType, conversionMode, column));
         case VARCHAR_IGNORECASE:
@@ -1586,6 +1595,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case VARBINARY:
             v = (ValueVarbinary) this;
             break;
+        case BINARY:
         case JAVA_OBJECT:
         case BLOB:
         case GEOMETRY:
@@ -1626,13 +1636,71 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         if (conversionMode != CONVERT_TO) {
             byte[] value = v.getBytesNoCopy();
             int length = value.length;
+            int p = MathUtils.convertLongToInt(targetType.getPrecision());
             if (conversionMode == CAST_TO) {
-                int p = MathUtils.convertLongToInt(targetType.getPrecision());
                 if (length > p) {
                     v = ValueVarbinary.getNoCopy(Arrays.copyOf(value, p));
                 }
-            } else if (length > targetType.getPrecision()) {
+            } else if (length > p) {
                 throw v.getValueTooLongException(targetType, column);
+            }
+        }
+        return v;
+    }
+
+    private ValueBinary convertToBinary(TypeInfo targetType, int conversionMode, Object column) {
+        ValueBinary v;
+        switch (getValueType()) {
+        case BINARY:
+            v = (ValueBinary) this;
+            break;
+        case VARBINARY:
+        case JAVA_OBJECT:
+        case BLOB:
+        case GEOMETRY:
+        case JSON:
+            v = ValueBinary.getNoCopy(getBytesNoCopy());
+            break;
+        case UUID:
+            v = ValueBinary.getNoCopy(getBytes());
+            break;
+        case TINYINT:
+            v = ValueBinary.getNoCopy(new byte[] { getByte() });
+            break;
+        case SMALLINT: {
+            int x = getShort();
+            v = ValueBinary.getNoCopy(new byte[] { (byte) (x >> 8), (byte) x });
+            break;
+        }
+        case INTEGER: {
+            byte[] b = new byte[4];
+            Bits.writeInt(b, 0, getInt());
+            v = ValueBinary.getNoCopy(b);
+            break;
+        }
+        case BIGINT: {
+            byte[] b = new byte[8];
+            Bits.writeLong(b, 0, getLong());
+            v = ValueBinary.getNoCopy(b);
+            break;
+        }
+        case VARCHAR:
+        case VARCHAR_IGNORECASE:
+        case CHAR:
+            v = ValueBinary.getNoCopy(getString().getBytes(StandardCharsets.UTF_8));
+            break;
+        default:
+            throw getDataConversionError(VARBINARY);
+        }
+        if (conversionMode != CONVERT_TO) {
+            byte[] value = v.getBytesNoCopy();
+            int length = value.length;
+            int p = MathUtils.convertLongToInt(targetType.getPrecision());
+            if (length != p) {
+                if (conversionMode == ASSIGN_TO && length > p) {
+                    throw v.getValueTooLongException(targetType, column);
+                }
+                v = ValueBinary.getNoCopy(Arrays.copyOf(value, p));
             }
         }
         return v;

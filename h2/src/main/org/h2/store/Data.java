@@ -33,6 +33,7 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
+import org.h2.value.ValueBinary;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueChar;
 import org.h2.value.ValueCollectionBase;
@@ -125,6 +126,7 @@ public class Data {
     private static final int JSON = 136;
     private static final int TIMESTAMP_TZ_2 = 137;
     private static final int TIME_TZ = 138;
+    private static final int BINARY = 139;
 
     private static final long MILLIS_PER_MINUTE = 1000 * 60;
 
@@ -601,15 +603,14 @@ public class Data {
             break;
         }
         case Value.GEOMETRY:
-            // fall though
-        case Value.JAVA_OBJECT: {
-            writeByte(type == Value.GEOMETRY ? GEOMETRY : JAVA_OBJECT);
-            byte[] b = v.getBytesNoCopy();
-            int len = b.length;
-            writeVarInt(len);
-            write(b, 0, len);
+            writeBinary(v, GEOMETRY);
             break;
-        }
+        case Value.JAVA_OBJECT:
+            writeBinary(v, JAVA_OBJECT);
+            break;
+        case Value.BINARY:
+            writeBinary(v, (byte) BINARY);
+            break;
         case Value.VARBINARY: {
             byte[] b = v.getBytesNoCopy();
             int len = b.length;
@@ -764,19 +765,22 @@ public class Data {
             writeVarLong(interval.getRemaining());
             break;
         }
-        case Value.JSON: {
-            writeByte((byte) JSON);
-            byte[] b = v.getBytesNoCopy();
-            int len = b.length;
-            writeVarInt(len);
-            write(b, 0, len);
+        case Value.JSON:
+            writeBinary(v, (byte) JSON);
             break;
-        }
         default:
             DbException.throwInternalError("type=" + v.getValueType());
         }
         assert pos - start == getValueLen(v)
                 : "value size error: got " + (pos - start) + " expected " + getValueLen(v);
+    }
+
+    private void writeBinary(Value v, byte type) {
+        writeByte(type);
+        byte[] b = v.getBytesNoCopy();
+        int len = b.length;
+        writeVarInt(len);
+        write(b, 0, len);
     }
 
     /**
@@ -862,6 +866,12 @@ public class Data {
             byte[] b = Utils.newBytes(len);
             read(b, 0, len);
             return ValueVarbinary.getNoCopy(b);
+        }
+        case BINARY: {
+            int len = readVarInt();
+            byte[] b = Utils.newBytes(len);
+            read(b, 0, len);
+            return ValueBinary.getNoCopy(b);
         }
         case GEOMETRY: {
             int len = readVarInt();
@@ -1129,6 +1139,7 @@ public class Data {
             return 1 + getVarLongLen(dateValue) + getVarLongLen(nanos) +
                     (tz % 60 == 0 ? getVarIntLen(tz / 60) : getTimeZoneLen(tz));
         }
+        case Value.BINARY:
         case Value.GEOMETRY:
         case Value.JAVA_OBJECT: {
             byte[] b = v.getBytesNoCopy();

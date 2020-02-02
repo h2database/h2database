@@ -53,8 +53,7 @@ abstract class ValueBytesBase extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append("X'");
-        return StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
+        return StringUtils.convertBytesToHex(builder.append("X'"), getBytesNoCopy()).append('\'');
     }
 
     @Override

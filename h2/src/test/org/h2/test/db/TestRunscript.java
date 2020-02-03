@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.store.fs.FileUtils;
@@ -58,6 +59,7 @@ public class TestRunscript extends TestDb implements Trigger {
         testCancelScript();
         testEncoding();
         testClobPrimaryKey();
+        testVariableBinary();
         deleteDb("runscript");
     }
 
@@ -542,6 +544,32 @@ public class TestRunscript extends TestDb implements Trigger {
         FileUtils.delete(getBaseDir() + "/backup.2.sql");
         FileUtils.delete(getBaseDir() + "/backup.3.sql");
 
+    }
+
+    private void testVariableBinary() throws SQLException {
+        deleteDb("runscript");
+        Connection conn;
+        Statement stat;
+        conn = getConnection("runscript");
+        stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(B BINARY)");
+        assertEquals(Types.BINARY, stat.executeQuery("TABLE TEST").getMetaData().getColumnType(1));
+        stat.execute("SCRIPT TO '" + getBaseDir() + "/backup.sql'");
+        conn.close();
+        deleteDb("runscript");
+        conn = getConnection("runscript");
+        stat = conn.createStatement();
+        stat.execute("RUNSCRIPT FROM '" + getBaseDir() + "/backup.sql'");
+        assertEquals(Types.BINARY, stat.executeQuery("TABLE TEST").getMetaData().getColumnType(1));
+        conn.close();
+        deleteDb("runscript");
+        conn = getConnection("runscript");
+        stat = conn.createStatement();
+        stat.execute("RUNSCRIPT FROM '" + getBaseDir() + "/backup.sql' VARIABLE_BINARY");
+        assertEquals(Types.VARBINARY, stat.executeQuery("TABLE TEST").getMetaData().getColumnType(1));
+        conn.close();
+        deleteDb("runscript");
+        FileUtils.delete(getBaseDir() + "/backup.sql");
     }
 
     @Override

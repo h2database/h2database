@@ -33,6 +33,8 @@ public class RunScriptCommand extends ScriptBase {
 
     private Charset charset = StandardCharsets.UTF_8;
 
+    private boolean variableBinary;
+
     public RunScriptCommand(Session session) {
         super(session);
     }
@@ -41,6 +43,7 @@ public class RunScriptCommand extends ScriptBase {
     public int update() {
         session.getUser().checkAdmin();
         int count = 0;
+        boolean oldVariableBinary = session.isVariableBinary();
         try {
             openInput();
             BufferedReader reader = new BufferedReader(new InputStreamReader(in, charset));
@@ -48,6 +51,9 @@ public class RunScriptCommand extends ScriptBase {
             reader.mark(1);
             if (reader.read() != UTF8_BOM) {
                 reader.reset();
+            }
+            if (variableBinary) {
+                session.setVariableBinary(true);
             }
             ScriptReader r = new ScriptReader(reader);
             while (true) {
@@ -65,6 +71,9 @@ public class RunScriptCommand extends ScriptBase {
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         } finally {
+            if (variableBinary) {
+                session.setVariableBinary(oldVariableBinary);
+            }
             closeIO();
         }
         return count;
@@ -88,6 +97,17 @@ public class RunScriptCommand extends ScriptBase {
 
     public void setCharset(Charset charset) {
         this.charset = charset;
+    }
+
+    /**
+     * Changes parsing of a BINARY data type.
+     *
+     * @param variableBinary
+     *            {@code true} to parse BINARY as VARBINARY, {@code false} to
+     *            parse it as is
+     */
+    public void setVariableBinary(boolean variableBinary) {
+        this.variableBinary = variableBinary;
     }
 
     @Override

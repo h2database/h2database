@@ -7974,6 +7974,9 @@ public class Parser {
         if (readIf("CHARSET")) {
             command.setCharset(Charset.forName(readString()));
         }
+        if (readIf("VARIABLE_BINARY")) {
+            command.setVariableBinary(true);
+        }
         return command;
     }
 

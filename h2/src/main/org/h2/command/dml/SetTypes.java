@@ -262,7 +262,12 @@ public class SetTypes {
      */
     public static final int TIME_ZONE = NON_KEYWORDS + 1;
 
-    private static final int COUNT = TIME_ZONE + 1;
+    /**
+     * The type of a SET VARIABLE_BINARY statement.
+     */
+    public static final int VARIABLE_BINARY = TIME_ZONE + 1;
+
+    private static final int COUNT = VARIABLE_BINARY + 1;
 
     private static final ArrayList<String> TYPES;
 
@@ -323,6 +328,7 @@ public class SetTypes {
         list.add(CATALOG, "CATALOG");
         list.add(NON_KEYWORDS, "NON_KEYWORDS");
         list.add(TIME_ZONE, "TIME ZONE");
+        list.add(VARIABLE_BINARY, "VARIABLE_BINARY");
         TYPES = list;
     }
 

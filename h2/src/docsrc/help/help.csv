@@ -1991,6 +1991,17 @@ This command commits an open transaction in this connection.
 SET UNDO_LOG 0
 "
 
+"Commands (Other)","SET VARIABLE_BINARY","
+@h2@ SET VARIABLE_BINARY { TRUE | FALSE }
+","
+If ""TRUE"" is specified, the ""BINARY"" data type will be parsed as ""VARBINARY"" in the current session.
+It can be used for compatibility with older versions of H2.
+
+This setting can be appended to the database URL: ""jdbc:h2:./test;VARIABLE_BINARY=TRUE""
+","
+SET VARIABLE_BINARY TRUE
+"
+
 "Commands (Other)","SET WRITE_DELAY","
 @h2@ SET WRITE_DELAY int
 ","

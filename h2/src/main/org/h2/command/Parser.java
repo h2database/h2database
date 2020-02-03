@@ -178,6 +178,7 @@ import org.h2.constraint.ConstraintActionType;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
+import org.h2.engine.DbSettings;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.IsolationLevel;
 import org.h2.engine.Mode;
@@ -692,6 +693,11 @@ public class Parser {
      */
     private final boolean identifiersToUpper;
 
+    /**
+     * @see org.h2.engine.Session#isVariableBinary()
+     */
+    private final boolean variableBinary;
+
     private final BitSet nonKeywords;
 
     /** indicates character-type for each char in sqlCommand */
@@ -773,8 +779,10 @@ public class Parser {
      */
     public Parser(Session session) {
         this.database = session.getDatabase();
-        this.identifiersToLower = database.getSettings().databaseToLower;
-        this.identifiersToUpper = database.getSettings().databaseToUpper;
+        DbSettings settings = database.getSettings();
+        this.identifiersToLower = settings.databaseToLower;
+        this.identifiersToUpper = settings.databaseToUpper;
+        this.variableBinary = session.isVariableBinary();
         this.nonKeywords = session.getNonKeywords();
         this.session = session;
     }
@@ -786,6 +794,7 @@ public class Parser {
         database = null;
         identifiersToLower = false;
         identifiersToUpper = false;
+        variableBinary = false;
         nonKeywords = null;
         session = null;
     }
@@ -6025,6 +6034,8 @@ public class Parser {
             } else if (readIf("LARGE")) {
                 read("OBJECT");
                 original = "BINARY LARGE OBJECT";
+            } else if (variableBinary) {
+                original = "VARBINARY";
             }
             break;
         case "CHAR":

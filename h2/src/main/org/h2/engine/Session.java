@@ -196,6 +196,11 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     private BitSet idsToRelease;
 
+    /**
+     * Whether BINARY is parsed as VARBINARY.
+     */
+    private boolean variableBinary;
+
     public Session(Database database, User user, int id) {
         this.database = database;
         this.queryTimeout = database.getSettings().maxQueryTimeout;
@@ -2150,6 +2155,27 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public int compareTypeSafe(Value a, Value b) {
         return a.compareTypeSafe(b, database.getCompareMode(), this);
+    }
+
+    /**
+     * Changes parsing of a BINARY data type.
+     *
+     * @param variableBinary
+     *            {@code true} to parse BINARY as VARBINARY, {@code false} to
+     *            parse it as is
+     */
+    public void setVariableBinary(boolean variableBinary) {
+        this.variableBinary = variableBinary;
+    }
+
+    /**
+     * Returns BINARY data type parsing mode.
+     *
+     * @return {@code true} if BINARY should be parsed as VARBINARY,
+     *         {@code false} if it should be parsed as is
+     */
+    public boolean isVariableBinary() {
+        return variableBinary;
     }
 
 }

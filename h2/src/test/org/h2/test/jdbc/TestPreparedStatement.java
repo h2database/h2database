@@ -326,7 +326,7 @@ public class TestPreparedStatement extends TestDb {
         PreparedStatement prep;
         ResultSet rs;
 
-        stat.execute("CREATE TABLE TEST(ID INT, H BINARY)");
+        stat.execute("CREATE TABLE TEST(ID INT, H VARBINARY)");
         prep = conn.prepareStatement("INSERT INTO TEST " +
                 "VALUES(?, HASH('SHA256', STRINGTOUTF8(?), 5))");
         prep.setInt(1, 1);
@@ -615,7 +615,7 @@ public class TestPreparedStatement extends TestDb {
         prep.setObject(1, 'x');
         prep.execute();
         stat.execute("DROP TABLE TEST");
-        stat.execute("CREATE TABLE TEST(ID INT, DATA BINARY, JAVA OTHER)");
+        stat.execute("CREATE TABLE TEST(ID INT, DATA VARBINARY, JAVA OTHER)");
         prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ?)");
         prep.setInt(1, 1);
         prep.setObject(2, 11);

@@ -1411,6 +1411,7 @@ public class Recover extends Tool implements DataHandler {
                         switch (v.getValueType()) {
                         case Value.VARBINARY:
                         case Value.JAVA_OBJECT:
+                        case Value.BINARY:
                             columnTypeMap.put(storageName + '.' + valueId, "VARBINARY");
                             break;
                         case Value.BLOB:

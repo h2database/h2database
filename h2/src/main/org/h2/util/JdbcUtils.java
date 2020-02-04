@@ -521,6 +521,7 @@ public class JdbcUtils {
             }
             break;
         case Value.VARBINARY:
+        case Value.BINARY:
         case Value.GEOMETRY:
         case Value.JSON:
             prep.setBytes(parameterIndex, value.getBytesNoCopy());

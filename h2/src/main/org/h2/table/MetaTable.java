@@ -1165,6 +1165,7 @@ public class MetaTable extends Table {
             add(session, rows, "MODE", database.getMode().getName());
             add(session, rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
             add(session, rows, "TIME ZONE", session.currentTimeZone().getId());
+            add(session, rows, "VARIABLE_BINARY", session.isVariableBinary() ? "TRUE" : "FALSE");
             BitSet nonKeywords = session.getNonKeywords();
             if (nonKeywords != null) {
                 add(session, rows, "NON_KEYWORDS", Parser.formatNonKeywords(nonKeywords));

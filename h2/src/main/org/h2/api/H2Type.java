@@ -181,6 +181,11 @@ public enum H2Type implements SQLType {
     /**
      * The VARBINARY data type.
      */
+    BINARY("BINARY", Value.BINARY),
+
+    /**
+     * The VARBINARY data type.
+     */
     VARBINARY("VARBINARY", Value.VARBINARY),
 
     /**

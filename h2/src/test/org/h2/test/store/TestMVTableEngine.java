@@ -1151,7 +1151,7 @@ public class TestMVTableEngine extends TestDb {
                 "ti time," +
                 "da date," +
                 "ts timestamp," +
-                "bin binary," +
+                "bin varbinary," +
                 "uu uuid," +
                 "bl blob," +
                 "cl clob)");

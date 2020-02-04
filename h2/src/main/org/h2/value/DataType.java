@@ -202,22 +202,22 @@ public class DataType {
                 new String[]{"NULL"}
         );
         add(Value.VARCHAR, Types.VARCHAR,
-                createString(true),
+                createString(true, false),
                 new String[]{"VARCHAR", "CHARACTER VARYING", "CHAR VARYING",
                         "NCHAR VARYING", "NATIONAL CHARACTER VARYING", "NATIONAL CHAR VARYING",
                         "VARCHAR2", "NVARCHAR", "NVARCHAR2",
                         "VARCHAR_CASESENSITIVE", "TID"}
         );
         add(Value.VARCHAR, Types.LONGVARCHAR,
-                createString(true),
+                createString(true, false),
                 new String[]{"LONGVARCHAR", "LONGNVARCHAR"}
         );
         add(Value.CHAR, Types.CHAR,
-                createString(true),
+                createString(true, true),
                 new String[]{"CHAR", "CHARACTER", "NCHAR", "NATIONAL CHARACTER", "NATIONAL CHAR"}
         );
         add(Value.VARCHAR_IGNORECASE, Types.VARCHAR,
-                createString(false),
+                createString(false, false),
                 new String[]{"VARCHAR_IGNORECASE"}
         );
         add(Value.BOOLEAN, Types.BOOLEAN,
@@ -296,27 +296,27 @@ public class DataType {
                 new String[]{"TIMESTAMP WITH TIME ZONE"}
         );
         add(Value.VARBINARY, Types.VARBINARY,
-                createBinary(),
-                new String[]{"VARBINARY", "BINARY VARYING"}
-        );
-        add(Value.VARBINARY, Types.BINARY,
-                createBinary(),
-                new String[]{"BINARY", "RAW", "BYTEA", "LONG RAW"}
+                createBinary(false),
+                new String[]{"VARBINARY", "BINARY VARYING", "RAW", "BYTEA", "LONG RAW"}
         );
         add(Value.VARBINARY, Types.LONGVARBINARY,
-                createBinary(),
+                createBinary(false),
                 new String[]{"LONGVARBINARY"}
+        );
+        add(Value.BINARY, Types.BINARY,
+                createBinary(true),
+                new String[]{"BINARY"}
         );
         dataType = new DataType();
         dataType.prefix = dataType.suffix = "'";
         dataType.defaultPrecision = dataType.maxPrecision = dataType.minPrecision = ValueUuid.PRECISION;
         add(Value.UUID, Types.BINARY,
-                createString(false),
+                createString(false, false),
                 // UNIQUEIDENTIFIER is the MSSQL mode equivalent
                 new String[]{"UUID", "UNIQUEIDENTIFIER"}
         );
         add(Value.JAVA_OBJECT, Types.JAVA_OBJECT,
-                createString(false),
+                createString(false, false),
                 new String[]{"JAVA_OBJECT", "OBJECT", "OTHER"}
         );
         add(Value.BLOB, Types.BLOB,
@@ -334,7 +334,7 @@ public class DataType {
                 new String[]{"GEOMETRY"}
         );
         add(Value.ARRAY, Types.ARRAY,
-                createString(false, "ARRAY[", "]"),
+                createString(false, false, "ARRAY[", "]"),
                 new String[]{"ARRAY"}
         );
         dataType = new DataType();
@@ -343,7 +343,7 @@ public class DataType {
                 dataType,
                 new String[]{"RESULT_SET"}
         );
-        dataType = createString(false);
+        dataType = createString(false, false);
         dataType.supportsPrecision = false;
         dataType.supportsScale = false;
         add(Value.ENUM, Types.OTHER,
@@ -354,7 +354,7 @@ public class DataType {
             addInterval(i);
         }
         add(Value.JSON, Types.OTHER,
-                createString(true, "JSON '", "'"),
+                createString(true, false, "JSON '", "'"),
                 new String[]{"JSON"}
         );
         // Row value doesn't have a type name
@@ -503,15 +503,15 @@ public class DataType {
         return dataType;
     }
 
-    private static DataType createString(boolean caseSensitive) {
-        return createString(caseSensitive, "'", "'");
+    private static DataType createString(boolean caseSensitive, boolean fixedLength) {
+        return createString(caseSensitive, fixedLength, "'", "'");
     }
 
-    private static DataType createBinary() {
-        return createString(false, "X'", "'");
+    private static DataType createBinary(boolean fixedLength) {
+        return createString(false, fixedLength, "X'", "'");
     }
 
-    private static DataType createString(boolean caseSensitive, String prefix, String suffix) {
+    private static DataType createString(boolean caseSensitive, boolean fixedLength, String prefix, String suffix) {
         DataType dataType = new DataType();
         dataType.prefix = prefix;
         dataType.suffix = suffix;
@@ -519,12 +519,12 @@ public class DataType {
         dataType.caseSensitive = caseSensitive;
         dataType.supportsPrecision = true;
         dataType.maxPrecision = Integer.MAX_VALUE;
-        dataType.defaultPrecision = Integer.MAX_VALUE;
+        dataType.defaultPrecision = fixedLength ? 1 : Integer.MAX_VALUE;
         return dataType;
     }
 
     private static DataType createLob(boolean clob) {
-        DataType t = clob ? createString(true) : createBinary();
+        DataType t = clob ? createString(true, false) : createBinary(false);
         t.maxPrecision = Long.MAX_VALUE;
         t.defaultPrecision = Long.MAX_VALUE;
         return t;
@@ -562,9 +562,9 @@ public class DataType {
         try {
             Value v;
             switch (type) {
-            case Value.NULL: {
-                return ValueNull.INSTANCE;
-            }
+            case Value.NULL:
+                v = ValueNull.INSTANCE;
+                break;
             case Value.VARBINARY: {
                 /*
                  * Both BINARY and UUID may be mapped to Value.BYTES. getObject() returns byte[]
@@ -575,6 +575,15 @@ public class DataType {
                     v = ValueVarbinary.getNoCopy((byte[]) o);
                 } else if (o != null) {
                     v = ValueUuid.get((UUID) o);
+                } else {
+                    v = ValueNull.INSTANCE;
+                }
+                break;
+            }
+            case Value.BINARY: {
+                byte[] bytes = rs.getBytes(columnIndex);
+                if (bytes != null) {
+                    v = ValueBinary.getNoCopy(bytes);
                 } else {
                     v = ValueNull.INSTANCE;
                 }
@@ -894,6 +903,7 @@ public class DataType {
             // "java.time.OffsetDateTime";
             return OffsetDateTime.class.getName();
         case Value.VARBINARY:
+        case Value.BINARY:
         case Value.UUID:
         case Value.JSON:
             // "[B", not "byte[]";
@@ -1100,6 +1110,7 @@ public class DataType {
         case Types.FLOAT:
             return Value.DOUBLE;
         case Types.BINARY:
+            return Value.BINARY;
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
             return Value.VARBINARY;
@@ -1571,7 +1582,14 @@ public class DataType {
      * @return true if the value type is a binary string type
      */
     public static boolean isBinaryStringType(int type) {
-        return type == Value.VARBINARY || type == Value.BLOB;
+        switch (type) {
+        case Value.VARBINARY:
+        case Value.BINARY:
+        case Value.BLOB:
+            return true;
+        default:
+            return false;
+        }
     }
 
     /**
@@ -1624,6 +1642,7 @@ public class DataType {
     public static boolean isBinaryStringOrSpecialBinaryType(int type) {
         switch (type) {
         case Value.VARBINARY:
+        case Value.BINARY:
         case Value.BLOB:
         case Value.JAVA_OBJECT:
         case Value.UUID:
@@ -1674,6 +1693,7 @@ public class DataType {
         case Value.INTERVAL_HOUR_TO_MINUTE:
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
+        case Value.BINARY:
             return true;
         default:
             return false;

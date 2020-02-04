@@ -149,7 +149,13 @@ public class TestValue extends TestDb {
             PreparedStatement prep;
             ResultSet rs;
             // Check conversion to byte[]
-            prep = conn.prepareStatement("SELECT * FROM TABLE(X BINARY=?)");
+            prep = conn.prepareStatement("SELECT * FROM TABLE(X BINARY(16)=?)");
+            prep.setObject(1, new Object[] { uuid });
+            rs = prep.executeQuery();
+            rs.next();
+            assertTrue(Arrays.equals(Bits.uuidToBytes(uuid), (byte[]) rs.getObject(1)));
+            // Check conversion to byte[]
+            prep = conn.prepareStatement("SELECT * FROM TABLE(X VARBINARY=?)");
             prep.setObject(1, new Object[] { uuid });
             rs = prep.executeQuery();
             rs.next();

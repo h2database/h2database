@@ -55,6 +55,7 @@ public class ConcatenationOperation extends Expression {
             System.arraycopy(rightValues, 0, values, leftLength, rightLength);
             return ValueArray.get(values);
         }
+        case Value.BINARY:
         case Value.VARBINARY: {
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;

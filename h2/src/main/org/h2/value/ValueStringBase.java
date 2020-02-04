@@ -6,7 +6,6 @@
 package org.h2.value;
 
 import org.h2.engine.CastDataProvider;
-import org.h2.util.StringUtils;
 
 /**
  * Base implementation of String based data types.

@@ -254,6 +254,7 @@ public class TypeInfo {
         infos[Value.JSON] = TYPE_JSON = new TypeInfo(Value.JSON, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.TIME_TZ] = TYPE_TIME_TZ = new TypeInfo(Value.TIME_TZ, ValueTimeTimeZone.MAXIMUM_PRECISION,
                 ValueTime.MAXIMUM_SCALE, ValueTimeTimeZone.MAXIMUM_PRECISION, null);
+        infos[Value.BINARY] = new TypeInfo(Value.BINARY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         TYPE_INFOS_BY_VALUE_TYPE = infos;
     }
 
@@ -311,7 +312,7 @@ public class TypeInfo {
         case Value.UNKNOWN:
             return TYPE_UNKNOWN;
         case Value.NUMERIC:
-            if (precision < 0) {
+            if (precision < 1) {
                 precision = ValueNumeric.DEFAULT_PRECISION;
             } else if (precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
@@ -346,23 +347,32 @@ public class TypeInfo {
             return new TypeInfo(Value.TIMESTAMP_TZ, d, scale, d, null);
         }
         case Value.VARBINARY:
-            if (precision < 0 || precision > Integer.MAX_VALUE) {
-                return TYPE_VARBINARY;
+            if (precision < 1 || precision > Integer.MAX_VALUE) {
+                if (precision != 0) {
+                    return TYPE_VARBINARY;
+                }
+                precision = 1;
             }
             return new TypeInfo(Value.VARBINARY, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
         case Value.VARCHAR:
-            if (precision < 0 || precision >= Integer.MAX_VALUE) {
-                return TYPE_VARCHAR;
+            if (precision < 1 || precision >= Integer.MAX_VALUE) {
+                if (precision != 0) {
+                    return TYPE_VARCHAR;
+                }
+                precision = 1;
             }
             return new TypeInfo(Value.VARCHAR, precision, 0, (int) precision, null);
         case Value.VARCHAR_IGNORECASE:
-            if (precision < 0 || precision >= Integer.MAX_VALUE) {
-                return TYPE_VARCHAR_IGNORECASE;
+            if (precision < 1 || precision >= Integer.MAX_VALUE) {
+                if (precision != 0) {
+                    return TYPE_VARCHAR_IGNORECASE;
+                }
+                precision = 1;
             }
             return new TypeInfo(Value.VARCHAR_IGNORECASE, precision, 0, (int) precision, null);
         case Value.BLOB:
         case Value.CLOB:
-            if (precision < 0) {
+            if (precision < 1) {
                 precision = Long.MAX_VALUE;
             }
             return new TypeInfo(type, precision, 0, MathUtils.convertLongToInt(precision), null);
@@ -375,12 +385,14 @@ public class TypeInfo {
             }
             return new TypeInfo(Value.ARRAY, precision, 0, Integer.MAX_VALUE, extTypeInfo);
         case Value.JAVA_OBJECT:
-            if (precision < 0 || precision > Integer.MAX_VALUE) {
+            if (precision < 1 || precision > Integer.MAX_VALUE) {
                 return TYPE_JAVA_OBJECT;
             }
             return new TypeInfo(Value.JAVA_OBJECT, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
         case Value.CHAR:
-            if (precision < 0 || precision > Integer.MAX_VALUE) {
+            if (precision < 1) {
+                precision = 1;
+            } else if (precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
             }
             return new TypeInfo(Value.CHAR, precision, 0, (int) precision, null);
@@ -421,6 +433,13 @@ public class TypeInfo {
             }
             return new TypeInfo(type, precision, scale, ValueInterval.getDisplaySize(type, (int) precision, scale),
                     null);
+        case Value.BINARY:
+            if (precision < 1) {
+                precision = 1;
+            } else if (precision > Integer.MAX_VALUE) {
+                precision = Integer.MAX_VALUE;
+            }
+            return new TypeInfo(Value.BINARY, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
         }
         return TYPE_NULL;
     }
@@ -511,11 +530,15 @@ public class TypeInfo {
         case Value.VARCHAR:
         case Value.VARCHAR_IGNORECASE:
         case Value.JAVA_OBJECT:
-        case Value.CHAR:
             builder.append(DataType.getDataType(valueType).name);
             if (precision < Integer.MAX_VALUE) {
                 builder.append('(').append(precision).append(')');
             }
+            break;
+        case Value.CHAR:
+        case Value.BINARY:
+            builder.append(DataType.getDataType(valueType).name);
+            builder.append('(').append(precision).append(')');
             break;
         case Value.TIME:
         case Value.TIME_TZ:

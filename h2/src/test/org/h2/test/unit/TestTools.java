@@ -717,7 +717,7 @@ public class TestTools extends TestDb {
         prep.executeUpdate();
         stat.execute("create table test2(id int primary key,\n" +
                 "a real, b double, c bigint,\n" +
-                "d smallint, e boolean, f binary, g date, h time, i timestamp)",
+                "d smallint, e boolean, f varbinary, g date, h time, i timestamp)",
                 Statement.NO_GENERATED_KEYS);
         prep = conn.prepareStatement(
                 "insert into test2 values(1, ?, ?, ?, ?, ?, ?, ?, ?, ?)");

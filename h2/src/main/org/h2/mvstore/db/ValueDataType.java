@@ -40,6 +40,7 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
+import org.h2.value.ValueBinary;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueChar;
 import org.h2.value.ValueCollectionBase;
@@ -116,6 +117,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     private static final int JSON = 134;
     private static final int TIMESTAMP_TZ_2 = 135;
     private static final int TIME_TZ = 136;
+    private static final int BINARY = 137;
 
     final DataHandler handler;
     final CastDataProvider provider;
@@ -410,9 +412,16 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                     put(b);
             } else {
                 buff.put(VARBINARY).
-                    putVarInt(b.length).
+                    putVarInt(len).
                     put(b);
             }
+            break;
+        }
+        case Value.BINARY: {
+            byte[] b = v.getBytesNoCopy();
+            buff.put((byte) BINARY).
+                putVarInt(b.length).
+                put(b);
             break;
         }
         case Value.UUID: {
@@ -705,6 +714,12 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             byte[] b = Utils.newBytes(len);
             buff.get(b, 0, len);
             return ValueVarbinary.getNoCopy(b);
+        }
+        case BINARY: {
+            int len = readVarInt(buff);
+            byte[] b = Utils.newBytes(len);
+            buff.get(b, 0, len);
+            return ValueBinary.getNoCopy(b);
         }
         case JAVA_OBJECT: {
             int len = readVarInt(buff);

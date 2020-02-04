@@ -73,6 +73,7 @@ public class Set extends Prepared {
         case SetTypes.LAZY_QUERY_EXECUTION:
         case SetTypes.NON_KEYWORDS:
         case SetTypes.TIME_ZONE:
+        case SetTypes.VARIABLE_BINARY:
             return true;
         default:
         }
@@ -634,6 +635,9 @@ public class Set extends Prepared {
         case SetTypes.TIME_ZONE:
             session.setTimeZone(expression == null ? DateTimeUtils.getTimeZone()
                     : parseTimeZone(expression.getValue(session)));
+            break;
+        case SetTypes.VARIABLE_BINARY:
+            session.setVariableBinary(expression.getBooleanValue(session));
             break;
         default:
             DbException.throwInternalError("type="+type);

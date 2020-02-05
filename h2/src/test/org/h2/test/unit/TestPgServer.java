@@ -394,6 +394,11 @@ public class TestPgServer extends TestDb {
     }
 
     private void testBinaryTypes() throws SQLException {
+        testBinaryTypes(false);
+        testBinaryTypes(true);
+    }
+
+    private void testBinaryTypes(boolean forceBinary) throws SQLException {
         if (!getPgJdbcDriver()) {
             return;
         }
@@ -404,8 +409,9 @@ public class TestPgServer extends TestDb {
             Properties props = new Properties();
             props.setProperty("user", "sa");
             props.setProperty("password", "sa");
-            // force binary
-            props.setProperty("prepareThreshold", "-1");
+            if (forceBinary) {
+                props.setProperty("prepareThreshold", "-1");
+            }
 
             Connection conn = DriverManager.getConnection(
                     "jdbc:postgresql://localhost:5535/pgserver", props);
@@ -487,8 +493,8 @@ public class TestPgServer extends TestDb {
                 Properties props = new Properties();
                 props.setProperty("user", "sa");
                 props.setProperty("password", "sa");
-                // force binary
-                props.setProperty("prepareThreshold", "-1");
+                // no need to force binary for date/time types
+                // props.setProperty("prepareThreshold", "-1");
 
                 Connection conn = DriverManager.getConnection(
                         "jdbc:postgresql://localhost:5535/pgserver", props);

@@ -522,10 +522,8 @@ public class PgServerThread implements Runnable {
         for (int i = 1; i <= columns; i++) {
             int pgType = PgServer.convertType(metaData.getColumnType(i));
             boolean text = formatAsText(pgType);
-            if (formatCodes != null) {
-                if (formatCodes.length == 0) {
-                    text = true;
-                } else if (formatCodes.length == 1) {
+            if (text && formatCodes != null && formatCodes.length > 0) {
+                if (formatCodes.length == 1) {
                     text = formatCodes[0] == 0;
                 } else if (i - 1 < formatCodes.length) {
                     text = formatCodes[i - 1] == 0;
@@ -813,7 +811,7 @@ public class PgServerThread implements Runnable {
     /**
      * Check whether the given type should be formatted as text.
      *
-     * @return true for binary
+     * @return true for text
      */
     private static boolean formatAsText(int pgType) {
         switch (pgType) {

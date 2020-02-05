@@ -421,7 +421,7 @@ public class TestPgServer extends TestDb {
 
             stat.execute(
                     "create table test(x1 varchar, x2 int, " +
-                    "x3 smallint, x4 bigint, x5 double, x6 float, " +
+                    "x3 smallint, x4 bigint, x5 double precision, x6 float, " +
                     "x7 real, x8 boolean, x9 char(3), x10 bytea, " +
                     "x11 date, x12 time, x13 timestamp, x14 numeric(25, 5))");
 

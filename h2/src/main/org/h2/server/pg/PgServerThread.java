@@ -342,7 +342,7 @@ public class PgServerThread implements Runnable {
                 } else {
                     try {
                         sendParameterDescription(p.prep.getParameterMetaData(), p.paramType);
-                        sendRowDescription(p.prep.getMetaData());
+                        sendRowDescription(p.prep.getMetaData(), null);
                     } catch (Exception e) {
                         sendErrorResponse(e);
                     }
@@ -355,7 +355,7 @@ public class PgServerThread implements Runnable {
                     PreparedStatement prep = p.prep.prep;
                     try {
                         ResultSetMetaData meta = prep.getMetaData();
-                        sendRowDescription(meta);
+                        sendRowDescription(meta, p.resultColumnFormat);
                     } catch (Exception e) {
                         sendErrorResponse(e);
                     }
@@ -431,7 +431,7 @@ public class PgServerThread implements Runnable {
                         JdbcResultSet rs = (JdbcResultSet) stat.getResultSet();
                         ResultSetMetaData meta = rs.getMetaData();
                         try {
-                            sendRowDescription(meta);
+                            sendRowDescription(meta, null);
                             while (rs.next()) {
                                 sendDataRow(rs, null);
                             }
@@ -521,16 +521,7 @@ public class PgServerThread implements Runnable {
         writeShort(columns);
         for (int i = 1; i <= columns; i++) {
             int pgType = PgServer.convertType(metaData.getColumnType(i));
-            boolean text = formatAsText(pgType);
-            if (formatCodes != null) {
-                if (formatCodes.length == 0) {
-                    text = true;
-                } else if (formatCodes.length == 1) {
-                    text = formatCodes[0] == 0;
-                } else if (i - 1 < formatCodes.length) {
-                    text = formatCodes[i - 1] == 0;
-                }
-            }
+            boolean text = formatAsText(pgType, formatCodes, i - 1);
             writeDataColumn(rs, i, pgType, text);
         }
         sendMessage();
@@ -553,6 +544,37 @@ public class PgServerThread implements Runnable {
                 writeInt(1);
                 dataOut.writeByte(v.getBoolean() ? 't' : 'f');
                 break;
+            case PgServer.PG_TYPE_BYTEA: {
+                byte[] bytes = v.getBytesNoCopy();
+                int length = bytes.length;
+                int cnt = length;
+                for (int i = 0; i < length; i++) {
+                    byte b = bytes[i];
+                    if (b < 32 || b > 126) {
+                        cnt += 3;
+                    } else if (b == 92) {
+                        cnt++;
+                    }
+                }
+                byte[] data = new byte[cnt];
+                for (int i = 0, j = 0; i < length; i++) {
+                    byte b = bytes[i];
+                    if (b < 32 || b > 126) {
+                        data[j++] = '\\';
+                        data[j++] = (byte) (((b >>> 6) & 7) + '0');
+                        data[j++] = (byte) (((b >>> 3) & 7) + '0');
+                        data[j++] = (byte) ((b & 7) + '0');
+                    } else if (b == 92) {
+                        data[j++] = '\\';
+                        data[j++] = '\\';
+                    } else {
+                        data[j++] = b;
+                    }
+                }
+                writeInt(data.length);
+                write(data);
+                break;
+            }
             default:
                 byte[] data = v.getString().getBytes(getEncoding());
                 writeInt(data.length);
@@ -763,7 +785,7 @@ public class PgServerThread implements Runnable {
         sendMessage();
     }
 
-    private void sendRowDescription(ResultSetMetaData meta) throws IOException, SQLException {
+    private void sendRowDescription(ResultSetMetaData meta, int[] formatCodes) throws IOException, SQLException {
         if (meta == null) {
             sendNoData();
         } else {
@@ -804,7 +826,7 @@ public class PgServerThread implements Runnable {
                 // pg_attribute.atttypmod
                 writeInt(-1);
                 // the format type: text = 0, binary = 1
-                writeShort(formatAsText(types[i]) ? 0 : 1);
+                writeShort(formatAsText(types[i], formatCodes, i) ? 0 : 1);
             }
             sendMessage();
         }
@@ -813,16 +835,21 @@ public class PgServerThread implements Runnable {
     /**
      * Check whether the given type should be formatted as text.
      *
-     * @return true for binary
+     * @param pgType data type
+     * @param formatCodes format codes, or {@code null}
+     * @param column 0-based column number
+     * @return true for text
      */
-    private static boolean formatAsText(int pgType) {
-        switch (pgType) {
-        // TODO: add more types to send as binary once compatibility is
-        // confirmed
-        case PgServer.PG_TYPE_BYTEA:
-            return false;
+    private static boolean formatAsText(int pgType, int[] formatCodes, int column) {
+        boolean text = true;
+        if (formatCodes != null && formatCodes.length > 0) {
+            if (formatCodes.length == 1) {
+                text = formatCodes[0] == 0;
+            } else if (column < formatCodes.length) {
+                text = formatCodes[column] == 0;
+            }
         }
-        return true;
+        return text;
     }
 
     private static int getTypeSize(int pgType, int precision) {

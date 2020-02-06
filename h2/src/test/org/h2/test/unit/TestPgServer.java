@@ -65,7 +65,7 @@ public class TestPgServer extends TestDb {
         testKeyAlias();
         testKeyAlias();
         testCancelQuery();
-        testBinaryTypes();
+        testTextualAndBinaryTypes();
         testDateTime();
         testPrepareWithUnspecifiedType();
     }
@@ -393,7 +393,12 @@ public class TestPgServer extends TestDb {
         }
     }
 
-    private void testBinaryTypes() throws SQLException {
+    private void testTextualAndBinaryTypes() throws SQLException {
+        testTextualAndBinaryTypes(false);
+        testTextualAndBinaryTypes(true);
+    }
+
+    private void testTextualAndBinaryTypes(boolean binary) throws SQLException {
         if (!getPgJdbcDriver()) {
             return;
         }
@@ -404,8 +409,11 @@ public class TestPgServer extends TestDb {
             Properties props = new Properties();
             props.setProperty("user", "sa");
             props.setProperty("password", "sa");
+
             // force binary
-            props.setProperty("prepareThreshold", "-1");
+            if (binary) {
+                props.setProperty("prepareThreshold", "-1");
+            }
 
             Connection conn = DriverManager.getConnection(
                     "jdbc:postgresql://localhost:5535/pgserver", props);
@@ -413,7 +421,7 @@ public class TestPgServer extends TestDb {
 
             stat.execute(
                     "create table test(x1 varchar, x2 int, " +
-                    "x3 smallint, x4 bigint, x5 double, x6 float, " +
+                    "x3 smallint, x4 bigint, x5 double precision, x6 float, " +
                     "x7 real, x8 boolean, x9 char(3), x10 bytea, " +
                     "x11 date, x12 time, x13 timestamp, x14 numeric(25, 5))");
 
@@ -428,7 +436,7 @@ public class TestPgServer extends TestDb {
             ps.setFloat(7, 123.456f);
             ps.setBoolean(8, true);
             ps.setByte(9, (byte) 0xfe);
-            ps.setBytes(10, new byte[] { 'a', (byte) 0xfe, '\127' });
+            ps.setBytes(10, new byte[] { 'a', (byte) 0xfe, '\127', 0, 127, '\\' });
             ps.setDate(11, Date.valueOf("2015-01-31"));
             ps.setTime(12, Time.valueOf("20:11:15"));
             ps.setTimestamp(13, Timestamp.valueOf("2001-10-30 14:16:10.111"));
@@ -450,7 +458,7 @@ public class TestPgServer extends TestDb {
             assertEquals(123.456f, rs.getFloat(7));
             assertEquals(true, rs.getBoolean(8));
             assertEquals((byte) 0xfe, rs.getByte(9));
-            assertEquals(new byte[] { 'a', (byte) 0xfe, '\127' },
+            assertEquals(new byte[] { 'a', (byte) 0xfe, '\127', 0, 127, '\\' },
                     rs.getBytes(10));
             assertEquals(Date.valueOf("2015-01-31"), rs.getDate(11));
             assertEquals(Time.valueOf("20:11:15"), rs.getTime(12));

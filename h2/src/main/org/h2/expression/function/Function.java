@@ -1588,7 +1588,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
             // system
         case NEXTVAL:
-            result = getSequence(session, v0, v1).getNext(session);
+            result = session.getNextValueFor(getSequence(session, v0, v1));
             break;
         case CURRVAL:
             result = session.getCurrentValueFor(getSequence(session, v0, v1));

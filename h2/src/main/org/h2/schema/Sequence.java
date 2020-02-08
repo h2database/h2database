@@ -285,7 +285,8 @@ public class Sequence extends SchemaObjectBase {
     }
 
     /**
-     * Get the next value for this sequence.
+     * Get the next value for this sequence. Should not be called directly, use
+     * {@link Session#getNextValueFor(Sequence)} instead.
      *
      * @param session the session
      * @return the next value
@@ -318,9 +319,6 @@ public class Sequence extends SchemaObjectBase {
             result = ValueNumeric.get(BigDecimal.valueOf(resultAsLong));
         } else {
             result = ValueBigint.get(resultAsLong);
-        }
-        if (session != null) {
-            session.setCurrentValueFor(this, result);
         }
         return result;
     }

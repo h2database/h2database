@@ -29,7 +29,7 @@ public class SequenceValue extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        return current ? session.getCurrentValueFor(sequence) : sequence.getNext(session);
+        return current ? session.getCurrentValueFor(sequence) : session.getNextValueFor(sequence);
     }
 
     @Override

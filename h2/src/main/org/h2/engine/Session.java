@@ -1048,21 +1048,21 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     /**
-     * Sets the current value of the sequence and last identity value for this
-     * session.
+     * Returns the next value of the sequence in this session.
      *
      * @param sequence
      *            the sequence
-     * @param value
-     *            the current value of the sequence
+     * @return the next value of the sequence in this session
      */
-    public void setCurrentValueFor(Sequence sequence, Value value) {
+    public Value getNextValueFor(Sequence sequence) {
+        Value value = sequence.getNext(this);
         WeakHashMap<Sequence, Value> currentValueFor = this.currentValueFor;
         if (currentValueFor == null) {
             this.currentValueFor = currentValueFor = new WeakHashMap<>();
         }
         currentValueFor.put(sequence, value);
         setLastIdentity(value);
+        return value;
     }
 
     /**

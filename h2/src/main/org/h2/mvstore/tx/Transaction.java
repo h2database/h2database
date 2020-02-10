@@ -201,28 +201,6 @@ public class Transaction {
         return getStatus(statusAndLogId.get());
     }
 
-    /**
-     * Create a snapshot for the given map id.
-     *
-     * @param mapId the map id
-     * @return the root reference
-     */
-    <K,V> Snapshot<K,VersionedValue<V>> createSnapshot(int mapId) {
-        // The purpose of the following loop is to get a coherent picture
-        // of a state of two independent volatile / atomic variables,
-        // which they had at some recent moment in time.
-        // In order to get such a "snapshot", we wait for a moment of silence,
-        // when neither of the variables concurrently changes it's value.
-        BitSet committingTransactions;
-        RootReference<K,VersionedValue<V>> root;
-        do {
-            committingTransactions = store.committingTransactions.get();
-            MVMap<K,VersionedValue<V>> map = store.getMap(mapId);
-            root = map.flushAndGetRoot();
-        } while (committingTransactions != store.committingTransactions.get());
-        return new Snapshot<>(root, committingTransactions);
-    }
-
     RootReference<Long,Record<?,?>>[] getUndoLogRootReferences() {
         return undoLogRootReferences;
     }

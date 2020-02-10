@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 
 /**
  * A map that supports transactions.
@@ -35,7 +37,7 @@ import java.util.Set;
  * @param <K> the key type
  * @param <V> the value type
  */
-public class TransactionMap<K, V> extends AbstractMap<K,V> {
+public final class TransactionMap<K, V> extends AbstractMap<K,V> {
 
     /**
      * The map used for writing (the latest version).
@@ -91,7 +93,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @see #sizeAsLong()
      */
     @Override
-    public final int size() {
+    public int size() {
         long size = sizeAsLong();
         return size > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) size;
     }
@@ -442,21 +444,26 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
         case READ_COMMITTED:
         default:
             Snapshot<K,VersionedValue<V>> snapshot = getSnapshot();
-            VersionedValue<V> data = map.get(snapshot.root.root, key);
-            if (data == null) {
-                // doesn't exist or deleted by a committed transaction
-                return null;
-            }
-            long id = data.getOperationId();
-            if (id != 0) {
-                int tx = TransactionStore.getTransactionId(id);
-                if (tx != transaction.transactionId && !snapshot.committingTransactions.get(tx)) {
-                    return data.getCommittedValue();
-                }
-            }
-            // added by this transaction or another transaction which is committed by now
-            return data.getCurrentValue();
+            return getFromSnapshot(snapshot.root, snapshot.committingTransactions, key);
         }
+    }
+
+    private V getFromSnapshot(RootReference<K, VersionedValue<V>> rootRef, BitSet committingTransactions, K key) {
+        VersionedValue<V> data = map.get(rootRef.root, key);
+        if (data == null) {
+            // doesn't exist or deleted by a committed transaction
+            return null;
+        }
+        long id = data.getOperationId();
+        if (id != 0) {
+            int tx = TransactionStore.getTransactionId(id);
+            if (tx != transaction.transactionId && !committingTransactions.get(tx)) {
+                // added/modified/removed by uncommitted transaction, change should not be visible
+                return data.getCommittedValue();
+            }
+        }
+        // added/modified/removed by this transaction or another transaction which is committed by now
+        return data.getCurrentValue();
     }
 
     /**
@@ -466,23 +473,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the value, or null if not found
      */
     public V getImmediate(K key) {
-        VersionedValue<V> data = map.get(key);
-        if (data == null) {
-            // doesn't exist or deleted by a committed transaction
-            return null;
-        }
-        long id = data.getOperationId();
-        if (id == 0) {
-            // it is committed
-            return data.getCurrentValue();
-        }
-        int tx = TransactionStore.getTransactionId(id);
-        if (tx == transaction.transactionId || transaction.store.committingTransactions.get().get(tx)) {
-            // added by this transaction or another transaction which is committed by now
-            return data.getCurrentValue();
-        } else {
-            return data.getCommittedValue();
-        }
+        return useSnapshot((rootReference, committedTransactions) -> getFromSnapshot(rootReference, committedTransactions, key));
     }
 
     Snapshot<K,VersionedValue<V>> getSnapshot() {
@@ -509,7 +500,31 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the snapshot
      */
     Snapshot<K,VersionedValue<V>> createSnapshot() {
-        return transaction.createSnapshot(map.getId());
+        return useSnapshot(Snapshot::new);
+    }
+
+    /**
+     * Create a new snapshot for this map.
+     *
+     * @param snapshotConsumer BiFunction<RootReference<K,VersionedValue<V>>, BitSet, R>
+     * @return the snapshot
+     */
+    <R> R useSnapshot(BiFunction<RootReference<K,VersionedValue<V>>, BitSet, R> snapshotConsumer) {
+        // The purpose of the following loop is to get a coherent picture
+        // of a state of two independent volatile / atomic variables,
+        // which they had at some recent moment in time.
+        // In order to get such a "snapshot", we wait for a moment of silence,
+        // when neither of the variables concurrently changes it's value.
+        AtomicReference<BitSet> holder = transaction.store.committingTransactions;
+        BitSet committingTransactions = holder.get();
+        while (true) {
+            BitSet prevCommittingTransactions = committingTransactions;
+            RootReference<K,VersionedValue<V>> root = map.getRoot();
+            committingTransactions = holder.get();
+            if (committingTransactions == prevCommittingTransactions) {
+                return snapshotConsumer.apply(root, committingTransactions);
+            }
+        }
     }
 
     /**

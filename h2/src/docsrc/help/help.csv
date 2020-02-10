@@ -4852,6 +4852,24 @@ This method returns a string.
 CALL STRINGENCODE(STRINGDECODE('Lines 1\nLine 2'))
 "
 
+"Functions (String)","BASE64_ENCODE","
+@h2@ BASE64_ENCODE(bytes)
+","
+Encodes a byte array in the Base64 format to a string.
+","
+CALL BASE64_ENCODE(STRINGTOUTF8('Lines 1\nLine 2'))
+CALL BASE64_ENCODE(STRINGTOUTF8('Lines 1\nLine 2', 'URL'))
+"
+
+"Functions (String)","BASE64_DECODE","
+@h2@ BASE64_DECODE(string)
+","
+Decodes a string in the Base64 format to a byte array.
+","
+CALL BASE64_DECODE('QUJDRA==')
+CALL BASE64_DECODE('QUJDRA==', 'URL')
+"
+
 "Functions (String)","STRINGTOUTF8","
 @h2@ STRINGTOUTF8(string)
 ","

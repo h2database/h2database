@@ -456,27 +456,43 @@ public class TestFunctions extends TestDb implements AggregateFunction {
     private void testBase64() throws SQLException {
         Connection conn = getConnection("functions");
 
-        base64(conn, "", "", true);
-        base64(conn, "A", "QQ==", true);
-        base64(conn, "AB", "QUI=", true);
-        base64(conn, "ABC", "QUJD", true);
-        base64(conn, "ABCD", "QUJDRA==", true);
-        base64(conn, "", "", false);
-        base64(conn, "QQ==", "A", false);
-        base64(conn, "QUI=", "AB", false);
-        base64(conn, "QUJD", "ABC", false);
-        base64(conn, "QUJDRA==", "ABCD", false);
+        base64encode(conn, "".getBytes(), "", null);
+        base64encode(conn, "A".getBytes(), "QQ==", null);
+        base64encode(conn, "AB".getBytes(), "QUI=", null);
+        base64encode(conn, "ABC".getBytes(), "QUJD", null);
+        base64encode(conn, "ABCD".getBytes(), "QUJDRA==", null);
+        base64decode(conn, "", "".getBytes(), null);
+        base64decode(conn, "QQ==", "A".getBytes(), null);
+        base64decode(conn, "QUI=", "AB".getBytes(), null);
+        base64decode(conn, "QUJD", "ABC".getBytes(), null);
+        base64decode(conn, "QUJDRA==", "ABCD".getBytes(), null);
+
+        base64encode(conn, "<<??>>".getBytes(), "PDw/Pz4+", null);
+        base64encode(conn, "<<??>>".getBytes(), "PDw_Pz4-", "URL");
+        base64decode(conn, "PDw/Pz4+", "<<??>>".getBytes(), null);
+        base64decode(conn, "PDw_Pz4-", "<<??>>".getBytes(), "URL");
 
         conn.close();
     }
 
-    private void base64(Connection conn, String source, String expected, boolean encode) throws SQLException {
-        final PreparedStatement stat = conn.prepareStatement("call base64_"+(encode?"encode":"decode")+"(?)");
-        stat.setBytes(1, source.getBytes());
-        final ResultSet rs = stat.executeQuery();
+    private void base64encode(Connection conn, byte[] source, String expected, String algorithm) throws SQLException {
+        String extraParams = algorithm != null ? ",'" + algorithm + "'" : "";
+        PreparedStatement stat = conn.prepareStatement("call base64_encode(?" + extraParams + ")");
+        stat.setBytes(1, source);
+        ResultSet rs = stat.executeQuery();
         rs.next();
-        final byte[] bytes = rs.getBytes(1);
-        assertEquals(expected.getBytes(), bytes);
+        String actual = rs.getString(1);
+        assertEquals(expected, actual);
+    }
+
+    private void base64decode(Connection conn, String source, byte[] expected, String algorithm) throws SQLException {
+        String extraParams = algorithm != null ? ",'" + algorithm + "'" : "";
+        PreparedStatement stat = conn.prepareStatement("call base64_decode(?" + extraParams + ")");
+        stat.setString(1, source);
+        ResultSet rs = stat.executeQuery();
+        rs.next();
+        byte[] actual = rs.getBytes(1);
+        assertEquals(expected, actual);
     }
 
     private void testDeterministic() throws SQLException {

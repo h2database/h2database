@@ -18,7 +18,7 @@ import java.util.function.Function;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
+class TxDecisionMaker<K,V> extends MVMap.DecisionMaker<VersionedValue<V>> {
     /**
      * Map to decide upon
      */
@@ -27,12 +27,12 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
     /**
      * Key for the map entry to decide upon
      */
-    private final Object         key;
+    protected     K              key;
 
     /**
      * Value for the map entry
      */
-    private final V         value;
+    private       V              value;
 
     /**
      * Transaction we are operating within
@@ -53,11 +53,16 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
     private       MVMap.Decision decision;
     private       V              lastValue;
 
-    TxDecisionMaker(int mapId, Object key, V value, Transaction transaction) {
+    TxDecisionMaker(int mapId, Transaction transaction) {
         this.mapId = mapId;
+        this.transaction = transaction;
+    }
+
+    void initialize(K key, V value) {
         this.key = key;
         this.value = value;
-        this.transaction = transaction;
+        decision = null;
+        reset();
     }
 
     @Override
@@ -241,14 +246,12 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
 
 
 
-    public static final class PutIfAbsentDecisionMaker<K,V> extends TxDecisionMaker<V>
+    public static final class PutIfAbsentDecisionMaker<K,V> extends TxDecisionMaker<K,V>
     {
-        private final K key;
         private final Function<K, V> oldValueSupplier;
 
-        PutIfAbsentDecisionMaker(int mapId, K key, V value, Transaction transaction, Function<K, V> oldValueSupplier) {
-            super(mapId, key, value, transaction);
-            this.key = key;
+        PutIfAbsentDecisionMaker(int mapId, Transaction transaction, Function<K, V> oldValueSupplier) {
+            super(mapId, transaction);
             this.oldValueSupplier = oldValueSupplier;
         }
 
@@ -329,10 +332,10 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
     }
 
 
-    public static class LockDecisionMaker<V> extends TxDecisionMaker<V> {
+    public static class LockDecisionMaker<K,V> extends TxDecisionMaker<K,V> {
 
-        LockDecisionMaker(int mapId, Object key, Transaction transaction) {
-            super(mapId, key, null, transaction);
+        LockDecisionMaker(int mapId, Transaction transaction) {
+            super(mapId, transaction);
         }
 
         @Override
@@ -351,28 +354,27 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
         }
     }
 
-    public static final class RepeatableReadLockDecisionMaker<V> extends LockDecisionMaker<V> {
+    public static final class RepeatableReadLockDecisionMaker<K,V> extends LockDecisionMaker<K,V> {
 
         private final DataType<VersionedValue<V>> valueType;
 
-        private final V snapshotValue;
+        private final Function<K,V> snapshotValueSupplier;
 
-        RepeatableReadLockDecisionMaker(int mapId, Object key, Transaction transaction,
-                DataType<VersionedValue<V>> valueType, V snapshotValue) {
-            super(mapId, key, transaction);
+        RepeatableReadLockDecisionMaker(int mapId, Transaction transaction,
+                DataType<VersionedValue<V>> valueType, Function<K,V> snapshotValueSupplier) {
+            super(mapId, transaction);
             this.valueType = valueType;
-            this.snapshotValue = snapshotValue;
+            this.snapshotValueSupplier = snapshotValueSupplier;
         }
 
         @Override
         Decision logAndDecideToPut(VersionedValue<V> valueToLog, V value) {
+            V snapshotValue = snapshotValueSupplier.apply(key);
             if (snapshotValue != null && (valueToLog == null
                     || valueType.compare(VersionedValueCommitted.getInstance(snapshotValue), valueToLog) != 0)) {
                 throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK, "");
             }
             return super.logAndDecideToPut(valueToLog, value);
         }
-
     }
-
 }

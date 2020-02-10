@@ -9,7 +9,6 @@ import org.h2.engine.IsolationLevel;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.Page;
 import org.h2.mvstore.RootReference;
 import org.h2.mvstore.type.DataType;
 import org.h2.value.VersionedValue;
@@ -69,10 +68,22 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      */
     private boolean hasChanges;
 
+    private final TxDecisionMaker<K,V> txDecisionMaker;
+    private final TxDecisionMaker<K,V> ifAbsentDecisionMaker;
+    private final TxDecisionMaker<K,V> lockDecisionMaker;
+
 
     TransactionMap(Transaction transaction, MVMap<K, VersionedValue<V>> map) {
         this.transaction = transaction;
         this.map = map;
+        this.txDecisionMaker = new TxDecisionMaker<>(map.getId(), transaction);
+        this.ifAbsentDecisionMaker = new TxDecisionMaker.PutIfAbsentDecisionMaker<>(map.getId(),
+                transaction, this::getFromSnapshot);
+        this.lockDecisionMaker = transaction.isolationLevel.allowNonRepeatableRead()
+                ? new TxDecisionMaker.LockDecisionMaker<>(map.getId(), transaction)
+                : new TxDecisionMaker.RepeatableReadLockDecisionMaker<>(map.getId(), transaction,
+                        map.getValueType(), this::getFromSnapshot);
+
     }
 
     /**
@@ -129,7 +140,6 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
 
         RootReference<K,VersionedValue<V>> mapRootReference = snapshot.root;
         BitSet committingTransactions = snapshot.committingTransactions;
-        Page<K,VersionedValue<V>> mapRootPage = mapRootReference.root;
         long size = mapRootReference.getTotalCount();
         long undoLogsTotalSize = undoLogRootReferences == null ? size
                 : TransactionStore.calculateUndoLogsTotalSize(undoLogRootReferences);
@@ -167,7 +177,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
                         Record<?,?> op = cursor.getValue();
                         if (op.mapId == map.getId()) {
                             @SuppressWarnings("unchecked")
-                            VersionedValue<V> currentValue = map.get(mapRootPage, (K)op.key);
+                            VersionedValue<V> currentValue = map.get(mapRootReference.root, (K)op.key);
                             // If map entry is not there, then we never counted
                             // it, in the first place, so skip it.
                             // This is possible when undo entry exists because
@@ -220,9 +230,10 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @throws IllegalStateException if a lock timeout occurs
      * @throws ClassCastException if type of the specified key is not compatible with this map
      */
+    @SuppressWarnings("unchecked")
     @Override
     public V remove(Object key) {
-        return set(key, (V)null);
+        return set((K)key, (V)null);
     }
 
     /**
@@ -254,11 +265,10 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     @Override
     public V putIfAbsent(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
-        TxDecisionMaker<V> decisionMaker = new TxDecisionMaker.PutIfAbsentDecisionMaker<>(map.getId(), key, value,
-                transaction, this::getFromSnapshot);
-        V result = set(key, decisionMaker);
-        if (decisionMaker.getDecision() == MVMap.Decision.ABORT) {
-            result = decisionMaker.getLastValue();
+        ifAbsentDecisionMaker.initialize(key, value);
+        V result = set(key, ifAbsentDecisionMaker);
+        if (ifAbsentDecisionMaker.getDecision() == MVMap.Decision.ABORT) {
+            result = ifAbsentDecisionMaker.getLastValue();
         }
         return result;
     }
@@ -286,11 +296,8 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @throws IllegalStateException if a lock timeout occurs
      */
     public V lock(K key) {
-        TxDecisionMaker<V> decisionMaker = transaction.isolationLevel.allowNonRepeatableRead()
-                ? new TxDecisionMaker.LockDecisionMaker<>(map.getId(), key, transaction)
-                : new TxDecisionMaker.RepeatableReadLockDecisionMaker<>(map.getId(), key, transaction,
-                        map.getValueType(), getFromSnapshot(key));
-        return set(key, decisionMaker);
+        lockDecisionMaker.initialize(key, null);
+        return set(key, lockDecisionMaker);
     }
 
     /**
@@ -309,16 +316,17 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         return result;
     }
 
-    private V set(Object key, V value) {
-        TxDecisionMaker<V> decisionMaker = new TxDecisionMaker<>(map.getId(), key, value, transaction);
-        return set(key, decisionMaker);
+    private V set(K key, V value) {
+        txDecisionMaker.initialize(key, value);
+        return set(key, txDecisionMaker);
     }
 
-    private V set(Object key, TxDecisionMaker<V> decisionMaker) {
+    private V set(Object key, TxDecisionMaker<K,V> decisionMaker) {
         TransactionStore store = transaction.store;
         Transaction blockingTransaction;
         long sequenceNumWhenStarted;
         VersionedValue<V> result;
+        String mapName = null;
         do {
             sequenceNumWhenStarted = store.openTransactions.get().getVersion();
             assert transaction.getBlockerId() == 0;
@@ -338,13 +346,16 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
                 return res;
             }
             decisionMaker.reset();
+            if (mapName == null) {
+                mapName = map.getName();
+            }
         } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted
-                || transaction.waitFor(blockingTransaction, map.getName(), key));
+                || transaction.waitFor(blockingTransaction, mapName, key));
 
         throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTION_LOCKED,
                 "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4}"
                         + " within allocated time interval {5} ms.",
-                map.getName(), key, result, blockingTransaction.transactionId, transaction.transactionId,
+                mapName, key, result, blockingTransaction.transactionId, transaction.transactionId,
                 transaction.timeoutMillis);
     }
 
@@ -473,7 +484,8 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the value, or null if not found
      */
     public V getImmediate(K key) {
-        return useSnapshot((rootReference, committedTransactions) -> getFromSnapshot(rootReference, committedTransactions, key));
+        return useSnapshot((rootReference, committedTransactions) ->
+                                getFromSnapshot(rootReference, committedTransactions, key));
     }
 
     Snapshot<K,VersionedValue<V>> getSnapshot() {
@@ -550,10 +562,8 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         VersionedValue<V> data = map.get(key);
         if (data != null) {
             long id = data.getOperationId();
-            if (id != 0 && TransactionStore.getTransactionId(id) == transaction.transactionId
-                    && data.getCurrentValue() == null) {
-                return true;
-            }
+            return id != 0 && TransactionStore.getTransactionId(id) == transaction.transactionId
+                    && data.getCurrentValue() == null;
         }
         return false;
     }

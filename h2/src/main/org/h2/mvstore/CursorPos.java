@@ -47,7 +47,7 @@ public final class CursorPos<K,V>
      * @param key       the key to search for
      * @return head of the CursorPos chain (insertion point)
      */
-    public static <K,V> CursorPos<K,V> traverseDown(Page<K,V> page, K key) {
+    static <K,V> CursorPos<K,V> traverseDown(Page<K,V> page, K key) {
         CursorPos<K,V> cursorPos = null;
         while (!page.isLeaf()) {
             int index = page.binarySearch(key) + 1;

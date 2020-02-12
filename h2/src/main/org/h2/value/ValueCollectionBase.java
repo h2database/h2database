@@ -104,9 +104,9 @@ public abstract class ValueCollectionBase extends Value {
 
     @Override
     public int getMemory() {
-        int memory = 72;
+        int memory = 72 + values.length * Constants.MEMORY_POINTER;
         for (Value v : values) {
-            memory += v.getMemory() + Constants.MEMORY_POINTER;
+            memory += v.getMemory();
         }
         return memory;
     }

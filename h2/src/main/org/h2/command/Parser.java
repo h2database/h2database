@@ -4255,14 +4255,16 @@ public class Parser {
         if (schema == null) {
             schema = session.getCurrentSchemaName();
         }
-        if (readIf("NEXTVAL")) {
+        if (isToken("NEXTVAL")) {
             Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
+                read();
                 return new SequenceValue(sequence, getCurrentSelectOrPrepared());
             }
-        } else if (readIf("CURRVAL")) {
+        } else if (isToken("CURRVAL")) {
             Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
+                read();
                 return new SequenceValue(sequence);
             }
         }

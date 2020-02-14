@@ -970,6 +970,8 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
 </li><li>Unrelated expressions in ORDER BY clause of DISTINCT queries are allowed.
 </li><li>Some MySQL-specific ALTER TABLE commands are partially supported.
 </li><li>TRUNCATE TABLE restarts next values of generated columns.
+</li><li>NEXT VALUE FOR returns different values when invoked multiple times within the same row for compatibility
+    with MariaDB.
 </li></ul>
 <p>
 Text comparison in MySQL is case insensitive by default, while in H2 it is case sensitive (as in most other databases).

@@ -5,6 +5,7 @@
  */
 package org.h2.expression;
 
+import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Sequence;
@@ -22,14 +23,17 @@ public class SequenceValue extends Expression {
 
     private final boolean current;
 
-    public SequenceValue(Sequence sequence, boolean current) {
+    private final Prepared prepared;
+
+    public SequenceValue(Sequence sequence, boolean current, Prepared prepared) {
         this.sequence = sequence;
         this.current = current;
+        this.prepared = prepared;
     }
 
     @Override
     public Value getValue(Session session) {
-        return current ? session.getCurrentValueFor(sequence) : session.getNextValueFor(sequence);
+        return current ? session.getCurrentValueFor(sequence) : session.getNextValueFor(sequence, prepared);
     }
 
     @Override

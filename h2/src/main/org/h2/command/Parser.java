@@ -4258,12 +4258,12 @@ public class Parser {
         if (readIf("NEXTVAL")) {
             Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
-                return new SequenceValue(sequence, false);
+                return new SequenceValue(sequence, false, getCurrentSelectOrPrepared());
             }
         } else if (readIf("CURRVAL")) {
             Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
-                return new SequenceValue(sequence, true);
+                return new SequenceValue(sequence, true, getCurrentSelectOrPrepared());
             }
         }
         return null;
@@ -4518,8 +4518,7 @@ public class Parser {
             if (currentSelect == null && currentPrepared == null) {
                 throw getSyntaxError();
             }
-            r = new Rownum(currentSelect == null ? currentPrepared
-                    : currentSelect);
+            r = new Rownum(getCurrentSelectOrPrepared());
             break;
         case NULL:
             read();
@@ -4704,7 +4703,7 @@ public class Parser {
             if (equalsToken("CURRENT", name)) {
                 int index = lastParseIndex;
                 if (readIf(VALUE) && readIf(FOR)) {
-                    return new SequenceValue(readSequence(), true);
+                    return new SequenceValue(readSequence(), true, getCurrentSelectOrPrepared());
                 }
                 parseIndex = index;
                 read();
@@ -4754,7 +4753,7 @@ public class Parser {
             if (equalsToken("NEXT", name)) {
                 int index = lastParseIndex;
                 if (readIf(VALUE) && readIf(FOR)) {
-                    return new SequenceValue(readSequence(), false);
+                    return new SequenceValue(readSequence(), false, getCurrentSelectOrPrepared());
                 }
                 parseIndex = index;
                 read();
@@ -4844,6 +4843,10 @@ public class Parser {
             break;
         }
         return new ExpressionColumn(database, null, null, name, false);
+    }
+
+    private Prepared getCurrentSelectOrPrepared() {
+        return currentSelect == null ? currentPrepared : currentSelect;
     }
 
     private byte[] readBinaryLiteral() {

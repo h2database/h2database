@@ -3145,6 +3145,8 @@ The next or current value of a sequence.
 
 When the next value is requested the sequence is incremented and the current value of the sequence
 and the last identity in the current session are updated with the generated value.
+The next value of the sequence is generated only once for each processed row.
+If this expression is used multiple times with the same sequence it returns the same value within a processed row.
 Used values are never re-used, even when the transaction is rolled back.
 
 Current value may only be requested after generation of the sequence value in the current session.

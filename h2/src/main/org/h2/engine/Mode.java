@@ -260,6 +260,13 @@ public class Mode {
     public boolean charAndByteLengthUnits;
 
     /**
+     * If {@code true}, the next value expression returns different values when
+     * invoked multiple times within a row. This setting does not affect
+     * NEXTVAL() function.
+     */
+    public boolean nextValueReturnsDifferentValues;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -358,6 +365,8 @@ public class Mode {
         mode.alterTableModifyColumn = true;
         mode.truncateTableRestartIdentity = true;
         mode.allNumericTypesHavePrecision = true;
+        // Next one is for MariaDB
+        mode.nextValueReturnsDifferentValues = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Oracle);
@@ -395,6 +404,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile("ApplicationName");
         mode.padFixedLengthStrings = true;
+        mode.nextValueReturnsDifferentValues = true;
         // Enumerate all H2 types NOT supported by PostgreSQL:
         Set<String> disallowedTypes = new java.util.HashSet<>();
         disallowedTypes.add("NUMBER");

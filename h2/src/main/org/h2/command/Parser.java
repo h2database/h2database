@@ -4258,12 +4258,12 @@ public class Parser {
         if (readIf("NEXTVAL")) {
             Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
-                return new SequenceValue(sequence, false, getCurrentSelectOrPrepared());
+                return new SequenceValue(sequence, getCurrentSelectOrPrepared());
             }
         } else if (readIf("CURRVAL")) {
             Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
-                return new SequenceValue(sequence, true, getCurrentSelectOrPrepared());
+                return new SequenceValue(sequence);
             }
         }
         return null;
@@ -4703,7 +4703,7 @@ public class Parser {
             if (equalsToken("CURRENT", name)) {
                 int index = lastParseIndex;
                 if (readIf(VALUE) && readIf(FOR)) {
-                    return new SequenceValue(readSequence(), true, getCurrentSelectOrPrepared());
+                    return new SequenceValue(readSequence());
                 }
                 parseIndex = index;
                 read();
@@ -4753,7 +4753,7 @@ public class Parser {
             if (equalsToken("NEXT", name)) {
                 int index = lastParseIndex;
                 if (readIf(VALUE) && readIf(FOR)) {
-                    return new SequenceValue(readSequence(), false, getCurrentSelectOrPrepared());
+                    return new SequenceValue(readSequence(), getCurrentSelectOrPrepared());
                 }
                 parseIndex = index;
                 read();

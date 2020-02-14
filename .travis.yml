@@ -6,12 +6,13 @@ cache:
   directories:
     - $HOME/.m2/repository
 
-matrix:
+os: linux
+
+jobs:
   include:
     - jdk: openjdk11
       dist: trusty
       group: edge
-      sudo: required
       before_script:
         - "cd h2"
         - "echo $JAVA_OPTS"
@@ -19,7 +20,6 @@ matrix:
     - jdk: oraclejdk8
       dist: trusty
       group: edge
-      sudo: required
       before_script:
         - "cd h2"
         - "echo $JAVA_OPTS"

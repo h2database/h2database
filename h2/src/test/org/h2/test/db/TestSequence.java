@@ -172,8 +172,8 @@ public class TestSequence extends TestDb {
         stat.execute("CREATE SCHEMA TEST");
         stat.execute("CREATE SEQUENCE TEST.TEST_SEQ");
         stat.execute("SET SCHEMA_SEARCH_PATH PUBLIC, TEST");
-        stat.execute("CALL TEST_SEQ.NEXTVAL");
-        stat.execute("CALL TEST_SEQ.CURRVAL");
+        stat.execute("CALL NEXT VALUE FOR TEST_SEQ");
+        stat.execute("CALL CURRENT VALUE FOR TEST_SEQ");
         conn.close();
     }
 

@@ -135,3 +135,106 @@ DROP SEQUENCE S1;
 
 DROP SEQUENCE S2;
 > ok
+
+CREATE SEQUENCE SEQ;
+> ok
+
+SELECT SEQ.NEXTVAL;
+> exception COLUMN_NOT_FOUND_1
+
+SELECT SEQ.CURRVAL;
+> exception COLUMN_NOT_FOUND_1
+
+DROP SEQUENCE SEQ;
+> ok
+
+SET MODE Oracle;
+> ok
+
+create sequence seq;
+> ok
+
+select case seq.nextval when 2 then 'two' when 3 then 'three' when 1 then 'one' else 'other' end result from dual;
+> RESULT
+> ------
+> one
+> rows: 1
+
+drop sequence seq;
+> ok
+
+create schema s authorization sa;
+> ok
+
+alter sequence if exists s.seq restart with 10;
+> ok
+
+create sequence s.seq cache 0;
+> ok
+
+alter sequence if exists s.seq restart with 3;
+> ok
+
+select s.seq.nextval as x;
+> X
+> -
+> 3
+> rows: 1
+
+drop sequence s.seq;
+> ok
+
+create sequence s.seq cache 0;
+> ok
+
+alter sequence s.seq restart with 10;
+> ok
+
+script NOPASSWORDS NOSETTINGS drop;
+> SCRIPT
+> ---------------------------------------------------
+> ALTER SEQUENCE "S"."SEQ" RESTART WITH 10;
+> CREATE SCHEMA IF NOT EXISTS "S" AUTHORIZATION "SA";
+> CREATE SEQUENCE "S"."SEQ" START WITH 1 NO CACHE;
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> DROP SEQUENCE IF EXISTS "S"."SEQ";
+> rows: 5
+
+drop schema s cascade;
+> ok
+
+create schema TEST_SCHEMA;
+> ok
+
+create sequence TEST_SCHEMA.TEST_SEQ;
+> ok
+
+select TEST_SCHEMA.TEST_SEQ.CURRVAL;
+> exception CURRENT_SEQUENCE_VALUE_IS_NOT_DEFINED_IN_SESSION_1
+
+select TEST_SCHEMA.TEST_SEQ.nextval;
+>> 1
+
+select TEST_SCHEMA.TEST_SEQ.CURRVAL;
+>> 1
+
+drop schema TEST_SCHEMA cascade;
+> ok
+
+CREATE TABLE TEST(CURRVAL INT, NEXTVAL INT);
+> ok
+
+INSERT INTO TEST VALUES (3, 4);
+> update count: 1
+
+SELECT TEST.CURRVAL, TEST.NEXTVAL FROM TEST;
+> CURRVAL NEXTVAL
+> ------- -------
+> 3       4
+> rows: 1
+
+DROP TABLE TEST;
+> ok
+
+SET MODE Regular;
+> ok

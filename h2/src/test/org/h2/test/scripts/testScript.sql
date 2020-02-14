@@ -77,18 +77,6 @@ create table test(id int, name varchar) as select 1, 'a';
 drop table test;
 > ok
 
-create sequence seq;
-> ok
-
-select case seq.nextval when 2 then 'two' when 3 then 'three' when 1 then 'one' else 'other' end result from dual;
-> RESULT
-> ------
-> one
-> rows: 1
-
-drop sequence seq;
-> ok
-
 select * from system_range(1,1) order by x limit 3 offset 3;
 > X
 > -
@@ -3211,30 +3199,6 @@ alter index if exists s.idx_id rename to s.x;
 alter index if exists s.x rename to s.index_id;
 > ok
 
-alter sequence if exists s.seq restart with 10;
-> ok
-
-create sequence s.seq cache 0;
-> ok
-
-alter sequence if exists s.seq restart with 3;
-> ok
-
-select s.seq.nextval as x;
-> X
-> -
-> 3
-> rows: 1
-
-drop sequence s.seq;
-> ok
-
-create sequence s.seq cache 0;
-> ok
-
-alter sequence s.seq restart with 10;
-> ok
-
 alter table s.test add constraint cu_id unique(id);
 > ok
 
@@ -3260,16 +3224,13 @@ script NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
 > -----------------------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM S.TEST;
-> ALTER SEQUENCE "S"."SEQ" RESTART WITH 10;
 > CREATE FORCE TRIGGER "S"."TEST_TRIGGER" BEFORE INSERT ON "S"."TEST" QUEUE 1024 CALL "org.h2.test.db.TestTriggersConstraints";
 > CREATE INDEX "S"."INDEX_ID" ON "S"."TEST"("ID");
 > CREATE MEMORY TABLE "S"."TEST"( "ID" INT );
 > CREATE SCHEMA IF NOT EXISTS "S" AUTHORIZATION "SA";
-> CREATE SEQUENCE "S"."SEQ" START WITH 1 NO CACHE;
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> DROP SEQUENCE IF EXISTS "S"."SEQ";
 > DROP TABLE IF EXISTS "S"."TEST" CASCADE;
-> rows: 10
+> rows: 7
 
 drop trigger s.test_trigger;
 > ok

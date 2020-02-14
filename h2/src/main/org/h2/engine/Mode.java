@@ -260,6 +260,12 @@ public class Mode {
     public boolean charAndByteLengthUnits;
 
     /**
+     * If {@code true}, sequence.NEXTVAL and sequence.CURRVAL pseudo columns are
+     * supported.
+     */
+    public boolean nextvalAndCurrvalPseudoColumns;
+
+    /**
      * If {@code true}, the next value expression returns different values when
      * invoked multiple times within a row. This setting does not affect
      * NEXTVAL() function.
@@ -383,6 +389,7 @@ public class Mode {
         mode.alterTableModifyColumn = true;
         mode.decimalSequences = true;
         mode.charAndByteLengthUnits = true;
+        mode.nextvalAndCurrvalPseudoColumns = true;
         dt = DataType.createDate(/* 2001-01-01 23:59:59 */ 19, 19, "DATE", false, 0, 0);
         dt.type = Value.TIMESTAMP;
         dt.sqlType = Types.TIMESTAMP;

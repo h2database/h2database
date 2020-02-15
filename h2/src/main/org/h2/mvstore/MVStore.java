@@ -1499,7 +1499,7 @@ public class MVStore implements AutoCloseable
                     writeStoreHeader = true;
                 } else {
                     for (int chunkId = DataUtils.readHexInt(storeHeader, HDR_CHUNK, 0);
-                         !writeStoreHeader && chunkId <= lastChunk.id; ++chunkId) {
+                            !writeStoreHeader && chunkId <= lastChunk.id; ++chunkId) {
                         // one of the chunks in between
                         // was removed
                         writeStoreHeader = !chunks.containsKey(chunkId);

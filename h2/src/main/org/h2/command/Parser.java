@@ -1781,17 +1781,27 @@ public class Parser {
         read("MATCHED");
         Expression and = readIf("AND") ? readExpression() : null;
         read("THEN");
-        if (readIf("INSERT")) {
-            Insert insertCommand = new Insert(session);
-            insertCommand.setTable(command.getTargetTable());
-            parseInsertGivenTable(insertCommand, command.getTargetTable());
-            MergeUsing.WhenNotMatched when = new MergeUsing.WhenNotMatched(command);
-            when.setAndCondition(and);
-            when.setInsertCommand(insertCommand);
-            command.addWhen(when);
-        } else {
-            throw getSyntaxError();
+        read("INSERT");
+        Insert insertCommand = new Insert(session);
+        insertCommand.setTable(command.getTargetTable());
+        Column[] columns = null;
+        if (readIf(OPEN_PAREN)) {
+            columns = parseColumnList(command.getTargetTable());
+            insertCommand.setColumns(columns);
         }
+        read(VALUES);
+        read(OPEN_PAREN);
+        ArrayList<Expression> values = Utils.newSmallArrayList();
+        if (!readIf(CLOSE_PAREN)) {
+            do {
+                values.add(readExpressionOrDefault());
+            } while (readIfMore());
+        }
+        insertCommand.addRow(values.toArray(new Expression[0]));
+        MergeUsing.WhenNotMatched when = new MergeUsing.WhenNotMatched(command);
+        when.setAndCondition(and);
+        when.setInsertCommand(insertCommand);
+        command.addWhen(when);
     }
 
     private Insert parseInsert(int start) {

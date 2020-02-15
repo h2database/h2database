@@ -1650,8 +1650,7 @@ public class Parser {
         default:
             query = false;
         }
-        parseIndex = start;
-        read();
+        reread(start);
         return query;
     }
 
@@ -3111,12 +3110,10 @@ public class Parser {
         case FETCH:
         case LIMIT:
         case FOR:
-            parseIndex = index;
-            read();
+            reread(index);
             return true;
         default:
-            parseIndex = lastIndex;
-            read();
+            reread(lastIndex);
             return false;
         }
     }
@@ -3314,8 +3311,7 @@ public class Parser {
                         r = new ConditionInQuery(r, query, true, compareType);
                         read(CLOSE_PAREN);
                     } else {
-                        parseIndex = start;
-                        read();
+                        reread(start);
                         r = new Comparison(compareType, r, readConcat());
                     }
                 } else if (readIf("ANY") || readIf("SOME")) {
@@ -3329,8 +3325,7 @@ public class Parser {
                         r = new ConditionInQuery(r, query, false, compareType);
                         read(CLOSE_PAREN);
                     } else {
-                        parseIndex = start;
-                        read();
+                        reread(start);
                         r = new Comparison(compareType, r, readConcat());
                     }
                 } else {
@@ -3506,8 +3501,7 @@ public class Parser {
             if (orderByList == null && isToken("WITHIN")) {
                 r = readWithinGroup(aggregateType, args, distinct, false, false);
             } else {
-                parseIndex = index;
-                read();
+                reread(index);
                 r = new Aggregate(AggregateType.LISTAGG, args, currentSelect, distinct);
                 if (orderByList != null) {
                     r.setOrderByList(orderByList);
@@ -4163,8 +4157,7 @@ public class Parser {
                 flags &= ~Function.JSON_ABSENT_ON_NULL;
                 result = true;
             } else {
-                parseIndex = start;
-                read();
+                reread(start);
                 return false;
             }
         } else if (readIf("ABSENT")) {
@@ -4173,8 +4166,7 @@ public class Parser {
                 flags |= Function.JSON_ABSENT_ON_NULL;
                 result = true;
             } else {
-                parseIndex = start;
-                read();
+                reread(start);
                 return false;
             }
         }
@@ -4192,8 +4184,7 @@ public class Parser {
                 } else if (result) {
                     throw getSyntaxError();
                 } else {
-                    parseIndex = start;
-                    read();
+                    reread(start);
                     return false;
                 }
             }
@@ -4422,8 +4413,7 @@ public class Parser {
             if (readIf(OPEN_PAREN)) {
                 r = readFunctionParameters(Function.getFunction(database, Function.TABLE));
             } else {
-                parseIndex = index;
-                read();
+                reread(index);
                 r = new Subquery(parseQuery());
             }
             break;
@@ -4684,16 +4674,14 @@ public class Parser {
                     r = new TimeZoneOperation(r);
                     continue;
                 } else {
-                    parseIndex = index;
-                    read();
+                    reread(index);
                 }
             } else if (readIf("FORMAT")) {
                 if (readIf("JSON")) {
                     r = new Format(r, FormatEnum.JSON);
                     continue;
                 } else {
-                    parseIndex = index;
-                    read();
+                    reread(index);
                 }
             }
             break;
@@ -4715,8 +4703,7 @@ public class Parser {
                 if (readIf(VALUE) && readIf(FOR)) {
                     return new SequenceValue(readSequence());
                 }
-                parseIndex = index;
-                read();
+                reread(index);
                 if (database.getMode().getEnum() == ModeEnum.DB2) {
                     return parseDB2SpecialRegisters(name);
                 }
@@ -4754,8 +4741,7 @@ public class Parser {
                 if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
                     return ValueExpression.get(ValueJson.fromJson(readBinaryLiteral()));
                 } else {
-                    parseIndex = index;
-                    read();
+                    reread(index);
                 }
             }
             break;
@@ -4765,8 +4751,7 @@ public class Parser {
                 if (readIf(VALUE) && readIf(FOR)) {
                     return new SequenceValue(readSequence(), getCurrentSelectOrPrepared());
                 }
-                parseIndex = index;
-                read();
+                reread(index);
             } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR
                     && equalsToken("N", name)) {
                 // National character string literal
@@ -5265,6 +5250,13 @@ public class Parser {
     private void addMultipleExpected(int ... tokenTypes) {
         for (int tokenType : tokenTypes) {
             expectedList.add(TOKENS[tokenType]);
+        }
+    }
+
+    private void reread(int index) {
+        if (lastParseIndex != index) {
+            parseIndex = index;
+            read();
         }
     }
 
@@ -6029,8 +6021,7 @@ public class Parser {
         boolean originalQuoted = currentTokenQuoted;
         read();
         if (currentTokenType == DOT) {
-            parseIndex = index;
-            read();
+            reread(index);
             originalCase = readIdentifierWithSchema();
             return getColumnWithDomain(columnName, getSchema().getDomain(originalCase));
         }
@@ -7138,8 +7129,7 @@ public class Parser {
             int index = lastParseIndex;
             read();
             if (!isToken(OPEN_PAREN)) {
-                parseIndex = index;
-                read();
+                reread(index);
                 p = parseWithQuery();
             } else {
                 throw DbException.get(ErrorCode.SYNTAX_ERROR_1, WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
@@ -8743,8 +8733,7 @@ public class Parser {
                             return createIndex;
                         } else {
                             // known data type
-                            parseIndex = start;
-                            read();
+                            reread(start);
                         }
                     }
                 }

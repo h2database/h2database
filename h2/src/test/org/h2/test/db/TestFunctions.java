@@ -1837,6 +1837,9 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertResult(twoDecimals, stat, "select to_char(0, 'FM0D009') from dual;");
         assertResult(oneDecimal, stat, "select to_char(0, 'FM0D09') from dual;");
         assertResult(oneDecimal, stat, "select to_char(0, 'FM0D0') from dual;");
+
+        assertResult("10,000,000.", stat,
+                "SELECT TO_CHAR(CAST(10000000 AS DOUBLE PRECISION), 'FM999,999,999.99') FROM DUAL");
         conn.close();
     }
 

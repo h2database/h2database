@@ -4853,12 +4853,12 @@ CALL STRINGENCODE(STRINGDECODE('Lines 1\nLine 2'))
 "
 
 "Functions (String)","BASE64_ENCODE","
-@h2@ BASE64_ENCODE(bytes)
+@h2@ BASE64_ENCODE(bytes[, algorithm])
 ","
 Encodes a byte array in the Base64 format to a string.
 ","
-CALL BASE64_ENCODE(STRINGTOUTF8('Lines 1\nLine 2'))
-CALL BASE64_ENCODE(STRINGTOUTF8('Lines 1\nLine 2', 'URL'))
+CALL BASE64_ENCODE('Lines 1\nLine 2')
+CALL BASE64_ENCODE('Lines 1\nLine 2', 'URL')
 "
 
 "Functions (String)","BASE64_DECODE","
@@ -4867,7 +4867,6 @@ CALL BASE64_ENCODE(STRINGTOUTF8('Lines 1\nLine 2', 'URL'))
 Decodes a string in the Base64 format to a byte array.
 ","
 CALL BASE64_DECODE('QUJDRA==')
-CALL BASE64_DECODE('QUJDRA==', 'URL')
 "
 
 "Functions (String)","STRINGTOUTF8","

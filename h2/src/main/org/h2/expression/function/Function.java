@@ -23,11 +23,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
@@ -66,8 +66,6 @@ import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.base64.EncodingAlgorithm;
-import org.h2.util.base64.EncodingFactory;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LegacyDateTimeUtils;
@@ -285,7 +283,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("UUID", RANDOM_UUID, 0, Value.UUID);
         addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.BIGINT);
         addFunction("BASE64_ENCODE", BASE64_ENCODE, VAR_ARGS, Value.VARCHAR);
-        addFunction("BASE64_DECODE", BASE64_DECODE, VAR_ARGS, Value.VARBINARY);
+        addFunction("BASE64_DECODE", BASE64_DECODE, 1, Value.VARBINARY);
         // string
         addFunction("ASCII", ASCII, 1, Value.INTEGER);
         addFunction("BIT_LENGTH", BIT_LENGTH, 1, Value.BIGINT);
@@ -1394,7 +1392,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = base64encode(v0.getBytesNoCopy(), v1 != null ? v1.getString() : null);
             break;
         case BASE64_DECODE:
-            result = base64decode(v0.getString(), v1 != null ? v1.getString() : null);
+            result = base64decode(v0.getString());
             break;
         case DIFFERENCE:
             result = ValueInteger.get(getDifference(
@@ -2303,14 +2301,24 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     }
 
     private static Value base64encode(byte[] data, String algorithm) {
-        final EncodingAlgorithm algorithmImpl = EncodingFactory.getEncodingAlgorithm(algorithm);
-        final String result = algorithmImpl.encode(data);
+        final String result;
+        if (algorithm == null || algorithm.isEmpty() || "BASE64".equalsIgnoreCase(algorithm)) {
+            result = Base64.getEncoder().encodeToString(data);
+        } else if ("URL".equalsIgnoreCase(algorithm)) {
+            result = Base64.getUrlEncoder().encodeToString(data);
+        } else {
+            throw DbException.getInvalidValueException("Base64 algorithm, valid value: \"BASE64\" (or not set), \"URL\"", algorithm);
+        }
         return ValueVarchar.get(result);
     }
 
-    private static ValueVarbinary base64decode(String data, String algorithm) {
-        final EncodingAlgorithm algorithmImpl = EncodingFactory.getEncodingAlgorithm(algorithm);
-        final byte[] result = algorithmImpl.decode(data);
+    private static Value base64decode(String data) {
+        final byte[] result;
+        if (data.indexOf('_') >= 0 || data.indexOf('-') >= 0) {
+            result = Base64.getUrlDecoder().decode(data);
+        } else {
+            result = Base64.getDecoder().decode(data);
+        }
         return ValueVarbinary.getNoCopy(result);
     }
 
@@ -2589,7 +2597,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case CURRVAL:
         case NEXTVAL:
         case BASE64_ENCODE:
-        case BASE64_DECODE:
             min = 1;
             max = 2;
             break;

@@ -2160,18 +2160,7 @@ public class ErrorCode {
      */
     public static final int GENERATED_COLUMN_CANNOT_BE_UPDATABLE_BY_CONSTRAINT_2 = 90155;
 
-    /**
-     * The error with code <code>90156</code> is thrown when function <code>BASE64_ENCODE</code>
-     * or <code>BASE64_DECODE</code> with wrong second parameter <code>algorithm</code> is called
-     *
-     * <pre>
-     * SELECT BASE64_ENCODE(stringtoutf8('my string'),'UNKNOWN');
-     * SELECT BASE64_DECODE('bXkgc3RyaW5n','UNKNOWN');
-     * </pre>
-     */
-    public static final int UNSUPPORTED_ENCODING_ALGORITHM = 90156;
-
-    // next is 90157
+    // next is 90156
 
     private ErrorCode() {
         // utility class

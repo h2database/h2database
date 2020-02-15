@@ -1650,8 +1650,7 @@ public class Parser {
         default:
             query = false;
         }
-        parseIndex = start;
-        read();
+        reread(start);
         return query;
     }
 
@@ -1661,6 +1660,10 @@ public class Parser {
         if (readIf(USING)) {
             return parseMergeUsing(targetTableFilter, start);
         }
+        return parseMergeInto(targetTableFilter, start);
+    }
+
+    private Prepared parseMergeInto(TableFilter targetTableFilter, int start) {
         Merge command = new Merge(session, false);
         currentPrepared = command;
         command.setTable(targetTableFilter.getTable());
@@ -1671,13 +1674,11 @@ public class Parser {
                 read(CLOSE_PAREN);
                 return command;
             }
-            Column[] columns = parseColumnList(table);
-            command.setColumns(columns);
+            command.setColumns(parseColumnList(table));
         }
         if (readIf(KEY)) {
             read(OPEN_PAREN);
-            Column[] keys = parseColumnList(table);
-            command.setKeys(keys);
+            command.setKeys(parseColumnList(table));
         }
         if (readIf(VALUES)) {
             parseValuesForCommand(command);
@@ -1780,17 +1781,27 @@ public class Parser {
         read("MATCHED");
         Expression and = readIf("AND") ? readExpression() : null;
         read("THEN");
-        if (readIf("INSERT")) {
-            Insert insertCommand = new Insert(session);
-            insertCommand.setTable(command.getTargetTable());
-            parseInsertGivenTable(insertCommand, command.getTargetTable());
-            MergeUsing.WhenNotMatched when = new MergeUsing.WhenNotMatched(command);
-            when.setAndCondition(and);
-            when.setInsertCommand(insertCommand);
-            command.addWhen(when);
-        } else {
-            throw getSyntaxError();
+        read("INSERT");
+        Insert insertCommand = new Insert(session);
+        insertCommand.setTable(command.getTargetTable());
+        Column[] columns = null;
+        if (readIf(OPEN_PAREN)) {
+            columns = parseColumnList(command.getTargetTable());
+            insertCommand.setColumns(columns);
         }
+        read(VALUES);
+        read(OPEN_PAREN);
+        ArrayList<Expression> values = Utils.newSmallArrayList();
+        if (!readIf(CLOSE_PAREN)) {
+            do {
+                values.add(readExpressionOrDefault());
+            } while (readIfMore());
+        }
+        insertCommand.addRow(values.toArray(new Expression[0]));
+        MergeUsing.WhenNotMatched when = new MergeUsing.WhenNotMatched(command);
+        when.setAndCondition(and);
+        when.setInsertCommand(insertCommand);
+        command.addWhen(when);
     }
 
     private Insert parseInsert(int start) {
@@ -1803,10 +1814,55 @@ public class Parser {
         read("INTO");
         Table table = readTableOrView();
         command.setTable(table);
-        Insert returnedCommand = parseInsertGivenTable(command, table);
-        if (returnedCommand != null) {
-            return returnedCommand;
+        Column[] columns = null;
+        if (readIf(OPEN_PAREN)) {
+            if (isQuery()) {
+                command.setQuery(parseQuery());
+                read(CLOSE_PAREN);
+                return command;
+            }
+            columns = parseColumnList(table);
+            command.setColumns(columns);
         }
+        if (readIf("DIRECT")) {
+            command.setInsertFromSelect(true);
+        }
+        if (readIf("SORTED")) {
+            command.setSortedInsertMode(true);
+        }
+        if (readIf("DEFAULT")) {
+            read(VALUES);
+            command.addRow(new Expression[0]);
+        } else if (readIf(VALUES)) {
+            parseValuesForCommand(command);
+        } else if (readIf(SET)) {
+            parseInsertSet(command, table, columns);
+        } else {
+            command.setQuery(parseQuery());
+        }
+        if (mode.onDuplicateKeyUpdate || mode.insertOnConflict || mode.isolationLevelInSelectOrInsertStatement) {
+            parseInsertCompatibility(command, table, mode);
+        }
+        setSQL(command, start);
+        return command;
+    }
+
+    private void parseInsertSet(Insert command, Table table, Column[] columns) {
+        if (columns != null) {
+            throw getSyntaxError();
+        }
+        ArrayList<Column> columnList = Utils.newSmallArrayList();
+        ArrayList<Expression> values = Utils.newSmallArrayList();
+        do {
+            columnList.add(parseColumn(table));
+            read(EQUAL);
+            values.add(readExpressionOrDefault());
+        } while (readIf(COMMA));
+        command.setColumns(columnList.toArray(new Column[0]));
+        command.addRow(values.toArray(new Expression[0]));
+    }
+
+    private void parseInsertCompatibility(Insert command, Table table, Mode mode) {
         if (mode.onDuplicateKeyUpdate) {
             if (readIf(ON)) {
                 read("DUPLICATE");
@@ -1847,49 +1903,6 @@ public class Parser {
         if (mode.isolationLevelInSelectOrInsertStatement) {
             parseIsolationClause();
         }
-        setSQL(command, start);
-        return command;
-    }
-
-    private Insert parseInsertGivenTable(Insert command, Table table) {
-        Column[] columns = null;
-        if (readIf(OPEN_PAREN)) {
-            if (isQuery()) {
-                command.setQuery(parseQuery());
-                read(CLOSE_PAREN);
-                return command;
-            }
-            columns = parseColumnList(table);
-            command.setColumns(columns);
-        }
-        if (readIf("DIRECT")) {
-            command.setInsertFromSelect(true);
-        }
-        if (readIf("SORTED")) {
-            command.setSortedInsertMode(true);
-        }
-        if (readIf("DEFAULT")) {
-            read(VALUES);
-            command.addRow(new Expression[0]);
-        } else if (readIf(VALUES)) {
-            parseValuesForCommand(command);
-        } else if (readIf(SET)) {
-            if (columns != null) {
-                throw getSyntaxError();
-            }
-            ArrayList<Column> columnList = Utils.newSmallArrayList();
-            ArrayList<Expression> values = Utils.newSmallArrayList();
-            do {
-                columnList.add(parseColumn(table));
-                read(EQUAL);
-                values.add(readExpressionOrDefault());
-            } while (readIf(COMMA));
-            command.setColumns(columnList.toArray(new Column[0]));
-            command.addRow(values.toArray(new Expression[0]));
-        } else {
-            command.setQuery(parseQuery());
-        }
-        return null;
     }
 
     /**
@@ -1907,8 +1920,7 @@ public class Parser {
                 read(CLOSE_PAREN);
                 return command;
             }
-            Column[] columns = parseColumnList(table);
-            command.setColumns(columns);
+            command.setColumns(parseColumnList(table));
         }
         if (readIf(VALUES)) {
             parseValuesForCommand(command);
@@ -3110,12 +3122,10 @@ public class Parser {
         case FETCH:
         case LIMIT:
         case FOR:
-            parseIndex = index;
-            read();
+            reread(index);
             return true;
         default:
-            parseIndex = lastIndex;
-            read();
+            reread(lastIndex);
             return false;
         }
     }
@@ -3313,8 +3323,7 @@ public class Parser {
                         r = new ConditionInQuery(r, query, true, compareType);
                         read(CLOSE_PAREN);
                     } else {
-                        parseIndex = start;
-                        read();
+                        reread(start);
                         r = new Comparison(compareType, r, readConcat());
                     }
                 } else if (readIf("ANY") || readIf("SOME")) {
@@ -3328,8 +3337,7 @@ public class Parser {
                         r = new ConditionInQuery(r, query, false, compareType);
                         read(CLOSE_PAREN);
                     } else {
-                        parseIndex = start;
-                        read();
+                        reread(start);
                         r = new Comparison(compareType, r, readConcat());
                     }
                 } else {
@@ -3505,8 +3513,7 @@ public class Parser {
             if (orderByList == null && isToken("WITHIN")) {
                 r = readWithinGroup(aggregateType, args, distinct, false, false);
             } else {
-                parseIndex = index;
-                read();
+                reread(index);
                 r = new Aggregate(AggregateType.LISTAGG, args, currentSelect, distinct);
                 if (orderByList != null) {
                     r.setOrderByList(orderByList);
@@ -4162,8 +4169,7 @@ public class Parser {
                 flags &= ~Function.JSON_ABSENT_ON_NULL;
                 result = true;
             } else {
-                parseIndex = start;
-                read();
+                reread(start);
                 return false;
             }
         } else if (readIf("ABSENT")) {
@@ -4172,8 +4178,7 @@ public class Parser {
                 flags |= Function.JSON_ABSENT_ON_NULL;
                 result = true;
             } else {
-                parseIndex = start;
-                read();
+                reread(start);
                 return false;
             }
         }
@@ -4191,8 +4196,7 @@ public class Parser {
                 } else if (result) {
                     throw getSyntaxError();
                 } else {
-                    parseIndex = start;
-                    read();
+                    reread(start);
                     return false;
                 }
             }
@@ -4421,8 +4425,7 @@ public class Parser {
             if (readIf(OPEN_PAREN)) {
                 r = readFunctionParameters(Function.getFunction(database, Function.TABLE));
             } else {
-                parseIndex = index;
-                read();
+                reread(index);
                 r = new Subquery(parseQuery());
             }
             break;
@@ -4683,16 +4686,14 @@ public class Parser {
                     r = new TimeZoneOperation(r);
                     continue;
                 } else {
-                    parseIndex = index;
-                    read();
+                    reread(index);
                 }
             } else if (readIf("FORMAT")) {
                 if (readIf("JSON")) {
                     r = new Format(r, FormatEnum.JSON);
                     continue;
                 } else {
-                    parseIndex = index;
-                    read();
+                    reread(index);
                 }
             }
             break;
@@ -4714,8 +4715,7 @@ public class Parser {
                 if (readIf(VALUE) && readIf(FOR)) {
                     return new SequenceValue(readSequence());
                 }
-                parseIndex = index;
-                read();
+                reread(index);
                 if (database.getMode().getEnum() == ModeEnum.DB2) {
                     return parseDB2SpecialRegisters(name);
                 }
@@ -4753,8 +4753,7 @@ public class Parser {
                 if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
                     return ValueExpression.get(ValueJson.fromJson(readBinaryLiteral()));
                 } else {
-                    parseIndex = index;
-                    read();
+                    reread(index);
                 }
             }
             break;
@@ -4764,8 +4763,7 @@ public class Parser {
                 if (readIf(VALUE) && readIf(FOR)) {
                     return new SequenceValue(readSequence(), getCurrentSelectOrPrepared());
                 }
-                parseIndex = index;
-                read();
+                reread(index);
             } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR
                     && equalsToken("N", name)) {
                 // National character string literal
@@ -5264,6 +5262,13 @@ public class Parser {
     private void addMultipleExpected(int ... tokenTypes) {
         for (int tokenType : tokenTypes) {
             expectedList.add(TOKENS[tokenType]);
+        }
+    }
+
+    private void reread(int index) {
+        if (lastParseIndex != index) {
+            parseIndex = index;
+            read();
         }
     }
 
@@ -6028,8 +6033,7 @@ public class Parser {
         boolean originalQuoted = currentTokenQuoted;
         read();
         if (currentTokenType == DOT) {
-            parseIndex = index;
-            read();
+            reread(index);
             originalCase = readIdentifierWithSchema();
             return getColumnWithDomain(columnName, getSchema().getDomain(originalCase));
         }
@@ -7137,8 +7141,7 @@ public class Parser {
             int index = lastParseIndex;
             read();
             if (!isToken(OPEN_PAREN)) {
-                parseIndex = index;
-                read();
+                reread(index);
                 p = parseWithQuery();
             } else {
                 throw DbException.get(ErrorCode.SYNTAX_ERROR_1, WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
@@ -8742,8 +8745,7 @@ public class Parser {
                             return createIndex;
                         } else {
                             // known data type
-                            parseIndex = start;
-                            read();
+                            reread(start);
                         }
                     }
                 }

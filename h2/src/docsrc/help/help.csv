@@ -3002,7 +3002,8 @@ WHEN MATCHED THEN DELETE
 "
 
 "Other Grammar","Merge when not matched clause","
-WHEN NOT MATCHED [ AND expression ] THEN INSERT insertColumnsAndSource
+WHEN NOT MATCHED [ AND expression ] THEN INSERT
+[ ( columnName [,...] ) ] VALUES ({DEFAULT|expression} [,...])
 ","
 WHEN NOT MATCHED clause for MERGE USING command.
 ","

@@ -171,7 +171,8 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
             // and then lookup relevant map entry.
             for (RootReference<Long,Record<?,?>> undoLogRootReference : undoLogRootReferences) {
                 if (undoLogRootReference != null) {
-                    Cursor<Long,Record<?,?>> cursor = undoLogRootReference.root.map.cursor(undoLogRootReference, null, null, false);
+                    Cursor<Long, Record<?, ?>> cursor = undoLogRootReference.root.map.cursor(undoLogRootReference,
+                            null, null, false);
                     while (cursor.hasNext()) {
                         cursor.next();
                         Record<?,?> op = cursor.getValue();

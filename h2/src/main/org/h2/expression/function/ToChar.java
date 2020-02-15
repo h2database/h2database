@@ -237,8 +237,11 @@ public class ToChar {
         // go ahead and do that first
         int separator = findDecimalSeparator(format);
         int formatScale = calculateScale(format, separator);
-        if (formatScale < number.scale()) {
+        int numberScale = number.scale();
+        if (formatScale < numberScale) {
             number = number.setScale(formatScale, RoundingMode.HALF_UP);
+        } else if (numberScale < 0) {
+            number = number.setScale(0);
         }
 
         // any 9s to the left of the decimal separator but to the right of a

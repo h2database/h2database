@@ -410,7 +410,7 @@ public class TestDeadlock extends TestDb {
         stmt.execute("CREATE SEQUENCE IF NOT EXISTS SEQ1 START WITH 1000000");
         stmt.execute("CREATE FORCE VIEW V1 AS WITH RECURSIVE TEMP(X) AS " +
                 "(SELECT x FROM DUAL) SELECT * FROM TEMP");
-        stmt.executeQuery("SELECT SEQ1.NEXTVAL");
+        stmt.executeQuery("SELECT NEXT VALUE FOR SEQ1");
         conn.close();
     }
 

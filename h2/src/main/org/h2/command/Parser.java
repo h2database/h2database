@@ -4245,26 +4245,15 @@ public class Parser {
         return function;
     }
 
-    private Expression readWildcardRowidOrSequenceValue(String schema, String objectName) {
+    private Expression readIfWildcardRowidOrSequencePseudoColumn(String schema, String objectName) {
         if (readIf(ASTERISK)) {
             return parseWildcard(schema, objectName);
         }
         if (readIf(_ROWID_)) {
             return new ExpressionColumn(database, schema, objectName, Column.ROWID, true);
         }
-        if (schema == null) {
-            schema = session.getCurrentSchemaName();
-        }
-        if (readIf("NEXTVAL")) {
-            Sequence sequence = findSequence(schema, objectName);
-            if (sequence != null) {
-                return new SequenceValue(sequence, false);
-            }
-        } else if (readIf("CURRVAL")) {
-            Sequence sequence = findSequence(schema, objectName);
-            if (sequence != null) {
-                return new SequenceValue(sequence, true);
-            }
+        if (database.getMode().nextvalAndCurrvalPseudoColumns) {
+            return readIfSequencePseudoColumn(schema, objectName);
         }
         return null;
     }
@@ -4299,8 +4288,28 @@ public class Parser {
         return wildcard;
     }
 
+    private SequenceValue readIfSequencePseudoColumn(String schema, String objectName) {
+        if (schema == null) {
+            schema = session.getCurrentSchemaName();
+        }
+        if (isToken("NEXTVAL")) {
+            Sequence sequence = findSequence(schema, objectName);
+            if (sequence != null) {
+                read();
+                return new SequenceValue(sequence, getCurrentSelectOrPrepared());
+            }
+        } else if (isToken("CURRVAL")) {
+            Sequence sequence = findSequence(schema, objectName);
+            if (sequence != null) {
+                read();
+                return new SequenceValue(sequence);
+            }
+        }
+        return null;
+    }
+
     private Expression readTermObjectDot(String objectName) {
-        Expression expr = readWildcardRowidOrSequenceValue(null, objectName);
+        Expression expr = readIfWildcardRowidOrSequencePseudoColumn(null, objectName);
         if (expr != null) {
             return expr;
         }
@@ -4310,7 +4319,7 @@ public class Parser {
         } else if (readIf(DOT)) {
             String schema = objectName;
             objectName = name;
-            expr = readWildcardRowidOrSequenceValue(schema, objectName);
+            expr = readIfWildcardRowidOrSequencePseudoColumn(schema, objectName);
             if (expr != null) {
                 return expr;
             }
@@ -4322,7 +4331,7 @@ public class Parser {
                 checkDatabaseName(schema);
                 schema = objectName;
                 objectName = name;
-                expr = readWildcardRowidOrSequenceValue(schema, objectName);
+                expr = readIfWildcardRowidOrSequencePseudoColumn(schema, objectName);
                 if (expr != null) {
                     return expr;
                 }
@@ -4518,8 +4527,7 @@ public class Parser {
             if (currentSelect == null && currentPrepared == null) {
                 throw getSyntaxError();
             }
-            r = new Rownum(currentSelect == null ? currentPrepared
-                    : currentSelect);
+            r = new Rownum(getCurrentSelectOrPrepared());
             break;
         case NULL:
             read();
@@ -4704,7 +4712,7 @@ public class Parser {
             if (equalsToken("CURRENT", name)) {
                 int index = lastParseIndex;
                 if (readIf(VALUE) && readIf(FOR)) {
-                    return new SequenceValue(readSequence(), true);
+                    return new SequenceValue(readSequence());
                 }
                 parseIndex = index;
                 read();
@@ -4754,7 +4762,7 @@ public class Parser {
             if (equalsToken("NEXT", name)) {
                 int index = lastParseIndex;
                 if (readIf(VALUE) && readIf(FOR)) {
-                    return new SequenceValue(readSequence(), false);
+                    return new SequenceValue(readSequence(), getCurrentSelectOrPrepared());
                 }
                 parseIndex = index;
                 read();
@@ -4844,6 +4852,10 @@ public class Parser {
             break;
         }
         return new ExpressionColumn(database, null, null, name, false);
+    }
+
+    private Prepared getCurrentSelectOrPrepared() {
+        return currentSelect == null ? currentPrepared : currentSelect;
     }
 
     private byte[] readBinaryLiteral() {

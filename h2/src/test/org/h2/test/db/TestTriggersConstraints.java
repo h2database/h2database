@@ -425,7 +425,7 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
         @Override
         public void fire(Connection conn, Object[] oldRow, Object[] newRow)
                 throws SQLException {
-            conn.createStatement().execute("call seq.nextval");
+            conn.createStatement().execute("call next value for seq");
         }
 
         @Override
@@ -456,7 +456,7 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
     }
 
     private void testTrigger(final String sourceLang) throws SQLException {
-        final String callSeq = "call seq.nextval";
+        final String callSeq = "call next value for seq";
         Connection conn = getConnection("trigger");
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");

@@ -272,18 +272,21 @@ public class TestCompatibilityOracle extends TestDb {
 
     private void testSequenceNextval() throws SQLException {
         // Test NEXTVAL without Oracle MODE should return BIGINT
-        checkSequenceTypeWithMode("REGULAR", Types.BIGINT);
+        checkSequenceTypeWithMode("REGULAR", Types.BIGINT, false);
         // Test NEXTVAL with Oracle MODE should return DECIMAL
-        checkSequenceTypeWithMode("Oracle", SysProperties.BIG_DECIMAL_IS_DECIMAL ? Types.DECIMAL : Types.NUMERIC);
+        checkSequenceTypeWithMode("Oracle", SysProperties.BIG_DECIMAL_IS_DECIMAL ? Types.DECIMAL : Types.NUMERIC,
+                true);
     }
 
-    private void checkSequenceTypeWithMode(final String mode, final int expectedType) throws SQLException {
+    private void checkSequenceTypeWithMode(String mode, int expectedType, boolean usePseudoColumn)
+            throws SQLException {
         deleteDb("oracle");
         Connection conn = getConnection("oracle;MODE=" + mode);
         Statement stat = conn.createStatement();
 
         stat.execute("CREATE SEQUENCE seq");
-        ResultSet rs = stat.executeQuery("SELECT seq.NEXTVAL FROM DUAL");
+        ResultSet rs = stat.executeQuery(
+                usePseudoColumn ? "SELECT seq.NEXTVAL FROM DUAL" : "VALUES NEXT VALUE FOR seq");
         // Check type:
         assertEquals(rs.getMetaData().getColumnType(1), expectedType);
         conn.close();

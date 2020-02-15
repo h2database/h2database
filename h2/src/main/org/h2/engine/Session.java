@@ -74,6 +74,49 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public enum State { INIT, RUNNING, BLOCKED, SLEEP, THROTTLED, SUSPENDED, CLOSED }
 
+    private static final class SequenceAndPrepared {
+
+        private final Sequence sequence;
+
+        private final Prepared prepared;
+
+        SequenceAndPrepared(Sequence sequence, Prepared prepared) {
+            this.sequence = sequence;
+            this.prepared = prepared;
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * (31 + prepared.hashCode()) + sequence.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != SequenceAndPrepared.class) {
+                return false;
+            }
+            SequenceAndPrepared other = (SequenceAndPrepared) obj;
+            return sequence == other.sequence && prepared == other.prepared;
+        }
+
+    }
+
+    private static final class RowNumberAndValue {
+
+        long rowNumber;
+
+        Value nextValue;
+
+        RowNumberAndValue(long rowNumber, Value nextValue) {
+            this.rowNumber = rowNumber;
+            this.nextValue = nextValue;
+        }
+
+    }
+
     /**
      * This special log position means that the log entry has been written.
      */
@@ -99,6 +142,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private Random random;
     private int lockTimeout;
 
+    private HashMap<SequenceAndPrepared, RowNumberAndValue> nextValueFor;
     private WeakHashMap<Sequence, Value> currentValueFor;
     private Value lastIdentity = ValueBigint.get(0);
     private Value lastScopeIdentity = ValueBigint.get(0);
@@ -1048,21 +1092,44 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     /**
-     * Sets the current value of the sequence and last identity value for this
-     * session.
+     * Returns the next value of the sequence in this session.
      *
      * @param sequence
      *            the sequence
-     * @param value
-     *            the current value of the sequence
+     * @param prepared
+     *            current prepared command, select, or {@code null}
+     * @return the next value of the sequence in this session
      */
-    public void setCurrentValueFor(Sequence sequence, Value value) {
+    public Value getNextValueFor(Sequence sequence, Prepared prepared) {
+        Value value;
+        if (database.getMode().nextValueReturnsDifferentValues || prepared == null) {
+            value = sequence.getNext(this);
+        } else {
+            if (nextValueFor == null) {
+                nextValueFor = new HashMap<>();
+            }
+            SequenceAndPrepared key = new SequenceAndPrepared(sequence, prepared);
+            RowNumberAndValue data = nextValueFor.get(key);
+            long rowNumber = prepared.getCurrentRowNumber();
+            if (data != null) {
+                if (data.rowNumber == rowNumber) {
+                    value = data.nextValue;
+                } else {
+                    data.nextValue = value = sequence.getNext(this);
+                    data.rowNumber = rowNumber;
+                }
+            } else {
+                value = sequence.getNext(this);
+                nextValueFor.put(key, new RowNumberAndValue(rowNumber, value));
+            }
+        }
         WeakHashMap<Sequence, Value> currentValueFor = this.currentValueFor;
         if (currentValueFor == null) {
             this.currentValueFor = currentValueFor = new WeakHashMap<>();
         }
         currentValueFor.put(sequence, value);
         setLastIdentity(value);
+        return value;
     }
 
     /**
@@ -1289,6 +1356,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 } else {
                     currentCommandStart = null;
                 }
+            } else if (nextValueFor != null) {
+                nextValueFor.clear();
             }
         }
     }

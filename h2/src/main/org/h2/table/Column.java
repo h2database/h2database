@@ -457,7 +457,7 @@ public class Column implements HasSQL {
         seq.setTemporary(temporary);
         session.getDatabase().addSchemaObject(session, seq);
         setAutoIncrementOptions(null);
-        SequenceValue seqValue = new SequenceValue(seq, false);
+        SequenceValue seqValue = new SequenceValue(seq, null);
         setDefaultExpression(session, seqValue);
         setSequence(seq);
     }

@@ -970,6 +970,8 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
 </li><li>Unrelated expressions in ORDER BY clause of DISTINCT queries are allowed.
 </li><li>Some MySQL-specific ALTER TABLE commands are partially supported.
 </li><li>TRUNCATE TABLE restarts next values of generated columns.
+</li><li>NEXT VALUE FOR returns different values when invoked multiple times within the same row for compatibility
+    with MariaDB.
 </li></ul>
 <p>
 Text comparison in MySQL is case insensitive by default, while in H2 it is case sensitive (as in most other databases).
@@ -998,7 +1000,7 @@ or the SQL statement <code>SET MODE Oracle</code>.
 </li><li>DATE data type is treated like TIMESTAMP(0) data type.
 </li><li>Datetime value functions return the same value within a command.
 </li><li>ALTER TABLE MODIFY COLUMN command is partially supported.
-</li><li>SEQUENCE.NEXTVAL and SEQUENCE.CURRVAL return values with DECIMAL/NUMERIC data type.
+</li><li>SEQUENCE.NEXTVAL and SEQUENCE.CURRVAL are supported and return values with DECIMAL/NUMERIC data type.
 </li></ul>
 
 <h3>PostgreSQL Compatibility Mode</h3>

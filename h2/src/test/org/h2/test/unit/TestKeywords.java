@@ -134,6 +134,10 @@ public class TestKeywords extends TestBase {
                             assertTrue(rs.next());
                             assertEquals(10, rs.getInt(1));
                         }
+                        try (ResultSet rs = stat.executeQuery("SELECT TEST." + s + " FROM TEST")) {
+                            assertTrue(rs.next());
+                            assertEquals(10, rs.getInt(1));
+                        }
                         stat.execute("DROP TABLE TEST");
                         try (ResultSet rs = stat
                                 .executeQuery("SELECT ROW_NUMBER() OVER(" + s + ") WINDOW " + s + " AS ()")) {

@@ -5,6 +5,7 @@
  */
 package org.h2.expression;
 
+import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Sequence;
@@ -22,14 +23,37 @@ public class SequenceValue extends Expression {
 
     private final boolean current;
 
-    public SequenceValue(Sequence sequence, boolean current) {
+    private final Prepared prepared;
+
+    /**
+     * Creates new instance of NEXT VALUE FOR expression.
+     *
+     * @param sequence
+     *            the sequence
+     * @param prepared
+     *            the owner command, or {@code null}
+     */
+    public SequenceValue(Sequence sequence, Prepared prepared) {
         this.sequence = sequence;
-        this.current = current;
+        current = false;
+        this.prepared = prepared;
+    }
+
+    /**
+     * Creates new instance of CURRENT VALUE FOR expression.
+     *
+     * @param sequence
+     *            the sequence
+     */
+    public SequenceValue(Sequence sequence) {
+        this.sequence = sequence;
+        current = true;
+        prepared = null;
     }
 
     @Override
     public Value getValue(Session session) {
-        return current ? session.getCurrentValueFor(sequence) : sequence.getNext(session);
+        return current ? session.getCurrentValueFor(sequence) : session.getNextValueFor(sequence, prepared);
     }
 
     @Override
@@ -85,7 +109,7 @@ public class SequenceValue extends Expression {
         case ExpressionVisitor.READONLY:
             return current;
         default:
-            throw DbException.throwInternalError("type="+visitor.getType());
+            throw DbException.throwInternalError("type=" + visitor.getType());
         }
     }
 

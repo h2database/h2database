@@ -837,27 +837,6 @@ select date '+0011-01-01';
 select date'-0010-01-01';
 >> -0010-01-01
 
-create schema TEST_SCHEMA;
-> ok
-
-create table TEST_SCHEMA.test(id int);
-> ok
-
-create sequence TEST_SCHEMA.TEST_SEQ;
-> ok
-
-select TEST_SCHEMA.TEST_SEQ.CURRVAL;
-> exception CURRENT_SEQUENCE_VALUE_IS_NOT_DEFINED_IN_SESSION_1
-
-select TEST_SCHEMA.TEST_SEQ.nextval;
->> 1
-
-select TEST_SCHEMA.TEST_SEQ.CURRVAL;
->> 1
-
-drop schema TEST_SCHEMA cascade;
-> ok
-
 create table test(id int);
 > ok
 

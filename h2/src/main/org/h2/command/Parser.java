@@ -1661,6 +1661,10 @@ public class Parser {
         if (readIf(USING)) {
             return parseMergeUsing(targetTableFilter, start);
         }
+        return parseMergeInto(targetTableFilter, start);
+    }
+
+    private Prepared parseMergeInto(TableFilter targetTableFilter, int start) {
         Merge command = new Merge(session, false);
         currentPrepared = command;
         command.setTable(targetTableFilter.getTable());
@@ -1671,13 +1675,11 @@ public class Parser {
                 read(CLOSE_PAREN);
                 return command;
             }
-            Column[] columns = parseColumnList(table);
-            command.setColumns(columns);
+            command.setColumns(parseColumnList(table));
         }
         if (readIf(KEY)) {
             read(OPEN_PAREN);
-            Column[] keys = parseColumnList(table);
-            command.setKeys(keys);
+            command.setKeys(parseColumnList(table));
         }
         if (readIf(VALUES)) {
             parseValuesForCommand(command);
@@ -1907,8 +1909,7 @@ public class Parser {
                 read(CLOSE_PAREN);
                 return command;
             }
-            Column[] columns = parseColumnList(table);
-            command.setColumns(columns);
+            command.setColumns(parseColumnList(table));
         }
         if (readIf(VALUES)) {
             parseValuesForCommand(command);

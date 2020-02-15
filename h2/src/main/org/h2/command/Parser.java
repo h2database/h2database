@@ -1814,10 +1814,55 @@ public class Parser {
         read("INTO");
         Table table = readTableOrView();
         command.setTable(table);
-        Insert returnedCommand = parseInsertGivenTable(command, table);
-        if (returnedCommand != null) {
-            return returnedCommand;
+        Column[] columns = null;
+        if (readIf(OPEN_PAREN)) {
+            if (isQuery()) {
+                command.setQuery(parseQuery());
+                read(CLOSE_PAREN);
+                return command;
+            }
+            columns = parseColumnList(table);
+            command.setColumns(columns);
         }
+        if (readIf("DIRECT")) {
+            command.setInsertFromSelect(true);
+        }
+        if (readIf("SORTED")) {
+            command.setSortedInsertMode(true);
+        }
+        if (readIf("DEFAULT")) {
+            read(VALUES);
+            command.addRow(new Expression[0]);
+        } else if (readIf(VALUES)) {
+            parseValuesForCommand(command);
+        } else if (readIf(SET)) {
+            parseInsertSet(command, table, columns);
+        } else {
+            command.setQuery(parseQuery());
+        }
+        if (mode.onDuplicateKeyUpdate || mode.insertOnConflict || mode.isolationLevelInSelectOrInsertStatement) {
+            parseInsertCompatibility(command, table, mode);
+        }
+        setSQL(command, start);
+        return command;
+    }
+
+    private void parseInsertSet(Insert command, Table table, Column[] columns) {
+        if (columns != null) {
+            throw getSyntaxError();
+        }
+        ArrayList<Column> columnList = Utils.newSmallArrayList();
+        ArrayList<Expression> values = Utils.newSmallArrayList();
+        do {
+            columnList.add(parseColumn(table));
+            read(EQUAL);
+            values.add(readExpressionOrDefault());
+        } while (readIf(COMMA));
+        command.setColumns(columnList.toArray(new Column[0]));
+        command.addRow(values.toArray(new Expression[0]));
+    }
+
+    private void parseInsertCompatibility(Insert command, Table table, Mode mode) {
         if (mode.onDuplicateKeyUpdate) {
             if (readIf(ON)) {
                 read("DUPLICATE");
@@ -1858,49 +1903,6 @@ public class Parser {
         if (mode.isolationLevelInSelectOrInsertStatement) {
             parseIsolationClause();
         }
-        setSQL(command, start);
-        return command;
-    }
-
-    private Insert parseInsertGivenTable(Insert command, Table table) {
-        Column[] columns = null;
-        if (readIf(OPEN_PAREN)) {
-            if (isQuery()) {
-                command.setQuery(parseQuery());
-                read(CLOSE_PAREN);
-                return command;
-            }
-            columns = parseColumnList(table);
-            command.setColumns(columns);
-        }
-        if (readIf("DIRECT")) {
-            command.setInsertFromSelect(true);
-        }
-        if (readIf("SORTED")) {
-            command.setSortedInsertMode(true);
-        }
-        if (readIf("DEFAULT")) {
-            read(VALUES);
-            command.addRow(new Expression[0]);
-        } else if (readIf(VALUES)) {
-            parseValuesForCommand(command);
-        } else if (readIf(SET)) {
-            if (columns != null) {
-                throw getSyntaxError();
-            }
-            ArrayList<Column> columnList = Utils.newSmallArrayList();
-            ArrayList<Expression> values = Utils.newSmallArrayList();
-            do {
-                columnList.add(parseColumn(table));
-                read(EQUAL);
-                values.add(readExpressionOrDefault());
-            } while (readIf(COMMA));
-            command.setColumns(columnList.toArray(new Column[0]));
-            command.addRow(values.toArray(new Expression[0]));
-        } else {
-            command.setQuery(parseQuery());
-        }
-        return null;
     }
 
     /**

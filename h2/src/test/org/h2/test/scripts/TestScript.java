@@ -153,7 +153,7 @@ public class TestScript extends TestDb {
         }
 
         for (String s : new String[] { "array", "bigint", "binary", "blob",
-                "boolean", "char", "clob", "date", "decimal", decimal2, "double", "enum",
+                "boolean", "char", "clob", "date", "decimal", decimal2, "double_precision", "enum",
                 "geometry", "identity", "int", "interval", "java_object", "json", "real", "row", "smallint",
                 "time-with-time-zone", "time", "timestamp-with-time-zone", "timestamp", "tinyint",
                 "uuid", "varbinary", "varchar", "varchar-ignorecase" }) {

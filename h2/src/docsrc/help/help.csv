@@ -2102,13 +2102,13 @@ TIMESTAMP '1999-01-31 10:00:00'
 ","
 A decimal number with fixed precision and scale.
 Internally, ""java.lang.BigDecimal"" is used.
-To ensure the floating point representation is used, use CAST(X AS DOUBLE).
+To ensure the floating point representation is used, use CAST(X AS DOUBLE PRECISION).
 There are some special decimal values: to represent positive infinity, use ""POWER(0, -1)"";
-for negative infinity, use ""(-POWER(0, -1))""; for -0.0, use ""(-CAST(0 AS DOUBLE))"";
+for negative infinity, use ""(-POWER(0, -1))""; for -0.0, use ""(-CAST(0 AS DOUBLE PRECISION))"";
 for ""NaN"" (not a number), use ""SQRT(-1)"".
 ","
 SELECT -1600.05
-SELECT CAST(0 AS DOUBLE)
+SELECT CAST(0 AS DOUBLE PRECISION)
 SELECT -1.4e-10
 "
 
@@ -2182,7 +2182,7 @@ The data type of a numeric value is always the lowest possible for the given val
 If the number contains a dot this is decimal; otherwise it is int, long, or decimal (depending on the value).
 ","
 SELECT -1600.05
-SELECT CAST(0 AS DOUBLE)
+SELECT CAST(0 AS DOUBLE PRECISION)
 SELECT -1.4e-10
 "
 
@@ -2868,7 +2868,7 @@ INT
 
 "Other Grammar","Predefined Type","
 intType | booleanType | smallintType | bigintType
-    | decimalType | doubleType | realType | dateType | timeType
+    | decimalType | doublePrecisionType | realType | dateType | timeType
     | timeWithTimeZoneType | timestampType | timestampWithTimeZoneType
     | binaryType | varcharType | charType
     | blobType | clobType | arrayType | intervalType
@@ -3509,8 +3509,8 @@ Mapped to ""java.math.BigDecimal"".
 DECIMAL(20, 2)
 "
 
-"Data Types","DOUBLE Type","
-{ DOUBLE [ PRECISION ] | FLOAT [ ( precisionInt ) ] | @c@ { FLOAT8 } }
+"Data Types","DOUBLE PRECISION Type","
+{ DOUBLE PRECISION | FLOAT [ ( precisionInt ) ] | @h2@ { DOUBLE } | @c@ { FLOAT8 } }
 ","
 A floating point number. Should not be used to represent currency values, because
 of rounding problems.
@@ -3519,7 +3519,7 @@ If precision value is specified for FLOAT type name, it should be from 25 to 53.
 See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
 Mapped to ""java.lang.Double"".
 ","
-DOUBLE
+DOUBLE PRECISION
 "
 
 "Data Types","REAL Type","
@@ -5935,7 +5935,7 @@ The sum of all values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 The data type of the returned value depends on the parameter data type like this:
-""BOOLEAN, TINYINT, SMALLINT, INT -> BIGINT, BIGINT -> DECIMAL, REAL -> DOUBLE""
+""BOOLEAN, TINYINT, SMALLINT, INT -> BIGINT, BIGINT -> DECIMAL, REAL -> DOUBLE PRECISION""
 ","
 SUM(X)
 "

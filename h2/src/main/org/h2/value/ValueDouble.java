@@ -12,7 +12,7 @@ import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 
 /**
- * Implementation of the DOUBLE data type.
+ * Implementation of the DOUBLE PRECISION data type.
  */
 public final class ValueDouble extends Value {
 
@@ -100,7 +100,7 @@ public final class ValueDouble extends Value {
         } else if (Double.isNaN(value)) {
             builder.append("SQRT(-1)");
         } else if ((sqlFlags & NO_CASTS) == 0) {
-            builder.append("CAST(").append(value).append(" AS DOUBLE)");
+            builder.append("CAST(").append(value).append(" AS DOUBLE PRECISION)");
         } else {
             builder.append(value);
         }
@@ -162,7 +162,7 @@ public final class ValueDouble extends Value {
     }
 
     /**
-     * Get or create a DOUBLE value for the given double.
+     * Get or create a DOUBLE PRECISION value for the given double.
      *
      * @param d the double
      * @return the value

@@ -1548,26 +1548,24 @@ public class Parser {
         StringBuilder buff = new StringBuilder("SELECT ");
         if (readIf("CLIENT_ENCODING")) {
             // for PostgreSQL compatibility
-            buff.append("'UNICODE' AS CLIENT_ENCODING FROM DUAL");
+            buff.append("'UNICODE' CLIENT_ENCODING");
         } else if (readIf("DEFAULT_TRANSACTION_ISOLATION")) {
             // for PostgreSQL compatibility
-            buff.append("'read committed' AS DEFAULT_TRANSACTION_ISOLATION " +
-                    "FROM DUAL");
+            buff.append("'read committed' DEFAULT_TRANSACTION_ISOLATION");
         } else if (readIf("TRANSACTION")) {
             // for PostgreSQL compatibility
             read("ISOLATION");
             read("LEVEL");
-            buff.append("'read committed' AS TRANSACTION_ISOLATION " +
-                    "FROM DUAL");
+            buff.append("'read committed' TRANSACTION_ISOLATION");
         } else if (readIf("DATESTYLE")) {
             // for PostgreSQL compatibility
-            buff.append("'ISO' AS DATESTYLE FROM DUAL");
+            buff.append("'ISO' DATESTYLE");
         } else if (readIf("SERVER_VERSION")) {
             // for PostgreSQL compatibility
-            buff.append("'" + Constants.PG_VERSION + "' AS SERVER_VERSION FROM DUAL");
+            buff.append("'" + Constants.PG_VERSION + "' SERVER_VERSION");
         } else if (readIf("SERVER_ENCODING")) {
             // for PostgreSQL compatibility
-            buff.append("'UTF8' AS SERVER_ENCODING FROM DUAL");
+            buff.append("'UTF8' SERVER_ENCODING");
         } else if (readIf("TABLES")) {
             // for MySQL compatibility
             String schema = database.getMainSchema().getName();

@@ -63,11 +63,11 @@ public class TestPgServer extends TestDb {
         testPgAdapter();
         testLowerCaseIdentifiers();
         testKeyAlias();
-        testKeyAlias();
         testCancelQuery();
         testTextualAndBinaryTypes();
         testDateTime();
         testPrepareWithUnspecifiedType();
+        testOtherPgClients();
     }
 
     private void testLowerCaseIdentifiers() throws SQLException {
@@ -88,6 +88,13 @@ public class TestPgServer extends TestDb {
                     "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
             stat = conn2.createStatement();
             stat.execute("select * from test");
+
+            // test pg_get_oid
+            try (ResultSet rs = stat.executeQuery("select 0::regclass")) {
+                assertTrue(rs.next());
+                assertEquals(0, rs.getInt(1));
+            }
+
             conn2.close();
         } finally {
             server.stop();
@@ -337,6 +344,15 @@ public class TestPgServer extends TestDb {
         rs = stat.executeQuery("select pg_get_oid('TEST')");
         rs.next();
         assertTrue(rs.getInt(1) > 0);
+
+        rs = stat.executeQuery("select pg_get_oid('\"WRONG\"')");
+        rs.next();
+        assertEquals(0, rs.getInt(1));
+
+        // regclass cast will call pg_get_oid()
+        rs = stat.executeQuery("select 0::regclass");
+        rs.next();
+        assertEquals(0, rs.getInt(1));
 
         rs = stat.executeQuery("select pg_get_indexdef(0, 0, false)");
         rs.next();
@@ -592,6 +608,61 @@ public class TestPgServer extends TestDb {
             conn.close();
         } finally {
             server.stop();
+        }
+    }
+
+    private void testOtherPgClients() throws SQLException {
+        if (!getPgJdbcDriver()) {
+            return;
+        }
+
+        Connection conn0 = DriverManager.getConnection(
+                "jdbc:h2:mem:pgserver;mode=postgresql;database_to_lower=true", "sa", "sa");
+        Server server = createPgServer(
+                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+        try (
+                Connection conn = DriverManager.getConnection(
+                        "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
+                Statement stat = conn.createStatement();
+        ) {
+            stat.execute(
+                    "create table test(id serial primary key, x1 integer)");
+
+            // pgAdmin
+            stat.execute("SET client_min_messages=notice");
+            try (ResultSet rs = stat.executeQuery("SELECT set_config('bytea_output','escape',false) " +
+                    "FROM pg_settings WHERE name = 'bytea_output'")) {
+                assertFalse(rs.next());
+            }
+            stat.execute("SET client_encoding='UNICODE'");
+
+            // HeidiSQL
+            try (ResultSet rs = stat.executeQuery("SHOW ssl")) {
+                assertTrue(rs.next());
+                assertEquals("off", rs.getString(1));
+            }
+            // TODO stat.execute("SET search_path TO 'public', '$user'");
+            try (ResultSet rs = stat.executeQuery("SELECT *, NULL AS data_length, " +
+                    "pg_relation_size(QUOTE_IDENT(t.TABLE_SCHEMA) || '.' || QUOTE_IDENT(t.TABLE_NAME))::bigint AS index_length, " +
+                    "c.reltuples, obj_description(c.oid) AS comment " +
+                    "FROM \"information_schema\".\"tables\" AS t " +
+                    "LEFT JOIN \"pg_namespace\" n ON t.table_schema = n.nspname " +
+                    "LEFT JOIN \"pg_class\" c ON n.oid = c.relnamespace AND c.relname=t.table_name " +
+                    "WHERE t.\"table_schema\"='public'")) {
+                assertTrue(rs.next());
+                assertEquals("test", rs.getString("table_name"));
+                assertEquals(0, rs.getInt("index_length")); // test pg_relation_size()
+                assertEquals("", rs.getString("comment")); // test obj_description()
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT \"p\".\"proname\", \"p\".\"proargtypes\" " +
+                    "FROM \"pg_catalog\".\"pg_namespace\" AS \"n\" " +
+                    "JOIN \"pg_catalog\".\"pg_proc\" AS \"p\" ON \"p\".\"pronamespace\" = \"n\".\"oid\" " +
+                    "WHERE \"n\".\"nspname\"='public';")) {
+                assertFalse(rs.next()); // "pg_proc" always empty
+            }
+        } finally {
+            server.stop();
+            conn0.close();
         }
     }
 }

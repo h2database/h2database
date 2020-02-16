@@ -149,6 +149,7 @@ create table pg_catalog.pg_proc(
     oid int,
     proname varchar_ignorecase,
     prorettype int,
+    proargtypes int array,
     pronamespace int
 );
 grant select on pg_catalog.pg_proc to PUBLIC;
@@ -264,6 +265,15 @@ create alias has_table_privilege for "org.h2.server.pg.PgServer.hasTablePrivileg
 
 drop alias if exists currtid2;
 create alias currtid2 for "org.h2.server.pg.PgServer.getCurrentTid";
+
+drop alias if exists pg_relation_size;
+create alias pg_relation_size for "org.h2.server.pg.PgServer.getRelationSize";
+
+drop alias if exists obj_description;
+create alias obj_description for "org.h2.server.pg.PgServer.getObjDescription";
+
+drop alias if exists set_config;
+create alias set_config deterministic for "org.h2.server.pg.PgServer.setConfig";
 
 create table pg_catalog.pg_database(
     oid int,

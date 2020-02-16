@@ -261,7 +261,7 @@ public class DataType {
         );
         add(Value.DOUBLE, Types.DOUBLE,
                 createNumeric(ValueDouble.PRECISION, 0, false),
-                new String[] { "DOUBLE", "DOUBLE PRECISION" }
+                new String[] { "DOUBLE PRECISION", "DOUBLE" }
         );
         add(Value.DOUBLE, Types.FLOAT,
                 createNumeric(ValueDouble.PRECISION, 0, false),

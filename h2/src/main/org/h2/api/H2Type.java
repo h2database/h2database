@@ -49,9 +49,9 @@ public enum H2Type implements SQLType {
     REAL("REAL", Value.REAL),
 
     /**
-     * The DOUBLE data type.
+     * The DOUBLE PRECISION data type.
      */
-    DOUBLE("DOUBLE", Value.DOUBLE),
+    DOUBLE_PRECISION("DOUBLE PRECISION", Value.DOUBLE),
 
     // Character strings
 

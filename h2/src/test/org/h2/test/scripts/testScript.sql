@@ -270,7 +270,7 @@ select * from dual where cast('xx' as varchar_ignorecase(1)) = 'X' and cast('x x
 > rows: 1
 
 explain select -cast(0 as real), -cast(0 as double);
->> SELECT CAST(0.0 AS REAL), CAST(0.0 AS DOUBLE)
+>> SELECT CAST(0.0 AS REAL), CAST(0.0 AS DOUBLE PRECISION)
 
 select (1) one;
 > ONE

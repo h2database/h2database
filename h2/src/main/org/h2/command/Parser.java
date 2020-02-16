@@ -1556,7 +1556,8 @@ public class Parser {
             // for PostgreSQL compatibility
             read("ISOLATION");
             read("LEVEL");
-            buff.append("'read committed' TRANSACTION_ISOLATION");
+            buff.append("LOWER(ISOLATION_LEVEL) TRANSACTION_ISOLATION FROM INFORMATION_SCHEMA.SESSIONS "
+                    + "WHERE ID = SESSION_ID()");
         } else if (readIf("DATESTYLE")) {
             // for PostgreSQL compatibility
             buff.append("'ISO' DATESTYLE");

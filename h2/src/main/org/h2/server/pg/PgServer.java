@@ -457,6 +457,44 @@ public class PgServer implements Service {
     }
 
     /**
+     * Get comment for a database object
+     * This method is called by the database.
+     *
+     * @param oid
+     * @return ""
+     */
+    @SuppressWarnings("unused")
+    public static String getObjDescription(int oid) {
+        return "";
+    }
+
+    /**
+     * Set parameter and return new value
+     * This method is called by the database.
+     *
+     * @param settingName
+     * @param newValue
+     * @param isLocal
+     * @return new value
+     */
+    @SuppressWarnings("unused")
+    public static String setConfig(String settingName, String newValue, boolean isLocal) {
+        return newValue;
+    }
+
+    /**
+     * Get disk space used by the specified table
+     * This method is called by the database.
+     *
+     * @param table the table name
+     * @return 0
+     */
+    @SuppressWarnings("unused")
+    public static int getRelationSize(String table) {
+        return 0;
+    }
+
+    /**
      * A fake wrapper around pg_get_expr(expr_text, relation_oid), in PostgreSQL
      * it "decompiles the internal form of an expression, assuming that any vars
      * in it refer to the relation indicated by the second parameter".

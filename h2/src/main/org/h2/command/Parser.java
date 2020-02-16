@@ -1567,6 +1567,9 @@ public class Parser {
         } else if (readIf("SERVER_ENCODING")) {
             // for PostgreSQL compatibility
             buff.append("'UTF8' SERVER_ENCODING");
+        } else if (readIf("SSL")) {
+            // for PostgreSQL compatibility
+            buff.append("'off' SSL");
         } else if (readIf("TABLES")) {
             // for MySQL compatibility
             String schema = database.getMainSchema().getName();
@@ -4656,7 +4659,8 @@ public class Parser {
                 read(DOT);
             }
             if (readIf("REGCLASS")) {
-                FunctionAlias f = findFunctionAlias(database.getMainSchema().getName(), "PG_GET_OID");
+                FunctionAlias f = findFunctionAlias(database.getMainSchema().getName(),
+                        database.sysIdentifier("PG_GET_OID"));
                 if (f == null) {
                     throw getSyntaxError();
                 }
@@ -7755,11 +7759,11 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
-        } else if (readIf("NETWORK_TIMEOUT")){
+        } else if (readIf("NETWORK_TIMEOUT")) {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
-        } else if (readIf("STATEMENT_TIMEOUT")){
+        } else if (readIf("STATEMENT_TIMEOUT")) {
             // for PostgreSQL compatibility
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.QUERY_TIMEOUT);
@@ -7803,6 +7807,16 @@ public class Parser {
             return new NoOperation(session);
         } else if (readIf("NAMES")) {
             // Quercus PHP MySQL driver compatibility
+            readIfEqualOrTo();
+            read();
+            return new NoOperation(session);
+        } else if (readIf("CLIENT_MIN_MESSAGES")) {
+            // for PostgreSQL compatibility
+            readIfEqualOrTo();
+            read();
+            return new NoOperation(session);
+        } else if (readIf("CLIENT_ENCODING")) {
+            // for PostgreSQL compatibility
             readIfEqualOrTo();
             read();
             return new NoOperation(session);

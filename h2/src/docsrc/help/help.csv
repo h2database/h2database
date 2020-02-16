@@ -4853,7 +4853,7 @@ CALL STRINGENCODE(STRINGDECODE('Lines 1\nLine 2'))
 "
 
 "Functions (String)","BASE64_ENCODE","
-@h2@ BASE64_ENCODE(bytes[, algorithm])
+@h2@ BASE64_ENCODE(bytes[, algorithmString])
 ","
 Encodes a byte array in the Base64 format to a string.
 ","

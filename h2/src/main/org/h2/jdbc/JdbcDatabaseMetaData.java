@@ -1435,7 +1435,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "CAST(NULL AS SMALLINT) DATA_TYPE, "
                     + "CAST(NULL AS VARCHAR) REMARKS, "
                     + "CAST(NULL AS SMALLINT) BASE_TYPE "
-                    + "FROM DUAL WHERE FALSE");
+                    + "WHERE FALSE");
             return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);

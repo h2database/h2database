@@ -3,6 +3,9 @@
 -- Initial Developer: H2 Group
 --
 
+CALL base64_encode(null);
+>> null
+
 CALL '>' || base64_encode(stringtoutf8('')) || '<';
 >> ><
 
@@ -21,8 +24,11 @@ CALL base64_encode(stringtoutf8('ABCD'));
 CALL base64_encode(stringtoutf8('my string'));
 >> bXkgc3RyaW5n
 
-CALL base64_encode(stringtoutf8('про'));
->> 0L/RgNC+
+CALL base64_encode(X'3c3c3f3f3e3e');
+>> PDw/Pz4+
 
-CALL base64_encode(stringtoutf8('про'), 'URL');
->> 0L_RgNC-
+CALL base64_encode(X'3c3c3f3f3e3e', 'URL');
+>> PDw_Pz4-
+
+CALL base64_encode(stringtoutf8('my string'), 'UNSUPPORTED');
+> exception INVALID_VALUE_2

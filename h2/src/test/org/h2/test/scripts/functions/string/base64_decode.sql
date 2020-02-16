@@ -3,6 +3,9 @@
 -- Initial Developer: H2 Group
 --
 
+CALL base64_decode(null);
+>> null
+
 CALL '>' || utf8tostring(base64_decode('')) || '<';
 >> ><
 
@@ -26,3 +29,6 @@ CALL utf8tostring(base64_decode('PDw/Pz4+'));
 
 CALL utf8tostring(base64_decode('PDw_Pz4-'));
 >> <<??>>
+
+CALL base64_decode('the text should lead to an error');
+> exception INVALID_VALUE_2

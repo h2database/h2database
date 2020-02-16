@@ -2301,25 +2301,38 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     }
 
     private static Value base64encode(byte[] data, String algorithm) {
-        final String result;
-        if (algorithm == null || algorithm.isEmpty() || "BASE64".equalsIgnoreCase(algorithm)) {
-            result = Base64.getEncoder().encodeToString(data);
-        } else if ("URL".equalsIgnoreCase(algorithm)) {
-            result = Base64.getUrlEncoder().encodeToString(data);
-        } else {
-            throw DbException.getInvalidValueException("Base64 algorithm, valid value: \"BASE64\" (or not set), \"URL\"", algorithm);
+        if (data!=null){
+            final String result;
+            if (algorithm == null || algorithm.isEmpty() || "BASE64".equalsIgnoreCase(algorithm)) {
+                result = Base64.getEncoder().encodeToString(data);
+            } else if ("URL".equalsIgnoreCase(algorithm)) {
+                result = Base64.getUrlEncoder().encodeToString(data);
+            } else {
+                throw DbException.getInvalidValueException("algorithmString, valid value: 'BASE64' or not set, 'URL'", algorithm);
+            }
+            return ValueVarchar.get(result);
+        }else{
+            return ValueNull.INSTANCE;
         }
-        return ValueVarchar.get(result);
     }
 
     private static Value base64decode(String data) {
-        final byte[] result;
-        if (data.indexOf('_') >= 0 || data.indexOf('-') >= 0) {
-            result = Base64.getUrlDecoder().decode(data);
+        if (data!=null) {
+            try {
+                final byte[] result;
+                if (data.indexOf('_') >= 0 || data.indexOf('-') >= 0) {
+                    result = Base64.getUrlDecoder().decode(data);
+                }
+                else {
+                    result = Base64.getDecoder().decode(data);
+                }
+                return ValueVarbinary.getNoCopy(result);
+            }catch (IllegalArgumentException e){
+                throw DbException.getInvalidValueException("data, "+e.getMessage(), data);
+            }
         } else {
-            result = Base64.getDecoder().decode(data);
+            return ValueNull.INSTANCE;
         }
-        return ValueVarbinary.getNoCopy(result);
     }
 
     private static MessageDigest hashImpl(Value value, String algorithm) {

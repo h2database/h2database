@@ -442,7 +442,7 @@ public class TestScript extends TestDb {
         if (statements != null) {
             statements.add(sql);
         }
-        if (sql.indexOf('?') == -1) {
+        if (!hasParameters(sql)) {
             processStatement(sql);
         } else {
             String param = readLine();
@@ -467,6 +467,21 @@ public class TestScript extends TestDb {
             }
         }
         write("");
+    }
+
+    private static boolean hasParameters(String sql) {
+        int index = 0;
+        for (;;) {
+            index = sql.indexOf('?', index);
+            if (index < 0) {
+                return false;
+            }
+            int length = sql.length();
+            if (++index == length || sql.charAt(index) != '?') {
+                return true;
+            }
+            index++;
+        }
     }
 
     private void reconnect(boolean autocommit) throws SQLException {

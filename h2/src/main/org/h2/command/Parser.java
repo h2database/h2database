@@ -5662,7 +5662,6 @@ public class Parser {
             case ';':
             case '+':
             case '%':
-            case '?':
             case '@':
             case ']':
                 type = CHAR_SPECIAL_1;
@@ -5685,6 +5684,21 @@ public class Parser {
                 startLoop = i;
                 while (command[++i] != '\'') {
                     checkRunOver(i, len, startLoop);
+                }
+                break;
+            case '?':
+                type = CHAR_SPECIAL_1;
+                if (command[i + 1] == '?') {
+                    char ch = command[i + 2];
+                    if (ch == '(') {
+                        command[i + 1] = command[i] = ' ';
+                        command[i += 2] = '[';
+                        changed = true;
+                    } else if (ch == ')') {
+                        command[i + 1] = command[i] = ' ';
+                        command[i += 2] = ']';
+                        changed = true;
+                    }
                 }
                 break;
             case '[':

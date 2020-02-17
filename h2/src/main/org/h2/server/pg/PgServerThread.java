@@ -561,7 +561,7 @@ public class PgServerThread implements Runnable {
                     byte b = bytes[i];
                     if (b < 32 || b > 126) {
                         data[j++] = '\\';
-                        data[j++] = (byte) (((b >>> 6) & 7) + '0');
+                        data[j++] = (byte) (((b >>> 6) & 3) + '0');
                         data[j++] = (byte) (((b >>> 3) & 7) + '0');
                         data[j++] = (byte) ((b & 7) + '0');
                     } else if (b == 92) {

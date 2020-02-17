@@ -643,7 +643,8 @@ public class TestPgServer extends TestDb {
             }
             // TODO stat.execute("SET search_path TO 'public', '$user'");
             try (ResultSet rs = stat.executeQuery("SELECT *, NULL AS data_length, " +
-                    "pg_relation_size(QUOTE_IDENT(t.TABLE_SCHEMA) || '.' || QUOTE_IDENT(t.TABLE_NAME))::bigint AS index_length, " +
+                    "pg_relation_size(QUOTE_IDENT(t.TABLE_SCHEMA) || '.' || QUOTE_IDENT(t.TABLE_NAME))::bigint " +
+                    "AS index_length, " +
                     "c.reltuples, obj_description(c.oid) AS comment " +
                     "FROM \"information_schema\".\"tables\" AS t " +
                     "LEFT JOIN \"pg_namespace\" n ON t.table_schema = n.nspname " +

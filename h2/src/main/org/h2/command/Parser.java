@@ -189,6 +189,7 @@ import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
 import org.h2.expression.Alias;
+import org.h2.expression.ArrayConstructorByQuery;
 import org.h2.expression.BinaryOperation;
 import org.h2.expression.BinaryOperation.OpType;
 import org.h2.expression.ConcatenationOperation;
@@ -2990,6 +2991,7 @@ public class Parser {
                 case ORDER:
                 case OFFSET:
                 case FETCH:
+                case CLOSE_PAREN:
                 case SEMICOLON:
                 case END:
                     break;
@@ -4482,16 +4484,22 @@ public class Parser {
             break;
         case ARRAY:
             read();
-            read(OPEN_BRACKET);
-            if (readIf(CLOSE_BRACKET)) {
-                r = ValueExpression.get(ValueArray.EMPTY);
+            if (readIf(OPEN_BRACKET)) {
+                if (readIf(CLOSE_BRACKET)) {
+                    r = ValueExpression.get(ValueArray.EMPTY);
+                } else {
+                    ArrayList<Expression> list = Utils.newSmallArrayList();
+                    do {
+                        list.add(readExpression());
+                    } while (readIf(COMMA));
+                    read(CLOSE_BRACKET);
+                    r = new ExpressionList(list.toArray(new Expression[0]), true);
+                }
             } else {
-                ArrayList<Expression> list = Utils.newSmallArrayList();
-                do {
-                    list.add(readExpression());
-                } while (readIf(COMMA));
-                read(CLOSE_BRACKET);
-                r = new ExpressionList(list.toArray(new Expression[0]), true);
+                read(OPEN_PAREN);
+                Query q = parseQuery();
+                read(CLOSE_PAREN);
+                r = new ArrayConstructorByQuery(q);
             }
             break;
         case INTERVAL:

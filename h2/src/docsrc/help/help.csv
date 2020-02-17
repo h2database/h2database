@@ -2552,6 +2552,18 @@ Value or condition.
 ID=1 AND NAME='Hi'
 "
 
+"Other Grammar","Array value constructor by query","
+ARRAY (query)
+","
+Collects values from the subquery into array.
+
+The subquery should have exactly one column.
+Number of elements in the returned array is the number of rows in the subquery.
+NULL values are included into array.
+","
+ARRAY(SELECT * FROM SYSTEM_RANGE(1, 10));
+"
+
 "Other Grammar","Case","
 CASE expression { WHEN expression THEN expression } [...]
 [ ELSE expression ] END

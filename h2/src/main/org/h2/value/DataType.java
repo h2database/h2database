@@ -311,7 +311,7 @@ public class DataType {
         dataType.prefix = dataType.suffix = "'";
         dataType.defaultPrecision = dataType.maxPrecision = dataType.minPrecision = ValueUuid.PRECISION;
         add(Value.UUID, Types.BINARY,
-                createString(false, false),
+                dataType,
                 // UNIQUEIDENTIFIER is the MSSQL mode equivalent
                 new String[]{"UUID", "UNIQUEIDENTIFIER"}
         );
@@ -333,8 +333,15 @@ public class DataType {
                 createGeometry(),
                 new String[]{"GEOMETRY"}
         );
+        dataType = new DataType();
+        dataType.prefix = "ARRAY[";
+        dataType.suffix = "]";
+        dataType.params = "CARDINALITY";
+        dataType.caseSensitive = false;
+        dataType.supportsPrecision = true;
+        dataType.defaultPrecision = dataType.maxPrecision = Integer.MAX_VALUE;
         add(Value.ARRAY, Types.ARRAY,
-                createString(false, false, "ARRAY[", "]"),
+                dataType,
                 new String[]{"ARRAY"}
         );
         dataType = new DataType();
@@ -345,7 +352,6 @@ public class DataType {
         );
         dataType = createString(false, false);
         dataType.supportsPrecision = false;
-        dataType.supportsScale = false;
         add(Value.ENUM, Types.OTHER,
                 dataType,
                 new String[]{"ENUM"}
@@ -518,6 +524,7 @@ public class DataType {
         dataType.params = "LENGTH";
         dataType.caseSensitive = caseSensitive;
         dataType.supportsPrecision = true;
+        dataType.minPrecision = 1;
         dataType.maxPrecision = Integer.MAX_VALUE;
         dataType.defaultPrecision = fixedLength ? 1 : Integer.MAX_VALUE;
         return dataType;

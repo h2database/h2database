@@ -68,6 +68,7 @@ import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
@@ -891,12 +892,13 @@ public class MetaTable extends Table {
                 for (int j = 0; j < cols.length; j++) {
                     Column c = cols[j];
                     Domain domain = c.getDomain();
-                    DataType dataType = c.getDataType();
+                    TypeInfo typeInfo = c.getType();
+                    DataType dataType = DataType.getDataType(typeInfo.getValueType());
                     ValueInteger precision = ValueInteger.get(c.getPrecisionAsInt());
-                    ValueInteger scale = ValueInteger.get(c.getType().getScale());
+                    ValueInteger scale = ValueInteger.get(typeInfo.getScale());
                     Sequence sequence = c.getSequence();
                     boolean hasDateTimePrecision;
-                    int type = dataType.type;
+                    int type = typeInfo.getValueType();
                     switch (type) {
                     case Value.TIME:
                     case Value.TIME_TZ:
@@ -1787,6 +1789,8 @@ public class MetaTable extends Table {
                 Domain domain = (Domain) obj;
                 Column col = domain.getColumn();
                 Domain parentDomain = col.getDomain();
+                TypeInfo typeInfo = col.getType();
+                DataType dataType = DataType.getDataType(typeInfo.getValueType());
                 add(session,
                         rows,
                         // DOMAIN_CATALOG
@@ -1800,13 +1804,13 @@ public class MetaTable extends Table {
                         // DOMAIN_ON_UPDATE
                         col.getOnUpdateSQL(),
                         // DATA_TYPE
-                        ValueInteger.get(col.getDataType().sqlType),
+                        ValueInteger.get(dataType.sqlType),
                         // PRECISION
                         ValueInteger.get(col.getPrecisionAsInt()),
                         // SCALE
-                        ValueInteger.get(col.getType().getScale()),
+                        ValueInteger.get(typeInfo.getScale()),
                         // TYPE_NAME
-                        col.getDataType().name,
+                        dataType.name,
                         // PARENT_DOMAIN_CATALOG
                         parentDomain != null ? catalog : null,
                         // PARENT_DOMAIN_SCHEMA

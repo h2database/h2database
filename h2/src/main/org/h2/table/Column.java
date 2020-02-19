@@ -26,7 +26,6 @@ import org.h2.schema.Sequence;
 import org.h2.util.HasSQL;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
-import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
@@ -635,10 +634,6 @@ public class Column implements HasSQL {
 
     int getPrecisionAsInt() {
         return MathUtils.convertLongToInt(type.getPrecision());
-    }
-
-    DataType getDataType() {
-        return DataType.getDataType(type.getValueType());
     }
 
     public void setComment(String comment) {

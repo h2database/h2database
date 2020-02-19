@@ -85,7 +85,7 @@ public class JdbcParameterMetaData extends TraceObject implements
             if (type == Value.UNKNOWN) {
                 type = Value.VARCHAR;
             }
-            return DataType.getDataType(type).sqlType;
+            return DataType.convertTypeToSQLType(type);
         } catch (Exception e) {
             throw logAndConvert(e);
         }

@@ -24,7 +24,6 @@ import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.util.HasSQL;
-import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -630,10 +629,6 @@ public class Column implements HasSQL {
 
     String getOnUpdateSQL() {
         return onUpdateExpression == null ? null : onUpdateExpression.getSQL(DEFAULT_SQL_FLAGS);
-    }
-
-    int getPrecisionAsInt() {
-        return MathUtils.convertLongToInt(type.getPrecision());
     }
 
     public void setComment(String comment) {

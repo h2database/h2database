@@ -683,16 +683,21 @@ public class Column implements HasSQL {
      * @return true if the new column is compatible
      */
     public boolean isWideningConversion(Column newColumn) {
-        if (type.getValueType() != newColumn.type.getValueType()) {
+        TypeInfo newType = newColumn.type;
+        int valueType = type.getValueType();
+        if (valueType != newType.getValueType()) {
             return false;
         }
-        if (type.getPrecision() > newColumn.type.getPrecision()) {
+        long precision = type.getPrecision();
+        long newPrecision = newType.getPrecision();
+        if (precision > newPrecision
+                || precision < newPrecision && (valueType == Value.CHAR || valueType == Value.BINARY)) {
             return false;
         }
-        if (type.getScale() != newColumn.type.getScale()) {
+        if (type.getScale() != newType.getScale()) {
             return false;
         }
-        if (!Objects.equals(type.getExtTypeInfo(), newColumn.type.getExtTypeInfo())) {
+        if (!Objects.equals(type.getExtTypeInfo(), newType.getExtTypeInfo())) {
             return false;
         }
         if (nullable && !newColumn.nullable) {
@@ -720,9 +725,6 @@ public class Column implements HasSQL {
             return false;
         }
         if (onUpdateExpression != null || newColumn.onUpdateExpression != null) {
-            return false;
-        }
-        if (!Objects.equals(type.getExtTypeInfo(), newColumn.type.getExtTypeInfo())) {
             return false;
         }
         return true;

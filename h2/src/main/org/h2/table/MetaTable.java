@@ -1120,7 +1120,7 @@ public class MetaTable extends Table {
                         // RADIX
                         t.decimal ? ValueInteger.get(10) : null,
                         // POS
-                        ValueInteger.get(t.sqlTypePos),
+                        ValueInteger.get(t.type),
                         // CASE_SENSITIVE
                         ValueBoolean.get(t.caseSensitive),
                         // NULLABLE

@@ -105,12 +105,6 @@ public class DataType {
     public int sqlType;
 
     /**
-     * How closely the data type maps to the corresponding JDBC SQL type (low is
-     * best).
-     */
-    public int sqlTypePos;
-
-    /**
      * The minimum supported precision.
      */
     public long minPrecision;
@@ -426,11 +420,6 @@ public class DataType {
             dt.defaultScale = dataType.defaultScale;
             dt.caseSensitive = dataType.caseSensitive;
             dt.hidden = i > 0;
-            for (DataType t2 : TYPES) {
-                if (t2.sqlType == dt.sqlType) {
-                    dt.sqlTypePos++;
-                }
-            }
             TYPES_BY_NAME.put(dt.name, dt);
             if (TYPES_BY_VALUE_TYPE[type] == null) {
                 TYPES_BY_VALUE_TYPE[type] = dt;

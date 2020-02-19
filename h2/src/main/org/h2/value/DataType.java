@@ -206,11 +206,8 @@ public class DataType {
                 new String[]{"VARCHAR", "CHARACTER VARYING", "CHAR VARYING",
                         "NCHAR VARYING", "NATIONAL CHARACTER VARYING", "NATIONAL CHAR VARYING",
                         "VARCHAR2", "NVARCHAR", "NVARCHAR2",
-                        "VARCHAR_CASESENSITIVE", "TID"}
-        );
-        add(Value.VARCHAR, Types.LONGVARCHAR,
-                createString(true, false),
-                new String[]{"LONGVARCHAR", "LONGNVARCHAR"}
+                        "VARCHAR_CASESENSITIVE", "TID",
+                        "LONGVARCHAR", "LONGNVARCHAR"}
         );
         add(Value.CHAR, Types.CHAR,
                 createString(true, true),
@@ -248,12 +245,27 @@ public class DataType {
                 createNumeric(ValueBigint.PRECISION, 0, true),
                 new String[]{"IDENTITY", "BIGSERIAL"}
         );
+        dataType = new DataType();
+        dataType.minPrecision = 1;
+        dataType.maxPrecision = Integer.MAX_VALUE;
+        dataType.defaultPrecision = ValueNumeric.DEFAULT_PRECISION;
+        dataType.defaultScale = ValueNumeric.DEFAULT_SCALE;
+        dataType.maxScale = ValueNumeric.MAXIMUM_SCALE;
+        dataType.minScale = ValueNumeric.MINIMUM_SCALE;
+        dataType.params = "PRECISION,SCALE";
+        dataType.supportsPrecision = true;
+        dataType.supportsScale = true;
+        dataType.decimal = true;
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
-            addDecimal();
-            addNumeric();
+            add(Value.NUMERIC, Types.DECIMAL,
+                    dataType,
+                    new String[]{"DECIMAL", "NUMERIC", "DEC", "NUMBER"}
+            );
         } else {
-            addNumeric();
-            addDecimal();
+            add(Value.NUMERIC, Types.NUMERIC,
+                    dataType,
+                    new String[]{"NUMERIC", "DECIMAL", "DEC", "NUMBER"}
+            );
         }
         add(Value.REAL, Types.REAL,
                 createNumeric(ValueReal.PRECISION, 0, false),
@@ -297,11 +309,7 @@ public class DataType {
         );
         add(Value.VARBINARY, Types.VARBINARY,
                 createBinary(false),
-                new String[]{"VARBINARY", "BINARY VARYING", "RAW", "BYTEA", "LONG RAW"}
-        );
-        add(Value.VARBINARY, Types.LONGVARBINARY,
-                createBinary(false),
-                new String[]{"LONGVARBINARY"}
+                new String[]{"VARBINARY", "BINARY VARYING", "RAW", "BYTEA", "LONG RAW", "LONGVARBINARY"}
         );
         add(Value.BINARY, Types.BINARY,
                 createBinary(true),
@@ -371,20 +379,6 @@ public class DataType {
         dataType.prefix = "ROW(";
         dataType.suffix = ")";
         TYPES_BY_VALUE_TYPE[Value.ROW] = dataType;
-    }
-
-    private static void addDecimal() {
-        add(Value.NUMERIC, Types.DECIMAL,
-                createNumeric(),
-                new String[]{"DECIMAL", "DEC"}
-        );
-    }
-
-    private static void addNumeric() {
-        add(Value.NUMERIC, Types.NUMERIC,
-                createNumeric(),
-                new String[]{"NUMERIC", "NUMBER"}
-        );
     }
 
     private static void addInterval(int type) {
@@ -459,26 +453,6 @@ public class DataType {
         dataType.defaultScale = dataType.maxScale = dataType.minScale = scale;
         dataType.decimal = true;
         dataType.autoIncrement = autoInc;
-        return dataType;
-    }
-
-    /**
-     * Create an exact numeric data type with parameters.
-     *
-     * @return data type
-     */
-    private static DataType createNumeric() {
-        DataType dataType = new DataType();
-        dataType.minPrecision = 1;
-        dataType.maxPrecision = Integer.MAX_VALUE;
-        dataType.defaultPrecision = ValueNumeric.DEFAULT_PRECISION;
-        dataType.defaultScale = ValueNumeric.DEFAULT_SCALE;
-        dataType.maxScale = ValueNumeric.MAXIMUM_SCALE;
-        dataType.minScale = ValueNumeric.MINIMUM_SCALE;
-        dataType.params = "PRECISION,SCALE";
-        dataType.supportsPrecision = true;
-        dataType.supportsScale = true;
-        dataType.decimal = true;
         return dataType;
     }
 

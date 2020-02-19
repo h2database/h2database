@@ -59,8 +59,8 @@ select
     false typnotnull,
     null typinput
 from INFORMATION_SCHEMA.type_info
-where pos = 0
-    and pg_convertType(data_type) <> 705; -- not unknown
+where pg_convertType(data_type) <> 705 -- not unknown
+qualify row_number() over(partition by pg_convertType(data_type) order by pos) = 1;
 
 merge into pg_catalog.pg_type values(
     19,

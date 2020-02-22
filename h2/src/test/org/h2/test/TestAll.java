@@ -160,7 +160,6 @@ import org.h2.test.synth.TestNestedJoins;
 import org.h2.test.synth.TestOuterJoins;
 import org.h2.test.synth.TestRandomCompare;
 import org.h2.test.synth.TestRandomSQL;
-import org.h2.test.synth.TestStringAggCompatibility;
 import org.h2.test.synth.TestTimer;
 import org.h2.test.synth.sql.TestSynth;
 import org.h2.test.synth.thread.TestMulti;
@@ -835,7 +834,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMultiThreaded());
         addTest(new TestOuterJoins());
         addTest(new TestNestedJoins());
-        addTest(new TestStringAggCompatibility());
 
         runAddedTests();
 

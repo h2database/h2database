@@ -916,7 +916,7 @@ public class Parser {
         } else {
             expectedList = null;
         }
-        parameters = suppliedParameters != null ? suppliedParameters : Utils.<Parameter>newSmallArrayList();
+        parameters = suppliedParameters != null ? suppliedParameters : Utils.newSmallArrayList();
         indexedParameterList = suppliedParameterList;
         currentSelect = null;
         currentPrepared = null;

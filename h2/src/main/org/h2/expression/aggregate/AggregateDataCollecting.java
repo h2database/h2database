@@ -102,7 +102,7 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
 
     @Override
     public Iterator<Value> iterator() {
-        return values != null ? values.iterator() : Collections.<Value>emptyIterator();
+        return values != null ? values.iterator() : Collections.emptyIterator();
     }
 
     /**

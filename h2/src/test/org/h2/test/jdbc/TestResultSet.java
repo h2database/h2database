@@ -159,9 +159,9 @@ public class TestResultSet extends TestDb {
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
         getUnicodeStream("x");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                getObject(1, Collections.<String, Class<?>>emptyMap());
+                getObject(1, Collections.emptyMap());
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                getObject("x", Collections.<String, Class<?>>emptyMap());
+                getObject("x", Collections.emptyMap());
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 getRef(1);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
@@ -1859,7 +1859,7 @@ public class TestResultSet extends TestDb {
         list2 = (Object[]) array.getArray(2, 1);
         assertEquals(12, ((Integer) list2[0]).intValue());
 
-        list2 = (Object[]) array.getArray(Collections.<String, Class<?>>emptyMap());
+        list2 = (Object[]) array.getArray(Collections.emptyMap());
         assertEquals(11, ((Integer) list2[0]).intValue());
 
         assertEquals(Types.INTEGER, array.getBaseType());

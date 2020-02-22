@@ -212,7 +212,7 @@ public class GenerateDoc {
             for (int i = 0, start = 0; i < div; i++, start += part) {
                 int end = Math.min(start + part, list.size());
                 List<HashMap<String, String>> listThird = start <= end ? list.subList(start, end)
-                        : Collections.<HashMap<String, String>> emptyList();
+                        : Collections.emptyList();
                 session.put(key + "-" + i, listThird);
             }
         } finally {

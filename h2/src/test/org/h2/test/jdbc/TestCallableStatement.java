@@ -88,7 +88,7 @@ public class TestCallableStatement extends TestDb {
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 getURL(1);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
-                getObject(1, Collections.<String, Class<?>>emptyMap());
+                getObject(1, Collections.emptyMap());
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 getRef(1);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
@@ -97,7 +97,7 @@ public class TestCallableStatement extends TestDb {
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 getURL("a");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
-                getObject("a", Collections.<String, Class<?>>emptyMap());
+                getObject("a", Collections.emptyMap());
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 getRef("a");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).

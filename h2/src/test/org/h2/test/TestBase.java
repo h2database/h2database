@@ -1557,7 +1557,7 @@ public abstract class TestBase {
      * @param e the exception to throw
      */
     public static void throwException(Throwable e) {
-        TestBase.<RuntimeException>throwThis(e);
+        TestBase.throwThis(e);
     }
 
     @SuppressWarnings("unchecked")

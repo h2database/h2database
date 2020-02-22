@@ -10,7 +10,6 @@ import java.io.Reader;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
-import java.sql.ClientInfoStatus;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -1670,7 +1669,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             if (isInternalProperty(name)) {
                 throw new SQLClientInfoException(
                         "Property name '" + name + " is used internally by H2.",
-                        Collections.<String, ClientInfoStatus> emptyMap());
+                        Collections.emptyMap());
             }
 
             Pattern clientInfoNameRegEx = getMode().supportedClientInfoPropertiesRegEx;
@@ -1684,7 +1683,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             } else {
                 throw new SQLClientInfoException(
                         "Client info name '" + name + "' not supported.",
-                        Collections.<String, ClientInfoStatus> emptyMap());
+                        Collections.emptyMap());
             }
         } catch (Exception e) {
             throw convertToClientInfoException(logAndConvert(e));

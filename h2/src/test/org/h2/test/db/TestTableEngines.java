@@ -196,12 +196,12 @@ public class TestTableEngines extends TestDb {
 
         List<List<Object>> dataSet = new ArrayList<>();
 
-        dataSet.add(Arrays.<Object>asList(1, "1", 1L));
-        dataSet.add(Arrays.<Object>asList(1, "0", 2L));
-        dataSet.add(Arrays.<Object>asList(2, "0", -1L));
-        dataSet.add(Arrays.<Object>asList(0, "0", 1L));
-        dataSet.add(Arrays.<Object>asList(0, "1", null));
-        dataSet.add(Arrays.<Object>asList(2, null, 0L));
+        dataSet.add(Arrays.asList(1, "1", 1L));
+        dataSet.add(Arrays.asList(1, "0", 2L));
+        dataSet.add(Arrays.asList(2, "0", -1L));
+        dataSet.add(Arrays.asList(0, "0", 1L));
+        dataSet.add(Arrays.asList(0, "1", null));
+        dataSet.add(Arrays.asList(2, null, 0L));
 
         PreparedStatement prep = conn.prepareStatement("INSERT INTO T(A,B,C) VALUES(?,?,?)");
         for (List<Object> row : dataSet) {

@@ -390,6 +390,10 @@ public class Mode {
         mode.decimalSequences = true;
         mode.charAndByteLengthUnits = true;
         mode.nextvalAndCurrvalPseudoColumns = true;
+        dt = DataType.getDataType(Value.REAL);
+        mode.typeByNameMap.put("BINARY_FLOAT", dt);
+        dt = DataType.getDataType(Value.DOUBLE);
+        mode.typeByNameMap.put("BINARY_DOUBLE", dt);
         dt = DataType.createDate(/* 2001-01-01 23:59:59 */ 19, 19, "DATE", false, 0, 0);
         dt.type = Value.TIMESTAMP;
         dt.sqlType = Types.TIMESTAMP;

@@ -191,6 +191,12 @@ public class PgServerThread implements Runnable {
                     } else if ("database".equals(param)) {
                         this.databaseName = server.checkKeyAndGetDatabaseName(value);
                     } else if ("client_encoding".equals(param)) {
+                        // node-postgres will send "'utf-8'"
+                        int length = value.length();
+                        if (length >= 2 && value.charAt(0) == '\''
+                                && value.charAt(length - 1) == '\'') {
+                            value = value.substring(1, length - 1);
+                        }
                         // UTF8
                         clientEncoding = value;
                     } else if ("DateStyle".equals(param)) {

@@ -286,7 +286,7 @@ public class Sequence extends SchemaObjectBase {
 
     /**
      * Get the next value for this sequence. Should not be called directly, use
-     * {@link Session#getNextValueFor(Sequence)} instead.
+     * {@link Session#getNextValueFor(Sequence, org.h2.command.Prepared)} instead.
      *
      * @param session the session
      * @return the next value

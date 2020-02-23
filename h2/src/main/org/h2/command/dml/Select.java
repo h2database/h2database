@@ -132,7 +132,7 @@ public class Select extends Query {
 
     /**
      * Whether this SELECT is an explicit table (TABLE tableName). It is used in
-     * {@link #getPlanSQL(boolean)} to generate SQL similar to original query.
+     * {@link #getPlanSQL(int)} to generate SQL similar to original query.
      */
     private boolean isExplicitTable;
 

@@ -1832,6 +1832,9 @@ public class TestResultSet extends TestDb {
         prep.setInt(1, 2);
         prep.setObject(2, new Object[] { 11, 12 });
         prep.execute();
+        prep.setInt(1, 3);
+        prep.setObject(2, new Object[0]);
+        prep.execute();
         prep.close();
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
@@ -1846,6 +1849,7 @@ public class TestResultSet extends TestDb {
         assertEquals(2, ((Integer) list2[1]).intValue());
         list2 = (Object[]) array.getArray(2, 1);
         assertEquals(2, ((Integer) list2[0]).intValue());
+
         rs.next();
         assertEquals(2, rs.getInt(1));
         list = (Object[]) rs.getObject(2);
@@ -1867,6 +1871,28 @@ public class TestResultSet extends TestDb {
 
         assertTrue(array.toString().endsWith(": ARRAY [11, 12]"));
 
+        rs.next();
+        assertEquals(3, rs.getInt(1));
+        list = (Object[]) rs.getObject(2);
+        assertEquals(0, list.length);
+
+        array = rs.getArray("VALUE");
+        list2 = (Object[]) array.getArray();
+        assertEquals(0, list2.length);
+        list2 = (Object[]) array.getArray(1, 0);
+        assertEquals(0, list2.length);
+        list2 = (Object[]) array.getArray(1, 1);
+        assertEquals(0, list2.length);
+
+        list2 = (Object[]) array.getArray(Collections.emptyMap());
+        assertEquals(0, list2.length);
+
+        // TODO
+        // assertEquals(Types.INTEGER, array.getBaseType());
+        // assertEquals("INTEGER", array.getBaseTypeName());
+
+        assertTrue(array.toString().endsWith(": ARRAY []"));
+
         // free
         array.free();
         assertEquals("null", array.toString());
@@ -1885,9 +1911,10 @@ public class TestResultSet extends TestDb {
             assertTrue(rs.next());
             rs.updateArray("VALUE", conn.createArrayOf("INT", new Object[] {11, 22}));
             rs.updateRow();
+            assertTrue(rs.next());
             assertFalse(rs.next());
             rs.moveToInsertRow();
-            rs.updateInt(1, 3);
+            rs.updateInt(1, 4);
             rs.updateArray(2, null);
             rs.insertRow();
         }
@@ -1901,6 +1928,9 @@ public class TestResultSet extends TestDb {
         assertEquals(new Object[] {11, 22}, (Object[]) rs.getObject(2));
         assertTrue(rs.next());
         assertEquals(3, rs.getInt(1));
+        assertEquals(new Object[0], (Object[]) rs.getObject(2));
+        assertTrue(rs.next());
+        assertEquals(4, rs.getInt(1));
         assertNull(rs.getObject(2));
         assertFalse(rs.next());
 

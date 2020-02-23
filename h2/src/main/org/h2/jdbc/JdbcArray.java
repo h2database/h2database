@@ -303,7 +303,7 @@ public class JdbcArray extends TraceObject implements Array {
     }
 
     private static int checkRange(long index, int count, int len) {
-        if (index < 1 || index > len) {
+        if (index < 1 || (index != 1 && index > len)) {
             throw DbException.getInvalidValueException("index (1.." + len + ')', index);
         }
         int rem = len - (int) index + 1;

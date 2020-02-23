@@ -64,7 +64,9 @@ public class PgServer implements Service {
     public static final int PG_TYPE_TEXTARRAY = 1009;
     public static final int PG_TYPE_DATE = 1082;
     public static final int PG_TYPE_TIME = 1083;
-    public static final int PG_TYPE_TIMESTAMP_NO_TMZONE = 1114;
+    public static final int PG_TYPE_TIMETZ = 1266;
+    public static final int PG_TYPE_TIMESTAMP = 1114;
+    public static final int PG_TYPE_TIMESTAMPTZ = 1184;
     public static final int PG_TYPE_NUMERIC = 1700;
 
     private final HashSet<Integer> typeSet = new HashSet<>();
@@ -536,7 +538,7 @@ public class PgServer implements Service {
      * @param type the SQL type
      * @return the PostgreSQL type
      */
-    public static int convertType(final int type) {
+    public static int convertType(int type) {
         switch (type) {
         case Types.BOOLEAN:
             return PG_TYPE_BOOL;
@@ -552,6 +554,7 @@ public class PgServer implements Service {
             return PG_TYPE_INT4;
         case Types.BIGINT:
             return PG_TYPE_INT8;
+        case Types.NUMERIC:
         case Types.DECIMAL:
             return PG_TYPE_NUMERIC;
         case Types.REAL:
@@ -560,10 +563,15 @@ public class PgServer implements Service {
             return PG_TYPE_FLOAT8;
         case Types.TIME:
             return PG_TYPE_TIME;
+        case Types.TIME_WITH_TIMEZONE:
+            return PG_TYPE_TIMETZ;
         case Types.DATE:
             return PG_TYPE_DATE;
         case Types.TIMESTAMP:
-            return PG_TYPE_TIMESTAMP_NO_TMZONE;
+            return PG_TYPE_TIMESTAMP;
+        case Types.TIMESTAMP_WITH_TIMEZONE:
+            return PG_TYPE_TIMESTAMPTZ;
+        case Types.BINARY:
         case Types.VARBINARY:
             return PG_TYPE_BYTEA;
         case Types.BLOB:

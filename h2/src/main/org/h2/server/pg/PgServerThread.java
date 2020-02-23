@@ -52,7 +52,9 @@ import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
+import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * One server thread is opened for each client.
@@ -609,44 +611,65 @@ public class PgServerThread implements Runnable {
                 write(data);
                 break;
             }
-            case PgServer.PG_TYPE_DATE: {
-                ValueDate d = (ValueDate) v;
+            case PgServer.PG_TYPE_DATE:
                 writeInt(4);
-                writeInt((int) (toPostgreDays(d.getDateValue())));
+                writeInt((int) (toPostgreDays(((ValueDate) v).getDateValue())));
                 break;
-            }
-            case PgServer.PG_TYPE_TIME: {
-                ValueTime t = (ValueTime) v;
-                writeInt(8);
+            case PgServer.PG_TYPE_TIME:
+                writeTimeBinary(((ValueTime) v).getNanos(), 8);
+                break;
+            case PgServer.PG_TYPE_TIMETZ: {
+                ValueTimeTimeZone t = (ValueTimeTimeZone) v;
                 long m = t.getNanos();
-                if (INTEGER_DATE_TYPES) {
-                    // long format
-                    m /= 1_000;
-                } else {
-                    // double format
-                    m = Double.doubleToLongBits(m * 0.000_000_001);
-                }
-                dataOut.writeLong(m);
+                writeTimeBinary(m, 12);
+                dataOut.writeInt(-t.getTimeZoneOffsetSeconds());
                 break;
             }
-            case PgServer.PG_TYPE_TIMESTAMP_NO_TMZONE: {
+            case PgServer.PG_TYPE_TIMESTAMP: {
                 ValueTimestamp t = (ValueTimestamp) v;
-                writeInt(8);
                 long m = toPostgreDays(t.getDateValue()) * 86_400;
                 long nanos = t.getTimeNanos();
-                if (INTEGER_DATE_TYPES) {
-                    // long format
-                    m = m * 1_000_000 + nanos / 1_000;
-                } else {
-                    // double format
-                    m = Double.doubleToLongBits(m + nanos * 0.000_000_001);
+                writeTimestampBinary(m, nanos);
+                break;
+            }
+            case PgServer.PG_TYPE_TIMESTAMPTZ: {
+                ValueTimestampTimeZone t = (ValueTimestampTimeZone) v;
+                long m = toPostgreDays(t.getDateValue()) * 86_400;
+                long nanos = t.getTimeNanos() - t.getTimeZoneOffsetSeconds() * 1_000_000_000L;
+                if (nanos < 0L) {
+                    m--;
+                    nanos += DateTimeUtils.NANOS_PER_DAY;
                 }
-                dataOut.writeLong(m);
+                writeTimestampBinary(m, nanos);
                 break;
             }
             default: throw new IllegalStateException("output binary format is undefined");
             }
         }
+    }
+
+    private void writeTimeBinary(long m, int numBytes) throws IOException {
+        writeInt(numBytes);
+        if (INTEGER_DATE_TYPES) {
+            // long format
+            m /= 1_000;
+        } else {
+            // double format
+            m = Double.doubleToLongBits(m * 0.000_000_001);
+        }
+        dataOut.writeLong(m);
+    }
+
+    private void writeTimestampBinary(long m, long nanos) throws IOException {
+        writeInt(8);
+        if (INTEGER_DATE_TYPES) {
+            // long format
+            m = m * 1_000_000 + nanos / 1_000;
+        } else {
+            // double format
+            m = Double.doubleToLongBits(m + nanos * 0.000_000_001);
+        }
+        dataOut.writeLong(m);
     }
 
     private Charset getEncoding() {

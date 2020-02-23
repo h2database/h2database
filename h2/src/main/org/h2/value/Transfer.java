@@ -571,7 +571,7 @@ public class Transfer {
                     writeTypeInfo(columnType);
                 } else {
                     writeString(result.getColumnName(i));
-                    writeInt(DataType.getDataType(columnType.getValueType()).sqlType);
+                    writeInt(DataType.convertTypeToSQLType(columnType.getValueType()));
                     writeInt(MathUtils.convertLongToInt(columnType.getPrecision()));
                     writeInt(columnType.getScale());
                 }

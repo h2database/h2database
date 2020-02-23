@@ -24,9 +24,7 @@ import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.util.HasSQL;
-import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
-import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
@@ -633,14 +631,6 @@ public class Column implements HasSQL {
         return onUpdateExpression == null ? null : onUpdateExpression.getSQL(DEFAULT_SQL_FLAGS);
     }
 
-    int getPrecisionAsInt() {
-        return MathUtils.convertLongToInt(type.getPrecision());
-    }
-
-    DataType getDataType() {
-        return DataType.getDataType(type.getValueType());
-    }
-
     public void setComment(String comment) {
         this.comment = comment;
     }
@@ -693,16 +683,21 @@ public class Column implements HasSQL {
      * @return true if the new column is compatible
      */
     public boolean isWideningConversion(Column newColumn) {
-        if (type.getValueType() != newColumn.type.getValueType()) {
+        TypeInfo newType = newColumn.type;
+        int valueType = type.getValueType();
+        if (valueType != newType.getValueType()) {
             return false;
         }
-        if (type.getPrecision() > newColumn.type.getPrecision()) {
+        long precision = type.getPrecision();
+        long newPrecision = newType.getPrecision();
+        if (precision > newPrecision
+                || precision < newPrecision && (valueType == Value.CHAR || valueType == Value.BINARY)) {
             return false;
         }
-        if (type.getScale() != newColumn.type.getScale()) {
+        if (type.getScale() != newType.getScale()) {
             return false;
         }
-        if (!Objects.equals(type.getExtTypeInfo(), newColumn.type.getExtTypeInfo())) {
+        if (!Objects.equals(type.getExtTypeInfo(), newType.getExtTypeInfo())) {
             return false;
         }
         if (nullable && !newColumn.nullable) {
@@ -730,9 +725,6 @@ public class Column implements HasSQL {
             return false;
         }
         if (onUpdateExpression != null || newColumn.onUpdateExpression != null) {
-            return false;
-        }
-        if (!Objects.equals(type.getExtTypeInfo(), newColumn.type.getExtTypeInfo())) {
             return false;
         }
         return true;

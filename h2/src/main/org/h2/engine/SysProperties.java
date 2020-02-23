@@ -334,8 +334,7 @@ public class SysProperties {
     public static final boolean OLD_RESULT_SET_GET_OBJECT = Utils.getProperty("h2.oldResultSetGetObject", !PREVIEW);
 
     /**
-     * System property {@code h2.bigDecimalIsDecimal}, {@code true} by default
-     * unless {@code h2.preview} is enabled.
+     * System property {@code h2.bigDecimalIsDecimal}, {@code false} by default.
      * <p>
      * If {@code true} map {@code BigDecimal} to {@code DECIMAL} type.
      * </p>
@@ -344,7 +343,7 @@ public class SysProperties {
      * in JDBC specification (see Mapping from Java Object Types to JDBC Types).
      * </p>
      */
-    public static final boolean BIG_DECIMAL_IS_DECIMAL = Utils.getProperty("h2.bigDecimalIsDecimal", !PREVIEW);
+    public static final boolean BIG_DECIMAL_IS_DECIMAL = Utils.getProperty("h2.bigDecimalIsDecimal", false);
 
     /**
      * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />

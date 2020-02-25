@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Predicate;
 import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
@@ -1267,13 +1268,19 @@ public class MVStore implements AutoCloseable
      * @return the new version (incremented if there were changes)
      */
     public long tryCommit() {
+        return tryCommit(x -> true);
+    }
+
+    public long tryCommit(Predicate<MVStore> check) {
         // we need to prevent re-entrance, which may be possible,
         // because meta map is modified within storeNow() and that
         // causes beforeWrite() call with possibility of going back here
         if ((!storeLock.isHeldByCurrentThread() || currentStoreVersion < 0) &&
                 storeLock.tryLock()) {
             try {
-                store();
+                if (check.test(this)) {
+                    store();
+                }
             } finally {
                 storeLock.unlock();
             }
@@ -1298,13 +1305,19 @@ public class MVStore implements AutoCloseable
      * @return the new version (incremented if there were changes)
      */
     public long commit() {
+        return commit(x -> true);
+    }
+
+    public long commit(Predicate<MVStore> check) {
         // we need to prevent re-entrance, which may be possible,
         // because meta map is modified within storeNow() and that
         // causes beforeWrite() call with possibility of going back here
         if(!storeLock.isHeldByCurrentThread() || currentStoreVersion < 0) {
             storeLock.lock();
             try {
-                store();
+                if (check.test(this)) {
+                    store();
+                }
             } finally {
                 storeLock.unlock();
             }
@@ -2544,17 +2557,25 @@ public class MVStore implements AutoCloseable
 
             saveNeeded = false;
             // check again, because it could have been written by now
-            if (unsavedMemory > autoCommitMemory && autoCommitMemory > 0) {
+            if (autoCommitMemory > 0 && needStore()) {
                 // if unsaved memory creation rate is to high,
                 // some back pressure need to be applied
                 // to slow things down and avoid OOME
-                if (3 * unsavedMemory > 4 * autoCommitMemory && !map.isSingleWriter()) {
-                    commit();
+                if (requireStore() && !map.isSingleWriter()) {
+                    commit(MVStore::requireStore);
                 } else {
-                    tryCommit();
+                    tryCommit(MVStore::needStore);
                 }
             }
         }
+    }
+
+    private boolean requireStore() {
+        return 3 * unsavedMemory > 4 * autoCommitMemory;
+    }
+
+    private boolean needStore() {
+        return unsavedMemory > autoCommitMemory;
     }
 
     /**

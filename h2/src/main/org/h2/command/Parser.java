@@ -6001,6 +6001,15 @@ public class Parser {
             int value = readNonNegativeInt();
             column.setSelectivity(value);
         }
+        if (database.getMode().getEnum() == ModeEnum.MySQL) {
+            if (readIf("CHARACTER")) {
+                readIf(SET);
+                readMySQLCharset();
+            }
+            if (readIf("COLLATE")) {
+                readMySQLCharset();
+            }
+        }
         String comment = readCommentIf();
         if (comment != null) {
             column.setComment(comment);
@@ -9078,11 +9087,14 @@ public class Parser {
                 if (readIf("CHARACTER")) {
                     read(SET);
                 } else {
-                    read("CHARSET");
+                    readIf("CHARSET");
+                    readIf("COLLATE");
                 }
                 readMySQLCharset();
             } else if (readIf("CHARACTER")) {
                 read(SET);
+                readMySQLCharset();
+            } else if (readIf("COLLATE")) {
                 readMySQLCharset();
             } else if (readIf("CHARSET")) {
                 readMySQLCharset();
@@ -9106,9 +9118,7 @@ public class Parser {
 
     private void readMySQLCharset() {
         readIf(EQUAL);
-        if (!readIf("UTF8")) {
-            read("UTF8MB4");
-        }
+        readUniqueIdentifier();
     }
 
     /**

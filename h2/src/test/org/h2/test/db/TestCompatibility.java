@@ -420,6 +420,11 @@ public class TestCompatibility extends TestDb {
                 "(ID INT, KEY TEST_7_IDX(ID) USING BTREE)");
         stat.execute("CREATE TABLE TEST_10" +
                 "(ID INT, UNIQUE KEY TEST_10_IDX(ID) USING BTREE)");
+        stat.execute("CREATE TABLE TEST_11(ID INT) COLLATE UTF8");
+        stat.execute("CREATE TABLE TEST_12(ID INT) DEFAULT COLLATE UTF8");
+        stat.execute("CREATE TABLE TEST_13(a VARCHAR(10) COLLATE UTF8MB4)");
+        stat.execute("CREATE TABLE TEST_14(a VARCHAR(10) NULL CHARACTER SET UTF8MB4 COLLATE UTF8MB4_BIN)");
+        stat.execute("ALTER TABLE TEST_14 MODIFY a VARCHAR(10) NOT NULL CHARACTER SET UTF8MB4 COLLATE UTF8");
         assertThrows(ErrorCode.SYNTAX_ERROR_2, stat).execute("CREATE TABLE TEST_99" +
                 "(ID INT PRIMARY KEY) CHARSET UTF8,");
         assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).execute("CREATE TABLE TEST_99" +

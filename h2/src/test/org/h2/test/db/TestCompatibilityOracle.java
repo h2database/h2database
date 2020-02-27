@@ -46,6 +46,8 @@ public class TestCompatibilityOracle extends TestDb {
         testSpecialTypes();
         testDate();
         testSequenceNextval();
+        testVarchar();
+        deleteDb("oracle");
     }
 
     private void testNotNullSyntax() throws SQLException {
@@ -289,6 +291,65 @@ public class TestCompatibilityOracle extends TestDb {
                 usePseudoColumn ? "SELECT seq.NEXTVAL FROM DUAL" : "VALUES NEXT VALUE FOR seq");
         // Check type:
         assertEquals(rs.getMetaData().getColumnType(1), expectedType);
+        conn.close();
+    }
+
+    private void testVarchar() throws SQLException {
+        deleteDb("oracle");
+        Connection conn = getConnection("oracle;MODE=Oracle");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V VARCHAR) AS VALUES (1, 'a')");
+        PreparedStatement prep = conn.prepareStatement("UPDATE TEST SET V = ? WHERE ID = ?");
+        prep.setInt(2, 1);
+        prep.setString(1, "");
+        prep.executeUpdate();
+        ResultSet rs = stat.executeQuery("SELECT V FROM TEST");
+        assertTrue(rs.next());
+        assertNull(rs.getString(1));
+        assertFalse(rs.next());
+        prep.setNString(1, "");
+        prep.executeUpdate();
+        Statement stat2 = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+        rs = stat2.executeQuery("SELECT ID, V FROM TEST");
+        assertTrue(rs.next());
+        assertNull(rs.getString(2));
+        rs.updateString(2, "");
+        rs.updateRow();
+        assertFalse(rs.next());
+        rs = stat2.executeQuery("SELECT ID, V FROM TEST");
+        assertTrue(rs.next());
+        assertNull(rs.getString(2));
+        rs.updateString("V", "");
+        rs.updateRow();
+        assertFalse(rs.next());
+        rs = stat2.executeQuery("SELECT ID, V FROM TEST");
+        assertTrue(rs.next());
+        assertNull(rs.getString(2));
+        rs.updateNString(2, "");
+        rs.updateRow();
+        assertFalse(rs.next());
+        rs = stat2.executeQuery("SELECT ID, V FROM TEST");
+        assertTrue(rs.next());
+        assertNull(rs.getString(2));
+        rs.updateNString("V", "");
+        rs.updateRow();
+        assertFalse(rs.next());
+        rs = stat2.executeQuery("SELECT ID, V FROM TEST");
+        assertTrue(rs.next());
+        assertNull(rs.getString(2));
+        rs.updateObject(2, "");
+        rs.updateRow();
+        assertFalse(rs.next());
+        rs = stat2.executeQuery("SELECT ID, V FROM TEST");
+        assertTrue(rs.next());
+        assertNull(rs.getString(2));
+        rs.updateObject("V", "");
+        rs.updateRow();
+        assertFalse(rs.next());
+        rs = stat.executeQuery("SELECT V FROM TEST");
+        assertTrue(rs.next());
+        assertNull(rs.getString(1));
+        assertFalse(rs.next());
         conn.close();
     }
 

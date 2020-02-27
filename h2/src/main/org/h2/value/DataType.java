@@ -1235,7 +1235,7 @@ public class DataType {
         } else if (type == Value.JAVA_OBJECT) {
             return ValueJavaObject.getNoCopy(JdbcUtils.serialize(x, session.getJavaObjectSerializer()));
         } else if (x instanceof String) {
-            return ValueVarchar.get((String) x);
+            return ValueVarchar.get((String) x, session);
         } else if (x instanceof Value) {
             Value v = (Value) x;
             if (v instanceof ValueLob) {

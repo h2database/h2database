@@ -826,4 +826,4 @@ prize secured stateful generification bracketed permissible opaque aside indexab
 pct sliding deliberately sampling grabs saw video keyed carries estimator restrain remainer magnitude placeholder
 expandable jira meaningless iterated maliciously crafted cdef attention deserialized hurts absorb bufcnt digests
 consumer reread relname proargtypes pronamespace relnamespace heidi proname reltuples collects trigraphs nspname
-timetz timestamptz
+timetz timestamptz psycopg

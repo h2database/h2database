@@ -407,7 +407,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setString(" + parameterIndex + ", " + quote(x) + ");");
             }
-            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : ValueVarchar.get(x));
+            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : ValueVarchar.get(x, conn));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1582,7 +1582,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setNString(" + parameterIndex + ", " + quote(x) + ");");
             }
-            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : ValueVarchar.get(x));
+            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : ValueVarchar.get(x, conn));
         } catch (Exception e) {
             throw logAndConvert(e);
         }

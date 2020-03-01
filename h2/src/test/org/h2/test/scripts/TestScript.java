@@ -133,18 +133,13 @@ public class TestScript extends TestDb {
         }
         testScript("comments.sql");
         testScript("compatibility.sql");
-        testScript("derived-column-names.sql");
-        testScript("distinct.sql");
         testScript("dual.sql");
         testScript("indexes.sql");
         testScript("information_schema.sql");
-        testScript("joins.sql");
         testScript("range_table.sql");
         testScript("altertable-index-reuse.sql");
         testScript("altertable-fk.sql");
         testScript("default-and-on_update.sql");
-        testScript("query-optimisations.sql");
-        testScript("window.sql");
         String decimal2;
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
             decimal2 = "decimal_decimal";
@@ -228,7 +223,8 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "in", "null", "type", "unique" }) {
             testScript("predicates/" + s + ".sql");
         }
-        for (String s : new String[] { "select", "table", "values" }) {
+        for (String s : new String[] { "derived-column-names", "distinct", "joins", "query-optimisations", "select",
+                "table", "values", "window" }) {
             testScript("queries/" + s + ".sql");
         }
 

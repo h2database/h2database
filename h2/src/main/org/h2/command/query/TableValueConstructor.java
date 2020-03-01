@@ -184,8 +184,7 @@ public class TableValueConstructor extends Query {
                 expressionsSQL.add(e.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
             }
             if (initOrder(expressionsSQL, false, null)) {
-                sort = prepareOrder(orderList, expressions.size());
-                orderList = null;
+                prepareOrder(orderList, expressions.size());
             }
         }
         resultColumnCount = expressions.size();

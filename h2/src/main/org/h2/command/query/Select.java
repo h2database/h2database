@@ -1161,8 +1161,7 @@ public class Select extends Query {
             DbException.throwInternalError("not initialized");
         }
         if (orderList != null) {
-            sort = prepareOrder(orderList, expressions.size());
-            orderList = null;
+            prepareOrder(orderList, expressions.size());
         }
         ColumnNamer columnNamer = new ColumnNamer(session);
         for (int i = 0; i < expressions.size(); i++) {

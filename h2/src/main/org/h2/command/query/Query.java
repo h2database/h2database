@@ -644,9 +644,8 @@ public abstract class Query extends Prepared {
      *
      * @param orderList a list of {@link QueryOrderBy} elements
      * @param expressionCount the number of columns in the query
-     * @return the {@link SortOrder} object
      */
-    public SortOrder prepareOrder(ArrayList<QueryOrderBy> orderList, int expressionCount) {
+    void prepareOrder(ArrayList<QueryOrderBy> orderList, int expressionCount) {
         int size = orderList.size();
         int[] index = new int[size];
         int[] sortType = new int[size];
@@ -677,7 +676,8 @@ public abstract class Query extends Prepared {
             }
             sortType[i] = type;
         }
-        return new SortOrder(session, index, sortType, orderList);
+        sort = new SortOrder(session, index, sortType, orderList);
+        this.orderList = null;
     }
 
     @Override

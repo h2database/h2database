@@ -439,15 +439,9 @@ public class WindowFunction extends DataAnalysisOperation {
             }
         }
         if (over.getOrderBy() == null) {
-            switch (type) {
-            case RANK:
-            case DENSE_RANK:
-            case NTILE:
-            case LEAD:
-            case LAG:
+            if (type.requiresWindowOrdering()) {
                 String sql = getTraceSQL();
                 throw DbException.getSyntaxError(sql, sql.length() - 1, "ORDER BY");
-            default:
             }
         } else if (type == WindowFunctionType.RATIO_TO_REPORT) {
             String sql = getTraceSQL();
@@ -517,7 +511,7 @@ public class WindowFunction extends DataAnalysisOperation {
             default:
             }
         }
-        return appendTailConditions(builder, sqlFlags);
+        return appendTailConditions(builder, sqlFlags, type.requiresWindowOrdering());
     }
 
     @Override

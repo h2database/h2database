@@ -151,3 +151,31 @@ SELECT C, SUM(I) S, LEAD(SUM(I)) OVER (ORDER BY SUM(I)) L FROM
 > 1 3  12
 > 2 12 null
 > rows: 2
+
+CREATE TABLE TEST(X INT) AS VALUES 1, 2, 3;
+> ok
+
+EXPLAIN SELECT LEAD(X) OVER (ORDER BY 'a') FROM TEST;
+>> SELECT LEAD("X") OVER (ORDER BY NULL) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+
+SELECT LEAD(X) OVER (ORDER BY 'a') FROM TEST;
+> LEAD(X) OVER (ORDER BY NULL)
+> ----------------------------
+> 2
+> 3
+> null
+> rows: 3
+
+EXPLAIN SELECT LAG(X) OVER (ORDER BY 'a') FROM TEST;
+>> SELECT LAG("X") OVER (ORDER BY NULL) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+
+SELECT LAG(X) OVER (ORDER BY 'a') FROM TEST;
+> LAG(X) OVER (ORDER BY NULL)
+> ---------------------------
+> 1
+> 2
+> null
+> rows: 3
+
+DROP TABLE TEST;
+> ok

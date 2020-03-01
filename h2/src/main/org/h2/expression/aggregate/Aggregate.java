@@ -835,7 +835,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         String text;
         switch (aggregateType) {
         case COUNT_ALL:
-            return appendTailConditions(builder.append("COUNT(*)"), sqlFlags);
+            return appendTailConditions(builder.append("COUNT(*)"), sqlFlags, false);
         case COUNT:
             text = "COUNT";
             break;
@@ -935,14 +935,13 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
         }
         builder.append(')');
-        if (orderByList != null) {
+        boolean forceOrderBy = aggregateType == AggregateType.LISTAGG;
+        if (forceOrderBy || orderByList != null) {
             builder.append(" WITHIN GROUP (");
-            Window.appendOrderBy(builder, orderByList, sqlFlags);
+            Window.appendOrderBy(builder, orderByList, sqlFlags, forceOrderBy);
             builder.append(')');
-        } else if (aggregateType == AggregateType.LISTAGG) {
-            builder.append(" WITHIN GROUP (ORDER BY NULL)");
         }
-        return appendTailConditions(builder, sqlFlags);
+        return appendTailConditions(builder, sqlFlags, false);
     }
 
     private StringBuilder getSQLArrayAggregate(StringBuilder builder, int sqlFlags) {
@@ -951,9 +950,9 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             builder.append("DISTINCT ");
         }
         args[0].getSQL(builder, sqlFlags);
-        Window.appendOrderBy(builder, orderByList, sqlFlags);
+        Window.appendOrderBy(builder, orderByList, sqlFlags, false);
         builder.append(')');
-        return appendTailConditions(builder, sqlFlags);
+        return appendTailConditions(builder, sqlFlags, false);
     }
 
     private StringBuilder getSQLJsonObjectAggregate(StringBuilder builder, int sqlFlags) {
@@ -962,16 +961,16 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         args[1].getSQL(builder, sqlFlags);
         Function.getJsonFunctionFlagsSQL(builder, flags, false);
         builder.append(')');
-        return appendTailConditions(builder, sqlFlags);
+        return appendTailConditions(builder, sqlFlags, false);
     }
 
     private StringBuilder getSQLJsonArrayAggregate(StringBuilder builder, int sqlFlags) {
         builder.append("JSON_ARRAYAGG(");
         args[0].getSQL(builder, sqlFlags);
         Function.getJsonFunctionFlagsSQL(builder, flags, true);
-        Window.appendOrderBy(builder, orderByList, sqlFlags);
+        Window.appendOrderBy(builder, orderByList, sqlFlags, false);
         builder.append(')');
-        return appendTailConditions(builder, sqlFlags);
+        return appendTailConditions(builder, sqlFlags, false);
     }
 
     private Index getMinMaxColumnIndex() {

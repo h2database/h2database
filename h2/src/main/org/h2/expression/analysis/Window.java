@@ -6,6 +6,8 @@
 package org.h2.expression.analysis;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.ListIterator;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.query.QueryOrderBy;
@@ -42,13 +44,14 @@ public final class Window {
      *            ORDER BY clause, or null
      * @param sqlFlags
      *            formatting flags
+     * @param forceOrderBy
+     *            whether synthetic ORDER BY clause should be generated when it
+     *            is missing
      */
-    public static void appendOrderBy(StringBuilder builder, ArrayList<QueryOrderBy> orderBy, int sqlFlags) {
+    public static void appendOrderBy(StringBuilder builder, ArrayList<QueryOrderBy> orderBy, int sqlFlags,
+            boolean forceOrderBy) {
         if (orderBy != null && !orderBy.isEmpty()) {
-            if (builder.charAt(builder.length() - 1) != '(') {
-                builder.append(' ');
-            }
-            builder.append("ORDER BY ");
+            appendOrderByStart(builder);
             for (int i = 0; i < orderBy.size(); i++) {
                 QueryOrderBy o = orderBy.get(i);
                 if (i > 0) {
@@ -57,7 +60,17 @@ public final class Window {
                 o.expression.getSQL(builder, sqlFlags);
                 SortOrder.typeToString(builder, o.sortType);
             }
+        } else if (forceOrderBy) {
+            appendOrderByStart(builder);
+            builder.append("NULL");
         }
+    }
+
+    private static void appendOrderByStart(StringBuilder builder) {
+        if (builder.charAt(builder.length() - 1) != '(') {
+            builder.append(' ');
+        }
+        builder.append("ORDER BY ");
     }
 
     /**
@@ -138,13 +151,30 @@ public final class Window {
      */
     public void optimize(Session session) {
         if (partitionBy != null) {
-            for (int i = 0; i < partitionBy.size(); i++) {
-                partitionBy.set(i, partitionBy.get(i).optimize(session));
+            for (ListIterator<Expression> i = partitionBy.listIterator(); i.hasNext();) {
+                Expression e = i.next().optimize(session);
+                if (e.isConstant()) {
+                    i.remove();
+                } else {
+                    i.set(e);
+                }
+            }
+            if (partitionBy.isEmpty()) {
+                partitionBy = null;
             }
         }
         if (orderBy != null) {
-            for (QueryOrderBy o : orderBy) {
-                o.expression = o.expression.optimize(session);
+            for (Iterator<QueryOrderBy> i = orderBy.iterator(); i.hasNext();) {
+                QueryOrderBy o = i.next();
+                Expression e = o.expression.optimize(session);
+                if (e.isConstant()) {
+                    i.remove();
+                } else {
+                    o.expression = e;
+                }
+            }
+            if (orderBy.isEmpty()) {
+                orderBy = null;
             }
         }
         if (frame != null) {
@@ -248,10 +278,13 @@ public final class Window {
      *            string builder
      * @param sqlFlags
      *            formatting flags
+     * @param forceOrderBy
+     *            whether synthetic ORDER BY clause should be generated when it
+     *            is missing
      * @return the specified string builder
      * @see Expression#getSQL(StringBuilder, int)
      */
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags, boolean forceOrderBy) {
         builder.append("OVER (");
         if (partitionBy != null) {
             builder.append("PARTITION BY ");
@@ -262,7 +295,7 @@ public final class Window {
                 partitionBy.get(i).getUnenclosedSQL(builder, sqlFlags);
             }
         }
-        appendOrderBy(builder, orderBy, sqlFlags);
+        appendOrderBy(builder, orderBy, sqlFlags, forceOrderBy);
         if (frame != null) {
             if (builder.charAt(builder.length() - 1) != '(') {
                 builder.append(' ');
@@ -299,7 +332,7 @@ public final class Window {
 
     @Override
     public String toString() {
-        return getSQL(new StringBuilder(), HasSQL.TRACE_SQL_FLAGS).toString();
+        return getSQL(new StringBuilder(), HasSQL.TRACE_SQL_FLAGS, false).toString();
     }
 
 }

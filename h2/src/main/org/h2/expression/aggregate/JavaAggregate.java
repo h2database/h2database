@@ -54,7 +54,7 @@ public class JavaAggregate extends AbstractAggregate {
         Parser.quoteIdentifier(builder, userAggregate.getName(), sqlFlags).append('(');
         writeExpressions(builder, args, sqlFlags);
         builder.append(')');
-        return appendTailConditions(builder, sqlFlags);
+        return appendTailConditions(builder, sqlFlags, false);
     }
 
     @Override

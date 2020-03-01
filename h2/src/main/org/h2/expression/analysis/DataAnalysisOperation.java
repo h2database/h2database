@@ -526,12 +526,15 @@ public abstract class DataAnalysisOperation extends Expression {
      *            string builder
      * @param sqlFlags
      *            formatting flags
+     * @param forceOrderBy
+     *            whether synthetic ORDER BY clause should be generated when it
+     *            is missing
      * @return the builder object
      */
-    protected StringBuilder appendTailConditions(StringBuilder builder, int sqlFlags) {
+    protected StringBuilder appendTailConditions(StringBuilder builder, int sqlFlags, boolean forceOrderBy) {
         if (over != null) {
             builder.append(' ');
-            over.getSQL(builder, sqlFlags);
+            over.getSQL(builder, sqlFlags, forceOrderBy);
         }
         return builder;
     }

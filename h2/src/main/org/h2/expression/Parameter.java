@@ -95,11 +95,6 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     @Override
-    public boolean isConstant() {
-        return false;
-    }
-
-    @Override
     public boolean isValueSet() {
         return value != null;
     }

@@ -101,6 +101,11 @@ public class Subquery extends Expression {
     }
 
     @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return getSQL(builder, sqlFlags);
+    }
+
+    @Override
     public void updateAggregate(Session session, int stage) {
         query.updateAggregate(session, stage);
     }

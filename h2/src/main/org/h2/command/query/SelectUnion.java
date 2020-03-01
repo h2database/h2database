@@ -384,6 +384,11 @@ public class SelectUnion extends Query {
         return left.allowGlobalConditions() && right.allowGlobalConditions();
     }
 
+    @Override
+    public boolean isConstantQuery() {
+        return super.isConstantQuery() && left.isConstantQuery() && right.isConstantQuery();
+    }
+
     /**
      * Lazy execution for this union.
      */

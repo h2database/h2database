@@ -1727,6 +1727,38 @@ public class Select extends Query {
     }
 
     /**
+     * Returns parent select, or null.
+     *
+     * @return parent select, or null
+     */
+    public Select getParentSelect() {
+        return parentSelect;
+    }
+
+    @Override
+    public boolean isConstantQuery() {
+        if (!super.isConstantQuery() || distinctExpressions != null || condition != null || isGroupQuery
+                || isWindowQuery || !isNoFromClause()) {
+            return false;
+        }
+        for (int i = 0; i < visibleColumnCount; i++) {
+            if (!expressions.get(i).isConstant()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isNoFromClause() {
+        if (topTableFilter != null) {
+            return topTableFilter.isNoFromClauseFilter();
+        } else if (topFilters.size() == 1) {
+            return topFilters.get(0).isNoFromClauseFilter();
+        }
+        return false;
+    }
+
+    /**
      * Lazy execution for this select.
      */
     private abstract class LazyResultSelect extends LazyResult {
@@ -1862,15 +1894,6 @@ public class Select extends Query {
             }
             return row;
         }
-    }
-
-    /**
-     * Returns parent select, or null.
-     *
-     * @return parent select, or null
-     */
-    public Select getParentSelect() {
-        return parentSelect;
     }
 
 }

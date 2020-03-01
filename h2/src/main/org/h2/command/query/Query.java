@@ -897,4 +897,17 @@ public abstract class Query extends Prepared {
         ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);
         isEverything(visitor);
     }
+
+    /**
+     * Check if this query will always return the same value and has no side
+     * effects.
+     *
+     * @return if this query will always return the same value and has no side
+     *         effects.
+     */
+    public boolean isConstantQuery() {
+        return !hasOrder() && (offsetExpr == null || offsetExpr.isConstant())
+                && (limitExpr == null || limitExpr.isConstant());
+    }
+
 }

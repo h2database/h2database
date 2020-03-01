@@ -23,7 +23,7 @@ import org.h2.value.ValueRow;
  * A query returning a single value.
  * Subqueries are used inside other statements.
  */
-public class Subquery extends Expression {
+public final class Subquery extends Expression {
 
     private final Query query;
     private Expression expression;
@@ -87,6 +87,9 @@ public class Subquery extends Expression {
     @Override
     public Expression optimize(Session session) {
         query.prepare();
+        if (query.isConstantQuery()) {
+            return ValueExpression.get(getValue(session));
+        }
         return this;
     }
 
@@ -139,6 +142,11 @@ public class Subquery extends Expression {
     @Override
     public int getCost() {
         return query.getCostAsExpression();
+    }
+
+    @Override
+    public boolean isConstant() {
+        return query.isConstantQuery();
     }
 
     @Override

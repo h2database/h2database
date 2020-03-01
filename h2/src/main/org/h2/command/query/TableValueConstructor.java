@@ -294,6 +294,21 @@ public class TableValueConstructor extends Query {
         return super.toTable(alias, parameters, forCreateView, topQuery);
     }
 
+    @Override
+    public boolean isConstantQuery() {
+        if (!super.isConstantQuery()) {
+            return false;
+        }
+        for (ArrayList<Expression> row : rows) {
+            for (int i = 0; i < visibleColumnCount; i++) {
+                if (!row.get(i).isConstant()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     private final class TableValueColumnResolver implements ColumnResolver {
 
         Value[] currentRow;

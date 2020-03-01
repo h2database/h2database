@@ -2872,14 +2872,14 @@ insert into test values(1, 'Y');
 > update count: 1
 
 call select a from test order by id;
-> (SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* scanCount: 2 */ ORDER BY =ID /* index sorted */)
-> ---------------------------------------------------------------------------------------------------------
+> (SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* scanCount: 2 */ ORDER BY ID /* index sorted */)
+> --------------------------------------------------------------------------------------------------------
 > TRUE
 > rows (ordered): 1
 
 select select a from test order by id;
-> (SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* scanCount: 2 */ ORDER BY =ID /* index sorted */)
-> ---------------------------------------------------------------------------------------------------------
+> (SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* scanCount: 2 */ ORDER BY ID /* index sorted */)
+> --------------------------------------------------------------------------------------------------------
 > TRUE
 > rows: 1
 

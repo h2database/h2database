@@ -784,7 +784,7 @@ public abstract class Query extends Prepared {
      */
     void appendEndOfQueryToSQL(StringBuilder builder, int sqlFlags, Expression[] expressions) {
         if (sort != null) {
-            builder.append("\nORDER BY ").append(sort.getSQL(expressions, visibleColumnCount, sqlFlags));
+            sort.getSQL(builder.append("\nORDER BY "), expressions, visibleColumnCount, sqlFlags);
         } else if (orderList != null) {
             builder.append("\nORDER BY ");
             for (int i = 0, l = orderList.size(); i < l; i++) {

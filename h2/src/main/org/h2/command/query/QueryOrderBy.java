@@ -38,7 +38,6 @@ public class QueryOrderBy {
      */
     public void getSQL(StringBuilder builder, int sqlFlags) {
         if (expression != null) {
-            builder.append('=');
             expression.getSQL(builder, sqlFlags);
         } else {
             columnIndexExpr.getUnenclosedSQL(builder, sqlFlags);

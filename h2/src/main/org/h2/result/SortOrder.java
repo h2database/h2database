@@ -111,13 +111,13 @@ public class SortOrder implements Comparator<Value[]> {
      * Create the SQL snippet that describes this sort order.
      * This is the SQL snippet that usually appears after the ORDER BY clause.
      *
+     * @param builder string builder to append to
      * @param list the expression list
      * @param visible the number of columns in the select list
      * @param sqlFlags formatting flags
-     * @return the SQL snippet
+     * @return the specified string builder
      */
-    public String getSQL(Expression[] list, int visible, int sqlFlags) {
-        StringBuilder builder = new StringBuilder();
+    public StringBuilder getSQL(StringBuilder builder, Expression[] list, int visible, int sqlFlags) {
         int i = 0;
         for (int idx : queryColumnIndexes) {
             if (i > 0) {
@@ -126,12 +126,11 @@ public class SortOrder implements Comparator<Value[]> {
             if (idx < visible) {
                 builder.append(idx + 1);
             } else {
-                builder.append('=');
                 list[idx].getUnenclosedSQL(builder, sqlFlags);
             }
             typeToString(builder, sortTypes[i++]);
         }
-        return builder.toString();
+        return builder;
     }
 
     /**

@@ -21,6 +21,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Alias;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionList;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.Wildcard;
@@ -1747,6 +1748,22 @@ public class Select extends Query {
             }
         }
         return true;
+    }
+
+    @Override
+    public Expression getIfSingleRow() {
+        if (offsetExpr != null || limitExpr != null || condition != null || isGroupQuery || isWindowQuery
+                || !isNoFromClause()) {
+            return null;
+        }
+        if (visibleColumnCount == 1) {
+            return expressions.get(0);
+        }
+        Expression[] array = new Expression[visibleColumnCount];
+        for (int i = 0; i < visibleColumnCount; i++) {
+            array[i] = expressions.get(i);
+        }
+        return new ExpressionList(array, false);
     }
 
     private boolean isNoFromClause() {

@@ -90,6 +90,10 @@ public final class Subquery extends Expression {
         if (query.isConstantQuery()) {
             return ValueExpression.get(getValue(session));
         }
+        Expression e = query.getIfSingleRow();
+        if (e != null) {
+            return e.optimize(session);
+        }
         return this;
     }
 

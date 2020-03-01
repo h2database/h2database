@@ -13,6 +13,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionList;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.message.DbException;
@@ -307,6 +308,22 @@ public class TableValueConstructor extends Query {
             }
         }
         return true;
+    }
+
+    @Override
+    public Expression getIfSingleRow() {
+        if (offsetExpr != null || limitExpr != null || rows.size() != 1) {
+            return null;
+        }
+        ArrayList<Expression> row = rows.get(0);
+        if (visibleColumnCount == 1) {
+            return row.get(0);
+        }
+        Expression[] array = new Expression[visibleColumnCount];
+        for (int i = 0; i < visibleColumnCount; i++) {
+            array[i] = row.get(i);
+        }
+        return new ExpressionList(array, false);
     }
 
     private final class TableValueColumnResolver implements ColumnResolver {

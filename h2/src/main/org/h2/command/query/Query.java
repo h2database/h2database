@@ -910,4 +910,14 @@ public abstract class Query extends Prepared {
                 && (limitExpr == null || limitExpr.isConstant());
     }
 
+    /**
+     * If this query is determined as a single-row query, returns a replacement
+     * expression.
+     *
+     * @return the expression, or {@code null}
+     */
+    public Expression getIfSingleRow() {
+        return null;
+    }
+
 }

@@ -273,7 +273,7 @@ public class SelectUnion extends Query {
             expressions.add(e);
         }
         if (orderList != null) {
-            initOrder(session, expressions, null, orderList, getColumnCount(), true, null);
+            initOrder(null, true, null);
             sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }

@@ -7,7 +7,6 @@ package org.h2.command.query;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -489,27 +488,17 @@ public abstract class Query extends Prepared {
     /**
      * Initialize the order by list. This call may extend the expressions list.
      *
-     * @param session the session
-     * @param expressions the select list expressions
      * @param expressionSQL the select list SQL snippets
-     * @param orderList the order by list
-     * @param visible the number of visible columns in the select list
      * @param mustBeInResult all order by expressions must be in the select list
      * @param filters the table filters
      */
-    static void initOrder(Session session,
-            ArrayList<Expression> expressions,
-            ArrayList<String> expressionSQL,
-            List<QueryOrderBy> orderList,
-            int visible,
-            boolean mustBeInResult,
-            ArrayList<TableFilter> filters) {
+    void initOrder(ArrayList<String> expressionSQL, boolean mustBeInResult, ArrayList<TableFilter> filters) {
         for (QueryOrderBy o : orderList) {
             Expression e = o.expression;
             if (e == null) {
                 continue;
             }
-            int idx = initExpression(session, expressions, expressionSQL, e, visible, mustBeInResult, filters);
+            int idx = initExpression(expressionSQL, e, mustBeInResult, filters);
             o.columnIndexExpr = ValueExpression.get(ValueInteger.get(idx + 1));
             o.expression = expressions.get(idx).getNonAliasExpression();
         }
@@ -518,17 +507,13 @@ public abstract class Query extends Prepared {
     /**
      * Initialize the 'ORDER BY' or 'DISTINCT' expressions.
      *
-     * @param session the session
-     * @param expressions the select list expressions
      * @param expressionSQL the select list SQL snippets
      * @param e the expression.
-     * @param visible the number of visible columns in the select list
      * @param mustBeInResult all order by expressions must be in the select list
      * @param filters the table filters.
      * @return index on the expression in the {@link #expressions} list.
      */
-    static int initExpression(Session session, ArrayList<Expression> expressions,
-            ArrayList<String> expressionSQL, Expression e, int visible, boolean mustBeInResult,
+    int initExpression(ArrayList<String> expressionSQL, Expression e, boolean mustBeInResult,
             ArrayList<TableFilter> filters) {
         Database db = session.getDatabase();
         // special case: SELECT 1 AS A FROM DUAL ORDER BY A
@@ -540,7 +525,7 @@ public abstract class Query extends Prepared {
             ExpressionColumn exprCol = (ExpressionColumn) e;
             String tableAlias = exprCol.getOriginalTableAliasName();
             String col = exprCol.getOriginalColumnName();
-            for (int j = 0; j < visible; j++) {
+            for (int j = 0, visible = getColumnCount(); j < visible; j++) {
                 Expression ec = expressions.get(j);
                 if (ec instanceof ExpressionColumn) {
                     // select expression

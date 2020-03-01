@@ -991,8 +991,7 @@ public class Select extends Query {
         if (distinctExpressions != null) {
             BitSet set = new BitSet();
             for (Expression e : distinctExpressions) {
-                set.set(initExpression(session, expressions, expressionSQL, e, visibleColumnCount, false,
-                        filters));
+                set.set(initExpression(expressionSQL, e, false, filters));
             }
             int idx = 0, cnt = set.cardinality();
             distinctIndexes = new int[cnt];
@@ -1003,8 +1002,7 @@ public class Select extends Query {
             }
         }
         if (orderList != null) {
-            initOrder(session, expressions, expressionSQL, orderList,
-                    visibleColumnCount, isAnyDistinct(), filters);
+            initOrder(expressionSQL, isAnyDistinct(), filters);
         }
         resultColumnCount = expressions.size();
         if (having != null) {

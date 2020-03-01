@@ -291,6 +291,15 @@ public class SortOrder implements Comparator<Value[]> {
     }
 
     /**
+     * Returns the original query order list.
+     *
+     * @return the original query order list
+     */
+    public ArrayList<QueryOrderBy> getOrderList() {
+        return orderList;
+    }
+
+    /**
      * Returns sort order bit masks with {@link #NULLS_FIRST} or {@link #NULLS_LAST}
      * explicitly set, depending on {@link SysProperties#SORT_NULLS_HIGH}.
      *

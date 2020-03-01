@@ -1174,6 +1174,9 @@ public class Select extends Query {
             }
             expressions.set(i, e.optimize(session));
         }
+        if (sort != null) {
+            cleanupOrder();
+        }
         if (condition != null) {
             condition = condition.optimize(session);
             for (TableFilter f : filters) {

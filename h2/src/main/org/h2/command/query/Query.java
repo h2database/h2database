@@ -680,6 +680,46 @@ public abstract class Query extends Prepared {
         this.orderList = null;
     }
 
+    /**
+     * Removes constant expressions from the sort order.
+     *
+     * Some constants are detected only after optimization of expressions, this
+     * method removes them from the sort order only. They are currently
+     * preserved in the list of expressions.
+     */
+    void cleanupOrder() {
+        int sourceIndexes[] = sort.getQueryColumnIndexes();
+        int count = sourceIndexes.length;
+        int constants = 0;
+        for (int i = 0; i < count; i++) {
+            if (expressions.get(sourceIndexes[i]).isConstant()) {
+                constants++;
+            }
+        }
+        if (constants == 0) {
+            return;
+        }
+        if (constants == count) {
+            sort = null;
+            return;
+        }
+        int size = count - constants;
+        int[] indexes = new int[size];
+        int[] sortTypes = new int[size];
+        int[] sourceSortTypes = sort.getSortTypes();
+        ArrayList<QueryOrderBy> orderList = sort.getOrderList();
+        for (int i = 0, j = 0; j < size; i++) {
+            if (!expressions.get(sourceIndexes[i]).isConstant()) {
+                indexes[j] = sourceIndexes[i];
+                sortTypes[j] = sourceSortTypes[i];
+                j++;
+            } else {
+                orderList.remove(j);
+            }
+        }
+        sort = new SortOrder(session, indexes, sortTypes, orderList);
+    }
+
     @Override
     public int getType() {
         return CommandInterface.SELECT;

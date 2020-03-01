@@ -194,6 +194,9 @@ public class TableValueConstructor extends Query {
         for (int i = visibleColumnCount; i < resultColumnCount; i++) {
             expressions.set(i, expressions.get(i).optimize(session));
         }
+        if (sort != null) {
+            cleanupOrder();
+        }
         expressionArray = expressions.toArray(new Expression[0]);
         double cost = 0;
         int columnCount = visibleColumnCount;

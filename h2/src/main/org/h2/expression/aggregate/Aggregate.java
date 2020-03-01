@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -690,9 +691,6 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             type = args[0].getType();
         }
         if (orderByList != null) {
-            for (QueryOrderBy o : orderByList) {
-                o.expression = o.expression.optimize(session);
-            }
             int offset;
             switch (aggregateType) {
             case ARRAY_AGG:
@@ -703,7 +701,20 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             default:
                 offset = 0;
             }
-            orderBySort = createOrder(session, orderByList, offset);
+            for (Iterator<QueryOrderBy> i = orderByList.iterator(); i.hasNext();) {
+                QueryOrderBy o = i.next();
+                Expression e = o.expression.optimize(session);
+                if (offset != 0 && e.isConstant()) {
+                    i.remove();
+                } else {
+                    o.expression = e;
+                }
+            }
+            if (orderByList.isEmpty()) {
+                orderByList = null;
+            } else {
+                orderBySort = createOrder(session, orderByList, offset);
+            }
         }
         switch (aggregateType) {
         case LISTAGG:
@@ -928,6 +939,8 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             builder.append(" WITHIN GROUP (");
             Window.appendOrderBy(builder, orderByList, sqlFlags);
             builder.append(')');
+        } else if (aggregateType == AggregateType.LISTAGG) {
+            builder.append(" WITHIN GROUP (ORDER BY NULL)");
         }
         return appendTailConditions(builder, sqlFlags);
     }

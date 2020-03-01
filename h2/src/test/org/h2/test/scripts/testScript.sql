@@ -3445,8 +3445,8 @@ SELECT * FROM TEST;
 > rows: 0
 
 SELECT GROUP_CONCAT(ID) FROM TEST;
-> LISTAGG(ID)
-> -----------
+> LISTAGG(ID) WITHIN GROUP (ORDER BY NULL)
+> ----------------------------------------
 > null
 > rows: 1
 
@@ -3477,8 +3477,8 @@ INSERT INTO TEST VALUES(2, 'World');
 > update count: 1
 
 SELECT group_concat(name) FROM TEST group by id;
-> LISTAGG(NAME)
-> -------------
+> LISTAGG(NAME) WITHIN GROUP (ORDER BY NULL)
+> ------------------------------------------
 > Hello
 > World
 > rows: 2
@@ -6214,8 +6214,8 @@ SELECT GROUP_CONCAT(ID ORDER BY ID) FROM TEST;
 > rows: 1
 
 SELECT STRING_AGG(ID,';') FROM TEST;
-> LISTAGG(ID, ';')
-> -----------------
+> LISTAGG(ID, ';') WITHIN GROUP (ORDER BY NULL)
+> ---------------------------------------------
 > 1;2;3;4;5;6;7;8;9
 > rows: 1
 

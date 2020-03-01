@@ -56,14 +56,14 @@ insert into test(v) values (7), (2), (8), (3), (7), (3), (9), (-1);
 > update count: 8
 
 select group_concat(v) from test;
-> LISTAGG(V)
-> ----------------
+> LISTAGG(V) WITHIN GROUP (ORDER BY NULL)
+> ---------------------------------------
 > 7,2,8,3,7,3,9,-1
 > rows: 1
 
 select group_concat(distinct v) from test;
-> LISTAGG(DISTINCT V)
-> -------------------
+> LISTAGG(DISTINCT V) WITHIN GROUP (ORDER BY NULL)
+> ------------------------------------------------
 > -1,2,3,7,8,9
 > rows: 1
 
@@ -92,16 +92,16 @@ create table test(g varchar, v int) as values ('-', 1), ('-', 2), ('-', 3), ('|'
 > ok
 
 select g, listagg(v, g) from test group by g;
-> G LISTAGG(V, G)
-> - -------------
+> G LISTAGG(V, G) WITHIN GROUP (ORDER BY NULL)
+> - ------------------------------------------
 > * null
 > - 1-2-3
 > | 4|5|6
 > rows: 3
 
 select g, listagg(v, g) over (partition by g) from test order by v;
-> G LISTAGG(V, G) OVER (PARTITION BY G)
-> - -----------------------------------
+> G LISTAGG(V, G) WITHIN GROUP (ORDER BY NULL) OVER (PARTITION BY G)
+> - ----------------------------------------------------------------
 > * null
 > - 1-2-3
 > - 1-2-3
@@ -124,8 +124,8 @@ select g, listagg(v, g on overflow error) within group (order by v) filter (wher
 > rows (ordered): 7
 
 select listagg(distinct v, '-') from test;
-> LISTAGG(DISTINCT V, '-')
-> ------------------------
+> LISTAGG(DISTINCT V, '-') WITHIN GROUP (ORDER BY NULL)
+> -----------------------------------------------------
 > 1-2-3-4-5-6
 > rows: 1
 
@@ -171,3 +171,6 @@ SELECT STRING_AGG(B, ', ' ORDER BY B DESC) FROM TEST GROUP BY A;
 
 DROP TABLE TEST;
 > ok
+
+EXPLAIN SELECT LISTAGG(A) WITHIN GROUP (ORDER BY 'a') FROM (VALUES 'a', 'b') T(A);
+>> SELECT LISTAGG("A") WITHIN GROUP (ORDER BY NULL) FROM (VALUES ('a'), ('b')) "T"("A") /* table scan */

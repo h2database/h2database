@@ -6258,7 +6258,8 @@ JSON_OBJECTAGG(KEY NAME VALUE VAL);
 "
 
 "Aggregate Functions (JSON)","JSON_ARRAYAGG","
-JSON_ARRAYAGG(expression [ { NULL | ABSENT } ON NULL ])
+JSON_ARRAYAGG(expression [ ORDER BY sortSpecificationList ]
+[ { NULL | ABSENT } ON NULL ] )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Aggregates the values into a JSON array.

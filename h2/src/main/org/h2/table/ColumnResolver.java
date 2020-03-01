@@ -5,7 +5,7 @@
  */
 package org.h2.table;
 
-import org.h2.command.dml.Select;
+import org.h2.command.query.Select;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.value.Value;

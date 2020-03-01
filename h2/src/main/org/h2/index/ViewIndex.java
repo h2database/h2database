@@ -10,9 +10,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
-import org.h2.command.dml.AllColumnsForPlan;
-import org.h2.command.dml.Query;
-import org.h2.command.dml.SelectUnion;
+import org.h2.command.query.AllColumnsForPlan;
+import org.h2.command.query.Query;
+import org.h2.command.query.SelectUnion;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Parameter;

@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import org.h2.api.ErrorCode;
-import org.h2.command.dml.AllColumnsForPlan;
+import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;

@@ -6,7 +6,8 @@
 package org.h2.index;
 
 import java.util.ArrayList;
-import org.h2.command.dml.AllColumnsForPlan;
+
+import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;

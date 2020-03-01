@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.api.ErrorCode;
-import org.h2.command.dml.Select;
+import org.h2.command.query.Select;
 import org.h2.result.SortOrder;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;

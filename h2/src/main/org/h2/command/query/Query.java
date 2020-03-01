@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.command.dml;
+package org.h2.command.query;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -86,7 +86,7 @@ public abstract class Query extends Prepared {
     /**
      * Describes elements of the ORDER BY clause of a query.
      */
-    ArrayList<SelectOrderBy> orderList;
+    ArrayList<QueryOrderBy> orderList;
 
     /**
      *  A sort order represents an ORDER BY clause in a query.
@@ -243,7 +243,7 @@ public abstract class Query extends Prepared {
      *
      * @param order the order by list
      */
-    public void setOrder(ArrayList<SelectOrderBy> order) {
+    public void setOrder(ArrayList<QueryOrderBy> order) {
         orderList = order;
     }
 
@@ -500,11 +500,11 @@ public abstract class Query extends Prepared {
     static void initOrder(Session session,
             ArrayList<Expression> expressions,
             ArrayList<String> expressionSQL,
-            List<SelectOrderBy> orderList,
+            List<QueryOrderBy> orderList,
             int visible,
             boolean mustBeInResult,
             ArrayList<TableFilter> filters) {
-        for (SelectOrderBy o : orderList) {
+        for (QueryOrderBy o : orderList) {
             Expression e = o.expression;
             if (e == null) {
                 continue;
@@ -641,19 +641,19 @@ public abstract class Query extends Prepared {
     }
 
     /**
-     * Create a {@link SortOrder} object given the list of {@link SelectOrderBy}
+     * Create a {@link SortOrder} object given the list of {@link QueryOrderBy}
      * objects.
      *
-     * @param orderList a list of {@link SelectOrderBy} elements
+     * @param orderList a list of {@link QueryOrderBy} elements
      * @param expressionCount the number of columns in the query
      * @return the {@link SortOrder} object
      */
-    public SortOrder prepareOrder(ArrayList<SelectOrderBy> orderList, int expressionCount) {
+    public SortOrder prepareOrder(ArrayList<QueryOrderBy> orderList, int expressionCount) {
         int size = orderList.size();
         int[] index = new int[size];
         int[] sortType = new int[size];
         for (int i = 0; i < size; i++) {
-            SelectOrderBy o = orderList.get(i);
+            QueryOrderBy o = orderList.get(i);
             int idx;
             boolean reverse = false;
             Value v = o.columnIndexExpr.getValue(null);

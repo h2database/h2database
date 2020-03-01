@@ -32,7 +32,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandContainer;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
-import org.h2.command.dml.Query;
+import org.h2.command.query.Query;
 import org.h2.engine.SysProperties;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.jdbc.JdbcConnection;
@@ -166,7 +166,7 @@ public class TestScript extends TestDb {
             testScript("ddl/" + s + ".sql");
         }
         for (String s : new String[] { "delete", "error_reporting", "execute_immediate", "insert", "insertIgnore",
-                "merge", "mergeUsing", "replace", "script", "select", "show", "table", "update", "values", "with" }) {
+                "merge", "mergeUsing", "replace", "script", "show", "update", "with" }) {
             testScript("dml/" + s + ".sql");
         }
         for (String s : new String[] { "any", "array-agg", "avg", "bit-and", "bit-or", "count", "envelope",
@@ -227,6 +227,9 @@ public class TestScript extends TestDb {
         }
         for (String s : new String[] { "in", "null", "type", "unique" }) {
             testScript("predicates/" + s + ".sql");
+        }
+        for (String s : new String[] { "select", "table", "values" }) {
+            testScript("queries/" + s + ".sql");
         }
 
         deleteDb("script");

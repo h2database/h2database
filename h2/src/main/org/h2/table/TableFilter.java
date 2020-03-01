@@ -13,8 +13,8 @@ import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
-import org.h2.command.dml.AllColumnsForPlan;
-import org.h2.command.dml.Select;
+import org.h2.command.query.AllColumnsForPlan;
+import org.h2.command.query.Select;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;

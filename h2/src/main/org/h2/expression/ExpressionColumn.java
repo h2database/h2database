@@ -7,9 +7,9 @@ package org.h2.expression;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
-import org.h2.command.dml.Select;
-import org.h2.command.dml.SelectGroups;
-import org.h2.command.dml.SelectListColumnResolver;
+import org.h2.command.query.Select;
+import org.h2.command.query.SelectGroups;
+import org.h2.command.query.SelectListColumnResolver;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.condition.Comparison;

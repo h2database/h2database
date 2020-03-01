@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.h2.api.IntervalQualifier;
-import org.h2.command.dml.SelectOrderBy;
+import org.h2.command.query.QueryOrderBy;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
@@ -105,7 +105,7 @@ final class Percentile {
      * @param interpolate whether value should be interpolated
      * @return the result
      */
-    static Value getValue(Session session, Value[] array, int dataType, ArrayList<SelectOrderBy> orderByList,
+    static Value getValue(Session session, Value[] array, int dataType, ArrayList<QueryOrderBy> orderByList,
             BigDecimal percentile, boolean interpolate) {
         final CompareMode compareMode = session.getDatabase().getCompareMode();
         Arrays.sort(array, compareMode);
@@ -151,7 +151,7 @@ final class Percentile {
      * @return the result
      */
     static Value getFromIndex(Session session, Expression expression, int dataType,
-            ArrayList<SelectOrderBy> orderByList, BigDecimal percentile, boolean interpolate) {
+            ArrayList<QueryOrderBy> orderByList, BigDecimal percentile, boolean interpolate) {
         Index index = getColumnIndex(expression);
         long count = index.getRowCount(session);
         if (count == 0) {

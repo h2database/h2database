@@ -14,7 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
-import org.h2.command.dml.AllColumnsForPlan;
+import org.h2.command.query.AllColumnsForPlan;
 import org.h2.constraint.Constraint;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;

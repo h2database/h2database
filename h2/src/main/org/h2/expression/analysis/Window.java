@@ -8,8 +8,8 @@ package org.h2.expression.analysis;
 import java.util.ArrayList;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.dml.Select;
-import org.h2.command.dml.SelectOrderBy;
+import org.h2.command.query.QueryOrderBy;
+import org.h2.command.query.Select;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
@@ -27,7 +27,7 @@ public final class Window {
 
     private ArrayList<Expression> partitionBy;
 
-    private ArrayList<SelectOrderBy> orderBy;
+    private ArrayList<QueryOrderBy> orderBy;
 
     private WindowFrame frame;
 
@@ -43,14 +43,14 @@ public final class Window {
      * @param sqlFlags
      *            formatting flags
      */
-    public static void appendOrderBy(StringBuilder builder, ArrayList<SelectOrderBy> orderBy, int sqlFlags) {
+    public static void appendOrderBy(StringBuilder builder, ArrayList<QueryOrderBy> orderBy, int sqlFlags) {
         if (orderBy != null && !orderBy.isEmpty()) {
             if (builder.charAt(builder.length() - 1) != '(') {
                 builder.append(' ');
             }
             builder.append("ORDER BY ");
             for (int i = 0; i < orderBy.size(); i++) {
-                SelectOrderBy o = orderBy.get(i);
+                QueryOrderBy o = orderBy.get(i);
                 if (i > 0) {
                     builder.append(", ");
                 }
@@ -72,7 +72,7 @@ public final class Window {
      * @param frame
      *            window frame clause, or null
      */
-    public Window(String parent, ArrayList<Expression> partitionBy, ArrayList<SelectOrderBy> orderBy,
+    public Window(String parent, ArrayList<Expression> partitionBy, ArrayList<QueryOrderBy> orderBy,
             WindowFrame frame) {
         this.parent = parent;
         this.partitionBy = partitionBy;
@@ -97,7 +97,7 @@ public final class Window {
             }
         }
         if (orderBy != null) {
-            for (SelectOrderBy o : orderBy) {
+            for (QueryOrderBy o : orderBy) {
                 o.expression.mapColumns(resolver, level, Expression.MAP_IN_WINDOW);
             }
         }
@@ -143,7 +143,7 @@ public final class Window {
             }
         }
         if (orderBy != null) {
-            for (SelectOrderBy o : orderBy) {
+            for (QueryOrderBy o : orderBy) {
                 o.expression = o.expression.optimize(session);
             }
         }
@@ -169,7 +169,7 @@ public final class Window {
             }
         }
         if (orderBy != null) {
-            for (SelectOrderBy o : orderBy) {
+            for (QueryOrderBy o : orderBy) {
                 o.expression.setEvaluatable(tableFilter, value);
             }
         }
@@ -180,7 +180,7 @@ public final class Window {
      *
      * @return ORDER BY clause, or null
      */
-    public ArrayList<SelectOrderBy> getOrderBy() {
+    public ArrayList<QueryOrderBy> getOrderBy() {
         return orderBy;
     }
 
@@ -288,7 +288,7 @@ public final class Window {
             }
         }
         if (orderBy != null) {
-            for (SelectOrderBy o : orderBy) {
+            for (QueryOrderBy o : orderBy) {
                 o.expression.updateAggregate(session, stage);
             }
         }

@@ -15,8 +15,8 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.dml.Select;
-import org.h2.command.dml.SelectOrderBy;
+import org.h2.command.query.QueryOrderBy;
+import org.h2.command.query.Select;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -60,7 +60,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     private final AggregateType aggregateType;
 
-    private ArrayList<SelectOrderBy> orderByList;
+    private ArrayList<QueryOrderBy> orderByList;
     private SortOrder orderBySort;
 
     private int flags;
@@ -161,7 +161,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
      * @param orderByList
      *            the order by list
      */
-    public void setOrderByList(ArrayList<SelectOrderBy> orderByList) {
+    public void setOrderByList(ArrayList<QueryOrderBy> orderByList) {
         this.orderByList = orderByList;
     }
 
@@ -275,7 +275,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             arg.updateAggregate(session, stage);
         }
         if (orderByList != null) {
-            for (SelectOrderBy orderBy : orderByList) {
+            for (QueryOrderBy orderBy : orderByList) {
                 orderBy.expression.updateAggregate(session, stage);
             }
         }
@@ -288,7 +288,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             row[0] = v;
             if (remembered == null) {
                 for (int i = 0; i < size; i++) {
-                    SelectOrderBy o = orderByList.get(i);
+                    QueryOrderBy o = orderByList.get(i);
                     row[i + 1] = o.expression.getValue(session);
                 }
             } else {
@@ -318,7 +318,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             array[offset++] = arg.getValue(session);
         }
         if (orderByList != null) {
-            for (SelectOrderBy o : orderByList) {
+            for (QueryOrderBy o : orderByList) {
                 array[offset++] = o.expression.getValue(session);
             }
         }
@@ -676,7 +676,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     @Override
     public void mapColumnsAnalysis(ColumnResolver resolver, int level, int innerState) {
         if (orderByList != null) {
-            for (SelectOrderBy o : orderByList) {
+            for (QueryOrderBy o : orderByList) {
                 o.expression.mapColumns(resolver, level, innerState);
             }
         }
@@ -690,7 +690,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             type = args[0].getType();
         }
         if (orderByList != null) {
-            for (SelectOrderBy o : orderByList) {
+            for (QueryOrderBy o : orderByList) {
                 o.expression = o.expression.optimize(session);
             }
             int offset;
@@ -812,7 +812,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         if (orderByList != null) {
-            for (SelectOrderBy o : orderByList) {
+            for (QueryOrderBy o : orderByList) {
                 o.expression.setEvaluatable(tableFilter, b);
             }
         }
@@ -1016,7 +1016,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
         }
         if (orderByList != null) {
-            for (SelectOrderBy o : orderByList) {
+            for (QueryOrderBy o : orderByList) {
                 if (!o.expression.isEverything(visitor)) {
                     return false;
                 }
@@ -1032,7 +1032,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             cost += arg.getCost();
         }
         if (orderByList != null) {
-            for (SelectOrderBy o : orderByList) {
+            for (QueryOrderBy o : orderByList) {
                 cost += o.expression.getCost();
             }
         }

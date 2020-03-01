@@ -7,6 +7,7 @@ package org.h2.command.query;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -491,17 +492,29 @@ public abstract class Query extends Prepared {
      * @param expressionSQL the select list SQL snippets
      * @param mustBeInResult all order by expressions must be in the select list
      * @param filters the table filters
+     * @return {@code true} if ORDER BY clause is preserved, {@code false}
+     *         otherwise
      */
-    void initOrder(ArrayList<String> expressionSQL, boolean mustBeInResult, ArrayList<TableFilter> filters) {
-        for (QueryOrderBy o : orderList) {
+    boolean initOrder(ArrayList<String> expressionSQL, boolean mustBeInResult, ArrayList<TableFilter> filters) {
+        for (Iterator<QueryOrderBy> i = orderList.iterator(); i.hasNext();) {
+            QueryOrderBy o = i.next();
             Expression e = o.expression;
             if (e == null) {
+                continue;
+            }
+            if (e.isConstant()) {
+                i.remove();
                 continue;
             }
             int idx = initExpression(expressionSQL, e, mustBeInResult, filters);
             o.columnIndexExpr = ValueExpression.get(ValueInteger.get(idx + 1));
             o.expression = expressions.get(idx).getNonAliasExpression();
         }
+        if (orderList.isEmpty()) {
+            orderList = null;
+            return false;
+        }
+        return true;
     }
 
     /**

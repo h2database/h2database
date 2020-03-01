@@ -182,9 +182,10 @@ public class TableValueConstructor extends Query {
             for (Expression e : expressions) {
                 expressionsSQL.add(e.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
             }
-            initOrder(expressionsSQL, false, null);
-            sort = prepareOrder(orderList, expressions.size());
-            orderList = null;
+            if (initOrder(expressionsSQL, false, null)) {
+                sort = prepareOrder(orderList, expressions.size());
+                orderList = null;
+            }
         }
         resultColumnCount = expressions.size();
         for (int i = 0; i < resultColumnCount; i++) {

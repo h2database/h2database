@@ -154,8 +154,8 @@ FROM (SELECT DISTINCT TYPE FROM TEST) T ORDER BY TYPE;
 -->        /* SELECT DISTINCT
 -->            TYPE
 -->        FROM PUBLIC.TEST
--->            /++ PUBLIC.IDX_TEST_TYPE_VALUE ++/
--->        /++ distinct ++/
+-->            /* PUBLIC.IDX_TEST_TYPE_VALUE */
+-->        /* distinct */
 -->         */
 -->    ORDER BY 1
 ;

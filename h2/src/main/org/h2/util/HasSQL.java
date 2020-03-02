@@ -27,6 +27,11 @@ public interface HasSQL {
     int NO_CASTS = 4;
 
     /**
+     * Add execution plan information.
+     */
+    int ADD_PLAN_INFORMATION = 8;
+
+    /**
      * Default flags.
      */
     int DEFAULT_SQL_FLAGS = 0;

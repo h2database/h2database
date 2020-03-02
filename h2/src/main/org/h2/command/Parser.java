@@ -1704,7 +1704,7 @@ public class Parser {
             }
             command.setQueryAlias(queryAlias);
 
-            String[] querySQLOutput = {null};
+            String[] querySQLOutput = new String[1];
             List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(null, command.getQuery(),
                     querySQLOutput);
             TableView temporarySourceTableView = createCTEView(
@@ -7274,7 +7274,7 @@ public class Parser {
         Table recursiveTable = TableView.createShadowTableForRecursiveTableExpression(
                 isTemporary, session, cteViewName, schema, columns, database);
         List<Column> columnTemplateList;
-        String[] querySQLOutput = {null};
+        String[] querySQLOutput = new String[1];
         try {
             read(AS);
             read(OPEN_PAREN);

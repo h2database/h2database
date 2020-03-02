@@ -21,13 +21,13 @@ DROP TABLE TEST;
 > ok
 
 SELECT TRUE = (ANY((SELECT X > 0 FROM SYSTEM_RANGE(1, 1))));
-> TRUE = (ANY((SELECT (X > 0) FROM SYSTEM_RANGE(1, 1) /* range index */ /* scanCount: 2 */)))
-> -------------------------------------------------------------------------------------------
+> TRUE = (ANY((SELECT (X > 0) FROM SYSTEM_RANGE(1, 1))))
+> ------------------------------------------------------
 > TRUE
 > rows: 1
 
 SELECT TRUE = (ANY((SELECT X < 0 FROM SYSTEM_RANGE(1, 1))));
-> TRUE = (ANY((SELECT (X < 0) FROM SYSTEM_RANGE(1, 1) /* range index */ /* scanCount: 2 */)))
-> -------------------------------------------------------------------------------------------
+> TRUE = (ANY((SELECT (X < 0) FROM SYSTEM_RANGE(1, 1))))
+> ------------------------------------------------------
 > FALSE
 > rows: 1

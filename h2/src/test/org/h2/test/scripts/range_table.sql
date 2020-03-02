@@ -13,8 +13,8 @@ explain select * from system_range(1, 10) where (NOT x >= 5);
 >> SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 10) /* range index: X < 5 */ WHERE "X" < 5
 
 select (select t1.x from system_range(1,1) t2) from system_range(1,1) t1;
-> (SELECT T1.X FROM SYSTEM_RANGE(1, 1) T2 /* range index */ /* scanCount: 2 */)
-> -----------------------------------------------------------------------------
+> (SELECT T1.X FROM SYSTEM_RANGE(1, 1) T2)
+> ----------------------------------------
 > 1
 > rows: 1
 

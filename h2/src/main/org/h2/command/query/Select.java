@@ -1452,21 +1452,23 @@ public class Select extends Query {
         if (isForUpdate) {
             builder.append("\nFOR UPDATE");
         }
-        if (isQuickAggregateQuery) {
-            builder.append("\n/* direct lookup */");
-        }
-        if (isDistinctQuery) {
-            builder.append("\n/* distinct */");
-        }
-        if (sortUsingIndex) {
-            builder.append("\n/* index sorted */");
-        }
-        if (isGroupQuery) {
-            if (isGroupSortedQuery) {
-                builder.append("\n/* group sorted */");
+        if ((sqlFlags & HasSQL.ADD_PLAN_INFORMATION) != 0) {
+            if (isQuickAggregateQuery) {
+                builder.append("\n/* direct lookup */");
             }
+            if (isDistinctQuery) {
+                builder.append("\n/* distinct */");
+            }
+            if (sortUsingIndex) {
+                builder.append("\n/* index sorted */");
+            }
+            if (isGroupQuery) {
+                if (isGroupSortedQuery) {
+                    builder.append("\n/* group sorted */");
+                }
+            }
+            // builder.append("\n/* cost: " + cost + " */");
         }
-        // builder.append("\n/* cost: " + cost + " */");
         return builder.toString();
     }
 

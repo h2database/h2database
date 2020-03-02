@@ -760,7 +760,7 @@ public class TableFilter implements ColumnResolver {
             }
             builder.append(")");
         }
-        if (index != null) {
+        if (index != null && (sqlFlags & HasSQL.ADD_PLAN_INFORMATION) != 0) {
             builder.append('\n');
             StringBuilder planBuilder = new StringBuilder();
             planBuilder.append(index.getPlanSQL());
@@ -770,7 +770,8 @@ public class TableFilter implements ColumnResolver {
                     if (i > 0) {
                         planBuilder.append("\n    AND ");
                     }
-                    planBuilder.append(indexConditions.get(i).getSQL(HasSQL.TRACE_SQL_FLAGS));
+                    planBuilder.append(indexConditions.get(i).getSQL(
+                            HasSQL.TRACE_SQL_FLAGS | HasSQL.ADD_PLAN_INFORMATION));
                 }
             }
             String plan = StringUtils.quoteRemarkSQL(planBuilder.toString());
@@ -791,14 +792,17 @@ public class TableFilter implements ColumnResolver {
                 joinCondition.getUnenclosedSQL(builder, sqlFlags);
             }
         }
-        if (filterCondition != null) {
-            builder.append('\n');
-            String condition = StringUtils.unEnclose(filterCondition.getSQL(HasSQL.TRACE_SQL_FLAGS));
-            condition = "/* WHERE " + StringUtils.quoteRemarkSQL(condition) + "\n*/";
-            StringUtils.indent(builder, condition, 4, false);
-        }
-        if (scanCount > 0) {
-            builder.append("\n    /* scanCount: ").append(scanCount).append(" */");
+        if ((sqlFlags & HasSQL.ADD_PLAN_INFORMATION) != 0) {
+            if (filterCondition != null) {
+                builder.append('\n');
+                String condition = StringUtils.unEnclose(filterCondition.getSQL(
+                        HasSQL.TRACE_SQL_FLAGS | HasSQL.ADD_PLAN_INFORMATION));
+                condition = "/* WHERE " + StringUtils.quoteRemarkSQL(condition) + "\n*/";
+                StringUtils.indent(builder, condition, 4, false);
+            }
+            if (scanCount > 0) {
+                builder.append("\n    /* scanCount: ").append(scanCount).append(" */");
+            }
         }
         return builder;
     }

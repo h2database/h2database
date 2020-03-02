@@ -90,8 +90,8 @@ SELECT U1.TABLE_NAME T1, U1.COLUMN_NAME C1, U2.TABLE_NAME T2, U2.COLUMN_NAME C2
 
 TABLE INFORMATION_SCHEMA.CHECK_CONSTRAINTS;
 > CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME CHECK_CLAUSE
-> ------------------ ----------------- --------------- ------------------------------------------------------------------------------------------------------------------------------
-> SCRIPT             PUBLIC            CH_1            ("C4" > 0) AND (NOT EXISTS( SELECT 1 FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A */ WHERE ("T1"."C1" + "T1"."C2") = "T2"."C4"))
+> ------------------ ----------------- --------------- ---------------------------------------------------------------------------------------------------
+> SCRIPT             PUBLIC            CH_1            ("C4" > 0) AND (NOT EXISTS( SELECT 1 FROM "PUBLIC"."T1" WHERE ("T1"."C1" + "T1"."C2") = "T2"."C4"))
 > rows: 1
 
 TABLE INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE;

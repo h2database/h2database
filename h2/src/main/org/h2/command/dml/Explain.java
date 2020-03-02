@@ -76,7 +76,7 @@ public class Explain extends Prepared {
         ExpressionColumn expr = new ExpressionColumn(db, column);
         Expression[] expressions = { expr };
         result = new LocalResult(session, expressions, 1, 1);
-        int sqlFlags = HasSQL.DEFAULT_SQL_FLAGS;
+        int sqlFlags = HasSQL.ADD_PLAN_INFORMATION;
         if (maxrows >= 0) {
             String plan;
             if (executeCommand) {

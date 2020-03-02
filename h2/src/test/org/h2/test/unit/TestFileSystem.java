@@ -201,7 +201,9 @@ public class TestFileSystem extends TestBase {
 
     private void testAbsoluteRelative() {
         assertFalse(FileUtils.isAbsolute("test/abc"));
+        assertFalse(FileUtils.isAbsolute("./test/abc"));
         assertTrue(FileUtils.isAbsolute("~/test/abc"));
+        assertTrue(FileUtils.isAbsolute("/test/abc"));
     }
 
     private void testMemFsDir() throws IOException {

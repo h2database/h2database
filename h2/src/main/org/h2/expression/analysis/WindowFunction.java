@@ -9,10 +9,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import org.h2.command.dml.Select;
-import org.h2.command.dml.SelectGroups;
+import org.h2.command.query.Select;
+import org.h2.command.query.SelectGroups;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -439,21 +440,29 @@ public class WindowFunction extends DataAnalysisOperation {
             }
         }
         if (over.getOrderBy() == null) {
-            switch (type) {
-            case RANK:
-            case DENSE_RANK:
-            case NTILE:
-            case LEAD:
-            case LAG:
+            if (type.requiresWindowOrdering()) {
                 String sql = getTraceSQL();
                 throw DbException.getSyntaxError(sql, sql.length() - 1, "ORDER BY");
-            default:
             }
         } else if (type == WindowFunctionType.RATIO_TO_REPORT) {
             String sql = getTraceSQL();
             throw DbException.getSyntaxError(sql, sql.length() - 1);
         }
         super.optimize(session);
+        // Need to re-test, because optimization may remove the window ordering
+        // clause.
+        if (over.getOrderBy() == null) {
+            switch (type) {
+            case RANK:
+            case DENSE_RANK:
+                return ValueExpression.get(ValueBigint.get(1L));
+            case PERCENT_RANK:
+                return ValueExpression.get(ValueDouble.ZERO);
+            case CUME_DIST:
+                return ValueExpression.get(ValueDouble.ONE);
+            default:
+            }
+        }
         if (args != null) {
             for (int i = 0; i < args.length; i++) {
                 args[i] = args[i].optimize(session);
@@ -517,7 +526,7 @@ public class WindowFunction extends DataAnalysisOperation {
             default:
             }
         }
-        return appendTailConditions(builder, sqlFlags);
+        return appendTailConditions(builder, sqlFlags, type.requiresWindowOrdering());
     }
 
     @Override

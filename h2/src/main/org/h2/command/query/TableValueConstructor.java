@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.command.dml;
+package org.h2.command.query;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -13,6 +13,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionList;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.message.DbException;
@@ -182,9 +183,9 @@ public class TableValueConstructor extends Query {
             for (Expression e : expressions) {
                 expressionsSQL.add(e.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
             }
-            initOrder(session, expressions, expressionsSQL, orderList, getColumnCount(), false, null);
-            sort = prepareOrder(orderList, expressions.size());
-            orderList = null;
+            if (initOrder(expressionsSQL, false, null)) {
+                prepareOrder(orderList, expressions.size());
+            }
         }
         resultColumnCount = expressions.size();
         for (int i = 0; i < resultColumnCount; i++) {
@@ -192,6 +193,9 @@ public class TableValueConstructor extends Query {
         }
         for (int i = visibleColumnCount; i < resultColumnCount; i++) {
             expressions.set(i, expressions.get(i).optimize(session));
+        }
+        if (sort != null) {
+            cleanupOrder();
         }
         expressionArray = expressions.toArray(new Expression[0]);
         double cost = 0;
@@ -291,6 +295,37 @@ public class TableValueConstructor extends Query {
             return table;
         }
         return super.toTable(alias, parameters, forCreateView, topQuery);
+    }
+
+    @Override
+    public boolean isConstantQuery() {
+        if (!super.isConstantQuery()) {
+            return false;
+        }
+        for (ArrayList<Expression> row : rows) {
+            for (int i = 0; i < visibleColumnCount; i++) {
+                if (!row.get(i).isConstant()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public Expression getIfSingleRow() {
+        if (offsetExpr != null || limitExpr != null || rows.size() != 1) {
+            return null;
+        }
+        ArrayList<Expression> row = rows.get(0);
+        if (visibleColumnCount == 1) {
+            return row.get(0);
+        }
+        Expression[] array = new Expression[visibleColumnCount];
+        for (int i = 0; i < visibleColumnCount; i++) {
+            array[i] = row.get(i);
+        }
+        return new ExpressionList(array, false);
     }
 
     private final class TableValueColumnResolver implements ColumnResolver {

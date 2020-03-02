@@ -144,8 +144,8 @@ create table t2 (id int primary key) as (select x from system_range(1, 1000));
 > ok
 
 explain select count(*) from t1 where t1.id in ( select t2.id from t2 );
-#+mvStore#>> SELECT COUNT(*) FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT T2.ID FROM PUBLIC.T2 /++ PUBLIC.T2.tableScan ++/) */ WHERE "T1"."ID" IN( SELECT "T2"."ID" FROM "PUBLIC"."T2" /* PUBLIC.T2.tableScan */)
-#-mvStore#>> SELECT COUNT(*) FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT T2.ID FROM PUBLIC.T2 /++ PUBLIC.PRIMARY_KEY_A5 ++/) */ WHERE "T1"."ID" IN( SELECT "T2"."ID" FROM "PUBLIC"."T2" /* PUBLIC.PRIMARY_KEY_A5 */)
+#+mvStore#>> SELECT COUNT(*) FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT T2.ID FROM PUBLIC.T2 /* PUBLIC.T2.tableScan */) */ WHERE "T1"."ID" IN( SELECT "T2"."ID" FROM "PUBLIC"."T2" /* PUBLIC.T2.tableScan */)
+#-mvStore#>> SELECT COUNT(*) FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT T2.ID FROM PUBLIC.T2 /* PUBLIC.PRIMARY_KEY_A5 */) */ WHERE "T1"."ID" IN( SELECT "T2"."ID" FROM "PUBLIC"."T2" /* PUBLIC.PRIMARY_KEY_A5 */)
 
 select count(*) from t1 where t1.id in ( select t2.id from t2 );
 > COUNT(*)
@@ -287,8 +287,8 @@ SELECT * FROM SYSTEM_RANGE(1, 10) WHERE X IN ((SELECT 1), (SELECT 2));
 > 2
 > rows: 2
 
-EXPLAIN SELECT * FROM SYSTEM_RANGE(1, 10) WHERE X IN ((SELECT 1), (SELECT 2));
->> SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 10) /* range index: X IN((SELECT 1), (SELECT 2)) */ WHERE "X" IN((SELECT 1), (SELECT 2))
+EXPLAIN SELECT * FROM SYSTEM_RANGE(1, 10) WHERE X IN ((SELECT X FROM SYSTEM_RANGE(1, 1)), (SELECT X FROM SYSTEM_RANGE(2, 2)));
+>> SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 10) /* range index: X IN((SELECT X FROM SYSTEM_RANGE(1, 1) /* range index */), (SELECT X FROM SYSTEM_RANGE(2, 2) /* range index */)) */ WHERE "X" IN((SELECT "X" FROM SYSTEM_RANGE(1, 1) /* range index */), (SELECT "X" FROM SYSTEM_RANGE(2, 2) /* range index */))
 
 -- Tests for IN predicate with an empty list
 

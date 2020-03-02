@@ -162,18 +162,18 @@ import org.h2.command.dml.Insert;
 import org.h2.command.dml.Merge;
 import org.h2.command.dml.MergeUsing;
 import org.h2.command.dml.NoOperation;
-import org.h2.command.dml.Query;
 import org.h2.command.dml.RunScriptCommand;
 import org.h2.command.dml.ScriptCommand;
-import org.h2.command.dml.Select;
-import org.h2.command.dml.SelectOrderBy;
-import org.h2.command.dml.SelectUnion;
 import org.h2.command.dml.Set;
 import org.h2.command.dml.SetSessionCharacteristics;
 import org.h2.command.dml.SetTypes;
-import org.h2.command.dml.TableValueConstructor;
 import org.h2.command.dml.TransactionCommand;
 import org.h2.command.dml.Update;
+import org.h2.command.query.Query;
+import org.h2.command.query.QueryOrderBy;
+import org.h2.command.query.Select;
+import org.h2.command.query.SelectUnion;
+import org.h2.command.query.TableValueConstructor;
 import org.h2.constraint.ConstraintActionType;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -1704,7 +1704,7 @@ public class Parser {
             }
             command.setQueryAlias(queryAlias);
 
-            String[] querySQLOutput = {null};
+            String[] querySQLOutput = new String[1];
             List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(null, command.getQuery(),
                     querySQLOutput);
             TableView temporarySourceTableView = createCTEView(
@@ -2752,10 +2752,10 @@ public class Parser {
             if (command instanceof Select) {
                 currentSelect = (Select) command;
             }
-            ArrayList<SelectOrderBy> orderList = Utils.newSmallArrayList();
+            ArrayList<QueryOrderBy> orderList = Utils.newSmallArrayList();
             do {
                 boolean canBeNumber = !readIf(EQUAL);
-                SelectOrderBy order = new SelectOrderBy();
+                QueryOrderBy order = new QueryOrderBy();
                 Expression expr = readExpression();
                 if (canBeNumber && expr instanceof ValueExpression && expr.getType().getValueType() == Value.INTEGER) {
                     order.columnIndexExpr = expr;
@@ -3490,7 +3490,7 @@ public class Parser {
         case LISTAGG: {
             boolean distinct = readDistinctAgg();
             Expression arg = readExpression(), separator = null;
-            ArrayList<SelectOrderBy> orderByList;
+            ArrayList<QueryOrderBy> orderByList;
             if (equalsToken("STRING_AGG", aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
                 read(COMMA);
@@ -3614,7 +3614,7 @@ public class Parser {
         Aggregate r = new Aggregate(aggregateType, args, currentSelect, distinct);
         if (forHypotheticalSet) {
             int count = args.length;
-            ArrayList<SelectOrderBy> orderList = new ArrayList<>(count);
+            ArrayList<QueryOrderBy> orderList = new ArrayList<>(count);
             for (int i = 0; i < count; i++) {
                 if (i > 0) {
                     read(COMMA);
@@ -3631,8 +3631,8 @@ public class Parser {
     }
 
     private void readAggregateOrder(Aggregate r, Expression expr, boolean parseSortType) {
-        ArrayList<SelectOrderBy> orderList = new ArrayList<>(1);
-        SelectOrderBy order = new SelectOrderBy();
+        ArrayList<QueryOrderBy> orderList = new ArrayList<>(1);
+        QueryOrderBy order = new QueryOrderBy();
         order.expression = expr;
         if (parseSortType) {
             order.sortType = parseSortType();
@@ -3641,7 +3641,7 @@ public class Parser {
         r.setOrderByList(orderList);
     }
 
-    private ArrayList<SelectOrderBy> readIfOrderBy() {
+    private ArrayList<QueryOrderBy> readIfOrderBy() {
         if (readIf(ORDER)) {
             read("BY");
             return parseSortSpecificationList();
@@ -3649,16 +3649,16 @@ public class Parser {
         return null;
     }
 
-    private ArrayList<SelectOrderBy> parseSortSpecificationList() {
-        ArrayList<SelectOrderBy> orderList = Utils.newSmallArrayList();
+    private ArrayList<QueryOrderBy> parseSortSpecificationList() {
+        ArrayList<QueryOrderBy> orderList = Utils.newSmallArrayList();
         do {
             orderList.add(parseSortSpecification());
         } while (readIf(COMMA));
         return orderList;
     }
 
-    private SelectOrderBy parseSortSpecification() {
-        SelectOrderBy order = new SelectOrderBy();
+    private QueryOrderBy parseSortSpecification() {
+        QueryOrderBy order = new QueryOrderBy();
         order.expression = readExpression();
         order.sortType = parseSortType();
         return order;
@@ -3756,7 +3756,7 @@ public class Parser {
                 partitionBy.add(expr);
             } while (readIf(COMMA));
         }
-        ArrayList<SelectOrderBy> orderBy = readIfOrderBy();
+        ArrayList<QueryOrderBy> orderBy = readIfOrderBy();
         WindowFrame frame = readWindowFrame();
         read(CLOSE_PAREN);
         return new Window(parent, partitionBy, orderBy, frame);
@@ -7274,7 +7274,7 @@ public class Parser {
         Table recursiveTable = TableView.createShadowTableForRecursiveTableExpression(
                 isTemporary, session, cteViewName, schema, columns, database);
         List<Column> columnTemplateList;
-        String[] querySQLOutput = {null};
+        String[] querySQLOutput = new String[1];
         try {
             read(AS);
             read(OPEN_PAREN);

@@ -1169,7 +1169,7 @@ where cnt < 1000 order by dir_num asc;
 explain select * from (select dir_num, count(*) as cnt from multi_pages  t, b_holding bh
 where t.bh_id=bh.id and bh.site='Hello' group by dir_num) as x
 where cnt < 1000 order by dir_num asc;
->> SELECT "X"."DIR_NUM", "X"."CNT" FROM ( SELECT "DIR_NUM", COUNT(*) AS "CNT" FROM "PUBLIC"."MULTI_PAGES" "T" INNER JOIN "PUBLIC"."B_HOLDING" "BH" ON 1=1 WHERE ("BH"."SITE" = 'Hello') AND ("T"."BH_ID" = "BH"."ID") GROUP BY "DIR_NUM" ) "X" /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /++ PUBLIC.MULTI_PAGES.tableScan ++/ INNER JOIN PUBLIC.B_HOLDING BH /++ PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID ++/ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= ?1: CNT < 1000 */ WHERE "CNT" < 1000 ORDER BY 1
+>> SELECT "X"."DIR_NUM", "X"."CNT" FROM ( SELECT "DIR_NUM", COUNT(*) AS "CNT" FROM "PUBLIC"."MULTI_PAGES" "T" INNER JOIN "PUBLIC"."B_HOLDING" "BH" ON 1=1 WHERE ("BH"."SITE" = 'Hello') AND ("T"."BH_ID" = "BH"."ID") GROUP BY "DIR_NUM" ) "X" /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /* PUBLIC.MULTI_PAGES.tableScan */ INNER JOIN PUBLIC.B_HOLDING BH /* PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID */ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= ?1: CNT < 1000 */ WHERE "CNT" < 1000 ORDER BY 1
 
 select dir_num, count(*) as cnt from multi_pages  t, b_holding bh
 where t.bh_id=bh.id and bh.site='Hello' group by dir_num
@@ -1194,8 +1194,8 @@ explain select * from test where id = 1;
 >> SELECT "PUBLIC"."TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE "ID" = 1
 
 EXPLAIN SELECT * FROM TEST WHERE ID = (SELECT MAX(ID) FROM TEST);
-#+mvStore#>> SELECT "PUBLIC"."TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/ /++ direct lookup ++/) */ WHERE "ID" = (SELECT MAX("ID") FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ /* direct lookup */)
-#-mvStore#>> SELECT "PUBLIC"."TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/ /++ direct lookup ++/) */ WHERE "ID" = (SELECT MAX("ID") FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ /* direct lookup */)
+#+mvStore#>> SELECT "PUBLIC"."TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ /* direct lookup */) */ WHERE "ID" = (SELECT MAX("ID") FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ /* direct lookup */)
+#-mvStore#>> SELECT "PUBLIC"."TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* direct lookup */) */ WHERE "ID" = (SELECT MAX("ID") FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ /* direct lookup */)
 
 drop table test;
 > ok
@@ -2701,8 +2701,8 @@ select * from test t1 where id in(id);
 > rows: 2
 
 explain select * from test t1 where id in(select id from test);
-#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */)
-#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
+#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */)
+#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
 
 select * from test t1 where id in(select id from test);
 > ID NAME
@@ -2712,8 +2712,8 @@ select * from test t1 where id in(select id from test);
 > rows: 2
 
 explain select * from test t1 where id in(1, select max(id) from test);
-#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/ /++ direct lookup ++/)) */ WHERE "ID" IN(1, (SELECT MAX("ID") FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ /* direct lookup */))
-#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/ /++ direct lookup ++/)) */ WHERE "ID" IN(1, (SELECT MAX("ID") FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ /* direct lookup */))
+#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ /* direct lookup */)) */ WHERE "ID" IN(1, (SELECT MAX("ID") FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ /* direct lookup */))
+#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* direct lookup */)) */ WHERE "ID" IN(1, (SELECT MAX("ID") FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ /* direct lookup */))
 
 select * from test t1 where id in(1, select max(id) from test);
 > ID NAME
@@ -2776,8 +2776,8 @@ drop table test;
 > ok
 
 call select 1.0/3.0*3.0, 100.0/2.0, -25.0/100.0, 0.0/3.0, 6.9/2.0, 0.72179425150347250912311550800000 / 5314251955.21;
-> SELECT 0.99990, 50.0000, -0.25000000, 0.0000, 3.4500, 1.35822361752313607260107721120531135706133162E-10
-> --------------------------------------------------------------------------------------------------------
+> ROW (0.99990, 50.0000, -0.25000000, 0.0000, 3.4500, 1.35822361752313607260107721120531135706133162E-10)
+> -------------------------------------------------------------------------------------------------------
 > ROW (0.99990, 50.0000, -0.25000000, 0.0000, 3.4500, 1.35822361752313607260107721120531135706133162E-10)
 > rows: 1
 
@@ -2856,8 +2856,8 @@ select count(*) from test where id = ((select id from test fetch first row only)
 > exception COLUMN_COUNT_DOES_NOT_MATCH
 
 select (select id from test where 1=0) from test;
-> SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan: FALSE */ WHERE FALSE
-> -------------------------------------------------------------------------
+> (SELECT ID FROM PUBLIC.TEST WHERE FALSE)
+> ----------------------------------------
 > null
 > null
 > rows: 2
@@ -2872,14 +2872,14 @@ insert into test values(1, 'Y');
 > update count: 1
 
 call select a from test order by id;
-> SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* scanCount: 2 */ ORDER BY =ID /* index sorted */
-> -------------------------------------------------------------------------------------------------------
+> (SELECT A FROM PUBLIC.TEST ORDER BY ID)
+> ---------------------------------------
 > TRUE
 > rows (ordered): 1
 
 select select a from test order by id;
-> SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* scanCount: 2 */ ORDER BY =ID /* index sorted */
-> -------------------------------------------------------------------------------------------------------
+> (SELECT A FROM PUBLIC.TEST ORDER BY ID)
+> ---------------------------------------
 > TRUE
 > rows: 1
 
@@ -3445,8 +3445,8 @@ SELECT * FROM TEST;
 > rows: 0
 
 SELECT GROUP_CONCAT(ID) FROM TEST;
-> LISTAGG(ID)
-> -----------
+> LISTAGG(ID) WITHIN GROUP (ORDER BY NULL)
+> ----------------------------------------
 > null
 > rows: 1
 
@@ -3477,8 +3477,8 @@ INSERT INTO TEST VALUES(2, 'World');
 > update count: 1
 
 SELECT group_concat(name) FROM TEST group by id;
-> LISTAGG(NAME)
-> -------------
+> LISTAGG(NAME) WITHIN GROUP (ORDER BY NULL)
+> ------------------------------------------
 > Hello
 > World
 > rows: 2
@@ -4760,7 +4760,7 @@ EXPLAIN SELECT COUNT(NAME) FROM TEST WHERE ID=1;
 >> SELECT COUNT("NAME") FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE "ID" = 1
 
 EXPLAIN SELECT * FROM TEST WHERE (ID>=1 AND ID<=2)  OR (ID>0 AND ID<3) AND (ID<>6) ORDER BY NAME NULLS FIRST, 1 NULLS LAST, (1+1) DESC;
->> SELECT "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ WHERE (("ID" >= 1) AND ("ID" <= 2)) OR (("ID" <> 6) AND (("ID" > 0) AND ("ID" < 3))) ORDER BY 2 NULLS FIRST, 1 NULLS LAST, =2 DESC
+>> SELECT "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ WHERE (("ID" >= 1) AND ("ID" <= 2)) OR (("ID" <> 6) AND (("ID" > 0) AND ("ID" < 3))) ORDER BY 2 NULLS FIRST, 1 NULLS LAST
 
 EXPLAIN SELECT * FROM TEST WHERE ID=1 GROUP BY NAME, ID;
 >> SELECT "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE "ID" = 1 GROUP BY "NAME", "ID"
@@ -4792,8 +4792,8 @@ EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(1, 2);
 >> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(1, 2) */ WHERE "ID" IN(1, 2)
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(SELECT ID FROM TEST);
-#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */)
-#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
+#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */)
+#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID NOT IN(SELECT ID FROM TEST);
 #+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE NOT ("ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */))
@@ -5010,7 +5010,7 @@ SELECT * FROM V_UNION WHERE ID=1;
 > rows: 2
 
 EXPLAIN SELECT * FROM V_UNION WHERE ID=1;
->> SELECT "PUBLIC"."V_UNION"."ID", "PUBLIC"."V_UNION"."NAME", "PUBLIC"."V_UNION"."CLASS" FROM "PUBLIC"."V_UNION" /* (SELECT PUBLIC.CHILDREN.ID, PUBLIC.CHILDREN.NAME, PUBLIC.CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS NOT DISTINCT FROM ?1 ++/ /++ scanCount: 2 ++/ WHERE PUBLIC.CHILDREN.ID IS NOT DISTINCT FROM ?1) UNION ALL (SELECT PUBLIC.CHILDREN.ID, PUBLIC.CHILDREN.NAME, PUBLIC.CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS NOT DISTINCT FROM ?1 ++/ /++ scanCount: 2 ++/ WHERE PUBLIC.CHILDREN.ID IS NOT DISTINCT FROM ?1): ID = 1 */ WHERE "ID" = 1
+>> SELECT "PUBLIC"."V_UNION"."ID", "PUBLIC"."V_UNION"."NAME", "PUBLIC"."V_UNION"."CLASS" FROM "PUBLIC"."V_UNION" /* (SELECT PUBLIC.CHILDREN.ID, PUBLIC.CHILDREN.NAME, PUBLIC.CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.PRIMARY_KEY_9: ID IS NOT DISTINCT FROM ?1 */ /* scanCount: 2 */ WHERE PUBLIC.CHILDREN.ID IS NOT DISTINCT FROM ?1) UNION ALL (SELECT PUBLIC.CHILDREN.ID, PUBLIC.CHILDREN.NAME, PUBLIC.CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.PRIMARY_KEY_9: ID IS NOT DISTINCT FROM ?1 */ /* scanCount: 2 */ WHERE PUBLIC.CHILDREN.ID IS NOT DISTINCT FROM ?1): ID = 1 */ WHERE "ID" = 1
 
 CREATE VIEW V_EXCEPT AS SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE ID=2;
 > ok
@@ -5022,7 +5022,7 @@ SELECT * FROM V_EXCEPT WHERE ID=1;
 > rows: 1
 
 EXPLAIN SELECT * FROM V_EXCEPT WHERE ID=1;
->> SELECT "PUBLIC"."V_EXCEPT"."ID", "PUBLIC"."V_EXCEPT"."NAME", "PUBLIC"."V_EXCEPT"."CLASS" FROM "PUBLIC"."V_EXCEPT" /* (SELECT DISTINCT PUBLIC.CHILDREN.ID, PUBLIC.CHILDREN.NAME, PUBLIC.CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS NOT DISTINCT FROM ?1 ++/ /++ scanCount: 2 ++/ WHERE PUBLIC.CHILDREN.ID IS NOT DISTINCT FROM ?1) EXCEPT (SELECT DISTINCT PUBLIC.CHILDREN.ID, PUBLIC.CHILDREN.NAME, PUBLIC.CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = 2 ++/ /++ scanCount: 2 ++/ WHERE ID = 2): ID = 1 */ WHERE "ID" = 1
+>> SELECT "PUBLIC"."V_EXCEPT"."ID", "PUBLIC"."V_EXCEPT"."NAME", "PUBLIC"."V_EXCEPT"."CLASS" FROM "PUBLIC"."V_EXCEPT" /* (SELECT DISTINCT PUBLIC.CHILDREN.ID, PUBLIC.CHILDREN.NAME, PUBLIC.CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.PRIMARY_KEY_9: ID IS NOT DISTINCT FROM ?1 */ /* scanCount: 2 */ WHERE PUBLIC.CHILDREN.ID IS NOT DISTINCT FROM ?1) EXCEPT (SELECT DISTINCT PUBLIC.CHILDREN.ID, PUBLIC.CHILDREN.NAME, PUBLIC.CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.PRIMARY_KEY_9: ID = 2 */ /* scanCount: 2 */ WHERE ID = 2): ID = 1 */ WHERE "ID" = 1
 
 CREATE VIEW V_INTERSECT AS SELECT ID, NAME FROM CHILDREN INTERSECT SELECT * FROM CLASSES;
 > ok
@@ -5033,7 +5033,7 @@ SELECT * FROM V_INTERSECT WHERE ID=1;
 > rows: 0
 
 EXPLAIN SELECT * FROM V_INTERSECT WHERE ID=1;
->> SELECT "PUBLIC"."V_INTERSECT"."ID", "PUBLIC"."V_INTERSECT"."NAME" FROM "PUBLIC"."V_INTERSECT" /* (SELECT DISTINCT ID, NAME FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS NOT DISTINCT FROM ?1 ++/ /++ scanCount: 2 ++/ WHERE ID IS NOT DISTINCT FROM ?1) INTERSECT (SELECT DISTINCT PUBLIC.CLASSES.ID, PUBLIC.CLASSES.NAME FROM PUBLIC.CLASSES /++ PUBLIC.PRIMARY_KEY_5: ID IS NOT DISTINCT FROM ?1 ++/ /++ scanCount: 2 ++/ WHERE PUBLIC.CLASSES.ID IS NOT DISTINCT FROM ?1): ID = 1 */ WHERE "ID" = 1
+>> SELECT "PUBLIC"."V_INTERSECT"."ID", "PUBLIC"."V_INTERSECT"."NAME" FROM "PUBLIC"."V_INTERSECT" /* (SELECT DISTINCT ID, NAME FROM PUBLIC.CHILDREN /* PUBLIC.PRIMARY_KEY_9: ID IS NOT DISTINCT FROM ?1 */ /* scanCount: 2 */ WHERE ID IS NOT DISTINCT FROM ?1) INTERSECT (SELECT DISTINCT PUBLIC.CLASSES.ID, PUBLIC.CLASSES.NAME FROM PUBLIC.CLASSES /* PUBLIC.PRIMARY_KEY_5: ID IS NOT DISTINCT FROM ?1 */ /* scanCount: 2 */ WHERE PUBLIC.CLASSES.ID IS NOT DISTINCT FROM ?1): ID = 1 */ WHERE "ID" = 1
 
 DROP VIEW V_UNION;
 > ok
@@ -5474,19 +5474,19 @@ SELECT * FROM TEST T WHERE T.ID = (SELECT T2.ID FROM TEST T2 WHERE T2.ID=T.ID);
 > rows: 3
 
 SELECT (SELECT T2.NAME FROM TEST T2 WHERE T2.ID=T.ID), T.NAME FROM TEST T;
-> SELECT T2.NAME FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T.ID */ /* scanCount: 2 */ WHERE T2.ID = T.ID NAME
-> -------------------------------------------------------------------------------------------------------------- -----
-> Hello                                                                                                          Hello
-> World                                                                                                          World
-> null                                                                                                           null
+> (SELECT T2.NAME FROM PUBLIC.TEST T2 WHERE T2.ID = T.ID) NAME
+> ------------------------------------------------------- -----
+> Hello                                                   Hello
+> World                                                   World
+> null                                                    null
 > rows: 3
 
 SELECT (SELECT SUM(T2.ID) FROM TEST T2 WHERE T2.ID>T.ID), T.ID FROM TEST T;
-> SELECT SUM(T2.ID) FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID > T.ID */ /* scanCount: 2 */ WHERE T2.ID > T.ID ID
-> ----------------------------------------------------------------------------------------------------------------- --
-> 2                                                                                                                 1
-> 3                                                                                                                 0
-> null                                                                                                              2
+> (SELECT SUM(T2.ID) FROM PUBLIC.TEST T2 WHERE T2.ID > T.ID) ID
+> ---------------------------------------------------------- --
+> 2                                                          1
+> 3                                                          0
+> null                                                       2
 > rows: 3
 
 select * from test t where t.id+1 in (select id from test);
@@ -6214,8 +6214,8 @@ SELECT GROUP_CONCAT(ID ORDER BY ID) FROM TEST;
 > rows: 1
 
 SELECT STRING_AGG(ID,';') FROM TEST;
-> LISTAGG(ID, ';')
-> -----------------
+> LISTAGG(ID, ';') WITHIN GROUP (ORDER BY NULL)
+> ---------------------------------------------
 > 1;2;3;4;5;6;7;8;9
 > rows: 1
 
@@ -6339,7 +6339,7 @@ SELECT ID, '=', NAME FROM TEST ORDER BY 2 FOR UPDATE;
 > 1  =   Hello
 > 2  =   World
 > 3  =   null
-> rows (ordered): 3
+> rows: 3
 
 DROP TABLE TEST;
 > ok

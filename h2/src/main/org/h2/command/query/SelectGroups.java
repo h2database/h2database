@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.command.dml;
+package org.h2.command.query;
 
 import java.util.ArrayList;
 import java.util.Arrays;

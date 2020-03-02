@@ -45,22 +45,6 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 "SUM((SELECT\n" +
                 "    X\n" +
                 "FROM PUBLIC.\"\" BB\n" +
-                "    /* SELECT\n" +
-                "        SUM(1) AS X,\n" +
-                "        A\n" +
-                "    FROM PUBLIC.B\n" +
-                "        /++ PUBLIC.B.tableScan ++/\n" +
-                "        /++ WHERE A IS NOT DISTINCT FROM ?1\n" +
-                "        ++/\n" +
-                "        /++ scanCount: 4 ++/\n" +
-                "    INNER JOIN PUBLIC.C\n" +
-                "        /++ PUBLIC.C.tableScan ++/\n" +
-                "        ON 1=1\n" +
-                "    WHERE (B.VAL = C.B)\n" +
-                "        _LOCAL_AND_GLOBAL_ (A IS NOT DISTINCT FROM ?1)\n" +
-                "    GROUP BY A: A IS NOT DISTINCT FROM A.VAL\n" +
-                "     */\n" +
-                "    /* scanCount: 1 */\n" +
                 "WHERE BB.A IS NOT DISTINCT FROM A.VAL))"};
 
         String setupSQL =

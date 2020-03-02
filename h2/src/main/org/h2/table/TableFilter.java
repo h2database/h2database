@@ -13,8 +13,8 @@ import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
-import org.h2.command.dml.AllColumnsForPlan;
-import org.h2.command.dml.Select;
+import org.h2.command.query.AllColumnsForPlan;
+import org.h2.command.query.Select;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -760,23 +760,20 @@ public class TableFilter implements ColumnResolver {
             }
             builder.append(")");
         }
-        if (index != null) {
+        if (index != null && (sqlFlags & HasSQL.ADD_PLAN_INFORMATION) != 0) {
             builder.append('\n');
-            StringBuilder planBuilder = new StringBuilder();
-            planBuilder.append(index.getPlanSQL());
+            StringBuilder planBuilder = new StringBuilder().append("/* ").append(index.getPlanSQL());
             if (!indexConditions.isEmpty()) {
                 planBuilder.append(": ");
                 for (int i = 0, size = indexConditions.size(); i < size; i++) {
                     if (i > 0) {
                         planBuilder.append("\n    AND ");
                     }
-                    planBuilder.append(indexConditions.get(i).getSQL(HasSQL.TRACE_SQL_FLAGS));
+                    planBuilder.append(indexConditions.get(i).getSQL(
+                            HasSQL.TRACE_SQL_FLAGS | HasSQL.ADD_PLAN_INFORMATION));
                 }
             }
-            String plan = StringUtils.quoteRemarkSQL(planBuilder.toString());
-            planBuilder.setLength(0);
-            planBuilder.append("/* ").append(plan);
-            if (plan.indexOf('\n') >= 0) {
+            if (planBuilder.indexOf("\n", 3) >= 0) {
                 planBuilder.append('\n');
             }
             StringUtils.indent(builder, planBuilder.append(" */").toString(), 4, false);
@@ -791,14 +788,17 @@ public class TableFilter implements ColumnResolver {
                 joinCondition.getUnenclosedSQL(builder, sqlFlags);
             }
         }
-        if (filterCondition != null) {
-            builder.append('\n');
-            String condition = StringUtils.unEnclose(filterCondition.getSQL(HasSQL.TRACE_SQL_FLAGS));
-            condition = "/* WHERE " + StringUtils.quoteRemarkSQL(condition) + "\n*/";
-            StringUtils.indent(builder, condition, 4, false);
-        }
-        if (scanCount > 0) {
-            builder.append("\n    /* scanCount: ").append(scanCount).append(" */");
+        if ((sqlFlags & HasSQL.ADD_PLAN_INFORMATION) != 0) {
+            if (filterCondition != null) {
+                builder.append('\n');
+                String condition = StringUtils.unEnclose(filterCondition.getSQL(
+                        HasSQL.TRACE_SQL_FLAGS | HasSQL.ADD_PLAN_INFORMATION));
+                condition = "/* WHERE " + condition + "\n*/";
+                StringUtils.indent(builder, condition, 4, false);
+            }
+            if (scanCount > 0) {
+                builder.append("\n    /* scanCount: ").append(scanCount).append(" */");
+            }
         }
         return builder;
     }

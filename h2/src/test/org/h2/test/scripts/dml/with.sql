@@ -185,7 +185,7 @@ EXPLAIN WITH RECURSIVE V(V1, V2) AS (
 SELECT V1, V2, COUNT(*) FROM V
 LEFT JOIN (SELECT T1 / T2 R FROM (VALUES (10, 0)) T(T1, T2) WHERE T2*T2*T2*T2*T2*T2 <> 0) X ON X.R > V.V1 AND X.R < V.V2
 GROUP BY V1, V2;
->> WITH RECURSIVE "PUBLIC"."V"("V1", "V2") AS ( (SELECT 0 AS "V1", 1 AS "V2") UNION ALL (SELECT ("V1" + 1), ("V2" + 1) FROM "PUBLIC"."V" /* PUBLIC.V.tableScan */ WHERE "V2" < 10) ) SELECT "V1", "V2", COUNT(*) FROM "PUBLIC"."V" "V" /* null */ LEFT OUTER JOIN ( SELECT ("T1" / "T2") AS "R" FROM (VALUES (10, 0)) "T"("T1", "T2") WHERE ((((("T2" * "T2") * "T2") * "T2") * "T2") * "T2") <> 0 ) "X" /* SELECT (T1 / T2) AS R FROM (VALUES (10, 0)) T(T1, T2) /++ table scan ++/ WHERE ((((((T2 * T2) * T2) * T2) * T2) * T2) <> 0) _LOCAL_AND_GLOBAL_ (((T1 / T2) >= ?1) AND ((T1 / T2) <= ?2)): R > V.V1 AND R < V.V2 */ ON ("X"."R" > "V"."V1") AND ("X"."R" < "V"."V2") GROUP BY "V1", "V2"
+>> WITH RECURSIVE "PUBLIC"."V"("V1", "V2") AS ( (SELECT 0 AS "V1", 1 AS "V2") UNION ALL (SELECT ("V1" + 1), ("V2" + 1) FROM "PUBLIC"."V" /* PUBLIC.V.tableScan */ WHERE "V2" < 10) ) SELECT "V1", "V2", COUNT(*) FROM "PUBLIC"."V" "V" /* null */ LEFT OUTER JOIN ( SELECT ("T1" / "T2") AS "R" FROM (VALUES (10, 0)) "T"("T1", "T2") WHERE ((((("T2" * "T2") * "T2") * "T2") * "T2") * "T2") <> 0 ) "X" /* SELECT (T1 / T2) AS R FROM (VALUES (10, 0)) T(T1, T2) /* table scan */ WHERE ((((((T2 * T2) * T2) * T2) * T2) * T2) <> 0) _LOCAL_AND_GLOBAL_ (((T1 / T2) >= ?1) AND ((T1 / T2) <= ?2)): R > V.V1 AND R < V.V2 */ ON ("X"."R" > "V"."V1") AND ("X"."R" < "V"."V2") GROUP BY "V1", "V2"
 
 -- Workaround for a leftover view after EXPLAIN WITH
 DROP VIEW V;

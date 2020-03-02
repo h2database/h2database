@@ -32,7 +32,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandContainer;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
-import org.h2.command.dml.Query;
+import org.h2.command.query.Query;
 import org.h2.engine.SysProperties;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.jdbc.JdbcConnection;
@@ -133,18 +133,13 @@ public class TestScript extends TestDb {
         }
         testScript("comments.sql");
         testScript("compatibility.sql");
-        testScript("derived-column-names.sql");
-        testScript("distinct.sql");
         testScript("dual.sql");
         testScript("indexes.sql");
         testScript("information_schema.sql");
-        testScript("joins.sql");
         testScript("range_table.sql");
         testScript("altertable-index-reuse.sql");
         testScript("altertable-fk.sql");
         testScript("default-and-on_update.sql");
-        testScript("query-optimisations.sql");
-        testScript("window.sql");
         String decimal2;
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
             decimal2 = "decimal_decimal";
@@ -166,7 +161,7 @@ public class TestScript extends TestDb {
             testScript("ddl/" + s + ".sql");
         }
         for (String s : new String[] { "delete", "error_reporting", "execute_immediate", "insert", "insertIgnore",
-                "merge", "mergeUsing", "replace", "script", "select", "show", "table", "update", "values", "with" }) {
+                "merge", "mergeUsing", "replace", "script", "show", "update", "with" }) {
             testScript("dml/" + s + ".sql");
         }
         for (String s : new String[] { "any", "array-agg", "avg", "bit-and", "bit-or", "count", "envelope",
@@ -227,6 +222,10 @@ public class TestScript extends TestDb {
         }
         for (String s : new String[] { "in", "null", "type", "unique" }) {
             testScript("predicates/" + s + ".sql");
+        }
+        for (String s : new String[] { "derived-column-names", "distinct", "joins", "query-optimisations", "select",
+                "table", "values", "window" }) {
+            testScript("queries/" + s + ".sql");
         }
 
         deleteDb("script");

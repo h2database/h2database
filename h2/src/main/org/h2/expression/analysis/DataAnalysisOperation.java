@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.dml.Select;
-import org.h2.command.dml.SelectGroups;
-import org.h2.command.dml.SelectOrderBy;
+import org.h2.command.query.QueryOrderBy;
+import org.h2.command.query.Select;
+import org.h2.command.query.SelectGroups;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
@@ -73,12 +73,12 @@ public abstract class DataAnalysisOperation extends Expression {
      *            index offset
      * @return the SortOrder
      */
-    protected static SortOrder createOrder(Session session, ArrayList<SelectOrderBy> orderBy, int offset) {
+    protected static SortOrder createOrder(Session session, ArrayList<QueryOrderBy> orderBy, int offset) {
         int size = orderBy.size();
         int[] index = new int[size];
         int[] sortType = new int[size];
         for (int i = 0; i < size; i++) {
-            SelectOrderBy o = orderBy.get(i);
+            QueryOrderBy o = orderBy.get(i);
             index[i] = i + offset;
             sortType[i] = o.sortType;
         }
@@ -152,7 +152,7 @@ public abstract class DataAnalysisOperation extends Expression {
     public Expression optimize(Session session) {
         if (over != null) {
             over.optimize(session);
-            ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
+            ArrayList<QueryOrderBy> orderBy = over.getOrderBy();
             if (orderBy != null) {
                 overOrderBySort = createOrder(session, orderBy, getNumExpressions());
             } else if (!isAggregate()) {
@@ -456,7 +456,7 @@ public abstract class DataAnalysisOperation extends Expression {
      *            list of order by expressions
      */
     protected void updateOrderedAggregate(Session session, SelectGroups groupData, int groupRowId,
-            ArrayList<SelectOrderBy> orderBy) {
+            ArrayList<QueryOrderBy> orderBy) {
         int ne = getNumExpressions();
         int size = orderBy != null ? orderBy.size() : 0;
         int frameSize = getNumFrameExpressions();
@@ -464,7 +464,7 @@ public abstract class DataAnalysisOperation extends Expression {
         rememberExpressions(session, array);
         for (int i = 0; i < size; i++) {
             @SuppressWarnings("null")
-            SelectOrderBy o = orderBy.get(i);
+            QueryOrderBy o = orderBy.get(i);
             array[ne++] = o.expression.getValue(session);
         }
         if (frameSize > 0) {
@@ -491,7 +491,7 @@ public abstract class DataAnalysisOperation extends Expression {
             @SuppressWarnings("unchecked")
             ArrayList<Value[]> orderedData = (ArrayList<Value[]>) data;
             int rowIdColumn = getNumExpressions();
-            ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
+            ArrayList<QueryOrderBy> orderBy = over.getOrderBy();
             if (orderBy != null) {
                 rowIdColumn += orderBy.size();
                 orderedData.sort(overOrderBySort);
@@ -526,12 +526,15 @@ public abstract class DataAnalysisOperation extends Expression {
      *            string builder
      * @param sqlFlags
      *            formatting flags
+     * @param forceOrderBy
+     *            whether synthetic ORDER BY clause should be generated when it
+     *            is missing
      * @return the builder object
      */
-    protected StringBuilder appendTailConditions(StringBuilder builder, int sqlFlags) {
+    protected StringBuilder appendTailConditions(StringBuilder builder, int sqlFlags, boolean forceOrderBy) {
         if (over != null) {
             builder.append(' ');
-            over.getSQL(builder, sqlFlags);
+            over.getSQL(builder, sqlFlags, forceOrderBy);
         }
         return builder;
     }

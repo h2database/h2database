@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.command.dml;
+package org.h2.command.query;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +21,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Alias;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionList;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.Wildcard;
@@ -991,8 +992,7 @@ public class Select extends Query {
         if (distinctExpressions != null) {
             BitSet set = new BitSet();
             for (Expression e : distinctExpressions) {
-                set.set(initExpression(session, expressions, expressionSQL, e, visibleColumnCount, false,
-                        filters));
+                set.set(initExpression(expressionSQL, e, false, filters));
             }
             int idx = 0, cnt = set.cardinality();
             distinctIndexes = new int[cnt];
@@ -1003,8 +1003,7 @@ public class Select extends Query {
             }
         }
         if (orderList != null) {
-            initOrder(session, expressions, expressionSQL, orderList,
-                    visibleColumnCount, isAnyDistinct(), filters);
+            initOrder(expressionSQL, isAnyDistinct(), filters);
         }
         resultColumnCount = expressions.size();
         if (having != null) {
@@ -1162,8 +1161,7 @@ public class Select extends Query {
             DbException.throwInternalError("not initialized");
         }
         if (orderList != null) {
-            sort = prepareOrder(orderList, expressions.size());
-            orderList = null;
+            prepareOrder(orderList, expressions.size());
         }
         ColumnNamer columnNamer = new ColumnNamer(session);
         for (int i = 0; i < expressions.size(); i++) {
@@ -1175,6 +1173,9 @@ public class Select extends Query {
                 e = new Alias(e, columnName, true);
             }
             expressions.set(i, e.optimize(session));
+        }
+        if (sort != null) {
+            cleanupOrder();
         }
         if (condition != null) {
             condition = condition.optimize(session);
@@ -1451,21 +1452,23 @@ public class Select extends Query {
         if (isForUpdate) {
             builder.append("\nFOR UPDATE");
         }
-        if (isQuickAggregateQuery) {
-            builder.append("\n/* direct lookup */");
-        }
-        if (isDistinctQuery) {
-            builder.append("\n/* distinct */");
-        }
-        if (sortUsingIndex) {
-            builder.append("\n/* index sorted */");
-        }
-        if (isGroupQuery) {
-            if (isGroupSortedQuery) {
-                builder.append("\n/* group sorted */");
+        if ((sqlFlags & HasSQL.ADD_PLAN_INFORMATION) != 0) {
+            if (isQuickAggregateQuery) {
+                builder.append("\n/* direct lookup */");
             }
+            if (isDistinctQuery) {
+                builder.append("\n/* distinct */");
+            }
+            if (sortUsingIndex) {
+                builder.append("\n/* index sorted */");
+            }
+            if (isGroupQuery) {
+                if (isGroupSortedQuery) {
+                    builder.append("\n/* group sorted */");
+                }
+            }
+            // builder.append("\n/* cost: " + cost + " */");
         }
-        // builder.append("\n/* cost: " + cost + " */");
         return builder.toString();
     }
 
@@ -1729,6 +1732,54 @@ public class Select extends Query {
     }
 
     /**
+     * Returns parent select, or null.
+     *
+     * @return parent select, or null
+     */
+    public Select getParentSelect() {
+        return parentSelect;
+    }
+
+    @Override
+    public boolean isConstantQuery() {
+        if (!super.isConstantQuery() || distinctExpressions != null || condition != null || isGroupQuery
+                || isWindowQuery || !isNoFromClause()) {
+            return false;
+        }
+        for (int i = 0; i < visibleColumnCount; i++) {
+            if (!expressions.get(i).isConstant()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public Expression getIfSingleRow() {
+        if (offsetExpr != null || limitExpr != null || condition != null || isGroupQuery || isWindowQuery
+                || !isNoFromClause()) {
+            return null;
+        }
+        if (visibleColumnCount == 1) {
+            return expressions.get(0);
+        }
+        Expression[] array = new Expression[visibleColumnCount];
+        for (int i = 0; i < visibleColumnCount; i++) {
+            array[i] = expressions.get(i);
+        }
+        return new ExpressionList(array, false);
+    }
+
+    private boolean isNoFromClause() {
+        if (topTableFilter != null) {
+            return topTableFilter.isNoFromClauseFilter();
+        } else if (topFilters.size() == 1) {
+            return topFilters.get(0).isNoFromClauseFilter();
+        }
+        return false;
+    }
+
+    /**
      * Lazy execution for this select.
      */
     private abstract class LazyResultSelect extends LazyResult {
@@ -1864,15 +1915,6 @@ public class Select extends Query {
             }
             return row;
         }
-    }
-
-    /**
-     * Returns parent select, or null.
-     *
-     * @return parent select, or null
-     */
-    public Select getParentSelect() {
-        return parentSelect;
     }
 
 }

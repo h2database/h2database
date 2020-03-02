@@ -14,8 +14,8 @@ import java.util.Map;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.ddl.CreateTableData;
-import org.h2.command.dml.AllColumnsForPlan;
-import org.h2.command.dml.Query;
+import org.h2.command.query.AllColumnsForPlan;
+import org.h2.command.query.Query;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
@@ -696,7 +696,7 @@ public class TableView extends Table {
                 schema, Arrays.asList(columnTemplates), db);
 
         List<Column> columnTemplateList;
-        String[] querySQLOutput = {null};
+        String[] querySQLOutput = new String[1];
         ArrayList<String> columnNames = new ArrayList<>();
         for (Column columnTemplate: columnTemplates) {
             columnNames.add(columnTemplate.getName());
@@ -761,7 +761,7 @@ public class TableView extends Table {
         theQuery.prepare();
         // String array of length 1 is to receive extra 'output' field in addition to
         // return value
-        querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL(DEFAULT_SQL_FLAGS));
+        querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL(ADD_PLAN_INFORMATION));
         ColumnNamer columnNamer = new ColumnNamer(theQuery.getSession());
         ArrayList<Expression> withExpressions = theQuery.getExpressions();
         for (int i = 0; i < withExpressions.size(); ++i) {

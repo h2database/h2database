@@ -11,12 +11,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.dml.Select;
-import org.h2.command.dml.SelectOrderBy;
+import org.h2.command.query.QueryOrderBy;
+import org.h2.command.query.Select;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -60,7 +61,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     private final AggregateType aggregateType;
 
-    private ArrayList<SelectOrderBy> orderByList;
+    private ArrayList<QueryOrderBy> orderByList;
     private SortOrder orderBySort;
 
     private int flags;
@@ -161,7 +162,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
      * @param orderByList
      *            the order by list
      */
-    public void setOrderByList(ArrayList<SelectOrderBy> orderByList) {
+    public void setOrderByList(ArrayList<QueryOrderBy> orderByList) {
         this.orderByList = orderByList;
     }
 
@@ -275,7 +276,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             arg.updateAggregate(session, stage);
         }
         if (orderByList != null) {
-            for (SelectOrderBy orderBy : orderByList) {
+            for (QueryOrderBy orderBy : orderByList) {
                 orderBy.expression.updateAggregate(session, stage);
             }
         }
@@ -288,7 +289,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             row[0] = v;
             if (remembered == null) {
                 for (int i = 0; i < size; i++) {
-                    SelectOrderBy o = orderByList.get(i);
+                    QueryOrderBy o = orderByList.get(i);
                     row[i + 1] = o.expression.getValue(session);
                 }
             } else {
@@ -318,7 +319,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             array[offset++] = arg.getValue(session);
         }
         if (orderByList != null) {
-            for (SelectOrderBy o : orderByList) {
+            for (QueryOrderBy o : orderByList) {
                 array[offset++] = o.expression.getValue(session);
             }
         }
@@ -676,7 +677,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     @Override
     public void mapColumnsAnalysis(ColumnResolver resolver, int level, int innerState) {
         if (orderByList != null) {
-            for (SelectOrderBy o : orderByList) {
+            for (QueryOrderBy o : orderByList) {
                 o.expression.mapColumns(resolver, level, innerState);
             }
         }
@@ -690,9 +691,6 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             type = args[0].getType();
         }
         if (orderByList != null) {
-            for (SelectOrderBy o : orderByList) {
-                o.expression = o.expression.optimize(session);
-            }
             int offset;
             switch (aggregateType) {
             case ARRAY_AGG:
@@ -703,7 +701,20 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             default:
                 offset = 0;
             }
-            orderBySort = createOrder(session, orderByList, offset);
+            for (Iterator<QueryOrderBy> i = orderByList.iterator(); i.hasNext();) {
+                QueryOrderBy o = i.next();
+                Expression e = o.expression.optimize(session);
+                if (offset != 0 && e.isConstant()) {
+                    i.remove();
+                } else {
+                    o.expression = e;
+                }
+            }
+            if (orderByList.isEmpty()) {
+                orderByList = null;
+            } else {
+                orderBySort = createOrder(session, orderByList, offset);
+            }
         }
         switch (aggregateType) {
         case LISTAGG:
@@ -812,7 +823,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         if (orderByList != null) {
-            for (SelectOrderBy o : orderByList) {
+            for (QueryOrderBy o : orderByList) {
                 o.expression.setEvaluatable(tableFilter, b);
             }
         }
@@ -824,7 +835,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         String text;
         switch (aggregateType) {
         case COUNT_ALL:
-            return appendTailConditions(builder.append("COUNT(*)"), sqlFlags);
+            return appendTailConditions(builder.append("COUNT(*)"), sqlFlags, false);
         case COUNT:
             text = "COUNT";
             break;
@@ -924,12 +935,13 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
         }
         builder.append(')');
-        if (orderByList != null) {
+        boolean forceOrderBy = aggregateType == AggregateType.LISTAGG;
+        if (forceOrderBy || orderByList != null) {
             builder.append(" WITHIN GROUP (");
-            Window.appendOrderBy(builder, orderByList, sqlFlags);
+            Window.appendOrderBy(builder, orderByList, sqlFlags, forceOrderBy);
             builder.append(')');
         }
-        return appendTailConditions(builder, sqlFlags);
+        return appendTailConditions(builder, sqlFlags, false);
     }
 
     private StringBuilder getSQLArrayAggregate(StringBuilder builder, int sqlFlags) {
@@ -938,9 +950,9 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             builder.append("DISTINCT ");
         }
         args[0].getSQL(builder, sqlFlags);
-        Window.appendOrderBy(builder, orderByList, sqlFlags);
+        Window.appendOrderBy(builder, orderByList, sqlFlags, false);
         builder.append(')');
-        return appendTailConditions(builder, sqlFlags);
+        return appendTailConditions(builder, sqlFlags, false);
     }
 
     private StringBuilder getSQLJsonObjectAggregate(StringBuilder builder, int sqlFlags) {
@@ -949,16 +961,16 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         args[1].getSQL(builder, sqlFlags);
         Function.getJsonFunctionFlagsSQL(builder, flags, false);
         builder.append(')');
-        return appendTailConditions(builder, sqlFlags);
+        return appendTailConditions(builder, sqlFlags, false);
     }
 
     private StringBuilder getSQLJsonArrayAggregate(StringBuilder builder, int sqlFlags) {
         builder.append("JSON_ARRAYAGG(");
         args[0].getSQL(builder, sqlFlags);
         Function.getJsonFunctionFlagsSQL(builder, flags, true);
-        Window.appendOrderBy(builder, orderByList, sqlFlags);
+        Window.appendOrderBy(builder, orderByList, sqlFlags, false);
         builder.append(')');
-        return appendTailConditions(builder, sqlFlags);
+        return appendTailConditions(builder, sqlFlags, false);
     }
 
     private Index getMinMaxColumnIndex() {
@@ -1016,7 +1028,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
         }
         if (orderByList != null) {
-            for (SelectOrderBy o : orderByList) {
+            for (QueryOrderBy o : orderByList) {
                 if (!o.expression.isEverything(visitor)) {
                     return false;
                 }
@@ -1032,7 +1044,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             cost += arg.getCost();
         }
         if (orderByList != null) {
-            for (SelectOrderBy o : orderByList) {
+            for (QueryOrderBy o : orderByList) {
                 cost += o.expression.getCost();
             }
         }

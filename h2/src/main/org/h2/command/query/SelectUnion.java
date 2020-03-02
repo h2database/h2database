@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.command.dml;
+package org.h2.command.query;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -273,9 +273,10 @@ public class SelectUnion extends Query {
             expressions.add(e);
         }
         if (orderList != null) {
-            initOrder(session, expressions, null, orderList, getColumnCount(), true, null);
-            sort = prepareOrder(orderList, expressions.size());
-            orderList = null;
+            if (initOrder(null, true, null)) {
+                prepareOrder(orderList, expressions.size());
+                cleanupOrder();
+            }
         }
         resultColumnCount = expressions.size();
         expressionArray = expressions.toArray(new Expression[0]);
@@ -381,6 +382,11 @@ public class SelectUnion extends Query {
     @Override
     public boolean allowGlobalConditions() {
         return left.allowGlobalConditions() && right.allowGlobalConditions();
+    }
+
+    @Override
+    public boolean isConstantQuery() {
+        return super.isConstantQuery() && left.isConstantQuery() && right.isConstantQuery();
     }
 
     /**

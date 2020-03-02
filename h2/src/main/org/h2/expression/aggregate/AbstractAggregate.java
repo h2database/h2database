@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import org.h2.command.dml.Select;
-import org.h2.command.dml.SelectGroups;
+import org.h2.command.query.Select;
+import org.h2.command.query.SelectGroups;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.analysis.DataAnalysisOperation;
@@ -303,12 +303,12 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
     }
 
     @Override
-    protected StringBuilder appendTailConditions(StringBuilder builder, int sqlFlags) {
+    protected StringBuilder appendTailConditions(StringBuilder builder, int sqlFlags, boolean forceOrderBy) {
         if (filterCondition != null) {
             builder.append(" FILTER (WHERE ");
             filterCondition.getSQL(builder, sqlFlags).append(')');
         }
-        return super.appendTailConditions(builder, sqlFlags);
+        return super.appendTailConditions(builder, sqlFlags, forceOrderBy);
     }
 
 }

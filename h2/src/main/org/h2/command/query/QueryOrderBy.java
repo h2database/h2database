@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.command.dml;
+package org.h2.command.query;
 
 import org.h2.expression.Expression;
 import org.h2.result.SortOrder;
@@ -11,7 +11,7 @@ import org.h2.result.SortOrder;
 /**
  * Describes one element of the ORDER BY clause of a query.
  */
-public class SelectOrderBy {
+public class QueryOrderBy {
 
     /**
      * The order by expression.
@@ -38,7 +38,6 @@ public class SelectOrderBy {
      */
     public void getSQL(StringBuilder builder, int sqlFlags) {
         if (expression != null) {
-            builder.append('=');
             expression.getSQL(builder, sqlFlags);
         } else {
             columnIndexExpr.getUnenclosedSQL(builder, sqlFlags);

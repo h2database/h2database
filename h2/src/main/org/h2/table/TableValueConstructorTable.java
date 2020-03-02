@@ -7,7 +7,7 @@ package org.h2.table;
 
 import java.util.ArrayList;
 
-import org.h2.command.dml.TableValueConstructor;
+import org.h2.command.query.TableValueConstructor;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.result.ResultInterface;

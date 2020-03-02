@@ -5,7 +5,11 @@
  */
 package org.h2.result;
 
-import org.h2.command.dml.SelectOrderBy;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
+import org.h2.command.query.QueryOrderBy;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
@@ -16,10 +20,6 @@ import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 /**
  * A sort order represents an ORDER BY clause in a query.
@@ -90,7 +90,7 @@ public class SortOrder implements Comparator<Value[]> {
     /**
      * The order list.
      */
-    private final ArrayList<SelectOrderBy> orderList;
+    private final ArrayList<QueryOrderBy> orderList;
 
     /**
      * Construct a new sort order object.
@@ -100,7 +100,7 @@ public class SortOrder implements Comparator<Value[]> {
      * @param sortType the sort order bit masks
      * @param orderList the original query order list (if this is a query)
      */
-    public SortOrder(Session session, int[] queryColumnIndexes, int[] sortType, ArrayList<SelectOrderBy> orderList) {
+    public SortOrder(Session session, int[] queryColumnIndexes, int[] sortType, ArrayList<QueryOrderBy> orderList) {
         this.session = session;
         this.queryColumnIndexes = queryColumnIndexes;
         this.sortTypes = sortType;
@@ -111,13 +111,13 @@ public class SortOrder implements Comparator<Value[]> {
      * Create the SQL snippet that describes this sort order.
      * This is the SQL snippet that usually appears after the ORDER BY clause.
      *
+     * @param builder string builder to append to
      * @param list the expression list
      * @param visible the number of columns in the select list
      * @param sqlFlags formatting flags
-     * @return the SQL snippet
+     * @return the specified string builder
      */
-    public String getSQL(Expression[] list, int visible, int sqlFlags) {
-        StringBuilder builder = new StringBuilder();
+    public StringBuilder getSQL(StringBuilder builder, Expression[] list, int visible, int sqlFlags) {
         int i = 0;
         for (int idx : queryColumnIndexes) {
             if (i > 0) {
@@ -126,12 +126,11 @@ public class SortOrder implements Comparator<Value[]> {
             if (idx < visible) {
                 builder.append(idx + 1);
             } else {
-                builder.append('=');
                 list[idx].getUnenclosedSQL(builder, sqlFlags);
             }
             typeToString(builder, sortTypes[i++]);
         }
-        return builder.toString();
+        return builder;
     }
 
     /**
@@ -262,7 +261,7 @@ public class SortOrder implements Comparator<Value[]> {
         if (orderList == null) {
             return null;
         }
-        SelectOrderBy order = orderList.get(index);
+        QueryOrderBy order = orderList.get(index);
         Expression expr = order.expression;
         if (expr == null) {
             return null;
@@ -288,6 +287,15 @@ public class SortOrder implements Comparator<Value[]> {
      */
     public int[] getSortTypes() {
         return sortTypes;
+    }
+
+    /**
+     * Returns the original query order list.
+     *
+     * @return the original query order list
+     */
+    public ArrayList<QueryOrderBy> getOrderList() {
+        return orderList;
     }
 
     /**

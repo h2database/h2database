@@ -2107,9 +2107,9 @@ There are some special decimal values: to represent positive infinity, use ""POW
 for negative infinity, use ""(-POWER(0, -1))""; for -0.0, use ""(-CAST(0 AS DOUBLE PRECISION))"";
 for ""NaN"" (not a number), use ""SQRT(-1)"".
 ","
-SELECT -1600.05
-SELECT CAST(0 AS DOUBLE PRECISION)
-SELECT -1.4e-10
+-1600.05
+CAST(0 AS DOUBLE PRECISION)
+-1.4e-10
 "
 
 "Literals","Dollar Quoted String","
@@ -2178,12 +2178,14 @@ The maximum length of the number depends on the data type used.
 "Literals","Numeric","
 decimal | int | long | @h2@ { hexNumber }
 ","
-The data type of a numeric value is always the lowest possible for the given value.
-If the number contains a dot this is decimal; otherwise it is int, long, or decimal (depending on the value).
+The data type of a numeric literal is the NUMERIC if the number contains a dot;
+otherwise it is is always the lowest possible from INTEGER, BIGINT, or NUMERIC.
+
+An explicit CAST can be used to change the data type.
 ","
-SELECT -1600.05
-SELECT CAST(0 AS DOUBLE PRECISION)
-SELECT -1.4e-10
+-1600.05
+CAST(0 AS DOUBLE PRECISION)
+-1.4e-10
 "
 
 "Literals","String","
@@ -3414,7 +3416,7 @@ The subtraction operation ignores the leading field precision of the qualifier.
 "
 
 "Other Grammar","Time zone","
-AT { TIME ZONE { intervalHourToMinute | intervalHourToSecond | string } | LOCAL }
+AT { TIME ZONE { intervalHourToMinute | intervalHourToSecond | @h2@ { string } } | LOCAL }
 ","
 A time zone. Converts the timestamp with or without time zone into timestamp with time zone at specified time zone.
 If a day-time interval is specified as a time zone,
@@ -6258,7 +6260,8 @@ JSON_OBJECTAGG(KEY NAME VALUE VAL);
 "
 
 "Aggregate Functions (JSON)","JSON_ARRAYAGG","
-JSON_ARRAYAGG(expression [ { NULL | ABSENT } ON NULL ])
+JSON_ARRAYAGG(expression [ ORDER BY sortSpecificationList ]
+[ { NULL | ABSENT } ON NULL ] )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Aggregates the values into a JSON array.

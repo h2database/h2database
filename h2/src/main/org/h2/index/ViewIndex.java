@@ -10,9 +10,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
-import org.h2.command.dml.AllColumnsForPlan;
-import org.h2.command.dml.Query;
-import org.h2.command.dml.SelectUnion;
+import org.h2.command.query.AllColumnsForPlan;
+import org.h2.command.query.Query;
+import org.h2.command.query.SelectUnion;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Parameter;
@@ -119,7 +119,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     @Override
     public String getPlanSQL() {
-        return query == null ? null : query.getPlanSQL(TRACE_SQL_FLAGS);
+        return query == null ? null : query.getPlanSQL(TRACE_SQL_FLAGS | ADD_PLAN_INFORMATION);
     }
 
     @Override

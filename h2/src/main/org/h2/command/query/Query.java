@@ -3,11 +3,11 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.command.dml;
+package org.h2.command.query;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Iterator;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -86,7 +86,7 @@ public abstract class Query extends Prepared {
     /**
      * Describes elements of the ORDER BY clause of a query.
      */
-    ArrayList<SelectOrderBy> orderList;
+    ArrayList<QueryOrderBy> orderList;
 
     /**
      *  A sort order represents an ORDER BY clause in a query.
@@ -243,7 +243,7 @@ public abstract class Query extends Prepared {
      *
      * @param order the order by list
      */
-    public void setOrder(ArrayList<SelectOrderBy> order) {
+    public void setOrder(ArrayList<QueryOrderBy> order) {
         orderList = order;
     }
 
@@ -489,46 +489,44 @@ public abstract class Query extends Prepared {
     /**
      * Initialize the order by list. This call may extend the expressions list.
      *
-     * @param session the session
-     * @param expressions the select list expressions
      * @param expressionSQL the select list SQL snippets
-     * @param orderList the order by list
-     * @param visible the number of visible columns in the select list
      * @param mustBeInResult all order by expressions must be in the select list
      * @param filters the table filters
+     * @return {@code true} if ORDER BY clause is preserved, {@code false}
+     *         otherwise
      */
-    static void initOrder(Session session,
-            ArrayList<Expression> expressions,
-            ArrayList<String> expressionSQL,
-            List<SelectOrderBy> orderList,
-            int visible,
-            boolean mustBeInResult,
-            ArrayList<TableFilter> filters) {
-        for (SelectOrderBy o : orderList) {
+    boolean initOrder(ArrayList<String> expressionSQL, boolean mustBeInResult, ArrayList<TableFilter> filters) {
+        for (Iterator<QueryOrderBy> i = orderList.iterator(); i.hasNext();) {
+            QueryOrderBy o = i.next();
             Expression e = o.expression;
             if (e == null) {
                 continue;
             }
-            int idx = initExpression(session, expressions, expressionSQL, e, visible, mustBeInResult, filters);
+            if (e.isConstant()) {
+                i.remove();
+                continue;
+            }
+            int idx = initExpression(expressionSQL, e, mustBeInResult, filters);
             o.columnIndexExpr = ValueExpression.get(ValueInteger.get(idx + 1));
             o.expression = expressions.get(idx).getNonAliasExpression();
         }
+        if (orderList.isEmpty()) {
+            orderList = null;
+            return false;
+        }
+        return true;
     }
 
     /**
      * Initialize the 'ORDER BY' or 'DISTINCT' expressions.
      *
-     * @param session the session
-     * @param expressions the select list expressions
      * @param expressionSQL the select list SQL snippets
      * @param e the expression.
-     * @param visible the number of visible columns in the select list
      * @param mustBeInResult all order by expressions must be in the select list
      * @param filters the table filters.
      * @return index on the expression in the {@link #expressions} list.
      */
-    static int initExpression(Session session, ArrayList<Expression> expressions,
-            ArrayList<String> expressionSQL, Expression e, int visible, boolean mustBeInResult,
+    int initExpression(ArrayList<String> expressionSQL, Expression e, boolean mustBeInResult,
             ArrayList<TableFilter> filters) {
         Database db = session.getDatabase();
         // special case: SELECT 1 AS A FROM DUAL ORDER BY A
@@ -540,7 +538,7 @@ public abstract class Query extends Prepared {
             ExpressionColumn exprCol = (ExpressionColumn) e;
             String tableAlias = exprCol.getOriginalTableAliasName();
             String col = exprCol.getOriginalColumnName();
-            for (int j = 0; j < visible; j++) {
+            for (int j = 0, visible = getColumnCount(); j < visible; j++) {
                 Expression ec = expressions.get(j);
                 if (ec instanceof ExpressionColumn) {
                     // select expression
@@ -641,19 +639,18 @@ public abstract class Query extends Prepared {
     }
 
     /**
-     * Create a {@link SortOrder} object given the list of {@link SelectOrderBy}
+     * Create a {@link SortOrder} object given the list of {@link QueryOrderBy}
      * objects.
      *
-     * @param orderList a list of {@link SelectOrderBy} elements
+     * @param orderList a list of {@link QueryOrderBy} elements
      * @param expressionCount the number of columns in the query
-     * @return the {@link SortOrder} object
      */
-    public SortOrder prepareOrder(ArrayList<SelectOrderBy> orderList, int expressionCount) {
+    void prepareOrder(ArrayList<QueryOrderBy> orderList, int expressionCount) {
         int size = orderList.size();
         int[] index = new int[size];
         int[] sortType = new int[size];
         for (int i = 0; i < size; i++) {
-            SelectOrderBy o = orderList.get(i);
+            QueryOrderBy o = orderList.get(i);
             int idx;
             boolean reverse = false;
             Value v = o.columnIndexExpr.getValue(null);
@@ -679,7 +676,48 @@ public abstract class Query extends Prepared {
             }
             sortType[i] = type;
         }
-        return new SortOrder(session, index, sortType, orderList);
+        sort = new SortOrder(session, index, sortType, orderList);
+        this.orderList = null;
+    }
+
+    /**
+     * Removes constant expressions from the sort order.
+     *
+     * Some constants are detected only after optimization of expressions, this
+     * method removes them from the sort order only. They are currently
+     * preserved in the list of expressions.
+     */
+    void cleanupOrder() {
+        int sourceIndexes[] = sort.getQueryColumnIndexes();
+        int count = sourceIndexes.length;
+        int constants = 0;
+        for (int i = 0; i < count; i++) {
+            if (expressions.get(sourceIndexes[i]).isConstant()) {
+                constants++;
+            }
+        }
+        if (constants == 0) {
+            return;
+        }
+        if (constants == count) {
+            sort = null;
+            return;
+        }
+        int size = count - constants;
+        int[] indexes = new int[size];
+        int[] sortTypes = new int[size];
+        int[] sourceSortTypes = sort.getSortTypes();
+        ArrayList<QueryOrderBy> orderList = sort.getOrderList();
+        for (int i = 0, j = 0; j < size; i++) {
+            if (!expressions.get(sourceIndexes[i]).isConstant()) {
+                indexes[j] = sourceIndexes[i];
+                sortTypes[j] = sourceSortTypes[i];
+                j++;
+            } else {
+                orderList.remove(j);
+            }
+        }
+        sort = new SortOrder(session, indexes, sortTypes, orderList);
     }
 
     @Override
@@ -746,7 +784,7 @@ public abstract class Query extends Prepared {
      */
     void appendEndOfQueryToSQL(StringBuilder builder, int sqlFlags, Expression[] expressions) {
         if (sort != null) {
-            builder.append("\nORDER BY ").append(sort.getSQL(expressions, visibleColumnCount, sqlFlags));
+            sort.getSQL(builder.append("\nORDER BY "), expressions, visibleColumnCount, sqlFlags);
         } else if (orderList != null) {
             builder.append("\nORDER BY ");
             for (int i = 0, l = orderList.size(); i < l; i++) {
@@ -899,4 +937,27 @@ public abstract class Query extends Prepared {
         ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);
         isEverything(visitor);
     }
+
+    /**
+     * Check if this query will always return the same value and has no side
+     * effects.
+     *
+     * @return if this query will always return the same value and has no side
+     *         effects.
+     */
+    public boolean isConstantQuery() {
+        return !hasOrder() && (offsetExpr == null || offsetExpr.isConstant())
+                && (limitExpr == null || limitExpr.isConstant());
+    }
+
+    /**
+     * If this query is determined as a single-row query, returns a replacement
+     * expression.
+     *
+     * @return the expression, or {@code null}
+     */
+    public Expression getIfSingleRow() {
+        return null;
+    }
+
 }

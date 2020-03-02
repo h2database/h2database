@@ -8,7 +8,7 @@ package org.h2.expression;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
-import org.h2.command.dml.Query;
+import org.h2.command.query.Query;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -23,7 +23,7 @@ import org.h2.value.ValueRow;
  * A query returning a single value.
  * Subqueries are used inside other statements.
  */
-public class Subquery extends Expression {
+public final class Subquery extends Expression {
 
     private final Query query;
     private Expression expression;
@@ -87,6 +87,13 @@ public class Subquery extends Expression {
     @Override
     public Expression optimize(Session session) {
         query.prepare();
+        if (query.isConstantQuery()) {
+            return ValueExpression.get(getValue(session));
+        }
+        Expression e = query.getIfSingleRow();
+        if (e != null) {
+            return e.optimize(session);
+        }
         return this;
     }
 
@@ -98,6 +105,11 @@ public class Subquery extends Expression {
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return builder.append('(').append(query.getPlanSQL(sqlFlags)).append(')');
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return getSQL(builder, sqlFlags);
     }
 
     @Override
@@ -134,6 +146,11 @@ public class Subquery extends Expression {
     @Override
     public int getCost() {
         return query.getCostAsExpression();
+    }
+
+    @Override
+    public boolean isConstant() {
+        return query.isConstantQuery();
     }
 
     @Override

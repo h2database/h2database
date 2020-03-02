@@ -20,14 +20,14 @@ SELECT A, ANY(B < 2), SOME(B > 3), BOOL_OR(B = 1), ANY(B = 1) FILTER (WHERE A = 
 DROP TABLE TEST;
 > ok
 
-SELECT TRUE = (ANY((SELECT TRUE)));
-> TRUE = (ANY((SELECT TRUE)))
-> ---------------------------
+SELECT TRUE = (ANY((SELECT X > 0 FROM SYSTEM_RANGE(1, 1))));
+> TRUE = (ANY((SELECT (X > 0) FROM SYSTEM_RANGE(1, 1))))
+> ------------------------------------------------------
 > TRUE
 > rows: 1
 
-SELECT TRUE = (ANY((SELECT FALSE)));
-> TRUE = (ANY((SELECT FALSE)))
-> ----------------------------
+SELECT TRUE = (ANY((SELECT X < 0 FROM SYSTEM_RANGE(1, 1))));
+> TRUE = (ANY((SELECT (X < 0) FROM SYSTEM_RANGE(1, 1))))
+> ------------------------------------------------------
 > FALSE
 > rows: 1

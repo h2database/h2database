@@ -6,7 +6,8 @@
 package org.h2.mvstore.db;
 
 import java.util.List;
-import org.h2.command.dml.AllColumnsForPlan;
+
+import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;

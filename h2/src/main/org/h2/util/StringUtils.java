@@ -810,17 +810,6 @@ public class StringUtils {
     }
 
     /**
-     * In a string, replace block comment marks with /++ .. ++/.
-     *
-     * @param sql the string
-     * @return the resulting string
-     */
-    public static String quoteRemarkSQL(String sql) {
-        sql = replaceAll(sql, "*/", "++/");
-        return replaceAll(sql, "/*", "/++");
-    }
-
-    /**
      * Pad a string. This method is used for the SQL function RPAD and LPAD.
      *
      * @param string the original string

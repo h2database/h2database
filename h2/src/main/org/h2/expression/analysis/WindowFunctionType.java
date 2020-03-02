@@ -120,4 +120,23 @@ public enum WindowFunctionType {
         return name();
     }
 
+    /**
+     * Returns whether window function of this type requires window ordering
+     * clause.
+     *
+     * @return {@code true} if it does, {@code false} if it may be omitted
+     */
+    public boolean requiresWindowOrdering() {
+        switch (this) {
+        case RANK:
+        case DENSE_RANK:
+        case NTILE:
+        case LEAD:
+        case LAG:
+            return true;
+        default:
+            return false;
+        }
+    }
+
 }

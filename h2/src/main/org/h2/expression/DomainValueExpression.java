@@ -51,11 +51,6 @@ public class DomainValueExpression extends Expression {
     }
 
     @Override
-    public boolean isConstant() {
-        return false;
-    }
-
-    @Override
     public boolean isValueSet() {
         return true;
     }

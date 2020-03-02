@@ -5,7 +5,7 @@
  */
 package org.h2.index;
 
-import org.h2.command.dml.AllColumnsForPlan;
+import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
@@ -29,7 +29,7 @@ public interface Index extends SchemaObject {
      * @return the plan
      */
     default String getPlanSQL() {
-        return getSQL(TRACE_SQL_FLAGS);
+        return getSQL(TRACE_SQL_FLAGS | ADD_PLAN_INFORMATION);
     }
 
     /**

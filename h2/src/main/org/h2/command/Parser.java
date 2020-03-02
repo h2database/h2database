@@ -7866,9 +7866,34 @@ public class Parser {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.SCHEMA_SEARCH_PATH);
             ArrayList<String> list = Utils.newSmallArrayList();
-            do {
-                list.add(readAliasIdentifier());
-            } while (readIf(COMMA));
+            if (database.getMode().getEnum() == Mode.ModeEnum.PostgreSQL) {
+                String pgCatalog = database.sysIdentifier("PG_CATALOG");
+                boolean hasPgCatalog = false;
+                do {
+                    // some PG clients will send single-quoted alias
+                    String s = currentTokenType == LITERAL ?
+                            readString() : readAliasIdentifier();
+                    if ("$user".equals(s)) {
+                        continue;
+                    }
+                    if (pgCatalog.equals(s)) {
+                        hasPgCatalog = true;
+                    }
+                    list.add(s);
+                } while (readIf(COMMA));
+                // If "pg_catalog" is not in the path then it will be searched before
+                // searching any of the path items. See
+                // https://www.postgresql.org/docs/8.2/runtime-config-client.html
+                if (!hasPgCatalog) {
+                    if (database.findSchema(pgCatalog) != null) {
+                        list.add(0, pgCatalog);
+                    }
+                }
+            } else {
+                do {
+                    list.add(readAliasIdentifier());
+                } while (readIf(COMMA));
+            }
             command.setStringArray(list.toArray(new String[0]));
             return command;
         } else if (readIf("JAVA_OBJECT_SERIALIZER")) {

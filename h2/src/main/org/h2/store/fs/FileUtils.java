@@ -139,7 +139,7 @@ public class FileUtils {
         return FilePath.get(fileName).isAbsolute()
                 // Allows Windows to recognize "/path" as absolute.
                 // Makes the same configuration work on all platforms.
-                || fileName.startsWith(File.pathSeparator)
+                || fileName.startsWith(File.separator)
                 // Just in case of non-normalized path on Windows
                 || fileName.startsWith("/");
     }

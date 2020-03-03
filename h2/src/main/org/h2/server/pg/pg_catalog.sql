@@ -275,6 +275,9 @@ create alias obj_description for "org.h2.server.pg.PgServer.getObjDescription";
 drop alias if exists set_config;
 create alias set_config deterministic for "org.h2.server.pg.PgServer.setConfig";
 
+drop alias if exists pg_table_is_visible;
+create alias pg_table_is_visible deterministic for "org.h2.server.pg.PgServer.tableIsVisible";
+
 create table pg_catalog.pg_database(
     oid int,
     datname varchar_ignorecase,

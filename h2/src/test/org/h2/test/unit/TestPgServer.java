@@ -646,7 +646,7 @@ public class TestPgServer extends TestDb {
                 assertTrue(rs.next());
                 assertEquals("off", rs.getString(1));
             }
-            // TODO stat.execute("SET search_path TO 'public', '$user'");
+            stat.execute("SET search_path TO 'public', '$user'");
             try (ResultSet rs = stat.executeQuery("SELECT *, NULL AS data_length, " +
                     "pg_relation_size(QUOTE_IDENT(t.TABLE_SCHEMA) || '.' || QUOTE_IDENT(t.TABLE_NAME))::bigint " +
                     "AS index_length, " +
@@ -665,6 +665,22 @@ public class TestPgServer extends TestDb {
                     "JOIN \"pg_catalog\".\"pg_proc\" AS \"p\" ON \"p\".\"pronamespace\" = \"n\".\"oid\" " +
                     "WHERE \"n\".\"nspname\"='public';")) {
                 assertFalse(rs.next()); // "pg_proc" always empty
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT DISTINCT a.attname AS column_name, " +
+                    "a.attnum, a.atttypid, FORMAT_TYPE(a.atttypid, a.atttypmod) AS data_type, " +
+                    "CASE a.attnotnull WHEN false THEN 'YES' ELSE 'NO' END AS IS_NULLABLE, " +
+                    "com.description AS column_comment, pg_get_expr(def.adbin, def.adrelid) AS column_default, " +
+                    "NULL AS character_maximum_length FROM pg_attribute AS a " +
+                    "JOIN pg_class AS pgc ON pgc.oid = a.attrelid " +
+                    "LEFT JOIN pg_description AS com ON (pgc.oid = com.objoid AND a.attnum = com.objsubid) " +
+                    "LEFT JOIN pg_attrdef AS def ON (a.attrelid = def.adrelid AND a.attnum = def.adnum) " +
+                    "WHERE a.attnum > 0 AND pgc.oid = a.attrelid AND pg_table_is_visible(pgc.oid) " +
+                    "AND NOT a.attisdropped AND pgc.relname = 'test' ORDER BY a.attnum")) {
+                assertTrue(rs.next());
+                assertEquals("id", rs.getString("column_name"));
+                assertTrue(rs.next());
+                assertEquals("x1", rs.getString("column_name"));
+                assertFalse(rs.next());
             }
         } finally {
             server.stop();

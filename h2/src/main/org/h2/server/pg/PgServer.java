@@ -459,11 +459,11 @@ public class PgServer implements Service {
     }
 
     /**
-     * Get comment for a database object
+     * Get comment for a database object.
      * This method is called by the database.
      *
      * @param oid
-     * @return ""
+     * @return always ""
      */
     @SuppressWarnings("unused")
     public static String getObjDescription(int oid) {
@@ -485,15 +485,27 @@ public class PgServer implements Service {
     }
 
     /**
-     * Get disk space used by the specified table
+     * Get disk space used by the specified table.
      * This method is called by the database.
      *
      * @param table the table name
-     * @return 0
+     * @return always 0
      */
     @SuppressWarnings("unused")
     public static int getRelationSize(String table) {
         return 0;
+    }
+
+    /**
+     * Is table visible in search path.
+     * This method is called by the database.
+     *
+     * @param oid
+     * @return always true
+     */
+    @SuppressWarnings("unused")
+    public static boolean tableIsVisible(int oid) {
+        return true;
     }
 
     /**

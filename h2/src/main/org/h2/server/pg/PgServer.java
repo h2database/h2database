@@ -13,7 +13,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,7 +20,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.server.Service;
 import org.h2.util.NetUtils;
@@ -301,43 +299,6 @@ public class PgServer implements Service {
     }
 
     /**
-     * The Java implementation of the PostgreSQL function pg_get_indexdef. The
-     * method is used to get CREATE INDEX command for an index, or the column
-     * definition of one column in the index.
-     *
-     * @param conn the connection
-     * @param indexId the index id
-     * @param ordinalPosition the ordinal position (null if the SQL statement
-     *            should be returned)
-     * @param pretty this flag is ignored
-     * @return the SQL statement or the column name
-     */
-    @SuppressWarnings("unused")
-    public static String getIndexColumn(Connection conn, int indexId,
-            Integer ordinalPosition, Boolean pretty) throws SQLException {
-        if (ordinalPosition == null || ordinalPosition == 0) {
-            PreparedStatement prep = conn.prepareStatement(
-                    "select sql from information_schema.indexes where id=?");
-            prep.setInt(1, indexId);
-            ResultSet rs = prep.executeQuery();
-            if (rs.next()) {
-                return rs.getString(1);
-            }
-            return "";
-        }
-        PreparedStatement prep = conn.prepareStatement(
-                "select column_name from information_schema.indexes " +
-                "where id=? and ordinal_position=?");
-        prep.setInt(1, indexId);
-        prep.setInt(2, ordinalPosition);
-        ResultSet rs = prep.executeQuery();
-        if (rs.next()) {
-            return rs.getString(1);
-        }
-        return "";
-    }
-
-    /**
      * Get the OID of an object. This method is called by the database.
      *
      * @param conn the connection
@@ -357,169 +318,6 @@ public class PgServer implements Service {
             return 0;
         }
         return rs.getInt(1);
-    }
-
-    /**
-     * Get the name of this encoding code.
-     * This method is called by the database.
-     *
-     * @param code the encoding code
-     * @return the encoding name
-     */
-    public static String getEncodingName(int code) {
-        switch (code) {
-        case 0:
-            return "SQL_ASCII";
-        case 6:
-            return "UTF8";
-        case 8:
-            return "LATIN1";
-        default:
-            return code < 40 ? "UTF8" : "";
-        }
-    }
-
-    /**
-     * Get the version. This method must return PostgreSQL to keep some clients
-     * happy. This method is called by the database.
-     *
-     * @return the server name and version
-     */
-    public static String getVersion() {
-        return "PostgreSQL " + Constants.PG_VERSION + " server protocol using H2 " +
-                Constants.FULL_VERSION;
-    }
-
-    /**
-     * Get the current system time.
-     * This method is called by the database.
-     *
-     * @return the current system time
-     */
-    public static Timestamp getStartTime() {
-        return new Timestamp(System.currentTimeMillis());
-    }
-
-    /**
-     * Get the user name for this id.
-     * This method is called by the database.
-     *
-     * @param conn the connection
-     * @param id the user id
-     * @return the user name
-     */
-    public static String getUserById(Connection conn, int id) throws SQLException {
-        PreparedStatement prep = conn.prepareStatement(
-                "SELECT NAME FROM INFORMATION_SCHEMA.USERS WHERE ID=?");
-        prep.setInt(1, id);
-        ResultSet rs = prep.executeQuery();
-        if (rs.next()) {
-            return rs.getString(1);
-        }
-        return null;
-    }
-
-    /**
-     * Check if the this session has the given database privilege.
-     * This method is called by the database.
-     *
-     * @param id the session id
-     * @param privilege the privilege to check
-     * @return true
-     */
-    @SuppressWarnings("unused")
-    public static boolean hasDatabasePrivilege(int id, String privilege) {
-        return true;
-    }
-
-    /**
-     * Check if the current session has access to this table.
-     * This method is called by the database.
-     *
-     * @param table the table name
-     * @param privilege the privilege to check
-     * @return true
-     */
-    @SuppressWarnings("unused")
-    public static boolean hasTablePrivilege(String table, String privilege) {
-        return true;
-    }
-
-    /**
-     * Get the current transaction id.
-     * This method is called by the database.
-     *
-     * @param table the table name
-     * @param id the id
-     * @return 1
-     */
-    @SuppressWarnings("unused")
-    public static int getCurrentTid(String table, String id) {
-        return 1;
-    }
-
-    /**
-     * Get comment for a database object.
-     * This method is called by the database.
-     *
-     * @param oid
-     * @return always ""
-     */
-    @SuppressWarnings("unused")
-    public static String getObjDescription(int oid) {
-        return "";
-    }
-
-    /**
-     * Set parameter and return new value
-     * This method is called by the database.
-     *
-     * @param settingName
-     * @param newValue
-     * @param isLocal
-     * @return new value
-     */
-    @SuppressWarnings("unused")
-    public static String setConfig(String settingName, String newValue, boolean isLocal) {
-        return newValue;
-    }
-
-    /**
-     * Get disk space used by the specified table.
-     * This method is called by the database.
-     *
-     * @param table the table name
-     * @return always 0
-     */
-    @SuppressWarnings("unused")
-    public static int getRelationSize(String table) {
-        return 0;
-    }
-
-    /**
-     * Is table visible in search path.
-     * This method is called by the database.
-     *
-     * @param oid
-     * @return always true
-     */
-    @SuppressWarnings("unused")
-    public static boolean tableIsVisible(int oid) {
-        return true;
-    }
-
-    /**
-     * A fake wrapper around pg_get_expr(expr_text, relation_oid), in PostgreSQL
-     * it "decompiles the internal form of an expression, assuming that any vars
-     * in it refer to the relation indicated by the second parameter".
-     *
-     * @param exprText the expression text
-     * @param relationOid the relation object id
-     * @return always null
-     */
-    @SuppressWarnings("unused")
-    public static String getPgExpr(String exprText, int relationOid) {
-        return null;
     }
 
     /**

@@ -244,6 +244,7 @@ import org.h2.expression.function.JavaFunction;
 import org.h2.expression.function.TableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
+import org.h2.mode.FunctionsPostgreSQL;
 import org.h2.result.SortOrder;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
@@ -3851,7 +3852,7 @@ public class Parser {
 
     private Expression readFunction(Schema schema, String name) {
         if (schema != null) {
-            return readJavaFunction(schema, name, true);
+            return readFunctionWithSchema(schema, name);
         }
         boolean allowOverride = database.isAllowBuiltinAliasOverride();
         if (allowOverride) {
@@ -3880,6 +3881,17 @@ public class Parser {
             return readJavaFunction(null, name, true);
         }
         return readFunctionParameters(function);
+    }
+
+    private Expression readFunctionWithSchema(Schema schema, String name) {
+        if (database.getMode().getEnum() == ModeEnum.PostgreSQL
+                && schema.getName().equals(database.sysIdentifier("PG_CATALOG"))) {
+            Function function = FunctionsPostgreSQL.getFunction(database, name);
+            if (function != null) {
+                return readFunctionParameters(function);
+            }
+        }
+        return readJavaFunction(schema, name, true);
     }
 
     private Function readFunctionParameters(Function function) {

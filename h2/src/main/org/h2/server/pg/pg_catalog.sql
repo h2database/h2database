@@ -3,7 +3,8 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-;
+set mode PostgreSQL;
+
 drop schema if exists pg_catalog cascade;
 create schema pg_catalog;
 
@@ -233,50 +234,8 @@ and i.ordinal_position = 1
 and 1=0;
 grant select on pg_catalog.pg_index to PUBLIC;
 
-drop alias if exists pg_get_indexdef;
-create alias pg_get_indexdef for "org.h2.server.pg.PgServer.getIndexColumn";
-
-drop alias if exists pg_catalog.pg_get_indexdef;
-create alias pg_catalog.pg_get_indexdef for "org.h2.server.pg.PgServer.getIndexColumn";
-
-drop alias if exists pg_catalog.pg_get_expr;
-create alias pg_catalog.pg_get_expr for "org.h2.server.pg.PgServer.getPgExpr";
-
 drop alias if exists pg_catalog.format_type;
 create alias pg_catalog.format_type for "org.h2.server.pg.PgServer.formatType";
-
-drop alias if exists version;
-create alias version for "org.h2.server.pg.PgServer.getVersion";
-
-drop alias if exists pg_encoding_to_char;
-create alias pg_encoding_to_char for "org.h2.server.pg.PgServer.getEncodingName";
-
-drop alias if exists pg_postmaster_start_time;
-create alias pg_postmaster_start_time for "org.h2.server.pg.PgServer.getStartTime";
-
-drop alias if exists pg_get_userbyid;
-create alias pg_get_userbyid for "org.h2.server.pg.PgServer.getUserById";
-
-drop alias if exists has_database_privilege;
-create alias has_database_privilege for "org.h2.server.pg.PgServer.hasDatabasePrivilege";
-
-drop alias if exists has_table_privilege;
-create alias has_table_privilege for "org.h2.server.pg.PgServer.hasTablePrivilege";
-
-drop alias if exists currtid2;
-create alias currtid2 for "org.h2.server.pg.PgServer.getCurrentTid";
-
-drop alias if exists pg_relation_size;
-create alias pg_relation_size for "org.h2.server.pg.PgServer.getRelationSize";
-
-drop alias if exists obj_description;
-create alias obj_description for "org.h2.server.pg.PgServer.getObjDescription";
-
-drop alias if exists set_config;
-create alias set_config deterministic for "org.h2.server.pg.PgServer.setConfig";
-
-drop alias if exists pg_table_is_visible;
-create alias pg_table_is_visible deterministic for "org.h2.server.pg.PgServer.tableIsVisible";
 
 create table pg_catalog.pg_database(
     oid int,

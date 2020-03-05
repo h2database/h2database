@@ -33,7 +33,7 @@ public final class FunctionInfo {
     /**
      * If the result of the function is NULL if any of the parameters is NULL.
      */
-    final boolean nullIfParameterIsNull;
+    public final boolean nullIfParameterIsNull;
 
     /**
      * If this function always returns the same value for the same parameters.

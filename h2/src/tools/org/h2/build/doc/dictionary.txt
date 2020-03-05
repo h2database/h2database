@@ -827,4 +827,4 @@ pct sliding deliberately sampling grabs saw video keyed carries estimator restra
 expandable jira meaningless iterated maliciously crafted cdef attention deserialized hurts absorb bufcnt digests
 consumer reread relname proargtypes pronamespace relnamespace heidi proname reltuples collects trigraphs nspname
 timetz timestamptz psycopg adbin attrdef objoid attnotnull adnum adrelid objsubid atttypid attname attisdropped pgc
-attrelid
+attrelid currtid encodings

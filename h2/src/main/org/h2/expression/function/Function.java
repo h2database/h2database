@@ -50,6 +50,7 @@ import org.h2.message.DbException;
 import org.h2.mode.FunctionsMSSQLServer;
 import org.h2.mode.FunctionsMySQL;
 import org.h2.mode.FunctionsOracle;
+import org.h2.mode.FunctionsPostgreSQL;
 import org.h2.mvstore.db.MVSpatialIndex;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
@@ -592,6 +593,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 return FunctionsMySQL.getFunction(database, name);
             case Oracle:
                 return FunctionsOracle.getFunction(database, name);
+            case PostgreSQL:
+                return FunctionsPostgreSQL.getFunction(database, name);
             default:
                 return null;
             }

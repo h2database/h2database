@@ -313,9 +313,9 @@ public class TestPgServer extends TestDb {
         assertTrue(rs.getBoolean(1));
 
 
-        rs = stat.executeQuery("select pg_get_userbyid(-1)");
+        rs = stat.executeQuery("select pg_get_userbyid(1000000000)");
         rs.next();
-        assertEquals(null, rs.getString(1));
+        assertEquals("unknown (OID=1000000000)", rs.getString(1));
 
         rs = stat.executeQuery("select pg_encoding_to_char(0)");
         rs.next();
@@ -356,7 +356,7 @@ public class TestPgServer extends TestDb {
 
         rs = stat.executeQuery("select pg_get_indexdef(0, 0, false)");
         rs.next();
-        assertEquals("", rs.getString(1));
+        assertNull(rs.getString(1));
 
         rs = stat.executeQuery("select id from information_schema.indexes " +
                 "where index_name='IDX_TEST_NAME'");
@@ -370,9 +370,7 @@ public class TestPgServer extends TestDb {
                 rs.getString(1));
         rs = stat.executeQuery("select pg_get_indexdef("+indexId+", null, false)");
         rs.next();
-        assertEquals(
-                "CREATE INDEX \"PUBLIC\".\"IDX_TEST_NAME\" ON \"PUBLIC\".\"TEST\"(\"NAME\", \"ID\")",
-                rs.getString(1));
+        assertNull(rs.getString(1));
         rs = stat.executeQuery("select pg_get_indexdef("+indexId+", 1, false)");
         rs.next();
         assertEquals("NAME", rs.getString(1));
@@ -657,8 +655,8 @@ public class TestPgServer extends TestDb {
                     "WHERE t.\"table_schema\"='public'")) {
                 assertTrue(rs.next());
                 assertEquals("test", rs.getString("table_name"));
-                assertEquals(0, rs.getInt("index_length")); // test pg_relation_size()
-                assertEquals("", rs.getString("comment")); // test obj_description()
+                assertTrue(rs.getLong("index_length") >= 0L); // test pg_relation_size()
+                assertNull(rs.getString("comment")); // test obj_description()
             }
             try (ResultSet rs = stat.executeQuery("SELECT \"p\".\"proname\", \"p\".\"proargtypes\" " +
                     "FROM \"pg_catalog\".\"pg_namespace\" AS \"n\" " +

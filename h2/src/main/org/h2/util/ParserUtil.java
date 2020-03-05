@@ -305,9 +305,14 @@ public class ParserUtil {
     public static final int TABLE = SET + 1;
 
     /**
+     * The token "TO".
+     */
+    public static final int TO = TABLE + 1;
+
+    /**
      * The token "TRUE".
      */
-    public static final int TRUE = TABLE + 1;
+    public static final int TRUE = TO + 1;
 
     /**
      * The token "UNION".
@@ -715,6 +720,8 @@ public class ParserUtil {
         case 'T':
             if (eq("TABLE", s, ignoreCase, start, end)) {
                 return TABLE;
+            } else if (eq("TO", s, ignoreCase, start, end)) {
+                return TO;
             } else if (eq("TRUE", s, ignoreCase, start, end)) {
                 return TRUE;
             }

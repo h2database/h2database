@@ -305,9 +305,14 @@ public class ParserUtil {
     public static final int TABLE = SET + 1;
 
     /**
+     * The token "TO".
+     */
+    public static final int TO = TABLE + 1;
+
+    /**
      * The token "TRUE".
      */
-    public static final int TRUE = TABLE + 1;
+    public static final int TRUE = TO + 1;
 
     /**
      * The token "UNION".
@@ -422,7 +427,7 @@ public class ParserUtil {
         if (length == 0) {
             return false;
         }
-        return getSaveTokenType(s, ignoreCase, 0, length, false) != IDENTIFIER;
+        return getTokenType(s, ignoreCase, 0, length, false) != IDENTIFIER;
     }
 
     /**
@@ -466,7 +471,7 @@ public class ParserUtil {
                 return false;
             }
         }
-        return getSaveTokenType(s, !databaseToUpper, 0, length, true) == IDENTIFIER;
+        return getTokenType(s, !databaseToUpper, 0, length, true) == IDENTIFIER;
     }
 
     /**
@@ -476,12 +481,13 @@ public class ParserUtil {
      * @param ignoreCase true if case should be ignored, false if only upper case
      *            tokens are detected as keywords
      * @param start start index of token
-     * @param end index of token, exclusive; must be greater than start index
-     * @param additionalKeywords whether TOP, INTERSECTS, and "current data /
-     *                           time" functions are keywords
+     * @param length length of token; must be positive
+     * @param additionalKeywords
+     *            whether context-sensitive keywords are returned as
+     *            {@link #KEYWORD}
      * @return the token type
      */
-    public static int getSaveTokenType(String s, boolean ignoreCase, int start, int end, boolean additionalKeywords) {
+    public static int getTokenType(String s, boolean ignoreCase, int start, int length, boolean additionalKeywords) {
         /*
          * JdbcDatabaseMetaData.getSQLKeywords() and tests should be updated when new
          * non-SQL:2003 keywords are introduced here.
@@ -493,273 +499,275 @@ public class ParserUtil {
         }
         switch (c) {
         case 'A':
-            if (eq("ALL", s, ignoreCase, start, end)) {
+            if (eq("ALL", s, ignoreCase, start, length)) {
                 return ALL;
-            } else if (eq("ARRAY", s, ignoreCase, start, end)) {
+            } else if (eq("ARRAY", s, ignoreCase, start, length)) {
                 return ARRAY;
-            } else if (eq("AS", s, ignoreCase, start, end)) {
+            } else if (eq('S', s, ignoreCase, start, length)) {
                 return AS;
             }
             if (additionalKeywords) {
-                if (eq("AND", s, ignoreCase, start, end)) {
+                if (eq("AND", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'B':
             if (additionalKeywords) {
-                if (eq("BETWEEN", s, ignoreCase, start, end) || eq("BOTH", s, ignoreCase, start, end)) {
+                if (eq("BETWEEN", s, ignoreCase, start, length) || eq("BOTH", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'C':
-            if (eq("CASE", s, ignoreCase, start, end)) {
+            if (eq("CASE", s, ignoreCase, start, length)) {
                 return CASE;
-            } else if (eq("CHECK", s, ignoreCase, start, end)) {
+            } else if (eq("CHECK", s, ignoreCase, start, length)) {
                 return CHECK;
-            } else if (eq("CONSTRAINT", s, ignoreCase, start, end)) {
+            } else if (eq("CONSTRAINT", s, ignoreCase, start, length)) {
                 return CONSTRAINT;
-            } else if (eq("CROSS", s, ignoreCase, start, end)) {
+            } else if (eq("CROSS", s, ignoreCase, start, length)) {
                 return CROSS;
-            } else if (eq("CURRENT_CATALOG", s, ignoreCase, start, end)) {
+            } else if (eq("CURRENT_CATALOG", s, ignoreCase, start, length)) {
                 return CURRENT_CATALOG;
-            } else if (eq("CURRENT_DATE", s, ignoreCase, start, end)) {
+            } else if (eq("CURRENT_DATE", s, ignoreCase, start, length)) {
                 return CURRENT_DATE;
-            } else if (eq("CURRENT_SCHEMA", s, ignoreCase, start, end)) {
+            } else if (eq("CURRENT_SCHEMA", s, ignoreCase, start, length)) {
                 return CURRENT_SCHEMA;
-            } else if (eq("CURRENT_TIME", s, ignoreCase, start, end)) {
+            } else if (eq("CURRENT_TIME", s, ignoreCase, start, length)) {
                 return CURRENT_TIME;
-            } else if (eq("CURRENT_TIMESTAMP", s, ignoreCase, start, end)) {
+            } else if (eq("CURRENT_TIMESTAMP", s, ignoreCase, start, length)) {
                 return CURRENT_TIMESTAMP;
-            } else if (eq("CURRENT_USER", s, ignoreCase, start, end)) {
+            } else if (eq("CURRENT_USER", s, ignoreCase, start, length)) {
                 return CURRENT_USER;
             }
             return IDENTIFIER;
         case 'D':
-            if (eq("DAY", s, ignoreCase, start, end)) {
+            if (eq("DAY", s, ignoreCase, start, length)) {
                 return DAY;
-            } else if (eq("DISTINCT", s, ignoreCase, start, end)) {
+            } else if (eq("DISTINCT", s, ignoreCase, start, length)) {
                 return DISTINCT;
             }
             return IDENTIFIER;
         case 'E':
-            if (eq("EXCEPT", s, ignoreCase, start, end)) {
+            if (eq("EXCEPT", s, ignoreCase, start, length)) {
                 return EXCEPT;
-            } else if (eq("EXISTS", s, ignoreCase, start, end)) {
+            } else if (eq("EXISTS", s, ignoreCase, start, length)) {
                 return EXISTS;
             }
             return IDENTIFIER;
         case 'F':
-            if (eq("FETCH", s, ignoreCase, start, end)) {
+            if (eq("FETCH", s, ignoreCase, start, length)) {
                 return FETCH;
-            } else if (eq("FROM", s, ignoreCase, start, end)) {
+            } else if (eq("FROM", s, ignoreCase, start, length)) {
                 return FROM;
-            } else if (eq("FOR", s, ignoreCase, start, end)) {
+            } else if (eq("FOR", s, ignoreCase, start, length)) {
                 return FOR;
-            } else if (eq("FOREIGN", s, ignoreCase, start, end)) {
+            } else if (eq("FOREIGN", s, ignoreCase, start, length)) {
                 return FOREIGN;
-            } else if (eq("FULL", s, ignoreCase, start, end)) {
+            } else if (eq("FULL", s, ignoreCase, start, length)) {
                 return FULL;
-            } else if (eq("FALSE", s, ignoreCase, start, end)) {
+            } else if (eq("FALSE", s, ignoreCase, start, length)) {
                 return FALSE;
             }
             if (additionalKeywords) {
-                if (eq("FILTER", s, ignoreCase, start, end)) {
+                if (eq("FILTER", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'G':
-            if (eq("GROUP", s, ignoreCase, start, end)) {
+            if (eq("GROUP", s, ignoreCase, start, length)) {
                 return GROUP;
             }
             if (additionalKeywords) {
-                if (eq("GROUPS", s, ignoreCase, start, end)) {
+                if (eq("GROUPS", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'H':
-            if (eq("HAVING", s, ignoreCase, start, end)) {
+            if (eq("HAVING", s, ignoreCase, start, length)) {
                 return HAVING;
-            } else if (eq("HOUR", s, ignoreCase, start, end)) {
+            } else if (eq("HOUR", s, ignoreCase, start, length)) {
                 return HOUR;
             }
             return IDENTIFIER;
         case 'I':
-            if (eq("IF", s, ignoreCase, start, end)) {
+            if (eq('F', s, ignoreCase, start, length)) {
                 return IF;
-            } else if (eq("INNER", s, ignoreCase, start, end)) {
+            } else if (eq("INNER", s, ignoreCase, start, length)) {
                 return INNER;
-            } else if (eq("INTERSECT", s, ignoreCase, start, end)) {
+            } else if (eq("INTERSECT", s, ignoreCase, start, length)) {
                 return INTERSECT;
-            } else if (eq("INTERSECTS", s, ignoreCase, start, end)) {
+            } else if (eq("INTERSECTS", s, ignoreCase, start, length)) {
                 return INTERSECTS;
-            } else if (eq("INTERVAL", s, ignoreCase, start, end)) {
+            } else if (eq("INTERVAL", s, ignoreCase, start, length)) {
                 return INTERVAL;
-            } else if (eq("IS", s, ignoreCase, start, end)) {
+            } else if (eq('S', s, ignoreCase, start, length)) {
                 return IS;
             }
             if (additionalKeywords) {
-                if (eq("ILIKE", s, ignoreCase, start, end) || eq("IN", s, ignoreCase, start, end)) {
+                if (eq("ILIKE", s, ignoreCase, start, length) || eq('N', s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'J':
-            if (eq("JOIN", s, ignoreCase, start, end)) {
+            if (eq("JOIN", s, ignoreCase, start, length)) {
                 return JOIN;
             }
             return IDENTIFIER;
         case 'K':
-            if (eq("KEY", s, ignoreCase, start, end)) {
+            if (eq("KEY", s, ignoreCase, start, length)) {
                 return KEY;
             }
             return IDENTIFIER;
         case 'L':
-            if (eq("LEFT", s, ignoreCase, start, end)) {
+            if (eq("LEFT", s, ignoreCase, start, length)) {
                 return LEFT;
-            } else if (eq("LIMIT", s, ignoreCase, start, end)) {
+            } else if (eq("LIMIT", s, ignoreCase, start, length)) {
                 return LIMIT;
-            } else if (eq("LIKE", s, ignoreCase, start, end)) {
+            } else if (eq("LIKE", s, ignoreCase, start, length)) {
                 return LIKE;
-            } else if (eq("LOCALTIME", s, ignoreCase, start, end)) {
+            } else if (eq("LOCALTIME", s, ignoreCase, start, length)) {
                 return LOCALTIME;
-            } else if (eq("LOCALTIMESTAMP", s, ignoreCase, start, end)) {
+            } else if (eq("LOCALTIMESTAMP", s, ignoreCase, start, length)) {
                 return LOCALTIMESTAMP;
             }
             if (additionalKeywords) {
-                if (eq("LEADING", s, ignoreCase, start, end)) {
+                if (eq("LEADING", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'M':
-            if (eq("MINUS", s, ignoreCase, start, end)) {
+            if (eq("MINUS", s, ignoreCase, start, length)) {
                 return MINUS;
-            } else if (eq("MINUTE", s, ignoreCase, start, end)) {
+            } else if (eq("MINUTE", s, ignoreCase, start, length)) {
                 return MINUTE;
-            } else if (eq("MONTH", s, ignoreCase, start, end)) {
+            } else if (eq("MONTH", s, ignoreCase, start, length)) {
                 return MONTH;
             }
             return IDENTIFIER;
         case 'N':
-            if (eq("NOT", s, ignoreCase, start, end)) {
+            if (eq("NOT", s, ignoreCase, start, length)) {
                 return NOT;
-            } else if (eq("NATURAL", s, ignoreCase, start, end)) {
+            } else if (eq("NATURAL", s, ignoreCase, start, length)) {
                 return NATURAL;
-            } else if (eq("NULL", s, ignoreCase, start, end)) {
+            } else if (eq("NULL", s, ignoreCase, start, length)) {
                 return NULL;
             }
             return IDENTIFIER;
         case 'O':
-            if (eq("OFFSET", s, ignoreCase, start, end)) {
+            if (eq("OFFSET", s, ignoreCase, start, length)) {
                 return OFFSET;
-            } else if (eq("ON", s, ignoreCase, start, end)) {
+            } else if (eq('N', s, ignoreCase, start, length)) {
                 return ON;
-            } else if (eq("ORDER", s, ignoreCase, start, end)) {
+            } else if (eq("ORDER", s, ignoreCase, start, length)) {
                 return ORDER;
             }
             if (additionalKeywords) {
-                if (eq("OR", s, ignoreCase, start, end) || eq("OVER", s, ignoreCase, start, end)) {
+                if (eq('R', s, ignoreCase, start, length) || eq("OVER", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'P':
-            if (eq("PRIMARY", s, ignoreCase, start, end)) {
+            if (eq("PRIMARY", s, ignoreCase, start, length)) {
                 return PRIMARY;
             }
             if (additionalKeywords) {
-                if (eq("PARTITION", s, ignoreCase, start, end)) {
+                if (eq("PARTITION", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'Q':
-            if (eq("QUALIFY", s, ignoreCase, start, end)) {
+            if (eq("QUALIFY", s, ignoreCase, start, length)) {
                 return QUALIFY;
             }
             return IDENTIFIER;
         case 'R':
-            if (eq("RIGHT", s, ignoreCase, start, end)) {
+            if (eq("RIGHT", s, ignoreCase, start, length)) {
                 return RIGHT;
-            } else if (eq("ROW", s, ignoreCase, start, end)) {
+            } else if (eq("ROW", s, ignoreCase, start, length)) {
                 return ROW;
-            } else if (eq("ROWNUM", s, ignoreCase, start, end)) {
+            } else if (eq("ROWNUM", s, ignoreCase, start, length)) {
                 return ROWNUM;
             }
             if (additionalKeywords) {
-                if (eq("RANGE", s, ignoreCase, start, end) || eq("REGEXP", s, ignoreCase, start, end)
-                        || eq("ROWS", s, ignoreCase, start, end)) {
+                if (eq("RANGE", s, ignoreCase, start, length) || eq("REGEXP", s, ignoreCase, start, length)
+                        || eq("ROWS", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'S':
-            if (eq("SECOND", s, ignoreCase, start, end)) {
+            if (eq("SECOND", s, ignoreCase, start, length)) {
                 return SECOND;
-            } else if (eq("SELECT", s, ignoreCase, start, end)) {
+            } else if (eq("SELECT", s, ignoreCase, start, length)) {
                 return SELECT;
-            } else if (eq("SET", s, ignoreCase, start, end)) {
+            } else if (eq("SET", s, ignoreCase, start, length)) {
                 return SET;
             }
             if (additionalKeywords) {
-                if (eq("SYSDATE", s, ignoreCase, start, end) || eq("SYSTIME", s, ignoreCase, start, end)
-                        || eq("SYSTIMESTAMP", s, ignoreCase, start, end)) {
+                if (eq("SYSDATE", s, ignoreCase, start, length) || eq("SYSTIME", s, ignoreCase, start, length)
+                        || eq("SYSTIMESTAMP", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'T':
-            if (eq("TABLE", s, ignoreCase, start, end)) {
+            if (eq("TABLE", s, ignoreCase, start, length)) {
                 return TABLE;
-            } else if (eq("TRUE", s, ignoreCase, start, end)) {
+            } else if (eq('O', s, ignoreCase, start, length)) {
+                return TO;
+            } else if (eq("TRUE", s, ignoreCase, start, length)) {
                 return TRUE;
             }
             if (additionalKeywords) {
-                if (eq("TODAY", s, ignoreCase, start, end) || eq("TOP", s, ignoreCase, start, end)
-                        || eq("TRAILING", s, ignoreCase, start, end)) {
+                if (eq("TODAY", s, ignoreCase, start, length) || eq("TOP", s, ignoreCase, start, length)
+                        || eq("TRAILING", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'U':
-            if (eq("UNION", s, ignoreCase, start, end)) {
+            if (eq("UNION", s, ignoreCase, start, length)) {
                 return UNION;
-            } else if (eq("UNIQUE", s, ignoreCase, start, end)) {
+            } else if (eq("UNIQUE", s, ignoreCase, start, length)) {
                 return UNIQUE;
-            } else if (eq("UNKNOWN", s, ignoreCase, start, end)) {
+            } else if (eq("UNKNOWN", s, ignoreCase, start, length)) {
                 return UNKNOWN;
-            } else if (eq("USING", s, ignoreCase, start, end)) {
+            } else if (eq("USING", s, ignoreCase, start, length)) {
                 return USING;
             }
             return IDENTIFIER;
         case 'V':
-            if (eq("VALUE", s, ignoreCase, start, end)) {
+            if (eq("VALUE", s, ignoreCase, start, length)) {
                 return VALUE;
-            } else if (eq("VALUES", s, ignoreCase, start, end)) {
+            } else if (eq("VALUES", s, ignoreCase, start, length)) {
                 return VALUES;
             }
             return IDENTIFIER;
         case 'W':
-            if (eq("WHERE", s, ignoreCase, start, end)) {
+            if (eq("WHERE", s, ignoreCase, start, length)) {
                 return WHERE;
-            } else if (eq("WINDOW", s, ignoreCase, start, end)) {
+            } else if (eq("WINDOW", s, ignoreCase, start, length)) {
                 return WINDOW;
-            } else if (eq("WITH", s, ignoreCase, start, end)) {
+            } else if (eq("WITH", s, ignoreCase, start, length)) {
                 return WITH;
             }
             return IDENTIFIER;
         case 'Y':
-            if (eq("YEAR", s, ignoreCase, start, end)) {
+            if (eq("YEAR", s, ignoreCase, start, length)) {
                 return YEAR;
             }
             return IDENTIFIER;
         case '_':
             // Cannot use eq() because 0x7f can be converted to '_' (0x5f)
-            if (end - start == 7 && "_ROWID_".regionMatches(ignoreCase, 0, s, start, 7)) {
+            if (length == 7 && "_ROWID_".regionMatches(ignoreCase, 0, s, start, 7)) {
                 return _ROWID_;
             }
             //$FALL-THROUGH$
@@ -768,10 +776,15 @@ public class ParserUtil {
         }
     }
 
-    private static boolean eq(String expected, String s, boolean ignoreCase, int start, int end) {
-        int len = expected.length();
+    private static boolean eq(String expected, String s, boolean ignoreCase, int start, int length) {
         // First letter was already checked
-        return end - start == len && expected.regionMatches(ignoreCase, 1, s, start + 1, len - 1);
+        return length == expected.length() && expected.regionMatches(ignoreCase, 1, s, start + 1, length - 1);
+    }
+
+    private static boolean eq(char expected2, String s, boolean ignoreCase, int start, int length) {
+        char c2;
+        // First letter was already checked
+        return length == 2 && ((c2 = s.charAt(start + 1)) == expected2 || ignoreCase && c2 == expected2 + 0x20);
     }
 
 }

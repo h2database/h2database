@@ -68,6 +68,7 @@ import static org.h2.util.ParserUtil.SECOND;
 import static org.h2.util.ParserUtil.SELECT;
 import static org.h2.util.ParserUtil.SET;
 import static org.h2.util.ParserUtil.TABLE;
+import static org.h2.util.ParserUtil.TO;
 import static org.h2.util.ParserUtil.TRUE;
 import static org.h2.util.ParserUtil.UNION;
 import static org.h2.util.ParserUtil.UNIQUE;
@@ -586,6 +587,8 @@ public class Parser {
             "SET",
             // TABLE
             "TABLE",
+            // TO
+            "TO",
             // TRUE
             "TRUE",
             // UNION
@@ -1144,7 +1147,7 @@ public class Parser {
 
     private Prepared parseBackup() {
         BackupCommand command = new BackupCommand(session);
-        read("TO");
+        read(TO);
         command.setFileName(readExpression());
         return command;
     }
@@ -1206,7 +1209,7 @@ public class Parser {
             return command;
         }
         readIf("WORK");
-        if (readIf("TO")) {
+        if (readIf(TO)) {
             read("SAVEPOINT");
             command = new TransactionCommand(session, CommandInterface.ROLLBACK_TO_SAVEPOINT);
             command.setSavepointName(readUniqueIdentifier());
@@ -4905,7 +4908,7 @@ public class Parser {
         switch (currentTokenType) {
         case YEAR:
             read();
-            if (readIf("TO")) {
+            if (readIf(TO)) {
                 read(MONTH);
                 qualifier = IntervalQualifier.YEAR_TO_MONTH;
             } else {
@@ -4918,7 +4921,7 @@ public class Parser {
             break;
         case DAY:
             read();
-            if (readIf("TO")) {
+            if (readIf(TO)) {
                 switch (currentTokenType) {
                 case HOUR:
                     qualifier = IntervalQualifier.DAY_TO_HOUR;
@@ -4939,7 +4942,7 @@ public class Parser {
             break;
         case HOUR:
             read();
-            if (readIf("TO")) {
+            if (readIf(TO)) {
                 switch (currentTokenType) {
                 case MINUTE:
                     qualifier = IntervalQualifier.HOUR_TO_MINUTE;
@@ -4957,7 +4960,7 @@ public class Parser {
             break;
         case MINUTE:
             read();
-            if (readIf("TO")) {
+            if (readIf(TO)) {
                 read(SECOND);
                 qualifier = IntervalQualifier.MINUTE_TO_SECOND;
             } else {
@@ -5304,7 +5307,7 @@ public class Parser {
             while ((type = types[i]) == CHAR_NAME || type == CHAR_VALUE) {
                 i++;
             }
-            currentTokenType = ParserUtil.getSaveTokenType(sqlCommand, !identifiersToUpper, start, i, false);
+            currentTokenType = ParserUtil.getTokenType(sqlCommand, !identifiersToUpper, start, i - start, false);
             if (isIdentifier()) {
                 currentToken = StringUtils.cache(sqlCommand.substring(start, i));
             } else {
@@ -6348,7 +6351,7 @@ public class Parser {
                 precision = readNonNegativeInt();
                 read(CLOSE_PAREN);
             }
-            if (readIf("TO")) {
+            if (readIf(TO)) {
                 read(MONTH);
                 qualifier = IntervalQualifier.YEAR_TO_MONTH;
             } else {
@@ -6369,7 +6372,7 @@ public class Parser {
                 precision = readNonNegativeInt();
                 read(CLOSE_PAREN);
             }
-            if (readIf("TO")) {
+            if (readIf(TO)) {
                 switch (currentTokenType) {
                 case HOUR:
                     read();
@@ -6400,7 +6403,7 @@ public class Parser {
                 precision = readNonNegativeInt();
                 read(CLOSE_PAREN);
             }
-            if (readIf("TO")) {
+            if (readIf(TO)) {
                 switch (currentTokenType) {
                 case MINUTE:
                     read();
@@ -6427,7 +6430,7 @@ public class Parser {
                 precision = readNonNegativeInt();
                 read(CLOSE_PAREN);
             }
-            if (readIf("TO")) {
+            if (readIf(TO)) {
                 read(SECOND);
                 if (readIf(OPEN_PAREN)) {
                     scale = readNonNegativeInt();
@@ -6801,11 +6804,7 @@ public class Parser {
                 }
             }
         }
-        if (operationType == CommandInterface.GRANT) {
-            read("TO");
-        } else {
-            read(FROM);
-        }
+        read(operationType == CommandInterface.GRANT ? TO : FROM);
         command.setGranteeName(readUniqueIdentifier());
         return command;
     }
@@ -7432,7 +7431,7 @@ public class Parser {
         command.setOldName(indexName);
         command.setIfExists(ifExists);
         read("RENAME");
-        read("TO");
+        read(TO);
         String newName = readIdentifierWithSchema(old.getName());
         checkSchema(old);
         command.setNewName(newName);
@@ -7500,7 +7499,7 @@ public class Parser {
             throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
         }
         if (readIf("RENAME")) {
-            read("TO");
+            read(TO);
             String newName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             AlterTableRename command = new AlterTableRename(session, getSchema());
@@ -7523,7 +7522,7 @@ public class Parser {
         String schemaName = readIdentifierWithSchema();
         Schema old = getSchema();
         read("RENAME");
-        read("TO");
+        read(TO);
         String newName = readIdentifierWithSchema(old.getName());
         Schema schema = findSchema(schemaName);
         if (schema == null) {
@@ -7620,7 +7619,7 @@ public class Parser {
             }
             return command;
         } else if (readIf("RENAME")) {
-            read("TO");
+            read(TO);
             AlterUser command = new AlterUser(session);
             command.setType(CommandInterface.ALTER_USER_RENAME);
             command.setUser(database.getUser(userName));
@@ -7646,7 +7645,7 @@ public class Parser {
 
     private void readIfEqualOrTo() {
         if (!readIf(EQUAL)) {
-            readIf("TO");
+            readIf(TO);
         }
     }
 
@@ -8097,7 +8096,7 @@ public class Parser {
         command.setDrop(dropTables);
         command.setSimple(simple);
         command.setWithColumns(withColumns);
-        if (readIf("TO")) {
+        if (readIf(TO)) {
             command.setFileNameExpr(readExpression());
             if (readIf("COMPRESSION")) {
                 command.setCompressionAlgorithm(readUniqueIdentifier());
@@ -8257,7 +8256,7 @@ public class Parser {
         String columnName = readColumnIdentifier();
         Column column = columnIfTableExists(schema, tableName, columnName, ifTableExists, ifExists);
         if (readIf("RENAME")) {
-            read("TO");
+            read(TO);
             AlterTableRenameColumn command = new AlterTableRenameColumn(
                     session, schema);
             command.setTableName(tableName);
@@ -8449,7 +8448,7 @@ public class Parser {
         if (readIf("COLUMN")) {
             // PostgreSQL syntax
             String columnName = readColumnIdentifier();
-            read("TO");
+            read(TO);
             AlterTableRenameColumn command = new AlterTableRenameColumn(
                     session, schema);
             command.setTableName(tableName);
@@ -8461,7 +8460,7 @@ public class Parser {
         } else if (readIf(CONSTRAINT)) {
             String constraintName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
-            read("TO");
+            read(TO);
             AlterTableRenameConstraint command = new AlterTableRenameConstraint(
                     session, schema);
             command.setConstraintName(constraintName);
@@ -8469,7 +8468,7 @@ public class Parser {
             command.setNewConstraintName(newName);
             return commandIfTableExists(schema, tableName, ifTableExists, command);
         } else {
-            read("TO");
+            read(TO);
             String newName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             AlterTableRename command = new AlterTableRename(session,

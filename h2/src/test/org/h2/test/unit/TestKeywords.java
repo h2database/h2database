@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -83,7 +84,7 @@ public class TestKeywords extends TestBase {
                     }
                 }
                 final TokenType type;
-                switch (ParserUtil.getSaveTokenType(s, false, 0, l, true)) {
+                switch (ParserUtil.getTokenType(s, false, 0, l, true)) {
                 case ParserUtil.IDENTIFIER:
                     type = TokenType.IDENTIFIER;
                     break;
@@ -139,6 +140,11 @@ public class TestKeywords extends TestBase {
                             assertEquals(10, rs.getInt(1));
                         }
                         stat.execute("DROP TABLE TEST");
+                        try (ResultSet rs = stat.executeQuery("SELECT 1 DAY " + s)) {
+                            assertEquals(s, rs.getMetaData().getColumnLabel(1));
+                            assertTrue(rs.next());
+                            assertEquals(Duration.ofDays(1L), rs.getObject(1, Duration.class));
+                        }
                         try (ResultSet rs = stat
                                 .executeQuery("SELECT ROW_NUMBER() OVER(" + s + ") WINDOW " + s + " AS ()")) {
                         }

@@ -503,7 +503,7 @@ public class ParserUtil {
                 return ALL;
             } else if (eq("ARRAY", s, ignoreCase, start, length)) {
                 return ARRAY;
-            } else if (eq("AS", s, ignoreCase, start, length)) {
+            } else if (eq('S', s, ignoreCase, start, length)) {
                 return AS;
             }
             if (additionalKeywords) {
@@ -594,7 +594,7 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'I':
-            if (eq("IF", s, ignoreCase, start, length)) {
+            if (eq('F', s, ignoreCase, start, length)) {
                 return IF;
             } else if (eq("INNER", s, ignoreCase, start, length)) {
                 return INNER;
@@ -604,11 +604,11 @@ public class ParserUtil {
                 return INTERSECTS;
             } else if (eq("INTERVAL", s, ignoreCase, start, length)) {
                 return INTERVAL;
-            } else if (eq("IS", s, ignoreCase, start, length)) {
+            } else if (eq('S', s, ignoreCase, start, length)) {
                 return IS;
             }
             if (additionalKeywords) {
-                if (eq("ILIKE", s, ignoreCase, start, length) || eq("IN", s, ignoreCase, start, length)) {
+                if (eq("ILIKE", s, ignoreCase, start, length) || eq('N', s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
@@ -662,13 +662,13 @@ public class ParserUtil {
         case 'O':
             if (eq("OFFSET", s, ignoreCase, start, length)) {
                 return OFFSET;
-            } else if (eq("ON", s, ignoreCase, start, length)) {
+            } else if (eq('N', s, ignoreCase, start, length)) {
                 return ON;
             } else if (eq("ORDER", s, ignoreCase, start, length)) {
                 return ORDER;
             }
             if (additionalKeywords) {
-                if (eq("OR", s, ignoreCase, start, length) || eq("OVER", s, ignoreCase, start, length)) {
+                if (eq('R', s, ignoreCase, start, length) || eq("OVER", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
@@ -721,7 +721,7 @@ public class ParserUtil {
         case 'T':
             if (eq("TABLE", s, ignoreCase, start, length)) {
                 return TABLE;
-            } else if (eq("TO", s, ignoreCase, start, length)) {
+            } else if (eq('O', s, ignoreCase, start, length)) {
                 return TO;
             } else if (eq("TRUE", s, ignoreCase, start, length)) {
                 return TRUE;
@@ -779,6 +779,12 @@ public class ParserUtil {
     private static boolean eq(String expected, String s, boolean ignoreCase, int start, int length) {
         // First letter was already checked
         return length == expected.length() && expected.regionMatches(ignoreCase, 1, s, start + 1, length - 1);
+    }
+
+    private static boolean eq(char expected2, String s, boolean ignoreCase, int start, int length) {
+        char c2;
+        // First letter was already checked
+        return length == 2 && ((c2 = s.charAt(start + 1)) == expected2 || ignoreCase && c2 == expected2 + 0x20);
     }
 
 }

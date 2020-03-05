@@ -5307,7 +5307,7 @@ public class Parser {
             while ((type = types[i]) == CHAR_NAME || type == CHAR_VALUE) {
                 i++;
             }
-            currentTokenType = ParserUtil.getSaveTokenType(sqlCommand, !identifiersToUpper, start, i, false);
+            currentTokenType = ParserUtil.getTokenType(sqlCommand, !identifiersToUpper, start, i - start, false);
             if (isIdentifier()) {
                 currentToken = StringUtils.cache(sqlCommand.substring(start, i));
             } else {

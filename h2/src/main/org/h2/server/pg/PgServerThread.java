@@ -926,7 +926,12 @@ public class PgServerThread implements Runnable {
             synchronized (server) {
                 // better would be: set the database to exclusive mode
                 boolean tableFound;
-                try (ResultSet rs = conn.getMetaData().getTables(null, "PG_CATALOG", "PG_VERSION", null)) {
+                String pgCatalog = "PG_CATALOG", pgVersion = "PG_VERSION";
+                if (((JdbcConnection) conn).getSession().getStaticSettings().databaseToLower) {
+                    pgCatalog = StringUtils.toLowerEnglish(pgCatalog);
+                    pgVersion = StringUtils.toLowerEnglish(pgVersion);
+                }
+                try (ResultSet rs = conn.getMetaData().getTables(null, pgCatalog, pgVersion, null)) {
                     tableFound = rs.next();
                 }
                 stat = conn.createStatement();

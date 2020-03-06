@@ -25,7 +25,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.store.Data;
 import org.h2.test.TestBase;
@@ -68,6 +70,7 @@ public class TestPgServer extends TestDb {
         testDateTime();
         testPrepareWithUnspecifiedType();
         testOtherPgClients();
+        testInstallPgCatalog();
     }
 
     private void testLowerCaseIdentifiers() throws SQLException {
@@ -685,4 +688,52 @@ public class TestPgServer extends TestDb {
             conn0.close();
         }
     }
+
+    static AtomicInteger pgCatalogCreateCount = new AtomicInteger(0);
+
+    public static class TestDatabaseEventListener implements DatabaseEventListener {
+        @Override
+        public void init(String url) {/**/}
+
+        @Override
+        public void opened() {/**/}
+
+        @Override
+        public void exceptionThrown(SQLException e, String sql) {/**/}
+
+        @Override
+        public void setProgress(int state, String name, int x, int max) {
+            if (state == STATE_STATEMENT_END &&
+                    name.trim().equals("create schema pg_catalog")) {
+                pgCatalogCreateCount.getAndIncrement();
+            }
+        }
+
+        @Override
+        public void closingDatabase() {/**/}
+    }
+
+    private void testInstallPgCatalog() throws SQLException {
+        if (!getPgJdbcDriver()) {
+            return;
+        }
+
+        Connection conn0 = DriverManager.getConnection(
+                "jdbc:h2:mem:pgserver;mode=postgresql;database_to_lower=true;database_event_listener=" +
+                TestDatabaseEventListener.class.getName(), "sa", "sa");
+        Server server = createPgServer(
+                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+        try {
+            pgCatalogCreateCount.set(0);
+            try (Connection conn = DriverManager.getConnection(
+                    "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa")) {/**/}
+            assertEquals(1, pgCatalogCreateCount.get());
+            try (Connection conn = DriverManager.getConnection(
+                    "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa")) {/**/}
+            assertEquals(1, pgCatalogCreateCount.get());
+        } finally {
+            server.stop();
+            conn0.close();
+        }
+   }
 }

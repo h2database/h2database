@@ -6,6 +6,7 @@
 package org.h2.mode;
 
 import java.util.HashMap;
+import java.util.StringJoiner;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
@@ -25,6 +26,7 @@ import org.h2.table.Table;
 import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueInteger;
@@ -67,6 +69,8 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
 
     private static final int SET_CONFIG = PG_TABLE_IS_VISIBLE + 1;
 
+    private static final int ARRAY_TO_STRING = SET_CONFIG + 1;
+
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
 
     static {
@@ -101,6 +105,8 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
                 PG_TABLE_IS_VISIBLE, 1, Value.BOOLEAN, true, false, true, false));
         FUNCTIONS.put("SET_CONFIG", new FunctionInfo("SET_CONFIG", //
                 SET_CONFIG, 3, Value.VARCHAR, true, false, true, false));
+        FUNCTIONS.put("ARRAY_TO_STRING", new FunctionInfo("ARRAY_TO_STRING", //
+                ARRAY_TO_STRING, VAR_ARGS, Value.VARCHAR, false, true, true, false));
     }
 
     /**
@@ -145,6 +151,10 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
                 throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "1, 3");
             }
             return;
+        case ARRAY_TO_STRING:
+            min = 2;
+            max = 3;
+            break;
         default:
             throw DbException.throwInternalError("type=" + info.type);
         }
@@ -220,6 +230,28 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
         case SET_CONFIG:
             // Not implemented
             result = v1.convertTo(Value.VARCHAR);
+            break;
+        case ARRAY_TO_STRING:
+            if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE) {
+                result = ValueNull.INSTANCE;
+                break;
+            }
+            StringJoiner joiner = new StringJoiner(v1.getString());
+            if (v0.getValueType() != Value.ARRAY) {
+                throw DbException.getInvalidValueException("ARRAY_TO_STRING array", v0);
+            }
+            String nullString = null;
+            if (v2 != null) {
+                nullString = v2.getString();
+            }
+            for (Value v : ((ValueArray) v0).getList()) {
+                if (v != ValueNull.INSTANCE) {
+                    joiner.add(v.getString());
+                } else if (nullString != null) {
+                    joiner.add(nullString);
+                }
+            }
+            result = ValueVarchar.get(joiner.toString());
             break;
         default:
             throw DbException.throwInternalError("type=" + info.type);

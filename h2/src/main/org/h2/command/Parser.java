@@ -8382,6 +8382,11 @@ public class Parser {
                 readIfEqualOrTo();
                 read();
                 return new NoOperation(session);
+            } else if (readIf("JOIN_COLLAPSE_LIMIT")) {
+                // for PostgreSQL compatibility
+                readIfEqualOrTo();
+                read();
+                return new NoOperation(session);
             } else if (readIf("DATESTYLE")) {
                 readIfEqualOrTo();
                 if (!readIf("ISO")) {

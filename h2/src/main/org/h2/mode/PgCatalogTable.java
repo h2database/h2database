@@ -237,6 +237,7 @@ public class PgCatalogTable extends MetaTable {
             cols = createColumns( //
                     "OID INTEGER", //
                     "ROLNAME VARCHAR_IGNORECASE", //
+                    "ROLSUPER CHAR", //
                     "ROLCREATEROLE CHAR", //
                     "ROLCREATEDB CHAR" //
             );
@@ -383,7 +384,7 @@ public class PgCatalogTable extends MetaTable {
             }
             add(session, rows,
                     // OID
-                    ValueInteger.get(0),
+                    ValueInteger.get(100_001),
                     // DATNAME
                     catalog,
                     // ENCODING INT,
@@ -439,6 +440,8 @@ public class PgCatalogTable extends MetaTable {
                             ValueInteger.get(u.getId()),
                             // ROLNAME
                             identifier(u.getName()),
+                            // ROLSUPER
+                            r,
                             // ROLCREATEROLE
                             r,
                             // ROLCREATEDB;

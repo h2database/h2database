@@ -274,6 +274,10 @@ public class TestPgServer extends TestDb {
         rs.next();
         assertTrue(rs.getBoolean(1));
 
+        rs = stat.executeQuery("select has_schema_privilege(1, 'READ')");
+        rs.next();
+        assertTrue(rs.getBoolean(1));
+
         rs = stat.executeQuery("select has_database_privilege(1, 'READ')");
         rs.next();
         assertTrue(rs.getBoolean(1));
@@ -303,7 +307,9 @@ public class TestPgServer extends TestDb {
         rs.next();
         assertEquals("", rs.getString(1));
 
-        assertThrows(SQLException.class, stat).executeQuery("select 0::regclass");
+        rs = stat.executeQuery("select 0::regclass");
+        rs.next();
+        assertEquals(0, rs.getInt(1));
 
         rs = stat.executeQuery("select pg_get_indexdef(0, 0, false)");
         rs.next();
@@ -589,6 +595,57 @@ public class TestPgServer extends TestDb {
                 assertFalse(rs.next());
             }
             stat.execute("SET client_encoding='UNICODE'");
+            try (ResultSet rs = stat.executeQuery("SELECT version()")) {
+                assertTrue(rs.next());
+                assertNotNull(rs.getString("version"));
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT " +
+                    "db.oid as did, db.datname, db.datallowconn, " +
+                    "pg_encoding_to_char(db.encoding) AS serverencoding, " +
+                    "has_database_privilege(db.oid, 'CREATE') as cancreate, datlastsysoid " +
+                    "FROM pg_database db WHERE db.datname = current_database()")) {
+                assertTrue(rs.next());
+                assertEquals("pgserver", rs.getString("datname"));
+                assertFalse(rs.next());
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT " +
+                    "oid as id, rolname as name, rolsuper as is_superuser, " + 
+                    "CASE WHEN rolsuper THEN true ELSE rolcreaterole END as can_create_role, " + 
+                    "CASE WHEN rolsuper THEN true ELSE rolcreatedb END as can_create_db " + 
+                    "FROM pg_catalog.pg_roles WHERE rolname = current_user")) {
+                assertTrue(rs.next());
+                assertEquals("sa", rs.getString("name"));
+                assertFalse(rs.next());
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT " + 
+                    "db.oid as did, db.datname as name, ta.spcname as spcname, db.datallowconn, " + 
+                    "has_database_privilege(db.oid, 'CREATE') as cancreate, datdba as owner " + 
+                    "FROM pg_database db LEFT OUTER JOIN pg_tablespace ta ON db.dattablespace = ta.oid " + 
+                    "WHERE db.oid > 100000::OID")) {
+                assertTrue(rs.next());
+                assertEquals("pgserver", rs.getString("name"));
+                assertFalse(rs.next());
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT nsp.oid, nsp.nspname as name, " +
+                    "has_schema_privilege(nsp.oid, 'CREATE') as can_create, " + 
+                    "has_schema_privilege(nsp.oid, 'USAGE') as has_usage " + 
+                    "FROM pg_namespace nsp WHERE nspname NOT LIKE 'pg\\_%' AND NOT (" + 
+                    "(nsp.nspname = 'pg_catalog' AND EXISTS (SELECT 1 FROM pg_class " +
+                    "WHERE relname = 'pg_class' AND relnamespace = nsp.oid LIMIT 1)) OR " + 
+                    "(nsp.nspname = 'pgagent' AND EXISTS (SELECT 1 FROM pg_class " +
+                    "WHERE relname = 'pga_job' AND relnamespace = nsp.oid LIMIT 1)) OR " + 
+                    "(nsp.nspname = 'information_schema' AND EXISTS (SELECT 1 FROM pg_class " +
+                    "WHERE relname = 'tables' AND relnamespace = nsp.oid LIMIT 1))" + 
+                    ") ORDER BY nspname")) {
+                assertTrue(rs.next());
+                assertEquals("public", rs.getString("name"));
+                assertFalse(rs.next());
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT format_type(23, NULL)")) {
+                assertTrue(rs.next());
+                assertEquals("INTEGER", rs.getString(1));
+                assertFalse(rs.next());
+            }
 
             // HeidiSQL
             try (ResultSet rs = stat.executeQuery("SHOW ssl")) {

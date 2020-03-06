@@ -4721,7 +4721,7 @@ public class Parser {
                     read("PG_CATALOG");
                     read(DOT);
                 }
-                if (readIf("REGCLASS")) {
+                if (readIf("REGCLASS") || readIf("OID")) {
                     r = new Regclass(r);
                     break colonColon;
                 }

@@ -216,7 +216,8 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
             break;
         case PG_GET_EXPR:
             // Not implemented
-            return ValueNull.INSTANCE;
+            result = ValueNull.INSTANCE;
+            break;
         case PG_GET_INDEXDEF:
             result = getIndexdef(session, v0.getInt(), v1, v2);
             break;
@@ -232,7 +233,8 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
             break;
         case SET_CONFIG:
             // Not implemented
-            return v1.convertTo(Value.VARCHAR);
+            result = v1.convertTo(Value.VARCHAR);
+            break;
         default:
             throw DbException.throwInternalError("type=" + info.type);
         }

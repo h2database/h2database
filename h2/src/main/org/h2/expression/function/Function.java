@@ -503,7 +503,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 1, Value.BIGINT);
         addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
         addFunctionNotDeterministic("ESTIMATED_ENVELOPE", ESTIMATED_ENVELOPE, 2, Value.BIGINT);
-        addFunction("H2VERSION", H2VERSION, 0, Value.VARCHAR);
+        addFunctionNotDeterministic("H2VERSION", H2VERSION, 0, Value.VARCHAR);
 
         // TableFunction
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);

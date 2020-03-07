@@ -61,46 +61,12 @@ public class TestPgServer extends TestDb {
     public void test() throws Exception {
         // testPgAdapter() starts server by itself without a wait so run it first
         testPgAdapter();
-        testLowerCaseIdentifiers();
         testKeyAlias();
         testCancelQuery();
         testTextualAndBinaryTypes();
         testDateTime();
         testPrepareWithUnspecifiedType();
         testOtherPgClients();
-    }
-
-    private void testLowerCaseIdentifiers() throws SQLException {
-        if (!getPgJdbcDriver()) {
-            return;
-        }
-        deleteDb("pgserver");
-        Connection conn = getConnection(
-                "mem:pgserver;DATABASE_TO_LOWER=true", "sa", "sa");
-        Statement stat = conn.createStatement();
-        stat.execute("create table test(id int, name varchar(255))");
-        Server server = createPgServer("-baseDir", getBaseDir(),
-                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver",
-                "mem:pgserver");
-        try {
-            Connection conn2;
-            conn2 = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
-            stat = conn2.createStatement();
-            stat.execute("select * from test");
-
-            // test pg_get_oid
-            try (ResultSet rs = stat.executeQuery("select 0::regclass")) {
-                assertTrue(rs.next());
-                assertEquals(0, rs.getInt(1));
-            }
-
-            conn2.close();
-        } finally {
-            server.stop();
-        }
-        conn.close();
-        deleteDb("pgserver");
     }
 
     private boolean getPgJdbcDriver() {
@@ -256,13 +222,13 @@ public class TestPgServer extends TestDb {
         DatabaseMetaData dbMeta = conn.getMetaData();
         rs = dbMeta.getTables(null, null, "TEST", null);
         rs.next();
-        assertEquals("TEST", rs.getString("TABLE_NAME"));
+        assertEquals("test", rs.getString("TABLE_NAME"));
         assertFalse(rs.next());
         rs = dbMeta.getColumns(null, null, "TEST", null);
         rs.next();
-        assertEquals("ID", rs.getString("COLUMN_NAME"));
+        assertEquals("id", rs.getString("COLUMN_NAME"));
         rs.next();
-        assertEquals("NAME", rs.getString("COLUMN_NAME"));
+        assertEquals("name", rs.getString("COLUMN_NAME"));
         assertFalse(rs.next());
         rs = dbMeta.getIndexInfo(null, null, "TEST", false, false);
         // index info is currently disabled
@@ -279,7 +245,7 @@ public class TestPgServer extends TestDb {
         assertContains(s, "PostgreSQL");
         s = rs.getString(2);
         s = rs.getString(3);
-        assertEquals(s, "PUBLIC");
+        assertEquals(s, "public");
         assertFalse(rs.next());
 
         conn.setAutoCommit(false);
@@ -337,46 +303,31 @@ public class TestPgServer extends TestDb {
         rs.next();
         assertEquals("", rs.getString(1));
 
-        rs = stat.executeQuery("select pg_get_oid('\"WRONG\"')");
-        rs.next();
-        assertEquals(0, rs.getInt(1));
-
-        rs = stat.executeQuery("select pg_get_oid('TEST')");
-        rs.next();
-        assertTrue(rs.getInt(1) > 0);
-
-        rs = stat.executeQuery("select pg_get_oid('\"WRONG\"')");
-        rs.next();
-        assertEquals(0, rs.getInt(1));
-
-        // regclass cast will call pg_get_oid()
-        rs = stat.executeQuery("select 0::regclass");
-        rs.next();
-        assertEquals(0, rs.getInt(1));
+        assertThrows(SQLException.class, stat).executeQuery("select 0::regclass");
 
         rs = stat.executeQuery("select pg_get_indexdef(0, 0, false)");
         rs.next();
         assertNull(rs.getString(1));
 
         rs = stat.executeQuery("select id from information_schema.indexes " +
-                "where index_name='IDX_TEST_NAME'");
+                "where index_name='idx_test_name'");
         rs.next();
         int indexId = rs.getInt(1);
 
         rs = stat.executeQuery("select pg_get_indexdef("+indexId+", 0, false)");
         rs.next();
         assertEquals(
-                "CREATE INDEX \"PUBLIC\".\"IDX_TEST_NAME\" ON \"PUBLIC\".\"TEST\"(\"NAME\", \"ID\")",
+                "CREATE INDEX \"public\".\"idx_test_name\" ON \"public\".\"test\"(\"name\", \"id\")",
                 rs.getString(1));
         rs = stat.executeQuery("select pg_get_indexdef("+indexId+", null, false)");
         rs.next();
         assertNull(rs.getString(1));
         rs = stat.executeQuery("select pg_get_indexdef("+indexId+", 1, false)");
         rs.next();
-        assertEquals("NAME", rs.getString(1));
+        assertEquals("name", rs.getString(1));
         rs = stat.executeQuery("select pg_get_indexdef("+indexId+", 2, false)");
         rs.next();
-        assertEquals("ID", rs.getString(1));
+        assertEquals("id", rs.getString(1));
 
         conn.close();
     }
@@ -397,7 +348,7 @@ public class TestPgServer extends TestDb {
             stat.execute("create table test(id int primary key, name varchar)");
             ResultSet rs = stat.executeQuery(
                     "select storage_type from information_schema.tables " +
-                    "where table_name = 'TEST'");
+                    "where table_name = 'test'");
             assertTrue(rs.next());
             assertEquals("MEMORY", rs.getString(1));
 

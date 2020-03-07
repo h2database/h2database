@@ -1299,4 +1299,14 @@ public abstract class Table extends SchemaObjectBase {
     public boolean isTableExpression() {
         return tableExpression;
     }
+
+    /**
+     * Return list of triggers.
+     *
+     * @return list of triggers
+     */
+    public ArrayList<TriggerObject> getTriggers() {
+        return triggers;
+    }
+
 }

@@ -7,6 +7,7 @@ package org.h2.table;
 
 import java.util.ArrayList;
 
+import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -17,6 +18,8 @@ import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfoArray;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueVarchar;
@@ -55,17 +58,27 @@ public abstract class MetaTable extends Table {
 
     protected final Column[] createColumns(String... names) {
         Column[] cols = new Column[names.length];
-        int defaultType = database.getSettings().caseInsensitiveIdentifiers ? Value.VARCHAR_IGNORECASE : Value.VARCHAR;
+        TypeInfo defaultType = database.getSettings().caseInsensitiveIdentifiers ? TypeInfo.TYPE_VARCHAR_IGNORECASE
+                : TypeInfo.TYPE_VARCHAR;
+        Mode mode = database.getMode();
         for (int i = 0; i < names.length; i++) {
             String nameType = names[i];
             int idx = nameType.indexOf(' ');
-            int dataType;
+            TypeInfo dataType;
             String name;
             if (idx < 0) {
                 dataType = defaultType;
                 name = nameType;
             } else {
-                dataType = DataType.getTypeByName(nameType.substring(idx + 1), database.getMode()).type;
+                String tName = nameType.substring(idx + 1);
+                DataType t = DataType.getTypeByName(tName, mode);
+                if (t != null) {
+                    dataType = TypeInfo.getTypeInfo(t.type);
+                } else {
+                    assert tName.endsWith(" ARRAY");
+                    dataType = TypeInfo.getTypeInfo(Value.ARRAY, -1L, 0, new ExtTypeInfoArray(TypeInfo.getTypeInfo(
+                            DataType.getTypeByName(tName.substring(0, tName.length() - 6), mode).type)));
+                }
                 name = nameType.substring(0, idx);
             }
             cols[i] = new Column(database.sysIdentifier(name), dataType);

@@ -12,9 +12,7 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.Reader;
 import java.io.StringReader;
 import java.net.Socket;
 import java.nio.charset.Charset;
@@ -221,6 +219,7 @@ public class PgServerThread implements Runnable {
             try {
                 Properties info = new Properties();
                 info.put("MODE", "PostgreSQL");
+                info.put("DATABASE_TO_LOWER", "TRUE");
                 info.put("USER", userName);
                 info.put("PASSWORD", password);
                 String url = "jdbc:h2:" + databaseName;
@@ -921,31 +920,9 @@ public class PgServerThread implements Runnable {
     }
 
     private void initDb() throws SQLException {
-        Statement stat = null;
+        Statement stat = conn.createStatement();
         try {
-            synchronized (server) {
-                // better would be: set the database to exclusive mode
-                boolean tableFound;
-                try (ResultSet rs = conn.getMetaData().getTables(null, "PG_CATALOG", "PG_VERSION", null)) {
-                    tableFound = rs.next();
-                }
-                stat = conn.createStatement();
-                if (!tableFound) {
-                    installPgCatalog(stat);
-                }
-                try (ResultSet rs = stat.executeQuery("select * from pg_catalog.pg_version")) {
-                    if (!rs.next() || rs.getInt(1) < 2) {
-                        // installation incomplete, or old version
-                        installPgCatalog(stat);
-                    } else {
-                        // version 2 or newer: check the read version
-                        int versionRead = rs.getInt(2);
-                        if (versionRead > 2) {
-                            throw DbException.throwInternalError("Incompatible PG_VERSION");
-                        }
-                    }
-                }
-            }
+            stat = conn.createStatement();
             stat.execute("set search_path = PUBLIC, pg_catalog");
             HashSet<Integer> typeSet = server.getTypeSet();
             if (typeSet.isEmpty()) {
@@ -957,23 +934,6 @@ public class PgServerThread implements Runnable {
             }
         } finally {
             JdbcUtils.closeSilently(stat);
-        }
-    }
-
-    private static void installPgCatalog(Statement stat) throws SQLException {
-        try (Reader r = new InputStreamReader(new ByteArrayInputStream(Utils
-                    .getResource("/org/h2/server/pg/pg_catalog.sql")))) {
-            ScriptReader reader = new ScriptReader(r);
-            while (true) {
-                String sql = reader.readStatement();
-                if (sql == null) {
-                    break;
-                }
-                stat.execute(sql);
-            }
-            reader.close();
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, "Can not read pg_catalog resource");
         }
     }
 

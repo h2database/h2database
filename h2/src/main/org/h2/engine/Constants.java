@@ -410,6 +410,16 @@ public class Constants {
     public static final String SCHEMA_MAIN = "PUBLIC";
 
     /**
+     * The identity of pg_catalog schema.
+     */
+    public static final int PG_CATALOG_SCHEMA_ID = -1_000;
+
+    /**
+     * The name of the pg_catalog schema.
+     */
+    public static final String SCHEMA_PG_CATALOG = "PG_CATALOG";
+
+    /**
      * The default selectivity (used if the selectivity is not calculated).
      */
     public static final int SELECTIVITY_DEFAULT = 50;

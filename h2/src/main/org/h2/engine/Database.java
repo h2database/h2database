@@ -65,7 +65,7 @@ import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.MetaTable;
+import org.h2.table.InformationSchemaTable;
 import org.h2.table.Table;
 import org.h2.table.TableLinkConnection;
 import org.h2.table.TableSynonym;
@@ -937,10 +937,9 @@ public class Database implements DataHandler, CastDataProvider {
         }
         synchronized (infoSchema) {
             if (!metaTablesInitialized) {
-                for (int type = 0, count = MetaTable.getMetaTableTypeCount();
-                        type < count; type++) {
-                    MetaTable m = new MetaTable(infoSchema, -1 - type, type);
-                    infoSchema.add(m);
+                for (int type = 0, count = InformationSchemaTable.getMetaTableTypeCount(); type < count; type++) {
+                    infoSchema.add(new InformationSchemaTable(infoSchema, Constants.INFORMATION_SCHEMA_ID - type,
+                            type));
                 }
                 metaTablesInitialized = true;
             }

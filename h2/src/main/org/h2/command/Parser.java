@@ -3225,7 +3225,7 @@ public class Parser {
             }
         }
         Expression r = readConcat();
-        while (true) {
+        for (;;) {
             // special case: NOT NULL is not part of an expression (as in CREATE
             // TABLE TEST(ID INT DEFAULT 0 NOT NULL))
             int backup = parseIndex;
@@ -3261,51 +3261,7 @@ public class Parser {
                 recompileAlways = true;
                 r = new CompareLike(database, r, b, null, true);
             } else if (readIf(IS)) {
-                boolean isNot = readIf(NOT);
-                switch (currentTokenType) {
-                case NULL:
-                    read();
-                    r = new NullPredicate(r, isNot);
-                    break;
-                case DISTINCT:
-                    read();
-                    read(FROM);
-                    r = new Comparison(isNot ? Comparison.EQUAL_NULL_SAFE : Comparison.NOT_EQUAL_NULL_SAFE, r,
-                            readConcat());
-                    break;
-                case TRUE:
-                    read();
-                    r = new BooleanTest(r, isNot, true);
-                    break;
-                case FALSE:
-                    read();
-                    r = new BooleanTest(r, isNot, false);
-                    break;
-                case UNKNOWN:
-                    read();
-                    r = new BooleanTest(r, isNot, null);
-                    break;
-                default:
-                    if (readIf("OF")) {
-                        r = readTypePredicate(r, isNot);
-                    } else if (readIf("JSON")) {
-                        r = readJsonPredicate(r, isNot);
-                    } else {
-                        if (expectedList != null) {
-                            addMultipleExpected(NULL, DISTINCT, TRUE, FALSE, UNKNOWN);
-                        }
-                        /*
-                         * Databases that were created in 1.4.199 and older
-                         * versions can contain invalid generated IS [ NOT ]
-                         * expressions.
-                         */
-                        if (!database.isStarting()) {
-                            throw getSyntaxError();
-                        }
-                        r = new Comparison(
-                                isNot ? Comparison.NOT_EQUAL_NULL_SAFE : Comparison.EQUAL_NULL_SAFE, r, readConcat());
-                    }
-                }
+                r = readConditionIs(r);
             } else if (readIf("IN")) {
                 r = readInPredicate(r);
             } else if (readIf("BETWEEN")) {
@@ -3315,49 +3271,69 @@ public class Parser {
                 Expression condLow = new Comparison(Comparison.SMALLER_EQUAL, low, r);
                 Expression condHigh = new Comparison(Comparison.BIGGER_EQUAL, high, r);
                 r = new ConditionAndOr(ConditionAndOr.AND, condLow, condHigh);
+            } else if (not) {
+                throw getSyntaxError();
             } else {
-                if (not) {
-                    throw getSyntaxError();
-                }
                 int compareType = getCompareType(currentTokenType);
                 if (compareType < 0) {
                     break;
                 }
-                read();
-                int start = lastParseIndex;
-                if (readIf(ALL)) {
-                    read(OPEN_PAREN);
-                    if (isQuery()) {
-                        Query query = parseQuery();
-                        r = new ConditionInQuery(r, query, true, compareType);
-                        read(CLOSE_PAREN);
-                    } else {
-                        reread(start);
-                        r = new Comparison(compareType, r, readConcat());
-                    }
-                } else if (readIf("ANY") || readIf("SOME")) {
-                    read(OPEN_PAREN);
-                    if (currentTokenType == PARAMETER && compareType == 0) {
-                        Parameter p = readParameter();
-                        r = new ConditionInParameter(r, p);
-                        read(CLOSE_PAREN);
-                    } else if (isQuery()) {
-                        Query query = parseQuery();
-                        r = new ConditionInQuery(r, query, false, compareType);
-                        read(CLOSE_PAREN);
-                    } else {
-                        reread(start);
-                        r = new Comparison(compareType, r, readConcat());
-                    }
-                } else {
-                    r = new Comparison(compareType, r, readConcat());
-                }
+                r = readComparison(r, compareType);
             }
             if (not) {
                 r = new ConditionNot(r);
             }
         }
         return r;
+    }
+
+    private Expression readConditionIs(Expression left) {
+        boolean isNot = readIf(NOT);
+        switch (currentTokenType) {
+        case NULL:
+            read();
+            left = new NullPredicate(left, isNot);
+            break;
+        case DISTINCT:
+            read();
+            read(FROM);
+            left = new Comparison(isNot ? Comparison.EQUAL_NULL_SAFE : Comparison.NOT_EQUAL_NULL_SAFE, left,
+                    readConcat());
+            break;
+        case TRUE:
+            read();
+            left = new BooleanTest(left, isNot, true);
+            break;
+        case FALSE:
+            read();
+            left = new BooleanTest(left, isNot, false);
+            break;
+        case UNKNOWN:
+            read();
+            left = new BooleanTest(left, isNot, null);
+            break;
+        default:
+            if (readIf("OF")) {
+                left = readTypePredicate(left, isNot);
+            } else if (readIf("JSON")) {
+                left = readJsonPredicate(left, isNot);
+            } else {
+                if (expectedList != null) {
+                    addMultipleExpected(NULL, DISTINCT, TRUE, FALSE, UNKNOWN);
+                }
+                /*
+                 * Databases that were created in 1.4.199 and older
+                 * versions can contain invalid generated IS [ NOT ]
+                 * expressions.
+                 */
+                if (!database.isStarting()) {
+                    throw getSyntaxError();
+                }
+                left = new Comparison(
+                        isNot ? Comparison.NOT_EQUAL_NULL_SAFE : Comparison.EQUAL_NULL_SAFE, left, readConcat());
+            }
+        }
+        return left;
     }
 
     private TypePredicate readTypePredicate(Expression left, boolean not) {
@@ -3414,6 +3390,39 @@ public class Parser {
             readIf("KEYS");
         }
         return new IsJsonPredicate(left, not, unique, itemType);
+    }
+
+    private Expression readComparison(Expression left, int compareType) {
+        read();
+        int start = lastParseIndex;
+        if (readIf(ALL)) {
+            read(OPEN_PAREN);
+            if (isQuery()) {
+                Query query = parseQuery();
+                left = new ConditionInQuery(left, query, true, compareType);
+                read(CLOSE_PAREN);
+            } else {
+                reread(start);
+                left = new Comparison(compareType, left, readConcat());
+            }
+        } else if (readIf("ANY") || readIf("SOME")) {
+            read(OPEN_PAREN);
+            if (currentTokenType == PARAMETER && compareType == 0) {
+                Parameter p = readParameter();
+                left = new ConditionInParameter(left, p);
+                read(CLOSE_PAREN);
+            } else if (isQuery()) {
+                Query query = parseQuery();
+                left = new ConditionInQuery(left, query, false, compareType);
+                read(CLOSE_PAREN);
+            } else {
+                reread(start);
+                left = new Comparison(compareType, left, readConcat());
+            }
+        } else {
+            left = new Comparison(compareType, left, readConcat());
+        }
+        return left;
     }
 
     private Expression readConcat() {

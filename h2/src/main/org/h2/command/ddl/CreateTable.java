@@ -187,10 +187,10 @@ public class CreateTable extends CommandWithColumns {
     private void generateColumnsFromQuery() {
         int columnCount = asQuery.getColumnCount();
         ArrayList<Expression> expressions = asQuery.getExpressions();
-        ColumnNamer columnNamer= new ColumnNamer(session);
+        ColumnNamer columnNamer = new ColumnNamer(session);
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
-            String name = columnNamer.getColumnName(expr, i, expr.getAlias());
+            String name = columnNamer.getColumnName(expr, i, expr.getAlias(session, i));
             Column col = new Column(name, expr.getType());
             addColumn(col);
         }

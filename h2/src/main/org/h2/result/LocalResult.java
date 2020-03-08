@@ -545,7 +545,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
 
     @Override
     public String getAlias(int i) {
-        return expressions[i].getAlias();
+        return expressions[i].getAlias(session, i);
     }
 
     @Override
@@ -560,7 +560,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
 
     @Override
     public String getColumnName(int i) {
-        return expressions[i].getColumnName();
+        return expressions[i].getColumnName(session, i);
     }
 
     @Override

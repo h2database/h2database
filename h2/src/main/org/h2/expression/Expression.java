@@ -268,10 +268,12 @@ public abstract class Expression implements HasSQL {
     /**
      * Get the column name or alias name of this expression.
      *
+     * @param session the session
+     * @param columnIndex 0-based column index
      * @return the column name
      */
-    public String getColumnName() {
-        return getAlias();
+    public String getColumnName(Session session, int columnIndex) {
+        return getAlias(session, columnIndex);
     }
 
     /**
@@ -315,10 +317,24 @@ public abstract class Expression implements HasSQL {
      * Get the alias name of a column or SQL expression
      * if it is not an aliased expression.
      *
+     * @param session the session
+     * @param columnIndex 0-based column index
      * @return the alias name
      */
-    public String getAlias() {
-        return getUnenclosedSQL(new StringBuilder(), QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS).toString();
+    public String getAlias(Session session, int columnIndex) {
+        switch (session.getMode().expressionNames) {
+        case SQL:
+        default:
+            return getUnenclosedSQL(new StringBuilder(), QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS).toString();
+        case EMPTY:
+            return "";
+        case NUMBER:
+            return Integer.toString(columnIndex + 1);
+        case C_NUMBER:
+            return "C" + (columnIndex + 1);
+        case POSTGRESQL_STYLE:
+            return "?column?";
+        }
     }
 
     /**

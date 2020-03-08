@@ -468,7 +468,7 @@ public class FullText {
         Session session = (Session) c.getSession();
         Parser p = new Parser(session);
         Expression expr = p.parseExpression(key);
-        addColumnData(columns, data, expr);
+        addColumnData(session, columns, data, expr);
         Object[] col = columns.toArray();
         Object[] dat = data.toArray();
         Object[][] columnData = { col, dat };
@@ -667,16 +667,16 @@ public class FullText {
         return result;
     }
 
-    private static void addColumnData(ArrayList<String> columns,
-            ArrayList<String> data, Expression expr) {
+    private static void addColumnData(Session session, ArrayList<String> columns, ArrayList<String> data,
+            Expression expr) {
         if (expr instanceof ConditionAndOr) {
             ConditionAndOr and = (ConditionAndOr) expr;
-            addColumnData(columns, data, and.getSubexpression(0));
-            addColumnData(columns, data, and.getSubexpression(1));
+            addColumnData(session, columns, data, and.getSubexpression(0));
+            addColumnData(session, columns, data, and.getSubexpression(1));
         } else {
             Comparison comp = (Comparison) expr;
             ExpressionColumn ec = (ExpressionColumn) comp.getSubexpression(0);
-            String columnName = ec.getColumnName();
+            String columnName = ec.getColumnName(session, -1);
             columns.add(columnName);
             if (expr.getSubexpressionCount() == 1) {
                 data.add(null);

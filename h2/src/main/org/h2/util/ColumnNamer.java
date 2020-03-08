@@ -17,10 +17,13 @@ public class ColumnNamer {
 
     private static final String DEFAULT_COLUMN_NAME = "DEFAULT";
 
+    private final Session session;
+
     private final ColumnNamerConfiguration configuration;
     private final Set<String> existingColumnNames = new HashSet<>();
 
     public ColumnNamer(Session session) {
+        this.session = session;
         if (session != null && session.getColumnNamerConfiguration() != null) {
             // use original from session
             this.configuration = session.getColumnNamerConfiguration();
@@ -35,12 +38,14 @@ public class ColumnNamer {
 
     /**
      * Create a standardized column name that isn't null and doesn't have a CR/LF in it.
+     *
      * @param columnExp the column expression
      * @param indexOfColumn index of column in below array
      * @param columnNameOverides array of overriding column names
      * @return the new column name
      */
-    public String getColumnName(Expression columnExp, int indexOfColumn, String[] columnNameOverides) {
+    public String getColumnName(Expression columnExp, int indexOfColumn, String[] columnNameOverides)
+    {
         String columnNameOverride = null;
         if (columnNameOverides != null && columnNameOverides.length > indexOfColumn) {
             columnNameOverride = columnNameOverides[indexOfColumn];
@@ -50,6 +55,7 @@ public class ColumnNamer {
 
     /**
      * Create a standardized column name that isn't null and doesn't have a CR/LF in it.
+     *
      * @param columnExp the column expression
      * @param indexOfColumn index of column in below array
      * @param columnNameOverride single overriding column name
@@ -60,10 +66,10 @@ public class ColumnNamer {
         String columnName = getColumnName(columnNameOverride, null);
         if (columnName == null) {
             // try a name from the column alias
-            columnName = getColumnName(columnExp.getAlias(), DEFAULT_COLUMN_NAME);
+            columnName = getColumnName(columnExp.getAlias(session, indexOfColumn), DEFAULT_COLUMN_NAME);
             if (columnName == null) {
                 // try a name derived from the column expression SQL
-                columnName = getColumnName(columnExp.getColumnName(), DEFAULT_COLUMN_NAME);
+                columnName = getColumnName(columnExp.getColumnName(session, indexOfColumn), DEFAULT_COLUMN_NAME);
                 if (columnName == null) {
                     // try a name derived from the column expression plan SQL
                     columnName = getColumnName(columnExp.getSQL(HasSQL.TRACE_SQL_FLAGS), DEFAULT_COLUMN_NAME);

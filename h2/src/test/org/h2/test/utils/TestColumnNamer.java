@@ -4,6 +4,9 @@
  */
 package org.h2.test.utils;
 
+import org.h2.engine.ConnectionInfo;
+import org.h2.engine.Database;
+import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.test.TestBase;
@@ -36,7 +39,8 @@ public class TestColumnNamer extends TestBase {
 
     @Override
     public void test() {
-        ColumnNamer columnNamer = new ColumnNamer(null);
+        Database db = new Database(new ConnectionInfo("mem:1"), null);
+        ColumnNamer columnNamer = new ColumnNamer(new Session(db, null, 1));
         columnNamer.getConfiguration().configure("MAX_IDENTIFIER_LENGTH", "30");
         columnNamer.getConfiguration().configure("REGULAR_EXPRESSION_MATCH_ALLOWED", "[A-Za-z0-9_]+");
         columnNamer.getConfiguration().configure("REGULAR_EXPRESSION_MATCH_DISALLOWED", "[^A-Za-z0-9_]+");

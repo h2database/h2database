@@ -450,7 +450,7 @@ public class FullTextLucene extends FullText {
                         ExpressionColumn expr = (ExpressionColumn) p
                                 .parseExpression(tab);
                         String schemaName = expr.getOriginalTableAliasName();
-                        String tableName = expr.getColumnName();
+                        String tableName = expr.getColumnName(session, -1);
                         q = q.substring(idx + " WHERE ".length());
                         Object[][] columnData = parseKey(conn, q);
                         result.addRow(schemaName, tableName, columnData[0],

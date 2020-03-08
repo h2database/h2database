@@ -472,7 +472,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
                     table.getSchema().getName(), table.getName(),
                     column.getName(), false);
             for (int i = 0; i < columns.length; i++) {
-                if (expr.getColumnName().equals(columns[i].getName())) {
+                if (expr.getColumnName(session, i).equals(columns[i].getName())) {
                     if (condition == null) {
                         condition = new Comparison(Comparison.EQUAL, expr, row[i]);
                     } else {

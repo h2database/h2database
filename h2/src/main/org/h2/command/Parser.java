@@ -9,8 +9,10 @@
 package org.h2.command;
 
 import static org.h2.util.ParserUtil.ALL;
+import static org.h2.util.ParserUtil.AND;
 import static org.h2.util.ParserUtil.ARRAY;
 import static org.h2.util.ParserUtil.AS;
+import static org.h2.util.ParserUtil.BETWEEN;
 import static org.h2.util.ParserUtil.CASE;
 import static org.h2.util.ParserUtil.CHECK;
 import static org.h2.util.ParserUtil.CONSTRAINT;
@@ -37,6 +39,7 @@ import static org.h2.util.ParserUtil.HAVING;
 import static org.h2.util.ParserUtil.HOUR;
 import static org.h2.util.ParserUtil.IDENTIFIER;
 import static org.h2.util.ParserUtil.IF;
+import static org.h2.util.ParserUtil.IN;
 import static org.h2.util.ParserUtil.INNER;
 import static org.h2.util.ParserUtil.INTERSECT;
 import static org.h2.util.ParserUtil.INTERSECTS;
@@ -58,6 +61,7 @@ import static org.h2.util.ParserUtil.NOT;
 import static org.h2.util.ParserUtil.NULL;
 import static org.h2.util.ParserUtil.OFFSET;
 import static org.h2.util.ParserUtil.ON;
+import static org.h2.util.ParserUtil.OR;
 import static org.h2.util.ParserUtil.ORDER;
 import static org.h2.util.ParserUtil.PRIMARY;
 import static org.h2.util.ParserUtil.QUALIFY;
@@ -477,10 +481,14 @@ public class Parser {
             null,
             // ALL
             "ALL",
+            // AND
+            "AND",
             // ARRAY
             "ARRAY",
             // AS
             "AS",
+            // BETWEEN
+            "BETWEEN",
             // CASE
             "CASE",
             // CHECK
@@ -529,6 +537,8 @@ public class Parser {
             "HOUR",
             // IF
             "IF",
+            // IN
+            "IN",
             // INNER
             "INNER",
             // INTERSECT
@@ -569,6 +579,8 @@ public class Parser {
             "OFFSET",
             // ON
             "ON",
+            // OR
+            "OR",
             // ORDER
             "ORDER",
             // PRIMARY
@@ -1753,7 +1765,7 @@ public class Parser {
     }
 
     private void parseWhenMatched(MergeUsing command) {
-        Expression and = readIf("AND") ? readExpression() : null;
+        Expression and = readIf(AND) ? readExpression() : null;
         read("THEN");
         int startMatched = lastParseIndex;
         Update updateCommand = null;
@@ -1787,7 +1799,7 @@ public class Parser {
     private void parseWhenNotMatched(MergeUsing command) {
         read(NOT);
         read("MATCHED");
-        Expression and = readIf("AND") ? readExpression() : null;
+        Expression and = readIf(AND) ? readExpression() : null;
         read("THEN");
         read("INSERT");
         Insert insertCommand = new Insert(session);
@@ -2857,7 +2869,7 @@ public class Parser {
             if (readIf("RR") || readIf("RS")) {
                 // concurrent-access-resolution clause
                 if (readIf("USE")) {
-                    read("AND");
+                    read(AND);
                     read("KEEP");
                     if (readIf("SHARE") || readIf("UPDATE") ||
                             readIf("EXCLUSIVE")) {
@@ -3163,12 +3175,12 @@ public class Parser {
 
     private Expression readExpressionWithGlobalConditions() {
         Expression r = readCondition();
-        if (readIf("AND")) {
+        if (readIf(AND)) {
             r = readAnd(new ConditionAndOr(ConditionAndOr.AND, r, readCondition()));
         } else if (readIf("_LOCAL_AND_GLOBAL_")) {
             r = readAnd(new ConditionLocalAndGlobal(r, readCondition()));
         }
-        while (readIf("OR")) {
+        while (readIf(OR)) {
             r = new ConditionAndOr(ConditionAndOr.OR, r, readAnd(readCondition()));
         }
         return r;
@@ -3176,14 +3188,14 @@ public class Parser {
 
     private Expression readExpression() {
         Expression r = readAnd(readCondition());
-        while (readIf("OR")) {
+        while (readIf(OR)) {
             r = new ConditionAndOr(ConditionAndOr.OR, r, readAnd(readCondition()));
         }
         return r;
     }
 
     private Expression readAnd(Expression r) {
-        while (readIf("AND")) {
+        while (readIf(AND)) {
             r = new ConditionAndOr(ConditionAndOr.AND, r, readCondition());
         }
         return r;
@@ -3262,11 +3274,11 @@ public class Parser {
                 r = new CompareLike(database, r, b, null, true);
             } else if (readIf(IS)) {
                 r = readConditionIs(r);
-            } else if (readIf("IN")) {
+            } else if (readIf(IN)) {
                 r = readInPredicate(r);
-            } else if (readIf("BETWEEN")) {
+            } else if (readIf(BETWEEN)) {
                 Expression low = readConcat();
-                read("AND");
+                read(AND);
                 Expression high = readConcat();
                 Expression condLow = new Comparison(Comparison.SMALLER_EQUAL, low, r);
                 Expression condHigh = new Comparison(Comparison.BIGGER_EQUAL, high, r);
@@ -3788,9 +3800,9 @@ public class Parser {
             return null;
         }
         WindowFrameBound starting, following;
-        if (readIf("BETWEEN")) {
+        if (readIf(BETWEEN)) {
             starting = readWindowFrameRange();
-            read("AND");
+            read(AND);
             following = readWindowFrameRange();
         } else {
             starting = readWindowFrameStarting();
@@ -3982,7 +3994,7 @@ public class Parser {
             // can't read expression because IN would be read too early
             function.addParameter(readConcat());
             if (!readIf(COMMA)) {
-                read("IN");
+                read(IN);
             }
             function.addParameter(readExpression());
             read(CLOSE_PAREN);
@@ -6626,7 +6638,7 @@ public class Parser {
 
     private Prepared parseCreate() {
         boolean orReplace = false;
-        if (readIf("OR")) {
+        if (readIf(OR)) {
             read("REPLACE");
             orReplace = true;
         }
@@ -7059,7 +7071,7 @@ public class Parser {
             }
         } while (readIf(COMMA)
                 || (database.getMode().getEnum() == ModeEnum.PostgreSQL
-                        && readIf("OR")));
+                        && readIf(OR)));
         read(ON);
         String tableName = readIdentifierWithSchema();
         checkSchema(schema);

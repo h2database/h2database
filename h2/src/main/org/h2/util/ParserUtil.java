@@ -25,9 +25,14 @@ public class ParserUtil {
     public static final int ALL = IDENTIFIER + 1;
 
     /**
+     * The token "AND".
+     */
+    public static final int AND = ALL + 1;
+
+    /**
      * The token "ARRAY".
      */
-    public static final int ARRAY = ALL + 1;
+    public static final int ARRAY = AND + 1;
 
     /**
      * The token "AS".
@@ -35,9 +40,14 @@ public class ParserUtil {
     public static final int AS = ARRAY + 1;
 
     /**
+     * The token "BETWEEN".
+     */
+    public static final int BETWEEN = AS + 1;
+
+    /**
      * The token "CASE".
      */
-    public static final int CASE = AS + 1;
+    public static final int CASE = BETWEEN + 1;
 
     /**
      * The token "CHECK".
@@ -155,9 +165,14 @@ public class ParserUtil {
     public static final int IF = HOUR + 1;
 
     /**
+     * The token "IN".
+     */
+    public static final int IN = IF + 1;
+
+    /**
      * The token "INNER".
      */
-    public static final int INNER = IF + 1;
+    public static final int INNER = IN + 1;
 
     /**
      * The token "INTERSECT".
@@ -255,9 +270,14 @@ public class ParserUtil {
     public static final int ON = OFFSET + 1;
 
     /**
+     * The token "OR".
+     */
+    public static final int OR = ON + 1;
+
+    /**
      * The token "ORDER".
      */
-    public static final int ORDER = ON + 1;
+    public static final int ORDER = OR + 1;
 
     /**
      * The token "PRIMARY".
@@ -501,20 +521,20 @@ public class ParserUtil {
         case 'A':
             if (eq("ALL", s, ignoreCase, start, length)) {
                 return ALL;
-            } else if (eq("ARRAY", s, ignoreCase, start, length)) {
+            } else if (eq("AND", s, ignoreCase, start, length)) {
+                return AND;
+            } if (eq("ARRAY", s, ignoreCase, start, length)) {
                 return ARRAY;
             } else if (eq('S', s, ignoreCase, start, length)) {
                 return AS;
             }
-            if (additionalKeywords) {
-                if (eq("AND", s, ignoreCase, start, length)) {
-                    return KEYWORD;
-                }
-            }
             return IDENTIFIER;
         case 'B':
+            if (eq("BETWEEN", s, ignoreCase, start, length)) {
+                return BETWEEN;
+            }
             if (additionalKeywords) {
-                if (eq("BETWEEN", s, ignoreCase, start, length) || eq("BOTH", s, ignoreCase, start, length)) {
+                if (eq("BOTH", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
@@ -596,6 +616,8 @@ public class ParserUtil {
         case 'I':
             if (eq('F', s, ignoreCase, start, length)) {
                 return IF;
+            } else if (eq('N', s, ignoreCase, start, length)) {
+                return IN;
             } else if (eq("INNER", s, ignoreCase, start, length)) {
                 return INNER;
             } else if (eq("INTERSECT", s, ignoreCase, start, length)) {
@@ -608,7 +630,7 @@ public class ParserUtil {
                 return IS;
             }
             if (additionalKeywords) {
-                if (eq("ILIKE", s, ignoreCase, start, length) || eq('N', s, ignoreCase, start, length)) {
+                if (eq("ILIKE", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
@@ -664,11 +686,13 @@ public class ParserUtil {
                 return OFFSET;
             } else if (eq('N', s, ignoreCase, start, length)) {
                 return ON;
+            } else if (eq('R', s, ignoreCase, start, length)) {
+                return OR;
             } else if (eq("ORDER", s, ignoreCase, start, length)) {
                 return ORDER;
             }
             if (additionalKeywords) {
-                if (eq('R', s, ignoreCase, start, length) || eq("OVER", s, ignoreCase, start, length)) {
+                if (eq("OVER", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }

@@ -245,6 +245,7 @@ import org.h2.expression.function.TableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsPostgreSQL;
+import org.h2.mode.Regclass;
 import org.h2.result.SortOrder;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
@@ -3886,7 +3887,8 @@ public class Parser {
     private Expression readFunctionWithSchema(Schema schema, String name) {
         if (database.getMode().getEnum() == ModeEnum.PostgreSQL
                 && schema.getName().equals(database.sysIdentifier("PG_CATALOG"))) {
-            Function function = FunctionsPostgreSQL.getFunction(database, name);
+            String upperName = database.getSettings().databaseToUpper ? name : StringUtils.toUpperEnglish(name);
+            Function function = FunctionsPostgreSQL.getFunction(database, upperName);
             if (function != null) {
                 return readFunctionParameters(function);
             }
@@ -4675,25 +4677,21 @@ public class Parser {
             r = Function.getFunctionWithArgs(database, Function.ARRAY_GET, r, readExpression());
             read(CLOSE_BRACKET);
         }
-        if (readIf(COLON_COLON)) {
-            // PostgreSQL compatibility
-            if (isToken("PG_CATALOG")) {
-                read("PG_CATALOG");
-                read(DOT);
-            }
-            if (readIf("REGCLASS")) {
-                FunctionAlias f = findFunctionAlias(database.getMainSchema().getName(),
-                        database.sysIdentifier("PG_GET_OID"));
-                if (f == null) {
-                    throw getSyntaxError();
+        colonColon: if (readIf(COLON_COLON)) {
+            if (database.getMode().getEnum() == ModeEnum.PostgreSQL) {
+                // PostgreSQL compatibility
+                if (isToken("PG_CATALOG")) {
+                    read("PG_CATALOG");
+                    read(DOT);
                 }
-                Expression[] args = { r };
-                r = new JavaFunction(f, args);
-            } else {
-                Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
-                function.setDataType(parseColumnWithType(null));
-                r = function;
+                if (readIf("REGCLASS")) {
+                    r = new Regclass(r);
+                    break colonColon;
+                }
             }
+            Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
+            function.setDataType(parseColumnWithType(null));
+            r = function;
         }
         for (;;) {
             TypeInfo ti = (TypeInfo) readIntervalQualifier(null, false);

@@ -9,10 +9,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,6 +21,8 @@ import org.h2.server.Service;
 import org.h2.util.NetUtils;
 import org.h2.util.NetUtils2;
 import org.h2.util.Tool;
+import org.h2.value.DataType;
+import org.h2.value.Value;
 
 /**
  * This class implements a subset of the PostgreSQL protocol as described here:
@@ -299,47 +297,80 @@ public class PgServer implements Service {
     }
 
     /**
-     * Get the OID of an object. This method is called by the database.
+     * Returns the name of the given type.
      *
-     * @param conn the connection
-     * @param tableName the table name
-     * @return the oid
-     */
-    public static int getOid(Connection conn, String tableName)
-            throws SQLException {
-        if (tableName.startsWith("\"") && tableName.endsWith("\"")) {
-            tableName = tableName.substring(1, tableName.length() - 1);
-        }
-        PreparedStatement prep = conn.prepareStatement(
-                "select oid from pg_class where relName = ?");
-        prep.setString(1, tableName);
-        ResultSet rs = prep.executeQuery();
-        if (!rs.next()) {
-            return 0;
-        }
-        return rs.getInt(1);
-    }
-
-    /**
-     * Check if the current session has access to this table.
-     * This method is called by the database.
-     *
-     * @param conn the connection
      * @param pgType the PostgreSQL type oid
-     * @param typeMod the type modifier (typically -1)
      * @return the name of the given type
      */
-    public static String formatType(Connection conn, int pgType, int typeMod)
-            throws SQLException {
-        PreparedStatement prep = conn.prepareStatement(
-                "select typname from pg_catalog.pg_type where oid = ? and typtypmod = ?");
-        prep.setInt(1, pgType);
-        prep.setInt(2, typeMod);
-        ResultSet rs = prep.executeQuery();
-        if (rs.next()) {
-            return rs.getString(1);
+    public static String formatType(int pgType) {
+        int valueType;
+        switch (pgType) {
+        case 0:
+            return "-";
+        case PG_TYPE_BOOL:
+            valueType = Value.BOOLEAN;
+            break;
+        case PG_TYPE_BYTEA:
+            valueType = Value.VARBINARY;
+            break;
+        case 19:
+            return "name";
+        case PG_TYPE_INT8:
+            valueType = Value.BIGINT;
+            break;
+        case PG_TYPE_INT2:
+            valueType = Value.SMALLINT;
+            break;
+        case 22:
+            return "int2vector";
+        case PG_TYPE_INT4:
+            valueType = Value.INTEGER;
+            break;
+        case PG_TYPE_TEXT:
+            valueType = Value.CLOB;
+            break;
+        case PG_TYPE_OID:
+            valueType = Value.BLOB;
+            break;
+        case PG_TYPE_FLOAT4:
+            valueType = Value.REAL;
+            break;
+        case PG_TYPE_FLOAT8:
+            valueType = Value.DOUBLE;
+            break;
+        case PG_TYPE_TEXTARRAY:
+            valueType = Value.ARRAY;
+            break;
+        case PG_TYPE_BPCHAR:
+            valueType = Value.CHAR;
+            break;
+        case PG_TYPE_VARCHAR:
+            valueType = Value.VARCHAR;
+            break;
+        case PG_TYPE_DATE:
+            valueType = Value.DATE;
+            break;
+        case PG_TYPE_TIME:
+            valueType = Value.TIME;
+            break;
+        case PG_TYPE_TIMETZ:
+            valueType = Value.TIME_TZ;
+            break;
+        case PG_TYPE_TIMESTAMP:
+            valueType = Value.TIMESTAMP;
+            break;
+        case PG_TYPE_TIMESTAMPTZ:
+            valueType = Value.TIMESTAMP_TZ;
+            break;
+        case PG_TYPE_NUMERIC:
+            valueType = Value.NUMERIC;
+            break;
+        case 2205:
+            return "regproc";
+        default:
+            return "???";
         }
-        return null;
+        return DataType.getDataType(valueType).name;
     }
 
     /**

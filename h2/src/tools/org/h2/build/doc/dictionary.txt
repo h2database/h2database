@@ -828,3 +828,10 @@ expandable jira meaningless iterated maliciously crafted cdef attention deserial
 consumer reread relname proargtypes pronamespace relnamespace heidi proname reltuples collects trigraphs nspname
 timetz timestamptz psycopg adbin attrdef objoid attnotnull adnum adrelid objsubid atttypid attname attisdropped pgc
 attrelid currtid encodings
+
+rolconnlimit spcname indisclustered tgconstrname relhasoids rolcreaterole usecreatedb datconfig reltablespace relchecks
+amname relhasindex tablespace reltriggers tgconstrrelid groname indrelid relhasrules classoid inhseqno tgargs datdba
+indisunique rolinherit datacl rolvaliduntil datname indexprs usename typbasetype rolconfig relkind spcacl prorettype
+datallowconn atthasdef dattablespace rolcreatedb inhrelid inhparent attlen rolname rolcanlogin aclitem datlastsysoid
+indpred tgfoid indisprimary adsrc spcowner tgnargs typtype typinput rolcatupdate typnamespace tgrelid authid indexrelid
+usesuper tgdeferrable rolpassword relam relpages tginitdeferred rolsuper autovacuum typnotnull spclocation

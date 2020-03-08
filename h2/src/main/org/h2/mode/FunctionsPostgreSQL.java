@@ -20,8 +20,10 @@ import org.h2.expression.function.FunctionInfo;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.schema.SchemaObject;
+import org.h2.server.pg.PgServer;
 import org.h2.table.Column;
 import org.h2.table.Table;
+import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
@@ -38,7 +40,9 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
 
     private static final int CURRTID2 = 3001;
 
-    private static final int HAS_DATABASE_PRIVILEGE = CURRTID2 + 1;
+    private static final int FORMAT_TYPE = CURRTID2 + 1;
+
+    private static final int HAS_DATABASE_PRIVILEGE = FORMAT_TYPE + 1;
 
     private static final int HAS_TABLE_PRIVILEGE = HAS_DATABASE_PRIVILEGE + 1;
 
@@ -67,6 +71,8 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
     static {
         copyFunction(FUNCTIONS, "CURRENT_CATALOG", "CURRENT_DATABASE");
         FUNCTIONS.put("CURRTID2", new FunctionInfo("CURRTID2", CURRTID2, 2, Value.INTEGER, true, false, true, false));
+        FUNCTIONS.put("FORMAT_TYPE",
+                new FunctionInfo("FORMAT_TYPE", FORMAT_TYPE, 2, Value.VARCHAR, false, true, true, false));
         FUNCTIONS.put("HAS_DATABASE_PRIVILEGE", new FunctionInfo("HAS_DATABASE_PRIVILEGE", HAS_DATABASE_PRIVILEGE,
                 VAR_ARGS, Value.BOOLEAN, true, false, true, false));
         FUNCTIONS.put("HAS_TABLE_PRIVILEGE", new FunctionInfo("HAS_TABLE_PRIVILEGE", HAS_TABLE_PRIVILEGE, VAR_ARGS,
@@ -187,6 +193,10 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
             // Not implemented
             result = ValueInteger.get(1);
             break;
+        case FORMAT_TYPE:
+            result = v0 != ValueNull.INSTANCE ? ValueVarchar.get(PgServer.formatType(v0.getInt())) //
+                    : ValueNull.INSTANCE;
+            break;
         case HAS_DATABASE_PRIVILEGE:
         case HAS_TABLE_PRIVILEGE:
         case PG_TABLE_IS_VISIBLE:
@@ -206,7 +216,8 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
             break;
         case PG_GET_EXPR:
             // Not implemented
-            return ValueNull.INSTANCE;
+            result = ValueNull.INSTANCE;
+            break;
         case PG_GET_INDEXDEF:
             result = getIndexdef(session, v0.getInt(), v1, v2);
             break;
@@ -222,7 +233,8 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
             break;
         case SET_CONFIG:
             // Not implemented
-            return v1.convertTo(Value.VARCHAR);
+            result = v1.convertTo(Value.VARCHAR);
+            break;
         default:
             throw DbException.throwInternalError("type=" + info.type);
         }
@@ -265,17 +277,27 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
 
     private static String getUserbyid(Session session, int uid) {
         User u = session.getUser();
-        if (u.getId() == uid) {
-            return u.getName();
-        }
-        if (u.isAdmin()) {
-            for (User user : session.getDatabase().getAllUsers()) {
-                if (user.getId() == uid) {
-                    return user.getName();
+        String name;
+        search: {
+            if (u.getId() == uid) {
+                name = u.getName();
+                break search;
+            } else {
+                if (u.isAdmin()) {
+                    for (User user : session.getDatabase().getAllUsers()) {
+                        if (user.getId() == uid) {
+                            name = user.getName();
+                            break search;
+                        }
+                    }
                 }
             }
+            return "unknown (OID=" + uid + ')';
         }
-        return "unknown (OID=" + uid + ')';
+        if (session.getDatabase().getSettings().databaseToLower) {
+            name = StringUtils.toLowerEnglish(name);
+        }
+        return name;
     }
 
     private static Value relationSize(Session session, Value tableOidOrName) {

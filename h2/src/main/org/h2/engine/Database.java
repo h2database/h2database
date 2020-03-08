@@ -34,6 +34,7 @@ import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.Constraint.Type;
+import org.h2.engine.Mode.ModeEnum;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -41,6 +42,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
+import org.h2.mode.PgCatalogTable;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.LobStorageMap;
 import org.h2.mvstore.db.MVTableEngine;
@@ -65,7 +67,7 @@ import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.MetaTable;
+import org.h2.table.InformationSchemaTable;
 import org.h2.table.Table;
 import org.h2.table.TableLinkConnection;
 import org.h2.table.TableSynonym;
@@ -157,6 +159,7 @@ public class Database implements DataHandler, CastDataProvider {
 
     private Schema mainSchema;
     private Schema infoSchema;
+    private Schema pgCatalogSchema;
     private int nextSessionId;
     private int nextTempTableId;
     private User systemUser;
@@ -648,6 +651,11 @@ public class Database implements DataHandler, CastDataProvider {
                 true);
         schemas.put(mainSchema.getName(), mainSchema);
         schemas.put(infoSchema.getName(), infoSchema);
+        if (mode.getEnum() == ModeEnum.PostgreSQL) {
+            pgCatalogSchema = new Schema(this, Constants.PG_CATALOG_SCHEMA_ID,
+                    sysIdentifier(Constants.SCHEMA_PG_CATALOG), systemUser, true);
+            schemas.put(pgCatalogSchema.getName(), pgCatalogSchema);
+        }
         publicRole = new Role(this, 0, sysIdentifier(Constants.PUBLIC_ROLE_NAME), true);
         roles.put(publicRole.getName(), publicRole);
         systemUser.setAdmin(true);
@@ -937,10 +945,15 @@ public class Database implements DataHandler, CastDataProvider {
         }
         synchronized (infoSchema) {
             if (!metaTablesInitialized) {
-                for (int type = 0, count = MetaTable.getMetaTableTypeCount();
-                        type < count; type++) {
-                    MetaTable m = new MetaTable(infoSchema, -1 - type, type);
-                    infoSchema.add(m);
+                for (int type = 0, count = InformationSchemaTable.getMetaTableTypeCount(); type < count; type++) {
+                    infoSchema.add(new InformationSchemaTable(infoSchema, Constants.INFORMATION_SCHEMA_ID - type,
+                            type));
+                }
+                if (pgCatalogSchema != null) {
+                    for (int type = 0, count = PgCatalogTable.getMetaTableTypeCount(); type < count; type++) {
+                        pgCatalogSchema.add(new PgCatalogTable(pgCatalogSchema, Constants.PG_CATALOG_SCHEMA_ID - type,
+                                type));
+                    }
                 }
                 metaTablesInitialized = true;
             }
@@ -1244,7 +1257,7 @@ public class Database implements DataHandler, CastDataProvider {
             return null;
         }
         Schema schema = schemas.get(schemaName);
-        if (schema == infoSchema) {
+        if (!metaTablesInitialized && (schema == infoSchema || schema != null && schema == pgCatalogSchema)) {
             initMetaTables();
         }
         return schema;

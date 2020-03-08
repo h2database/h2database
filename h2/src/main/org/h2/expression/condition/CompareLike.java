@@ -25,16 +25,39 @@ import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueVarchar;
+import org.h2.value.ValueVarcharIgnoreCase;
 
 /**
  * Pattern matching comparison expression: WHERE NAME LIKE ?
  */
 public class CompareLike extends Condition {
 
+    /**
+     * The type of comparison.
+     */
+    public enum LikeType {
+        /**
+         * LIKE.
+         */
+        LIKE,
+
+        /**
+         * ILIKE (case-insensitive LIKE).
+         */
+        ILIKE,
+
+        /**
+         * REGEXP
+         */
+        REGEXP
+    }
+
     private static final int MATCH = 0, ONE = 1, ANY = 2;
 
     private final CompareMode compareMode;
     private final String defaultEscape;
+
+    private final LikeType likeType;
     private Expression left;
     private Expression right;
     private Expression escape;
@@ -47,7 +70,6 @@ public class CompareLike extends Condition {
     private int[] patternTypes;
     private int patternLength;
 
-    private final boolean regexp;
     private Pattern patternRegexp;
 
     private boolean ignoreCase;
@@ -60,17 +82,15 @@ public class CompareLike extends Condition {
     /** indicates that we can shortcut the comparison and use contains */
     private boolean shortcutToContains;
 
-    public CompareLike(Database db, Expression left, Expression right,
-            Expression escape, boolean regexp) {
-        this(db.getCompareMode(), db.getSettings().defaultEscape, left, right,
-                escape, regexp);
+    public CompareLike(Database db, Expression left, Expression right, Expression escape, LikeType likeType) {
+        this(db.getCompareMode(), db.getSettings().defaultEscape, left, right, escape, likeType);
     }
 
-    public CompareLike(CompareMode compareMode, String defaultEscape,
-            Expression left, Expression right, Expression escape, boolean regexp) {
+    public CompareLike(CompareMode compareMode, String defaultEscape, Expression left, Expression right,
+            Expression escape, LikeType likeType) {
         this.compareMode = compareMode;
         this.defaultEscape = defaultEscape;
-        this.regexp = regexp;
+        this.likeType = likeType;
         this.left = left;
         this.right = right;
         this.escape = escape;
@@ -83,16 +103,21 @@ public class CompareLike extends Condition {
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append('(');
-        if (regexp) {
-            left.getSQL(builder, sqlFlags).append(" REGEXP ");
-            right.getSQL(builder, sqlFlags);
-        } else {
-            left.getSQL(builder, sqlFlags).append(" LIKE ");
+        switch (likeType) {
+        case LIKE:
+        case ILIKE:
+            left.getSQL(builder, sqlFlags).append(likeType == LikeType.LIKE ? " LIKE " : " ILIKE ");
             right.getSQL(builder, sqlFlags);
             if (escape != null) {
-                builder.append(" ESCAPE ");
-                escape.getSQL(builder, sqlFlags);
+                escape.getSQL(builder.append(" ESCAPE "), sqlFlags);
             }
+            break;
+        case REGEXP:
+            left.getSQL(builder, sqlFlags).append(" REGEXP ");
+            right.getSQL(builder, sqlFlags);
+            break;
+        default:
+            throw DbException.getUnsupportedException(likeType.name());
         }
         return builder.append(')');
     }
@@ -101,7 +126,7 @@ public class CompareLike extends Condition {
     public Expression optimize(Session session) {
         left = left.optimize(session);
         right = right.optimize(session);
-        if (left.getType().getValueType() == Value.VARCHAR_IGNORECASE) {
+        if (likeType == LikeType.ILIKE || left.getType().getValueType() == Value.VARCHAR_IGNORECASE) {
             ignoreCase = true;
         }
         if (left.isValueSet()) {
@@ -138,7 +163,7 @@ public class CompareLike extends Condition {
             }
             if (isFullMatch()) {
                 // optimization for X LIKE 'Hello': convert to X = 'Hello'
-                Value value = ValueVarchar.get(patternString);
+                Value value = ignoreCase ? ValueVarcharIgnoreCase.get(patternString) : ValueVarchar.get(patternString);
                 Expression expr = ValueExpression.get(value);
                 return new Comparison(Comparison.EQUAL, left, expr).optimize(session);
             }
@@ -167,13 +192,16 @@ public class CompareLike extends Condition {
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (regexp) {
+        if (likeType == LikeType.REGEXP) {
             return;
         }
         if (!(left instanceof ExpressionColumn)) {
             return;
         }
         ExpressionColumn l = (ExpressionColumn) left;
+        if (ignoreCase && l.getType().getValueType() != Value.VARCHAR_IGNORECASE) {
+            return;
+        }
         if (filter != l.getTableFilter()) {
             return;
         }
@@ -233,7 +261,7 @@ public class CompareLike extends Condition {
                 // that is higher)
                 for (int i = 1; i < 2000; i++) {
                     end = begin.substring(0, begin.length() - 1) + (char) (next + i);
-                    if (compareMode.compareString(begin, end, ignoreCase) == -1) {
+                    if (compareMode.compareString(begin, end, ignoreCase) < 0) {
                         filter.addIndexCondition(IndexCondition.get(
                                 Comparison.SMALLER, l,
                                 ValueExpression.get(ValueVarchar.get(end))));
@@ -267,7 +295,7 @@ public class CompareLike extends Condition {
         }
         String value = l.getString();
         boolean result;
-        if (regexp) {
+        if (likeType == LikeType.REGEXP) {
             result = patternRegexp.matcher(value).find();
         } else if (shortcutToStartsWith) {
             result = value.regionMatches(ignoreCase, 0, patternString, 0, patternLength - 1);
@@ -370,7 +398,7 @@ public class CompareLike extends Condition {
         if (compareMode.getName().equals(CompareMode.OFF) && !ignoreCase) {
             fastCompare = true;
         }
-        if (regexp) {
+        if (likeType == LikeType.REGEXP) {
             patternString = p;
             try {
                 if (ignoreCase) {

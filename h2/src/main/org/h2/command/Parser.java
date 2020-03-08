@@ -230,6 +230,7 @@ import org.h2.expression.analysis.WindowFunction;
 import org.h2.expression.analysis.WindowFunctionType;
 import org.h2.expression.condition.BooleanTest;
 import org.h2.expression.condition.CompareLike;
+import org.h2.expression.condition.CompareLike.LikeType;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
 import org.h2.expression.condition.ConditionIn;
@@ -1554,7 +1555,7 @@ public class Parser {
             String s = currentToken;
             read();
             CompareLike like = new CompareLike(database, function,
-                    ValueExpression.get(ValueVarchar.get('%' + s + '%')), null, false);
+                    ValueExpression.get(ValueVarchar.get('%' + s + '%')), null, LikeType.LIKE);
             select.addCondition(like);
         }
         select.init();
@@ -3270,31 +3271,16 @@ public class Parser {
                 break;
             case LIKE: {
                 read();
-                Expression b = readConcat();
-                Expression esc = null;
-                if (readIf("ESCAPE")) {
-                    esc = readConcat();
-                }
-                recompileAlways = true;
-                r = new CompareLike(database, r, b, esc, false);
+                r = readLikePredicate(r, LikeType.LIKE);
                 break;
             }
             default:
                 if (readIf("ILIKE")) {
-                    Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
-                    function.setDataType(TypeInfo.TYPE_VARCHAR_IGNORECASE);
-                    r = function;
-                    Expression b = readConcat();
-                    Expression esc = null;
-                    if (readIf("ESCAPE")) {
-                        esc = readConcat();
-                    }
-                    recompileAlways = true;
-                    r = new CompareLike(database, r, b, esc, false);
+                    r = readLikePredicate(r, LikeType.ILIKE);
                 } else if (readIf("REGEXP")) {
                     Expression b = readConcat();
                     recompileAlways = true;
-                    r = new CompareLike(database, r, b, null, true);
+                    r = new CompareLike(database, r, b, null, LikeType.REGEXP);
                 } else if (not) {
                     if (expectedList != null) {
                         addMultipleExpected(LIKE, IS, IN, BETWEEN);
@@ -3420,6 +3406,13 @@ public class Parser {
         return new IsJsonPredicate(left, not, unique, itemType);
     }
 
+    private Expression readLikePredicate(Expression left, LikeType likeType) {
+        Expression right = readConcat();
+        Expression esc = readIf("ESCAPE") ? readConcat() : null;
+        recompileAlways = true;
+        return new CompareLike(database, left, right, esc, likeType);
+    }
+
     private Expression readComparison(Expression left, int compareType) {
         read();
         int start = lastParseIndex;
@@ -3455,24 +3448,21 @@ public class Parser {
 
     private Expression readConcat() {
         Expression r = readSum();
-        while (true) {
-            if (readIf(CONCATENATION)) {
+        for (;;) {
+            switch (currentTokenType) {
+            case CONCATENATION:
+                read();
                 r = new ConcatenationOperation(r, readSum());
-            } else if (readIf(TILDE)) {
-                if (readIf(ASTERISK)) {
-                    Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
-                    function.setDataType(TypeInfo.TYPE_VARCHAR_IGNORECASE);
-                    r = function;
-                }
-                r = new CompareLike(database, r, readSum(), null, true);
-            } else if (readIf(NOT_TILDE)) {
-                if (readIf(ASTERISK)) {
-                    Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
-                    function.setDataType(TypeInfo.TYPE_VARCHAR_IGNORECASE);
-                    r = function;
-                }
-                r = new ConditionNot(new CompareLike(database, r, readSum(), null, true));
-            } else {
+                break;
+            case TILDE: // PostgreSQL compatibility
+                r = readTildeCondition(r);
+                break;
+            case NOT_TILDE: // PostgreSQL compatibility
+                r = new ConditionNot(readTildeCondition(r));
+                break;
+            default:
+                // Don't add compatibility operators
+                addExpected(CONCATENATION);
                 return r;
             }
         }
@@ -3504,6 +3494,16 @@ public class Parser {
                 return r;
             }
         }
+    }
+
+    private Expression readTildeCondition(Expression r) {
+        read();
+        if (readIf(ASTERISK)) {
+            Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
+            function.setDataType(TypeInfo.TYPE_VARCHAR_IGNORECASE);
+            r = function;
+        }
+        return new CompareLike(database, r, readSum(), null, LikeType.REGEXP);
     }
 
     private Expression readAggregate(AggregateType aggregateType, String aggregateName) {

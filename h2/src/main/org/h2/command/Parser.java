@@ -3237,7 +3237,7 @@ public class Parser {
             }
         }
         Expression r = readConcat();
-        for (;;) {
+        loop: for (;;) {
             // special case: NOT NULL is not part of an expression (as in CREATE
             // TABLE TEST(ID INT DEFAULT 0 NOT NULL))
             int backup = parseIndex;
@@ -3249,48 +3249,64 @@ public class Parser {
                 currentTokenType = NOT;
                 break;
             }
-            if (readIf(LIKE)) {
-                Expression b = readConcat();
-                Expression esc = null;
-                if (readIf("ESCAPE")) {
-                    esc = readConcat();
-                }
-                recompileAlways = true;
-                r = new CompareLike(database, r, b, esc, false);
-            } else if (readIf("ILIKE")) {
-                Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
-                function.setDataType(TypeInfo.TYPE_VARCHAR_IGNORECASE);
-                r = function;
-                Expression b = readConcat();
-                Expression esc = null;
-                if (readIf("ESCAPE")) {
-                    esc = readConcat();
-                }
-                recompileAlways = true;
-                r = new CompareLike(database, r, b, esc, false);
-            } else if (readIf("REGEXP")) {
-                Expression b = readConcat();
-                recompileAlways = true;
-                r = new CompareLike(database, r, b, null, true);
-            } else if (readIf(IS)) {
-                r = readConditionIs(r);
-            } else if (readIf(IN)) {
-                r = readInPredicate(r);
-            } else if (readIf(BETWEEN)) {
+            switch (currentTokenType) {
+            case BETWEEN: {
+                read();
                 Expression low = readConcat();
                 read(AND);
                 Expression high = readConcat();
                 Expression condLow = new Comparison(Comparison.SMALLER_EQUAL, low, r);
                 Expression condHigh = new Comparison(Comparison.BIGGER_EQUAL, high, r);
                 r = new ConditionAndOr(ConditionAndOr.AND, condLow, condHigh);
-            } else if (not) {
-                throw getSyntaxError();
-            } else {
-                int compareType = getCompareType(currentTokenType);
-                if (compareType < 0) {
-                    break;
+                break;
+            }
+            case IN:
+                read();
+                r = readInPredicate(r);
+                break;
+            case IS:
+                read();
+                r = readConditionIs(r);
+                break;
+            case LIKE: {
+                read();
+                Expression b = readConcat();
+                Expression esc = null;
+                if (readIf("ESCAPE")) {
+                    esc = readConcat();
                 }
-                r = readComparison(r, compareType);
+                recompileAlways = true;
+                r = new CompareLike(database, r, b, esc, false);
+                break;
+            }
+            default:
+                if (readIf("ILIKE")) {
+                    Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
+                    function.setDataType(TypeInfo.TYPE_VARCHAR_IGNORECASE);
+                    r = function;
+                    Expression b = readConcat();
+                    Expression esc = null;
+                    if (readIf("ESCAPE")) {
+                        esc = readConcat();
+                    }
+                    recompileAlways = true;
+                    r = new CompareLike(database, r, b, esc, false);
+                } else if (readIf("REGEXP")) {
+                    Expression b = readConcat();
+                    recompileAlways = true;
+                    r = new CompareLike(database, r, b, null, true);
+                } else if (not) {
+                    if (expectedList != null) {
+                        addMultipleExpected(LIKE, IS, IN, BETWEEN);
+                    }
+                    throw getSyntaxError();
+                } else {
+                    int compareType = getCompareType(currentTokenType);
+                    if (compareType < 0) {
+                        break loop;
+                    }
+                    r = readComparison(r, compareType);
+                }
             }
             if (not) {
                 r = new ConditionNot(r);

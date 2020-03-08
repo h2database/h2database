@@ -37,11 +37,11 @@ public class TestColumnNamer extends TestBase {
     @Override
     public void test() {
         ColumnNamer columnNamer = new ColumnNamer(null);
-        columnNamer.getConfiguration().configure("MAX_IDENTIFIER_LENGTH = 30");
-        columnNamer.getConfiguration().configure("REGULAR_EXPRESSION_MATCH_ALLOWED = '[A-Za-z0-9_]+'");
-        columnNamer.getConfiguration().configure("REGULAR_EXPRESSION_MATCH_DISALLOWED = '[^A-Za-z0-9_]+'");
-        columnNamer.getConfiguration().configure("DEFAULT_COLUMN_NAME_PATTERN = 'colName$$'");
-        columnNamer.getConfiguration().configure("GENERATE_UNIQUE_COLUMN_NAMES = 1");
+        columnNamer.getConfiguration().configure("MAX_IDENTIFIER_LENGTH", "30");
+        columnNamer.getConfiguration().configure("REGULAR_EXPRESSION_MATCH_ALLOWED", "[A-Za-z0-9_]+");
+        columnNamer.getConfiguration().configure("REGULAR_EXPRESSION_MATCH_DISALLOWED", "[^A-Za-z0-9_]+");
+        columnNamer.getConfiguration().configure("DEFAULT_COLUMN_NAME_PATTERN", "colName$$");
+        columnNamer.getConfiguration().configure("GENERATE_UNIQUE_COLUMN_NAMES", "1");
 
         int index = 0;
         for (String id : ids) {

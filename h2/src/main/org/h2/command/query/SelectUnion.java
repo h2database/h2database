@@ -24,7 +24,6 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.ColumnNamer;
 import org.h2.value.Value;
 
 /**
@@ -263,12 +262,10 @@ public class SelectUnion extends Query {
         expressions = new ArrayList<>(len);
         ArrayList<Expression> le = left.getExpressions();
         ArrayList<Expression> re = right.getExpressions();
-        ColumnNamer columnNamer = new ColumnNamer(session);
         for (int i = 0; i < len; i++) {
             Expression l = le.get(i);
             Expression r = re.get(i);
-            String columnName = columnNamer.getColumnName(l, i, l.getAlias(session, i));
-            Column col = new Column(columnName, Value.getHigherType(l.getType(), r.getType()));
+            Column col = new Column(l.getAlias(session, i), Value.getHigherType(l.getType(), r.getType()));
             Expression e = new ExpressionColumn(session.getDatabase(), col);
             expressions.add(e);
         }

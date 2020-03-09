@@ -2160,7 +2160,20 @@ public class ErrorCode {
      */
     public static final int GENERATED_COLUMN_CANNOT_BE_UPDATABLE_BY_CONSTRAINT_2 = 90155;
 
-    // next is 90156
+    /**
+     * The error with code <code>90156</code> is thrown when trying to create a
+     * view or a table from a select and some expression doesn't have a column
+     * name or alias when it is required by a compatibility mode.
+     *
+     * <pre>
+     * SET MODE DB2;
+     * CREATE TABLE T1(A INT, B INT);
+     * CREATE TABLE T2 AS (SELECT A + B FROM T1) WITH DATA;
+     * </pre>
+     */
+    public static final int COLUMN_ALIAS_IS_NOT_SPECIFIED_1 = 90156;
+
+    // next is 90157
 
     private ErrorCode() {
         // utility class

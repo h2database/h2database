@@ -50,7 +50,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
-import org.h2.util.ColumnNamer;
 import org.h2.util.HasSQL;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -1163,16 +1162,8 @@ public class Select extends Query {
         if (orderList != null) {
             prepareOrder(orderList, expressions.size());
         }
-        ColumnNamer columnNamer = new ColumnNamer(session);
         for (int i = 0; i < expressions.size(); i++) {
-            Expression e = expressions.get(i);
-            String proposedColumnName = e.getAlias(session, i);
-            String columnName = columnNamer.getColumnName(e, i, proposedColumnName);
-            // if the name changed, create an alias
-            if (!columnName.equals(proposedColumnName)) {
-                e = new Alias(e, columnName, true);
-            }
-            expressions.set(i, e.optimize(session));
+            expressions.set(i, expressions.get(i).optimize(session));
         }
         if (sort != null) {
             cleanupOrder();

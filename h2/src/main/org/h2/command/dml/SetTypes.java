@@ -228,14 +228,9 @@ public class SetTypes {
     public static final int BUILTIN_ALIAS_OVERRIDE = LAZY_QUERY_EXECUTION + 1;
 
     /**
-     * The type of a SET COLUMN_NAME_RULES statement.
-     */
-    public static final int COLUMN_NAME_RULES = BUILTIN_ALIAS_OVERRIDE + 1;
-
-    /**
      * The type of a SET AUTHENTICATOR statement.
      */
-    public static final int AUTHENTICATOR = COLUMN_NAME_RULES + 1;
+    public static final int AUTHENTICATOR = BUILTIN_ALIAS_OVERRIDE + 1;
 
     /**
      * The type of a SET UUID_COLLATION statement.
@@ -321,7 +316,6 @@ public class SetTypes {
         list.add(FORCE_JOIN_ORDER, "FORCE_JOIN_ORDER");
         list.add(LAZY_QUERY_EXECUTION, "LAZY_QUERY_EXECUTION");
         list.add(BUILTIN_ALIAS_OVERRIDE, "BUILTIN_ALIAS_OVERRIDE");
-        list.add(COLUMN_NAME_RULES, "COLUMN_NAME_RULES");
         list.add(AUTHENTICATOR, "AUTHENTICATOR");
         list.add(UUID_COLLATION, "UUID_COLLATION");
         list.add(IGNORE_CATALOGS, "IGNORE_CATALOGS");

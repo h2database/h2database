@@ -31,7 +31,6 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
-import org.h2.util.ColumnNamer;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
@@ -167,7 +166,6 @@ public class TableView extends Table {
             this.querySQL = compiledQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
             tables = new ArrayList<>(compiledQuery.getTables());
             ArrayList<Expression> expressions = compiledQuery.getExpressions();
-            ColumnNamer columnNamer = new ColumnNamer(session);
             final int count = compiledQuery.getColumnCount();
             ArrayList<Column> list = new ArrayList<>(count);
             for (int i = 0; i < count; i++) {
@@ -179,9 +177,8 @@ public class TableView extends Table {
                     type = columnTemplates[i].getType();
                 }
                 if (name == null) {
-                    name = expr.getAlias(session, i);
+                    name = expr.getColumnNameForView(session, i);
                 }
-                name = columnNamer.getColumnName(expr, i, name);
                 if (type.getValueType() == Value.UNKNOWN) {
                     type = expr.getType();
                 }
@@ -193,6 +190,9 @@ public class TableView extends Table {
             createException = null;
             viewQuery = compiledQuery;
         } catch (DbException e) {
+            if (e.getErrorCode() == ErrorCode.COLUMN_ALIAS_IS_NOT_SPECIFIED_1) {
+                throw e;
+            }
             e.addSQL(getCreateSQL());
             createException = e;
             // If it can't be compiled, then it's a 'zero column table'
@@ -762,14 +762,14 @@ public class TableView extends Table {
         // String array of length 1 is to receive extra 'output' field in addition to
         // return value
         querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL(ADD_PLAN_INFORMATION));
-        ColumnNamer columnNamer = new ColumnNamer(theQuery.getSession());
+        Session session = theQuery.getSession();
         ArrayList<Expression> withExpressions = theQuery.getExpressions();
         for (int i = 0; i < withExpressions.size(); ++i) {
             Expression columnExp = withExpressions.get(i);
             // use the passed in column name if supplied, otherwise use alias
             // (if found) otherwise use column name derived from column
             // expression
-            String columnName = columnNamer.getColumnName(columnExp, i, cols);
+            String columnName = cols != null && cols.length > i ? cols[i] : columnExp.getColumnNameForView(session, i);
             columnTemplateList.add(new Column(columnName, columnExp.getType()));
 
         }

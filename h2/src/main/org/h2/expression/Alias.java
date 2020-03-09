@@ -80,6 +80,11 @@ public class Alias extends Expression {
     }
 
     @Override
+    public String getColumnNameForView(Session session, int columnIndex) {
+        return alias;
+    }
+
+    @Override
     public int getNullable() {
         return expr.getNullable();
     }

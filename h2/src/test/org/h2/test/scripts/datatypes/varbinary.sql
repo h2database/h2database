@@ -92,7 +92,7 @@ SET MODE MSSQLServer;
 > ok
 
 SELECT 0x, 0x12ab;
-> X   X12ab
+>
 > --- -------
 > X'' X'12ab'
 > rows: 1
@@ -104,7 +104,7 @@ SET MODE MySQL;
 > ok
 
 SELECT 0x, 0x12ab;
-> X   X12ab
+> X'' X'12ab'
 > --- -------
 > X'' X'12ab'
 > rows: 1

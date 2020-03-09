@@ -7,8 +7,10 @@ package org.h2.expression;
 
 import java.util.List;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
@@ -334,6 +336,30 @@ public abstract class Expression implements HasSQL {
             return "C" + (columnIndex + 1);
         case POSTGRESQL_STYLE:
             return "?column?";
+        }
+    }
+
+    /**
+     * Get the column name of this expression for a view.
+     *
+     * @param session the session
+     * @param columnIndex 0-based column index
+     * @return the column name for a view
+     */
+    public String getColumnNameForView(Session session, int columnIndex) {
+        switch (session.getMode().viewExpressionNames) {
+        case AS_IS:
+        default:
+            return getAlias(session, columnIndex);
+        case EXCEPTION:
+            throw DbException.get(ErrorCode.COLUMN_ALIAS_IS_NOT_SPECIFIED_1, getTraceSQL());
+        case MYSQL_STYLE: {
+            String name = getUnenclosedSQL(new StringBuilder(), QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS).toString();
+            if (name.length() > 64) {
+                name = "Name_exp_" + (columnIndex + 1);
+            }
+            return name;
+        }
         }
     }
 

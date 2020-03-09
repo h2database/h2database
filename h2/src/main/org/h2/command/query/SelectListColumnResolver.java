@@ -13,7 +13,6 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
-import org.h2.util.ColumnNamer;
 import org.h2.value.Value;
 
 /**
@@ -39,11 +38,9 @@ public class SelectListColumnResolver implements ColumnResolver {
         expressions = new Expression[columnCount];
         ArrayList<Expression> columnList = select.getExpressions();
         Session session = select.getSession();
-        ColumnNamer columnNamer = new ColumnNamer(session);
         for (int i = 0; i < columnCount; i++) {
             Expression expr = columnList.get(i);
-            String columnName = columnNamer.getColumnName(expr, i, expr.getAlias(session, i));
-            Column column = new Column(columnName, Value.NULL);
+            Column column = new Column(expr.getAlias(session, i), Value.NULL);
             column.setTable(null, i);
             columns[i] = column;
             expressions[i] = expr.getNonAliasExpression();

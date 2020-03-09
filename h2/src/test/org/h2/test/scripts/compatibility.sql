@@ -337,6 +337,18 @@ SELECT SIN(A), A+1, A FROM TEST;
 > 0.0    1     0
 > rows: 1
 
+CREATE VIEW V AS SELECT SIN(A), A+1, (((((A + 1) * A + 1) * A + 1) * A + 1) * A + 1) * A + 1 FROM TEST;
+> ok
+
+TABLE V;
+> SIN(A) A + 1 ((((((((((A + 1) * A) + 1) * A) + 1) * A) + 1) * A) + 1) * A) + 1
+> ------ ----- -----------------------------------------------------------------
+> 0.0    1     1
+> rows: 1
+
+DROP VIEW V;
+> ok
+
 SET MODE DB2;
 > ok
 
@@ -345,6 +357,9 @@ SELECT SIN(A), A+1, A FROM TEST;
 > --- - -
 > 0.0 1 0
 > rows: 1
+
+CREATE VIEW V AS SELECT SIN(A), A+1, (((((A + 1) * A + 1) * A + 1) * A + 1) * A + 1) * A + 1 FROM TEST;
+> exception COLUMN_ALIAS_IS_NOT_SPECIFIED_1
 
 SET MODE Derby;
 > ok
@@ -355,8 +370,20 @@ SELECT SIN(A), A+1, A FROM TEST;
 > 0.0 1 0
 > rows: 1
 
--- TODO
--- SET MODE MSSQLServer;
+CREATE VIEW V AS SELECT SIN(A), A+1, (((((A + 1) * A + 1) * A + 1) * A + 1) * A + 1) * A + 1 FROM TEST;
+> exception COLUMN_ALIAS_IS_NOT_SPECIFIED_1
+
+SET MODE MSSQLServer;
+> ok
+
+SELECT SIN(A), A+1, A FROM TEST;
+>       A
+> --- - -
+> 0.0 1 0
+> rows: 1
+
+CREATE VIEW V AS SELECT SIN(A), A+1, (((((A + 1) * A + 1) * A + 1) * A + 1) * A + 1) * A + 1 FROM TEST;
+> exception COLUMN_ALIAS_IS_NOT_SPECIFIED_1
 
 SET MODE HSQLDB;
 > ok
@@ -367,10 +394,19 @@ SELECT SIN(A), A+1, A FROM TEST;
 > 0.0 1  0
 > rows: 1
 
-SET MODE MySQL;
+CREATE VIEW V AS SELECT SIN(A), A+1, (((((A + 1) * A + 1) * A + 1) * A + 1) * A + 1) * A + 1 FROM TEST;
 > ok
 
-SET COLUMN_NAME_RULES DEFAULT;
+TABLE V;
+> C1  C2 C3
+> --- -- --
+> 0.0 1  1
+> rows: 1
+
+DROP VIEW V;
+> ok
+
+SET MODE MySQL;
 > ok
 
 SELECT SIN(A), A+1, A FROM TEST;
@@ -379,10 +415,19 @@ SELECT SIN(A), A+1, A FROM TEST;
 > 0.0    1     0
 > rows: 1
 
-SET MODE Oracle;
+CREATE VIEW V AS SELECT SIN(A), A+1, (((((A + 1) * A + 1) * A + 1) * A + 1) * A + 1) * A + 1 FROM TEST;
 > ok
 
-SET COLUMN_NAME_RULES DEFAULT;
+TABLE V;
+> SIN(A) A + 1 Name_exp_3
+> ------ ----- ----------
+> 0.0    1     1
+> rows: 1
+
+DROP VIEW V;
+> ok
+
+SET MODE Oracle;
 > ok
 
 SELECT SIN(A), A+1, A FROM TEST;
@@ -394,14 +439,14 @@ SELECT SIN(A), A+1, A FROM TEST;
 SET MODE PostgreSQL;
 > ok
 
-SET COLUMN_NAME_RULES DEFAULT;
-> ok
-
 SELECT SIN(A), A+1, A FROM TEST;
 > sin ?column? A
 > --- -------- -
 > 0.0 1        0
 > rows: 1
+
+CREATE VIEW V AS SELECT SIN(A), A+1, (((((A + 1) * A + 1) * A + 1) * A + 1) * A + 1) * A + 1 FROM TEST;
+> exception DUPLICATE_COLUMN_NAME_1
 
 SET MODE Regular;
 > ok

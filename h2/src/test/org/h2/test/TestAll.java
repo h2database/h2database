@@ -227,7 +227,6 @@ import org.h2.test.unit.TestValue;
 import org.h2.test.unit.TestValueMemory;
 import org.h2.test.utils.OutputCatcher;
 import org.h2.test.utils.SelfDestructor;
-import org.h2.test.utils.TestColumnNamer;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
 import org.h2.util.AbbaLockingDetector;
@@ -777,7 +776,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestViewAlterTable());
         addTest(new TestViewDropView());
         addTest(new TestSynonymForTable());
-        addTest(new TestColumnNamer());
 
         // jdbc
         addTest(new TestBatchUpdates());

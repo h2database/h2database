@@ -5878,7 +5878,7 @@ H2VERSION()
 
 "Functions (JSON)","JSON_OBJECT","
 JSON_OBJECT(
-[{[KEY] string VALUE expression} [,...] | {string : expression} [,...]]
+[{{[KEY] string VALUE expression} | {string : expression}} [,...] ]
 [ { NULL | ABSENT } ON NULL ]
 [ { WITH | WITHOUT } UNIQUE KEYS ]
 )

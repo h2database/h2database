@@ -20,7 +20,6 @@ import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.Table;
-import org.h2.util.ColumnNamer;
 import org.h2.value.Value;
 
 /**
@@ -187,11 +186,9 @@ public class CreateTable extends CommandWithColumns {
     private void generateColumnsFromQuery() {
         int columnCount = asQuery.getColumnCount();
         ArrayList<Expression> expressions = asQuery.getExpressions();
-        ColumnNamer columnNamer = new ColumnNamer(session);
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
-            String name = columnNamer.getColumnName(expr, i, expr.getAlias(session, i));
-            Column col = new Column(name, expr.getType());
+            Column col = new Column(expr.getColumnNameForView(session, i), expr.getType());
             addColumn(col);
         }
     }

@@ -421,7 +421,6 @@ public class Set extends Prepared {
             if (database.getMode() != mode) {
                 session.getUser().checkAdmin();
                 database.setMode(mode);
-                session.getColumnNamerConfiguration().configure(mode.getEnum());
             }
             break;
         }
@@ -590,12 +589,6 @@ public class Set extends Prepared {
                         value);
             }
             database.setAllowBuiltinAliasOverride(value == 1);
-            break;
-        }
-        case SetTypes.COLUMN_NAME_RULES: {
-            session.getUser().checkAdmin();
-            session.getColumnNamerConfiguration().configure(stringValue,
-                    expression != null ? expression.getValue(session).getString() : null);
             break;
         }
         case SetTypes.AUTHENTICATOR: {

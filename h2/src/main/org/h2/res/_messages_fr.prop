@@ -187,6 +187,7 @@
 90153=#Column {0} references uncomparable column {1}
 90154=#Generated column {0} cannot be assigned
 90155=#Generated column {0} cannot be updatable by a referential constraint with {1} clause
+90156=#Column alias is not specified for expression {0}
 HY000=Erreur générale: {0}
 HY004=Type de données inconnu: {0}
 HYC00=Fonctionnalité non supportée: {0}

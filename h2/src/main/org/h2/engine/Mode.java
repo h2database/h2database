@@ -54,9 +54,14 @@ public class Mode {
      */
     public enum ExpressionNames {
         /**
-         * Use SQL representation of expression.
+         * Use optimized SQL representation of expression.
          */
-        SQL,
+        OPTIMIZED_SQL,
+
+        /**
+         * Use original SQL representation of expression.
+         */
+        ORIGINAL_SQL,
 
         /**
          * Generate empty name.
@@ -77,6 +82,27 @@ public class Mode {
          * Use function name for functions and ?column? for other expressions
          */
         POSTGRESQL_STYLE,
+    }
+
+    /**
+     * Generation of column names for expressions to be used in a view.
+     */
+    public enum ViewExpressionNames {
+        /**
+         * Use both specified and generated names as is.
+         */
+        AS_IS,
+
+        /**
+         * Throw exception for unspecified names.
+         */
+        EXCEPTION,
+
+        /**
+         * Use both specified and generated names as is, but replace too long
+         * generated names with {@code Name_exp_###}.
+         */
+        MYSQL_STYLE,
     }
 
     private static final HashMap<String, Mode> MODES = new HashMap<>();
@@ -305,7 +331,12 @@ public class Mode {
     /**
      * How column names are generated for expressions.
      */
-    public ExpressionNames expressionNames = ExpressionNames.SQL;
+    public ExpressionNames expressionNames = ExpressionNames.OPTIMIZED_SQL;
+
+    /**
+     * How column names are generated for views.
+     */
+    public ViewExpressionNames viewExpressionNames = ViewExpressionNames.AS_IS;
 
     /**
      * An optional Set of hidden/disallowed column types.
@@ -343,6 +374,7 @@ public class Mode {
         mode.allowDB2TimestampFormat = true;
         mode.forBitData = true;
         mode.expressionNames = ExpressionNames.NUMBER;
+        mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         add(mode);
 
         mode = new Mode(ModeEnum.Derby);
@@ -354,6 +386,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx = null;
         mode.forBitData = true;
         mode.expressionNames = ExpressionNames.NUMBER;
+        mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         add(mode);
 
         mode = new Mode(ModeEnum.HSQLDB);
@@ -392,6 +425,7 @@ public class Mode {
         mode.typeByNameMap.put("SMALLMONEY", dt);
         mode.allowEmptySchemaValuesAsDefaultSchema = true;
         mode.expressionNames = ExpressionNames.EMPTY;
+        mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         add(mode);
 
         mode = new Mode(ModeEnum.MySQL);
@@ -412,6 +446,8 @@ public class Mode {
         mode.allNumericTypesHavePrecision = true;
         // Next one is for MariaDB
         mode.nextValueReturnsDifferentValues = true;
+        mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
+        mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
         add(mode);
 
         mode = new Mode(ModeEnum.Oracle);
@@ -429,6 +465,8 @@ public class Mode {
         mode.decimalSequences = true;
         mode.charAndByteLengthUnits = true;
         mode.nextvalAndCurrvalPseudoColumns = true;
+        mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
+        mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         dt = DataType.getDataType(Value.REAL);
         mode.typeByNameMap.put("BINARY_FLOAT", dt);
         dt = DataType.getDataType(Value.DOUBLE);

@@ -7981,14 +7981,6 @@ public class Parser {
             }
             command.setStringArray(list.toArray(new String[0]));
             return command;
-        } else if (readIf("COLUMN_NAME_RULES")) {
-            readIfEqualOrTo();
-            Set command = new Set(session, SetTypes.COLUMN_NAME_RULES);
-            command.setString(readAliasIdentifier());
-            if (readIf(EQUAL)) {
-                command.setExpression(readExpression());
-            }
-            return command;
         } else {
             if (isToken("LOGSIZE")) {
                 // HSQLDB compatibility

@@ -278,6 +278,11 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
+    public String getColumnNameForView(Session session, int columnIndex) {
+        return getAlias(session, columnIndex);
+    }
+
+    @Override
     public boolean isAutoIncrement() {
         return column.getSequence() != null;
     }

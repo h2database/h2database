@@ -325,7 +325,6 @@ public abstract class Expression implements HasSQL {
      */
     public String getAlias(Session session, int columnIndex) {
         switch (session.getMode().expressionNames) {
-        case SQL:
         default:
             return getUnenclosedSQL(new StringBuilder(), QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS).toString();
         case EMPTY:

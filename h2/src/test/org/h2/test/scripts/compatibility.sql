@@ -349,6 +349,18 @@ TABLE V;
 DROP VIEW V;
 > ok
 
+CREATE VIEW V AS SELECT SIN(0), COS(0);
+> ok
+
+TABLE V;
+> 0.0 1.0
+> --- ---
+> 0.0 1.0
+> rows: 1
+
+DROP VIEW V;
+> ok
+
 SET MODE DB2;
 > ok
 
@@ -427,6 +439,18 @@ TABLE V;
 DROP VIEW V;
 > ok
 
+CREATE VIEW V AS SELECT SIN(0), COS(0);
+> ok
+
+TABLE V;
+> SIN(0) COS(0)
+> ------ ------
+> 0.0    1.0
+> rows: 1
+
+DROP VIEW V;
+> ok
+
 SET MODE Oracle;
 > ok
 
@@ -447,6 +471,18 @@ SELECT SIN(A), A+1, A FROM TEST;
 
 CREATE VIEW V AS SELECT SIN(A), A+1, (((((A + 1) * A + 1) * A + 1) * A + 1) * A + 1) * A + 1 FROM TEST;
 > exception DUPLICATE_COLUMN_NAME_1
+
+CREATE VIEW V AS SELECT SIN(0), COS(0);
+> ok
+
+TABLE V;
+> sin cos
+> --- ---
+> 0.0 1.0
+> rows: 1
+
+DROP VIEW V;
+> ok
 
 SET MODE Regular;
 > ok

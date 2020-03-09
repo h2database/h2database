@@ -54,9 +54,14 @@ public class Mode {
      */
     public enum ExpressionNames {
         /**
-         * Use SQL representation of expression.
+         * Use optimized SQL representation of expression.
          */
-        SQL,
+        OPTIMIZED_SQL,
+
+        /**
+         * Use original SQL representation of expression.
+         */
+        ORIGINAL_SQL,
 
         /**
          * Generate empty name.
@@ -326,7 +331,7 @@ public class Mode {
     /**
      * How column names are generated for expressions.
      */
-    public ExpressionNames expressionNames = ExpressionNames.SQL;
+    public ExpressionNames expressionNames = ExpressionNames.OPTIMIZED_SQL;
 
     /**
      * How column names are generated for views.
@@ -441,6 +446,7 @@ public class Mode {
         mode.allNumericTypesHavePrecision = true;
         // Next one is for MariaDB
         mode.nextValueReturnsDifferentValues = true;
+        mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
         add(mode);
 
@@ -459,6 +465,7 @@ public class Mode {
         mode.decimalSequences = true;
         mode.charAndByteLengthUnits = true;
         mode.nextvalAndCurrvalPseudoColumns = true;
+        mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         dt = DataType.getDataType(Value.REAL);
         mode.typeByNameMap.put("BINARY_FLOAT", dt);

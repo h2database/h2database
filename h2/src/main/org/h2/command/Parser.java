@@ -4102,7 +4102,7 @@ public class Parser {
             break;
         }
         case Function.JSON_OBJECT: {
-            if (!readJsonObjectFunctionFlags(function, false)) {
+            if (!readJsonObjectFunctionFlags(function, false) && currentTokenType != CLOSE_PAREN) {
                 do {
                     boolean withKey = readIf(KEY);
                     function.addParameter(readExpression());
@@ -4120,7 +4120,7 @@ public class Parser {
         }
         case Function.JSON_ARRAY: {
             function.setFlags(Function.JSON_ABSENT_ON_NULL);
-            if (!readJsonObjectFunctionFlags(function, true)) {
+            if (!readJsonObjectFunctionFlags(function, true) && currentTokenType != CLOSE_PAREN) {
                 do {
                     function.addParameter(readExpression());
                 } while (readIf(COMMA));

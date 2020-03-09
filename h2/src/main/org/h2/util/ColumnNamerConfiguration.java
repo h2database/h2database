@@ -15,12 +15,12 @@ import org.h2.message.DbException;
 public class ColumnNamerConfiguration {
 
     private static final String DEFAULT_COMMAND = "DEFAULT";
-    private static final String REGULAR_EXPRESSION_MATCH_DISALLOWED = "REGULAR_EXPRESSION_MATCH_DISALLOWED = ";
-    private static final String REGULAR_EXPRESSION_MATCH_ALLOWED = "REGULAR_EXPRESSION_MATCH_ALLOWED = ";
-    private static final String DEFAULT_COLUMN_NAME_PATTERN = "DEFAULT_COLUMN_NAME_PATTERN = ";
-    private static final String MAX_IDENTIFIER_LENGTH = "MAX_IDENTIFIER_LENGTH = ";
-    private static final String EMULATE_COMMAND = "EMULATE = ";
-    private static final String GENERATE_UNIQUE_COLUMN_NAMES = "GENERATE_UNIQUE_COLUMN_NAMES = ";
+    private static final String REGULAR_EXPRESSION_MATCH_DISALLOWED = "REGULAR_EXPRESSION_MATCH_DISALLOWED";
+    private static final String REGULAR_EXPRESSION_MATCH_ALLOWED = "REGULAR_EXPRESSION_MATCH_ALLOWED";
+    private static final String DEFAULT_COLUMN_NAME_PATTERN = "DEFAULT_COLUMN_NAME_PATTERN";
+    private static final String MAX_IDENTIFIER_LENGTH = "MAX_IDENTIFIER_LENGTH";
+    private static final String EMULATE_COMMAND = "EMULATE";
+    private static final String GENERATE_UNIQUE_COLUMN_NAMES = "GENERATE_UNIQUE_COLUMN_NAMES";
 
     private int maxIdentiferLength;
     private String regularExpressionMatchAllowed;
@@ -108,39 +108,43 @@ public class ColumnNamerConfiguration {
     /**
      * Configure the column namer.
      *
-     * @param stringValue the configuration
+     * @param key the key
+     * @param value the value, or {@code null}
      */
-    public void configure(String stringValue) {
+    public void configure(String key, String value) {
         try {
-            if (stringValue.equalsIgnoreCase(DEFAULT_COMMAND)) {
+            switch (StringUtils.toUpperEnglish(key)) {
+            case DEFAULT_COMMAND:
                 configure(REGULAR);
-            } else if (stringValue.startsWith(EMULATE_COMMAND)) {
-                configure(ModeEnum.valueOf(unquoteString(stringValue.substring(EMULATE_COMMAND.length()))));
-            } else if (stringValue.startsWith(MAX_IDENTIFIER_LENGTH)) {
-                int maxLength = Integer.parseInt(stringValue.substring(MAX_IDENTIFIER_LENGTH.length()));
+                break;
+            case EMULATE_COMMAND:
+                configure(ModeEnum.valueOf(value));
+                break;
+            case MAX_IDENTIFIER_LENGTH: {
+                int maxLength = Integer.parseInt(value);
                 setMaxIdentiferLength(maxLength);
-            } else if (stringValue.startsWith(GENERATE_UNIQUE_COLUMN_NAMES)) {
-                setGenerateUniqueColumnNames(
-                        Integer.parseInt(stringValue.substring(GENERATE_UNIQUE_COLUMN_NAMES.length())) == 1);
-            } else if (stringValue.startsWith(DEFAULT_COLUMN_NAME_PATTERN)) {
-                setDefaultColumnNamePattern(
-                        unquoteString(stringValue.substring(DEFAULT_COLUMN_NAME_PATTERN.length())));
-            } else if (stringValue.startsWith(REGULAR_EXPRESSION_MATCH_ALLOWED)) {
-                setRegularExpressionMatchAllowed(
-                        unquoteString(stringValue.substring(REGULAR_EXPRESSION_MATCH_ALLOWED.length())));
-            } else if (stringValue.startsWith(REGULAR_EXPRESSION_MATCH_DISALLOWED)) {
-                setRegularExpressionMatchDisallowed(
-                        unquoteString(stringValue.substring(REGULAR_EXPRESSION_MATCH_DISALLOWED.length())));
-            } else {
-                throw DbException.getInvalidValueException("SET COLUMN_NAME_RULES: unknown id:" + stringValue,
-                        stringValue);
+                break;
+            }
+            case GENERATE_UNIQUE_COLUMN_NAMES:
+                setGenerateUniqueColumnNames(Integer.parseInt(value) == 1);
+                break;
+            case DEFAULT_COLUMN_NAME_PATTERN:
+                setDefaultColumnNamePattern(value);
+                break;
+            case REGULAR_EXPRESSION_MATCH_ALLOWED:
+                setRegularExpressionMatchAllowed(value);
+                break;
+            case REGULAR_EXPRESSION_MATCH_DISALLOWED:
+                setRegularExpressionMatchDisallowed(value);
+                break;
+            default:
+                throw DbException.getInvalidValueException("SET COLUMN_NAME_RULES: unknown id:" + key, value);
             }
             recompilePatterns();
         }
         // Including NumberFormatException|PatternSyntaxException
         catch (RuntimeException e) {
-            throw DbException.getInvalidValueException("SET COLUMN_NAME_RULES:" + e.getMessage(), stringValue);
-
+            throw DbException.getInvalidValueException("SET COLUMN_NAME_RULES:" + e.getMessage(), key + '=' + value);
         }
     }
 
@@ -160,14 +164,6 @@ public class ColumnNamerConfiguration {
 
     public static ColumnNamerConfiguration getDefault() {
         return new ColumnNamerConfiguration(Integer.MAX_VALUE, null, null, "_UNNAMED_$$", false);
-    }
-
-    private static String unquoteString(String s) {
-        if (s.startsWith("'") && s.endsWith("'")) {
-            s = s.substring(1, s.length() - 1);
-            return s;
-        }
-        return s;
     }
 
     public boolean isGenerateUniqueColumnNames() {

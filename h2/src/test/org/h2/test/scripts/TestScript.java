@@ -220,7 +220,7 @@ public class TestScript extends TestDb {
                 "sequence", "set" }) {
             testScript("other/" + s + ".sql");
         }
-        for (String s : new String[] { "in", "null", "type", "unique" }) {
+        for (String s : new String[] { "in", "like", "null", "type", "unique" }) {
             testScript("predicates/" + s + ".sql");
         }
         for (String s : new String[] { "derived-column-names", "distinct", "joins", "query-optimisations", "select",

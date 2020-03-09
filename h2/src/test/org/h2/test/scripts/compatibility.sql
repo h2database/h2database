@@ -327,3 +327,84 @@ EXPLAIN VALUES VERSION();
 
 SET MODE Regular;
 > ok
+
+CREATE TABLE TEST(A INT) AS VALUES 0;
+> ok
+
+SELECT SIN(A), A+1, A FROM TEST;
+> SIN(A) A + 1 A
+> ------ ----- -
+> 0.0    1     0
+> rows: 1
+
+SET MODE DB2;
+> ok
+
+SELECT SIN(A), A+1, A FROM TEST;
+> 1   2 A
+> --- - -
+> 0.0 1 0
+> rows: 1
+
+SET MODE Derby;
+> ok
+
+SELECT SIN(A), A+1, A FROM TEST;
+> 1   2 A
+> --- - -
+> 0.0 1 0
+> rows: 1
+
+-- TODO
+-- SET MODE MSSQLServer;
+
+SET MODE HSQLDB;
+> ok
+
+SELECT SIN(A), A+1, A FROM TEST;
+> C1  C2 A
+> --- -- -
+> 0.0 1  0
+> rows: 1
+
+SET MODE MySQL;
+> ok
+
+SET COLUMN_NAME_RULES DEFAULT;
+> ok
+
+SELECT SIN(A), A+1, A FROM TEST;
+> SIN(A) A + 1 A
+> ------ ----- -
+> 0.0    1     0
+> rows: 1
+
+SET MODE Oracle;
+> ok
+
+SET COLUMN_NAME_RULES DEFAULT;
+> ok
+
+SELECT SIN(A), A+1, A FROM TEST;
+> SIN(A) A + 1 A
+> ------ ----- -
+> 0.0    1     0
+> rows: 1
+
+SET MODE PostgreSQL;
+> ok
+
+SET COLUMN_NAME_RULES DEFAULT;
+> ok
+
+SELECT SIN(A), A+1, A FROM TEST;
+> sin ?column? A
+> --- -------- -
+> 0.0 1        0
+> rows: 1
+
+SET MODE Regular;
+> ok
+
+DROP TABLE TEST;
+> ok

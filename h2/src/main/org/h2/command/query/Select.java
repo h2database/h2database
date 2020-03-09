@@ -1057,12 +1057,12 @@ public class Select extends Query {
                     // special case: GROUP BY a column alias
                     for (int j = 0; j < expSize; j++) {
                         Expression e = expressions.get(j);
-                        if (db.equalsIdentifiers(sql, e.getAlias())) {
+                        if (db.equalsIdentifiers(sql, e.getAlias(session, j))) {
                             found = mergeGroupByExpressions(db, j, expressionSQL, true);
                             break;
                         }
-                        sql = expr.getAlias();
-                        if (db.equalsIdentifiers(sql, e.getAlias())) {
+                        sql = expr.getAlias(session, j);
+                        if (db.equalsIdentifiers(sql, e.getAlias(session, j))) {
                             found = mergeGroupByExpressions(db, j, expressionSQL, true);
                             break;
                         }
@@ -1166,7 +1166,7 @@ public class Select extends Query {
         ColumnNamer columnNamer = new ColumnNamer(session);
         for (int i = 0; i < expressions.size(); i++) {
             Expression e = expressions.get(i);
-            String proposedColumnName = e.getAlias();
+            String proposedColumnName = e.getAlias(session, i);
             String columnName = columnNamer.getColumnName(e, i, proposedColumnName);
             // if the name changed, create an alias
             if (!columnName.equals(proposedColumnName)) {
@@ -1788,7 +1788,7 @@ public class Select extends Query {
         int columnCount;
 
         LazyResultSelect(Expression[] expressions, int columnCount) {
-            super(expressions);
+            super(getSession(), expressions);
             this.columnCount = columnCount;
             setCurrentRowNumber(0);
         }

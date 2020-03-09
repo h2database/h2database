@@ -25,9 +25,14 @@ public class ParserUtil {
     public static final int ALL = IDENTIFIER + 1;
 
     /**
+     * The token "AND".
+     */
+    public static final int AND = ALL + 1;
+
+    /**
      * The token "ARRAY".
      */
-    public static final int ARRAY = ALL + 1;
+    public static final int ARRAY = AND + 1;
 
     /**
      * The token "AS".
@@ -35,9 +40,14 @@ public class ParserUtil {
     public static final int AS = ARRAY + 1;
 
     /**
+     * The token "BETWEEN".
+     */
+    public static final int BETWEEN = AS + 1;
+
+    /**
      * The token "CASE".
      */
-    public static final int CASE = AS + 1;
+    public static final int CASE = BETWEEN + 1;
 
     /**
      * The token "CHECK".
@@ -155,9 +165,14 @@ public class ParserUtil {
     public static final int IF = HOUR + 1;
 
     /**
+     * The token "IN".
+     */
+    public static final int IN = IF + 1;
+
+    /**
      * The token "INNER".
      */
-    public static final int INNER = IF + 1;
+    public static final int INNER = IN + 1;
 
     /**
      * The token "INTERSECT".
@@ -255,9 +270,14 @@ public class ParserUtil {
     public static final int ON = OFFSET + 1;
 
     /**
+     * The token "OR".
+     */
+    public static final int OR = ON + 1;
+
+    /**
      * The token "ORDER".
      */
-    public static final int ORDER = ON + 1;
+    public static final int ORDER = OR + 1;
 
     /**
      * The token "PRIMARY".
@@ -423,11 +443,7 @@ public class ParserUtil {
      * @return true if it is a keyword
      */
     public static boolean isKeyword(String s, boolean ignoreCase) {
-        int length = s.length();
-        if (length == 0) {
-            return false;
-        }
-        return getTokenType(s, ignoreCase, 0, length, false) != IDENTIFIER;
+        return getTokenType(s, ignoreCase, 0, s.length(), false) != IDENTIFIER;
     }
 
     /**
@@ -488,33 +504,70 @@ public class ParserUtil {
      * @return the token type
      */
     public static int getTokenType(String s, boolean ignoreCase, int start, int length, boolean additionalKeywords) {
+        if (length <= 1 || length > 17) {
+            return IDENTIFIER;
+        }
         /*
          * JdbcDatabaseMetaData.getSQLKeywords() and tests should be updated when new
          * non-SQL:2003 keywords are introduced here.
          */
-        char c = s.charAt(start);
+        char c1 = s.charAt(start);
         if (ignoreCase) {
             // Convert a-z to A-Z and 0x7f to _ (need special handling).
-            c &= 0xffdf;
+            c1 &= 0xffdf;
         }
-        switch (c) {
+        if (length == 2) {
+            char c2 = s.charAt(start + 1);
+            if (ignoreCase) {
+                c2 &= 0xffdf;
+            }
+            switch (c1) {
+            case 'A':
+                if (c2 == 'S') {
+                    return AS;
+                }
+                return IDENTIFIER;
+            case 'I':
+                if (c2 == 'F') {
+                    return IF;
+                } else if (c2 == 'N') {
+                    return IN;
+                } else if (c2 == 'S') {
+                    return IS;
+                }
+                return IDENTIFIER;
+            case 'O':
+                if (c2 == 'N') {
+                    return ON;
+                } else if (c2 == 'R') {
+                    return OR;
+                }
+                return IDENTIFIER;
+            case 'T':
+                if (c2 == 'O') {
+                    return TO;
+                }
+                //$FALL-THROUGH$
+            default:
+                return IDENTIFIER;
+            }
+        }
+        switch (c1) {
         case 'A':
             if (eq("ALL", s, ignoreCase, start, length)) {
                 return ALL;
-            } else if (eq("ARRAY", s, ignoreCase, start, length)) {
+            } else if (eq("AND", s, ignoreCase, start, length)) {
+                return AND;
+            } if (eq("ARRAY", s, ignoreCase, start, length)) {
                 return ARRAY;
-            } else if (eq('S', s, ignoreCase, start, length)) {
-                return AS;
-            }
-            if (additionalKeywords) {
-                if (eq("AND", s, ignoreCase, start, length)) {
-                    return KEYWORD;
-                }
             }
             return IDENTIFIER;
         case 'B':
+            if (eq("BETWEEN", s, ignoreCase, start, length)) {
+                return BETWEEN;
+            }
             if (additionalKeywords) {
-                if (eq("BETWEEN", s, ignoreCase, start, length) || eq("BOTH", s, ignoreCase, start, length)) {
+                if (eq("BOTH", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
@@ -594,9 +647,7 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'I':
-            if (eq('F', s, ignoreCase, start, length)) {
-                return IF;
-            } else if (eq("INNER", s, ignoreCase, start, length)) {
+            if (eq("INNER", s, ignoreCase, start, length)) {
                 return INNER;
             } else if (eq("INTERSECT", s, ignoreCase, start, length)) {
                 return INTERSECT;
@@ -604,11 +655,9 @@ public class ParserUtil {
                 return INTERSECTS;
             } else if (eq("INTERVAL", s, ignoreCase, start, length)) {
                 return INTERVAL;
-            } else if (eq('S', s, ignoreCase, start, length)) {
-                return IS;
             }
             if (additionalKeywords) {
-                if (eq("ILIKE", s, ignoreCase, start, length) || eq('N', s, ignoreCase, start, length)) {
+                if (eq("ILIKE", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
@@ -662,13 +711,11 @@ public class ParserUtil {
         case 'O':
             if (eq("OFFSET", s, ignoreCase, start, length)) {
                 return OFFSET;
-            } else if (eq('N', s, ignoreCase, start, length)) {
-                return ON;
             } else if (eq("ORDER", s, ignoreCase, start, length)) {
                 return ORDER;
             }
             if (additionalKeywords) {
-                if (eq('R', s, ignoreCase, start, length) || eq("OVER", s, ignoreCase, start, length)) {
+                if (eq("OVER", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }
@@ -721,8 +768,6 @@ public class ParserUtil {
         case 'T':
             if (eq("TABLE", s, ignoreCase, start, length)) {
                 return TABLE;
-            } else if (eq('O', s, ignoreCase, start, length)) {
-                return TO;
             } else if (eq("TRUE", s, ignoreCase, start, length)) {
                 return TRUE;
             }
@@ -779,12 +824,6 @@ public class ParserUtil {
     private static boolean eq(String expected, String s, boolean ignoreCase, int start, int length) {
         // First letter was already checked
         return length == expected.length() && expected.regionMatches(ignoreCase, 1, s, start + 1, length - 1);
-    }
-
-    private static boolean eq(char expected2, String s, boolean ignoreCase, int start, int length) {
-        char c2;
-        // First letter was already checked
-        return length == 2 && ((c2 = s.charAt(start + 1)) == expected2 || ignoreCase && c2 == expected2 + 0x20);
     }
 
 }

@@ -75,7 +75,7 @@ public class Alias extends Expression {
     }
 
     @Override
-    public String getAlias() {
+    public String getAlias(Session session, int columnIndex) {
         return alias;
     }
 
@@ -103,11 +103,11 @@ public class Alias extends Expression {
     }
 
     @Override
-    public String getColumnName() {
+    public String getColumnName(Session session, int columnIndex) {
         if (!(expr instanceof ExpressionColumn) || aliasColumnName) {
             return alias;
         }
-        return expr.getColumnName();
+        return expr.getColumnName(session, columnIndex);
     }
 
 }

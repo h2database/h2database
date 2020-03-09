@@ -543,7 +543,7 @@ public abstract class Query extends Prepared {
                 if (ec instanceof ExpressionColumn) {
                     // select expression
                     ExpressionColumn c = (ExpressionColumn) ec;
-                    if (!db.equalsIdentifiers(col, c.getColumnName())) {
+                    if (!db.equalsIdentifiers(col, c.getColumnName(session, j))) {
                         continue;
                     }
                     if (tableAlias == null) {
@@ -563,7 +563,7 @@ public abstract class Query extends Prepared {
                         }
                     }
                 } else if (ec instanceof Alias) {
-                    if (tableAlias == null && db.equalsIdentifiers(col, ec.getAlias())) {
+                    if (tableAlias == null && db.equalsIdentifiers(col, ec.getAlias(session, j))) {
                         return j;
                     }
                     Expression ec2 = ec.getNonAliasExpression();
@@ -571,7 +571,7 @@ public abstract class Query extends Prepared {
                         ExpressionColumn c2 = (ExpressionColumn) ec2;
                         String ta = exprCol.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
                         String tb = c2.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
-                        String s2 = c2.getColumnName();
+                        String s2 = c2.getColumnName(session, j);
                         if (db.equalsIdentifiers(col, s2) && db.equalsIdentifiers(ta, tb)) {
                             return j;
                         }

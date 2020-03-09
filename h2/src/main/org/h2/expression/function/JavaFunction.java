@@ -9,11 +9,13 @@ import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
+import org.h2.engine.Mode.ExpressionNames;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueCollectionBase;
@@ -78,6 +80,14 @@ public class JavaFunction extends Expression implements FunctionCall {
                 e.setEvaluatable(tableFilter, b);
             }
         }
+    }
+
+    @Override
+    public String getAlias(Session session, int columnIndex) {
+        if (session.getMode().expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
+            return StringUtils.toLowerEnglish(getName());
+        }
+        return super.getAlias(session, columnIndex);
     }
 
     @Override

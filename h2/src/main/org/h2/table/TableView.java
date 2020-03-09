@@ -179,7 +179,7 @@ public class TableView extends Table {
                     type = columnTemplates[i].getType();
                 }
                 if (name == null) {
-                    name = expr.getAlias();
+                    name = expr.getAlias(session, i);
                 }
                 name = columnNamer.getColumnName(expr, i, name);
                 if (type.getValueType() == Value.UNKNOWN) {

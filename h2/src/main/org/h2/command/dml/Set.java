@@ -594,7 +594,8 @@ public class Set extends Prepared {
         }
         case SetTypes.COLUMN_NAME_RULES: {
             session.getUser().checkAdmin();
-            session.getColumnNamerConfiguration().configure(expression.getColumnName());
+            session.getColumnNamerConfiguration().configure(stringValue,
+                    expression != null ? expression.getValue(session).getString() : null);
             break;
         }
         case SetTypes.AUTHENTICATOR: {

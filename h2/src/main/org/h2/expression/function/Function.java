@@ -34,6 +34,7 @@ import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
+import org.h2.engine.Mode.ExpressionNames;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -1792,7 +1793,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             StringBuilder builder = new StringBuilder();
             Parser.quoteIdentifier(builder, a0.getSchemaName(), DEFAULT_SQL_FLAGS).append('.');
             Parser.quoteIdentifier(builder, a0.getTableName(), DEFAULT_SQL_FLAGS).append('.');
-            Parser.quoteIdentifier(builder, a0.getColumnName(), DEFAULT_SQL_FLAGS);
+            Parser.quoteIdentifier(builder, a0.getColumnName(session, /* TODO */ 0), DEFAULT_SQL_FLAGS);
             result = session.getVariable(builder.toString());
             break;
         }
@@ -1920,7 +1921,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     schemaName = session.getCurrentSchemaName();
                     sequenceName = sql;
                 } else {
-                    sequenceName = seq.getColumnName();
+                    sequenceName = seq.getColumnName(session, -1);
                 }
             } else {
                 throw DbException.getSyntaxError(sql, 1);
@@ -3061,6 +3062,14 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 e.setEvaluatable(tableFilter, b);
             }
         }
+    }
+
+    @Override
+    public String getAlias(Session session, int columnIndex) {
+        if (session.getMode().expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
+            return StringUtils.toLowerEnglish(getName());
+        }
+        return super.getAlias(session, columnIndex);
     }
 
     @Override

@@ -124,8 +124,8 @@ public class Format extends Expression {
     }
 
     @Override
-    public String getColumnName() {
-        return expr.getColumnName();
+    public String getColumnName(Session session, int columnIndex) {
+        return expr.getColumnName(session, columnIndex);
     }
 
     @Override

@@ -49,6 +49,36 @@ public class Mode {
         FORBID_ANY_DUPLICATES
     }
 
+    /**
+     * Generation of column names for expressions.
+     */
+    public enum ExpressionNames {
+        /**
+         * Use SQL representation of expression.
+         */
+        SQL,
+
+        /**
+         * Generate empty name.
+         */
+        EMPTY,
+
+        /**
+         * Use ordinal number of a column.
+         */
+        NUMBER,
+
+        /**
+         * Use ordinal number of a column with C prefix.
+         */
+        C_NUMBER,
+
+        /**
+         * Use function name for functions and ?column? for other expressions
+         */
+        POSTGRESQL_STYLE,
+    }
+
     private static final HashMap<String, Mode> MODES = new HashMap<>();
 
     // Modes are also documented in the features section
@@ -273,6 +303,11 @@ public class Mode {
     public boolean nextValueReturnsDifferentValues;
 
     /**
+     * How column names are generated for expressions.
+     */
+    public ExpressionNames expressionNames = ExpressionNames.SQL;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -307,6 +342,7 @@ public class Mode {
                         "ClientUser|ClientCorrelationToken");
         mode.allowDB2TimestampFormat = true;
         mode.forBitData = true;
+        mode.expressionNames = ExpressionNames.NUMBER;
         add(mode);
 
         mode = new Mode(ModeEnum.Derby);
@@ -317,6 +353,7 @@ public class Mode {
         // Derby does not support client info properties as of version 10.12.1.1
         mode.supportedClientInfoPropertiesRegEx = null;
         mode.forBitData = true;
+        mode.expressionNames = ExpressionNames.NUMBER;
         add(mode);
 
         mode = new Mode(ModeEnum.HSQLDB);
@@ -325,6 +362,7 @@ public class Mode {
         // HSQLDB does not support client info properties. See
         // http://hsqldb.org/doc/apidocs/org/hsqldb/jdbc/JDBCConnection.html#setClientInfo-java.lang.String-java.lang.String-
         mode.supportedClientInfoPropertiesRegEx = null;
+        mode.expressionNames = ExpressionNames.C_NUMBER;
         add(mode);
 
         mode = new Mode(ModeEnum.MSSQLServer);
@@ -353,6 +391,7 @@ public class Mode {
         dt.name = "SMALLMONEY";
         mode.typeByNameMap.put("SMALLMONEY", dt);
         mode.allowEmptySchemaValuesAsDefaultSchema = true;
+        mode.expressionNames = ExpressionNames.EMPTY;
         add(mode);
 
         mode = new Mode(ModeEnum.MySQL);
@@ -416,6 +455,7 @@ public class Mode {
                 Pattern.compile("ApplicationName");
         mode.padFixedLengthStrings = true;
         mode.nextValueReturnsDifferentValues = true;
+        mode.expressionNames = ExpressionNames.POSTGRESQL_STYLE;
         // Enumerate all H2 types NOT supported by PostgreSQL:
         Set<String> disallowedTypes = new java.util.HashSet<>();
         disallowedTypes.add("NUMBER");

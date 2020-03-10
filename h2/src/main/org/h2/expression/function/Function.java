@@ -2592,10 +2592,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             min = 1;
             max = 2;
             break;
-        case DATE_TRUNC:
-            min = 2;
-            max = 2;
-            break;
         case TO_CHAR:
         case TO_DATE:
         case ORA_HASH:

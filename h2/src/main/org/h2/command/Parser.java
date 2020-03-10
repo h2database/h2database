@@ -243,6 +243,7 @@ import org.h2.expression.condition.IsJsonPredicate;
 import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
+import org.h2.expression.function.DateTimeFunctions;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.JavaFunction;
@@ -3935,14 +3936,13 @@ public class Parser {
 
     private Function readFunctionParameters(Function function) {
         switch (function.getFunctionType()) {
-        case Function.CAST: {
+        case Function.CAST:
             function.addParameter(readExpression());
             read(AS);
             function.setDataType(parseColumnWithType(null));
             read(CLOSE_PAREN);
             break;
-        }
-        case Function.CONVERT: {
+        case Function.CONVERT:
             if (database.getMode().swapConvertFunctionParameters) {
                 function.setDataType(parseColumnWithType(null));
                 read(COMMA);
@@ -3955,31 +3955,28 @@ public class Parser {
                 read(CLOSE_PAREN);
             }
             break;
-        }
-        case Function.EXTRACT: {
-            function.addParameter(ValueExpression.get(ValueVarchar.get(currentToken)));
-            read();
+        case Function.EXTRACT:
+            readDateTimeField(function);
             read(FROM);
             function.addParameter(readExpression());
             read(CLOSE_PAREN);
             break;
-        }
         case Function.DATEADD:
-        case Function.DATEDIFF: {
-            if (currentTokenType == LITERAL) {
-                function.addParameter(ValueExpression.get(currentValue.convertTo(TypeInfo.TYPE_VARCHAR)));
-            } else {
-                function.addParameter(ValueExpression.get(ValueVarchar.get(currentToken)));
-            }
-            read();
+        case Function.DATEDIFF:
+            readDateTimeField(function);
             read(COMMA);
             function.addParameter(readExpression());
             read(COMMA);
             function.addParameter(readExpression());
             read(CLOSE_PAREN);
             break;
-        }
-        case Function.SUBSTRING: {
+        case Function.DATE_TRUNC:
+            readDateTimeField(function);
+            read(COMMA);
+            function.addParameter(readExpression());
+            read(CLOSE_PAREN);
+            break;
+        case Function.SUBSTRING:
             // Standard variants are:
             // SUBSTRING(X FROM 1)
             // SUBSTRING(X FROM 1 FOR 1)
@@ -4005,8 +4002,7 @@ public class Parser {
             }
             read(CLOSE_PAREN);
             break;
-        }
-        case Function.POSITION: {
+        case Function.POSITION:
             // can't read expression because IN would be read too early
             function.addParameter(readConcat());
             if (!readIf(COMMA)) {
@@ -4015,7 +4011,6 @@ public class Parser {
             function.addParameter(readExpression());
             read(CLOSE_PAREN);
             break;
-        }
         case Function.TRIM: {
             int flags;
             boolean needFrom = false;
@@ -4101,8 +4096,8 @@ public class Parser {
             tf.setColumns(columns);
             break;
         }
-        case Function.JSON_OBJECT: {
-            if (!readJsonObjectFunctionFlags(function, false) && currentTokenType != CLOSE_PAREN) {
+        case Function.JSON_OBJECT:
+            if (currentTokenType != CLOSE_PAREN && !readJsonObjectFunctionFlags(function, false)) {
                 do {
                     boolean withKey = readIf(KEY);
                     function.addParameter(readExpression());
@@ -4117,10 +4112,9 @@ public class Parser {
             }
             read(CLOSE_PAREN);
             break;
-        }
-        case Function.JSON_ARRAY: {
+        case Function.JSON_ARRAY:
             function.setFlags(Function.JSON_ABSENT_ON_NULL);
-            if (!readJsonObjectFunctionFlags(function, true) && currentTokenType != CLOSE_PAREN) {
+            if (currentTokenType != CLOSE_PAREN && !readJsonObjectFunctionFlags(function, true)) {
                 do {
                     function.addParameter(readExpression());
                 } while (readIf(COMMA));
@@ -4128,7 +4122,6 @@ public class Parser {
             }
             read(CLOSE_PAREN);
             break;
-        }
         default:
             if (!readIf(CLOSE_PAREN)) {
                 do {
@@ -4138,6 +4131,46 @@ public class Parser {
         }
         function.doneWithParameters();
         return function;
+    }
+
+    private void readDateTimeField(Function function) {
+        int field = -1;
+        switch (currentTokenType) {
+        case IDENTIFIER:
+            if (!currentTokenQuoted) {
+                field = DateTimeFunctions.getField(currentToken);
+            }
+            break;
+        case LITERAL:
+            if (currentValue.getValueType() == Value.VARCHAR) {
+                field = DateTimeFunctions.getField(currentValue.getString());
+            }
+            break;
+        case YEAR:
+            field = DateTimeFunctions.YEAR;
+            break;
+        case MONTH:
+            field = DateTimeFunctions.MONTH;
+            break;
+        case DAY:
+            field = DateTimeFunctions.DAY;
+            break;
+        case HOUR:
+            field = DateTimeFunctions.HOUR;
+            break;
+        case MINUTE:
+            field = DateTimeFunctions.MINUTE;
+            break;
+        case SECOND:
+            field = DateTimeFunctions.SECOND;
+        }
+        if (field >= 0) {
+            function.addParameter(ValueExpression.get(ValueInteger.get(field)));
+            read();
+        } else {
+            addExpected("date-time field");
+            throw getSyntaxError();
+        }
     }
 
     private WindowFunction readWindowFunction(String name) {
@@ -5238,7 +5271,7 @@ public class Parser {
              * PageStore's LobStorageBackend also needs this in databases that
              * were created in 1.4.197 and older versions.
              */
-            if (!database.isStarting() || !isKeyword(currentToken)) {
+            if (!database.isStarting() || !isKeyword(currentTokenType)) {
                 throw DbException.getSyntaxError(sqlCommand, parseIndex, "identifier");
             }
         }
@@ -5949,6 +5982,10 @@ public class Parser {
             break;
         }
         throw getSyntaxError();
+    }
+
+    private static boolean isKeyword(int tokenType) {
+        return tokenType >= FIRST_KEYWORD && tokenType <= LAST_KEYWORD;
     }
 
     private boolean isKeyword(String s) {

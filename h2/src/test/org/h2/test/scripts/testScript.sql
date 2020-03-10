@@ -5473,12 +5473,12 @@ SELECT * FROM TEST;
 > rows: 4
 
 SELECT XD+1, XD-1, XD-XD FROM TEST;
-> DATEADD('DAY', 1, XD) DATEADD('DAY', -1, XD) XD - XD
-> --------------------- ---------------------- ----------------
-> 0001-02-04            0001-02-02             INTERVAL '0' DAY
-> 0004-05-07            0004-05-05             INTERVAL '0' DAY
-> 2000-01-01            1999-12-30             INTERVAL '0' DAY
-> null                  null                   null
+> DATEADD(DAY, 1, XD) DATEADD(DAY, -1, XD) XD - XD
+> ------------------- -------------------- ----------------
+> 0001-02-04          0001-02-02           INTERVAL '0' DAY
+> 0004-05-07          0004-05-05           INTERVAL '0' DAY
+> 2000-01-01          1999-12-30           INTERVAL '0' DAY
+> null                null                 null
 > rows: 4
 
 SELECT ID, CAST(XTS AS DATE) TS2D,

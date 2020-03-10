@@ -7,6 +7,7 @@ package org.h2.expression;
 
 import org.h2.engine.Session;
 import org.h2.expression.IntervalOperation.IntervalOpType;
+import org.h2.expression.function.DateTimeFunctions;
 import org.h2.expression.function.Function;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
@@ -17,7 +18,6 @@ import org.h2.value.Value;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
-import org.h2.value.ValueVarchar;
 
 /**
  * A mathematical expression, or string concatenation.
@@ -324,14 +324,14 @@ public class BinaryOperation extends Expression {
             case Value.INTEGER:
                 // Oracle date add
                 return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
-                        ValueExpression.get(ValueVarchar.get("DAY")), left, right).optimize(session);
+                        ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY)), left, right).optimize(session);
             case Value.NUMERIC:
             case Value.REAL:
             case Value.DOUBLE:
                 // Oracle date add
                 return Function
                         .getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
-                                ValueExpression.get(ValueVarchar.get("SECOND")),
+                                ValueExpression.get(ValueInteger.get(DateTimeFunctions.SECOND)),
                                 new BinaryOperation(OpType.MULTIPLY,
                                         ValueExpression.get(ValueInteger.get(60 * 60 * 24)), left),
                                 right)
@@ -355,7 +355,7 @@ public class BinaryOperation extends Expression {
                     }
                     // Oracle date subtract
                     return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
-                            ValueExpression.get(ValueVarchar.get("DAY")), //
+                            ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY)), //
                             new UnaryOperation(right), //
                             left).optimize(session);
                 }
@@ -367,7 +367,7 @@ public class BinaryOperation extends Expression {
                     }
                     // Oracle date subtract
                     return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
-                                ValueExpression.get(ValueVarchar.get("SECOND")),
+                                ValueExpression.get(ValueInteger.get(DateTimeFunctions.SECOND)),
                                 new UnaryOperation(new BinaryOperation(OpType.MULTIPLY, //
                                         ValueExpression.get(ValueInteger.get(60 * 60 * 24)), right)), //
                                 left).optimize(session);

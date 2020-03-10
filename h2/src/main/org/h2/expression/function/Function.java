@@ -2727,13 +2727,18 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case DATE_TRUNC:
+        case DATE_TRUNC: {
             typeInfo = args[1].getType();
+            int valueType = typeInfo.getValueType();
             // TODO set scale when possible
-            if (typeInfo.getValueType() != Value.TIMESTAMP_TZ) {
-                typeInfo = TypeInfo.TYPE_TIMESTAMP;
+            if (!DataType.isDateTimeType(valueType)) {
+                throw DbException.getInvalidValueException("DATE_TRUNC datetime argument",
+                        typeInfo.getSQL(new StringBuilder()));
+            } else if (valueType == Value.DATE) {
+                typeInfo = TypeInfo.TYPE_TIMESTAMP_TZ;
             }
             break;
+        }
         case IFNULL:
         case NULLIF:
         case COALESCE:

@@ -544,21 +544,9 @@ public final class DateTimeFunctions {
             // Return an exception in the timeUnit is not recognized
             throw DbException.getUnsupportedException(datePartStr);
         }
-        Value result;
-        if (valueDate instanceof ValueTimestampTimeZone) {
-            // Case we create a timestamp with timezone with the dateValue and
-            // timeNanos computed.
-            ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) valueDate;
-            result = ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
-                    vTmp.getTimeZoneOffsetSeconds());
-
-        } else if (valueDate instanceof ValueTimeTimeZone) {
-            ValueTimeTimeZone vTmp = (ValueTimeTimeZone) valueDate;
-            result = ValueTimeTimeZone.fromNanos(timeNanos, vTmp.getTimeZoneOffsetSeconds());
-        } else {
-            // By default, we create a timestamp with the dateValue and
-            // timeNanos computed.
-            result = ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
+        Value result = DateTimeUtils.dateTimeToValue(valueDate, dateValue, timeNanos);
+        if (result.getValueType() == Value.DATE) {
+            result = result.convertTo(Value.TIMESTAMP_TZ, session);
         }
         return result;
     }

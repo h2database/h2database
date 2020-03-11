@@ -1028,6 +1028,13 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             }
             locks.clear();
         }
+        if (!database.isMVStore() && database.getLockMode() == Constants.LOCK_MODE_READ_COMMITTED) {
+            // PageStoreTable.doLock2() doesn't register a table lock in this setup
+            // but waiting threads still need to be awoken from their sleep
+            synchronized (database) {
+                database.notifyAll();
+            }
+        }
         database.unlockMetaDebug(this);
         savepoints = null;
         sessionStateChanged = true;

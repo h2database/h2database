@@ -39,6 +39,13 @@ public class Regclass extends Expression {
         if (value == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
         }
+        int valueType = value.getValueType();
+        if (valueType >= Value.TINYINT && valueType <= Value.INTEGER) {
+            return value.convertToInt(null);
+        }
+        if (valueType == Value.BIGINT) {
+            return ValueInteger.get((int) value.getLong());
+        }
         String name = value.getString();
         ArrayList<Table> tables = session.getDatabase().getAllTablesAndViews(true);
         ArrayList<Table> tempTables = session.getLocalTempTables();

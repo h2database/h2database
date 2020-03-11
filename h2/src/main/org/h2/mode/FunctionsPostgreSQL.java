@@ -44,7 +44,9 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
 
     private static final int HAS_DATABASE_PRIVILEGE = FORMAT_TYPE + 1;
 
-    private static final int HAS_TABLE_PRIVILEGE = HAS_DATABASE_PRIVILEGE + 1;
+    private static final int HAS_SCHEMA_PRIVILEGE = HAS_DATABASE_PRIVILEGE + 1;
+
+    private static final int HAS_TABLE_PRIVILEGE = HAS_SCHEMA_PRIVILEGE + 1;
 
     private static final int VERSION = HAS_TABLE_PRIVILEGE + 1;
 
@@ -75,8 +77,10 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
                 new FunctionInfo("FORMAT_TYPE", FORMAT_TYPE, 2, Value.VARCHAR, false, true, true, false));
         FUNCTIONS.put("HAS_DATABASE_PRIVILEGE", new FunctionInfo("HAS_DATABASE_PRIVILEGE", HAS_DATABASE_PRIVILEGE,
                 VAR_ARGS, Value.BOOLEAN, true, false, true, false));
-        FUNCTIONS.put("HAS_TABLE_PRIVILEGE", new FunctionInfo("HAS_TABLE_PRIVILEGE", HAS_TABLE_PRIVILEGE, VAR_ARGS,
-                Value.BOOLEAN, true, false, true, false));
+        FUNCTIONS.put("HAS_SCHEMA_PRIVILEGE", new FunctionInfo("HAS_SCHEMA_PRIVILEGE", HAS_SCHEMA_PRIVILEGE,
+                VAR_ARGS, Value.BOOLEAN, true, false, true, false));
+        FUNCTIONS.put("HAS_TABLE_PRIVILEGE", new FunctionInfo("HAS_TABLE_PRIVILEGE", HAS_TABLE_PRIVILEGE,
+                VAR_ARGS, Value.BOOLEAN, true, false, true, false));
         FUNCTIONS.put("VERSION", new FunctionInfo("VERSION", VERSION, 0, Value.VARCHAR, true, false, true, false));
         FUNCTIONS.put("OBJ_DESCRIPTION", new FunctionInfo("OBJ_DESCRIPTION", OBJ_DESCRIPTION, VAR_ARGS, Value.VARCHAR,
                 true, false, true, false));
@@ -128,6 +132,7 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
         int min, max;
         switch (info.type) {
         case HAS_DATABASE_PRIVILEGE:
+        case HAS_SCHEMA_PRIVILEGE:
         case HAS_TABLE_PRIVILEGE:
             min = 2;
             max = 3;
@@ -198,6 +203,7 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
                     : ValueNull.INSTANCE;
             break;
         case HAS_DATABASE_PRIVILEGE:
+        case HAS_SCHEMA_PRIVILEGE:
         case HAS_TABLE_PRIVILEGE:
         case PG_TABLE_IS_VISIBLE:
             // Not implemented

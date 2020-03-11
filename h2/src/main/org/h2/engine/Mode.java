@@ -506,6 +506,8 @@ public class Mode {
         dt.sqlType = Types.NUMERIC;
         dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);
+        dt = DataType.getDataType(Value.INTEGER);
+        mode.typeByNameMap.put("OID", dt);
         mode.dateTimeValueWithinTransaction = true;
         add(mode);
     }

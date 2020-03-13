@@ -52,9 +52,13 @@ public class DataChangeDeltaTable extends VirtualConstructedTable {
         this.statement = statement;
         this.resultOption = resultOption;
         Table table = statement.getTable();
-        Column[] c = table.getColumns();
+        Column[] tableColumns = table.getColumns();
+        int columnCount = tableColumns.length;
+        Column[] c = new Column[columnCount];
+        for (int i = 0; i < columnCount; i++) {
+            c[i] = tableColumns[i].getClone();
+        }
         setColumns(c);
-        int columnCount = c.length;
         Expression[] expressions = new Expression[columnCount];
         String tableName = getName();
         for (int i = 0; i < columnCount; i++) {

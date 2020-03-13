@@ -410,6 +410,7 @@ public class PgServer implements Service {
             return PG_TYPE_TIMESTAMPTZ;
         case Types.BINARY:
         case Types.VARBINARY:
+        case Types.BLOB:
             return PG_TYPE_BYTEA;
         case Types.ARRAY:
             return PG_TYPE_TEXTARRAY;

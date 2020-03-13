@@ -395,10 +395,10 @@ public class TestPgServer extends TestDb {
                     "x3 smallint, x4 bigint, x5 double precision, x6 float, " +
                     "x7 real, x8 boolean, x9 char(3), x10 bytea, " +
                     "x11 date, x12 time, x13 timestamp, x14 numeric(25, 5)," +
-                    "x15 time with time zone, x16 timestamp with time zone)");
+                    "x15 time with time zone, x16 timestamp with time zone, x17 longblob)");
 
             PreparedStatement ps = conn.prepareStatement(
-                    "insert into test values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                    "insert into test values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
             ps.setString(1, "test");
             ps.setInt(2, 12345678);
             ps.setShort(3, (short) 12345);
@@ -415,8 +415,9 @@ public class TestPgServer extends TestDb {
             ps.setBigDecimal(14, new BigDecimal("12345678901234567890.12345"));
             ps.setTime(15, Time.valueOf("20:11:15"));
             ps.setTimestamp(16, Timestamp.valueOf("2001-10-30 14:16:10.111"));
+            ps.setBytes(17, new byte[] { 'a', (byte) 0xfe, '\127', 0, 127, '\\' });
             ps.execute();
-            for (int i = 1; i <= 16; i++) {
+            for (int i = 1; i <= 17; i++) {
                 ps.setNull(i, Types.NULL);
             }
             ps.execute();
@@ -440,8 +441,10 @@ public class TestPgServer extends TestDb {
             assertEquals(new BigDecimal("12345678901234567890.12345"), rs.getBigDecimal(14));
             assertEquals(Time.valueOf("20:11:15"), rs.getTime(15));
             assertEquals(Timestamp.valueOf("2001-10-30 14:16:10.111"), rs.getTimestamp(16));
+            assertEquals(new byte[] { 'a', (byte) 0xfe, '\127', 0, 127, '\\' },
+                    rs.getBytes(17));
             assertTrue(rs.next());
-            for (int i = 1; i <= 16; i++) {
+            for (int i = 1; i <= 17; i++) {
                 assertNull(rs.getObject(i));
             }
             assertFalse(rs.next());

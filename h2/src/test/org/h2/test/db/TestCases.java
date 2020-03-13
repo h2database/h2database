@@ -82,6 +82,7 @@ public class TestCases extends TestDb {
         testExecuteTrace();
         testExplain();
         testExplainAnalyze();
+        testDataChangeDeltaTable();
         if (config.memory) {
             return;
         }
@@ -1844,4 +1845,28 @@ public class TestCases extends TestDb {
         assertEquals("%oo", rs.getString(1));
         conn.close();
     }
+
+    private void testDataChangeDeltaTable() throws SQLException {
+        /*
+         * This test case didn't reproduce the issue in the TestScript.
+         *
+         * The same UPDATE is necessary before and after usage of a data change
+         * delta table.
+         */
+        String updateCommand = "UPDATE TEST SET V = 3 WHERE ID = 1";
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT, V INT)");
+        assertEquals(0, stat.executeUpdate(updateCommand));
+        ResultSet rs = stat.executeQuery("SELECT V FROM FINAL TABLE (INSERT INTO TEST VALUES (1, 1))");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertEquals(1, stat.executeUpdate(updateCommand));
+        rs = stat.executeQuery("SELECT V FROM TEST");
+        assertTrue(rs.next());
+        assertEquals(3, rs.getInt(1));
+        conn.close();
+    }
+
 }

@@ -324,7 +324,7 @@ public class DataType {
         add(Value.BLOB, Types.BLOB,
                 createLob(false),
                 new String[]{"BLOB", "BINARY LARGE OBJECT", "TINYBLOB", "MEDIUMBLOB",
-                    "LONGBLOB", "IMAGE", "OID"}
+                    "LONGBLOB", "IMAGE"}
         );
         add(Value.CLOB, Types.CLOB,
                 createLob(true),

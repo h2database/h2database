@@ -3822,7 +3822,7 @@ CHAR(10)
 
 "Data Types","BLOB Type","
 { BLOB | BINARY LARGE OBJECT
-    | @c@ { TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID } }
+    | @c@ { TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE } }
 [ ( lengthLong [K|M|G|T|P]) ]
 ","
 Like VARBINARY, but intended for very large values such as files or images. Unlike

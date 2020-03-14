@@ -2449,7 +2449,7 @@ TIMEZONE_SECOND
 "Datetime fields","Millennium field","
 @h2@ MILLENNIUM
 ","
-Millennium.
+Century, or one thousand years (2001-01-01 to 3000-12-31).
 ","
 MILLENNIUM
 "
@@ -2457,7 +2457,7 @@ MILLENNIUM
 "Datetime fields","Century field","
 @h2@ CENTURY
 ","
-Century.
+Century, or one hundred years (2001-01-01 to 2100-12-31).
 ","
 CENTURY
 "
@@ -2465,7 +2465,7 @@ CENTURY
 "Datetime fields","Decade field","
 @h2@ DECADE
 ","
-Decade.
+Decade, or ten years (2020-01-01 to 2029-12-31).
 ","
 DECADE
 "

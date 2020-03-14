@@ -672,29 +672,39 @@ public final class DateTimeFunctions {
             timeNanos = 0L;
             break;
         }
-        case YEAR: {
-            long year = DateTimeUtils.yearFromDateValue(dateValue);
-            dateValue = DateTimeUtils.dateValue(year, 1, 1);
+        case YEAR:
+            dateValue = DateTimeUtils.dateValue(DateTimeUtils.yearFromDateValue(dateValue), 1, 1);
             timeNanos = 0L;
             break;
-        }
         case DECADE: {
-            long year = DateTimeUtils.yearFromDateValue(dateValue);
-            year = (year / 10) * 10;
+            int year = DateTimeUtils.yearFromDateValue(dateValue);
+            if (year >= 0) {
+                year = year / 10 * 10;
+            } else {
+                year = (year - 9) / 10 * 10;
+            }
             dateValue = DateTimeUtils.dateValue(year, 1, 1);
             timeNanos = 0L;
             break;
         }
         case CENTURY: {
-            long year = DateTimeUtils.yearFromDateValue(dateValue);
-            year = ((year - 1) / 100) * 100 + 1;
+            int year = DateTimeUtils.yearFromDateValue(dateValue);
+            if (year > 0) {
+                year = (year - 1) / 100 * 100 + 1;
+            } else {
+                year = year / 100 * 100 - 99;
+            }
             dateValue = DateTimeUtils.dateValue(year, 1, 1);
             timeNanos = 0L;
             break;
         }
         case MILLENNIUM: {
-            long year = DateTimeUtils.yearFromDateValue(dateValue);
-            year = ((year - 1) / 1000) * 1000 + 1;
+            int year = DateTimeUtils.yearFromDateValue(dateValue);
+            if (year > 0) {
+                year = (year - 1) / 1000 * 1000 + 1;
+            } else {
+                year = year / 1000 * 1000 - 999;
+            }
             dateValue = DateTimeUtils.dateValue(year, 1, 1);
             timeNanos = 0L;
             break;

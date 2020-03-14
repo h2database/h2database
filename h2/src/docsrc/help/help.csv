@@ -2367,7 +2367,7 @@ yearField | monthField | dayOfMonthField
     | dayOfWeekField | weekField | weekYearField
     | epochField }
 ","
-Fields for EXTRACT, DATEADD, and DATEDIFF functions.
+Fields for EXTRACT, DATEADD, DATEDIFF, and DATE_TRUNC functions.
 ","
 YEAR
 "
@@ -5168,7 +5168,7 @@ LOCALTIMESTAMP(9)
 "
 
 "Functions (Time and Date)","DATEADD","
-@h2@ { DATEADD| TIMESTAMPADD } (datetimeField, addIntLong, dateAndTime)
+@h2@ { DATEADD| TIMESTAMPADD } @h2@ (datetimeField, addIntLong, dateAndTime)
 ","
 Adds units to a date-time value. The datetimeField indicates the unit.
 Use negative values to subtract units.
@@ -5183,7 +5183,7 @@ DATEADD(MONTH, 1, DATE '2001-01-31')
 "
 
 "Functions (Time and Date)","DATEDIFF","
-@h2@ { DATEDIFF | TIMESTAMPDIFF } (datetimeField, aDateAndTime, bDateAndTime)
+@h2@ { DATEDIFF | TIMESTAMPDIFF } @h2@ (datetimeField, aDateAndTime, bDateAndTime)
 ","
 Returns the number of crossed unit boundaries between two date/time values.
 This method returns a long.
@@ -5192,6 +5192,14 @@ Only TIMEZONE_HOUR, TIMEZONE_MINUTE, and TIMEZONE_SECOND fields use the time zon
 With all other fields if date/time values have time zone offset component it is ignored.
 ","
 DATEDIFF(YEAR, T1.CREATED, T2.CREATED)
+"
+
+"Functions (Time and Date)","DATE_TRUNC","
+@h2@ DATE_TRUNC (datetimeField, dateAndTime)
+","
+Truncates the specified date-time value to the specified field.
+","
+DATE_TRUNC(DAY, TIMESTAMP '2010-01-03 10:40:00');
 "
 
 "Functions (Time and Date)","DAYNAME","

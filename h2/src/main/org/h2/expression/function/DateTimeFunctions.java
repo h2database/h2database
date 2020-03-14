@@ -692,7 +692,7 @@ public final class DateTimeFunctions {
             throw DbException.getUnsupportedException("DATE_TRUNC " + getFieldName(field));
         }
         Value result = DateTimeUtils.dateTimeToValue(value, dateValue, timeNanos);
-        if (result.getValueType() == Value.DATE) {
+        if (session.getMode().getEnum() == ModeEnum.PostgreSQL && result.getValueType() == Value.DATE) {
             result = result.convertTo(Value.TIMESTAMP_TZ, session);
         }
         return result;

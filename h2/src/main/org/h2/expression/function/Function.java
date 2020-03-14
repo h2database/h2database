@@ -2752,7 +2752,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             if (!DataType.isDateTimeType(valueType)) {
                 throw DbException.getInvalidValueException("DATE_TRUNC datetime argument",
                         typeInfo.getSQL(new StringBuilder()));
-            } else if (valueType == Value.DATE) {
+            } else if (session.getMode().getEnum() == ModeEnum.PostgreSQL && valueType == Value.DATE) {
                 typeInfo = TypeInfo.TYPE_TIMESTAMP_TZ;
             }
             break;

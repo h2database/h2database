@@ -5,7 +5,6 @@
  */
 package org.h2.mvstore.tx;
 
-import org.h2.engine.IsolationLevel;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -79,7 +78,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         this.txDecisionMaker = new TxDecisionMaker<>(map.getId(), transaction);
         this.ifAbsentDecisionMaker = new TxDecisionMaker.PutIfAbsentDecisionMaker<>(map.getId(),
                 transaction, this::getFromSnapshot);
-        this.lockDecisionMaker = transaction.isolationLevel.allowNonRepeatableRead()
+        this.lockDecisionMaker = transaction.allowNonRepeatableRead()
                 ? new TxDecisionMaker.LockDecisionMaker<>(map.getId(), transaction)
                 : new TxDecisionMaker.RepeatableReadLockDecisionMaker<>(map.getId(), transaction,
                         map.getValueType(), this::getFromSnapshot);
@@ -125,7 +124,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the size
      */
     public long sizeAsLong() {
-        if (transaction.isolationLevel != IsolationLevel.READ_COMMITTED) {
+        if (!transaction.isReadCommitted()) {
             return sizeAsLongSlow();
         }
         // getting coherent picture of the map, committing transactions, and undo logs

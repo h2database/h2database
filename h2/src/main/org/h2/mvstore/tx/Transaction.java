@@ -22,7 +22,7 @@ import org.h2.value.VersionedValue;
 /**
  * A transaction.
  */
-public class Transaction {
+public final class Transaction {
 
     /**
      * The status of a closed transaction (committed or rolled back).
@@ -173,12 +173,12 @@ public class Transaction {
     /**
      * The current isolation level.
      */
-    IsolationLevel isolationLevel = IsolationLevel.READ_COMMITTED;
+    final IsolationLevel isolationLevel;
 
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
                 String name, long logId, int timeoutMillis, int ownerId,
-                TransactionStore.RollbackListener listener) {
+                IsolationLevel isolationLevel, TransactionStore.RollbackListener listener) {
         this.store = store;
         this.transactionId = transactionId;
         this.sequenceNum = sequenceNum;
@@ -186,6 +186,7 @@ public class Transaction {
         this.name = name;
         setTimeoutMillis(timeoutMillis);
         this.ownerId = ownerId;
+        this.isolationLevel = isolationLevel;
         this.listener = listener;
     }
 
@@ -299,22 +300,24 @@ public class Transaction {
     }
 
     /**
-     * Sets the new isolation level. May be called only after creation of the
-     * transaction.
-     *
-     * @param isolationLevel the new isolation level
-     */
-    public void setIsolationLevel(IsolationLevel isolationLevel) {
-        this.isolationLevel = isolationLevel;
-    }
-
-    /**
      * Returns the isolation level of this transaction.
      *
      * @return the isolation level of this transaction
      */
     public IsolationLevel getIsolationLevel() {
         return isolationLevel;
+    }
+
+    boolean isReadCommitted() {
+        return isolationLevel == IsolationLevel.READ_COMMITTED;
+    }
+
+    /**
+     * Whether this transaction has isolation level READ_COMMITTED or below.
+     * @return true if isolation level is READ_COMMITTED or READ_UNCOMMITTED
+     */
+    public boolean allowNonRepeatableRead() {
+        return isolationLevel.allowNonRepeatableRead();
     }
 
     /**
@@ -341,7 +344,7 @@ public class Transaction {
                     TransactionMap<?,?> txMap = openMapX(map);
                     txMap.setStatementSnapshot(new Snapshot(map.flushAndGetRoot(), committingTransactions));
                 }
-                if (isolationLevel == IsolationLevel.READ_COMMITTED) {
+                if (isReadCommitted()) {
                     undoLogRootReferences = store.collectUndoLogRootReferences();
                 }
             } while (committingTransactions != store.committingTransactions.get());
@@ -361,7 +364,7 @@ public class Transaction {
      * Mark an exit from SQL statement execution within this transaction.
      */
     public void markStatementEnd() {
-        if (isolationLevel.allowNonRepeatableRead()) {
+        if (allowNonRepeatableRead()) {
             releaseSnapshot();
         }
         for (TransactionMap<?, ?> transactionMap : transactionMaps.values()) {
@@ -370,7 +373,7 @@ public class Transaction {
     }
 
     private void markTransactionEnd() {
-        if (!isolationLevel.allowNonRepeatableRead()) {
+        if (!allowNonRepeatableRead()) {
             releaseSnapshot();
         }
     }

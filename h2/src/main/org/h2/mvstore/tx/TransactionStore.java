@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
+import org.h2.engine.IsolationLevel;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -224,7 +225,7 @@ public class TransactionStore {
                                     logId = lastUndoKey == null ? 0 : getLogId(lastUndoKey) + 1;
                                 }
                                 registerTransaction(transactionId, status, name, logId, timeoutMillis, 0,
-                                        ROLLBACK_LISTENER_NONE);
+                                        IsolationLevel.READ_COMMITTED, ROLLBACK_LISTENER_NONE);
                                 continue;
                             }
                         }
@@ -356,7 +357,7 @@ public class TransactionStore {
      * @return the transaction
      */
     public Transaction begin() {
-        return begin(ROLLBACK_LISTENER_NONE, timeoutMillis, 0);
+        return begin(ROLLBACK_LISTENER_NONE, timeoutMillis, 0, IsolationLevel.READ_COMMITTED);
     }
 
     /**
@@ -364,16 +365,19 @@ public class TransactionStore {
      * @param listener to be notified in case of a rollback
      * @param timeoutMillis to wait for a blocking transaction
      * @param ownerId of the owner (Session?) to be reported by getBlockerId
+     * @param isolationLevel of new transaction
      * @return the transaction
      */
-    public Transaction begin(RollbackListener listener, int timeoutMillis, int ownerId) {
+    public Transaction begin(RollbackListener listener, int timeoutMillis, int ownerId,
+                             IsolationLevel isolationLevel) {
         Transaction transaction = registerTransaction(0, Transaction.STATUS_OPEN, null, 0,
-                timeoutMillis, ownerId, listener);
+                timeoutMillis, ownerId, isolationLevel, listener);
         return transaction;
     }
 
     private Transaction registerTransaction(int txId, int status, String name, long logId,
-                                            int timeoutMillis, int ownerId, RollbackListener listener) {
+                                            int timeoutMillis, int ownerId,
+                                            IsolationLevel isolationLevel, RollbackListener listener) {
         int transactionId;
         long sequenceNo;
         boolean success;
@@ -399,7 +403,7 @@ public class TransactionStore {
         } while(!success);
 
         Transaction transaction = new Transaction(this, transactionId, sequenceNo, status, name, logId,
-                timeoutMillis, ownerId, listener);
+                timeoutMillis, ownerId, isolationLevel, listener);
 
         assert transactions.get(transactionId) == null;
         transactions.set(transactionId, transaction);

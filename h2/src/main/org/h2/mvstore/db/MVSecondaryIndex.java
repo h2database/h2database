@@ -180,7 +180,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchR
         boolean checkRequired, allowNonRepeatableRead;
         if (indexType.isUnique() && !mayHaveNullDuplicates(row)) {
             checkRequired = true;
-            allowNonRepeatableRead = session.getTransaction().getIsolationLevel().allowNonRepeatableRead();
+            allowNonRepeatableRead = session.getTransaction().allowNonRepeatableRead();
         } else {
             checkRequired = false;
             allowNonRepeatableRead = false;

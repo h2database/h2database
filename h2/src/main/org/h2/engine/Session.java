@@ -1800,8 +1800,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                     database.shutdownImmediately();
                     throw DbException.get(ErrorCode.DATABASE_IS_CLOSED, backgroundException);
                 }
-                transaction = store.getTransactionStore().begin(this, this.lockTimeout, id);
-                transaction.setIsolationLevel(isolationLevel);
+                transaction = store.getTransactionStore().begin(this, this.lockTimeout, id, isolationLevel);
             }
             startStatement = -1;
         }

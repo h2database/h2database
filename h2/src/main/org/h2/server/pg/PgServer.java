@@ -53,7 +53,6 @@ public class PgServer implements Service {
     public static final int PG_TYPE_INT2 = 21;
     public static final int PG_TYPE_INT4 = 23;
     public static final int PG_TYPE_TEXT = 25;
-    public static final int PG_TYPE_OID = 26;
     public static final int PG_TYPE_FLOAT4 = 700;
     public static final int PG_TYPE_FLOAT8 = 701;
     public static final int PG_TYPE_UNKNOWN = 705;
@@ -329,9 +328,6 @@ public class PgServer implements Service {
         case PG_TYPE_TEXT:
             valueType = Value.CLOB;
             break;
-        case PG_TYPE_OID:
-            valueType = Value.BLOB;
-            break;
         case PG_TYPE_FLOAT4:
             valueType = Value.REAL;
             break;
@@ -415,8 +411,6 @@ public class PgServer implements Service {
         case Types.BINARY:
         case Types.VARBINARY:
             return PG_TYPE_BYTEA;
-        case Types.BLOB:
-            return PG_TYPE_OID;
         case Types.ARRAY:
             return PG_TYPE_TEXTARRAY;
         default:

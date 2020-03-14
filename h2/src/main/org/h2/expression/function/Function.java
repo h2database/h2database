@@ -138,13 +138,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             FORMATDATETIME = 120, PARSEDATETIME = 121, ISO_YEAR = 122,
             ISO_WEEK = 123, ISO_DAY_OF_WEEK = 124, DATE_TRUNC = 125;
 
-    /**
-     * Pseudo functions for DATEADD, DATEDIFF, and EXTRACT.
-     */
-    public static final int MILLISECOND = 126, EPOCH = 127, MICROSECOND = 128, NANOSECOND = 129,
-            TIMEZONE_HOUR = 130, TIMEZONE_MINUTE = 131, TIMEZONE_SECOND = 132, DECADE = 133, CENTURY = 134,
-            MILLENNIUM = 135, DOW = 136;
-
     public static final int CURRENT_CATALOG = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
             READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
@@ -925,24 +918,49 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     v0 == null ? ValueTimestamp.DEFAULT_SCALE : v0.getInt(), null), session);
             break;
         case DAY_NAME: {
-            int dayOfWeek = DateTimeUtils.getSundayDayOfWeek(DateTimeUtils.dateAndTimeFromValue(v0, session)[0]);
+            int dayOfWeek = DateTimeUtils.getDayOfWeek(DateTimeUtils.dateAndTimeFromValue(v0, session)[0], 0);
             result = ValueVarchar.get(DateTimeFunctions.getMonthsAndWeeks(1)[dayOfWeek], database);
             break;
         }
         case DAY_OF_MONTH:
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.DAY));
+            break;
         case DAY_OF_WEEK:
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.DAY_OF_WEEK));
+            break;
         case DAY_OF_YEAR:
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.DAY_OF_YEAR));
+            break;
         case HOUR:
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.HOUR));
+            break;
         case MINUTE:
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.MINUTE));
+            break;
         case MONTH:
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.MONTH));
+            break;
         case QUARTER:
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.QUARTER));
+            break;
         case ISO_YEAR:
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.ISO_WEEK_YEAR));
+            break;
         case ISO_WEEK:
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.ISO_WEEK));
+            break;
         case ISO_DAY_OF_WEEK:
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0,
+                    DateTimeFunctions.ISO_DAY_OF_WEEK));
+            break;
         case SECOND:
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.SECOND));
+            break;
         case WEEK:
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.WEEK));
+            break;
         case YEAR:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, info.type));
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.YEAR));
             break;
         case MONTH_NAME: {
             int month = DateTimeUtils.monthFromDateValue(DateTimeUtils.dateAndTimeFromValue(v0, session)[0]);
@@ -1522,7 +1540,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ToDateParser.toTimestamp(session, v0.getString(), v1 == null ? null : v1.getString());
             break;
         case ADD_MONTHS:
-            result = DateTimeFunctions.dateadd(session, "MONTH", v1.getInt(), v0);
+            result = DateTimeFunctions.dateadd(session, DateTimeFunctions.MONTH, v1.getInt(), v0);
             break;
         case TO_TIMESTAMP_TZ:
             result = ToDateParser.toTimestampTz(session, v0.getString(), v1 == null ? null : v1.getString());
@@ -1545,16 +1563,16 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueVarchar.get(Constants.VERSION, database);
             break;
         case DATEADD:
-            result = DateTimeFunctions.dateadd(session, v0.getString(), v1.getLong(), v2);
+            result = DateTimeFunctions.dateadd(session, v0.getInt(), v1.getLong(), v2);
             break;
         case DATEDIFF:
-            result = ValueBigint.get(DateTimeFunctions.datediff(session, v0.getString(), v1, v2));
+            result = ValueBigint.get(DateTimeFunctions.datediff(session, v0.getInt(), v1, v2));
             break;
         case DATE_TRUNC:
-            result = DateTimeFunctions.truncateDate(session, v0.getString(), v1);
+            result = DateTimeFunctions.truncateDate(session, v0.getInt(), v1);
             break;
         case EXTRACT:
-            result = DateTimeFunctions.extract(session, v0.getString(), v1);
+            result = DateTimeFunctions.extract(session, v0.getInt(), v1);
             break;
         case FORMATDATETIME: {
             if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE) {
@@ -2592,10 +2610,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             min = 1;
             max = 2;
             break;
-        case DATE_TRUNC:
-            min = 2;
-            max = 2;
-            break;
         case TO_CHAR:
         case TO_DATE:
         case ORA_HASH:
@@ -2700,15 +2714,15 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     typeInfo = TypeInfo.TYPE_TIME;
                     break;
                 case Value.DATE: {
-                    int field = DateTimeFunctions.getDatePart(p0.getValue(session).getString());
+                    int field = p0.getValue(session).getInt();
                     switch (field) {
-                    case HOUR:
-                    case MINUTE:
-                    case SECOND:
-                    case EPOCH:
-                    case MILLISECOND:
-                    case MICROSECOND:
-                    case NANOSECOND:
+                    case DateTimeFunctions.HOUR:
+                    case DateTimeFunctions.MINUTE:
+                    case DateTimeFunctions.SECOND:
+                    case DateTimeFunctions.EPOCH:
+                    case DateTimeFunctions.MILLISECOND:
+                    case DateTimeFunctions.MICROSECOND:
+                    case DateTimeFunctions.NANOSECOND:
                         // TIMESTAMP result
                         break;
                     default:
@@ -2723,7 +2737,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case EXTRACT: {
-            if (p0.isConstant() && DateTimeFunctions.getDatePart(p0.getValue(session).getString()) == Function.EPOCH) {
+            if (p0.isConstant() && p0.getValue(session).getInt() == DateTimeFunctions.EPOCH) {
                 typeInfo = TypeInfo.getTypeInfo(Value.NUMERIC, ValueBigint.PRECISION + ValueTimestamp.MAXIMUM_SCALE,
                         ValueTimestamp.MAXIMUM_SCALE, null);
             } else {
@@ -2731,13 +2745,18 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case DATE_TRUNC:
+        case DATE_TRUNC: {
             typeInfo = args[1].getType();
+            int valueType = typeInfo.getValueType();
             // TODO set scale when possible
-            if (typeInfo.getValueType() != Value.TIMESTAMP_TZ) {
-                typeInfo = TypeInfo.TYPE_TIMESTAMP;
+            if (!DataType.isDateTimeType(valueType)) {
+                throw DbException.getInvalidValueException("DATE_TRUNC datetime argument",
+                        typeInfo.getSQL(new StringBuilder()));
+            } else if (session.getMode().getEnum() == ModeEnum.PostgreSQL && valueType == Value.DATE) {
+                typeInfo = TypeInfo.TYPE_TIMESTAMP_TZ;
             }
             break;
+        }
         case IFNULL:
         case NULLIF:
         case COALESCE:
@@ -3141,12 +3160,20 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case EXTRACT: {
-            ValueVarchar v = (ValueVarchar) ((ValueExpression) args[0]).getValue(null);
-            builder.append(v.getString()).append(" FROM ");
+        case DATEADD:
+        case DATEDIFF:
+            builder.append(DateTimeFunctions.getFieldName(args[0].getValue(null).getInt())).append(", ");
+            args[1].getSQL(builder, sqlFlags).append(", ");
+            args[2].getSQL(builder, sqlFlags);
+            break;
+        case EXTRACT:
+            builder.append(DateTimeFunctions.getFieldName(args[0].getValue(null).getInt())).append(" FROM ");
             args[1].getSQL(builder, sqlFlags);
             break;
-        }
+        case DATE_TRUNC:
+            builder.append(DateTimeFunctions.getFieldName(args[0].getValue(null).getInt())).append(", ");
+            args[1].getSQL(builder, sqlFlags);
+            break;
         case JSON_OBJECT: {
             for (int i = 0, l = args.length; i < l;) {
                 if (i > 0) {

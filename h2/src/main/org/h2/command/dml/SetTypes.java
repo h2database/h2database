@@ -15,7 +15,7 @@ public class SetTypes {
     /**
      * The type of a SET IGNORECASE statement.
      */
-    public static final int IGNORECASE = 1;
+    public static final int IGNORECASE = 0;
 
     /**
      * The type of a SET MAX_LOG_SIZE statement.
@@ -272,57 +272,56 @@ public class SetTypes {
 
     static {
         ArrayList<String> list = new ArrayList<>(COUNT);
-        list.add(null);
-        list.add(IGNORECASE, "IGNORECASE");
-        list.add(MAX_LOG_SIZE, "MAX_LOG_SIZE");
-        list.add(MODE, "MODE");
-        list.add(READONLY, "READONLY");
-        list.add(LOCK_TIMEOUT, "LOCK_TIMEOUT");
-        list.add(DEFAULT_LOCK_TIMEOUT, "DEFAULT_LOCK_TIMEOUT");
-        list.add(DEFAULT_TABLE_TYPE, "DEFAULT_TABLE_TYPE");
-        list.add(CACHE_SIZE, "CACHE_SIZE");
-        list.add(TRACE_LEVEL_SYSTEM_OUT, "TRACE_LEVEL_SYSTEM_OUT");
-        list.add(TRACE_LEVEL_FILE, "TRACE_LEVEL_FILE");
-        list.add(TRACE_MAX_FILE_SIZE, "TRACE_MAX_FILE_SIZE");
-        list.add(COLLATION, "COLLATION");
-        list.add(CLUSTER, "CLUSTER");
-        list.add(WRITE_DELAY, "WRITE_DELAY");
-        list.add(DATABASE_EVENT_LISTENER, "DATABASE_EVENT_LISTENER");
-        list.add(MAX_MEMORY_ROWS, "MAX_MEMORY_ROWS");
-        list.add(LOCK_MODE, "LOCK_MODE");
-        list.add(DB_CLOSE_DELAY, "DB_CLOSE_DELAY");
-        list.add(LOG, "LOG");
-        list.add(THROTTLE, "THROTTLE");
-        list.add(MAX_MEMORY_UNDO, "MAX_MEMORY_UNDO");
-        list.add(MAX_LENGTH_INPLACE_LOB, "MAX_LENGTH_INPLACE_LOB");
-        list.add(COMPRESS_LOB, "COMPRESS_LOB");
-        list.add(ALLOW_LITERALS, "ALLOW_LITERALS");
-        list.add(SCHEMA, "SCHEMA");
-        list.add(OPTIMIZE_REUSE_RESULTS, "OPTIMIZE_REUSE_RESULTS");
-        list.add(SCHEMA_SEARCH_PATH, "SCHEMA_SEARCH_PATH");
-        list.add(UNDO_LOG, "UNDO_LOG");
-        list.add(REFERENTIAL_INTEGRITY, "REFERENTIAL_INTEGRITY");
-        list.add(MAX_OPERATION_MEMORY, "MAX_OPERATION_MEMORY");
-        list.add(EXCLUSIVE, "EXCLUSIVE");
-        list.add(CREATE_BUILD, "CREATE_BUILD");
-        list.add(VARIABLE, "@");
-        list.add(QUERY_TIMEOUT, "QUERY_TIMEOUT");
-        list.add(REDO_LOG_BINARY, "REDO_LOG_BINARY");
-        list.add(BINARY_COLLATION, "BINARY_COLLATION");
-        list.add(JAVA_OBJECT_SERIALIZER, "JAVA_OBJECT_SERIALIZER");
-        list.add(RETENTION_TIME, "RETENTION_TIME");
-        list.add(QUERY_STATISTICS, "QUERY_STATISTICS");
-        list.add(QUERY_STATISTICS_MAX_ENTRIES, "QUERY_STATISTICS_MAX_ENTRIES");
-        list.add(FORCE_JOIN_ORDER, "FORCE_JOIN_ORDER");
-        list.add(LAZY_QUERY_EXECUTION, "LAZY_QUERY_EXECUTION");
-        list.add(BUILTIN_ALIAS_OVERRIDE, "BUILTIN_ALIAS_OVERRIDE");
-        list.add(AUTHENTICATOR, "AUTHENTICATOR");
-        list.add(UUID_COLLATION, "UUID_COLLATION");
-        list.add(IGNORE_CATALOGS, "IGNORE_CATALOGS");
-        list.add(CATALOG, "CATALOG");
-        list.add(NON_KEYWORDS, "NON_KEYWORDS");
-        list.add(TIME_ZONE, "TIME ZONE");
-        list.add(VARIABLE_BINARY, "VARIABLE_BINARY");
+        list.add("IGNORECASE");
+        list.add("MAX_LOG_SIZE");
+        list.add("MODE");
+        list.add("READONLY");
+        list.add("LOCK_TIMEOUT");
+        list.add("DEFAULT_LOCK_TIMEOUT");
+        list.add("DEFAULT_TABLE_TYPE");
+        list.add("CACHE_SIZE");
+        list.add("TRACE_LEVEL_SYSTEM_OUT");
+        list.add("TRACE_LEVEL_FILE");
+        list.add("TRACE_MAX_FILE_SIZE");
+        list.add("COLLATION");
+        list.add("CLUSTER");
+        list.add("WRITE_DELAY");
+        list.add("DATABASE_EVENT_LISTENER");
+        list.add("MAX_MEMORY_ROWS");
+        list.add("LOCK_MODE");
+        list.add("DB_CLOSE_DELAY");
+        list.add("LOG");
+        list.add("THROTTLE");
+        list.add("MAX_MEMORY_UNDO");
+        list.add("MAX_LENGTH_INPLACE_LOB");
+        list.add("COMPRESS_LOB");
+        list.add("ALLOW_LITERALS");
+        list.add("SCHEMA");
+        list.add("OPTIMIZE_REUSE_RESULTS");
+        list.add("SCHEMA_SEARCH_PATH");
+        list.add("UNDO_LOG");
+        list.add("REFERENTIAL_INTEGRITY");
+        list.add("MAX_OPERATION_MEMORY");
+        list.add("EXCLUSIVE");
+        list.add("CREATE_BUILD");
+        list.add("@");
+        list.add("QUERY_TIMEOUT");
+        list.add("REDO_LOG_BINARY");
+        list.add("BINARY_COLLATION");
+        list.add("JAVA_OBJECT_SERIALIZER");
+        list.add("RETENTION_TIME");
+        list.add("QUERY_STATISTICS");
+        list.add("QUERY_STATISTICS_MAX_ENTRIES");
+        list.add("FORCE_JOIN_ORDER");
+        list.add("LAZY_QUERY_EXECUTION");
+        list.add("BUILTIN_ALIAS_OVERRIDE");
+        list.add("AUTHENTICATOR");
+        list.add("UUID_COLLATION");
+        list.add("IGNORE_CATALOGS");
+        list.add("CATALOG");
+        list.add("NON_KEYWORDS");
+        list.add("TIME ZONE");
+        list.add("VARIABLE_BINARY");
         TYPES = list;
     }
 

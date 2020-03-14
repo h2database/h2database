@@ -289,7 +289,7 @@ public class IntervalOperation extends Expression {
                 if (opType == IntervalOpType.DATETIME_MINUS_INTERVAL) {
                     m = -m;
                 }
-                return DateTimeFunctions.dateadd(session, "MONTH", m, l);
+                return DateTimeFunctions.dateadd(session, DateTimeFunctions.MONTH, m, l);
             } else {
                 BigInteger a2 = IntervalUtils.intervalToAbsolute((ValueInterval) r);
                 if (lType == Value.DATE) {

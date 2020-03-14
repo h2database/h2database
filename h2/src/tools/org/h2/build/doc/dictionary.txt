@@ -834,4 +834,5 @@ amname relhasindex tablespace reltriggers tgconstrrelid groname indrelid relhasr
 indisunique rolinherit datacl rolvaliduntil datname indexprs usename typbasetype rolconfig relkind spcacl prorettype
 datallowconn atthasdef dattablespace rolcreatedb inhrelid inhparent attlen rolname rolcanlogin aclitem datlastsysoid
 indpred tgfoid indisprimary adsrc spcowner tgnargs typtype typinput rolcatupdate typnamespace tgrelid authid indexrelid
-usesuper tgdeferrable rolpassword relam relpages tginitdeferred rolsuper autovacuum typnotnull spclocation
+usesuper tgdeferrable rolpassword relam relpages tginitdeferred rolsuper autovacuum typnotnull spclocation cancreate
+nsp pgagent pga awoken serverencoding

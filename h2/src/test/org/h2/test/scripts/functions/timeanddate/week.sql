@@ -3,9 +3,6 @@
 -- Initial Developer: H2 Group
 --
 
-select week(date '2003-01-09');
->> 2
-
 -- ISO_WEEK
 
 select iso_week('2006-12-31') w, iso_year('2007-12-31') y, iso_day_of_week('2007-12-31') w;

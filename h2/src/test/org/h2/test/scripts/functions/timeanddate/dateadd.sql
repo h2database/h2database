@@ -61,9 +61,9 @@ VALUES TIMESTAMP WITH TIME ZONE '2005-03-04 04:00:00+08' + TIME WITH TIME ZONE '
 > exception FEATURE_NOT_SUPPORTED_1
 
 select 1 + d + 1, d - 1, 2 + ts + 2, ts - 2 from test;
-> DATEADD('DAY', 1, DATEADD('DAY', 1, D)) DATEADD('DAY', -1, D) DATEADD('DAY', 2, DATEADD('DAY', 2, TS)) DATEADD('DAY', -2, TS)
-> --------------------------------------- --------------------- ---------------------------------------- ----------------------
-> 2001-01-03                              2000-12-31            2010-01-05 00:00:00                      2009-12-30 00:00:00
+> DATEADD(DAY, 1, DATEADD(DAY, 1, D)) DATEADD(DAY, -1, D) DATEADD(DAY, 2, DATEADD(DAY, 2, TS)) DATEADD(DAY, -2, TS)
+> ----------------------------------- ------------------- ------------------------------------ --------------------
+> 2001-01-03                          2000-12-31          2010-01-05 00:00:00                  2009-12-30 00:00:00
 > rows: 1
 
 select 1 + d + t + 1 from test;
@@ -131,3 +131,12 @@ SELECT DATEADD(HOUR, 1, TIME WITH TIME ZONE '23:00:00+01');
 
 SELECT D FROM (SELECT '2010-01-01' D) WHERE D IN (SELECT D1 - 1 FROM (SELECT DATE '2010-01-02' D1));
 >> 2010-01-01
+
+SELECT DATEADD(MILLENNIUM, 1, DATE '2000-02-29');
+>> 3000-02-28
+
+SELECT DATEADD(CENTURY, 1, DATE '2000-02-29');
+>> 2100-02-28
+
+SELECT DATEADD(DECADE, 1, DATE '2000-02-29');
+>> 2010-02-28

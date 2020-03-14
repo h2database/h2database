@@ -26,6 +26,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -336,25 +337,18 @@ public final class DateTimeFunctions {
         long timeNanos = a[1];
         int type = v.getValueType();
         switch (field) {
-        case QUARTER:
-            count *= 3;
-            //$FALL-THROUGH$
+        case MILLENNIUM:
+            return addYearsMonths(field, true, count * 1_000, v, type, dateValue, timeNanos);
+        case CENTURY:
+            return addYearsMonths(field, true, count * 100, v, type, dateValue, timeNanos);
+        case DECADE:
+            return addYearsMonths(field, true, count * 10, v, type, dateValue, timeNanos);
         case YEAR:
-        case MONTH: {
-            if (type == Value.TIME || type == Value.TIME_TZ) {
-                throw DbException.getInvalidValueException("DATEADD time part", getFieldName(field));
-            }
-            long year = DateTimeUtils.yearFromDateValue(dateValue);
-            long month = DateTimeUtils.monthFromDateValue(dateValue);
-            int day = DateTimeUtils.dayFromDateValue(dateValue);
-            if (field == YEAR) {
-                year += count;
-            } else {
-                month += count;
-            }
-            dateValue = DateTimeUtils.dateValueFromDenormalizedDate(year, month, day);
-            return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos);
-        }
+            return addYearsMonths(field, true, count, v, type, dateValue, timeNanos);
+        case QUARTER:
+            return addYearsMonths(field, false, count *= 3, v, type, dateValue, timeNanos);
+        case MONTH:
+            return addYearsMonths(field, false, count, v, type, dateValue, timeNanos);
         case WEEK:
         case ISO_WEEK:
             count *= 7;
@@ -389,22 +383,11 @@ public final class DateTimeFunctions {
         case NANOSECOND:
             break;
         case TIMEZONE_HOUR:
-            count *= 60;
-            //$FALL-THROUGH$
+            return addToTimeZone(field, count * 3_600, v, type, dateValue, timeNanos);
         case TIMEZONE_MINUTE:
-            count *= 60;
-            //$FALL-THROUGH$
-        case TIMEZONE_SECOND: {
-            if (type == Value.TIMESTAMP_TZ) {
-                count += ((ValueTimestampTimeZone) v).getTimeZoneOffsetSeconds();
-                return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, (int) count);
-            } else if (type == Value.TIME_TZ) {
-                count += ((ValueTimeTimeZone) v).getTimeZoneOffsetSeconds();
-                return ValueTimeTimeZone.fromNanos(timeNanos, (int) count);
-            } else {
-                throw DbException.getUnsupportedException("DATEADD " + getFieldName(field));
-            }
-        }
+            return addToTimeZone(field, count * 60, v, type, dateValue, timeNanos);
+        case TIMEZONE_SECOND:
+            return addToTimeZone(field, count, v, type, dateValue, timeNanos);
         default:
             throw DbException.getUnsupportedException("DATEADD " + getFieldName(field));
         }
@@ -423,6 +406,34 @@ public final class DateTimeFunctions {
             return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
         }
         return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos);
+    }
+
+    private static Value addYearsMonths(int field, boolean years, long count, Value v, int type, long dateValue,
+            long timeNanos) {
+        if (type == Value.TIME || type == Value.TIME_TZ) {
+            throw DbException.getInvalidValueException("DATEADD time part", getFieldName(field));
+        }
+        long year = DateTimeUtils.yearFromDateValue(dateValue);
+        long month = DateTimeUtils.monthFromDateValue(dateValue);
+        if (years) {
+            year += count;
+        } else {
+            month += count;
+        }
+        return DateTimeUtils.dateTimeToValue(v, DateTimeUtils.dateValueFromDenormalizedDate(year, month,
+                DateTimeUtils.dayFromDateValue(dateValue)), timeNanos);
+    }
+
+    private static Value addToTimeZone(int field, long count, Value v, int type, long dateValue, long timeNanos) {
+        if (type == Value.TIMESTAMP_TZ) {
+            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
+                    MathUtils.convertLongToInt(count + ((ValueTimestampTimeZone) v).getTimeZoneOffsetSeconds()));
+        } else if (type == Value.TIME_TZ) {
+            return ValueTimeTimeZone.fromNanos(timeNanos,
+                    MathUtils.convertLongToInt(count + ((ValueTimeTimeZone) v).getTimeZoneOffsetSeconds()));
+        } else {
+            throw DbException.getUnsupportedException("DATEADD " + getFieldName(field));
+        }
     }
 
     /**

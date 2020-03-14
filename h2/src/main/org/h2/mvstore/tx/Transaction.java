@@ -22,7 +22,7 @@ import org.h2.value.VersionedValue;
 /**
  * A transaction.
  */
-public class Transaction {
+public final class Transaction {
 
     /**
      * The status of a closed transaction (committed or rolled back).
@@ -308,6 +308,18 @@ public class Transaction {
         return isolationLevel;
     }
 
+    boolean isReadCommitted() {
+        return isolationLevel == IsolationLevel.READ_COMMITTED;
+    }
+
+    /**
+     * Whether this transaction has isolation level READ_COMMITTED or below.
+     * @return true if isolation level is READ_COMMITTED or READ_UNCOMMITTED
+     */
+    public boolean allowNonRepeatableRead() {
+        return isolationLevel.allowNonRepeatableRead();
+    }
+
     /**
      * Mark an entry into a new SQL statement execution within this transaction.
      *
@@ -332,7 +344,7 @@ public class Transaction {
                     TransactionMap<?,?> txMap = openMapX(map);
                     txMap.setStatementSnapshot(new Snapshot(map.flushAndGetRoot(), committingTransactions));
                 }
-                if (isolationLevel == IsolationLevel.READ_COMMITTED) {
+                if (isReadCommitted()) {
                     undoLogRootReferences = store.collectUndoLogRootReferences();
                 }
             } while (committingTransactions != store.committingTransactions.get());
@@ -352,7 +364,7 @@ public class Transaction {
      * Mark an exit from SQL statement execution within this transaction.
      */
     public void markStatementEnd() {
-        if (isolationLevel.allowNonRepeatableRead()) {
+        if (allowNonRepeatableRead()) {
             releaseSnapshot();
         }
         for (TransactionMap<?, ?> transactionMap : transactionMaps.values()) {
@@ -361,7 +373,7 @@ public class Transaction {
     }
 
     private void markTransactionEnd() {
-        if (!isolationLevel.allowNonRepeatableRead()) {
+        if (!allowNonRepeatableRead()) {
             releaseSnapshot();
         }
     }

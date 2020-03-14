@@ -164,7 +164,7 @@ class TxDecisionMaker<K,V> extends MVMap.DecisionMaker<VersionedValue<V>> {
     }
 
     final boolean allowNonRepeatableRead() {
-        return transaction.isolationLevel.allowNonRepeatableRead();
+        return transaction.allowNonRepeatableRead();
     }
 
     final MVMap.Decision getDecision() {

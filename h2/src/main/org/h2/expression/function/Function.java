@@ -918,7 +918,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     v0 == null ? ValueTimestamp.DEFAULT_SCALE : v0.getInt(), null), session);
             break;
         case DAY_NAME: {
-            int dayOfWeek = DateTimeUtils.getSundayDayOfWeek(DateTimeUtils.dateAndTimeFromValue(v0, session)[0]);
+            int dayOfWeek = DateTimeUtils.getDayOfWeek(DateTimeUtils.dateAndTimeFromValue(v0, session)[0], 0);
             result = ValueVarchar.get(DateTimeFunctions.getMonthsAndWeeks(1)[dayOfWeek], database);
             break;
         }
@@ -944,13 +944,14 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.QUARTER));
             break;
         case ISO_YEAR:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.ISO_YEAR));
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.ISO_WEEK_YEAR));
             break;
         case ISO_WEEK:
             result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.ISO_WEEK));
             break;
         case ISO_DAY_OF_WEEK:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.ISO_DAY_OF_WEEK));
+            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0,
+                    DateTimeFunctions.ISO_DAY_OF_WEEK));
             break;
         case SECOND:
             result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.SECOND));

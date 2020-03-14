@@ -2359,10 +2359,13 @@ yearField | monthField | dayOfMonthField
     | hourField | minuteField | secondField
     | timezoneHourField | timezoneMinuteField
     | @h2@ { timezoneSecondField
+    | millenniumField | centuryField | decadeField
+    | quarterField
     | millisecondField | microsecondField | nanosecondField
-    | dayOfWeekField | isoWeekYearField | isoDayOfWeekField
-    | weekOfYearField | isoWeekOfYearField
-    | quarterField | dayOfYearField | epochField }
+    | dayOfYearField
+    | isoDayOfWeekField | isoWeekField | isoWeekYearField
+    | dayOfWeekField | weekField | weekYearField
+    | epochField }
 ","
 Fields for EXTRACT, DATEADD, and DATEDIFF functions.
 ","
@@ -2417,30 +2420,6 @@ Second (0-59).
 SECOND
 "
 
-"Datetime fields","Millisecond field","
-@h2@ { MILLISECOND } | @c@ { MS }
-","
-Millisecond (0-999).
-","
-MILLISECOND
-"
-
-"Datetime fields","Microsecond field","
-@h2@ { MICROSECOND } | @c@ { MCS }
-","
-Microsecond (0-999999).
-","
-MICROSECOND
-"
-
-"Datetime fields","Nanosecond field","
-@h2@ { NANOSECOND } | @c@ { NS }
-","
-Nanosecond (0-999999999).
-","
-NANOSECOND
-"
-
 "Datetime fields","Timezone hour field","
 TIMEZONE_HOUR
 ","
@@ -2467,48 +2446,28 @@ Standard time doesn't use such offsets.
 TIMEZONE_SECOND
 "
 
-"Datetime fields","Day of week field","
-@h2@ { DAY_OF_WEEK | DAYOFWEEK } | @c@ { DOW }
+"Datetime fields","Millennium field","
+@h2@ MILLENNIUM
 ","
-Day of week (1-7). Sunday is 1.
+Millennium.
 ","
-DAY_OF_WEEK
+MILLENNIUM
 "
 
-"Datetime fields","ISO week year field","
-@h2@ { ISO_YEAR } | @c@ { ISOYEAR }
+"Datetime fields","Century field","
+@h2@ CENTURY
 ","
-Returns the ISO week year from a date/time value.
+Century.
 ","
-ISO_YEAR
+CENTURY
 "
 
-"Datetime fields","ISO day of week field","
-@h2@ { ISO_DAY_OF_WEEK } | @c@ { ISODOW }
+"Datetime fields","Decade field","
+@h2@ DECADE
 ","
-ISO day of week (1-7). Monday is 1.
+Decade.
 ","
-ISO_DAY_OF_WEEK
-"
-
-"Datetime fields","Week of year field","
-@h2@ { WEEK } | @c@ { WW | W | SQL_TSI_WEEK }
-","
-Week of year (1-53).
-EXTRACT function uses local rules to get number of week in year.
-DATEDIFF function uses Sunday as a first day of week.
-","
-WEEK
-"
-
-"Datetime fields","ISO week of year field","
-@h2@ ISO_WEEK
-","
-ISO week of year (1-53).
-ISO definition is used when first week of year should have at least four days
-and week is started with Monday.
-","
-ISO_WEEK
+DECADE
 "
 
 "Datetime fields","Quarter field","
@@ -2519,12 +2478,86 @@ Quarter (1-4).
 QUARTER
 "
 
+"Datetime fields","Millisecond field","
+@h2@ { MILLISECOND } | @c@ { MS }
+","
+Millisecond (0-999).
+","
+MILLISECOND
+"
+
+"Datetime fields","Microsecond field","
+@h2@ { MICROSECOND } | @c@ { MCS }
+","
+Microsecond (0-999999).
+","
+MICROSECOND
+"
+
+"Datetime fields","Nanosecond field","
+@h2@ { NANOSECOND } | @c@ { NS }
+","
+Nanosecond (0-999999999).
+","
+NANOSECOND
+"
+
 "Datetime fields","Day of year field","
 @h2@ { DAYOFYEAR | DAY_OF_YEAR } | @c@ { DOY | DY }
 ","
 Day of year (1-366).
 ","
 DAYOFYEAR
+"
+
+"Datetime fields","ISO day of week field","
+@h2@ { ISO_DAY_OF_WEEK } | @c@ { ISODOW }
+","
+ISO day of week (1-7). Monday is 1.
+","
+ISO_DAY_OF_WEEK
+"
+
+"Datetime fields","ISO week field","
+@h2@ ISO_WEEK
+","
+ISO week of year (1-53).
+ISO definition is used when first week of year should have at least four days
+and week is started with Monday.
+","
+ISO_WEEK
+"
+
+"Datetime fields","ISO week year field","
+@h2@ { ISO_WEEK_YEAR } | @c@ { ISO_YEAR | ISOYEAR }
+","
+Returns the ISO week-based year from a date/time value.
+","
+ISO_WEEK_YEAR
+"
+
+"Datetime fields","Day of week field","
+@h2@ { DAY_OF_WEEK | DAYOFWEEK } | @c@ { DOW }
+","
+Day of week (1-7), locale-specific.
+","
+DAY_OF_WEEK
+"
+
+"Datetime fields","Week field","
+@h2@ { WEEK } | @c@ { WW | W | SQL_TSI_WEEK }
+","
+Week of year (1-53) using local rules.
+","
+WEEK
+"
+
+"Datetime fields","Week year field","
+@h2@ { WEEK_YEAR }
+","
+Returns the week-based year (locale-specific) from a date/time value.
+","
+WEEK_YEAR
 "
 
 "Datetime fields","Epoch field","
@@ -5180,7 +5213,7 @@ DAY_OF_MONTH(CREATED)
 "Functions (Time and Date)","DAY_OF_WEEK","
 @c@ DAY_OF_WEEK(dateAndTime)
 ","
-Returns the day of the week (1 means Sunday).
+Returns the day of the week (1-7), locale-specific.
 ","
 DAY_OF_WEEK(CREATED)
 "

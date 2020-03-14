@@ -143,14 +143,14 @@ public final class DateTimeFunctions {
     public static final int ISO_WEEK = ISO_DAY_OF_WEEK + 1;
 
     /**
-     * ISO week year.
+     * ISO week-based year.
      */
-    public static final int ISO_YEAR = ISO_WEEK + 1;
+    public static final int ISO_WEEK_YEAR = ISO_WEEK + 1;
 
     /**
      * Day of week (locale-specific).
      */
-    public static final int DAY_OF_WEEK = ISO_YEAR + 1;
+    public static final int DAY_OF_WEEK = ISO_WEEK_YEAR + 1;
 
     /**
      * Week (locale-specific).
@@ -158,9 +158,14 @@ public final class DateTimeFunctions {
     public static final int WEEK = DAY_OF_WEEK + 1;
 
     /**
+     * Week-based year (locale-specific).
+     */
+    public static final int WEEK_YEAR = WEEK + 1;
+
+    /**
      * Epoch.
      */
-    public static final int EPOCH = WEEK + 1;
+    public static final int EPOCH = WEEK_YEAR + 1;
 
     /**
      * Day of week (locale-specific) for PostgreSQL compatibility.
@@ -177,8 +182,8 @@ public final class DateTimeFunctions {
             "QUARTER", //
             "MILLISECOND", "MICROSECOND", "NANOSECOND", //
             "DAY_OF_YEAR", //
-            "ISO_DAY_OF_WEEK", "ISO_WEEK", "ISO_YEAR", //
-            "DAY_OF_WEEK", "WEEK", //
+            "ISO_DAY_OF_WEEK", "ISO_WEEK", "ISO_WEEK_YEAR", //
+            "DAY_OF_WEEK", "WEEK", "WEEK_YEAR", //
             "EPOCH", "DOW", //
     };
 
@@ -273,10 +278,10 @@ public final class DateTimeFunctions {
             return ISO_DAY_OF_WEEK;
         case "ISO_WEEK":
             return ISO_WEEK;
+        case "ISO_WEEK_YEAR":
         case "ISO_YEAR":
-            return ISO_YEAR;
         case "ISOYEAR":
-            return ISO_YEAR;
+            return ISO_WEEK_YEAR;
         case "DAY_OF_WEEK":
         case "DAYOFWEEK":
             return DAY_OF_WEEK;
@@ -285,6 +290,8 @@ public final class DateTimeFunctions {
         case "WW":
         case "SQL_TSI_WEEK":
             return WEEK;
+        case "WEEK_YEAR":
+            return WEEK_YEAR;
         case "EPOCH":
             return EPOCH;
         case "DOW":
@@ -481,7 +488,7 @@ public final class DateTimeFunctions {
         case ISO_DAY_OF_WEEK:
             return absolute2 - absolute1;
         case WEEK:
-            return weekdiff(absolute1, absolute2, 0);
+            return weekdiff(absolute1, absolute2, getWeekFields().getFirstDayOfWeek().getValue());
         case ISO_WEEK:
             return weekdiff(absolute1, absolute2, 1);
         case MONTH:
@@ -601,47 +608,32 @@ public final class DateTimeFunctions {
     }
 
     /**
-     * Truncate the given date to the unit specified
+     * Truncate the given date-time value to the specified field.
      *
      * @param session the session
      * @param field the date-time field
-     * @param valueDate the date
-     * @return date truncated to 'day'
+     * @param value the date-time value
+     * @return date the truncated value
      */
-    public static Value truncateDate(Session session, int field, Value valueDate) {
-        // Retrieve the dateValue and the time in nanoseconds of the date.
-        long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(valueDate, session);
+    public static Value truncateDate(Session session, int field, Value value) {
+        long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(value, session);
         long dateValue = fieldDateAndTime[0];
-        long timeNanosRetrieved = fieldDateAndTime[1];
-
-        // Variable used to the time in nanoseconds of the date truncated.
-        long timeNanos;
-
-        // Compute the number of time unit in the date, for example, the
-        // number of time unit 'HOUR' in '15:14:13' is '15'. Then convert the
-        // result to nanoseconds.
+        long timeNanos = fieldDateAndTime[1];
         switch (field) {
         case MICROSECOND:
-            long nanoInMicroSecond = 1_000L;
-            long microseconds = timeNanosRetrieved / nanoInMicroSecond;
-            timeNanos = microseconds * nanoInMicroSecond;
+            timeNanos = timeNanos / 1_000L * 1_000L;
             break;
         case MILLISECOND:
-            long nanoInMilliSecond = 1_000_000L;
-            long milliseconds = timeNanosRetrieved / nanoInMilliSecond;
-            timeNanos = milliseconds * nanoInMilliSecond;
+            timeNanos = timeNanos / 1_000_000L * 1_000_000L;
             break;
         case SECOND:
-            long seconds = timeNanosRetrieved / NANOS_PER_SECOND;
-            timeNanos = seconds * NANOS_PER_SECOND;
+            timeNanos = timeNanos / NANOS_PER_SECOND * NANOS_PER_SECOND;
             break;
         case MINUTE:
-            long minutes = timeNanosRetrieved / NANOS_PER_MINUTE;
-            timeNanos = minutes * NANOS_PER_MINUTE;
+            timeNanos = timeNanos / NANOS_PER_MINUTE * NANOS_PER_MINUTE;
             break;
         case HOUR:
-            long hours = timeNanosRetrieved / NANOS_PER_HOUR;
-            timeNanos = hours * NANOS_PER_HOUR;
+            timeNanos = timeNanos / NANOS_PER_HOUR * NANOS_PER_HOUR;
             break;
         case DAY:
             timeNanos = 0L;
@@ -699,7 +691,7 @@ public final class DateTimeFunctions {
         default:
             throw DbException.getUnsupportedException("DATE_TRUNC " + getFieldName(field));
         }
-        Value result = DateTimeUtils.dateTimeToValue(valueDate, dateValue, timeNanos);
+        Value result = DateTimeUtils.dateTimeToValue(value, dateValue, timeNanos);
         if (result.getValueType() == Value.DATE) {
             result = result.convertTo(Value.TIMESTAMP_TZ, session);
         }
@@ -823,20 +815,23 @@ public final class DateTimeFunctions {
                 return (int) (timeNanos % NANOS_PER_SECOND);
             case DAY_OF_YEAR:
                 return DateTimeUtils.getDayOfYear(dateValue);
-            case DAY_OF_WEEK:
-                return DateTimeUtils.getSundayDayOfWeek(dateValue);
-            case DOW: {
-                int dow = DateTimeUtils.getSundayDayOfWeek(dateValue);
+            case DOW:
                 if (session.getMode().getEnum() == ModeEnum.PostgreSQL) {
-                    dow--;
+                    return DateTimeUtils.getSundayDayOfWeek(dateValue) - 1;
                 }
-                return dow;
-            }
+                //$FALL-THROUGH$
+            case DAY_OF_WEEK:
+                return getLocalDayOfWeek(dateValue);
             case WEEK:
                 return getLocalWeekOfYear(dateValue);
+            case WEEK_YEAR: {
+                WeekFields wf = getWeekFields();
+                return DateTimeUtils.getWeekYear(dateValue, wf.getFirstDayOfWeek().getValue(),
+                        wf.getMinimalDaysInFirstWeek());
+            }
             case QUARTER:
                 return (DateTimeUtils.monthFromDateValue(dateValue) - 1) / 3 + 1;
-            case ISO_YEAR:
+            case ISO_WEEK_YEAR:
                 return DateTimeUtils.getIsoWeekYear(dateValue);
             case ISO_WEEK:
                 return DateTimeUtils.getIsoWeekOfYear(dateValue);
@@ -866,13 +861,22 @@ public final class DateTimeFunctions {
         throw DbException.getUnsupportedException("getDatePart(" + date + ", " + field + ')');
     }
 
+    private static int getLocalDayOfWeek(long dateValue) {
+        return DateTimeUtils.getDayOfWeek(dateValue, getWeekFields().getFirstDayOfWeek().getValue());
+    }
+
     private static int getLocalWeekOfYear(long dateValue) {
+        WeekFields weekFields = getWeekFields();
+        return DateTimeUtils.getWeekOfYear(dateValue, weekFields.getFirstDayOfWeek().getValue(),
+                weekFields.getMinimalDaysInFirstWeek());
+    }
+
+    private static WeekFields getWeekFields() {
         WeekFields weekFields = WEEK_FIELDS;
         if (weekFields == null) {
             WEEK_FIELDS = weekFields = WeekFields.of(Locale.getDefault());
         }
-        return DateTimeUtils.getWeekOfYear(dateValue, weekFields.getFirstDayOfWeek().getValue(),
-                weekFields.getMinimalDaysInFirstWeek());
+        return weekFields;
     }
 
     /**

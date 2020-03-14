@@ -509,6 +509,15 @@ public final class DateTimeFunctions {
             return (DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1)) * 4
                     + (DateTimeUtils.monthFromDateValue(dateValue2) - 1) / 3
                     - (DateTimeUtils.monthFromDateValue(dateValue1) - 1) / 3;
+        case MILLENNIUM:
+            return millennium(DateTimeUtils.yearFromDateValue(dateValue2))
+                    - millennium(DateTimeUtils.yearFromDateValue(dateValue1));
+        case CENTURY:
+            return century(DateTimeUtils.yearFromDateValue(dateValue2))
+                    - century(DateTimeUtils.yearFromDateValue(dateValue1));
+        case DECADE:
+            return decade(DateTimeUtils.yearFromDateValue(dateValue2))
+                    - decade(DateTimeUtils.yearFromDateValue(dateValue1));
         case YEAR:
             return DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1);
         case TIMEZONE_HOUR:
@@ -834,6 +843,12 @@ public final class DateTimeFunctions {
                 return (int) (timeNanos / 1_000 % 1_000_000);
             case NANOSECOND:
                 return (int) (timeNanos % NANOS_PER_SECOND);
+            case MILLENNIUM:
+                return millennium(DateTimeUtils.yearFromDateValue(dateValue));
+            case CENTURY:
+                return century(DateTimeUtils.yearFromDateValue(dateValue));
+            case DECADE:
+                return decade(DateTimeUtils.yearFromDateValue(dateValue));
             case DAY_OF_YEAR:
                 return DateTimeUtils.getDayOfYear(dateValue);
             case DOW:
@@ -880,6 +895,18 @@ public final class DateTimeFunctions {
             }
         }
         throw DbException.getUnsupportedException("getDatePart(" + date + ", " + field + ')');
+    }
+
+    private static int millennium(int year) {
+        return year > 0 ? (year + 999) / 1_000 : year / 1_000;
+    }
+
+    private static int century(int year) {
+        return year > 0 ? (year + 99) / 100 : year / 100;
+    }
+
+    private static int decade(int year) {
+        return year >= 0 ? year / 10 : (year - 9) / 10;
     }
 
     private static int getLocalDayOfWeek(long dateValue) {

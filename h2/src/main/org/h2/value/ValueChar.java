@@ -33,6 +33,25 @@ public final class ValueChar extends ValueStringBase {
         return s;
     }
 
+    /**
+     * Get or create a CHAR value for the given string.
+     * Spaces at the end of the string will not be removed.
+     *
+     * @param s the string
+     * @return the value
+     */
+    public static ValueChar getWithoutRightTrim(String s) {
+        int length = s.length();
+        if (length == 0) {
+            return EMPTY;
+        }
+        ValueChar obj = new ValueChar(StringUtils.cache(s));
+        if (length > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
+            return obj;
+        }
+        return (ValueChar) Value.cache(obj);
+    }
+
     @Override
     public int getValueType() {
         return CHAR;

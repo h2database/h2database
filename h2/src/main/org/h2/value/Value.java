@@ -18,6 +18,7 @@ import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.CastDataProvider;
+import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -845,7 +846,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case VARCHAR_IGNORECASE:
             return ValueVarcharIgnoreCase.get(convertToVarchar(targetType, conversionMode, column));
         case CHAR:
-            return convertToChar(targetType, conversionMode, column);
+            //provider added to know the current Database(MYSQL/POSTGRESQL)
+            return convertToChar(targetType, conversionMode, column, provider);
         case JAVA_OBJECT:
             return convertToJavaObject(targetType, conversionMode, column);
         case ENUM:
@@ -1725,7 +1727,13 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         return s;
     }
 
-    private ValueChar convertToChar(TypeInfo targetType, int conversionMode, Object column) {
+    private ValueChar convertToChar(TypeInfo targetType, int conversionMode, Object column, CastDataProvider provider) {
+
+        //fetch the url to check if connection uses MYSQL or POSTGRESQL
+        String url = ((Session)provider).getDatabase().getDatabaseURL();
+        boolean isPostgreSQL = url.startsWith("jdbc:postgresql:") || url.startsWith("jdbc:vertica:");
+        boolean isMySQL = url.startsWith("jdbc:mysql:");
+
         switch (getValueType()) {
         case BLOB:
         case JAVA_OBJECT:
@@ -1736,13 +1744,19 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         if (conversionMode == CAST_TO && l > p) {
             l = p;
         }
-        while (l > 0 && s.charAt(l - 1) == ' ') {
-            l--;
+        if(isMySQL || isPostgreSQL) {
+            while (l > 0 && s.charAt(l - 1) == ' ') {
+                l--;
+            }
         }
         if (conversionMode == ASSIGN_TO && l > p) {
             throw getValueTooLongException(targetType, column);
         }
-        return ValueChar.get(s.substring(0, l));
+        if(isMySQL || isPostgreSQL) {
+            return ValueChar.get(s.substring(0, l));
+        }
+        //returning without trimming the right trailing spaces if its not MYSQL or PostGreQL
+        return  ValueChar.getWithoutRightTrim(s.substring(0,l));
     }
 
     /**

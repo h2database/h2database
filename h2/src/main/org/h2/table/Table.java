@@ -856,6 +856,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param row the row
      */
     public void validateConvertUpdateSequence(Session session, Row row) {
+        session.getDatabase();
         for (int i = 0; i < columns.length; i++) {
             Value value = row.getValue(i);
             Column column = columns[i];

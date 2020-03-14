@@ -355,6 +355,11 @@ public class Database implements DataHandler, CastDataProvider {
         return rowFactory;
     }
 
+    //getter method to fetch the database URL
+    public String getDatabaseURL(){
+        return databaseURL;
+    }
+
     public void setRowFactory(RowFactory rowFactory) {
         this.rowFactory = rowFactory;
     }

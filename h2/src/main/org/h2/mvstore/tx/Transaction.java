@@ -173,12 +173,12 @@ public class Transaction {
     /**
      * The current isolation level.
      */
-    IsolationLevel isolationLevel = IsolationLevel.READ_COMMITTED;
+    final IsolationLevel isolationLevel;
 
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
                 String name, long logId, int timeoutMillis, int ownerId,
-                TransactionStore.RollbackListener listener) {
+                IsolationLevel isolationLevel, TransactionStore.RollbackListener listener) {
         this.store = store;
         this.transactionId = transactionId;
         this.sequenceNum = sequenceNum;
@@ -186,6 +186,7 @@ public class Transaction {
         this.name = name;
         setTimeoutMillis(timeoutMillis);
         this.ownerId = ownerId;
+        this.isolationLevel = isolationLevel;
         this.listener = listener;
     }
 
@@ -296,16 +297,6 @@ public class Transaction {
      */
     public boolean hasStatementDependencies() {
         return !transactionMaps.isEmpty();
-    }
-
-    /**
-     * Sets the new isolation level. May be called only after creation of the
-     * transaction.
-     *
-     * @param isolationLevel the new isolation level
-     */
-    public void setIsolationLevel(IsolationLevel isolationLevel) {
-        this.isolationLevel = isolationLevel;
     }
 
     /**

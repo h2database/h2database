@@ -3,5 +3,5 @@
 -- Initial Developer: H2 Group
 --
 
-select dayofweek(date '2005-09-12');
->> 2
+SELECT DAYOFWEEK(DATE '2005-09-12') = EXTRACT(DAY_OF_WEEK FROM DATE '2005-09-12');
+>> TRUE

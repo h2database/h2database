@@ -30,7 +30,7 @@ public class ToDate {
         DeleteDbFiles.execute("~", "test", true);
 
         Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:h2:~/test");
+        Connection conn = DriverManager.getConnection("jdbc:h2:~/test;MODE=Oracle");
         Statement stat = conn.createStatement();
 
         stat.execute("create table ToDateTest(id int primary key, " +

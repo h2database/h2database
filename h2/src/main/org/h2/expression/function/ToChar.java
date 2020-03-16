@@ -35,7 +35,7 @@ public class ToChar {
     /**
      * The beginning of the Julian calendar.
      */
-    static final int JULIAN_EPOCH = -2_440_588;
+    public static final int JULIAN_EPOCH = -2_440_588;
 
     private static final int[] ROMAN_VALUES = { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9,
             5, 4, 1 };
@@ -46,22 +46,22 @@ public class ToChar {
     /**
      * The month field.
      */
-    static final int MONTHS = 0;
+    public static final int MONTHS = 0;
 
     /**
      * The month field (short form).
      */
-    static final int SHORT_MONTHS = 1;
+    public static final int SHORT_MONTHS = 1;
 
     /**
      * The weekday field.
      */
-    static final int WEEKDAYS = 2;
+    public static final int WEEKDAYS = 2;
 
     /**
      * The weekday field (short form).
      */
-    static final int SHORT_WEEKDAYS = 3;
+    public static final int SHORT_WEEKDAYS = 3;
 
     /**
      * The AM / PM field.
@@ -494,7 +494,7 @@ public class ToChar {
      * @param names the field
      * @return the names
      */
-    static String[] getDateNames(int names) {
+    public static String[] getDateNames(int names) {
         String[][] result = NAMES;
         if (result == null) {
             result = new String[5][];

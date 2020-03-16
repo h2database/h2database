@@ -3,6 +3,9 @@
 -- Initial Developer: H2 Group
 --
 
+SET MODE Oracle;
+> ok
+
 -- 01-Aug-03 + 3 months = 01-Nov-03
 SELECT ADD_MONTHS('2003-08-01', 3);
 >> 2003-11-01 00:00:00

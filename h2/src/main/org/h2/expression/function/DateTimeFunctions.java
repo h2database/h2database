@@ -658,31 +658,35 @@ public final class DateTimeFunctions {
         case DAY:
             timeNanos = 0L;
             break;
+        case ISO_WEEK:
+            dateValue = truncateToWeek(dateValue, 1);
+            timeNanos = 0L;
+            break;
         case WEEK:
-            long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(dateValue);
-            int dayOfWeek = DateTimeUtils.getDayOfWeekFromAbsolute(absoluteDay, 1);
-            if (dayOfWeek != 1) {
-                dateValue = DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay - dayOfWeek + 1);
-            }
+            dateValue = truncateToWeek(dateValue, getWeekFields().getFirstDayOfWeek().getValue());
             timeNanos = 0L;
             break;
-        case MONTH: {
-            long year = DateTimeUtils.yearFromDateValue(dateValue);
-            int month = DateTimeUtils.monthFromDateValue(dateValue);
-            dateValue = DateTimeUtils.dateValue(year, month, 1);
+        case ISO_WEEK_YEAR:
+            dateValue = truncateToWeekYear(dateValue, 1, 4);
             timeNanos = 0L;
             break;
-        }
-        case QUARTER: {
-            long year = DateTimeUtils.yearFromDateValue(dateValue);
-            int month = DateTimeUtils.monthFromDateValue(dateValue);
-            month = ((month - 1) / 3) * 3 + 1;
-            dateValue = DateTimeUtils.dateValue(year, month, 1);
-            timeNanos = 0L;
+        case WEEK_YEAR: {
+            WeekFields weekFields = getWeekFields();
+            dateValue = truncateToWeekYear(dateValue, weekFields.getFirstDayOfWeek().getValue(),
+                    weekFields.getMinimalDaysInFirstWeek());
             break;
         }
+        case MONTH:
+            dateValue = dateValue & (-1L << DateTimeUtils.SHIFT_MONTH) | 1L;
+            timeNanos = 0L;
+            break;
+        case QUARTER:
+            dateValue = DateTimeUtils.dateValue(DateTimeUtils.yearFromDateValue(dateValue),
+                    ((DateTimeUtils.monthFromDateValue(dateValue) - 1) / 3) * 3 + 1, 1);
+            timeNanos = 0L;
+            break;
         case YEAR:
-            dateValue = DateTimeUtils.dateValue(DateTimeUtils.yearFromDateValue(dateValue), 1, 1);
+            dateValue = dateValue & (-1L << DateTimeUtils.SHIFT_YEAR) | (1L << DateTimeUtils.SHIFT_MONTH | 1L);
             timeNanos = 0L;
             break;
         case DECADE: {
@@ -726,6 +730,31 @@ public final class DateTimeFunctions {
             result = result.convertTo(Value.TIMESTAMP_TZ, session);
         }
         return result;
+    }
+
+    private static long truncateToWeek(long dateValue, int firstDayOfWeek) {
+        long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(dateValue);
+        int dayOfWeek = DateTimeUtils.getDayOfWeekFromAbsolute(absoluteDay, firstDayOfWeek);
+        if (dayOfWeek != 1) {
+            dateValue = DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay - dayOfWeek + 1);
+        }
+        return dateValue;
+    }
+
+    private static long truncateToWeekYear(long dateValue, int firstDayOfWeek, int minimalDaysInFirstWeek) {
+        long abs = DateTimeUtils.absoluteDayFromDateValue(dateValue);
+        int year = DateTimeUtils.yearFromDateValue(dateValue);
+        long base = DateTimeUtils.getWeekYearAbsoluteStart(year, firstDayOfWeek, minimalDaysInFirstWeek);
+        if (abs < base) {
+            base = DateTimeUtils.getWeekYearAbsoluteStart(year - 1, firstDayOfWeek, minimalDaysInFirstWeek);
+        } else if (DateTimeUtils.monthFromDateValue(dateValue) == 12
+                && 24 + minimalDaysInFirstWeek < DateTimeUtils.dayFromDateValue(dateValue)) {
+            long next = DateTimeUtils.getWeekYearAbsoluteStart(year + 1, firstDayOfWeek, minimalDaysInFirstWeek);
+            if (abs >= next) {
+                base = next;
+            }
+        }
+        return DateTimeUtils.dateValueFromAbsoluteDay(base);
     }
 
     /**

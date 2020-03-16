@@ -61,12 +61,12 @@ public class DateTimeUtils {
     /**
      * The offset of year bits in date values.
      */
-    static final int SHIFT_YEAR = 9;
+    public static final int SHIFT_YEAR = 9;
 
     /**
      * The offset of month bits in date values.
      */
-    static final int SHIFT_MONTH = 5;
+    public static final int SHIFT_MONTH = 5;
 
     /**
      * Date value for 1970-01-01.

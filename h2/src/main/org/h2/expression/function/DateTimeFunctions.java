@@ -666,23 +666,17 @@ public final class DateTimeFunctions {
             dateValue = truncateToWeek(dateValue, getWeekFields().getFirstDayOfWeek().getValue());
             timeNanos = 0L;
             break;
-        case MONTH: {
-            long year = DateTimeUtils.yearFromDateValue(dateValue);
-            int month = DateTimeUtils.monthFromDateValue(dateValue);
-            dateValue = DateTimeUtils.dateValue(year, month, 1);
+        case MONTH:
+            dateValue = dateValue & (-1L << DateTimeUtils.SHIFT_MONTH) | 1L;
             timeNanos = 0L;
             break;
-        }
-        case QUARTER: {
-            long year = DateTimeUtils.yearFromDateValue(dateValue);
-            int month = DateTimeUtils.monthFromDateValue(dateValue);
-            month = ((month - 1) / 3) * 3 + 1;
-            dateValue = DateTimeUtils.dateValue(year, month, 1);
+        case QUARTER:
+            dateValue = DateTimeUtils.dateValue(DateTimeUtils.yearFromDateValue(dateValue),
+                    ((DateTimeUtils.monthFromDateValue(dateValue) - 1) / 3) * 3 + 1, 1);
             timeNanos = 0L;
             break;
-        }
         case YEAR:
-            dateValue = DateTimeUtils.dateValue(DateTimeUtils.yearFromDateValue(dateValue), 1, 1);
+            dateValue = dateValue & (-1L << DateTimeUtils.SHIFT_YEAR) | (1L << DateTimeUtils.SHIFT_MONTH | 1L);
             timeNanos = 0L;
             break;
         case DECADE: {

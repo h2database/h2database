@@ -1317,16 +1317,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
      * @return the result
      */
     protected Value getValueWithArgs(Session session, Expression[] args) {
-        Value[] values = new Value[args.length];
-        if (info.nullIfParameterIsNull) {
-            for (int i = 0; i < args.length; i++) {
-                Expression e = args[i];
-                Value v = e.getValue(session);
-                if (v == ValueNull.INSTANCE) {
-                    return ValueNull.INSTANCE;
-                }
-                values[i] = v;
-            }
+        Value[] values = getArgumentsValues(session, args);
+        if (values == null) {
+            return ValueNull.INSTANCE;
         }
         Value v0 = info.specialArguments ? null : getNullOrValue(session, args, values, 0);
         Value resultSimple = getSimpleValue(session, v0, args, values);
@@ -1827,6 +1820,31 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             throw DbException.throwInternalError("type=" + info.type);
         }
         return result;
+    }
+
+    /**
+     * Gets values of arguments and checks them for NULL values if function
+     * returns NULL on NULL argument.
+     *
+     * @param session
+     *            the session
+     * @param args
+     *            the arguments
+     * @return the values, or {@code null} if function should return NULL due to
+     *         NULL argument
+     */
+    protected final Value[] getArgumentsValues(Session session, Expression[] args) {
+        Value[] values = new Value[args.length];
+        if (info.nullIfParameterIsNull) {
+            for (int i = 0, l = args.length; i < l; i++) {
+                Value v = args[i].getValue(session);
+                if (v == ValueNull.INSTANCE) {
+                    return null;
+                }
+                values[i] = v;
+            }
+        }
+        return values;
     }
 
     private Value round(Value v0, Value v1) {
@@ -2690,18 +2708,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     @Override
     public Expression optimize(Session session) {
-        boolean allConst = info.deterministic;
-        for (int i = 0; i < args.length; i++) {
-            Expression e = args[i];
-            if (e == null) {
-                continue;
-            }
-            e = e.optimize(session);
-            args[i] = e;
-            if (!e.isConstant()) {
-                allConst = false;
-            }
-        }
+        boolean allConst = optimizeArguments(session);
         TypeInfo typeInfo;
         Expression p0 = args.length < 1 ? null : args[0];
         switch (info.type) {
@@ -3015,6 +3022,27 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             return ValueExpression.get(getValue(session));
         }
         return this;
+    }
+
+    /**
+     * Optimizes arguments.
+     *
+     * @param session
+     *            the session
+     * @return whether all arguments are constants and function is deterministic
+     */
+    protected final boolean optimizeArguments(Session session) {
+        boolean allConst = info.deterministic;
+        for (int i = 0, l = args.length; i < l; i++) {
+            Expression e = args[i];
+            if (e != null) {
+                args[i] = e = e.optimize(session);
+                if (!e.isConstant()) {
+                    allConst = false;
+                }
+            }
+        }
+        return allConst;
     }
 
     private static boolean canOptimizeCast(int src, int dst) {

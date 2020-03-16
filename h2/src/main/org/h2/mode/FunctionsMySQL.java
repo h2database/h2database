@@ -199,22 +199,11 @@ public class FunctionsMySQL extends FunctionsBase {
 
     @Override
     public Expression optimize(Session session) {
-        boolean allConst = info.deterministic;
-        for (int i = 0; i < args.length; i++) {
-            Expression e = args[i];
-            if (e == null) {
-                continue;
-            }
-            e = e.optimize(session);
-            args[i] = e;
-            if (!e.isConstant()) {
-                allConst = false;
-            }
-        }
+        boolean allConst = optimizeArguments(session);
+        type = TypeInfo.getTypeInfo(info.returnDataType);
         if (allConst) {
             return ValueExpression.get(getValue(session));
         }
-        type = TypeInfo.getTypeInfo(info.returnDataType);
         return this;
     }
 

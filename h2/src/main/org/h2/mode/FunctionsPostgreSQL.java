@@ -157,37 +157,19 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
 
     @Override
     public Expression optimize(Session session) {
-        boolean allConst = info.deterministic;
-        for (int i = 0; i < args.length; i++) {
-            Expression e = args[i];
-            if (e == null) {
-                continue;
-            }
-            e = e.optimize(session);
-            args[i] = e;
-            if (!e.isConstant()) {
-                allConst = false;
-            }
-        }
+        boolean allConst = optimizeArguments(session);
+        type = TypeInfo.getTypeInfo(info.returnDataType);
         if (allConst) {
             return ValueExpression.get(getValue(session));
         }
-        type = TypeInfo.getTypeInfo(info.returnDataType);
         return this;
     }
 
     @Override
     protected Value getValueWithArgs(Session session, Expression[] args) {
-        Value[] values = new Value[args.length];
-        if (info.nullIfParameterIsNull) {
-            for (int i = 0; i < args.length; i++) {
-                Expression e = args[i];
-                Value v = e.getValue(session);
-                if (v == ValueNull.INSTANCE) {
-                    return ValueNull.INSTANCE;
-                }
-                values[i] = v;
-            }
+        Value[] values = getArgumentsValues(session, args);
+        if (values == null) {
+            return ValueNull.INSTANCE;
         }
         Value v0 = getNullOrValue(session, args, values, 0);
         Value v1 = getNullOrValue(session, args, values, 1);

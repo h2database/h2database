@@ -126,8 +126,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
-            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, QUOTE_IDENT = 95,
-            TO_DATE = 96, TO_TIMESTAMP = 97, ADD_MONTHS = 98, TO_TIMESTAMP_TZ = 99;
+            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, QUOTE_IDENT = 95;
 
     public static final int CURRENT_DATE = 100, CURRENT_TIME = 101, LOCALTIME = 102,
             CURRENT_TIMESTAMP = 103, LOCALTIMESTAMP = 104,
@@ -350,10 +349,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("LOCALTIMESTAMP", LOCALTIMESTAMP, VAR_ARGS, Value.TIMESTAMP, false);
         addFunctionNotDeterministic("NOW", LOCALTIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
 
-        addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.TIMESTAMP);
-        addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
-        addFunction("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP);
-        addFunction("TO_TIMESTAMP_TZ", TO_TIMESTAMP_TZ, VAR_ARGS, Value.TIMESTAMP_TZ);
         addFunction("DATEADD", DATEADD, 3, Value.TIMESTAMP);
         addFunction("TIMESTAMPADD", DATEADD, 3, Value.TIMESTAMP);
         addFunction("DATEDIFF", DATEDIFF, 3, Value.BIGINT);
@@ -1526,18 +1521,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 result = ValueVarchar.get(v0.getString(), database);
             }
             break;
-        case TO_DATE:
-            result = ToDateParser.toDate(session, v0.getString(), v1 == null ? null : v1.getString());
-            break;
-        case TO_TIMESTAMP:
-            result = ToDateParser.toTimestamp(session, v0.getString(), v1 == null ? null : v1.getString());
-            break;
-        case ADD_MONTHS:
-            result = DateTimeFunctions.dateadd(session, DateTimeFunctions.MONTH, v1.getInt(), v0);
-            break;
-        case TO_TIMESTAMP_TZ:
-            result = ToDateParser.toTimestampTz(session, v0.getString(), v1 == null ? null : v1.getString());
-            break;
         case TRANSLATE: {
             String matching = v1.getString();
             String replacement = v2.getString();
@@ -2621,15 +2604,12 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case ROUND:
         case XMLTEXT:
         case TRUNCATE:
-        case TO_TIMESTAMP:
-        case TO_TIMESTAMP_TZ:
         case CURRVAL:
         case NEXTVAL:
             min = 1;
             max = 2;
             break;
         case TO_CHAR:
-        case TO_DATE:
         case ORA_HASH:
             min = 1;
             max = 3;

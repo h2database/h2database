@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: Daniel Gredler
  */
-package org.h2.expression.function;
+package org.h2.mode;
 
 import static java.lang.String.format;
 import java.util.ArrayList;
@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.h2.api.ErrorCode;
+import org.h2.expression.function.ToChar;
 import org.h2.message.DbException;
 import org.h2.util.TimeZoneProvider;
 

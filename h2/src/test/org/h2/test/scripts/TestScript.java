@@ -132,7 +132,6 @@ public class TestScript extends TestDb {
             testScript("testSimple.sql");
         }
         testScript("comments.sql");
-        testScript("compatibility.sql");
         testScript("dual.sql");
         testScript("indexes.sql");
         testScript("information_schema.sql");
@@ -140,13 +139,17 @@ public class TestScript extends TestDb {
         testScript("altertable-index-reuse.sql");
         testScript("altertable-fk.sql");
         testScript("default-and-on_update.sql");
+
+        for (String s : new String[] { "add_months", "compatibility" }) {
+            testScript("compatibility/" + s + ".sql");
+        }
+
         String decimal2;
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
             decimal2 = "decimal_decimal";
         } else {
             decimal2 = "decimal_numeric";
         }
-
         for (String s : new String[] { "array", "bigint", "binary", "blob",
                 "boolean", "char", "clob", "date", "decimal", decimal2, "double_precision", "enum",
                 "geometry", "identity", "int", "interval", "java_object", "json", "real", "row", "smallint",
@@ -206,7 +209,7 @@ public class TestScript extends TestDb {
                 "table", "transaction-id", "truncate-value", "unnest" }) {
             testScript("functions/system/" + s + ".sql");
         }
-        for (String s : new String[] { "add_months", "current_date", "current_timestamp",
+        for (String s : new String[] { "current_date", "current_timestamp",
                 "current-time", "dateadd", "datediff", "dayname",
                 "day-of-month", "day-of-week", "day-of-year", "extract",
                 "formatdatetime", "hour", "minute", "month", "monthname",

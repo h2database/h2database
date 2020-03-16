@@ -31,6 +31,7 @@ import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -1115,7 +1116,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
                 LocalDate local1 = LocalDate.parse(date1), local2 = LocalDate.parse(date2);
                 rs = stat.executeQuery(
                         "SELECT EXTRACT(DAY_OF_WEEK FROM C1), EXTRACT(WEEK FROM C1), EXTRACT(WEEK_YEAR FROM C1),"
-                                + " DATEDIFF(WEEK, C1, C2) FROM"
+                                + " DATEDIFF(WEEK, C1, C2), DATE_TRUNC(WEEK, C1) FROM"
                                 + " VALUES (DATE '" + date1 + "', DATE '" + date2 + "')");
                 rs.next();
                 assertEquals(local1.get(wf.dayOfWeek()), rs.getInt(1));
@@ -1123,6 +1124,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
                 assertEquals(w1, rs.getInt(2));
                 assertEquals(local1.get(wf.weekBasedYear()), rs.getInt(3));
                 assertEquals(w1 == local2.get(wf.weekOfWeekBasedYear()) ? 0 : 1, rs.getInt(4));
+                assertEquals(local1.minus(local1.get(wf.dayOfWeek()) - 1, ChronoUnit.DAYS),
+                        rs.getObject(5, LocalDate.class));
             }
         }
         conn.close();

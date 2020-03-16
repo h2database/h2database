@@ -658,12 +658,12 @@ public final class DateTimeFunctions {
         case DAY:
             timeNanos = 0L;
             break;
+        case ISO_WEEK:
+            dateValue = truncateToWeek(dateValue, 1);
+            timeNanos = 0L;
+            break;
         case WEEK:
-            long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(dateValue);
-            int dayOfWeek = DateTimeUtils.getDayOfWeekFromAbsolute(absoluteDay, 1);
-            if (dayOfWeek != 1) {
-                dateValue = DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay - dayOfWeek + 1);
-            }
+            dateValue = truncateToWeek(dateValue, getWeekFields().getFirstDayOfWeek().getValue());
             timeNanos = 0L;
             break;
         case MONTH: {
@@ -726,6 +726,15 @@ public final class DateTimeFunctions {
             result = result.convertTo(Value.TIMESTAMP_TZ, session);
         }
         return result;
+    }
+
+    private static long truncateToWeek(long dateValue, int firstDayOfWeek) {
+        long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(dateValue);
+        int dayOfWeek = DateTimeUtils.getDayOfWeekFromAbsolute(absoluteDay, firstDayOfWeek);
+        if (dayOfWeek != 1) {
+            dateValue = DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay - dayOfWeek + 1);
+        }
+        return dateValue;
     }
 
     /**

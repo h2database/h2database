@@ -369,7 +369,7 @@ public class TransactionStore {
      * @return the transaction
      */
     public Transaction begin(RollbackListener listener, int timeoutMillis, int ownerId,
-                             IsolationLevel isolationLevel) {
+            IsolationLevel isolationLevel) {
         Transaction transaction = registerTransaction(0, Transaction.STATUS_OPEN, null, 0,
                 timeoutMillis, ownerId, isolationLevel, listener);
         return transaction;

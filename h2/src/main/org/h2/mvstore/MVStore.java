@@ -2201,9 +2201,9 @@ public class MVStore implements AutoCloseable
     private int compactRewrite(Set<Integer> set) {
         assert storeLock.isHeldByCurrentThread();
         assert currentStoreVersion < 0; // we should be able to do tryCommit() -> store()
-        acceptChunkOccupancyChanges(getTimeSinceCreation(), currentVersion + 1);
+        acceptChunkOccupancyChanges(getTimeSinceCreation(), currentVersion);
         int rewrittenPageCount = rewriteChunks(set, false);
-        acceptChunkOccupancyChanges(getTimeSinceCreation(), currentVersion + 1);
+        acceptChunkOccupancyChanges(getTimeSinceCreation(), currentVersion);
         rewrittenPageCount += rewriteChunks(set, true);
         return rewrittenPageCount;
     }

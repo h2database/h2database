@@ -110,6 +110,7 @@ public class TestIndex extends TestDb {
 
         // This test uses own connection
         testEnumIndex();
+        testAddNullToPrimaryKey();
     }
 
     private void testOrderIndex() throws SQLException {
@@ -363,6 +364,12 @@ public class TestIndex extends TestDb {
         rs.next();
         assertEquals("Y", rs.getString("INDEX_NAME"));
         stat.execute("drop table test");
+    }
+
+    private void testAddNullToPrimaryKey() throws SQLException {
+        reconnect();
+        stat.execute("create table test(a int primary key)");
+        assertThrows(ErrorCode.NULL_NOT_ALLOWED, stat).execute("insert into test(a) values (null)");
     }
 
     private void testRandomized() throws SQLException {

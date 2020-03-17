@@ -47,6 +47,7 @@ public class TestViewAlterTable extends TestDb {
         testSubSelect();
         testForeignKey();
         testAlterTableDropColumnInViewWithDoubleQuotes();
+        testForeignKeyWithReferentialIntegrityConstraintViolation();
 
         conn.close();
         deleteDb(getTestName());
@@ -154,6 +155,15 @@ public class TestViewAlterTable extends TestDb {
         assertFalse(rs.next());
         stat.execute("drop table test2");
         checkViewRemainsValid();
+    }
+
+    private void testForeignKeyWithReferentialIntegrityConstraintViolation() throws SQLException {
+        stat.execute("create table testPrimary(a int primary key, b int)");
+        stat.execute("create table testForeign(x int primary key, y int, foreign key (y) references testPrimary(a))");
+        stat.execute("insert into testPrimary(a, b) values (1, 1), (2, 2)");
+
+        // should throw referential integrity constraint violation error
+        assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, stat).execute("insert into testForeign(x, y) values (1, 10)");
     }
 
     private void createTestData() throws SQLException {

@@ -1342,25 +1342,28 @@ public class Database implements DataHandler, CastDataProvider {
     public synchronized void removeSession(Session session) {
         if (session != null) {
             exclusiveSession.compareAndSet(session, null);
-            userSessions.remove(session);
-            if (session != systemSession && session != lobSession) {
+            if (userSessions.remove(session)) {
                 trace.info("disconnecting session #{0}", session.getId());
             }
         }
-        if (userSessions.isEmpty() &&
-                session != systemSession && session != lobSession) {
-            if (closeDelay == 0) {
-                close(false);
-            } else if (closeDelay < 0) {
-                return;
-            } else {
-                delayedCloser = new DelayedDatabaseCloser(this, closeDelay * 1000);
+        if (isUserSession(session)) {
+            if (userSessions.isEmpty()) {
+                if (closeDelay == 0) {
+                    close(false);
+                } else if (closeDelay < 0) {
+                    return;
+                } else {
+                    delayedCloser = new DelayedDatabaseCloser(this, closeDelay * 1000);
+                }
+            }
+            if (session != null) {
+                trace.info("disconnected session #{0}", session.getId());
             }
         }
-        if (session != systemSession &&
-                session != lobSession && session != null) {
-            trace.info("disconnected session #{0}", session.getId());
-        }
+    }
+
+    private boolean isUserSession(Session session) {
+        return session != systemSession && session != lobSession;
     }
 
     private synchronized void closeAllSessionsExcept(Session except) {
@@ -1497,7 +1500,7 @@ public class Database implements DataHandler, CastDataProvider {
             }
             tempFileDeleter.deleteAll();
             try {
-                closeOpenFilesAndUnlock(true);
+                closeOpenFilesAndUnlock(compactMode != CommandInterface.SHUTDOWN_IMMEDIATELY);
             } catch (DbException e) {
                 trace.error(e, "close");
             }
@@ -1584,11 +1587,12 @@ public class Database implements DataHandler, CastDataProvider {
             if (store != null) {
                 MVStore mvStore = store.getMvStore();
                 if (mvStore != null && !mvStore.isClosed()) {
-                    boolean compactFully =
+                    long allowedCompactionTime =
+                            compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY ? 0 :
                             compactMode == CommandInterface.SHUTDOWN_COMPACT ||
                             compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
-                            getSettings().defragAlways;
-                    store.close(compactFully ? -1 : dbSettings.maxCompactTime);
+                            dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
+                    store.close(allowedCompactionTime);
                 }
             }
             if (systemSession != null) {
@@ -1599,7 +1603,7 @@ public class Database implements DataHandler, CastDataProvider {
                 lobSession.close();
                 lobSession = null;
             }
-            closeFiles();
+            closeFiles(false);
             if (persistent && lock == null &&
                     fileLockMethod != FileLockMethod.NO &&
                     fileLockMethod != FileLockMethod.FS) {
@@ -1619,10 +1623,14 @@ public class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private synchronized void closeFiles() {
+    private synchronized void closeFiles(boolean immediately) {
         try {
             if (store != null) {
-                store.closeImmediately();
+                if (immediately) {
+                    store.closeImmediately();
+                } else {
+                    store.close(0);
+                }
             }
             if (pageStore != null) {
                 pageStore.close();
@@ -2694,7 +2702,8 @@ public class Database implements DataHandler, CastDataProvider {
         } catch (DbException e) {
             // ignore
         }
-        closeFiles();
+        closeFiles(true);
+        powerOffCount = 0;
     }
 
     @Override

@@ -477,7 +477,8 @@ public class PageStore implements CacheWriter {
             return;
         }
         if (SysProperties.MODIFY_ON_WRITE && readMode &&
-                compactMode == 0) {
+                compactMode == 0 ||
+                 compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY) {
             return;
         }
         openForWriting();

@@ -73,24 +73,18 @@ public class TransactionCommand extends Prepared {
             session.getUser().checkAdmin();
             session.setPreparedTransaction(transactionName, false);
             break;
-        case CommandInterface.SHUTDOWN_IMMEDIATELY:
-            session.getUser().checkAdmin();
-            session.getDatabase().shutdownImmediately();
-            break;
         case CommandInterface.SHUTDOWN:
         case CommandInterface.SHUTDOWN_COMPACT:
-        case CommandInterface.SHUTDOWN_DEFRAG: {
-            session.getUser().checkAdmin();
+        case CommandInterface.SHUTDOWN_DEFRAG:
             session.commit(false);
+        case CommandInterface.SHUTDOWN_IMMEDIATELY: {
+            session.getUser().checkAdmin();
             // throttle, to allow testing concurrent
             // execution of shutdown and query
             session.throttle();
             Database db = session.getDatabase();
             if (db.setExclusiveSession(session, true)) {
-                if (type == CommandInterface.SHUTDOWN_COMPACT ||
-                        type == CommandInterface.SHUTDOWN_DEFRAG) {
-                    db.setCompactMode(type);
-                }
+                db.setCompactMode(type);
                 // close the database, but don't update the persistent setting
                 db.setCloseDelay(0);
                 session.close();

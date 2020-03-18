@@ -72,43 +72,41 @@ public class TestAutoServer extends TestDb {
             url += ";AUTO_SERVER_PORT=11111";
         }
         String user = getUser(), password = getPassword();
-        Connection connServer = getConnection(url + ";OPEN_NEW=TRUE",
-                user, password);
-
-        int i = ITERATIONS;
-        for (; i > 0; i--) {
-            Thread.sleep(100);
-            SortedProperties prop = SortedProperties.loadProperties(
-                    getBaseDir() + "/" + getTestName() + ".lock.db");
-            String key = prop.getProperty("id");
-            String server = prop.getProperty("server");
-            if (server != null) {
-                String u2 = url.substring(url.indexOf(';'));
-                u2 = "jdbc:h2:tcp://" + server + "/" + key + u2;
-                Connection conn = DriverManager.getConnection(u2, user, password);
-                conn.close();
-                int gotPort = Integer.parseInt(server.substring(server.lastIndexOf(':') + 1));
-                if (port) {
-                    assertEquals(11111, gotPort);
+        try (Connection connServer = getConnection(url + ";OPEN_NEW=TRUE", user, password)) {
+            int i = ITERATIONS;
+            for (; i > 0; i--) {
+                Thread.sleep(100);
+                SortedProperties prop = SortedProperties.loadProperties(
+                        getBaseDir() + "/" + getTestName() + ".lock.db");
+                String key = prop.getProperty("id");
+                String server = prop.getProperty("server");
+                if (server != null) {
+                    String u2 = url.substring(url.indexOf(';'));
+                    u2 = "jdbc:h2:tcp://" + server + "/" + key + u2;
+                    Connection conn = DriverManager.getConnection(u2, user, password);
+                    conn.close();
+                    int gotPort = Integer.parseInt(server.substring(server.lastIndexOf(':') + 1));
+                    if (port) {
+                        assertEquals(11111, gotPort);
+                    }
+                    break;
                 }
-                break;
+            }
+            if (i <= 0) {
+                fail();
+            }
+            try (Connection conn = getConnection(url + ";OPEN_NEW=TRUE")) {
+                Statement stat = conn.createStatement();
+                if (config.big) {
+                    try {
+                        stat.execute("SHUTDOWN");
+                    } catch (SQLException e) {
+                        assertKnownException(e);
+                        // the connection is closed
+                    }
+                }
             }
         }
-        if (i <= 0) {
-            fail();
-        }
-        Connection conn = getConnection(url + ";OPEN_NEW=TRUE");
-        Statement stat = conn.createStatement();
-        if (config.big) {
-            try {
-                stat.execute("SHUTDOWN");
-            } catch (SQLException e) {
-                assertKnownException(e);
-                // the connection is closed
-            }
-        }
-        conn.close();
-        connServer.close();
         deleteDb("autoServer");
     }
 
@@ -156,7 +154,15 @@ public class TestAutoServer extends TestDb {
             }
             conn.close();
         } finally {
-            connServer.createStatement().execute("SHUTDOWN");
+            try {
+                connServer.createStatement().execute("SHUTDOWN");
+                if (config.big) {
+                    fail("server should be dowmn already");
+                }
+            } catch (SQLException e) {
+                assertTrue(config.big);
+                assertKnownException(e);
+            }
             try {
                 connServer.close();
             } catch (SQLException ignore) {}

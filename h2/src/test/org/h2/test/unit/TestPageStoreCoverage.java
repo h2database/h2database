@@ -101,55 +101,54 @@ public class TestPageStoreCoverage extends TestDb {
     }
 
     private void testRecoverTemp() throws SQLException {
-        Connection conn;
-        conn = getConnection(URL);
-        Statement stat = conn.createStatement();
-        stat.execute("create cached temporary table test(id identity, name varchar)");
-        stat.execute("create index idx_test_name on test(name)");
-        stat.execute("create index idx_test_name2 on test(name, id)");
-        stat.execute("create table test2(id identity, name varchar)");
-        stat.execute("create index idx_test2_name on test2(name desc)");
-        stat.execute("create index idx_test2_name2 on test2(name, id)");
-        stat.execute("insert into test2 " +
-                "select null, space(10) from system_range(1, 10)");
-        stat.execute("create table test3(id identity, name varchar)");
-        stat.execute("checkpoint");
-        conn.setAutoCommit(false);
-        stat.execute("create table test4(id identity, name varchar)");
-        stat.execute("create index idx_test4_name2 on test(name, id)");
-        stat.execute("insert into test " +
-                "select null, space(10) from system_range(1, 10)");
-        stat.execute("insert into test3 " +
-                "select null, space(10) from system_range(1, 10)");
-        stat.execute("insert into test4 " +
-                "select null, space(10) from system_range(1, 10)");
-        stat.execute("truncate table test2");
-        stat.execute("drop index idx_test_name");
-        stat.execute("drop index idx_test2_name");
-        stat.execute("drop table test2");
-        stat.execute("insert into test " +
-                "select null, space(10) from system_range(1, 10)");
-        stat.execute("shutdown immediately");
-        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
-        conn = getConnection(URL);
-        stat = conn.createStatement();
-        stat.execute("drop all objects");
-        // re-allocate index root pages
-        for (int i = 0; i < 10; i++) {
-            stat.execute("create table test" + i + "(id identity, name varchar)");
+        try (Connection conn = getConnection(URL)) {
+            Statement stat = conn.createStatement();
+            stat.execute("create cached temporary table test(id identity, name varchar)");
+            stat.execute("create index idx_test_name on test(name)");
+            stat.execute("create index idx_test_name2 on test(name, id)");
+            stat.execute("create table test2(id identity, name varchar)");
+            stat.execute("create index idx_test2_name on test2(name desc)");
+            stat.execute("create index idx_test2_name2 on test2(name, id)");
+            stat.execute("insert into test2 " +
+                    "select null, space(10) from system_range(1, 10)");
+            stat.execute("create table test3(id identity, name varchar)");
+            stat.execute("checkpoint");
+            conn.setAutoCommit(false);
+            stat.execute("create table test4(id identity, name varchar)");
+            stat.execute("create index idx_test4_name2 on test(name, id)");
+            stat.execute("insert into test " +
+                    "select null, space(10) from system_range(1, 10)");
+            stat.execute("insert into test3 " +
+                    "select null, space(10) from system_range(1, 10)");
+            stat.execute("insert into test4 " +
+                    "select null, space(10) from system_range(1, 10)");
+            stat.execute("truncate table test2");
+            stat.execute("drop index idx_test_name");
+            stat.execute("drop index idx_test2_name");
+            stat.execute("drop table test2");
+            stat.execute("insert into test " +
+                    "select null, space(10) from system_range(1, 10)");
+            stat.execute("shutdown immediately");
         }
-        stat.execute("checkpoint");
-        for (int i = 0; i < 10; i++) {
-            stat.execute("drop table test" + i);
+        try (Connection conn = getConnection(URL)) {
+            Statement stat = conn.createStatement();
+            stat.execute("drop all objects");
+            // re-allocate index root pages
+            for (int i = 0; i < 10; i++) {
+                stat.execute("create table test" + i + "(id identity, name varchar)");
+            }
+            stat.execute("checkpoint");
+            for (int i = 0; i < 10; i++) {
+                stat.execute("drop table test" + i);
+            }
+            for (int i = 0; i < 10; i++) {
+                stat.execute("create table test" + i + "(id identity, name varchar)");
+            }
+            stat.execute("shutdown immediately");
         }
-        for (int i = 0; i < 10; i++) {
-            stat.execute("create table test" + i + "(id identity, name varchar)");
+        try (Connection conn = getConnection(URL)) {
+            conn.createStatement().execute("drop all objects");
         }
-        stat.execute("shutdown immediately");
-        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
-        conn = getConnection(URL);
-        conn.createStatement().execute("drop all objects");
-        conn.close();
     }
 
     private void testLongTransaction() throws SQLException {

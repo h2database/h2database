@@ -39,26 +39,26 @@ public class TestEncryptedDb extends TestDb {
     @Override
     public void test() throws SQLException {
         deleteDb("encrypted");
-        Connection conn = getConnection("encrypted;CIPHER=AES", "sa", "123 123");
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ID INT)");
-        stat.execute("CHECKPOINT");
-        stat.execute("SET WRITE_DELAY 0");
-        stat.execute("INSERT INTO TEST VALUES(1)");
-        stat.execute("SHUTDOWN IMMEDIATELY");
-        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
+        try (Connection conn = getConnection("encrypted;CIPHER=AES", "sa", "123 123")) {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE TEST(ID INT)");
+            stat.execute("CHECKPOINT");
+            stat.execute("SET WRITE_DELAY 0");
+            stat.execute("INSERT INTO TEST VALUES(1)");
+            stat.execute("SHUTDOWN IMMEDIATELY");
+        }
 
         assertThrows(ErrorCode.FILE_ENCRYPTION_ERROR_1, this).
                 getConnection("encrypted;CIPHER=AES", "sa", "1234 1234");
 
-        conn = getConnection("encrypted;CIPHER=AES", "sa", "123 123");
-        stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
-        assertTrue(rs.next());
-        assertEquals(1, rs.getInt(1));
-        assertFalse(rs.next());
-
-        conn.close();
+        try (Connection conn = getConnection("encrypted;CIPHER=AES", "sa", "123 123")) {
+            Statement stat = conn.createStatement();
+            ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1));
+            assertFalse(rs.next());
+        }
+//        conn.close();
         deleteDb("encrypted");
     }
 

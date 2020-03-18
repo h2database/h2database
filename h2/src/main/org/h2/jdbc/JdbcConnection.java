@@ -396,9 +396,9 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                                 try {
                                     rollbackInternal();
                                 } catch (DbException e) {
-                                    // ignore if the connection is broken
-                                    // right now
-                                    if (e.getErrorCode() != ErrorCode.CONNECTION_BROKEN_1) {
+                                    // ignore if the connection is broken or database shut down
+                                    if (e.getErrorCode() != ErrorCode.CONNECTION_BROKEN_1 &&
+                                            e.getErrorCode() != ErrorCode.DATABASE_IS_CLOSED) {
                                         throw e;
                                     }
                                 }

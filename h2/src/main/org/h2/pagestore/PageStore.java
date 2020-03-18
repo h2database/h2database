@@ -476,8 +476,8 @@ public class PageStore implements CacheWriter {
         if (!database.getSettings().pageStoreTrim) {
             return;
         }
-        if (SysProperties.MODIFY_ON_WRITE && readMode &&
-                compactMode == 0) {
+        if (SysProperties.MODIFY_ON_WRITE && readMode && compactMode == 0 ||
+                compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY) {
             return;
         }
         openForWriting();

@@ -119,31 +119,28 @@ public class TestDatabaseEventListener extends TestDb {
         Properties p = new Properties();
         p.setProperty("user", user);
         p.setProperty("password", password);
-        Connection conn;
         Statement stat;
-        conn = DriverManager.getConnection(url, p);
-        stat = conn.createStatement();
-        // the old.id index head is at position 0
-        stat.execute("create table old(id identity) as select 1");
-        // the test.id index head is at position 1
-        stat.execute("create table test(id identity) as select 1");
-        conn.close();
-        conn = DriverManager.getConnection(url, p);
-        stat = conn.createStatement();
-        // free up space at position 0
-        stat.execute("drop table old");
-        stat.execute("insert into test values(2)");
-        stat.execute("checkpoint sync");
-        stat.execute("shutdown immediately");
-        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
+        try (Connection conn = DriverManager.getConnection(url, p)) {
+            stat = conn.createStatement();
+            // the old.id index head is at position 0
+            stat.execute("create table old(id identity) as select 1");
+            // the test.id index head is at position 1
+            stat.execute("create table test(id identity) as select 1");
+        }
+        try (Connection conn = DriverManager.getConnection(url, p)) {
+            stat = conn.createStatement();
+            // free up space at position 0
+            stat.execute("drop table old");
+            stat.execute("insert into test values(2)");
+            stat.execute("checkpoint sync");
+            stat.execute("shutdown immediately");
+        }
         // now the index should be re-built
-        conn = DriverManager.getConnection(url, p);
-        conn.close();
+        try (Connection conn = DriverManager.getConnection(url, p)) {/**/}
         calledCreateIndex = false;
         p.put("DATABASE_EVENT_LISTENER",
                 MyDatabaseEventListener.class.getName());
-        conn = org.h2.Driver.load().connect(url, p);
-        conn.close();
+        try (Connection conn = org.h2.Driver.load().connect(url, p)) {/**/}
         assertFalse(calledCreateIndex);
     }
 

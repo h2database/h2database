@@ -365,18 +365,17 @@ public class TestPageStore extends TestDb {
 
     private void testCloseTempTable() throws SQLException {
         deleteDb("pageStoreCloseTempTable");
-        Connection conn;
         String url = "pageStoreCloseTempTable;CACHE_SIZE=0";
-        conn = getConnection(url);
-        Statement stat = conn.createStatement();
-        stat.execute("create local temporary table test(id int)");
-        conn.rollback();
-        Connection conn2 = getConnection(url);
-        Statement stat2 = conn2.createStatement();
-        stat2.execute("create table test2 as select x from system_range(1, 5000)");
-        stat2.execute("shutdown immediately");
-        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
-        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn2).close();
+        try (Connection conn = getConnection(url)) {
+            Statement stat = conn.createStatement();
+            stat.execute("create local temporary table test(id int)");
+            conn.rollback();
+            try (Connection conn2 = getConnection(url)) {
+                Statement stat2 = conn2.createStatement();
+                stat2.execute("create table test2 as select x from system_range(1, 5000)");
+                stat2.execute("shutdown immediately");
+            }
+        }
     }
 
     private void testDuplicateKey() throws SQLException {
@@ -774,16 +773,15 @@ public class TestPageStore extends TestDb {
 
     private void testCreateIndexLater() throws SQLException {
         deleteDb("pageStoreCreateIndexLater");
-        Connection conn = getConnection("pageStoreCreateIndexLater");
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(NAME VARCHAR) AS SELECT 1");
-        stat.execute("CREATE INDEX IDX_N ON TEST(NAME)");
-        stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(20, 100)");
-        stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1000, 1100)");
-        stat.execute("SHUTDOWN IMMEDIATELY");
-        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
-        conn = getConnection("pageStoreCreateIndexLater");
-        conn.close();
+        try (Connection conn = getConnection("pageStoreCreateIndexLater")) {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE TEST(NAME VARCHAR) AS SELECT 1");
+            stat.execute("CREATE INDEX IDX_N ON TEST(NAME)");
+            stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(20, 100)");
+            stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1000, 1100)");
+            stat.execute("SHUTDOWN IMMEDIATELY");
+        }        
+        try (Connection conn = getConnection("pageStoreCreateIndexLater")) {/**/}
     }
 
     private void testFuzzOperations() throws Exception {

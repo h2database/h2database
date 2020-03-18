@@ -72,7 +72,7 @@ public class TestAutoServer extends TestDb {
             url += ";AUTO_SERVER_PORT=11111";
         }
         String user = getUser(), password = getPassword();
-        Connection connServer = getConnection(url + ";OPEN_NEW=TRUE", user, password);
+        try (Connection connServer = getConnection(url + ";OPEN_NEW=TRUE", user, password)) {
             int i = ITERATIONS;
             for (; i > 0; i--) {
                 Thread.sleep(100);
@@ -106,7 +106,7 @@ public class TestAutoServer extends TestDb {
                     }
                 }
             }
-        connServer.close();
+        }
         deleteDb("autoServer");
     }
 

@@ -156,7 +156,15 @@ public class TestAutoServer extends TestDb {
             }
             conn.close();
         } finally {
-            connServer.createStatement().execute("SHUTDOWN");
+            try {
+                connServer.createStatement().execute("SHUTDOWN");
+                if (config.big) {
+                    fail("server should be dowmn already");
+                }
+            } catch (SQLException e) {
+                assertTrue(config.big);
+                assertKnownException(e);
+            }
             try {
                 connServer.close();
             } catch (SQLException ignore) {}

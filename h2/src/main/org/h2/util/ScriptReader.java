@@ -168,6 +168,7 @@ public class ScriptReader implements Closeable {
                 if (c == '*') {
                     // block comment
                     startRemark(true);
+                    int level = 1;
                     while (true) {
                         c = read();
                         if (c < 0) {
@@ -180,8 +181,19 @@ public class ScriptReader implements Closeable {
                                 break;
                             }
                             if (c == '/') {
-                                endRemark();
+                                if (--level == 0) {
+                                    endRemark();
+                                    break;
+                                }
+                            }
+                        } else if (c == '/') {
+                            c = read();
+                            if (c < 0) {
+                                clearRemark();
                                 break;
+                            }
+                            if (c == '*') {
+                                level++;
                             }
                         }
                     }

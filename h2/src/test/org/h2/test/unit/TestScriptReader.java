@@ -126,10 +126,17 @@ public class TestScriptReader extends TestBase {
                     buff.append('*');
                     String[] ch = { ";", "-", "//", "/* ", "--", "\n", "\r", "a", "$" };
                     int l = random.nextInt(4);
+                    int comments = 0;
                     for (int j = 0; j < l; j++) {
-                        buff.append(ch[random.nextInt(ch.length)]);
+                        String s = ch[random.nextInt(ch.length)];
+                        buff.append(s);
+                        if (s.equals("/* ")) {
+                            comments++;
+                        }
                     }
-                    buff.append("*/");
+                    while (comments-- >= 0) {
+                        buff.append("*/");
+                    }
                 }
                 break;
             }
@@ -188,10 +195,48 @@ public class TestScriptReader extends TestBase {
         assertEquals(null, source.readStatement());
         source.close();
 
+        s = "//";
+        source = new ScriptReader(new StringReader(s));
+        assertEquals("//", source.readStatement());
+        assertTrue(source.isInsideRemark());
+        assertFalse(source.isBlockRemark());
+        source.close();
+
         // check handling of unclosed block comments
         s = "/*xxx";
         source = new ScriptReader(new StringReader(s));
         assertEquals("/*xxx", source.readStatement());
+        assertTrue(source.isBlockRemark());
+        source.close();
+
+        s = "/*xxx*";
+        source = new ScriptReader(new StringReader(s));
+        assertEquals("/*xxx*", source.readStatement());
+        assertTrue(source.isBlockRemark());
+        source.close();
+
+        s = "/*xxx* ";
+        source = new ScriptReader(new StringReader(s));
+        assertEquals("/*xxx* ", source.readStatement());
+        assertTrue(source.isBlockRemark());
+        source.close();
+
+        s = "/*xxx/";
+        source = new ScriptReader(new StringReader(s));
+        assertEquals("/*xxx/", source.readStatement());
+        assertTrue(source.isBlockRemark());
+        source.close();
+
+        // nested comments
+        s = "/*/**/SCRIPT;*/";
+        source = new ScriptReader(new StringReader(s));
+        assertEquals("/*/**/SCRIPT;*/", source.readStatement());
+        assertTrue(source.isBlockRemark());
+        source.close();
+
+        s = "/* /* */ SCRIPT; */";
+        source = new ScriptReader(new StringReader(s));
+        assertEquals("/* /* */ SCRIPT; */", source.readStatement());
         assertTrue(source.isBlockRemark());
         source.close();
     }

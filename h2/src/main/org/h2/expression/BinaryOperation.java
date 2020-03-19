@@ -10,8 +10,6 @@ import org.h2.expression.IntervalOperation.IntervalOpType;
 import org.h2.expression.function.DateTimeFunctions;
 import org.h2.expression.function.Function;
 import org.h2.message.DbException;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -22,7 +20,7 @@ import org.h2.value.ValueNumeric;
 /**
  * A mathematical expression, or string concatenation.
  */
-public class BinaryOperation extends Expression {
+public class BinaryOperation extends Operation2 {
 
     public enum OpType {
         /**
@@ -52,15 +50,12 @@ public class BinaryOperation extends Expression {
     }
 
     private OpType opType;
-    private Expression left, right;
-    private TypeInfo type;
     private TypeInfo forcedType;
     private boolean convertRight = true;
 
     public BinaryOperation(OpType opType, Expression left, Expression right) {
+        super(left, right);
         this.opType = opType;
-        this.left = left;
-        this.right = right;
     }
 
     /**
@@ -137,12 +132,6 @@ public class BinaryOperation extends Expression {
         default:
             throw DbException.throwInternalError("type=" + opType);
         }
-    }
-
-    @Override
-    public void mapColumns(ColumnResolver resolver, int level, int state) {
-        left.mapColumns(resolver, level, state);
-        right.mapColumns(resolver, level, state);
     }
 
     @Override
@@ -428,50 +417,6 @@ public class BinaryOperation extends Expression {
         Expression temp = left;
         left = right;
         right = temp;
-    }
-
-    @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        left.setEvaluatable(tableFilter, b);
-        right.setEvaluatable(tableFilter, b);
-    }
-
-    @Override
-    public TypeInfo getType() {
-        return type;
-    }
-
-    @Override
-    public void updateAggregate(Session session, int stage) {
-        left.updateAggregate(session, stage);
-        right.updateAggregate(session, stage);
-    }
-
-    @Override
-    public boolean isEverything(ExpressionVisitor visitor) {
-        return left.isEverything(visitor) && right.isEverything(visitor);
-    }
-
-    @Override
-    public int getCost() {
-        return left.getCost() + right.getCost() + 1;
-    }
-
-    @Override
-    public int getSubexpressionCount() {
-        return 2;
-    }
-
-    @Override
-    public Expression getSubexpression(int index) {
-        switch (index) {
-        case 0:
-            return left;
-        case 1:
-            return right;
-        default:
-            throw new IndexOutOfBoundsException();
-        }
     }
 
     /**

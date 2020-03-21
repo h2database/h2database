@@ -647,11 +647,7 @@ public class Transfer {
         }
         case Value.GEOMETRY:
             writeInt(GEOMETRY);
-            if (version >= Constants.TCP_PROTOCOL_VERSION_14) {
-                writeBytes(v.getBytesNoCopy());
-            } else {
-                writeString(v.getString());
-            }
+            writeBytes(v.getBytesNoCopy());
             break;
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
@@ -845,10 +841,7 @@ public class Transfer {
             return ValueResultSet.get(rs);
         }
         case GEOMETRY:
-            if (version >= Constants.TCP_PROTOCOL_VERSION_14) {
-                return ValueGeometry.get(readBytes());
-            }
-            return ValueGeometry.get(readString());
+            return ValueGeometry.get(readBytes());
         case INTERVAL: {
             int ordinal = readByte();
             boolean negative = ordinal < 0;

@@ -154,10 +154,8 @@ public class TcpServerThread implements Runnable {
                 transfer.writeInt(SessionRemote.STATUS_OK);
                 transfer.writeInt(clientVersion);
                 transfer.flush();
-                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_13) {
-                    if (ci.getFilePasswordHash() != null) {
-                        ci.setFileEncryptionKey(transfer.readBytes());
-                    }
+                if (ci.getFilePasswordHash() != null) {
+                    ci.setFileEncryptionKey(transfer.readBytes());
                 }
                 ci.setNetworkConnectionInfo(new NetworkConnectionInfo(
                         NetUtils.ipToShortForm(new StringBuilder(server.getSSL() ? "ssl://" : "tcp://"),

@@ -65,13 +65,72 @@ public class Transfer {
     private static final int UUID = 20;
     private static final int CHAR = 21;
     private static final int GEOMETRY = 22;
+    // 1.4.192
     private static final int TIMESTAMP_TZ = 24;
+    // 1.4.195
     private static final int ENUM = 25;
+    // 1.4.198
     private static final int INTERVAL = 26;
     private static final int ROW = 27;
+    // 1.4.200
     private static final int JSON = 28;
     private static final int TIME_TZ = 29;
+    // 201
     private static final int BINARY = 30;
+
+    private static final int[] VALUE_TO_TI = new int[Value.TYPE_COUNT + 1];
+    private static final int[] TI_TO_VALUE = new int[44];
+
+    static {
+        addType(-1, Value.UNKNOWN);
+        addType(NULL, Value.NULL);
+        addType(BOOLEAN, Value.BOOLEAN);
+        addType(TINYINT, Value.TINYINT);
+        addType(SMALLINT, Value.SMALLINT);
+        addType(INTEGER, Value.INTEGER);
+        addType(BIGINT, Value.BIGINT);
+        addType(NUMERIC, Value.NUMERIC);
+        addType(DOUBLE, Value.DOUBLE);
+        addType(REAL, Value.REAL);
+        addType(TIME, Value.TIME);
+        addType(DATE, Value.DATE);
+        addType(TIMESTAMP, Value.TIMESTAMP);
+        addType(VARBINARY, Value.VARBINARY);
+        addType(VARCHAR, Value.VARCHAR);
+        addType(VARCHAR_IGNORECASE, Value.VARCHAR_IGNORECASE);
+        addType(BLOB, Value.BLOB);
+        addType(CLOB, Value.CLOB);
+        addType(ARRAY, Value.ARRAY);
+        addType(RESULT_SET, Value.RESULT_SET);
+        addType(JAVA_OBJECT, Value.JAVA_OBJECT);
+        addType(UUID, Value.UUID);
+        addType(CHAR, Value.CHAR);
+        addType(GEOMETRY, Value.GEOMETRY);
+        addType(TIMESTAMP_TZ, Value.TIMESTAMP_TZ);
+        addType(ENUM, Value.ENUM);
+        addType(26, Value.INTERVAL_YEAR);
+        addType(27, Value.INTERVAL_MONTH);
+        addType(28, Value.INTERVAL_DAY);
+        addType(29, Value.INTERVAL_HOUR);
+        addType(30, Value.INTERVAL_MINUTE);
+        addType(31, Value.INTERVAL_SECOND);
+        addType(32, Value.INTERVAL_YEAR_TO_MONTH);
+        addType(33, Value.INTERVAL_DAY_TO_HOUR);
+        addType(34, Value.INTERVAL_DAY_TO_MINUTE);
+        addType(35, Value.INTERVAL_DAY_TO_SECOND);
+        addType(36, Value.INTERVAL_HOUR_TO_MINUTE);
+        addType(37, Value.INTERVAL_HOUR_TO_SECOND);
+        addType(38, Value.INTERVAL_MINUTE_TO_SECOND);
+        addType(39, Value.ROW);
+        addType(40, Value.JSON);
+        addType(41, Value.TIME_TZ);
+        addType(42, Value.BINARY);
+    }
+
+    private static void addType(int typeInformationType, int valueType) {
+        VALUE_TO_TI[valueType + 1] = typeInformationType;
+        TI_TO_VALUE[typeInformationType + 1] = valueType;
+    }
 
     private Socket socket;
     private DataInputStream in;
@@ -351,7 +410,7 @@ public class Transfer {
      * @return itself
      */
     public Transfer writeTypeInfo(TypeInfo type) throws IOException {
-        return writeInt(type.getValueType()).writeLong(type.getPrecision()).writeInt(type.getScale());
+        return writeInt(VALUE_TO_TI[type.getValueType() + 1]).writeLong(type.getPrecision()).writeInt(type.getScale());
     }
 
     /**
@@ -360,7 +419,7 @@ public class Transfer {
      * @return the type information
      */
     public TypeInfo readTypeInfo() throws IOException {
-        return TypeInfo.getTypeInfo(readInt(), readLong(), readInt(), null);
+        return TypeInfo.getTypeInfo(TI_TO_VALUE[readInt() + 1], readLong(), readInt(), null);
     }
 
     /**

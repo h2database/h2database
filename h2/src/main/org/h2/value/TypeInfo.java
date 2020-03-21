@@ -445,6 +445,27 @@ public class TypeInfo {
     }
 
     /**
+     * Get the higher data type of two data types. If values need to be
+     * converted to match the other operands data type, the value with the lower
+     * order is converted to the value with the higher order.
+     *
+     * @param type1
+     *            the first data type
+     * @param type2
+     *            the second data type
+     * @return the higher data type of the two
+     */
+    public static TypeInfo getHigherType(TypeInfo type1, TypeInfo type2) {
+        int t1 = type1.getValueType(), t2 = type2.getValueType();
+        int dataType = Value.getHigherOrder(t1, t2);
+        long precision = Math.max(type1.getPrecision(), type2.getPrecision());
+        int scale = Math.max(type1.getScale(), type2.getScale());
+        ExtTypeInfo ext1 = type1.getExtTypeInfo();
+        ExtTypeInfo ext = dataType == t1 && ext1 != null ? ext1 : dataType == t2 ? type2.getExtTypeInfo() : null;
+        return TypeInfo.getTypeInfo(dataType, precision, scale, ext);
+    }
+
+    /**
      * Creates new instance of data type with parameters.
      *
      * @param valueType

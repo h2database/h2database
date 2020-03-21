@@ -2755,7 +2755,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     TypeInfo type = e.getType();
                     int valueType = type.getValueType();
                     if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
-                        typeInfo = Value.getHigherType(typeInfo, type);
+                        typeInfo = TypeInfo.getHigherType(typeInfo, type);
                     }
                 }
             }
@@ -2777,7 +2777,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     TypeInfo type = then.getType();
                     int valueType = type.getValueType();
                     if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
-                        typeInfo = Value.getHigherType(typeInfo, type);
+                        typeInfo = TypeInfo.getHigherType(typeInfo, type);
                     }
                 }
             }
@@ -2787,7 +2787,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     TypeInfo type = elsePart.getType();
                     int valueType = type.getValueType();
                     if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
-                        typeInfo = Value.getHigherType(typeInfo, type);
+                        typeInfo = TypeInfo.getHigherType(typeInfo, type);
                     }
                 }
             }
@@ -2797,7 +2797,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case CASEWHEN:
-            typeInfo = Value.getHigherType(args[1].getType(), args[2].getType());
+            typeInfo = TypeInfo.getHigherType(args[1].getType(), args[2].getType());
             break;
         case NVL2: {
             TypeInfo t1 = args[1].getType(), t2 = args[2].getType();
@@ -2809,7 +2809,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 typeInfo = TypeInfo.getTypeInfo(t1.getValueType(), -1, 0, null);
                 break;
             default:
-                typeInfo = Value.getHigherType(t1, t2);
+                typeInfo = TypeInfo.getHigherType(t1, t2);
                 break;
             }
             break;

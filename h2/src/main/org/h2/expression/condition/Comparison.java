@@ -207,7 +207,7 @@ public class Comparison extends Condition {
                 TypeInfo colType = left.getType(), constType = r.getType();
                 int constValueType = constType.getValueType();
                 if (constValueType != colType.getValueType()) {
-                    TypeInfo resType = Value.getHigherType(colType, constType);
+                    TypeInfo resType = TypeInfo.getHigherType(colType, constType);
                     // If not, the column values will need to be promoted
                     // to constant type, but vise versa, then let's do this here
                     // once.

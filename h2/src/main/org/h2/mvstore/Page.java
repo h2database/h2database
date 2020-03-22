@@ -787,7 +787,7 @@ public abstract class Page<K,V> implements Cloneable
     /**
      * Unlink the children recursively after all data is written.
      */
-    abstract void writeEnd();
+    abstract void releaseSavedPages();
 
     public abstract int getRawChildPageCount();
 
@@ -999,7 +999,7 @@ public abstract class Page<K,V> implements Cloneable
          */
         void clearPageReference() {
             if (page != null) {
-                page.writeEnd();
+                page.releaseSavedPages();
                 assert page.isSaved() || !page.isComplete();
                 if (page.isSaved()) {
                     assert pos == page.getPos();
@@ -1300,7 +1300,7 @@ public abstract class Page<K,V> implements Cloneable
         }
 
         @Override
-        void writeEnd() {
+        void releaseSavedPages() {
             int len = getRawChildPageCount();
             for (int i = 0; i < len; i++) {
                 children[i].clearPageReference();
@@ -1567,7 +1567,7 @@ public abstract class Page<K,V> implements Cloneable
         }
 
         @Override
-        void writeEnd() {}
+        void releaseSavedPages() {}
 
         @Override
         public int getRawChildPageCount() {

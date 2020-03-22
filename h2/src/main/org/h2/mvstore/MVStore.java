@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -249,7 +250,7 @@ public class MVStore implements AutoCloseable
 
     private final HashMap<String, Object> storeHeader = new HashMap<>();
 
-    private WriteBuffer writeBuffer;
+    private Queue<WriteBuffer> writeBufferPool = new ArrayBlockingQueue<>(1);
 
     private final AtomicInteger lastMapId = new AtomicInteger();
 
@@ -1580,9 +1581,9 @@ public class MVStore implements AutoCloseable
             shrinkFileIfPossible(1);
         }
         for (Page<?,?> p : changed) {
-            p.writeEnd();
+            p.releaseSavedPages();
         }
-        layoutRoot.writeEnd();
+        layoutRoot.releaseSavedPages();
 
         // some pages might have been changed in the meantime (in the newest
         // version)
@@ -1636,9 +1637,8 @@ public class MVStore implements AutoCloseable
      * @return the buffer
      */
     private WriteBuffer getWriteBuffer() {
-        WriteBuffer buff;
-        if (writeBuffer != null) {
-            buff = writeBuffer;
+        WriteBuffer buff = writeBufferPool.poll();
+        if (buff != null) {
             buff.clear();
         } else {
             buff = new WriteBuffer();
@@ -1654,7 +1654,7 @@ public class MVStore implements AutoCloseable
      */
     private void releaseWriteBuffer(WriteBuffer buff) {
         if (buff.capacity() <= 4 * 1024 * 1024) {
-            writeBuffer = buff;
+            writeBufferPool.offer(buff);
         }
     }
 
@@ -1997,32 +1997,36 @@ public class MVStore implements AutoCloseable
         if (!chunks.containsKey(chunk.id)) {
             return false;
         }
-        WriteBuffer buff = getWriteBuffer();
         long start = chunk.block * BLOCK_SIZE;
         int length = chunk.len * BLOCK_SIZE;
-        buff.limit(length);
-        ByteBuffer readBuff = fileStore.readFully(start, length);
-        Chunk chunkFromFile = Chunk.readChunkHeader(readBuff, start);
-        int chunkHeaderLen = readBuff.position();
-        buff.position(chunkHeaderLen);
-        buff.put(readBuff);
-        long pos = fileStore.allocate(length, reservedAreaLow, reservedAreaHigh);
-        long block = pos / BLOCK_SIZE;
-        // in the absence of a reserved area,
-        // block should always move closer to the beginning of the file
-        assert reservedAreaHigh > 0 || block <= chunk.block : block + " " + chunk;
-        buff.position(0);
-        // can not set chunk's new block/len until it's fully written at new location,
-        // because concurrent reader can pick it up prematurely,
-        // also occupancy accounting fields should not leak into header
-        chunkFromFile.block = block;
-        chunkFromFile.next = 0;
-        chunkFromFile.writeChunkHeader(buff, chunkHeaderLen);
-        buff.position(length - Chunk.FOOTER_LENGTH);
-        buff.put(chunkFromFile.getFooterBytes());
-        buff.position(0);
-        write(pos, buff.getBuffer());
-        releaseWriteBuffer(buff);
+        long block;
+        WriteBuffer buff = getWriteBuffer();
+        try {
+            buff.limit(length);
+            ByteBuffer readBuff = fileStore.readFully(start, length);
+            Chunk chunkFromFile = Chunk.readChunkHeader(readBuff, start);
+            int chunkHeaderLen = readBuff.position();
+            buff.position(chunkHeaderLen);
+            buff.put(readBuff);
+            long pos = fileStore.allocate(length, reservedAreaLow, reservedAreaHigh);
+            block = pos / BLOCK_SIZE;
+            // in the absence of a reserved area,
+            // block should always move closer to the beginning of the file
+            assert reservedAreaHigh > 0 || block <= chunk.block : block + " " + chunk;
+            buff.position(0);
+            // can not set chunk's new block/len until it's fully written at new location,
+            // because concurrent reader can pick it up prematurely,
+            // also occupancy accounting fields should not leak into header
+            chunkFromFile.block = block;
+            chunkFromFile.next = 0;
+            chunkFromFile.writeChunkHeader(buff, chunkHeaderLen);
+            buff.position(length - Chunk.FOOTER_LENGTH);
+            buff.put(chunkFromFile.getFooterBytes());
+            buff.position(0);
+            write(pos, buff.getBuffer());
+        } finally {
+            releaseWriteBuffer(buff);
+        }
         fileStore.free(start, length);
         chunk.block = block;
         chunk.next = 0;
@@ -2744,11 +2748,14 @@ public class MVStore implements AutoCloseable
                         // overwrite the chunk,
                         // so it is not be used later on
                         WriteBuffer buff = getWriteBuffer();
-                        buff.limit(length);
-                        // buff.clear() does not set the data
-                        Arrays.fill(buff.getBuffer().array(), (byte) 0);
-                        write(start, buff.getBuffer());
-                        releaseWriteBuffer(buff);
+                        try {
+                            buff.limit(length);
+                            // buff.clear() does not set the data
+                            Arrays.fill(buff.getBuffer().array(), (byte) 0);
+                            write(start, buff.getBuffer());
+                        } finally {
+                            releaseWriteBuffer(buff);
+                        }
                         // only really needed if we remove many chunks, when writes are
                         // re-ordered - but we do it always, because rollback is not
                         // performance critical

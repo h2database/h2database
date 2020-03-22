@@ -804,7 +804,7 @@ public class Data {
             return ValueInteger.get(readVarInt());
         case BIGINT_NEG:
             return ValueBigint.get(-readVarLong());
-        case Value.BIGINT:
+        case BIGINT:
             return ValueBigint.get(readVarLong());
         case TINYINT:
             return ValueTinyint.get(readByte());

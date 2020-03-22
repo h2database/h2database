@@ -2947,13 +2947,13 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case HEXTORAW: {
             TypeInfo t = args[0].getType();
             if (database.getMode().getEnum() == ModeEnum.Oracle) {
-                if (DataType.isStringType(t.getValueType())) {
+                if (DataType.isCharacterStringType(t.getValueType())) {
                     typeInfo = TypeInfo.getTypeInfo(Value.VARBINARY, t.getPrecision() / 2, 0, null);
                 } else {
                     typeInfo = TypeInfo.TYPE_VARBINARY;
                 }
             } else {
-                if (DataType.isStringType(t.getValueType())) {
+                if (DataType.isCharacterStringType(t.getValueType())) {
                     typeInfo = TypeInfo.getTypeInfo(Value.VARCHAR, t.getPrecision() / 4, 0, null);
                 } else {
                     typeInfo = TypeInfo.TYPE_VARCHAR;

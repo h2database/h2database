@@ -163,7 +163,7 @@ public class BinaryOperation extends Operation2 {
                 optimizeNumeric(leftType, rightType);
             } else if (dataType == Value.ENUM) {
                 type = TypeInfo.TYPE_INTEGER;
-            } else if (DataType.isStringType(dataType)
+            } else if (DataType.isCharacterStringType(dataType)
                     && opType == OpType.PLUS && session.getDatabase().getMode().allowPlusForStringConcat) {
                 return new ConcatenationOperation(left, right).optimize(session);
             } else {

@@ -645,7 +645,7 @@ public class Set extends Prepared {
     }
 
     private static TimeZoneProvider parseTimeZone(Value v) {
-        if (DataType.isStringType(v.getValueType())) {
+        if (DataType.isCharacterStringType(v.getValueType())) {
             TimeZoneProvider timeZone;
             try {
                 timeZone = TimeZoneProvider.ofId(v.getString());

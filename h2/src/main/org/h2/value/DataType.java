@@ -1591,16 +1591,6 @@ public class DataType {
     }
 
     /**
-     * Check if the given type may have extended type information.
-     *
-     * @param type the value type
-     * @return true if the value type may have extended type information
-     */
-    public static boolean isExtInfoType(int type) {
-        return type == Value.GEOMETRY || type == Value.ENUM;
-    }
-
-    /**
      * Check if the given value type is a binary string type or a compatible
      * special data type such as Java object, UUID, geometry object, or JSON.
      *

@@ -1797,11 +1797,13 @@ public class MVStore implements AutoCloseable
                 assert rpi.version < version : rpi + " < " + version;
                 int chunkId = rpi.getPageChunkId();
                 Chunk chunk = chunks.get(chunkId);
-                assert chunk != null;
-                modifiedChunks.add(chunk);
-                if (chunk.accountForRemovedPage(rpi.getPageNo(), rpi.getPageLength(),
-                                                rpi.isPinned(), time, rpi.version)) {
-                    deadChunks.offer(chunk);
+                assert !isOpen() || chunk != null : chunkId + " " + chunk;
+                if (chunk != null) {
+                    modifiedChunks.add(chunk);
+                    if (chunk.accountForRemovedPage(rpi.getPageNo(), rpi.getPageLength(),
+                                                    rpi.isPinned(), time, rpi.version)) {
+                        deadChunks.offer(chunk);
+                    }
                 }
             }
             if (modifiedChunks.isEmpty()) {

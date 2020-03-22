@@ -259,9 +259,10 @@ public class MVStore implements AutoCloseable
 
     private final HashMap<String, Object> storeHeader = new HashMap<>();
 
-    private Queue<WriteBuffer> writeBufferPool = new ArrayBlockingQueue<>(1);
+    private Queue<WriteBuffer> writeBufferPool = new ArrayBlockingQueue<>(2);
 
     private final AtomicInteger lastMapId = new AtomicInteger();
+    private final AtomicInteger lastChunkId = new AtomicInteger();
 
     private int versionsToKeep = 5;
 
@@ -1085,7 +1086,7 @@ public class MVStore implements AutoCloseable
             lastStoredVersion = currentVersion - 1;
             layout.setRootPos(last.layoutRootPos, lastStoredVersion);
             meta.setRootPos(getRootPos(meta.getId()), lastStoredVersion);
-
+            lastChunkId.set(lastChunk.id);
         }
     }
 
@@ -1251,7 +1252,7 @@ public class MVStore implements AutoCloseable
                 if (normalShutdown) {
                     serializationExecutor.shutdown();
                     try {
-                        serializationExecutor.awaitTermination(500, TimeUnit.MILLISECONDS);
+                        serializationExecutor.awaitTermination(5000, TimeUnit.MILLISECONDS);
                     } catch (InterruptedException ignore) {/**/}
                 }
                 serializationExecutor.shutdownNow();
@@ -1260,7 +1261,7 @@ public class MVStore implements AutoCloseable
                 if (normalShutdown) {
                     bufferSaveExecutor.shutdown();
                     try {
-                        bufferSaveExecutor.awaitTermination(500, TimeUnit.MILLISECONDS);
+                        bufferSaveExecutor.awaitTermination(5000, TimeUnit.MILLISECONDS);
                     } catch (InterruptedException ignore) {/**/}
                 }
                 bufferSaveExecutor.shutdownNow();
@@ -1484,7 +1485,43 @@ public class MVStore implements AutoCloseable
                 int headerLength = buff.position() + 44;
                 buff.position(headerLength);
                 Page<String, String> layoutRoot = serializeToBuffer(buff, changed, c);
+                changed.add(layoutRoot);
 
+                Runnable bufferStore = new Runnable() {
+                    @Override
+                    public void run() {
+                        storeBuffer(c, buff, headerLength);
+                    }
+                };
+
+                try {
+                    Future<?> future = bufferSaveExecutor.submit(bufferStore);
+                    if (syncWrite || bufferSaveExecutor.getQueue().size() > 2) {
+                        while (true) {
+                            try {
+                                future.get();
+                                break;
+                            } catch (InterruptedException ignore) {
+                            } catch (ExecutionException e) {
+                                throw new RuntimeException(e.getCause());
+                            }
+                        }
+                    }
+                } catch (RejectedExecutionException ex) {
+                    if (bufferSaveExecutor.isShutdown()) {
+                        while(true) {
+                            try {
+                                bufferSaveExecutor.awaitTermination(5000, TimeUnit.MILLISECONDS);
+                                break;
+                            } catch (InterruptedException ignore) {
+                            }
+                        }
+                    }
+                    bufferStore.run();
+                }
+            }
+
+            public void storeBuffer(Chunk c, WriteBuffer buff, int headerLength) {
                 long filePos = fileStore.allocate(buff.limit(), reservedLow, reservedHigh);
                 c.block = filePos / BLOCK_SIZE;
                 c.len = buff.limit() / BLOCK_SIZE;
@@ -1523,13 +1560,12 @@ public class MVStore implements AutoCloseable
                 for (Page<?,?> p : changed) {
                     p.releaseSavedPages();
                 }
-                layoutRoot.releaseSavedPages();
             }
         };
 
         try {
             Future<?> future = serializationExecutor.submit(serialisationAndStore);
-            if (syncWrite || serializationExecutor.getQueue().size() > 1) {
+            if (syncWrite || serializationExecutor.getQueue().size() > 2) {
                 while (true) {
                     try {
                         future.get();
@@ -1544,7 +1580,7 @@ public class MVStore implements AutoCloseable
             if (serializationExecutor.isShutdown()) {
                 while(true) {
                     try {
-                        serializationExecutor.awaitTermination(500, TimeUnit.MILLISECONDS);
+                        serializationExecutor.awaitTermination(5000, TimeUnit.MILLISECONDS);
                         break;
                     } catch (InterruptedException ignore) {
                     }
@@ -1600,21 +1636,17 @@ public class MVStore implements AutoCloseable
 
 
     private Chunk createChunk(long time, long version) {
-        int lastChunkId;
-        if (lastChunk == null) {
-            lastChunkId = 0;
-        } else {
-            lastChunkId = lastChunk.id;
+        if (lastChunk != null) {
             // the metadata of the last chunk was not stored so far, and needs to be
             // set now (it's better not to update right after storing, because that
             // would modify the meta map again)
-            layout.put(Chunk.getMetaKey(lastChunkId), lastChunk.asString());
+            layout.put(Chunk.getMetaKey(lastChunk.id), lastChunk.asString());
             // never go backward in time
             time = Math.max(lastChunk.time, time);
         }
-        int newChunkId = lastChunkId;
+        int newChunkId;
         while (true) {
-            newChunkId = (newChunkId + 1) & Chunk.MAX_ID;
+            newChunkId = lastChunkId.incrementAndGet() & Chunk.MAX_ID;
             Chunk old = chunks.get(newChunkId);
             if (old == null) {
                 break;

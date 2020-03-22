@@ -91,8 +91,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     // meta map constructor
-    MVMap(MVStore store, DataType<K> keyType, DataType<V> valueType) {
-        this(store, keyType, valueType, 0, 0, new AtomicReference<>(), store.getKeysPerPage(), false);
+    MVMap(MVStore store, int id, DataType<K> keyType, DataType<V> valueType) {
+        this(store, keyType, valueType, id, 0, new AtomicReference<>(), store.getKeysPerPage(), false);
         setInitialRoot(createEmptyLeaf(), store.getCurrentVersion());
     }
 

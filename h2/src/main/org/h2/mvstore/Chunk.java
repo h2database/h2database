@@ -115,9 +115,9 @@ public final class Chunk
     int collectPriority;
 
     /**
-     * The position of the meta root.
+     * The position of the root of layout map.
      */
-    long metaRootPos;
+    long layoutRootPos;
 
     /**
      * The version stored in this chunk.
@@ -240,7 +240,7 @@ public final class Chunk
         c.mapId = DataUtils.readHexInt(map, ATTR_MAP, 0);
         c.maxLen = DataUtils.readHexLong(map, ATTR_MAX, 0);
         c.maxLenLive = DataUtils.readHexLong(map, ATTR_LIVE_MAX, c.maxLen);
-        c.metaRootPos = DataUtils.readHexLong(map, ATTR_ROOT, 0);
+        c.layoutRootPos = DataUtils.readHexLong(map, ATTR_ROOT, 0);
         c.time = DataUtils.readHexLong(map, ATTR_TIME, 0);
         c.unused = DataUtils.readHexLong(map, ATTR_UNUSED, 0);
         c.unusedAtVersion = DataUtils.readHexLong(map, ATTR_UNUSED_AT_VERSION, 0);
@@ -300,7 +300,7 @@ public final class Chunk
             DataUtils.appendMap(buff, ATTR_NEXT, next);
         }
         DataUtils.appendMap(buff, ATTR_PAGES, pageCount);
-        DataUtils.appendMap(buff, ATTR_ROOT, metaRootPos);
+        DataUtils.appendMap(buff, ATTR_ROOT, layoutRootPos);
         DataUtils.appendMap(buff, ATTR_TIME, time);
         if (unused != 0) {
             DataUtils.appendMap(buff, ATTR_UNUSED, unused);

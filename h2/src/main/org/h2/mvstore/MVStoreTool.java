@@ -353,7 +353,7 @@ public class MVStoreTool {
         try (MVStore store = new MVStore.Builder().
                 fileName(fileName).recoveryMode().
                 readOnly().open()) {
-            MVMap<String, String> meta = store.getMetaMap();
+            MVMap<String, String> layout = store.getLayoutMap();
             Map<String, Object> header = store.getStoreHeader();
             long fileCreated = DataUtils.readHexLong(header, "created", 0L);
             TreeMap<Integer, Chunk> chunks = new TreeMap<>();
@@ -361,7 +361,7 @@ public class MVStoreTool {
             long maxLength = 0;
             long maxLengthLive = 0;
             long maxLengthNotEmpty = 0;
-            for (Entry<String, String> e : meta.entrySet()) {
+            for (Entry<String, String> e : layout.entrySet()) {
                 String k = e.getKey();
                 if (k.startsWith(DataUtils.META_CHUNK)) {
                     Chunk c = Chunk.fromString(e.getValue());

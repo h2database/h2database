@@ -284,8 +284,8 @@ public class TestMVStore extends TestBase {
             s.commit();
             map.put(1, new byte[10 * 1024]);
             s.commit();
-            MVMap<String, String> meta = s.getMetaMap();
-            Chunk c = Chunk.fromString(meta.get(DataUtils.META_CHUNK + "1"));
+            MVMap<String, String> layout = s.getLayoutMap();
+            Chunk c = Chunk.fromString(layout.get(DataUtils.META_CHUNK + "1"));
             assertTrue(c.maxLen < Integer.MAX_VALUE);
             assertTrue(c.maxLenLive < Integer.MAX_VALUE);
         }
@@ -1440,7 +1440,7 @@ public class TestMVStore extends TestBase {
             assertEquals(0, m.size());
             s.commit();
             // ensure only nodes are read, but not leaves
-            assertEquals(6, s.getFileStore().getReadCount());
+            assertEquals(7, s.getFileStore().getReadCount());
             assertTrue(s.getFileStore().getWriteCount() < 5);
         }
     }
@@ -1619,6 +1619,7 @@ public class TestMVStore extends TestBase {
             assertEquals("Hello", data.put("1", "Hallo"));
             s.commit();
             assertEquals("name:data", m.get(DataUtils.META_MAP + id));
+            m = s.getLayoutMap();
             assertTrue(m.get(DataUtils.META_ROOT + id).length() > 0);
             assertTrue(m.containsKey(DataUtils.META_CHUNK + "1"));
 
@@ -1747,12 +1748,12 @@ public class TestMVStore extends TestBase {
             s.setAutoCommitDelay(0);
             s.setRetentionTime(0);
 
-            Map<String, String> meta = s.getMetaMap();
-            int chunkCount1 = getChunkCount(meta);
+            Map<String, String> layout = s.getLayoutMap();
+            int chunkCount1 = getChunkCount(layout);
             s.compact(80, 1);
             s.compact(80, 1);
 
-            int chunkCount2 = getChunkCount(meta);
+            int chunkCount2 = getChunkCount(layout);
             assertTrue(chunkCount2 >= chunkCount1);
 
             MVMap<Integer, String> m = s.openMap("data");
@@ -1766,7 +1767,7 @@ public class TestMVStore extends TestBase {
             }
             assertFalse(s.compact(50, 1024));
 
-            int chunkCount3 = getChunkCount(meta);
+            int chunkCount3 = getChunkCount(layout);
 
             assertTrue(chunkCount1 + ">" + chunkCount2 + ">" + chunkCount3,
                     chunkCount3 < chunkCount1);
@@ -1777,9 +1778,9 @@ public class TestMVStore extends TestBase {
         }
     }
 
-    private static int getChunkCount(Map<String, String> meta) {
+    private static int getChunkCount(Map<String, String> layout) {
         int chunkCount = 0;
-        for (String k : meta.keySet()) {
+        for (String k : layout.keySet()) {
             if (k.startsWith(DataUtils.META_CHUNK)) {
                 chunkCount++;
             }

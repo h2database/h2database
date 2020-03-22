@@ -234,7 +234,14 @@ public class MVStore implements AutoCloseable
     private long updateAttemptCounter = 0;
 
     /**
-     * The metadata map. Write access to this map needs to be done under storeLock.
+     * The layout map. Contains chunks metadata and root locations for all maps.
+     * This is relatively fast changing part of metadata
+     */
+    private final MVMap<String, String> layout;
+
+    /**
+     * The metadata map. Holds name -> id and id -> name and id -> metadata
+     * mapping for all maps. This is relatively slow changing part of metadata
      */
     private final MVMap<String, String> meta;
 
@@ -384,7 +391,8 @@ public class MVStore implements AutoCloseable
         keysPerPage = DataUtils.getConfigParam(config, "keysPerPage", 48);
         backgroundExceptionHandler =
                 (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
-        meta = new MVMap<>(this, StringDataType.INSTANCE, StringDataType.INSTANCE);
+        layout = new MVMap<>(this, -1, StringDataType.INSTANCE, StringDataType.INSTANCE);
+        meta = new MVMap<>(this, 0, StringDataType.INSTANCE, StringDataType.INSTANCE);
         if (this.fileStore != null) {
             retentionTime = this.fileStore.getDefaultRetentionTime();
             // 19 KB memory is about 1 KB storage
@@ -426,6 +434,7 @@ public class MVStore implements AutoCloseable
             lastCommitTime = getTimeSinceCreation();
 
             scrubMetaMap();
+            scrubLayoutMap();
 
             // setAutoCommitDelay starts the thread, but only if
             // the parameter is different from the old value
@@ -437,10 +446,43 @@ public class MVStore implements AutoCloseable
         }
     }
 
+    private void scrubLayoutMap() {
+        Set<String> keysToRemove = new HashSet<>();
+
+        // remove roots of non-existent maps (leftover after unfinished map removal)
+        for (Iterator<String> it = layout.keyIterator(DataUtils.META_ROOT); it.hasNext();) {
+            String key = it.next();
+            if (!key.startsWith(DataUtils.META_ROOT)) {
+                break;
+            }
+            String mapIdStr = key.substring(key.lastIndexOf('.') + 1);
+            if(!meta.containsKey(DataUtils.META_MAP + mapIdStr) && DataUtils.parseHexInt(mapIdStr) != meta.getId()) {
+                layout.remove(key);
+                keysToRemove.add(key);
+            }
+        }
+
+        for (String key : keysToRemove) {
+            layout.remove(key);
+        }
+    }
+
     private void scrubMetaMap() {
         Set<String> keysToRemove = new HashSet<>();
 
-        // ensure that there is only one name mapped to this id
+        // split layout map off legacy meta map
+        for (String prefix : new String[]{ DataUtils.META_CHUNK, DataUtils.META_ROOT }) {
+            for (Iterator<String> it = meta.keyIterator(prefix); it.hasNext(); ) {
+                String key = it.next();
+                if (!key.startsWith(prefix)) {
+                    break;
+                }
+                layout.putIfAbsent(key, meta.get(key));
+                keysToRemove.add(key);
+            }
+        }
+
+        // ensure that there is only one name mapped to each id
         // this could be a leftover of an unfinished map rename
         for (Iterator<String> it = meta.keyIterator(DataUtils.META_NAME); it.hasNext();) {
             String key = it.next();
@@ -451,20 +493,6 @@ public class MVStore implements AutoCloseable
             int mapId = DataUtils.parseHexInt(meta.get(key));
             String realMapName = getMapName(mapId);
             if(!mapName.equals(realMapName)) {
-                keysToRemove.add(key);
-            }
-        }
-
-        // remove roots of non-existent maps (leftover after unfinished map removal)
-        for (Iterator<String> it = meta.keyIterator(DataUtils.META_ROOT); it.hasNext();) {
-            String key = it.next();
-            if (!key.startsWith(DataUtils.META_ROOT)) {
-                break;
-            }
-            String mapIdStr = key.substring(key.lastIndexOf('.') + 1);
-            if(!meta.containsKey(DataUtils.META_MAP + mapIdStr)) {
-                meta.remove(key);
-                markMetaChanged();
                 keysToRemove.add(key);
             }
         }
@@ -590,7 +618,7 @@ public class MVStore implements AutoCloseable
                 HashMap<String, Object> config = new HashMap<>(DataUtils.parseMap(configAsString));
                 config.put("id", id);
                 map = builder.create(this, config);
-                long root = getRootPos(meta, id);
+                long root = getRootPos(id);
                 map.setRootPos(root, lastStoredVersion);
                 maps.put(id, map);
             }
@@ -635,19 +663,34 @@ public class MVStore implements AutoCloseable
     }
 
     /**
+     * Get this store's layout map. This data is for informational purposes only. The
+     * data is subject to change in future versions.
+     * <p>
+     * The data in this map should not be modified (changing system data may corrupt the store).
+     * <p>
+     * The layout map contains the following entries:
+     * <pre>
+     * chunk.{chunkId} = {chunk metadata}
+     * root.{mapId} = {root position}
+     * </pre>
+     *
+     * @return the metadata map
+     */
+    public MVMap<String, String> getLayoutMap() {
+        checkOpen();
+        return layout;
+    }
+
+    /**
      * Get the metadata map. This data is for informational purposes only. The
      * data is subject to change in future versions.
      * <p>
-     * The data in this map should not be modified (changing system data may
-     * corrupt the store). If modifications are needed, they need be
-     * synchronized on the store.
+     * The data in this map should not be modified (changing system data may corrupt the store).
      * <p>
      * The metadata map contains the following entries:
      * <pre>
-     * chunk.{chunkId} = {chunk metadata}
      * name.{name} = {mapId}
      * map.{mapId} = {map metadata}
-     * root.{mapId} = {root position}
      * setting.storeVersion = {version}
      * </pre>
      *
@@ -658,13 +701,13 @@ public class MVStore implements AutoCloseable
         return meta;
     }
 
-    private MVMap<String, String> getMetaMap(long version) {
+    private MVMap<String, String> getLayoutMap(long version) {
         Chunk c = getChunkForVersion(version);
         DataUtils.checkArgument(c != null, "Unknown version {0}", version);
         long block = c.block;
         c = readChunkHeader(block);
-        MVMap<String, String> oldMeta = meta.openReadOnly(c.metaRootPos, version);
-        return oldMeta;
+        MVMap<String, String> oldMap = layout.openReadOnly(c.layoutRootPos, version);
+        return oldMap;
     }
 
     private Chunk getChunkForVersion(long version) {
@@ -696,7 +739,7 @@ public class MVStore implements AutoCloseable
      * @return true if it exists and has data.
      */
     public boolean hasData(String name) {
-        return hasMap(name) && getRootPos(meta, getMapId(name)) != 0;
+        return hasMap(name) && getRootPos(getMapId(name)) != 0;
     }
 
     private void markMetaChanged() {
@@ -844,7 +887,7 @@ public class MVStore implements AutoCloseable
                 setLastChunk(newest);
                 // load the chunk metadata: although meta's root page resides in the lastChunk,
                 // traversing meta map might recursively load another chunk(s)
-                Cursor<String, String> cursor = meta.cursor(DataUtils.META_CHUNK);
+                Cursor<String, String> cursor = layout.cursor(DataUtils.META_CHUNK);
                 while (cursor.hasNext() && cursor.next().startsWith(DataUtils.META_CHUNK)) {
                     Chunk c = Chunk.fromString(cursor.getValue());
                     assert c.version <= currentVersion;
@@ -939,7 +982,7 @@ public class MVStore implements AutoCloseable
                 setLastChunk(chunk);
                 // load the chunk metadata: although meta's root page resides in the lastChunk,
                 // traversing meta map might recursively load another chunk(s)
-                Cursor<String, String> cursor = meta.cursor(DataUtils.META_CHUNK);
+                Cursor<String, String> cursor = layout.cursor(DataUtils.META_CHUNK);
                 while (cursor.hasNext() && cursor.next().startsWith(DataUtils.META_CHUNK)) {
                     Chunk c = Chunk.fromString(cursor.getValue());
                     assert c.version <= currentVersion;
@@ -1000,13 +1043,16 @@ public class MVStore implements AutoCloseable
             lastMapId.set(0);
             currentVersion = 0;
             lastStoredVersion = INITIAL_VERSION;
+            layout.setRootPos(0, INITIAL_VERSION);
             meta.setRootPos(0, INITIAL_VERSION);
         } else {
             lastMapId.set(last.mapId);
             currentVersion = last.version;
             chunks.put(last.id, last);
             lastStoredVersion = currentVersion - 1;
-            meta.setRootPos(last.metaRootPos, lastStoredVersion);
+            layout.setRootPos(last.layoutRootPos, lastStoredVersion);
+            meta.setRootPos(getRootPos(meta.getId()), lastStoredVersion);
+
         }
     }
 
@@ -1230,7 +1276,7 @@ public class MVStore implements AutoCloseable
         Chunk c = chunks.get(chunkId);
         if (c == null) {
             checkOpen();
-            String s = meta.get(Chunk.getMetaKey(chunkId));
+            String s = layout.get(Chunk.getMetaKey(chunkId));
             if (s == null) {
                 throw DataUtils.newIllegalStateException(
                         DataUtils.ERROR_CHUNK_NOT_FOUND,
@@ -1250,12 +1296,13 @@ public class MVStore implements AutoCloseable
     private void setWriteVersion(long version) {
         for (Iterator<MVMap<?, ?>> iter = maps.values().iterator(); iter.hasNext(); ) {
             MVMap<?, ?> map = iter.next();
-            assert map != meta;
+            assert map != layout && map != meta;
             if (map.setWriteVersion(version) == null) {
                 iter.remove();
             }
         }
         meta.setWriteVersion(version);
+        layout.setWriteVersion(version);
         onVersionChange(version);
     }
 
@@ -1382,8 +1429,7 @@ public class MVStore implements AutoCloseable
             lastChunkId = 0;
         } else {
             lastChunkId = lastChunk.id;
-            meta.put(Chunk.getMetaKey(lastChunkId), lastChunk.asString());
-            markMetaChanged();
+            layout.put(Chunk.getMetaKey(lastChunkId), lastChunk.asString());
             // never go backward in time
             time = Math.max(lastChunk.time, time);
         }
@@ -1406,7 +1452,7 @@ public class MVStore implements AutoCloseable
         c.pageCountLive = 0;
         c.maxLen = 0;
         c.maxLenLive = 0;
-        c.metaRootPos = Long.MAX_VALUE;
+        c.layoutRootPos = Long.MAX_VALUE;
         c.block = Long.MAX_VALUE;
         c.len = Integer.MAX_VALUE;
         c.time = time;
@@ -1424,27 +1470,27 @@ public class MVStore implements AutoCloseable
         for (Page<?,?> p : changed) {
             String key = MVMap.getMapRootKey(p.getMapId());
             if (p.getTotalCount() == 0) {
-                meta.remove(key);
+                layout.remove(key);
             } else {
                 p.writeUnsavedRecursive(c, buff, toc);
                 long root = p.getPos();
-                meta.put(key, Long.toHexString(root));
+                layout.put(key, Long.toHexString(root));
             }
         }
 
         acceptChunkOccupancyChanges(time, version);
 
-        RootReference<String,String> metaRootReference = meta.setWriteVersion(version);
-        assert metaRootReference != null;
-        assert metaRootReference.version == version : metaRootReference.version + " != " + version;
+        RootReference<String,String> layoutRootReference = layout.setWriteVersion(version);
+        assert layoutRootReference != null;
+        assert layoutRootReference.version == version : layoutRootReference.version + " != " + version;
         metaChanged = false;
 
         acceptChunkOccupancyChanges(time, version);
 
         onVersionChange(version);
 
-        Page<String,String> metaRoot = metaRootReference.root;
-        metaRoot.writeUnsavedRecursive(c, buff, toc);
+        Page<String,String> layoutRoot = layoutRootReference.root;
+        layoutRoot.writeUnsavedRecursive(c, buff, toc);
 
         // last allocated map id should be captured after the meta map was saved, because
         // this will ensure that concurrently created map, which made it into meta before save,
@@ -1475,7 +1521,7 @@ public class MVStore implements AutoCloseable
         c.block = filePos / BLOCK_SIZE;
         c.len = length / BLOCK_SIZE;
         assert validateFileLength(c.asString());
-        c.metaRootPos = metaRoot.getPos();
+        c.layoutRootPos = layoutRoot.getPos();
         // calculate and set the likely next position
         if (reservedLow > 0 || reservedHigh == reservedLow) {
             c.next = fileStore.predictAllocation(c.len, 0, 0);
@@ -1536,7 +1582,7 @@ public class MVStore implements AutoCloseable
         for (Page<?,?> p : changed) {
             p.writeEnd();
         }
-        metaRoot.writeEnd();
+        layoutRoot.writeEnd();
 
         // some pages might have been changed in the meantime (in the newest
         // version)
@@ -1565,6 +1611,19 @@ public class MVStore implements AutoCloseable
                         rootPage.isLeaf()) {
                     changed.add(rootPage);
                 }
+            }
+        }
+        RootReference<?,?> rootReference = meta.setWriteVersion(version);
+        if (meta.hasChangesSince(lastStoredVersion) || metaChanged) {
+            assert rootReference != null && rootReference.version <= version
+                    : rootReference == null ? "null" : rootReference.version + " > " + version;
+            Page<?, ?> rootPage = rootReference.root;
+            if (!rootPage.isSaved() ||
+                    // after deletion previously saved leaf
+                    // may pop up as a root, but we still need
+                    // to save new root pos in meta
+                    rootPage.isLeaf()) {
+                changed.add(rootPage);
             }
         }
         return changed;
@@ -1652,9 +1711,8 @@ public class MVStore implements AutoCloseable
             }
             for (Chunk chunk : modifiedChunks) {
                 int chunkId = chunk.id;
-                meta.put(Chunk.getMetaKey(chunkId), chunk.asString());
+                layout.put(Chunk.getMetaKey(chunkId), chunk.asString());
             }
-            markMetaChanged();
             modifiedChunks.clear();
         }
     }
@@ -1968,8 +2026,7 @@ public class MVStore implements AutoCloseable
         fileStore.free(start, length);
         chunk.block = block;
         chunk.next = 0;
-        meta.put(Chunk.getMetaKey(chunk.id), chunk.asString());
-        markMetaChanged();
+        layout.put(Chunk.getMetaKey(chunk.id), chunk.asString());
         return true;
     }
 
@@ -2217,14 +2274,14 @@ public class MVStore implements AutoCloseable
                 for (int pageNo = 0; (pageNo = chunk.occupancy.nextClearBit(pageNo)) < chunk.pageCount; ++pageNo) {
                     long tocElement = toc[pageNo];
                     int mapId = DataUtils.getPageMapId(tocElement);
-                    MVMap<?,?> map = mapId == 0 ? meta : getMap(mapId);
+                    MVMap<?,?> map = mapId == layout.getId() ? layout : mapId == meta.getId() ? meta : getMap(mapId);
                     if (map != null && !map.isClosed()) {
                         assert !map.isSingleWriter();
                         if (secondPass || DataUtils.isLeafPosition(tocElement)) {
                             long pagePos = DataUtils.getPagePos(chunkId, tocElement);
                             if (map.rewritePage(pagePos)) {
                                 ++rewrittenPageCount;
-                                if (map == meta) {
+                                if (map == layout || map == meta) {
                                     markMetaChanged();
                                 }
                             }
@@ -2496,15 +2553,15 @@ public class MVStore implements AutoCloseable
         }
         // also, all chunks referenced by this version
         // need to be available in the file
-        MVMap<String, String> oldMeta = getMetaMap(version);
+        MVMap<String, String> oldLayoutMap = getLayoutMap(version);
         try {
-            for (Iterator<String> it = oldMeta.keyIterator(DataUtils.META_CHUNK); it.hasNext();) {
+            for (Iterator<String> it = oldLayoutMap.keyIterator(DataUtils.META_CHUNK); it.hasNext();) {
                 String chunkKey = it.next();
                 if (!chunkKey.startsWith(DataUtils.META_CHUNK)) {
                     break;
                 }
-                if (!meta.containsKey(chunkKey)) {
-                    String s = oldMeta.get(chunkKey);
+                if (!layout.containsKey(chunkKey)) {
+                    String s = oldLayoutMap.get(chunkKey);
                     Chunk c2 = Chunk.fromString(s);
                     Chunk test = readChunkHeaderAndFooter(c2.block, c2.id);
                     if (test == null) {
@@ -2552,8 +2609,8 @@ public class MVStore implements AutoCloseable
                 // because we should never seek storeLock while holding
                 // map root lock
                 (storeLock.isHeldByCurrentThread() || !map.getRoot().isLockedByCurrentThread()) &&
-                // to avoid infinite recursion via store() -> dropUnusedChunks() -> meta.remove()
-                map != meta) {
+                // to avoid infinite recursion via store() -> dropUnusedChunks() -> layout.remove()
+                map != layout) {
 
             saveNeeded = false;
             // check again, because it could have been written by now
@@ -2629,6 +2686,7 @@ public class MVStore implements AutoCloseable
             checkOpen();
             if (version == 0) {
                 // special case: remove all data
+                layout.setInitialRoot(layout.createEmptyLeaf(), INITIAL_VERSION);
                 meta.setInitialRoot(meta.createEmptyLeaf(), INITIAL_VERSION);
                 deadChunks.clear();
                 removedPages.clear();
@@ -2658,6 +2716,7 @@ public class MVStore implements AutoCloseable
             }
             currentTxCounter = new TxCounter(version);
 
+            layout.rollbackTo(version);
             meta.rollbackTo(version);
             metaChanged = false;
             // find out which chunks to remove,
@@ -2714,7 +2773,7 @@ public class MVStore implements AutoCloseable
                     maps.remove(id);
                 } else {
                     if (!m.rollbackRoot(version)) {
-                        m.setRootPos(getRootPos(meta, id), version);
+                        m.setRootPos(getRootPos(id), version);
                     }
                 }
             }
@@ -2732,8 +2791,8 @@ public class MVStore implements AutoCloseable
         }
     }
 
-    private static long getRootPos(MVMap<String, String> map, int mapId) {
-        String root = map.get(MVMap.getMapRootKey(mapId));
+    private long getRootPos(int mapId) {
+        String root = layout.get(MVMap.getMapRootKey(mapId));
         return root == null ? 0 : DataUtils.parseHexLong(root);
     }
 
@@ -2782,7 +2841,7 @@ public class MVStore implements AutoCloseable
      */
     public void renameMap(MVMap<?, ?> map, String newName) {
         checkOpen();
-        DataUtils.checkArgument(map != meta,
+        DataUtils.checkArgument(map != layout && map != meta,
                 "Renaming the meta map is not allowed");
         int id = map.getId();
         String oldName = getMapName(id);
@@ -2811,7 +2870,7 @@ public class MVStore implements AutoCloseable
         storeLock.lock();
         try {
             checkOpen();
-            DataUtils.checkArgument(map != meta,
+            DataUtils.checkArgument(layout != meta && map != meta,
                     "Removing the meta map is not allowed");
             RootReference<?,?> rootReference = map.clearIt();
             map.close();
@@ -2833,13 +2892,13 @@ public class MVStore implements AutoCloseable
     }
 
     /**
-     * Performs final stage of map removal - delete root location info from the meta table.
+     * Performs final stage of map removal - delete root location info from the layout table.
      * Map is supposedly closed and anonymous and has no outstanding usage by now.
      *
      * @param mapId to deregister
      */
     void deregisterMapRoot(int mapId) {
-        if (meta.remove(MVMap.getMapRootKey(mapId)) != null) {
+        if (layout.remove(MVMap.getMapRootKey(mapId)) != null) {
             markMetaChanged();
         }
     }
@@ -3215,7 +3274,10 @@ public class MVStore implements AutoCloseable
     public double getUpdateFailureRatio() {
         long updateCounter = this.updateCounter;
         long updateAttemptCounter = this.updateAttemptCounter;
-        RootReference<?,?> rootReference = meta.getRoot();
+        RootReference<?,?> rootReference = layout.getRoot();
+        updateCounter += rootReference.updateCounter;
+        updateAttemptCounter += rootReference.updateAttemptCounter;
+        rootReference = meta.getRoot();
         updateCounter += rootReference.updateCounter;
         updateAttemptCounter += rootReference.updateAttemptCounter;
         for (MVMap<?, ?> map : maps.values()) {
@@ -3318,7 +3380,7 @@ public class MVStore implements AutoCloseable
                         }
                     }
 
-                    if (meta.remove(Chunk.getMetaKey(chunk.id)) != null) {
+                    if (layout.remove(Chunk.getMetaKey(chunk.id)) != null) {
                         markMetaChanged();
                     }
                     if (chunk.isSaved()) {

@@ -175,7 +175,7 @@ public final class DataUtils {
 
     /**
      * The prefix for names ("name."). This, plus the name of the map, is the
-     * key, and the map id (hey encoded) is the value.
+     * key, and the map id (hex encoded) is the value.
      */
     public static final String META_NAME = "name.";
 

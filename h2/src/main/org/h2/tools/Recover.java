@@ -568,6 +568,8 @@ public class Recover extends Tool implements DataHandler {
         try (MVStore mv = new MVStore.Builder().
                 fileName(fileName).recoveryMode().readOnly().open()) {
             dumpLobMaps(writer, mv);
+            writer.println("-- Layout");
+            dumpLayout(writer, mv);
             writer.println("-- Meta");
             dumpMeta(writer, mv);
             writer.println("-- Types");
@@ -666,6 +668,13 @@ public class Recover extends Tool implements DataHandler {
             writer.println("DROP TABLE IF EXISTS INFORMATION_SCHEMA.LOB_BLOCKS;");
         } catch (Throwable e) {
             writeError(writer, e);
+        }
+    }
+
+    private static void dumpLayout(PrintWriter writer, MVStore mv) {
+        MVMap<String, String> layout = mv.getLayoutMap();
+        for (Entry<String, String> e : layout.entrySet()) {
+            writer.println("-- " + e.getKey() + " = " + e.getValue());
         }
     }
 

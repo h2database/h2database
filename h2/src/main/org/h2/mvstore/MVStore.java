@@ -1430,62 +1430,12 @@ public class MVStore implements AutoCloseable
         c.writeChunkHeader(buff, 0);
         int headerLength = buff.position() + 44;
         buff.position(headerLength);
-        List<Long> toc = new ArrayList<>();
-        for (Page<?,?> p : changed) {
-            String key = MVMap.getMapRootKey(p.getMapId());
-            if (p.getTotalCount() == 0) {
-                layout.remove(key);
-            } else {
-                p.writeUnsavedRecursive(c, buff, toc);
-                long root = p.getPos();
-                layout.put(key, Long.toHexString(root));
-            }
-        }
-
-        acceptChunkOccupancyChanges(c.time, version);
-
-        RootReference<String,String> layoutRootReference = layout.setWriteVersion(version);
-        assert layoutRootReference != null;
-        assert layoutRootReference.version == version : layoutRootReference.version + " != " + version;
-        metaChanged = false;
-
-        acceptChunkOccupancyChanges(c.time, version);
-
-        onVersionChange(version);
-
-        Page<String,String> layoutRoot = layoutRootReference.root;
-        layoutRoot.writeUnsavedRecursive(c, buff, toc);
-
-        // last allocated map id should be captured after the meta map was saved, because
-        // this will ensure that concurrently created map, which made it into meta before save,
-        // will have it's id reflected in mapid field of currently written chunk
-        c.mapId = lastMapId.get();
-
-        c.tocPos = buff.position();
-        long[] tocArray = new long[toc.size()];
-        int index = 0;
-        for (long tocElement : toc) {
-            tocArray[index++] = tocElement;
-            buff.putLong(tocElement);
-            if (DataUtils.isLeafPosition(tocElement)) {
-                ++leafCount;
-            } else {
-                ++nonLeafCount;
-            }
-        }
-        chunksToC.put(c.id, tocArray);
-        int chunkLength = buff.position();
-
-        // add the store header and round to the next block
-        int length = MathUtils.roundUpInt(chunkLength +
-                Chunk.FOOTER_LENGTH, BLOCK_SIZE);
-        buff.limit(length);
+        Page<String, String> layoutRoot = serializeToBuffer(buff, changed, c);
 
         long filePos = fileStore.allocate(buff.limit(), reservedLow, reservedHigh);
         c.block = filePos / BLOCK_SIZE;
         c.len = buff.limit() / BLOCK_SIZE;
         assert validateFileLength(c.asString());
-        c.layoutRootPos = layoutRoot.getPos();
         // calculate and set the likely next position
         if (reservedLow > 0 || reservedHigh == reservedLow) {
             c.next = fileStore.predictAllocation(c.len, 0, 0);
@@ -1608,6 +1558,62 @@ public class MVStore implements AutoCloseable
         c.next = Long.MAX_VALUE;
         c.occupancy = new BitSet();
         return c;
+    }
+
+    private Page<String, String> serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, Chunk c) {
+        long version = c.version;
+        List<Long> toc = new ArrayList<>();
+        for (Page<?,?> p : changed) {
+            String key = MVMap.getMapRootKey(p.getMapId());
+            if (p.getTotalCount() == 0) {
+                layout.remove(key);
+            } else {
+                p.writeUnsavedRecursive(c, buff, toc);
+                long root = p.getPos();
+                layout.put(key, Long.toHexString(root));
+            }
+        }
+
+        acceptChunkOccupancyChanges(c.time, version);
+
+        RootReference<String,String> layoutRootReference = layout.setWriteVersion(version);
+        assert layoutRootReference != null;
+        assert layoutRootReference.version == version : layoutRootReference.version + " != " + version;
+        metaChanged = false;
+
+        acceptChunkOccupancyChanges(c.time, version);
+
+        onVersionChange(version);
+
+        Page<String,String> layoutRoot = layoutRootReference.root;
+        layoutRoot.writeUnsavedRecursive(c, buff, toc);
+        c.layoutRootPos = layoutRoot.getPos();
+
+        // last allocated map id should be captured after the meta map was saved, because
+        // this will ensure that concurrently created map, which made it into meta before save,
+        // will have it's id reflected in mapid field of currently written chunk
+        c.mapId = lastMapId.get();
+
+        c.tocPos = buff.position();
+        long[] tocArray = new long[toc.size()];
+        int index = 0;
+        for (long tocElement : toc) {
+            tocArray[index++] = tocElement;
+            buff.putLong(tocElement);
+            if (DataUtils.isLeafPosition(tocElement)) {
+                ++leafCount;
+            } else {
+                ++nonLeafCount;
+            }
+        }
+        chunksToC.put(c.id, tocArray);
+        int chunkLength = buff.position();
+
+        // add the store header and round to the next block
+        int length = MathUtils.roundUpInt(chunkLength +
+                Chunk.FOOTER_LENGTH, BLOCK_SIZE);
+        buff.limit(length);
+        return layoutRoot;
     }
 
     private boolean isWriteStoreHeader(Chunk c, boolean storeAtEndOfFile) {

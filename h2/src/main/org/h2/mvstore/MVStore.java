@@ -402,6 +402,9 @@ public class MVStore implements AutoCloseable
             autoCommitMemory = kb * 1024;
             autoCompactFillRate = DataUtils.getConfigParam(config, "autoCompactFillRate", 90);
             char[] encryptionKey = (char[]) config.get("encryptionKey");
+            // there is no need to lock store here, since it is not opened (or even created) yet,
+            // just to make some assertions happy, when they ensure single-threaded access
+            storeLock.lock();
             try {
                 if (!fileStoreIsProvided) {
                     boolean readOnly = config.containsKey("readOnly");
@@ -416,14 +419,7 @@ public class MVStore implements AutoCloseable
                     storeHeader.put(HDR_CREATED, creationTime);
                     writeStoreHeader();
                 } else {
-                    // there is no need to lock store here, since it is not opened yet,
-                    // just to make some assertions happy, when they ensure single-threaded access
-                    storeLock.lock();
-                    try {
-                        readStoreHeader();
-                    } finally {
-                        storeLock.unlock();
-                    }
+                    readStoreHeader();
                 }
             } catch (IllegalStateException e) {
                 panic(e);
@@ -431,6 +427,7 @@ public class MVStore implements AutoCloseable
                 if (encryptionKey != null) {
                     Arrays.fill(encryptionKey, (char) 0);
                 }
+                unlockAndCheckPanicCondition();
             }
             lastCommitTime = getTimeSinceCreation();
 
@@ -523,11 +520,17 @@ public class MVStore implements AutoCloseable
         }
     }
 
+    private void unlockAndCheckPanicCondition() {
+        storeLock.unlock();
+        if (getPanicException() != null) {
+            closeImmediately();
+        }
+    }
+
     private void panic(IllegalStateException e) {
         if (isOpen()) {
             handleException(e);
             panicException = e;
-            closeImmediately();
         }
         throw e;
     }
@@ -1330,7 +1333,7 @@ public class MVStore implements AutoCloseable
                     store();
                 }
             } finally {
-                storeLock.unlock();
+                unlockAndCheckPanicCondition();
             }
         }
         return currentVersion;
@@ -1367,7 +1370,7 @@ public class MVStore implements AutoCloseable
                     store();
                 }
             } finally {
-                storeLock.unlock();
+                unlockAndCheckPanicCondition();
             }
         }
         return currentVersion;
@@ -1867,7 +1870,7 @@ public class MVStore implements AutoCloseable
                 }
             }
         } finally {
-            storeLock.unlock();
+            unlockAndCheckPanicCondition();
         }
     }
 
@@ -2802,7 +2805,7 @@ public class MVStore implements AutoCloseable
                 }
             }
         } finally {
-            storeLock.unlock();
+            unlockAndCheckPanicCondition();
         }
     }
 
@@ -2990,7 +2993,7 @@ public class MVStore implements AutoCloseable
                         }
                         compactMoveChunks(moveSize);
                     } finally {
-                        storeLock.unlock();
+                        unlockAndCheckPanicCondition();
                     }
                 }
             } else if (fillRate >= autoCompactFillRate && lastChunk != null) {
@@ -3054,7 +3057,7 @@ public class MVStore implements AutoCloseable
                             break;
                         }
                     } finally {
-                        storeLock.unlock();
+                        unlockAndCheckPanicCondition();
                     }
                 }
             } catch (InterruptedException e) {

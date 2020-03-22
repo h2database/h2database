@@ -1542,7 +1542,7 @@ public class DataType {
      * @return true if the value type is a numeric type
      */
     public static boolean isNumericType(int type) {
-        return type >= Value.TINYINT && type <= Value.REAL;
+        return type >= Value.TINYINT && type <= Value.NUMERIC;
     }
 
     /**
@@ -1552,14 +1552,7 @@ public class DataType {
      * @return true if the value type is a binary string type
      */
     public static boolean isBinaryStringType(int type) {
-        switch (type) {
-        case Value.VARBINARY:
-        case Value.BINARY:
-        case Value.BLOB:
-            return true;
-        default:
-            return false;
-        }
+        return type >= Value.BINARY && type <= Value.BLOB;
     }
 
     /**
@@ -1569,15 +1562,7 @@ public class DataType {
      * @return true if the value type is a character string type
      */
     public static boolean isCharacterStringType(int type) {
-        switch (type) {
-        case Value.VARCHAR:
-        case Value.VARCHAR_IGNORECASE:
-        case Value.CLOB:
-        case Value.CHAR:
-            return true;
-        default:
-            return false;
-        }
+        return type >= Value.CHAR && type <= Value.VARCHAR_IGNORECASE;
     }
 
     /**

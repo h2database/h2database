@@ -301,9 +301,17 @@ public class BinaryOperation extends Operation2 {
 
     private Expression optimizeDateTime(Session session, int l, int r) {
         switch (opType) {
-        case PLUS:
-            if (r != Value.getHigherOrder(l, r)) {
-                // order left and right: INT < TIME < DATE < TIMESTAMP
+        case PLUS: {
+            if (DataType.isDateTimeType(l)) {
+                if (DataType.isDateTimeType(r)) {
+                    if (l > r) {
+                        swap();
+                        int t = l;
+                        l = r;
+                        r = t;
+                    }
+                    return new CompatibilityDatePlusTimeOperation(right, left).optimize(session);
+                }
                 swap();
                 int t = l;
                 l = r;
@@ -325,13 +333,9 @@ public class BinaryOperation extends Operation2 {
                                         ValueExpression.get(ValueInteger.get(60 * 60 * 24)), left),
                                 right)
                         .optimize(session);
-            case Value.TIME:
-            case Value.TIME_TZ:
-                if (DataType.isDateTimeType(r)) {
-                    return new CompatibilityDatePlusTimeOperation(right, left).optimize(session);
-                }
             }
             break;
+        }
         case MINUS:
             switch (l) {
             case Value.DATE:

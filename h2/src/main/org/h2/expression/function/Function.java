@@ -349,8 +349,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("LOCALTIMESTAMP", LOCALTIMESTAMP, VAR_ARGS, Value.TIMESTAMP, false);
         addFunctionNotDeterministic("NOW", LOCALTIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
 
-        addFunction("DATEADD", DATEADD, 3, Value.TIMESTAMP);
-        addFunction("TIMESTAMPADD", DATEADD, 3, Value.TIMESTAMP);
+        addFunction("DATEADD", DATEADD, 3, Value.NULL);
+        addFunction("TIMESTAMPADD", DATEADD, 3, Value.NULL);
         addFunction("DATEDIFF", DATEDIFF, 3, Value.BIGINT);
         addFunction("TIMESTAMPDIFF", DATEDIFF, 3, Value.BIGINT);
         addFunction("DAYNAME", DAY_NAME,
@@ -2693,34 +2693,21 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         Expression p0 = args.length < 1 ? null : args[0];
         switch (info.type) {
         case DATEADD: {
-            typeInfo = TypeInfo.TYPE_TIMESTAMP;
-            if (p0.isConstant()) {
-                Expression p2 = args[2];
-                switch (p2.getType().getValueType()) {
-                case Value.TIME:
-                    typeInfo = TypeInfo.TYPE_TIME;
-                    break;
-                case Value.DATE: {
-                    int field = p0.getValue(session).getInt();
-                    switch (field) {
-                    case DateTimeFunctions.HOUR:
-                    case DateTimeFunctions.MINUTE:
-                    case DateTimeFunctions.SECOND:
-                    case DateTimeFunctions.EPOCH:
-                    case DateTimeFunctions.MILLISECOND:
-                    case DateTimeFunctions.MICROSECOND:
-                    case DateTimeFunctions.NANOSECOND:
-                        // TIMESTAMP result
-                        break;
-                    default:
-                        type = TypeInfo.TYPE_DATE;
-                    }
-                    break;
-                }
-                case Value.TIMESTAMP_TZ:
-                    type = TypeInfo.TYPE_TIMESTAMP_TZ;
+            Expression p2 = args[2];
+            int valueType = p2.getType().getValueType();
+            if (valueType == Value.DATE) {
+                switch (p0.getValue(session).getInt()) {
+                case DateTimeFunctions.HOUR:
+                case DateTimeFunctions.MINUTE:
+                case DateTimeFunctions.SECOND:
+                case DateTimeFunctions.MILLISECOND:
+                case DateTimeFunctions.MICROSECOND:
+                case DateTimeFunctions.NANOSECOND:
+                case DateTimeFunctions.EPOCH:
+                    valueType = Value.TIMESTAMP;
                 }
             }
+            typeInfo = TypeInfo.getTypeInfo(valueType);
             break;
         }
         case EXTRACT: {
@@ -2755,7 +2742,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     TypeInfo type = e.getType();
                     int valueType = type.getValueType();
                     if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
-                        typeInfo = Value.getHigherType(typeInfo, type);
+                        typeInfo = TypeInfo.getHigherType(typeInfo, type);
                     }
                 }
             }
@@ -2777,7 +2764,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     TypeInfo type = then.getType();
                     int valueType = type.getValueType();
                     if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
-                        typeInfo = Value.getHigherType(typeInfo, type);
+                        typeInfo = TypeInfo.getHigherType(typeInfo, type);
                     }
                 }
             }
@@ -2787,7 +2774,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     TypeInfo type = elsePart.getType();
                     int valueType = type.getValueType();
                     if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
-                        typeInfo = Value.getHigherType(typeInfo, type);
+                        typeInfo = TypeInfo.getHigherType(typeInfo, type);
                     }
                 }
             }
@@ -2797,7 +2784,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case CASEWHEN:
-            typeInfo = Value.getHigherType(args[1].getType(), args[2].getType());
+            typeInfo = TypeInfo.getHigherType(args[1].getType(), args[2].getType());
             break;
         case NVL2: {
             TypeInfo t1 = args[1].getType(), t2 = args[2].getType();
@@ -2809,7 +2796,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 typeInfo = TypeInfo.getTypeInfo(t1.getValueType(), -1, 0, null);
                 break;
             default:
-                typeInfo = Value.getHigherType(t1, t2);
+                typeInfo = TypeInfo.getHigherType(t1, t2);
                 break;
             }
             break;
@@ -2947,13 +2934,13 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case HEXTORAW: {
             TypeInfo t = args[0].getType();
             if (database.getMode().getEnum() == ModeEnum.Oracle) {
-                if (DataType.isStringType(t.getValueType())) {
+                if (DataType.isCharacterStringType(t.getValueType())) {
                     typeInfo = TypeInfo.getTypeInfo(Value.VARBINARY, t.getPrecision() / 2, 0, null);
                 } else {
                     typeInfo = TypeInfo.TYPE_VARBINARY;
                 }
             } else {
-                if (DataType.isStringType(t.getValueType())) {
+                if (DataType.isCharacterStringType(t.getValueType())) {
                     typeInfo = TypeInfo.getTypeInfo(Value.VARCHAR, t.getPrecision() / 4, 0, null);
                 } else {
                     typeInfo = TypeInfo.TYPE_VARCHAR;

@@ -49,221 +49,298 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     /**
      * The value type for NULL.
      */
-    public static final int NULL = 0;
-
-    /**
-     * The value type for BOOLEAN values.
-     */
-    public static final int BOOLEAN = 1;
-
-    /**
-     * The value type for TINYINT values.
-     */
-    public static final int TINYINT = 2;
-
-    /**
-     * The value type for SMALLINT values.
-     */
-    public static final int SMALLINT = 3;
-
-    /**
-     * The value type for INTEGER values.
-     */
-    public static final int INTEGER = 4;
-
-    /**
-     * The value type for BIGINT values.
-     */
-    public static final int BIGINT = 5;
-
-    /**
-     * The value type for NUMERIC values.
-     */
-    public static final int NUMERIC = 6;
-
-    /**
-     * The value type for DOUBLE PRECISION values.
-     */
-    public static final int DOUBLE = 7;
-
-    /**
-     * The value type for REAL values.
-     */
-    public static final int REAL = 8;
-
-    /**
-     * The value type for TIME values.
-     */
-    public static final int TIME = 9;
-
-    /**
-     * The value type for DATE values.
-     */
-    public static final int DATE = 10;
-
-    /**
-     * The value type for TIMESTAMP values.
-     */
-    public static final int TIMESTAMP = 11;
-
-    /**
-     * The value type for BINARY VARYING values.
-     */
-    public static final int VARBINARY = 12;
-
-    /**
-     * The value type for CHARACTER VARYING values.
-     */
-    public static final int VARCHAR = 13;
-
-    /**
-     * The value type for VARCHAR_IGNORECASE values.
-     */
-    public static final int VARCHAR_IGNORECASE = 14;
-
-    /**
-     * The value type for BLOB values.
-     */
-    public static final int BLOB = 15;
-
-    /**
-     * The value type for CLOB values.
-     */
-    public static final int CLOB = 16;
-
-    /**
-     * The value type for ARRAY values.
-     */
-    public static final int ARRAY = 17;
-
-    /**
-     * The value type for RESULT_SET values.
-     */
-    public static final int RESULT_SET = 18;
-
-    /**
-     * The value type for JAVA_OBJECT values.
-     */
-    public static final int JAVA_OBJECT = 19;
-
-    /**
-     * The value type for UUID values.
-     */
-    public static final int UUID = 20;
+    public static final int NULL = UNKNOWN + 1;
 
     /**
      * The value type for CHAR values.
      */
-    public static final int CHAR = 21;
+    public static final int CHAR = NULL + 1;
 
     /**
-     * The value type for string values with a fixed size.
+     * The value type for CHARACTER VARYING values.
      */
-    public static final int GEOMETRY = 22;
-
-    /*
-     * 23 was a short-lived experiment "TIMESTAMP UTC" which has been removed.
-     */
+    public static final int VARCHAR = CHAR + 1;
 
     /**
-     * The value type for TIMESTAMP WITH TIME ZONE values.
+     * The value type for CLOB values.
      */
-    public static final int TIMESTAMP_TZ = 24;
+    public static final int CLOB = VARCHAR + 1;
 
     /**
-     * The value type for ENUM values.
+     * The value type for VARCHAR_IGNORECASE values.
      */
-    public static final int ENUM = 25;
-
-    /**
-     * The value type for {@code INTERVAL YEAR} values.
-     */
-    public static final int INTERVAL_YEAR = 26;
-
-    /**
-     * The value type for {@code INTERVAL MONTH} values.
-     */
-    public static final int INTERVAL_MONTH = 27;
-
-    /**
-     * The value type for {@code INTERVAL DAY} values.
-     */
-    public static final int INTERVAL_DAY = 28;
-
-    /**
-     * The value type for {@code INTERVAL HOUR} values.
-     */
-    public static final int INTERVAL_HOUR = 29;
-
-    /**
-     * The value type for {@code INTERVAL MINUTE} values.
-     */
-    public static final int INTERVAL_MINUTE = 30;
-
-    /**
-     * The value type for {@code INTERVAL SECOND} values.
-     */
-    public static final int INTERVAL_SECOND = 31;
-
-    /**
-     * The value type for {@code INTERVAL YEAR TO MONTH} values.
-     */
-    public static final int INTERVAL_YEAR_TO_MONTH = 32;
-
-    /**
-     * The value type for {@code INTERVAL DAY TO HOUR} values.
-     */
-    public static final int INTERVAL_DAY_TO_HOUR = 33;
-
-    /**
-     * The value type for {@code INTERVAL DAY TO MINUTE} values.
-     */
-    public static final int INTERVAL_DAY_TO_MINUTE = 34;
-
-    /**
-     * The value type for {@code INTERVAL DAY TO SECOND} values.
-     */
-    public static final int INTERVAL_DAY_TO_SECOND = 35;
-
-    /**
-     * The value type for {@code INTERVAL HOUR TO MINUTE} values.
-     */
-    public static final int INTERVAL_HOUR_TO_MINUTE = 36;
-
-    /**
-     * The value type for {@code INTERVAL HOUR TO SECOND} values.
-     */
-    public static final int INTERVAL_HOUR_TO_SECOND = 37;
-
-    /**
-     * The value type for {@code INTERVAL MINUTE TO SECOND} values.
-     */
-    public static final int INTERVAL_MINUTE_TO_SECOND = 38;
-
-    /**
-     * The value type for ROW values.
-     */
-    public static final int ROW = 39;
-
-    /**
-     * The value type for JSON values.
-     */
-    public static final int JSON = 40;
-
-    /**
-     * The value type for TIME WITH TIME ZONE values.
-     */
-    public static final int TIME_TZ = 41;
+    public static final int VARCHAR_IGNORECASE = CLOB + 1;
 
     /**
      * The value type for BINARY values.
      */
-    public static final int BINARY = 42;
+    public static final int BINARY = VARCHAR_IGNORECASE + 1;
+
+    /**
+     * The value type for BINARY VARYING values.
+     */
+    public static final int VARBINARY = BINARY + 1;
+
+    /**
+     * The value type for BLOB values.
+     */
+    public static final int BLOB = VARBINARY + 1;
+
+    /**
+     * The value type for BOOLEAN values.
+     */
+    public static final int BOOLEAN = BLOB + 1;
+
+    /**
+     * The value type for TINYINT values.
+     */
+    public static final int TINYINT = BOOLEAN + 1;
+
+    /**
+     * The value type for SMALLINT values.
+     */
+    public static final int SMALLINT = TINYINT + 1;
+
+    /**
+     * The value type for INTEGER values.
+     */
+    public static final int INTEGER = SMALLINT + 1;
+
+    /**
+     * The value type for BIGINT values.
+     */
+    public static final int BIGINT = INTEGER + 1;
+
+    /**
+     * The value type for NUMERIC values.
+     */
+    public static final int NUMERIC = BIGINT + 1;
+
+    /**
+     * The value type for REAL values.
+     */
+    public static final int REAL = NUMERIC + 1;
+
+    /**
+     * The value type for DOUBLE PRECISION values.
+     */
+    public static final int DOUBLE = REAL + 1;
+
+    /**
+     * The value type for DATE values.
+     */
+    public static final int DATE = DOUBLE + 1;
+
+    /**
+     * The value type for TIME values.
+     */
+    public static final int TIME = DATE + 1;
+
+    /**
+     * The value type for TIME WITH TIME ZONE values.
+     */
+    public static final int TIME_TZ = TIME + 1;
+
+    /**
+     * The value type for TIMESTAMP values.
+     */
+    public static final int TIMESTAMP = TIME_TZ + 1;
+
+    /**
+     * The value type for TIMESTAMP WITH TIME ZONE values.
+     */
+    public static final int TIMESTAMP_TZ = TIMESTAMP + 1;
+
+    /**
+     * The value type for {@code INTERVAL YEAR} values.
+     */
+    public static final int INTERVAL_YEAR = TIMESTAMP_TZ + 1;
+
+    /**
+     * The value type for {@code INTERVAL MONTH} values.
+     */
+    public static final int INTERVAL_MONTH = INTERVAL_YEAR + 1;
+
+    /**
+     * The value type for {@code INTERVAL DAY} values.
+     */
+    public static final int INTERVAL_DAY = INTERVAL_MONTH + 1;
+
+    /**
+     * The value type for {@code INTERVAL HOUR} values.
+     */
+    public static final int INTERVAL_HOUR = INTERVAL_DAY + 1;
+
+    /**
+     * The value type for {@code INTERVAL MINUTE} values.
+     */
+    public static final int INTERVAL_MINUTE = INTERVAL_HOUR + 1;
+
+    /**
+     * The value type for {@code INTERVAL SECOND} values.
+     */
+    public static final int INTERVAL_SECOND = INTERVAL_MINUTE + 1;
+
+    /**
+     * The value type for {@code INTERVAL YEAR TO MONTH} values.
+     */
+    public static final int INTERVAL_YEAR_TO_MONTH = INTERVAL_SECOND + 1;
+
+    /**
+     * The value type for {@code INTERVAL DAY TO HOUR} values.
+     */
+    public static final int INTERVAL_DAY_TO_HOUR = INTERVAL_YEAR_TO_MONTH + 1;
+
+    /**
+     * The value type for {@code INTERVAL DAY TO MINUTE} values.
+     */
+    public static final int INTERVAL_DAY_TO_MINUTE = INTERVAL_DAY_TO_HOUR + 1;
+
+    /**
+     * The value type for {@code INTERVAL DAY TO SECOND} values.
+     */
+    public static final int INTERVAL_DAY_TO_SECOND = INTERVAL_DAY_TO_MINUTE + 1;
+
+    /**
+     * The value type for {@code INTERVAL HOUR TO MINUTE} values.
+     */
+    public static final int INTERVAL_HOUR_TO_MINUTE = INTERVAL_DAY_TO_SECOND + 1;
+
+    /**
+     * The value type for {@code INTERVAL HOUR TO SECOND} values.
+     */
+    public static final int INTERVAL_HOUR_TO_SECOND = INTERVAL_HOUR_TO_MINUTE + 1;
+
+    /**
+     * The value type for {@code INTERVAL MINUTE TO SECOND} values.
+     */
+    public static final int INTERVAL_MINUTE_TO_SECOND = INTERVAL_HOUR_TO_SECOND + 1;
+
+    /**
+     * The value type for JAVA_OBJECT values.
+     */
+    public static final int JAVA_OBJECT = INTERVAL_MINUTE_TO_SECOND + 1;
+
+    /**
+     * The value type for ENUM values.
+     */
+    public static final int ENUM = JAVA_OBJECT + 1;
+
+    /**
+     * The value type for string values with a fixed size.
+     */
+    public static final int GEOMETRY = ENUM + 1;
+
+    /**
+     * The value type for JSON values.
+     */
+    public static final int JSON = GEOMETRY + 1;
+
+    /**
+     * The value type for UUID values.
+     */
+    public static final int UUID = JSON + 1;
+
+    /**
+     * The value type for ARRAY values.
+     */
+    public static final int ARRAY = UUID + 1;
+
+    /**
+     * The value type for ROW values.
+     */
+    public static final int ROW = ARRAY + 1;
+
+    /**
+     * The value type for RESULT_SET values.
+     */
+    public static final int RESULT_SET = ROW + 1;
 
     /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = BINARY + 1;
+    public static final int TYPE_COUNT = RESULT_SET + 1;
+
+    /**
+     * Group for untyped NULL data type.
+     */
+    private static final int GROUP_NULL = 0;
+
+    /**
+     * Group for character string data types.
+     */
+    private static final int GROUP_CHARACTER_STRING = GROUP_NULL + 1;
+
+    /**
+     * Group for binary string data types.
+     */
+    private static final int GROUP_BINARY_STRING = GROUP_CHARACTER_STRING + 1;
+
+    /**
+     * Group for BINARY data type.
+     */
+    private static final int GROUP_BOOLEAN = GROUP_BINARY_STRING + 1;
+
+    /**
+     * Group for numeric data types.
+     */
+    private static final int GROUP_NUMERIC = GROUP_BOOLEAN + 1;
+
+    /**
+     * Group for datetime data types.
+     */
+    private static final int GROUP_DATETIME = GROUP_NUMERIC + 1;
+
+    /**
+     * Group for year-month interval data types.
+     */
+    private static final int GROUP_INTERVAL_YM = GROUP_DATETIME + 1;
+
+    /**
+     * Group for day-time interval data types.
+     */
+    private static final int GROUP_INTERVAL_DT = GROUP_INTERVAL_YM + 1;
+
+    /**
+     * Group for other data types (JAVA_OBJECT, UUID, GEOMETRY, ENUM, JSON).
+     */
+    private static final int GROUP_OTHER = GROUP_INTERVAL_DT + 1;
+
+    /**
+     * Group for collection data types (ARRAY, RESULT_SET, ROW).
+     */
+    private static final int GROUP_COLLECTION = GROUP_OTHER + 1;
+
+    private static final byte GROUPS[] = {
+            // NULL
+            GROUP_NULL,
+            // CHAR, VARCHAR, CLOB, VARCHAR_IGNORECASE
+            GROUP_CHARACTER_STRING, GROUP_CHARACTER_STRING, GROUP_CHARACTER_STRING, GROUP_CHARACTER_STRING,
+            // BINARY, VARBINARY, BLOB
+            GROUP_BINARY_STRING, GROUP_BINARY_STRING, GROUP_BINARY_STRING,
+            // BOOLEAN
+            GROUP_BOOLEAN,
+            // TINYINT, SMALLINT, INTEGER, BIGINT, NUMERIC, REAL, DOUBLE
+            GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC,
+            // DATE, TIME, TIME_TZ, TIMESTAMP, TIMESTAMP_TZ
+            GROUP_DATETIME, GROUP_DATETIME, GROUP_DATETIME, GROUP_DATETIME, GROUP_DATETIME,
+            // INTERVAL_YEAR, INTERVAL_MONTH
+            GROUP_INTERVAL_YM, GROUP_INTERVAL_YM,
+            // INTERVAL_DAY, INTERVAL_HOUR, INTERVAL_MINUTE, INTERVAL_SECOND
+            GROUP_INTERVAL_DT, GROUP_INTERVAL_DT, GROUP_INTERVAL_DT, GROUP_INTERVAL_DT,
+            // INTERVAL_YEAR_TO_MONTH
+            GROUP_INTERVAL_YM,
+            // INTERVAL_DAY_TO_HOUR, INTERVAL_DAY_TO_MINUTE,
+            // INTERVAL_DAY_TO_SECOND, INTERVAL_HOUR_TO_MINUTE,
+            // INTERVAL_HOUR_TO_SECOND, INTERVAL_MINUTE_TO_SECOND
+            GROUP_INTERVAL_DT, GROUP_INTERVAL_DT, GROUP_INTERVAL_DT, GROUP_INTERVAL_DT, GROUP_INTERVAL_DT,
+            GROUP_INTERVAL_DT,
+            // JAVA_OBJECT, ENUM, GEOMETRY, JSON, UUID
+            GROUP_OTHER, GROUP_OTHER, GROUP_OTHER, GROUP_OTHER, GROUP_OTHER,
+            // ARRAY, ROW, RESULT_SET
+            GROUP_COLLECTION, GROUP_COLLECTION, GROUP_COLLECTION,
+            //
+    };
 
     /**
      * Empty array of values.
@@ -370,105 +447,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     public abstract boolean equals(Object other);
 
     /**
-     * Get the order of this value type.
-     *
-     * @param type the value type
-     * @return the order number
-     */
-    static int getOrder(int type) {
-        switch (type) {
-        case UNKNOWN:
-            return 1_000;
-        case NULL:
-            return 2_000;
-        case VARCHAR:
-            return 10_000;
-        case CLOB:
-            return 11_000;
-        case CHAR:
-            return 12_000;
-        case VARCHAR_IGNORECASE:
-            return 13_000;
-        case BOOLEAN:
-            return 20_000;
-        case TINYINT:
-            return 21_000;
-        case SMALLINT:
-            return 22_000;
-        case INTEGER:
-            return 23_000;
-        case BIGINT:
-            return 24_000;
-        case NUMERIC:
-            return 25_000;
-        case REAL:
-            return 26_000;
-        case DOUBLE:
-            return 27_000;
-        case INTERVAL_YEAR:
-            return 28_000;
-        case INTERVAL_MONTH:
-            return 28_100;
-        case INTERVAL_YEAR_TO_MONTH:
-            return 28_200;
-        case INTERVAL_DAY:
-            return 29_000;
-        case INTERVAL_HOUR:
-            return 29_100;
-        case INTERVAL_DAY_TO_HOUR:
-            return 29_200;
-        case INTERVAL_MINUTE:
-            return 29_300;
-        case INTERVAL_HOUR_TO_MINUTE:
-            return 29_400;
-        case INTERVAL_DAY_TO_MINUTE:
-            return 29_500;
-        case INTERVAL_SECOND:
-            return 29_600;
-        case INTERVAL_MINUTE_TO_SECOND:
-            return 29_700;
-        case INTERVAL_HOUR_TO_SECOND:
-            return 29_800;
-        case INTERVAL_DAY_TO_SECOND:
-            return 29_900;
-        case TIME:
-            return 30_000;
-        case TIME_TZ:
-            return 30_500;
-        case DATE:
-            return 31_000;
-        case TIMESTAMP:
-            return 32_000;
-        case TIMESTAMP_TZ:
-            return 34_000;
-        case BINARY:
-            return 39_000;
-        case VARBINARY:
-            return 40_000;
-        case BLOB:
-            return 41_000;
-        case JAVA_OBJECT:
-            return 42_000;
-        case UUID:
-            return 43_000;
-        case GEOMETRY:
-            return 44_000;
-        case ENUM:
-            return 45_000;
-        case JSON:
-            return 46_000;
-        case ARRAY:
-            return 50_000;
-        case ROW:
-            return 51_000;
-        case RESULT_SET:
-            return 52_000;
-        default:
-            throw DbException.throwInternalError("type:"+type);
-        }
-    }
-
-    /**
      * Get the higher value order type of two value types. If values need to be
      * converted to match the other operands value type, the value with the
      * lower order is converted to the value with the higher order.
@@ -478,40 +456,236 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @return the higher value type of the two
      */
     public static int getHigherOrder(int t1, int t2) {
-        if (t1 == UNKNOWN || t2 == UNKNOWN) {
-            if (t1 == t2) {
-                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, ?");
-            } else if (t1 == NULL) {
-                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "NULL, ?");
-            } else if (t2 == NULL) {
-                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, NULL");
-            }
-        }
         if (t1 == t2) {
+            if (t1 == UNKNOWN) {
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, ?");
+            }
             return t1;
         }
-        int o1 = getOrder(t1);
-        int o2 = getOrder(t2);
-        return o1 > o2 ? t1 : t2;
+        if (t1 < t2) {
+            int t = t1;
+            t1 = t2;
+            t2 = t;
+        }
+        if (t1 == UNKNOWN) {
+            if (t2 == NULL) {
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, NULL");
+            }
+            return t2;
+        } else if (t2 == UNKNOWN) {
+            if (t1 == NULL) {
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "NULL, ?");
+            }
+            return t1;
+        }
+        if (t2 == NULL) {
+            return t1;
+        }
+        int g1 = GROUPS[t1], g2 = GROUPS[t2];
+        switch (g1) {
+        case GROUP_BOOLEAN:
+            if (g2 == GROUP_BINARY_STRING) {
+                throw getDataTypeCombinationException(BOOLEAN, t2);
+            }
+            break;
+        case GROUP_NUMERIC:
+            return getHigherNumeric(t1, t2, g2);
+        case GROUP_DATETIME:
+            return getHigherDateTime(t1, t2, g2);
+        case GROUP_INTERVAL_YM:
+            return getHigherIntervalYearMonth(t1, t2, g2);
+        case GROUP_INTERVAL_DT:
+            return getHigherIntervalDayTime(t1, t2, g2);
+        case GROUP_OTHER:
+            return getHigherOther(t1, t2, g2);
+        }
+        return t1;
     }
 
-    /**
-     * Get the higher data type of two data types. If values need to be
-     * converted to match the other operands data type, the value with the
-     * lower order is converted to the value with the higher order.
-     *
-     * @param type1 the first data type
-     * @param type2 the second data type
-     * @return the higher data type of the two
-     */
-    public static TypeInfo getHigherType(TypeInfo type1, TypeInfo type2) {
-        int t1 = type1.getValueType(), t2 = type2.getValueType();
-        int dataType = getHigherOrder(t1, t2);
-        long precision = Math.max(type1.getPrecision(), type2.getPrecision());
-        int scale = Math.max(type1.getScale(), type2.getScale());
-        ExtTypeInfo ext1 = type1.getExtTypeInfo();
-        ExtTypeInfo ext = dataType == t1 && ext1 != null ? ext1 : dataType == t2 ? type2.getExtTypeInfo() : null;
-        return TypeInfo.getTypeInfo(dataType, precision, scale, ext);
+    private static int getHigherNumeric(int t1, int t2, int g2) {
+        if (g2 == GROUP_NUMERIC) {
+            if (t1 == NUMERIC || t2 == NUMERIC) {
+                return NUMERIC;
+            }
+            if (t1 == REAL) {
+                if (t2 == INTEGER) {
+                    return DOUBLE;
+                }
+                if (t2 == BIGINT) {
+                    return NUMERIC;
+                }
+            } else if (t1 == DOUBLE && t2 == BIGINT) {
+                return NUMERIC;
+            }
+        } else if (g2 == GROUP_BINARY_STRING) {
+            throw getDataTypeCombinationException(t1, t2);
+        }
+        return t1;
+    }
+
+    private static int getHigherDateTime(int t1, int t2, int g2) {
+        if (g2 == GROUP_CHARACTER_STRING) {
+            return t1;
+        }
+        if (g2 != GROUP_DATETIME) {
+            throw getDataTypeCombinationException(t1, t2);
+        }
+        switch (t1) {
+        case TIME:
+            if (t2 == DATE) {
+                return TIMESTAMP;
+            }
+            break;
+        case TIME_TZ:
+            if (t2 == DATE) {
+                return TIMESTAMP_TZ;
+            }
+            break;
+        case TIMESTAMP:
+            if (t2 == TIME_TZ) {
+                return TIMESTAMP_TZ;
+            }
+        }
+        return t1;
+    }
+
+    private static int getHigherIntervalYearMonth(int t1, int t2, int g2) {
+        switch (g2) {
+        case GROUP_INTERVAL_YM:
+            if (t1 == INTERVAL_MONTH && t2 == INTERVAL_YEAR) {
+                return INTERVAL_YEAR_TO_MONTH;
+            }
+            //$FALL-THROUGH$
+        case GROUP_CHARACTER_STRING:
+        case GROUP_NUMERIC:
+            return t1;
+        default:
+            throw getDataTypeCombinationException(t1, t2);
+        }
+    }
+
+    private static int getHigherIntervalDayTime(int t1, int t2, int g2) {
+        switch (g2) {
+        case GROUP_INTERVAL_DT:
+            break;
+        case GROUP_CHARACTER_STRING:
+        case GROUP_NUMERIC:
+            return t1;
+        default:
+            throw getDataTypeCombinationException(t1, t2);
+        }
+        switch (t1) {
+        case INTERVAL_HOUR:
+            return INTERVAL_DAY_TO_HOUR;
+        case INTERVAL_MINUTE:
+            if (t2 == INTERVAL_DAY) {
+                return INTERVAL_DAY_TO_MINUTE;
+            }
+            return INTERVAL_HOUR_TO_MINUTE;
+        case INTERVAL_SECOND:
+            if (t2 == INTERVAL_DAY) {
+                return INTERVAL_DAY_TO_SECOND;
+            }
+            if (t2 == INTERVAL_HOUR) {
+                return INTERVAL_HOUR_TO_SECOND;
+            }
+            return INTERVAL_MINUTE_TO_SECOND;
+        case INTERVAL_DAY_TO_HOUR:
+            if (t2 == INTERVAL_MINUTE) {
+                return INTERVAL_DAY_TO_MINUTE;
+            }
+            if (t2 == INTERVAL_SECOND) {
+                return INTERVAL_DAY_TO_SECOND;
+            }
+            break;
+        case INTERVAL_DAY_TO_MINUTE:
+            if (t1 == INTERVAL_SECOND) {
+                return INTERVAL_DAY_TO_SECOND;
+            }
+            break;
+        case INTERVAL_HOUR_TO_MINUTE:
+            switch (t2) {
+            case INTERVAL_DAY:
+            case INTERVAL_DAY_TO_HOUR:
+            case INTERVAL_DAY_TO_MINUTE:
+                return INTERVAL_DAY_TO_MINUTE;
+            case INTERVAL_SECOND:
+                return INTERVAL_HOUR_TO_SECOND;
+            case INTERVAL_DAY_TO_SECOND:
+                return INTERVAL_DAY_TO_SECOND;
+            }
+            break;
+        case INTERVAL_HOUR_TO_SECOND:
+            switch (t2) {
+            case INTERVAL_DAY:
+            case INTERVAL_DAY_TO_HOUR:
+            case INTERVAL_DAY_TO_MINUTE:
+            case INTERVAL_DAY_TO_SECOND:
+                return INTERVAL_DAY_TO_SECOND;
+            }
+            break;
+        case INTERVAL_MINUTE_TO_SECOND:
+            switch (t2) {
+            case INTERVAL_DAY:
+            case INTERVAL_DAY_TO_HOUR:
+            case INTERVAL_DAY_TO_MINUTE:
+            case INTERVAL_DAY_TO_SECOND:
+                return INTERVAL_DAY_TO_SECOND;
+            case INTERVAL_HOUR:
+            case INTERVAL_HOUR_TO_MINUTE:
+            case INTERVAL_HOUR_TO_SECOND:
+                return INTERVAL_HOUR_TO_SECOND;
+            }
+        }
+        return t1;
+    }
+
+    private static int getHigherOther(int t1, int t2, int g2) {
+        switch (t1) {
+        case JAVA_OBJECT:
+            if (g2 != GROUP_BINARY_STRING) {
+                throw getDataTypeCombinationException(t1, t2);
+            }
+            break;
+        case ENUM:
+            if (g2 != GROUP_CHARACTER_STRING && (g2 != GROUP_NUMERIC || t2 > INTEGER)) {
+                throw getDataTypeCombinationException(t1, t2);
+            }
+            break;
+        case GEOMETRY:
+            if (g2 != GROUP_CHARACTER_STRING && g2 != GROUP_BINARY_STRING) {
+                throw getDataTypeCombinationException(t1, t2);
+            }
+            break;
+        case JSON:
+            switch (g2) {
+            case GROUP_DATETIME:
+            case GROUP_INTERVAL_YM:
+            case GROUP_INTERVAL_DT:
+            case GROUP_OTHER:
+                throw getDataTypeCombinationException(t1, t2);
+            }
+            break;
+        case UUID:
+            switch (g2) {
+            case GROUP_CHARACTER_STRING:
+            case GROUP_BINARY_STRING:
+                break;
+            case GROUP_OTHER:
+                if (t2 == JAVA_OBJECT) {
+                    break;
+                }
+                //$FALL-THROUGH$
+            default:
+                throw getDataTypeCombinationException(t1, t2);
+            }
+        }
+        return t1;
+    }
+
+    private static DbException getDataTypeCombinationException(int t1, int t2) {
+        return DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1,
+                DataType.getDataType(t1).name + ", " + DataType.getDataType(t2).name);
     }
 
     /**
@@ -810,6 +984,20 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         switch (targetValueType) {
         case NULL:
             return ValueNull.INSTANCE;
+        case CHAR:
+            return convertToChar(targetType, conversionMode, column);
+        case VARCHAR:
+            return ValueVarchar.get(convertToVarchar(targetType, conversionMode, column));
+        case CLOB:
+            return convertToClob(targetType, conversionMode, column);
+        case VARCHAR_IGNORECASE:
+            return ValueVarcharIgnoreCase.get(convertToVarchar(targetType, conversionMode, column));
+        case BINARY:
+            return convertToBinary(targetType, conversionMode, column);
+        case VARBINARY:
+            return convertToVarbinary(targetType, conversionMode, column);
+        case BLOB:
+            return convertToBlob(targetType, conversionMode, column);
         case BOOLEAN:
             return convertToBoolean();
         case TINYINT:
@@ -822,10 +1010,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             return convertToBigint(column);
         case NUMERIC:
             return convertToNumeric(targetType, provider, conversionMode, column);
-        case DOUBLE:
-            return convertToDouble();
         case REAL:
             return convertToReal();
+        case DOUBLE:
+            return convertToDouble();
         case DATE:
             return convertToDate(provider);
         case TIME:
@@ -836,28 +1024,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             return convertToTimestamp(targetType, provider, conversionMode);
         case TIMESTAMP_TZ:
             return convertToTimestampTimeZone(targetType, provider, conversionMode);
-        case VARBINARY:
-            return convertToVarbinary(targetType, conversionMode, column);
-        case BINARY:
-            return convertToBinary(targetType, conversionMode, column);
-        case VARCHAR:
-            return ValueVarchar.get(convertToVarchar(targetType, conversionMode, column));
-        case VARCHAR_IGNORECASE:
-            return ValueVarcharIgnoreCase.get(convertToVarchar(targetType, conversionMode, column));
-        case CHAR:
-            return convertToChar(targetType, conversionMode, column);
-        case JAVA_OBJECT:
-            return convertToJavaObject(targetType, conversionMode, column);
-        case ENUM:
-            return convertToEnum((ExtTypeInfoEnum) targetType.getExtTypeInfo());
-        case BLOB:
-            return convertToBlob(targetType, conversionMode, column);
-        case CLOB:
-            return convertToClob(targetType, conversionMode, column);
-        case UUID:
-            return convertToUuid();
-        case GEOMETRY:
-            return convertToGeometry((ExtTypeInfoGeometry) targetType.getExtTypeInfo());
         case INTERVAL_YEAR:
         case INTERVAL_MONTH:
         case INTERVAL_YEAR_TO_MONTH:
@@ -873,8 +1039,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INTERVAL_HOUR_TO_SECOND:
         case INTERVAL_MINUTE_TO_SECOND:
             return convertToIntervalDayTime(targetType, conversionMode, column);
+        case JAVA_OBJECT:
+            return convertToJavaObject(targetType, conversionMode, column);
+        case ENUM:
+            return convertToEnum((ExtTypeInfoEnum) targetType.getExtTypeInfo());
+        case GEOMETRY:
+            return convertToGeometry((ExtTypeInfoGeometry) targetType.getExtTypeInfo());
         case JSON:
             return convertToJson();
+        case UUID:
+            return convertToUuid();
         case ARRAY:
             return convertToArray(targetType, provider, conversionMode, column);
         case ROW:
@@ -2346,6 +2520,15 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                 l = l.convertToEnum(enumerators);
                 v = v.convertToEnum(enumerators);
             } else {
+                if (dataType <= BLOB) {
+                    if (dataType <= CLOB) {
+                        if (leftType == CHAR || rightType == CHAR) {
+                            dataType = CHAR;
+                        }
+                    } else if (dataType >= BINARY && (leftType == BINARY || rightType == BINARY)) {
+                        dataType = BINARY;
+                    }
+                }
                 l = l.convertTo(dataType, provider);
                 v = v.convertTo(dataType, provider);
             }

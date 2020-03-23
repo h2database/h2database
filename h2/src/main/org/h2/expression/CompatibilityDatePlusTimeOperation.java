@@ -9,8 +9,6 @@ import static org.h2.util.DateTimeUtils.NANOS_PER_DAY;
 
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.util.DateTimeUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
@@ -25,15 +23,10 @@ import org.h2.value.ValueTimestampTimeZone;
 /**
  * A compatibility mathematical operation with datetime values.
  */
-public class CompatibilityDatePlusTimeOperation extends Expression {
-
-    private Expression left, right;
-
-    private TypeInfo type;
+public class CompatibilityDatePlusTimeOperation extends Operation2 {
 
     public CompatibilityDatePlusTimeOperation(Expression left, Expression right) {
-        this.left = left;
-        this.right = right;
+        super(left, right);
         TypeInfo l = left.getType(), r = right.getType();
         int t;
         switch (l.getValueType()) {
@@ -43,15 +36,14 @@ public class CompatibilityDatePlusTimeOperation extends Expression {
             }
             //$FALL-THROUGH$
         case Value.TIME:
-            t = l.getValueType();
+            t = r.getValueType() == Value.DATE ? Value.TIMESTAMP : l.getValueType();
             break;
         case Value.TIME_TZ:
             if (r.getValueType() == Value.TIME_TZ) {
                 throw DbException.getUnsupportedException("TIME WITH TIME ZONE + TIME WITH TIME ZONE");
             }
-            t = l.getValueType();
+            t = r.getValueType() == Value.DATE ? Value.TIMESTAMP_TZ : l.getValueType();
             break;
-        case Value.DATE:
         case Value.TIMESTAMP:
             t = r.getValueType() == Value.TIME_TZ ? Value.TIMESTAMP_TZ : Value.TIMESTAMP;
             break;
@@ -75,20 +67,22 @@ public class CompatibilityDatePlusTimeOperation extends Expression {
         if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
         }
-        boolean withTimeZone = r.getValueType() == Value.TIME_TZ;
         switch (l.getValueType()) {
-        case Value.DATE: {
-            long dateValue = ((ValueDate) l).getDateValue();
-            if (withTimeZone) {
-                ValueTimeTimeZone t = (ValueTimeTimeZone) r;
-                return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, t.getNanos(),
-                        t.getTimeZoneOffsetSeconds());
-            } else {
-                return ValueTimestamp.fromDateValueAndNanos(dateValue, ((ValueTime) r).getNanos());
+        case Value.TIME:
+            if (r.getValueType() == Value.DATE) {
+                return ValueTimestamp.fromDateValueAndNanos(((ValueDate) r).getDateValue(), //
+                        ((ValueTime) l).getNanos());
             }
-        }
+            break;
+        case Value.TIME_TZ:
+            if (r.getValueType() == Value.DATE) {
+                ValueTimeTimeZone t = (ValueTimeTimeZone) l;
+                return ValueTimestampTimeZone.fromDateValueAndNanos(((ValueDate) r).getDateValue(), t.getNanos(),
+                        t.getTimeZoneOffsetSeconds());
+            }
+            break;
         case Value.TIMESTAMP: {
-            if (withTimeZone) {
+            if (r.getValueType() == Value.TIME_TZ) {
                 ValueTimestamp ts = (ValueTimestamp) l;
                 l = ValueTimestampTimeZone.fromDateValueAndNanos(ts.getDateValue(), ts.getTimeNanos(),
                         ((ValueTimeTimeZone) r).getTimeZoneOffsetSeconds());
@@ -107,12 +101,6 @@ public class CompatibilityDatePlusTimeOperation extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level, int state) {
-        left.mapColumns(resolver, level, state);
-        right.mapColumns(resolver, level, state);
-    }
-
-    @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
         right = right.optimize(session);
@@ -120,50 +108,6 @@ public class CompatibilityDatePlusTimeOperation extends Expression {
             return ValueExpression.get(getValue(session));
         }
         return this;
-    }
-
-    @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        left.setEvaluatable(tableFilter, b);
-        right.setEvaluatable(tableFilter, b);
-    }
-
-    @Override
-    public TypeInfo getType() {
-        return type;
-    }
-
-    @Override
-    public void updateAggregate(Session session, int stage) {
-        left.updateAggregate(session, stage);
-        right.updateAggregate(session, stage);
-    }
-
-    @Override
-    public boolean isEverything(ExpressionVisitor visitor) {
-        return left.isEverything(visitor) && right.isEverything(visitor);
-    }
-
-    @Override
-    public int getCost() {
-        return left.getCost() + 1 + right.getCost();
-    }
-
-    @Override
-    public int getSubexpressionCount() {
-        return 2;
-    }
-
-    @Override
-    public Expression getSubexpression(int index) {
-        switch (index) {
-        case 0:
-            return left;
-        case 1:
-            return right;
-        default:
-            throw new IndexOutOfBoundsException();
-        }
     }
 
 }

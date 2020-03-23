@@ -6922,7 +6922,7 @@ public class Parser {
                     if (i >= columns.size()) {
                         throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                     }
-                    type = Value.getHigherType(columns.get(i).getType(), type);
+                    type = TypeInfo.getHigherType(columns.get(i).getType(), type);
                     column = new Column(columnName, type);
                     columns.set(i, column);
                 }

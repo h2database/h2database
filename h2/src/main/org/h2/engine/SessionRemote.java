@@ -145,10 +145,8 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             done(trans);
             clientVersion = trans.readInt();
             trans.setVersion(clientVersion);
-            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_14) {
-                if (ci.getFileEncryptionKey() != null) {
-                    trans.writeBytes(ci.getFileEncryptionKey());
-                }
+            if (ci.getFileEncryptionKey() != null) {
+                trans.writeBytes(ci.getFileEncryptionKey());
             }
             trans.writeInt(SessionRemote.SESSION_SET_ID);
             trans.writeString(sessionId);

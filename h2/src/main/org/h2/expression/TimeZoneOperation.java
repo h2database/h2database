@@ -84,7 +84,7 @@ public class TimeZoneOperation extends Expression {
 
     private static int parseTimeZone(Value b, long dateValue, long timeNanos, int offsetSeconds,
             boolean allowTimeZoneName) {
-        if (DataType.isStringType(b.getValueType())) {
+        if (DataType.isCharacterStringType(b.getValueType())) {
             TimeZoneProvider timeZone;
             try {
                 timeZone = TimeZoneProvider.ofId(b.getString());

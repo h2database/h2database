@@ -24,6 +24,7 @@ import java.util.TimeZone;
 import java.util.UUID;
 
 import org.h2.api.ErrorCode;
+import org.h2.api.H2Type;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.jdbc.JdbcConnection;
@@ -87,6 +88,8 @@ public class TestValue extends TestDb {
         testModulusOperator();
         testLobComparison();
         testTypeInfo();
+        testH2Type();
+        testHigherType();
     }
 
     private void testResultSetOperations() throws SQLException {
@@ -610,6 +613,62 @@ public class TestValue extends TestDb {
         assertEquals(precision, typeInfo.getPrecision());
         assertEquals(scale, typeInfo.getScale());
         assertEquals(displaySize, typeInfo.getDisplaySize());
+    }
+
+    private void testH2Type() {
+        assertEquals(Value.CHAR, (int) H2Type.CHAR.getVendorTypeNumber());
+        assertEquals(Value.VARCHAR, (int) H2Type.VARCHAR.getVendorTypeNumber());
+        assertEquals(Value.CLOB, (int) H2Type.CLOB.getVendorTypeNumber());
+        assertEquals(Value.VARCHAR_IGNORECASE, (int) H2Type.VARCHAR_IGNORECASE.getVendorTypeNumber());
+        assertEquals(Value.BINARY, (int) H2Type.BINARY.getVendorTypeNumber());
+        assertEquals(Value.VARBINARY, (int) H2Type.VARBINARY.getVendorTypeNumber());
+        assertEquals(Value.BLOB, (int) H2Type.BLOB.getVendorTypeNumber());
+        assertEquals(Value.BOOLEAN, (int) H2Type.BOOLEAN.getVendorTypeNumber());
+        assertEquals(Value.TINYINT, (int) H2Type.TINYINT.getVendorTypeNumber());
+        assertEquals(Value.SMALLINT, (int) H2Type.SMALLINT.getVendorTypeNumber());
+        assertEquals(Value.INTEGER, (int) H2Type.INTEGER.getVendorTypeNumber());
+        assertEquals(Value.BIGINT, (int) H2Type.BIGINT.getVendorTypeNumber());
+        assertEquals(Value.NUMERIC, (int) H2Type.NUMERIC.getVendorTypeNumber());
+        assertEquals(Value.REAL, (int) H2Type.REAL.getVendorTypeNumber());
+        assertEquals(Value.DOUBLE, (int) H2Type.DOUBLE_PRECISION.getVendorTypeNumber());
+        assertEquals(Value.DATE, (int) H2Type.DATE.getVendorTypeNumber());
+        assertEquals(Value.TIME, (int) H2Type.TIME.getVendorTypeNumber());
+        assertEquals(Value.TIME_TZ, (int) H2Type.TIME_WITH_TIME_ZONE.getVendorTypeNumber());
+        assertEquals(Value.TIMESTAMP, (int) H2Type.TIMESTAMP.getVendorTypeNumber());
+        assertEquals(Value.TIMESTAMP_TZ, (int) H2Type.TIMESTAMP_WITH_TIME_ZONE.getVendorTypeNumber());
+        assertEquals(Value.INTERVAL_YEAR, (int) H2Type.INTERVAL_YEAR.getVendorTypeNumber());
+        assertEquals(Value.INTERVAL_MONTH, (int) H2Type.INTERVAL_MONTH.getVendorTypeNumber());
+        assertEquals(Value.INTERVAL_DAY, (int) H2Type.INTERVAL_DAY.getVendorTypeNumber());
+        assertEquals(Value.INTERVAL_HOUR, (int) H2Type.INTERVAL_HOUR.getVendorTypeNumber());
+        assertEquals(Value.INTERVAL_MINUTE, (int) H2Type.INTERVAL_MINUTE.getVendorTypeNumber());
+        assertEquals(Value.INTERVAL_SECOND, (int) H2Type.INTERVAL_SECOND.getVendorTypeNumber());
+        assertEquals(Value.INTERVAL_YEAR_TO_MONTH, (int) H2Type.INTERVAL_YEAR_TO_MONTH.getVendorTypeNumber());
+        assertEquals(Value.INTERVAL_DAY_TO_HOUR, (int) H2Type.INTERVAL_DAY_TO_HOUR.getVendorTypeNumber());
+        assertEquals(Value.INTERVAL_DAY_TO_MINUTE, (int) H2Type.INTERVAL_DAY_TO_MINUTE.getVendorTypeNumber());
+        assertEquals(Value.INTERVAL_DAY_TO_SECOND, (int) H2Type.INTERVAL_DAY_TO_SECOND.getVendorTypeNumber());
+        assertEquals(Value.INTERVAL_HOUR_TO_MINUTE, (int) H2Type.INTERVAL_HOUR_TO_MINUTE.getVendorTypeNumber());
+        assertEquals(Value.INTERVAL_HOUR_TO_SECOND, (int) H2Type.INTERVAL_HOUR_TO_SECOND.getVendorTypeNumber());
+        assertEquals(Value.INTERVAL_MINUTE_TO_SECOND, (int) H2Type.INTERVAL_MINUTE_TO_SECOND.getVendorTypeNumber());
+        assertEquals(Value.JAVA_OBJECT, (int) H2Type.JAVA_OBJECT.getVendorTypeNumber());
+        assertEquals(Value.ENUM, (int) H2Type.ENUM.getVendorTypeNumber());
+        assertEquals(Value.GEOMETRY, (int) H2Type.GEOMETRY.getVendorTypeNumber());
+        assertEquals(Value.JSON, (int) H2Type.JSON.getVendorTypeNumber());
+        assertEquals(Value.UUID, (int) H2Type.UUID.getVendorTypeNumber());
+        assertEquals(Value.ARRAY, (int) H2Type.ARRAY.getVendorTypeNumber());
+        assertEquals(Value.ROW, (int) H2Type.ROW.getVendorTypeNumber());
+        assertEquals(Value.RESULT_SET, (int) H2Type.RESULT_SET.getVendorTypeNumber());
+    }
+
+    private void testHigherType() {
+        testHigherTypeNumeric(15L, 6, 10L, 1, 5L, 6);
+        testHigherTypeNumeric(15L, 6, 5L, 6, 10L, 1);
+    }
+
+    private void testHigherTypeNumeric(long expectedPrecision, int expectedScale, long precision1, int scale1,
+            long precision2, int scale2) {
+        assertEquals(TypeInfo.getTypeInfo(Value.NUMERIC, expectedPrecision, expectedScale, null),
+                TypeInfo.getHigherType(TypeInfo.getTypeInfo(Value.NUMERIC, precision1, scale1, null),
+                        TypeInfo.getTypeInfo(Value.NUMERIC, precision2, scale2, null)));
     }
 
 }

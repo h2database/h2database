@@ -8,8 +8,6 @@ package org.h2.expression;
 import java.util.Arrays;
 
 import org.h2.engine.Session;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -23,14 +21,10 @@ import org.h2.value.ValueVarchar;
  * string concatenation as in {@code X'01' || X'AB'} or an array concatenation
  * as in {@code ARRAY[1, 2] || 3}.
  */
-public class ConcatenationOperation extends Expression {
-
-    private Expression left, right;
-    private TypeInfo type;
+public class ConcatenationOperation extends Operation2 {
 
     public ConcatenationOperation(Expression left, Expression right) {
-        this.left = left;
-        this.right = right;
+        super(left, right);
     }
 
     @Override
@@ -87,12 +81,6 @@ public class ConcatenationOperation extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level, int state) {
-        left.mapColumns(resolver, level, state);
-        right.mapColumns(resolver, level, state);
-    }
-
-    @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
         right = right.optimize(session);
@@ -113,50 +101,6 @@ public class ConcatenationOperation extends Expression {
             return ValueExpression.get(getValue(session));
         }
         return this;
-    }
-
-    @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        left.setEvaluatable(tableFilter, b);
-        right.setEvaluatable(tableFilter, b);
-    }
-
-    @Override
-    public TypeInfo getType() {
-        return type;
-    }
-
-    @Override
-    public void updateAggregate(Session session, int stage) {
-        left.updateAggregate(session, stage);
-        right.updateAggregate(session, stage);
-    }
-
-    @Override
-    public boolean isEverything(ExpressionVisitor visitor) {
-        return left.isEverything(visitor) && right.isEverything(visitor);
-    }
-
-    @Override
-    public int getCost() {
-        return left.getCost() + right.getCost() + 1;
-    }
-
-    @Override
-    public int getSubexpressionCount() {
-        return 2;
-    }
-
-    @Override
-    public Expression getSubexpression(int index) {
-        switch (index) {
-        case 0:
-            return left;
-        case 1:
-            return right;
-        default:
-            throw new IndexOutOfBoundsException();
-        }
     }
 
 }

@@ -349,8 +349,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("LOCALTIMESTAMP", LOCALTIMESTAMP, VAR_ARGS, Value.TIMESTAMP, false);
         addFunctionNotDeterministic("NOW", LOCALTIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
 
-        addFunction("DATEADD", DATEADD, 3, Value.TIMESTAMP);
-        addFunction("TIMESTAMPADD", DATEADD, 3, Value.TIMESTAMP);
+        addFunction("DATEADD", DATEADD, 3, Value.NULL);
+        addFunction("TIMESTAMPADD", DATEADD, 3, Value.NULL);
         addFunction("DATEDIFF", DATEDIFF, 3, Value.BIGINT);
         addFunction("TIMESTAMPDIFF", DATEDIFF, 3, Value.BIGINT);
         addFunction("DAYNAME", DAY_NAME,
@@ -2693,34 +2693,21 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         Expression p0 = args.length < 1 ? null : args[0];
         switch (info.type) {
         case DATEADD: {
-            typeInfo = TypeInfo.TYPE_TIMESTAMP;
-            if (p0.isConstant()) {
-                Expression p2 = args[2];
-                switch (p2.getType().getValueType()) {
-                case Value.TIME:
-                    typeInfo = TypeInfo.TYPE_TIME;
-                    break;
-                case Value.DATE: {
-                    int field = p0.getValue(session).getInt();
-                    switch (field) {
-                    case DateTimeFunctions.HOUR:
-                    case DateTimeFunctions.MINUTE:
-                    case DateTimeFunctions.SECOND:
-                    case DateTimeFunctions.EPOCH:
-                    case DateTimeFunctions.MILLISECOND:
-                    case DateTimeFunctions.MICROSECOND:
-                    case DateTimeFunctions.NANOSECOND:
-                        // TIMESTAMP result
-                        break;
-                    default:
-                        type = TypeInfo.TYPE_DATE;
-                    }
-                    break;
-                }
-                case Value.TIMESTAMP_TZ:
-                    type = TypeInfo.TYPE_TIMESTAMP_TZ;
+            Expression p2 = args[2];
+            int valueType = p2.getType().getValueType();
+            if (valueType == Value.DATE) {
+                switch (p0.getValue(session).getInt()) {
+                case DateTimeFunctions.HOUR:
+                case DateTimeFunctions.MINUTE:
+                case DateTimeFunctions.SECOND:
+                case DateTimeFunctions.MILLISECOND:
+                case DateTimeFunctions.MICROSECOND:
+                case DateTimeFunctions.NANOSECOND:
+                case DateTimeFunctions.EPOCH:
+                    valueType = Value.TIMESTAMP;
                 }
             }
+            typeInfo = TypeInfo.getTypeInfo(valueType);
             break;
         }
         case EXTRACT: {

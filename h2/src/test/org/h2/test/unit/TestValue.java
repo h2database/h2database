@@ -89,6 +89,7 @@ public class TestValue extends TestDb {
         testLobComparison();
         testTypeInfo();
         testH2Type();
+        testHigherType();
     }
 
     private void testResultSetOperations() throws SQLException {
@@ -656,6 +657,18 @@ public class TestValue extends TestDb {
         assertEquals(Value.ARRAY, (int) H2Type.ARRAY.getVendorTypeNumber());
         assertEquals(Value.ROW, (int) H2Type.ROW.getVendorTypeNumber());
         assertEquals(Value.RESULT_SET, (int) H2Type.RESULT_SET.getVendorTypeNumber());
+    }
+
+    private void testHigherType() {
+        testHigherTypeNumeric(15L, 6, 10L, 1, 5L, 6);
+        testHigherTypeNumeric(15L, 6, 5L, 6, 10L, 1);
+    }
+
+    private void testHigherTypeNumeric(long expectedPrecision, int expectedScale, long precision1, int scale1,
+            long precision2, int scale2) {
+        assertEquals(TypeInfo.getTypeInfo(Value.NUMERIC, expectedPrecision, expectedScale, null),
+                TypeInfo.getHigherType(TypeInfo.getTypeInfo(Value.NUMERIC, precision1, scale1, null),
+                        TypeInfo.getTypeInfo(Value.NUMERIC, precision2, scale2, null)));
     }
 
 }

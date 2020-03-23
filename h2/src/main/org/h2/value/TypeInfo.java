@@ -467,8 +467,28 @@ public class TypeInfo {
     public static TypeInfo getHigherType(TypeInfo type1, TypeInfo type2) {
         int t1 = type1.getValueType(), t2 = type2.getValueType();
         int dataType = Value.getHigherOrder(t1, t2);
-        long precision = Math.max(type1.getPrecision(), type2.getPrecision());
-        int scale = Math.max(type1.getScale(), type2.getScale());
+        long precision;
+        int scale;
+        switch (dataType) {
+        case Value.NUMERIC: {
+            type1 = type1.toNumericType();
+            type2 = type2.toNumericType();
+            long precision1 = type1.getPrecision(), precision2 = type2.getPrecision();
+            int scale1 = type1.getScale(), scale2 = type2.getScale();
+            if (scale1 < scale2) {
+                precision1 += scale2 - scale1;
+                scale = scale2;
+            } else {
+                precision2 += scale1 - scale2;
+                scale = scale1;
+            }
+            precision = Math.max(precision1, precision2);
+            break;
+        }
+        default:
+            precision = Math.max(type1.getPrecision(), type2.getPrecision());
+            scale = Math.max(type1.getScale(), type2.getScale());
+        }
         ExtTypeInfo ext1 = type1.getExtTypeInfo();
         ExtTypeInfo ext = dataType == t1 && ext1 != null ? ext1 : dataType == t2 ? type2.getExtTypeInfo() : null;
         return TypeInfo.getTypeInfo(dataType, precision, scale, ext);

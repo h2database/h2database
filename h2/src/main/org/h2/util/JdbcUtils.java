@@ -56,7 +56,7 @@ public class JdbcUtils {
         "db2:", "com.ibm.db2.jcc.DB2Driver",
         "derby:net:", "org.apache.derby.client.ClientAutoloadedDriver",
         "derby://", "org.apache.derby.client.ClientAutoloadedDriver",
-        "derby:", "org.apache.derby.iapi.jdbc.AutoloadedDriver",
+        "derby:", "org.apache.derby.jdbc.AutoloadedDriver",
         "FrontBase:", "com.frontbase.jdbc.FBJDriver",
         "firebirdsql:", "org.firebirdsql.jdbc.FBDriver",
         "hsqldb:", "org.hsqldb.jdbcDriver",

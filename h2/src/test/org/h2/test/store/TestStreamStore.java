@@ -103,9 +103,9 @@ public class TestStreamStore extends TestBase {
         for (int i = 0; i < 8 * 16; i++) {
             streamStore.put(new RandomStream(blockSize, i));
         }
-        long writeCount = s.getFileStore().getWriteCount();
-        assertTrue(writeCount > 2);
         s.close();
+        long writeCount = s.getFileStore().getWriteCount();
+        assertEquals(7, writeCount);
     }
 
     private void testExceptionDuringStore() throws IOException {

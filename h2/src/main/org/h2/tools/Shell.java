@@ -364,29 +364,31 @@ public class Shell extends Tool implements Runnable {
         println("[Enter]   " + user);
         print("User      ");
         user = readLine(user);
+        conn = url.startsWith(Constants.START_URL) ? connectH2(driver, url, user)
+                : JdbcUtils.getConnection(driver, url, user, readPassword());
+        stat = conn.createStatement();
+        println("Connected");
+    }
+
+    private Connection connectH2(String driver, String url, String user) throws IOException, SQLException {
         for (;;) {
             String password = readPassword();
             try {
-                conn = JdbcUtils.getConnection(driver, url + ";IFEXISTS=TRUE", user, password);
-                break;
+                return JdbcUtils.getConnection(driver, url + ";IFEXISTS=TRUE", user, password);
             } catch (SQLException ex) {
                 if (ex.getErrorCode() == ErrorCode.DATABASE_NOT_FOUND_WITH_IF_EXISTS_1) {
                     println("Type the same password again to confirm database creation.");
                     String password2 = readPassword();
                     if (password.equals(password2)) {
-                        conn = JdbcUtils.getConnection(driver, url, user, password);
-                        break;
+                        return JdbcUtils.getConnection(driver, url, user, password);
                     } else {
                         println("Passwords don't match. Try again.");
-                        continue;
                     }
                 } else {
                     throw ex;
                 }
             }
         }
-        stat = conn.createStatement();
-        println("Connected");
     }
 
     /**

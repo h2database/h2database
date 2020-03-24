@@ -1172,11 +1172,7 @@ public class MVStore implements AutoCloseable
             lastBlock.get(buff);
             HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
             if (m != null) {
-                int chunk = DataUtils.readHexInt(m, HDR_CHUNK, 0);
-                Chunk c = new Chunk(chunk);
-                c.version = DataUtils.readHexLong(m, HDR_VERSION, 0);
-                c.block = DataUtils.readHexLong(m, HDR_BLOCK, 0);
-                return c;
+                return new Chunk(m);
             }
         } catch (Exception e) {
             // ignore

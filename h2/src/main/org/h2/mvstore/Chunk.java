@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A chunk of data, containing one or multiple pages.
@@ -158,6 +159,39 @@ public final class Chunk
     private int pinCount;
 
 
+    private Chunk(String s) {
+        this(DataUtils.parseMap(s), true);
+    }
+
+    Chunk(Map<String, String> map) {
+        this(map, false);
+    }
+
+    private Chunk(Map<String, String> map, boolean full) {
+        this(DataUtils.readHexInt(map, ATTR_CHUNK, 0));
+        block = DataUtils.readHexLong(map, ATTR_BLOCK, 0);
+        version = DataUtils.readHexLong(map, ATTR_VERSION, id);
+        if (full) {
+            len = DataUtils.readHexInt(map, ATTR_LEN, 0);
+            pageCount = DataUtils.readHexInt(map, ATTR_PAGES, 0);
+            pageCountLive = DataUtils.readHexInt(map, ATTR_LIVE_PAGES, pageCount);
+            mapId = DataUtils.readHexInt(map, ATTR_MAP, 0);
+            maxLen = DataUtils.readHexLong(map, ATTR_MAX, 0);
+            maxLenLive = DataUtils.readHexLong(map, ATTR_LIVE_MAX, maxLen);
+            layoutRootPos = DataUtils.readHexLong(map, ATTR_ROOT, 0);
+            time = DataUtils.readHexLong(map, ATTR_TIME, 0);
+            unused = DataUtils.readHexLong(map, ATTR_UNUSED, 0);
+            unusedAtVersion = DataUtils.readHexLong(map, ATTR_UNUSED_AT_VERSION, 0);
+            next = DataUtils.readHexLong(map, ATTR_NEXT, 0);
+            pinCount = DataUtils.readHexInt(map, ATTR_PIN_COUNT, 0);
+            tocPos = DataUtils.readHexInt(map, ATTR_TOC, 0);
+            byte[] bytes = DataUtils.parseHexBytes(map, ATTR_OCCUPANCY);
+            occupancy = bytes == null ? new BitSet() : BitSet.valueOf(bytes);
+            assert pageCount - pageCountLive == occupancy.cardinality()
+                    : pageCount + " - " + pageCountLive + " <> " + occupancy.cardinality() + " : " + occupancy;
+        }
+    }
+
     Chunk(int id) {
         this.id = id;
     }
@@ -230,27 +264,7 @@ public final class Chunk
      * @return the block
      */
     public static Chunk fromString(String s) {
-        HashMap<String, String> map = DataUtils.parseMap(s);
-        int id = DataUtils.readHexInt(map, ATTR_CHUNK, 0);
-        Chunk c = new Chunk(id);
-        c.block = DataUtils.readHexLong(map, ATTR_BLOCK, 0);
-        c.len = DataUtils.readHexInt(map, ATTR_LEN, 0);
-        c.pageCount = DataUtils.readHexInt(map, ATTR_PAGES, 0);
-        c.pageCountLive = DataUtils.readHexInt(map, ATTR_LIVE_PAGES, c.pageCount);
-        c.mapId = DataUtils.readHexInt(map, ATTR_MAP, 0);
-        c.maxLen = DataUtils.readHexLong(map, ATTR_MAX, 0);
-        c.maxLenLive = DataUtils.readHexLong(map, ATTR_LIVE_MAX, c.maxLen);
-        c.layoutRootPos = DataUtils.readHexLong(map, ATTR_ROOT, 0);
-        c.time = DataUtils.readHexLong(map, ATTR_TIME, 0);
-        c.unused = DataUtils.readHexLong(map, ATTR_UNUSED, 0);
-        c.unusedAtVersion = DataUtils.readHexLong(map, ATTR_UNUSED_AT_VERSION, 0);
-        c.version = DataUtils.readHexLong(map, ATTR_VERSION, id);
-        c.next = DataUtils.readHexLong(map, ATTR_NEXT, 0);
-        c.pinCount = DataUtils.readHexInt(map, ATTR_PIN_COUNT, 0);
-        c.tocPos = DataUtils.readHexInt(map, ATTR_TOC, 0);
-        byte[] bytes = DataUtils.parseHexBytes(map, ATTR_OCCUPANCY);
-        c.occupancy = bytes == null ? new BitSet() : BitSet.valueOf(bytes);
-        return c;
+        return new Chunk(s);
     }
 
     /**
@@ -443,6 +457,8 @@ public final class Chunk
         if (singleWriter) {
             pinCount++;
         }
+        assert pageCount - pageCountLive == occupancy.cardinality()
+                : pageCount + " - " + pageCountLive + " <> " + occupancy.cardinality() + " : " + occupancy;
     }
 
     /**
@@ -463,15 +479,15 @@ public final class Chunk
      * @return true if all of the pages, this chunk contains, were already
      *         removed, and false otherwise
      */
-    boolean accountForRemovedPage(int pageNo, int pageLength, boolean pinned, long now, long version) {
+    synchronized boolean accountForRemovedPage(int pageNo, int pageLength, boolean pinned, long now, long version) {
         assert isSaved() : this;
         // legacy chunks do not have a table of content,
         // therefore pageNo is not valid, skip
         if (tocPos > 0) {
-            assert pageCount - pageCountLive == occupancy.cardinality()
-                    : pageCount + " - " + pageCountLive + " : " + occupancy;
             assert pageNo >= 0 && pageNo < pageCount : pageNo + " // " +  pageCount;
             assert !occupancy.get(pageNo);
+            assert pageCount - pageCountLive == occupancy.cardinality()
+                    : pageCount + " - " + pageCountLive + " <> " + occupancy.cardinality() + " : " + occupancy;
             occupancy.set(pageNo);
         }
 

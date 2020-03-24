@@ -144,7 +144,6 @@ public class Shell extends Tool implements Runnable {
             }
         }
         if (url != null) {
-            org.h2.Driver.load();
             conn = DriverManager.getConnection(url, user, password);
             stat = conn.createStatement();
         }

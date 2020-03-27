@@ -213,6 +213,13 @@
     </testResources>
     <plugins>
       <plugin>
+	<artifactId>maven-compiler-plugin</artifactId>
+	<version>3.6.0</version>
+	<configuration>
+	  <useIncrementalCompilation>false</useIncrementalCompilation>
+	</configuration>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.1.2</version>

@@ -144,7 +144,6 @@ public class Shell extends Tool implements Runnable {
             }
         }
         if (url != null) {
-            JdbcUtils.load(url);
             conn = DriverManager.getConnection(url, user, password);
             stat = conn.createStatement();
         }
@@ -467,7 +466,10 @@ public class Shell extends Tool implements Runnable {
         try {
             ResultSet rs = null;
             try {
-                if (stat.execute(sql)) {
+		 if (sql.startsWith("@")) {
+		     rs = JdbcUtils.getMetaResultSet(conn, sql);
+		     int rowCount = printResult(rs, listMode);
+		 } else if (stat.execute(sql)) {
                     rs = stat.getResultSet();
                     int rowCount = printResult(rs, listMode);
                     time = System.nanoTime() - time;

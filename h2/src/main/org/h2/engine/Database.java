@@ -2364,8 +2364,12 @@ public class Database implements DataHandler, CastDataProvider {
         switch (lockMode) {
         case Constants.LOCK_MODE_OFF:
         case Constants.LOCK_MODE_READ_COMMITTED:
+            break;
         case Constants.LOCK_MODE_TABLE:
         case Constants.LOCK_MODE_TABLE_GC:
+            if (isMVStore()) {
+                lockMode = Constants.LOCK_MODE_READ_COMMITTED;
+            }
             break;
         default:
             throw DbException.getInvalidValueException("lock mode", lockMode);

@@ -115,4 +115,30 @@ DROP TABLE TEST;
 SET VARIABLE_BINARY FALSE;
 > ok
 
+SET LOCK_MODE 0;
+> ok
+
+CALL LOCK_MODE();
+>> 0
+
+SET LOCK_MODE 1;
+> ok
+
+CALL LOCK_MODE();
+#+mvStore#>> 3
+#-mvStore#>> 1
+
+SET LOCK_MODE 2;
+> ok
+
+CALL LOCK_MODE();
+#+mvStore#>> 3
+#-mvStore#>> 2
+
+SET LOCK_MODE 3;
+> ok
+
+CALL LOCK_MODE();
+>> 3
+
 @reconnect on

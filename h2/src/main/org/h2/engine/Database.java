@@ -454,33 +454,6 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     /**
-     * Check if a database with the given name exists.
-     *
-     * @param name the name of the database (including path)
-     * @return true if one exists
-     */
-    static boolean exists(String name) {
-        if (FileUtils.exists(name + Constants.SUFFIX_PAGE_FILE)) {
-            return true;
-        }
-        return FileUtils.exists(name + Constants.SUFFIX_MV_FILE);
-    }
-
-    /**
-     * Check if a database with the given name exists.
-     *
-     * @param name
-     *            the name of the database (including path)
-     * @param mvStore
-     *            {@code true} to check MVStore file only, {@code false} to
-     *            check PageStore file only
-     * @return true if one exists
-     */
-    static boolean exists(String name, boolean mvStore) {
-        return FileUtils.exists(name + (mvStore ? Constants.SUFFIX_MV_FILE : Constants.SUFFIX_PAGE_FILE));
-    }
-
-    /**
      * Get the trace object for the given module id.
      *
      * @param moduleId the module id
@@ -547,24 +520,6 @@ public class Database implements DataHandler, CastDataProvider {
 
     private synchronized void open(int traceLevelFile, int traceLevelSystemOut) {
         if (persistent) {
-            String dataFileName = databaseName + Constants.SUFFIX_OLD_DATABASE_FILE;
-            boolean existsData = FileUtils.exists(dataFileName);
-            String pageFileName = databaseName + Constants.SUFFIX_PAGE_FILE;
-            String mvFileName = databaseName + Constants.SUFFIX_MV_FILE;
-            boolean existsPage = FileUtils.exists(pageFileName);
-            boolean existsMv = FileUtils.exists(mvFileName);
-            if (existsData && (!existsPage && !existsMv)) {
-                throw DbException.getFileVersionError(dataFileName);
-            }
-            if (existsPage && !FileUtils.canWrite(pageFileName)) {
-                readOnly = true;
-            }
-            if (existsMv && !FileUtils.canWrite(mvFileName)) {
-                readOnly = true;
-            }
-            if (existsPage && !existsMv) {
-                dbSettings.setMvStore(false);
-            }
             if (readOnly) {
                 if (traceLevelFile >= TraceSystem.DEBUG) {
                     String traceFile = Utils.getProperty("java.io.tmpdir", ".") +
@@ -2409,8 +2364,12 @@ public class Database implements DataHandler, CastDataProvider {
         switch (lockMode) {
         case Constants.LOCK_MODE_OFF:
         case Constants.LOCK_MODE_READ_COMMITTED:
+            break;
         case Constants.LOCK_MODE_TABLE:
         case Constants.LOCK_MODE_TABLE_GC:
+            if (isMVStore()) {
+                lockMode = Constants.LOCK_MODE_READ_COMMITTED;
+            }
             break;
         default:
             throw DbException.getInvalidValueException("lock mode", lockMode);

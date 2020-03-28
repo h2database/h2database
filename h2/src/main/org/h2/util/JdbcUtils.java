@@ -747,7 +747,7 @@ public class JdbcUtils {
         return sql.regionMatches(true, 0, builtIn, 0, builtIn.length());
     }
 
-    private static String[] split(String s) {
+    public static String[] split(String s) {
         String[] list = new String[10];
         String[] t = StringUtils.arraySplit(s, ' ', true);
         System.arraycopy(t, 0, list, 0, t.length);

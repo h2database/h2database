@@ -328,7 +328,7 @@ public class DbSettings extends SettingsBase {
      * (default: true).<br />
      * Use the MVStore storage engine.
      */
-    public boolean mvStore = get("MV_STORE", true);
+    public final boolean mvStore = get("MV_STORE", true);
 
     /**
      * Database setting <code>COMPRESS</code>
@@ -365,17 +365,6 @@ public class DbSettings extends SettingsBase {
         HashMap<String, String> settings = getSettings();
         settings.put("DATABASE_TO_LOWER", Boolean.toString(lower));
         settings.put("DATABASE_TO_UPPER", Boolean.toString(upper));
-    }
-
-    /**
-     * Sets the database engine setting.
-     *
-     * @param mvStore
-     *            true for MVStore engine, false for PageStore engine
-     */
-    void setMvStore(boolean mvStore) {
-        this.mvStore = mvStore;
-        set("MV_STORE", mvStore);
     }
 
     /**

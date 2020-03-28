@@ -16,6 +16,7 @@ import org.h2.message.Trace;
 import org.h2.security.auth.AuthenticationException;
 import org.h2.security.auth.AuthenticationInfo;
 import org.h2.security.auth.Authenticator;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.ParserUtil;
 import org.h2.util.ThreadDeadlockDetector;
@@ -60,15 +61,37 @@ public class Engine implements SessionFactory {
                 database = DATABASES.get(name);
             }
             if (database == null) {
-                String p;
-                if (!ci.isPersistent() || !((p = ci.getProperty("MV_STORE")) == null ? Database.exists(name)
-                        : Database.exists(name, Utils.parseBoolean(p, true, false)))) {
-                    if (ifExists) {
-                        throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_WITH_IF_EXISTS_1, name);
+                if (ci.isPersistent()) {
+                    String p = ci.getProperty("MV_STORE");
+                    String fileName;
+                    if (p == null) {
+                        fileName = name + Constants.SUFFIX_MV_FILE;
+                        if (!FileUtils.exists(fileName)) {
+                            fileName = name + Constants.SUFFIX_PAGE_FILE;
+                            if (FileUtils.exists(fileName)) {
+                                ci.setProperty("MV_STORE", "FALSE");
+                            } else {
+                                throwNotFound(ifExists, forbidCreation, name);
+                                fileName = name + Constants.SUFFIX_OLD_DATABASE_FILE;
+                                if (FileUtils.exists(fileName)) {
+                                    throw DbException.getFileVersionError(fileName);
+                                }
+                                fileName = null;
+                            }
+                        }
+                    } else {
+                        fileName = name + (Utils.parseBoolean(p, true, false) ? Constants.SUFFIX_MV_FILE
+                                : Constants.SUFFIX_PAGE_FILE);
+                        if (!FileUtils.exists(fileName)) {
+                            throwNotFound(ifExists, forbidCreation, name);
+                            fileName = null;
+                        }
                     }
-                    if (forbidCreation) {
-                        throw DbException.get(ErrorCode.REMOTE_DATABASE_NOT_FOUND_1, name);
+                    if (fileName != null && !FileUtils.canWrite(fileName)) {
+                        ci.setProperty("ACCESS_MODE_DATA", "r");
                     }
+                } else {
+                    throwNotFound(ifExists, forbidCreation, name);
                 }
                 database = new Database(ci, cipher);
                 opened = true;
@@ -152,6 +175,15 @@ public class Engine implements SessionFactory {
             jmx = true;
         }
         return session;
+    }
+
+    private static void throwNotFound(boolean ifExists, boolean forbidCreation, String name) {
+        if (ifExists) {
+            throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_WITH_IF_EXISTS_1, name);
+        }
+        if (forbidCreation) {
+            throw DbException.get(ErrorCode.REMOTE_DATABASE_NOT_FOUND_1, name);
+        }
     }
 
     /**

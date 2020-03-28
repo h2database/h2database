@@ -208,16 +208,6 @@ public class MVTable extends RegularTable {
             }
             try {
                 traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_WAITING_FOR, NO_EXTRA_INFO);
-                if (database.getLockMode() == Constants.LOCK_MODE_TABLE_GC) {
-                    for (int i = 0; i < 20; i++) {
-                        long free = Runtime.getRuntime().freeMemory();
-                        System.gc();
-                        long free2 = Runtime.getRuntime().freeMemory();
-                        if (free == free2) {
-                            break;
-                        }
-                    }
-                }
                 // don't wait too long so that deadlocks are detected early
                 long sleep = Math.min(Constants.DEADLOCK_CHECK,
                         TimeUnit.NANOSECONDS.toMillis(max - now));

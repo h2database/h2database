@@ -7839,10 +7839,6 @@ public class Parser {
             // Derby compatibility (CREATE=TRUE in the database URL)
             read();
             return new NoOperation(session);
-        } else if (readIf("HSQLDB.DEFAULT_TABLE_TYPE")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
         } else if (readIf("PAGE_STORE")) {
             readIfEqualOrTo();
             read();

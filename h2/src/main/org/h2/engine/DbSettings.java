@@ -9,7 +9,6 @@ import java.util.HashMap;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
-import org.h2.util.Utils;
 
 /**
  * This class contains various database-level settings. To override the
@@ -347,9 +346,6 @@ public class DbSettings extends SettingsBase {
 
     private DbSettings(HashMap<String, String> s) {
         super(s);
-        if (s.get("NESTED_JOINS") != null || Utils.getProperty("h2.nestedJoins", null) != null) {
-            throw DbException.getUnsupportedException("NESTED_JOINS setting is not available since 1.4.197");
-        }
         boolean lower = get("DATABASE_TO_LOWER", false);
         boolean upperSet = containsKey("DATABASE_TO_UPPER");
         boolean upper = get("DATABASE_TO_UPPER", true);

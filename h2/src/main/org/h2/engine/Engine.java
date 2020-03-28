@@ -69,7 +69,7 @@ public class Engine implements SessionFactory {
                         if (!FileUtils.exists(fileName)) {
                             fileName = name + Constants.SUFFIX_PAGE_FILE;
                             if (FileUtils.exists(fileName)) {
-                                ci.setProperty("MV_STORE", "FALSE");
+                                ci.setProperty("MV_STORE", "false");
                             } else {
                                 throwNotFound(ifExists, forbidCreation, name);
                                 fileName = name + Constants.SUFFIX_OLD_DATABASE_FILE;

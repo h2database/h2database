@@ -304,7 +304,7 @@ public class TestCompatibility extends TestDb {
         conn.close();
         deleteDb("compatibility");
         // `stat.getQueryTimeout()` caches the result, so create another connection
-        conn = getConnection("compatibility");
+        conn = getConnection("compatibility;MODE=PostgreSQL");
         stat = conn.createStatement();
         // `STATEMENT_TIMEOUT` uses milliseconds
         stat.execute("SET STATEMENT_TIMEOUT TO 30000");

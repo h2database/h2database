@@ -1562,7 +1562,7 @@ drop table test;
 set autocommit off;
 > ok
 
-set search_path = public, information_schema;
+set schema_search_path = public, information_schema;
 > ok
 
 select table_name from tables where 1=0;
@@ -1570,7 +1570,7 @@ select table_name from tables where 1=0;
 > ----------
 > rows: 0
 
-set search_path = public;
+set schema_search_path = public;
 > ok
 
 set autocommit on;

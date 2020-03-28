@@ -7834,11 +7834,6 @@ public class Parser {
                 command.setInt(readNonNegativeInt());
             }
             return command;
-        } else if (readIf("CREATE")) {
-            readIfEqualOrTo();
-            // Derby compatibility (CREATE=TRUE in the database URL)
-            read();
-            return new NoOperation(session);
         } else if (readIf("PAGE_STORE")) {
             readIfEqualOrTo();
             read();
@@ -7859,12 +7854,6 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
-        } else if (readIf("STATEMENT_TIMEOUT")) {
-            // for PostgreSQL compatibility
-            readIfEqualOrTo();
-            Set command = new Set(session, SetTypes.QUERY_TIMEOUT);
-            command.setInt(readNonNegativeInt());
-            return command;
         } else if (readIf("AUTO_SERVER")) {
             readIfEqualOrTo();
             read();
@@ -7901,21 +7890,6 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
-        } else if (readIf("NAMES")) {
-            // Quercus PHP MySQL driver compatibility
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("CLIENT_MIN_MESSAGES")) {
-            // for PostgreSQL compatibility
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("CLIENT_ENCODING")) {
-            // for PostgreSQL compatibility
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
         } else if (readIf("SCOPE_GENERATED_KEYS")) {
             readIfEqualOrTo();
             read();
@@ -7930,49 +7904,13 @@ public class Parser {
             Set command = new Set(session, SetTypes.CATALOG);
             command.setExpression(readExpressionOrIdentifier());
             return command;
-        } else if (readIf("DATESTYLE")) {
-            // PostgreSQL compatibility
-            readIfEqualOrTo();
-            if (!readIf("ISO")) {
-                String s = readString();
-                if (!equalsToken(s, "ISO")) {
-                    throw getSyntaxError();
-                }
-            }
-            return new NoOperation(session);
-        } else if (readIf("SEARCH_PATH") ||
-                readIf(SetTypes.getTypeName(SetTypes.SCHEMA_SEARCH_PATH))) {
+        } else if (readIf(SetTypes.getTypeName(SetTypes.SCHEMA_SEARCH_PATH))) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.SCHEMA_SEARCH_PATH);
             ArrayList<String> list = Utils.newSmallArrayList();
-            if (database.getMode().getEnum() == Mode.ModeEnum.PostgreSQL) {
-                String pgCatalog = database.sysIdentifier("PG_CATALOG");
-                boolean hasPgCatalog = false;
-                do {
-                    // some PG clients will send single-quoted alias
-                    String s = currentTokenType == LITERAL ?
-                            readString() : readAliasIdentifier();
-                    if ("$user".equals(s)) {
-                        continue;
-                    }
-                    if (pgCatalog.equals(s)) {
-                        hasPgCatalog = true;
-                    }
-                    list.add(s);
-                } while (readIf(COMMA));
-                // If "pg_catalog" is not in the path then it will be searched before
-                // searching any of the path items. See
-                // https://www.postgresql.org/docs/8.2/runtime-config-client.html
-                if (!hasPgCatalog) {
-                    if (database.findSchema(pgCatalog) != null) {
-                        list.add(0, pgCatalog);
-                    }
-                }
-            } else {
-                do {
-                    list.add(readAliasIdentifier());
-                } while (readIf(COMMA));
-            }
+            do {
+                list.add(readAliasIdentifier());
+            } while (readIf(COMMA));
             command.setStringArray(list.toArray(new String[0]));
             return command;
         } else if (readIf("JAVA_OBJECT_SERIALIZER")) {
@@ -8015,14 +7953,12 @@ public class Parser {
             command.setStringArray(list.toArray(new String[0]));
             return command;
         } else {
-            if (isToken("LOGSIZE")) {
-                // HSQLDB compatibility
-                currentToken = SetTypes.getTypeName(SetTypes.MAX_LOG_SIZE);
-            }
-            if (isToken("FOREIGN_KEY_CHECKS")) {
-                // MySQL compatibility
-                currentToken = SetTypes
-                        .getTypeName(SetTypes.REFERENTIAL_INTEGRITY);
+            ModeEnum modeEnum = database.getMode().getEnum();
+            if (modeEnum != ModeEnum.REGULAR) {
+                Prepared command = readSetCompatibility(modeEnum);
+                if (command != null) {
+                    return command;
+                }
             }
             String typeName = currentToken;
             if (!identifiersToUpper) {
@@ -8119,6 +8055,89 @@ public class Parser {
         String name = readString();
         command.setString(name);
         return command;
+    }
+
+    private Prepared readSetCompatibility(ModeEnum modeEnum) {
+        switch (modeEnum) {
+        case Derby:
+            if (readIf("CREATE")) {
+                readIfEqualOrTo();
+                // (CREATE=TRUE in the database URL)
+                read();
+                return new NoOperation(session);
+            }
+            break;
+        case HSQLDB:
+            if (isToken("LOGSIZE")) {
+                currentToken = SetTypes.getTypeName(SetTypes.MAX_LOG_SIZE);
+            }
+            break;
+        case MySQL:
+            if (readIf("NAMES")) {
+                // Quercus PHP MySQL driver compatibility
+                readIfEqualOrTo();
+                read();
+                return new NoOperation(session);
+            } else if (isToken("FOREIGN_KEY_CHECKS")) {
+                currentToken = SetTypes.getTypeName(SetTypes.REFERENTIAL_INTEGRITY);
+            }
+            break;
+        case PostgreSQL:
+            if (readIf("STATEMENT_TIMEOUT")) {
+                readIfEqualOrTo();
+                Set command = new Set(session, SetTypes.QUERY_TIMEOUT);
+                command.setInt(readNonNegativeInt());
+                return command;
+            } else if (readIf("CLIENT_MIN_MESSAGES")) {
+                readIfEqualOrTo();
+                read();
+                return new NoOperation(session);
+            } else if (readIf("CLIENT_ENCODING")) {
+                readIfEqualOrTo();
+                read();
+                return new NoOperation(session);
+            } else if (readIf("DATESTYLE")) {
+                readIfEqualOrTo();
+                if (!readIf("ISO")) {
+                    String s = readString();
+                    if (!equalsToken(s, "ISO")) {
+                        throw getSyntaxError();
+                    }
+                }
+                return new NoOperation(session);
+            } else if (readIf("SEARCH_PATH")) {
+                readIfEqualOrTo();
+                Set command = new Set(session, SetTypes.SCHEMA_SEARCH_PATH);
+                ArrayList<String> list = Utils.newSmallArrayList();
+                String pgCatalog = database.sysIdentifier("PG_CATALOG");
+                boolean hasPgCatalog = false;
+                do {
+                    // some PG clients will send single-quoted alias
+                    String s = currentTokenType == LITERAL ?
+                            readString() : readAliasIdentifier();
+                    if ("$user".equals(s)) {
+                        continue;
+                    }
+                    if (pgCatalog.equals(s)) {
+                        hasPgCatalog = true;
+                    }
+                    list.add(s);
+                } while (readIf(COMMA));
+                // If "pg_catalog" is not in the path then it will be searched before
+                // searching any of the path items. See
+                // https://www.postgresql.org/docs/8.2/runtime-config-client.html
+                if (!hasPgCatalog) {
+                    if (database.findSchema(pgCatalog) != null) {
+                        list.add(0, pgCatalog);
+                    }
+                }
+                command.setStringArray(list.toArray(new String[0]));
+                return command;
+            }
+            break;
+        default:
+        }
+        return null;
     }
 
     private RunScriptCommand parseRunScript() {

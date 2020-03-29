@@ -139,12 +139,12 @@ public class TestResultSet extends TestDb {
     }
 
     private void testReuseSimpleResult() throws SQLException {
-        ResultSet rs = stat.executeQuery("select table(x array=((1)))");
+        ResultSet rs = stat.executeQuery("select table(x int array=((1)))");
         while (rs.next()) {
             rs.getString(1);
         }
         rs.close();
-        rs = stat.executeQuery("select table(x array=((1)))");
+        rs = stat.executeQuery("select table(x int array=((1)))");
         while (rs.next()) {
             rs.getString(1);
         }
@@ -1824,7 +1824,7 @@ public class TestResultSet extends TestDb {
     private void testArray() throws SQLException {
         trace("Test ARRAY");
         ResultSet rs;
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, \"VALUE\" ARRAY)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, \"VALUE\" INTEGER ARRAY)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
         prep.setInt(1, 1);
         prep.setObject(2, new Object[] { 1, 2 });

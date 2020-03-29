@@ -1463,11 +1463,8 @@ public class DataType {
             return t1 == t2;
         case Value.ARRAY:
             if (t2 == Value.ARRAY) {
-                ExtTypeInfo e1 = type1.getExtTypeInfo(), e2 = type2.getExtTypeInfo();
-                if (e1 != null && e2 != null) {
-                    return areStableComparable(
-                            ((ExtTypeInfoArray) e1).getComponentType(), ((ExtTypeInfoArray) e2).getComponentType());
-                }
+                return areStableComparable(((ExtTypeInfoArray) type1.getExtTypeInfo()).getComponentType(),
+                        ((ExtTypeInfoArray) type2.getExtTypeInfo()).getComponentType());
             }
             return false;
         default:

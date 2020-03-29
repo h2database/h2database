@@ -3879,10 +3879,10 @@ UUID
 "
 
 "Data Types","ARRAY Type","
-[baseDataType] ARRAY [ '[' maximumCardinalityInt ']' ]
+baseDataType ARRAY [ '[' maximumCardinalityInt ']' ]
 ","
 An array of values.
-Base data type, if any, specifies the data type of elements.
+Base data type specifies the data type of elements.
 Array may have NULL elements.
 Maximum cardinality, if any, specifies maximum allowed number of elements in the array.
 
@@ -3892,8 +3892,8 @@ Mapped to ""java.lang.Object[]"" (arrays of any non-primitive type are also supp
 Use ""PreparedStatement.setArray(..)"" or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
 and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the values.
 ","
-ARRAY
-ARRAY[10]
+BOOLEAN ARRAY
+VARCHAR(100) ARRAY
 INTEGER ARRAY[10]
 "
 

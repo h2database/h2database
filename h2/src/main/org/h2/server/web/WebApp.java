@@ -1262,7 +1262,16 @@ public class WebApp {
                 profiler = new Profiler();
                 profiler.startCollecting();
                 return "Ok";
-            } else if (isBuiltIn(sql, "@sleep")) {
+            } else if (isBuiltIn(sql, "@prof_stop")) {
+		if (profiler != null) {
+		    profiler.stopCollecting();
+		    SimpleResultSet srs = new SimpleResultSet();
+		    srs.addColumn("Top Stack Trace(s)", Types.VARCHAR, 0, 0);
+		    srs.addRow(profiler.getTop(3));
+		    rs = srs;
+		    profiler = null;
+		}
+	    } else if (isBuiltIn(sql, "@sleep")) {
                 String s = StringUtils.trimSubstring(sql, "@sleep".length());
                 int sleep = 1;
                 if (s.length() > 0) {
@@ -1291,7 +1300,7 @@ public class WebApp {
                         .append(": serializable");
             }
             if (sql.startsWith("@")) {
-                rs = JdbcUtils.getMetaResultSet(conn, sql, profiler);
+                rs = JdbcUtils.getMetaResultSet(conn, sql);
                 if (rs == null) {
                     buff.append("?: ").append(sql);
                     return buff.toString();

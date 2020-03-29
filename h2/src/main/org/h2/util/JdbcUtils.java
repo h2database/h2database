@@ -36,7 +36,6 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.Profiler;
 import org.h2.util.Utils.ClassFactory;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -605,7 +604,7 @@ public class JdbcUtils {
         }
     }
 
-    public static ResultSet getMetaResultSet(Connection conn, String sql, Profiler profiler)
+    public static ResultSet getMetaResultSet(Connection conn, String sql)
             throws SQLException {
         DatabaseMetaData meta = conn.getMetaData();
         if (isBuiltIn(sql, "@best_row_identifier")) {
@@ -708,14 +707,6 @@ public class JdbcUtils {
         } else if (isBuiltIn(sql, "@super_types")) {
             String[] p = split(sql);
             return meta.getSuperTypes(p[1], p[2], p[3]);
-        } else if (isBuiltIn(sql, "@prof_stop")) {
-            if (profiler != null) {
-                profiler.stopCollecting();
-                SimpleResultSet rs = new SimpleResultSet();
-                rs.addColumn("Top Stack Trace(s)", Types.VARCHAR, 0, 0);
-                rs.addRow(profiler.getTop(3));
-                return rs;
-            }
         }
         return null;
     }

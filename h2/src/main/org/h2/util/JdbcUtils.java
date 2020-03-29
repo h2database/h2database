@@ -723,7 +723,7 @@ public class JdbcUtils {
     private static void addDatabaseMetaData(SimpleResultSet rs,
             DatabaseMetaData meta) {
         Method[] methods = DatabaseMetaData.class.getDeclaredMethods();
-        //Arrays.sort(methods, Comparator.comparing(Method::toString));
+        Arrays.sort(methods, Comparator.comparing(Method::toString));
         for (Method m : methods) {
             if (m.getParameterTypes().length == 0) {
                 try {

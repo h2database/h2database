@@ -1291,7 +1291,7 @@ public class WebApp {
                         .append(": serializable");
             }
             if (sql.startsWith("@")) {
-                rs = JdbcUtils.getMetaResultSet(conn, sql);
+                rs = JdbcUtils.getMetaResultSet(conn, sql, profiler);
                 if (rs == null) {
                     buff.append("?: ").append(sql);
                     return buff.toString();

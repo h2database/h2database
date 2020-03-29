@@ -88,7 +88,6 @@ public class JdbcUtils {
 
     private static boolean allowAllClasses;
     private static HashSet<String> allowedClassNames;
-    private static Profiler profiler;
 
     /**
      *  In order to manage more than one class loader
@@ -606,7 +605,7 @@ public class JdbcUtils {
         }
     }
 
-    public static ResultSet getMetaResultSet(Connection conn, String sql)
+    public static ResultSet getMetaResultSet(Connection conn, String sql, Profiler profiler)
             throws SQLException {
         DatabaseMetaData meta = conn.getMetaData();
         if (isBuiltIn(sql, "@best_row_identifier")) {
@@ -687,9 +686,6 @@ public class JdbcUtils {
             rs.addColumn("VALUE", Types.VARCHAR, 0, 0);
             rs.addRow("conn.getCatalog", conn.getCatalog());
             rs.addRow("conn.getAutoCommit", Boolean.toString(conn.getAutoCommit()));
-            rs.addRow("conn.storesUpperCaseIdentifiers", Boolean.toString(meta.storesUpperCaseIdentifiers()));
-            rs.addRow("conn.storesLowerCaseIdentifiers", Boolean.toString(meta.storesLowerCaseIdentifiers()));
-            rs.addRow("conn.storesMixedCaseIdentifiers", Boolean.toString(meta.storesMixedCaseIdentifiers()));
             rs.addRow("conn.getTransactionIsolation", Integer.toString(conn.getTransactionIsolation()));
             rs.addRow("conn.getWarnings", String.valueOf(conn.getWarnings()));
             String map;
@@ -718,7 +714,6 @@ public class JdbcUtils {
                 SimpleResultSet rs = new SimpleResultSet();
                 rs.addColumn("Top Stack Trace(s)", Types.VARCHAR, 0, 0);
                 rs.addRow(profiler.getTop(3));
-                profiler = null;
                 return rs;
             }
         }

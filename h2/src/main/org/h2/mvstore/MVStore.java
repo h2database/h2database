@@ -1607,9 +1607,9 @@ public class MVStore implements AutoCloseable
             c.writeChunkHeader(buff, 0);
             int headerLength = buff.position() + 44;
             buff.position(headerLength);
-            serializeToBuffer(buff, changed, c, reservedLow, reservedHighSupplier);
+            serializeToBuffer(buff, changed, c, reservedLow, reservedHighSupplier, headerLength);
 
-            Runnable bufferStore = () -> storeBuffer(c, buff, headerLength, changed);
+            Runnable bufferStore = () -> storeBuffer(c, buff, changed);
 
             try {
                 Future<?> future = bufferSaveExecutor.submit(bufferStore);
@@ -1683,7 +1683,7 @@ public class MVStore implements AutoCloseable
     }
 
     private void serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, Chunk c,
-                                    long reservedLow, Supplier<Long> reservedHighSupplier) {
+                                    long reservedLow, Supplier<Long> reservedHighSupplier, int headerLength) {
         long version = c.version;
         List<Long> toc = new ArrayList<>();
         for (Page<?,?> p : changed) {
@@ -1754,22 +1754,24 @@ public class MVStore implements AutoCloseable
             }
             assert c.pageCountLive == c.pageCount : c;
             assert c.occupancy.cardinality() == 0 : c;
+
+            buff.position(0);
+            assert c.pageCountLive == c.pageCount : c;
+            assert c.occupancy.cardinality() == 0 : c;
+            c.writeChunkHeader(buff, headerLength);
+
+            buff.position(buff.limit() - Chunk.FOOTER_LENGTH);
+            buff.put(c.getFooterBytes());
         } finally {
             saveChunkLock.unlock();
         }
     }
 
-    private void storeBuffer(Chunk c, WriteBuffer buff, int headerLength, ArrayList<Page<?,?>> changed) {
+    private void storeBuffer(Chunk c, WriteBuffer buff, ArrayList<Page<?,?>> changed) {
         saveChunkLock.lock();
         try {
+            buff.position(0);
             long filePos = c.block * BLOCK_SIZE;
-            buff.position(0);
-            c.writeChunkHeader(buff, headerLength);
-
-            buff.position(buff.limit() - Chunk.FOOTER_LENGTH);
-            buff.put(c.getFooterBytes());
-
-            buff.position(0);
             write(filePos, buff.getBuffer());
             releaseWriteBuffer(buff);
 

@@ -731,7 +731,7 @@ public class JdbcUtils {
         }
     }
 
-    private static boolean isBuiltIn(String sql, String builtIn) {
+    public static boolean isBuiltIn(String sql, String builtIn) {
         return sql.regionMatches(true, 0, builtIn, 0, builtIn.length());
     }
 

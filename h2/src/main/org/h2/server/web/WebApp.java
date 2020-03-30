@@ -1187,13 +1187,13 @@ public class WebApp {
             Object generatedKeys = null;
             boolean edit = false;
             boolean list = false;
-            if (isBuiltIn(sql, "@autocommit_true")) {
+            if (JdbcUtils.isBuiltIn(sql, "@autocommit_true")) {
                 conn.setAutoCommit(true);
                 return "${text.result.autoCommitOn}";
-            } else if (isBuiltIn(sql, "@autocommit_false")) {
+            } else if (JdbcUtils.isBuiltIn(sql, "@autocommit_false")) {
                 conn.setAutoCommit(false);
                 return "${text.result.autoCommitOff}";
-            } else if (isBuiltIn(sql, "@cancel")) {
+            } else if (JdbcUtils.isBuiltIn(sql, "@cancel")) {
                 stat = session.executingStatement;
                 if (stat != null) {
                     stat.cancel();
@@ -1202,20 +1202,20 @@ public class WebApp {
                     buff.append("${text.result.noRunningStatement}");
                 }
                 return buff.toString();
-            } else if (isBuiltIn(sql, "@edit")) {
+            } else if (JdbcUtils.isBuiltIn(sql, "@edit")) {
                 edit = true;
                 sql = StringUtils.trimSubstring(sql, "@edit".length());
                 session.put("resultSetSQL", sql);
             }
-            if (isBuiltIn(sql, "@list")) {
+            if (JdbcUtils.isBuiltIn(sql, "@list")) {
                 list = true;
                 sql = StringUtils.trimSubstring(sql, "@list".length());
             }
-            if (isBuiltIn(sql, "@meta")) {
+            if (JdbcUtils.isBuiltIn(sql, "@meta")) {
                 metadata = true;
                 sql = StringUtils.trimSubstring(sql, "@meta".length());
             }
-            if (isBuiltIn(sql, "@generated")) {
+            if (JdbcUtils.isBuiltIn(sql, "@generated")) {
                 generatedKeys = true;
                 int offset = "@generated".length();
                 int length = sql.length();
@@ -1232,37 +1232,37 @@ public class WebApp {
                     }
                 }
                 sql = StringUtils.trimSubstring(sql, offset);
-            } else if (isBuiltIn(sql, "@history")) {
+            } else if (JdbcUtils.isBuiltIn(sql, "@history")) {
                 buff.append(getCommandHistoryString());
                 return buff.toString();
-            } else if (isBuiltIn(sql, "@loop")) {
+            } else if (JdbcUtils.isBuiltIn(sql, "@loop")) {
                 sql = StringUtils.trimSubstring(sql, "@loop".length());
                 int idx = sql.indexOf(' ');
                 int count = Integer.decode(sql.substring(0, idx));
                 sql = StringUtils.trimSubstring(sql, idx);
                 return executeLoop(conn, count, sql);
-            } else if (isBuiltIn(sql, "@maxrows")) {
+            } else if (JdbcUtils.isBuiltIn(sql, "@maxrows")) {
                 int maxrows = (int) Double.parseDouble(StringUtils.trimSubstring(sql, "@maxrows".length()));
                 session.put("maxrows", Integer.toString(maxrows));
                 return "${text.result.maxrowsSet}";
-            } else if (isBuiltIn(sql, "@parameter_meta")) {
+            } else if (JdbcUtils.isBuiltIn(sql, "@parameter_meta")) {
                 sql = StringUtils.trimSubstring(sql, "@parameter_meta".length());
                 PreparedStatement prep = conn.prepareStatement(sql);
                 buff.append(getParameterResultSet(prep.getParameterMetaData()));
                 return buff.toString();
-            } else if (isBuiltIn(sql, "@password_hash")) {
+            } else if (JdbcUtils.isBuiltIn(sql, "@password_hash")) {
                 sql = StringUtils.trimSubstring(sql, "@password_hash".length());
                 String[] p = JdbcUtils.split(sql);
                 return StringUtils.convertBytesToHex(
                         SHA256.getKeyPasswordHash(p[0], p[1].toCharArray()));
-            } else if (isBuiltIn(sql, "@prof_start")) {
+            } else if (JdbcUtils.isBuiltIn(sql, "@prof_start")) {
                 if (profiler != null) {
                     profiler.stopCollecting();
                 }
                 profiler = new Profiler();
                 profiler.startCollecting();
                 return "Ok";
-            } else if (isBuiltIn(sql, "@sleep")) {
+            } else if (JdbcUtils.isBuiltIn(sql, "@sleep")) {
                 String s = StringUtils.trimSubstring(sql, "@sleep".length());
                 int sleep = 1;
                 if (s.length() > 0) {
@@ -1270,7 +1270,7 @@ public class WebApp {
                 }
                 Thread.sleep(sleep * 1000);
                 return "Ok";
-            } else if (isBuiltIn(sql, "@transaction_isolation")) {
+            } else if (JdbcUtils.isBuiltIn(sql, "@transaction_isolation")) {
                 String s = StringUtils.trimSubstring(sql, "@transaction_isolation".length());
                 if (s.length() > 0) {
                     int level = Integer.parseInt(s);
@@ -1292,7 +1292,7 @@ public class WebApp {
             }
             if (sql.startsWith("@")) {
                 rs = JdbcUtils.getMetaResultSet(conn, sql);
-		if (isBuiltIn(sql, "@prof_stop")) {
+		if (JdbcUtils.isBuiltIn(sql, "@prof_stop")) {
 		    if (profiler != null) {
 			profiler.stopCollecting();
 			SimpleResultSet srs = new SimpleResultSet();
@@ -1356,10 +1356,6 @@ public class WebApp {
         }
     }
 
-    private static boolean isBuiltIn(String sql, String builtIn) {
-        return sql.regionMatches(true, 0, builtIn, 0, builtIn.length());
-    }
-
     private String executeLoop(Connection conn, int count, String sql)
             throws SQLException {
         ArrayList<Integer> params = new ArrayList<>();
@@ -1369,7 +1365,7 @@ public class WebApp {
             if (idx < 0) {
                 break;
             }
-            if (isBuiltIn(sql.substring(idx), "?/*rnd*/")) {
+            if (JdbcUtils.isBuiltIn(sql.substring(idx), "?/*rnd*/")) {
                 params.add(1);
                 sql = sql.substring(0, idx) + "?" + sql.substring(idx + "/*rnd*/".length() + 1);
             } else {
@@ -1380,7 +1376,7 @@ public class WebApp {
         boolean prepared;
         Random random = new Random(1);
         long time = System.currentTimeMillis();
-        if (isBuiltIn(sql, "@statement")) {
+        if (JdbcUtils.isBuiltIn(sql, "@statement")) {
             sql = StringUtils.trimSubstring(sql, "@statement".length());
             prepared = false;
             Statement stat = conn.createStatement();

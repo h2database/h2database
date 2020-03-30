@@ -2500,7 +2500,7 @@ public class MVStore implements AutoCloseable
             // now we don't do that)
             int fillRate = chunk.getFillRate();
             if (isRewritable(chunk, time) && fillRate <= targetFillRate) {
-                long age = latestVersion - chunk.version;
+                long age = Math.max(1, latestVersion - chunk.version);
                 chunk.collectPriority = (int) (fillRate * 1000 / age);
                 totalSize += chunk.maxLenLive;
                 queue.offer(chunk);

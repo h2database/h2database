@@ -187,13 +187,20 @@ public final class Chunk
             tocPos = DataUtils.readHexInt(map, ATTR_TOC, 0);
             byte[] bytes = DataUtils.parseHexBytes(map, ATTR_OCCUPANCY);
             occupancy = bytes == null ? new BitSet() : BitSet.valueOf(bytes);
-            assert pageCount - pageCountLive == occupancy.cardinality()
-                    : pageCount + " - " + pageCountLive + " <> " + occupancy.cardinality() + " : " + occupancy;
+            if (pageCount - pageCountLive != occupancy.cardinality()) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_CORRUPT, "Inconsistent occupancy info {0} - {1} != {2} {3}",
+                        pageCount, pageCountLive, occupancy.cardinality(), this);
+            }
         }
     }
 
     Chunk(int id) {
         this.id = id;
+        if (id <=  0) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_FILE_CORRUPT, "Invalid chunk id {0}", id);
+        }
     }
 
     /**
@@ -479,13 +486,13 @@ public final class Chunk
      * @return true if all of the pages, this chunk contains, were already
      *         removed, and false otherwise
      */
-    synchronized boolean accountForRemovedPage(int pageNo, int pageLength, boolean pinned, long now, long version) {
+    boolean accountForRemovedPage(int pageNo, int pageLength, boolean pinned, long now, long version) {
         assert isSaved() : this;
         // legacy chunks do not have a table of content,
         // therefore pageNo is not valid, skip
         if (tocPos > 0) {
             assert pageNo >= 0 && pageNo < pageCount : pageNo + " // " +  pageCount;
-            assert !occupancy.get(pageNo);
+            assert !occupancy.get(pageNo) : pageNo + " " + this + " " + occupancy;
             assert pageCount - pageCountLive == occupancy.cardinality()
                     : pageCount + " - " + pageCountLive + " <> " + occupancy.cardinality() + " : " + occupancy;
             occupancy.set(pageNo);

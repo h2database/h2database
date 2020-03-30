@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
@@ -184,16 +185,17 @@ public class MVStore implements AutoCloseable
      */
     private static final int STATE_CLOSED = 3;
 
-    private static final int PIPE_LENGTH = 1;
+    private static final int PIPE_LENGTH = 5;
 
 
     /**
      * Lock which governs access to major store operations: store(), close(), ...
-     * It should used in a non-reentrant fashion.
      * It serves as a replacement for synchronized(this), except it allows for
      * non-blocking lock attempts.
      */
     private final ReentrantLock storeLock = new ReentrantLock(true);
+    private final ReentrantLock serializationLock = new ReentrantLock(true);
+    private final ReentrantLock saveChunkLock = new ReentrantLock(true);
 
     /**
      * Reference to a background thread, which is expected to be running, if any.
@@ -232,7 +234,7 @@ public class MVStore implements AutoCloseable
     /**
      * The newest chunk. If nothing was stored yet, this field is not set.
      */
-    private Chunk lastChunk;
+    private volatile Chunk lastChunk;
 
     /**
      * The map of chunks.
@@ -262,7 +264,7 @@ public class MVStore implements AutoCloseable
 
     private final HashMap<String, Object> storeHeader = new HashMap<>();
 
-    private Queue<WriteBuffer> writeBufferPool = new ArrayBlockingQueue<>(PIPE_LENGTH);
+    private Queue<WriteBuffer> writeBufferPool = new ArrayBlockingQueue<>(PIPE_LENGTH + 1);
 
     private final AtomicInteger lastMapId = new AtomicInteger();
     private final AtomicInteger lastChunkId = new AtomicInteger();
@@ -333,7 +335,7 @@ public class MVStore implements AutoCloseable
     /**
      * The version of the current store operation (if any).
      */
-    private volatile long currentStoreVersion = -1;
+    private volatile long currentStoreVersion = INITIAL_VERSION;
 
     private volatile boolean metaChanged;
 
@@ -421,20 +423,26 @@ public class MVStore implements AutoCloseable
             // just to make some assertions happy, when they ensure single-threaded access
             storeLock.lock();
             try {
-                if (!fileStoreIsProvided) {
-                    boolean readOnly = config.containsKey("readOnly");
-                    this.fileStore.open(fileName, readOnly, encryptionKey);
-                }
-                if (this.fileStore.size() == 0) {
-                    creationTime = getTimeAbsolute();
-                    lastCommitTime = creationTime;
-                    storeHeader.put(HDR_H, 2);
-                    storeHeader.put(HDR_BLOCK_SIZE, BLOCK_SIZE);
-                    storeHeader.put(HDR_FORMAT, FORMAT_WRITE);
-                    storeHeader.put(HDR_CREATED, creationTime);
-                    writeStoreHeader();
-                } else {
-                    readStoreHeader();
+                saveChunkLock.lock();
+                try {
+                    if (!fileStoreIsProvided) {
+                        boolean readOnly = config.containsKey("readOnly");
+                        this.fileStore.open(fileName, readOnly, encryptionKey);
+                    }
+                    if (this.fileStore.size() == 0) {
+                        creationTime = getTimeAbsolute();
+                        lastCommitTime = creationTime;
+                        storeHeader.put(HDR_H, 2);
+                        storeHeader.put(HDR_BLOCK_SIZE, BLOCK_SIZE);
+                        storeHeader.put(HDR_FORMAT, FORMAT_WRITE);
+                        storeHeader.put(HDR_CREATED, creationTime);
+                        setLastChunk(null);
+                        writeStoreHeader();
+                    } else {
+                        readStoreHeader();
+                    }
+                } finally {
+                    saveChunkLock.unlock();
                 }
             } catch (IllegalStateException e) {
                 panic(e);
@@ -454,7 +462,7 @@ public class MVStore implements AutoCloseable
             int delay = DataUtils.getConfigParam(config, "autoCommitDelay", 1000);
             setAutoCommitDelay(delay);
             ThreadFactory threadFactory = r -> {
-                Thread thread = new Thread(r, "H2-bg-executor");
+                Thread thread = new Thread(r, "H2-serialization-executor");
                 thread.setDaemon(true);
                 return thread;
             };
@@ -462,7 +470,7 @@ public class MVStore implements AutoCloseable
                     0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<>(), threadFactory);
             ThreadFactory bsThreadFactory = r -> {
-                Thread thread = new Thread(r, "H2-bs-executor");
+                Thread thread = new Thread(r, "H2-save-executor");
                 thread.setDaemon(true);
                 return thread;
             };
@@ -633,6 +641,7 @@ public class MVStore implements AutoCloseable
             String x = Integer.toHexString(id);
             meta.put(MVMap.getMapKey(id), map.asString(name));
             meta.put(DataUtils.META_NAME + name, x);
+            long lastStoredVersion = currentVersion - 1;
             map.setRootPos(0, lastStoredVersion);
             markMetaChanged();
             @SuppressWarnings("unchecked")
@@ -656,6 +665,7 @@ public class MVStore implements AutoCloseable
                 config.put("id", id);
                 map = builder.create(this, config);
                 long root = getRootPos(id);
+                long lastStoredVersion = currentVersion - 1;
                 map.setRootPos(root, lastStoredVersion);
                 maps.put(id, map);
             }
@@ -789,6 +799,7 @@ public class MVStore implements AutoCloseable
         Chunk newest = null;
         boolean assumeCleanShutdown = true;
         boolean validStoreHeader = false;
+        long version = INITIAL_VERSION;
         // find out which chunk and version are the newest
         // read the first two blocks
         ByteBuffer fileHeaderBlocks = fileStore.readFully(0, 2 * BLOCK_SIZE);
@@ -799,10 +810,12 @@ public class MVStore implements AutoCloseable
             try {
                 HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
                 if (m == null) {
+//                    System.err.println("Header checksum failure");
                     assumeCleanShutdown = false;
                     continue;
                 }
-                long version = DataUtils.readHexLong(m, HDR_VERSION, 0);
+//                System.err.println("Header: " + m);
+                version = DataUtils.readHexLong(m, HDR_VERSION, 0);
                 // if both header blocks do agree on version
                 // we'll continue on happy path - assume that previous shutdown was clean
                 assumeCleanShutdown = assumeCleanShutdown && (newest == null || version == newest.version);
@@ -811,13 +824,14 @@ public class MVStore implements AutoCloseable
                     storeHeader.putAll(m);
                     creationTime = DataUtils.readHexLong(m, HDR_CREATED, 0);
                     int chunkId = DataUtils.readHexInt(m, HDR_CHUNK, 0);
-                    long block = DataUtils.readHexLong(m, HDR_BLOCK, 0);
+                    long block = DataUtils.readHexLong(m, HDR_BLOCK, 2);
                     Chunk test = readChunkHeaderAndFooter(block, chunkId);
                     if (test != null) {
                         newest = test;
                     }
                 }
             } catch (Exception ignore) {
+//                ignore.printStackTrace();
                 assumeCleanShutdown = false;
             }
         }
@@ -852,9 +866,13 @@ public class MVStore implements AutoCloseable
                     format, FORMAT_READ);
         }
 
-        assumeCleanShutdown = assumeCleanShutdown && newest != null
-                && DataUtils.readHexInt(storeHeader, HDR_CLEAN, 0) != 0
-                && !recoveryMode;
+        assumeCleanShutdown = assumeCleanShutdown && newest != null && !recoveryMode;
+        if (assumeCleanShutdown) {
+            assumeCleanShutdown = DataUtils.readHexInt(storeHeader, HDR_CLEAN, 0) != 0;
+//            if (!assumeCleanShutdown) {
+//                System.err.println("Clean shutdown marker is missing. Header version: " + version);
+//            }
+        }
         lastStoredVersion = INITIAL_VERSION;
         chunks.clear();
         long now = System.currentTimeMillis();
@@ -912,6 +930,9 @@ public class MVStore implements AutoCloseable
                     break;
                 }
                 // if shutdown was really clean then chain should be empty
+//                if (assumeCleanShutdown) {
+//                    System.err.println("Chunk chain exists despite clean shutdown marker. Version: " + version + " => " + newest.version);
+//                }
                 assumeCleanShutdown = false;
                 newest = test;
             }
@@ -936,13 +957,22 @@ public class MVStore implements AutoCloseable
                         chunksToVerify.poll();
                     }
                 }
+//                System.err.println("Verifying chunks: " + chunksToVerify.size() + " / " + chunks.size());
                 Chunk c;
                 while (assumeCleanShutdown && (c = chunksToVerify.poll()) != null) {
-                    assumeCleanShutdown = readChunkHeaderAndFooter(c.block, c.id) != null;
+                    Chunk test = readChunkHeaderAndFooter(c.block, c.id);
+                    assumeCleanShutdown = test != null;
+                    if (assumeCleanShutdown) {
+                        validChunksByLocation.put(test.block, test);
+                    }
                 }
             } catch(IllegalStateException ignored) {
+//                ignored.printStackTrace();
                 assumeCleanShutdown = false;
             }
+//            if (!assumeCleanShutdown) {
+//                System.err.println("One of the last 20 chunks was invalid");
+//            }
         }
 
         if (!assumeCleanShutdown) {
@@ -962,6 +992,9 @@ public class MVStore implements AutoCloseable
                 }
                 quickRecovery = findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation,
                         validChunksById, false);
+//                if (quickRecovery) {
+//                    System.err.println("Quick recovery: " + version + " => " + lastChunk.version);
+//                }
             }
 
             if (!quickRecovery) {
@@ -982,10 +1015,21 @@ public class MVStore implements AutoCloseable
                 for (Chunk chunk : lastChunkCandidates) {
                     validChunksById.put(chunk.id, chunk);
                 }
-                findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation,
-                        validChunksById, true);
+                if (!findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation,
+                        validChunksById, true) && lastChunk != null) {
+                    throw DataUtils.newIllegalStateException(
+                            DataUtils.ERROR_FILE_CORRUPT,
+                            "File is corrupted - unable to recover a valid set of chunks");
+
+                }
             }
         }
+
+//        long currentVersion = lastChunk == null ? 0 : lastChunk.version;
+//        if (version != currentVersion) {
+//        if (!assumeCleanShutdown) {
+//            System.err.println("Rollback: " + version + " => " + currentVersion);
+//        }
 
         fileStore.clear();
         // build the free space list
@@ -1082,6 +1126,7 @@ public class MVStore implements AutoCloseable
             lastStoredVersion = INITIAL_VERSION;
             layout.setRootPos(0, INITIAL_VERSION);
             meta.setRootPos(0, INITIAL_VERSION);
+            lastChunkId.set(0);
         } else {
             lastMapId.set(last.mapId);
             currentVersion = last.version;
@@ -1089,7 +1134,7 @@ public class MVStore implements AutoCloseable
             lastStoredVersion = currentVersion - 1;
             layout.setRootPos(last.layoutRootPos, lastStoredVersion);
             meta.setRootPos(getRootPos(meta.getId()), lastStoredVersion);
-            lastChunkId.set(lastChunk.id);
+            lastChunkId.set(last.id);
         }
     }
 
@@ -1278,11 +1323,17 @@ public class MVStore implements AutoCloseable
                                         bufferSaveExecutor.awaitTermination(5000, TimeUnit.MILLISECONDS);
                                     } catch (InterruptedException ignore) {/**/}
                                 }
-                                shrinkFileIfPossible(0);
-                                storeHeader.put(HDR_CLEAN, 1);
-                                writeStoreHeader();
-                                sync();
-                                assert validateFileLength("on close");
+
+                                saveChunkLock.lock();
+                                try {
+                                    shrinkFileIfPossible(0);
+                                    storeHeader.put(HDR_CLEAN, 1);
+                                    writeStoreHeader();
+                                    sync();
+                                    assert validateFileLength("on close");
+                                } finally {
+                                    saveChunkLock.unlock();
+                                }
                             }
 
                             state = STATE_CLOSING;
@@ -1425,11 +1476,12 @@ public class MVStore implements AutoCloseable
     }
 
     private void store(boolean syncWrite) {
-        store(syncWrite, 0, reuseSpace ? 0 : getAfterLastBlock());
+        store(syncWrite, 0, () -> reuseSpace ? 0 : getAfterLastBlock());
     }
 
-    private void store(boolean syncWrite, long reservedLow, long reservedHigh) {
+    private void store(boolean syncWrite, long reservedLow, Supplier<Long> reservedHigh) {
         assert storeLock.isHeldByCurrentThread();
+        assert !saveChunkLock.isHeldByCurrentThread();
         if (isOpenOrStopping()) {
             if (hasUnsavedChanges()) {
                 dropUnusedChunks();
@@ -1446,14 +1498,7 @@ public class MVStore implements AutoCloseable
                             throw DataUtils.newIllegalStateException(
                                     DataUtils.ERROR_WRITING_FAILED, "This store is read-only");
                         }
-                        try {
-                            storeNow(syncWrite, reservedLow, reservedHigh);
-                        } catch (IllegalStateException e) {
-                            panic(e);
-                        } catch (Throwable e) {
-                            panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(),
-                                    e));
-                        }
+                        storeNow(syncWrite, reservedLow, reservedHigh);
                     }
                 } finally {
                     // in any case reset the current store version,
@@ -1464,129 +1509,46 @@ public class MVStore implements AutoCloseable
         }
     }
 
-    private void storeNow(boolean syncWrite, long reservedLow, long reservedHigh) throws Throwable {
+    void storeNow(boolean syncWrite, long reservedLow, Supplier<Long> reservedHigh) {
+        try {
+            storeNowInternal(syncWrite, reservedLow, reservedHigh);
+        } catch (IllegalStateException e) {
+            panic(e);
+        } catch (Throwable e) {
+            panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(),
+                    e));
+        }
+    }
+
+    private void storeNowInternal(boolean syncWrite, long reservedLow, Supplier<Long> reservedHighSupplier) throws Throwable {
         long time = getTimeSinceCreation();
         int currentUnsavedPageCount = unsavedMemory;
-        long storeVersion = currentStoreVersion;
+        long storeVersion = currentVersion;
         // it is ok, since that path suppose to be single-threaded under storeLock
         //noinspection NonAtomicOperationOnVolatileField
         long version = ++currentVersion;
         ArrayList<Page<?,?>> changed = collectChangedMapRoots(storeVersion, version);
         lastCommitTime = time;
 
-        Runnable serialisationAndStore = new Runnable() {
-            @Override
-            public void run() {
-                Chunk c = createChunk(time, version);
-                chunks.put(c.id, c);
-                WriteBuffer buff = getWriteBuffer();
-                // need to patch the header later
-                c.writeChunkHeader(buff, 0);
-                int headerLength = buff.position() + 44;
-                buff.position(headerLength);
-                Page<String, String> layoutRoot = serializeToBuffer(buff, changed, c);
-                changed.add(layoutRoot);
-
-                Runnable bufferStore = new Runnable() {
-                    @Override
-                    public void run() {
-                        storeBuffer(c, buff, headerLength);
-                    }
-                };
-
-                try {
-                    Future<?> future = bufferSaveExecutor.submit(bufferStore);
-                    if (syncWrite || bufferSaveExecutor.getQueue().size() > PIPE_LENGTH) {
-                        while (true) {
-                            try {
-                                future.get();
-                                break;
-                            } catch (InterruptedException ignore) {
-                            } catch (ExecutionException e) {
-                                throw new RuntimeException(e.getCause());
-                            }
-                        }
-                    }
-                } catch (RejectedExecutionException ex) {
-                    if (bufferSaveExecutor.isShutdown()) {
-                        while(true) {
-                            try {
-                                bufferSaveExecutor.awaitTermination(5000, TimeUnit.MILLISECONDS);
-                                break;
-                            } catch (InterruptedException ignore) {
-                            }
-                        }
-                    }
-                    bufferStore.run();
-                }
-            }
-
-            public void storeBuffer(Chunk c, WriteBuffer buff, int headerLength) {
-                long filePos = fileStore.allocate(buff.limit(), reservedLow, reservedHigh);
-                c.block = filePos / BLOCK_SIZE;
-                c.len = buff.limit() / BLOCK_SIZE;
-                assert validateFileLength(c.asString());
-                // calculate and set the likely next position
-                if (reservedLow > 0 || reservedHigh == reservedLow) {
-                    c.next = fileStore.predictAllocation(c.len, 0, 0);
-                } else {
-                    // just after this chunk
-                    c.next = 0;
-                }
-                assert c.pageCountLive == c.pageCount : c;
-                assert c.occupancy.cardinality() == 0 : c;
-                buff.position(0);
-                c.writeChunkHeader(buff, headerLength);
-
-                buff.position(buff.limit() - Chunk.FOOTER_LENGTH);
-                buff.put(c.getFooterBytes());
-
-                buff.position(0);
-                write(filePos, buff.getBuffer());
-                releaseWriteBuffer(buff);
-
-                // end of the used space is not necessarily the end of the file
-                boolean storeAtEndOfFile = filePos + buff.limit() >= fileStore.size();
-                boolean writeStoreHeader = isWriteStoreHeader(c, storeAtEndOfFile);
-                lastChunk = c;
-                if (writeStoreHeader) {
-                    writeStoreHeader();
-                }
-                if (!storeAtEndOfFile) {
-                    // may only shrink after the store header was written
-                    shrinkFileIfPossible(1);
-                }
-
-                for (Page<?,?> p : changed) {
-                    p.releaseSavedPages();
-                }
-            }
-        };
-
+        Runnable serializationAndStore = () ->
+                serializeAndStore(syncWrite, reservedLow, reservedHighSupplier, changed, time, version);
         try {
-            Future<?> future = serializationExecutor.submit(serialisationAndStore);
+            Future<?> future = serializationExecutor.submit(serializationAndStore);
             if (syncWrite || serializationExecutor.getQueue().size() > PIPE_LENGTH) {
-                while (true) {
-                    try {
-                        future.get();
-                        break;
-                    } catch (InterruptedException ignore) {
-                    } catch (ExecutionException e) {
-                        throw e.getCause();
-                    }
-                }
+                try {
+                    future.get();
+                } catch (InterruptedException ignore) {/**/}
             }
         } catch (RejectedExecutionException ex) {
-            if (serializationExecutor.isShutdown()) {
-                while(true) {
-                    try {
-                        serializationExecutor.awaitTermination(5000, TimeUnit.MILLISECONDS);
+            assert serializationExecutor.isShutdown();
+            while(true) {
+                try {
+                    if (serializationExecutor.awaitTermination(5000, TimeUnit.MILLISECONDS)) {
                         break;
-                    } catch (InterruptedException ignore) {
                     }
-                }
+                } catch (InterruptedException ignore) {/**/}
             }
-            serialisationAndStore.run();
+            serializationAndStore.run();
         }
 
         // some pages might have been changed in the meantime (in the newest
@@ -1597,6 +1559,7 @@ public class MVStore implements AutoCloseable
 
     private ArrayList<Page<?,?>> collectChangedMapRoots(long storeVersion, long version) {
         assert storeVersion + 1 == version;
+        long lastStoredVersion = storeVersion - 1;
         ArrayList<Page<?,?>> changed = new ArrayList<>();
         for (Iterator<MVMap<?, ?>> iter = maps.values().iterator(); iter.hasNext(); ) {
             MVMap<?, ?> map = iter.next();
@@ -1630,16 +1593,63 @@ public class MVStore implements AutoCloseable
                 changed.add(rootPage);
             }
         }
-        lastStoredVersion = storeVersion;
         return changed;
     }
 
+    private void serializeAndStore(boolean syncWrite, long reservedLow, Supplier<Long> reservedHighSupplier,
+                                    ArrayList<Page<?,?>> changed, long time, long version) {
+        serializationLock.lock();
+        try {
+            Chunk c = createChunk(time, version);
+            chunks.put(c.id, c);
+            WriteBuffer buff = getWriteBuffer();
+            // need to patch the header later
+            c.writeChunkHeader(buff, 0);
+            int headerLength = buff.position() + 44;
+            buff.position(headerLength);
+            serializeToBuffer(buff, changed, c, reservedLow, reservedHighSupplier);
+
+            Runnable bufferStore = () -> storeBuffer(c, buff, headerLength, changed);
+
+            try {
+                Future<?> future = bufferSaveExecutor.submit(bufferStore);
+                if (syncWrite || bufferSaveExecutor.getQueue().size() > PIPE_LENGTH) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException ignore) {/**/}
+                }
+            } catch (RejectedExecutionException ex) {
+                assert bufferSaveExecutor.isShutdown();
+                while(true) {
+                    try {
+                        if (bufferSaveExecutor.awaitTermination(5000, TimeUnit.MILLISECONDS)) {
+                            break;
+                        }
+                    } catch (InterruptedException ignore) {/**/}
+                }
+                bufferStore.run();
+            }
+        } catch (IllegalStateException e) {
+            panic(e);
+        } catch (Throwable e) {
+            panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
+        } finally {
+            serializationLock.unlock();
+        }
+    }
+
     private Chunk createChunk(long time, long version) {
-        if (lastChunk != null) {
+        int chunkId = lastChunkId.get();
+        if (chunkId != 0) {
+            chunkId &= Chunk.MAX_ID;
+            Chunk lastChunk = chunks.get(chunkId);
+            assert lastChunk != null;
+            assert lastChunk.isSaved();
+            assert lastChunk.version + 1 == version : lastChunk.version + " " +  version;
             // the metadata of the last chunk was not stored so far, and needs to be
             // set now (it's better not to update right after storing, because that
             // would modify the meta map again)
-            layout.put(Chunk.getMetaKey(lastChunk.id), lastChunk.asString());
+            layout.put(Chunk.getMetaKey(chunkId), lastChunk.asString());
             // never go backward in time
             time = Math.max(lastChunk.time, time);
         }
@@ -1672,7 +1682,8 @@ public class MVStore implements AutoCloseable
         return c;
     }
 
-    private Page<String, String> serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, Chunk c) {
+    private void serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, Chunk c,
+                                    long reservedLow, Supplier<Long> reservedHighSupplier) {
         long version = c.version;
         List<Long> toc = new ArrayList<>();
         for (Page<?,?> p : changed) {
@@ -1686,20 +1697,21 @@ public class MVStore implements AutoCloseable
             }
         }
 
-        acceptChunkOccupancyChanges(c.time);
+        acceptChunkOccupancyChanges(c.time, version);
 
         RootReference<String,String> layoutRootReference = layout.setWriteVersion(version);
         assert layoutRootReference != null;
         assert layoutRootReference.version == version : layoutRootReference.version + " != " + version;
         metaChanged = false;
 
-        acceptChunkOccupancyChanges(c.time);
+        acceptChunkOccupancyChanges(c.time, version);
 
         onVersionChange(version);
 
         Page<String,String> layoutRoot = layoutRootReference.root;
         layoutRoot.writeUnsavedRecursive(c, buff, toc);
         c.layoutRootPos = layoutRoot.getPos();
+        changed.add(layoutRoot);
 
         // last allocated map id should be captured after the meta map was saved, because
         // this will ensure that concurrently created map, which made it into meta before save,
@@ -1725,13 +1737,72 @@ public class MVStore implements AutoCloseable
         int length = MathUtils.roundUpInt(chunkLength +
                 Chunk.FOOTER_LENGTH, BLOCK_SIZE);
         buff.limit(length);
-        return layoutRoot;
+
+        saveChunkLock.lock();
+        try {
+            Long reservedHigh = reservedHighSupplier.get();
+            long filePos = fileStore.allocate(buff.limit(), reservedLow, reservedHigh);
+            c.len = buff.limit() / BLOCK_SIZE;
+            c.block = filePos / BLOCK_SIZE;
+            assert validateFileLength(c.asString());
+            // calculate and set the likely next position
+            if (reservedLow > 0 || reservedHigh == reservedLow) {
+                c.next = fileStore.predictAllocation(c.len, 0, 0);
+            } else {
+                // just after this chunk
+                c.next = 0;
+            }
+            assert c.pageCountLive == c.pageCount : c;
+            assert c.occupancy.cardinality() == 0 : c;
+        } finally {
+            saveChunkLock.unlock();
+        }
+    }
+
+    private void storeBuffer(Chunk c, WriteBuffer buff, int headerLength, ArrayList<Page<?,?>> changed) {
+        saveChunkLock.lock();
+        try {
+            long filePos = c.block * BLOCK_SIZE;
+            buff.position(0);
+            c.writeChunkHeader(buff, headerLength);
+
+            buff.position(buff.limit() - Chunk.FOOTER_LENGTH);
+            buff.put(c.getFooterBytes());
+
+            buff.position(0);
+            write(filePos, buff.getBuffer());
+            releaseWriteBuffer(buff);
+
+            // end of the used space is not necessarily the end of the file
+            boolean storeAtEndOfFile = filePos + buff.limit() >= fileStore.size();
+            boolean writeStoreHeader = isWriteStoreHeader(c, storeAtEndOfFile);
+            lastChunk = c;
+            lastStoredVersion = c.version;
+            if (writeStoreHeader) {
+                writeStoreHeader();
+            }
+            if (!storeAtEndOfFile) {
+                // may only shrink after the store header was written
+                shrinkFileIfPossible(1);
+            }
+        } catch (IllegalStateException e) {
+            panic(e);
+        } catch (Throwable e) {
+            panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
+        } finally {
+            saveChunkLock.unlock();
+        }
+
+        for (Page<?, ?> p : changed) {
+            p.releaseSavedPages();
+        }
     }
 
     private boolean isWriteStoreHeader(Chunk c, boolean storeAtEndOfFile) {
         // whether we need to write the store header
         boolean writeStoreHeader = false;
         if (!storeAtEndOfFile) {
+            Chunk lastChunk = this.lastChunk;
             if (lastChunk == null) {
                 writeStoreHeader = true;
             } else if (lastChunk.next != c.block) {
@@ -1744,7 +1815,7 @@ public class MVStore implements AutoCloseable
                     writeStoreHeader = true;
                 } else {
                     for (int chunkId = DataUtils.readHexInt(storeHeader, HDR_CHUNK, 0);
-                            !writeStoreHeader && chunkId <= lastChunk.id; ++chunkId) {
+                         !writeStoreHeader && chunkId <= lastChunk.id; ++chunkId) {
                         // one of the chunks in between
                         // was removed
                         writeStoreHeader = !chunks.containsKey(chunkId);
@@ -1818,9 +1889,9 @@ public class MVStore implements AutoCloseable
      * disk space is not yet marked as free. They are queued instead and wait until
      * their usage is over.
      */
-    private void acceptChunkOccupancyChanges(long time) {
+    private void acceptChunkOccupancyChanges(long time, long version) {
+        assert serializationLock.isHeldByCurrentThread();
         if (lastChunk != null) {
-            long version = lastChunk.version + 1;
             Set<Chunk> modifiedChunks = new HashSet<>();
             while (true) {
                 RemovedPageInfo rpi;
@@ -1858,6 +1929,7 @@ public class MVStore implements AutoCloseable
      * @param minPercent the minimum percentage to save
      */
     private void shrinkFileIfPossible(int minPercent) {
+        assert saveChunkLock.isHeldByCurrentThread();
         if (fileStore.isReadOnly()) {
             return;
         }
@@ -1885,6 +1957,7 @@ public class MVStore implements AutoCloseable
      * @return the position
      */
     private long getFileLengthInUse() {
+        assert saveChunkLock.isHeldByCurrentThread();
         long result = fileStore.getFileLengthInUse();
         assert result == measureFileLengthInUse() : result + " != " + measureFileLengthInUse();
         return result;
@@ -1897,10 +1970,12 @@ public class MVStore implements AutoCloseable
      * @return block index
      */
     private long getAfterLastBlock() {
+        assert saveChunkLock.isHeldByCurrentThread();
         return fileStore.getAfterLastBlock();
     }
 
     private long measureFileLengthInUse() {
+        assert saveChunkLock.isHeldByCurrentThread();
         long size = 2;
         for (Chunk c : chunks.values()) {
             if (c.isSaved()) {
@@ -1919,6 +1994,7 @@ public class MVStore implements AutoCloseable
         if (metaChanged) {
             return true;
         }
+        long lastStoredVersion = currentVersion - 1;
         for (MVMap<?, ?> m : maps.values()) {
             if (!m.isClosed()) {
                 if(m.hasChangesSince(lastStoredVersion)) {
@@ -1926,7 +2002,7 @@ public class MVStore implements AutoCloseable
                 }
             }
         }
-        return false;
+        return layout.hasChangesSince(lastStoredVersion);
     }
 
     private Chunk readChunkHeader(long block) {
@@ -1966,29 +2042,47 @@ public class MVStore implements AutoCloseable
      *            than this
      * @param moveSize the number of bytes to move
      */
-    private void compactMoveChunks(int targetFillRate, long moveSize) {
+    boolean compactMoveChunks(int targetFillRate, long moveSize) {
+        boolean res = false;
         storeLock.lock();
         try {
             checkOpen();
-            if (lastChunk != null && reuseSpace) {
-                int oldRetentionTime = retentionTime;
-                boolean oldReuse = reuseSpace;
+            assert !serializationExecutor.isTerminating();
+            try { serializationExecutor.submit(() -> {}).get(); } catch (InterruptedException | ExecutionException ignore) {}
+            assert !bufferSaveExecutor.isTerminating();
+            try { bufferSaveExecutor.submit(() -> {}).get(); } catch (InterruptedException | ExecutionException ignore) {}
+
+            serializationLock.lock();
+            try {
+                saveChunkLock.lock();
                 try {
-                    retentionTime = -1;
-                    if (getFillRate() <= targetFillRate) {
-                        compactMoveChunks(moveSize);
+                    if (lastChunk != null && reuseSpace) {
+                        int oldRetentionTime = retentionTime;
+                        boolean oldReuse = reuseSpace;
+                        try {
+                            retentionTime = -1;
+                            if (getFillRate() <= targetFillRate) {
+                                res = compactMoveChunks(moveSize);
+                            }
+                        } finally {
+                            reuseSpace = oldReuse;
+                            retentionTime = oldRetentionTime;
+                        }
                     }
                 } finally {
-                    reuseSpace = oldReuse;
-                    retentionTime = oldRetentionTime;
+                    saveChunkLock.unlock();
                 }
+            } finally {
+                serializationLock.unlock();
             }
         } finally {
             unlockAndCheckPanicCondition();
         }
+        return res;
     }
 
     private boolean compactMoveChunks(long moveSize) {
+        assert storeLock.isHeldByCurrentThread();
         dropUnusedChunks();
         long start = fileStore.getFirstFree() / BLOCK_SIZE;
         Iterable<Chunk> chunksToMove = findChunksToMove(start, moveSize);
@@ -2043,6 +2137,8 @@ public class MVStore implements AutoCloseable
 
     private void compactMoveChunks(Iterable<Chunk> move) {
         assert storeLock.isHeldByCurrentThread();
+        assert serializationLock.isHeldByCurrentThread();
+        assert saveChunkLock.isHeldByCurrentThread();
         if (move != null) {
             assert lastChunk != null;
             // this will ensure better recognition of the last chunk
@@ -2062,7 +2158,7 @@ public class MVStore implements AutoCloseable
                 moveChunk(chunk, leftmostBlock, originalBlockCount);
             }
             // update the metadata (hopefully within the file)
-            store(true, leftmostBlock, originalBlockCount);
+            store(leftmostBlock, originalBlockCount);
             sync();
 
             Chunk chunkToMove = lastChunk;
@@ -2086,7 +2182,7 @@ public class MVStore implements AutoCloseable
                 boolean moved = moveChunkInside(chunkToMove, originalBlockCount);
 
                 // store a new chunk with updated metadata (hopefully within a file)
-                store(true, originalBlockCount, postEvacuationBlockCount);
+                store(originalBlockCount, postEvacuationBlockCount);
                 sync();
                 // if chunkToMove did not fit within originalBlockCount (move is
                 // false), and since now previously reserved area
@@ -2097,12 +2193,26 @@ public class MVStore implements AutoCloseable
                                         postEvacuationBlockCount : chunkToMove.block;
                 moved = !moved && moveChunkInside(chunkToMove, lastBoundary);
                 if (moveChunkInside(lastChunk, lastBoundary) || moved) {
-                    store(true, lastBoundary, -1);
+                    store(lastBoundary, -1);
                 }
             }
 
             shrinkFileIfPossible(0);
             sync();
+        }
+    }
+
+    private void store(long reservedLow, long reservedHigh) {
+        saveChunkLock.unlock();
+        try {
+            serializationLock.unlock();
+            try {
+                storeNow(true, reservedLow, () -> reservedHigh);
+            } finally {
+                serializationLock.lock();
+            }
+        } finally {
+            saveChunkLock.lock();
         }
     }
 
@@ -2244,17 +2354,23 @@ public class MVStore implements AutoCloseable
     }
 
     private boolean rewriteChunks(int writeLimit, int targetFillRate) {
-        TxCounter txCounter = registerVersionUsage();
+        serializationLock.lock();
         try {
-            Iterable<Chunk> old = findOldChunks(writeLimit, targetFillRate);
-            if (old != null) {
-                HashSet<Integer> idSet = createIdSet(old);
-                return !idSet.isEmpty() && compactRewrite(idSet) > 0;
+            TxCounter txCounter = registerVersionUsage();
+            try {
+                acceptChunkOccupancyChanges(getTimeSinceCreation(), currentVersion);
+                Iterable<Chunk> old = findOldChunks(writeLimit, targetFillRate);
+                if (old != null) {
+                    HashSet<Integer> idSet = createIdSet(old);
+                    return !idSet.isEmpty() && compactRewrite(idSet) > 0;
+                }
+            } finally {
+                deregisterVersionUsage(txCounter);
             }
+            return false;
         } finally {
-            deregisterVersionUsage(txCounter);
+            serializationLock.unlock();
         }
-        return false;
     }
 
     /**
@@ -2325,26 +2441,36 @@ public class MVStore implements AutoCloseable
     }
 
     private int getProjectedFillRate(int thresholdChunkFillRate) {
-        int vacatedBlocks = 0;
-        long maxLengthSum = 1;
-        long maxLengthLiveSum = 1;
-        long time = getTimeSinceCreation();
-        for (Chunk c : chunks.values()) {
-            assert c.maxLen >= 0;
-            if (isRewritable(c, time) && c.getFillRate() <= thresholdChunkFillRate) {
-                assert c.maxLen >= c.maxLenLive;
-                vacatedBlocks += c.len;
-                maxLengthSum += c.maxLen;
-                maxLengthLiveSum += c.maxLenLive;
+        saveChunkLock.lock();
+        try {
+            int vacatedBlocks = 0;
+            long maxLengthSum = 1;
+            long maxLengthLiveSum = 1;
+            long time = getTimeSinceCreation();
+            for (Chunk c : chunks.values()) {
+                assert c.maxLen >= 0;
+                if (isRewritable(c, time) && c.getFillRate() <= thresholdChunkFillRate) {
+                    assert c.maxLen >= c.maxLenLive;
+                    vacatedBlocks += c.len;
+                    maxLengthSum += c.maxLen;
+                    maxLengthLiveSum += c.maxLenLive;
+                }
             }
+            int additionalBlocks = (int) (vacatedBlocks * maxLengthLiveSum / maxLengthSum);
+            int fillRate = fileStore.getProjectedFillRate(vacatedBlocks - additionalBlocks);
+            return fillRate;
+        } finally {
+            saveChunkLock.unlock();
         }
-        int additionalBlocks  = (int) (vacatedBlocks * maxLengthLiveSum / maxLengthSum);
-        int fillRate = fileStore.getProjectedFillRate(vacatedBlocks - additionalBlocks);
-        return fillRate;
     }
 
     public int getFillRate() {
-        return fileStore.getFillRate();
+        saveChunkLock.lock();
+        try {
+            return fileStore.getFillRate();
+        } finally {
+            saveChunkLock.unlock();
+        }
     }
 
     private Iterable<Chunk> findOldChunks(int writeLimit, int targetFillRate) {
@@ -2396,9 +2522,9 @@ public class MVStore implements AutoCloseable
     private int compactRewrite(Set<Integer> set) {
         assert storeLock.isHeldByCurrentThread();
         assert currentStoreVersion < 0; // we should be able to do tryCommit() -> store()
-        acceptChunkOccupancyChanges(getTimeSinceCreation());
+        acceptChunkOccupancyChanges(getTimeSinceCreation(), currentVersion);
         int rewrittenPageCount = rewriteChunks(set, false);
-        acceptChunkOccupancyChanges(getTimeSinceCreation());
+        acceptChunkOccupancyChanges(getTimeSinceCreation(), currentVersion);
         rewrittenPageCount += rewriteChunks(set, true);
         return rewrittenPageCount;
     }
@@ -2412,16 +2538,21 @@ public class MVStore implements AutoCloseable
                 for (int pageNo = 0; (pageNo = chunk.occupancy.nextClearBit(pageNo)) < chunk.pageCount; ++pageNo) {
                     long tocElement = toc[pageNo];
                     int mapId = DataUtils.getPageMapId(tocElement);
-                    MVMap<?,?> map = mapId == layout.getId() ? layout : mapId == meta.getId() ? meta : getMap(mapId);
+                    MVMap<?, ?> map = mapId == layout.getId() ? layout : mapId == meta.getId() ? meta : getMap(mapId);
                     if (map != null && !map.isClosed()) {
                         assert !map.isSingleWriter();
                         if (secondPass || DataUtils.isLeafPosition(tocElement)) {
                             long pagePos = DataUtils.getPagePos(chunkId, tocElement);
-                            if (map.rewritePage(pagePos)) {
-                                ++rewrittenPageCount;
-                                if (map == layout || map == meta) {
-                                    markMetaChanged();
+                            serializationLock.unlock();
+                            try {
+                                if (map.rewritePage(pagePos)) {
+                                    ++rewrittenPageCount;
+                                    if (map == meta) {
+                                        markMetaChanged();
+                                    }
                                 }
+                            } finally {
+                                serializationLock.lock();
                             }
                         }
                     }
@@ -2454,17 +2585,20 @@ public class MVStore implements AutoCloseable
             }
             Page<K,V> p = readPageFromCache(pos);
             if (p == null) {
+                Chunk chunk = getChunk(pos);
+                int pageOffset = DataUtils.getPageOffset(pos);
                 try {
-                    Chunk chunk = getChunk(pos);
-                    int pageOffset = DataUtils.getPageOffset(pos);
                     ByteBuffer buff = chunk.readBufferForPage(fileStore, pageOffset, pos);
                     p = Page.read(buff, pos, map);
                     if (p.pageNo < 0) {
                         p.pageNo = calculatePageNo(pos);
                     }
+                } catch (IllegalStateException e) {
+                    throw e;
                 } catch (Exception e) {
                     throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
-                            "Unable to read the page at position {0}", pos, e);
+                            "Unable to read the page at position {0}, chunk {1}, offset {2}",
+                            pos, chunk.id, pageOffset, e);
                 }
                 cachePage(p);
             }
@@ -2485,9 +2619,9 @@ public class MVStore implements AutoCloseable
         long[] toc = chunksToC.get(chunk.id);
         if (toc == null) {
             toc = chunk.readToC(fileStore);
-            assert toc != null;
             chunksToC.put(chunk.id, toc, toc.length * 8);
         }
+        assert toc.length == chunk.pageCount : toc.length + " != " + chunk.pageCount;
         return toc;
     }
 
@@ -2831,7 +2965,12 @@ public class MVStore implements AutoCloseable
                 chunks.clear();
                 clearCaches();
                 if (fileStore != null) {
-                    fileStore.clear();
+                    saveChunkLock.lock();
+                    try {
+                        fileStore.clear();
+                    } finally {
+                        saveChunkLock.unlock();
+                    }
                 }
                 lastChunk = null;
                 versions.clear();
@@ -2862,50 +3001,61 @@ public class MVStore implements AutoCloseable
             // (the chunk list can have gaps)
             ArrayList<Integer> remove = new ArrayList<>();
             Chunk keep = null;
-            for (Chunk c : chunks.values()) {
-                if (c.version > version) {
-                    remove.add(c.id);
-                } else if (keep == null || keep.version < c.version) {
-                    keep = c;
-                }
-            }
-            if (!remove.isEmpty()) {
-                // remove the youngest first, so we don't create gaps
-                // (in case we remove many chunks)
-                remove.sort(Collections.reverseOrder());
-                for (int id : remove) {
-                    Chunk c = chunks.remove(id);
-                    if (c != null) {
-                        long start = c.block * BLOCK_SIZE;
-                        int length = c.len * BLOCK_SIZE;
-                        freeFileSpace(start, length);
-                        // overwrite the chunk,
-                        // so it is not be used later on
-                        WriteBuffer buff = getWriteBuffer();
-                        try {
-                            buff.limit(length);
-                            // buff.clear() does not set the data
-                            Arrays.fill(buff.getBuffer().array(), (byte) 0);
-                            write(start, buff.getBuffer());
-                        } finally {
-                            releaseWriteBuffer(buff);
-                        }
-                        // only really needed if we remove many chunks, when writes are
-                        // re-ordered - but we do it always, because rollback is not
-                        // performance critical
-                        sync();
+            serializationLock.lock();
+            try {
+                for (Chunk c : chunks.values()) {
+                    if (c.version > version) {
+                        remove.add(c.id);
+                    } else if (keep == null || keep.version < c.version) {
+                        keep = c;
                     }
                 }
-                lastChunk = keep;
-                writeStoreHeader();
-                readStoreHeader();
+                if (!remove.isEmpty()) {
+                    // remove the youngest first, so we don't create gaps
+                    // (in case we remove many chunks)
+                    remove.sort(Collections.reverseOrder());
+                    saveChunkLock.lock();
+                    try {
+
+                        for (int id : remove) {
+                            Chunk c = chunks.remove(id);
+                            if (c != null) {
+                                long start = c.block * BLOCK_SIZE;
+                                int length = c.len * BLOCK_SIZE;
+                                freeFileSpace(start, length);
+                                // overwrite the chunk,
+                                // so it is not be used later on
+                                WriteBuffer buff = getWriteBuffer();
+                                try {
+                                    buff.limit(length);
+                                    // buff.clear() does not set the data
+                                    Arrays.fill(buff.getBuffer().array(), (byte) 0);
+                                    write(start, buff.getBuffer());
+                                } finally {
+                                    releaseWriteBuffer(buff);
+                                }
+                                // only really needed if we remove many chunks, when writes are
+                                // re-ordered - but we do it always, because rollback is not
+                                // performance critical
+                                sync();
+                            }
+                        }
+                        lastChunk = keep;
+                        writeStoreHeader();
+                        readStoreHeader();
+                    } finally {
+                        saveChunkLock.unlock();
+                    }
+                }
+            } finally {
+                serializationLock.unlock();
             }
             deadChunks.clear();
             removedPages.clear();
             clearCaches();
             currentVersion = version;
-            if (lastStoredVersion == INITIAL_VERSION) {
-                lastStoredVersion = currentVersion - 1;
+            if (lastStoredVersion >= version) {
+                lastStoredVersion = version - 1;
             }
             for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
                 int id = m.getId();
@@ -2914,10 +3064,11 @@ public class MVStore implements AutoCloseable
                     maps.remove(id);
                 } else {
                     if (!m.rollbackRoot(version)) {
-                        m.setRootPos(getRootPos(id), version);
+                        m.setRootPos(getRootPos(id), version - 1);
                     }
                 }
             }
+            assert !hasUnsavedChanges();
         } finally {
             unlockAndCheckPanicCondition();
         }
@@ -3105,7 +3256,7 @@ public class MVStore implements AutoCloseable
                         if (isIdle()) {
                             moveSize *= 4;
                         }
-                        compactMoveChunks(moveSize);
+                        compactMoveChunks(101, moveSize);
                     } finally {
                         unlockAndCheckPanicCondition();
                     }
@@ -3167,7 +3318,7 @@ public class MVStore implements AutoCloseable
                                 break;
                             }
                         }
-                        if (!compactMoveChunks(writeLimit)) {
+                        if (!compactMoveChunks(101, writeLimit)) {
                             break;
                         }
                     } finally {
@@ -3503,31 +3654,36 @@ public class MVStore implements AutoCloseable
         if (!deadChunks.isEmpty()) {
             long oldestVersionToKeep = getOldestVersionToKeep();
             long time = getTimeSinceCreation();
-            Chunk chunk;
-            while ((chunk = deadChunks.poll()) != null &&
-                    (isSeasonedChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
-                            // if chunk is not ready yet, put it back and exit
-                            // since this deque is unbounded, offerFirst() always return true
-                            !deadChunks.offerFirst(chunk))) {
+            saveChunkLock.lock();
+            try {
+                Chunk chunk;
+                while ((chunk = deadChunks.poll()) != null &&
+                        (isSeasonedChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
+                                // if chunk is not ready yet, put it back and exit
+                                // since this deque is unbounded, offerFirst() always return true
+                                !deadChunks.offerFirst(chunk))) {
 
-                if (chunks.remove(chunk.id) != null) {
-                    // purge dead pages from cache
-                    long[] toc = chunksToC.remove(chunk.id);
-                    if (toc != null && cache != null) {
-                        for (long tocElement : toc) {
-                            long pagePos = DataUtils.getPagePos(chunk.id, tocElement);
-                            cache.remove(pagePos);
+                    if (chunks.remove(chunk.id) != null) {
+                        // purge dead pages from cache
+                        long[] toc = chunksToC.remove(chunk.id);
+                        if (toc != null && cache != null) {
+                            for (long tocElement : toc) {
+                                long pagePos = DataUtils.getPagePos(chunk.id, tocElement);
+                                cache.remove(pagePos);
+                            }
                         }
-                    }
 
-                    if (layout.remove(Chunk.getMetaKey(chunk.id)) != null) {
-                        markMetaChanged();
+                        if (layout.remove(Chunk.getMetaKey(chunk.id)) != null) {
+                            markMetaChanged();
+                        }
+                        if (chunk.isSaved()) {
+                            freeChunkSpace(chunk);
+                        }
+                        ++count;
                     }
-                    if (chunk.isSaved()) {
-                        freeChunkSpace(chunk);
-                    }
-                    ++count;
                 }
+            } finally {
+                saveChunkLock.unlock();
             }
         }
         return count;
@@ -3545,6 +3701,7 @@ public class MVStore implements AutoCloseable
     }
 
     private boolean validateFileLength(String msg) {
+        assert saveChunkLock.isHeldByCurrentThread();
         assert fileStore.getFileLengthInUse() == measureFileLengthInUse() :
                 fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse() + " " + msg;
         return true;

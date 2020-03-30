@@ -1059,7 +1059,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return true if has changes
      */
     final boolean hasChangesSince(long version) {
-        return getRoot().hasChangesSince(version);
+        return getRoot().hasChangesSince(version, isPersistent());
     }
 
     /**

@@ -32,7 +32,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -429,7 +428,6 @@ public class MVStore implements AutoCloseable
                     }
                     if (this.fileStore.size() == 0) {
                         creationTime = getTimeAbsolute();
-                        lastCommitTime = creationTime;
                         storeHeader.put(HDR_H, 2);
                         storeHeader.put(HDR_BLOCK_SIZE, BLOCK_SIZE);
                         storeHeader.put(HDR_FORMAT, FORMAT_WRITE);
@@ -1469,10 +1467,6 @@ public class MVStore implements AutoCloseable
     }
 
     private void store(boolean syncWrite) {
-        store(syncWrite, 0, () -> reuseSpace ? 0 : getAfterLastBlock());
-    }
-
-    private void store(boolean syncWrite, long reservedLow, Supplier<Long> reservedHigh) {
         assert storeLock.isHeldByCurrentThread();
         assert !saveChunkLock.isHeldByCurrentThread();
         if (isOpenOrStopping()) {
@@ -1491,7 +1485,7 @@ public class MVStore implements AutoCloseable
                             throw DataUtils.newIllegalStateException(
                                     DataUtils.ERROR_WRITING_FAILED, "This store is read-only");
                         }
-                        storeNow(syncWrite, reservedLow, reservedHigh);
+                        storeNow(syncWrite, 0, () -> reuseSpace ? 0 : getAfterLastBlock());
                     }
                 } finally {
                     // in any case reset the current store version,
@@ -1502,9 +1496,24 @@ public class MVStore implements AutoCloseable
         }
     }
 
-    void storeNow(boolean syncWrite, long reservedLow, Supplier<Long> reservedHigh) {
+    private void storeNow(boolean syncWrite, long reservedLow, Supplier<Long> reservedHighSupplier) {
         try {
-            storeNowInternal(syncWrite, reservedLow, reservedHigh);
+            lastCommitTime = getTimeSinceCreation();
+            int currentUnsavedPageCount = unsavedMemory;
+            // it is ok, since that path suppose to be single-threaded under storeLock
+            //noinspection NonAtomicOperationOnVolatileField
+            long version = ++currentVersion;
+            ArrayList<Page<?,?>> changed = collectChangedMapRoots(version);
+
+            submitOrRun(serializationExecutor,
+                    () -> serializeAndStore(syncWrite, reservedLow, reservedHighSupplier,
+                                            changed, lastCommitTime, version),
+                    syncWrite);
+
+            // some pages might have been changed in the meantime (in the newest
+            // version)
+            saveNeeded = false;
+            unsavedMemory = Math.max(0, unsavedMemory - currentUnsavedPageCount);
         } catch (IllegalStateException e) {
             panic(e);
         } catch (Throwable e) {
@@ -1513,27 +1522,8 @@ public class MVStore implements AutoCloseable
         }
     }
 
-    private void storeNowInternal(boolean syncWrite, long reservedLow, Supplier<Long> reservedHighSupplier) throws Throwable {
-        long time = getTimeSinceCreation();
-        int currentUnsavedPageCount = unsavedMemory;
-        long storeVersion = currentVersion;
-        // it is ok, since that path suppose to be single-threaded under storeLock
-        //noinspection NonAtomicOperationOnVolatileField
-        long version = ++currentVersion;
-        ArrayList<Page<?,?>> changed = collectChangedMapRoots(storeVersion, version);
-        lastCommitTime = time;
-
-        submitOrRun(serializationExecutor,
-                () -> serializeAndStore(syncWrite, reservedLow, reservedHighSupplier, changed, time, version),
-                syncWrite);
-
-        // some pages might have been changed in the meantime (in the newest
-        // version)
-        saveNeeded = false;
-        unsavedMemory = Math.max(0, unsavedMemory - currentUnsavedPageCount);
-    }
-
-    private static void submitOrRun(ThreadPoolExecutor executor, Runnable action, boolean syncRun) throws ExecutionException {
+    private static void submitOrRun(ThreadPoolExecutor executor, Runnable action,
+                                    boolean syncRun) throws ExecutionException {
         try {
             Future<?> future = executor.submit(action);
             if (syncRun || executor.getQueue().size() > PIPE_LENGTH) {
@@ -1548,16 +1538,15 @@ public class MVStore implements AutoCloseable
         }
     }
 
-    private ArrayList<Page<?,?>> collectChangedMapRoots(long storeVersion, long version) {
-        assert storeVersion + 1 == version;
-        long lastStoredVersion = storeVersion - 1;
+    private ArrayList<Page<?,?>> collectChangedMapRoots(long version) {
+        long lastStoredVersion = version - 2;
         ArrayList<Page<?,?>> changed = new ArrayList<>();
         for (Iterator<MVMap<?, ?>> iter = maps.values().iterator(); iter.hasNext(); ) {
             MVMap<?, ?> map = iter.next();
             RootReference<?,?> rootReference = map.setWriteVersion(version);
             if (rootReference == null) {
                 iter.remove();
-            } else if (map.getCreateVersion() <= storeVersion && // if map was created after storing started, skip it
+            } else if (map.getCreateVersion() < version && // if map was created after storing started, skip it
                     !map.isVolatile() &&
                     map.hasChangesSince(lastStoredVersion)) {
                 assert rootReference.version <= version : rootReference.version + " > " + version;
@@ -2023,10 +2012,12 @@ public class MVStore implements AutoCloseable
         storeLock.lock();
         try {
             checkOpen();
-            assert !serializationExecutor.isShutdown();
-            try { serializationExecutor.submit(() -> {}).get(); } catch (InterruptedException | ExecutionException ignore) {}
-            assert !bufferSaveExecutor.isShutdown();
-            try { bufferSaveExecutor.submit(() -> {}).get(); } catch (InterruptedException | ExecutionException ignore) {}
+            try {
+                submitOrRun(serializationExecutor, () -> {}, true);
+            } catch (ExecutionException ignore) {}
+            try {
+                submitOrRun(bufferSaveExecutor, () -> {}, true);
+            } catch (ExecutionException ignore) {}
 
             serializationLock.lock();
             try {
@@ -2116,7 +2107,6 @@ public class MVStore implements AutoCloseable
         assert serializationLock.isHeldByCurrentThread();
         assert saveChunkLock.isHeldByCurrentThread();
         if (move != null) {
-            assert lastChunk != null;
             // this will ensure better recognition of the last chunk
             // in case of power failure, since we are going to move older chunks
             // to the end of the file
@@ -2138,6 +2128,7 @@ public class MVStore implements AutoCloseable
             sync();
 
             Chunk chunkToMove = lastChunk;
+            assert chunkToMove != null;
             long postEvacuationBlockCount = getAfterLastBlock();
 
             boolean chunkToMoveIsAlreadyInside = chunkToMove.block < leftmostBlock;

@@ -287,11 +287,6 @@ public class MVStore implements AutoCloseable
     private volatile long currentVersion;
 
     /**
-     * The version of the last stored chunk, or -1 if nothing was stored so far.
-     */
-    private volatile long lastStoredVersion = INITIAL_VERSION;
-
-    /**
      * Oldest store version in use. All version beyond this can be safely dropped
      */
     private final AtomicLong oldestVersionToKeep = new AtomicLong();
@@ -865,7 +860,6 @@ public class MVStore implements AutoCloseable
 //                System.err.println("Clean shutdown marker is missing. Header version: " + version);
 //            }
         }
-        lastStoredVersion = INITIAL_VERSION;
         chunks.clear();
         long now = System.currentTimeMillis();
         // calculate the year (doesn't have to be exact;
@@ -1037,9 +1031,6 @@ public class MVStore implements AutoCloseable
         }
         assert validateFileLength("on open");
         setWriteVersion(currentVersion);
-        if (lastStoredVersion == INITIAL_VERSION) {
-            lastStoredVersion = currentVersion - 1;
-        }
     }
 
     private boolean findLastChunkWithCompleteValidChunkSet(Chunk[] lastChunkCandidates,
@@ -1111,23 +1102,20 @@ public class MVStore implements AutoCloseable
     private void setLastChunk(Chunk last) {
         chunks.clear();
         lastChunk = last;
-        if (last == null) {
-            // no valid chunk
-            lastMapId.set(0);
-            currentVersion = 0;
-            lastStoredVersion = INITIAL_VERSION;
-            layout.setRootPos(0, INITIAL_VERSION);
-            meta.setRootPos(0, INITIAL_VERSION);
-            lastChunkId = 0;
-        } else {
-            lastMapId.set(last.mapId);
-            currentVersion = last.version;
-            chunks.put(last.id, last);
-            lastStoredVersion = currentVersion - 1;
-            layout.setRootPos(last.layoutRootPos, lastStoredVersion);
-            meta.setRootPos(getRootPos(meta.getId()), lastStoredVersion);
+        lastChunkId = 0;
+        currentVersion = lastChunkVersion();
+        long layoutRootPos = 0;
+        int mapId = 0;
+        if (last != null) { // there is a valid chunk
             lastChunkId = last.id;
+            currentVersion = last.version;
+            layoutRootPos = last.layoutRootPos;
+            mapId = last.mapId;
+            chunks.put(last.id, last);
         }
+        lastMapId.set(mapId);
+        layout.setRootPos(layoutRootPos, currentStoreVersion - 1);
+        meta.setRootPos(getRootPos(meta.getId()), currentStoreVersion - 1);
     }
 
     /**
@@ -1475,7 +1463,6 @@ public class MVStore implements AutoCloseable
                 try {
                     currentStoreVersion = currentVersion;
                     if (fileStore == null) {
-                        lastStoredVersion = currentVersion;
                         //noinspection NonAtomicOperationOnVolatileField
                         ++currentVersion;
                         setWriteVersion(currentVersion);
@@ -1742,7 +1729,6 @@ public class MVStore implements AutoCloseable
             boolean storeAtEndOfFile = filePos + buff.limit() >= fileStore.size();
             boolean writeStoreHeader = isWriteStoreHeader(c, storeAtEndOfFile);
             lastChunk = c;
-            lastStoredVersion = c.version;
             if (writeStoreHeader) {
                 writeStoreHeader();
             }
@@ -2751,12 +2737,17 @@ public class MVStore implements AutoCloseable
         long v = oldestVersionToKeep.get();
         v = Math.max(v - versionsToKeep, INITIAL_VERSION);
         if (fileStore != null) {
-            long storeVersion = lastStoredVersion;
+            long storeVersion = lastChunkVersion() - 1;
             if (storeVersion != INITIAL_VERSION && storeVersion < v) {
                 v = storeVersion;
             }
         }
         return v;
+    }
+
+    private long lastChunkVersion() {
+        Chunk chunk = lastChunk;
+        return chunk == null ? INITIAL_VERSION + 1 : chunk.id;
     }
 
     private void setOldestVersionToKeep(long oldestVersionToKeep) {
@@ -2944,7 +2935,6 @@ public class MVStore implements AutoCloseable
                 currentVersion = version;
                 setWriteVersion(version);
                 metaChanged = false;
-                lastStoredVersion = INITIAL_VERSION;
                 for (MVMap<?, ?> m : maps.values()) {
                     m.close();
                 }
@@ -3021,9 +3011,6 @@ public class MVStore implements AutoCloseable
             removedPages.clear();
             clearCaches();
             currentVersion = version;
-            if (lastStoredVersion >= version) {
-                lastStoredVersion = version - 1;
-            }
             for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
                 int id = m.getId();
                 if (m.getCreateVersion() >= version) {

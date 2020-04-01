@@ -1982,10 +1982,7 @@ public class Parser {
         String alias = null;
         label: if (readIf(OPEN_PAREN)) {
             if (isQuery()) {
-                Query query = parseSelectUnion();
-                read(CLOSE_PAREN);
-                alias = session.getNextSystemIdentifier(sqlCommand);
-                table = query.toTable(alias, parameters, createView != null, currentSelect);
+                return readQueryTableFilter();
             } else {
                 TableFilter top;
                 top = readTableFilter();
@@ -2004,7 +2001,7 @@ public class Parser {
         } else if (readIf(VALUES)) {
             TableValueConstructor query = parseValues();
             alias = session.getNextSystemIdentifier(sqlCommand);
-            table = query.toTable(alias, parameters, createView != null, currentSelect);
+            table = query.toTable(alias, null, parameters, createView != null, currentSelect);
         } else if (readIf(TABLE)) {
             read(OPEN_PAREN);
             Function function = readFunctionParameters(Function.getFunction(database, Function.TABLE));
@@ -2065,32 +2062,61 @@ public class Parser {
         }
         ArrayList<String> derivedColumnNames = null;
         IndexHints indexHints = null;
-        // for backward compatibility, handle case where USE is a table alias
-        if (readIf("USE")) {
-            if (readIf("INDEX")) {
-                indexHints = parseIndexHints(table);
-            } else {
-                alias = "USE";
-                derivedColumnNames = readDerivedColumnNames();
-            }
+        if (readIfUseIndex()) {
+            indexHints = parseIndexHints(table);
         } else {
             alias = readFromAlias(alias);
             if (alias != null) {
                 derivedColumnNames = readDerivedColumnNames();
-                // if alias present, a second chance to parse index hints
-                if (readIf("USE")) {
-                    read("INDEX");
+                if (readIfUseIndex()) {
                     indexHints = parseIndexHints(table);
                 }
             }
         }
+        return buildTableFilter(table, alias, derivedColumnNames, indexHints);
+    }
 
+    private TableFilter readQueryTableFilter() {
+        Query query = parseSelectUnion();
+        read(CLOSE_PAREN);
+        Table table;
+        String alias;
+        ArrayList<String> derivedColumnNames = null;
+        IndexHints indexHints = null;
+        if (readIfUseIndex()) {
+            alias = session.getNextSystemIdentifier(sqlCommand);
+            table = query.toTable(alias, null, parameters, createView != null, currentSelect);
+            indexHints = parseIndexHints(table);
+        } else {
+            alias = readFromAlias(null);
+            if (alias != null) {
+                derivedColumnNames = readDerivedColumnNames();
+                Column[] columnTemplates = null;
+                if (derivedColumnNames != null) {
+                    query.init();
+                    columnTemplates = TableView.createQueryColumnTemplateList(
+                            derivedColumnNames.toArray(new String[0]), query, new String[1])
+                            .toArray(new Column[0]);
+                }
+                table = query.toTable(alias, columnTemplates, parameters, createView != null, currentSelect);
+                if (readIfUseIndex()) {
+                    indexHints = parseIndexHints(table);
+                }
+            } else {
+                alias = session.getNextSystemIdentifier(sqlCommand);
+                table = query.toTable(alias, null, parameters, createView != null, currentSelect);
+            }
+        }
+        return buildTableFilter(table, alias, derivedColumnNames, indexHints);
+    }
+
+    private TableFilter buildTableFilter(Table table, String alias, ArrayList<String> derivedColumnNames,
+            IndexHints indexHints) {
         if (database.getMode().discardWithTableHints) {
             discardWithTableHints();
         }
-
         // inherit alias for CTE as views from table name
-        if (table.isView() && table.isTableExpression() && alias == null) {
+        if (alias == null && table.isView() && table.isTableExpression()) {
             alias = table.getName();
         }
         TableFilter filter = new TableFilter(session, table, alias, rightsChecked,
@@ -2167,6 +2193,18 @@ public class Parser {
             recompileAlways = true;
         }
         return new FunctionTable(mainSchema, session, expr, call);
+    }
+
+    private boolean readIfUseIndex() {
+        int start = lastParseIndex;
+        if (!readIf("USE")) {
+            return false;
+        }
+        if (!readIf("INDEX")) {
+            reread(start);
+            return false;
+        }
+        return true;
     }
 
     private IndexHints parseIndexHints(Table table) {

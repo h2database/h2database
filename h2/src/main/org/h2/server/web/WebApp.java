@@ -10,8 +10,6 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -24,9 +22,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -1292,16 +1288,16 @@ public class WebApp {
             }
             if (sql.startsWith("@")) {
                 rs = JdbcUtils.getMetaResultSet(conn, sql);
-		if (JdbcUtils.isBuiltIn(sql, "@prof_stop")) {
-		    if (profiler != null) {
-			profiler.stopCollecting();
-			SimpleResultSet srs = new SimpleResultSet();
-			srs.addColumn("Top Stack Trace(s)", Types.VARCHAR, 0, 0);
-			srs.addRow(profiler.getTop(3));
-			rs = srs;
-			profiler = null;
-		    }
-		}
+                if (rs == null && JdbcUtils.isBuiltIn(sql, "@prof_stop")) {
+                    if (profiler != null) {
+                        profiler.stopCollecting();
+                        SimpleResultSet simple = new SimpleResultSet();
+                        simple.addColumn("Top Stack Trace(s)", Types.VARCHAR, 0, 0);
+                        simple.addRow(profiler.getTop(3));
+                        rs = simple;
+                        profiler = null;
+                    }
+                }
                 if (rs == null) {
                     buff.append("?: ").append(sql);
                     return buff.toString();

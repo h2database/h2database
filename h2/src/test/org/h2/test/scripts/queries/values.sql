@@ -62,14 +62,14 @@ EXPLAIN SELECT * FROM (VALUES 1, 2) T(V);
 >> SELECT "T"."V" FROM (VALUES (1), (2)) "T"("V") /* table scan */
 
 EXPLAIN SELECT * FROM (VALUES 1, 2);
->> SELECT "_5"."C1" FROM (VALUES (1), (2)) "_5" /* table scan */
+>> SELECT "_0"."C1" FROM (VALUES (1), (2)) "_0" /* table scan */
 
 EXPLAIN SELECT * FROM (VALUES 1, 2 ORDER BY 1 DESC);
->> SELECT "_6"."C1" FROM ( VALUES (1), (2) ORDER BY 1 DESC ) "_6" /* VALUES (1), (2) ORDER BY 1 DESC */
+>> SELECT "_1"."C1" FROM ( VALUES (1), (2) ORDER BY 1 DESC ) "_1" /* VALUES (1), (2) ORDER BY 1 DESC */
 
 -- Non-standard syntax
 EXPLAIN SELECT * FROM VALUES 1, 2;
->> SELECT "_7"."C1" FROM (VALUES (1), (2)) "_7" /* table scan */
+>> SELECT "_2"."C1" FROM (VALUES (1), (2)) "_2" /* table scan */
 
 VALUES (1, 2), (3, 4), (5, 1) ORDER BY C1 + C2;
 > C1 C2

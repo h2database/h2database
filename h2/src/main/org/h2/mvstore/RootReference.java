@@ -209,17 +209,9 @@ public final class RootReference<K,V>
 
     long getVersion() {
         RootReference<K,V> prev = previous;
-/*
-        if (prev == null || prev.root != root ||
-                prev.appendCounter != appendCounter) {
-            return version;
-        }
-        return prev.getVersion();
-/*/
         return prev == null || prev.root != root ||
                 prev.appendCounter != appendCounter ?
                     version : prev.getVersion();
-//*/
     }
 
     /**

@@ -10,7 +10,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -22,7 +21,6 @@ import java.util.Map;
  */
 public final class Chunk
 {
-
     /**
      * The maximum chunk id.
      */
@@ -186,11 +184,15 @@ public final class Chunk
             pinCount = DataUtils.readHexInt(map, ATTR_PIN_COUNT, 0);
             tocPos = DataUtils.readHexInt(map, ATTR_TOC, 0);
             byte[] bytes = DataUtils.parseHexBytes(map, ATTR_OCCUPANCY);
-            occupancy = bytes == null ? new BitSet() : BitSet.valueOf(bytes);
-            if (pageCount - pageCountLive != occupancy.cardinality()) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_FILE_CORRUPT, "Inconsistent occupancy info {0} - {1} != {2} {3}",
-                        pageCount, pageCountLive, occupancy.cardinality(), this);
+            if (bytes == null) {
+                occupancy = new BitSet();
+            } else {
+                occupancy = BitSet.valueOf(bytes);
+                if (pageCount - pageCountLive != occupancy.cardinality()) {
+                    throw DataUtils.newIllegalStateException(
+                            DataUtils.ERROR_FILE_CORRUPT, "Inconsistent occupancy info {0} - {1} != {2} {3}",
+                            pageCount, pageCountLive, occupancy.cardinality(), this);
+                }
             }
         }
     }

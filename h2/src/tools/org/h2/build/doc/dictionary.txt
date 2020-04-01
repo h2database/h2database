@@ -835,4 +835,4 @@ indisunique rolinherit datacl rolvaliduntil datname indexprs usename typbasetype
 datallowconn atthasdef dattablespace rolcreatedb inhrelid inhparent attlen rolname rolcanlogin aclitem datlastsysoid
 indpred tgfoid indisprimary adsrc spcowner tgnargs typtype typinput rolcatupdate typnamespace tgrelid authid indexrelid
 usesuper tgdeferrable rolpassword relam relpages tginitdeferred rolsuper autovacuum typnotnull spclocation cancreate
-nsp pgagent pga awoken serverencoding
+nsp pgagent pga awoken serverencoding untyped ambiguities

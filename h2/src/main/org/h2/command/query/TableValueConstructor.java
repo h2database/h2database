@@ -42,8 +42,6 @@ public class TableValueConstructor extends Query {
 
     private final TableValueColumnResolver columnResolver;
 
-    private boolean isPrepared, checkInit;
-
     private double cost;
 
     /**

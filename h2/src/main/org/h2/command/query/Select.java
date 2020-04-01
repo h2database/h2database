@@ -147,7 +147,6 @@ public class Select extends Query {
     private boolean isForUpdate, isForUpdateMvcc;
     private double cost;
     private boolean isQuickAggregateQuery, isDistinctQuery;
-    private boolean isPrepared, checkInit;
     private boolean sortUsingIndex;
 
     private boolean isGroupWindowStage2;

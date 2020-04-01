@@ -143,6 +143,10 @@ public abstract class Query extends Prepared {
     private boolean cacheableChecked;
     private boolean neverLazy;
 
+    boolean checkInit;
+
+    boolean isPrepared;
+
     Query(Session session) {
         super(session);
     }

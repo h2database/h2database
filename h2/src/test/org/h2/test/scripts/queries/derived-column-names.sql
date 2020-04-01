@@ -80,3 +80,9 @@ SELECT * FROM TEST AS T(A, B) USE INDEX (TEST_I_IDX);
 
 DROP TABLE TEST;
 > ok
+
+SELECT * FROM (SELECT 1 A, 2 A) T(B, C);
+> B C
+> - -
+> 1 2
+> rows: 1

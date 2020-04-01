@@ -288,11 +288,12 @@ public class TableValueConstructor extends Query {
     }
 
     @Override
-    public Table toTable(String alias, ArrayList<Parameter> parameters, boolean forCreateView, Query topQuery) {
+    public Table toTable(String alias, Column[] columnTemplates, ArrayList<Parameter> parameters,
+            boolean forCreateView, Query topQuery) {
         if (!hasOrder() && offsetExpr == null && limitExpr == null) {
             return table;
         }
-        return super.toTable(alias, parameters, forCreateView, topQuery);
+        return super.toTable(alias, columnTemplates, parameters, forCreateView, topQuery);
     }
 
     @Override

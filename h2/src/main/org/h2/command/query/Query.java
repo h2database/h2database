@@ -27,6 +27,7 @@ import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.SortOrder;
+import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -924,16 +925,20 @@ public abstract class Query extends Prepared {
      * Converts this query to a table or a view.
      *
      * @param alias alias name for the view
+     * @param columnTemplates column templates, or {@code null}
      * @param parameters the parameters
      * @param forCreateView if true, a system session will be used for the view
      * @param topQuery the top level query
      * @return the table or the view
      */
-    public Table toTable(String alias, ArrayList<Parameter> parameters, boolean forCreateView, Query topQuery) {
+    public Table toTable(String alias, Column[] columnTemplates, ArrayList<Parameter> parameters,
+            boolean forCreateView, Query topQuery) {
         setParameterList(new ArrayList<>(parameters));
-        init();
+        if (!checkInit) {
+            init();
+        }
         return TableView.createTempView(forCreateView ? session.getDatabase().getSystemSession() : session,
-                session.getUser(), alias, this, topQuery);
+                session.getUser(), alias, columnTemplates, this, topQuery);
     }
 
     @Override

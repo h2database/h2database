@@ -2065,21 +2065,13 @@ public class Parser {
         }
         ArrayList<String> derivedColumnNames = null;
         IndexHints indexHints = null;
-        // for backward compatibility, handle case where USE is a table alias
-        if (readIf("USE")) {
-            if (readIf("INDEX")) {
-                indexHints = parseIndexHints(table);
-            } else {
-                alias = "USE";
-                derivedColumnNames = readDerivedColumnNames();
-            }
+        if (readIfUseIndex()) {
+            indexHints = parseIndexHints(table);
         } else {
             alias = readFromAlias(alias);
             if (alias != null) {
                 derivedColumnNames = readDerivedColumnNames();
-                // if alias present, a second chance to parse index hints
-                if (readIf("USE")) {
-                    read("INDEX");
+                if (readIfUseIndex()) {
                     indexHints = parseIndexHints(table);
                 }
             }
@@ -2090,7 +2082,7 @@ public class Parser {
         }
 
         // inherit alias for CTE as views from table name
-        if (table.isView() && table.isTableExpression() && alias == null) {
+        if (alias == null && table.isView() && table.isTableExpression()) {
             alias = table.getName();
         }
         TableFilter filter = new TableFilter(session, table, alias, rightsChecked,
@@ -2167,6 +2159,18 @@ public class Parser {
             recompileAlways = true;
         }
         return new FunctionTable(mainSchema, session, expr, call);
+    }
+
+    private boolean readIfUseIndex() {
+        int start = lastParseIndex;
+        if (!readIf("USE")) {
+            return false;
+        }
+        if (!readIf("INDEX")) {
+            reread(start);
+            return false;
+        }
+        return true;
     }
 
     private IndexHints parseIndexHints(Table table) {

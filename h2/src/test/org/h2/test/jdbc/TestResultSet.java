@@ -1944,8 +1944,6 @@ public class TestResultSet extends TestDb {
         rs.next();
         Object[] expectedArray = new Object[] {1, "test"};
         assertEquals(expectedArray, (Object[]) rs.getObject(1));
-        Array array = rs.getArray(1);
-        assertEquals(expectedArray, (Object[]) array.getArray());
         ResultSet rowAsResultSet = rs.getObject(1, ResultSet.class);
         ResultSetMetaData md = rowAsResultSet.getMetaData();
         assertEquals(2, md.getColumnCount());

@@ -80,6 +80,7 @@ import org.h2.util.json.JSONBytesSource;
 import org.h2.util.json.JSONStringTarget;
 import org.h2.util.json.JSONValidationTargetWithUniqueKeys;
 import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -2981,6 +2982,22 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case NEXTVAL:
         case CURRVAL:
             typeInfo = database.getMode().decimalSequences ? TypeInfo.TYPE_NUMERIC_BIGINT : TypeInfo.TYPE_BIGINT;
+            break;
+        case ARRAY_GET:
+            typeInfo = p0.getType();
+            switch (typeInfo.getValueType()) {
+            case Value.NULL:
+                break;
+            case Value.ARRAY:
+                typeInfo = ((ExtTypeInfoArray) typeInfo.getExtTypeInfo()).getComponentType();
+                break;
+            case Value.ROW:
+                typeInfo = TypeInfo.TYPE_NULL;
+                break;
+            default:
+                throw DbException.getInvalidValueException(getName() + " array argument",
+                        typeInfo.getSQL(new StringBuilder()));
+            }
             break;
         case ARRAY_CONCAT:
         case ARRAY_APPEND: {

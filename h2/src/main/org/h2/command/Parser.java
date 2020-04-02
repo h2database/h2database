@@ -3968,6 +3968,21 @@ public class Parser {
     private Expression readCompatibilityFunction(String name) {
         Function function;
         switch (name) {
+        // CAST
+        case "CONVERT":
+            function = Function.getFunction(database, Function.CAST);
+            if (database.getMode().swapConvertFunctionParameters) {
+                function.setDataType(parseColumnWithType(null));
+                read(COMMA);
+                function.addParameter(readExpression());
+            } else {
+                function.addParameter(readExpression());
+                read(COMMA);
+                function.setDataType(parseColumnWithType(null));
+            }
+            read(CLOSE_PAREN);
+            function.doneWithParameters();
+            return function;
         // EXTRACT
         case "DAY":
         case "DAY_OF_MONTH":
@@ -4053,19 +4068,6 @@ public class Parser {
             read(AS);
             function.setDataType(parseColumnWithType(null));
             read(CLOSE_PAREN);
-            break;
-        case Function.CONVERT:
-            if (database.getMode().swapConvertFunctionParameters) {
-                function.setDataType(parseColumnWithType(null));
-                read(COMMA);
-                function.addParameter(readExpression());
-                read(CLOSE_PAREN);
-            } else {
-                function.addParameter(readExpression());
-                read(COMMA);
-                function.setDataType(parseColumnWithType(null));
-                read(CLOSE_PAREN);
-            }
             break;
         case Function.EXTRACT:
             readDateTimeField(function);

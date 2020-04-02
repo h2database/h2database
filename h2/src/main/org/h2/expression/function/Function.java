@@ -144,7 +144,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
-    public static final int IFNULL = 200, CASEWHEN = 201, CONVERT = 202,
+    public static final int IFNULL = 200, CASEWHEN = 201,
             CAST = 203, COALESCE = 204, NULLIF = 205, CASE = 206,
             NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210,
             CSVWRITE = 211, MEMORY_FREE = 212, MEMORY_USED = 213,
@@ -392,8 +392,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 2, Value.NULL);
         addFunctionWithNull("CASEWHEN", CASEWHEN,
                 3, Value.NULL);
-        addFunctionWithNull("CONVERT", CONVERT,
-                1, Value.NULL);
         addFunctionWithNull("CAST", CAST,
                 1, Value.NULL);
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
@@ -916,7 +914,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = getEstimatedEnvelope(session, v0, values[1]);
             break;
         case CAST:
-        case CONVERT:
             result = v0.castTo(type, session);
             if (domain != null) {
                 domain.checkConstraints(session, result);
@@ -2713,7 +2710,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case CAST:
-        case CONVERT:
             typeInfo = type;
             if (allConst) {
                 Value v = getValue(session);
@@ -3089,16 +3085,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             if (domain != null) {
                 domain.getSQL(builder, sqlFlags);
             } else {
-                type.getSQL(builder);
-            }
-            break;
-        }
-        case CONVERT: {
-            if (database.getMode().swapConvertFunctionParameters) {
-                type.getSQL(builder).append(", ");
-                args[0].getSQL(builder, sqlFlags);
-            } else {
-                args[0].getSQL(builder, sqlFlags).append(", ");
                 type.getSQL(builder);
             }
             break;

@@ -5526,6 +5526,8 @@ COALESCE(A, B, C)
 @c@ CONVERT(value, dataType)
 ","
 Converts a value to another data type.
+
+This function is deprecated, use [CAST](https://h2database.com/html/functions.html#cast) instead of it.
 ","
 CONVERT(NAME, INT)
 "

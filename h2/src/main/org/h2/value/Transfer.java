@@ -410,7 +410,12 @@ public class Transfer {
      * @return itself
      */
     public Transfer writeTypeInfo(TypeInfo type) throws IOException {
-        return writeInt(VALUE_TO_TI[type.getValueType() + 1]).writeLong(type.getPrecision()).writeInt(type.getScale());
+        int valueType = type.getValueType();
+        writeInt(VALUE_TO_TI[valueType + 1]).writeLong(type.getPrecision()).writeInt(type.getScale());
+        if (valueType == Value.ARRAY && version >= Constants.TCP_PROTOCOL_VERSION_20) {
+            writeTypeInfo(((ExtTypeInfoArray) type.getExtTypeInfo()).getComponentType());
+        }
+        return this;
     }
 
     /**
@@ -419,7 +424,14 @@ public class Transfer {
      * @return the type information
      */
     public TypeInfo readTypeInfo() throws IOException {
-        return TypeInfo.getTypeInfo(TI_TO_VALUE[readInt() + 1], readLong(), readInt(), null);
+        int valueType = TI_TO_VALUE[readInt() + 1];
+        long precision = readLong();
+        int scale = readInt();
+        ExtTypeInfo ext = null;
+        if (valueType == Value.ARRAY && version >= Constants.TCP_PROTOCOL_VERSION_20) {
+            ext = new ExtTypeInfoArray(readTypeInfo());
+        }
+        return TypeInfo.getTypeInfo(valueType, precision, scale, ext);
     }
 
     /**

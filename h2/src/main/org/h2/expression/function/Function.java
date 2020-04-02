@@ -2894,7 +2894,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case SUBSTRING: {
-            TypeInfo argType = args[0].getType();
+            TypeInfo argType = p0.getType();
             long p = argType.getPrecision();
             if (args[1].isConstant()) {
                 // if only two arguments are used,
@@ -2915,7 +2915,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[2].getType().getPrecision(), 0, null);
             break;
         case COMPRESS:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[0].getType().getPrecision(), 0, null);
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p0.getType().getPrecision(), 0, null);
             break;
         case CHAR:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 1, 0, null);
@@ -2933,7 +2933,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case HEXTORAW: {
-            TypeInfo t = args[0].getType();
+            TypeInfo t = p0.getType();
             if (database.getMode().getEnum() == ModeEnum.Oracle) {
                 if (DataType.isCharacterStringType(t.getValueType())) {
                     typeInfo = TypeInfo.getTypeInfo(Value.VARBINARY, t.getPrecision() / 2, 0, null);
@@ -2959,10 +2959,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case TRIM:
         case STRINGDECODE:
         case UTF8TOSTRING:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[0].getType().getPrecision(), 0, null);
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p0.getType().getPrecision(), 0, null);
             break;
         case RAWTOHEX: {
-            TypeInfo t = args[0].getType();
+            TypeInfo t = p0.getType();
             long precision = t.getPrecision();
             int mul = DataType.isBinaryStringOrSpecialBinaryType(t.getValueType()) ? 2
                     : database.getMode().getEnum() == ModeEnum.Oracle ? 6 : 4;
@@ -2982,6 +2982,29 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case CURRVAL:
             typeInfo = database.getMode().decimalSequences ? TypeInfo.TYPE_NUMERIC_BIGINT : TypeInfo.TYPE_BIGINT;
             break;
+        case ARRAY_CONCAT:
+        case ARRAY_APPEND: {
+            typeInfo = p0.getType();
+            int t = typeInfo.getValueType();
+            if (t != Value.NULL) {
+                if (t != Value.ARRAY) {
+                    throw DbException.getInvalidValueException(getName() + " array argument",
+                            typeInfo.getSQL(new StringBuilder()));
+                }
+                typeInfo = TypeInfo.getHigherType(typeInfo, args[1].getType());
+                typeInfo = TypeInfo.getTypeInfo(Value.ARRAY, -1, 0, typeInfo.getExtTypeInfo());
+            }
+            break;
+        }
+        case ARRAY_SLICE: {
+            typeInfo = p0.getType();
+            int t = typeInfo.getValueType();
+            if (t != Value.ARRAY && t != Value.NULL) {
+                throw DbException.getInvalidValueException(getName() + " array argument",
+                        typeInfo.getSQL(new StringBuilder()));
+            }
+            break;
+        }
         default:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, -1, -1, null);
         }

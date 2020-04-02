@@ -87,7 +87,8 @@ public class ConcatenationOperation extends Operation2 {
         TypeInfo l = left.getType(), r = right.getType();
         int lValueType = l.getValueType(), rValueType = r.getValueType();
         if (lValueType == Value.ARRAY || rValueType == Value.ARRAY) {
-            type = TypeInfo.TYPE_ARRAY;
+            type = TypeInfo.getHigherType(l, r);
+            type = TypeInfo.getTypeInfo(Value.ARRAY, -1, 0, type.getExtTypeInfo());
         } else if (DataType.isBinaryStringType(lValueType) && DataType.isBinaryStringType(rValueType)) {
             type = TypeInfo.getTypeInfo(Value.VARBINARY, DataType.addPrecision(l.getPrecision(), r.getPrecision()), 0,
                     null);

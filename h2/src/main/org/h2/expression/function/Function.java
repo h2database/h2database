@@ -131,12 +131,11 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     public static final int CURRENT_DATE = 100, CURRENT_TIME = 101, LOCALTIME = 102,
             CURRENT_TIMESTAMP = 103, LOCALTIMESTAMP = 104,
-            DATEADD = 105, DATEDIFF = 106, DAY_NAME = 107, DAY_OF_MONTH = 108,
-            DAY_OF_WEEK = 109, DAY_OF_YEAR = 110, HOUR = 111, MINUTE = 112,
-            MONTH = 113, MONTH_NAME = 114, QUARTER = 115,
-            SECOND = 116, WEEK = 117, YEAR = 118, EXTRACT = 119,
-            FORMATDATETIME = 120, PARSEDATETIME = 121, ISO_YEAR = 122,
-            ISO_WEEK = 123, ISO_DAY_OF_WEEK = 124, DATE_TRUNC = 125;
+            DATEADD = 105, DATEDIFF = 106, DAY_NAME = 107,
+            MONTH_NAME = 114,
+            EXTRACT = 119,
+            FORMATDATETIME = 120, PARSEDATETIME = 121,
+            DATE_TRUNC = 125;
 
     public static final int CURRENT_CATALOG = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
@@ -356,48 +355,14 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 1, Value.VARCHAR);
         addFunction("DAYNAME", DAY_NAME,
                 1, Value.VARCHAR);
-        addFunction("DAY", DAY_OF_MONTH,
-                1, Value.INTEGER);
-        addFunction("DAY_OF_MONTH", DAY_OF_MONTH,
-                1, Value.INTEGER);
-        addFunction("DAY_OF_WEEK", DAY_OF_WEEK,
-                1, Value.INTEGER);
-        addFunction("DAY_OF_YEAR", DAY_OF_YEAR,
-                1, Value.INTEGER);
-        addFunction("DAYOFMONTH", DAY_OF_MONTH,
-                1, Value.INTEGER);
-        addFunction("DAYOFWEEK", DAY_OF_WEEK,
-                1, Value.INTEGER);
-        addFunction("DAYOFYEAR", DAY_OF_YEAR,
-                1, Value.INTEGER);
-        addFunction("HOUR", HOUR,
-                1, Value.INTEGER);
-        addFunction("MINUTE", MINUTE,
-                1, Value.INTEGER);
-        addFunction("MONTH", MONTH,
-                1, Value.INTEGER);
         addFunction("MONTHNAME", MONTH_NAME,
                 1, Value.VARCHAR);
-        addFunction("QUARTER", QUARTER,
-                1, Value.INTEGER);
-        addFunction("SECOND", SECOND,
-                1, Value.INTEGER);
-        addFunction("WEEK", WEEK,
-                1, Value.INTEGER);
-        addFunction("YEAR", YEAR,
-                1, Value.INTEGER);
         addFunction("EXTRACT", EXTRACT,
                 2, Value.INTEGER);
         addFunctionWithNull("FORMATDATETIME", FORMATDATETIME,
                 VAR_ARGS, Value.VARCHAR);
         addFunctionWithNull("PARSEDATETIME", PARSEDATETIME,
                 VAR_ARGS, Value.TIMESTAMP);
-        addFunction("ISO_YEAR", ISO_YEAR,
-                1, Value.INTEGER);
-        addFunction("ISO_WEEK", ISO_WEEK,
-                1, Value.INTEGER);
-        addFunction("ISO_DAY_OF_WEEK", ISO_DAY_OF_WEEK,
-                1, Value.INTEGER);
         addFunction("DATE_TRUNC", DATE_TRUNC, 2, Value.NULL);
         // system
         addFunctionNotDeterministic("CURRENT_CATALOG", CURRENT_CATALOG, 0, Value.VARCHAR, false);
@@ -912,46 +877,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueVarchar.get(DateTimeFunctions.getMonthsAndWeeks(1)[dayOfWeek], database);
             break;
         }
-        case DAY_OF_MONTH:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.DAY));
-            break;
-        case DAY_OF_WEEK:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.DAY_OF_WEEK));
-            break;
-        case DAY_OF_YEAR:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.DAY_OF_YEAR));
-            break;
-        case HOUR:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.HOUR));
-            break;
-        case MINUTE:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.MINUTE));
-            break;
-        case MONTH:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.MONTH));
-            break;
-        case QUARTER:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.QUARTER));
-            break;
-        case ISO_YEAR:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.ISO_WEEK_YEAR));
-            break;
-        case ISO_WEEK:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.ISO_WEEK));
-            break;
-        case ISO_DAY_OF_WEEK:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0,
-                    DateTimeFunctions.ISO_DAY_OF_WEEK));
-            break;
-        case SECOND:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.SECOND));
-            break;
-        case WEEK:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.WEEK));
-            break;
-        case YEAR:
-            result = ValueInteger.get(DateTimeFunctions.getIntDatePart(session, v0, DateTimeFunctions.YEAR));
-            break;
         case MONTH_NAME: {
             int month = DateTimeUtils.monthFromDateValue(DateTimeUtils.dateAndTimeFromValue(v0, session)[0]);
             result = ValueVarchar.get(DateTimeFunctions.getMonthsAndWeeks(0)[month - 1], database);

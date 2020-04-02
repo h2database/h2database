@@ -3968,6 +3968,63 @@ public class Parser {
     private Expression readCompatibilityFunction(String name) {
         Function function;
         switch (name) {
+        // EXTRACT
+        case "DAY":
+        case "DAY_OF_MONTH":
+        case "DAYOFMONTH":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY)));
+            break;
+        case "DAY_OF_WEEK":
+        case "DAYOFWEEK":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY_OF_WEEK)));
+            break;
+        case "DAY_OF_YEAR":
+        case "DAYOFYEAR":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY_OF_YEAR)));
+            break;
+        case "HOUR":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.HOUR)));
+            break;
+        case "ISO_DAY_OF_WEEK":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_DAY_OF_WEEK)));
+            break;
+        case "ISO_WEEK":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_WEEK)));
+            break;
+        case "ISO_YEAR":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_WEEK_YEAR)));
+            break;
+        case "MINUTE":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.MINUTE)));
+            break;
+        case "MONTH":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.MONTH)));
+            break;
+        case "QUARTER":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.QUARTER)));
+            break;
+        case "SECOND":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.SECOND)));
+            break;
+        case "WEEK":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.WEEK)));
+            break;
+        case "YEAR":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.YEAR)));
+            break;
         // TRIM
         case "LTRIM":
             function = Function.getFunction(database, Function.TRIM);
@@ -4378,6 +4435,18 @@ public class Parser {
         return function;
     }
 
+    private Expression readKeywordCompatibilityFunctionOrColumn() {
+        boolean nonKeyword = nonKeywords != null && nonKeywords.get(currentTokenType);
+        String name = currentToken;
+        read();
+        if (readIf(OPEN_PAREN)) {
+            return readCompatibilityFunction(upperName(name));
+        } else if (nonKeyword) {
+            return readIf(DOT) ? readTermObjectDot(name) : new ExpressionColumn(database, null, null, name, false);
+        }
+        throw getSyntaxError();
+    }
+
     private Expression readFunctionWithoutParameters(int id) {
         Expression[] args = new Expression[0];
         Function function = Function.getFunctionWithArgs(database, id, args);
@@ -4733,10 +4802,12 @@ public class Parser {
             r = readKeywordFunction(Function.CURRENT_USER);
             break;
         case DAY:
-            r = readKeywordFunctionOrColumn(Function.DAY_OF_MONTH);
-            break;
         case HOUR:
-            r = readKeywordFunctionOrColumn(Function.HOUR);
+        case MINUTE:
+        case MONTH:
+        case SECOND:
+        case YEAR:
+            r = readKeywordCompatibilityFunctionOrColumn();
             break;
         case LEFT:
             r = readKeywordFunctionOrColumn(Function.LEFT);
@@ -4749,23 +4820,11 @@ public class Parser {
             read();
             r = readKeywordFunction(Function.LOCALTIMESTAMP);
             break;
-        case MINUTE:
-            r = readKeywordFunctionOrColumn(Function.MINUTE);
-            break;
-        case MONTH:
-            r = readKeywordFunctionOrColumn(Function.MONTH);
-            break;
         case RIGHT:
             r = readKeywordFunctionOrColumn(Function.RIGHT);
             break;
-        case SECOND:
-            r = readKeywordFunctionOrColumn(Function.SECOND);
-            break;
         case SET:
             r = readKeywordFunctionOrColumn(Function.SET);
-            break;
-        case YEAR:
-            r = readKeywordFunctionOrColumn(Function.YEAR);
             break;
         case VALUE:
             if (parseDomainConstraint) {

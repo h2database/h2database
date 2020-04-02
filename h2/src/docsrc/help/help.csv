@@ -5218,6 +5218,8 @@ DAYNAME(CREATED)
 @c@ DAY_OF_MONTH(dateAndTime|interval)
 ","
 Returns the day of the month (1-31).
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 DAY_OF_MONTH(CREATED)
 "
@@ -5226,6 +5228,8 @@ DAY_OF_MONTH(CREATED)
 @c@ DAY_OF_WEEK(dateAndTime)
 ","
 Returns the day of the week (1-7), locale-specific.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 DAY_OF_WEEK(CREATED)
 "
@@ -5234,6 +5238,8 @@ DAY_OF_WEEK(CREATED)
 @c@ ISO_DAY_OF_WEEK(dateAndTime)
 ","
 Returns the ISO day of the week (1 means Monday).
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 ISO_DAY_OF_WEEK(CREATED)
 "
@@ -5242,6 +5248,8 @@ ISO_DAY_OF_WEEK(CREATED)
 @c@ DAY_OF_YEAR(dateAndTime|interval)
 ","
 Returns the day of the year (1-366).
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 DAY_OF_YEAR(CREATED)
 "
@@ -5276,6 +5284,8 @@ CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',
 @c@ HOUR(dateAndTime|interval)
 ","
 Returns the hour (0-23) from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 HOUR(CREATED)
 "
@@ -5284,6 +5294,8 @@ HOUR(CREATED)
 @c@ MINUTE(dateAndTime|interval)
 ","
 Returns the minute (0-59) from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 MINUTE(CREATED)
 "
@@ -5292,6 +5304,8 @@ MINUTE(CREATED)
 @c@ MONTH(dateAndTime|interval)
 ","
 Returns the month (1-12) from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 MONTH(CREATED)
 "
@@ -5321,6 +5335,8 @@ CALL PARSEDATETIME('Sat, 3 Feb 2001 03:05:06 GMT',
 @c@ QUARTER(dateAndTime)
 ","
 Returns the quarter (1-4) from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 QUARTER(CREATED)
 "
@@ -5329,6 +5345,8 @@ QUARTER(CREATED)
 @c@ SECOND(dateAndTime)
 ","
 Returns the second (0-59) from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 SECOND(CREATED|interval)
 "
@@ -5337,7 +5355,10 @@ SECOND(CREATED|interval)
 @c@ WEEK(dateAndTime)
 ","
 Returns the week (1-53) from a date/time value.
-This method uses the current system locale.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
+
+This function uses the current system locale.
 ","
 WEEK(CREATED)
 "
@@ -5346,6 +5367,9 @@ WEEK(CREATED)
 @c@ ISO_WEEK(dateAndTime)
 ","
 Returns the ISO week (1-53) from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
+
 This function uses the ISO definition when
 first week of year should have at least four days
 and week is started with Monday.
@@ -5357,6 +5381,8 @@ ISO_WEEK(CREATED)
 @c@ YEAR(dateAndTime|interval)
 ","
 Returns the year from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 YEAR(CREATED)
 "
@@ -5365,6 +5391,8 @@ YEAR(CREATED)
 @c@ ISO_YEAR(dateAndTime)
 ","
 Returns the ISO week year from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 ISO_YEAR(CREATED)
 "

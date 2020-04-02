@@ -3968,6 +3968,15 @@ public class Parser {
     private Expression readCompatibilityFunction(String name) {
         Function function;
         switch (name) {
+        // ||
+        case "ARRAY_APPEND":
+        case "ARRAY_CAT": {
+            Expression l = readExpression();
+            read(COMMA);
+            Expression r = readExpression();
+            read(CLOSE_PAREN);
+            return new ConcatenationOperation(l, r);
+        }
         // CAST
         case "CONVERT":
             function = Function.getFunction(database, Function.CAST);

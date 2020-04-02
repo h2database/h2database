@@ -5442,6 +5442,9 @@ CALL ARRAY_CONTAINS(ARRAY['Hello', 'World'], 'Hello')
 @c@ ARRAY_CAT(arrayExpression, arrayExpression)
 ","
 Returns the concatenation of two arrays.
+
+This function is deprecated, use ""||"" instead of it.
+
 Returns NULL if any parameter is NULL.
 ","
 CALL ARRAY_CAT(ARRAY[1, 2], ARRAY[3, 4])
@@ -5451,6 +5454,9 @@ CALL ARRAY_CAT(ARRAY[1, 2], ARRAY[3, 4])
 @c@ ARRAY_APPEND(arrayExpression, value)
 ","
 Append an element to the end of an array.
+
+This function is deprecated, use ""||"" instead of it.
+
 Returns NULL if any parameter is NULL.
 ","
 CALL ARRAY_APPEND(ARRAY[1, 2], 3)

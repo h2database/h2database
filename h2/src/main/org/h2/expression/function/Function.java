@@ -153,7 +153,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
             NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232,
-            UNNEST = 233, ARRAY_CONCAT = 234, ARRAY_APPEND = 235, ARRAY_SLICE = 236,
+            UNNEST = 233, ARRAY_SLICE = 236,
             ABORT_SESSION = 237;
 
     public static final int REGEXP_LIKE = 240;
@@ -411,8 +411,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("ARRAY_GET", ARRAY_GET,
                 2, Value.NULL);
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
-        addFunction("ARRAY_CAT", ARRAY_CONCAT, 2, Value.ARRAY);
-        addFunction("ARRAY_APPEND", ARRAY_APPEND, 2, Value.ARRAY);
         addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
         addFunction("CSVREAD", CSVREAD,
                 VAR_ARGS, Value.RESULT_SET, false, false, true, false);
@@ -1525,21 +1523,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
-            break;
-        }
-        case ARRAY_CONCAT: {
-            final ValueArray array = (ValueArray) v0.convertTo(TypeInfo.TYPE_ARRAY);
-            final ValueArray array2 = (ValueArray) v1.convertTo(TypeInfo.TYPE_ARRAY);
-            final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + array2.getList().length);
-            System.arraycopy(array2.getList(), 0, res, array.getList().length, array2.getList().length);
-            result = ValueArray.get(res, session);
-            break;
-        }
-        case ARRAY_APPEND: {
-            final ValueArray array = (ValueArray) v0.convertTo(TypeInfo.TYPE_ARRAY);
-            final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + 1);
-            res[array.getList().length] = v1;
-            result = ValueArray.get(res, session);
             break;
         }
         case ARRAY_SLICE: {
@@ -2898,20 +2881,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                         typeInfo.getSQL(new StringBuilder()));
             }
             break;
-        case ARRAY_CONCAT:
-        case ARRAY_APPEND: {
-            typeInfo = p0.getType();
-            int t = typeInfo.getValueType();
-            if (t != Value.NULL) {
-                if (t != Value.ARRAY) {
-                    throw DbException.getInvalidValueException(getName() + " array argument",
-                            typeInfo.getSQL(new StringBuilder()));
-                }
-                typeInfo = TypeInfo.getHigherType(typeInfo, args[1].getType());
-                typeInfo = TypeInfo.getTypeInfo(Value.ARRAY, -1, 0, typeInfo.getExtTypeInfo());
-            }
-            break;
-        }
         case ARRAY_SLICE: {
             typeInfo = p0.getType();
             int t = typeInfo.getValueType();

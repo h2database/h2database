@@ -119,10 +119,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
             CHAR_LENGTH = 53, CONCAT = 54, DIFFERENCE = 55, HEXTORAW = 56,
-            INSERT = 57, INSTR = 58, LCASE = 59, LEFT = 60, LENGTH = 61,
+            INSERT = 57, INSTR = 58, LEFT = 60, LENGTH = 61,
             LOCATE = 62, OCTET_LENGTH = 64, RAWTOHEX = 65,
             REPEAT = 66, REPLACE = 67, RIGHT = 68, SOUNDEX = 70,
-            SPACE = 71, /* 72 */ SUBSTRING = 73, UCASE = 74, LOWER = 75,
+            SPACE = 71, /* 72 */ SUBSTRING = 73, LOWER = 75,
             UPPER = 76, POSITION = 77, TRIM = 78, STRINGENCODE = 79,
             STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
@@ -289,7 +289,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("DIFFERENCE", DIFFERENCE, 2, Value.INTEGER);
         addFunction("HEXTORAW", HEXTORAW, 1, Value.NULL);
         addFunctionWithNull("INSERT", INSERT, 4, Value.VARCHAR);
-        addFunction("LCASE", LCASE, 1, Value.VARCHAR);
         addFunction("LEFT", LEFT, 2, Value.VARCHAR);
         addFunction("LENGTH", LENGTH, 1, Value.BIGINT);
         // 2 or 3 arguments
@@ -306,9 +305,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("SPACE", SPACE, 1, Value.VARCHAR);
         addFunction("SUBSTR", SUBSTRING, VAR_ARGS, Value.NULL);
         addFunction("SUBSTRING", SUBSTRING, VAR_ARGS, Value.NULL);
-        addFunction("UCASE", UCASE, 1, Value.VARCHAR);
         addFunction("LOWER", LOWER, 1, Value.VARCHAR);
+        addFunction("LCASE", LOWER, 1, Value.VARCHAR);
         addFunction("UPPER", UPPER, 1, Value.VARCHAR);
+        addFunction("UCASE", UPPER, 1, Value.VARCHAR);
         addFunction("POSITION", POSITION, 2, Value.INTEGER);
         addFunction("TRIM", TRIM, VAR_ARGS, Value.VARCHAR);
         addFunction("STRINGENCODE", STRINGENCODE, 1, Value.VARCHAR);
@@ -801,7 +801,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = hexToRaw(v0.getString(), database);
             break;
         case LOWER:
-        case LCASE:
             // TODO this is locale specific, need to document or provide a way
             // to set the locale
             result = ValueVarchar.get(v0.getString().toLowerCase(), database);
@@ -822,7 +821,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case UPPER:
-        case UCASE:
             // TODO this is locale specific, need to document or provide a way
             // to set the locale
             result = ValueVarchar.get(v0.getString().toUpperCase(), database);
@@ -2855,9 +2853,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case LCASE:
         case RIGHT:
-        case UCASE:
         case LOWER:
         case UPPER:
         case TRIM:

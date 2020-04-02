@@ -443,7 +443,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                     array[i] = ((ValueRow) array[i]).getList()[0];
                 }
             }
-            return ValueArray.get(array);
+            return ValueArray.get(array, session);
         }
         case RANK:
         case DENSE_RANK:
@@ -633,7 +633,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         Database db = session.getDatabase();
         CompareMode compareMode = db.getCompareMode();
         Arrays.sort(values, (v1, v2) -> v1.getList()[0].compareTo(v2.getList()[0], session, compareMode));
-        return ValueArray.get(values);
+        return ValueArray.get(values, session);
     }
 
     private Value getMode(Session session, AggregateData data) {

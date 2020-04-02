@@ -810,7 +810,7 @@ public class Transfer {
             for (int i = 0; i < len; i++) {
                 list[i] = readValue();
             }
-            return ValueArray.get(list);
+            return ValueArray.get(list, session);
         }
         case ROW: {
             int len = readInt();

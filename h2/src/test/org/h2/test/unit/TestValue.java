@@ -178,11 +178,11 @@ public class TestValue extends TestDb {
         Value v;
         String spaces = new String(new char[100]).replace((char) 0, ' ');
 
-        v = ValueArray.get(new Value[] { ValueVarchar.get("hello"), ValueVarchar.get("world") });
+        v = ValueArray.get(new Value[] { ValueVarchar.get("hello"), ValueVarchar.get("world") }, null);
         TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ARRAY, 1L, 0, null);
         assertEquals(2, v.getType().getPrecision());
         assertEquals(1, v.castTo(typeInfo, null).getType().getPrecision());
-        v = ValueArray.get(new Value[]{ValueVarchar.get(""), ValueVarchar.get("")});
+        v = ValueArray.get(new Value[]{ValueVarchar.get(""), ValueVarchar.get("")}, null);
         assertEquals(2, v.getType().getPrecision());
         assertEquals("ARRAY ['']", v.castTo(typeInfo, null).toString());
 
@@ -370,15 +370,15 @@ public class TestValue extends TestDb {
 
     private void testArray() {
         ValueArray src = ValueArray.get(
-                new Value[] {ValueVarchar.get("1"), ValueVarchar.get("22"), ValueVarchar.get("333")});
+                new Value[] {ValueVarchar.get("1"), ValueVarchar.get("22"), ValueVarchar.get("333")}, null);
         assertEquals(3, src.getType().getPrecision());
         assertSame(src, src.castTo(TypeInfo.getTypeInfo(Value.ARRAY, 3L, 0, null), null));
         ValueArray exp = ValueArray.get(
-                new Value[] {ValueVarchar.get("1"), ValueVarchar.get("22")});
+                new Value[] {ValueVarchar.get("1"), ValueVarchar.get("22")}, null);
         Value got = src.castTo(TypeInfo.getTypeInfo(Value.ARRAY, 2L, 0, null), null);
         assertEquals(exp, got);
         assertEquals(Value.VARCHAR, ((ValueArray) got).getComponentType().getValueType());
-        exp = ValueArray.get(TypeInfo.TYPE_VARCHAR, new Value[0]);
+        exp = ValueArray.get(TypeInfo.TYPE_VARCHAR, new Value[0], null);
         got = src.castTo(TypeInfo.getTypeInfo(Value.ARRAY, 0L, 0, null), null);
         assertEquals(exp, got);
         assertEquals(Value.VARCHAR, ((ValueArray) got).getComponentType().getValueType());

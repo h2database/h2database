@@ -200,8 +200,8 @@ public class TestDataPage extends TestBase implements DataHandler {
                 testValue(ValueDouble.get(-(i / j)));
             }
         }
-        testValue(ValueArray.get(new Value[0]));
-        testValue(ValueArray.get(new Value[] { ValueInteger.get(-20), ValueInteger.get(10) }));
+        testValue(ValueArray.get(new Value[0], null));
+        testValue(ValueArray.get(new Value[] { ValueInteger.get(-20), ValueInteger.get(10) }, null));
 
         SimpleResult rs = new SimpleResult();
         rs.addColumn("ID", "ID", Value.INTEGER, 0, 0);

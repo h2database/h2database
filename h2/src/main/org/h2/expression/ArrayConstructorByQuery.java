@@ -56,7 +56,7 @@ public class ArrayConstructorByQuery extends Expression {
                 values.add(result.currentRow()[0]);
             }
         }
-        return ValueArray.get(values.toArray(new Value[0]));
+        return ValueArray.get(values.toArray(new Value[0]), session);
     }
 
     @Override

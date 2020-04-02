@@ -47,7 +47,7 @@ public class ConcatenationOperation extends Operation2 {
             int leftLength = leftValues.length, rightLength = rightValues.length;
             Value[] values = Arrays.copyOf(leftValues, leftLength + rightLength);
             System.arraycopy(rightValues, 0, values, leftLength, rightLength);
-            return ValueArray.get(values);
+            return ValueArray.get(values, session);
         }
         case Value.BINARY:
         case Value.VARBINARY: {

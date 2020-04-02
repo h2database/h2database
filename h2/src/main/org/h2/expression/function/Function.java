@@ -1625,14 +1625,14 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             final ValueArray array2 = (ValueArray) v1.convertTo(TypeInfo.TYPE_ARRAY);
             final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + array2.getList().length);
             System.arraycopy(array2.getList(), 0, res, array.getList().length, array2.getList().length);
-            result = ValueArray.get(res);
+            result = ValueArray.get(res, session);
             break;
         }
         case ARRAY_APPEND: {
             final ValueArray array = (ValueArray) v0.convertTo(TypeInfo.TYPE_ARRAY);
             final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + 1);
             res[array.getList().length] = v1;
-            result = ValueArray.get(res);
+            result = ValueArray.get(res, session);
             break;
         }
         case ARRAY_SLICE: {
@@ -1647,7 +1647,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             final boolean isPG = database.getMode().getEnum() == ModeEnum.PostgreSQL;
             if (index1 > index2) {
                 if (isPG)
-                    result = ValueArray.get(array.getComponentType(), Value.EMPTY_VALUES);
+                    result = ValueArray.get(array.getComponentType(), Value.EMPTY_VALUES, session);
                 else
                     result = ValueNull.INSTANCE;
             } else {
@@ -1665,7 +1665,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 }
             }
             if (result == null)
-                result = ValueArray.get(array.getComponentType(), Arrays.copyOfRange(array.getList(), index1, index2));
+                result = ValueArray.get(array.getComponentType(), Arrays.copyOfRange(array.getList(), index1, index2),
+                        session);
             break;
         }
         case LINK_SCHEMA: {

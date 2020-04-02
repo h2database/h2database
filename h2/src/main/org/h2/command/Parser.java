@@ -4099,6 +4099,19 @@ public class Parser {
             function.addParameter(readExpression());
             read(CLOSE_PAREN);
             break;
+        case Function.LOG: {
+            Expression arg = readExpression();
+            if (readIf(COMMA)) {
+                function.addParameter(arg);
+                function.addParameter(readExpression());
+            } else {
+                function = Function.getFunction(database,
+                        database.getMode().logIsLogBase10 ? Function.LOG10 : Function.LN);
+                function.addParameter(arg);
+            }
+            read(CLOSE_PAREN);
+            break;
+        }
         case Function.SUBSTRING:
             // Standard variants are:
             // SUBSTRING(X FROM 1)

@@ -242,7 +242,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("DEGREES", DEGREES, 1, Value.DOUBLE);
         addFunction("EXP", EXP, 1, Value.DOUBLE);
         addFunction("FLOOR", FLOOR, 1, Value.NULL);
-        addFunction("LOG", LOG, VAR_ARGS, Value.DOUBLE);
+        addFunction("LOG", LOG, 2, Value.DOUBLE);
         addFunction("LN", LN, 1, Value.DOUBLE);
         addFunction("LOG10", LOG10, 1, Value.DOUBLE);
         addFunction("LSHIFT", LSHIFT, 2, Value.BIGINT);
@@ -1867,34 +1867,26 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     }
 
     private Value log(Value v0, Value v1) {
-        double arg = v0.getDouble();
+        double base = v0.getDouble();
+        double arg = v1.getDouble();
+        if (database.getMode().swapLogFunctionParameters) {
+            double t = arg;
+            arg = base;
+            base = t;
+        }
+        if (arg <= 0) {
+            throw DbException.getInvalidValueException("LOG() argument", arg);
+        }
+        if (base <= 0 || base == 1) {
+            throw DbException.getInvalidValueException("LOG() base", base);
+        }
         double r;
-        Mode mode = database.getMode();
-        if (v1 == null) {
-            if (arg <= 0) {
-                throw DbException.getInvalidValueException("LOG() argument", arg);
-            }
-            r = mode.logIsLogBase10 ? Math.log10(arg) : Math.log(arg);
+        if (base == Math.E) {
+            r = Math.log(arg);
+        } else if (base == 10d) {
+            r = Math.log10(arg);
         } else {
-            double base = v1.getDouble();
-            if (!mode.swapLogFunctionParameters) {
-                double t = arg;
-                arg = base;
-                base = t;
-            }
-            if (arg <= 0) {
-                throw DbException.getInvalidValueException("LOG() argument", arg);
-            }
-            if (base <= 0 || base == 1) {
-                throw DbException.getInvalidValueException("LOG() base", base);
-            }
-            if (base == Math.E) {
-                r = Math.log(arg);
-            } else if (base == 10d) {
-                r = Math.log10(arg);
-            } else {
-                r = Math.log(arg) / Math.log(base);
-            }
+            r = Math.log(arg) / Math.log(base);
         }
         return ValueDouble.get(r);
     }
@@ -2486,7 +2478,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case RAND:
             max = 1;
             break;
-        case LOG:
         case COMPRESS:
         case TRIM:
         case FILE_READ:

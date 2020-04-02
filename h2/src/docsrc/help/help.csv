@@ -4412,13 +4412,17 @@ LN(A)
 "
 
 "Functions (Numeric)","LOG","
-LOG([baseNumeric,] numeric)
+LOG({baseNumeric, numeric | @c@{numeric}})
 ","
 Calculates the logarithm with specified base as a double value.
 Argument and base must be positive numeric values.
 Base cannot be equal to 1.
+
 The default base is e (natural logarithm), in the PostgreSQL mode the default base is base 10.
 In MSSQLServer mode the optional base is specified after the argument.
+
+Single-argument variant of LOG function is deprecated, use [LN](https://h2database.com/html/functions.html#ln)
+or [LOG10](https://h2database.com/html/functions.html#log10) instead.
 ","
 LOG(2, A)
 "

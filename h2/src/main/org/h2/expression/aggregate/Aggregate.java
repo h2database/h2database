@@ -40,6 +40,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -738,7 +739,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             type = TypeInfo.TYPE_BIGINT;
             break;
         case HISTOGRAM:
-            type = TypeInfo.TYPE_ARRAY;
+            type = TypeInfo.getTypeInfo(Value.ARRAY, -1, 0, new ExtTypeInfoArray(TypeInfo.TYPE_ROW));
             break;
         case SUM: {
             int dataType = type.getValueType();
@@ -805,7 +806,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
             break;
         case ARRAY_AGG:
-            type = TypeInfo.TYPE_ARRAY;
+            type = TypeInfo.getTypeInfo(Value.ARRAY, -1, 0, new ExtTypeInfoArray(args[0].getType()));
             break;
         case ENVELOPE:
             type = TypeInfo.TYPE_GEOMETRY;

@@ -2014,7 +2014,7 @@ public class Parser {
             if (readIf(DOT)) {
                 tableName = readIdentifierWithSchema2(tableName);
             } else if (!quoted && readIf(TABLE)) {
-                table = readDataChangeDeltaTable(tableName, backupIndex);
+                table = readDataChangeDeltaTable(upperName(tableName), backupIndex);
                 break label;
             }
             Schema schema;
@@ -2129,9 +2129,6 @@ public class Parser {
 
     private Table readDataChangeDeltaTable(String resultOptionName, int backupIndex) {
         read(OPEN_PAREN);
-        if (!identifiersToUpper) {
-            resultOptionName = StringUtils.toUpperEnglish(resultOptionName);
-        }
         int start = lastParseIndex;
         DataChangeStatement statement;
         ResultOption resultOption = ResultOption.FINAL;
@@ -3572,12 +3569,12 @@ public class Parser {
             boolean distinct = readDistinctAgg();
             Expression arg = readExpression(), separator = null;
             ArrayList<QueryOrderBy> orderByList;
-            if (equalsToken("STRING_AGG", aggregateName)) {
+            if ("STRING_AGG".equals(aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
                 read(COMMA);
                 separator = readExpression();
                 orderByList = readIfOrderBy();
-            } else if (equalsToken("GROUP_CONCAT", aggregateName)){
+            } else if ("GROUP_CONCAT".equals(aggregateName)) {
                 orderByList = readIfOrderBy();
                 if (readIf("SEPARATOR")) {
                     separator = readExpression();
@@ -3919,17 +3916,10 @@ public class Parser {
         return new WindowFrameBound(WindowFrameBoundType.FOLLOWING, value);
     }
 
-    private AggregateType getAggregateType(String name) {
-        if (!identifiersToUpper) {
-            // if not yet converted to uppercase, do it now
-            name = StringUtils.toUpperEnglish(name);
-        }
-        return Aggregate.getAggregateType(name);
-    }
-
     private Expression readFunction(Schema schema, String name) {
+        String upperName = upperName(name);
         if (schema != null) {
-            return readFunctionWithSchema(schema, name);
+            return readFunctionWithSchema(schema, name, upperName);
         }
         boolean allowOverride = database.isAllowBuiltinAliasOverride();
         if (allowOverride) {
@@ -3938,13 +3928,13 @@ public class Parser {
                 return jf;
             }
         }
-        AggregateType agg = getAggregateType(name);
+        AggregateType agg = Aggregate.getAggregateType(upperName);
         if (agg != null) {
-            return readAggregate(agg, name);
+            return readAggregate(agg, upperName);
         }
-        Function function = Function.getFunction(database, name);
+        Function function = Function.getFunction(database, upperName);
         if (function == null) {
-            WindowFunction windowFunction = readWindowFunction(name);
+            WindowFunction windowFunction = readWindowFunction(upperName);
             if (windowFunction != null) {
                 return windowFunction;
             }
@@ -3960,10 +3950,9 @@ public class Parser {
         return readFunctionParameters(function);
     }
 
-    private Expression readFunctionWithSchema(Schema schema, String name) {
+    private Expression readFunctionWithSchema(Schema schema, String name, String upperName) {
         if (database.getMode().getEnum() == ModeEnum.PostgreSQL
                 && schema.getName().equals(database.sysIdentifier("PG_CATALOG"))) {
-            String upperName = database.getSettings().databaseToUpper ? name : StringUtils.toUpperEnglish(name);
             Function function = FunctionsPostgreSQL.getFunction(database, upperName);
             if (function != null) {
                 return readFunctionParameters(function);
@@ -4212,10 +4201,6 @@ public class Parser {
     }
 
     private WindowFunction readWindowFunction(String name) {
-        if (!identifiersToUpper) {
-            // if not yet converted to uppercase, do it now
-            name = StringUtils.toUpperEnglish(name);
-        }
         WindowFunctionType type = WindowFunctionType.get(name);
         if (type == null) {
             return null;
@@ -6030,6 +6015,10 @@ public class Parser {
         return ParserUtil.isKeyword(s, !identifiersToUpper);
     }
 
+    private String upperName(String name) {
+        return identifiersToUpper ? name : StringUtils.toUpperEnglish(name);
+    }
+
     private Column parseColumnForTable(String columnName, boolean defaultNullable) {
         Column column;
         boolean isIdentity = readIf("IDENTITY");
@@ -6205,7 +6194,7 @@ public class Parser {
             return getColumnWithDomain(columnName,
                     database.getSchema(session.getCurrentSchemaName()).getDomain(originalCase));
         }
-        String original = identifiersToUpper ? originalCase : StringUtils.toUpperEnglish(originalCase);
+        String original = upperName(originalCase);
         switch (original) {
         case "BINARY":
             if (readIf("VARYING")) {
@@ -7068,11 +7057,10 @@ public class Parser {
         boolean ifNotExists = readIfNotExists();
         CreateAggregate command = new CreateAggregate(session);
         command.setForce(force);
-        String name = readIdentifierWithSchema();
-        if (isKeyword(name) || Function.getFunction(database, name) != null ||
-                getAggregateType(name) != null) {
-            throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1,
-                    name);
+        String name = readIdentifierWithSchema(), upperName;
+        if (isKeyword(name) || Function.getFunction(database, upperName = upperName(name)) != null
+                || Aggregate.getAggregateType(upperName) != null) {
+            throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
         }
         command.setName(name);
         command.setSchema(getSchema());
@@ -7235,17 +7223,16 @@ public class Parser {
         } else {
             aliasName = readIdentifierWithSchema();
         }
-        final boolean newAliasSameNameAsBuiltin = Function.getFunction(database, aliasName) != null;
+        String upperName = upperName(aliasName);
+        final boolean newAliasSameNameAsBuiltin = Function.getFunction(database, upperName) != null;
         if (database.isAllowBuiltinAliasOverride() && newAliasSameNameAsBuiltin) {
             // fine
         } else if (isKeyword(aliasName) ||
                 newAliasSameNameAsBuiltin ||
-                getAggregateType(aliasName) != null) {
-            throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1,
-                    aliasName);
+                Aggregate.getAggregateType(upperName) != null) {
+            throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
         }
-        CreateFunctionAlias command = new CreateFunctionAlias(session,
-                getSchema());
+        CreateFunctionAlias command = new CreateFunctionAlias(session, getSchema());
         command.setForce(force);
         command.setAliasName(aliasName);
         command.setIfNotExists(ifNotExists);
@@ -8002,11 +7989,7 @@ public class Parser {
                     return command;
                 }
             }
-            String typeName = currentToken;
-            if (!identifiersToUpper) {
-                typeName = StringUtils.toUpperEnglish(typeName);
-            }
-            int type = SetTypes.getType(typeName);
+            int type = SetTypes.getType(upperName(currentToken));
             if (type < 0) {
                 throw getSyntaxError();
             }

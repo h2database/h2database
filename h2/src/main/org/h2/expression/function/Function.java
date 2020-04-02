@@ -566,14 +566,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
      * If no function with this name is found, null is returned.
      *
      * @param database the database
-     * @param name the function name
+     * @param name the upper case function name
      * @return the function object or null
      */
     public static Function getFunction(Database database, String name) {
-        if (!database.getSettings().databaseToUpper) {
-            // if not yet converted to uppercase, do it now
-            name = StringUtils.toUpperEnglish(name);
-        }
         FunctionInfo info = FUNCTIONS_BY_NAME.get(name);
         if (info == null) {
             switch (database.getMode().getEnum()) {

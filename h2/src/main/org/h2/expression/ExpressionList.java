@@ -136,4 +136,8 @@ public class ExpressionList extends Expression {
         return list[index];
     }
 
+    public boolean isArray() {
+        return isArray;
+    }
+
 }

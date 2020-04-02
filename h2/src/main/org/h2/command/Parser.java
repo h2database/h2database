@@ -3934,9 +3934,13 @@ public class Parser {
         }
         Function function = Function.getFunction(database, upperName);
         if (function == null) {
-            WindowFunction windowFunction = readWindowFunction(upperName);
-            if (windowFunction != null) {
-                return windowFunction;
+            Expression e = readWindowFunction(upperName);
+            if (e != null) {
+                return e;
+            }
+            e = readCompatibilityFunction(upperName);
+            if (e != null) {
+                return e;
             }
             UserAggregate aggregate = database.findAggregate(name);
             if (aggregate != null) {
@@ -3959,6 +3963,30 @@ public class Parser {
             }
         }
         return readJavaFunction(schema, name, true);
+    }
+
+    private Expression readCompatibilityFunction(String name) {
+        Function function;
+        switch (name) {
+        // TRIM
+        case "LTRIM":
+            function = Function.getFunction(database, Function.TRIM);
+            function.setFlags(Function.TRIM_LEADING);
+            break;
+        case "RTRIM":
+            function = Function.getFunction(database, Function.TRIM);
+            function.setFlags(Function.TRIM_TRAILING);
+            break;
+        default:
+            return null;
+        }
+        if (!readIf(CLOSE_PAREN)) {
+            do {
+                function.addParameter(readExpression());
+            } while (readIfMore());
+        }
+        function.doneWithParameters();
+        return function;
     }
 
     private Function readFunctionParameters(Function function) {

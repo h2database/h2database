@@ -120,8 +120,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
             CHAR_LENGTH = 53, CONCAT = 54, DIFFERENCE = 55, HEXTORAW = 56,
             INSERT = 57, INSTR = 58, LCASE = 59, LEFT = 60, LENGTH = 61,
-            LOCATE = 62, LTRIM = 63, OCTET_LENGTH = 64, RAWTOHEX = 65,
-            REPEAT = 66, REPLACE = 67, RIGHT = 68, RTRIM = 69, SOUNDEX = 70,
+            LOCATE = 62, OCTET_LENGTH = 64, RAWTOHEX = 65,
+            REPEAT = 66, REPLACE = 67, RIGHT = 68, SOUNDEX = 70,
             SPACE = 71, /* 72 */ SUBSTRING = 73, UCASE = 74, LOWER = 75,
             UPPER = 76, POSITION = 77, TRIM = 78, STRINGENCODE = 79,
             STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
@@ -298,13 +298,11 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         // same as LOCATE with 2 arguments
         addFunction("POSITION", LOCATE, 2, Value.INTEGER);
         addFunction("INSTR", INSTR, VAR_ARGS, Value.INTEGER);
-        addFunction("LTRIM", LTRIM, VAR_ARGS, Value.VARCHAR);
         addFunction("OCTET_LENGTH", OCTET_LENGTH, 1, Value.BIGINT);
         addFunction("RAWTOHEX", RAWTOHEX, 1, Value.VARCHAR);
         addFunction("REPEAT", REPEAT, 2, Value.VARCHAR);
         addFunctionWithNull("REPLACE", REPLACE, VAR_ARGS, Value.VARCHAR);
         addFunction("RIGHT", RIGHT, 2, Value.VARCHAR);
-        addFunction("RTRIM", RTRIM, VAR_ARGS, Value.VARCHAR);
         addFunction("SOUNDEX", SOUNDEX, 1, Value.VARCHAR);
         addFunction("SPACE", SPACE, 1, Value.VARCHAR);
         addFunction("SUBSTR", SUBSTRING, VAR_ARGS, Value.NULL);
@@ -1440,17 +1438,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case RIGHT:
             result = ValueVarchar.get(right(v0.getString(), v1.getInt()), database);
             break;
-        case LTRIM:
-            result = ValueVarchar.get(StringUtils.trim(v0.getString(), true, false, v1 == null ? " " : v1.getString()),
-                    database);
-            break;
         case TRIM:
             result = ValueVarchar.get(StringUtils.trim(v0.getString(),
                     (flags & TRIM_LEADING) != 0, (flags & TRIM_TRAILING) != 0, v1 == null ? " " : v1.getString()),
-                    database);
-            break;
-        case RTRIM:
-            result = ValueVarchar.get(StringUtils.trim(v0.getString(), false, true, v1 == null ? " " : v1.getString()),
                     database);
             break;
         case SUBSTRING:
@@ -2595,8 +2585,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         case LOG:
         case COMPRESS:
-        case LTRIM:
-        case RTRIM:
         case TRIM:
         case FILE_READ:
         case ROUND:
@@ -2947,9 +2935,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case LCASE:
-        case LTRIM:
         case RIGHT:
-        case RTRIM:
         case UCASE:
         case LOWER:
         case UPPER:

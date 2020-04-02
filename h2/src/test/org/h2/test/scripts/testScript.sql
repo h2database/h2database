@@ -1111,23 +1111,6 @@ ALTER TABLE test ALTER COLUMN ID2 RENAME TO ID;
 drop table test;
 > ok
 
-create table test(id int primary key, data array);
-> ok
-
-insert into test values(1, ARRAY[1, 1]), (2, ARRAY[1, 2]), (3, ARRAY[1, 1, 1]);
-> update count: 3
-
-select * from test order by data;
-> ID DATA
-> -- ---------
-> 1  [1, 1]
-> 3  [1, 1, 1]
-> 2  [1, 2]
-> rows (ordered): 3
-
-drop table test;
-> ok
-
 CREATE TABLE FOO (A CHAR(10));
 > ok
 
@@ -1706,21 +1689,6 @@ select (1, 2);
 > ----------
 > ROW (1, 2)
 > rows: 1
-
-create table array_test(x array);
-> ok
-
-insert into array_test values(ARRAY[1, 2, 3]), (ARRAY[2, 3, 4]);
-> update count: 2
-
-select * from array_test where x = ARRAY[1, 2, 3];
-> X
-> ---------
-> [1, 2, 3]
-> rows: 1
-
-drop table array_test;
-> ok
 
 select * from (select 1), (select 2);
 > 1 2

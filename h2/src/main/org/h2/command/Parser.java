@@ -1408,7 +1408,7 @@ public class Parser {
                 int columnCount = columns.size();
                 if (expression instanceof ExpressionList) {
                     ExpressionList list = (ExpressionList) expression;
-                    if (list.getType().getValueType() != Value.ROW || columnCount != list.getSubexpressionCount()) {
+                    if (list.isArray() || columnCount != list.getSubexpressionCount()) {
                         throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                     }
                     for (int i = 0; i < columnCount; i++) {
@@ -6174,15 +6174,19 @@ public class Parser {
         switch (currentTokenType) {
         case IDENTIFIER:
             break;
-        case ARRAY:
-            read();
-            return parseArrayType(columnName, null);
         case INTERVAL:
             read();
             return (Column) readIntervalQualifier(columnName, true);
         case NULL:
             read();
             return new Column(columnName, TypeInfo.TYPE_NULL, "NULL");
+        case ARRAY:
+            // Partial compatibility with 1.4.200 and older versions
+            if (database.isStarting()) {
+                read();
+                return parseArrayType(columnName, TypeInfo.TYPE_VARCHAR);
+            }
+            //$FALL-THROUGH$
         default:
             addExpected("data type");
             throw getSyntaxError();

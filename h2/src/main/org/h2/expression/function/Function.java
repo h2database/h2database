@@ -80,6 +80,7 @@ import org.h2.util.json.JSONBytesSource;
 import org.h2.util.json.JSONStringTarget;
 import org.h2.util.json.JSONValidationTargetWithUniqueKeys;
 import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -1625,14 +1626,14 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             final ValueArray array2 = (ValueArray) v1.convertTo(TypeInfo.TYPE_ARRAY);
             final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + array2.getList().length);
             System.arraycopy(array2.getList(), 0, res, array.getList().length, array2.getList().length);
-            result = ValueArray.get(res);
+            result = ValueArray.get(res, session);
             break;
         }
         case ARRAY_APPEND: {
             final ValueArray array = (ValueArray) v0.convertTo(TypeInfo.TYPE_ARRAY);
             final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + 1);
             res[array.getList().length] = v1;
-            result = ValueArray.get(res);
+            result = ValueArray.get(res, session);
             break;
         }
         case ARRAY_SLICE: {
@@ -1647,7 +1648,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             final boolean isPG = database.getMode().getEnum() == ModeEnum.PostgreSQL;
             if (index1 > index2) {
                 if (isPG)
-                    result = ValueArray.get(array.getComponentType(), Value.EMPTY_VALUES);
+                    result = ValueArray.get(array.getComponentType(), Value.EMPTY_VALUES, session);
                 else
                     result = ValueNull.INSTANCE;
             } else {
@@ -1665,7 +1666,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 }
             }
             if (result == null)
-                result = ValueArray.get(array.getComponentType(), Arrays.copyOfRange(array.getList(), index1, index2));
+                result = ValueArray.get(array.getComponentType(), Arrays.copyOfRange(array.getList(), index1, index2),
+                        session);
             break;
         }
         case LINK_SCHEMA: {
@@ -2893,7 +2895,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case SUBSTRING: {
-            TypeInfo argType = args[0].getType();
+            TypeInfo argType = p0.getType();
             long p = argType.getPrecision();
             if (args[1].isConstant()) {
                 // if only two arguments are used,
@@ -2914,7 +2916,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[2].getType().getPrecision(), 0, null);
             break;
         case COMPRESS:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[0].getType().getPrecision(), 0, null);
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p0.getType().getPrecision(), 0, null);
             break;
         case CHAR:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 1, 0, null);
@@ -2932,7 +2934,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case HEXTORAW: {
-            TypeInfo t = args[0].getType();
+            TypeInfo t = p0.getType();
             if (database.getMode().getEnum() == ModeEnum.Oracle) {
                 if (DataType.isCharacterStringType(t.getValueType())) {
                     typeInfo = TypeInfo.getTypeInfo(Value.VARBINARY, t.getPrecision() / 2, 0, null);
@@ -2958,10 +2960,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case TRIM:
         case STRINGDECODE:
         case UTF8TOSTRING:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[0].getType().getPrecision(), 0, null);
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p0.getType().getPrecision(), 0, null);
             break;
         case RAWTOHEX: {
-            TypeInfo t = args[0].getType();
+            TypeInfo t = p0.getType();
             long precision = t.getPrecision();
             int mul = DataType.isBinaryStringOrSpecialBinaryType(t.getValueType()) ? 2
                     : database.getMode().getEnum() == ModeEnum.Oracle ? 6 : 4;
@@ -2981,6 +2983,45 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case CURRVAL:
             typeInfo = database.getMode().decimalSequences ? TypeInfo.TYPE_NUMERIC_BIGINT : TypeInfo.TYPE_BIGINT;
             break;
+        case ARRAY_GET:
+            typeInfo = p0.getType();
+            switch (typeInfo.getValueType()) {
+            case Value.NULL:
+                break;
+            case Value.ARRAY:
+                typeInfo = ((ExtTypeInfoArray) typeInfo.getExtTypeInfo()).getComponentType();
+                break;
+            case Value.ROW:
+                typeInfo = TypeInfo.TYPE_NULL;
+                break;
+            default:
+                throw DbException.getInvalidValueException(getName() + " array argument",
+                        typeInfo.getSQL(new StringBuilder()));
+            }
+            break;
+        case ARRAY_CONCAT:
+        case ARRAY_APPEND: {
+            typeInfo = p0.getType();
+            int t = typeInfo.getValueType();
+            if (t != Value.NULL) {
+                if (t != Value.ARRAY) {
+                    throw DbException.getInvalidValueException(getName() + " array argument",
+                            typeInfo.getSQL(new StringBuilder()));
+                }
+                typeInfo = TypeInfo.getHigherType(typeInfo, args[1].getType());
+                typeInfo = TypeInfo.getTypeInfo(Value.ARRAY, -1, 0, typeInfo.getExtTypeInfo());
+            }
+            break;
+        }
+        case ARRAY_SLICE: {
+            typeInfo = p0.getType();
+            int t = typeInfo.getValueType();
+            if (t != Value.ARRAY && t != Value.NULL) {
+                throw DbException.getInvalidValueException(getName() + " array argument",
+                        typeInfo.getSQL(new StringBuilder()));
+            }
+            break;
+        }
         default:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, -1, -1, null);
         }

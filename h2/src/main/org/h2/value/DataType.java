@@ -743,7 +743,7 @@ public class DataType {
                 for (int i = 0; i < len; i++) {
                     values[i] = DataType.convertToValue(session, list[i], Value.NULL);
                 }
-                v = ValueArray.get(values);
+                v = ValueArray.get(values, session);
                 break;
             }
             case Value.ENUM: {
@@ -1292,7 +1292,7 @@ public class DataType {
             for (int i = 0; i < len; i++) {
                 v[i] = convertToValue(session, o[i], type);
             }
-            return ValueArray.get(v);
+            return ValueArray.get(v, session);
         } else if (x instanceof Character) {
             return ValueChar.get(((Character) x).toString());
         } else if (isGeometry(x)) {
@@ -1463,11 +1463,8 @@ public class DataType {
             return t1 == t2;
         case Value.ARRAY:
             if (t2 == Value.ARRAY) {
-                ExtTypeInfo e1 = type1.getExtTypeInfo(), e2 = type2.getExtTypeInfo();
-                if (e1 != null && e2 != null) {
-                    return areStableComparable(
-                            ((ExtTypeInfoArray) e1).getComponentType(), ((ExtTypeInfoArray) e2).getComponentType());
-                }
+                return areStableComparable(((ExtTypeInfoArray) type1.getExtTypeInfo()).getComponentType(),
+                        ((ExtTypeInfoArray) type2.getExtTypeInfo()).getComponentType());
             }
             return false;
         default:

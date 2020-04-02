@@ -213,7 +213,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
             return getLobStorage().createClob(new StringReader(s), len);
         }
         case Value.ARRAY:
-            return ValueArray.get(createArray());
+            return ValueArray.get(createArray(), null);
         case Value.ROW:
             return ValueRow.get(createArray());
         case Value.RESULT_SET:

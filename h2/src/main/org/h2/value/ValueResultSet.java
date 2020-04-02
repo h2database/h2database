@@ -55,11 +55,20 @@ public final class ValueResultSet extends Value {
             for (int i = 0; i < columnCount; i++) {
                 String alias = meta.getColumnLabel(i + 1);
                 String name = meta.getColumnName(i + 1);
-                int columnType = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1),
-                        meta.getColumnTypeName(i + 1));
+                String columnTypeName = meta.getColumnTypeName(i + 1);
+                int columnType = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1), columnTypeName);
                 int precision = meta.getPrecision(i + 1);
                 int scale = meta.getScale(i + 1);
-                simple.addColumn(alias, name, columnType, precision, scale);
+                TypeInfo typeInfo;
+                if (columnType == Value.ARRAY && columnTypeName.endsWith(" ARRAY")) {
+                    typeInfo = TypeInfo.getTypeInfo(Value.ARRAY, -1L, 0,
+                            new ExtTypeInfoArray(TypeInfo.getTypeInfo(
+                                    DataType.getTypeByName(columnTypeName.substring(0, columnTypeName.length() - 6),
+                                            session.getMode()).type)));
+                } else {
+                    typeInfo = TypeInfo.getTypeInfo(columnType, precision, scale, null);
+                }
+                simple.addColumn(alias, name, typeInfo);
             }
             for (int i = 0; i < maxrows && rs.next(); i++) {
                 Value[] list = new Value[columnCount];

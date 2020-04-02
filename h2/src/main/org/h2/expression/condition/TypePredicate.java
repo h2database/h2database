@@ -29,8 +29,7 @@ public class TypePredicate extends SimplePredicate {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append('(');
-        left.getSQL(builder, sqlFlags).append(" IS");
+        left.getSQL(builder.append('('), sqlFlags).append(" IS");
         if (not) {
             builder.append(" NOT");
         }
@@ -41,7 +40,7 @@ public class TypePredicate extends SimplePredicate {
             }
             typeList[i].getSQL(builder);
         }
-        return builder.append(')');
+        return builder.append("))");
     }
 
     @Override

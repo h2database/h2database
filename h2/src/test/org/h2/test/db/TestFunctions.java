@@ -433,7 +433,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         stat.execute("create alias dynamic deterministic for \"" +
                 getClass().getName() + ".dynamic\"");
         setCount(0);
-        rs = stat.executeQuery("call dynamic(ARRAY['a', 1])[1]");
+        rs = stat.executeQuery("call dynamic(ARRAY['a', '1'])[1]");
         rs.next();
         String a = rs.getString(1);
         assertEquals("a1", a);
@@ -934,7 +934,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         Array a = rs.getArray(1);
         Object[] array = (Object[]) a.getArray();
         assertEquals(2, array.length);
-        assertEquals(0, ((Integer) array[0]).intValue());
+        assertEquals("0", (String) array[0]);
         assertEquals("Hello", (String) array[1]);
         assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(1, -1);
         assertEquals(2, ((Object[]) a.getArray(1, 3)).length);
@@ -2147,7 +2147,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
      * @return the test array
      */
     public static Object[] getArray() {
-        return new Object[] { 0, "Hello" };
+        return new Object[] { "0", "Hello" };
     }
 
     /**

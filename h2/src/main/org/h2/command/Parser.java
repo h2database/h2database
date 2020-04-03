@@ -4012,6 +4012,16 @@ public class Parser {
         case "NVL":
             function = Function.getFunction(database, Function.COALESCE);
             break;
+        // CURRENT_DATE
+        case "CURDATE":
+        case "SYSDATE":
+        case "TODAY":
+            function = Function.getFunction(database, Function.CURRENT_DATE);
+            break;
+        // CURRENT_TIMESTAMP
+        case "SYSTIMESTAMP":
+            function = Function.getFunction(database, Function.CURRENT_TIMESTAMP);
+            break;
         // CURRENT_USER
         case "USER":
             function = Function.getFunction(database, Function.CURRENT_USER);
@@ -4072,6 +4082,19 @@ public class Parser {
         case "YEAR":
             function = Function.getFunction(database, Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.YEAR)));
+            break;
+        // LOCALTIME
+        case "CURTIME":
+            function = Function.getFunction(database, Function.LOCALTIME);
+            break;
+        case "SYSTIME":
+            read(CLOSE_PAREN);
+            function = Function.getFunction(database, Function.LOCALTIME);
+            function.doneWithParameters();
+            return function;
+        // LOCALTIMESTAMP
+        case "NOW":
+            function = Function.getFunction(database, Function.LOCALTIMESTAMP);
             break;
         // LOWER
         case "LCASE":
@@ -5036,7 +5059,7 @@ public class Parser {
             break;
         case 'S':
             if (equalsToken("SYSDATE", name)) {
-                return readFunctionWithoutParameters(Function.CURRENT_TIMESTAMP);
+                return readFunctionWithoutParameters(Function.CURRENT_DATE);
             } else if (equalsToken("SYSTIME", name)) {
                 return readFunctionWithoutParameters(Function.LOCALTIME);
             } else if (equalsToken("SYSTIMESTAMP", name)) {

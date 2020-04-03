@@ -328,21 +328,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
         // date
         addFunctionNotDeterministic("CURRENT_DATE", CURRENT_DATE, 0, Value.DATE, false);
-        addFunctionNotDeterministic("CURDATE", CURRENT_DATE, 0, Value.DATE);
-        addFunctionNotDeterministic("SYSDATE", CURRENT_DATE, 0, Value.DATE, false);
-        addFunctionNotDeterministic("TODAY", CURRENT_DATE, 0, Value.DATE, false);
-
         addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME, VAR_ARGS, Value.TIME_TZ, false);
-
         addFunctionNotDeterministic("LOCALTIME", LOCALTIME, VAR_ARGS, Value.TIME, false);
-        addFunctionNotDeterministic("SYSTIME", LOCALTIME, 0, Value.TIME, false);
-        addFunctionNotDeterministic("CURTIME", LOCALTIME, VAR_ARGS, Value.TIME);
-
         addFunctionNotDeterministic("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP_TZ, false);
-        addFunctionNotDeterministic("SYSTIMESTAMP", CURRENT_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP_TZ, false);
-
         addFunctionNotDeterministic("LOCALTIMESTAMP", LOCALTIMESTAMP, VAR_ARGS, Value.TIMESTAMP, false);
-        addFunctionNotDeterministic("NOW", LOCALTIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
 
         addFunction("DATEADD", DATEADD, 3, Value.NULL);
         addFunction("TIMESTAMPADD", DATEADD, 3, Value.NULL);

@@ -3,9 +3,6 @@
 -- Initial Developer: H2 Group
 --
 
-create alias "SYSDATE" for "java.lang.Integer.parseInt(java.lang.String)";
-> exception FUNCTION_ALIAS_ALREADY_EXISTS_1
-
 create alias "MIN" for "java.lang.Integer.parseInt(java.lang.String)";
 > exception FUNCTION_ALIAS_ALREADY_EXISTS_1
 

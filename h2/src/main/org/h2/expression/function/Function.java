@@ -337,18 +337,11 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("TIMESTAMPADD", DATEADD, 3, Value.NULL);
         addFunction("DATEDIFF", DATEDIFF, 3, Value.BIGINT);
         addFunction("TIMESTAMPDIFF", DATEDIFF, 3, Value.BIGINT);
-        addFunction("DAYNAME", DAY_NAME,
-                1, Value.VARCHAR);
-        addFunction("DAYNAME", DAY_NAME,
-                1, Value.VARCHAR);
-        addFunction("MONTHNAME", MONTH_NAME,
-                1, Value.VARCHAR);
-        addFunction("EXTRACT", EXTRACT,
-                2, Value.INTEGER);
-        addFunctionWithNull("FORMATDATETIME", FORMATDATETIME,
-                VAR_ARGS, Value.VARCHAR);
-        addFunctionWithNull("PARSEDATETIME", PARSEDATETIME,
-                VAR_ARGS, Value.TIMESTAMP);
+        addFunction("DAYNAME", DAY_NAME, 1, Value.VARCHAR);
+        addFunction("MONTHNAME", MONTH_NAME, 1, Value.VARCHAR);
+        addFunction("EXTRACT", EXTRACT, 2, Value.INTEGER);
+        addFunctionWithNull("FORMATDATETIME", FORMATDATETIME, VAR_ARGS, Value.VARCHAR);
+        addFunctionWithNull("PARSEDATETIME", PARSEDATETIME, VAR_ARGS, Value.TIMESTAMP);
         addFunction("DATE_TRUNC", DATE_TRUNC, 2, Value.NULL);
         // system
         addFunctionNotDeterministic("CURRENT_CATALOG", CURRENT_CATALOG, 0, Value.VARCHAR, false);

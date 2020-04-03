@@ -457,10 +457,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Single-column primary key values are always stored explicitly. This is not required.
 </li><li>Compatibility with MySQL: support CREATE TABLE TEST(NAME VARCHAR(255) CHARACTER SET UTF8).
 </li><li>CALL is incompatible with other databases because it returns a result set, so that CallableStatement.execute() returns true.
-</li><li>Compatibility for ARRAY data type (Oracle: VARRAY(n) of VARCHAR(m); HSQLDB: VARCHAR(n) ARRAY; Postgres: VARCHAR(n)[]).
+</li><li>Compatibility for ARRAY data type (Oracle: VARRAY(n) of VARCHAR(m); Postgres: VARCHAR(n)[]).
 </li><li>PostgreSQL compatible array literal syntax: ARRAY[['a', 'b'], ['c', 'd']]
 </li><li>PostgreSQL compatibility: UPDATE with FROM.
-</li><li>IBM DB2 compatibility: IDENTITY_VAL_LOCAL().
 </li><li>Support SQL/XML data type.
 </li><li>Support concurrent opening of databases.
 </li><li>Improved error message and diagnostics in case of network configuration problems.

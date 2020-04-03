@@ -48,6 +48,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
 import org.h2.index.Index;
 import org.h2.message.DbException;
+import org.h2.mode.FunctionsDB2Derby;
 import org.h2.mode.FunctionsMSSQLServer;
 import org.h2.mode.FunctionsMySQL;
 import org.h2.mode.FunctionsOracle;
@@ -372,8 +373,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 0, Value.BIGINT);
         addFunctionNotDeterministic("SCOPE_IDENTITY", SCOPE_IDENTITY,
                 0, Value.BIGINT);
-        addFunctionNotDeterministic("IDENTITY_VAL_LOCAL", IDENTITY,
-                0, Value.BIGINT);
         addFunctionNotDeterministic("LASTVAL", IDENTITY,
                 0, Value.BIGINT);
         addFunctionNotDeterministic("AUTOCOMMIT", AUTOCOMMIT,
@@ -527,20 +526,31 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     public static Function getFunction(Database database, String name) {
         FunctionInfo info = FUNCTIONS_BY_NAME.get(name);
         if (info == null) {
-            switch (database.getMode().getEnum()) {
-            case MSSQLServer:
-                return FunctionsMSSQLServer.getFunction(database, name);
-            case MySQL:
-                return FunctionsMySQL.getFunction(database, name);
-            case Oracle:
-                return FunctionsOracle.getFunction(database, name);
-            case PostgreSQL:
-                return FunctionsPostgreSQL.getFunction(database, name);
-            default:
-                return null;
+            ModeEnum modeEnum = database.getMode().getEnum();
+            if (modeEnum != ModeEnum.REGULAR) {
+                return getCompatibilityModeFunction(database, name, modeEnum);
             }
+            return null;
         }
         return createFunction(database, info, null);
+    }
+
+    private static Function getCompatibilityModeFunction(Database database, String name, ModeEnum modeEnum) {
+        switch (modeEnum) {
+        case DB2:
+        case Derby:
+            return FunctionsDB2Derby.getFunction(database, name);
+        case MSSQLServer:
+            return FunctionsMSSQLServer.getFunction(database, name);
+        case MySQL:
+            return FunctionsMySQL.getFunction(database, name);
+        case Oracle:
+            return FunctionsOracle.getFunction(database, name);
+        case PostgreSQL:
+            return FunctionsPostgreSQL.getFunction(database, name);
+        default:
+            return null;
+        }
     }
 
     private static Function createFunction(Database database, FunctionInfo info, Expression[] arguments) {
@@ -993,9 +1003,11 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                         result = v;
                     } else {
                         int comp = session.compareTypeSafe(result, v);
-                        if (info.type == GREATEST && comp < 0) {
-                            result = v;
-                        } else if (info.type == LEAST && comp > 0) {
+                        if (info.type == GREATEST) {
+                            if (comp < 0) {
+                                result = v;
+                            }
+                        } else if (comp > 0) {
                             result = v;
                         }
                     }

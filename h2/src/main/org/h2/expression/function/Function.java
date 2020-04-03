@@ -389,7 +389,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("SESSION_ID", SESSION_ID,
                 0, Value.INTEGER);
         addFunction("CARDINALITY", CARDINALITY, 1, Value.INTEGER);
-        addFunction("ARRAY_LENGTH", CARDINALITY, 1, Value.INTEGER);
         addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
                 6, Value.RESULT_SET);
         addFunctionWithNull("LEAST", LEAST,

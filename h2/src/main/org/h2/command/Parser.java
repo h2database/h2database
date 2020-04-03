@@ -3985,6 +3985,10 @@ public class Parser {
             read(CLOSE_PAREN);
             return new ArrayElementReference(l, r);
         }
+        // CARDINALITY
+        case "ARRAY_LENGTH":
+            function = Function.getFunction(database, Function.CARDINALITY);
+            break;
         // CAST
         case "CONVERT":
             function = Function.getFunction(database, Function.CAST);

@@ -1964,7 +1964,7 @@ public class ErrorCode {
      * The error with code <code>90137</code> is thrown when
      * trying to assign a value to something that is not a variable.
      * <pre>
-     * SELECT AMOUNT, SET(@V, IFNULL(@V, 0)+AMOUNT) FROM TEST;
+     * SELECT AMOUNT, SET(@V, COALESCE(@V, 0)+AMOUNT) FROM TEST;
      * </pre>
      */
     public static final int CAN_ONLY_ASSIGN_TO_VARIABLE_1 = 90137;

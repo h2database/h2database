@@ -10,23 +10,17 @@ import java.util.HashMap;
 import org.h2.engine.Database;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
-import org.h2.value.Value;
 
 /**
- * Functions for {@link org.h2.engine.Mode.ModeEnum#MSSQLServer} compatibility
- * mode.
+ * Functions for {@link org.h2.engine.Mode.ModeEnum#DB2} and
+ * {@link org.h2.engine.Mode.ModeEnum#Derby} compatibility modes.
  */
-public final class FunctionsMSSQLServer extends FunctionsBase {
+public final class FunctionsDB2Derby extends FunctionsBase {
 
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
 
     static {
-        copyFunction(FUNCTIONS, "LOCATE", "CHARINDEX");
-        copyFunction(FUNCTIONS, "LOCALTIMESTAMP", "GETDATE");
-        FUNCTIONS.put("ISNULL", new FunctionInfo("ISNULL", Function.COALESCE,
-                2, Value.NULL, false, true, true, false));
-        copyFunction(FUNCTIONS, "LENGTH", "LEN");
-        copyFunction(FUNCTIONS, "RANDOM_UUID", "NEWID");
+        copyFunction(FUNCTIONS, "IDENTITY", "IDENTITY_VAL_LOCAL");
     }
 
     /**
@@ -43,7 +37,7 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
         return info != null ? new Function(database, info) : null;
     }
 
-    private FunctionsMSSQLServer(Database database, FunctionInfo info) {
+    private FunctionsDB2Derby(Database database, FunctionInfo info) {
         super(database, info);
     }
 

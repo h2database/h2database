@@ -566,7 +566,7 @@ public final class DateTimeFunctions {
     public static Value extract(Session session, int field, Value value) {
         Value result;
         if (field != EPOCH) {
-            result = ValueInteger.get(getIntDatePart(session, value, field));
+            result = ValueInteger.get(extractIntegerField(session, value, field));
         } else {
             // Case where we retrieve the EPOCH time.
             if (value instanceof ValueInterval) {
@@ -809,7 +809,7 @@ public final class DateTimeFunctions {
      *            the field type, see {@link Function} for constants
      * @return the value
      */
-    public static int getIntDatePart(Session session, Value date, int field) {
+    private static int extractIntegerField(Session session, Value date, int field) {
         if (date instanceof ValueInterval) {
             ValueInterval interval = (ValueInterval) date;
             IntervalQualifier qualifier = interval.getQualifier();
@@ -923,7 +923,7 @@ public final class DateTimeFunctions {
             }
             }
         }
-        throw DbException.getUnsupportedException("getDatePart(" + date + ", " + field + ')');
+        throw DbException.getUnsupportedException("EXTRACT(" + getFieldName(field) + " FROM " + date + ')');
     }
 
     private static int millennium(int year) {

@@ -77,6 +77,7 @@ public class TransactionCommand extends Prepared {
         case CommandInterface.SHUTDOWN_COMPACT:
         case CommandInterface.SHUTDOWN_DEFRAG:
             session.commit(false);
+            //$FALL-THROUGH$
         case CommandInterface.SHUTDOWN_IMMEDIATELY: {
             session.getUser().checkAdmin();
             // throttle, to allow testing concurrent

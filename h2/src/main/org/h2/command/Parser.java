@@ -195,6 +195,7 @@ import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
 import org.h2.expression.Alias;
 import org.h2.expression.ArrayConstructorByQuery;
+import org.h2.expression.ArrayElementReference;
 import org.h2.expression.BinaryOperation;
 import org.h2.expression.BinaryOperation.OpType;
 import org.h2.expression.ConcatenationOperation;
@@ -1420,8 +1421,7 @@ public class Parser {
                 } else {
                     for (int i = 0; i < columnCount; i++) {
                         command.setAssignment(columns.get(i),
-                                Function.getFunctionWithArgs(database, Function.ARRAY_GET, expression,
-                                        ValueExpression.get(ValueInteger.get(i + 1))));
+                                new ArrayElementReference(expression, ValueExpression.get(ValueInteger.get(i + 1))));
                     }
                 }
             } else {
@@ -1619,7 +1619,7 @@ public class Parser {
                     + "AND I.COLUMN_NAME=C.COLUMN_NAME)"
                     + "WHEN 'PRIMARY KEY' THEN 'PRI' "
                     + "WHEN 'UNIQUE INDEX' THEN 'UNI' ELSE '' END `KEY`, "
-                    + "IFNULL(COLUMN_DEFAULT, 'NULL') DEFAULT "
+                    + "COALESCE(COLUMN_DEFAULT, 'NULL') DEFAULT "
                     + "FROM INFORMATION_SCHEMA.COLUMNS C "
                     + "WHERE C.TABLE_NAME=? AND C.TABLE_SCHEMA=? "
                     + "ORDER BY C.ORDINAL_POSITION");
@@ -2014,7 +2014,7 @@ public class Parser {
             if (readIf(DOT)) {
                 tableName = readIdentifierWithSchema2(tableName);
             } else if (!quoted && readIf(TABLE)) {
-                table = readDataChangeDeltaTable(tableName, backupIndex);
+                table = readDataChangeDeltaTable(upperName(tableName), backupIndex);
                 break label;
             }
             Schema schema;
@@ -2129,9 +2129,6 @@ public class Parser {
 
     private Table readDataChangeDeltaTable(String resultOptionName, int backupIndex) {
         read(OPEN_PAREN);
-        if (!identifiersToUpper) {
-            resultOptionName = StringUtils.toUpperEnglish(resultOptionName);
-        }
         int start = lastParseIndex;
         DataChangeStatement statement;
         ResultOption resultOption = ResultOption.FINAL;
@@ -3572,12 +3569,12 @@ public class Parser {
             boolean distinct = readDistinctAgg();
             Expression arg = readExpression(), separator = null;
             ArrayList<QueryOrderBy> orderByList;
-            if (equalsToken("STRING_AGG", aggregateName)) {
+            if ("STRING_AGG".equals(aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
                 read(COMMA);
                 separator = readExpression();
                 orderByList = readIfOrderBy();
-            } else if (equalsToken("GROUP_CONCAT", aggregateName)){
+            } else if ("GROUP_CONCAT".equals(aggregateName)) {
                 orderByList = readIfOrderBy();
                 if (readIf("SEPARATOR")) {
                     separator = readExpression();
@@ -3919,17 +3916,10 @@ public class Parser {
         return new WindowFrameBound(WindowFrameBoundType.FOLLOWING, value);
     }
 
-    private AggregateType getAggregateType(String name) {
-        if (!identifiersToUpper) {
-            // if not yet converted to uppercase, do it now
-            name = StringUtils.toUpperEnglish(name);
-        }
-        return Aggregate.getAggregateType(name);
-    }
-
     private Expression readFunction(Schema schema, String name) {
+        String upperName = upperName(name);
         if (schema != null) {
-            return readFunctionWithSchema(schema, name);
+            return readFunctionWithSchema(schema, name, upperName);
         }
         boolean allowOverride = database.isAllowBuiltinAliasOverride();
         if (allowOverride) {
@@ -3938,15 +3928,19 @@ public class Parser {
                 return jf;
             }
         }
-        AggregateType agg = getAggregateType(name);
+        AggregateType agg = Aggregate.getAggregateType(upperName);
         if (agg != null) {
-            return readAggregate(agg, name);
+            return readAggregate(agg, upperName);
         }
-        Function function = Function.getFunction(database, name);
+        Function function = Function.getFunction(database, upperName);
         if (function == null) {
-            WindowFunction windowFunction = readWindowFunction(name);
-            if (windowFunction != null) {
-                return windowFunction;
+            Expression e = readWindowFunction(upperName);
+            if (e != null) {
+                return e;
+            }
+            e = readCompatibilityFunction(upperName);
+            if (e != null) {
+                return e;
             }
             UserAggregate aggregate = database.findAggregate(name);
             if (aggregate != null) {
@@ -3960,16 +3954,203 @@ public class Parser {
         return readFunctionParameters(function);
     }
 
-    private Expression readFunctionWithSchema(Schema schema, String name) {
+    private Expression readFunctionWithSchema(Schema schema, String name, String upperName) {
         if (database.getMode().getEnum() == ModeEnum.PostgreSQL
                 && schema.getName().equals(database.sysIdentifier("PG_CATALOG"))) {
-            String upperName = database.getSettings().databaseToUpper ? name : StringUtils.toUpperEnglish(name);
             Function function = FunctionsPostgreSQL.getFunction(database, upperName);
             if (function != null) {
                 return readFunctionParameters(function);
             }
         }
         return readJavaFunction(schema, name, true);
+    }
+
+    private Expression readCompatibilityFunction(String name) {
+        Function function;
+        switch (name) {
+        // ||
+        case "ARRAY_APPEND":
+        case "ARRAY_CAT": {
+            Expression l = readExpression();
+            read(COMMA);
+            Expression r = readExpression();
+            read(CLOSE_PAREN);
+            return new ConcatenationOperation(l, r);
+        }
+        // []
+        case "ARRAY_GET": {
+            Expression l = readExpression();
+            read(COMMA);
+            Expression r = readExpression();
+            read(CLOSE_PAREN);
+            return new ArrayElementReference(l, r);
+        }
+        // CARDINALITY
+        case "ARRAY_LENGTH":
+            function = Function.getFunction(database, Function.CARDINALITY);
+            break;
+        // CASE
+        case "CASEWHEN":
+            function = Function.getFunction(database, Function.CASE);
+            function.addParameter(null);
+            function.addParameter(readExpression());
+            read(COMMA);
+            function.addParameter(readExpression());
+            read(COMMA);
+            function.addParameter(readExpression());
+            read(CLOSE_PAREN);
+            function.doneWithParameters();
+            return function;
+        // CAST
+        case "CONVERT":
+            function = Function.getFunction(database, Function.CAST);
+            if (database.getMode().swapConvertFunctionParameters) {
+                function.setDataType(parseColumnWithType(null));
+                read(COMMA);
+                function.addParameter(readExpression());
+            } else {
+                function.addParameter(readExpression());
+                read(COMMA);
+                function.setDataType(parseColumnWithType(null));
+            }
+            read(CLOSE_PAREN);
+            function.doneWithParameters();
+            return function;
+        // COALESCE
+        case "IFNULL":
+            function = Function.getFunction(database, Function.COALESCE);
+            function.addParameter(readExpression());
+            read(COMMA);
+            function.addParameter(readExpression());
+            read(CLOSE_PAREN);
+            function.doneWithParameters();
+            return function;
+        case "NVL":
+            function = Function.getFunction(database, Function.COALESCE);
+            break;
+        // CURRENT_CATALOG
+        case "DATABASE":
+            function = Function.getFunction(database, Function.CURRENT_CATALOG);
+            break;
+        // CURRENT_DATE
+        case "CURDATE":
+        case "SYSDATE":
+        case "TODAY":
+            function = Function.getFunction(database, Function.CURRENT_DATE);
+            break;
+        // CURRENT_SCHEMA
+        case "SCHEMA":
+            function = Function.getFunction(database, Function.CURRENT_SCHEMA);
+            break;
+        // CURRENT_TIMESTAMP
+        case "SYSTIMESTAMP":
+            function = Function.getFunction(database, Function.CURRENT_TIMESTAMP);
+            break;
+        // CURRENT_USER
+        case "USER":
+            function = Function.getFunction(database, Function.CURRENT_USER);
+            break;
+        // EXTRACT
+        case "DAY":
+        case "DAY_OF_MONTH":
+        case "DAYOFMONTH":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY)));
+            break;
+        case "DAY_OF_WEEK":
+        case "DAYOFWEEK":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY_OF_WEEK)));
+            break;
+        case "DAY_OF_YEAR":
+        case "DAYOFYEAR":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY_OF_YEAR)));
+            break;
+        case "HOUR":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.HOUR)));
+            break;
+        case "ISO_DAY_OF_WEEK":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_DAY_OF_WEEK)));
+            break;
+        case "ISO_WEEK":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_WEEK)));
+            break;
+        case "ISO_YEAR":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_WEEK_YEAR)));
+            break;
+        case "MINUTE":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.MINUTE)));
+            break;
+        case "MONTH":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.MONTH)));
+            break;
+        case "QUARTER":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.QUARTER)));
+            break;
+        case "SECOND":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.SECOND)));
+            break;
+        case "WEEK":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.WEEK)));
+            break;
+        case "YEAR":
+            function = Function.getFunction(database, Function.EXTRACT);
+            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.YEAR)));
+            break;
+        // LOCALTIME
+        case "CURTIME":
+            function = Function.getFunction(database, Function.LOCALTIME);
+            break;
+        case "SYSTIME":
+            read(CLOSE_PAREN);
+            function = Function.getFunction(database, Function.LOCALTIME);
+            function.doneWithParameters();
+            return function;
+        // LOCALTIMESTAMP
+        case "NOW":
+            function = Function.getFunction(database, Function.LOCALTIMESTAMP);
+            break;
+        // LOWER
+        case "LCASE":
+            function = Function.getFunction(database, Function.LOWER);
+            break;
+        // SUBSTRING
+        case "SUBSTR":
+            function = Function.getFunction(database, Function.SUBSTRING);
+            break;
+        // TRIM
+        case "LTRIM":
+            function = Function.getFunction(database, Function.TRIM);
+            function.setFlags(Function.TRIM_LEADING);
+            break;
+        case "RTRIM":
+            function = Function.getFunction(database, Function.TRIM);
+            function.setFlags(Function.TRIM_TRAILING);
+            break;
+        // UPPER
+        case "UCASE":
+            function = Function.getFunction(database, Function.UPPER);
+            break;
+        default:
+            return null;
+        }
+        if (!readIf(CLOSE_PAREN)) {
+            do {
+                function.addParameter(readExpression());
+            } while (readIfMore());
+        }
+        function.doneWithParameters();
+        return function;
     }
 
     private Function readFunctionParameters(Function function) {
@@ -3979,19 +4160,6 @@ public class Parser {
             read(AS);
             function.setDataType(parseColumnWithType(null));
             read(CLOSE_PAREN);
-            break;
-        case Function.CONVERT:
-            if (database.getMode().swapConvertFunctionParameters) {
-                function.setDataType(parseColumnWithType(null));
-                read(COMMA);
-                function.addParameter(readExpression());
-                read(CLOSE_PAREN);
-            } else {
-                function.addParameter(readExpression());
-                read(COMMA);
-                function.setDataType(parseColumnWithType(null));
-                read(CLOSE_PAREN);
-            }
             break;
         case Function.EXTRACT:
             readDateTimeField(function);
@@ -4014,6 +4182,19 @@ public class Parser {
             function.addParameter(readExpression());
             read(CLOSE_PAREN);
             break;
+        case Function.LOG: {
+            Expression arg = readExpression();
+            if (readIf(COMMA)) {
+                function.addParameter(arg);
+                function.addParameter(readExpression());
+            } else {
+                function = Function.getFunction(database,
+                        database.getMode().logIsLogBase10 ? Function.LOG10 : Function.LN);
+                function.addParameter(arg);
+            }
+            read(CLOSE_PAREN);
+            break;
+        }
         case Function.SUBSTRING:
             // Standard variants are:
             // SUBSTRING(X FROM 1)
@@ -4212,10 +4393,6 @@ public class Parser {
     }
 
     private WindowFunction readWindowFunction(String name) {
-        if (!identifiersToUpper) {
-            // if not yet converted to uppercase, do it now
-            name = StringUtils.toUpperEnglish(name);
-        }
         WindowFunctionType type = WindowFunctionType.get(name);
         if (type == null) {
             return null;
@@ -4363,6 +4540,18 @@ public class Parser {
             }
         }
         return function;
+    }
+
+    private Expression readKeywordCompatibilityFunctionOrColumn() {
+        boolean nonKeyword = nonKeywords != null && nonKeywords.get(currentTokenType);
+        String name = currentToken;
+        read();
+        if (readIf(OPEN_PAREN)) {
+            return readCompatibilityFunction(upperName(name));
+        } else if (nonKeyword) {
+            return readIf(DOT) ? readTermObjectDot(name) : new ExpressionColumn(database, null, null, name, false);
+        }
+        throw getSyntaxError();
     }
 
     private Expression readFunctionWithoutParameters(int id) {
@@ -4720,10 +4909,12 @@ public class Parser {
             r = readKeywordFunction(Function.CURRENT_USER);
             break;
         case DAY:
-            r = readKeywordFunctionOrColumn(Function.DAY_OF_MONTH);
-            break;
         case HOUR:
-            r = readKeywordFunctionOrColumn(Function.HOUR);
+        case MINUTE:
+        case MONTH:
+        case SECOND:
+        case YEAR:
+            r = readKeywordCompatibilityFunctionOrColumn();
             break;
         case LEFT:
             r = readKeywordFunctionOrColumn(Function.LEFT);
@@ -4736,23 +4927,11 @@ public class Parser {
             read();
             r = readKeywordFunction(Function.LOCALTIMESTAMP);
             break;
-        case MINUTE:
-            r = readKeywordFunctionOrColumn(Function.MINUTE);
-            break;
-        case MONTH:
-            r = readKeywordFunctionOrColumn(Function.MONTH);
-            break;
         case RIGHT:
             r = readKeywordFunctionOrColumn(Function.RIGHT);
             break;
-        case SECOND:
-            r = readKeywordFunctionOrColumn(Function.SECOND);
-            break;
         case SET:
             r = readKeywordFunctionOrColumn(Function.SET);
-            break;
-        case YEAR:
-            r = readKeywordFunctionOrColumn(Function.YEAR);
             break;
         case VALUE:
             if (parseDomainConstraint) {
@@ -4782,7 +4961,7 @@ public class Parser {
             break;
         }
         if (readIf(OPEN_BRACKET)) {
-            r = Function.getFunctionWithArgs(database, Function.ARRAY_GET, r, readExpression());
+            r = new ArrayElementReference(r, readExpression());
             read(CLOSE_BRACKET);
         }
         colonColon: if (readIf(COLON_COLON)) {
@@ -4904,7 +5083,7 @@ public class Parser {
             break;
         case 'S':
             if (equalsToken("SYSDATE", name)) {
-                return readFunctionWithoutParameters(Function.CURRENT_TIMESTAMP);
+                return readFunctionWithoutParameters(Function.CURRENT_DATE);
             } else if (equalsToken("SYSTIME", name)) {
                 return readFunctionWithoutParameters(Function.LOCALTIME);
             } else if (equalsToken("SYSTIMESTAMP", name)) {
@@ -6030,6 +6209,10 @@ public class Parser {
         return ParserUtil.isKeyword(s, !identifiersToUpper);
     }
 
+    private String upperName(String name) {
+        return identifiersToUpper ? name : StringUtils.toUpperEnglish(name);
+    }
+
     private Column parseColumnForTable(String columnName, boolean defaultNullable) {
         Column column;
         boolean isIdentity = readIf("IDENTITY");
@@ -6205,7 +6388,7 @@ public class Parser {
             return getColumnWithDomain(columnName,
                     database.getSchema(session.getCurrentSchemaName()).getDomain(originalCase));
         }
-        String original = identifiersToUpper ? originalCase : StringUtils.toUpperEnglish(originalCase);
+        String original = upperName(originalCase);
         switch (original) {
         case "BINARY":
             if (readIf("VARYING")) {
@@ -7068,11 +7251,10 @@ public class Parser {
         boolean ifNotExists = readIfNotExists();
         CreateAggregate command = new CreateAggregate(session);
         command.setForce(force);
-        String name = readIdentifierWithSchema();
-        if (isKeyword(name) || Function.getFunction(database, name) != null ||
-                getAggregateType(name) != null) {
-            throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1,
-                    name);
+        String name = readIdentifierWithSchema(), upperName;
+        if (isKeyword(name) || Function.getFunction(database, upperName = upperName(name)) != null
+                || Aggregate.getAggregateType(upperName) != null) {
+            throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
         }
         command.setName(name);
         command.setSchema(getSchema());
@@ -7235,17 +7417,16 @@ public class Parser {
         } else {
             aliasName = readIdentifierWithSchema();
         }
-        final boolean newAliasSameNameAsBuiltin = Function.getFunction(database, aliasName) != null;
+        String upperName = upperName(aliasName);
+        final boolean newAliasSameNameAsBuiltin = Function.getFunction(database, upperName) != null;
         if (database.isAllowBuiltinAliasOverride() && newAliasSameNameAsBuiltin) {
             // fine
         } else if (isKeyword(aliasName) ||
                 newAliasSameNameAsBuiltin ||
-                getAggregateType(aliasName) != null) {
-            throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1,
-                    aliasName);
+                Aggregate.getAggregateType(upperName) != null) {
+            throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
         }
-        CreateFunctionAlias command = new CreateFunctionAlias(session,
-                getSchema());
+        CreateFunctionAlias command = new CreateFunctionAlias(session, getSchema());
         command.setForce(force);
         command.setAliasName(aliasName);
         command.setIfNotExists(ifNotExists);
@@ -8002,11 +8183,7 @@ public class Parser {
                     return command;
                 }
             }
-            String typeName = currentToken;
-            if (!identifiersToUpper) {
-                typeName = StringUtils.toUpperEnglish(typeName);
-            }
-            int type = SetTypes.getType(typeName);
+            int type = SetTypes.getType(upperName(currentToken));
             if (type < 0) {
                 throw getSyntaxError();
             }

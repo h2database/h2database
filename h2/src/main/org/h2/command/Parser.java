@@ -4077,6 +4077,10 @@ public class Parser {
         case "LCASE":
             function = Function.getFunction(database, Function.LOWER);
             break;
+        // SUBSTRING
+        case "SUBSTR":
+            function = Function.getFunction(database, Function.SUBSTRING);
+            break;
         // TRIM
         case "LTRIM":
             function = Function.getFunction(database, Function.TRIM);

@@ -303,7 +303,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("RIGHT", RIGHT, 2, Value.VARCHAR);
         addFunction("SOUNDEX", SOUNDEX, 1, Value.VARCHAR);
         addFunction("SPACE", SPACE, 1, Value.VARCHAR);
-        addFunction("SUBSTR", SUBSTRING, VAR_ARGS, Value.NULL);
         addFunction("SUBSTRING", SUBSTRING, VAR_ARGS, Value.NULL);
         addFunction("LOWER", LOWER, 1, Value.VARCHAR);
         addFunction("UPPER", UPPER, 1, Value.VARCHAR);

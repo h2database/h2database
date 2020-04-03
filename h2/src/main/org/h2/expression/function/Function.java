@@ -136,7 +136,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             FORMATDATETIME = 120, PARSEDATETIME = 121,
             DATE_TRUNC = 125;
 
-    public static final int CURRENT_CATALOG = 150, USER = 151, CURRENT_USER = 152,
+    public static final int CURRENT_CATALOG = 150, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
             READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
             DISK_SPACE_USED = 159, SIGNAL = 160, ESTIMATED_ENVELOPE = 161;
@@ -366,9 +366,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         // system
         addFunctionNotDeterministic("CURRENT_CATALOG", CURRENT_CATALOG, 0, Value.VARCHAR, false);
         addFunctionNotDeterministic("DATABASE", CURRENT_CATALOG, 0, Value.VARCHAR);
-        addFunctionNotDeterministic("USER", USER,
-                0, Value.VARCHAR);
         addFunctionNotDeterministic("CURRENT_USER", CURRENT_USER, 0, Value.VARCHAR, false);
+        addFunctionNotDeterministic("USER", CURRENT_USER, 0, Value.VARCHAR);
         addFunctionNotDeterministic("IDENTITY", IDENTITY,
                 0, Value.BIGINT);
         addFunctionNotDeterministic("SCOPE_IDENTITY", SCOPE_IDENTITY,
@@ -876,7 +875,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case CURRENT_CATALOG:
             result = ValueVarchar.get(database.getShortName(), database);
             break;
-        case USER:
         case CURRENT_USER:
             result = ValueVarchar.get(session.getUser().getName(), database);
             break;

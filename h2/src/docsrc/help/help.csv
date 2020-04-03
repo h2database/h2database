@@ -5948,7 +5948,7 @@ If multiple arguments are specified and they have different length, cells with m
 SELECT * FROM UNNEST(ARRAY['a', 'b', 'c']);
 "
 
-"Functions (System)","USER","
+"Functions (System)","CURRENT_USER","
 CURRENT_USER | @c@ USER()
 ","
 Returns the name of the current user of this session.

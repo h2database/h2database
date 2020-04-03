@@ -5500,12 +5500,13 @@ CANCEL_SESSION(3)
 "
 
 "Functions (System)","CASEWHEN Function","
-CASEWHEN(boolean, aValue, bValue)
+@c@ CASEWHEN(boolean, aValue, bValue)
 ","
-Returns 'a' if the boolean expression is true, otherwise 'b'.
-Returns the same data type as the parameter.
+Returns 'aValue' if the boolean expression is true, otherwise 'bValue'.
+
+This function is deprecated, use [CASE](https://h2database.com/html/grammar.html#case_when) instead of it.
 ","
-@c@ CASEWHEN(ID=1, 'A', 'B')
+CASEWHEN(ID=1, 'A', 'B')
 "
 
 "Functions (System)","CAST","

@@ -144,7 +144,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
-    public static final int CASEWHEN = 201,
+    public static final int
             CAST = 203, COALESCE = 204, NULLIF = 205, CASE = 206,
             NEXTVAL = 207, CURRVAL = 208, CSVREAD = 210,
             CSVWRITE = 211, MEMORY_FREE = 212, MEMORY_USED = 213,
@@ -358,8 +358,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 0, Value.VARCHAR);
         addFunctionNotDeterministic("LOCK_TIMEOUT", LOCK_TIMEOUT,
                 0, Value.INTEGER);
-        addFunctionWithNull("CASEWHEN", CASEWHEN,
-                3, Value.NULL);
         addFunctionWithNull("CAST", CAST,
                 1, Value.NULL);
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
@@ -903,16 +901,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case SESSION_ID:
             result = ValueInteger.get(session.getId());
             break;
-        case CASEWHEN: {
-            Value v;
-            if (!v0.getBoolean()) {
-                v = getNullOrValue(session, args, values, 2);
-            } else {
-                v = getNullOrValue(session, args, values, 1);
-            }
-            result = v.convertTo(type, session);
-            break;
-        }
         case DECODE: {
             int index = -1;
             for (int i = 1, len = args.length - 1; i < len; i += 2) {
@@ -2612,9 +2600,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case CASEWHEN:
-            typeInfo = TypeInfo.getHigherType(args[1].getType(), args[2].getType());
-            break;
         case NVL2: {
             TypeInfo t1 = args[1].getType(), t2 = args[2].getType();
             switch (t1.getValueType()) {

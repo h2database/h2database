@@ -3989,6 +3989,18 @@ public class Parser {
         case "ARRAY_LENGTH":
             function = Function.getFunction(database, Function.CARDINALITY);
             break;
+        // CASE
+        case "CASEWHEN":
+            function = Function.getFunction(database, Function.CASE);
+            function.addParameter(null);
+            function.addParameter(readExpression());
+            read(COMMA);
+            function.addParameter(readExpression());
+            read(COMMA);
+            function.addParameter(readExpression());
+            read(CLOSE_PAREN);
+            function.doneWithParameters();
+            return function;
         // CAST
         case "CONVERT":
             function = Function.getFunction(database, Function.CAST);

@@ -4012,6 +4012,10 @@ public class Parser {
         case "NVL":
             function = Function.getFunction(database, Function.COALESCE);
             break;
+        // CURRENT_USER
+        case "USER":
+            function = Function.getFunction(database, Function.CURRENT_USER);
+            break;
         // EXTRACT
         case "DAY":
         case "DAY_OF_MONTH":
@@ -4069,6 +4073,10 @@ public class Parser {
             function = Function.getFunction(database, Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.YEAR)));
             break;
+        // LOWER
+        case "LCASE":
+            function = Function.getFunction(database, Function.LOWER);
+            break;
         // TRIM
         case "LTRIM":
             function = Function.getFunction(database, Function.TRIM);
@@ -4077,6 +4085,10 @@ public class Parser {
         case "RTRIM":
             function = Function.getFunction(database, Function.TRIM);
             function.setFlags(Function.TRIM_TRAILING);
+            break;
+        // UPPER
+        case "UCASE":
+            function = Function.getFunction(database, Function.UPPER);
             break;
         default:
             return null;

@@ -306,9 +306,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("SUBSTR", SUBSTRING, VAR_ARGS, Value.NULL);
         addFunction("SUBSTRING", SUBSTRING, VAR_ARGS, Value.NULL);
         addFunction("LOWER", LOWER, 1, Value.VARCHAR);
-        addFunction("LCASE", LOWER, 1, Value.VARCHAR);
         addFunction("UPPER", UPPER, 1, Value.VARCHAR);
-        addFunction("UCASE", UPPER, 1, Value.VARCHAR);
         addFunction("POSITION", POSITION, 2, Value.INTEGER);
         addFunction("TRIM", TRIM, VAR_ARGS, Value.VARCHAR);
         addFunction("STRINGENCODE", STRINGENCODE, 1, Value.VARCHAR);
@@ -368,7 +366,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("CURRENT_CATALOG", CURRENT_CATALOG, 0, Value.VARCHAR, false);
         addFunctionNotDeterministic("DATABASE", CURRENT_CATALOG, 0, Value.VARCHAR);
         addFunctionNotDeterministic("CURRENT_USER", CURRENT_USER, 0, Value.VARCHAR, false);
-        addFunctionNotDeterministic("USER", CURRENT_USER, 0, Value.VARCHAR);
         addFunctionNotDeterministic("IDENTITY", IDENTITY,
                 0, Value.BIGINT);
         addFunctionNotDeterministic("SCOPE_IDENTITY", SCOPE_IDENTITY,

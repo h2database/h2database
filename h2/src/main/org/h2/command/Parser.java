@@ -1619,7 +1619,7 @@ public class Parser {
                     + "AND I.COLUMN_NAME=C.COLUMN_NAME)"
                     + "WHEN 'PRIMARY KEY' THEN 'PRI' "
                     + "WHEN 'UNIQUE INDEX' THEN 'UNI' ELSE '' END `KEY`, "
-                    + "IFNULL(COLUMN_DEFAULT, 'NULL') DEFAULT "
+                    + "COALESCE(COLUMN_DEFAULT, 'NULL') DEFAULT "
                     + "FROM INFORMATION_SCHEMA.COLUMNS C "
                     + "WHERE C.TABLE_NAME=? AND C.TABLE_SCHEMA=? "
                     + "ORDER BY C.ORDINAL_POSITION");
@@ -3997,6 +3997,15 @@ public class Parser {
                 read(COMMA);
                 function.setDataType(parseColumnWithType(null));
             }
+            read(CLOSE_PAREN);
+            function.doneWithParameters();
+            return function;
+        // COALESCE
+        case "IFNULL":
+            function = Function.getFunction(database, Function.COALESCE);
+            function.addParameter(readExpression());
+            read(COMMA);
+            function.addParameter(readExpression());
             read(CLOSE_PAREN);
             function.doneWithParameters();
             return function;

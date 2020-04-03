@@ -10,6 +10,7 @@ import java.util.HashMap;
 import org.h2.engine.Database;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
+import org.h2.value.Value;
 
 /**
  * Functions for {@link org.h2.engine.Mode.ModeEnum#MSSQLServer} compatibility
@@ -22,6 +23,8 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
     static {
         copyFunction(FUNCTIONS, "LOCATE", "CHARINDEX");
         copyFunction(FUNCTIONS, "LOCALTIMESTAMP", "GETDATE");
+        FUNCTIONS.put("ISNULL", new FunctionInfo("ISNULL", Function.COALESCE,
+                2, Value.NULL, false, true, true, false));
         copyFunction(FUNCTIONS, "LENGTH", "LEN");
         copyFunction(FUNCTIONS, "RANDOM_UUID", "NEWID");
     }

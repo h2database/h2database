@@ -144,7 +144,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
-    public static final int IFNULL = 200, CASEWHEN = 201,
+    public static final int CASEWHEN = 201,
             CAST = 203, COALESCE = 204, NULLIF = 205, CASE = 206,
             NEXTVAL = 207, CURRVAL = 208, CSVREAD = 210,
             CSVWRITE = 211, MEMORY_FREE = 212, MEMORY_USED = 213,
@@ -381,20 +381,14 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 0, Value.VARCHAR);
         addFunctionNotDeterministic("LOCK_TIMEOUT", LOCK_TIMEOUT,
                 0, Value.INTEGER);
-        addFunctionWithNull("IFNULL", IFNULL,
-                2, Value.NULL);
-        addFunctionWithNull("ISNULL", IFNULL,
-                2, Value.NULL);
         addFunctionWithNull("CASEWHEN", CASEWHEN,
                 3, Value.NULL);
         addFunctionWithNull("CAST", CAST,
                 1, Value.NULL);
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
                 3, Value.NULL);
-        addFunctionWithNull("COALESCE", COALESCE,
-                VAR_ARGS, Value.NULL);
-        addFunctionWithNull("NVL", COALESCE,
-                VAR_ARGS, Value.NULL);
+        addFunctionWithNull("COALESCE", COALESCE, VAR_ARGS, Value.NULL);
+        addFunctionWithNull("NVL", COALESCE, VAR_ARGS, Value.NULL);
         addFunctionWithNull("NVL2", NVL2,
                 3, Value.NULL);
         addFunctionWithNull("NULLIF", NULLIF,
@@ -935,14 +929,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case SESSION_ID:
             result = ValueInteger.get(session.getId());
             break;
-        case IFNULL: {
-            result = v0;
-            if (v0 == ValueNull.INSTANCE) {
-                result = getNullOrValue(session, args, values, 1);
-            }
-            result = result.convertTo(type, session);
-            break;
-        }
         case CASEWHEN: {
             Value v;
             if (!v0.getBoolean()) {
@@ -2601,7 +2587,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case IFNULL:
         case NULLIF:
         case COALESCE:
         case LEAST:

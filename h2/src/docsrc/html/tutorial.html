@@ -1400,7 +1400,7 @@ The value can also be changed using the SET() method. This is useful in queries:
 </p>
 <pre>
 SET @TOTAL = NULL;
-SELECT X, SET(@TOTAL, IFNULL(@TOTAL, 1.) * X) F FROM SYSTEM_RANGE(1, 50);
+SELECT X, SET(@TOTAL, COALESCE(@TOTAL, 1.) * X) F FROM SYSTEM_RANGE(1, 50);
 </pre>
 <p>
 Variables that are not set evaluate to <code>NULL</code>.

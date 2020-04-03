@@ -345,7 +345,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("DATE_TRUNC", DATE_TRUNC, 2, Value.NULL);
         // system
         addFunctionNotDeterministic("CURRENT_CATALOG", CURRENT_CATALOG, 0, Value.VARCHAR, false);
-        addFunctionNotDeterministic("DATABASE", CURRENT_CATALOG, 0, Value.VARCHAR);
         addFunctionNotDeterministic("CURRENT_USER", CURRENT_USER, 0, Value.VARCHAR, false);
         addFunctionNotDeterministic("IDENTITY", IDENTITY,
                 0, Value.BIGINT);
@@ -387,7 +386,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("LOCK_MODE", LOCK_MODE,
                 0, Value.INTEGER);
         addFunctionNotDeterministic("CURRENT_SCHEMA", CURRENT_SCHEMA, 0, Value.VARCHAR, false);
-        addFunctionNotDeterministic("SCHEMA", CURRENT_SCHEMA, 0, Value.VARCHAR);
         addFunctionNotDeterministic("SESSION_ID", SESSION_ID,
                 0, Value.INTEGER);
         addFunction("CARDINALITY", CARDINALITY, 1, Value.INTEGER);

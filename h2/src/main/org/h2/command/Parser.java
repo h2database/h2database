@@ -4012,11 +4012,19 @@ public class Parser {
         case "NVL":
             function = Function.getFunction(database, Function.COALESCE);
             break;
+        // CURRENT_CATALOG
+        case "DATABASE":
+            function = Function.getFunction(database, Function.CURRENT_CATALOG);
+            break;
         // CURRENT_DATE
         case "CURDATE":
         case "SYSDATE":
         case "TODAY":
             function = Function.getFunction(database, Function.CURRENT_DATE);
+            break;
+        // CURRENT_SCHEMA
+        case "SCHEMA":
+            function = Function.getFunction(database, Function.CURRENT_SCHEMA);
             break;
         // CURRENT_TIMESTAMP
         case "SYSTIMESTAMP":

@@ -5637,7 +5637,7 @@ CALL CURRENT_SCHEMA
 "
 
 "Functions (System)","CURRENT_CATALOG","
-CURRENT_CATALOG | @h2@ DATABASE()
+CURRENT_CATALOG | @c@ DATABASE()
 ","
 Returns the name of the database.
 ","

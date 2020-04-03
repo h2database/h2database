@@ -373,8 +373,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 0, Value.BIGINT);
         addFunctionNotDeterministic("SCOPE_IDENTITY", SCOPE_IDENTITY,
                 0, Value.BIGINT);
-        addFunctionNotDeterministic("LASTVAL", IDENTITY,
-                0, Value.BIGINT);
         addFunctionNotDeterministic("AUTOCOMMIT", AUTOCOMMIT,
                 0, Value.BOOLEAN);
         addFunctionNotDeterministic("READONLY", READONLY,

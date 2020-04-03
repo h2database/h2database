@@ -72,6 +72,7 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
 
     static {
         copyFunction(FUNCTIONS, "CURRENT_CATALOG", "CURRENT_DATABASE");
+        copyFunction(FUNCTIONS, "IDENTITY", "LASTVAL");
         FUNCTIONS.put("CURRTID2", new FunctionInfo("CURRTID2", CURRTID2, 2, Value.INTEGER, true, false, true, false));
         FUNCTIONS.put("FORMAT_TYPE",
                 new FunctionInfo("FORMAT_TYPE", FORMAT_TYPE, 2, Value.VARCHAR, false, true, true, false));

@@ -5419,6 +5419,9 @@ CALL ABORT_SESSION(3)
 @c@ ARRAY_GET(arrayExpression, indexExpression)
 ","
 Returns element at the specified 1-based index from an array.
+
+This function is deprecated, use ""arrayExpression[indexExpression]"" instead of it.
+
 Returns NULL if there is no such element or array is NULL.
 ","
 CALL ARRAY_GET(ARRAY['Hello', 'World'], 2)

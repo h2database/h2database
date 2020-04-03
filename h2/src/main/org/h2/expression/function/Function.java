@@ -80,7 +80,6 @@ import org.h2.util.json.JSONBytesSource;
 import org.h2.util.json.JSONStringTarget;
 import org.h2.util.json.JSONValidationTargetWithUniqueKeys;
 import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -146,7 +145,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     public static final int IFNULL = 200, CASEWHEN = 201,
             CAST = 203, COALESCE = 204, NULLIF = 205, CASE = 206,
-            NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210,
+            NEXTVAL = 207, CURRVAL = 208, CSVREAD = 210,
             CSVWRITE = 211, MEMORY_FREE = 212, MEMORY_USED = 213,
             LOCK_MODE = 214, CURRENT_SCHEMA = 215, SESSION_ID = 216,
             CARDINALITY = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
@@ -408,8 +407,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 VAR_ARGS, Value.NULL);
         addFunctionNotDeterministic("NEXTVAL", NEXTVAL, VAR_ARGS, Value.NULL);
         addFunctionNotDeterministic("CURRVAL", CURRVAL, VAR_ARGS, Value.NULL);
-        addFunction("ARRAY_GET", ARRAY_GET,
-                2, Value.NULL);
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
         addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
         addFunction("CSVREAD", CSVREAD,
@@ -1045,21 +1042,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             Value v = then == null ? ValueNull.INSTANCE : then.getValue(session);
             result = v.convertTo(type, session);
-            break;
-        }
-        case ARRAY_GET: {
-            Value[] list = getArray(v0);
-            if (list != null) {
-                Value v1 = getNullOrValue(session, args, values, 1);
-                int element = v1.getInt();
-                if (element < 1 || element > list.length) {
-                    result = ValueNull.INSTANCE;
-                } else {
-                    result = list[element - 1];
-                }
-            } else {
-                result = ValueNull.INSTANCE;
-            }
             break;
         }
         case CARDINALITY: {
@@ -2845,22 +2827,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case NEXTVAL:
         case CURRVAL:
             typeInfo = database.getMode().decimalSequences ? TypeInfo.TYPE_NUMERIC_BIGINT : TypeInfo.TYPE_BIGINT;
-            break;
-        case ARRAY_GET:
-            typeInfo = p0.getType();
-            switch (typeInfo.getValueType()) {
-            case Value.NULL:
-                break;
-            case Value.ARRAY:
-                typeInfo = ((ExtTypeInfoArray) typeInfo.getExtTypeInfo()).getComponentType();
-                break;
-            case Value.ROW:
-                typeInfo = TypeInfo.TYPE_NULL;
-                break;
-            default:
-                throw DbException.getInvalidValueException(getName() + " array argument",
-                        typeInfo.getSQL(new StringBuilder()));
-            }
             break;
         case ARRAY_SLICE: {
             typeInfo = p0.getType();

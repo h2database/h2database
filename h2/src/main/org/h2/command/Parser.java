@@ -195,6 +195,7 @@ import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
 import org.h2.expression.Alias;
 import org.h2.expression.ArrayConstructorByQuery;
+import org.h2.expression.ArrayElementReference;
 import org.h2.expression.BinaryOperation;
 import org.h2.expression.BinaryOperation.OpType;
 import org.h2.expression.ConcatenationOperation;
@@ -1420,8 +1421,7 @@ public class Parser {
                 } else {
                     for (int i = 0; i < columnCount; i++) {
                         command.setAssignment(columns.get(i),
-                                Function.getFunctionWithArgs(database, Function.ARRAY_GET, expression,
-                                        ValueExpression.get(ValueInteger.get(i + 1))));
+                                new ArrayElementReference(expression, ValueExpression.get(ValueInteger.get(i + 1))));
                     }
                 }
             } else {
@@ -3977,6 +3977,14 @@ public class Parser {
             read(CLOSE_PAREN);
             return new ConcatenationOperation(l, r);
         }
+        // []
+        case "ARRAY_GET": {
+            Expression l = readExpression();
+            read(COMMA);
+            Expression r = readExpression();
+            read(CLOSE_PAREN);
+            return new ArrayElementReference(l, r);
+        }
         // CAST
         case "CONVERT":
             function = Function.getFunction(database, Function.CAST);
@@ -4878,7 +4886,7 @@ public class Parser {
             break;
         }
         if (readIf(OPEN_BRACKET)) {
-            r = Function.getFunctionWithArgs(database, Function.ARRAY_GET, r, readExpression());
+            r = new ArrayElementReference(r, readExpression());
             read(CLOSE_BRACKET);
         }
         colonColon: if (readIf(COLON_COLON)) {

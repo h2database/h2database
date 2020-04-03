@@ -388,7 +388,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
                 3, Value.NULL);
         addFunctionWithNull("COALESCE", COALESCE, VAR_ARGS, Value.NULL);
-        addFunctionWithNull("NVL", COALESCE, VAR_ARGS, Value.NULL);
         addFunctionWithNull("NVL2", NVL2,
                 3, Value.NULL);
         addFunctionWithNull("NULLIF", NULLIF,

@@ -4009,6 +4009,9 @@ public class Parser {
             read(CLOSE_PAREN);
             function.doneWithParameters();
             return function;
+        case "NVL":
+            function = Function.getFunction(database, Function.COALESCE);
+            break;
         // EXTRACT
         case "DAY":
         case "DAY_OF_MONTH":

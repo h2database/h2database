@@ -2685,18 +2685,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             typeInfo = type;
             if (allConst) {
                 Value v = getValue(session);
-                if (v == ValueNull.INSTANCE) {
-                    return TypedValueExpression.get(ValueNull.INSTANCE, typeInfo);
-                }
-                int src = p0.getType().getValueType(), dst = typeInfo.getValueType();
-                if (canOptimizeCast(src, dst)) {
-                    DataType dt = DataType.getDataType(dst);
-                    TypeInfo vt = v.getType();
-                    if (dt.supportsPrecision && typeInfo.getPrecision() != vt.getPrecision()
-                            || dt.supportsScale && typeInfo.getScale() != vt.getScale()) {
-                        return TypedValueExpression.get(v, typeInfo);
-                    }
-                    break;
+                if (v == ValueNull.INSTANCE || canOptimizeCast(p0.getType().getValueType(), typeInfo.getValueType())) {
+                    return TypedValueExpression.get(v, typeInfo);
                 }
                 return this;
             }

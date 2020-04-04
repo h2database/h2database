@@ -14,6 +14,7 @@ import static org.h2.util.ParserUtil.ARRAY;
 import static org.h2.util.ParserUtil.AS;
 import static org.h2.util.ParserUtil.BETWEEN;
 import static org.h2.util.ParserUtil.CASE;
+import static org.h2.util.ParserUtil.CAST;
 import static org.h2.util.ParserUtil.CHECK;
 import static org.h2.util.ParserUtil.CONSTRAINT;
 import static org.h2.util.ParserUtil.CROSS;
@@ -244,6 +245,7 @@ import org.h2.expression.condition.IsJsonPredicate;
 import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
+import org.h2.expression.function.CastSpecification;
 import org.h2.expression.function.DateTimeFunctions;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
@@ -494,6 +496,8 @@ public class Parser {
             "BETWEEN",
             // CASE
             "CASE",
+            // CAST
+            "CAST",
             // CHECK
             "CHECK",
             // CONSTRAINT
@@ -3535,9 +3539,7 @@ public class Parser {
     private Expression readTildeCondition(Expression r) {
         read();
         if (readIf(ASTERISK)) {
-            Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
-            function.setDataType(TypeInfo.TYPE_VARCHAR_IGNORECASE);
-            r = function;
+            r = new CastSpecification(r, TypeInfo.TYPE_VARCHAR_IGNORECASE);
         }
         return new CompareLike(database, r, readSum(), null, LikeType.REGEXP);
     }
@@ -4001,21 +4003,22 @@ public class Parser {
             read(CLOSE_PAREN);
             function.doneWithParameters();
             return function;
-        // CAST
-        case "CONVERT":
-            function = Function.getFunction(database, Function.CAST);
+        // Cast specification
+        case "CONVERT": {
+            Expression arg;
+            Column column;
             if (database.getMode().swapConvertFunctionParameters) {
-                function.setDataType(parseColumnWithType(null));
+                column = parseColumnWithType(null);
                 read(COMMA);
-                function.addParameter(readExpression());
+                arg = readExpression();
             } else {
-                function.addParameter(readExpression());
+                arg = readExpression();
                 read(COMMA);
-                function.setDataType(parseColumnWithType(null));
+                column = parseColumnWithType(null);
             }
             read(CLOSE_PAREN);
-            function.doneWithParameters();
-            return function;
+            return new CastSpecification(arg, column);
+        }
         // COALESCE
         case "IFNULL":
             function = Function.getFunction(database, Function.COALESCE);
@@ -4155,12 +4158,6 @@ public class Parser {
 
     private Function readFunctionParameters(Function function) {
         switch (function.getFunctionType()) {
-        case Function.CAST:
-            function.addParameter(readExpression());
-            read(AS);
-            function.setDataType(parseColumnWithType(null));
-            read(CLOSE_PAREN);
-            break;
         case Function.EXTRACT:
             readDateTimeField(function);
             read(FROM);
@@ -4884,6 +4881,16 @@ public class Parser {
             read();
             r = readCase();
             break;
+        case CAST: {
+            read();
+            read(OPEN_PAREN);
+            Expression arg = readExpression();
+            read(AS);
+            Column column = parseColumnWithType(null);
+            read(CLOSE_PAREN);
+            r = new CastSpecification(arg, column);
+            break;
+        }
         case CURRENT_CATALOG:
             read();
             r = readKeywordFunction(Function.CURRENT_CATALOG);
@@ -4976,16 +4983,12 @@ public class Parser {
                     break colonColon;
                 }
             }
-            Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
-            function.setDataType(parseColumnWithType(null));
-            r = function;
+            r = new CastSpecification(r, parseColumnWithType(null));
         }
         for (;;) {
             TypeInfo ti = (TypeInfo) readIntervalQualifier(null, false);
             if (ti != null) {
-                Function cast = Function.getFunctionWithArgs(database, Function.CAST, r);
-                cast.setDataType(ti);
-                r = cast;
+                r = new CastSpecification(r, ti);
             }
             int index = lastParseIndex;
             if (readIf("AT")) {

@@ -2619,6 +2619,21 @@ specified, return NULL.
 CASE WHEN CNT<10 THEN 'Low' ELSE 'High' END
 "
 
+"Other Grammar","Cast specification","
+CAST(value AS dataType)
+","
+Converts a value to another data type. The following conversion rules are used:
+When converting a number to a boolean, 0 is false and every other value is true.
+When converting a boolean to a number, false is 0 and true is 1.
+When converting a number to a number of another type, the value is checked for overflow.
+When converting a string to binary, UTF-8 encoding is used.
+If a direct conversion is not possible, the value is first converted to a string.
+Note that some data types may need explicitly specified precision to avoid overflow or rounding.
+","
+CAST(NAME AS INT);
+CAST(TIMESTAMP '2010-01-01 10:40:00.123456' AS TIME(6))
+"
+
 "Other Grammar","Cipher","
 @h2@ AES
 ","
@@ -3435,6 +3450,7 @@ CURRENT ROW
     | query
     | case
     | caseWhen
+    | castSpecification
     | userDefinedFunctionName }
 [ timeZone | intervalQualifier ]
 ","
@@ -5512,25 +5528,6 @@ This function is deprecated, use [CASE](https://h2database.com/html/grammar.html
 CASEWHEN(ID=1, 'A', 'B')
 "
 
-"Functions (System)","CAST","
-CAST(value AS dataType)
-","
-Converts a value to another data type. The following conversion rules are used:
-When converting a number to a boolean, 0 is false and every other value is true.
-When converting a boolean to a number, false is 0 and true is 1.
-When converting a number to a number of another type, the value is checked for overflow.
-When converting a number to binary, the number of bytes matches the precision.
-When converting a string to binary, it is hex encoded (every byte two characters);
-a hex string can be converted to a number by first converting it to binary.
-If a direct conversion is not possible, the value is first converted to a string.
-Note that some data types may need explicitly specified precision to avoid overflow or rounding.
-","
-CAST(NAME AS INT);
-CAST(65535 AS BINARY);
-CAST(CAST('FFFF' AS BINARY) AS INT);
-CAST(TIMESTAMP '2010-01-01 10:40:00.123456' AS TIME(6))
-"
-
 "Functions (System)","COALESCE","
 { COALESCE | @c@ { NVL } } (aValue, bValue [,...])
     | @c@ IFNULL(aValue, bValue)
@@ -5545,7 +5542,7 @@ COALESCE(A, B, C)
 ","
 Converts a value to another data type.
 
-This function is deprecated, use [CAST](https://h2database.com/html/functions.html#cast) instead of it.
+This function is deprecated, use [CAST](https://h2database.com/html/grammar.html#cast_specification) instead of it.
 ","
 CONVERT(NAME, INT)
 "

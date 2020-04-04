@@ -50,9 +50,14 @@ public class ParserUtil {
     public static final int CASE = BETWEEN + 1;
 
     /**
+     * The token "CAST".
+     */
+    public static final int CAST = CASE + 1;
+
+    /**
      * The token "CHECK".
      */
-    public static final int CHECK = CASE + 1;
+    public static final int CHECK = CAST + 1;
 
     /**
      * The token "CONSTRAINT".
@@ -575,6 +580,8 @@ public class ParserUtil {
         case 'C':
             if (eq("CASE", s, ignoreCase, start, length)) {
                 return CASE;
+            } else if (eq("CAST", s, ignoreCase, start, length)) {
+                return CAST;
             } else if (eq("CHECK", s, ignoreCase, start, length)) {
                 return CHECK;
             } else if (eq("CONSTRAINT", s, ignoreCase, start, length)) {

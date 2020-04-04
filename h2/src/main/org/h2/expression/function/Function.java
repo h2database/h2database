@@ -43,7 +43,6 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.Format;
 import org.h2.expression.Subquery;
-import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
 import org.h2.index.Index;
@@ -54,7 +53,6 @@ import org.h2.mode.FunctionsMySQL;
 import org.h2.mode.FunctionsOracle;
 import org.h2.mode.FunctionsPostgreSQL;
 import org.h2.mvstore.db.MVSpatialIndex;
-import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
@@ -145,7 +143,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
     public static final int
-            CAST = 203, COALESCE = 204, NULLIF = 205, CASE = 206,
+            COALESCE = 204, NULLIF = 205, CASE = 206,
             NEXTVAL = 207, CURRVAL = 208, CSVREAD = 210,
             CSVWRITE = 211, MEMORY_FREE = 212, MEMORY_USED = 213,
             LOCK_MODE = 214, CURRENT_SCHEMA = 215, SESSION_ID = 216,
@@ -205,7 +203,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     protected final FunctionInfo info;
     private int flags;
     protected TypeInfo type;
-    private Domain domain;
 
     private final Database database;
 
@@ -358,8 +355,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 0, Value.VARCHAR);
         addFunctionNotDeterministic("LOCK_TIMEOUT", LOCK_TIMEOUT,
                 0, Value.INTEGER);
-        addFunctionWithNull("CAST", CAST,
-                1, Value.NULL);
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
                 3, Value.NULL);
         addFunctionWithNull("COALESCE", COALESCE, VAR_ARGS, Value.NULL);
@@ -877,12 +872,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         case ESTIMATED_ENVELOPE:
             result = getEstimatedEnvelope(session, v0, values[1]);
-            break;
-        case CAST:
-            result = v0.castTo(type, session);
-            if (domain != null) {
-                domain.checkConstraints(session, result);
-            }
             break;
         case MEMORY_FREE:
             session.getUser().checkAdmin();
@@ -2494,16 +2483,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         }
     }
 
-    public void setDataType(TypeInfo type) {
-        this.type = type;
-        this.domain = null;
-    }
-
-    public void setDataType(Column column) {
-        this.type = column.getType();
-        this.domain = column.getDomain();
-    }
-
     @Override
     public Expression optimize(Session session) {
         boolean allConst = optimizeArguments(session);
@@ -2615,16 +2594,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case CAST:
-            typeInfo = type;
-            if (allConst) {
-                Value v = getValue(session);
-                if (v == ValueNull.INSTANCE || canOptimizeCast(p0.getType().getValueType(), typeInfo.getValueType())) {
-                    return TypedValueExpression.get(v, typeInfo);
-                }
-                return this;
-            }
-            break;
         case TRUNCATE_VALUE:
             if (type != null) {
                 // data type, precision and scale is already set
@@ -2820,47 +2789,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         return allConst;
     }
 
-    private static boolean canOptimizeCast(int src, int dst) {
-        switch (src) {
-        case Value.TIME:
-            switch (dst) {
-            case Value.TIME_TZ:
-            case Value.TIMESTAMP:
-            case Value.TIMESTAMP_TZ:
-                return false;
-            }
-            break;
-        case Value.TIME_TZ:
-            switch (dst) {
-            case Value.TIME:
-            case Value.TIMESTAMP:
-            case Value.TIMESTAMP_TZ:
-                return false;
-            }
-            break;
-        case Value.DATE:
-            if (dst == Value.TIMESTAMP_TZ) {
-                return false;
-            }
-            break;
-        case Value.TIMESTAMP:
-            switch (dst) {
-            case Value.TIME_TZ:
-            case Value.TIMESTAMP_TZ:
-                return false;
-            }
-            break;
-        case Value.TIMESTAMP_TZ:
-            switch (dst) {
-            case Value.TIME:
-            case Value.DATE:
-            case Value.TIMESTAMP:
-                return false;
-            }
-        }
-        return true;
-    }
-
     private TypeInfo getRoundNumericType(Session session) {
         int scale = 0;
         if (args.length > 1) {
@@ -2941,16 +2869,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 args[1].getSQL(builder, sqlFlags).append(" FROM ");
             }
             args[0].getSQL(builder, sqlFlags);
-            break;
-        }
-        case CAST: {
-            Expression a = args[0];
-            a.getSQL(builder, a instanceof ValueExpression ? sqlFlags | NO_CASTS : sqlFlags).append(" AS ");
-            if (domain != null) {
-                domain.getSQL(builder, sqlFlags);
-            } else {
-                type.getSQL(builder);
-            }
             break;
         }
         case DATEADD:

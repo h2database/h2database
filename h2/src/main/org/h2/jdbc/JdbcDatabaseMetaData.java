@@ -1555,8 +1555,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * The complete list of keywords (including SQL:2003 keywords) is:
      * <pre>
      * ALL, AND, ARRAY, AS,
-     * BETWEEN, BOTH
-     * CASE, CHECK, CONSTRAINT, CROSS, CURRENT_CATALOG, CURRENT_DATE, CURRENT_SCHEMA,
+     * BETWEEN, BOTH,
+     * CASE, CAST, CHECK, CONSTRAINT, CROSS, CURRENT_CATALOG, CURRENT_DATE, CURRENT_SCHEMA,
      * CURRENT_TIME, CURRENT_TIMESTAMP, CURRENT_USER,
      * DAY, DISTINCT,
      * EXCEPT, EXISTS,

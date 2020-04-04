@@ -207,8 +207,15 @@ public class MVStore implements AutoCloseable
      */
     private final AtomicReference<BackgroundWriterThread> backgroundWriterThread = new AtomicReference<>();
 
-    private final ThreadPoolExecutor serializationExecutor;
-    private final ThreadPoolExecutor bufferSaveExecutor;
+    /**
+     * Single-threaded executor for serialization of the store snapshot into ByteBuffer
+     */
+    private ThreadPoolExecutor serializationExecutor;
+
+    /**
+     * Single-threaded executor for saving ByteBuffer as a new Chunk
+     */
+    private ThreadPoolExecutor bufferSaveExecutor;
 
     private volatile boolean reuseSpace = true;
 
@@ -459,13 +466,9 @@ public class MVStore implements AutoCloseable
             // the parameter is different from the old value
             int delay = DataUtils.getConfigParam(config, "autoCommitDelay", 1000);
             setAutoCommitDelay(delay);
-            serializationExecutor = createSingleThreadExecutor("H2-serialization");
-            bufferSaveExecutor = createSingleThreadExecutor("H2-save");
         } else {
             autoCommitMemory = 0;
             autoCompactFillRate = 0;
-            serializationExecutor = null;
-            bufferSaveExecutor = null;
             meta = openMetaMap();
         }
         onVersionChange(currentVersion);
@@ -483,16 +486,6 @@ public class MVStore implements AutoCloseable
         MVMap<String,String> map = new MVMap<>(this, metaId, StringDataType.INSTANCE, StringDataType.INSTANCE);
         map.setRootPos(getRootPos(map.getId()), currentVersion - 1);
         return map;
-    }
-
-    private ThreadPoolExecutor createSingleThreadExecutor(String threadName) {
-        return new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-                                        new LinkedBlockingQueue<>(),
-                                        r -> {
-                                            Thread thread = new Thread(r, threadName);
-                                            thread.setDaemon(true);
-                                            return thread;
-                                        });
     }
 
     private void scrubLayoutMap() {
@@ -1312,8 +1305,6 @@ public class MVStore implements AutoCloseable
                                 } else if (allowedCompactionTime < 0) {
                                     doMaintenance(autoCompactFillRate);
                                 }
-                                shutdownExecutor(serializationExecutor);
-                                shutdownExecutor(bufferSaveExecutor);
 
                                 saveChunkLock.lock();
                                 try {
@@ -1328,13 +1319,6 @@ public class MVStore implements AutoCloseable
                             }
 
                             state = STATE_CLOSING;
-
-                            if (serializationExecutor != null) {
-                                serializationExecutor.shutdownNow();
-                            }
-                            if (bufferSaveExecutor != null) {
-                                bufferSaveExecutor.shutdownNow();
-                            }
 
                             // release memory early - this is important when called
                             // because of out of memory
@@ -1363,8 +1347,11 @@ public class MVStore implements AutoCloseable
         if (executor != null) {
             executor.shutdown();
             try {
-                executor.awaitTermination(5000, TimeUnit.MILLISECONDS);
+                if (executor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
+                    return;
+                }
             } catch (InterruptedException ignore) {/**/}
+            executor.shutdownNow();
         }
     }
 
@@ -1532,18 +1519,21 @@ public class MVStore implements AutoCloseable
 
     private static void submitOrRun(ThreadPoolExecutor executor, Runnable action,
                                     boolean syncRun) throws ExecutionException {
-        try {
-            Future<?> future = executor.submit(action);
-            if (syncRun || executor.getQueue().size() > PIPE_LENGTH) {
-                try {
-                    future.get();
-                } catch (InterruptedException ignore) {/**/}
+        if (executor != null) {
+            try {
+                Future<?> future = executor.submit(action);
+                if (syncRun || executor.getQueue().size() > PIPE_LENGTH) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException ignore) {/**/}
+                }
+                return;
+            } catch (RejectedExecutionException ex) {
+                assert executor.isShutdown();
+                shutdownExecutor(executor);
             }
-        } catch (RejectedExecutionException ex) {
-            assert executor.isShutdown();
-            shutdownExecutor(executor);
-            action.run();
         }
+        action.run();
     }
 
     private ArrayList<Page<?,?>> collectChangedMapRoots(long version) {
@@ -1591,11 +1581,7 @@ public class MVStore implements AutoCloseable
             Chunk c = createChunk(time, version);
             chunks.put(c.id, c);
             WriteBuffer buff = getWriteBuffer();
-            // need to patch the header later
-            c.writeChunkHeader(buff, 0);
-            int headerLength = buff.position() + 44;
-            buff.position(headerLength);
-            serializeToBuffer(buff, changed, c, reservedLow, reservedHighSupplier, headerLength);
+            serializeToBuffer(buff, changed, c, reservedLow, reservedHighSupplier);
 
             submitOrRun(bufferSaveExecutor, () -> storeBuffer(c, buff, changed), syncRun);
 
@@ -1653,8 +1639,12 @@ public class MVStore implements AutoCloseable
     }
 
     private void serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, Chunk c,
-                                    long reservedLow, Supplier<Long> reservedHighSupplier,
-                                    int headerLength) {
+                                    long reservedLow, Supplier<Long> reservedHighSupplier) {
+        // need to patch the header later
+        c.writeChunkHeader(buff, 0);
+        int headerLength = buff.position() + 44;
+        buff.position(headerLength);
+
         long version = c.version;
         List<Long> toc = new ArrayList<>();
         for (Page<?,?> p : changed) {
@@ -2019,29 +2009,14 @@ public class MVStore implements AutoCloseable
         storeLock.lock();
         try {
             checkOpen();
-            try {
-                submitOrRun(serializationExecutor, () -> {}, true);
-            } catch (ExecutionException ignore) {}
-            try {
-                submitOrRun(bufferSaveExecutor, () -> {}, true);
-            } catch (ExecutionException ignore) {}
-
+            submitOrRun(serializationExecutor, () -> {}, true);
             serializationLock.lock();
             try {
+                submitOrRun(bufferSaveExecutor, () -> {}, true);
                 saveChunkLock.lock();
                 try {
-                    if (lastChunk != null && reuseSpace) {
-                        int oldRetentionTime = retentionTime;
-                        boolean oldReuse = reuseSpace;
-                        try {
-                            retentionTime = -1;
-                            if (getFillRate() <= targetFillRate) {
-                                res = compactMoveChunks(moveSize);
-                            }
-                        } finally {
-                            reuseSpace = oldReuse;
-                            retentionTime = oldRetentionTime;
-                        }
+                    if (lastChunk != null && reuseSpace && getFillRate() <= targetFillRate) {
+                        res = compactMoveChunks(moveSize);
                     }
                 } finally {
                     saveChunkLock.unlock();
@@ -2049,6 +2024,11 @@ public class MVStore implements AutoCloseable
             } finally {
                 serializationLock.unlock();
             }
+        } catch (IllegalStateException e) {
+            panic(e);
+        } catch (Throwable e) {
+            panic(DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
         } finally {
             unlockAndCheckPanicCondition();
         }
@@ -3391,6 +3371,8 @@ public class MVStore implements AutoCloseable
                         }
                     }
                 }
+                shutdownExecutor(serializationExecutor);
+                shutdownExecutor(bufferSaveExecutor);
                 break;
             }
         }
@@ -3424,8 +3406,20 @@ public class MVStore implements AutoCloseable
                             fileStore.toString());
             if (backgroundWriterThread.compareAndSet(null, t)) {
                 t.start();
+                serializationExecutor = createSingleThreadExecutor("H2-serialization");
+                bufferSaveExecutor = createSingleThreadExecutor("H2-save");
             }
         }
+    }
+
+    private static ThreadPoolExecutor createSingleThreadExecutor(String threadName) {
+        return new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+                                        new LinkedBlockingQueue<>(),
+                                        r -> {
+                                            Thread thread = new Thread(r, threadName);
+                                            thread.setDaemon(true);
+                                            return thread;
+                                        });
     }
 
     public boolean isBackgroundThread() {

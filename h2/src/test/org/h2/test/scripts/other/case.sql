@@ -38,3 +38,15 @@ select x, case x when 0 then 'zero' when 1 then 'one' end y from system_range(0,
 > 1 one
 > 2 null
 > rows: 3
+
+SELECT CASE END;
+>> null
+
+SELECT CASE 1 END;
+>> null
+
+SELECT CASE ELSE V END FROM (VALUES 1) T(V);
+>> 1
+
+SELECT CASE 1 ELSE V END FROM (VALUES 1) T(V);
+>> 1

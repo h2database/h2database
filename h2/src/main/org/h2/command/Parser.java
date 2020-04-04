@@ -5306,7 +5306,7 @@ public class Parser {
             return ValueExpression.NULL;
         }
         if (readIf("ELSE")) {
-            Expression elsePart = readExpression().optimize(session);
+            Expression elsePart = readExpression();
             read("END");
             readIf(CASE);
             return elsePart;
@@ -5327,7 +5327,7 @@ public class Parser {
                 return ValueExpression.NULL;
             }
             if (readIf("ELSE")) {
-                Expression elsePart = readExpression().optimize(session);
+                Expression elsePart = readExpression();
                 read("END");
                 readIf(CASE);
                 return elsePart;

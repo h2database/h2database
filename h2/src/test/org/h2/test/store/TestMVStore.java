@@ -480,6 +480,8 @@ public class TestMVStore extends TestBase {
                 fileName(fileName).
                 autoCommitDisabled().
                 open();
+        s.setRetentionTime(0);
+        s.setVersionsToKeep(0);
         MVMap<Integer, String> m;
         for (int i = 0; i < 100; i++) {
             m = s.openMap("data" + i);

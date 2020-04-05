@@ -22,8 +22,6 @@ import org.h2.api.IntervalQualifier;
 import org.h2.engine.Session;
 import org.h2.expression.function.DateTimeFunctions;
 import org.h2.message.DbException;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
 import org.h2.value.DataType;
@@ -40,7 +38,7 @@ import org.h2.value.ValueTimestampTimeZone;
 /**
  * A mathematical operation with intervals.
  */
-public class IntervalOperation extends Expression {
+public class IntervalOperation extends Operation2 {
 
     public enum IntervalOpType {
         /**
@@ -103,9 +101,8 @@ public class IntervalOperation extends Expression {
             INTERVAL_DAY_DIGITS * 3, INTERVAL_DAY_DIGITS * 2, null);
 
     private final IntervalOpType opType;
-    private Expression left, right;
+
     private TypeInfo forcedType;
-    private TypeInfo type;
 
     private static BigInteger nanosFromValue(Session session, Value v) {
         long[] a = dateAndTimeFromValue(v, session);
@@ -119,9 +116,8 @@ public class IntervalOperation extends Expression {
     }
 
     public IntervalOperation(IntervalOpType opType, Expression left, Expression right) {
+        super(left, right);
         this.opType = opType;
-        this.left = left;
-        this.right = right;
         int l = left.getType().getValueType(), r = right.getType().getValueType();
         switch (opType) {
         case INTERVAL_PLUS_INTERVAL:
@@ -335,12 +331,6 @@ public class IntervalOperation extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level, int state) {
-        left.mapColumns(resolver, level, state);
-        right.mapColumns(resolver, level, state);
-    }
-
-    @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
         right = right.optimize(session);
@@ -348,50 +338,6 @@ public class IntervalOperation extends Expression {
             return ValueExpression.get(getValue(session));
         }
         return this;
-    }
-
-    @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        left.setEvaluatable(tableFilter, b);
-        right.setEvaluatable(tableFilter, b);
-    }
-
-    @Override
-    public TypeInfo getType() {
-        return type;
-    }
-
-    @Override
-    public void updateAggregate(Session session, int stage) {
-        left.updateAggregate(session, stage);
-        right.updateAggregate(session, stage);
-    }
-
-    @Override
-    public boolean isEverything(ExpressionVisitor visitor) {
-        return left.isEverything(visitor) && right.isEverything(visitor);
-    }
-
-    @Override
-    public int getCost() {
-        return left.getCost() + 1 + right.getCost();
-    }
-
-    @Override
-    public int getSubexpressionCount() {
-        return 2;
-    }
-
-    @Override
-    public Expression getSubexpression(int index) {
-        switch (index) {
-        case 0:
-            return left;
-        case 1:
-            return right;
-        default:
-            throw new IndexOutOfBoundsException();
-        }
     }
 
 }

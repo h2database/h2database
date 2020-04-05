@@ -42,8 +42,9 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.Format;
+import org.h2.expression.OperationN;
+import org.h2.expression.SimpleCase;
 import org.h2.expression.Subquery;
-import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
 import org.h2.index.Index;
@@ -54,7 +55,6 @@ import org.h2.mode.FunctionsMySQL;
 import org.h2.mode.FunctionsOracle;
 import org.h2.mode.FunctionsPostgreSQL;
 import org.h2.mvstore.db.MVSpatialIndex;
-import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
@@ -62,10 +62,8 @@ import org.h2.security.CipherFactory;
 import org.h2.security.SHA3;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
-import org.h2.table.ColumnResolver;
 import org.h2.table.LinkSchema;
 import org.h2.table.Table;
-import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.Bits;
@@ -106,7 +104,7 @@ import org.h2.value.ValueVarchar;
 /**
  * This class implements most built-in functions of this database.
  */
-public class Function extends Expression implements FunctionCall, ExpressionWithFlags {
+public class Function extends OperationN implements FunctionCall, ExpressionWithFlags {
     public static final int ABS = 0, ACOS = 1, ASIN = 2, ATAN = 3, ATAN2 = 4,
             BITAND = 5, BITOR = 6, BITXOR = 7, CEILING = 8, COS = 9, COT = 10,
             DEGREES = 11, EXP = 12, FLOOR = 13, LOG = 14, LOG10 = 15, MOD = 16,
@@ -145,7 +143,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
     public static final int
-            CAST = 203, COALESCE = 204, NULLIF = 205, CASE = 206,
+            COALESCE = 204, NULLIF = 205,
             NEXTVAL = 207, CURRVAL = 208, CSVREAD = 210,
             CSVWRITE = 211, MEMORY_FREE = 212, MEMORY_USED = 213,
             LOCK_MODE = 214, CURRENT_SCHEMA = 215, SESSION_ID = 216,
@@ -199,13 +197,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     private static final HashMap<String, FunctionInfo> FUNCTIONS_BY_NAME = new HashMap<>(256);
     private static final char[] SOUNDEX_INDEX = new char[128];
 
-    protected Expression[] args;
-    private int argsCount;
-
     protected final FunctionInfo info;
     private int flags;
-    protected TypeInfo type;
-    private Domain domain;
 
     private final Database database;
 
@@ -358,8 +351,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 0, Value.VARCHAR);
         addFunctionNotDeterministic("LOCK_TIMEOUT", LOCK_TIMEOUT,
                 0, Value.INTEGER);
-        addFunctionWithNull("CAST", CAST,
-                1, Value.NULL);
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
                 3, Value.NULL);
         addFunctionWithNull("COALESCE", COALESCE, VAR_ARGS, Value.NULL);
@@ -367,8 +358,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 3, Value.NULL);
         addFunctionWithNull("NULLIF", NULLIF,
                 2, Value.NULL);
-        addFunctionWithNull("CASE", CASE,
-                VAR_ARGS, Value.NULL);
         addFunctionNotDeterministic("NEXTVAL", NEXTVAL, VAR_ARGS, Value.NULL);
         addFunctionNotDeterministic("CURRVAL", CURRVAL, VAR_ARGS, Value.NULL);
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
@@ -546,10 +535,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
      * @param info function information
      */
     public Function(Database database, FunctionInfo info) {
+        super(new Expression[info.parameterCount != VAR_ARGS ? info.parameterCount : 4]);
         this.database = database;
         this.info = info;
-        int count = info.parameterCount;
-        args = new Expression[count != VAR_ARGS ? count : 4];
     }
 
     /**
@@ -560,6 +548,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
      * @param arguments the arguments
      */
     public Function(Database database, FunctionInfo info, Expression[] arguments) {
+        super(arguments);
         this.database = database;
         this.info = info;
         int expected = info.parameterCount, len = arguments.length;
@@ -568,22 +557,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         } else if (expected != len) {
             throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, Integer.toString(expected));
         }
-        args = arguments;
-    }
-
-    /**
-     * Adds the parameter expression.
-     * @param param the expression
-     */
-    public void addParameter(Expression param) {
-        int capacity = args.length;
-        if (argsCount >= capacity) {
-            if (info.parameterCount != VAR_ARGS) {
-                throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, Integer.toString(capacity));
-            }
-            args = Arrays.copyOf(args, capacity * 2);
-        }
-        args[argsCount++] = param;
     }
 
     @Override
@@ -878,12 +851,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case ESTIMATED_ENVELOPE:
             result = getEstimatedEnvelope(session, v0, values[1]);
             break;
-        case CAST:
-            result = v0.castTo(type, session);
-            if (domain != null) {
-                domain.checkConstraints(session, result);
-            }
-            break;
         case MEMORY_FREE:
             session.getUser().checkAdmin();
             result = ValueInteger.get(Utils.getMemoryFree());
@@ -959,45 +926,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     }
                 }
             }
-            break;
-        }
-        case CASE: {
-            Expression then = null;
-            if (v0 == null) {
-                // Searched CASE expression
-                // (null, when, then)
-                // (null, when, then, else)
-                // (null, when, then, when, then)
-                // (null, when, then, when, then, else)
-                for (int i = 1, len = args.length - 1; i < len; i += 2) {
-                    Value when = args[i].getValue(session);
-                    if (when.getBoolean()) {
-                        then = args[i + 1];
-                        break;
-                    }
-                }
-            } else {
-                // Simple CASE expression
-                // (expr, when, then)
-                // (expr, when, then, else)
-                // (expr, when, then, when, then)
-                // (expr, when, then, when, then, else)
-                if (v0 != ValueNull.INSTANCE) {
-                    for (int i = 1, len = args.length - 1; i < len; i += 2) {
-                        Value when = args[i].getValue(session);
-                        if (session.areEqual(v0, when)) {
-                            then = args[i + 1];
-                            break;
-                        }
-                    }
-                }
-            }
-            if (then == null && args.length % 2 == 0) {
-                // then = elsePart
-                then = args[args.length - 1];
-            }
-            Value v = then == null ? ValueNull.INSTANCE : then.getValue(session);
-            result = v.convertTo(type, session);
             break;
         }
         case CARDINALITY: {
@@ -2376,22 +2304,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     }
 
     @Override
-    public TypeInfo getType() {
-        return type;
-    }
-
-    @Override
     public int getValueType() {
         return type.getValueType();
-    }
-
-    @Override
-    public void mapColumns(ColumnResolver resolver, int level, int state) {
-        for (Expression e : args) {
-            if (e != null) {
-                e.mapColumns(resolver, level, state);
-            }
-        }
     }
 
     /**
@@ -2458,7 +2372,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             max = 4;
             break;
         case DECODE:
-        case CASE:
             min = 3;
             break;
         case REGEXP_REPLACE:
@@ -2476,32 +2389,15 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         }
     }
 
-    /**
-     * This method is called after all the parameters have been set.
-     * It checks if the parameter count is correct.
-     *
-     * @throws DbException if the parameter count is incorrect.
-     */
+    @Override
     public void doneWithParameters() {
         int count = info.parameterCount;
         if (count == VAR_ARGS) {
             checkParameterCount(argsCount);
-            if (args.length != argsCount) {
-                args = Arrays.copyOf(args, argsCount);
-            }
+            super.doneWithParameters();
         } else if (count != argsCount) {
             throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, Integer.toString(argsCount));
         }
-    }
-
-    public void setDataType(TypeInfo type) {
-        this.type = type;
-        this.domain = null;
-    }
-
-    public void setDataType(Column column) {
-        this.type = column.getType();
-        this.domain = column.getDomain();
     }
 
     @Override
@@ -2568,7 +2464,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case CASE:
         case DECODE: {
             typeInfo = TypeInfo.TYPE_UNKNOWN;
             // (expr, when, then)
@@ -2576,24 +2471,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             // (expr, when, then, when, then)
             // (expr, when, then, when, then, else)
             for (int i = 2, len = args.length; i < len; i += 2) {
-                Expression then = args[i];
-                if (!then.isNullConstant()) {
-                    TypeInfo type = then.getType();
-                    int valueType = type.getValueType();
-                    if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
-                        typeInfo = TypeInfo.getHigherType(typeInfo, type);
-                    }
-                }
+                typeInfo = SimpleCase.combineTypes(typeInfo, args[i]);
             }
             if (args.length % 2 == 0) {
-                Expression elsePart = args[args.length - 1];
-                if (!elsePart.isNullConstant()) {
-                    TypeInfo type = elsePart.getType();
-                    int valueType = type.getValueType();
-                    if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
-                        typeInfo = TypeInfo.getHigherType(typeInfo, type);
-                    }
-                }
+                typeInfo = SimpleCase.combineTypes(typeInfo, args[args.length - 1]);
             }
             if (typeInfo.getValueType() == Value.UNKNOWN) {
                 typeInfo = TypeInfo.TYPE_VARCHAR;
@@ -2615,16 +2496,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case CAST:
-            typeInfo = type;
-            if (allConst) {
-                Value v = getValue(session);
-                if (v == ValueNull.INSTANCE || canOptimizeCast(p0.getType().getValueType(), typeInfo.getValueType())) {
-                    return TypedValueExpression.get(v, typeInfo);
-                }
-                return this;
-            }
-            break;
         case TRUNCATE_VALUE:
             if (type != null) {
                 // data type, precision and scale is already set
@@ -2809,56 +2680,13 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     protected final boolean optimizeArguments(Session session) {
         boolean allConst = info.deterministic;
         for (int i = 0, l = args.length; i < l; i++) {
-            Expression e = args[i];
-            if (e != null) {
-                args[i] = e = e.optimize(session);
-                if (!e.isConstant()) {
-                    allConst = false;
-                }
+            Expression e = args[i].optimize(session);
+            args[i] = e;
+            if (!e.isConstant()) {
+                allConst = false;
             }
         }
         return allConst;
-    }
-
-    private static boolean canOptimizeCast(int src, int dst) {
-        switch (src) {
-        case Value.TIME:
-            switch (dst) {
-            case Value.TIME_TZ:
-            case Value.TIMESTAMP:
-            case Value.TIMESTAMP_TZ:
-                return false;
-            }
-            break;
-        case Value.TIME_TZ:
-            switch (dst) {
-            case Value.TIME:
-            case Value.TIMESTAMP:
-            case Value.TIMESTAMP_TZ:
-                return false;
-            }
-            break;
-        case Value.DATE:
-            if (dst == Value.TIMESTAMP_TZ) {
-                return false;
-            }
-            break;
-        case Value.TIMESTAMP:
-            switch (dst) {
-            case Value.TIME_TZ:
-            case Value.TIMESTAMP_TZ:
-                return false;
-            }
-            break;
-        case Value.TIMESTAMP_TZ:
-            switch (dst) {
-            case Value.TIME:
-            case Value.DATE:
-            case Value.TIMESTAMP:
-                return false;
-            }
-        }
-        return true;
     }
 
     private TypeInfo getRoundNumericType(Session session) {
@@ -2878,15 +2706,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     }
 
     @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        for (Expression e : args) {
-            if (e != null) {
-                e.setEvaluatable(tableFilter, b);
-            }
-        }
-    }
-
-    @Override
     public String getAlias(Session session, int columnIndex) {
         if (session.getMode().expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
             return StringUtils.toLowerEnglish(getName());
@@ -2897,23 +2716,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append(info.name);
-        if (info.type == CASE) {
-            if (args[0] != null) {
-                builder.append(' ');
-                args[0].getSQL(builder, sqlFlags);
-            }
-            for (int i = 1, len = args.length - 1; i < len; i += 2) {
-                builder.append(" WHEN ");
-                args[i].getSQL(builder, sqlFlags);
-                builder.append(" THEN ");
-                args[i + 1].getSQL(builder, sqlFlags);
-            }
-            if (args.length % 2 == 0) {
-                builder.append(" ELSE ");
-                args[args.length - 1].getSQL(builder, sqlFlags);
-            }
-            return builder.append(" END");
-        }
         boolean addParentheses = args.length > 0 || info.requireParentheses;
         if (addParentheses) {
             builder.append('(');
@@ -2941,16 +2743,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 args[1].getSQL(builder, sqlFlags).append(" FROM ");
             }
             args[0].getSQL(builder, sqlFlags);
-            break;
-        }
-        case CAST: {
-            Expression a = args[0];
-            a.getSQL(builder, a instanceof ValueExpression ? sqlFlags | NO_CASTS : sqlFlags).append(" AS ");
-            if (domain != null) {
-                domain.getSQL(builder, sqlFlags);
-            } else {
-                type.getSQL(builder);
-            }
             break;
         }
         case DATEADD:
@@ -3009,15 +2801,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         }
         if (!forArray && (flags & JSON_WITH_UNIQUE_KEYS) != 0) {
             builder.append(" WITH UNIQUE KEYS");
-        }
-    }
-
-    @Override
-    public void updateAggregate(Session session, int stage) {
-        for (Expression e : args) {
-            if (e != null) {
-                e.updateAggregate(session, stage);
-            }
         }
     }
 
@@ -3105,10 +2888,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        for (Expression e : args) {
-            if (e != null && !e.isEverything(visitor)) {
-                return false;
-            }
+        if (!super.isEverything(visitor)) {
+            return false;
         }
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
@@ -3130,29 +2911,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     }
 
     @Override
-    public int getCost() {
-        int cost = 3;
-        for (Expression e : args) {
-            if (e != null) {
-                cost += e.getCost();
-            }
-        }
-        return cost;
-    }
-
-    @Override
     public boolean isDeterministic() {
         return info.deterministic;
-    }
-
-    @Override
-    public int getSubexpressionCount() {
-        return args.length;
-    }
-
-    @Override
-    public Expression getSubexpression(int index) {
-        return args[index];
     }
 
 }

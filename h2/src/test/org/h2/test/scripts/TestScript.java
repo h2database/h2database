@@ -219,8 +219,8 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "lead", "nth_value", "ntile", "ratio_to_report", "row_number" }) {
             testScript("functions/window/" + s + ".sql");
         }
-        for (String s : new String[] { "at-time-zone", "boolean-test", "conditions", "data-change-delta-table", "help",
-                "sequence", "set" }) {
+        for (String s : new String[] { "at-time-zone", "boolean-test", "case", "conditions", "data-change-delta-table",
+                "help", "sequence", "set" }) {
             testScript("other/" + s + ".sql");
         }
         for (String s : new String[] { "in", "like", "null", "type", "unique" }) {

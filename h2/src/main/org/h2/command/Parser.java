@@ -26,6 +26,8 @@ import static org.h2.util.ParserUtil.CURRENT_TIMESTAMP;
 import static org.h2.util.ParserUtil.CURRENT_USER;
 import static org.h2.util.ParserUtil.DAY;
 import static org.h2.util.ParserUtil.DISTINCT;
+import static org.h2.util.ParserUtil.ELSE;
+import static org.h2.util.ParserUtil.END;
 import static org.h2.util.ParserUtil.EXCEPT;
 import static org.h2.util.ParserUtil.EXISTS;
 import static org.h2.util.ParserUtil.FALSE;
@@ -81,6 +83,7 @@ import static org.h2.util.ParserUtil.UNKNOWN;
 import static org.h2.util.ParserUtil.USING;
 import static org.h2.util.ParserUtil.VALUE;
 import static org.h2.util.ParserUtil.VALUES;
+import static org.h2.util.ParserUtil.WHEN;
 import static org.h2.util.ParserUtil.WHERE;
 import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
@@ -332,12 +335,12 @@ public class Parser {
     /**
      * End of input.
      */
-    private static final int END = PARAMETER + 1;
+    private static final int END_OF_INPUT = PARAMETER + 1;
 
     /**
      * Token with literal.
      */
-    private static final int LITERAL = END + 1;
+    private static final int LITERAL = END_OF_INPUT + 1;
 
     /**
      * The token "=".
@@ -522,6 +525,10 @@ public class Parser {
             "DAY",
             // DISTINCT
             "DISTINCT",
+            // ELSE
+            "ELSE",
+            // END
+            "END",
             // EXCEPT
             "EXCEPT",
             // EXISTS
@@ -626,6 +633,8 @@ public class Parser {
             "VALUE",
             // VALUES
             "VALUES",
+            // WHEN
+            "WHEN",
             // WHERE
             "WHERE",
             // WINDOW
@@ -835,7 +844,7 @@ public class Parser {
     public Prepared prepare(String sql) {
         Prepared p = parse(sql);
         p.prepare();
-        if (currentTokenType != END) {
+        if (currentTokenType != END_OF_INPUT) {
             throw getSyntaxError();
         }
         return p;
@@ -850,7 +859,7 @@ public class Parser {
     public Command prepareCommand(String sql) {
         try {
             Prepared p = parse(sql);
-            if (currentTokenType != SEMICOLON && currentTokenType != END) {
+            if (currentTokenType != SEMICOLON && currentTokenType != END_OF_INPUT) {
                 addExpected(SEMICOLON);
                 throw getSyntaxError();
             }
@@ -896,7 +905,7 @@ public class Parser {
                     return new CommandList(session, sql, command, list, parameters, remaining);
                 }
                 list.add(p);
-                if (currentTokenType == END) {
+                if (currentTokenType == END_OF_INPUT) {
                     break;
                 }
                 if (currentTokenType != SEMICOLON) {
@@ -956,7 +965,7 @@ public class Parser {
         int start = lastParseIndex;
         Prepared c = null;
         switch (currentTokenType) {
-        case END:
+        case END_OF_INPUT:
         case SEMICOLON:
             c = new NoOperation(session);
             setSQL(c, start);
@@ -1558,7 +1567,7 @@ public class Parser {
                         database.sysIdentifier("HELP"), database.sysIdentifier("TOPIC"), false));
         TableFilter filter = new TableFilter(session, table, null, rightsChecked, select, 0, null);
         select.addTableFilter(filter, true);
-        while (currentTokenType != END) {
+        while (currentTokenType != END_OF_INPUT) {
             String s = currentToken;
             read();
             CompareLike like = new CompareLike(database, function,
@@ -1758,7 +1767,7 @@ public class Parser {
         Expression condition = readExpression();
         command.setOnCondition(condition);
 
-        read("WHEN");
+        read(WHEN);
         do {
             boolean matched = readIf("MATCHED");
             if (matched) {
@@ -1766,7 +1775,7 @@ public class Parser {
             } else {
                 parseWhenNotMatched(command);
             }
-        } while (readIf("WHEN"));
+        } while (readIf(WHEN));
 
         setSQL(command, start);
         return command;
@@ -2695,7 +2704,7 @@ public class Parser {
         }
         Expression[] args;
         ArrayList<Expression> argList = Utils.newSmallArrayList();
-        if (currentTokenType != SEMICOLON && currentTokenType != END) {
+        if (currentTokenType != SEMICOLON && currentTokenType != END_OF_INPUT) {
             do {
                 argList.add(readExpression());
             } while (readIf(COMMA));
@@ -3053,7 +3062,7 @@ public class Parser {
                 case FETCH:
                 case CLOSE_PAREN:
                 case SEMICOLON:
-                case END:
+                case END_OF_INPUT:
                     break;
                 default:
                     Expression expr = readExpression();
@@ -3158,7 +3167,7 @@ public class Parser {
             case OPEN_PAREN:
                 level++;
                 break;
-            case END:
+            case END_OF_INPUT:
                 addExpected(CLOSE_PAREN);
                 throw getSyntaxError();
             }
@@ -3168,7 +3177,7 @@ public class Parser {
         // End of query
         case CLOSE_PAREN:
         case SEMICOLON:
-        case END:
+        case END_OF_INPUT:
         // Next grouping element
         case COMMA:
         // Next select clause
@@ -5301,50 +5310,50 @@ public class Parser {
     }
 
     private Expression readCase() {
-        if (readIf("END")) {
+        if (readIf(END)) {
             readIf(CASE);
             return ValueExpression.NULL;
         }
-        if (readIf("ELSE")) {
+        if (readIf(ELSE)) {
             Expression elsePart = readExpression();
-            read("END");
+            read(END);
             readIf(CASE);
             return elsePart;
         }
-        if (readIf("WHEN")) {
+        if (readIf(WHEN)) {
             SearchedCase c = new SearchedCase();
             do {
                 Expression condition = readExpression();
                 read("THEN");
                 c.addWhen(condition, readExpression());
-            } while (readIf("WHEN"));
-            if (readIf("ELSE")) {
+            } while (readIf(WHEN));
+            if (readIf(ELSE)) {
                 c.addElse(readExpression());
             }
-            read("END");
+            read(END);
             c.doneWithParameters();
             return c;
         }
         Expression operand = readExpression();
-        if (readIf("END")) {
+        if (readIf(END)) {
             readIf(CASE);
             return ValueExpression.NULL;
         }
-        if (readIf("ELSE")) {
+        if (readIf(ELSE)) {
             Expression elsePart = readExpression();
-            read("END");
+            read(END);
             readIf(CASE);
             return elsePart;
         }
-        read("WHEN");
+        read(WHEN);
         SimpleCase.SimpleWhen when = readSimpleWhenClause(), current = when;
-        while (readIf("WHEN")) {
+        while (readIf(WHEN)) {
             SimpleCase.SimpleWhen next = readSimpleWhenClause();
             current.addWhen(next);
             current = next;
         }
-        Expression elseResult = readIf("ELSE") ? readExpression() : null;
-        read("END");
+        Expression elseResult = readIf(ELSE) ? readExpression() : null;
+        read(END);
         readIf(CASE);
         return new SimpleCase(operand, when, elseResult);
     }
@@ -5744,7 +5753,7 @@ public class Parser {
             return;
         }
         case CHAR_END:
-            currentTokenType = END;
+            currentTokenType = END_OF_INPUT;
             parseIndex = i;
             return;
         default:
@@ -7699,7 +7708,7 @@ public class Parser {
         } catch (DbException e) {
             if (force) {
                 command.setSelectSQL(select);
-                while (currentTokenType != END) {
+                while (currentTokenType != END_OF_INPUT) {
                     read();
                 }
             } else {
@@ -8181,7 +8190,7 @@ public class Parser {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.NON_KEYWORDS);
             ArrayList<String> list = Utils.newSmallArrayList();
-            if (currentTokenType != END && currentTokenType != SEMICOLON) {
+            if (currentTokenType != END_OF_INPUT && currentTokenType != SEMICOLON) {
                 do {
                     if (currentTokenType < IDENTIFIER || currentTokenType > LAST_KEYWORD) {
                         throw getSyntaxError();

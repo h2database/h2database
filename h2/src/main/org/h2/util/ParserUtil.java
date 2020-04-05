@@ -110,9 +110,19 @@ public class ParserUtil {
     public static final int DISTINCT = DAY + 1;
 
     /**
+     * The token "ELSE".
+     */
+    public static final int ELSE = DISTINCT + 1;
+
+    /**
+     * The token "END".
+     */
+    public static final int END = ELSE + 1;
+
+    /**
      * The token "EXCEPT".
      */
-    public static final int EXCEPT = DISTINCT + 1;
+    public static final int EXCEPT = END + 1;
 
     /**
      * The token "EXISTS".
@@ -370,9 +380,14 @@ public class ParserUtil {
     public static final int VALUES = VALUE + 1;
 
     /**
+     * The token "WHEN".
+     */
+    public static final int WHEN = VALUES + 1;
+
+    /**
      * The token "WHERE".
      */
-    public static final int WHERE = VALUES + 1;
+    public static final int WHERE = WHEN + 1;
 
     /**
      * The token "WINDOW".
@@ -610,7 +625,11 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'E':
-            if (eq("EXCEPT", s, ignoreCase, start, length)) {
+            if (eq("ELSE", s, ignoreCase, start, length)) {
+                return ELSE;
+            } else if (eq("END", s, ignoreCase, start, length)) {
+                return END;
+            } else if (eq("EXCEPT", s, ignoreCase, start, length)) {
                 return EXCEPT;
             } else if (eq("EXISTS", s, ignoreCase, start, length)) {
                 return EXISTS;
@@ -804,7 +823,9 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'W':
-            if (eq("WHERE", s, ignoreCase, start, length)) {
+            if (eq("WHEN", s, ignoreCase, start, length)) {
+                return WHEN;
+            } else if (eq("WHERE", s, ignoreCase, start, length)) {
                 return WHERE;
             } else if (eq("WINDOW", s, ignoreCase, start, length)) {
                 return WINDOW;

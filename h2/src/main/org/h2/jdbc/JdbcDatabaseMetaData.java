@@ -1559,7 +1559,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * CASE, CAST, CHECK, CONSTRAINT, CROSS, CURRENT_CATALOG, CURRENT_DATE, CURRENT_SCHEMA,
      * CURRENT_TIME, CURRENT_TIMESTAMP, CURRENT_USER,
      * DAY, DISTINCT,
-     * EXCEPT, EXISTS,
+     * ELSE, END, EXCEPT, EXISTS,
      * FALSE, FETCH, FILTER, FOR, FOREIGN, FROM, FULL,
      * GROUP, GROUPS
      * HAVING, HOUR,
@@ -1577,7 +1577,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * TABLE, TODAY, TOP, TRAILING, TRUE,
      * UNION, UNIQUE, UNKNOWN, USING
      * VALUE, VALUES,
-     * WHERE, WINDOW, WITH,
+     * WHEN, WHERE, WINDOW, WITH,
      * YEAR,
      * _ROWID_
      * </pre>

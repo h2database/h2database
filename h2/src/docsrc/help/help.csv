@@ -2599,18 +2599,18 @@ NULL values are included into array.
 ARRAY(SELECT * FROM SYSTEM_RANGE(1, 10));
 "
 
-"Other Grammar","Case","
-CASE expression { WHEN expression THEN expression } [...]
+"Other Grammar","Simple case","
+CASE expression { WHEN expression [,...] THEN expression } [...]
 [ ELSE expression ] END
 ","
 Returns the first expression where the value is equal to the test expression. If
 no else part is specified, return NULL.
 ","
-CASE CNT WHEN 0 THEN 'No' WHEN 1 THEN 'One' ELSE 'Some' END
+CASE CNT WHEN 0 THEN 'No' WHEN 1 THEN 'One' WHEN 2, 3 THEN 'Few' ELSE 'Some' END
 "
 
-"Other Grammar","Case When","
-CASE { WHEN expression THEN expression} [...]
+"Other Grammar","Searched case","
+CASE { WHEN expression THEN expression } [...]
 [ ELSE expression ] END
 ","
 Returns the first expression where the condition is true. If no else part is
@@ -3448,8 +3448,8 @@ CURRENT ROW
     | { - | + } term
     | ( expression ) [ intervalQualifier ]
     | query
-    | case
-    | caseWhen
+    | simpleCase
+    | searchedCase
     | castSpecification
     | userDefinedFunctionName }
 [ timeZone | intervalQualifier ]
@@ -5523,7 +5523,7 @@ CANCEL_SESSION(3)
 ","
 Returns 'aValue' if the boolean expression is true, otherwise 'bValue'.
 
-This function is deprecated, use [CASE](https://h2database.com/html/grammar.html#case_when) instead of it.
+This function is deprecated, use [CASE](https://h2database.com/html/grammar.html#searched_case) instead of it.
 ","
 CASEWHEN(ID=1, 'A', 'B')
 "

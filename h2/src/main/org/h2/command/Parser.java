@@ -209,7 +209,9 @@ import org.h2.expression.Format;
 import org.h2.expression.Format.FormatEnum;
 import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
+import org.h2.expression.SearchedCase;
 import org.h2.expression.SequenceValue;
+import org.h2.expression.SimpleCase;
 import org.h2.expression.Subquery;
 import org.h2.expression.TimeZoneOperation;
 import org.h2.expression.TypedValueExpression;
@@ -3991,18 +3993,16 @@ public class Parser {
         case "ARRAY_LENGTH":
             function = Function.getFunction(database, Function.CARDINALITY);
             break;
-        // CASE
-        case "CASEWHEN":
-            function = Function.getFunction(database, Function.CASE);
-            function.addParameter(null);
-            function.addParameter(readExpression());
+        // Searched case
+        case "CASEWHEN": {
+            Expression when = readExpression();
             read(COMMA);
-            function.addParameter(readExpression());
+            Expression then = readExpression();
             read(COMMA);
-            function.addParameter(readExpression());
+            Expression elseExpression = readExpression();
             read(CLOSE_PAREN);
-            function.doneWithParameters();
-            return function;
+            return new SearchedCase(new Expression[] {when, then, elseExpression});
+        }
         // Cast specification
         case "CONVERT": {
             Expression arg;
@@ -5311,43 +5311,57 @@ public class Parser {
             readIf(CASE);
             return elsePart;
         }
-        Function function;
         if (readIf("WHEN")) {
-            function = Function.getFunction(database, Function.CASE);
-            function.addParameter(null);
+            SearchedCase c = new SearchedCase();
             do {
-                function.addParameter(readExpression());
+                Expression condition = readExpression();
                 read("THEN");
-                function.addParameter(readExpression());
+                c.addWhen(condition, readExpression());
             } while (readIf("WHEN"));
-        } else {
-            Expression expr = readExpression();
-            if (readIf("END")) {
-                readIf(CASE);
-                return ValueExpression.NULL;
-            }
             if (readIf("ELSE")) {
-                Expression elsePart = readExpression();
-                read("END");
-                readIf(CASE);
-                return elsePart;
+                c.addElse(readExpression());
             }
-            function = Function.getFunction(database, Function.CASE);
-            function.addParameter(expr);
-            read("WHEN");
-            do {
-                function.addParameter(readExpression());
-                read("THEN");
-                function.addParameter(readExpression());
-            } while (readIf("WHEN"));
+            read("END");
+            c.doneWithParameters();
+            return c;
+        }
+        Expression operand = readExpression();
+        if (readIf("END")) {
+            readIf(CASE);
+            return ValueExpression.NULL;
         }
         if (readIf("ELSE")) {
-            function.addParameter(readExpression());
+            Expression elsePart = readExpression();
+            read("END");
+            readIf(CASE);
+            return elsePart;
         }
+        read("WHEN");
+        SimpleCase.SimpleWhen when = readSimpleWhenClause(), current = when;
+        while (readIf("WHEN")) {
+            SimpleCase.SimpleWhen next = readSimpleWhenClause();
+            current.addWhen(next);
+            current = next;
+        }
+        Expression elseResult = readIf("ELSE") ? readExpression() : null;
         read("END");
-        readIf("CASE");
-        function.doneWithParameters();
-        return function;
+        readIf(CASE);
+        return new SimpleCase(operand, when, elseResult);
+    }
+
+    private SimpleCase.SimpleWhen readSimpleWhenClause() {
+        Expression operand = readExpression();
+        if (readIf(COMMA)) {
+            ArrayList<Expression> operands = Utils.newSmallArrayList();
+            operands.add(operand);
+            do {
+                operands.add(readExpression());
+            } while (readIf(COMMA));
+            read("THEN");
+            return new SimpleCase.SimpleWhenN(operands.toArray(new Expression[0]), readExpression());
+        }
+        read("THEN");
+        return new SimpleCase.SimpleWhen1(operand, readExpression());
     }
 
     private int readNonNegativeInt() {

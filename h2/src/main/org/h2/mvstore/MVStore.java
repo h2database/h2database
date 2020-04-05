@@ -802,7 +802,6 @@ public class MVStore implements AutoCloseable
         Chunk newest = null;
         boolean assumeCleanShutdown = true;
         boolean validStoreHeader = false;
-        long version = INITIAL_VERSION;
         // find out which chunk and version are the newest
         // read the first two blocks
         ByteBuffer fileHeaderBlocks = fileStore.readFully(0, 2 * BLOCK_SIZE);
@@ -813,12 +812,10 @@ public class MVStore implements AutoCloseable
             try {
                 HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
                 if (m == null) {
-//                    System.err.println("Header checksum failure");
                     assumeCleanShutdown = false;
                     continue;
                 }
-//                System.err.println("Header: " + m);
-                version = DataUtils.readHexLong(m, HDR_VERSION, 0);
+                long version = DataUtils.readHexLong(m, HDR_VERSION, 0);
                 // if both header blocks do agree on version
                 // we'll continue on happy path - assume that previous shutdown was clean
                 assumeCleanShutdown = assumeCleanShutdown && (newest == null || version == newest.version);
@@ -834,7 +831,6 @@ public class MVStore implements AutoCloseable
                     }
                 }
             } catch (Exception ignore) {
-//                ignore.printStackTrace();
                 assumeCleanShutdown = false;
             }
         }
@@ -872,9 +868,6 @@ public class MVStore implements AutoCloseable
         assumeCleanShutdown = assumeCleanShutdown && newest != null && !recoveryMode;
         if (assumeCleanShutdown) {
             assumeCleanShutdown = DataUtils.readHexInt(storeHeader, HDR_CLEAN, 0) != 0;
-//            if (!assumeCleanShutdown) {
-//                System.err.println("Clean shutdown marker is missing. Header version: " + version);
-//            }
         }
         chunks.clear();
         long now = System.currentTimeMillis();
@@ -932,9 +925,6 @@ public class MVStore implements AutoCloseable
                     break;
                 }
                 // if shutdown was really clean then chain should be empty
-//                if (assumeCleanShutdown) {
-//                    System.err.println("Chunk chain exists despite clean shutdown marker. Version: " + version + " => " + newest.version);
-//                }
                 assumeCleanShutdown = false;
                 newest = test;
             }
@@ -959,7 +949,6 @@ public class MVStore implements AutoCloseable
                         chunksToVerify.poll();
                     }
                 }
-//                System.err.println("Verifying chunks: " + chunksToVerify.size() + " / " + chunks.size());
                 Chunk c;
                 while (assumeCleanShutdown && (c = chunksToVerify.poll()) != null) {
                     Chunk test = readChunkHeaderAndFooter(c.block, c.id);
@@ -969,12 +958,8 @@ public class MVStore implements AutoCloseable
                     }
                 }
             } catch(IllegalStateException ignored) {
-//                ignored.printStackTrace();
                 assumeCleanShutdown = false;
             }
-//            if (!assumeCleanShutdown) {
-//                System.err.println("One of the last 20 chunks was invalid");
-//            }
         }
 
         if (!assumeCleanShutdown) {
@@ -994,9 +979,6 @@ public class MVStore implements AutoCloseable
                 }
                 quickRecovery = findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation,
                         validChunksById, false);
-//                if (quickRecovery) {
-//                    System.err.println("Quick recovery: " + version + " => " + lastChunk.version);
-//                }
             }
 
             if (!quickRecovery) {
@@ -1026,12 +1008,6 @@ public class MVStore implements AutoCloseable
                 }
             }
         }
-
-//        long currentVersion = lastChunk == null ? 0 : lastChunk.version;
-//        if (version != currentVersion) {
-//        if (!assumeCleanShutdown) {
-//            System.err.println("Rollback: " + version + " => " + currentVersion);
-//        }
 
         fileStore.clear();
         // build the free space list

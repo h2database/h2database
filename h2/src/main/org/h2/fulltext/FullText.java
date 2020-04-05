@@ -445,8 +445,8 @@ public class FullText {
         if (data) {
             result.addColumn(FullText.FIELD_SCHEMA, Types.VARCHAR, 0, 0);
             result.addColumn(FullText.FIELD_TABLE, Types.VARCHAR, 0, 0);
-            result.addColumn(FullText.FIELD_COLUMNS, Types.ARRAY, 0, 0);
-            result.addColumn(FullText.FIELD_KEYS, Types.ARRAY, 0, 0);
+            result.addColumn(FullText.FIELD_COLUMNS, Types.ARRAY, "VARCHAR ARRAY", 0, 0);
+            result.addColumn(FullText.FIELD_KEYS, Types.ARRAY, "VARCHAR ARRAY", 0, 0);
         } else {
             result.addColumn(FullText.FIELD_QUERY, Types.VARCHAR, 0, 0);
         }
@@ -461,7 +461,7 @@ public class FullText {
      * @param key the primary key condition as a string
      * @return an array containing the column name list and the data list
      */
-    protected static Object[][] parseKey(Connection conn, String key) {
+    protected static String[][] parseKey(Connection conn, String key) {
         ArrayList<String> columns = Utils.newSmallArrayList();
         ArrayList<String> data = Utils.newSmallArrayList();
         JdbcConnection c = (JdbcConnection) conn;
@@ -469,9 +469,9 @@ public class FullText {
         Parser p = new Parser(session);
         Expression expr = p.parseExpression(key);
         addColumnData(session, columns, data, expr);
-        Object[] col = columns.toArray();
-        Object[] dat = data.toArray();
-        Object[][] columnData = { col, dat };
+        String[] col = columns.toArray(new String[0]);
+        String[] dat = data.toArray(new String[0]);
+        String[][] columnData = { col, dat };
         return columnData;
     }
 
@@ -645,7 +645,7 @@ public class FullText {
                 int indexId = rs.getInt(2);
                 IndexInfo index = setting.getIndexInfo(indexId);
                 if (data) {
-                    Object[][] columnData = parseKey(conn, key);
+                    String[][] columnData = parseKey(conn, key);
                     result.addRow(
                             index.schema,
                             index.table,

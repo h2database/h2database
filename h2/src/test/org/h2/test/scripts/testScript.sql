@@ -910,11 +910,11 @@ INSERT INTO p VALUES('-1-01-01'), ('0-01-01'), ('0001-01-01');
 > update count: 3
 
 select d, year(d), extract(year from d), cast(d as timestamp) from p;
-> D           YEAR(D) EXTRACT(YEAR FROM D) CAST(D AS TIMESTAMP)
-> ----------- ------- -------------------- --------------------
-> -0001-01-01 -1      -1                   -0001-01-01 00:00:00
-> 0000-01-01  0       0                    0000-01-01 00:00:00
-> 0001-01-01  1       1                    0001-01-01 00:00:00
+> D           EXTRACT(YEAR FROM D) EXTRACT(YEAR FROM D) CAST(D AS TIMESTAMP)
+> ----------- -------------------- -------------------- --------------------
+> -0001-01-01 -1                   -1                   -0001-01-01 00:00:00
+> 0000-01-01  0                    0                    0000-01-01 00:00:00
+> 0001-01-01  1                    1                    0001-01-01 00:00:00
 > rows: 3
 
 drop table p;
@@ -1013,8 +1013,8 @@ call set(1, 2);
 > exception CAN_ONLY_ASSIGN_TO_VARIABLE_1
 
 select x, set(@t, ifnull(@t, 0) + x) from system_range(1, 3);
-> X SET(@T, (IFNULL(@T, 0) + X))
-> - ----------------------------
+> X SET(@T, (COALESCE(@T, 0) + X))
+> - ------------------------------
 > 1 1
 > 2 3
 > 3 6
@@ -1107,23 +1107,6 @@ CREATE TABLE TEST(ID INTEGER NOT NULL, ID2 INTEGER DEFAULT 0);
 
 ALTER TABLE test ALTER COLUMN ID2 RENAME TO ID;
 > exception DUPLICATE_COLUMN_NAME_1
-
-drop table test;
-> ok
-
-create table test(id int primary key, data array);
-> ok
-
-insert into test values(1, ARRAY[1, 1]), (2, ARRAY[1, 2]), (3, ARRAY[1, 1, 1]);
-> update count: 3
-
-select * from test order by data;
-> ID DATA
-> -- ---------
-> 1  [1, 1]
-> 3  [1, 1, 1]
-> 2  [1, 2]
-> rows (ordered): 3
 
 drop table test;
 > ok
@@ -1706,21 +1689,6 @@ select (1, 2);
 > ----------
 > ROW (1, 2)
 > rows: 1
-
-create table array_test(x array);
-> ok
-
-insert into array_test values(ARRAY[1, 2, 3]), (ARRAY[2, 3, 4]);
-> update count: 2
-
-select * from array_test where x = ARRAY[1, 2, 3];
-> X
-> ---------
-> [1, 2, 3]
-> rows: 1
-
-drop table array_test;
-> ok
 
 select * from (select 1), (select 2);
 > 1 2
@@ -3808,8 +3776,8 @@ explain update test set (id, name)=(id+1, name || 'Hi');
 #-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET "ID" = ("ID" + 1), "NAME" = ("NAME" || 'Hi')
 
 explain update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id=t1.id);
-#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "ID" = ARRAY_GET((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID"), 1), "NAME" = ARRAY_GET((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID"), 2)
-#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET "ID" = ARRAY_GET((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID"), 1), "NAME" = ARRAY_GET((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID"), 2)
+#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "ID" = ((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID")[1]), "NAME" = ((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID")[2])
+#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET "ID" = ((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID")[1]), "NAME" = ((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID")[2])
 
 select * from test;
 > ID NAME
@@ -6003,8 +5971,8 @@ INSERT INTO TEST VALUES(?, ?, ?);
 > update count: 9
 
 SELECT IFNULL(NAME, '') || ': ' || GROUP_CONCAT("VALUE" ORDER BY NAME, "VALUE" DESC SEPARATOR ', ') FROM TEST GROUP BY NAME ORDER BY 1;
-> (IFNULL(NAME, '') || ': ') || LISTAGG("VALUE", ', ') WITHIN GROUP (ORDER BY NAME, "VALUE" DESC)
-> -----------------------------------------------------------------------------------------------
+> (COALESCE(NAME, '') || ': ') || LISTAGG("VALUE", ', ') WITHIN GROUP (ORDER BY NAME, "VALUE" DESC)
+> -------------------------------------------------------------------------------------------------
 > : 3.10, -10.00
 > Apples: 1.50, 1.20, 1.10
 > Bananas: 2.50

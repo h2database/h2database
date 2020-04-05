@@ -182,7 +182,7 @@ final class FullTextSettings {
     private static String getIndexPath(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery(
-                "CALL IFNULL(DATABASE_PATH(), 'MEM:' || DATABASE())");
+                "CALL COALESCE(DATABASE_PATH(), 'MEM:' || DATABASE())");
         rs.next();
         String path = rs.getString(1);
         if ("MEM:UNNAMED".equals(path)) {

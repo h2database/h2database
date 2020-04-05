@@ -925,7 +925,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 database.checkPowerOff();
 
                 // release any open table locks
-                if (hasPreparedTranaction()) {
+                if (hasPreparedTransaction()) {
                     endTransaction(transaction != null && !transaction.allowNonRepeatableRead());
                 } else {
                     rollback();
@@ -1266,7 +1266,13 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         currentTransactionName = transactionName;
     }
 
-    public boolean hasPreparedTranaction() {
+    /**
+     * Checks presence of prepared transaction in this session.
+     *
+     * @return {@code true} if there is a prepared transaction,
+     *         {@code false} otherwise
+     */
+    public boolean hasPreparedTransaction() {
         return currentTransactionName != null;
     }
 
@@ -1277,7 +1283,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * @param commit true for commit, false for rollback
      */
     public void setPreparedTransaction(String transactionName, boolean commit) {
-        if (hasPreparedTranaction() && currentTransactionName.equals(transactionName)) {
+        if (hasPreparedTransaction() && currentTransactionName.equals(transactionName)) {
             if (commit) {
                 commit(false);
             } else {

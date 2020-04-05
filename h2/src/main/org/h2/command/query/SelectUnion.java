@@ -66,7 +66,6 @@ public class SelectUnion extends Query {
      */
     final Query right;
 
-    private boolean isPrepared, checkInit;
     private boolean isForUpdate;
 
     public SelectUnion(Session session, UnionType unionType, Query query, Query right) {

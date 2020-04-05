@@ -15,14 +15,17 @@ public final class ValueArray extends ValueCollectionBase {
     /**
      * Empty array.
      */
-    public static final ValueArray EMPTY = get(Value.EMPTY_VALUES);
+    public static final ValueArray EMPTY = get(Value.EMPTY_VALUES, null);
 
     private TypeInfo type;
 
     private TypeInfo componentType;
 
-    private ValueArray(TypeInfo componentType, Value[] list) {
+    private ValueArray(TypeInfo componentType, Value[] list, CastDataProvider provider) {
         super(list);
+        for (int i = 0, l = list.length; i < l; i++) {
+            list[i] = list[i].castTo(componentType, provider);
+        }
         this.componentType = componentType;
     }
 
@@ -31,10 +34,15 @@ public final class ValueArray extends ValueCollectionBase {
      * Do not clone the data.
      *
      * @param list the value array
+     * @param provider the cast information provider
      * @return the value
      */
-    public static ValueArray get(Value[] list) {
-        return new ValueArray(null, list);
+    public static ValueArray get(Value[] list, CastDataProvider provider) {
+        TypeInfo t = TypeInfo.TYPE_NULL;
+        for (Value v : list) {
+            t = TypeInfo.getHigherType(t, v.getType());
+        }
+        return new ValueArray(t, list, provider);
     }
 
     /**
@@ -43,10 +51,11 @@ public final class ValueArray extends ValueCollectionBase {
      *
      * @param componentType the type of elements, or {@code null}
      * @param list the value array
+     * @param provider the cast information provider
      * @return the value
      */
-    public static ValueArray get(TypeInfo componentType, Value[] list) {
-        return new ValueArray(componentType, list);
+    public static ValueArray get(TypeInfo componentType, Value[] list, CastDataProvider provider) {
+        return new ValueArray(componentType, list, provider);
     }
 
     @Override
@@ -55,7 +64,7 @@ public final class ValueArray extends ValueCollectionBase {
         if (type == null) {
             TypeInfo componentType = getComponentType();
             this.type = type = TypeInfo.getTypeInfo(getValueType(), values.length, 0,
-                    componentType.getValueType() != NULL ? new ExtTypeInfoArray(componentType) : null);
+                    new ExtTypeInfoArray(componentType));
         }
         return type;
     }
@@ -66,31 +75,7 @@ public final class ValueArray extends ValueCollectionBase {
     }
 
     public TypeInfo getComponentType() {
-        TypeInfo type = componentType;
-        if (type == null) {
-            int length = values.length;
-            if (length == 0) {
-                type = TypeInfo.TYPE_NULL;
-            } else {
-                int t = values[0].getValueType();
-                if (length > 1) {
-                    for (int i = 1; i < length; i++) {
-                        int t2 = values[i].getValueType();
-                        if (t2 != Value.NULL) {
-                            if (t == Value.NULL) {
-                                t = t2;
-                            } else if (t != t2) {
-                                t = Value.NULL;
-                                break;
-                            }
-                        }
-                    }
-                }
-                type = TypeInfo.getTypeInfo(t);
-            }
-            componentType = type;
-        }
-        return type;
+        return componentType;
     }
 
     @Override

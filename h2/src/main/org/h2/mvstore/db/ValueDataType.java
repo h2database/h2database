@@ -805,7 +805,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             for (int i = 0; i < len; i++) {
                 list[i] = readValue(buff, false);
             }
-            return type == ARRAY ? ValueArray.get(list) : ValueRow.get(list);
+            return type == ARRAY && !rowAsRow ? ValueArray.get(list, provider) : ValueRow.get(list);
         }
         case RESULT_SET: {
             SimpleResult rs = new SimpleResult();

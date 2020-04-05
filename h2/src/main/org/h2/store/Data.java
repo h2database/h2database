@@ -930,7 +930,7 @@ public class Data {
             for (int i = 0; i < len; i++) {
                 list[i] = readValue();
             }
-            return type == ARRAY ? ValueArray.get(list) : ValueRow.get(list);
+            return type == ARRAY ? ValueArray.get(list, null) : ValueRow.get(list);
         }
         case RESULT_SET: {
             SimpleResult rs = new SimpleResult();

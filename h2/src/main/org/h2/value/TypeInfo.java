@@ -442,10 +442,10 @@ public class TypeInfo {
                 return TYPE_ENUM_UNDEFINED;
             }
         case Value.ARRAY:
+            if (!(extTypeInfo instanceof ExtTypeInfoArray)) {
+                throw new IllegalArgumentException();
+            }
             if (precision < 0 || precision >= Integer.MAX_VALUE) {
-                if (extTypeInfo == null) {
-                    return TYPE_ARRAY;
-                }
                 precision = Integer.MAX_VALUE;
             }
             return new TypeInfo(Value.ARRAY, precision, 0, Integer.MAX_VALUE, extTypeInfo);
@@ -467,14 +467,12 @@ public class TypeInfo {
     public static TypeInfo getHigherType(TypeInfo type1, TypeInfo type2) {
         int t1 = type1.getValueType(), t2 = type2.getValueType();
         int dataType = Value.getHigherOrder(t1, t2);
-        long precision;
-        int scale;
         switch (dataType) {
         case Value.NUMERIC: {
             type1 = type1.toNumericType();
             type2 = type2.toNumericType();
             long precision1 = type1.getPrecision(), precision2 = type2.getPrecision();
-            int scale1 = type1.getScale(), scale2 = type2.getScale();
+            int scale1 = type1.getScale(), scale2 = type2.getScale(), scale;
             if (scale1 < scale2) {
                 precision1 += scale2 - scale1;
                 scale = scale2;
@@ -482,16 +480,47 @@ public class TypeInfo {
                 precision2 += scale1 - scale2;
                 scale = scale1;
             }
-            precision = Math.max(precision1, precision2);
-            break;
+            return TypeInfo.getTypeInfo(dataType, Math.max(precision1, precision2), scale, null);
         }
-        default:
+        case Value.ARRAY:
+            return getHigherArray(type1, type2, dimensions(type1), dimensions(type2));
+        }
+        ExtTypeInfo ext1 = type1.extTypeInfo;
+        return TypeInfo.getTypeInfo(dataType, //
+                Math.max(type1.getPrecision(), type2.getPrecision()), //
+                Math.max(type1.getScale(), type2.getScale()), //
+                dataType == t1 && ext1 != null ? ext1 : dataType == t2 ? type2.extTypeInfo : null);
+    }
+
+    private static int dimensions(TypeInfo type) {
+        int result;
+        for (result = 0; type.getValueType() == Value.ARRAY; result++) {
+            type = ((ExtTypeInfoArray) type.extTypeInfo).getComponentType();
+        }
+        return result;
+    }
+
+    private static TypeInfo getHigherArray(TypeInfo type1, TypeInfo type2, int d1, int d2) {
+        long precision;
+        if (d1 > d2) {
+            d1--;
+            precision = Math.max(type1.getPrecision(), 1L);
+            type1 = ((ExtTypeInfoArray) type1.extTypeInfo).getComponentType();
+        } else if (d1 < d2) {
+            d2--;
+            precision = Math.max(1L, type2.getPrecision());
+            type2 = ((ExtTypeInfoArray) type2.extTypeInfo).getComponentType();
+        } else if (d1 > 0) {
+            d1--;
+            d2--;
             precision = Math.max(type1.getPrecision(), type2.getPrecision());
-            scale = Math.max(type1.getScale(), type2.getScale());
+            type1 = ((ExtTypeInfoArray) type1.extTypeInfo).getComponentType();
+            type2 = ((ExtTypeInfoArray) type2.extTypeInfo).getComponentType();
+        } else {
+            return getHigherType(type1, type2);
         }
-        ExtTypeInfo ext1 = type1.getExtTypeInfo();
-        ExtTypeInfo ext = dataType == t1 && ext1 != null ? ext1 : dataType == t2 ? type2.getExtTypeInfo() : null;
-        return TypeInfo.getTypeInfo(dataType, precision, scale, ext);
+        return TypeInfo.getTypeInfo(Value.ARRAY, precision, 0,
+                new ExtTypeInfoArray(getHigherArray(type1, type2, d1, d2)));
     }
 
     /**

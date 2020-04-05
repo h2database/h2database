@@ -3879,10 +3879,10 @@ UUID
 "
 
 "Data Types","ARRAY Type","
-[baseDataType] ARRAY [ '[' maximumCardinalityInt ']' ]
+baseDataType ARRAY [ '[' maximumCardinalityInt ']' ]
 ","
 An array of values.
-Base data type, if any, specifies the data type of elements.
+Base data type specifies the data type of elements.
 Array may have NULL elements.
 Maximum cardinality, if any, specifies maximum allowed number of elements in the array.
 
@@ -3892,8 +3892,8 @@ Mapped to ""java.lang.Object[]"" (arrays of any non-primitive type are also supp
 Use ""PreparedStatement.setArray(..)"" or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
 and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the values.
 ","
-ARRAY
-ARRAY[10]
+BOOLEAN ARRAY
+VARCHAR(100) ARRAY
 INTEGER ARRAY[10]
 "
 
@@ -4412,13 +4412,17 @@ LN(A)
 "
 
 "Functions (Numeric)","LOG","
-LOG([baseNumeric,] numeric)
+LOG({baseNumeric, numeric | @c@{numeric}})
 ","
 Calculates the logarithm with specified base as a double value.
 Argument and base must be positive numeric values.
 Base cannot be equal to 1.
+
 The default base is e (natural logarithm), in the PostgreSQL mode the default base is base 10.
 In MSSQLServer mode the optional base is specified after the argument.
+
+Single-argument variant of LOG function is deprecated, use [LN](https://h2database.com/html/functions.html#ln)
+or [LOG10](https://h2database.com/html/functions.html#log10) instead.
 ","
 LOG(2, A)
 "
@@ -4593,6 +4597,9 @@ CALL HASH('SHA3-256', X'0102')
 ","
 When a numeric argument is specified, truncates it to a number of digits (to the next value closer to 0)
 and returns a double, float, or numeric value depending on type of the argument.
+
+This function with datetime or string argument is deprecated, use
+[DATE_TRUNC](https://h2database.com/html/functions.html#date_trunc) instead.
 When used with a timestamp, truncates the timestamp to a date (day) value
 and returns a timestamp with or without time zone depending on type of the argument.
 When used with a date, returns a timestamp at start of this date.
@@ -4829,6 +4836,8 @@ RPAD(TEXT, 10, '-')
 @c@ LTRIM(string)
 ","
 Removes all leading spaces from a string.
+
+This function is deprecated, use [TRIM](https://h2database.com/html/functions.html#trim) instead of it.
 ","
 LTRIM(NAME)
 "
@@ -4837,6 +4846,8 @@ LTRIM(NAME)
 @c@ RTRIM(string)
 ","
 Removes all trailing spaces from a string.
+
+This function is deprecated, use [TRIM](https://h2database.com/html/functions.html#trim) instead of it.
 ","
 RTRIM(NAME)
 "
@@ -5214,6 +5225,8 @@ DAYNAME(CREATED)
 @c@ DAY_OF_MONTH(dateAndTime|interval)
 ","
 Returns the day of the month (1-31).
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 DAY_OF_MONTH(CREATED)
 "
@@ -5222,6 +5235,8 @@ DAY_OF_MONTH(CREATED)
 @c@ DAY_OF_WEEK(dateAndTime)
 ","
 Returns the day of the week (1-7), locale-specific.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 DAY_OF_WEEK(CREATED)
 "
@@ -5230,6 +5245,8 @@ DAY_OF_WEEK(CREATED)
 @c@ ISO_DAY_OF_WEEK(dateAndTime)
 ","
 Returns the ISO day of the week (1 means Monday).
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 ISO_DAY_OF_WEEK(CREATED)
 "
@@ -5238,6 +5255,8 @@ ISO_DAY_OF_WEEK(CREATED)
 @c@ DAY_OF_YEAR(dateAndTime|interval)
 ","
 Returns the day of the year (1-366).
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 DAY_OF_YEAR(CREATED)
 "
@@ -5272,6 +5291,8 @@ CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',
 @c@ HOUR(dateAndTime|interval)
 ","
 Returns the hour (0-23) from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 HOUR(CREATED)
 "
@@ -5280,6 +5301,8 @@ HOUR(CREATED)
 @c@ MINUTE(dateAndTime|interval)
 ","
 Returns the minute (0-59) from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 MINUTE(CREATED)
 "
@@ -5288,6 +5311,8 @@ MINUTE(CREATED)
 @c@ MONTH(dateAndTime|interval)
 ","
 Returns the month (1-12) from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 MONTH(CREATED)
 "
@@ -5317,6 +5342,8 @@ CALL PARSEDATETIME('Sat, 3 Feb 2001 03:05:06 GMT',
 @c@ QUARTER(dateAndTime)
 ","
 Returns the quarter (1-4) from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 QUARTER(CREATED)
 "
@@ -5325,6 +5352,8 @@ QUARTER(CREATED)
 @c@ SECOND(dateAndTime)
 ","
 Returns the second (0-59) from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 SECOND(CREATED|interval)
 "
@@ -5333,7 +5362,10 @@ SECOND(CREATED|interval)
 @c@ WEEK(dateAndTime)
 ","
 Returns the week (1-53) from a date/time value.
-This method uses the current system locale.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
+
+This function uses the current system locale.
 ","
 WEEK(CREATED)
 "
@@ -5342,6 +5374,9 @@ WEEK(CREATED)
 @c@ ISO_WEEK(dateAndTime)
 ","
 Returns the ISO week (1-53) from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
+
 This function uses the ISO definition when
 first week of year should have at least four days
 and week is started with Monday.
@@ -5353,6 +5388,8 @@ ISO_WEEK(CREATED)
 @c@ YEAR(dateAndTime|interval)
 ","
 Returns the year from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 YEAR(CREATED)
 "
@@ -5361,6 +5398,8 @@ YEAR(CREATED)
 @c@ ISO_YEAR(dateAndTime)
 ","
 Returns the ISO week year from a date/time value.
+
+This function is deprecated, use [EXTRACT](https://h2database.com/html/functions.html#extract) instead of it.
 ","
 ISO_YEAR(CREATED)
 "
@@ -5383,6 +5422,9 @@ CALL ABORT_SESSION(3)
 @c@ ARRAY_GET(arrayExpression, indexExpression)
 ","
 Returns element at the specified 1-based index from an array.
+
+This function is deprecated, use ""arrayExpression[indexExpression]"" instead of it.
+
 Returns NULL if there is no such element or array is NULL.
 ","
 CALL ARRAY_GET(ARRAY['Hello', 'World'], 2)
@@ -5410,6 +5452,9 @@ CALL ARRAY_CONTAINS(ARRAY['Hello', 'World'], 'Hello')
 @c@ ARRAY_CAT(arrayExpression, arrayExpression)
 ","
 Returns the concatenation of two arrays.
+
+This function is deprecated, use ""||"" instead of it.
+
 Returns NULL if any parameter is NULL.
 ","
 CALL ARRAY_CAT(ARRAY[1, 2], ARRAY[3, 4])
@@ -5419,6 +5464,9 @@ CALL ARRAY_CAT(ARRAY[1, 2], ARRAY[3, 4])
 @c@ ARRAY_APPEND(arrayExpression, value)
 ","
 Append an element to the end of an array.
+
+This function is deprecated, use ""||"" instead of it.
+
 Returns NULL if any parameter is NULL.
 ","
 CALL ARRAY_APPEND(ARRAY[1, 2], 3)
@@ -5455,12 +5503,13 @@ CANCEL_SESSION(3)
 "
 
 "Functions (System)","CASEWHEN Function","
-CASEWHEN(boolean, aValue, bValue)
+@c@ CASEWHEN(boolean, aValue, bValue)
 ","
-Returns 'a' if the boolean expression is true, otherwise 'b'.
-Returns the same data type as the parameter.
+Returns 'aValue' if the boolean expression is true, otherwise 'bValue'.
+
+This function is deprecated, use [CASE](https://h2database.com/html/grammar.html#case_when) instead of it.
 ","
-@c@ CASEWHEN(ID=1, 'A', 'B')
+CASEWHEN(ID=1, 'A', 'B')
 "
 
 "Functions (System)","CAST","
@@ -5484,6 +5533,7 @@ CAST(TIMESTAMP '2010-01-01 10:40:00.123456' AS TIME(6))
 
 "Functions (System)","COALESCE","
 { COALESCE | @c@ { NVL } } (aValue, bValue [,...])
+    | @c@ IFNULL(aValue, bValue)
 ","
 Returns the first value that is not null.
 ","
@@ -5494,6 +5544,8 @@ COALESCE(A, B, C)
 @c@ CONVERT(value, dataType)
 ","
 Converts a value to another data type.
+
+This function is deprecated, use [CAST](https://h2database.com/html/functions.html#cast) instead of it.
 ","
 CONVERT(NAME, INT)
 "
@@ -5589,7 +5641,7 @@ CALL CURRENT_SCHEMA
 "
 
 "Functions (System)","CURRENT_CATALOG","
-CURRENT_CATALOG | @h2@ DATABASE()
+CURRENT_CATALOG | @c@ DATABASE()
 ","
 Returns the name of the database.
 ","
@@ -5694,14 +5746,6 @@ even within a trigger or Java function. See also SCOPE_IDENTITY.
 This method returns a long.
 ","
 CALL IDENTITY();
-"
-
-"Functions (System)","IFNULL","
-@c@ IFNULL(aValue, bValue)
-","
-Returns the value of 'a' if it is not null, otherwise 'b'.
-","
-CALL IFNULL(NULL, '');
 "
 
 "Functions (System)","LEAST","
@@ -5853,7 +5897,7 @@ When used in a query, the value is updated in the order the rows are read.
 When used in a subquery, not all rows might be read depending on the query plan.
 This can be used to implement running totals / cumulative sums.
 ","
-SELECT X, SET(@I, IFNULL(@I, 0)+X) RUNNING_TOTAL FROM SYSTEM_RANGE(1, 10)
+SELECT X, SET(@I, COALESCE(@I, 0)+X) RUNNING_TOTAL FROM SYSTEM_RANGE(1, 10)
 "
 
 "Functions (System)","TABLE","
@@ -5901,7 +5945,7 @@ If multiple arguments are specified and they have different length, cells with m
 SELECT * FROM UNNEST(ARRAY['a', 'b', 'c']);
 "
 
-"Functions (System)","USER","
+"Functions (System)","CURRENT_USER","
 CURRENT_USER | @c@ USER()
 ","
 Returns the name of the current user of this session.

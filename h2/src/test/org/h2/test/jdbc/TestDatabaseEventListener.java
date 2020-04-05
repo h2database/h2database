@@ -13,7 +13,6 @@ import java.util.Properties;
 
 import org.h2.Driver;
 import org.h2.api.DatabaseEventListener;
-import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 

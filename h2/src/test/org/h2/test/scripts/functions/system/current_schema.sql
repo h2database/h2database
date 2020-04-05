@@ -4,8 +4,8 @@
 --
 
 SELECT CURRENT_SCHEMA, SCHEMA();
-> CURRENT_SCHEMA SCHEMA()
-> -------------- --------
+> CURRENT_SCHEMA CURRENT_SCHEMA
+> -------------- --------------
 > PUBLIC         PUBLIC
 > rows: 1
 

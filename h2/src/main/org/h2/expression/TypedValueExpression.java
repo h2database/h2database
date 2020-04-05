@@ -5,6 +5,9 @@
  */
 package org.h2.expression;
 
+import java.util.Objects;
+
+import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -29,11 +32,24 @@ public class TypedValueExpression extends ValueExpression {
      *            the value type
      * @return the expression
      */
-    public static TypedValueExpression get(Value value, TypeInfo type) {
-        if (value == ValueNull.INSTANCE && type.getValueType() == Value.BOOLEAN) {
-            return UNKNOWN;
+    public static ValueExpression get(Value value, TypeInfo type) {
+        if (value == ValueNull.INSTANCE) {
+            switch (type.getValueType()) {
+            case Value.NULL:
+                return ValueExpression.NULL;
+            case Value.BOOLEAN:
+                return UNKNOWN;
+            }
+            return new TypedValueExpression(value, type);
         }
-        return new TypedValueExpression(value, type);
+        DataType dt = DataType.getDataType(type.getValueType());
+        TypeInfo vt = value.getType();
+        if (dt.supportsPrecision && type.getPrecision() != vt.getPrecision()
+                || dt.supportsScale && type.getScale() != vt.getScale()
+                || !Objects.equals(type.getExtTypeInfo(), vt.getExtTypeInfo())) {
+            return new TypedValueExpression(value, type);
+        }
+        return ValueExpression.get(value);
     }
 
     private final TypeInfo type;

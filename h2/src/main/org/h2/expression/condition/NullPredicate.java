@@ -47,7 +47,7 @@ public class NullPredicate extends SimplePredicate {
         optimized = true;
         if (left instanceof ExpressionList) {
             ExpressionList list = (ExpressionList) left;
-            if (list.getType().getValueType() == Value.ROW) {
+            if (!list.isArray()) {
                 for (int i = 0, count = list.getSubexpressionCount(); i < count; i++) {
                     if (list.getSubexpression(i).isNullConstant()) {
                         if (not) {
@@ -110,7 +110,7 @@ public class NullPredicate extends SimplePredicate {
             createNullIndexCondition(filter, (ExpressionColumn) left);
         } else if (left instanceof ExpressionList) {
             ExpressionList list = (ExpressionList) left;
-            if (list.getType().getValueType() == Value.ROW) {
+            if (!list.isArray()) {
                 for (int i = 0, count = list.getSubexpressionCount(); i < count; i++) {
                     Expression e = list.getSubexpression(i);
                     if (e instanceof ExpressionColumn) {

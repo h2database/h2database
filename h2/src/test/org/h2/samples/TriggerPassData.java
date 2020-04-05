@@ -77,7 +77,7 @@ public class TriggerPassData implements Trigger {
     private static String getPrefix(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery(
-                "call ifnull(database_path() || '_', '') || database() || '_'");
+                "call coalesce(database_path() || '_', '') || database() || '_'");
         rs.next();
         return rs.getString(1);
     }

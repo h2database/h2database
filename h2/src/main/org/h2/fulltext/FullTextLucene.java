@@ -452,7 +452,7 @@ public class FullTextLucene extends FullText {
                         String schemaName = expr.getOriginalTableAliasName();
                         String tableName = expr.getColumnName(session, -1);
                         q = q.substring(idx + " WHERE ".length());
-                        Object[][] columnData = parseKey(conn, q);
+                        String[][] columnData = parseKey(conn, q);
                         result.addRow(schemaName, tableName, columnData[0],
                                 columnData[1], score);
                     } else {

@@ -2345,7 +2345,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             Value[] a;
             switch (valueType) {
             case ROW:
-                a = ((ValueRow) this).getList();
+                a = ((ValueRow) this).getList().clone();
                 break;
             case BLOB:
                 a = new Value[] { ValueVarbinary.get(getBytesNoCopy()) };
@@ -2357,7 +2357,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             default:
                 a = new Value[] { this };
             }
-            v = ValueArray.get(a);
+            v = ValueArray.get(a, provider);
         }
         if (extTypeInfo != null) {
             TypeInfo componentType = extTypeInfo.getComponentType();
@@ -2373,7 +2373,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                     while (++i < length) {
                         newValues[i] = values[i].convertTo(componentType, provider, conversionMode, column);
                     }
-                    v = ValueArray.get(newValues);
+                    v = ValueArray.get(newValues, provider);
                     break loop;
                 }
             }
@@ -2384,7 +2384,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             if (conversionMode == CAST_TO) {
                 int p = MathUtils.convertLongToInt(targetType.getPrecision());
                 if (cardinality > p) {
-                    v = ValueArray.get(v.getComponentType(), Arrays.copyOf(values, p));
+                    v = ValueArray.get(v.getComponentType(), Arrays.copyOf(values, p), provider);
                 }
             } else if (cardinality > targetType.getPrecision()) {
                 throw v.getValueTooLongException(targetType, column);

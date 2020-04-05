@@ -512,16 +512,17 @@ public class TableView extends Table {
      * @param session the session
      * @param owner the owner of the query
      * @param name the view name
+     * @param columnTemplates column templates, or {@code null}
      * @param query the query
      * @param topQuery the top level query
      * @return the view table
      */
     public static TableView createTempView(Session session, User owner,
-            String name, Query query, Query topQuery) {
+            String name, Column[] columnTemplates, Query query, Query topQuery) {
         Schema mainSchema = session.getDatabase().getMainSchema();
         String querySQL = query.getPlanSQL(DEFAULT_SQL_FLAGS);
         TableView v = new TableView(mainSchema, 0, name,
-                querySQL, query.getParameters(), null /* column templates */, session,
+                querySQL, query.getParameters(), columnTemplates, session,
                 false/* allow recursive */, true /* literals have already been checked when parsing original query */,
                 false /* is table expression */, true/*temporary*/);
         if (v.createException != null) {

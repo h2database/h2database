@@ -780,7 +780,7 @@ public class TestPageStore extends TestDb {
             stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(20, 100)");
             stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1000, 1100)");
             stat.execute("SHUTDOWN IMMEDIATELY");
-        }        
+        }
         try (Connection conn = getConnection("pageStoreCreateIndexLater")) {/**/}
     }
 

@@ -444,7 +444,7 @@ public class TestCallableStatement extends TestDb {
             new Object[] {0, 1, 2},
             new Object[] {0, "1", 2},
             new Object[] {0, null, 2},
-            new Object[] {0, new Object[] {"s", 1}, new Object[] {null, 1L}},
+            new Object[] {0, new Object[] {"2", 1}, new Object[] {null, 1L}},
         };
         try (Statement statement = connection.createStatement()) {
             statement.execute("CREATE ALIAS arrayIdentiy FOR \"" +

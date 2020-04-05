@@ -1253,22 +1253,24 @@ public class TestMVTableEngine extends TestDb {
         stat.execute("drop table test");
 
         stat.execute("create table test(id int, obj object, " +
-                "rs result_set, arr array, ig varchar_ignorecase)");
+                "rs result_set, arr1 int array, arr2 numeric(1000) array, ig varchar_ignorecase)");
         PreparedStatement prep = conn.prepareStatement(
-                "insert into test values(?, ?, ?, ?, ?)");
+                "insert into test values(?, ?, ?, ?, ?, ?)");
         prep.setInt(1, 1);
         prep.setObject(2, new java.lang.AssertionError());
         prep.setObject(3, stat.executeQuery("select 1 from dual"));
         prep.setObject(4, new Object[]{1, 2});
-        prep.setObject(5, "test");
+        prep.setObject(5, new Object[0]);
+        prep.setObject(6, "test");
         prep.execute();
         prep.setInt(1, 1);
         prep.setObject(2, new java.lang.AssertionError());
         prep.setObject(3, stat.executeQuery("select 1 from dual"));
-        prep.setObject(4, new Object[]{
+        prep.setObject(4, new Object[0]);
+        prep.setObject(5, new Object[]{
                 new BigDecimal(new String(
                 new char[1000]).replace((char) 0, '1'))});
-        prep.setObject(5, "test");
+        prep.setObject(6, "test");
         prep.execute();
         if (!config.memory) {
             conn.close();

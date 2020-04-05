@@ -175,11 +175,11 @@ public class TestMetaData extends TestDb {
         assertEquals("C", rs.getMetaData().getColumnName(1));
 
         Statement stat = conn.createStatement();
-        stat.execute("create table a(x array)");
+        stat.execute("create table a(x int array)");
         stat.execute("insert into a values(ARRAY[1, 2])");
         rs = stat.executeQuery("SELECT x[1] FROM a");
         ResultSetMetaData rsMeta = rs.getMetaData();
-        assertEquals(Types.NULL, rsMeta.getColumnType(1));
+        assertEquals(Types.INTEGER, rsMeta.getColumnType(1));
         rs.next();
         assertEquals(Integer.class.getName(),
                 rs.getObject(1).getClass().getName());

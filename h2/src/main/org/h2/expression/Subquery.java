@@ -76,7 +76,7 @@ public final class Subquery extends Expression {
 
     @Override
     public TypeInfo getType() {
-        return getExpression().getType();
+        return expression.getType();
     }
 
     @Override
@@ -93,6 +93,17 @@ public final class Subquery extends Expression {
         Expression e = query.getIfSingleRow();
         if (e != null) {
             return e.optimize(session);
+        }
+        ArrayList<Expression> expressions = query.getExpressions();
+        int columnCount = query.getColumnCount();
+        if (columnCount == 1) {
+            expression = expressions.get(0);
+        } else {
+            Expression[] list = new Expression[columnCount];
+            for (int i = 0; i < columnCount; i++) {
+                list[i] = expressions.get(i);
+            }
+            expression = new ExpressionList(list, false).optimize(session);
         }
         return this;
     }
@@ -117,23 +128,6 @@ public final class Subquery extends Expression {
         query.updateAggregate(session, stage);
     }
 
-    private Expression getExpression() {
-        if (expression == null) {
-            ArrayList<Expression> expressions = query.getExpressions();
-            int columnCount = query.getColumnCount();
-            if (columnCount == 1) {
-                expression = expressions.get(0);
-            } else {
-                Expression[] list = new Expression[columnCount];
-                for (int i = 0; i < columnCount; i++) {
-                    list[i] = expressions.get(i);
-                }
-                expression = new ExpressionList(list, false);
-            }
-        }
-        return expression;
-    }
-
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         return query.isEverything(visitor);
@@ -155,6 +149,6 @@ public final class Subquery extends Expression {
 
     @Override
     public Expression[] getExpressionColumns(Session session) {
-        return getExpression().getExpressionColumns(session);
+        return expression.getExpressionColumns(session);
     }
 }

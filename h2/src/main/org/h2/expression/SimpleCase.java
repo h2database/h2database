@@ -17,42 +17,21 @@ import org.h2.value.ValueNull;
  */
 public class SimpleCase extends Expression {
 
-    public static abstract class SimpleWhen {
-
-        Expression result;
-
-        SimpleWhen next;
-
-        SimpleWhen(Expression result) {
-            this.result = result;
-        }
-
-        public void addWhen(SimpleWhen next) {
-            this.next = next;
-        }
-
-    }
-
-    public static final class SimpleWhen1 extends SimpleWhen {
-
-        Expression operand;
-
-        public SimpleWhen1(Expression operand, Expression result) {
-            super(result);
-            this.operand = operand;
-        }
-
-    }
-
-    public static final class SimpleWhenN extends SimpleWhen {
+    public static final class SimpleWhen {
 
         Expression[] operands;
 
         Expression result;
 
-        public SimpleWhenN(Expression[] operands, Expression result) {
-            super(result);
+        SimpleWhen next;
+
+        public SimpleWhen(Expression[] operands, Expression result) {
             this.operands = operands;
+            this.result = result;
+        }
+
+        public void addWhen(SimpleWhen next) {
+            this.next = next;
         }
 
     }
@@ -86,15 +65,9 @@ public class SimpleCase extends Expression {
         Value v = operand.getValue(session);
         if (v != ValueNull.INSTANCE) {
             for (SimpleWhen when = this.when; when != null; when = when.next) {
-                if (when instanceof SimpleWhen1) {
-                    if (session.areEqual(v, ((SimpleWhen1) when).operand.getValue(session))) {
+                for (Expression e : when.operands) {
+                    if (session.areEqual(v, e.getValue(session))) {
                         return when.result.getValue(session).convertTo(type, session);
-                    }
-                } else {
-                    for (Expression e : ((SimpleWhenN) when).operands) {
-                        if (session.areEqual(v, e.getValue(session))) {
-                            return when.result.getValue(session).convertTo(type, session);
-                        }
                     }
                 }
             }
@@ -121,9 +94,9 @@ public class SimpleCase extends Expression {
             }
         }
         for (SimpleWhen when = this.when; when != null; when = when.next) {
-            if (when instanceof SimpleWhen1) {
-                SimpleWhen1 w = (SimpleWhen1) when;
-                Expression e = w.operand.optimize(session);
+            Expression[] operands = when.operands;
+            for (int i = 0; i < operands.length; i++) {
+                Expression e = operands[i].optimize(session);
                 if (allConst) {
                     if (e.isConstant()) {
                         if (session.areEqual(v, e.getValue(session))) {
@@ -133,22 +106,7 @@ public class SimpleCase extends Expression {
                         allConst = false;
                     }
                 }
-                w.operand = e;
-            } else {
-                Expression[] operands = ((SimpleWhenN) when).operands;
-                for (int i = 0; i < operands.length; i++) {
-                    Expression e = operands[i].optimize(session);
-                    if (allConst) {
-                        if (e.isConstant()) {
-                            if (session.areEqual(v, e.getValue(session))) {
-                                return when.result.optimize(session);
-                            }
-                        } else {
-                            allConst = false;
-                        }
-                    }
-                    operands[i] = e;
-                }
+                operands[i] = e;
             }
             when.result = when.result.optimize(session);
             typeInfo = combineTypes(typeInfo, when.result);
@@ -185,16 +143,12 @@ public class SimpleCase extends Expression {
         operand.getSQL(builder.append("CASE "), sqlFlags);
         for (SimpleWhen when = this.when; when != null; when = when.next) {
             builder.append(" WHEN ");
-            if (when instanceof SimpleWhen1) {
-                ((SimpleWhen1) when).operand.getSQL(builder, sqlFlags);
-            } else {
-                Expression[] operands = ((SimpleWhenN) when).operands;
-                for (int i = 0, len = operands.length; i < len; i++) {
-                    if (i > 0) {
-                        builder.append(", ");
-                    }
-                    operands[i].getSQL(builder, sqlFlags);
+            Expression[] operands = when.operands;
+            for (int i = 0, len = operands.length; i < len; i++) {
+                if (i > 0) {
+                    builder.append(", ");
                 }
+                operands[i].getSQL(builder, sqlFlags);
             }
             when.result.getSQL(builder.append(" THEN "), sqlFlags);
         }
@@ -213,12 +167,8 @@ public class SimpleCase extends Expression {
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         operand.mapColumns(resolver, level, state);
         for (SimpleWhen when = this.when; when != null; when = when.next) {
-            if (when instanceof SimpleWhen1) {
-                ((SimpleWhen1) when).operand.mapColumns(resolver, level, state);
-            } else {
-                for (Expression e : ((SimpleWhenN) when).operands) {
-                    e.mapColumns(resolver, level, state);
-                }
+            for (Expression e : when.operands) {
+                e.mapColumns(resolver, level, state);
             }
             when.result.mapColumns(resolver, level, state);
         }
@@ -231,12 +181,8 @@ public class SimpleCase extends Expression {
     public void setEvaluatable(TableFilter tableFilter, boolean value) {
         operand.setEvaluatable(tableFilter, value);
         for (SimpleWhen when = this.when; when != null; when = when.next) {
-            if (when instanceof SimpleWhen1) {
-                ((SimpleWhen1) when).operand.setEvaluatable(tableFilter, value);
-            } else {
-                for (Expression e : ((SimpleWhenN) when).operands) {
-                    e.setEvaluatable(tableFilter, value);
-                }
+            for (Expression e : when.operands) {
+                e.setEvaluatable(tableFilter, value);
             }
             when.result.setEvaluatable(tableFilter, value);
         }
@@ -249,12 +195,8 @@ public class SimpleCase extends Expression {
     public void updateAggregate(Session session, int stage) {
         operand.updateAggregate(session, stage);
         for (SimpleWhen when = this.when; when != null; when = when.next) {
-            if (when instanceof SimpleWhen1) {
-                ((SimpleWhen1) when).operand.updateAggregate(session, stage);
-            } else {
-                for (Expression e : ((SimpleWhenN) when).operands) {
-                    e.updateAggregate(session, stage);
-                }
+            for (Expression e : when.operands) {
+                e.updateAggregate(session, stage);
             }
             when.result.updateAggregate(session, stage);
         }
@@ -269,15 +211,9 @@ public class SimpleCase extends Expression {
             return false;
         }
         for (SimpleWhen when = this.when; when != null; when = when.next) {
-            if (when instanceof SimpleWhen1) {
-                if (((SimpleWhen1) when).operand.isEverything(visitor)) {
+            for (Expression e : when.operands) {
+                if (e.isEverything(visitor)) {
                     return false;
-                }
-            } else {
-                for (Expression e : ((SimpleWhenN) when).operands) {
-                    if (e.isEverything(visitor)) {
-                        return false;
-                    }
                 }
             }
             if (when.result.isEverything(visitor)) {
@@ -295,12 +231,8 @@ public class SimpleCase extends Expression {
         int cost = 1, resultCost = 0;
         cost += operand.getCost();
         for (SimpleWhen when = this.when; when != null; when = when.next) {
-            if (when instanceof SimpleWhen1) {
-                cost += ((SimpleWhen1) when).operand.getCost();
-            } else {
-                for (Expression e : ((SimpleWhenN) when).operands) {
-                    cost += e.getCost();
-                }
+            for (Expression e : when.operands) {
+                cost += e.getCost();
             }
             resultCost = Math.max(resultCost, when.result.getCost());
         }
@@ -314,12 +246,7 @@ public class SimpleCase extends Expression {
     public int getSubexpressionCount() {
         int count = 1;
         for (SimpleWhen when = this.when; when != null; when = when.next) {
-            if (when instanceof SimpleWhen1) {
-                count++;
-            } else {
-                count += ((SimpleWhenN) when).operands.length;
-            }
-            count++;
+            count += when.operands.length + 1;
         }
         if (elseResult != null) {
             count++;
@@ -335,19 +262,13 @@ public class SimpleCase extends Expression {
             }
             int ptr = 1;
             for (SimpleWhen when = this.when; when != null; when = when.next) {
-                if (when instanceof SimpleWhen1) {
-                    if (index == ptr++) {
-                        return ((SimpleWhen1) when).operand;
-                    }
-                } else {
-                    Expression[] operands = ((SimpleWhenN) when).operands;
-                    int count = operands.length;
-                    int offset = index - ptr;
-                    if (offset < count) {
-                        return operands[offset];
-                    }
-                    ptr += count;
+                Expression[] operands = when.operands;
+                int count = operands.length;
+                int offset = index - ptr;
+                if (offset < count) {
+                    return operands[offset];
                 }
+                ptr += count;
                 if (index == ptr++) {
                     return when.result;
                 }

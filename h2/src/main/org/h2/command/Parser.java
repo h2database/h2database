@@ -5368,10 +5368,10 @@ public class Parser {
                 operands.add(readExpression());
             } while (readIf(COMMA));
             read("THEN");
-            return new SimpleCase.SimpleWhenN(operands.toArray(new Expression[0]), readExpression());
+            return new SimpleCase.SimpleWhen(operands.toArray(new Expression[0]), readExpression());
         }
         read("THEN");
-        return new SimpleCase.SimpleWhen1(operand, readExpression());
+        return new SimpleCase.SimpleWhen(new Expression[] { operand }, readExpression());
     }
 
     private int readNonNegativeInt() {

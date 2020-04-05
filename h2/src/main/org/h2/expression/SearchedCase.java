@@ -5,8 +5,6 @@
  */
 package org.h2.expression;
 
-import java.util.Arrays;
-
 import org.h2.engine.Session;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -17,51 +15,12 @@ import org.h2.value.ValueNull;
  */
 public class SearchedCase extends OperationN {
 
-    private int argsCount;
-
     public SearchedCase() {
         super(new Expression[4]);
     }
 
     public SearchedCase(Expression[] args) {
         super(args);
-    }
-
-    /**
-     * Adds a new when clause.
-     *
-     * @param condition
-     *            the condition
-     * @param result
-     *            the result for the specified condition
-     */
-    public void addWhen(Expression condition, Expression result) {
-        int capacity = args.length;
-        if (argsCount >= capacity) {
-            args = Arrays.copyOf(args, capacity * 2);
-        }
-        args[argsCount++] = condition;
-        args[argsCount++] = result;
-    }
-
-    /**
-     * Adds an else clause.
-     *
-     * @param result
-     *            the result
-     */
-    public void addElse(Expression result) {
-        int capacity = args.length;
-        if (argsCount >= capacity) {
-            args = Arrays.copyOf(args, capacity * 2);
-        }
-        args[argsCount++] = result;
-    }
-
-    public void doneWithParameters() {
-        if (args.length != argsCount) {
-            args = Arrays.copyOf(args, argsCount);
-        }
     }
 
     @Override

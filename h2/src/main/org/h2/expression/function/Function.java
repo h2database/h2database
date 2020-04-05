@@ -197,8 +197,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     private static final HashMap<String, FunctionInfo> FUNCTIONS_BY_NAME = new HashMap<>(256);
     private static final char[] SOUNDEX_INDEX = new char[128];
 
-    private int argsCount;
-
     protected final FunctionInfo info;
     private int flags;
 
@@ -559,21 +557,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         } else if (expected != len) {
             throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, Integer.toString(expected));
         }
-    }
-
-    /**
-     * Adds the parameter expression.
-     * @param param the expression
-     */
-    public void addParameter(Expression param) {
-        int capacity = args.length;
-        if (argsCount >= capacity) {
-            if (info.parameterCount != VAR_ARGS) {
-                throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, Integer.toString(capacity));
-            }
-            args = Arrays.copyOf(args, capacity * 2);
-        }
-        args[argsCount++] = param;
     }
 
     @Override
@@ -2406,19 +2389,12 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
     }
 
-    /**
-     * This method is called after all the parameters have been set.
-     * It checks if the parameter count is correct.
-     *
-     * @throws DbException if the parameter count is incorrect.
-     */
+    @Override
     public void doneWithParameters() {
         int count = info.parameterCount;
         if (count == VAR_ARGS) {
             checkParameterCount(argsCount);
-            if (args.length != argsCount) {
-                args = Arrays.copyOf(args, argsCount);
-            }
+            super.doneWithParameters();
         } else if (count != argsCount) {
             throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, Integer.toString(argsCount));
         }

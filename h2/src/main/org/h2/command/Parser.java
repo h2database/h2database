@@ -5325,10 +5325,11 @@ public class Parser {
             do {
                 Expression condition = readExpression();
                 read("THEN");
-                c.addWhen(condition, readExpression());
+                c.addParameter(condition);
+                c.addParameter(readExpression());
             } while (readIf(WHEN));
             if (readIf(ELSE)) {
-                c.addElse(readExpression());
+                c.addParameter(readExpression());
             }
             read(END);
             c.doneWithParameters();

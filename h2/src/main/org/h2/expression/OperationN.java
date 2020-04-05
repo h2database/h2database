@@ -5,7 +5,10 @@
  */
 package org.h2.expression;
 
+import java.util.Arrays;
+
 import org.h2.engine.Session;
+import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
@@ -17,10 +20,40 @@ public abstract class OperationN extends Expression {
 
     protected Expression[] args;
 
+    protected int argsCount;
+
     protected TypeInfo type;
 
     protected OperationN(Expression[] args) {
         this.args = args;
+    }
+
+    /**
+     * Adds the parameter expression.
+     *
+     * @param param
+     *            the expression
+     */
+    public void addParameter(Expression param) {
+        int capacity = args.length;
+        if (argsCount >= capacity) {
+            args = Arrays.copyOf(args, capacity * 2);
+        }
+        args[argsCount++] = param;
+    }
+
+    /**
+     * This method must be called after all the parameters have been set. It
+     * checks if the parameter count is correct when required by the
+     * implementation.
+     *
+     * @throws DbException
+     *             if the parameter count is incorrect.
+     */
+    public void doneWithParameters() throws DbException {
+        if (args.length != argsCount) {
+            args = Arrays.copyOf(args, argsCount);
+        }
     }
 
     @Override

@@ -6,8 +6,6 @@
 package org.h2.expression;
 
 import org.h2.engine.Session;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueJson;
@@ -15,7 +13,7 @@ import org.h2.value.ValueJson;
 /**
  * A format clause such as FORMAT JSON.
  */
-public class Format extends Expression {
+public class Format extends Operation1 {
 
     /**
      * Supported formats.
@@ -27,17 +25,16 @@ public class Format extends Expression {
         JSON;
     }
 
-    private Expression expr;
     private final FormatEnum format;
 
-    public Format(Expression expression, FormatEnum format) {
-        this.expr = expression;
+    public Format(Expression arg, FormatEnum format) {
+        super(arg);
         this.format = format;
     }
 
     @Override
     public Value getValue(Session session) {
-        return getValue(expr.getValue(session));
+        return getValue(arg.getValue(session));
     }
 
     /**
@@ -62,83 +59,41 @@ public class Format extends Expression {
     }
 
     @Override
-    public TypeInfo getType() {
-        return TypeInfo.TYPE_JSON;
-    }
-
-    @Override
-    public void mapColumns(ColumnResolver resolver, int level, int state) {
-        expr.mapColumns(resolver, level, state);
-    }
-
-    @Override
     public Expression optimize(Session session) {
-        expr = expr.optimize(session);
-        if (expr.isConstant()) {
+        arg = arg.optimize(session);
+        if (arg.isConstant()) {
             return ValueExpression.get(getValue(session));
         }
-        if (expr instanceof Format && format == ((Format) expr).format) {
-            return expr;
+        if (arg instanceof Format && format == ((Format) arg).format) {
+            return arg;
         }
+        type = TypeInfo.TYPE_JSON;
         return this;
     }
 
     @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        expr.setEvaluatable(tableFilter, b);
-    }
-
-    @Override
     public boolean isAutoIncrement() {
-        return expr.isAutoIncrement();
+        return arg.isAutoIncrement();
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return expr.getSQL(builder, sqlFlags).append(" FORMAT ").append(format.name());
-    }
-
-    @Override
-    public void updateAggregate(Session session, int stage) {
-        expr.updateAggregate(session, stage);
+        return arg.getSQL(builder, sqlFlags).append(" FORMAT ").append(format.name());
     }
 
     @Override
     public int getNullable() {
-        return expr.getNullable();
-    }
-
-    @Override
-    public boolean isEverything(ExpressionVisitor visitor) {
-        return expr.isEverything(visitor);
-    }
-
-    @Override
-    public int getCost() {
-        return expr.getCost();
+        return arg.getNullable();
     }
 
     @Override
     public String getTableName() {
-        return expr.getTableName();
+        return arg.getTableName();
     }
 
     @Override
     public String getColumnName(Session session, int columnIndex) {
-        return expr.getColumnName(session, columnIndex);
-    }
-
-    @Override
-    public int getSubexpressionCount() {
-        return 1;
-    }
-
-    @Override
-    public Expression getSubexpression(int index) {
-        if (index != 0) {
-            throw new IndexOutOfBoundsException();
-        }
-        return expr;
+        return arg.getColumnName(session, columnIndex);
     }
 
 }

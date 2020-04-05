@@ -14,6 +14,7 @@ import static org.h2.util.ParserUtil.ARRAY;
 import static org.h2.util.ParserUtil.AS;
 import static org.h2.util.ParserUtil.BETWEEN;
 import static org.h2.util.ParserUtil.CASE;
+import static org.h2.util.ParserUtil.CAST;
 import static org.h2.util.ParserUtil.CHECK;
 import static org.h2.util.ParserUtil.CONSTRAINT;
 import static org.h2.util.ParserUtil.CROSS;
@@ -25,6 +26,8 @@ import static org.h2.util.ParserUtil.CURRENT_TIMESTAMP;
 import static org.h2.util.ParserUtil.CURRENT_USER;
 import static org.h2.util.ParserUtil.DAY;
 import static org.h2.util.ParserUtil.DISTINCT;
+import static org.h2.util.ParserUtil.ELSE;
+import static org.h2.util.ParserUtil.END;
 import static org.h2.util.ParserUtil.EXCEPT;
 import static org.h2.util.ParserUtil.EXISTS;
 import static org.h2.util.ParserUtil.FALSE;
@@ -80,6 +83,7 @@ import static org.h2.util.ParserUtil.UNKNOWN;
 import static org.h2.util.ParserUtil.USING;
 import static org.h2.util.ParserUtil.VALUE;
 import static org.h2.util.ParserUtil.VALUES;
+import static org.h2.util.ParserUtil.WHEN;
 import static org.h2.util.ParserUtil.WHERE;
 import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
@@ -208,7 +212,9 @@ import org.h2.expression.Format;
 import org.h2.expression.Format.FormatEnum;
 import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
+import org.h2.expression.SearchedCase;
 import org.h2.expression.SequenceValue;
+import org.h2.expression.SimpleCase;
 import org.h2.expression.Subquery;
 import org.h2.expression.TimeZoneOperation;
 import org.h2.expression.TypedValueExpression;
@@ -244,6 +250,7 @@ import org.h2.expression.condition.IsJsonPredicate;
 import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
+import org.h2.expression.function.CastSpecification;
 import org.h2.expression.function.DateTimeFunctions;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
@@ -328,12 +335,12 @@ public class Parser {
     /**
      * End of input.
      */
-    private static final int END = PARAMETER + 1;
+    private static final int END_OF_INPUT = PARAMETER + 1;
 
     /**
      * Token with literal.
      */
-    private static final int LITERAL = END + 1;
+    private static final int LITERAL = END_OF_INPUT + 1;
 
     /**
      * The token "=".
@@ -494,6 +501,8 @@ public class Parser {
             "BETWEEN",
             // CASE
             "CASE",
+            // CAST
+            "CAST",
             // CHECK
             "CHECK",
             // CONSTRAINT
@@ -516,6 +525,10 @@ public class Parser {
             "DAY",
             // DISTINCT
             "DISTINCT",
+            // ELSE
+            "ELSE",
+            // END
+            "END",
             // EXCEPT
             "EXCEPT",
             // EXISTS
@@ -620,6 +633,8 @@ public class Parser {
             "VALUE",
             // VALUES
             "VALUES",
+            // WHEN
+            "WHEN",
             // WHERE
             "WHERE",
             // WINDOW
@@ -829,7 +844,7 @@ public class Parser {
     public Prepared prepare(String sql) {
         Prepared p = parse(sql);
         p.prepare();
-        if (currentTokenType != END) {
+        if (currentTokenType != END_OF_INPUT) {
             throw getSyntaxError();
         }
         return p;
@@ -844,7 +859,7 @@ public class Parser {
     public Command prepareCommand(String sql) {
         try {
             Prepared p = parse(sql);
-            if (currentTokenType != SEMICOLON && currentTokenType != END) {
+            if (currentTokenType != SEMICOLON && currentTokenType != END_OF_INPUT) {
                 addExpected(SEMICOLON);
                 throw getSyntaxError();
             }
@@ -890,7 +905,7 @@ public class Parser {
                     return new CommandList(session, sql, command, list, parameters, remaining);
                 }
                 list.add(p);
-                if (currentTokenType == END) {
+                if (currentTokenType == END_OF_INPUT) {
                     break;
                 }
                 if (currentTokenType != SEMICOLON) {
@@ -950,7 +965,7 @@ public class Parser {
         int start = lastParseIndex;
         Prepared c = null;
         switch (currentTokenType) {
-        case END:
+        case END_OF_INPUT:
         case SEMICOLON:
             c = new NoOperation(session);
             setSQL(c, start);
@@ -1552,7 +1567,7 @@ public class Parser {
                         database.sysIdentifier("HELP"), database.sysIdentifier("TOPIC"), false));
         TableFilter filter = new TableFilter(session, table, null, rightsChecked, select, 0, null);
         select.addTableFilter(filter, true);
-        while (currentTokenType != END) {
+        while (currentTokenType != END_OF_INPUT) {
             String s = currentToken;
             read();
             CompareLike like = new CompareLike(database, function,
@@ -1752,7 +1767,7 @@ public class Parser {
         Expression condition = readExpression();
         command.setOnCondition(condition);
 
-        read("WHEN");
+        read(WHEN);
         do {
             boolean matched = readIf("MATCHED");
             if (matched) {
@@ -1760,7 +1775,7 @@ public class Parser {
             } else {
                 parseWhenNotMatched(command);
             }
-        } while (readIf("WHEN"));
+        } while (readIf(WHEN));
 
         setSQL(command, start);
         return command;
@@ -2689,7 +2704,7 @@ public class Parser {
         }
         Expression[] args;
         ArrayList<Expression> argList = Utils.newSmallArrayList();
-        if (currentTokenType != SEMICOLON && currentTokenType != END) {
+        if (currentTokenType != SEMICOLON && currentTokenType != END_OF_INPUT) {
             do {
                 argList.add(readExpression());
             } while (readIf(COMMA));
@@ -3047,7 +3062,7 @@ public class Parser {
                 case FETCH:
                 case CLOSE_PAREN:
                 case SEMICOLON:
-                case END:
+                case END_OF_INPUT:
                     break;
                 default:
                     Expression expr = readExpression();
@@ -3152,7 +3167,7 @@ public class Parser {
             case OPEN_PAREN:
                 level++;
                 break;
-            case END:
+            case END_OF_INPUT:
                 addExpected(CLOSE_PAREN);
                 throw getSyntaxError();
             }
@@ -3162,7 +3177,7 @@ public class Parser {
         // End of query
         case CLOSE_PAREN:
         case SEMICOLON:
-        case END:
+        case END_OF_INPUT:
         // Next grouping element
         case COMMA:
         // Next select clause
@@ -3535,9 +3550,7 @@ public class Parser {
     private Expression readTildeCondition(Expression r) {
         read();
         if (readIf(ASTERISK)) {
-            Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
-            function.setDataType(TypeInfo.TYPE_VARCHAR_IGNORECASE);
-            r = function;
+            r = new CastSpecification(r, TypeInfo.TYPE_VARCHAR_IGNORECASE);
         }
         return new CompareLike(database, r, readSum(), null, LikeType.REGEXP);
     }
@@ -3989,33 +4002,32 @@ public class Parser {
         case "ARRAY_LENGTH":
             function = Function.getFunction(database, Function.CARDINALITY);
             break;
-        // CASE
-        case "CASEWHEN":
-            function = Function.getFunction(database, Function.CASE);
-            function.addParameter(null);
-            function.addParameter(readExpression());
+        // Searched case
+        case "CASEWHEN": {
+            Expression when = readExpression();
             read(COMMA);
-            function.addParameter(readExpression());
+            Expression then = readExpression();
             read(COMMA);
-            function.addParameter(readExpression());
+            Expression elseExpression = readExpression();
             read(CLOSE_PAREN);
-            function.doneWithParameters();
-            return function;
-        // CAST
-        case "CONVERT":
-            function = Function.getFunction(database, Function.CAST);
+            return new SearchedCase(new Expression[] {when, then, elseExpression});
+        }
+        // Cast specification
+        case "CONVERT": {
+            Expression arg;
+            Column column;
             if (database.getMode().swapConvertFunctionParameters) {
-                function.setDataType(parseColumnWithType(null));
+                column = parseColumnWithType(null);
                 read(COMMA);
-                function.addParameter(readExpression());
+                arg = readExpression();
             } else {
-                function.addParameter(readExpression());
+                arg = readExpression();
                 read(COMMA);
-                function.setDataType(parseColumnWithType(null));
+                column = parseColumnWithType(null);
             }
             read(CLOSE_PAREN);
-            function.doneWithParameters();
-            return function;
+            return new CastSpecification(arg, column);
+        }
         // COALESCE
         case "IFNULL":
             function = Function.getFunction(database, Function.COALESCE);
@@ -4155,12 +4167,6 @@ public class Parser {
 
     private Function readFunctionParameters(Function function) {
         switch (function.getFunctionType()) {
-        case Function.CAST:
-            function.addParameter(readExpression());
-            read(AS);
-            function.setDataType(parseColumnWithType(null));
-            read(CLOSE_PAREN);
-            break;
         case Function.EXTRACT:
             readDateTimeField(function);
             read(FROM);
@@ -4884,6 +4890,16 @@ public class Parser {
             read();
             r = readCase();
             break;
+        case CAST: {
+            read();
+            read(OPEN_PAREN);
+            Expression arg = readExpression();
+            read(AS);
+            Column column = parseColumnWithType(null);
+            read(CLOSE_PAREN);
+            r = new CastSpecification(arg, column);
+            break;
+        }
         case CURRENT_CATALOG:
             read();
             r = readKeywordFunction(Function.CURRENT_CATALOG);
@@ -4976,16 +4992,12 @@ public class Parser {
                     break colonColon;
                 }
             }
-            Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
-            function.setDataType(parseColumnWithType(null));
-            r = function;
+            r = new CastSpecification(r, parseColumnWithType(null));
         }
         for (;;) {
             TypeInfo ti = (TypeInfo) readIntervalQualifier(null, false);
             if (ti != null) {
-                Function cast = Function.getFunctionWithArgs(database, Function.CAST, r);
-                cast.setDataType(ti);
-                r = cast;
+                r = new CastSpecification(r, ti);
             }
             int index = lastParseIndex;
             if (readIf("AT")) {
@@ -5298,53 +5310,68 @@ public class Parser {
     }
 
     private Expression readCase() {
-        if (readIf("END")) {
+        if (readIf(END)) {
             readIf(CASE);
             return ValueExpression.NULL;
         }
-        if (readIf("ELSE")) {
-            Expression elsePart = readExpression().optimize(session);
-            read("END");
+        if (readIf(ELSE)) {
+            Expression elsePart = readExpression();
+            read(END);
             readIf(CASE);
             return elsePart;
         }
-        Function function;
-        if (readIf("WHEN")) {
-            function = Function.getFunction(database, Function.CASE);
-            function.addParameter(null);
+        if (readIf(WHEN)) {
+            SearchedCase c = new SearchedCase();
             do {
-                function.addParameter(readExpression());
+                Expression condition = readExpression();
                 read("THEN");
-                function.addParameter(readExpression());
-            } while (readIf("WHEN"));
-        } else {
-            Expression expr = readExpression();
-            if (readIf("END")) {
-                readIf(CASE);
-                return ValueExpression.NULL;
+                c.addParameter(condition);
+                c.addParameter(readExpression());
+            } while (readIf(WHEN));
+            if (readIf(ELSE)) {
+                c.addParameter(readExpression());
             }
-            if (readIf("ELSE")) {
-                Expression elsePart = readExpression().optimize(session);
-                read("END");
-                readIf(CASE);
-                return elsePart;
-            }
-            function = Function.getFunction(database, Function.CASE);
-            function.addParameter(expr);
-            read("WHEN");
+            read(END);
+            c.doneWithParameters();
+            return c;
+        }
+        Expression operand = readExpression();
+        if (readIf(END)) {
+            readIf(CASE);
+            return ValueExpression.NULL;
+        }
+        if (readIf(ELSE)) {
+            Expression elsePart = readExpression();
+            read(END);
+            readIf(CASE);
+            return elsePart;
+        }
+        read(WHEN);
+        SimpleCase.SimpleWhen when = readSimpleWhenClause(), current = when;
+        while (readIf(WHEN)) {
+            SimpleCase.SimpleWhen next = readSimpleWhenClause();
+            current.addWhen(next);
+            current = next;
+        }
+        Expression elseResult = readIf(ELSE) ? readExpression() : null;
+        read(END);
+        readIf(CASE);
+        return new SimpleCase(operand, when, elseResult);
+    }
+
+    private SimpleCase.SimpleWhen readSimpleWhenClause() {
+        Expression operand = readExpression();
+        if (readIf(COMMA)) {
+            ArrayList<Expression> operands = Utils.newSmallArrayList();
+            operands.add(operand);
             do {
-                function.addParameter(readExpression());
-                read("THEN");
-                function.addParameter(readExpression());
-            } while (readIf("WHEN"));
+                operands.add(readExpression());
+            } while (readIf(COMMA));
+            read("THEN");
+            return new SimpleCase.SimpleWhen(operands.toArray(new Expression[0]), readExpression());
         }
-        if (readIf("ELSE")) {
-            function.addParameter(readExpression());
-        }
-        read("END");
-        readIf("CASE");
-        function.doneWithParameters();
-        return function;
+        read("THEN");
+        return new SimpleCase.SimpleWhen(new Expression[] { operand }, readExpression());
     }
 
     private int readNonNegativeInt() {
@@ -5727,7 +5754,7 @@ public class Parser {
             return;
         }
         case CHAR_END:
-            currentTokenType = END;
+            currentTokenType = END_OF_INPUT;
             parseIndex = i;
             return;
         default:
@@ -7682,7 +7709,7 @@ public class Parser {
         } catch (DbException e) {
             if (force) {
                 command.setSelectSQL(select);
-                while (currentTokenType != END) {
+                while (currentTokenType != END_OF_INPUT) {
                     read();
                 }
             } else {
@@ -8164,7 +8191,7 @@ public class Parser {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.NON_KEYWORDS);
             ArrayList<String> list = Utils.newSmallArrayList();
-            if (currentTokenType != END && currentTokenType != SEMICOLON) {
+            if (currentTokenType != END_OF_INPUT && currentTokenType != SEMICOLON) {
                 do {
                     if (currentTokenType < IDENTIFIER || currentTokenType > LAST_KEYWORD) {
                         throw getSyntaxError();

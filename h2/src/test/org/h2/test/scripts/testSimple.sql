@@ -729,12 +729,6 @@ create table table2(f2 int not null primary key references table1(f1));
 drop table table1, table2;
 > ok
 
-select case when 1=null then 1 else 2 end;
->> 2
-
-select case (1) when 1 then 1 else 2 end;
->> 1
-
 create table test(id int);
 > ok
 

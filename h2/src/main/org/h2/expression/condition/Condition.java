@@ -7,7 +7,7 @@ package org.h2.expression.condition;
 
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.function.Function;
+import org.h2.expression.function.CastSpecification;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
@@ -27,9 +27,7 @@ abstract class Condition extends Expression {
         if (expression.getType().getValueType() == Value.BOOLEAN) {
             return expression;
         }
-        Function f = Function.getFunctionWithArgs(session.getDatabase(), Function.CAST, expression);
-        f.setDataType(TypeInfo.TYPE_BOOLEAN);
-        return f;
+        return new CastSpecification(expression, TypeInfo.TYPE_BOOLEAN);
     }
 
     @Override

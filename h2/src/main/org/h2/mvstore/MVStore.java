@@ -3348,7 +3348,9 @@ public class MVStore implements AutoCloseable
                     }
                 }
                 shutdownExecutor(serializationExecutor);
+                serializationExecutor = null;
                 shutdownExecutor(bufferSaveExecutor);
+                bufferSaveExecutor = null;
                 break;
             }
         }

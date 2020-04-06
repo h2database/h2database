@@ -40,6 +40,7 @@ public class TestOptimizations extends TestDb {
     @Override
     public void test() throws Exception {
         deleteDb("optimizations");
+        testConditionsStackOverflow();
         testIdentityIndexUsage();
         testFastRowIdCondition();
         testExplainRoundTrip();
@@ -1191,4 +1192,18 @@ public class TestOptimizations extends TestDb {
         assertTrue("engineer".equals(rs.getString("occupation")));
         conn.close();
     }
+    
+    private void testConditionsStackOverflow() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        StringBuilder b = new StringBuilder("SELECT 1");
+        for (int i=0; i<10000; i++) {
+            b.append(" AND 1");
+        }
+        ResultSet rs = stat.executeQuery(b.toString());
+        rs.next();
+        assertTrue(rs.getBoolean(1));
+        conn.close();
+    }    
 }

@@ -17,10 +17,10 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import org.h2.mvstore.FileStore;
 import org.h2.mvstore.Chunk;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
-import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
@@ -502,7 +502,7 @@ public class TestMVStore extends TestBase {
                 open();
         s.setAutoCommitDelay(10);
         MVMap<Integer, String> m = s.openMap("data");
-        s.getFileStore().getFile().close();
+        s.getFileStore().close();
         try {
             m.put(1, "Hello");
             for (int i = 0; i < 200; i++) {
@@ -899,13 +899,13 @@ public class TestMVStore extends TestBase {
                 s.commit();
             }
             FileStore fs = s.getFileStore();
-            long size = fs.getFile().size();
+            long size = fs.size();
             for (int i = 0; i < 100; i++) {
                 map = s.openMap("test" + i);
                 s.removeMap(map);
                 s.commit();
                 s.compact(100, 1);
-                if (fs.getFile().size() <= size) {
+                if (fs.size() <= size) {
                     break;
                 }
             }

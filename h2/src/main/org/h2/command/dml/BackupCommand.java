@@ -77,8 +77,7 @@ public class BackupCommand extends Prepared {
                             boolean before = s.getReuseSpace();
                             s.setReuseSpace(false);
                             try {
-                                InputStream in = store.getInputStream();
-                                backupFile(out, base, n, in);
+                                store.getMvStore().getFileStore().backup(out);
                             } finally {
                                 s.setReuseSpace(before);
                             }

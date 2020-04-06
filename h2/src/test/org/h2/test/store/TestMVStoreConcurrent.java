@@ -6,8 +6,6 @@
 package org.h2.test.store;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
@@ -19,6 +17,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
+
 import org.h2.mvstore.Chunk;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -27,8 +29,10 @@ import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.store.fs.FileChannelInputStream;
+import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 import org.h2.util.Task;
 
 /**
@@ -610,14 +614,21 @@ public class TestMVStoreConcurrent extends TestMVStore {
             try {
                 for (int i = 0; i < 10; i++) {
                     // System.out.println("test " + i);
-                    s.setReuseSpace(false);
-                    OutputStream out = new BufferedOutputStream(
-                            new FileOutputStream(fileNameRestore));
-                    long len = s.getFileStore().size();
-                    copyFileSlowly(s.getFileStore().getFile(),
-                            len, out);
-                    out.close();
-                    s.setReuseSpace(true);
+                    try (OutputStream out = FileUtils.newOutputStream(fileNameRestore+".zip", false)) {
+                        try (ZipOutputStream zip = new ZipOutputStream(out)) {
+                            s.getFileStore().backup(zip);
+                        }
+                    }
+
+                    ZipFile zipFile = new ZipFile(fileNameRestore + ".zip");
+                    String name = FilePath.get(s.getFileStore().getFileName()).getName();
+                    ZipEntry zipEntry = zipFile.getEntry(name);
+                    try (InputStream inputStream = zipFile.getInputStream(zipEntry)) {
+                        try (OutputStream out = FilePath.get(fileNameRestore).newOutputStream(false)) {
+                            IOUtils.copy(inputStream, out);
+                        }
+                    }
+
                     MVStore s2 = openStore(fileNameRestore);
                     MVMap<Integer, byte[]> test = s2.openMap("test");
                     for (Integer k : test.keySet()) {

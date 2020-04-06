@@ -7,123 +7,53 @@ package org.h2.mvstore;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.channels.OverlappingFileLockException;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
-import org.h2.mvstore.cache.FilePathCache;
-import org.h2.store.fs.FilePath;
-import org.h2.store.fs.encrypt.FileEncrypt;
-import org.h2.store.fs.encrypt.FilePathEncrypt;
+import java.util.zip.ZipOutputStream;
 
 /**
- * The default storage mechanism of the MVStore. This implementation persists
- * data to a file. The file store is responsible to persist data and for free
- * space management.
+ * Class FileStore.
+ * <UL>
+ * <LI> 4/5/20 2:03 PM initial creation
+ * </UL>
+ *
+ * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public class FileStore {
-
+public abstract class FileStore {
     /**
      * The number of read operations.
      */
     protected final AtomicLong readCount = new AtomicLong();
-
     /**
      * The number of read bytes.
      */
     protected final AtomicLong readBytes = new AtomicLong();
-
     /**
      * The number of write operations.
      */
     protected final AtomicLong writeCount = new AtomicLong();
-
     /**
      * The number of written bytes.
      */
     protected final AtomicLong writeBytes = new AtomicLong();
-
-    /**
-     * The free spaces between the chunks. The first block to use is block 2
-     * (the first two blocks are the store header).
-     */
-    protected final FreeSpaceBitSet freeSpace =
-            new FreeSpaceBitSet(2, MVStore.BLOCK_SIZE);
-
     /**
      * The file name.
      */
     private String fileName;
 
     /**
+     * The file size (cached).
+     */
+    private long size;
+
+    /**
      * Whether this store is read-only.
      */
     private boolean readOnly;
 
-    /**
-     * The file size (cached).
-     */
-    protected long fileSize;
 
-    /**
-     * The file.
-     */
-    private FileChannel file;
-
-    /**
-     * The encrypted file (if encryption is used).
-     */
-    private FileChannel encryptedFile;
-
-    /**
-     * The file lock.
-     */
-    private FileLock fileLock;
-
-    @Override
-    public String toString() {
-        return fileName;
+    public FileStore() {
     }
 
-    /**
-     * Read from the file.
-     *
-     * @param pos the write position
-     * @param len the number of bytes to read
-     * @return the byte buffer
-     */
-    public ByteBuffer readFully(long pos, int len) {
-        ByteBuffer dst = ByteBuffer.allocate(len);
-        DataUtils.readFully(file, pos, dst);
-        readCount.incrementAndGet();
-        readBytes.addAndGet(len);
-        return dst;
-    }
-
-    /**
-     * Write to the file.
-     *
-     * @param pos the write position
-     * @param src the source buffer
-     */
-    public void writeFully(long pos, ByteBuffer src) {
-        int len = src.remaining();
-        fileSize = Math.max(fileSize, pos + len);
-        DataUtils.writeFully(file, pos, src);
-        writeCount.incrementAndGet();
-        writeBytes.addAndGet(len);
-    }
-
-    /**
-     * Try to open the file.
-     *
-     * @param fileName the file name
-     * @param readOnly whether the file should only be opened in read-only mode,
-     *            even if the file is writable
-     * @param encryptionKey the encryption key, or null if encryption is not
-     *            used
-     */
     public void open(String fileName, boolean readOnly, char[] encryptionKey) {
         open(fileName, readOnly,
                 encryptionKey == null ? null
@@ -146,83 +76,46 @@ public class FileStore {
         // ensure the Cache file system is registered
         FilePathCache.INSTANCE.getScheme();
         this.fileName = fileName;
-        FilePath f = FilePath.get(fileName);
-        FilePath parent = f.getParent();
-        if (parent != null && !parent.exists()) {
-            throw DataUtils.newIllegalArgumentException(
-                    "Directory does not exist: {0}", parent);
-        }
-        if (f.exists() && !f.canWrite()) {
-            readOnly = true;
-        }
         this.readOnly = readOnly;
-        try {
-            file = f.open(readOnly ? "r" : "rw");
-            if (encryptionTransformer != null) {
-                encryptedFile = file;
-                file = encryptionTransformer.apply(file);
-            }
-            try {
-                if (readOnly) {
-                    fileLock = file.tryLock(0, Long.MAX_VALUE, true);
-                } else {
-                    fileLock = file.tryLock();
-                }
-            } catch (OverlappingFileLockException e) {
-                throw DataUtils.newMVStoreException(
-                        DataUtils.ERROR_FILE_LOCKED,
-                        "The file is locked: {0}", fileName, e);
-            }
-            if (fileLock == null) {
-                try { close(); } catch (Exception ignore) {}
-                throw DataUtils.newMVStoreException(
-                        DataUtils.ERROR_FILE_LOCKED,
-                        "The file is locked: {0}", fileName);
-            }
-            fileSize = file.size();
-        } catch (IOException e) {
-            try { close(); } catch (Exception ignore) {}
-            throw DataUtils.newMVStoreException(
-                    DataUtils.ERROR_READING_FAILED,
-                    "Could not open file {0}", fileName, e);
-        }
     }
 
-    /**
-     * Close this store.
-     */
-    public void close() {
-        try {
-            if(file != null && file.isOpen()) {
-                if (fileLock != null) {
-                    fileLock.release();
-                }
-                file.close();
-            }
-        } catch (Exception e) {
-            throw DataUtils.newMVStoreException(
-                    DataUtils.ERROR_WRITING_FAILED,
-                    "Closing failed for file {0}", fileName, e);
-        } finally {
-            fileLock = null;
-            file = null;
-        }
-    }
+    public abstract void close();
 
     /**
-     * Flush all changes.
+     * Read data from the store.
+     *
+     * @param pos the read "position"
+     * @param len the number of bytes to read
+     * @return the byte buffer with data requested
      */
-    public void sync() {
-        if (file != null) {
-            try {
-                file.force(true);
-            } catch (IOException e) {
-                throw DataUtils.newMVStoreException(
-                        DataUtils.ERROR_WRITING_FAILED,
-                        "Could not sync file {0}", fileName, e);
-            }
-        }
-    }
+    public abstract ByteBuffer readFully(long pos, int len);
+
+    /**
+     * Write data to the store.
+     *
+     * @param pos the write "position"
+     * @param src the source buffer
+     */
+    public abstract void writeFully(long pos, ByteBuffer src);
+
+    public void sync() {}
+
+    public abstract int getFillRate();
+
+    public abstract int getProjectedFillRate(int vacatedBlocks);
+
+    abstract long getFirstFree();
+
+    abstract long getFileLengthInUse();
+
+    /**
+     * Shrink store if possible, and if at least a given percentage can be
+     * saved.
+     *
+     * @param minPercent the minimum percentage to save
+     */
+    public abstract void shrinkFileIfPossible(int minPercent);
+
 
     /**
      * Get the file size.
@@ -230,57 +123,11 @@ public class FileStore {
      * @return the file size
      */
     public long size() {
-        return fileSize;
+        return size;
     }
 
-    /**
-     * Truncate the file.
-     *
-     * @param size the new file size
-     */
-    public void truncate(long size) {
-        int attemptCount = 0;
-        while (true) {
-            try {
-                writeCount.incrementAndGet();
-                file.truncate(size);
-                fileSize = Math.min(fileSize, size);
-                return;
-            } catch (IOException e) {
-                if (++attemptCount == 10) {
-                    throw DataUtils.newMVStoreException(
-                            DataUtils.ERROR_WRITING_FAILED,
-                            "Could not truncate file {0} to size {1}",
-                            fileName, size, e);
-                }
-                System.gc();
-                Thread.yield();
-            }
-        }
-    }
-
-    /**
-     * Get the file instance in use.
-     * <p>
-     * The application may read from the file (for example for online backup),
-     * but not write to it or truncate it.
-     *
-     * @return the file
-     */
-    public FileChannel getFile() {
-        return file;
-    }
-
-    /**
-     * Get the encrypted file instance, if encryption is used.
-     * <p>
-     * The application may read from the file (for example for online backup),
-     * but not write to it or truncate it.
-     *
-     * @return the encrypted file, or null if encryption is not used
-     */
-    public FileChannel getEncryptedFile() {
-        return encryptedFile;
+    protected final void setSize(long size) {
+        this.size = size;
     }
 
     /**
@@ -334,15 +181,34 @@ public class FileStore {
         return 45_000;
     }
 
+    public abstract void clear();
+
+    /**
+     * Get the file name.
+     *
+     * @return the file name
+     */
+    public String getFileName() {
+        return fileName;
+    }
+
+    /**
+     * Calculates relative "priority" for chunk to be moved.
+     *
+     * @param block where chunk starts
+     * @return priority, bigger number indicate that chunk need to be moved sooner
+     */
+    public abstract int getMovePriority(int block);
+
+    public abstract long getAfterLastBlock();
+
     /**
      * Mark the space as in use.
      *
      * @param pos the position in bytes
      * @param length the number of bytes
      */
-    public void markUsed(long pos, int length) {
-        freeSpace.markUsed(pos, length);
-    }
+    public abstract void markUsed(long pos, int length);
 
     /**
      * Allocate a number of blocks and mark them as used.
@@ -353,9 +219,7 @@ public class FileStore {
      *                     special value -1 means beginning of the infinite free area
      * @return the start position in bytes
      */
-    long allocate(int length, long reservedLow, long reservedHigh) {
-        return freeSpace.allocate(length, reservedLow, reservedHigh);
-    }
+    abstract long allocate(int length, long reservedLow, long reservedHigh);
 
     /**
      * Calculate starting position of the prospective allocation.
@@ -366,13 +230,7 @@ public class FileStore {
      *                     special value -1 means beginning of the infinite free area
      * @return the starting block index
      */
-    long predictAllocation(int blocks, long reservedLow, long reservedHigh) {
-        return freeSpace.predictAllocation(blocks, reservedLow, reservedHigh);
-    }
-
-    boolean isFragmented() {
-        return freeSpace.isFragmented();
-    }
+    abstract long predictAllocation(int blocks, long reservedLow, long reservedHigh);
 
     /**
      * Mark the space as free.
@@ -380,63 +238,10 @@ public class FileStore {
      * @param pos the position in bytes
      * @param length the number of bytes
      */
-    public void free(long pos, int length) {
-        freeSpace.free(pos, length);
-    }
+    public abstract void free(long pos, int length);
 
-    public int getFillRate() {
-        return freeSpace.getFillRate();
-    }
+    abstract boolean isFragmented();
 
-    /**
-     * Calculates a prospective fill rate, which store would have after rewrite
-     * of sparsely populated chunk(s) and evacuation of still live data into a
-     * new chunk.
-     *
-     * @param vacatedBlocks
-     *            number of blocks vacated
-     * @return prospective fill rate (0 - 100)
-     */
-    public int getProjectedFillRate(int vacatedBlocks) {
-        return freeSpace.getProjectedFillRate(vacatedBlocks);
-    }
-
-    long getFirstFree() {
-        return freeSpace.getFirstFree();
-    }
-
-    long getFileLengthInUse() {
-        return freeSpace.getLastFree();
-    }
-
-    /**
-     * Calculates relative "priority" for chunk to be moved.
-     *
-     * @param block where chunk starts
-     * @return priority, bigger number indicate that chunk need to be moved sooner
-     */
-    int getMovePriority(int block) {
-        return freeSpace.getMovePriority(block);
-    }
-
-    long getAfterLastBlock() {
-        return freeSpace.getAfterLastBlock();
-    }
-
-    /**
-     * Mark the file as empty.
-     */
-    public void clear() {
-        freeSpace.clear();
-    }
-
-    /**
-     * Get the file name.
-     *
-     * @return the file name
-     */
-    public String getFileName() {
-        return fileName;
-    }
+    public abstract void backup(ZipOutputStream out) throws IOException;
 
 }

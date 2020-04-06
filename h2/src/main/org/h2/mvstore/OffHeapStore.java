@@ -9,15 +9,16 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.zip.ZipOutputStream;
 
 /**
  * A storage mechanism that "persists" data in the off-heap area of the main
  * memory.
  */
-public class OffHeapStore extends FileStore {
+public class OffHeapStore extends RandomAccessStore {
 
-    private final TreeMap<Long, ByteBuffer> memory =
-            new TreeMap<>();
+    private final TreeMap<Long, ByteBuffer> memory = new TreeMap<>();
+
 
     @Override
     public void open(String fileName, boolean readOnly, char[] encryptionKey) {
@@ -62,7 +63,7 @@ public class OffHeapStore extends FileStore {
 
     @Override
     public void writeFully(long pos, ByteBuffer src) {
-        fileSize = Math.max(fileSize, pos + src.remaining());
+        setSize(Math.max(super.size(), pos + src.remaining()));
         Entry<Long, ByteBuffer> mem = memory.floorEntry(pos);
         if (mem == null) {
             // not found: create a new entry
@@ -109,11 +110,11 @@ public class OffHeapStore extends FileStore {
     public void truncate(long size) {
         writeCount.incrementAndGet();
         if (size == 0) {
-            fileSize = 0;
+            setSize(0);
             memory.clear();
             return;
         }
-        fileSize = size;
+        setSize(size);
         for (Iterator<Long> it = memory.keySet().iterator(); it.hasNext();) {
             long pos = it.next();
             if (pos < size) {
@@ -131,18 +132,15 @@ public class OffHeapStore extends FileStore {
     }
 
     @Override
-    public void close() {
-        memory.clear();
-    }
-
-    @Override
-    public void sync() {
-        // nothing to do
-    }
+    public void close() {}
 
     @Override
     public int getDefaultRetentionTime() {
         return 0;
     }
 
+    @Override
+    public void backup(ZipOutputStream out) {
+        throw new UnsupportedOperationException();
+    }
 }

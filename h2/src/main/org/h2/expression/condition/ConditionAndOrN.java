@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -41,7 +40,7 @@ public class ConditionAndOrN extends Condition {
 
     public ConditionAndOrN(int andOrType, Expression expr1, Expression expr2, Expression expr3) {
         this.andOrType = andOrType;
-        this.expressions = new LinkedList<>();
+        this.expressions = new ArrayList<>(3);
         expressions.add(expr1);
         expressions.add(expr2);
         expressions.add(expr3);

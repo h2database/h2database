@@ -5310,33 +5310,36 @@ public class Parser {
     }
 
     private Expression readCase() {
+        Expression c;
         if (readIf(WHEN)) {
-            SearchedCase c = new SearchedCase();
+            SearchedCase searched = new SearchedCase();
             do {
                 Expression condition = readExpression();
                 read("THEN");
-                c.addParameter(condition);
-                c.addParameter(readExpression());
+                searched.addParameter(condition);
+                searched.addParameter(readExpression());
             } while (readIf(WHEN));
             if (readIf(ELSE)) {
-                c.addParameter(readExpression());
+                searched.addParameter(readExpression());
             }
-            read(END);
-            c.doneWithParameters();
-            return c;
+            searched.doneWithParameters();
+            c = searched;
+        } else {
+            Expression operand = readExpression();
+            read(WHEN);
+            SimpleCase.SimpleWhen when = readSimpleWhenClause(), current = when;
+            while (readIf(WHEN)) {
+                SimpleCase.SimpleWhen next = readSimpleWhenClause();
+                current.addWhen(next);
+                current = next;
+            }
+            c = new SimpleCase(operand, when, readIf(ELSE) ? readExpression() : null);
         }
-        Expression operand = readExpression();
-        read(WHEN);
-        SimpleCase.SimpleWhen when = readSimpleWhenClause(), current = when;
-        while (readIf(WHEN)) {
-            SimpleCase.SimpleWhen next = readSimpleWhenClause();
-            current.addWhen(next);
-            current = next;
-        }
-        Expression elseResult = readIf(ELSE) ? readExpression() : null;
         read(END);
-        readIf(CASE);
-        return new SimpleCase(operand, when, elseResult);
+        if (currentTokenType == CASE && database.getMode().allowEndCase) {
+            read();
+        }
+        return c;
     }
 
     private SimpleCase.SimpleWhen readSimpleWhenClause() {

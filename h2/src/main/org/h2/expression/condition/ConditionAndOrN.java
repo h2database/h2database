@@ -251,7 +251,7 @@ public class ConditionAndOrN extends Condition {
         Collections.sort(expressions, COMPARE_BY_COST);
         
         if (expressions.size() == 1) {
-            return expressions.get(0);
+            return Condition.castToBoolean(session, expressions.get(0));
         }
         return this;
     }

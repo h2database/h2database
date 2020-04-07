@@ -996,8 +996,8 @@ public class TestCases extends TestDb {
                 "    /* PUBLIC.PRIMARY_KEY_8: ID = O.ID */\n" +
                 "    ON 1=1\n" +
                 "WHERE (\"P\".\"ID\" = \"O\".\"ID\")\n" +
-                "    AND ((\"O\".\"ID\" = ?1)\n" +
-                "    AND (\"P\".\"SALARY\" > ?2))");
+                "    AND (\"O\".\"ID\" = ?1)\n" +
+                "    AND (\"P\".\"SALARY\" > ?2)");
 
         checkExplain(stat, "EXPLAIN SELECT * FROM PERSON p " +
             "INNER JOIN ORGANIZATION o ON p.id = o.id WHERE o.id = 10 AND p.salary > 1000",
@@ -1016,8 +1016,8 @@ public class TestCases extends TestDb {
                 "    /* PUBLIC.PRIMARY_KEY_8: ID = O.ID */\n" +
                 "    ON 1=1\n" +
                 "WHERE (\"P\".\"ID\" = \"O\".\"ID\")\n" +
-                "    AND ((\"O\".\"ID\" = 10)\n" +
-                "    AND (\"P\".\"SALARY\" > 1000))");
+                "    AND (\"O\".\"ID\" = 10)\n" +
+                "    AND (\"P\".\"SALARY\" > 1000)");
 
         PreparedStatement pStat = conn.prepareStatement(
                 "/* bla-bla */ EXPLAIN SELECT ID FROM ORGANIZATION WHERE id = ?");

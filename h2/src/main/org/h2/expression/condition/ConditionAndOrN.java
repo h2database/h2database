@@ -28,16 +28,6 @@ import org.h2.value.ValueNull;
  */
 public class ConditionAndOrN extends Condition {
 
-    /**
-     * The AND condition type as in ID=1 AND NAME='Hello'.
-     */
-    public static final int AND = 0;
-
-    /**
-     * The OR condition type as in ID=1 OR NAME='Hello'.
-     */
-    public static final int OR = 1;
-
     private final int andOrType;
     /**
      * Use an ArrayDeque because we primarily insert at the front.
@@ -77,10 +67,10 @@ public class ConditionAndOrN extends Condition {
         it.next().getSQL(builder, sqlFlags);
         while (it.hasNext()) {
             switch (andOrType) {
-            case AND:
+            case ConditionAndOr.AND:
                 builder.append("\n    AND ");
                 break;
-            case OR:
+            case ConditionAndOr.OR:
                 builder.append("\n    OR ");
                 break;
             default:
@@ -94,7 +84,7 @@ public class ConditionAndOrN extends Condition {
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (andOrType == AND) {
+        if (andOrType == ConditionAndOr.AND) {
             for (Expression e : expressions) {
                 e.createIndexConditions(session, filter);
             }
@@ -118,14 +108,14 @@ public class ConditionAndOrN extends Condition {
             }
             newList.add(l);
         }
-        int reversed = andOrType == AND ? OR : AND;
+        int reversed = andOrType == ConditionAndOr.AND ? ConditionAndOr.OR : ConditionAndOr.AND;
         return new ConditionAndOrN(reversed, newList);
     }
 
     @Override
     public Value getValue(Session session) {
         switch (andOrType) {
-        case AND: {
+        case ConditionAndOr.AND: {
             for (Expression e : expressions) {
                 Value v = e.getValue(session);
                 if (v == ValueNull.INSTANCE) {
@@ -137,7 +127,7 @@ public class ConditionAndOrN extends Condition {
             }
             return ValueBoolean.TRUE;
         }
-        case OR: {
+        case ConditionAndOr.OR: {
             for (Expression e : expressions) {
                 Value v = e.getValue(session);
                 if (v == ValueNull.INSTANCE) {
@@ -182,7 +172,7 @@ public class ConditionAndOrN extends Condition {
             Expression left = expressions.get(i-1);
             Expression right = expressions.get(i);
             switch (andOrType) {
-            case AND:
+            case ConditionAndOr.AND:
                 if (!session.getDatabase().getSettings().optimizeTwoEquals) {
                     break;
                 }
@@ -205,7 +195,7 @@ public class ConditionAndOrN extends Condition {
                     }
                 }
                 break;
-            case OR:
+            case ConditionAndOr.OR:
                 if (!session.getDatabase().getSettings().optimizeOr) {
                     break;
                 }
@@ -282,7 +272,7 @@ public class ConditionAndOrN extends Condition {
     
     @Override
     public void addFilterConditions(TableFilter filter) {
-        if (andOrType == AND) {
+        if (andOrType == ConditionAndOr.AND) {
             for (Expression e : expressions) {
                 e.addFilterConditions(filter);
             }

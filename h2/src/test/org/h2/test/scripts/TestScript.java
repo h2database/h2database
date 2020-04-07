@@ -94,7 +94,7 @@ public class TestScript extends TestDb {
      */
     public static void main(String... a) throws Exception {
         CHECK_ORDERING = true;
-        TestBase.createCaller().init().test();
+        TestBase.createCaller().init().testFromMain();
     }
 
     /**

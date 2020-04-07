@@ -63,7 +63,7 @@ public class TestKillRestartMulti extends TestDb {
         else
         {
             // the standalone test case
-            TestBase.createCaller().init().test();
+            TestBase.createCaller().init().testFromMain();
         }
     }
 

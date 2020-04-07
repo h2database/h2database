@@ -33,7 +33,7 @@ public class TestCompatibilityOracle extends TestDb {
      */
     public static void main(String... s) throws Exception {
         TestBase test = TestBase.createCaller().init();
-        test.test();
+        test.testFromMain();
     }
 
     @Override

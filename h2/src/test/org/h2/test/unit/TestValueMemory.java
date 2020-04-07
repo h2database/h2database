@@ -83,7 +83,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         // run using -javaagent:ext/h2-1.2.139.jar
         TestBase test = TestBase.createCaller().init();
         test.config.traceTest = true;
-        test.test();
+        test.testFromMain();
     }
 
     @Override

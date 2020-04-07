@@ -37,7 +37,7 @@ public class TestMvccMultiThreaded2 extends TestDb {
         TestBase test = TestBase.createCaller().init();
         test.config.lockTimeout = 120000;
         test.config.memory = true;
-        test.test();
+        test.testFromMain();
     }
 
     int getTestDuration() {

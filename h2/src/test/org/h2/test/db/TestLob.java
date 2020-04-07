@@ -59,7 +59,7 @@ public class TestLob extends TestDb {
         TestBase test = TestBase.createCaller().init();
         test.config.big = true;
         test.config.mvStore = false;
-        test.test();
+        test.testFromMain();
     }
 
     @Override

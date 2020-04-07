@@ -33,7 +33,7 @@ public class TestAutoReconnect extends TestDb {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase.createCaller().init().testFromMain();
     }
 
     private void restart() throws SQLException, InterruptedException {

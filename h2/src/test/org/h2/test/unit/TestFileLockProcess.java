@@ -28,7 +28,7 @@ public class TestFileLockProcess extends TestDb {
     public static void main(String... args) throws Exception {
         SelfDestructor.startCountdown(60);
         if (args.length == 0) {
-            TestBase.createCaller().init().test();
+            TestBase.createCaller().init().testFromMain();
             return;
         }
         String url = args[0];

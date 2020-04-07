@@ -28,7 +28,7 @@ public class TestModifyOnWrite extends TestDb {
      */
     public static void main(String... a) throws Exception {
         System.setProperty("h2.modifyOnWrite", "true");
-        TestBase.createCaller().init().test();
+        TestBase.createCaller().init().testFromMain();
     }
 
     @Override

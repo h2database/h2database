@@ -26,7 +26,7 @@ public class TestFtp extends TestBase implements FtpEventListener {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase.createCaller().init().testFromMain();
     }
 
     @Override

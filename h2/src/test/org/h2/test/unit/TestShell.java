@@ -40,7 +40,7 @@ public class TestShell extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase.createCaller().init().testFromMain();
     }
 
     @Override

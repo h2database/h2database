@@ -33,7 +33,7 @@ public class TestStringCache extends TestBase {
      * @param args the command line parameters
      */
     public static void main(String... args) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase.createCaller().init().testFromMain();
         new TestStringCache().runBenchmark();
     }
 

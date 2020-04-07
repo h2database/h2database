@@ -30,7 +30,7 @@ public class TestMultiDimension extends TestDb {
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
         test.config.traceTest = true;
-        test.test();
+        test.testFromMain();
     }
 
     @Override

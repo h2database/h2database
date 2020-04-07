@@ -53,7 +53,7 @@ public class TestDateTimeUtils extends TestBase {
                 return;
             }
         }
-        TestBase.createCaller().init().test();
+        TestBase.createCaller().init().testFromMain();
     }
 
     @Override

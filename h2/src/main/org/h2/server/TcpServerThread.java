@@ -41,7 +41,6 @@ import org.h2.util.SmallLRUCache;
 import org.h2.util.SmallMap;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
-import org.h2.value.ValueLob;
 
 /**
  * One server thread is opened per client connection.
@@ -507,8 +506,7 @@ public class TcpServerThread implements Runnable {
             if (in.getPos() != offset) {
                 LobStorageInterface lobStorage = session.getDataHandler().getLobStorage();
                 // only the lob id is used
-                ValueLob lob = ValueLob.create(Value.BLOB, null, -1, lobId, hmac, -1);
-                InputStream lobIn = lobStorage.getInputStream(lob, hmac, -1);
+                InputStream lobIn = lobStorage.getInputStream(lobId, -1);
                 in = new CachedInputStream(lobIn);
                 lobs.put(lobId, in);
                 lobIn.skip(offset);

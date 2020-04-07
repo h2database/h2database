@@ -699,7 +699,7 @@ public class DataType {
                 if (session == null) {
                     String s = rs.getString(columnIndex);
                     v = s == null ? ValueNull.INSTANCE :
-                        ValueLob.createSmallLob(Value.CLOB, s.getBytes(StandardCharsets.UTF_8));
+                        ValueLobInMemory.createSmallLob(Value.CLOB, s.getBytes(StandardCharsets.UTF_8));
                 } else {
                     Reader in = rs.getCharacterStream(columnIndex);
                     if (in == null) {
@@ -714,7 +714,7 @@ public class DataType {
             case Value.BLOB: {
                 if (session == null) {
                     byte[] buff = rs.getBytes(columnIndex);
-                    return buff == null ? ValueNull.INSTANCE : ValueLob.createSmallLob(Value.BLOB, buff);
+                    return buff == null ? ValueNull.INSTANCE : ValueLobInMemory.createSmallLob(Value.BLOB, buff);
                 }
                 InputStream in = rs.getBinaryStream(columnIndex);
                 if (in == null) {

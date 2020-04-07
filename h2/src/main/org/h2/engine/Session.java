@@ -59,6 +59,8 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueLobDatabase;
+import org.h2.value.ValueLobInMemory;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueVarchar;
@@ -1920,7 +1922,10 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public ValueLob addTemporaryLob(ValueLob v) {
-        int tableId = v.getTableId();
+        if (v instanceof ValueLobInMemory) {
+            return v;
+        }
+        int tableId = ((ValueLobDatabase) v).getTableId();
         if (tableId == LobStorageFrontend.TABLE_RESULT || tableId == LobStorageFrontend.TABLE_TEMP) {
             if (temporaryResultLobs == null) {
                 temporaryResultLobs = new LinkedList<>();

@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.UUID;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.H2Type;
 import org.h2.engine.Database;
@@ -48,6 +47,7 @@ import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueLobInMemory;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
@@ -194,7 +194,7 @@ public class TestValue extends TestDb {
         assertEquals(32, v.castTo(typeInfo, null).getBytes()[9]);
         assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
 
-        v = ValueLob.createSmallLob(Value.CLOB, spaces.getBytes(), 100);
+        v = ValueLobInMemory.createSmallLob(Value.CLOB, spaces.getBytes(), 100);
         typeInfo = TypeInfo.getTypeInfo(Value.CLOB, 10L, 0, null);
         assertEquals(100, v.getType().getPrecision());
         assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
@@ -202,7 +202,7 @@ public class TestValue extends TestDb {
         assertEquals("          ", v.castTo(typeInfo, null).getString());
         assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
 
-        v = ValueLob.createSmallLob(Value.BLOB, spaces.getBytes(), 100);
+        v = ValueLobInMemory.createSmallLob(Value.BLOB, spaces.getBytes(), 100);
         typeInfo = TypeInfo.getTypeInfo(Value.BLOB, 10L, 0, null);
         assertEquals(100, v.getType().getPrecision());
         assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
@@ -487,7 +487,7 @@ public class TestValue extends TestDb {
 
     private static Value createLob(DataHandler dh, int type, byte[] bytes) {
         if (dh == null) {
-            return ValueLob.createSmallLob(type, bytes);
+            return ValueLobInMemory.createSmallLob(type, bytes);
         }
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         if (type == Value.BLOB) {

@@ -22,7 +22,6 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
-import org.h2.store.DataHandler;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.HasSQL;
@@ -1993,26 +1992,25 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             break;
         case CLOB: {
             v = (ValueLob) this;
-            DataHandler handler = v.getDataHandler();
-            if (handler != null) {
-                v = handler.getLobStorage().createBlob(v.getInputStream(), -1);
-            } else {
-                v = ValueLob.createSmallLob(BLOB, v.getBytesNoCopy());
+            if (v instanceof ValueLobInMemory) {
+                v = ValueLobInMemory.createSmallLob(BLOB, v.getBytesNoCopy());
+            } else if (v instanceof ValueLobDatabase) {
+                v = ((ValueLobDatabase) v).getDataHandler().getLobStorage().createBlob(v.getInputStream(), -1);
             }
             break;
         }
         case VARBINARY:
         case GEOMETRY:
         case JSON:
-            v = ValueLob.createSmallLob(BLOB, getBytesNoCopy());
+            v = ValueLobInMemory.createSmallLob(BLOB, getBytesNoCopy());
             break;
         case UUID:
-            v = ValueLob.createSmallLob(BLOB, getBytes());
+            v = ValueLobInMemory.createSmallLob(BLOB, getBytes());
             break;
         case VARCHAR:
         case VARCHAR_IGNORECASE:
         case CHAR:
-            v = ValueLob.createSmallLob(BLOB, getString().getBytes(StandardCharsets.UTF_8));
+            v = ValueLobInMemory.createSmallLob(BLOB, getString().getBytes(StandardCharsets.UTF_8));
             break;
         default:
             throw getDataConversionError(BLOB);
@@ -2037,25 +2035,23 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             throw getDataConversionError(targetType.getValueType());
         case BLOB: {
             v = (ValueLob) this;
-            DataHandler handler = v.getDataHandler();
-            if (handler != null) {
-                v = handler.getLobStorage().createClob(v.getReader(), -1);
-                break;
-            }
             // Try to reuse the array, if possible
-            byte[] small = v.getSmall();
-            if (small != null) {
+            if (v instanceof ValueLobInMemory) {
+                byte[] small = ((ValueLobInMemory)v).getSmall();
                 byte[] bytes = new String(small, StandardCharsets.UTF_8).getBytes(StandardCharsets.UTF_8);
                 if (Arrays.equals(bytes, small)) {
                     bytes = small;
                 }
-                v = ValueLob.createSmallLob(CLOB, bytes);
+                v = ValueLobInMemory.createSmallLob(CLOB, bytes);
+                break;
+            } else if (v instanceof ValueLobDatabase) {
+                v = ((ValueLobDatabase) v).getDataHandler().getLobStorage().createClob(v.getReader(), -1);
                 break;
             }
         }
         //$FALL-THROUGH$
         default:
-            v = ValueLob.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
+            v = ValueLobInMemory.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
         }
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {

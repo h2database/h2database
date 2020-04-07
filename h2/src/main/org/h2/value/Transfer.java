@@ -545,11 +545,12 @@ public class Transfer {
         case Value.BLOB: {
             writeInt(BLOB);
             ValueLob lob = (ValueLob) v;
-            if (lob.isStored()) {
+            if (lob instanceof ValueLobDatabase) {
+                ValueLobDatabase lobDb = (ValueLobDatabase) lob;
                 writeLong(-1);
-                writeInt(lob.getTableId());
-                writeLong(lob.getLobId());
-                writeBytes(calculateLobMac(lob.getLobId()));
+                writeInt(lobDb.getTableId());
+                writeLong(lobDb.getLobId());
+                writeBytes(calculateLobMac(lobDb.getLobId()));
                 writeLong(lob.getType().getPrecision());
                 break;
             }
@@ -570,11 +571,12 @@ public class Transfer {
         case Value.CLOB: {
             writeInt(CLOB);
             ValueLob lob = (ValueLob) v;
-            if (lob.isStored()) {
+            if (lob instanceof ValueLobDatabase) {
+                ValueLobDatabase lobDb = (ValueLobDatabase) lob;
                 writeLong(-1);
-                writeInt(lob.getTableId());
-                writeLong(lob.getLobId());
-                writeBytes(calculateLobMac(lob.getLobId()));
+                writeInt(lobDb.getTableId());
+                writeLong(lobDb.getLobId());
+                writeBytes(calculateLobMac(lobDb.getLobId()));
                 writeLong(lob.getType().getPrecision());
                 break;
             }
@@ -763,11 +765,12 @@ public class Transfer {
         case BLOB: {
             long length = readLong();
             if (length == -1) {
+                // fetch-on-demand LOB
                 int tableId = readInt();
                 long id = readLong();
                 byte[] hmac = readBytes();
                 long precision = readLong();
-                return ValueLob.create(Value.BLOB, session.getDataHandler(), tableId, id, hmac, precision);
+                return ValueLobFetchOnDemand.create(Value.BLOB, session.getDataHandler(), tableId, id, hmac, precision);
             }
             Value v = session.getDataHandler().getLobStorage().createBlob(in, length);
             int magic = readInt();
@@ -780,11 +783,12 @@ public class Transfer {
         case CLOB: {
             long length = readLong();
             if (length == -1) {
+                // fetch-on-demand LOB
                 int tableId = readInt();
                 long id = readLong();
                 byte[] hmac = readBytes();
                 long precision = readLong();
-                return ValueLob.create(Value.CLOB, session.getDataHandler(), tableId, id, hmac, precision);
+                return ValueLobFetchOnDemand.create(Value.CLOB, session.getDataHandler(), tableId, id, hmac, precision);
             }
             if (length < 0) {
                 throw DbException.get(

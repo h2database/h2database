@@ -32,9 +32,7 @@ public class TestMultiThreaded extends TestDb {
         TestBase test = createCaller().init(config);
         for (int i = 0; i < 100; i++) {
             System.out.println("Pass #" + i);
-            test.config.beforeTest();
-            test.test();
-            test.config.afterTest();
+            test.testFromMain();
         }
     }
 

@@ -38,7 +38,6 @@ import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
-import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.test.scripts.TestScript;
@@ -83,9 +82,9 @@ public class TestCrashAPI extends TestDb implements Runnable {
     public static void main(String... a) throws Exception {
         System.setProperty("h2.delayWrongPasswordMin", "0");
         System.setProperty("h2.delayWrongPasswordMax", "0");
-        TestBase.createCaller().init().test();
+        TestBase.createCaller().init().testFromMain();
     }
-
+    
     @Override
     public void run() {
         while (--maxWait > 0) {
@@ -157,9 +156,15 @@ public class TestCrashAPI extends TestDb implements Runnable {
             recoverAll();
             return;
         }
+
         if (config.mvStore || config.networked) {
             return;
         }
+
+        TestScript script = new TestScript();
+        statements = script.getAllStatements(config);
+        initMethods();
+
         int len = getSize(2, 6);
         Thread t = new Thread(this);
         try {
@@ -526,20 +531,6 @@ public class TestCrashAPI extends TestDb implements Runnable {
             }
             classMethods.put(inter, list);
         }
-    }
-
-    @Override
-    public TestBase init(TestAll conf) throws Exception {
-        super.init(conf);
-        if (config.mvStore || config.networked) {
-            return this;
-        }
-        startServerIfRequired();
-        TestScript script = new TestScript();
-        statements = script.getAllStatements(config);
-        initMethods();
-        org.h2.Driver.load();
-        return this;
     }
 
 }

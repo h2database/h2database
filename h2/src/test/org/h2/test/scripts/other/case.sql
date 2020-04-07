@@ -39,18 +39,6 @@ select x, case x when 0 then 'zero' when 1 then 'one' end y from system_range(0,
 > 2 null
 > rows: 3
 
-SELECT CASE END;
->> null
-
-SELECT CASE 1 END;
->> null
-
-SELECT CASE ELSE V END FROM (VALUES 1) T(V);
->> 1
-
-SELECT CASE 1 ELSE V END FROM (VALUES 1) T(V);
->> 1
-
 SELECT X, CASE X WHEN 1 THEN 10 WHEN 2, 3 THEN 25 WHEN 4, 5, 6 THEN 50 ELSE 90 END C FROM SYSTEM_RANGE(1, 7);
 > X C
 > - --

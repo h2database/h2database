@@ -5310,16 +5310,6 @@ public class Parser {
     }
 
     private Expression readCase() {
-        if (readIf(END)) {
-            readIf(CASE);
-            return ValueExpression.NULL;
-        }
-        if (readIf(ELSE)) {
-            Expression elsePart = readExpression();
-            read(END);
-            readIf(CASE);
-            return elsePart;
-        }
         if (readIf(WHEN)) {
             SearchedCase c = new SearchedCase();
             do {
@@ -5336,16 +5326,6 @@ public class Parser {
             return c;
         }
         Expression operand = readExpression();
-        if (readIf(END)) {
-            readIf(CASE);
-            return ValueExpression.NULL;
-        }
-        if (readIf(ELSE)) {
-            Expression elsePart = readExpression();
-            read(END);
-            readIf(CASE);
-            return elsePart;
-        }
         read(WHEN);
         SimpleCase.SimpleWhen when = readSimpleWhenClause(), current = when;
         while (readIf(WHEN)) {

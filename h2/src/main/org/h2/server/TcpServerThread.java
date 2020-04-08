@@ -495,15 +495,11 @@ public class TcpServerThread implements Runnable {
         case SessionRemote.LOB_READ: {
             long lobId = transfer.readLong();
             byte[] hmac = transfer.readBytes();
-            CachedInputStream in = lobs.get(lobId);
-            if (in == null) {
-                in = new CachedInputStream(null);
-                lobs.put(lobId, in);
-            }
             long offset = transfer.readLong();
             int length = transfer.readInt();
             transfer.verifyLobMac(hmac, lobId);
-            if (in.getPos() != offset) {
+            CachedInputStream in = lobs.get(lobId);
+            if (in == null || in.getPos() != offset) {
                 LobStorageInterface lobStorage = session.getDataHandler().getLobStorage();
                 // only the lob id is used
                 InputStream lobIn = lobStorage.getInputStream(lobId, -1);

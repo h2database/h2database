@@ -3256,7 +3256,7 @@ public class Parser {
             expressions.add(readAnd(readCondition()));
         }
         while (readIf(OR));
-        return new ConditionAndOrN(ConditionAndOr.OR, expressions);            
+        return new ConditionAndOrN(ConditionAndOr.OR, expressions);
     }
 
     private Expression readAnd(Expression r) {
@@ -3277,7 +3277,7 @@ public class Parser {
             expressions.add(readCondition());
         }
         while (readIf(AND));
-        return new ConditionAndOrN(ConditionAndOr.AND, expressions);            
+        return new ConditionAndOrN(ConditionAndOr.AND, expressions);
     }
 
     private Expression readCondition() {

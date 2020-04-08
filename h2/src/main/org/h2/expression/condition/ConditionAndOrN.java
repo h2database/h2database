@@ -147,11 +147,11 @@ public class ConditionAndOrN extends Condition {
         public int compare(Expression lhs, Expression rhs) {
             return lhs.getCost() - rhs.getCost();
         }
-        
+
     };
 
     @Override
-    public Expression optimize(Session session) {        
+    public Expression optimize(Session session) {
         // NULL handling: see wikipedia,
         // http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
 
@@ -159,9 +159,9 @@ public class ConditionAndOrN extends Condition {
         for (int i = 0; i < expressions.size(); i++ ) {
             expressions.set(i, expressions.get(i).optimize(session));
         }
-        
+
         Collections.sort(expressions, COMPARE_BY_COST);
-        
+
         // TODO we're only matching pairs so that are next to each other, so in complex expressions
         //   we will miss opportunities
 
@@ -226,7 +226,7 @@ public class ConditionAndOrN extends Condition {
             Expression e = ConditionAndOr.optimizeConstant(session, this, andOrType, left, right);
             if (e != this) {
                 expressions.remove(i);
-                expressions.set(i-1, e);                
+                expressions.set(i-1, e);
                 continue; // because we don't want to increment, we want to compare the new pair exposed
             }
 
@@ -238,14 +238,14 @@ public class ConditionAndOrN extends Condition {
         }
 
         Collections.sort(expressions, COMPARE_BY_COST);
-        
+
         if (expressions.size() == 1) {
             return Condition.castToBoolean(session, expressions.get(0));
         }
         return this;
     }
-    
-    
+
+
     private boolean optimizeMerge(int i) {
         Expression e = expressions.get(i);
         // If we have a ConditionAndOrN as a sub-expression, see if we can merge it
@@ -254,7 +254,7 @@ public class ConditionAndOrN extends Condition {
             ConditionAndOrN rightCondition = (ConditionAndOrN) e;
             if (this.andOrType == rightCondition.andOrType) {
                 expressions.remove(i);
-                expressions.addAll(i, rightCondition.expressions);                    
+                expressions.addAll(i, rightCondition.expressions);
                 return true;
             }
         }
@@ -265,10 +265,10 @@ public class ConditionAndOrN extends Condition {
                 expressions.add(i+1, rightCondition.getSubexpression(1));
                 return true;
             }
-        }        
+        }
         return false;
     }
-    
+
     @Override
     public void addFilterConditions(TableFilter filter) {
         if (andOrType == ConditionAndOr.AND) {

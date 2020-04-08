@@ -47,7 +47,7 @@ public class ConditionAndOr extends Condition {
         this.left = left;
         this.right = right;
     }
-    
+
     int getAndOrType() {
         return this.andOrType;
     }
@@ -195,12 +195,13 @@ public class ConditionAndOr extends Condition {
         }
         return e;
     }
-    
+
     private static Expression optimizeN(Session session, ConditionAndOr condition) {
         if (condition.right instanceof ConditionAndOr) {
             ConditionAndOr rightCondition = (ConditionAndOr) condition.right;
             if (rightCondition.andOrType == condition.andOrType) {
-                return new ConditionAndOrN(condition.andOrType, condition.left, rightCondition.left, rightCondition.right);
+                return new ConditionAndOrN(condition.andOrType, condition.left, rightCondition.left,
+                        rightCondition.right);
             }
         }
         if (condition.right instanceof ConditionAndOrN) {

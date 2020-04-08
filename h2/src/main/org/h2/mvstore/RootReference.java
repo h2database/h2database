@@ -211,17 +211,19 @@ public final class RootReference<K,V>
         RootReference<K,V> prev = previous;
         return prev == null || prev.root != root ||
                 prev.appendCounter != appendCounter ?
-                    version : prev.version;
+                    version : prev.getVersion();
     }
 
     /**
      * Does the root have changes since the specified version?
      *
      * @param version to check against
+     * @param persistent whether map is backed by persistent storage
      * @return true if this root has unsaved changes
      */
-    boolean hasChangesSince(long version) {
-        return (root.isSaved() ? getAppendCounter() > 0 : getTotalCount() > 0) || getVersion() > version;
+    boolean hasChangesSince(long version, boolean persistent) {
+        return persistent && (root.isSaved() ? getAppendCounter() > 0 : getTotalCount() > 0)
+                || getVersion() > version;
     }
 
     int getAppendCounter() {

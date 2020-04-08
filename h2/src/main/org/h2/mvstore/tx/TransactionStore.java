@@ -605,7 +605,7 @@ public class TransactionStore {
             }
 
             if (wasStored || store.getAutoCommitDelay() == 0) {
-                store.tryCommit();
+                store.commit();
             } else {
                 if (isUndoEmpty()) {
                     // to avoid having to store the transaction log,

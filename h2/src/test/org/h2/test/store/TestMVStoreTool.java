@@ -34,14 +34,6 @@ public class TestMVStoreTool extends TestBase {
     }
 
     @Override
-    public boolean isEnabled() {
-        if (config.memory) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
     public void test() throws Exception {
         testCompact();
     }
@@ -109,7 +101,7 @@ public class TestMVStoreTool extends TestBase {
 
         start = System.currentTimeMillis();
         MVStoreTool.compact(fileNameNew, false);
-        assertEquals(size2, FileUtils.size(fileNameNew));
+        assertTrue(100L * Math.abs(size2 - FileUtils.size(fileNameNew)) / size2 < 1);
         MVStoreTool.compact(fileNameCompressed, true);
         assertEquals(size3, FileUtils.size(fileNameCompressed));
         trace("Re-compacted in " + (System.currentTimeMillis() - start) + " ms.");

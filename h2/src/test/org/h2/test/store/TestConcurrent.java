@@ -435,13 +435,13 @@ public class TestConcurrent extends TestMVStore {
                 m.put(2, 2);
                 s.commit();
 
-                MVMap<String, String> meta = s.getMetaMap();
+                MVMap<String, String> layoutMap = s.getLayoutMap();
                 int chunkCount = 0;
-                for (String k : meta.keyList()) {
+                for (String k : layoutMap.keyList()) {
                     if (k.startsWith(DataUtils.META_CHUNK)) {
                         // dead chunks may stay around for a little while
                         // discount them
-                        Chunk chunk = Chunk.fromString(meta.get(k));
+                        Chunk chunk = Chunk.fromString(layoutMap.get(k));
                         if (chunk.maxLenLive > 0) {
                             chunkCount++;
                         }

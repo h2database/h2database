@@ -172,9 +172,9 @@ public final class Chunk {
     private Chunk(Map<String, String> map, boolean full) {
         this(DataUtils.readHexInt(map, ATTR_CHUNK, 0));
         block = DataUtils.readHexLong(map, ATTR_BLOCK, 0);
+        len = DataUtils.readHexInt(map, ATTR_LEN, 0);
         version = DataUtils.readHexLong(map, ATTR_VERSION, id);
         if (full) {
-            len = DataUtils.readHexInt(map, ATTR_LEN, 0);
             pageCount = DataUtils.readHexInt(map, ATTR_PAGES, 0);
             pageCountLive = DataUtils.readHexInt(map, ATTR_LIVE_PAGES, pageCount);
             mapId = DataUtils.readHexInt(map, ATTR_MAP, 0);
@@ -313,7 +313,9 @@ public final class Chunk {
     public String asString() {
         StringBuilder buff = new StringBuilder(240);
         DataUtils.appendMap(buff, ATTR_CHUNK, id);
-        DataUtils.appendMap(buff, ATTR_BLOCK, block);
+        if (block > 0) {
+            DataUtils.appendMap(buff, ATTR_BLOCK, block);
+        }
         DataUtils.appendMap(buff, ATTR_LEN, len);
         if (maxLen != maxLenLive) {
             DataUtils.appendMap(buff, ATTR_LIVE_MAX, maxLenLive);
@@ -352,7 +354,8 @@ public final class Chunk {
     byte[] getFooterBytes() {
         StringBuilder buff = new StringBuilder(FOOTER_LENGTH);
         DataUtils.appendMap(buff, ATTR_CHUNK, id);
-        DataUtils.appendMap(buff, ATTR_BLOCK, block);
+//        DataUtils.appendMap(buff, ATTR_BLOCK, block);
+        DataUtils.appendMap(buff, ATTR_LEN, len);
         DataUtils.appendMap(buff, ATTR_VERSION, version);
         byte[] bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
         int checksum = DataUtils.getFletcher32(bytes, 0, bytes.length);
@@ -365,7 +368,7 @@ public final class Chunk {
     }
 
     boolean isSaved() {
-        return block != Long.MAX_VALUE;
+        return block != 0;
     }
 
     boolean isLive() {

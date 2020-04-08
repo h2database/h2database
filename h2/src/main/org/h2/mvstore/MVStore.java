@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore;
 
+import static org.h2.mvstore.Chunk.MAX_HEADER_LENGTH;
 import static org.h2.mvstore.MVMap.INITIAL_VERSION;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.ByteBuffer;
@@ -1112,8 +1113,8 @@ public class MVStore implements AutoCloseable {
                         // but store maybe R/O, and it's not properly started yet,
                         // so lets make this chunk "dead" and taking no space,
                         // and it will be automatically removed later.
-                        c.block = Long.MAX_VALUE;
-                        c.len = Integer.MAX_VALUE;
+                        c.block = 0;
+                        c.len = 0;
                         if (c.unused == 0) {
                             c.unused = creationTime;
                         }
@@ -1174,6 +1175,9 @@ public class MVStore implements AutoCloseable {
             }
             Chunk test = readChunkFooter(block);
             if (test != null) {
+//                if (test.len > 0) {
+//                    test.block = block - test.len;
+//                }
                 // if we encounter chunk footer (with or without corresponding header)
                 // in the middle of prospective chunk, stop considering it
                 candidateLocation = Long.MAX_VALUE;
@@ -1234,7 +1238,11 @@ public class MVStore implements AutoCloseable {
             lastBlock.get(buff);
             HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
             if (m != null) {
-                return new Chunk(m);
+                Chunk chunk = new Chunk(m);
+                if (chunk.block == 0) {
+                    chunk.block = block - chunk.len;
+                }
+                return chunk;
             }
         } catch (Exception e) {
             // ignore
@@ -1656,6 +1664,7 @@ public class MVStore implements AutoCloseable {
                                     long reservedLow, Supplier<Long> reservedHighSupplier) {
         // need to patch the header later
         c.writeChunkHeader(buff, 0);
+        c.block = 0;
         int headerLength = buff.position() + 44;
         buff.position(headerLength);
 
@@ -1712,14 +1721,12 @@ public class MVStore implements AutoCloseable {
         int length = MathUtils.roundUpInt(chunkLength +
                 Chunk.FOOTER_LENGTH, BLOCK_SIZE);
         buff.limit(length);
+        c.len = buff.limit() / BLOCK_SIZE;
 
         saveChunkLock.lock();
         try {
             Long reservedHigh = reservedHighSupplier.get();
             long filePos = fileStore.allocate(buff.limit(), reservedLow, reservedHigh);
-            c.len = buff.limit() / BLOCK_SIZE;
-            c.block = filePos / BLOCK_SIZE;
-            assert validateFileLength(c.asString());
             // calculate and set the likely next position
             if (reservedLow > 0 || reservedHigh == reservedLow) {
                 c.next = fileStore.predictAllocation(c.len, 0, 0);
@@ -1737,6 +1744,9 @@ public class MVStore implements AutoCloseable {
 
             buff.position(buff.limit() - Chunk.FOOTER_LENGTH);
             buff.put(c.getFooterBytes());
+
+            c.block = filePos / BLOCK_SIZE;
+            assert validateFileLength(c.asString());
         } finally {
             saveChunkLock.unlock();
         }
@@ -1959,8 +1969,16 @@ public class MVStore implements AutoCloseable {
 
     private Chunk readChunkHeader(long block) {
         long p = block * BLOCK_SIZE;
-        ByteBuffer buff = fileStore.readFully(p, Chunk.MAX_HEADER_LENGTH);
-        return Chunk.readChunkHeader(buff, p);
+        ByteBuffer buff = fileStore.readFully(p, MAX_HEADER_LENGTH);
+        Chunk chunk = Chunk.readChunkHeader(buff, p);
+        if (chunk.block == 0) {
+            chunk.block = block;
+        } else if (chunk.block != block) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_FILE_CORRUPT,
+                    "File corrupt reading chunk at position {0}", p);
+        }
+        return chunk;
     }
 
     private Chunk readChunkHeaderOptionally(long block) {
@@ -2210,8 +2228,6 @@ public class MVStore implements AutoCloseable {
             // block should always move closer to the beginning of the file
             assert reservedAreaHigh > 0 || block <= chunk.block : block + " " + chunk;
             buff.position(0);
-            // can not set chunk's new block/len until it's fully written at new location,
-            // because concurrent reader can pick it up prematurely,
             // also occupancy accounting fields should not leak into header
             chunkFromFile.block = block;
             chunkFromFile.next = 0;
@@ -2224,6 +2240,8 @@ public class MVStore implements AutoCloseable {
             releaseWriteBuffer(buff);
         }
         fileStore.free(start, length);
+        // can not set chunk's new block/len until it's fully written at new location,
+        // because concurrent reader can pick it up prematurely,
         chunk.block = block;
         chunk.next = 0;
         layout.put(Chunk.getMetaKey(chunk.id), chunk.asString());
@@ -2795,10 +2813,10 @@ public class MVStore implements AutoCloseable {
         if (c == null) {
             return false;
         }
-        // also, all chunks referenced by this version
-        // need to be available in the file
-        MVMap<String, String> oldLayoutMap = getLayoutMap(version);
         try {
+            // also, all chunks referenced by this version
+            // need to be available in the file
+            MVMap<String, String> oldLayoutMap = getLayoutMap(version);
             for (Iterator<String> it = oldLayoutMap.keyIterator(DataUtils.META_CHUNK); it.hasNext();) {
                 String chunkKey = it.next();
                 if (!chunkKey.startsWith(DataUtils.META_CHUNK)) {

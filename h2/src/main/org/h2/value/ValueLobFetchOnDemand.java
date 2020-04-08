@@ -9,14 +9,13 @@ import java.io.BufferedInputStream;
 import java.io.InputStream;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.SessionRemote;
+import org.h2.message.DbException;
 import org.h2.store.DataHandler;
-import org.h2.store.LobStorageFrontend;
-import org.h2.store.LobStorageInterface;
 import org.h2.store.LobStorageRemoteInputStream;
 
 /**
- * A implementation of the BLOB and CLOB data types used on the client side of a remote H2 connection.
- * Fetches the underlying on data from the server.
+ * A implementation of the BLOB and CLOB data types used on the client side of a
+ * remote H2 connection. Fetches the underlying on data from the server.
  */
 public final class ValueLobFetchOnDemand extends ValueLob {
 
@@ -36,8 +35,9 @@ public final class ValueLobFetchOnDemand extends ValueLob {
 
     private ValueLobFetchOnDemand(int type, DataHandler handler, int tableId, long lobId, byte[] hmac, long precision) {
         super(type, precision);
+        assert (type == BLOB || type == CLOB);
         this.hmac = hmac;
-        this.handler = (SessionRemote)handler;
+        this.handler = (SessionRemote) handler;
         this.tableId = tableId;
         this.lobId = lobId;
     }
@@ -118,14 +118,17 @@ public final class ValueLobFetchOnDemand extends ValueLob {
 
     @Override
     public InputStream getInputStream() {
-        return new BufferedInputStream(new LobStorageRemoteInputStream(
-                handler, lobId, hmac, precision));
+        return new BufferedInputStream(new LobStorageRemoteInputStream(handler, lobId, hmac));
     }
 
     @Override
     public InputStream getInputStream(long oneBasedOffset, long length) {
-        final InputStream inputStream = new BufferedInputStream(new LobStorageRemoteInputStream(
-                    handler, lobId, hmac, precision));
+        if (this.valueType == CLOB) {
+            // Cannot usefully into index into a unicode based stream with a byte offset
+            throw DbException.throwInternalError();
+        }
+        final InputStream inputStream = new BufferedInputStream(
+                new LobStorageRemoteInputStream(handler, lobId, hmac));
         return rangeInputStream(inputStream, oneBasedOffset, length, precision);
     }
 
@@ -136,19 +139,6 @@ public final class ValueLobFetchOnDemand extends ValueLob {
      */
     public DataHandler getDataHandler() {
         return handler;
-    }
-
-    /**
-     * Create an independent copy of this value, that will be bound to a result.
-     *
-     * @return the value (this for small objects)
-     */
-    public ValueLob copyToResult() {
-        LobStorageInterface s = handler.getLobStorage();
-        if (s.isReadOnly()) {
-            return this;
-        }
-        return s.copyLob(this, LobStorageFrontend.TABLE_RESULT, precision);
     }
 
     /**

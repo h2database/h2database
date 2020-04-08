@@ -30,16 +30,10 @@ public class LobStorageRemoteInputStream extends InputStream {
      */
     private long pos;
 
-    /**
-     * The remaining bytes in the lob.
-     */
-    private long remainingBytes;
-
-    public LobStorageRemoteInputStream(SessionRemote handler, long lobId, byte[] hmac, long byteCount) {
+    public LobStorageRemoteInputStream(SessionRemote handler, long lobId, byte[] hmac) {
         this.sessionRemote = handler;
         this.lobId = lobId;
         this.hmac = hmac;
-        remainingBytes = byteCount;
     }
 
     @Override
@@ -56,12 +50,9 @@ public class LobStorageRemoteInputStream extends InputStream {
 
     @Override
     public int read(byte[] buff, int off, int length) throws IOException {
+        assert(length >= 0);
         if (length == 0) {
             return 0;
-        }
-        length = (int) Math.min(length, remainingBytes);
-        if (length == 0) {
-            return -1;
         }
         try {
             length = sessionRemote.readLob(lobId, hmac, pos, buff, off, length);
@@ -71,14 +62,12 @@ public class LobStorageRemoteInputStream extends InputStream {
         if (length == 0) {
             return -1;
         }
-        remainingBytes -= length;
         pos += length;
         return length;
     }
 
     @Override
     public long skip(long n) {
-        remainingBytes -= n;
         pos += n;
         return n;
     }

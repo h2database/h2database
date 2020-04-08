@@ -22,6 +22,7 @@ import org.h2.util.TempFileDeleter;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * Temporary result.
@@ -244,9 +245,11 @@ public abstract class MVTempResult implements ResultExternal {
      */
     final void fixEnum(Value[] row) {
         for (int i = 0, l = resultColumnCount; i < l; i++) {
-            TypeInfo type = expressions[i].getType();
-            if (type.getValueType() == Value.ENUM) {
-                row[i] = row[i].convertToEnum((ExtTypeInfoEnum) type.getExtTypeInfo());
+            if (row[i] != ValueNull.INSTANCE) {
+                TypeInfo type = expressions[i].getType();
+                if (type.getValueType() == Value.ENUM) {
+                    row[i] = row[i].convertToEnum((ExtTypeInfoEnum) type.getExtTypeInfo());
+                }
             }
         }
     }

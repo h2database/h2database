@@ -89,7 +89,6 @@ import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
 import static org.h2.util.ParserUtil.YEAR;
 import static org.h2.util.ParserUtil._ROWID_;
-
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -103,7 +102,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
@@ -240,6 +238,7 @@ import org.h2.expression.condition.CompareLike;
 import org.h2.expression.condition.CompareLike.LikeType;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
+import org.h2.expression.condition.ConditionAndOrN;
 import org.h2.expression.condition.ConditionIn;
 import org.h2.expression.condition.ConditionInParameter;
 import org.h2.expression.condition.ConditionInQuery;
@@ -3239,18 +3238,46 @@ public class Parser {
     }
 
     private Expression readExpression() {
-        Expression r = readAnd(readCondition());
-        while (readIf(OR)) {
-            r = new ConditionAndOr(ConditionAndOr.OR, r, readAnd(readCondition()));
+        Expression r1 = readAnd(readCondition());
+        if (!readIf(OR)) {
+            return r1;
         }
-        return r;
+        Expression r2 = readAnd(readCondition());
+        if (!readIf(OR)) {
+            return new ConditionAndOr(ConditionAndOr.OR, r1, r2);
+        }
+        // Above logic to avoid allocating an ArrayList for the common case.
+        // We combine into ConditionAndOrN here rather than letting the optimisation
+        // pass do it, to avoid StackOverflowError during stuff like mapColumns.
+        final ArrayList<Expression> expressions = new ArrayList<Expression>();
+        expressions.add(r1);
+        expressions.add(r2);
+        do {
+            expressions.add(readAnd(readCondition()));
+        }
+        while (readIf(OR));
+        return new ConditionAndOrN(ConditionAndOr.OR, expressions);            
     }
 
     private Expression readAnd(Expression r) {
-        while (readIf(AND)) {
-            r = new ConditionAndOr(ConditionAndOr.AND, r, readCondition());
+        if (!readIf(AND)) {
+            return r;
         }
-        return r;
+        Expression expr2 = readCondition();
+        if (!readIf(AND)) {
+            return new ConditionAndOr(ConditionAndOr.AND, r, expr2);
+        }
+        // Above logic to avoid allocating an ArrayList for the common case.
+        // We combine into ConditionAndOrN here rather than letting the optimisation
+        // pass do it, to avoid StackOverflowError during stuff like mapColumns.
+        final ArrayList<Expression> expressions = new ArrayList<Expression>();
+        expressions.add(r);
+        expressions.add(expr2);
+        do {
+            expressions.add(readCondition());
+        }
+        while (readIf(AND));
+        return new ConditionAndOrN(ConditionAndOr.AND, expressions);            
     }
 
     private Expression readCondition() {

@@ -47,6 +47,10 @@ public class ConditionAndOr extends Condition {
         this.left = left;
         this.right = right;
     }
+    
+    int getAndOrType() {
+        return this.andOrType;
+    }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
@@ -185,7 +189,28 @@ public class ConditionAndOr extends Condition {
                 return reduced.optimize(session);
             }
         }
-        return optimizeConstant(session, this, andOrType, left, right);
+        Expression e = optimizeConstant(session, this, andOrType, left, right);
+        if (e instanceof ConditionAndOr) {
+            return optimizeN(session, (ConditionAndOr) e);
+        }
+        return e;
+    }
+    
+    private static Expression optimizeN(Session session, ConditionAndOr condition) {
+        if (condition.right instanceof ConditionAndOr) {
+            ConditionAndOr rightCondition = (ConditionAndOr) condition.right;
+            if (rightCondition.andOrType == condition.andOrType) {
+                return new ConditionAndOrN(condition.andOrType, condition.left, rightCondition.left, rightCondition.right);
+            }
+        }
+        if (condition.right instanceof ConditionAndOrN) {
+            ConditionAndOrN rightCondition = (ConditionAndOrN) condition.right;
+            if (rightCondition.getAndOrType() == condition.andOrType) {
+                rightCondition.addFirst(condition.left);
+                return rightCondition;
+            }
+        }
+        return condition;
     }
 
     /**
@@ -308,7 +333,7 @@ public class ConditionAndOr extends Condition {
      * @param right the second condition
      * @return null or the third condition
      */
-    private static Expression optimizeConditionAndOr(ConditionAndOr left, ConditionAndOr right) {
+    static Expression optimizeConditionAndOr(ConditionAndOr left, ConditionAndOr right) {
         if (left.andOrType != AND || right.andOrType != AND) {
             return null;
         }

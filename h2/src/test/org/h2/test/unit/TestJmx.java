@@ -34,7 +34,7 @@ public class TestJmx extends TestDb {
     public static void main(String... a) throws Exception {
         TestBase base = TestBase.createCaller().init();
         base.config.mvStore = false;
-        base.test();
+        base.testFromMain();
     }
 
     @Override

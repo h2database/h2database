@@ -33,7 +33,7 @@ public class TestObjectDeserialization extends TestBase {
      */
     public static void main(String... a) throws Exception {
         System.setProperty("h2.useThreadContextClassLoader", "true");
-        TestBase.createCaller().init().test();
+        TestBase.createCaller().init().testFromMain();
     }
 
     @Override

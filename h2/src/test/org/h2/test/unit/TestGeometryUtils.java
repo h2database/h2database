@@ -105,7 +105,7 @@ public class TestGeometryUtils extends TestBase {
      *            ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase.createCaller().init().testFromMain();
     }
 
     @Override

@@ -7,7 +7,6 @@ package org.h2.command;
 
 import java.io.IOException;
 import java.util.ArrayList;
-
 import org.h2.engine.Constants;
 import org.h2.engine.GeneratedKeysMode;
 import org.h2.engine.SessionRemote;

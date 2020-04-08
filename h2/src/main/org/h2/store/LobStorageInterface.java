@@ -44,14 +44,13 @@ public interface LobStorageInterface {
     ValueLob copyLob(ValueLob old, int tableId, long length);
 
     /**
-     * Get the input stream for the given lob.
+     * Get the input stream for the given lob, only called on server side of a TCP connection.
      *
-     * @param lob the lob id
-     * @param hmac the message authentication code (for remote input streams)
+     * @param lobId the lob id
      * @param byteCount the number of bytes to read, or -1 if not known
      * @return the stream
      */
-    InputStream getInputStream(ValueLob lob, byte[] hmac, long byteCount)
+    InputStream getInputStream(long lobId, long byteCount)
             throws IOException;
 
     /**

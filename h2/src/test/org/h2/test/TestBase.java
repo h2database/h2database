@@ -463,6 +463,19 @@ public abstract class TestBase {
     public abstract void test() throws Exception;
 
     /**
+     * Only called from individual test classes main() method,
+     * makes sure to run the before/after stuff.
+     *
+     * @throws Exception if an exception in the test occurs
+     */
+    public final void testFromMain() throws Exception
+    {
+        config.beforeTest();
+        test();
+        config.afterTest();        
+    }
+
+    /**
      * Check if two values are equal, and if not throw an exception.
      *
      * @param message the message to print in case of error

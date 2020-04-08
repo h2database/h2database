@@ -31,7 +31,7 @@ public class TestDateIso8601 extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase.createCaller().init().testFromMain();
     }
 
     private static long parse(String s) {

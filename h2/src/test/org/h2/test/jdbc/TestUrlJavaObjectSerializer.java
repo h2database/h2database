@@ -31,9 +31,7 @@ public class TestUrlJavaObjectSerializer extends TestDb {
         test.config.traceTest = true;
         test.config.memory = true;
         test.config.networked = true;
-        test.config.beforeTest();
-        test.test();
-        test.config.afterTest();
+        test.testFromMain();
     }
 
     @Override

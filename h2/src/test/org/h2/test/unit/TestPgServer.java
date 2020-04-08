@@ -46,7 +46,7 @@ public class TestPgServer extends TestDb {
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
         test.config.memory = true;
-        test.test();
+        test.testFromMain();
     }
 
     @Override

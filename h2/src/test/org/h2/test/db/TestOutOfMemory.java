@@ -37,7 +37,7 @@ public class TestOutOfMemory extends TestDb {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase.createCaller().init().testFromMain();
     }
 
     @Override
@@ -219,7 +219,7 @@ public class TestOutOfMemory extends TestDb {
          * @param args the arguments
          */
         public static void main(String... args) throws Exception {
-            new MyChild(args).init().test();
+            new MyChild(args).init().testFromMain();
         }
 
         private MyChild(String... args) {

@@ -52,6 +52,8 @@ import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueLobDatabase;
+import org.h2.value.ValueLobInMemory;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
@@ -485,13 +487,14 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         case Value.CLOB: {
             buff.put(type == Value.BLOB ? BLOB : CLOB);
             ValueLob lob = (ValueLob) v;
-            byte[] small = lob.getSmall();
-            if (small == null) {
+            if (lob instanceof ValueLobDatabase) {
+                ValueLobDatabase lobDb = (ValueLobDatabase) lob;
                 buff.putVarInt(-3).
-                    putVarInt(lob.getTableId()).
-                    putVarLong(lob.getLobId()).
+                    putVarInt(lobDb.getTableId()).
+                    putVarLong(lobDb.getLobId()).
                     putVarLong(lob.getType().getPrecision());
             } else {
+                byte[] small = ((ValueLobInMemory)lob).getSmall();
                 buff.putVarInt(small.length).
                     put(small);
             }
@@ -762,13 +765,13 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             if (smallLen >= 0) {
                 byte[] small = Utils.newBytes(smallLen);
                 buff.get(small, 0, smallLen);
-                return ValueLob.createSmallLob(type == BLOB ? Value.BLOB : Value.CLOB, small);
+                return ValueLobInMemory.createSmallLob(type == BLOB ? Value.BLOB : Value.CLOB, small);
             } else if (smallLen == -3) {
                 int tableId = readVarInt(buff);
                 long lobId = readVarLong(buff);
                 long precision = readVarLong(buff);
-                return ValueLob.create(type == BLOB ? Value.BLOB : Value.CLOB,
-                        handler, tableId, lobId, null, precision);
+                return ValueLobDatabase.create(type == BLOB ? Value.BLOB : Value.CLOB,
+                        handler, tableId, lobId, precision);
             } else {
                 throw DbException.get(ErrorCode.FILE_CORRUPTED_1,
                         "lob type: " + smallLen);

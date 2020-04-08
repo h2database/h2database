@@ -78,6 +78,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueLobDatabase;
 
 /**
  * Helps recovering a corrupted database.
@@ -203,8 +204,8 @@ public class Recover extends Tool implements DataHandler {
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
-        ValueLob lob = ValueLob.create(Value.BLOB, h, LobStorageFrontend.TABLE_TEMP,
-                lobId, null, precision);
+        ValueLobDatabase lob = ValueLobDatabase.create(Value.BLOB, h, LobStorageFrontend.TABLE_TEMP,
+                lobId, precision);
         lob.setRecoveryReference(true);
         return lob;
     }
@@ -224,8 +225,8 @@ public class Recover extends Tool implements DataHandler {
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
-        ValueLob lob =  ValueLob.create(Value.CLOB, h, LobStorageFrontend.TABLE_TEMP,
-                lobId, null, precision);
+        ValueLobDatabase lob =  ValueLobDatabase.create(Value.CLOB, h, LobStorageFrontend.TABLE_TEMP,
+                lobId, precision);
         lob.setRecoveryReference(true);
         return lob;
     }
@@ -403,30 +404,27 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void getSQL(StringBuilder builder, String column, Value v) {
-        if (v instanceof ValueLob) {
-            ValueLob lob = (ValueLob) v;
-            byte[] small = lob.getSmall();
-            if (small == null) {
-                int type = lob.getValueType();
-                long id = lob.getLobId();
-                long precision = lob.getType().getPrecision();
-                String columnType;
-                if (type == Value.BLOB) {
-                    columnType = "BLOB";
-                    builder.append("READ_BLOB");
-                } else {
-                    columnType = "CLOB";
-                    builder.append("READ_CLOB");
-                }
-                if (lobMaps) {
-                    builder.append("_MAP");
-                } else {
-                    builder.append("_DB");
-                }
-                columnTypeMap.put(column, columnType);
-                builder.append('(').append(id).append(", ").append(precision).append(')');
-                return;
+        if (v instanceof ValueLobDatabase) {
+            ValueLobDatabase lob = (ValueLobDatabase) v;
+            int type = lob.getValueType();
+            long id = lob.getLobId();
+            long precision = lob.getType().getPrecision();
+            String columnType;
+            if (type == Value.BLOB) {
+                columnType = "BLOB";
+                builder.append("READ_BLOB");
+            } else {
+                columnType = "CLOB";
+                builder.append("READ_CLOB");
             }
+            if (lobMaps) {
+                builder.append("_MAP");
+            } else {
+                builder.append("_DB");
+            }
+            columnTypeMap.put(column, columnType);
+            builder.append('(').append(id).append(", ").append(precision).append(')');
+            return;
         }
         v.getSQL(builder, HasSQL.NO_CASTS);
     }

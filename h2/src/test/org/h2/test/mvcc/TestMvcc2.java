@@ -35,7 +35,7 @@ public class TestMvcc2 extends TestDb {
      */
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
-        test.test();
+        test.testFromMain();
     }
 
     @Override

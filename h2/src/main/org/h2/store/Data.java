@@ -45,6 +45,8 @@ import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueLobDatabase;
+import org.h2.value.ValueLobInMemory;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
@@ -685,13 +687,14 @@ public class Data {
         case Value.CLOB: {
             writeByte(type == Value.BLOB ? BLOB : CLOB);
             ValueLob lob = (ValueLob) v;
-            byte[] small = lob.getSmall();
-            if (small == null) {
+            if (lob instanceof ValueLobDatabase) {
+                ValueLobDatabase lobDb = (ValueLobDatabase) lob;
                 writeVarInt(-3);
-                writeVarInt(lob.getTableId());
-                writeVarLong(lob.getLobId());
+                writeVarInt(lobDb.getTableId());
+                writeVarLong(lobDb.getLobId());
                 writeVarLong(lob.getType().getPrecision());
             } else {
+                byte[] small = ((ValueLobInMemory)lob).getSmall();
                 writeVarInt(small.length);
                 write(small, 0, small.length);
             }
@@ -911,13 +914,13 @@ public class Data {
             if (smallLen >= 0) {
                 byte[] small = Utils.newBytes(smallLen);
                 read(small, 0, smallLen);
-                return ValueLob.createSmallLob(type == BLOB ? Value.BLOB : Value.CLOB, small);
+                return ValueLobInMemory.createSmallLob(type == BLOB ? Value.BLOB : Value.CLOB, small);
             } else if (smallLen == -3) {
                 int tableId = readVarInt();
                 long lobId = readVarLong();
                 long precision = readVarLong();
-                return ValueLob.create(type == BLOB ? Value.BLOB : Value.CLOB, handler, tableId,
-                        lobId, null, precision);
+                return ValueLobDatabase.create(type == BLOB ? Value.BLOB : Value.CLOB, handler, tableId,
+                        lobId, precision);
             } else {
                 throw getOldLobException(smallLen);
             }
@@ -1159,13 +1162,14 @@ public class Data {
         case Value.CLOB: {
             int len = 1;
             ValueLob lob = (ValueLob) v;
-            byte[] small = lob.getSmall();
-            if (small == null) {
+            if (lob instanceof ValueLobDatabase) {
+                ValueLobDatabase lobDb = (ValueLobDatabase) lob;
                 len += getVarIntLen(-3);
-                len += getVarIntLen(lob.getTableId());
-                len += getVarLongLen(lob.getLobId());
+                len += getVarIntLen(lobDb.getTableId());
+                len += getVarLongLen(lobDb.getLobId());
                 len += getVarLongLen(lob.getType().getPrecision());
             } else {
+                byte[] small = ((ValueLobInMemory)lob).getSmall();
                 len += getVarIntLen(small.length);
                 len += small.length;
             }

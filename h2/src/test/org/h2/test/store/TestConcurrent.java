@@ -42,7 +42,7 @@ public class TestConcurrent extends TestMVStore {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase.createCaller().init().testFromMain();
     }
 
     @Override

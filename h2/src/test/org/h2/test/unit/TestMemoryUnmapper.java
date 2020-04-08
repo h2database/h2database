@@ -26,7 +26,7 @@ public class TestMemoryUnmapper extends TestBase {
      */
     public static void main(String... a) throws Exception {
         if (a.length == 0) {
-            TestBase.createCaller().init().test();
+            TestBase.createCaller().init().testFromMain();
         } else {
             ByteBuffer buffer = ByteBuffer.allocateDirect(10);
             System.exit(MemoryUnmapper.unmap(buffer) ? OK : UNAVAILABLE);

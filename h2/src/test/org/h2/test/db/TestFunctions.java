@@ -84,7 +84,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
     public static void main(String... a) throws Exception {
         // Locale.setDefault(Locale.GERMANY);
         // Locale.setDefault(Locale.US);
-        TestBase.createCaller().init().test();
+        TestBase.createCaller().init().testFromMain();
     }
 
     @Override

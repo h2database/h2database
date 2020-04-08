@@ -33,7 +33,7 @@ public class TestTransaction extends TestDb {
      */
     public static void main(String... a) throws Exception {
         TestBase init = TestBase.createCaller().init();
-        init.test();
+        init.testFromMain();
     }
 
     @Override

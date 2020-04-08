@@ -28,6 +28,8 @@ import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueLobDatabase;
+import org.h2.value.ValueLobInMemory;
 
 /**
  * This class stores LOB objects in the database, in tables. This is the
@@ -282,7 +284,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     @Override
     public void removeLob(ValueLob lob) {
-        removeLob(lob.getLobId());
+        removeLob(((ValueLobDatabase)lob).getLobId());
     }
 
     private void removeLob(long lobId) {
@@ -333,15 +335,13 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     @Override
-    public InputStream getInputStream(ValueLob lob, byte[] hmac,
-            long byteCount) throws IOException {
+    public InputStream getInputStream(long lobId, long byteCount) throws IOException {
         try {
             init();
             assertNotHolds(conn.getSession());
             // see locking discussion at the top
             synchronized (database) {
                 synchronized (conn.getSession()) {
-                    long lobId = lob.getLobId();
                     return new LobInputStream(lobId, byteCount);
                 }
             }
@@ -403,7 +403,7 @@ public class LobStorageBackend implements LobStorageInterface {
                     // For a CLOB, precision is length in chars
                     long precision = countingReaderForClob == null ?
                             small.length : countingReaderForClob.getLength();
-                    return ValueLob.createSmallLob(type, small, precision);
+                    return ValueLobInMemory.createSmallLob(type, small, precision);
                 }
                 // For a BLOB, precision is length in bytes.
                 // For a CLOB, precision is length in chars
@@ -436,8 +436,8 @@ public class LobStorageBackend implements LobStorageInterface {
                 prep.setInt(3, tableId);
                 prep.execute();
                 reuse(sql, prep);
-                return ValueLob.create(type,
-                        database, tableId, lobId, null, precision);
+                return ValueLobDatabase.create(type,
+                        database, tableId, lobId, precision);
             }
         }
     }
@@ -448,7 +448,8 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     @Override
-    public ValueLob copyLob(ValueLob old, int tableId, long length) {
+    public ValueLob copyLob(ValueLob old_, int tableId, long length) {
+        ValueLobDatabase old = (ValueLobDatabase) old_;
         int type = old.getValueType();
         long oldLobId = old.getLobId();
         assertNotHolds(conn.getSession());
@@ -481,11 +482,11 @@ public class LobStorageBackend implements LobStorageInterface {
                         prep.executeUpdate();
                         reuse(sql, prep);
 
-                        v = ValueLob.create(type, database, tableId, lobId, null, length);
+                        v = ValueLobDatabase.create(type, database, tableId, lobId, length);
                     } else {
                         // Recovery process, no need to copy LOB using normal
                         // infrastructure
-                        v = ValueLob.create(type, database, tableId, oldLobId, null, length);
+                        v = ValueLobDatabase.create(type, database, tableId, oldLobId, length);
                     }
                     return v;
                 } catch (SQLException e) {

@@ -31,7 +31,7 @@ public class TestRandomMapOps extends TestBase {
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
         test.config.big = true;
-        test.test();
+        test.testFromMain();
     }
 
     @Override

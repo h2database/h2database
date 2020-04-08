@@ -47,7 +47,7 @@ public class TestMVStore extends TestBase {
         TestBase test = TestBase.createCaller().init();
         test.config.traceTest = true;
         test.config.big = true;
-        test.test();
+        test.testFromMain();
     }
 
     @Override

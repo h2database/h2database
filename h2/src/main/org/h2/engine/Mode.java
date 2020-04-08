@@ -329,6 +329,12 @@ public class Mode {
     public boolean nextValueReturnsDifferentValues;
 
     /**
+     * If {@code true}, case specification may have an optional CASE keyword
+     * after END.
+     */
+    public boolean allowEndCase;
+
+    /**
      * How column names are generated for expressions.
      */
     public ExpressionNames expressionNames = ExpressionNames.OPTIMIZED_SQL;
@@ -446,6 +452,7 @@ public class Mode {
         mode.allNumericTypesHavePrecision = true;
         // Next one is for MariaDB
         mode.nextValueReturnsDifferentValues = true;
+        mode.allowEndCase = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
         add(mode);

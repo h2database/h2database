@@ -216,7 +216,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         targetTableFilter.doneWithIndexConditions();
         boolean forUpdate = false;
         for (When w : when) {
-            w.prepare();
+            w.prepare(session);
             if (w instanceof WhenNotMatched) {
                 forUpdate = true;
             }
@@ -406,11 +406,15 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
 
         /**
          * Prepares WHEN command.
+         *
+         * @param session
+         *            the session
          */
-        void prepare() {
+        void prepare(Session session) {
             if (andCondition != null) {
                 andCondition.mapColumns(mergeUsing.sourceTableFilter, 2, Expression.MAP_INITIAL);
                 andCondition.mapColumns(mergeUsing.targetTableFilter, 1, Expression.MAP_INITIAL);
+                andCondition = andCondition.optimize(session);
             }
         }
 
@@ -499,8 +503,8 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        void prepare() {
-            super.prepare();
+        void prepare(Session session) {
+            super.prepare(session);
             if (updateCommand != null) {
                 updateCommand.setSourceTableFilter(mergeUsing.sourceTableFilter);
                 updateCommand.setCondition(appendCondition(updateCommand, mergeUsing.onCondition));
@@ -596,8 +600,8 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        void prepare() {
-            super.prepare();
+        void prepare(Session session) {
+            super.prepare(session);
             insertCommand.setSourceTableFilter(mergeUsing.sourceTableFilter);
             insertCommand.prepare();
         }

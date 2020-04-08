@@ -1192,7 +1192,7 @@ public class TestOptimizations extends TestDb {
         assertTrue("engineer".equals(rs.getString("occupation")));
         conn.close();
     }
-    
+
     private void testConditionsStackOverflow() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
@@ -1205,5 +1205,5 @@ public class TestOptimizations extends TestDb {
         rs.next();
         assertTrue(rs.getBoolean(1));
         conn.close();
-    }    
+    }
 }

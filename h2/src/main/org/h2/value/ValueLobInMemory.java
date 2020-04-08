@@ -129,6 +129,7 @@ public final class ValueLobInMemory extends ValueLob {
      * @param precision the new precision
      * @return the truncated or this value
      */
+    @Override
     ValueLob convertPrecision(long precision) {
         if (this.precision <= precision) {
             return this;

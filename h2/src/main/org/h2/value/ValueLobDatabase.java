@@ -154,6 +154,7 @@ public final class ValueLobDatabase extends ValueLob {
      *
      * @return the value (this for small objects)
      */
+    @Override
     public ValueLob copyToResult() {
         LobStorageInterface s = handler.getLobStorage();
         if (s.isReadOnly()) {
@@ -168,6 +169,7 @@ public final class ValueLobDatabase extends ValueLob {
      * @param precision the new precision
      * @return the truncated or this value
      */
+    @Override
     ValueLob convertPrecision(long precision) {
         if (this.precision <= precision) {
             return this;

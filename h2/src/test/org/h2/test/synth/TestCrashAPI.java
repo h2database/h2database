@@ -157,7 +157,7 @@ public class TestCrashAPI extends TestDb implements Runnable {
             return;
         }
 
-        if (config.mvStore || config.networked) {
+        if (config.networked) {
             return;
         }
 

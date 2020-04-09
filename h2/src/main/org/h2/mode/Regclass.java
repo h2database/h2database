@@ -10,13 +10,11 @@ import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.Operation1;
 import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.message.DbException;
-import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
-import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueInteger;
@@ -25,17 +23,15 @@ import org.h2.value.ValueNull;
 /**
  * A ::regclass expression.
  */
-public class Regclass extends Expression {
+public class Regclass extends Operation1 {
 
-    private Expression expr;
-
-    public Regclass(Expression expression) {
-        this.expr = expression;
+    public Regclass(Expression arg) {
+        super(arg);
     }
 
     @Override
     public Value getValue(Session session) {
-        Value value = expr.getValue(session);
+        Value value = arg.getValue(session);
         if (value == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
         }
@@ -78,55 +74,22 @@ public class Regclass extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level, int state) {
-        expr.mapColumns(resolver, level, state);
-    }
-
-    @Override
     public Expression optimize(Session session) {
-        expr = expr.optimize(session);
-        if (expr.isConstant()) {
+        arg = arg.optimize(session);
+        if (arg.isConstant()) {
             return ValueExpression.get(getValue(session));
         }
         return this;
     }
 
     @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        expr.setEvaluatable(tableFilter, b);
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return expr.getSQL(builder, sqlFlags).append("::REGCLASS");
-    }
-
-    @Override
-    public void updateAggregate(Session session, int stage) {
-        expr.updateAggregate(session, stage);
-    }
-
-    @Override
-    public boolean isEverything(ExpressionVisitor visitor) {
-        return expr.isEverything(visitor);
+        return arg.getSQL(builder, sqlFlags).append("::REGCLASS");
     }
 
     @Override
     public int getCost() {
-        return expr.getCost() + 100;
-    }
-
-    @Override
-    public int getSubexpressionCount() {
-        return 1;
-    }
-
-    @Override
-    public Expression getSubexpression(int index) {
-        if (index != 0) {
-            throw new IndexOutOfBoundsException();
-        }
-        return expr;
+        return arg.getCost() + 100;
     }
 
 }

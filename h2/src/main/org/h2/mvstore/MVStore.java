@@ -41,11 +41,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import org.h2.api.ErrorCode;
 import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
-import org.h2.message.DbException;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.util.MathUtils;
@@ -3054,7 +3052,8 @@ public class MVStore implements AutoCloseable
 
     private void checkOpen() {
         if (!isOpenOrStopping()) {
-            throw DbException.get(ErrorCode.DATABASE_IS_CLOSED, panicException);
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_CLOSED,
+                    "This store is closed", panicException);
         }
     }
 

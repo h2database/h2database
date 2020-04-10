@@ -244,9 +244,13 @@ public class MVTableEngine implements TableEngine {
          * @return table created
          */
         public MVTable createTable(CreateTableData data) {
-            MVTable table = new MVTable(data, this);
-            tableMap.put(table.getMapName(), table);
-            return table;
+            try {
+                MVTable table = new MVTable(data, this);
+                tableMap.put(table.getMapName(), table);
+                return table;
+            } catch (IllegalStateException e) {
+                throw convertIllegalStateException(e);
+            }
         }
 
         /**
@@ -255,7 +259,11 @@ public class MVTableEngine implements TableEngine {
          * @param table the table
          */
         public void removeTable(MVTable table) {
-            tableMap.remove(table.getMapName());
+            try {
+                tableMap.remove(table.getMapName());
+            } catch (IllegalStateException e) {
+                throw convertIllegalStateException(e);
+            }
         }
 
         /**

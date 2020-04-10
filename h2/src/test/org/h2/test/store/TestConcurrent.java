@@ -19,7 +19,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
-
+import org.h2.api.ErrorCode;
+import org.h2.message.DbException;
 import org.h2.mvstore.Chunk;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -514,8 +515,8 @@ public class TestConcurrent extends TestMVStore {
                     }
                     Exception e = task.getException();
                     if (e != null) {
-                        assertEquals(DataUtils.ERROR_CLOSED,
-                                        DataUtils.getErrorCode(e.getMessage()));
+                        assertTrue(e instanceof DbException);
+                        assertEquals(((DbException) e).getErrorCode(), ErrorCode.DATABASE_IS_CLOSED);
                     }
                 } catch (IllegalStateException e) {
                     // sometimes storing works, in which case

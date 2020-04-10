@@ -219,7 +219,7 @@ public class TestOutOfMemory extends TestDb {
          * @param args the arguments
          */
         public static void main(String... args) throws Exception {
-            new MyChild(args).init().testFromMain();
+            new MyChild(args).init().test();
         }
 
         private MyChild(String... args) {

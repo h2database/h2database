@@ -35,7 +35,7 @@ import org.h2.util.Task;
 /**
  * Tests concurrently accessing a tree map store.
  */
-public class TestConcurrent extends TestMVStore {
+public class TestMVStoreConcurrent extends TestMVStore {
 
     /**
      * Run just this test.

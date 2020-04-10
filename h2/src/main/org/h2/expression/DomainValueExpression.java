@@ -11,14 +11,13 @@ import org.h2.constraint.DomainColumnResolver;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
  * An expression representing a value for domain constraint.
  */
-public class DomainValueExpression extends Expression {
+public class DomainValueExpression extends Operation0 {
 
     private DomainColumnResolver columnResolver;
 
@@ -56,11 +55,6 @@ public class DomainValueExpression extends Expression {
     }
 
     @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        // nothing to do
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if (columnResolver != null) {
             String name = columnResolver.getColumnName();
@@ -69,11 +63,6 @@ public class DomainValueExpression extends Expression {
             }
         }
         return builder.append("VALUE");
-    }
-
-    @Override
-    public void updateAggregate(Session session, int stage) {
-        // nothing to do
     }
 
     @Override

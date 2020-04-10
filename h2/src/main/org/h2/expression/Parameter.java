@@ -10,8 +10,6 @@ import org.h2.engine.Session;
 import org.h2.expression.condition.Comparison;
 import org.h2.message.DbException;
 import org.h2.table.Column;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -21,7 +19,7 @@ import org.h2.value.ValueVarchar;
 /**
  * A parameter of a prepared statement.
  */
-public class Parameter extends Expression implements ParameterInterface {
+public class Parameter extends Operation0 implements ParameterInterface {
 
     private Value value;
     private Column column;
@@ -73,11 +71,6 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level, int state) {
-        // can't map
-    }
-
-    @Override
     public void checkSet() {
         if (value == null) {
             throw DbException.get(ErrorCode.PARAMETER_NOT_SET_1, "#" + (index + 1));
@@ -97,16 +90,6 @@ public class Parameter extends Expression implements ParameterInterface {
     @Override
     public boolean isValueSet() {
         return value != null;
-    }
-
-    @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        // not bound
-    }
-
-    @Override
-    public void updateAggregate(Session session, int stage) {
-        // nothing to do
     }
 
     @Override

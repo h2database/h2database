@@ -250,6 +250,7 @@ import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
 import org.h2.expression.function.CastSpecification;
+import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.DateTimeFunctions;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
@@ -3249,7 +3250,7 @@ public class Parser {
         // Above logic to avoid allocating an ArrayList for the common case.
         // We combine into ConditionAndOrN here rather than letting the optimisation
         // pass do it, to avoid StackOverflowError during stuff like mapColumns.
-        final ArrayList<Expression> expressions = new ArrayList<Expression>();
+        final ArrayList<Expression> expressions = new ArrayList<>();
         expressions.add(r1);
         expressions.add(r2);
         do {
@@ -3270,7 +3271,7 @@ public class Parser {
         // Above logic to avoid allocating an ArrayList for the common case.
         // We combine into ConditionAndOrN here rather than letting the optimisation
         // pass do it, to avoid StackOverflowError during stuff like mapColumns.
-        final ArrayList<Expression> expressions = new ArrayList<Expression>();
+        final ArrayList<Expression> expressions = new ArrayList<>();
         expressions.add(r);
         expressions.add(expr2);
         do {
@@ -4075,16 +4076,14 @@ public class Parser {
         case "CURDATE":
         case "SYSDATE":
         case "TODAY":
-            function = Function.getFunction(database, Function.CURRENT_DATE);
-            break;
+            return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, true, name);
         // CURRENT_SCHEMA
         case "SCHEMA":
             function = Function.getFunction(database, Function.CURRENT_SCHEMA);
             break;
         // CURRENT_TIMESTAMP
         case "SYSTIMESTAMP":
-            function = Function.getFunction(database, Function.CURRENT_TIMESTAMP);
-            break;
+            return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_TIMESTAMP, true, name);
         // CURRENT_USER
         case "USER":
             function = Function.getFunction(database, Function.CURRENT_USER);
@@ -4148,17 +4147,13 @@ public class Parser {
             break;
         // LOCALTIME
         case "CURTIME":
-            function = Function.getFunction(database, Function.LOCALTIME);
-            break;
+            return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIME, true, "CURTIME");
         case "SYSTIME":
             read(CLOSE_PAREN);
-            function = Function.getFunction(database, Function.LOCALTIME);
-            function.doneWithParameters();
-            return function;
+            return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIME, false, "SYSTIME");
         // LOCALTIMESTAMP
         case "NOW":
-            function = Function.getFunction(database, Function.LOCALTIMESTAMP);
-            break;
+            return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIMESTAMP, true, "NOW");
         // LOWER
         case "LCASE":
             function = Function.getFunction(database, Function.LOWER);
@@ -4587,17 +4582,28 @@ public class Parser {
         throw getSyntaxError();
     }
 
-    private Expression readFunctionWithoutParameters(int id) {
-        Expression[] args = new Expression[0];
-        Function function = Function.getFunctionWithArgs(database, id, args);
+    private Expression readCurrentDateTimeValueFunction(int function, boolean hasParen, String name) {
+        int scale = -1;
+        if (hasParen) {
+            if (function != CurrentDateTimeValueFunction.CURRENT_DATE && currentTokenType != CLOSE_PAREN) {
+                scale = readInt();
+                if (scale < 0 || scale > ValueTime.MAXIMUM_SCALE) {
+                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale), "0",
+                            /* compile-time constant */ "" + ValueTime.MAXIMUM_SCALE);
+                }
+            }
+            read(CLOSE_PAREN);
+        }
         if (database.isAllowBuiltinAliasOverride()) {
-            FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(
-                    function.getName());
+            FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName())
+                    .findFunction(name != null ? name : CurrentDateTimeValueFunction.getName(function));
             if (functionAlias != null) {
-                return new JavaFunction(functionAlias, args);
+                return new JavaFunction(functionAlias,
+                        scale >= 0 ? new Expression[] { ValueExpression.get(ValueInteger.get(scale)) }
+                                : new Expression[0]);
             }
         }
-        return function;
+        return new CurrentDateTimeValueFunction(function, scale);
     }
 
     private Expression readIfWildcardRowidOrSequencePseudoColumn(String schema, String objectName) {
@@ -4933,7 +4939,7 @@ public class Parser {
             break;
         case CURRENT_DATE:
             read();
-            r = readKeywordFunction(Function.CURRENT_DATE);
+            r = readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, readIf(OPEN_PAREN), null);
             break;
         case CURRENT_SCHEMA:
             read();
@@ -4941,11 +4947,12 @@ public class Parser {
             break;
         case CURRENT_TIME:
             read();
-            r = readKeywordFunction(Function.CURRENT_TIME);
+            r = readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_TIME, readIf(OPEN_PAREN), null);
             break;
         case CURRENT_TIMESTAMP:
             read();
-            r = readKeywordFunction(Function.CURRENT_TIMESTAMP);
+            r = readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_TIMESTAMP, readIf(OPEN_PAREN),
+                    null);
             break;
         case CURRENT_USER:
             read();
@@ -4964,11 +4971,12 @@ public class Parser {
             break;
         case LOCALTIME:
             read();
-            r = readKeywordFunction(Function.LOCALTIME);
+            r = readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIME, readIf(OPEN_PAREN), null);
             break;
         case LOCALTIMESTAMP:
             read();
-            r = readKeywordFunction(Function.LOCALTIMESTAMP);
+            r = readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIMESTAMP, readIf(OPEN_PAREN), //
+                    null);
             break;
         case RIGHT:
             r = readKeywordFunctionOrColumn(Function.RIGHT);
@@ -5122,11 +5130,12 @@ public class Parser {
             break;
         case 'S':
             if (equalsToken("SYSDATE", name)) {
-                return readFunctionWithoutParameters(Function.CURRENT_DATE);
+                return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, false, "SYSDATE");
             } else if (equalsToken("SYSTIME", name)) {
-                return readFunctionWithoutParameters(Function.LOCALTIME);
+                return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIME, false, "SYSTIME");
             } else if (equalsToken("SYSTIMESTAMP", name)) {
-                return readFunctionWithoutParameters(Function.CURRENT_TIMESTAMP);
+                return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_TIMESTAMP, false,
+                        "SYSTIMESTAMP");
             }
             break;
         case 'T':
@@ -5179,7 +5188,7 @@ public class Parser {
                     }
                 }
             } else if (equalsToken("TODAY", name)) {
-                return readFunctionWithoutParameters(Function.CURRENT_DATE);
+                return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, false, "TODAY");
             } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
                 if (equalsToken("T", name)) {
                     String time = currentValue.getString();
@@ -5323,14 +5332,16 @@ public class Parser {
             if (readIf(WITH)) {
                 read("TIME");
                 read("ZONE");
-                return readKeywordFunction(Function.CURRENT_TIMESTAMP);
+                return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_TIMESTAMP,
+                        readIf(OPEN_PAREN), null);
             }
-            return readKeywordFunction(Function.LOCALTIMESTAMP);
+            return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIMESTAMP, readIf(OPEN_PAREN),
+                    null);
         } else if (readIf("TIME")) {
             // Time with fractional seconds is not supported by DB2
-            return readFunctionWithoutParameters(Function.LOCALTIME);
+            return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIME, false, null);
         } else if (readIf("DATE")) {
-            return readFunctionWithoutParameters(Function.CURRENT_DATE);
+            return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, false, null);
         }
         // No match, parse CURRENT as a column
         return new ExpressionColumn(database, null, null, name, false);
@@ -7455,12 +7466,7 @@ public class Parser {
             aliasName = readIdentifierWithSchema();
         }
         String upperName = upperName(aliasName);
-        final boolean newAliasSameNameAsBuiltin = Function.getFunction(database, upperName) != null;
-        if (database.isAllowBuiltinAliasOverride() && newAliasSameNameAsBuiltin) {
-            // fine
-        } else if (isKeyword(aliasName) ||
-                newAliasSameNameAsBuiltin ||
-                Aggregate.getAggregateType(upperName) != null) {
+        if (isReservedFunctionName(upperName)) {
             throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
         }
         CreateFunctionAlias command = new CreateFunctionAlias(session, getSchema());
@@ -7477,6 +7483,31 @@ public class Parser {
             command.setJavaClassMethod(readUniqueIdentifier());
         }
         return command;
+    }
+
+    private boolean isReservedFunctionName(String name) {
+        int tokenType = ParserUtil.getTokenType(name, false, 0, name.length(), false);
+        if (tokenType != ParserUtil.IDENTIFIER) {
+            if (database.isAllowBuiltinAliasOverride()) {
+                switch (tokenType) {
+                case CURRENT_DATE:
+                case CURRENT_TIME:
+                case CURRENT_TIMESTAMP:
+                case DAY:
+                case HOUR:
+                case LOCALTIME:
+                case LOCALTIMESTAMP:
+                case MINUTE:
+                case MONTH:
+                case SECOND:
+                case YEAR:
+                    return false;
+                }
+            }
+            return true;
+        }
+        return Aggregate.getAggregateType(name) != null
+                || Function.getFunction(database, name) != null && !database.isAllowBuiltinAliasOverride();
     }
 
     private Prepared parseWith() {

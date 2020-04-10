@@ -8,15 +8,13 @@ package org.h2.expression;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
  * A user-defined variable, for example: @ID.
  */
-public class Variable extends Expression {
+public class Variable extends Operation0 {
 
     private final String name;
     private Value lastValue;
@@ -70,26 +68,6 @@ public class Variable extends Expression {
         default:
             throw DbException.throwInternalError("type="+visitor.getType());
         }
-    }
-
-    @Override
-    public void mapColumns(ColumnResolver resolver, int level, int state) {
-        // nothing to do
-    }
-
-    @Override
-    public Expression optimize(Session session) {
-        return this;
-    }
-
-    @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean value) {
-        // nothing to do
-    }
-
-    @Override
-    public void updateAggregate(Session session, int stage) {
-        // nothing to do
     }
 
     public String getName() {

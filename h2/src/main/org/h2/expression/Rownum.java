@@ -8,8 +8,6 @@ package org.h2.expression;
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
@@ -17,7 +15,7 @@ import org.h2.value.ValueBigint;
 /**
  * Represents the ROWNUM function.
  */
-public class Rownum extends Expression {
+public class Rownum extends Operation0 {
 
     private final Prepared prepared;
 
@@ -39,21 +37,6 @@ public class Rownum extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level, int state) {
-        // nothing to do
-    }
-
-    @Override
-    public Expression optimize(Session session) {
-        return this;
-    }
-
-    @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        // nothing to do
-    }
-
-    @Override
     public String getSQL(int sqlFlags) {
         return "ROWNUM()";
     }
@@ -61,11 +44,6 @@ public class Rownum extends Expression {
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return builder.append("ROWNUM()");
-    }
-
-    @Override
-    public void updateAggregate(Session session, int stage) {
-        // nothing to do
     }
 
     @Override

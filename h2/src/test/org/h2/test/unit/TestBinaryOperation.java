@@ -7,11 +7,9 @@ package org.h2.test.unit;
 
 import org.h2.engine.Session;
 import org.h2.expression.BinaryOperation;
-import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.Operation0;
 import org.h2.message.DbException;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.test.TestBase;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -83,7 +81,7 @@ public class TestBinaryOperation extends TestBase {
         assertEquals(expectedScale, typeInfo.getScale());
     }
 
-    private static final class TestExpression extends Expression {
+    private static final class TestExpression extends Operation0 {
 
         private final TypeInfo type;
 
@@ -102,25 +100,8 @@ public class TestBinaryOperation extends TestBase {
         }
 
         @Override
-        public void mapColumns(ColumnResolver resolver, int level, int state) {
-        }
-
-        @Override
-        public Expression optimize(Session session) {
-            return this;
-        }
-
-        @Override
-        public void setEvaluatable(TableFilter tableFilter, boolean value) {
-        }
-
-        @Override
         public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
             throw DbException.getUnsupportedException("");
-        }
-
-        @Override
-        public void updateAggregate(Session session, int stage) {
         }
 
         @Override

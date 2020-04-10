@@ -9,7 +9,6 @@ import org.h2.engine.Session;
 import org.h2.expression.condition.Comparison;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
-import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -21,7 +20,7 @@ import org.h2.value.ValueResultSet;
 /**
  * An expression representing a constant value.
  */
-public class ValueExpression extends Expression {
+public class ValueExpression extends Operation0 {
 
     /**
      * The expression represents ValueNull.INSTANCE.
@@ -116,16 +115,6 @@ public class ValueExpression extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level, int state) {
-        // nothing to do
-    }
-
-    @Override
-    public Expression optimize(Session session) {
-        return this;
-    }
-
-    @Override
     public boolean isConstant() {
         return true;
     }
@@ -141,11 +130,6 @@ public class ValueExpression extends Expression {
     }
 
     @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        // nothing to do
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if (this == DEFAULT) {
             builder.append("DEFAULT");
@@ -153,11 +137,6 @@ public class ValueExpression extends Expression {
             value.getSQL(builder, sqlFlags);
         }
         return builder;
-    }
-
-    @Override
-    public void updateAggregate(Session session, int stage) {
-        // nothing to do
     }
 
     @Override

@@ -94,7 +94,6 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
 import org.h2.value.ValueResultSet;
-import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
@@ -127,8 +126,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
             LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, QUOTE_IDENT = 95;
 
-    public static final int CURRENT_DATE = 100, CURRENT_TIME = 101, LOCALTIME = 102,
-            CURRENT_TIMESTAMP = 103, LOCALTIMESTAMP = 104,
+    public static final int
             DATEADD = 105, DATEDIFF = 106, DAY_NAME = 107,
             MONTH_NAME = 114,
             EXTRACT = 119,
@@ -320,12 +318,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("REGEXP_LIKE", REGEXP_LIKE, VAR_ARGS, Value.BOOLEAN);
 
         // date
-        addFunctionNotDeterministic("CURRENT_DATE", CURRENT_DATE, 0, Value.DATE, false);
-        addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME, VAR_ARGS, Value.TIME_TZ, false);
-        addFunctionNotDeterministic("LOCALTIME", LOCALTIME, VAR_ARGS, Value.TIME, false);
-        addFunctionNotDeterministic("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP_TZ, false);
-        addFunctionNotDeterministic("LOCALTIMESTAMP", LOCALTIMESTAMP, VAR_ARGS, Value.TIMESTAMP, false);
-
         addFunction("DATEADD", DATEADD, 3, Value.NULL);
         addFunction("TIMESTAMPADD", DATEADD, 3, Value.NULL);
         addFunction("DATEDIFF", DATEDIFF, 3, Value.BIGINT);
@@ -787,27 +779,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             break;
         case XMLSTARTDOC:
             result = ValueVarchar.get(StringUtils.xmlStartDoc(), database);
-            break;
-        case CURRENT_DATE:
-            result = session.currentTimestamp().convertToDate(session);
-            break;
-        case CURRENT_TIME:
-            result = session.currentTimestamp().castTo(
-                    TypeInfo.getTypeInfo(Value.TIME_TZ, 0L, v0 == null ? ValueTime.DEFAULT_SCALE : v0.getInt(), null),
-                    session);
-            break;
-        case LOCALTIME:
-            result = session.currentTimestamp().castTo(
-                    TypeInfo.getTypeInfo(Value.TIME, 0L, v0 == null ? ValueTime.DEFAULT_SCALE : v0.getInt(), null),
-                    session);
-            break;
-        case CURRENT_TIMESTAMP:
-            result = session.currentTimestamp().castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP_TZ, 0L,
-                    v0 == null ? ValueTimestamp.DEFAULT_SCALE : v0.getInt(), null), session);
-            break;
-        case LOCALTIMESTAMP:
-            result = session.currentTimestamp().castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L,
-                    v0 == null ? ValueTimestamp.DEFAULT_SCALE : v0.getInt(), null), session);
             break;
         case DAY_NAME: {
             int dayOfWeek = DateTimeUtils.getDayOfWeek(DateTimeUtils.dateAndTimeFromValue(v0, session)[0], 0);
@@ -2323,10 +2294,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case GREATEST:
             min = 1;
             break;
-        case CURRENT_TIME:
-        case LOCALTIME:
-        case CURRENT_TIMESTAMP:
-        case LOCALTIMESTAMP:
         case RAND:
             max = 1;
             break;

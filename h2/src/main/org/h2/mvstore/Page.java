@@ -563,7 +563,7 @@ public abstract class Page<K,V> implements Cloneable
         int pageLength = buff.getInt(); // does not include optional part (pageNo)
         int remaining = buff.remaining() + 4;
         if (pageLength > remaining || pageLength < 4) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+            throw DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
                     "File corrupted in chunk {0}, expected page length 4..{1}, got {2}", chunkId, remaining,
                     pageLength);
         }
@@ -573,14 +573,14 @@ public abstract class Page<K,V> implements Cloneable
                 ^ DataUtils.getCheckValue(offset)
                 ^ DataUtils.getCheckValue(pageLength);
         if (check != (short) checkTest) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+            throw DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
                     "File corrupted in chunk {0}, expected check value {1}, got {2}", chunkId, checkTest, check);
         }
 
 
         int mapId = DataUtils.readVarInt(buff);
         if (mapId != map.getId()) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+            throw DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
                     "File corrupted in chunk {0}, expected map id {1}, got {2}", chunkId, map.getId(), mapId);
         }
 
@@ -589,7 +589,7 @@ public abstract class Page<K,V> implements Cloneable
         keys = createKeyStorage(len);
         int type = buff.get();
         if(isLeaf() != ((type & 1) == PAGE_TYPE_LEAF)) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_FILE_CORRUPT,
                     "File corrupted in chunk {0}, expected node type {1}, got {2}",
                     chunkId, isLeaf() ? "0" : "1" , type);
@@ -736,7 +736,7 @@ public abstract class Page<K,V> implements Cloneable
         buff.putInt(start, pageLength).
             putShort(start + 4, (short) check);
         if (isSaved()) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_INTERNAL, "Page already stored");
         }
         long pagePos = DataUtils.getPagePos(chunkId, tocElement);

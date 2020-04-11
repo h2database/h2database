@@ -23,6 +23,7 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.OffHeapStore;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
@@ -447,9 +448,9 @@ public class TestMVStore extends TestBase {
                     open();
             header = s.getStoreHeader();
             fail(header.toString());
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             assertEquals(DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                    DataUtils.getErrorCode(e.getMessage()));
+                    e.getErrorCode());
         }
         s = new MVStore.Builder().
                 encryptionKey("007".toCharArray()).
@@ -522,11 +523,10 @@ public class TestMVStore extends TestBase {
             Throwable e = exRef.get();
             assertNotNull(e);
             assertEquals(DataUtils.ERROR_WRITING_FAILED,
-                    DataUtils.getErrorCode(e.getMessage()));
-        } catch (IllegalStateException e) {
+                    ((MVStoreException) e).getErrorCode());
+        } catch (MVStoreException e) {
             // sometimes it is detected right away
-            assertEquals(DataUtils.ERROR_CLOSED,
-                    DataUtils.getErrorCode(e.getMessage()));
+            assertEquals(DataUtils.ERROR_CLOSED, e.getErrorCode());
         }
 
         s.closeImmediately();
@@ -701,9 +701,9 @@ public class TestMVStore extends TestBase {
                     fileName(fileName).
                     encryptionKey(passwordChars).open();
             fail();
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             assertEquals(DataUtils.ERROR_FILE_CORRUPT,
-                    DataUtils.getErrorCode(e.getMessage()));
+                    e.getErrorCode());
         }
         assertEquals(0, passwordChars[0]);
         assertEquals(0, passwordChars[1]);
@@ -748,9 +748,9 @@ public class TestMVStore extends TestBase {
         try {
             openStore(fileName).close();
             fail();
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             assertEquals(DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                    DataUtils.getErrorCode(e.getMessage()));
+                    e.getErrorCode());
         }
         FileUtils.delete(fileName);
     }

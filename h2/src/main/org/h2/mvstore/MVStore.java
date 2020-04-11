@@ -355,7 +355,7 @@ public class MVStore implements AutoCloseable
     private final int autoCompactFillRate;
     private long autoCompactLastFileOpCount;
 
-    private volatile IllegalStateException panicException;
+    private volatile MVStoreException panicException;
 
     private long lastTimeAbsolute;
 
@@ -367,7 +367,7 @@ public class MVStore implements AutoCloseable
      * Create and open the store.
      *
      * @param config the configuration to use
-     * @throws IllegalStateException if the file is corrupt, or an exception
+     * @throws MVStoreException if the file is corrupt, or an exception
      *             occurred while opening
      * @throws IllegalArgumentException if the directory does not exist
      */
@@ -448,7 +448,7 @@ public class MVStore implements AutoCloseable
                 } finally {
                     saveChunkLock.unlock();
                 }
-            } catch (IllegalStateException e) {
+            } catch (MVStoreException e) {
                 panic(e);
             } finally {
                 if (encryptionKey != null) {
@@ -571,7 +571,7 @@ public class MVStore implements AutoCloseable
         }
     }
 
-    private void panic(IllegalStateException e) {
+    private void panic(MVStoreException e) {
         if (isOpen()) {
             handleException(e);
             panicException = e;
@@ -579,7 +579,7 @@ public class MVStore implements AutoCloseable
         throw e;
     }
 
-    public IllegalStateException getPanicException() {
+    public MVStoreException getPanicException() {
         return panicException;
     }
 
@@ -836,20 +836,20 @@ public class MVStore implements AutoCloseable
         }
 
         if (!validStoreHeader) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_FILE_CORRUPT,
                     "Store header is corrupt: {0}", fileStore);
         }
         int blockSize = DataUtils.readHexInt(storeHeader, HDR_BLOCK_SIZE, BLOCK_SIZE);
         if (blockSize != BLOCK_SIZE) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_UNSUPPORTED_FORMAT,
                     "Block size {0} is currently not supported",
                     blockSize);
         }
         long format = DataUtils.readHexLong(storeHeader, HDR_FORMAT, 1);
         if (format > FORMAT_WRITE && !fileStore.isReadOnly()) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_UNSUPPORTED_FORMAT,
                     "The write format {0} is larger " +
                     "than the supported format {1}, " +
@@ -858,7 +858,7 @@ public class MVStore implements AutoCloseable
         }
         format = DataUtils.readHexLong(storeHeader, HDR_FORMAT_READ, format);
         if (format > FORMAT_READ) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_UNSUPPORTED_FORMAT,
                     "The read format {0} is larger " +
                     "than the supported format {1}",
@@ -957,7 +957,7 @@ public class MVStore implements AutoCloseable
                         validChunksByLocation.put(test.block, test);
                     }
                 }
-            } catch(IllegalStateException ignored) {
+            } catch(MVStoreException ignored) {
                 assumeCleanShutdown = false;
             }
         }
@@ -1001,7 +1001,7 @@ public class MVStore implements AutoCloseable
                 }
                 if (!findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation,
                         validChunksById, true) && lastChunk != null) {
-                    throw DataUtils.newIllegalStateException(
+                    throw DataUtils.newMVStoreException(
                             DataUtils.ERROR_FILE_CORRUPT,
                             "File is corrupted - unable to recover a valid set of chunks");
 
@@ -1219,7 +1219,7 @@ public class MVStore implements AutoCloseable
     private void write(long pos, ByteBuffer buffer) {
         try {
             fileStore.writeFully(pos, buffer);
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             panic(e);
         }
     }
@@ -1344,13 +1344,13 @@ public class MVStore implements AutoCloseable
             checkOpen();
             String s = layout.get(Chunk.getMetaKey(chunkId));
             if (s == null) {
-                throw DataUtils.newIllegalStateException(
+                throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_CHUNK_NOT_FOUND,
                         "Chunk {0} not found", chunkId);
             }
             c = Chunk.fromString(s);
             if (!c.isSaved()) {
-                throw DataUtils.newIllegalStateException(
+                throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_FILE_CORRUPT,
                         "Chunk {0} is invalid", chunkId);
             }
@@ -1453,7 +1453,7 @@ public class MVStore implements AutoCloseable
                         metaChanged = false;
                     } else {
                         if (fileStore.isReadOnly()) {
-                            throw DataUtils.newIllegalStateException(
+                            throw DataUtils.newMVStoreException(
                                     DataUtils.ERROR_WRITING_FAILED, "This store is read-only");
                         }
                         storeNow(syncWrite, 0, () -> reuseSpace ? 0 : getAfterLastBlock());
@@ -1485,10 +1485,10 @@ public class MVStore implements AutoCloseable
             // version)
             saveNeeded = false;
             unsavedMemory = Math.max(0, unsavedMemory - currentUnsavedPageCount);
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             panic(e);
         } catch (Throwable e) {
-            panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(),
+            panic(DataUtils.newMVStoreException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(),
                     e));
         }
     }
@@ -1561,10 +1561,10 @@ public class MVStore implements AutoCloseable
 
             submitOrRun(bufferSaveExecutor, () -> storeBuffer(c, buff, changed), syncRun);
 
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             panic(e);
         } catch (Throwable e) {
-            panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
+            panic(DataUtils.newMVStoreException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
         } finally {
             serializationLock.unlock();
         }
@@ -1593,7 +1593,7 @@ public class MVStore implements AutoCloseable
                 break;
             }
             if (!old.isSaved()) {
-                IllegalStateException e = DataUtils.newIllegalStateException(
+                MVStoreException e = DataUtils.newMVStoreException(
                         DataUtils.ERROR_INTERNAL,
                         "Last block {0} not stored, possibly due to out-of-memory", old);
                 panic(e);
@@ -1723,10 +1723,10 @@ public class MVStore implements AutoCloseable
                 // may only shrink after the store header was written
                 shrinkFileIfPossible(1);
             }
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             panic(e);
         } catch (Throwable e) {
-            panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
+            panic(DataUtils.newMVStoreException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
         } finally {
             saveChunkLock.unlock();
         }
@@ -2000,10 +2000,10 @@ public class MVStore implements AutoCloseable
             } finally {
                 serializationLock.unlock();
             }
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             panic(e);
         } catch (Throwable e) {
-            panic(DataUtils.newIllegalStateException(
+            panic(DataUtils.newMVStoreException(
                     DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
         } finally {
             unlockAndCheckPanicCondition();
@@ -2510,7 +2510,7 @@ public class MVStore implements AutoCloseable
     <K,V> Page<K,V> readPage(MVMap<K,V> map, long pos) {
         try {
             if (!DataUtils.isPageSaved(pos)) {
-                throw DataUtils.newIllegalStateException(
+                throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_FILE_CORRUPT, "Position 0");
             }
             Page<K,V> p = readPageFromCache(pos);
@@ -2523,17 +2523,17 @@ public class MVStore implements AutoCloseable
                     if (p.pageNo < 0) {
                         p.pageNo = calculatePageNo(pos);
                     }
-                } catch (IllegalStateException e) {
+                } catch (MVStoreException e) {
                     throw e;
                 } catch (Exception e) {
-                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                    throw DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
                             "Unable to read the page at position {0}, chunk {1}, offset {2}",
                             pos, chunk.id, pageOffset, e);
                 }
                 cachePage(p);
             }
             return p;
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             if (recoveryMode) {
                 return map.createEmptyLeaf();
             }
@@ -2776,7 +2776,7 @@ public class MVStore implements AutoCloseable
                     }
                 }
             }
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             // the chunk missing where the metadata is stored
             return false;
         }
@@ -3052,7 +3052,7 @@ public class MVStore implements AutoCloseable
 
     private void checkOpen() {
         if (!isOpenOrStopping()) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_CLOSED,
+            throw DataUtils.newMVStoreException(DataUtils.ERROR_CLOSED,
                     "This store is closed", panicException);
         }
     }

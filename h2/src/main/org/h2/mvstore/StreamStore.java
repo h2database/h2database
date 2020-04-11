@@ -433,7 +433,7 @@ public class StreamStore {
     byte[] getBlock(long key) {
         byte[] data = map.get(key);
         if (data == null) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_BLOCK_NOT_FOUND,
                     "Block {0} not found",  key);
         }
@@ -506,7 +506,7 @@ public class StreamStore {
                 if (buffer == null) {
                     try {
                         buffer = nextBuffer();
-                    } catch (IllegalStateException e) {
+                    } catch (MVStoreException e) {
                         String msg = DataUtils.formatMessage(
                                 DataUtils.ERROR_BLOCK_NOT_FOUND,
                                 "Block not found in id {0}",

@@ -22,6 +22,7 @@ import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.type.DataType;
@@ -191,7 +192,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchR
 
         try {
             map.put(key, ValueNull.INSTANCE);
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             throw mvTable.convertException(e);
         }
 
@@ -236,7 +237,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchR
                 getSQL(builder, TRACE_SQL_FLAGS).append(": ").append(row.getKey());
                 throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, builder.toString());
             }
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             throw mvTable.convertException(e);
         }
     }
@@ -301,7 +302,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchR
         try {
             return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(),
                     filters, filter, sortOrder, false, allColumnsSet);
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }
     }
@@ -345,7 +346,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchR
     public boolean needRebuild() {
         try {
             return dataMap.sizeAsLongMax() == 0;
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }
     }
@@ -360,7 +361,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchR
     public long getRowCountApproximation() {
         try {
             return dataMap.sizeAsLongMax();
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }
     }

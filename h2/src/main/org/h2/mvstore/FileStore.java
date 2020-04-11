@@ -154,20 +154,20 @@ public class FileStore {
                     fileLock = file.tryLock();
                 }
             } catch (OverlappingFileLockException e) {
-                throw DataUtils.newIllegalStateException(
+                throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_FILE_LOCKED,
                         "The file is locked: {0}", fileName, e);
             }
             if (fileLock == null) {
                 try { close(); } catch (Exception ignore) {}
-                throw DataUtils.newIllegalStateException(
+                throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_FILE_LOCKED,
                         "The file is locked: {0}", fileName);
             }
             fileSize = file.size();
         } catch (IOException e) {
             try { close(); } catch (Exception ignore) {}
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_READING_FAILED,
                     "Could not open file {0}", fileName, e);
         }
@@ -185,7 +185,7 @@ public class FileStore {
                 file.close();
             }
         } catch (Exception e) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_WRITING_FAILED,
                     "Closing failed for file {0}", fileName, e);
         } finally {
@@ -202,7 +202,7 @@ public class FileStore {
             try {
                 file.force(true);
             } catch (IOException e) {
-                throw DataUtils.newIllegalStateException(
+                throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_WRITING_FAILED,
                         "Could not sync file {0}", fileName, e);
             }
@@ -233,7 +233,7 @@ public class FileStore {
                 return;
             } catch (IOException e) {
                 if (++attemptCount == 10) {
-                    throw DataUtils.newIllegalStateException(
+                    throw DataUtils.newMVStoreException(
                             DataUtils.ERROR_WRITING_FAILED,
                             "Could not truncate file {0} to size {1}",
                             fileName, size, e);

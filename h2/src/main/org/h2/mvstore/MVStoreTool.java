@@ -121,13 +121,13 @@ public class MVStoreTool {
             long pageCount = 0;
             for (long pos = 0; pos < fileSize; ) {
                 block.rewind();
-                // Bugfix - An IllegalStateException that wraps EOFException is
+                // Bugfix - An MVStoreException that wraps EOFException is
                 // thrown when partial writes happens in the case of power off
                 // or file system issues.
                 // So we should skip the broken block at end of the DB file.
                 try {
                     DataUtils.readFully(file, pos, block);
-                } catch (IllegalStateException e) {
+                } catch (MVStoreException e) {
                     pos += blockSize;
                     pw.printf("ERROR illegal position %d%n", pos);
                     continue;
@@ -149,7 +149,7 @@ public class MVStoreTool {
                 Chunk c;
                 try {
                     c = Chunk.readChunkHeader(block, pos);
-                } catch (IllegalStateException e) {
+                } catch (MVStoreException e) {
                     pos += blockSize;
                     continue;
                 }
@@ -642,7 +642,7 @@ public class MVStoreTool {
                 Chunk c;
                 try {
                     c = Chunk.readChunkHeader(block, pos);
-                } catch (IllegalStateException e) {
+                } catch (MVStoreException e) {
                     pos += blockSize;
                     continue;
                 }

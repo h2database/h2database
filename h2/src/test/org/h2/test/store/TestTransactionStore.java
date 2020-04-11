@@ -16,9 +16,9 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.tx.TransactionStore;
@@ -263,9 +263,9 @@ public class TestTransactionStore extends TestBase {
         try {
             map2.put(1, 20);
             fail();
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             assertEquals(DataUtils.ERROR_TRANSACTION_LOCKED,
-                    DataUtils.getErrorCode(e.getMessage()));
+                    e.getErrorCode());
         }
         assertEquals(10, map1.get(1).intValue());
         assertNull(map2.get(1));

@@ -5,13 +5,6 @@
  */
 package org.h2.mvstore.tx;
 
-import org.h2.mvstore.Cursor;
-import org.h2.mvstore.DataUtils;
-import org.h2.mvstore.MVMap;
-import org.h2.mvstore.RootReference;
-import org.h2.mvstore.type.DataType;
-import org.h2.value.VersionedValue;
-
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.BitSet;
@@ -21,6 +14,13 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
+import org.h2.mvstore.Cursor;
+import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStoreException;
+import org.h2.mvstore.RootReference;
+import org.h2.mvstore.type.DataType;
+import org.h2.value.VersionedValue;
 
 /**
  * A map that supports transactions.
@@ -227,7 +227,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * updated or until a lock timeout.
      *
      * @param key the key
-     * @throws IllegalStateException if a lock timeout occurs
+     * @throws MVStoreException if a lock timeout occurs
      * @throws ClassCastException if type of the specified key is not compatible with this map
      */
     @SuppressWarnings("unchecked")
@@ -245,7 +245,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @param key the key
      * @param value the new value (not null)
      * @return the old value
-     * @throws IllegalStateException if a lock timeout occurs
+     * @throws MVStoreException if a lock timeout occurs
      */
     @Override
     public V put(K key, V value) {
@@ -293,7 +293,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      *
      * @param key the key
      * @return the locked value
-     * @throws IllegalStateException if a lock timeout occurs
+     * @throws MVStoreException if a lock timeout occurs
      */
     public V lock(K key) {
         lockDecisionMaker.initialize(key, null);
@@ -352,7 +352,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted
                 || transaction.waitFor(blockingTransaction, mapName, key));
 
-        throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTION_LOCKED,
+        throw DataUtils.newMVStoreException(DataUtils.ERROR_TRANSACTION_LOCKED,
                 "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4}"
                         + " within allocated time interval {5} ms.",
                 mapName, key, result, blockingTransaction.transactionId, transaction.transactionId,
@@ -404,7 +404,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
             // TODO: eliminate exception usage as part of normal control flaw
             set(key, value);
             return true;
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             return false;
         }
     }

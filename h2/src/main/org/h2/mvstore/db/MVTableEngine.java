@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
@@ -24,6 +23,7 @@ import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
@@ -172,20 +172,20 @@ public class MVTableEngine implements TableEngine {
                 this.transactionStore = new TransactionStore(mvStore,
                         new MetaType<>(db, mvStore.backgroundExceptionHandler),
                         new ValueDataType(db, null), db.getLockTimeout());
-            } catch (IllegalStateException e) {
-                throw convertIllegalStateException(e);
+            } catch (MVStoreException e) {
+                throw convertMVStoreException(e);
             }
         }
 
         /**
-         * Convert the illegal state exception to the correct database
-         * exception.
+         * Convert a MVStoreException to the similar exception used
+         * for the table/sql layers.
          *
          * @param e the illegal state exception
          * @return the database exception
          */
-        DbException convertIllegalStateException(IllegalStateException e) {
-            int errorCode = DataUtils.getErrorCode(e.getMessage());
+        DbException convertMVStoreException(MVStoreException e) {
+            int errorCode = e.getErrorCode();
             if (errorCode == DataUtils.ERROR_CLOSED) {
                 throw DbException.get(
                         ErrorCode.DATABASE_IS_CLOSED,
@@ -244,9 +244,13 @@ public class MVTableEngine implements TableEngine {
          * @return table created
          */
         public MVTable createTable(CreateTableData data) {
-            MVTable table = new MVTable(data, this);
-            tableMap.put(table.getMapName(), table);
-            return table;
+            try {
+                MVTable table = new MVTable(data, this);
+                tableMap.put(table.getMapName(), table);
+                return table;
+            } catch (MVStoreException e) {
+                throw convertMVStoreException(e);
+            }
         }
 
         /**
@@ -255,7 +259,11 @@ public class MVTableEngine implements TableEngine {
          * @param table the table
          */
         public void removeTable(MVTable table) {
-            tableMap.remove(table.getMapName());
+            try {
+                tableMap.remove(table.getMapName());
+            } catch (MVStoreException e) {
+                throw convertMVStoreException(e);
+            }
         }
 
         /**
@@ -405,8 +413,8 @@ public class MVTableEngine implements TableEngine {
                         MVStoreTool.compact(fileName, true);
                     }
                 }
-            } catch (IllegalStateException e) {
-                int errorCode = DataUtils.getErrorCode(e.getMessage());
+            } catch (MVStoreException e) {
+                int errorCode = e.getErrorCode();
                 if (errorCode == DataUtils.ERROR_WRITING_FAILED) {
                     // disk full - ok
                 } else if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {

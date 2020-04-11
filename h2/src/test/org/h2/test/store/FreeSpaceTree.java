@@ -85,7 +85,7 @@ public class FreeSpaceTree {
         BlockRange x = new BlockRange(start, blocks);
         BlockRange prev = freeSpace.floor(x);
         if (prev == null) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_INTERNAL, "Free space already marked");
         }
         if (prev.start == start) {
@@ -121,7 +121,7 @@ public class FreeSpaceTree {
         BlockRange x = new BlockRange(start, blocks);
         BlockRange next = freeSpace.ceiling(x);
         if (next == null) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_INTERNAL, "Free space sentinel is missing");
         }
         BlockRange prev = freeSpace.lower(x);
@@ -156,7 +156,7 @@ public class FreeSpaceTree {
 
     private int getBlockCount(int length) {
         if (length <= 0) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_INTERNAL, "Free space invalid length");
         }
         return MathUtils.roundUpInt(length, blockSize) / blockSize;

@@ -189,7 +189,7 @@ public final class Chunk
             } else {
                 occupancy = BitSet.valueOf(bytes);
                 if (pageCount - pageCountLive != occupancy.cardinality()) {
-                    throw DataUtils.newIllegalStateException(
+                    throw DataUtils.newMVStoreException(
                             DataUtils.ERROR_FILE_CORRUPT, "Inconsistent occupancy info {0} - {1} != {2} {3}",
                             pageCount, pageCountLive, occupancy.cardinality(), this);
                 }
@@ -200,7 +200,7 @@ public final class Chunk
     Chunk(int id) {
         this.id = id;
         if (id <=  0) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_FILE_CORRUPT, "Invalid chunk id {0}", id);
         }
     }
@@ -227,11 +227,11 @@ public final class Chunk
             }
         } catch (Exception e) {
             // there could be various reasons
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_FILE_CORRUPT,
                     "File corrupt reading chunk at position {0}", start, e);
         }
-        throw DataUtils.newIllegalStateException(
+        throw DataUtils.newMVStoreException(
                 DataUtils.ERROR_FILE_CORRUPT,
                 "File corrupt reading chunk at position {0}", start);
     }
@@ -249,7 +249,7 @@ public final class Chunk
             buff.put((byte) ' ');
         }
         if (minLength != 0 && buff.position() > delimiterPosition) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_INTERNAL,
                     "Chunk metadata too long");
         }
@@ -395,7 +395,7 @@ public final class Chunk
                 long maxPos = filePos + len * MVStore.BLOCK_SIZE;
                 filePos += offset;
                 if (filePos < 0) {
-                    throw DataUtils.newIllegalStateException(
+                    throw DataUtils.newMVStoreException(
                             DataUtils.ERROR_FILE_CORRUPT,
                             "Negative position {0}; p={1}, c={2}", filePos, pos, toString());
                 }
@@ -410,7 +410,7 @@ public final class Chunk
                 }
                 length = (int) Math.min(maxPos - filePos, length);
                 if (length < 0) {
-                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                    throw DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
                             "Illegal page length {0} reading at {1}; max pos {2} ", length, filePos, maxPos);
                 }
 
@@ -419,7 +419,7 @@ public final class Chunk
                 if (originalBlock == block) {
                     return buff;
                 }
-            } catch (IllegalStateException ex) {
+            } catch (MVStoreException ex) {
                 if (originalBlock == block) {
                     throw ex;
                 }
@@ -440,7 +440,7 @@ public final class Chunk
                 if (originalBlock == block) {
                     return toc;
                 }
-            } catch (IllegalStateException ex) {
+            } catch (MVStoreException ex) {
                 if (originalBlock == block) {
                     throw ex;
                 }

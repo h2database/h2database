@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
@@ -99,13 +100,13 @@ public class TestReorderWrites extends TestBase {
                     }
                     // write has to fail at some point
                     fail();
-                } catch (IllegalStateException e) {
+                } catch (MVStoreException e) {
                     log("stop " + e + ", cause: " + e.getCause());
                     // expected
                 }
                 try {
                     store.close();
-                } catch (IllegalStateException e) {
+                } catch (MVStoreException e) {
                     // expected
                     store.closeImmediately();
                 }

@@ -20,6 +20,7 @@ import org.h2.index.SingleRowCursor;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.result.Row;
@@ -122,7 +123,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
                 e.setSource(this);
                 throw e;
             }
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             throw mvTable.convertException(e);
         }
         // because it's possible to directly update the key using the _rowid_
@@ -151,7 +152,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
                 getSQL(builder, TRACE_SQL_FLAGS).append(": ").append(row.getKey());
                 throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, builder.toString());
             }
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             throw mvTable.convertException(e);
         }
     }
@@ -192,7 +193,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
                 getSQL(builder, TRACE_SQL_FLAGS).append(": ").append(key);
                 throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, builder.toString());
             }
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             throw mvTable.convertException(e);
         }
 
@@ -222,7 +223,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
             Row row = (Row) map.lock(key);
             ensureRowKey(row, key);
             return row;
-        } catch (IllegalStateException ex) {
+        } catch (MVStoreException ex) {
             throw mvTable.convertException(ex);
         }
     }
@@ -275,7 +276,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
         try {
             return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(),
                     filters, filter, sortOrder, true, allColumnsSet);
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }
     }

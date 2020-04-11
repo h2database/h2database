@@ -445,7 +445,7 @@ public final class DataUtils {
      * @param file the file channel
      * @param pos the absolute position within the file
      * @param dst the byte buffer
-     * @throws IllegalStateException if some data could not be read
+     * @throws MVStoreException if some data could not be read
      */
     public static void readFully(FileChannel file, long pos, ByteBuffer dst) {
         try {
@@ -464,7 +464,7 @@ public final class DataUtils {
             } catch (IOException e2) {
                 size = -1;
             }
-            throw newIllegalStateException(
+            throw newMVStoreException(
                     ERROR_READING_FAILED,
                     "Reading from file {0} failed at {1} (length {2}), " +
                     "read {3}, remaining {4}",
@@ -487,7 +487,7 @@ public final class DataUtils {
                 off += len;
             } while (src.remaining() > 0);
         } catch (IOException e) {
-            throw newIllegalStateException(
+            throw newMVStoreException(
                     ERROR_WRITING_FAILED,
                     "Writing to {0} failed; length {1} at {2}",
                     file, src.remaining(), pos, e);
@@ -780,7 +780,7 @@ public final class DataUtils {
                     c = s.charAt(i++);
                     if (c == '\\') {
                         if (i == size) {
-                            throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+                            throw newMVStoreException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
                         }
                         c = s.charAt(i++);
                     } else if (c == '\"') {
@@ -800,7 +800,7 @@ public final class DataUtils {
      *
      * @param s the list
      * @return the map
-     * @throws IllegalStateException if parsing failed
+     * @throws MVStoreException if parsing failed
      */
     public static HashMap<String, String> parseMap(String s) {
         HashMap<String, String> map = new HashMap<>();
@@ -809,7 +809,7 @@ public final class DataUtils {
             int startKey = i;
             i = s.indexOf(':', i);
             if (i < 0) {
-                throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+                throw newMVStoreException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
             }
             String key = s.substring(startKey, i++);
             i = parseMapValue(buff, s, i, size);
@@ -867,7 +867,7 @@ public final class DataUtils {
      *
      * @param s the list
      * @return value of name item, or {@code null}
-     * @throws IllegalStateException if parsing failed
+     * @throws MVStoreException if parsing failed
      */
     public static String getMapName(String s) {
         return getFromMap(s, "name");
@@ -879,7 +879,7 @@ public final class DataUtils {
      * @param s the list
      * @param key the name of the key
      * @return value of the specified item, or {@code null}
-     * @throws IllegalStateException if parsing failed
+     * @throws MVStoreException if parsing failed
      */
     public static String getFromMap(String s, String key) {
         int keyLength = key.length();
@@ -887,7 +887,7 @@ public final class DataUtils {
             int startKey = i;
             i = s.indexOf(':', i);
             if (i < 0) {
-                throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+                throw newMVStoreException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
             }
             if (i++ - startKey == keyLength && s.regionMatches(startKey, key, 0, keyLength)) {
                 StringBuilder buff = new StringBuilder();
@@ -903,7 +903,7 @@ public final class DataUtils {
                             c = s.charAt(i++);
                             if (c == '\\') {
                                 if (i++ == size) {
-                                    throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+                                    throw newMVStoreException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
                                 }
                             } else if (c == '\"') {
                                 break;
@@ -987,16 +987,16 @@ public final class DataUtils {
     }
 
     /**
-     * Create a new IllegalStateException.
+     * Create a new MVStoreException.
      *
      * @param errorCode the error code
      * @param message the message
      * @param arguments the arguments
      * @return the exception
      */
-    public static IllegalStateException newIllegalStateException(
+    public static MVStoreException newMVStoreException(
             int errorCode, String message, Object... arguments) {
-        return initCause(new IllegalStateException(
+        return initCause(new MVStoreException(errorCode,
                 formatMessage(errorCode, message, arguments)),
                 arguments);
     }
@@ -1041,33 +1041,13 @@ public final class DataUtils {
     }
 
     /**
-     * Get the error code from an exception message.
-     *
-     * @param m the message
-     * @return the error code, or 0 if none
-     */
-    public static int getErrorCode(String m) {
-        if (m != null && m.endsWith("]")) {
-            int dash = m.lastIndexOf('/');
-            if (dash >= 0) {
-                try {
-                    return StringUtils.parseUInt31(m, dash + 1, m.length() - 1);
-                } catch (NumberFormatException e) {
-                    // no error code
-                }
-            }
-        }
-        return 0;
-    }
-
-    /**
      * Read a hex long value from a map.
      *
      * @param map the map
      * @param key the key
      * @param defaultValue if the value is null
      * @return the parsed value
-     * @throws IllegalStateException if parsing fails
+     * @throws MVStoreException if parsing fails
      */
     public static long readHexLong(Map<String, ?> map, String key, long defaultValue) {
         Object v = map.get(key);
@@ -1079,7 +1059,7 @@ public final class DataUtils {
         try {
             return parseHexLong((String) v);
         } catch (NumberFormatException e) {
-            throw newIllegalStateException(ERROR_FILE_CORRUPT,
+            throw newMVStoreException(ERROR_FILE_CORRUPT,
                     "Error parsing the value {0}", v, e);
         }
     }
@@ -1089,7 +1069,7 @@ public final class DataUtils {
      *
      * @param x the string
      * @return the parsed value
-     * @throws IllegalStateException if parsing fails
+     * @throws MVStoreException if parsing fails
      */
     public static long parseHexLong(String x) {
         try {
@@ -1101,7 +1081,7 @@ public final class DataUtils {
             }
             return Long.parseLong(x, 16);
         } catch (NumberFormatException e) {
-            throw newIllegalStateException(ERROR_FILE_CORRUPT,
+            throw newMVStoreException(ERROR_FILE_CORRUPT,
                     "Error parsing the value {0}", x, e);
         }
     }
@@ -1111,7 +1091,7 @@ public final class DataUtils {
      *
      * @param x the string
      * @return the parsed value
-     * @throws IllegalStateException if parsing fails
+     * @throws MVStoreException if parsing fails
      */
     public static int parseHexInt(String x) {
         try {
@@ -1119,7 +1099,7 @@ public final class DataUtils {
             // in Java 8, we can use Integer.parseLong(x, 16);
             return (int) Long.parseLong(x, 16);
         } catch (NumberFormatException e) {
-            throw newIllegalStateException(ERROR_FILE_CORRUPT,
+            throw newMVStoreException(ERROR_FILE_CORRUPT,
                     "Error parsing the value {0}", x, e);
         }
     }
@@ -1131,7 +1111,7 @@ public final class DataUtils {
      * @param key the key
      * @param defaultValue if the value is null
      * @return the parsed value
-     * @throws IllegalStateException if parsing fails
+     * @throws MVStoreException if parsing fails
      */
     public static int readHexInt(Map<String, ?> map, String key, int defaultValue) {
         Object v = map.get(key);
@@ -1144,7 +1124,7 @@ public final class DataUtils {
             // support unsigned hex value
             return (int) Long.parseLong((String) v, 16);
         } catch (NumberFormatException e) {
-            throw newIllegalStateException(ERROR_FILE_CORRUPT,
+            throw newMVStoreException(ERROR_FILE_CORRUPT,
                     "Error parsing the value {0}", v, e);
         }
     }

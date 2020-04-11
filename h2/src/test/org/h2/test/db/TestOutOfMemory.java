@@ -16,6 +16,7 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 import org.h2.api.ErrorCode;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreException;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.mem.FilePathMem;
@@ -86,14 +87,14 @@ public class TestOutOfMemory extends TestDb {
                 }
                 Throwable throwable = exRef.get();
                 if(throwable instanceof OutOfMemoryError) throw (OutOfMemoryError)throwable;
-                if(throwable instanceof IllegalStateException) throw (IllegalStateException)throwable;
+                if(throwable instanceof MVStoreException) throw (MVStoreException)throwable;
                 fail();
-            } catch (OutOfMemoryError | IllegalStateException e) {
+            } catch (OutOfMemoryError | MVStoreException e) {
                 // expected
             }
             try {
                 store.close();
-            } catch (IllegalStateException e) {
+            } catch (MVStoreException e) {
                 // expected
             }
             store.closeImmediately();
@@ -219,7 +220,7 @@ public class TestOutOfMemory extends TestDb {
          * @param args the arguments
          */
         public static void main(String... args) throws Exception {
-            new MyChild(args).init().testFromMain();
+            new MyChild(args).init().test();
         }
 
         private MyChild(String... args) {

@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.StreamStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -86,7 +87,7 @@ public class TestStreamStore extends TestBase {
             fail();
         } catch (IOException e) {
             assertEquals(DataUtils.ERROR_BLOCK_NOT_FOUND,
-                    DataUtils.getErrorCode(e.getMessage()));
+                    ((MVStoreException) e.getCause()).getErrorCode());
         }
     }
 

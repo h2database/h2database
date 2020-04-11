@@ -144,6 +144,7 @@ public class ConditionAndOrN extends Condition {
     }
 
     private static final Comparator<Expression> COMPARE_BY_COST = new Comparator<Expression>() {
+        @Override
         public int compare(Expression lhs, Expression rhs) {
             return lhs.getCost() - rhs.getCost();
         }

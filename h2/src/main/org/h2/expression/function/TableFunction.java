@@ -30,8 +30,8 @@ public class TableFunction extends Function {
     private final long rowCount;
     private Column[] columns;
 
-    TableFunction(Database database, FunctionInfo info, long rowCount) {
-        super(database, info);
+    TableFunction(FunctionInfo info, long rowCount) {
+        super(info);
         this.rowCount = rowCount;
     }
 

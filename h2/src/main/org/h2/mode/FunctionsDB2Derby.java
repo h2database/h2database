@@ -7,7 +7,6 @@ package org.h2.mode;
 
 import java.util.HashMap;
 
-import org.h2.engine.Database;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
 
@@ -26,19 +25,17 @@ public final class FunctionsDB2Derby extends FunctionsBase {
     /**
      * Returns mode-specific function for a given name, or {@code null}.
      *
-     * @param database
-     *            the database
      * @param upperName
      *            the upper-case name of a function
      * @return the function with specified name or {@code null}
      */
-    public static Function getFunction(Database database, String upperName) {
+    public static Function getFunction(String upperName) {
         FunctionInfo info = FUNCTIONS.get(upperName);
-        return info != null ? new Function(database, info) : null;
+        return info != null ? new Function(info) : null;
     }
 
-    private FunctionsDB2Derby(Database database, FunctionInfo info) {
-        super(database, info);
+    private FunctionsDB2Derby(FunctionInfo info) {
+        super(info);
     }
 
 }

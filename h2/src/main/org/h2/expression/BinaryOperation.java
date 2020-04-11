@@ -320,14 +320,14 @@ public class BinaryOperation extends Operation2 {
             switch (l) {
             case Value.INTEGER:
                 // Oracle date add
-                return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
+                return Function.getFunctionWithArgs(Function.DATEADD,
                         ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY)), left, right).optimize(session);
             case Value.NUMERIC:
             case Value.REAL:
             case Value.DOUBLE:
                 // Oracle date add
                 return Function
-                        .getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
+                        .getFunctionWithArgs(Function.DATEADD,
                                 ValueExpression.get(ValueInteger.get(DateTimeFunctions.SECOND)),
                                 new BinaryOperation(OpType.MULTIPLY,
                                         ValueExpression.get(ValueInteger.get(60 * 60 * 24)), left),
@@ -347,7 +347,7 @@ public class BinaryOperation extends Operation2 {
                         throw getUnexpectedForcedTypeException();
                     }
                     // Oracle date subtract
-                    return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
+                    return Function.getFunctionWithArgs(Function.DATEADD,
                             ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY)), //
                             new UnaryOperation(right), //
                             left).optimize(session);
@@ -359,7 +359,7 @@ public class BinaryOperation extends Operation2 {
                         throw getUnexpectedForcedTypeException();
                     }
                     // Oracle date subtract
-                    return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
+                    return Function.getFunctionWithArgs(Function.DATEADD,
                                 ValueExpression.get(ValueInteger.get(DateTimeFunctions.SECOND)),
                                 new UnaryOperation(new BinaryOperation(OpType.MULTIPLY, //
                                         ValueExpression.get(ValueInteger.get(60 * 60 * 24)), right)), //

@@ -7,7 +7,6 @@ package org.h2.mode;
 
 import java.util.HashMap;
 
-import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
@@ -38,25 +37,23 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
     /**
      * Returns mode-specific function for a given name, or {@code null}.
      *
-     * @param database
-     *            the database
      * @param upperName
      *            the upper-case name of a function
      * @return the function with specified name or {@code null}
      */
-    public static Function getFunction(Database database, String upperName) {
+    public static Function getFunction(String upperName) {
         FunctionInfo info = FUNCTIONS.get(upperName);
         if (info != null) {
             if (info.type > 4000) {
-                return new FunctionsMSSQLServer(database, info);
+                return new FunctionsMSSQLServer(info);
             }
-            return new Function(database, info);
+            return new Function(info);
         }
         return null;
     }
 
-    private FunctionsMSSQLServer(Database database, FunctionInfo info) {
-        super(database, info);
+    private FunctionsMSSQLServer(FunctionInfo info) {
+        super(info);
     }
 
     @Override

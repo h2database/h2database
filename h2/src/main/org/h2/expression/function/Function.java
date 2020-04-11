@@ -198,8 +198,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     protected final FunctionInfo info;
     private int flags;
 
-    private final Database database;
-
     static {
         // SOUNDEX_INDEX
         String index = "7AEIOUY8HW1BFPV2CGJKQSXZ3DT4L5MN6R";
@@ -440,24 +438,22 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     /**
      * Get an instance of the given function for this database.
      *
-     * @param database the database
      * @param id the function number
      * @return the function object
      */
-    public static Function getFunction(Database database, int id) {
-        return createFunction(database, FUNCTIONS_BY_ID[id], null);
+    public static Function getFunction(int id) {
+        return createFunction(FUNCTIONS_BY_ID[id], null);
     }
 
     /**
      * Get an instance of the given function for this database.
      *
-     * @param database the database
      * @param id the function number
      * @param arguments the arguments
      * @return the function object
      */
-    public static Function getFunctionWithArgs(Database database, int id, Expression... arguments) {
-        return createFunction(database, FUNCTIONS_BY_ID[id], arguments);
+    public static Function getFunctionWithArgs(int id, Expression... arguments) {
+        return createFunction(FUNCTIONS_BY_ID[id], arguments);
     }
 
     /**
@@ -473,40 +469,40 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         if (info == null) {
             ModeEnum modeEnum = database.getMode().getEnum();
             if (modeEnum != ModeEnum.REGULAR) {
-                return getCompatibilityModeFunction(database, name, modeEnum);
+                return getCompatibilityModeFunction(name, modeEnum);
             }
             return null;
         }
-        return createFunction(database, info, null);
+        return createFunction(info, null);
     }
 
-    private static Function getCompatibilityModeFunction(Database database, String name, ModeEnum modeEnum) {
+    private static Function getCompatibilityModeFunction(String name, ModeEnum modeEnum) {
         switch (modeEnum) {
         case DB2:
         case Derby:
-            return FunctionsDB2Derby.getFunction(database, name);
+            return FunctionsDB2Derby.getFunction(name);
         case MSSQLServer:
-            return FunctionsMSSQLServer.getFunction(database, name);
+            return FunctionsMSSQLServer.getFunction(name);
         case MySQL:
-            return FunctionsMySQL.getFunction(database, name);
+            return FunctionsMySQL.getFunction(name);
         case Oracle:
-            return FunctionsOracle.getFunction(database, name);
+            return FunctionsOracle.getFunction(name);
         case PostgreSQL:
-            return FunctionsPostgreSQL.getFunction(database, name);
+            return FunctionsPostgreSQL.getFunction(name);
         default:
             return null;
         }
     }
 
-    private static Function createFunction(Database database, FunctionInfo info, Expression[] arguments) {
+    private static Function createFunction(FunctionInfo info, Expression[] arguments) {
         switch (info.type) {
         case TABLE:
         case TABLE_DISTINCT:
         case UNNEST:
             assert arguments == null;
-            return new TableFunction(database, info, Long.MAX_VALUE);
+            return new TableFunction(info, Long.MAX_VALUE);
         default:
-            return arguments != null ? new Function(database, info, arguments) : new Function(database, info);
+            return arguments != null ? new Function(info, arguments) : new Function(info);
         }
     }
 
@@ -523,25 +519,21 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     /**
      * Creates a new instance of function.
      *
-     * @param database database
      * @param info function information
      */
-    public Function(Database database, FunctionInfo info) {
+    public Function(FunctionInfo info) {
         super(new Expression[info.parameterCount != VAR_ARGS ? info.parameterCount : 4]);
-        this.database = database;
         this.info = info;
     }
 
     /**
      * Creates a new instance of function.
      *
-     * @param database database
      * @param info function information
      * @param arguments the arguments
      */
-    public Function(Database database, FunctionInfo info, Expression[] arguments) {
+    public Function(FunctionInfo info, Expression[] arguments) {
         super(arguments);
-        this.database = database;
         this.info = info;
         int expected = info.parameterCount, len = arguments.length;
         if (expected == VAR_ARGS) {
@@ -617,7 +609,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             break;
         }
         case LOG:
-            result = log(v0, getNullOrValue(session, args, values, 1));
+            result = log(session, v0, getNullOrValue(session, args, values, 1));
             break;
         case LOG10: {
             double arg = v0.getDouble();
@@ -689,7 +681,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = ValueBigint.get(16 * length(v0));
             break;
         case CHAR:
-            result = ValueVarchar.get(String.valueOf((char) v0.getInt()), database);
+            result = ValueVarchar.get(String.valueOf((char) v0.getInt()), session);
             break;
         case CHAR_LENGTH:
         case LENGTH:
@@ -720,29 +712,29 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                             && !StringUtils.isNullOrEmpty(tmp)) {
                         tmp = separator + tmp;
                     }
-                    result = ValueVarchar.get(result.getString() + tmp, database);
+                    result = ValueVarchar.get(result.getString() + tmp, session);
                 }
             }
             if (info.type == CONCAT_WS) {
                 if (separator != null && result == ValueNull.INSTANCE) {
-                    result = ValueVarchar.get("", database);
+                    result = ValueVarchar.get("", session);
                 }
             }
             break;
         }
         case HEXTORAW:
-            result = hexToRaw(v0.getString(), database);
+            result = hexToRaw(v0.getString(), session);
             break;
         case LOWER:
             // TODO this is locale specific, need to document or provide a way
             // to set the locale
-            result = ValueVarchar.get(v0.getString().toLowerCase(), database);
+            result = ValueVarchar.get(v0.getString().toLowerCase(), session);
             break;
         case RAWTOHEX:
-            result = ValueVarchar.get(rawToHex(v0, database.getMode()), database);
+            result = ValueVarchar.get(rawToHex(v0, session.getMode()), session);
             break;
         case SOUNDEX:
-            result = ValueVarchar.get(getSoundex(v0.getString()), database);
+            result = ValueVarchar.get(getSoundex(v0.getString()), session);
             break;
         case SPACE: {
             int len = Math.max(0, v0.getInt());
@@ -750,51 +742,51 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             for (int i = len - 1; i >= 0; i--) {
                 chars[i] = ' ';
             }
-            result = ValueVarchar.get(new String(chars), database);
+            result = ValueVarchar.get(new String(chars), session);
             break;
         }
         case UPPER:
             // TODO this is locale specific, need to document or provide a way
             // to set the locale
-            result = ValueVarchar.get(v0.getString().toUpperCase(), database);
+            result = ValueVarchar.get(v0.getString().toUpperCase(), session);
             break;
         case STRINGENCODE:
-            result = ValueVarchar.get(StringUtils.javaEncode(v0.getString()), database);
+            result = ValueVarchar.get(StringUtils.javaEncode(v0.getString()), session);
             break;
         case STRINGDECODE:
-            result = ValueVarchar.get(StringUtils.javaDecode(v0.getString()), database);
+            result = ValueVarchar.get(StringUtils.javaDecode(v0.getString()), session);
             break;
         case STRINGTOUTF8:
             result = ValueVarbinary.getNoCopy(v0.getString().
                     getBytes(StandardCharsets.UTF_8));
             break;
         case UTF8TOSTRING:
-            result = ValueVarchar.get(new String(v0.getBytesNoCopy(), StandardCharsets.UTF_8), database);
+            result = ValueVarchar.get(new String(v0.getBytesNoCopy(), StandardCharsets.UTF_8), session);
             break;
         case XMLCOMMENT:
-            result = ValueVarchar.get(StringUtils.xmlComment(v0.getString()), database);
+            result = ValueVarchar.get(StringUtils.xmlComment(v0.getString()), session);
             break;
         case XMLCDATA:
-            result = ValueVarchar.get(StringUtils.xmlCData(v0.getString()), database);
+            result = ValueVarchar.get(StringUtils.xmlCData(v0.getString()), session);
             break;
         case XMLSTARTDOC:
-            result = ValueVarchar.get(StringUtils.xmlStartDoc(), database);
+            result = ValueVarchar.get(StringUtils.xmlStartDoc(), session);
             break;
         case DAY_NAME: {
             int dayOfWeek = DateTimeUtils.getDayOfWeek(DateTimeUtils.dateAndTimeFromValue(v0, session)[0], 0);
-            result = ValueVarchar.get(DateTimeFunctions.getMonthsAndWeeks(1)[dayOfWeek], database);
+            result = ValueVarchar.get(DateTimeFunctions.getMonthsAndWeeks(1)[dayOfWeek], session);
             break;
         }
         case MONTH_NAME: {
             int month = DateTimeUtils.monthFromDateValue(DateTimeUtils.dateAndTimeFromValue(v0, session)[0]);
-            result = ValueVarchar.get(DateTimeFunctions.getMonthsAndWeeks(0)[month - 1], database);
+            result = ValueVarchar.get(DateTimeFunctions.getMonthsAndWeeks(0)[month - 1], session);
             break;
         }
         case CURRENT_CATALOG:
-            result = ValueVarchar.get(database.getShortName(), database);
+            result = ValueVarchar.get(session.getDatabase().getShortName(), session);
             break;
         case CURRENT_USER:
-            result = ValueVarchar.get(session.getUser().getName(), database);
+            result = ValueVarchar.get(session.getUser().getName(), session);
             break;
         case IDENTITY:
             result = session.getLastIdentity();
@@ -806,11 +798,11 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = ValueBoolean.get(session.getAutoCommit());
             break;
         case READONLY:
-            result = ValueBoolean.get(database.isReadOnly());
+            result = ValueBoolean.get(session.getDatabase().isReadOnly());
             break;
         case DATABASE_PATH: {
-            String path = database.getDatabasePath();
-            result = path == null ? (Value) ValueNull.INSTANCE : ValueVarchar.get(path, database);
+            String path = session.getDatabase().getDatabasePath();
+            result = path == null ? (Value) ValueNull.INSTANCE : ValueVarchar.get(path, session);
             break;
         }
         case LOCK_TIMEOUT:
@@ -831,10 +823,10 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = ValueInteger.get(Utils.getMemoryUsed());
             break;
         case LOCK_MODE:
-            result = ValueInteger.get(database.getLockMode());
+            result = ValueInteger.get(session.getDatabase().getLockMode());
             break;
         case CURRENT_SCHEMA:
-            result = ValueVarchar.get(session.getCurrentSchemaName(), database);
+            result = ValueVarchar.get(session.getCurrentSchemaName(), session);
             break;
         case SESSION_ID:
             result = ValueInteger.get(session.getId());
@@ -1154,12 +1146,12 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             if (v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE) {
                 result = v1;
             } else {
-                result = ValueVarchar.get(insert(v0.getString(), v1.getInt(), v2.getInt(), v3.getString()), database);
+                result = ValueVarchar.get(insert(v0.getString(), v1.getInt(), v2.getInt(), v3.getString()), session);
             }
             break;
         }
         case LEFT:
-            result = ValueVarchar.get(left(v0.getString(), v1.getInt()), database);
+            result = ValueVarchar.get(left(v0.getString(), v1.getInt()), session);
             break;
         case LOCATE: {
             int start = v2 == null ? 0 : v2.getInt();
@@ -1173,12 +1165,12 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
         case REPEAT: {
             int count = Math.max(0, v1.getInt());
-            result = ValueVarchar.get(repeat(v0.getString(), count), database);
+            result = ValueVarchar.get(repeat(v0.getString(), count), session);
             break;
         }
         case REPLACE:
             if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE
-                    || v2 == ValueNull.INSTANCE && database.getMode().getEnum() != Mode.ModeEnum.Oracle) {
+                    || v2 == ValueNull.INSTANCE && session.getMode().getEnum() != Mode.ModeEnum.Oracle) {
                 result = ValueNull.INSTANCE;
             } else {
                 String s0 = v0.getString();
@@ -1187,25 +1179,25 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 if (s2 == null) {
                     s2 = "";
                 }
-                result = ValueVarchar.get(StringUtils.replaceAll(s0, s1, s2), database);
+                result = ValueVarchar.get(StringUtils.replaceAll(s0, s1, s2), session);
             }
             break;
         case RIGHT:
-            result = ValueVarchar.get(right(v0.getString(), v1.getInt()), database);
+            result = ValueVarchar.get(right(v0.getString(), v1.getInt()), session);
             break;
         case TRIM:
             result = ValueVarchar.get(StringUtils.trim(v0.getString(),
                     (flags & TRIM_LEADING) != 0, (flags & TRIM_TRAILING) != 0, v1 == null ? " " : v1.getString()),
-                    database);
+                    session);
             break;
         case SUBSTRING:
-            result = substring(v0, v1, v2);
+            result = substring(session, v0, v1, v2);
             break;
         case POSITION:
             result = ValueInteger.get(locate(v0.getString(), v1.getString(), 0));
             break;
         case XMLATTR:
-            result = ValueVarchar.get(StringUtils.xmlAttr(v0.getString(), v1.getString()), database);
+            result = ValueVarchar.get(StringUtils.xmlAttr(v0.getString(), v1.getString()), session);
             break;
         case XMLNODE: {
             String attr = v1 == null ?
@@ -1214,7 +1206,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                     null : v2 == ValueNull.INSTANCE ? null : v2.getString();
             boolean indent = v3 == null ?
                     true : v3.getBoolean();
-            result = ValueVarchar.get(StringUtils.xmlNode(v0.getString(), attr, content, indent), database);
+            result = ValueVarchar.get(StringUtils.xmlNode(v0.getString(), attr, content, indent), session);
             break;
         }
         case REGEXP_REPLACE: {
@@ -1222,18 +1214,18 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             String regexp = v1.getString();
             String replacement = v2.getString();
             String regexpMode = v3 != null ? v3.getString() : null;
-            result = regexpReplace(input, regexp, replacement, regexpMode);
+            result = regexpReplace(session, input, regexp, replacement, regexpMode);
             break;
         }
         case RPAD:
             result = ValueVarchar.get(
                     StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), true),
-                    database);
+                    session);
             break;
         case LPAD:
             result = ValueVarchar.get(
                     StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), false),
-                    database);
+                    session);
             break;
         case TO_CHAR:
             switch (v0.getValueType()){
@@ -1246,7 +1238,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                         v0,
                         v1 == null ? null : v1.getString(),
                         v2 == null ? null : v2.getString()),
-                        database);
+                        session);
                 break;
             case Value.SMALLINT:
             case Value.INTEGER:
@@ -1257,28 +1249,28 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 result = ValueVarchar.get(ToChar.toChar(v0.getBigDecimal(),
                         v1 == null ? null : v1.getString(),
                         v2 == null ? null : v2.getString()),
-                        database);
+                        session);
                 break;
             default:
-                result = ValueVarchar.get(v0.getString(), database);
+                result = ValueVarchar.get(v0.getString(), session);
             }
             break;
         case TRANSLATE: {
             String matching = v1.getString();
             String replacement = v2.getString();
-            if (database.getMode().getEnum() == ModeEnum.DB2) {
+            if (session.getMode().getEnum() == ModeEnum.DB2) {
                 String t = matching;
                 matching = replacement;
                 replacement = t;
             }
-            result = ValueVarchar.get(translate(v0.getString(), matching, replacement), database);
+            result = ValueVarchar.get(translate(v0.getString(), matching, replacement), session);
             break;
         }
         case QUOTE_IDENT:
-            result = ValueVarchar.get(StringUtils.quoteIdentifier(v0.getString()), database);
+            result = ValueVarchar.get(StringUtils.quoteIdentifier(v0.getString()), session);
             break;
         case H2VERSION:
-            result = ValueVarchar.get(Constants.VERSION, database);
+            result = ValueVarchar.get(Constants.VERSION, session);
             break;
         case DATEADD:
             result = DateTimeFunctions.dateadd(session, v0.getInt(), v1.getLong(), v2);
@@ -1305,7 +1297,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                             ((ValueTimestampTimeZone) v0).getTimeZoneOffsetSeconds());
                 }
                 result = ValueVarchar.get(DateTimeFunctions.formatDateTime(
-                        LegacyDateTimeUtils.toTimestamp(session, null, v0), v1.getString(), locale, tz), database);
+                        LegacyDateTimeUtils.toTimestamp(session, null, v0), v1.getString(), locale, tz), session);
             }
             break;
         }
@@ -1371,7 +1363,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             int index2 = v2.getInt();
             // https://www.postgresql.org/docs/current/arrays.html#ARRAYS-ACCESSING
             // For historical reasons postgreSQL ignore invalid indexes
-            final boolean isPG = database.getMode().getEnum() == ModeEnum.PostgreSQL;
+            final boolean isPG = session.getMode().getEnum() == ModeEnum.PostgreSQL;
             if (index1 > index2) {
                 if (isPG)
                     result = ValueArray.get(array.getComponentType(), Value.EMPTY_VALUES, session);
@@ -1452,6 +1444,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             try {
                 long fileLength = FileUtils.size(fileName);
                 final InputStream in = FileUtils.newInputStream(fileName);
+                Database database = session.getDatabase();
                 try {
                     if (blob) {
                         lob = database.getLobStorage().createBlob(in, fileLength);
@@ -1493,9 +1486,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             break;
         case XMLTEXT:
             if (v1 == null) {
-                result = ValueVarchar.get(StringUtils.xmlText(v0.getString()), database);
+                result = ValueVarchar.get(StringUtils.xmlText(v0.getString()), session);
             } else {
-                result = ValueVarchar.get(StringUtils.xmlText(v0.getString(), v1.getBoolean()), database);
+                result = ValueVarchar.get(StringUtils.xmlText(v0.getString(), v1.getBoolean()), session);
             }
             break;
         case REGEXP_LIKE: {
@@ -1655,7 +1648,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return value;
     }
 
-    private Sequence getSequence(Session session, Value v0, Value v1) {
+    private static Sequence getSequence(Session session, Value v0, Value v1) {
         String schemaName, sequenceName;
         if (v1 == null) {
             Parser p = new Parser(session);
@@ -1677,6 +1670,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             schemaName = v0.getString();
             sequenceName = v1.getString();
         }
+        Database database = session.getDatabase();
         Schema s = database.findSchema(schemaName);
         if (s == null) {
             schemaName = StringUtils.toUpperEnglish(schemaName);
@@ -1703,10 +1697,10 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
     }
 
-    private Value log(Value v0, Value v1) {
+    private static Value log(Session session, Value v0, Value v1) {
         double base = v0.getDouble();
         double arg = v1.getDouble();
-        if (database.getMode().swapLogFunctionParameters) {
+        if (session.getMode().swapLogFunctionParameters) {
             double t = arg;
             arg = base;
             base = t;
@@ -1790,7 +1784,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return ValueVarbinary.getNoCopy(b);
     }
 
-    private Value substring(Value stringValue, Value startValue, Value lengthValue) {
+    private Value substring(Session session, Value stringValue, Value startValue, Value lengthValue) {
         if (type.getValueType() == Value.VARBINARY) {
             byte[] s = stringValue.getBytesNoCopy();
             int sl = s.length;
@@ -1831,7 +1825,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             start = Math.max(start, 1);
             end = Math.min(end, sl + 1);
             if (start > sl || end <= start) {
-                return database.getMode().treatEmptyStringsAsNull ? ValueNull.INSTANCE : ValueVarchar.EMPTY;
+                return session.getMode().treatEmptyStringsAsNull ? ValueNull.INSTANCE : ValueVarchar.EMPTY;
             }
             return ValueVarchar.get(s.substring(start - 1, end - 1), null);
         }
@@ -1911,8 +1905,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return s1.substring(0, start) + s2 + s1.substring(start + length);
     }
 
-    private static Value hexToRaw(String s, Database database) {
-        if (database.getMode().getEnum() == ModeEnum.Oracle) {
+    private static Value hexToRaw(String s, Session session) {
+        if (session.getMode().getEnum() == ModeEnum.Oracle) {
             return ValueVarbinary.get(StringUtils.convertHexToBytes(s));
         }
         int len = s.length();
@@ -1928,7 +1922,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
             }
         }
-        return ValueVarchar.get(buff.toString(), database);
+        return ValueVarchar.get(buff.toString(), session);
     }
 
     private static int getDifference(String s1, String s2) {
@@ -2094,8 +2088,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
     }
 
-    private Value regexpReplace(String input, String regexp, String replacement, String regexpMode) {
-        Mode mode = database.getMode();
+    private static Value regexpReplace(Session session, String input, String regexp, String replacement,
+            String regexpMode) {
+        Mode mode = session.getMode();
         if (mode.regexpReplaceBackslashReferences) {
             if ((replacement.indexOf('\\') >= 0) || (replacement.indexOf('$') >= 0)) {
                 StringBuilder sb = new StringBuilder();
@@ -2118,7 +2113,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             Matcher matcher = Pattern.compile(regexp, flags).matcher(input);
             return ValueVarchar.get(isInPostgreSqlMode && (regexpMode == null || regexpMode.indexOf('g') < 0) ?
                     matcher.replaceFirst(replacement) : matcher.replaceAll(replacement),
-                    database);
+                    session);
         } catch (PatternSyntaxException e) {
             throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
         } catch (StringIndexOutOfBoundsException | IllegalArgumentException e) {
@@ -2574,7 +2569,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
         case HEXTORAW: {
             TypeInfo t = p0.getType();
-            if (database.getMode().getEnum() == ModeEnum.Oracle) {
+            if (session.getMode().getEnum() == ModeEnum.Oracle) {
                 if (DataType.isCharacterStringType(t.getValueType())) {
                     typeInfo = TypeInfo.getTypeInfo(Value.VARBINARY, t.getPrecision() / 2, 0, null);
                 } else {
@@ -2601,7 +2596,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             TypeInfo t = p0.getType();
             long precision = t.getPrecision();
             int mul = DataType.isBinaryStringOrSpecialBinaryType(t.getValueType()) ? 2
-                    : database.getMode().getEnum() == ModeEnum.Oracle ? 6 : 4;
+                    : session.getMode().getEnum() == ModeEnum.Oracle ? 6 : 4;
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType,
                     precision <= Long.MAX_VALUE / mul ? precision * mul : Long.MAX_VALUE, 0, null);
             break;
@@ -2616,7 +2611,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             break;
         case NEXTVAL:
         case CURRVAL:
-            typeInfo = database.getMode().decimalSequences ? TypeInfo.TYPE_NUMERIC_BIGINT : TypeInfo.TYPE_BIGINT;
+            typeInfo = session.getMode().decimalSequences ? TypeInfo.TYPE_NUMERIC_BIGINT : TypeInfo.TYPE_BIGINT;
             break;
         case ARRAY_SLICE: {
             typeInfo = p0.getType();

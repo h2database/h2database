@@ -1562,7 +1562,7 @@ public class Parser {
         String informationSchema = database.sysIdentifier("INFORMATION_SCHEMA");
         Table table = database.getSchema(informationSchema)
                 .resolveTableOrView(session, database.sysIdentifier("HELP"));
-        Function function = Function.getFunctionWithArgs(database, Function.UPPER,
+        Function function = Function.getFunctionWithArgs(Function.UPPER,
                 new ExpressionColumn(database, informationSchema,
                         database.sysIdentifier("HELP"), database.sysIdentifier("TOPIC"), false));
         TableFilter filter = new TableFilter(session, table, null, rightsChecked, select, 0, null);
@@ -2019,7 +2019,7 @@ public class Parser {
             table = query.toTable(alias, null, parameters, createView != null, currentSelect);
         } else if (readIf(TABLE)) {
             read(OPEN_PAREN);
-            Function function = readFunctionParameters(Function.getFunction(database, Function.TABLE));
+            Function function = readFunctionParameters(Function.getFunction(Function.TABLE));
             table = new FunctionTable(database.getMainSchema(), session, function, function);
         } else {
             boolean quoted = currentTokenQuoted;
@@ -4028,7 +4028,7 @@ public class Parser {
         }
         // CARDINALITY
         case "ARRAY_LENGTH":
-            function = Function.getFunction(database, Function.CARDINALITY);
+            function = Function.getFunction(Function.CARDINALITY);
             break;
         // Searched case
         case "CASEWHEN": {
@@ -4058,7 +4058,7 @@ public class Parser {
         }
         // COALESCE
         case "IFNULL":
-            function = Function.getFunction(database, Function.COALESCE);
+            function = Function.getFunction(Function.COALESCE);
             function.addParameter(readExpression());
             read(COMMA);
             function.addParameter(readExpression());
@@ -4066,11 +4066,11 @@ public class Parser {
             function.doneWithParameters();
             return function;
         case "NVL":
-            function = Function.getFunction(database, Function.COALESCE);
+            function = Function.getFunction(Function.COALESCE);
             break;
         // CURRENT_CATALOG
         case "DATABASE":
-            function = Function.getFunction(database, Function.CURRENT_CATALOG);
+            function = Function.getFunction(Function.CURRENT_CATALOG);
             break;
         // CURRENT_DATE
         case "CURDATE":
@@ -4079,70 +4079,70 @@ public class Parser {
             return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, true, name);
         // CURRENT_SCHEMA
         case "SCHEMA":
-            function = Function.getFunction(database, Function.CURRENT_SCHEMA);
+            function = Function.getFunction(Function.CURRENT_SCHEMA);
             break;
         // CURRENT_TIMESTAMP
         case "SYSTIMESTAMP":
             return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_TIMESTAMP, true, name);
         // CURRENT_USER
         case "USER":
-            function = Function.getFunction(database, Function.CURRENT_USER);
+            function = Function.getFunction(Function.CURRENT_USER);
             break;
         // EXTRACT
         case "DAY":
         case "DAY_OF_MONTH":
         case "DAYOFMONTH":
-            function = Function.getFunction(database, Function.EXTRACT);
+            function = Function.getFunction(Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY)));
             break;
         case "DAY_OF_WEEK":
         case "DAYOFWEEK":
-            function = Function.getFunction(database, Function.EXTRACT);
+            function = Function.getFunction(Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY_OF_WEEK)));
             break;
         case "DAY_OF_YEAR":
         case "DAYOFYEAR":
-            function = Function.getFunction(database, Function.EXTRACT);
+            function = Function.getFunction(Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY_OF_YEAR)));
             break;
         case "HOUR":
-            function = Function.getFunction(database, Function.EXTRACT);
+            function = Function.getFunction(Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.HOUR)));
             break;
         case "ISO_DAY_OF_WEEK":
-            function = Function.getFunction(database, Function.EXTRACT);
+            function = Function.getFunction(Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_DAY_OF_WEEK)));
             break;
         case "ISO_WEEK":
-            function = Function.getFunction(database, Function.EXTRACT);
+            function = Function.getFunction(Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_WEEK)));
             break;
         case "ISO_YEAR":
-            function = Function.getFunction(database, Function.EXTRACT);
+            function = Function.getFunction(Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_WEEK_YEAR)));
             break;
         case "MINUTE":
-            function = Function.getFunction(database, Function.EXTRACT);
+            function = Function.getFunction(Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.MINUTE)));
             break;
         case "MONTH":
-            function = Function.getFunction(database, Function.EXTRACT);
+            function = Function.getFunction(Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.MONTH)));
             break;
         case "QUARTER":
-            function = Function.getFunction(database, Function.EXTRACT);
+            function = Function.getFunction(Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.QUARTER)));
             break;
         case "SECOND":
-            function = Function.getFunction(database, Function.EXTRACT);
+            function = Function.getFunction(Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.SECOND)));
             break;
         case "WEEK":
-            function = Function.getFunction(database, Function.EXTRACT);
+            function = Function.getFunction(Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.WEEK)));
             break;
         case "YEAR":
-            function = Function.getFunction(database, Function.EXTRACT);
+            function = Function.getFunction(Function.EXTRACT);
             function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.YEAR)));
             break;
         // LOCALTIME
@@ -4156,24 +4156,24 @@ public class Parser {
             return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIMESTAMP, true, "NOW");
         // LOWER
         case "LCASE":
-            function = Function.getFunction(database, Function.LOWER);
+            function = Function.getFunction(Function.LOWER);
             break;
         // SUBSTRING
         case "SUBSTR":
-            function = Function.getFunction(database, Function.SUBSTRING);
+            function = Function.getFunction(Function.SUBSTRING);
             break;
         // TRIM
         case "LTRIM":
-            function = Function.getFunction(database, Function.TRIM);
+            function = Function.getFunction(Function.TRIM);
             function.setFlags(Function.TRIM_LEADING);
             break;
         case "RTRIM":
-            function = Function.getFunction(database, Function.TRIM);
+            function = Function.getFunction(Function.TRIM);
             function.setFlags(Function.TRIM_TRAILING);
             break;
         // UPPER
         case "UCASE":
-            function = Function.getFunction(database, Function.UPPER);
+            function = Function.getFunction(Function.UPPER);
             break;
         default:
             return null;
@@ -4216,8 +4216,7 @@ public class Parser {
                 function.addParameter(arg);
                 function.addParameter(readExpression());
             } else {
-                function = Function.getFunction(database,
-                        database.getMode().logIsLogBase10 ? Function.LOG10 : Function.LN);
+                function = Function.getFunction(database.getMode().logIsLogBase10 ? Function.LOG10 : Function.LN);
                 function.addParameter(arg);
             }
             read(CLOSE_PAREN);
@@ -4554,7 +4553,7 @@ public class Parser {
     }
 
     private Expression readKeywordFunction(int id) {
-        Function function = Function.getFunction(database, id);
+        Function function = Function.getFunction(id);
         if (readIf(OPEN_PAREN)) {
             readFunctionParameters(function);
         } else {
@@ -4765,7 +4764,7 @@ public class Parser {
             r = new Variable(session, readAliasIdentifier());
             if (readIf(COLON_EQ)) {
                 Expression value = readExpression();
-                Function function = Function.getFunctionWithArgs(database, Function.SET, r, value);
+                Function function = Function.getFunctionWithArgs(Function.SET, r, value);
                 r = function;
             }
             break;
@@ -4780,7 +4779,7 @@ public class Parser {
             int index = lastParseIndex;
             read();
             if (readIf(OPEN_PAREN)) {
-                r = readFunctionParameters(Function.getFunction(database, Function.TABLE));
+                r = readFunctionParameters(Function.getFunction(Function.TABLE));
             } else {
                 reread(index);
                 r = new Subquery(parseQuery());

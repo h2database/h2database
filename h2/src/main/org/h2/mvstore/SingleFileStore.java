@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.message.DbException;
@@ -88,7 +89,7 @@ public class SingleFileStore extends RandomAccessStore {
      *            used
      */
     @Override
-    public void open(String fileName, boolean readOnly, char[] encryptionKey) {
+    public void open(String fileName, boolean readOnly, char[] encryptionKey, ConcurrentHashMap<Integer, Chunk> chunks) {
         if (file != null && file.isOpen()) {
             return;
         }
@@ -103,7 +104,7 @@ public class SingleFileStore extends RandomAccessStore {
         if (f.exists() && !f.canWrite()) {
             readOnly = true;
         }
-        super.open(fileName, readOnly, encryptionKey);
+        super.open(fileName, readOnly, encryptionKey, chunks);
         try {
             file = f.open(readOnly ? "r" : "rw");
             if (encryptionKey != null) {
@@ -257,7 +258,7 @@ public class SingleFileStore extends RandomAccessStore {
         return freeSpace.getMovePriority(block);
     }
 
-    public long getAfterLastBlock() {
+    protected long getAfterLastBlock_() {
         return freeSpace.getAfterLastBlock();
     }
 

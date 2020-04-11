@@ -399,8 +399,8 @@ public final class Chunk {
         while (true) {
             long originalBlock = block;
             try {
-                long filePos = originalBlock * MVStore.BLOCK_SIZE;
-                long maxPos = filePos + (long) len * MVStore.BLOCK_SIZE;
+                long filePos = originalBlock * FileStore.BLOCK_SIZE;
+                long maxPos = filePos + (long) len * FileStore.BLOCK_SIZE;
                 filePos += offset;
                 if (filePos < 0) {
                     throw DataUtils.newMVStoreException(
@@ -441,7 +441,7 @@ public final class Chunk {
         while (true) {
             long originalBlock = block;
             try {
-                long filePos = originalBlock * MVStore.BLOCK_SIZE + tocPos;
+                long filePos = originalBlock * FileStore.BLOCK_SIZE + tocPos;
                 int length = pageCount * 8;
                 long[] toc = new long[pageCount];
                 fileStore.readFully(filePos, length).asLongBuffer().get(toc);

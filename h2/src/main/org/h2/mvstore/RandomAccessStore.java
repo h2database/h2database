@@ -5,8 +5,6 @@
  */
 package org.h2.mvstore;
 
-import static org.h2.mvstore.MVStore.BLOCK_SIZE;
-
 /**
  * Class RandomAccessStore.
  * <UL>
@@ -101,7 +99,7 @@ public abstract class RandomAccessStore extends FileStore {
         return freeSpace.getLastFree();
     }
 
-    public void shrinkFileIfPossible(int minPercent) {
+    protected void shrinkFileIfPossible(int minPercent) {
         if (isReadOnly()) {
             return;
         }
@@ -141,7 +139,7 @@ public abstract class RandomAccessStore extends FileStore {
         return freeSpace.getMovePriority(block);
     }
 
-    public long getAfterLastBlock() {
+    protected long getAfterLastBlock_() {
         return freeSpace.getAfterLastBlock();
     }
 }

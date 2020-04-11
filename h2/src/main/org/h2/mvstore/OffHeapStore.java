@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -21,7 +22,7 @@ public class OffHeapStore extends RandomAccessStore {
 
 
     @Override
-    public void open(String fileName, boolean readOnly, char[] encryptionKey) {
+    public void open(String fileName, boolean readOnly, char[] encryptionKey, ConcurrentHashMap<Integer, Chunk> chunks) {
         memory.clear();
     }
 

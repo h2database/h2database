@@ -402,11 +402,6 @@ java org.h2.test.TestAll timer
     boolean stopOnError;
 
     /**
-     * If the database should always be defragmented when closing.
-     */
-    public boolean defrag;
-
-    /**
      * The cache type.
      */
     String cacheType;
@@ -598,7 +593,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         smallLog = big = networked = memory = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;
         traceTest = stopOnError = false;
-        defrag = false;
         traceLevelFile = throttle = 0;
         cipher = null;
 
@@ -654,14 +648,11 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         throttle = 0;
         cacheType = null;
         cipher = null;
-        defrag = true;
-        test();
 
         if (!travis) {
             traceLevelFile = 0;
             smallLog = true;
             networked = true;
-            defrag = false;
             ssl = true;
             test();
 
@@ -691,7 +682,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         smallLog = big = networked = memory = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;
         traceTest = stopOnError = false;
-        defrag = false;
         traceLevelFile = throttle = 0;
         cipher = null;
 
@@ -1140,7 +1130,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         appendIf(buff, throttle > 0, "throttle:" + throttle);
         appendIf(buff, traceTest, "traceTest");
         appendIf(buff, stopOnError, "stopOnError");
-        appendIf(buff, defrag, "defrag");
         appendIf(buff, splitFileSystem, "split");
         appendIf(buff, collation != null, collation);
         return buff.toString();

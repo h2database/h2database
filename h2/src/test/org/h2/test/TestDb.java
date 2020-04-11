@@ -133,9 +133,6 @@ public abstract class TestDb extends TestBase {
         if (config.cipher != null) {
             url = addOption(url, "CIPHER", config.cipher);
         }
-        if (config.defrag) {
-            url = addOption(url, "DEFRAG_ALWAYS", "TRUE");
-        }
         if (config.collation != null) {
             url = addOption(url, "COLLATION", config.collation);
         }

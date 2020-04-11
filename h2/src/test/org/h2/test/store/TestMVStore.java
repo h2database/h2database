@@ -856,14 +856,14 @@ public class TestMVStore extends TestBase {
                 MVStore s1 = new MVStore.Builder().fileName(fileName).open();
                 s1.close();
                 fail();
-            } catch (IllegalStateException e) {
+            } catch (MVStoreException e) {
                 // expected
             }
             try {
                 MVStore s1 = new MVStore.Builder().fileName(fileName).readOnly().open();
                 s1.close();
                 fail();
-            } catch (IllegalStateException e) {
+            } catch (MVStoreException e) {
                 // expected
             }
             assertFalse(s.getFileStore().isReadOnly());

@@ -11,9 +11,9 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Random;
-
 import org.h2.mvstore.Chunk;
 import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.test.TestBase;
 
@@ -143,7 +143,7 @@ public class TestDataUtils extends TestBase {
                 HashMap<String, String> map = DataUtils.parseMap(buff.toString());
                 assertNotNull(map);
                 // ok
-            } catch (IllegalStateException e) {
+            } catch (MVStoreException e) {
                 // ok - but not another exception
             }
         }

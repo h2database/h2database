@@ -131,7 +131,7 @@ public class TestTransactionStore extends TestBase {
                         try {
                             map.remove(k);
                             map.put(k, r.nextInt());
-                        } catch (IllegalStateException e) {
+                        } catch (MVStoreException e) {
                             // ignore and retry
                         }
                         tx.commit();
@@ -172,7 +172,7 @@ public class TestTransactionStore extends TestBase {
                     map = tx.openMap("data");
                     try {
                         map.put(k, r.nextInt());
-                    } catch (IllegalStateException e) {
+                    } catch (MVStoreException e) {
                         failCount.incrementAndGet();
                         // ignore and retry
                     }
@@ -192,7 +192,7 @@ public class TestTransactionStore extends TestBase {
             map = tx.openMap("data");
             try {
                 map.put(k, r.nextInt());
-            } catch (IllegalStateException e) {
+            } catch (MVStoreException e) {
                 failCount.incrementAndGet();
                 // ignore and retry
             }
@@ -334,7 +334,7 @@ public class TestTransactionStore extends TestBase {
                 try {
                     t = ts.begin();
                     fail();
-                } catch (IllegalStateException e) {
+                } catch (MVStoreException e) {
                     // expected - too many open
                 }
                 Transaction first = fifo.remove(0);

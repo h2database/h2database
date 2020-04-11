@@ -605,20 +605,20 @@ public abstract class FileStore
         }
 
         if (!validStoreHeader) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_FILE_CORRUPT,
                     "Store header is corrupt: {0}", this);
         }
         int blockSize = DataUtils.readHexInt(storeHeader, FileStore.HDR_BLOCK_SIZE, FileStore.BLOCK_SIZE);
         if (blockSize != FileStore.BLOCK_SIZE) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_UNSUPPORTED_FORMAT,
                     "Block size {0} is currently not supported",
                     blockSize);
         }
         long format = DataUtils.readHexLong(storeHeader, FileStore.HDR_FORMAT, 1);
         if (format > FileStore.FORMAT_WRITE && !isReadOnly()) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_UNSUPPORTED_FORMAT,
                     "The write format {0} is larger " +
                     "than the supported format {1}, " +
@@ -627,7 +627,7 @@ public abstract class FileStore
         }
         format = DataUtils.readHexLong(storeHeader, FileStore.HDR_FORMAT_READ, format);
         if (format > FileStore.FORMAT_READ) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_UNSUPPORTED_FORMAT,
                     "The read format {0} is larger " +
                     "than the supported format {1}",
@@ -766,7 +766,7 @@ public abstract class FileStore
                 }
                 if (!findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation,
                         validChunksById, true, mvStore) && hasPersitentData()) {
-                    throw DataUtils.newIllegalStateException(
+                    throw DataUtils.newMVStoreException(
                             DataUtils.ERROR_FILE_CORRUPT,
                             "File is corrupted - unable to recover a valid set of chunks");
 
@@ -896,7 +896,7 @@ public abstract class FileStore
         if (chunk.block == 0) {
             chunk.block = block;
         } else if (chunk.block != block) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_FILE_CORRUPT,
                     "File corrupt reading chunk at position {0}", p);
         }

@@ -1549,10 +1549,10 @@ public class MVStore implements AutoCloseable {
                 } finally {
                     serializationLock.unlock();
                 }
-            } catch (IllegalStateException e) {
+            } catch (MVStoreException e) {
                 panic(e);
             } catch (Throwable e) {
-                panic(DataUtils.newIllegalStateException(
+                panic(DataUtils.newMVStoreException(
                         DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
             } finally {
                 unlockAndCheckPanicCondition();

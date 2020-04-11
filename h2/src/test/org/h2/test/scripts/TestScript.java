@@ -251,9 +251,6 @@ public class TestScript extends TestDb {
         result.clear();
         putBack.clear();
 
-        if (statements == null) {
-            println("Running commands in " + scriptFileName);
-        }
         String outFile;
         if (FIX_OUTPUT) {
             outFile = scriptFileName;

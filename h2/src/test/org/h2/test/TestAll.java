@@ -13,7 +13,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
@@ -128,7 +127,6 @@ import org.h2.test.server.TestWeb;
 import org.h2.test.store.TestCacheConcurrentLIRS;
 import org.h2.test.store.TestCacheLIRS;
 import org.h2.test.store.TestCacheLongKeyLIRS;
-import org.h2.test.store.TestConcurrent;
 import org.h2.test.store.TestDataUtils;
 import org.h2.test.store.TestDefrag;
 import org.h2.test.store.TestFreeSpace;
@@ -136,6 +134,7 @@ import org.h2.test.store.TestKillProcessWhileWriting;
 import org.h2.test.store.TestMVRTree;
 import org.h2.test.store.TestMVStore;
 import org.h2.test.store.TestMVStoreBenchmark;
+import org.h2.test.store.TestMVStoreConcurrent;
 import org.h2.test.store.TestMVStoreStopCompact;
 import org.h2.test.store.TestMVStoreTool;
 import org.h2.test.store.TestMVTableEngine;
@@ -173,6 +172,7 @@ import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestCharsetCollator;
 import org.h2.test.unit.TestCollation;
 import org.h2.test.unit.TestCompress;
+import org.h2.test.unit.TestConcurrentJdbc;
 import org.h2.test.unit.TestConnectionInfo;
 import org.h2.test.unit.TestDataPage;
 import org.h2.test.unit.TestDate;
@@ -930,6 +930,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMVTempResult());
 
         // unit
+        addTest(new TestConcurrentJdbc());
         addTest(new TestAnsCompression());
         addTest(new TestBinaryArithmeticStream());
         addTest(new TestBinaryOperation());
@@ -969,7 +970,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         // serial
         addTest(new TestDate());
         addTest(new TestDateTimeUtils());
-        addTest(new TestConcurrent());
+        addTest(new TestMVStoreConcurrent());
         addTest(new TestNetUtils());
         addTest(new TestPattern());
         addTest(new TestStringCache());

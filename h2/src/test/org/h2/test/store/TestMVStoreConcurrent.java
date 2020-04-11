@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.h2.mvstore.Chunk;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -34,7 +33,7 @@ import org.h2.util.Task;
 /**
  * Tests concurrently accessing a tree map store.
  */
-public class TestConcurrent extends TestMVStore {
+public class TestMVStoreConcurrent extends TestMVStore {
 
     /**
      * Run just this test.

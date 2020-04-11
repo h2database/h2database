@@ -18,7 +18,7 @@ import org.h2.util.Task;
 /**
  * Test concurrent access to JDBC objects.
  */
-public class TestConcurrent extends TestBase {
+public class TestConcurrentJdbc extends TestBase {
 
     /**
      * Run just this test.

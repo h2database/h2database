@@ -9,7 +9,6 @@ import static org.h2.util.geometry.GeometryUtils.MAX_X;
 import static org.h2.util.geometry.GeometryUtils.MAX_Y;
 import static org.h2.util.geometry.GeometryUtils.MIN_X;
 import static org.h2.util.geometry.GeometryUtils.MIN_Y;
-
 import java.util.Iterator;
 import java.util.List;
 import org.h2.api.ErrorCode;
@@ -23,6 +22,7 @@ import org.h2.index.IndexType;
 import org.h2.index.SpatialIndex;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.Page;
 import org.h2.mvstore.rtree.MVRTreeMap;
 import org.h2.mvstore.rtree.MVRTreeMap.RTreeCursor;
@@ -149,7 +149,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
         }
         try {
             map.put(key, ValueBigint.get(0));
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             throw mvTable.convertException(e);
         }
         if (indexType.isUnique()) {
@@ -189,7 +189,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
                 getSQL(builder, TRACE_SQL_FLAGS).append(": ").append(row.getKey());
                 throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, builder.toString());
             }
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             throw mvTable.convertException(e);
         }
     }
@@ -327,7 +327,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
     public boolean needRebuild() {
         try {
             return dataMap.sizeAsLongMax() == 0;
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }
     }
@@ -342,7 +342,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
     public long getRowCountApproximation() {
         try {
             return dataMap.sizeAsLongMax();
-        } catch (IllegalStateException e) {
+        } catch (MVStoreException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }
     }

@@ -372,7 +372,7 @@ class TxDecisionMaker<K,V> extends MVMap.DecisionMaker<VersionedValue<V>> {
             V snapshotValue = snapshotValueSupplier.apply(key);
             if (snapshotValue != null && (valueToLog == null
                     || valueType.compare(VersionedValueCommitted.getInstance(snapshotValue), valueToLog) != 0)) {
-                throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK, "");
+                throw DataUtils.newMVStoreException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK, "");
             }
             return super.logAndDecideToPut(valueToLog, value);
         }

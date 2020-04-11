@@ -23,7 +23,6 @@ import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -44,6 +43,7 @@ import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.mode.PgCatalogTable;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.db.LobStorageMap;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.pagestore.PageStore;
@@ -2240,7 +2240,7 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     public Throwable getBackgroundException() {
-        IllegalStateException exception = store.getMvStore().getPanicException();
+        MVStoreException exception = store.getMvStore().getPanicException();
         if(exception != null) {
             return exception;
         }

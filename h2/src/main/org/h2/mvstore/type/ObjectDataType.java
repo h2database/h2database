@@ -187,7 +187,7 @@ public class ObjectDataType extends BasicDataType<Object> {
         case TYPE_SERIALIZED_OBJECT:
             return new SerializedObjectType(this);
         default:
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL,
+            throw DataUtils.newMVStoreException(DataUtils.ERROR_INTERNAL,
                     "Unsupported type {0}", typeId);
         }
     }
@@ -244,7 +244,7 @@ public class ObjectDataType extends BasicDataType<Object> {
                         && tag <= TAG_BYTE_ARRAY_0_15 + 15) {
                     typeId = TYPE_ARRAY;
                 } else {
-                    throw DataUtils.newIllegalStateException(
+                    throw DataUtils.newMVStoreException(
                             DataUtils.ERROR_FILE_CORRUPT, "Unknown tag {0}",
                             tag);
                 }
@@ -1432,7 +1432,7 @@ public class ObjectDataType extends BasicDataType<Object> {
                 try {
                     clazz = Class.forName(componentType);
                 } catch (Exception e) {
-                    throw DataUtils.newIllegalStateException(
+                    throw DataUtils.newMVStoreException(
                             DataUtils.ERROR_SERIALIZATION,
                             "Could not get class {0}", componentType, e);
                 }
@@ -1443,7 +1443,7 @@ public class ObjectDataType extends BasicDataType<Object> {
             try {
                 obj = Array.newInstance(clazz, len);
             } catch (Exception e) {
-                throw DataUtils.newIllegalStateException(
+                throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_SERIALIZATION,
                         "Could not create array of type {0} length {1}", clazz,
                         len, e);

@@ -390,7 +390,7 @@ public class TransactionStore {
                 assert !original.get(transactionId);
             }
             if (transactionId > maxTransactionId) {
-                throw DataUtils.newIllegalStateException(
+                throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_TOO_MANY_OPEN_TRANSACTIONS,
                         "There are {0} open transactions",
                         transactionId - 1);
@@ -441,7 +441,7 @@ public class TransactionStore {
         MVMap<Long, Record<?,?>> undoLog = undoLogs[transactionId];
         long undoKey = getOperationId(transactionId, logId);
         if (logId == 0 && !undoLog.isEmpty()) {
-            throw DataUtils.newIllegalStateException(
+            throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_TOO_MANY_OPEN_TRANSACTIONS,
                     "An old transaction with the same id " +
                     "is still open: {0}",
@@ -849,7 +849,7 @@ public class TransactionStore {
                 if (keyTypeKey != null) {
                     keyType = (DataType<K>)typeRegistry.get(keyTypeKey);
                     if (keyType == null) {
-                        throw DataUtils.newIllegalStateException(DataUtils.ERROR_UNKNOWN_DATA_TYPE,
+                        throw DataUtils.newMVStoreException(DataUtils.ERROR_UNKNOWN_DATA_TYPE,
                                 "Data type with hash {0} can not be found", keyTypeKey);
                     }
                     setKeyType(keyType);
@@ -864,7 +864,7 @@ public class TransactionStore {
                 if (valueTypeKey != null) {
                     valueType = (DataType<V>)typeRegistry.get(valueTypeKey);
                     if (valueType == null) {
-                        throw DataUtils.newIllegalStateException(DataUtils.ERROR_UNKNOWN_DATA_TYPE,
+                        throw DataUtils.newMVStoreException(DataUtils.ERROR_UNKNOWN_DATA_TYPE,
                                 "Data type with hash {0} can not be found", valueTypeKey);
                     }
                     setValueType(valueType);

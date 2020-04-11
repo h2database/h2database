@@ -23,6 +23,7 @@ import org.h2.mvstore.Chunk;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.store.fs.FileChannelInputStream;
@@ -514,13 +515,12 @@ public class TestMVStoreConcurrent extends TestMVStore {
                     Exception e = task.getException();
                     if (e != null) {
                         assertEquals(DataUtils.ERROR_CLOSED,
-                                        DataUtils.getErrorCode(e.getMessage()));
+                                ((MVStoreException) e).getErrorCode());
                     }
-                } catch (IllegalStateException e) {
+                } catch (MVStoreException e) {
                     // sometimes storing works, in which case
                     // closing must fail
-                    assertEquals(DataUtils.ERROR_WRITING_FAILED,
-                            DataUtils.getErrorCode(e.getMessage()));
+                    assertEquals(DataUtils.ERROR_WRITING_FAILED, e.getErrorCode());
                     task.get();
                 }
             }

@@ -185,38 +185,34 @@ public class MVTableEngine implements TableEngine {
          * @return the database exception
          */
         DbException convertMVStoreException(MVStoreException e) {
-            int errorCode = e.getErrorCode();
-            if (errorCode == DataUtils.ERROR_CLOSED) {
-                throw DbException.get(
-                        ErrorCode.DATABASE_IS_CLOSED,
-                        e, fileName);
-            } else if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {
-                if (encrypted) {
+            switch (e.getErrorCode()) {
+                case DataUtils.ERROR_CLOSED:
                     throw DbException.get(
-                            ErrorCode.FILE_ENCRYPTION_ERROR_1,
+                            ErrorCode.DATABASE_IS_CLOSED,
                             e, fileName);
-                }
-            } else if (errorCode == DataUtils.ERROR_FILE_LOCKED) {
-                throw DbException.get(
-                        ErrorCode.DATABASE_ALREADY_OPEN_1,
-                        e, fileName);
-            } else if (errorCode == DataUtils.ERROR_READING_FAILED) {
-                throw DbException.get(
-                        ErrorCode.IO_EXCEPTION_1,
-                        e, fileName);
-            } else if (errorCode == DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE) {
-                throw DbException.get(
-                        ErrorCode.GENERAL_ERROR_1,
-                        e, e.getMessage());
-            } else if (errorCode == DataUtils.ERROR_INTERNAL) {
-                throw DbException.get(
-                        ErrorCode.GENERAL_ERROR_1,
-                        e, fileName);
+                case DataUtils.ERROR_FILE_CORRUPT:
+                    if (encrypted) {
+                        throw DbException.get(
+                                ErrorCode.FILE_ENCRYPTION_ERROR_1,
+                                e, fileName);
+                    }
+                    throw DbException.get(
+                            ErrorCode.FILE_CORRUPTED_1,
+                            e, fileName);
+                case DataUtils.ERROR_FILE_LOCKED:
+                    throw DbException.get(
+                            ErrorCode.DATABASE_ALREADY_OPEN_1,
+                            e, fileName);
+                case DataUtils.ERROR_READING_FAILED:
+                case DataUtils.ERROR_WRITING_FAILED:
+                    throw DbException.get(
+                            ErrorCode.IO_EXCEPTION_1,
+                            e, fileName);
+                default:
+                    throw DbException.get(
+                            ErrorCode.GENERAL_ERROR_1,
+                            e, e.getMessage());
             }
-            throw DbException.get(
-                    ErrorCode.FILE_CORRUPTED_1,
-                    e, fileName);
-
         }
 
         public MVStore getMvStore() {

@@ -5,6 +5,9 @@
  */
 package org.h2.mvstore;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * Class RandomAccessStore.
  * <UL>
@@ -18,8 +21,16 @@ public abstract class RandomAccessStore extends FileStore {
      * The free spaces between the chunks. The first block to use is block 2
      * (the first two blocks are the store header).
      */
-    protected final FreeSpaceBitSet freeSpace =
-            new FreeSpaceBitSet(2, BLOCK_SIZE);
+    protected final FreeSpaceBitSet freeSpace = new FreeSpaceBitSet(2, BLOCK_SIZE);
+
+    /**
+     * Allocation mode:
+     * false - new chunk is always allocated at the end of file
+     * true - new chunk is allocated as close to the begining of file, as possible
+     */
+    private volatile boolean reuseSpace = true;
+
+
 
     public RandomAccessStore() {
     }
@@ -62,6 +73,14 @@ public abstract class RandomAccessStore extends FileStore {
 
     boolean isFragmented() {
         return freeSpace.isFragmented();
+    }
+
+    public boolean isSpaceReused() {
+        return reuseSpace;
+    }
+
+    public void setReuseSpace(boolean reuseSpace) {
+        this.reuseSpace = reuseSpace;
     }
 
     /**
@@ -141,5 +160,9 @@ public abstract class RandomAccessStore extends FileStore {
 
     protected long getAfterLastBlock_() {
         return freeSpace.getAfterLastBlock();
+    }
+
+    public Collection<Chunk> getRewriteCandidates() {
+        return isSpaceReused() ? null : Collections.emptyList();
     }
 }

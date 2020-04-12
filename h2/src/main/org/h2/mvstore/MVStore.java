@@ -5,7 +5,6 @@
  */
 package org.h2.mvstore;
 
-import static org.h2.mvstore.Chunk.MAX_HEADER_LENGTH;
 import static org.h2.mvstore.MVMap.INITIAL_VERSION;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.ByteBuffer;
@@ -14,8 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,7 +24,6 @@ import java.util.NoSuchElementException;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -219,8 +215,6 @@ public class MVStore implements AutoCloseable {
      * Single-threaded executor for saving ByteBuffer as a new Chunk
      */
     private ThreadPoolExecutor bufferSaveExecutor;
-
-    private volatile boolean reuseSpace = true;
 
     private volatile int state;
 
@@ -1039,7 +1033,7 @@ public class MVStore implements AutoCloseable {
      *
      * This method may return BEFORE this thread changes are actually persisted!
      *
-     * @return the new version (incremented if there were changes)
+     * @return the new version (incremented if there were changes) or -1 if there were no commit
      */
     public long tryCommit() {
         return tryCommit(x -> true);
@@ -1053,13 +1047,13 @@ public class MVStore implements AutoCloseable {
                 storeLock.tryLock()) {
             try {
                 if (check.test(this)) {
-                    store(false);
+                    return store(false);
                 }
             } finally {
                 unlockAndCheckPanicCondition();
             }
         }
-        return currentVersion;
+        return INITIAL_VERSION;
     }
 
     /**
@@ -1076,7 +1070,7 @@ public class MVStore implements AutoCloseable {
      * <p>
      * At most one store operation may run at any time.
      *
-     * @return the new version (incremented if there were changes)
+     * @return the new version (incremented if there were changes) or -1 if there were no commit
      */
     public long commit() {
         return commit(x -> true);
@@ -1090,16 +1084,16 @@ public class MVStore implements AutoCloseable {
             storeLock.lock();
             try {
                 if (check.test(this)) {
-                    store(true);
+                    return store(true);
                 }
             } finally {
                 unlockAndCheckPanicCondition();
             }
         }
-        return currentVersion;
+        return INITIAL_VERSION;
     }
 
-    private void store(boolean syncWrite) {
+    private long store(boolean syncWrite) {
         assert storeLock.isHeldByCurrentThread();
         if (isOpenOrStopping()) {
             if (hasUnsavedChanges()) {
@@ -1116,8 +1110,9 @@ public class MVStore implements AutoCloseable {
                             throw DataUtils.newMVStoreException(
                                     DataUtils.ERROR_WRITING_FAILED, "This store is read-only");
                         }
-                        storeNow(syncWrite, 0, () -> reuseSpace ? 0 : getAfterLastBlock());
+                        storeNow(syncWrite, 0, () -> isSpaceReused() ? 0 : getAfterLastBlock());
                     }
+                    return currentStoreVersion + 1;
                 } finally {
                     // in any case reset the current store version,
                     // to allow closing the store
@@ -1125,6 +1120,7 @@ public class MVStore implements AutoCloseable {
                 }
             }
         }
+        return INITIAL_VERSION;
     }
 
     public void store(long reservedLow, long reservedHigh) {
@@ -1529,7 +1525,7 @@ public class MVStore implements AutoCloseable {
      */
     boolean compactMoveChunks(int targetFillRate, long moveSize) {
         boolean res = false;
-        if (reuseSpace) {
+        if (isSpaceReused()) {
             storeLock.lock();
             try {
                 checkOpen();
@@ -1613,7 +1609,7 @@ public class MVStore implements AutoCloseable {
      * @return if a chunk was re-written
      */
     public boolean compact(int targetFillRate, int write) {
-        if (reuseSpace && hasPersitentData()) {
+        if (hasPersitentData()) {
             checkOpen();
             if (targetFillRate > 0 && getChunksFillRate() < targetFillRate) {
                 // We can't wait forever for the lock here,
@@ -1775,7 +1771,12 @@ public class MVStore implements AutoCloseable {
 
         long totalSize = 0;
         long latestVersion = fileStore.lastChunkVersion() + 1;
-        for (Chunk chunk : chunks.values()) {
+
+        Collection<Chunk> candidates = fileStore.getRewriteCandidates();
+        if (candidates == null) {
+            candidates = chunks.values();
+        }
+        for (Chunk chunk : candidates) {
             // only look at chunk older than the retention time
             // (it's possible to compact chunks earlier, but right
             // now we don't do that)
@@ -1983,8 +1984,8 @@ public class MVStore implements AutoCloseable {
         return cache == null ? Long.MAX_VALUE : cache.getMaxItemSize() >> 4;
     }
 
-    public boolean getReuseSpace() {
-        return reuseSpace;
+    public boolean isSpaceReused() {
+        return fileStore.isSpaceReused();
     }
 
     /**
@@ -2001,7 +2002,7 @@ public class MVStore implements AutoCloseable {
      * @param reuseSpace the new value
      */
     public void setReuseSpace(boolean reuseSpace) {
-        this.reuseSpace = reuseSpace;
+        fileStore.setReuseSpace(reuseSpace);
     }
 
     public int getRetentionTime() {
@@ -2557,7 +2558,7 @@ public class MVStore implements AutoCloseable {
     }
 
     private void doMaintenance(int targetFillRate) {
-        if (autoCompactFillRate > 0 && hasPersitentData() && reuseSpace) {
+        if (autoCompactFillRate > 0 && hasPersitentData() && isSpaceReused()) {
             try {
                 int lastProjectedFillRate = -1;
                 for (int cnt = 0; cnt < 5; cnt++) {

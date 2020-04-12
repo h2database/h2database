@@ -1462,7 +1462,7 @@ public class TestMVStore extends TestBase {
             assertNull(m0.get("1"));
             assertEquals("Hello", m.get("1"));
             // no changes - no real commit here
-            assertEquals(2, s.commit());
+            assertEquals(-1, s.commit());
         }
 
         long v3;

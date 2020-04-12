@@ -5,7 +5,6 @@
  */
 package org.h2.mvstore;
 
-import static org.h2.mvstore.Chunk.MAX_HEADER_LENGTH;
 import static org.h2.mvstore.MVMap.INITIAL_VERSION;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -808,9 +807,6 @@ public abstract class FileStore
             }
             Chunk test = readChunkFooter(block);
             if (test != null) {
-//                if (test.len > 0) {
-//                    test.block = block - test.len;
-//                }
                 // if we encounter chunk footer (with or without corresponding header)
                 // in the middle of prospective chunk, stop considering it
                 candidateLocation = Long.MAX_VALUE;
@@ -891,7 +887,7 @@ public abstract class FileStore
 
     public Chunk readChunkHeader(long block) {
         long p = block * FileStore.BLOCK_SIZE;
-        ByteBuffer buff = readFully(p, MAX_HEADER_LENGTH);
+        ByteBuffer buff = readFully(p, Chunk.MAX_HEADER_LENGTH);
         Chunk chunk = Chunk.readChunkHeader(buff, p);
         if (chunk.block == 0) {
             chunk.block = block;
@@ -906,12 +902,22 @@ public abstract class FileStore
     /**
      * Read a chunk header and footer, and verify the stored data is consistent.
      *
+     * @param chunk to verify existence
+     * @return true if Chunk exists in the file and is valid, false otherwise
+     */
+    public boolean isValidChunk(Chunk chunk) {
+        return readChunkHeaderAndFooter(chunk.block, chunk.id) != null;
+    }
+
+    /**
+     * Read a chunk header and footer, and verify the stored data is consistent.
+     *
      * @param block the block
      * @param expectedId of the chunk
      * @return the chunk, or null if the header or footer don't match or are not
      *         consistent
      */
-    public Chunk readChunkHeaderAndFooter(long block, int expectedId) {
+    private Chunk readChunkHeaderAndFooter(long block, int expectedId) {
         Chunk header = readChunkHeaderOptionally(block, expectedId);
         if (header != null) {
             Chunk footer = readChunkFooter(block + header.len);

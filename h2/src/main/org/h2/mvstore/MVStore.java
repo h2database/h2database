@@ -561,8 +561,12 @@ public class MVStore implements AutoCloseable {
     }
 
     public Iterable<Chunk> getChunksFromLayoutMap() {
+        return getChunksFromLayoutMap(layout);
+    }
+
+    private Iterable<Chunk> getChunksFromLayoutMap(MVMap<String, String> layoutMap) {
         return () -> new Iterator<Chunk>() {
-            private final Cursor<String, String> cursor = layout.cursor(DataUtils.META_CHUNK);
+            private final Cursor<String, String> cursor = layoutMap.cursor(DataUtils.META_CHUNK);
             private Chunk nextChunk;
 
             @Override
@@ -796,12 +800,9 @@ public class MVStore implements AutoCloseable {
     }
 
     private MVMap<String, String> getLayoutMap(long version) {
-        Chunk c = getChunkForVersion(version);
-        DataUtils.checkArgument(c != null, "Unknown version {0}", version);
-        long block = c.block;
-        c = readChunkHeader(block);
-        MVMap<String, String> oldMap = layout.openReadOnly(c.layoutRootPos, version);
-        return oldMap;
+        Chunk chunk = getChunkForVersion(version);
+        DataUtils.checkArgument(chunk != null, "Unknown version {0}", version);
+        return layout.openReadOnly(chunk.layoutRootPos, version);
     }
 
     private Chunk getChunkForVersion(long version) {
@@ -863,28 +864,6 @@ public class MVStore implements AutoCloseable {
         }
         lastMapId.set(mapId);
         layout.setRootPos(layoutRootPos, currentVersion - 1);
-    }
-
-    /**
-     * Read a chunk header and footer, and verify the stored data is consistent.
-     *
-     * @param block the block
-     * @param expectedId of the chunk
-     * @return the chunk, or null if the header or footer don't match or are not
-     *         consistent
-     */
-    private Chunk readChunkHeaderAndFooter(long block, int expectedId) {
-        return fileStore.readChunkHeaderAndFooter(block, expectedId);
-    }
-
-    /**
-     * Try to read a chunk footer.
-     *
-     * @param block the index of the next block after the chunk
-     * @return the chunk, or null if not successful
-     */
-    private Chunk readChunkFooter(long block) {
-        return fileStore.readChunkHeader(block);
     }
 
     private void writeStoreHeader() {
@@ -1266,16 +1245,8 @@ public class MVStore implements AutoCloseable {
             }
         }
         Chunk c = new Chunk(newChunkId);
-        c.pageCount = 0;
-        c.pageCountLive = 0;
-        c.maxLen = 0;
-        c.maxLenLive = 0;
-        c.layoutRootPos = Long.MAX_VALUE;
-        c.block = Long.MAX_VALUE;
-        c.len = Integer.MAX_VALUE;
         c.time = time;
         c.version = version;
-        c.next = Long.MAX_VALUE;
         c.occupancy = new BitSet();
         return c;
     }
@@ -1284,8 +1255,7 @@ public class MVStore implements AutoCloseable {
                                   long reservedLow, Supplier<Long> reservedHighSupplier) {
         // need to patch the header later
         c.writeChunkHeader(buff, 0);
-        c.block = 0;
-        int headerLength = buff.position() + 44;
+        int headerLength = buff.position() + 66; // len:0[fffffff]map:0[fffffff],toc:0[fffffffffffffff],root:0[fffffffffffffff,next:ffffffffffffffff]
         buff.position(headerLength);
 
         long version = c.version;
@@ -2076,7 +2046,7 @@ public class MVStore implements AutoCloseable {
         long v = oldestVersionToKeep.get();
         v = Math.max(v - versionsToKeep, INITIAL_VERSION);
         if (fileStore != null) {
-            long storeVersion = fileStore.lastChunkVersion() - 1;
+            long storeVersion = fileStore.lastChunkVersion()/* - 1*/;
             if (storeVersion != INITIAL_VERSION && storeVersion < v) {
                 v = storeVersion;
             }
@@ -2127,18 +2097,11 @@ public class MVStore implements AutoCloseable {
             // also, all chunks referenced by this version
             // need to be available in the file
             MVMap<String, String> oldLayoutMap = getLayoutMap(version);
-            for (Iterator<String> it = oldLayoutMap.keyIterator(DataUtils.META_CHUNK); it.hasNext();) {
-                String chunkKey = it.next();
-                if (!chunkKey.startsWith(DataUtils.META_CHUNK)) {
-                    break;
-                }
-                if (!layout.containsKey(chunkKey)) {
-                    String s = oldLayoutMap.get(chunkKey);
-                    Chunk c2 = Chunk.fromString(s);
-                    Chunk test = readChunkHeaderAndFooter(c2.block, c2.id);
-                    if (test == null) {
-                        return false;
-                    }
+            for (Chunk chunk : getChunksFromLayoutMap(oldLayoutMap)) {
+                String chunkKey = Chunk.getMetaKey(chunk.id);
+                // if current layout map does not have it - verify it's existence
+                if (!layout.containsKey(chunkKey) && !fileStore.isValidChunk(chunk)) {
+                    return false;
                 }
             }
         } catch (MVStoreException e) {

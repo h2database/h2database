@@ -1391,7 +1391,7 @@ public class TestMVStore extends TestBase {
             assertEquals(0, m.size());
             s.commit();
             // ensure only nodes are read, but not leaves
-            assertEquals(7, s.getFileStore().getReadCount());
+            assertEquals(6, s.getFileStore().getReadCount());
             assertTrue(s.getFileStore().getWriteCount() < 5);
         }
     }
@@ -1698,6 +1698,7 @@ public class TestMVStore extends TestBase {
         try (MVStore s = openStore(fileName)) {
             s.setAutoCommitDelay(0);
             s.setRetentionTime(0);
+            s.setVersionsToKeep(0);
 
             Map<String, String> layout = s.getLayoutMap();
             int chunkCount1 = getChunkCount(layout);
@@ -1709,7 +1710,6 @@ public class TestMVStore extends TestBase {
 
             MVMap<Integer, String> m = s.openMap("data");
             for (int i = 0; i < 10; i++) {
-                sleep(1);
                 boolean result = s.compact(50, 50 * 1024);
                 s.commit();
                 if (!result) {
@@ -1717,10 +1717,11 @@ public class TestMVStore extends TestBase {
                 }
             }
             assertFalse(s.compact(50, 1024));
+            s.compactMoveChunks();
 
             int chunkCount3 = getChunkCount(layout);
 
-            assertTrue(chunkCount1 + ">" + chunkCount2 + ">" + chunkCount3,
+            assertTrue(chunkCount1 + " >= " + chunkCount2 + " > " + chunkCount3,
                     chunkCount3 < chunkCount1);
 
             for (int i = 0; i < 10 * factor; i++) {

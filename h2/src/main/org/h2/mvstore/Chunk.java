@@ -32,15 +32,18 @@ public final class Chunk {
 
     /**
      * The maximum length of a chunk header, in bytes.
+     * chunk:ffffffff,len:ffffffff,pages:ffffffff,pinCount:ffffffff,map:ffffffff,
+     * root:ffffffffffffffff,time:ffffffffffffffff,toc:ffffffff,version:ffffffffffffffff,
+     * next:ffffffffffffffff
      */
-    static final int MAX_HEADER_LENGTH = 1024;
+    static final int MAX_HEADER_LENGTH = 178;
+//    static final int MAX_HEADER_LENGTH = 1024;
 
     /**
      * The length of the chunk footer. The longest footer is:
-     * chunk:ffffffff,block:ffffffffffffffff,
-     * version:ffffffffffffffff,fletcher:ffffffff
+     * chunk:ffffffff,len:ffffffff,version:ffffffffffffffff,fletcher:ffffffff
      */
-    static final int FOOTER_LENGTH = 128;
+    static final int FOOTER_LENGTH = 128; // it's really 70 now
 
     private static final String ATTR_CHUNK = "chunk";
     private static final String ATTR_BLOCK = "block";
@@ -248,14 +251,15 @@ public final class Chunk {
      */
     void writeChunkHeader(WriteBuffer buff, int minLength) {
         long delimiterPosition = buff.position() + minLength - 1;
-        buff.put(asString().getBytes(StandardCharsets.ISO_8859_1));
+        buff.put(getHeaderBytes());
         while (buff.position() < delimiterPosition) {
             buff.put((byte) ' ');
         }
         if (minLength != 0 && buff.position() > delimiterPosition) {
             throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_INTERNAL,
-                    "Chunk metadata too long");
+                    "Chunk metadata too long {0} {1} {2}", delimiterPosition, buff.position(),
+                    new String(getHeaderBytes(), StandardCharsets.ISO_8859_1));
         }
         buff.put((byte) '\n');
     }
@@ -306,29 +310,27 @@ public final class Chunk {
     }
 
     /**
-     * Get the chunk data as a string.
+     * Get the chunk metadata as a string to be stored in a layout map.
      *
      * @return the string
      */
     public String asString() {
         StringBuilder buff = new StringBuilder(240);
         DataUtils.appendMap(buff, ATTR_CHUNK, id);
-        if (block > 0) {
-            DataUtils.appendMap(buff, ATTR_BLOCK, block);
-        }
+        DataUtils.appendMap(buff, ATTR_BLOCK, block);
         DataUtils.appendMap(buff, ATTR_LEN, len);
-        if (maxLen != maxLenLive) {
-            DataUtils.appendMap(buff, ATTR_LIVE_MAX, maxLenLive);
-        }
+        DataUtils.appendMap(buff, ATTR_PAGES, pageCount);
         if (pageCount != pageCountLive) {
             DataUtils.appendMap(buff, ATTR_LIVE_PAGES, pageCountLive);
         }
-        DataUtils.appendMap(buff, ATTR_MAP, mapId);
         DataUtils.appendMap(buff, ATTR_MAX, maxLen);
+        if (maxLen != maxLenLive) {
+            DataUtils.appendMap(buff, ATTR_LIVE_MAX, maxLenLive);
+        }
+        DataUtils.appendMap(buff, ATTR_MAP, mapId);
         if (next != 0) {
             DataUtils.appendMap(buff, ATTR_NEXT, next);
         }
-        DataUtils.appendMap(buff, ATTR_PAGES, pageCount);
         DataUtils.appendMap(buff, ATTR_ROOT, layoutRootPos);
         DataUtils.appendMap(buff, ATTR_TIME, time);
         if (unused != 0) {
@@ -351,10 +353,28 @@ public final class Chunk {
         return buff.toString();
     }
 
+    private byte[] getHeaderBytes() {
+        StringBuilder buff = new StringBuilder(240);
+        DataUtils.appendMap(buff, ATTR_CHUNK, id);
+        DataUtils.appendMap(buff, ATTR_LEN, len);
+        DataUtils.appendMap(buff, ATTR_PAGES, pageCount);
+        if (pinCount > 0) {
+            DataUtils.appendMap(buff, ATTR_PIN_COUNT, pinCount);
+        }
+        DataUtils.appendMap(buff, ATTR_MAX, maxLen);
+        DataUtils.appendMap(buff, ATTR_MAP, mapId);
+        DataUtils.appendMap(buff, ATTR_ROOT, layoutRootPos);
+        DataUtils.appendMap(buff, ATTR_TIME, time);
+        DataUtils.appendMap(buff, ATTR_VERSION, version);
+        if (next != 0) {
+            DataUtils.appendMap(buff, ATTR_NEXT, next);
+        }
+        return buff.toString().getBytes(StandardCharsets.ISO_8859_1);
+    }
+
     byte[] getFooterBytes() {
         StringBuilder buff = new StringBuilder(FOOTER_LENGTH);
         DataUtils.appendMap(buff, ATTR_CHUNK, id);
-//        DataUtils.appendMap(buff, ATTR_BLOCK, block);
         DataUtils.appendMap(buff, ATTR_LEN, len);
         DataUtils.appendMap(buff, ATTR_VERSION, version);
         byte[] bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);

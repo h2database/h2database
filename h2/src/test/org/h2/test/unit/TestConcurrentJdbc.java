@@ -10,6 +10,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.CountDownLatch;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
@@ -48,10 +49,12 @@ public class TestConcurrentJdbc extends TestBase {
                 break;
             }
             final PreparedStatement prep = conn.prepareStatement(sql);
+            final CountDownLatch executedUpdate = new CountDownLatch(1);
             Task t = new Task() {
                 @Override
                 public void call() throws SQLException {
                     while (!conn.isClosed()) {
+                        executedUpdate.countDown();
                         switch (x % 6) {
                         case 0:
                             prep.executeQuery();
@@ -76,16 +79,21 @@ public class TestConcurrentJdbc extends TestBase {
                 }
             };
             t.execute();
-            Thread.sleep(100);
+            //Wait until the concurrent task has started
+            try {
+                executedUpdate.await();
+            } catch (InterruptedException e) {
+                // ignore
+            }
             conn.close();
             SQLException e = (SQLException) t.getException();
             if (e != null) {
                 if (ErrorCode.OBJECT_CLOSED != e.getErrorCode() &&
-                        ErrorCode.STATEMENT_WAS_CANCELED != e.getErrorCode()) {
+                        ErrorCode.STATEMENT_WAS_CANCELED != e.getErrorCode() &&
+                        ErrorCode.DATABASE_CALLED_AT_SHUTDOWN != e.getErrorCode()) {
                     throw e;
                 }
             }
         }
     }
-
 }

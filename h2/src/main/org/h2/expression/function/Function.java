@@ -500,7 +500,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case TABLE_DISTINCT:
         case UNNEST:
             assert arguments == null;
-            return new TableFunction(info, Long.MAX_VALUE);
+            return new TableFunction(info);
         default:
             return arguments != null ? new Function(info, arguments) : new Function(info);
         }

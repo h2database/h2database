@@ -27,12 +27,10 @@ import org.h2.value.ValueResultSet;
  * UNNEST(..).
  */
 public class TableFunction extends Function {
-    private final long rowCount;
     private Column[] columns;
 
-    TableFunction(FunctionInfo info, long rowCount) {
+    TableFunction(FunctionInfo info) {
         super(info);
-        this.rowCount = rowCount;
     }
 
     @Override
@@ -139,10 +137,6 @@ public class TableFunction extends Function {
         }
         result.done();
         return ValueResultSet.get(result, Integer.MAX_VALUE);
-    }
-
-    public long getRowCount() {
-        return rowCount;
     }
 
     @Override

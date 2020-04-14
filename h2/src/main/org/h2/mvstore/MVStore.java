@@ -426,24 +426,18 @@ public class MVStore implements AutoCloseable {
             // just to make some assertions happy, when they ensure single-threaded access
             storeLock.lock();
             try {
-//                saveChunkLock.lock();
-//                try {
-                    if (fileStoreShallBeOpen) {
-                        boolean readOnly = config.containsKey("readOnly");
-                        this.fileStore.open(fileName, readOnly, encryptionKey, chunks);
-                    } else {
-                        fileStore.setChunks(chunks);
-                    }
-                    if (this.fileStore.size() == 0) {
-                        fileStore.initializeStoreHeader(getTimeAbsolute());
-                        setLastChunk(null);
-                        writeStoreHeader();
-                    } else {
-                        fileStore.readStoreHeader(this, recoveryMode);
-                    }
-//                } finally {
-//                    saveChunkLock.unlock();
-//                }
+                if (fileStoreShallBeOpen) {
+                    boolean readOnly = config.containsKey("readOnly");
+                    this.fileStore.open(fileName, readOnly, encryptionKey, chunks);
+                } else {
+                    fileStore.setChunks(chunks);
+                }
+                if (this.fileStore.size() == 0) {
+                    setLastChunk(null);
+                    fileStore.initializeStoreHeader(getTimeAbsolute());
+                } else {
+                    fileStore.readStoreHeader(this, recoveryMode);
+                }
             } catch (MVStoreException e) {
                 panic(e);
             } finally {
@@ -866,18 +860,6 @@ public class MVStore implements AutoCloseable {
         layout.setRootPos(layoutRootPos, currentVersion - 1);
     }
 
-    private void writeStoreHeader() {
-        fileStore.writeStoreHeader();
-    }
-
-    private void write(long pos, ByteBuffer buffer) {
-        try {
-            fileStore.writeFully(pos, buffer);
-        } catch (MVStoreException e) {
-            panic(e);
-        }
-    }
-
     /**
      * Close the file and the store. Unsaved changes are written to disk first.
      */
@@ -1089,7 +1071,7 @@ public class MVStore implements AutoCloseable {
                             throw DataUtils.newMVStoreException(
                                     DataUtils.ERROR_WRITING_FAILED, "This store is read-only");
                         }
-                        storeNow(syncWrite, 0, () -> isSpaceReused() ? 0 : getAfterLastBlock());
+                        storeNow(syncWrite);
                     }
                     return currentStoreVersion + 1;
                 } finally {
@@ -1102,16 +1084,16 @@ public class MVStore implements AutoCloseable {
         return INITIAL_VERSION;
     }
 
-    public void store(long reservedLow, long reservedHigh) {
+    public void store() {
         serializationLock.unlock();
         try {
-            storeNow(true, reservedLow, () -> reservedHigh);
+            storeNow(true);
         } finally {
             serializationLock.lock();
         }
     }
 
-    private void storeNow(boolean syncWrite, long reservedLow, Supplier<Long> reservedHighSupplier) {
+    private void storeNow(boolean syncWrite) {
         try {
             lastCommitTime = getTimeSinceCreation();
             int currentUnsavedPageCount = unsavedMemory;
@@ -1122,8 +1104,7 @@ public class MVStore implements AutoCloseable {
 
             assert storeLock.isHeldByCurrentThread();
             submitOrRun(serializationExecutor,
-                    () -> serializeAndStore(syncWrite, reservedLow, reservedHighSupplier,
-                                            changed, lastCommitTime, version),
+                    () -> serializeAndStore(syncWrite, changed, lastCommitTime, version),
                     syncWrite);
 
             // some pages might have been changed in the meantime (in the newest
@@ -1195,14 +1176,13 @@ public class MVStore implements AutoCloseable {
         return changed;
     }
 
-    private void serializeAndStore(boolean syncRun, long reservedLow, Supplier<Long> reservedHighSupplier,
-                                    ArrayList<Page<?,?>> changed, long time, long version) {
+    private void serializeAndStore(boolean syncRun, ArrayList<Page<?,?>> changed, long time, long version) {
         serializationLock.lock();
         try {
             Chunk c = createChunk(time, version);
             chunks.put(c.id, c);
             WriteBuffer buff = getWriteBuffer();
-            serializeToBuffer(buff, changed, c, reservedLow, reservedHighSupplier);
+            serializeToBuffer(buff, changed, c);
 
             submitOrRun(bufferSaveExecutor, () -> storeBuffer(c, buff, changed), syncRun);
 
@@ -1251,12 +1231,12 @@ public class MVStore implements AutoCloseable {
         return c;
     }
 
-    private void serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, Chunk c,
-                                  long reservedLow, Supplier<Long> reservedHighSupplier) {
+    private void serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, Chunk c) {
         // need to patch the header later
         c.writeChunkHeader(buff, 0);
         int headerLength = buff.position() + 66; // len:0[fffffff]map:0[fffffff],toc:0[fffffffffffffff],root:0[fffffffffffffff,next:ffffffffffffffff]
         buff.position(headerLength);
+        c.next = headerLength;
 
         long version = c.version;
         List<Long> toc = new ArrayList<>();
@@ -1312,7 +1292,7 @@ public class MVStore implements AutoCloseable {
                 Chunk.FOOTER_LENGTH, FileStore.BLOCK_SIZE);
         buff.limit(length);
         c.len = buff.limit() / FileStore.BLOCK_SIZE;
-        fileStore.allocateChunkSpace(c, buff, reservedLow, reservedHighSupplier, headerLength);
+        fileStore.allocateChunkSpace(c, buff);
     }
 
     private void storeBuffer(Chunk c, WriteBuffer buff, ArrayList<Page<?,?>> changed) {
@@ -1432,16 +1412,6 @@ public class MVStore implements AutoCloseable {
     }
 
     /**
-     * Shrink the file if possible, and if at least a given percentage can be
-     * saved.
-     *
-     * @param minPercent the minimum percentage to save
-     */
-    private void shrinkFileIfPossible(int minPercent) {
-        fileStore.shrinkIfPossible(minPercent);
-    }
-
-    /**
      * Get the index of the first block after last occupied one.
      * It marks the beginning of the last (infinite) free space.
      *
@@ -1469,10 +1439,6 @@ public class MVStore implements AutoCloseable {
             }
         }
         return layout.hasChangesSince(lastStoredVersion) && lastStoredVersion > INITIAL_VERSION;
-    }
-
-    private Chunk readChunkHeader(long block) {
-        return fileStore.readChunkHeader(block);
     }
 
     /**
@@ -1550,10 +1516,20 @@ public class MVStore implements AutoCloseable {
      */
     public void compactFile(int maxCompactTime) {
         setRetentionTime(0);
+        storeLock.lock();
+        try {
+//            fileStore.compactFile(95, maxCompactTime, 16 * 1024 * 1024);
+            compactFile(95, maxCompactTime, 16 * 1024 * 1024);
+        } finally {
+            unlockAndCheckPanicCondition();
+        }
+    }
+
+    public void compactFile(int tresholdFildRate, long maxCompactTime, int maxWriteSize) {
         long stopAt = System.nanoTime() + maxCompactTime * 1_000_000L;
-        while (compact(95, 16 * 1024 * 1024)) {
+        while (compact(tresholdFildRate, maxWriteSize)) {
             sync();
-            compactMoveChunks(95, 16 * 1024 * 1024);
+            compactMoveChunks(tresholdFildRate, maxWriteSize);
             if (System.nanoTime() - stopAt > 0L) {
                 break;
             }
@@ -1690,27 +1666,22 @@ public class MVStore implements AutoCloseable {
     }
 
     private int getProjectedFillRate(int thresholdChunkFillRate) {
-//        saveChunkLock.lock();
-//        try {
-            int vacatedBlocks = 0;
-            long maxLengthSum = 1;
-            long maxLengthLiveSum = 1;
-            long time = getTimeSinceCreation();
-            for (Chunk c : chunks.values()) {
-                assert c.maxLen >= 0;
-                if (isRewritable(c, time) && c.getFillRate() <= thresholdChunkFillRate) {
-                    assert c.maxLen >= c.maxLenLive;
-                    vacatedBlocks += c.len;
-                    maxLengthSum += c.maxLen;
-                    maxLengthLiveSum += c.maxLenLive;
-                }
+        int vacatedBlocks = 0;
+        long maxLengthSum = 1;
+        long maxLengthLiveSum = 1;
+        long time = getTimeSinceCreation();
+        for (Chunk c : chunks.values()) {
+            assert c.maxLen >= 0;
+            if (isRewritable(c, time) && c.getFillRate() <= thresholdChunkFillRate) {
+                assert c.maxLen >= c.maxLenLive;
+                vacatedBlocks += c.len;
+                maxLengthSum += c.maxLen;
+                maxLengthLiveSum += c.maxLenLive;
             }
-            int additionalBlocks = (int) (vacatedBlocks * maxLengthLiveSum / maxLengthSum);
-            int fillRate = fileStore.getProjectedFillRate(vacatedBlocks - additionalBlocks);
-            return fillRate;
-//        } finally {
-//            saveChunkLock.unlock();
-//        }
+        }
+        int additionalBlocks = (int) (vacatedBlocks * maxLengthLiveSum / maxLengthSum);
+        int fillRate = fileStore.getProjectedFillRate(vacatedBlocks - additionalBlocks);
+        return fillRate;
     }
 
     public int getFillRate() {

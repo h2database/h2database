@@ -84,7 +84,7 @@ public class TestCrashAPI extends TestDb implements Runnable {
         System.setProperty("h2.delayWrongPasswordMax", "0");
         TestBase.createCaller().init().testFromMain();
     }
-    
+
     @Override
     public void run() {
         while (--maxWait > 0) {

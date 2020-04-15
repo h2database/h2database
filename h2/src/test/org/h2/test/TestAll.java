@@ -766,7 +766,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestViewAlterTable());
             addTest(new TestViewDropView());
             addTest(new TestSynonymForTable());
-    
+
             // jdbc
             addTest(new TestBatchUpdates());
             addTest(new TestCallableStatement());
@@ -788,17 +788,17 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestUpdatableResultSet());
             addTest(new TestZloty());
             addTest(new TestSetCollation());
-    
+
             // jdbcx
             addTest(new TestConnectionPool());
             addTest(new TestDataSource());
             addTest(new TestXA());
             addTest(new TestXASimple());
-    
+
             // server
             addTest(new TestAutoServer());
             addTest(new TestNestedLoop());
-    
+
             // mvcc & row level locking
             addTest(new TestMvcc1());
             addTest(new TestMvcc2());
@@ -808,7 +808,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestMvccMultiThreaded2());
             addTest(new TestRowLocks());
             addTest(new TestAnalyzeTableTx());
-    
+
             // synth
             addTest(new TestBtreeIndex());
             addTest(new TestConcurrentUpdate());
@@ -822,9 +822,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestMultiThreaded());
             addTest(new TestOuterJoins());
             addTest(new TestNestedJoins());
-    
+
             runAddedTests();
-    
+
             // serial
             addTest(new TestDateStorage());
             addTest(new TestDriver());
@@ -838,13 +838,13 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestQueryCache());
             addTest(new TestUrlJavaObjectSerializer());
             addTest(new TestWeb());
-    
+
             // other unsafe
             addTest(new TestOptimizations());
             addTest(new TestOutOfMemory());
             addTest(new TestIgnoreCatalogs());
-    
-    
+
+
             runAddedTests(1);
         } finally {
             afterTest();

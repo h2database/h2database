@@ -472,7 +472,7 @@ public abstract class TestBase {
     {
         config.beforeTest();
         test();
-        config.afterTest();        
+        config.afterTest();
     }
 
     /**

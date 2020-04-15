@@ -132,16 +132,16 @@ public final class ValueLobFile extends ValueLob {
         final FileStore store = handler.openFile(fileName, "r", true);
         final boolean alwaysClose = SysProperties.lobCloseBetweenReads;
         final long byteCount = store.length();
-        final InputStream inputStream = new BufferedInputStream(new FileStoreInputStream(store, handler, false, alwaysClose),
-                Constants.IO_BUFFER_SIZE);
+        final InputStream inputStream = new BufferedInputStream(
+                new FileStoreInputStream(store, handler, false, alwaysClose), Constants.IO_BUFFER_SIZE);
         return rangeInputStream(inputStream, oneBasedOffset, length, byteCount);
     }
-    
+
     @Override
     public String toString() {
         return "lob-file: " + fileName;
     }
-    
+
     /**
      * Create a temporary CLOB value from a stream.
      *

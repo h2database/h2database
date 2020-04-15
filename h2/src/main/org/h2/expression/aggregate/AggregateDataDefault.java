@@ -115,6 +115,13 @@ class AggregateDataDefault extends AggregateData {
                 value = ValueBigint.get(value.getLong() | v.getLong()).convertTo(dataType);
             }
             break;
+        case BIT_XOR:
+            if (value == null) {
+                value = v.convertTo(dataType);
+            } else {
+                value = ValueBigint.get(value.getLong() ^ v.getLong()).convertTo(dataType);
+            }
+            break;
         default:
             DbException.throwInternalError("type=" + aggregateType);
         }
@@ -129,6 +136,7 @@ class AggregateDataDefault extends AggregateData {
         case MAX:
         case BIT_OR:
         case BIT_AND:
+        case BIT_XOR:
         case ANY:
         case EVERY:
             v = value;

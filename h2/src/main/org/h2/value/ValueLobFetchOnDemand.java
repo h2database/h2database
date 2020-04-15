@@ -33,7 +33,8 @@ public final class ValueLobFetchOnDemand extends ValueLob {
      */
     protected final byte[] hmac;
 
-    private ValueLobFetchOnDemand(int type, DataHandler handler, int tableId, long lobId, byte[] hmac, long precision) {
+    private ValueLobFetchOnDemand(int type, DataHandler handler, int tableId, long lobId, byte[] hmac,
+            long precision) {
         super(type, precision);
         assert (type == BLOB || type == CLOB);
         this.hmac = hmac;

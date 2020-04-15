@@ -9,7 +9,6 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.function.FunctionCall;
-import org.h2.expression.function.TableFunction;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.schema.Schema;
@@ -24,18 +23,12 @@ import org.h2.value.ValueResultSet;
 public class FunctionTable extends VirtualConstructedTable {
 
     private final FunctionCall function;
-    private final long rowCount;
     private Expression functionExpr;
 
     public FunctionTable(Schema schema, Session session, Expression functionExpr, FunctionCall function) {
         super(schema, 0, function.getName());
         this.functionExpr = functionExpr;
         this.function = function;
-        if (function instanceof TableFunction) {
-            rowCount = ((TableFunction) function).getRowCount();
-        } else {
-            rowCount = Long.MAX_VALUE;
-        }
         function.optimize(session);
         int type = function.getValueType();
         if (type != Value.RESULT_SET) {
@@ -63,17 +56,17 @@ public class FunctionTable extends VirtualConstructedTable {
 
     @Override
     public boolean canGetRowCount() {
-        return rowCount != Long.MAX_VALUE;
+        return false;
     }
 
     @Override
     public long getRowCount(Session session) {
-        return rowCount;
+        return Long.MAX_VALUE;
     }
 
     @Override
     public long getRowCountApproximation() {
-        return rowCount;
+        return Long.MAX_VALUE;
     }
 
     @Override

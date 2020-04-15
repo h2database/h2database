@@ -937,7 +937,7 @@ public class Select extends Query {
                             e = new ExpressionColumn(database, replacementSchema, replacementAlias,
                                     replacementFilter.getColumnName(right), false);
                         } else {
-                            e = new Alias(Function.getFunctionWithArgs(database, Function.COALESCE,
+                            e = new Alias(Function.getFunctionWithArgs(Function.COALESCE,
                                     new ExpressionColumn(database, schema, alias, filter.getColumnName(left), false),
                                     new ExpressionColumn(database, replacementSchema, replacementAlias,
                                             replacementFilter.getColumnName(right), false)), //

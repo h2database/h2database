@@ -10,7 +10,6 @@ import java.util.HashMap;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.engine.Constants;
-import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
@@ -107,25 +106,23 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
     /**
      * Returns mode-specific function for a given name, or {@code null}.
      *
-     * @param database
-     *            the database
      * @param upperName
      *            the upper-case name of a function
      * @return the function with specified name or {@code null}
      */
-    public static Function getFunction(Database database, String upperName) {
+    public static Function getFunction(String upperName) {
         FunctionInfo info = FUNCTIONS.get(upperName);
         if (info != null) {
             if (info.type > 3000) {
-                return new FunctionsPostgreSQL(database, info);
+                return new FunctionsPostgreSQL(info);
             }
-            return new Function(database, info);
+            return new Function(info);
         }
         return null;
     }
 
-    private FunctionsPostgreSQL(Database database, FunctionInfo info) {
-        super(database, info);
+    private FunctionsPostgreSQL(FunctionInfo info) {
+        super(info);
     }
 
     @Override

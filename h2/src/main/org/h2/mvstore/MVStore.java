@@ -153,7 +153,7 @@ public class MVStore implements AutoCloseable
     private static final String HDR_FLETCHER = "fletcher";
 
     /**
-     * The key for the entry within "layout" map, wich contains id of "meta" map.
+     * The key for the entry within "layout" map, which contains id of "meta" map.
      * Entry value (hex encoded) is usually equal to 1, unless it's a legacy
      * (upgraded) database and id 1 has been taken already by another map.
      */
@@ -1753,7 +1753,7 @@ public class MVStore implements AutoCloseable
                     writeStoreHeader = true;
                 } else {
                     for (int chunkId = DataUtils.readHexInt(storeHeader, HDR_CHUNK, 0);
-                         !writeStoreHeader && chunkId <= lastChunk.id; ++chunkId) {
+                            !writeStoreHeader && chunkId <= lastChunk.id; ++chunkId) {
                         // one of the chunks in between
                         // was removed
                         writeStoreHeader = !chunks.containsKey(chunkId);

@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
@@ -153,19 +152,17 @@ public class FunctionsMySQL extends FunctionsBase {
     /**
      * Returns mode-specific function for a given name, or {@code null}.
      *
-     * @param database
-     *            the database
      * @param upperName
      *            the upper-case name of a function
      * @return the function with specified name or {@code null}
      */
-    public static Function getFunction(Database database, String upperName) {
+    public static Function getFunction(String upperName) {
         FunctionInfo info = FUNCTIONS.get(upperName);
-        return info != null ? new FunctionsMySQL(database, info) : null;
+        return info != null ? new FunctionsMySQL(info) : null;
     }
 
-    FunctionsMySQL(Database database, FunctionInfo info) {
-        super(database, info);
+    FunctionsMySQL(FunctionInfo info) {
+        super(info);
     }
 
     @Override

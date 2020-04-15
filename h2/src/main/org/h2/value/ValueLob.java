@@ -307,7 +307,8 @@ public class ValueLob extends Value {
                 builder.append("CAST(REPEAT('00', ").append(precision).append(") AS BINARY");
             }
             ValueLobDatabase lobDb = (ValueLobDatabase) this;
-            builder.append(" /* table: ").append(lobDb.getTableId()).append(" id: ").append(lobDb.getLobId()).append(" */)");
+            builder.append(" /* table: ").append(lobDb.getTableId()).append(" id: ").append(lobDb.getLobId())
+                    .append(" */)");
         }
         if (valueType == Value.CLOB) {
             if ((sqlFlags & (REPLACE_LOBS_FOR_TRACE | NO_CASTS)) == 0) {

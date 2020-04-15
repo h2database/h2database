@@ -9538,32 +9538,32 @@ public class Parser {
     }
 
     private NullConstraintType parseNotNullConstraint() {
-        NullConstraintType nullConstraint = NullConstraintType.NO_NULL_CONSTRAINT_FOUND;
-        if (isToken(NOT) || isToken(NULL)) {
-            if (readIf(NOT)) {
-                read(NULL);
-                nullConstraint = NullConstraintType.NULL_IS_NOT_ALLOWED;
-            } else {
-                read(NULL);
+        NullConstraintType nullConstraint;
+        if (readIf(NOT)) {
+            read(NULL);
+            nullConstraint = NullConstraintType.NULL_IS_NOT_ALLOWED;
+        } else if (readIf(NULL)) {
+            nullConstraint = NullConstraintType.NULL_IS_ALLOWED;
+        } else {
+            return NullConstraintType.NO_NULL_CONSTRAINT_FOUND;
+        }
+        if (database.getMode().getEnum() == ModeEnum.Oracle) {
+            nullConstraint = parseNotNullCompatibility(nullConstraint);
+        }
+        return nullConstraint;
+    }
+
+    private NullConstraintType parseNotNullCompatibility(NullConstraintType nullConstraint) {
+        if (readIf("ENABLE")) {
+            if (!readIf("VALIDATE") && readIf("NOVALIDATE")) {
+                // Turn off constraint, allow NULLs
                 nullConstraint = NullConstraintType.NULL_IS_ALLOWED;
             }
-            if (database.getMode().getEnum() == ModeEnum.Oracle) {
-                if (readIf("ENABLE")) {
-                    // Leave constraint 'as is'
-                    readIf("VALIDATE");
-                    // Turn off constraint, allow NULLs
-                    if (readIf("NOVALIDATE")) {
-                        nullConstraint = NullConstraintType.NULL_IS_ALLOWED;
-                    }
-                }
-                // Turn off constraint, allow NULLs
-                if (readIf("DISABLE")) {
-                    nullConstraint = NullConstraintType.NULL_IS_ALLOWED;
-                    // ignore validate
-                    readIf("VALIDATE");
-                    // ignore novalidate
-                    readIf("NOVALIDATE");
-                }
+        } else if (readIf("DISABLE")) {
+            // Turn off constraint, allow NULLs
+            nullConstraint = NullConstraintType.NULL_IS_ALLOWED;
+            if (!readIf("VALIDATE")) {
+                readIf("NOVALIDATE");
             }
         }
         return nullConstraint;

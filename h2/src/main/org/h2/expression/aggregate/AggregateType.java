@@ -81,6 +81,11 @@ public enum AggregateType {
     BIT_AND,
 
     /**
+     * The aggregate type for BOOL_XOR(expression).
+     */
+    BIT_XOR,
+
+    /**
      * The aggregate type for HISTOGRAM(expression).
      */
     HISTOGRAM,

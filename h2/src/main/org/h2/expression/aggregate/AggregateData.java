@@ -58,6 +58,7 @@ abstract class AggregateData {
         case STDDEV_SAMP:
         case VAR_POP:
         case VAR_SAMP:
+        case BIT_XOR:
             if (!distinct) {
                 return new AggregateDataDefault(aggregateType, dataType);
             }

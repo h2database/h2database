@@ -6145,6 +6145,17 @@ Aggregates are only allowed in select statements.
 BIT_OR(ID)
 "
 
+"Aggregate Functions (General)","BIT_XOR","
+@h2@ BIT_XOR( [ DISTINCT|ALL ] expression)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
+","
+The bitwise XOR of all non-null values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+BIT_XOR(ID)
+"
+
 "Aggregate Functions (General)","ENVELOPE","
 @h2@ ENVELOPE( value )
 @h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]

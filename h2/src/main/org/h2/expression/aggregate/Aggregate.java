@@ -120,6 +120,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         addAggregate("HISTOGRAM", AggregateType.HISTOGRAM);
         addAggregate("BIT_OR", AggregateType.BIT_OR);
         addAggregate("BIT_AND", AggregateType.BIT_AND);
+        addAggregate("BIT_XOR", AggregateType.BIT_XOR);
 
         addAggregate("RANK", AggregateType.RANK);
         addAggregate("DENSE_RANK", AggregateType.DENSE_RANK);
@@ -414,6 +415,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case STDDEV_SAMP:
         case VAR_POP:
         case VAR_SAMP:
+        case BIT_XOR:
             if (distinct) {
                 AggregateDataCollecting c = ((AggregateDataCollecting) data);
                 if (c.getCount() == 0) {
@@ -801,6 +803,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             break;
         case BIT_AND:
         case BIT_OR:
+        case BIT_XOR:
             if (!DataType.supportsAdd(type.getValueType())) {
                 throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getTraceSQL());
             }
@@ -878,6 +881,9 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             break;
         case BIT_OR:
             text = "BIT_OR";
+            break;
+        case BIT_XOR:
+            text = "BIT_XOR";
             break;
         case RANK:
             text = "RANK";

@@ -646,6 +646,8 @@ public class TestPgServer extends TestDb {
                 assertEquals("INTEGER", rs.getString(1));
                 assertFalse(rs.next());
             }
+            // pgAdmin sends `SET LOCAL join_collapse_limit=8`, but `LOCAL` is not supported yet
+            stat.execute("SET join_collapse_limit=8");
 
             // HeidiSQL
             try (ResultSet rs = stat.executeQuery("SHOW ssl")) {

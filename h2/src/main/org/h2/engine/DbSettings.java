@@ -13,7 +13,7 @@ import org.h2.message.DbException;
 /**
  * This class contains various database-level settings. To override the
  * documented default value for a database, append the setting in the database
- * URL: "jdbc:h2:./test;ALIAS_COLUMN_NAME=TRUE" when opening the first connection
+ * URL: "jdbc:h2:./test;ANALYZE_SAMPLE=1000" when opening the first connection
  * to the database. The settings can not be changed once the database is open.
  * <p>
  * Some settings are a last resort and temporary solution to work around a
@@ -34,19 +34,6 @@ public class DbSettings extends SettingsBase {
      * The default settings. Those must not be modified.
      */
     public static final DbSettings DEFAULT = new DbSettings(new HashMap<>(TABLE_SIZE));
-
-    /**
-     * Database setting <code>ALIAS_COLUMN_NAME</code> (default: false).<br />
-     * When enabled, aliased columns (as in SELECT ID AS I FROM TEST) return the
-     * alias (I in this case) in ResultSetMetaData.getColumnName() and 'null' in
-     * getTableName(). If disabled, the real column name (ID in this case) and
-     * table name is returned.
-     * <br />
-     * This setting only affects the default and the MySQL mode. When using
-     * any other mode, this feature is enabled for compatibility, even if this
-     * database setting is not enabled explicitly.
-     */
-    public final boolean aliasColumnName = get("ALIAS_COLUMN_NAME", false);
 
     /**
      * Database setting <code>ANALYZE_AUTO</code> (default: 2000).<br />

@@ -237,10 +237,9 @@ return <code>X</code>. What's wrong?
 This is not a bug. According the JDBC specification, the method
 <code>ResultSetMetaData.getColumnName()</code> should return the name of the column
 and not the alias name. If you need the alias name, use
-<a href="https://docs.oracle.com/javase/7/docs/api/java/sql/ResultSetMetaData.html#getColumnLabel(int)"><code>ResultSetMetaData.getColumnLabel()</code></a>.
+<a href="https://docs.oracle.com/javase/8/docs/api/java/sql/ResultSetMetaData.html#getColumnName-int-"><code>ResultSetMetaData.getColumnLabel()</code></a>.
 Some other database don't work like this yet (they don't follow the JDBC specification).
-If you need compatibility with those databases, use the <a href="features.html#compatibility">Compatibility Mode</a>,
-or append <a href="https://h2database.com/javadoc/org/h2/engine/DbSettings.html#ALIAS_COLUMN_NAME"><code>;ALIAS_COLUMN_NAME=TRUE</code></a> to the database URL.
+If you need compatibility with those databases, use the <a href="features.html#compatibility">Compatibility Mode</a>.
 </p>
 <p>
 This also applies to DatabaseMetaData calls that return a result set.

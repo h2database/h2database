@@ -8,6 +8,7 @@ package org.h2.expression.condition;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
@@ -189,7 +190,10 @@ public class ConditionAndOr extends Condition {
                 return reduced.optimize(session);
             }
         }
-        Expression e = optimizeConstant(session, this, andOrType, left, right);
+        Expression e = optimizeIfConstant(session, andOrType, left, right);
+        if (e == null) {
+            return optimizeN(session, this);
+        }
         if (e instanceof ConditionAndOr) {
             return optimizeN(session, (ConditionAndOr) e);
         }
@@ -215,60 +219,71 @@ public class ConditionAndOr extends Condition {
     }
 
     /**
-     * Optimize the expression if at least one part is constant.
+     * Optimize the condition if at least one part is constant.
      *
      * @param session the session
-     * @param condition the condition
      * @param andOrType the type
      * @param left the left part of the condition
      * @param right the right part of the condition
-     * @return the optimized expression
+     * @return the optimized condition, or {@code null} if condition cannot be optimized
      */
-    static Expression optimizeConstant(Session session, Expression condition, int andOrType, Expression left,
-            Expression right) {
-        Value l = left.isConstant() ? left.getValue(session) : null;
-        Value r = right.isConstant() ? right.getValue(session) : null;
-        if (l == null && r == null) {
-            return condition;
+    static Expression optimizeIfConstant(Session session, int andOrType, Expression left, Expression right) {
+        if (!left.isConstant()) {
+            if (!right.isConstant()) {
+                return null;
+            } else {
+                return optimizeConstant(session, andOrType, right.getValue(session), left);
+            }
         }
-        if (l != null && r != null) {
-            return ValueExpression.getBoolean(condition.getValue(session));
+        Value l = left.getValue(session);
+        if (!right.isConstant()) {
+            return optimizeConstant(session, andOrType, l, right);
         }
+        Value r = right.getValue(session);
+        switch (andOrType) {
+        case AND: {
+            if (l != ValueNull.INSTANCE && !l.getBoolean() || r != ValueNull.INSTANCE && !r.getBoolean()) {
+                return ValueExpression.FALSE;
+            }
+            if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
+                return TypedValueExpression.UNKNOWN;
+            }
+            return ValueExpression.TRUE;
+        }
+        case OR: {
+            if (l.getBoolean() || r.getBoolean()) {
+                return ValueExpression.TRUE;
+            }
+            if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
+                return TypedValueExpression.UNKNOWN;
+            }
+            return ValueExpression.FALSE;
+        }
+        default:
+            throw DbException.throwInternalError("type=" + andOrType);
+        }
+    }
+
+    private static Expression optimizeConstant(Session session, int andOrType, Value l, Expression right) {
         switch (andOrType) {
         case AND:
-            if (l != null) {
-                if (l != ValueNull.INSTANCE && !l.getBoolean()) {
-                    return ValueExpression.FALSE;
-                } else if (l.getBoolean()) {
-                    return castToBoolean(session, right);
-                }
-            } else if (r != null) {
-                if (r != ValueNull.INSTANCE && !r.getBoolean()) {
-                    return ValueExpression.FALSE;
-                } else if (r.getBoolean()) {
-                    return castToBoolean(session, left);
-                }
+            if (l != ValueNull.INSTANCE && !l.getBoolean()) {
+                return ValueExpression.FALSE;
+            } else if (l.getBoolean()) {
+                return castToBoolean(session, right);
             }
             break;
         case OR:
-            if (l != null) {
-                if (l.getBoolean()) {
-                    return ValueExpression.TRUE;
-                } else if (l != ValueNull.INSTANCE) {
-                    return castToBoolean(session, right);
-                }
-            } else if (r != null) {
-                if (r.getBoolean()) {
-                    return ValueExpression.TRUE;
-                } else if (r != ValueNull.INSTANCE) {
-                    return castToBoolean(session, left);
-                }
+            if (l.getBoolean()) {
+                return ValueExpression.TRUE;
+            } else if (l != ValueNull.INSTANCE) {
+                return castToBoolean(session, right);
             }
             break;
         default:
-            DbException.throwInternalError("type=" + andOrType);
+            throw DbException.throwInternalError("type=" + andOrType);
         }
-        return condition;
+        return null;
     }
 
     @Override

@@ -113,30 +113,29 @@ public class ConditionAndOrN extends Condition {
 
     @Override
     public Value getValue(Session session) {
+        boolean hasNull = false;
         switch (andOrType) {
         case ConditionAndOr.AND: {
             for (Expression e : expressions) {
                 Value v = e.getValue(session);
                 if (v == ValueNull.INSTANCE) {
-                    return ValueBoolean.FALSE;
-                }
-                if (!v.getBoolean()) {
+                    hasNull = true;
+                } else if (!v.getBoolean()) {
                     return ValueBoolean.FALSE;
                 }
             }
-            return ValueBoolean.TRUE;
+            return hasNull ? ValueNull.INSTANCE : ValueBoolean.TRUE;
         }
         case ConditionAndOr.OR: {
             for (Expression e : expressions) {
                 Value v = e.getValue(session);
                 if (v == ValueNull.INSTANCE) {
-                    return ValueBoolean.FALSE;
-                }
-                if (v.getBoolean()) {
+                    hasNull = true;
+                } else if (v.getBoolean()) {
                     return ValueBoolean.TRUE;
                 }
             }
-            return ValueBoolean.FALSE;
+            return hasNull ? ValueNull.INSTANCE : ValueBoolean.FALSE;
         }
         default:
             throw DbException.throwInternalError("type=" + andOrType);
@@ -224,8 +223,8 @@ public class ConditionAndOrN extends Condition {
                 }
             }
 
-            Expression e = ConditionAndOr.optimizeConstant(session, this, andOrType, left, right);
-            if (e != this) {
+            Expression e = ConditionAndOr.optimizeIfConstant(session, andOrType, left, right);
+            if (e != null) {
                 expressions.remove(i);
                 expressions.set(i-1, e);
                 continue; // because we don't want to increment, we want to compare the new pair exposed

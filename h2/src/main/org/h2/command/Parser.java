@@ -3068,8 +3068,7 @@ public class Parser {
                     Expression expr = readExpression();
                     if (readIf(AS) || isIdentifier()) {
                         String alias = readAliasIdentifier();
-                        boolean aliasColumnName = database.getSettings().aliasColumnName;
-                        aliasColumnName |= database.getMode().aliasColumnName;
+                        boolean aliasColumnName = database.getMode().aliasColumnName;
                         expr = new Alias(expr, alias, aliasColumnName);
                     }
                     expressions.add(expr);

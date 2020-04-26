@@ -36,8 +36,6 @@ import org.h2.value.Value;
  */
 public class PageDataLeaf extends PageData {
 
-    private final boolean optimizeUpdate;
-
     /**
      * The row offsets.
      */
@@ -76,7 +74,6 @@ public class PageDataLeaf extends PageData {
 
     private PageDataLeaf(PageDataIndex index, int pageId, Data data) {
         super(index, pageId, data);
-        this.optimizeUpdate = index.getDatabase().getSettings().optimizeUpdate;
     }
 
     /**
@@ -190,9 +187,6 @@ public class PageDataLeaf extends PageData {
         if (entryCount == 0) {
             x = 0;
         } else {
-            if (!optimizeUpdate) {
-                readAllRows();
-            }
             x = findInsertionPoint(row.getKey());
         }
         written = false;
@@ -206,17 +200,14 @@ public class PageDataLeaf extends PageData {
         rows = insert(rows, entryCount, x, row);
         entryCount++;
         index.getPageStore().update(this);
-        if (optimizeUpdate) {
-            if (writtenData && offset >= start) {
-                byte[] d = data.getBytes();
-                int dataStart = offsets[entryCount - 1] + rowLength;
-                int dataEnd = offsets[x];
-                System.arraycopy(d, dataStart, d, dataStart - rowLength,
-                        dataEnd - dataStart + rowLength);
-                data.setPos(dataEnd);
-                for (int j = 0; j < columnCount; j++) {
-                    data.writeValue(row.getValue(j));
-                }
+        if (writtenData && offset >= start) {
+            byte[] d = data.getBytes();
+            int dataStart = offsets[entryCount - 1] + rowLength;
+            int dataEnd = offsets[x];
+            System.arraycopy(d, dataStart, d, dataStart - rowLength, dataEnd - dataStart + rowLength);
+            data.setPos(dataEnd);
+            for (int j = 0; j < columnCount; j++) {
+                data.writeValue(row.getValue(j));
             }
         }
         if (offset < start) {
@@ -276,9 +267,6 @@ public class PageDataLeaf extends PageData {
         index.getPageStore().logUndo(this, data);
         written = false;
         changeCount = index.getPageStore().getChangeCount();
-        if (!optimizeUpdate) {
-            readAllRows();
-        }
         Row r = getRowAt(i);
         if (r != null) {
             memoryChange(false, r);
@@ -297,17 +285,11 @@ public class PageDataLeaf extends PageData {
         int keyOffsetPairLen = 2 + Data.getVarLongLen(keys[i]);
         int startNext = i > 0 ? offsets[i - 1] : index.getPageStore().getPageSize();
         int rowLength = startNext - offsets[i];
-        if (optimizeUpdate) {
-            if (writtenData) {
-                byte[] d = data.getBytes();
-                int dataStart = offsets[entryCount];
-                System.arraycopy(d, dataStart, d, dataStart + rowLength,
-                        offsets[i] - dataStart);
-                Arrays.fill(d, dataStart, dataStart + rowLength, (byte) 0);
-            }
-        } else {
-            int clearStart = offsets[entryCount];
-            Arrays.fill(data.getBytes(), clearStart, clearStart + rowLength, (byte) 0);
+        if (writtenData) {
+            byte[] d = data.getBytes();
+            int dataStart = offsets[entryCount];
+            System.arraycopy(d, dataStart, d, dataStart + rowLength, offsets[i] - dataStart);
+            Arrays.fill(d, dataStart, dataStart + rowLength, (byte) 0);
         }
         start -= keyOffsetPairLen;
         offsets = remove(offsets, entryCount + 1, i);
@@ -505,9 +487,6 @@ public class PageDataLeaf extends PageData {
         if (written) {
             return;
         }
-        if (!optimizeUpdate) {
-            readAllRows();
-        }
         writeHead();
         if (firstOverflowPageId != 0) {
             data.writeInt(firstOverflowPageId);
@@ -517,7 +496,7 @@ public class PageDataLeaf extends PageData {
             data.writeVarLong(keys[i]);
             data.writeShortInt(offsets[i]);
         }
-        if (!writtenData || !optimizeUpdate) {
+        if (!writtenData) {
             for (int i = 0; i < entryCount; i++) {
                 data.setPos(offsets[i]);
                 Row r = getRowAt(i);

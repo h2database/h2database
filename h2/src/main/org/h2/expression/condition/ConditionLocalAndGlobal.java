@@ -75,7 +75,10 @@ public class ConditionLocalAndGlobal extends Condition {
         global = global.optimize(session);
         if (local != null) {
             local = local.optimize(session);
-            return ConditionAndOr.optimizeConstant(session, this, ConditionAndOr.AND, local, global);
+            Expression e = ConditionAndOr.optimizeIfConstant(session, ConditionAndOr.AND, local, global);
+            if (e != null) {
+                return e;
+            }
         }
         return this;
     }

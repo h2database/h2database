@@ -223,8 +223,8 @@ public class ConditionAndOrN extends Condition {
                 }
             }
 
-            Expression e = ConditionAndOr.optimizeConstant(session, this, andOrType, left, right);
-            if (e != this) {
+            Expression e = ConditionAndOr.optimizeIfConstant(session, andOrType, left, right);
+            if (e != null) {
                 expressions.remove(i);
                 expressions.set(i-1, e);
                 continue; // because we don't want to increment, we want to compare the new pair exposed

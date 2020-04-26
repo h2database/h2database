@@ -367,6 +367,9 @@ public class TestValueMemory extends TestBase implements DataHandler {
 
     private class LobStorageTest implements LobStorageInterface {
 
+        LobStorageTest() {
+        }
+
         @Override
         public void removeLob(ValueLob lob) {
             // not stored in the database

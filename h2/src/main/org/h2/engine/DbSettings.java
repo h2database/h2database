@@ -237,13 +237,6 @@ public class DbSettings extends SettingsBase {
     public final boolean optimizeTwoEquals = get("OPTIMIZE_TWO_EQUALS", true);
 
     /**
-     * Database setting <code>OPTIMIZE_UPDATE</code> (default: true).<br />
-     * Speed up inserts, updates, and deletes by not reading all rows from a
-     * page unless necessary.
-     */
-    public final boolean optimizeUpdate = get("OPTIMIZE_UPDATE", true);
-
-    /**
      * Database setting <code>PAGE_STORE_MAX_GROWTH</code>
      * (default: 128 * 1024).<br />
      * The maximum number of pages the file grows at any time.

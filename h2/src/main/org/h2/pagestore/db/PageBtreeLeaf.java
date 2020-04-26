@@ -32,12 +32,10 @@ public class PageBtreeLeaf extends PageBtree {
 
     private static final int OFFSET_LENGTH = 2;
 
-    private final boolean optimizeUpdate;
     private boolean writtenData;
 
     private PageBtreeLeaf(PageBtreeIndex index, int pageId, Data data) {
         super(index, pageId, data);
-        this.optimizeUpdate = index.getDatabase().getSettings().optimizeUpdate;
     }
 
     /**
@@ -137,9 +135,6 @@ public class PageBtreeLeaf extends PageBtree {
             }
         }
         index.getPageStore().logUndo(this, data);
-        if (!optimizeUpdate) {
-            readAllRows();
-        }
         changeCount = index.getPageStore().getChangeCount();
         written = false;
         int x;
@@ -150,7 +145,7 @@ public class PageBtreeLeaf extends PageBtree {
         }
         start += OFFSET_LENGTH;
         int offset = (x == 0 ? pageSize : offsets[x - 1]) - rowLength;
-        if (optimizeUpdate && writtenData) {
+        if (writtenData) {
             if (entryCount > 0) {
                 byte[] d = data.getBytes();
                 int dataStart = offsets[entryCount - 1];
@@ -168,9 +163,6 @@ public class PageBtreeLeaf extends PageBtree {
     }
 
     private void removeRow(int at) {
-        if (!optimizeUpdate) {
-            readAllRows();
-        }
         index.getPageStore().logUndo(this, data);
         entryCount--;
         written = false;
@@ -182,14 +174,11 @@ public class PageBtreeLeaf extends PageBtree {
         int rowLength = startNext - offsets[at];
         start -= OFFSET_LENGTH;
 
-        if (optimizeUpdate) {
-            if (writtenData) {
-                byte[] d = data.getBytes();
-                int dataStart = offsets[entryCount];
-                System.arraycopy(d, dataStart, d,
-                        dataStart + rowLength, offsets[at] - dataStart);
-                Arrays.fill(d, dataStart, dataStart + rowLength, (byte) 0);
-            }
+        if (writtenData) {
+            byte[] d = data.getBytes();
+            int dataStart = offsets[entryCount];
+            System.arraycopy(d, dataStart, d, dataStart + rowLength, offsets[at] - dataStart);
+            Arrays.fill(d, dataStart, dataStart + rowLength, (byte) 0);
         }
 
         offsets = remove(offsets, entryCount + 1, at);
@@ -284,14 +273,11 @@ public class PageBtreeLeaf extends PageBtree {
         if (written) {
             return;
         }
-        if (!optimizeUpdate) {
-            readAllRows();
-        }
         writeHead();
         for (int i = 0; i < entryCount; i++) {
             data.writeShortInt(offsets[i]);
         }
-        if (!writtenData || !optimizeUpdate) {
+        if (!writtenData) {
             for (int i = 0; i < entryCount; i++) {
                 index.writeRow(data, offsets[i], rows[i], onlyPosition);
             }

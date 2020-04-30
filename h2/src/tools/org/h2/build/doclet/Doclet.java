@@ -417,7 +417,7 @@ public class Doclet {
     }
 
     private static boolean skipField(ClassDoc clazz, FieldDoc field) {
-        if (field.isPrivate() || field.containingClass() != clazz) {
+        if (field.isPrivate() || field.isPackagePrivate() || field.containingClass() != clazz) {
             return true;
         }
         return false;
@@ -433,7 +433,7 @@ public class Doclet {
             return true;
         }
         String name = method.name();
-        if (method.isPrivate() || name.equals("finalize")) {
+        if (method.isPrivate() || method.isPackagePrivate() || name.equals("finalize")) {
             return true;
         }
         if (method.isConstructor()

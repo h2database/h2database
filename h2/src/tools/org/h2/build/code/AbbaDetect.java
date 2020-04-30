@@ -36,6 +36,11 @@ public class AbbaDetect {
         });
     }
 
+    /**
+     * Process a file.
+     *
+     * @param file the file
+     */
     static void process(Path file, boolean enable) throws IOException {
         String name = file.getFileName().toString();
         if (!name.endsWith(".java")) {

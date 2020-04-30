@@ -52,6 +52,11 @@ public class XMLChecker {
         });
     }
 
+    /**
+     * Process a file.
+     *
+     * @param file the file
+     */
     static void processFile(Path file) throws IOException {
         String fileName = file.getFileName().toString();
         int idx = fileName.lastIndexOf('.');

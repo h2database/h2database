@@ -117,6 +117,14 @@ public class WebSite {
         });
     }
 
+    /**
+     * Copy a file.
+     *
+     * @param source the source file
+     * @param target the target file
+     * @param replaceFragments whether to replace fragments
+     * @param web whether the target is a public web site (false for local documentation)
+     */
     void copyFile(Path source, Path target, boolean replaceFragments, boolean web) throws IOException {
         String name = source.getFileName().toString();
         if (name.endsWith("onePage.html") || name.startsWith("fragments")) {

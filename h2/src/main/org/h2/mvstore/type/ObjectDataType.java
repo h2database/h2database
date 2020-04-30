@@ -94,8 +94,7 @@ public class ObjectDataType extends BasicDataType<Object> {
             Float.class, Double.class, BigDecimal.class, String.class,
             UUID.class, Date.class };
 
-    private static class Holder
-    {
+    private static class Holder {
         private static final HashMap<Class<?>, Integer> COMMON_CLASSES_MAP = new HashMap<>(32);
 
         static {
@@ -461,8 +460,11 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for the null value
      */
-    static class NullType extends AutoDetectDataType<Object>
-    {
+    static class NullType extends AutoDetectDataType<Object> {
+
+        /**
+         * The only instance of this type.
+         */
         static final NullType INSTANCE = new NullType();
 
         private NullType() {
@@ -504,8 +506,11 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for boolean true and false.
      */
-    static class BooleanType extends AutoDetectDataType<Boolean>
-    {
+    static class BooleanType extends AutoDetectDataType<Boolean> {
+
+        /**
+         * The only instance of this type.
+         */
         static final BooleanType INSTANCE = new BooleanType();
 
         private BooleanType() {
@@ -547,8 +552,11 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for byte objects.
      */
-    static class ByteType extends AutoDetectDataType<Byte>
-    {
+    static class ByteType extends AutoDetectDataType<Byte> {
+
+        /**
+         * The only instance of this type.
+         */
         static final ByteType INSTANCE = new ByteType();
 
         private ByteType() {
@@ -591,8 +599,11 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for character objects.
      */
-    static class CharacterType extends AutoDetectDataType<Character>
-    {
+    static class CharacterType extends AutoDetectDataType<Character> {
+
+        /**
+         * The only instance of this type.
+         */
         static final CharacterType INSTANCE = new CharacterType();
 
         private CharacterType() {
@@ -634,8 +645,11 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for short objects.
      */
-    static class ShortType extends AutoDetectDataType<Short>
-    {
+    static class ShortType extends AutoDetectDataType<Short> {
+
+        /**
+         * The only instance of this type.
+         */
         static final ShortType INSTANCE = new ShortType();
 
         private ShortType() {
@@ -677,8 +691,11 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for integer objects.
      */
-    static class IntegerType extends AutoDetectDataType<Integer>
-    {
+    static class IntegerType extends AutoDetectDataType<Integer> {
+
+        /**
+         * The only instance of this type.
+         */
         static final IntegerType INSTANCE = new IntegerType();
 
         private IntegerType() {
@@ -741,8 +758,11 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for long objects.
      */
-    static class LongType extends AutoDetectDataType<Long>
-    {
+    static class LongType extends AutoDetectDataType<Long> {
+
+        /**
+         * The only instance of this type.
+         */
         static final LongType INSTANCE = new LongType();
 
         private LongType() {
@@ -809,8 +829,11 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for float objects.
      */
-    static class FloatType extends AutoDetectDataType<Float>
-    {
+    static class FloatType extends AutoDetectDataType<Float> {
+
+        /**
+         * The only instance of this type.
+         */
         static final FloatType INSTANCE = new FloatType();
 
         private FloatType() {
@@ -874,8 +897,11 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for double objects.
      */
-    static class DoubleType extends AutoDetectDataType<Double>
-    {
+    static class DoubleType extends AutoDetectDataType<Double> {
+
+        /**
+         * The only instance of this type.
+         */
         static final DoubleType INSTANCE = new DoubleType();
 
         private DoubleType() {
@@ -940,8 +966,11 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for BigInteger objects.
      */
-    static class BigIntegerType extends AutoDetectDataType<BigInteger>
-    {
+    static class BigIntegerType extends AutoDetectDataType<BigInteger> {
+
+        /**
+         * The only instance of this type.
+         */
         static final BigIntegerType INSTANCE = new BigIntegerType();
 
         private BigIntegerType() {
@@ -1007,8 +1036,11 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for BigDecimal objects.
      */
-    static class BigDecimalType extends AutoDetectDataType<BigDecimal>
-    {
+    static class BigDecimalType extends AutoDetectDataType<BigDecimal> {
+
+        /**
+         * The only instance of this type.
+         */
         static final BigDecimalType INSTANCE = new BigDecimalType();
 
         private BigDecimalType() {
@@ -1087,8 +1119,11 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for string objects.
      */
-    static class StringType extends AutoDetectDataType<String>
-    {
+    static class StringType extends AutoDetectDataType<String> {
+
+        /**
+         * The only instance of this type.
+         */
         static final StringType INSTANCE = new StringType();
 
         private StringType() {
@@ -1142,8 +1177,11 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for UUID objects.
      */
-    static class UUIDType extends AutoDetectDataType<UUID>
-    {
+    static class UUIDType extends AutoDetectDataType<UUID> {
+
+        /**
+         * The only instance of this type.
+         */
         static final UUIDType INSTANCE = new UUIDType();
 
         private UUIDType() {
@@ -1188,8 +1226,11 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for java.util.Date objects.
      */
-    static class DateType extends AutoDetectDataType<Date>
-    {
+    static class DateType extends AutoDetectDataType<Date> {
+
+        /**
+         * The only instance of this type.
+         */
         static final DateType INSTANCE = new DateType();
 
         private DateType() {

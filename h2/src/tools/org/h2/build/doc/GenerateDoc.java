@@ -140,6 +140,11 @@ public class GenerateDoc {
         conn.close();
     }
 
+    /**
+     * Process a file.
+     *
+     * @param file the file
+     */
     void process(Path inFile) throws IOException {
         Path outFile = outDir.resolve(inDir.relativize(inFile));
         Files.createDirectories(outFile.getParent());

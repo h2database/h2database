@@ -180,6 +180,12 @@ public class Indexer {
         }
     }
 
+    /**
+     * Read the pages of a file.
+     *
+     * @param fileName the file name
+     * @param file the path
+     */
     void readPages(String fileName, Path file) throws IOException {
         String lower = StringUtils.toLowerEnglish(fileName);
         if (!lower.endsWith(".html") && !lower.endsWith(".htm")) {

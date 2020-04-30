@@ -174,6 +174,11 @@ public class LinkChecker {
         });
     }
 
+    /**
+     * Process a file.
+     *
+     * @param file the file
+     */
     void processFile(Path file) throws IOException {
         String path = file.toString();
         targets.put(path, "file");

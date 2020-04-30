@@ -55,6 +55,11 @@ public class ConditionAndOrN extends Condition {
         return andOrType;
     }
 
+    /**
+     * Add the expression at the beginning of the list.
+     *
+     * @param e the expression
+     */
     void addFirst(Expression e) {
         expressions.add(0, e);
     }

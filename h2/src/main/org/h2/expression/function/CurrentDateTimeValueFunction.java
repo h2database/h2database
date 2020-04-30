@@ -18,14 +18,42 @@ import org.h2.value.ValueTimestamp;
  */
 public final class CurrentDateTimeValueFunction extends Operation0 {
 
-    public static final int CURRENT_DATE = 0, CURRENT_TIME = 1, LOCALTIME = 2, CURRENT_TIMESTAMP = 3,
-            LOCALTIMESTAMP = 4;
+    /**
+     * The function "CURRENT_DATE"
+     */
+    public static final int CURRENT_DATE = 0;
+
+    /**
+     * The function "CURRENT_TIME"
+     */
+    public static final int CURRENT_TIME = 1;
+
+    /**
+     * The function "LOCALTIME"
+     */
+    public static final int LOCALTIME = 2;
+
+    /**
+     * The function "CURRENT_TIMESTAMP"
+     */
+    public static final int CURRENT_TIMESTAMP = 3;
+
+    /**
+     * The function "LOCALTIMESTAMP"
+     */
+    public static final int LOCALTIMESTAMP = 4;
 
     private static final int[] TYPES = { Value.DATE, Value.TIME_TZ, Value.TIME, Value.TIMESTAMP_TZ, Value.TIMESTAMP };
 
     private static final String[] NAMES = { "CURRENT_DATE", "CURRENT_TIME", "LOCALTIME", "CURRENT_TIMESTAMP",
             "LOCALTIMESTAMP" };
 
+    /**
+     * Get the name for this function id.
+     *
+     * @param function the name
+     * @return the id
+     */
     public static String getName(int function) {
         return NAMES[function];
     }

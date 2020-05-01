@@ -491,7 +491,7 @@ Instead, use a prepared statement with arrays as in the following example:
 <pre>
 PreparedStatement prep = conn.prepareStatement(
     "SELECT * FROM TEST WHERE ID = ANY(?)");
-prep.setObject(1, new Object[] { "1", "2" });
+prep.setObject(1, new Long[] { 1L, 2L });
 ResultSet rs = prep.executeQuery();
 </pre>
 

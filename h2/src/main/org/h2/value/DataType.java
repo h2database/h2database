@@ -1138,86 +1138,87 @@ public class DataType {
     }
 
     /**
-     * Get the value type for the given Java class.
+     * Get the type information for the given Java class.
      *
      * @param x the Java class
      * @return the value type
      */
-    public static int getTypeFromClass(Class <?> x) {
+    public static TypeInfo getTypeFromClass(Class <?> x) {
         // TODO refactor: too many if/else in functions, can reduce!
         if (x == null || Void.TYPE == x) {
-            return Value.NULL;
+            return TypeInfo.TYPE_NULL;
         }
         if (x.isPrimitive()) {
             x = Utils.getNonPrimitiveClass(x);
         }
         if (String.class == x) {
-            return Value.VARCHAR;
+            return TypeInfo.TYPE_VARCHAR;
         } else if (Integer.class == x) {
-            return Value.INTEGER;
+            return TypeInfo.TYPE_INTEGER;
         } else if (Long.class == x) {
-            return Value.BIGINT;
+            return TypeInfo.TYPE_BIGINT;
         } else if (Boolean.class == x) {
-            return Value.BOOLEAN;
+            return TypeInfo.TYPE_BOOLEAN;
         } else if (Double.class == x) {
-            return Value.DOUBLE;
+            return TypeInfo.TYPE_DOUBLE;
         } else if (Byte.class == x) {
-            return Value.TINYINT;
+            return TypeInfo.TYPE_TINYINT;
         } else if (Short.class == x) {
-            return Value.SMALLINT;
+            return TypeInfo.TYPE_SMALLINT;
         } else if (Character.class == x) {
             throw DbException.get(
                     ErrorCode.DATA_CONVERSION_ERROR_1, "char (not supported)");
         } else if (Float.class == x) {
-            return Value.REAL;
+            return TypeInfo.TYPE_REAL;
         } else if (byte[].class == x) {
-            return Value.VARBINARY;
+            return TypeInfo.TYPE_VARBINARY;
         } else if (UUID.class == x) {
-            return Value.UUID;
+            return TypeInfo.TYPE_UUID;
         } else if (Void.class == x) {
-            return Value.NULL;
+            return TypeInfo.TYPE_NULL;
         } else if (BigDecimal.class.isAssignableFrom(x)) {
-            return Value.NUMERIC;
+            return TypeInfo.TYPE_NUMERIC;
         } else if (ResultSet.class.isAssignableFrom(x)) {
-            return Value.RESULT_SET;
+            return TypeInfo.TYPE_RESULT_SET;
         } else if (ValueLob.class.isAssignableFrom(x)) {
-            return Value.BLOB;
+            return TypeInfo.TYPE_BLOB;
 // FIXME no way to distinguish between these 2 types
 //        } else if (ValueLob.class.isAssignableFrom(x)) {
-//            return Value.CLOB;
+//            return TypeInfo.TYPE_CLOB;
         } else if (Date.class.isAssignableFrom(x)) {
-            return Value.DATE;
+            return TypeInfo.TYPE_DATE;
         } else if (Time.class.isAssignableFrom(x)) {
-            return Value.TIME;
+            return TypeInfo.TYPE_TIME;
         } else if (Timestamp.class.isAssignableFrom(x)) {
-            return Value.TIMESTAMP;
+            return TypeInfo.TYPE_TIMESTAMP;
         } else if (java.util.Date.class.isAssignableFrom(x)) {
-            return Value.TIMESTAMP;
+            return TypeInfo.TYPE_TIMESTAMP;
         } else if (java.io.Reader.class.isAssignableFrom(x)) {
-            return Value.CLOB;
+            return TypeInfo.TYPE_CLOB;
         } else if (java.sql.Clob.class.isAssignableFrom(x)) {
-            return Value.CLOB;
+            return TypeInfo.TYPE_CLOB;
         } else if (java.io.InputStream.class.isAssignableFrom(x)) {
-            return Value.BLOB;
+            return TypeInfo.TYPE_BLOB;
         } else if (java.sql.Blob.class.isAssignableFrom(x)) {
-            return Value.BLOB;
+            return TypeInfo.TYPE_BLOB;
         } else if (Object[].class.isAssignableFrom(x)) {
             // this includes String[] and so on
-            return Value.ARRAY;
+            return TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0,
+                    new ExtTypeInfoArray(getTypeFromClass(x.getComponentType())));
         } else if (isGeometryClass(x)) {
-            return Value.GEOMETRY;
+            return TypeInfo.TYPE_GEOMETRY;
         } else if (LocalDate.class == x) {
-            return Value.DATE;
+            return TypeInfo.TYPE_DATE;
         } else if (LocalTime.class == x) {
-            return Value.TIME;
+            return TypeInfo.TYPE_TIME;
         } else if (OffsetTime.class == x) {
-            return Value.TIME_TZ;
+            return TypeInfo.TYPE_TIME_TZ;
         } else if (LocalDateTime.class == x) {
-            return Value.TIMESTAMP;
+            return TypeInfo.TYPE_TIMESTAMP;
         } else if (OffsetDateTime.class == x || ZonedDateTime.class == x || Instant.class == x) {
-            return Value.TIMESTAMP_TZ;
+            return TypeInfo.TYPE_TIMESTAMP_TZ;
         } else {
-            return Value.JAVA_OBJECT;
+            return TypeInfo.TYPE_JAVA_OBJECT;
         }
     }
 
@@ -1290,7 +1291,7 @@ public class DataType {
             int len = o.length;
             Value[] v = new Value[len];
             for (int i = 0; i < len; i++) {
-                v[i] = convertToValue(session, o[i], type);
+                v[i] = convertToValue(session, o[i], Value.UNKNOWN);
             }
             return ValueArray.get(v, session);
         } else if (x instanceof Character) {

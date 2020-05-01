@@ -67,6 +67,7 @@ import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
@@ -858,7 +859,7 @@ public final class InformationSchemaTable extends MetaTable {
                             // GENERATION_EXPRESSION
                             isGenerated ? c.getDefaultSQL() : null,
                             // TYPE_NAME
-                            identifier(isInterval ? "INTERVAL" : dataType.name),
+                            identifier(isInterval ? "INTERVAL" : getDataTypeName(dataType, typeInfo)),
                             // NULLABLE
                             ValueInteger.get(c.isNullable()
                                     ? DatabaseMetaData.columnNullable : DatabaseMetaData.columnNoNulls),
@@ -1311,6 +1312,8 @@ public final class InformationSchemaTable extends MetaTable {
                     methods = new JavaMethod[0];
                 }
                 for (FunctionAlias.JavaMethod method : methods) {
+                    TypeInfo typeInfo = method.getDataType();
+                    int valueType = typeInfo.getValueType();
                     add(session,
                             rows,
                             // ALIAS_CATALOG
@@ -1324,13 +1327,13 @@ public final class InformationSchemaTable extends MetaTable {
                             // JAVA_METHOD
                             alias.getJavaMethodName(),
                             // DATA_TYPE
-                            ValueInteger.get(DataType.convertTypeToSQLType(method.getDataType())),
+                            ValueInteger.get(DataType.convertTypeToSQLType(valueType)),
                             // TYPE_NAME
-                            DataType.getDataType(method.getDataType()).name,
+                            getDataTypeName(DataType.getDataType(valueType), typeInfo),
                             // COLUMN_COUNT
                             ValueInteger.get(method.getParameterCount()),
                             // RETURNS_RESULT
-                            ValueSmallint.get(method.getDataType() == Value.NULL
+                            ValueSmallint.get(valueType == Value.NULL
                                     ? (short) DatabaseMetaData.procedureNoResult
                                     : (short) DatabaseMetaData.procedureReturnsResult),
                             // REMARKS
@@ -1387,8 +1390,9 @@ public final class InformationSchemaTable extends MetaTable {
                 }
                 for (FunctionAlias.JavaMethod method : methods) {
                     // Add return column index 0
-                    if (method.getDataType() != Value.NULL) {
-                        DataType dt = DataType.getDataType(method.getDataType());
+                    TypeInfo typeInfo = method.getDataType();
+                    if (typeInfo.getValueType() != Value.NULL) {
+                        DataType dt = DataType.getDataType(typeInfo.getValueType());
                         add(session,
                                 rows,
                                 // ALIAS_CATALOG
@@ -1408,9 +1412,9 @@ public final class InformationSchemaTable extends MetaTable {
                                 // COLUMN_NAME
                                 "P0",
                                 // DATA_TYPE
-                                ValueInteger.get(DataType.convertTypeToSQLType(method.getDataType())),
+                                ValueInteger.get(DataType.convertTypeToSQLType(typeInfo.getValueType())),
                                 // TYPE_NAME
-                                dt.name,
+                                getDataTypeName(dt, typeInfo),
                                 // PRECISION
                                 ValueInteger.get(MathUtils.convertLongToInt(dt.defaultPrecision)),
                                 // SCALE
@@ -1432,7 +1436,8 @@ public final class InformationSchemaTable extends MetaTable {
                             continue;
                         }
                         Class<?> clazz = columnList[k];
-                        int dataType = DataType.getTypeFromClass(clazz);
+                        TypeInfo columnTypeInfo = DataType.getTypeFromClass(clazz);
+                        int dataType = columnTypeInfo.getValueType();
                         DataType dt = DataType.getDataType(dataType);
                         add(session,
                                 rows,
@@ -1455,7 +1460,7 @@ public final class InformationSchemaTable extends MetaTable {
                                 // DATA_TYPE
                                 ValueInteger.get(DataType.convertTypeToSQLType(dt.type)),
                                 // TYPE_NAME
-                                dt.name,
+                                getDataTypeName(dt, columnTypeInfo),
                                 // PRECISION
                                 ValueInteger.get(MathUtils.convertLongToInt(dt.defaultPrecision)),
                                 // SCALE
@@ -1702,7 +1707,7 @@ public final class InformationSchemaTable extends MetaTable {
                         // SCALE
                         ValueInteger.get(typeInfo.getScale()),
                         // TYPE_NAME
-                        dataType.name,
+                        getDataTypeName(dataType, typeInfo),
                         // PARENT_DOMAIN_CATALOG
                         parentDomain != null ? catalog : null,
                         // PARENT_DOMAIN_SCHEMA
@@ -2181,6 +2186,15 @@ public final class InformationSchemaTable extends MetaTable {
             DbException.throwInternalError("type="+type);
         }
         return rows;
+    }
+
+    private static String getDataTypeName(DataType dt, TypeInfo typeInfo) {
+        if (typeInfo.getValueType() == Value.ARRAY) {
+            typeInfo = ((ExtTypeInfoArray) typeInfo.getExtTypeInfo()).getComponentType();
+            // Use full type names with parameters for elements
+            return typeInfo.getSQL(new StringBuilder()).append(" ARRAY").toString();
+        }
+        return dt.name;
     }
 
     private static short getRefAction(ConstraintActionType action) {

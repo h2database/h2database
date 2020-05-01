@@ -37,9 +37,19 @@ public class TypeInfo {
     public static final TypeInfo TYPE_VARCHAR_IGNORECASE;
 
     /**
+     * CLOB type with maximum parameters.
+     */
+    public static final TypeInfo TYPE_CLOB;
+
+    /**
      * BINARY VARYING type with maximum parameters.
      */
     public static final TypeInfo TYPE_VARBINARY;
+
+    /**
+     * BLOB type with maximum parameters.
+     */
+    public static final TypeInfo TYPE_BLOB;
 
     /**
      * BOOLEAN type with parameters.
@@ -197,14 +207,14 @@ public class TypeInfo {
         infos[Value.CHAR] = new TypeInfo(Value.CHAR, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.VARCHAR] = TYPE_VARCHAR = new TypeInfo(Value.VARCHAR, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
                 null);
-        infos[Value.CLOB] = new TypeInfo(Value.CLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, null);
+        infos[Value.CLOB] = TYPE_CLOB = new TypeInfo(Value.CLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.VARCHAR_IGNORECASE] = TYPE_VARCHAR_IGNORECASE = new TypeInfo(Value.VARCHAR_IGNORECASE,
                 Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         // BINARY
         infos[Value.BINARY] = new TypeInfo(Value.BINARY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.VARBINARY] = TYPE_VARBINARY = new TypeInfo(Value.VARBINARY, Integer.MAX_VALUE, 0,
                 Integer.MAX_VALUE, null);
-        infos[Value.BLOB] = new TypeInfo(Value.BLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, null);
+        infos[Value.BLOB] = TYPE_BLOB = new TypeInfo(Value.BLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         // BOOLEAN
         infos[Value.BOOLEAN] = TYPE_BOOLEAN = new TypeInfo(Value.BOOLEAN, ValueBoolean.PRECISION, 0,
                 ValueBoolean.DISPLAY_SIZE, null);

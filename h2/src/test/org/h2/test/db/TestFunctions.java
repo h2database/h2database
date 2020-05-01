@@ -2146,8 +2146,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
      *
      * @return the test array
      */
-    public static Object[] getArray() {
-        return new Object[] { "0", "Hello" };
+    public static String[] getArray() {
+        return new String[] { "0", "Hello" };
     }
 
     /**
@@ -2329,12 +2329,12 @@ public class TestFunctions extends TestDb implements AggregateFunction {
      * @param args the argument list
      * @return an array of one element
      */
-    public static Object[] dynamic(Object[] args) {
+    public static String[] dynamic(String[] args) {
         StringBuilder buff = new StringBuilder();
         for (Object a : args) {
             buff.append(a);
         }
-        return new Object[] { buff.toString() };
+        return new String[] { buff.toString() };
     }
 
     /**

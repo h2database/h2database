@@ -19,6 +19,7 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.tools.SimpleRowSource;
 import org.h2.util.HasSQL;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
 import org.locationtech.jts.geom.Coordinate;
@@ -602,7 +603,7 @@ public class TestSpatial extends TestDb {
     private void testGeometryDataType() {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createPoint(new Coordinate(0, 0));
-        assertEquals(Value.GEOMETRY, DataType.getTypeFromClass(geometry.getClass()));
+        assertEquals(TypeInfo.TYPE_GEOMETRY, DataType.getTypeFromClass(geometry.getClass()));
     }
 
     /**

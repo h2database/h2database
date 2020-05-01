@@ -1643,7 +1643,7 @@ public class TestPreparedStatement extends TestDb {
             ps.setInt(2, i * 10);
             ps.executeUpdate();
         }
-        Object[] values = {-100, 10, 200, 3_000, 40_000, 500_000};
+        Integer[] values = {-100, 10, 200, 3_000, 40_000, 500_000};
         int[] expected = {1, 20, 300, 4_000};
         // Ensure that other methods return the same results
         ps = conn.prepareStatement("SELECT ID FROM TEST WHERE V IN (SELECT * FROM TABLE(X INT=?)) ORDER BY ID");

@@ -6213,7 +6213,7 @@ ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY ID)
 "Aggregate Functions (Hypothetical Set)","RANK aggregate","
 RANK(value [,...])
 withinGroupSpecification
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+[FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 Returns the rank of the hypothetical row in specified collection of rows.
 The rank of a row is the number of rows that precede this row plus 1.
@@ -6228,7 +6228,7 @@ SELECT RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
 "Aggregate Functions (Hypothetical Set)","DENSE_RANK aggregate","
 DENSE_RANK(value [,...])
 withinGroupSpecification
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+[FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 Returns the dense rank of the hypothetical row in specified collection of rows.
 The rank of a row is the number of groups of rows with the same values in ORDER BY columns that precede group with this row plus 1.
@@ -6243,7 +6243,7 @@ SELECT DENSE_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
 "Aggregate Functions (Hypothetical Set)","PERCENT_RANK aggregate","
 PERCENT_RANK(value [,...])
 withinGroupSpecification
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+[FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 Returns the relative rank of the hypothetical row in specified collection of rows.
 The relative rank is calculated as (RANK - 1) / (NR - 1),
@@ -6257,7 +6257,7 @@ SELECT PERCENT_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
 "Aggregate Functions (Hypothetical Set)","CUME_DIST aggregate","
 CUME_DIST(value [,...])
 withinGroupSpecification
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+[FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 Returns the relative rank of the hypothetical row in specified collection of rows.
 The relative rank is calculated as NP / NR

@@ -26,6 +26,7 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
@@ -303,7 +304,7 @@ public class FunctionAlias extends SchemaObjectBase {
     public static class JavaMethod implements Comparable<JavaMethod> {
         private final int id;
         private final Method method;
-        private final int dataType;
+        private final TypeInfo dataType;
         private boolean hasConnectionParam;
         private boolean varArgs;
         private Class<?> varArgClass;
@@ -382,7 +383,7 @@ public class FunctionAlias extends SchemaObjectBase {
                 } else {
                     paramClass = paramClasses[p];
                 }
-                int type = DataType.getTypeFromClass(paramClass);
+                TypeInfo type = DataType.getTypeFromClass(paramClass);
                 Value v = args[a].getValue(session);
                 Object o;
                 if (Value.class.isAssignableFrom(paramClass)) {
@@ -393,8 +394,7 @@ public class FunctionAlias extends SchemaObjectBase {
                     Value[] array = ((ValueArray) v).getList();
                     Object[] objArray = (Object[]) Array.newInstance(
                             paramClass.getComponentType(), array.length);
-                    int componentType = DataType.getTypeFromClass(
-                            paramClass.getComponentType());
+                    TypeInfo componentType = DataType.getTypeFromClass(paramClass.getComponentType());
                     for (int i = 0; i < objArray.length; i++) {
                         objArray[i] = array[i].convertTo(componentType, session).getObject();
                     }
@@ -458,7 +458,7 @@ public class FunctionAlias extends SchemaObjectBase {
                 if (Value.class.isAssignableFrom(method.getReturnType())) {
                     return (Value) returnValue;
                 }
-                Value ret = DataType.convertToValue(session, returnValue, dataType);
+                Value ret = DataType.convertToValue(session, returnValue, dataType.getValueType());
                 return ret.convertTo(dataType, session);
             } finally {
                 session.setLastScopeIdentity(identity);
@@ -473,7 +473,7 @@ public class FunctionAlias extends SchemaObjectBase {
             return method.getParameterTypes();
         }
 
-        public int getDataType() {
+        public TypeInfo getDataType() {
             return dataType;
         }
 

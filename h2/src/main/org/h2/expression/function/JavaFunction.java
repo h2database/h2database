@@ -44,12 +44,12 @@ public class JavaFunction extends Expression implements FunctionCall {
 
     @Override
     public TypeInfo getType() {
-        return TypeInfo.getTypeInfo(javaMethod.getDataType());
+        return javaMethod.getDataType();
     }
 
     @Override
     public int getValueType() {
-        return javaMethod.getDataType();
+        return javaMethod.getDataType().getValueType();
     }
 
     @Override

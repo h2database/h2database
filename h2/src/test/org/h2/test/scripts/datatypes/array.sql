@@ -122,11 +122,11 @@ CREATE TABLE TEST(ID INT, A1 INT ARRAY, A2 INT ARRAY[2]);
 SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE, NUMERIC_PRECISION
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE TYPE_NAME COLUMN_TYPE      NUMERIC_PRECISION
-> ----------- --------- --------- ---------------- -----------------
-> ID          4         INTEGER   INT              10
-> A1          2003      ARRAY     INTEGER ARRAY    2147483647
-> A2          2003      ARRAY     INTEGER ARRAY[2] 2
+> COLUMN_NAME DATA_TYPE TYPE_NAME     COLUMN_TYPE      NUMERIC_PRECISION
+> ----------- --------- ------------- ---------------- -----------------
+> ID          4         INTEGER       INT              10
+> A1          2003      INTEGER ARRAY INTEGER ARRAY    2147483647
+> A2          2003      INTEGER ARRAY INTEGER ARRAY[2] 2
 > rows (ordered): 3
 
 INSERT INTO TEST VALUES (1, ARRAY[], ARRAY[]), (2, ARRAY[1, 2], ARRAY[1, 2]);

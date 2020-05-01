@@ -133,7 +133,7 @@ public class TestValue extends TestDb {
     private void testResultSetOperation(Object obj) throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
         rs.setAutoClose(false);
-        int valueType = DataType.getTypeFromClass(obj.getClass());
+        int valueType = DataType.getTypeFromClass(obj.getClass()).getValueType();
         int sqlType = DataType.convertTypeToSQLType(valueType);
         rs.addColumn("X", sqlType, 10, 0);
         rs.addRow(new Object[]{obj});
@@ -280,39 +280,42 @@ public class TestValue extends TestDb {
     }
 
     private void testDataType() {
-        testDataType(Value.NULL, null);
-        testDataType(Value.NULL, Void.class);
-        testDataType(Value.NULL, void.class);
-        testDataType(Value.ARRAY, String[].class);
-        testDataType(Value.VARCHAR, String.class);
-        testDataType(Value.INTEGER, Integer.class);
-        testDataType(Value.BIGINT, Long.class);
-        testDataType(Value.BOOLEAN, Boolean.class);
-        testDataType(Value.DOUBLE, Double.class);
-        testDataType(Value.TINYINT, Byte.class);
-        testDataType(Value.SMALLINT, Short.class);
-        testDataType(Value.REAL, Float.class);
-        testDataType(Value.VARBINARY, byte[].class);
-        testDataType(Value.UUID, UUID.class);
-        testDataType(Value.NULL, Void.class);
-        testDataType(Value.NUMERIC, BigDecimal.class);
-        testDataType(Value.RESULT_SET, ResultSet.class);
-        testDataType(Value.BLOB, ValueLob.class);
+        testDataType(TypeInfo.TYPE_NULL, null);
+        testDataType(TypeInfo.TYPE_NULL, Void.class);
+        testDataType(TypeInfo.TYPE_NULL, void.class);
+        testDataType(
+                TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, new ExtTypeInfoArray(TypeInfo.TYPE_VARCHAR)),
+                String[].class);
+        testDataType(TypeInfo.TYPE_VARCHAR, String.class);
+        testDataType(TypeInfo.TYPE_INTEGER, Integer.class);
+        testDataType(TypeInfo.TYPE_BIGINT, Long.class);
+        testDataType(TypeInfo.TYPE_BOOLEAN, Boolean.class);
+        testDataType(TypeInfo.TYPE_DOUBLE, Double.class);
+        testDataType(TypeInfo.TYPE_TINYINT, Byte.class);
+        testDataType(TypeInfo.TYPE_SMALLINT, Short.class);
+        testDataType(TypeInfo.TYPE_REAL, Float.class);
+        testDataType(TypeInfo.TYPE_VARBINARY, byte[].class);
+        testDataType(TypeInfo.TYPE_UUID, UUID.class);
+        testDataType(TypeInfo.TYPE_NULL, Void.class);
+        testDataType(TypeInfo.TYPE_NUMERIC, BigDecimal.class);
+        testDataType(TypeInfo.TYPE_RESULT_SET, ResultSet.class);
+        testDataType(TypeInfo.TYPE_BLOB, ValueLob.class);
         // see FIXME in DataType.getTypeFromClass
-        //testDataType(Value.CLOB, Value.ValueClob.class);
-        testDataType(Value.DATE, Date.class);
-        testDataType(Value.TIME, Time.class);
-        testDataType(Value.TIMESTAMP, Timestamp.class);
-        testDataType(Value.TIMESTAMP, java.util.Date.class);
-        testDataType(Value.CLOB, java.io.Reader.class);
-        testDataType(Value.CLOB, java.sql.Clob.class);
-        testDataType(Value.BLOB, java.io.InputStream.class);
-        testDataType(Value.BLOB, java.sql.Blob.class);
-        testDataType(Value.ARRAY, Object[].class);
-        testDataType(Value.JAVA_OBJECT, StringBuffer.class);
+        //testDataType(TypeInfo.TYPE_CLOB, Value.ValueClob.class);
+        testDataType(TypeInfo.TYPE_DATE, Date.class);
+        testDataType(TypeInfo.TYPE_TIME, Time.class);
+        testDataType(TypeInfo.TYPE_TIMESTAMP, Timestamp.class);
+        testDataType(TypeInfo.TYPE_TIMESTAMP, java.util.Date.class);
+        testDataType(TypeInfo.TYPE_CLOB, java.io.Reader.class);
+        testDataType(TypeInfo.TYPE_CLOB, java.sql.Clob.class);
+        testDataType(TypeInfo.TYPE_BLOB, java.io.InputStream.class);
+        testDataType(TypeInfo.TYPE_BLOB, java.sql.Blob.class);
+        testDataType(TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0,
+                new ExtTypeInfoArray(TypeInfo.TYPE_JAVA_OBJECT)), Object[].class);
+        testDataType(TypeInfo.TYPE_JAVA_OBJECT, StringBuffer.class);
     }
 
-    private void testDataType(int type, Class<?> clazz) {
+    private void testDataType(TypeInfo type, Class<?> clazz) {
         assertEquals(type, DataType.getTypeFromClass(clazz));
     }
 

@@ -124,10 +124,10 @@ public class FunctionMultiReturn {
      * @param alpha the angle
      * @return an array two values: x and y
      */
-    public static Object[] polar2CartesianArray(Double r, Double alpha) {
+    public static Double[] polar2CartesianArray(Double r, Double alpha) {
         double x = r * Math.cos(alpha);
         double y = r * Math.sin(alpha);
-        return new Object[]{x, y};
+        return new Double[]{x, y};
     }
 
     /**

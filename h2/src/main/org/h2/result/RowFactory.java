@@ -20,10 +20,9 @@ import org.h2.value.Value;
  * @author Sergi Vladykin
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public abstract class RowFactory
-{
-    private static final class Holder
-    {
+public abstract class RowFactory {
+
+    private static final class Holder {
         static final RowFactory EFFECTIVE = DefaultRowFactory.INSTANCE;
     }
 
@@ -35,7 +34,17 @@ public abstract class RowFactory
         return Holder.EFFECTIVE;
     }
 
-
+    /**
+     * Create a new row factory.
+     *
+     * @param provider the cast provider
+     * @param compareMode the compare mode
+     * @param mode the compatibility mode
+     * @param handler the data handler
+     * @param columns the list of columns
+     * @param indexColumns the list of index columns
+     * @return the (possibly new) row factory
+     */
     public RowFactory createRowFactory(CastDataProvider provider, CompareMode compareMode, Mode mode,
             DataHandler handler, Column[] columns, IndexColumn[] indexColumns) {
         return this;
@@ -50,6 +59,11 @@ public abstract class RowFactory
      */
     public abstract Row createRow(Value[] data, int memory);
 
+    /**
+     * Create new row.
+     *
+     * @return the created row
+     */
     public abstract SearchRow createRow();
 
     public abstract RowDataType getRowDataType();

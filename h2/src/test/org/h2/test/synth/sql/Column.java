@@ -173,10 +173,6 @@ class Column {
         return Value.getRandom(config, type, precision, scale, isNullable);
     }
 
-//    Value getRandomValueNotNull() {
-//        return Value.getRandom(config, type, precision, scale, false);
-//    }
-
     /**
      * Generate a random column.
      *

@@ -39,6 +39,7 @@ public class RowList implements AutoCloseable {
      * Construct a new row list for this session.
      *
      * @param session the session
+     * @param table the table
      */
     public RowList(Session session, Table table) {
         this.session = session;

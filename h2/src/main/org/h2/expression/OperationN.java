@@ -18,10 +18,19 @@ import org.h2.value.TypeInfo;
  */
 public abstract class OperationN extends Expression {
 
+    /**
+     * The array of arguments.
+     */
     protected Expression[] args;
 
+    /**
+     * The number of arguments.
+     */
     protected int argsCount;
 
+    /**
+     * The type of the result.
+     */
     protected TypeInfo type;
 
     protected OperationN(Expression[] args) {

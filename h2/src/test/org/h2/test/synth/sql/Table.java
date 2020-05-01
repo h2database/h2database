@@ -11,6 +11,7 @@ import java.util.ArrayList;
  * Represents a table.
  */
 class Table {
+
     private final TestSynth config;
     private String name;
     private boolean temporary;

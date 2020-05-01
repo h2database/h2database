@@ -413,6 +413,12 @@ public class FileUtils {
         } while (src.remaining() > 0);
     }
 
+    /**
+     * Convert the string representation to a set.
+     *
+     * @param mode the mode as a string
+     * @return the set
+     */
     public static Set<? extends OpenOption> modeToOptions(String mode) {
         Set<? extends OpenOption> options;
         switch (mode) {

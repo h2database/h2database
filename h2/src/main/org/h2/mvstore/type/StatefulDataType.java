@@ -22,14 +22,7 @@ public interface StatefulDataType<D> {
 
     Factory<D> getFactory();
 
-    @Override
-    boolean equals(Object obj);
-
-    @Override
-    int hashCode();
-
-    interface Factory<D>
-    {
+    interface Factory<D> {
         DataType<?> create(ByteBuffer buff, MetaType<D> metaDataType, D database);
     }
 }

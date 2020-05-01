@@ -735,9 +735,15 @@ public class JdbcUtils {
         return sql.regionMatches(true, 0, builtIn, 0, builtIn.length());
     }
 
+    /**
+     * Split the string using the space separator into at least 10 entries.
+     *
+     * @param s the string
+     * @return the array
+     */
     public static String[] split(String s) {
-        String[] list = new String[10];
         String[] t = StringUtils.arraySplit(s, ' ', true);
+        String[] list = new String[Math.max(10, t.length)];
         System.arraycopy(t, 0, list, 0, t.length);
         for (int i = 0; i < list.length; i++) {
             if ("null".equals(list[i])) {

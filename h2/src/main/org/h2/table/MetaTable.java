@@ -35,8 +35,19 @@ public abstract class MetaTable extends Table {
      */
     public static final long ROW_COUNT_APPROXIMATION = 1000;
 
+    /**
+     * The table type.
+     */
     protected final int type;
+
+    /**
+     * The indexed column.
+     */
     protected int indexColumn;
+
+    /**
+     * The index for this table.
+     */
     protected MetaIndex metaIndex;
 
     /**
@@ -116,6 +127,13 @@ public abstract class MetaTable extends Table {
         return s;
     }
 
+    /**
+     * Get all tables of this database, including local temporary tables for the
+     * session.
+     *
+     * @param session the session
+     * @return the array of tables
+     */
     protected final ArrayList<Table> getAllTables(Session session) {
         ArrayList<Table> tables = database.getAllTablesAndViews(true);
         ArrayList<Table> tempTables = session.getLocalTempTables();

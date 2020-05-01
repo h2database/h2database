@@ -642,10 +642,11 @@ public final class DataUtils {
     }
 
     /**
-     * Convert tocElement into pagePos by replacing mapId with chunkId
-     * @param chunkId
-     * @param tocElement
-     * @return
+     * Convert tocElement into pagePos by replacing mapId with chunkId.
+     *
+     * @param chunkId the chunk id
+     * @param tocElement the element
+     * @return the page position
      */
     public static long getPagePos(int chunkId, long tocElement) {
         return (tocElement & 0x3FFFFFFFFFL) | ((long) chunkId << 38);

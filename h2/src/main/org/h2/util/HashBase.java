@@ -47,9 +47,12 @@ public abstract class HashBase {
      */
     protected boolean zeroKey;
 
-    private int maxSize, minSize, maxDeleted;
-
+    /**
+     * Whether the map should shrink automatically if load is low.
+     */
     protected final boolean autoShrink;
+
+    private int maxSize, minSize, maxDeleted;
 
     protected HashBase(boolean autoShrink) {
         this.autoShrink = autoShrink;

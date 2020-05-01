@@ -176,7 +176,7 @@ public class Column implements HasSQL {
     /**
      * Convert a value to this column's type without precision and scale checks.
      *
-     * @provider the cast information provider
+     * @param provider the cast information provider
      * @param v the value
      * @return the value
      */

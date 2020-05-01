@@ -657,6 +657,7 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param data the values
      * @param memory whether the row is in memory
+     * @param key the key
      * @return the created row
      */
     public Row createRow(Value[] data, int memory, long key) {

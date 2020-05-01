@@ -150,10 +150,9 @@ public final class LegacyDateTimeUtils {
     /**
      * Get the date value converted to the specified time zone.
      *
-     * @param provider
-     *            the cast information provider
-     * @param timeZone
-     *            the target time zone
+     * @param provider the cast information provider
+     * @param timeZone the target time zone
+     * @param value the value to convert
      * @return the date
      */
     public static Date toDate(CastDataProvider provider, TimeZone timeZone, Value value) {
@@ -164,10 +163,9 @@ public final class LegacyDateTimeUtils {
     /**
      * Get the time value converted to the specified time zone.
      *
-     * @param provider
-     *            the cast information provider
-     * @param timeZone
-     *            the target time zone
+     * @param provider the cast information provider
+     * @param timeZone the target time zone
+     * @param value the value to convert
      * @return the time
      */
     public static Time toTime(CastDataProvider provider, TimeZone timeZone, Value value) {
@@ -186,10 +184,9 @@ public final class LegacyDateTimeUtils {
     /**
      * Get the timestamp value converted to the specified time zone.
      *
-     * @param provider
-     *            the cast information provider
-     * @param timeZone
-     *            the target time zone
+     * @param provider the cast information provider
+     * @param timeZone the target time zone
+     * @param value the value to convert
      * @return the timestamp
      */
     public static Timestamp toTimestamp(CastDataProvider provider, TimeZone timeZone, Value value) {
@@ -221,15 +218,11 @@ public final class LegacyDateTimeUtils {
      * Calculate the milliseconds since 1970-01-01 (UTC) for the given date and
      * time (in the specified timezone).
      *
-     * @param provider
-     *            the cast information provider
-     * @param tz
-     *            the timezone of the parameters, or null for the default
+     * @param provider the cast information provider
+     * @param tz the timezone of the parameters, or null for the default
      *            timezone
-     * @param dateValue
-     *            date value
-     * @param timeNanos
-     *            nanoseconds since midnight
+     * @param dateValue date value
+     * @param timeNanos nanoseconds since midnight
      * @return the number of milliseconds (UTC)
      */
     public static long getMillis(CastDataProvider provider, TimeZone tz, long dateValue, long timeNanos) {
@@ -241,10 +234,8 @@ public final class LegacyDateTimeUtils {
     /**
      * Returns local time zone offset for a specified timestamp.
      *
-     * @param provider
-     *            the cast information provider
-     * @param ms
-     *            milliseconds since Epoch in UTC
+     * @param provider the cast information provider
+     * @param ms milliseconds since Epoch in UTC
      * @return local time zone offset
      */
     public static int getTimeZoneOffsetMillis(CastDataProvider provider, long ms) {

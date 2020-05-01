@@ -15,8 +15,14 @@ import org.h2.value.TypeInfo;
  */
 public abstract class Operation1 extends Expression {
 
+    /**
+     * The argument of the operation.
+     */
     protected Expression arg;
 
+    /**
+     * The type of the result.
+     */
     protected TypeInfo type;
 
     protected Operation1(Expression arg) {

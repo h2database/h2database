@@ -15,13 +15,22 @@ import org.h2.value.ValueNull;
  * The base class for rows stored in a table, and for partial rows stored in the
  * index.
  */
-public abstract class SearchRow extends Value
-{
+public abstract class SearchRow extends Value {
+
     /**
      * Index of a virtual "_ROWID_" column within a row or a table
      */
     public static final int ROWID_INDEX = -1;
+
+    /**
+     * If the key is this value, then the key is considered equal to all other
+     * keys, when comparing.
+     */
     public static long MATCH_ALL_ROW_KEY = Long.MIN_VALUE + 1;
+
+    /**
+     * The constant that means "memory usage is unknown and needs to be calculated first".
+     */
     public static final int MEMORY_CALCULATE = -1;
 
     protected long key;

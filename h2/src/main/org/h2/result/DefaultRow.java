@@ -12,13 +12,19 @@ import org.h2.value.ValueBigint;
 /**
  * The default implementation of a row in a table.
  */
-public class DefaultRow extends Row
-{
-    protected final Value[] data;
-    private         int     memory;
+public class DefaultRow extends Row {
 
+    /**
+     * The constant that means "memory usage is unknown and needs to be calculated first".
+     */
     public static final int MEMORY_CALCULATE = -1;
 
+    /**
+     * The values of the row (one entry per column).
+     */
+    protected final Value[] data;
+
+    private int memory;
 
     DefaultRow(int columnCount) {
         this.data = new Value[columnCount];

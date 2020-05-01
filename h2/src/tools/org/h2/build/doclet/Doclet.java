@@ -420,6 +420,9 @@ public class Doclet {
         if (field.isPrivate() || field.isPackagePrivate() || field.containingClass() != clazz) {
             return true;
         }
+        if (field.isStatic() && field.isFinal() && "INSTANCE".equals(field.name())) {
+            return true;
+        }
         return false;
     }
 

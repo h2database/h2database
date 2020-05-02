@@ -1406,11 +1406,12 @@ public class Parser {
         }
         TableFilter filter = readSimpleTableFilter();
         command.setTableFilter(filter);
-        parseUpdateSetClause(command, filter, start, limit == null);
+        parseUpdateSetClause(command, filter, start, true, limit == null);
         return command;
     }
 
-    private void parseUpdateSetClause(Update command, TableFilter filter, int start, boolean allowExtensions) {
+    private void parseUpdateSetClause(Update command, TableFilter filter, int start, boolean allowWhere,
+            boolean allowExtensions) {
         read(SET);
         do {
             if (readIf(OPEN_PAREN)) {
@@ -1445,7 +1446,7 @@ public class Parser {
                 command.setAssignment(column, readExpressionOrDefault());
             }
         } while (readIf(COMMA));
-        if (readIf(WHERE)) {
+        if (allowWhere && readIf(WHERE)) {
             Expression condition = readExpression();
             command.setCondition(condition);
         }
@@ -1785,11 +1786,12 @@ public class Parser {
         Expression and = readIf(AND) ? readExpression() : null;
         read("THEN");
         int startMatched = lastParseIndex;
+        boolean allowWhere = database.getMode().mergeWhere;
         if (readIf("UPDATE")) {
             Update updateCommand = new Update(session);
             TableFilter filter = command.getTargetTableFilter();
             updateCommand.setTableFilter(filter);
-            parseUpdateSetClause(updateCommand, filter, startMatched, false);
+            parseUpdateSetClause(updateCommand, filter, startMatched, allowWhere, false);
             MergeUsing.WhenMatchedThenUpdate when = new MergeUsing.WhenMatchedThenUpdate(command);
             when.setAndCondition(and);
             when.setUpdateCommand(updateCommand);
@@ -1798,7 +1800,7 @@ public class Parser {
             read("DELETE");
             Delete deleteCommand = new Delete(session);
             deleteCommand.setTableFilter(command.getTargetTableFilter());
-            if (readIf(WHERE)) {
+            if (allowWhere && readIf(WHERE)) {
                 deleteCommand.setCondition(readExpression());
             }
             setSQL(deleteCommand, startMatched);

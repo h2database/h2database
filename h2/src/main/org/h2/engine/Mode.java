@@ -335,6 +335,11 @@ public class Mode {
     public boolean allowEndCase;
 
     /**
+     * If {@code true}, merge when matched clause may have WHERE clause.
+     */
+    public boolean mergeWhere;
+
+    /**
      * How column names are generated for expressions.
      */
     public ExpressionNames expressionNames = ExpressionNames.OPTIMIZED_SQL;
@@ -472,6 +477,7 @@ public class Mode {
         mode.decimalSequences = true;
         mode.charAndByteLengthUnits = true;
         mode.nextvalAndCurrvalPseudoColumns = true;
+        mode.mergeWhere = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         dt = DataType.getDataType(Value.REAL);

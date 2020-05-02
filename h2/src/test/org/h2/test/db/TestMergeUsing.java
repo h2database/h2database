@@ -194,7 +194,7 @@ public class TestMergeUsing extends TestDb implements Trigger {
             int expectedRowUpdateCount) throws Exception {
         deleteDb("mergeUsingQueries");
 
-        try (Connection conn = getConnection("mergeUsingQueries")) {
+        try (Connection conn = getConnection("mergeUsingQueries;MODE=Oracle")) {
             Statement stat = conn.createStatement();
             stat.execute(setupSQL);
 

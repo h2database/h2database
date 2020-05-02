@@ -1752,6 +1752,7 @@ public class Parser {
                     temporarySourceTableView, queryAlias,
                     rightsChecked, null, 0, null);
             command.setSourceTableFilter(sourceTableFilter);
+            command.setCteCleanups(Collections.singletonList(temporarySourceTableView));
         } else {
             TableFilter sourceTableFilter = readTableFilter();
             command.setSourceTableFilter(sourceTableFilter);

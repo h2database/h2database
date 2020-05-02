@@ -383,3 +383,24 @@ WHEN NOT MATCHED AND S.X THEN INSERT VALUES (1);
 
 DROP TABLE T;
 > ok
+
+CREATE TABLE A(ID INT, V INT) AS VALUES (1, 1), (2, 2);
+> ok
+
+CREATE TABLE B(ID INT, V INT) AS VALUES (2, 4), (3, 6);
+> ok
+
+MERGE INTO A USING (SELECT * FROM B) S
+    ON A.ID = S.ID
+    WHEN MATCHED THEN UPDATE SET V = S.V;
+> update count: 1
+
+TABLE A;
+> ID V
+> -- -
+> 1  1
+> 2  4
+> rows: 2
+
+DROP TABLE A, B;
+> ok

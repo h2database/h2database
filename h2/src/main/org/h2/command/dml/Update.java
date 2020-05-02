@@ -56,8 +56,6 @@ public class Update extends Prepared implements DataChangeStatement {
 
     private final LinkedHashMap<Column, Expression> setClauseMap  = new LinkedHashMap<>();
 
-    private HashSet<Long> updatedKeysCollector;
-
     private ResultTarget deltaChangeCollector;
 
     private ResultOption deltaChangeCollectionMode;
@@ -97,15 +95,6 @@ public class Update extends Prepared implements DataChangeStatement {
             Parameter p = (Parameter) expression;
             p.setColumn(column);
         }
-    }
-
-    /**
-     * Sets the collector of updated keys.
-     *
-     * @param updatedKeysCollector the collector of updated keys
-     */
-    public void setUpdatedKeysCollector(HashSet<Long> updatedKeysCollector) {
-        this.updatedKeysCollector = updatedKeysCollector;
     }
 
     @Override
@@ -173,8 +162,7 @@ public class Update extends Prepared implements DataChangeStatement {
                         }
                         newRow.setValue(i, newValue);
                     }
-                    long key = oldRow.getKey();
-                    newRow.setKey(key);
+                    newRow.setKey(oldRow.getKey());
                     table.validateConvertUpdateSequence(session, newRow);
                     if (setOnUpdate || updateToCurrentValuesReturnsZero) {
                         setOnUpdate = false;
@@ -210,9 +198,6 @@ public class Update extends Prepared implements DataChangeStatement {
                     if (!table.fireRow() || !table.fireBeforeRow(session, oldRow, newRow)) {
                         rows.add(oldRow);
                         rows.add(newRow);
-                        if (updatedKeysCollector != null) {
-                            updatedKeysCollector.add(key);
-                        }
                     }
                     if (deltaChangeCollectionMode == ResultOption.FINAL) {
                         deltaChangeCollector.addRow(newRow.getValueList());

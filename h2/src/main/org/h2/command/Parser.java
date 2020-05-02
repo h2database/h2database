@@ -1406,11 +1406,12 @@ public class Parser {
         }
         TableFilter filter = readSimpleTableFilter();
         command.setTableFilter(filter);
-        parseUpdateSetClause(command, filter, start, limit == null);
+        parseUpdateSetClause(command, filter, start, true, limit == null);
         return command;
     }
 
-    private void parseUpdateSetClause(Update command, TableFilter filter, int start, boolean allowExtensions) {
+    private void parseUpdateSetClause(Update command, TableFilter filter, int start, boolean allowWhere,
+            boolean allowExtensions) {
         read(SET);
         do {
             if (readIf(OPEN_PAREN)) {
@@ -1445,7 +1446,7 @@ public class Parser {
                 command.setAssignment(column, readExpressionOrDefault());
             }
         } while (readIf(COMMA));
-        if (readIf(WHERE)) {
+        if (allowWhere && readIf(WHERE)) {
             Expression condition = readExpression();
             command.setCondition(condition);
         }
@@ -1733,13 +1734,19 @@ public class Parser {
         if (isQuery()) {
             command.setQuery(parseQuery());
             String queryAlias = readFromAlias(null);
+            String[] cols = null;
             if (queryAlias == null) {
                 queryAlias = Constants.PREFIX_QUERY_ALIAS + parseIndex;
+            } else {
+                ArrayList<String> derivedColumnNames = readDerivedColumnNames();
+                if (derivedColumnNames != null) {
+                    cols = derivedColumnNames.toArray(new String[0]);
+                }
             }
             command.setQueryAlias(queryAlias);
 
             String[] querySQLOutput = new String[1];
-            List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(null, command.getQuery(),
+            List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(cols, command.getQuery(),
                     querySQLOutput);
             TableView temporarySourceTableView = createCTEView(
                     queryAlias, querySQLOutput[0],
@@ -1751,6 +1758,7 @@ public class Parser {
                     temporarySourceTableView, queryAlias,
                     rightsChecked, null, 0, null);
             command.setSourceTableFilter(sourceTableFilter);
+            command.setCteCleanups(Collections.singletonList(temporarySourceTableView));
         } else {
             TableFilter sourceTableFilter = readTableFilter();
             command.setSourceTableFilter(sourceTableFilter);
@@ -1785,31 +1793,28 @@ public class Parser {
         Expression and = readIf(AND) ? readExpression() : null;
         read("THEN");
         int startMatched = lastParseIndex;
-        Update updateCommand = null;
+        boolean allowWhere = database.getMode().mergeWhere;
         if (readIf("UPDATE")) {
-            updateCommand = new Update(session);
+            Update updateCommand = new Update(session);
             TableFilter filter = command.getTargetTableFilter();
             updateCommand.setTableFilter(filter);
-            parseUpdateSetClause(updateCommand, filter, startMatched, false);
-            startMatched = lastParseIndex;
-        }
-        Delete deleteCommand = null;
-        if (readIf("DELETE")) {
-            deleteCommand = new Delete(session);
+            parseUpdateSetClause(updateCommand, filter, startMatched, allowWhere, false);
+            MergeUsing.WhenMatchedThenUpdate when = new MergeUsing.WhenMatchedThenUpdate(command);
+            when.setAndCondition(and);
+            when.setUpdateCommand(updateCommand);
+            command.addWhen(when);
+        } else {
+            read("DELETE");
+            Delete deleteCommand = new Delete(session);
             deleteCommand.setTableFilter(command.getTargetTableFilter());
-            if (readIf(WHERE)) {
+            if (allowWhere && readIf(WHERE)) {
                 deleteCommand.setCondition(readExpression());
             }
             setSQL(deleteCommand, startMatched);
-        }
-        if (updateCommand != null || deleteCommand != null) {
-            MergeUsing.WhenMatched when = new MergeUsing.WhenMatched(command);
+            MergeUsing.WhenMatchedThenDelete when = new MergeUsing.WhenMatchedThenDelete(command);
             when.setAndCondition(and);
-            when.setUpdateCommand(updateCommand);
             when.setDeleteCommand(deleteCommand);
             command.addWhen(when);
-        } else {
-            throw getSyntaxError();
         }
     }
 
@@ -2186,12 +2191,6 @@ public class Parser {
             throw getSyntaxError();
         }
         read(CLOSE_PAREN);
-        if (statement instanceof MergeUsing) {
-            if (((MergeUsing) statement).hasCombinedMatchedClause()) {
-                throw DbException.getUnsupportedException(resultOption
-                        + " TABLE with Oracle-style MERGE WHEN MATCHED THEN (UPDATE + DELETE)");
-            }
-        }
         return new DataChangeDeltaTable(getSchemaWithDefault(), session, statement, resultOption);
     }
 

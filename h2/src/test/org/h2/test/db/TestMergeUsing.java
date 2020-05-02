@@ -102,16 +102,6 @@ public class TestMergeUsing extends TestDb implements Trigger {
                 "SELECT X AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(2,2) UNION ALL " +
                 "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(3,3)",
                 3);
-        // No updates happen: No insert defined, no update or delete happens due
-        // to ON condition failing always, target table missing PK
-        testMergeUsing(
-                "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,2) );",
-                "MERGE INTO PARENT AS P USING (" +
-                "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) ) AS S ON (P.ID = S.ID AND 1=0) " +
-                "WHEN MATCHED THEN " +
-                "UPDATE SET P.NAME = S.NAME||S.ID WHERE P.ID = 2 DELETE WHERE P.ID = 1",
-                GATHER_ORDERED_RESULTS_SQL,
-                "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,2)", 0);
         // One insert, one update one delete happens, target table missing PK
         testMergeUsing(
                 "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,2) );" +
@@ -170,36 +160,6 @@ public class TestMergeUsing extends TestDb implements Trigger {
                 "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) WHERE X<0",
                 0,
                 "WHEN\"");
-        // Two updates to same row - update and delete together - emptying the
-        // parent table
-        testMergeUsing(
-                "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) )",
-                "MERGE INTO PARENT AS P USING (" +
-                "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) ) AS S ON (P.ID = S.ID) " +
-                "WHEN MATCHED THEN " +
-                "UPDATE SET P.NAME = P.NAME||S.ID WHERE P.ID = 1 DELETE WHERE P.ID = 1 AND P.NAME = 'Marcy11'",
-                GATHER_ORDERED_RESULTS_SQL,
-                "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) WHERE X<0",
-                2);
-        // Duplicate source keys but different ROWID update - so no error
-        // SQL standard says duplicate or repeated updates of same row in same
-        // statement should cause errors - but because first row is updated,
-        // deleted (on source row 1) then inserted (on source row 2)
-        // it's considered different - with respect to ROWID - so no error
-        // One insert, one update one delete happens (on same row) , target
-        // table missing PK, no source or target alias
-        if (false) // TODO
-        testMergeUsing(
-                "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) );" +
-                "CREATE TABLE SOURCE AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,2)  );",
-                "MERGE INTO PARENT USING SOURCE ON (PARENT.ID = SOURCE.ID) WHEN MATCHED THEN " +
-                "UPDATE SET PARENT.NAME = SOURCE.NAME||SOURCE.ID WHERE PARENT.ID = 2 " +
-                "DELETE WHERE PARENT.ID = 1 WHEN NOT MATCHED THEN " +
-                "INSERT (ID, NAME) VALUES (SOURCE.ID, SOURCE.NAME)",
-                GATHER_ORDERED_RESULTS_SQL,
-                "SELECT 1 AS ID, 'Marcy'||X||X UNION ALL SELECT 1 AS ID, 'Marcy2'",
-                2);
-
         // One insert, one update one delete happens, target table missing PK,
         // triggers update all NAME fields
         triggerTestingUpdateCount = 0;

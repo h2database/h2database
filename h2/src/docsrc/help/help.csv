@@ -3047,17 +3047,9 @@ WHEN MATCHED THEN DELETE
 
 "Other Grammar","Merge when matched clause","
 WHEN MATCHED [ AND expression ] THEN
-UPDATE SET setClauseList
-    | DELETE
-    | @c@ {UPDATE SET setClauseList [ WHERE expression ] DELETE [ WHERE expression ]}
+UPDATE SET setClauseList | DELETE
 ","
 WHEN MATCHED clause for MERGE USING command.
-
-If both UPDATE and DELETE are specified, DELETE can delete only rows that were updated,
-WHERE condition in DELETE clause can be used to specify which updated rows should be deleted.
-This condition checks values in updated row.
-Such combination of UPDATE and DELETE clauses in single ""WHEN MATCHED"" clause is not allowed
-when MERGE statement is included into data change delta table.
 ","
 WHEN MATCHED THEN UPDATE SET VALUE = S.VALUE
 WHEN MATCHED THEN DELETE

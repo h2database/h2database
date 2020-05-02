@@ -47,8 +47,6 @@ public class Delete extends Prepared implements DataChangeStatement {
      */
     private TableFilter sourceTableFilter;
 
-    private HashSet<Long> keysFilter;
-
     private ResultTarget deltaChangeCollector;
 
     private ResultOption deltaChangeCollectionMode;
@@ -72,15 +70,6 @@ public class Delete extends Prepared implements DataChangeStatement {
 
     public Expression getCondition() {
         return this.condition;
-    }
-
-    /**
-     * Sets the keys filter.
-     *
-     * @param keysFilter the keys filter
-     */
-    public void setKeysFilter(HashSet<Long> keysFilter) {
-        this.keysFilter = keysFilter;
     }
 
     @Override
@@ -109,34 +98,30 @@ public class Delete extends Prepared implements DataChangeStatement {
             int count = 0;
             while (limitRows != 0 && targetTableFilter.next()) {
                 setCurrentRowNumber(rows.size() + 1);
-                if (condition == null || condition.getBooleanValue(session)
-                        // the following is to support Oracle-style MERGE
-                        || (keysFilter != null && table.isMVStore())) {
+                if (condition == null || condition.getBooleanValue(session)) {
                     Row row = targetTableFilter.get();
-                    if (keysFilter == null || keysFilter.contains(row.getKey())) {
-                        if (table.isMVStore()) {
-                            Row lockedRow = table.lockRow(session, row);
-                            if (lockedRow == null) {
+                    if (table.isMVStore()) {
+                        Row lockedRow = table.lockRow(session, row);
+                        if (lockedRow == null) {
+                            continue;
+                        }
+                        if (!row.hasSharedData(lockedRow)) {
+                            row = lockedRow;
+                            targetTableFilter.set(row);
+                            if (condition != null && !condition.getBooleanValue(session)) {
                                 continue;
                             }
-                            if (!row.hasSharedData(lockedRow)) {
-                                row = lockedRow;
-                                targetTableFilter.set(row);
-                                if (condition != null && !condition.getBooleanValue(session)) {
-                                    continue;
-                                }
-                            }
                         }
-                        if (deltaChangeCollectionMode == ResultOption.OLD) {
-                            deltaChangeCollector.addRow(row.getValueList());
-                        }
-                        if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
-                            rows.add(row);
-                        }
-                        count++;
-                        if (limitRows >= 0 && count >= limitRows) {
-                            break;
-                        }
+                    }
+                    if (deltaChangeCollectionMode == ResultOption.OLD) {
+                        deltaChangeCollector.addRow(row.getValueList());
+                    }
+                    if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
+                        rows.add(row);
+                    }
+                    count++;
+                    if (limitRows >= 0 && count >= limitRows) {
+                        break;
                     }
                 }
             }

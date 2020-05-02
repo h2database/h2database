@@ -1785,31 +1785,27 @@ public class Parser {
         Expression and = readIf(AND) ? readExpression() : null;
         read("THEN");
         int startMatched = lastParseIndex;
-        Update updateCommand = null;
         if (readIf("UPDATE")) {
-            updateCommand = new Update(session);
+            Update updateCommand = new Update(session);
             TableFilter filter = command.getTargetTableFilter();
             updateCommand.setTableFilter(filter);
             parseUpdateSetClause(updateCommand, filter, startMatched, false);
-            startMatched = lastParseIndex;
-        }
-        Delete deleteCommand = null;
-        if (readIf("DELETE")) {
-            deleteCommand = new Delete(session);
+            MergeUsing.WhenMatchedThenUpdate when = new MergeUsing.WhenMatchedThenUpdate(command);
+            when.setAndCondition(and);
+            when.setUpdateCommand(updateCommand);
+            command.addWhen(when);
+        } else {
+            read("DELETE");
+            Delete deleteCommand = new Delete(session);
             deleteCommand.setTableFilter(command.getTargetTableFilter());
             if (readIf(WHERE)) {
                 deleteCommand.setCondition(readExpression());
             }
             setSQL(deleteCommand, startMatched);
-        }
-        if (updateCommand != null || deleteCommand != null) {
-            MergeUsing.WhenMatched when = new MergeUsing.WhenMatched(command);
+            MergeUsing.WhenMatchedThenDelete when = new MergeUsing.WhenMatchedThenDelete(command);
             when.setAndCondition(and);
-            when.setUpdateCommand(updateCommand);
             when.setDeleteCommand(deleteCommand);
             command.addWhen(when);
-        } else {
-            throw getSyntaxError();
         }
     }
 
@@ -2186,12 +2182,6 @@ public class Parser {
             throw getSyntaxError();
         }
         read(CLOSE_PAREN);
-        if (statement instanceof MergeUsing) {
-            if (((MergeUsing) statement).hasCombinedMatchedClause()) {
-                throw DbException.getUnsupportedException(resultOption
-                        + " TABLE with Oracle-style MERGE WHEN MATCHED THEN (UPDATE + DELETE)");
-            }
-        }
         return new DataChangeDeltaTable(getSchemaWithDefault(), session, statement, resultOption);
     }
 

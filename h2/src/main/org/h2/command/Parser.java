@@ -1734,13 +1734,19 @@ public class Parser {
         if (isQuery()) {
             command.setQuery(parseQuery());
             String queryAlias = readFromAlias(null);
+            String[] cols = null;
             if (queryAlias == null) {
                 queryAlias = Constants.PREFIX_QUERY_ALIAS + parseIndex;
+            } else {
+                ArrayList<String> derivedColumnNames = readDerivedColumnNames();
+                if (derivedColumnNames != null) {
+                    cols = derivedColumnNames.toArray(new String[0]);
+                }
             }
             command.setQueryAlias(queryAlias);
 
             String[] querySQLOutput = new String[1];
-            List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(null, command.getQuery(),
+            List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(cols, command.getQuery(),
                     querySQLOutput);
             TableView temporarySourceTableView = createCTEView(
                     queryAlias, querySQLOutput[0],

@@ -16,8 +16,8 @@ import java.nio.ByteBuffer;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public class LongDBDataType extends LongDataType
-{
+public class LongDBDataType extends LongDataType {
+
     public static final LongDBDataType INSTANCE = new LongDBDataType();
     private static final ValueDataType DUMMY = new ValueDataType();
 

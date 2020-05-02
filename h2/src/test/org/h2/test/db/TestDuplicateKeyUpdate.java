@@ -250,8 +250,7 @@ public class TestDuplicateKeyUpdate extends TestDb {
         stat.execute("drop table test");
     }
 
-    private void testPrimaryKeyAndUniqueKey(Connection conn) throws SQLException
-    {
+    private void testPrimaryKeyAndUniqueKey(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE test (id INT, dup INT, " +
                 "counter INT, PRIMARY KEY(id), UNIQUE(dup))");

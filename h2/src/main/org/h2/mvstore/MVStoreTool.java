@@ -706,8 +706,7 @@ public class MVStoreTool {
      * A data type that can read any data that is persisted, and converts it to
      * a byte array.
      */
-    private static class GenericDataType extends BasicDataType<byte[]>
-    {
+    private static class GenericDataType extends BasicDataType<byte[]> {
         static GenericDataType INSTANCE = new GenericDataType();
 
         private GenericDataType() {}

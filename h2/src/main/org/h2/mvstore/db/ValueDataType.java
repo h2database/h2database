@@ -508,8 +508,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 break;
             }
             //$FALL-THROUGH$
-        case Value.ROW:
-        {
+        case Value.ROW: {
             Value[] list = ((ValueCollectionBase) v).getList();
             buff.put(type == Value.ARRAY ? ARRAY : ROW)
                     .putVarInt(list.length);
@@ -801,8 +800,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 return row;
             }
             //$FALL-THROUGH$
-        case ROW:
-        {
+        case ROW: {
             int len = readVarInt(buff);
             Value[] list = new Value[len];
             for (int i = 0; i < len; i++) {

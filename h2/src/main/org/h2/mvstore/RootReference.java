@@ -13,8 +13,8 @@ package org.h2.mvstore;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public final class RootReference<K,V>
-{
+public final class RootReference<K,V> {
+
     /**
      * The root page.
      */

@@ -10,8 +10,8 @@ import org.h2.value.Value;
 /**
  * Represents a row in a table.
  */
-public abstract class Row extends SearchRow
-{
+public abstract class Row extends SearchRow {
+
     /**
      * Creates a new row.
      *

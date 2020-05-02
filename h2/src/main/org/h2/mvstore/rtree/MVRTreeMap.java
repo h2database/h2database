@@ -546,8 +546,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         protected abstract boolean check(boolean leaf, SpatialKey key, SpatialKey test);
     }
 
-    private static final class IntersectsRTreeCursor<V> extends RTreeCursor<V>
-    {
+    private static final class IntersectsRTreeCursor<V> extends RTreeCursor<V> {
         private final SpatialDataType keyType;
 
         public IntersectsRTreeCursor(Page<SpatialKey,V> root, SpatialKey filter, SpatialDataType keyType) {
@@ -562,8 +561,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         }
     }
 
-    private static final class ContainsRTreeCursor<V> extends RTreeCursor<V>
-    {
+    private static final class ContainsRTreeCursor<V> extends RTreeCursor<V> {
         private final SpatialDataType keyType;
 
         public ContainsRTreeCursor(Page<SpatialKey,V> root, SpatialKey filter, SpatialDataType keyType) {

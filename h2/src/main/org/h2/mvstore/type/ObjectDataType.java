@@ -1274,8 +1274,7 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for object arrays.
      */
-    static class ObjectArrayType extends AutoDetectDataType<Object>
-    {
+    static class ObjectArrayType extends AutoDetectDataType<Object> {
         private final ObjectDataType elementType = new ObjectDataType();
 
         ObjectArrayType() {

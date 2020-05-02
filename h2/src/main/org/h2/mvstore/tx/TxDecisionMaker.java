@@ -246,8 +246,7 @@ class TxDecisionMaker<K,V> extends MVMap.DecisionMaker<VersionedValue<V>> {
 
 
 
-    public static final class PutIfAbsentDecisionMaker<K,V> extends TxDecisionMaker<K,V>
-    {
+    public static final class PutIfAbsentDecisionMaker<K,V> extends TxDecisionMaker<K,V> {
         private final Function<K, V> oldValueSupplier;
 
         PutIfAbsentDecisionMaker(int mapId, Transaction transaction, Function<K, V> oldValueSupplier) {

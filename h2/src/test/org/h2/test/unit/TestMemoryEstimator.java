@@ -21,8 +21,8 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public class TestMemoryEstimator extends TestBase
-{
+public class TestMemoryEstimator extends TestBase {
+
     /**
      * Run just this test.
      *

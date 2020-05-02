@@ -781,8 +781,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @param <X>
      *            the type of elements
      */
-    private static class UncommittedIterator<K,V,X> extends TMIterator<K,V,X>
-    {
+    private static class UncommittedIterator<K,V,X> extends TMIterator<K,V,X> {
         UncommittedIterator(TransactionMap<K, V> transactionMap, K from, K to, boolean reverse, boolean forEntries) {
             super(transactionMap, from, to, transactionMap.createSnapshot(), reverse, forEntries);
             fetchNext();
@@ -815,8 +814,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         }
     }
 
-    private static final class ValidationIterator<K,V,X> extends UncommittedIterator<K,V,X>
-    {
+    private static final class ValidationIterator<K,V,X> extends UncommittedIterator<K,V,X> {
         ValidationIterator(TransactionMap<K,V> transactionMap, K from, K to) {
             super(transactionMap, from, to, transactionMap.createSnapshot(), false, false);
         }
@@ -842,8 +840,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @param <X>
      *            the type of elements
      */
-    private static final class CommittedIterator<K,V,X> extends TMIterator<K,V,X>
-    {
+    private static final class CommittedIterator<K,V,X> extends TMIterator<K,V,X> {
         CommittedIterator(TransactionMap<K, V> transactionMap, K from, K to, boolean reverse, boolean forEntries) {
             super(transactionMap, from, to, transactionMap.getSnapshot(), reverse, forEntries);
             fetchNext();
@@ -890,8 +887,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @param <X>
      *            the type of elements
      */
-    private static final class RepeatableIterator<K,V,X> extends TMIterator<K,V,X>
-    {
+    private static final class RepeatableIterator<K,V,X> extends TMIterator<K,V,X> {
         private final DataType<K> keyType;
 
         private K snapshotKey;
@@ -986,8 +982,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         }
     }
 
-    private abstract static class TMIterator<K,V,X> implements Iterator<X>
-    {
+    private abstract static class TMIterator<K,V,X> implements Iterator<X> {
         final int transactionId;
 
         final BitSet committingTransactions;

@@ -53,8 +53,7 @@ public final class Cursor<K,V> implements Iterator<K> {
                     // traversal of this page is over, going up a level or stop if at the root already
                     CursorPos<K,V> tmp = cursorPos;
                     cursorPos = cursorPos.parent;
-                    if(cursorPos == null)
-                    {
+                    if (cursorPos == null) {
                         return false;
                     }
                     tmp.parent = keeper;

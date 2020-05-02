@@ -20,8 +20,8 @@ import java.util.Map;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public final class MetaType<D> extends BasicDataType<DataType<?>>
-{
+public final class MetaType<D> extends BasicDataType<DataType<?>> {
+
     private final D database;
     private final Thread.UncaughtExceptionHandler exceptionHandler;
     private final Map<String, StatefulDataType.Factory<D>> cache = new HashMap<>();

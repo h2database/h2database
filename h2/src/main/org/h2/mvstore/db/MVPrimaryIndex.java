@@ -428,8 +428,8 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     /**
      * A cursor.
      */
-    static final class MVStoreCursor implements Cursor
-    {
+    static final class MVStoreCursor implements Cursor {
+
         private final Iterator<Entry<Long,SearchRow>> it;
         private Entry<Long,SearchRow> current;
         private Row row;

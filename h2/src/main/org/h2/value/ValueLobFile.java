@@ -21,6 +21,7 @@ import org.h2.store.FileStoreOutputStream;
 import org.h2.store.RangeReader;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 
 /**
@@ -227,6 +228,28 @@ public final class ValueLobFile extends ValueLob {
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         }
+    }
+
+    private static int getBufferSize(DataHandler handler, boolean compress, long remaining) {
+        if (remaining < 0 || remaining > Integer.MAX_VALUE) {
+            remaining = Integer.MAX_VALUE;
+        }
+        int inplace = handler.getMaxLengthInplaceLob();
+        long m = compress ? Constants.IO_BUFFER_SIZE_COMPRESS : Constants.IO_BUFFER_SIZE;
+        if (m < remaining && m <= inplace) {
+            // using "1L" to force long arithmetic because
+            // inplace could be Integer.MAX_VALUE
+            m = Math.min(remaining, inplace + 1L);
+            // the buffer size must be bigger than the inplace lob, otherwise we
+            // can't know if it must be stored in-place or not
+            m = MathUtils.roundUpLong(m, Constants.IO_BUFFER_SIZE);
+        }
+        m = Math.min(remaining, m);
+        m = MathUtils.convertLongToInt(m);
+        if (m < 0) {
+            m = Integer.MAX_VALUE;
+        }
+        return (int) m;
     }
 
 }

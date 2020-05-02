@@ -25,8 +25,8 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public final class MemoryEstimator
-{
+public final class MemoryEstimator {
+
     // Structure of statsData long value:
     // 0 - 7   skip counter (how many more requests will skip calculation and use estimate instead)
     // 8 - 23  total number of skips between last 256 calculations

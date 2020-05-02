@@ -11,8 +11,8 @@ package org.h2.mvstore;
  * from a specific (target) key within a leaf node all the way up to te root
  * (bottom up path).
  */
-public final class CursorPos<K,V>
-{
+public final class CursorPos<K,V> {
+
     /**
      * The page at the current level.
      */

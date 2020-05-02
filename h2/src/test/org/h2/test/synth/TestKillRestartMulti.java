@@ -59,9 +59,7 @@ public class TestKillRestartMulti extends TestDb {
             // the child process case
             SelfDestructor.startCountdown(CHILD_SELFDESTRUCT_TIMEOUT_MINS);
             new TestKillRestartMulti().test(args);
-        }
-        else
-        {
+        } else {
             // the standalone test case
             TestBase.createCaller().init().testFromMain();
         }

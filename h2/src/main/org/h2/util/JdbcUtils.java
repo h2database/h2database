@@ -606,6 +606,13 @@ public class JdbcUtils {
         }
     }
 
+    /**
+     * Get metadata from the database.
+     *
+     * @param conn the connection
+     * @param sql the SQL statement
+     * @return the metadata
+     */
     public static ResultSet getMetaResultSet(Connection conn, String sql)
             throws SQLException {
         DatabaseMetaData meta = conn.getMetaData();
@@ -731,6 +738,13 @@ public class JdbcUtils {
         }
     }
 
+    /**
+     * Check is the SQL string starts with a prefix (case insensitive).
+     *
+     * @param sql the SQL statement
+     * @param builtIn the prefix
+     * @return true if yes
+     */
     public static boolean isBuiltIn(String sql, String builtIn) {
         return sql.regionMatches(true, 0, builtIn, 0, builtIn.length());
     }

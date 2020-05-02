@@ -19,8 +19,8 @@ import java.util.Map;
  * There are at most 67 million (2^26) chunks,
  * each chunk is at most 2 GB large.
  */
-public final class Chunk
-{
+public final class Chunk {
+
     /**
      * The maximum chunk id.
      */

@@ -211,8 +211,7 @@ public class TestOutOfMemory extends TestDb {
         }
     }
 
-    public static final class MyChild extends TestDb.Child
-    {
+    public static final class MyChild extends TestDb.Child {
 
         /**
          * Run just this test.

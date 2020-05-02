@@ -46,7 +46,6 @@ public final class ValueLobDatabase extends ValueLob {
      * @param handler the data handler
      * @param tableId the table id
      * @param id the lob id
-     * @param hmac the message authentication code
      * @param precision the precision (number of bytes / characters)
      * @return the value
      */

@@ -428,8 +428,8 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
 
     }
 
-    private static class SpatialKeyIterator implements Iterator<SpatialKey>
-    {
+    private static class SpatialKeyIterator implements Iterator<SpatialKey> {
+
         private final TransactionMap<SpatialKey, Value> map;
         private final Iterator<SpatialKey> iterator;
         private final boolean includeUncommitted;

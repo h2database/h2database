@@ -18,8 +18,8 @@ import java.nio.ByteBuffer;
 /**
  * The value type for a versioned value.
  */
-public class VersionedValueType<T,D> extends BasicDataType<VersionedValue<T>> implements StatefulDataType<D>
-{
+public class VersionedValueType<T,D> extends BasicDataType<VersionedValue<T>> implements StatefulDataType<D> {
+
     private final DataType<T> valueType;
     private final Factory<D> factory = new Factory<>();
 
@@ -153,8 +153,7 @@ public class VersionedValueType<T,D> extends BasicDataType<VersionedValue<T>> im
         return factory;
     }
 
-    public static final class Factory<D> implements StatefulDataType.Factory<D>
-    {
+    public static final class Factory<D> implements StatefulDataType.Factory<D> {
         @SuppressWarnings("unchecked")
         @Override
         public DataType<?> create(ByteBuffer buff, MetaType<D> metaType, D database) {

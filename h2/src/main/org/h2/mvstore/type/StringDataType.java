@@ -15,7 +15,8 @@ import org.h2.mvstore.WriteBuffer;
 public class StringDataType extends BasicDataType<String> {
 
     public static final StringDataType INSTANCE = new StringDataType();
-    public static final String[] EMPTY_STRING_ARR = new String[0];
+
+    private static final String[] EMPTY_STRING_ARR = new String[0];
 
     @Override
     public String[] createStorage(int size) {

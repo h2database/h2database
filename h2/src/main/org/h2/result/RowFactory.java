@@ -128,6 +128,18 @@ public abstract class RowFactory {
             return createRowFactory(provider, compareMode, mode, handler, sortTypes, indexes, columnCount);
         }
 
+        /**
+         * Create a new row factory.
+         *
+         * @param provider the cast provider
+         * @param compareMode the compare mode
+         * @param mode the compatibility mode
+         * @param handler the data handler
+         * @param sortTypes the sort types
+         * @param indexes the list of indexed columns
+         * @param columnCount the number of columns
+         * @return the (possibly new) row factory
+         */
         public RowFactory createRowFactory(CastDataProvider provider, CompareMode compareMode, Mode mode,
                 DataHandler handler, int[] sortTypes, int[] indexes, int columnCount) {
             RowDataType rowDataType = new RowDataType(provider, compareMode, mode, handler,

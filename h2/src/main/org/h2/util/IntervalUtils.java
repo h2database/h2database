@@ -692,8 +692,7 @@ public class IntervalUtils {
      *            values of all remaining fields
      * @return months, or 0
      */
-    public static long monthsFromInterval(IntervalQualifier qualifier, boolean negative, long leading, long remaining)
-    {
+    public static long monthsFromInterval(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
         long v;
         if (qualifier == IntervalQualifier.MONTH) {
             v = leading;

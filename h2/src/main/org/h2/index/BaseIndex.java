@@ -254,8 +254,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         if (!isScanIndex && allColumnsSet != null) {
             boolean foundAllColumnsWeNeed = true;
             ArrayList<Column> foundCols = allColumnsSet.get(getTable());
-            if (foundCols != null)
-            {
+            if (foundCols != null) {
                 for (Column c : foundCols) {
                     boolean found = false;
                     for (Column c2 : columns) {

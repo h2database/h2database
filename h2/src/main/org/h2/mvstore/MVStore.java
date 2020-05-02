@@ -138,8 +138,8 @@ MVStore:
 /**
  * A persistent storage for maps.
  */
-public class MVStore implements AutoCloseable
-{
+public class MVStore implements AutoCloseable {
+
     // The following are attribute names (keys) in store header map
     private static final String HDR_H = "H";
     private static final String HDR_BLOCK_SIZE = "blockSize";
@@ -1421,7 +1421,7 @@ public class MVStore implements AutoCloseable
         return commit(x -> true);
     }
 
-    public long commit(Predicate<MVStore> check) {
+    private long commit(Predicate<MVStore> check) {
         // we need to prevent re-entrance, which may be possible,
         // because meta map is modified within storeNow() and that
         // causes beforeWrite() call with possibility of going back here
@@ -3742,8 +3742,7 @@ public class MVStore implements AutoCloseable
         }
     }
 
-    private static class RemovedPageInfo implements Comparable<RemovedPageInfo>
-    {
+    private static class RemovedPageInfo implements Comparable<RemovedPageInfo> {
         final long version;
         final long removedPageInfo;
 

@@ -19,8 +19,8 @@ import java.nio.ByteBuffer;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-final class Record<K,V>
-{
+final class Record<K,V> {
+
     // -1 is a bogus map id
     static final Record<?,?> COMMIT_MARKER = new Record<>(-1, null, null);
 
@@ -54,8 +54,7 @@ final class Record<K,V>
     /**
      * A data type for undo log values
      */
-    static final class Type<K,V> extends BasicDataType<Record<K,V>>
-    {
+    static final class Type<K,V> extends BasicDataType<Record<K,V>> {
         private final TransactionStore transactionStore;
 
         Type(TransactionStore transactionStore) {

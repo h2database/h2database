@@ -17,8 +17,8 @@ import org.h2.mvstore.type.BasicDataType;
  * can have a minimum and a maximum value of type float. For each dimension, the
  * maximum value is only stored when it is not the same as the minimum.
  */
-public class SpatialDataType extends BasicDataType<SpatialKey>
-{
+public class SpatialDataType extends BasicDataType<SpatialKey> {
+
     private final int dimensions;
 
     public SpatialDataType(int dimensions) {

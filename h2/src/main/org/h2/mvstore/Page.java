@@ -33,8 +33,8 @@ import org.h2.util.Utils;
  * leaf: values (one for each key)
  * node: children (1 more than keys)
  */
-public abstract class Page<K,V> implements Cloneable
-{
+public abstract class Page<K,V> implements Cloneable {
+
     /**
      * Map this page belongs to
      */
@@ -921,8 +921,7 @@ public abstract class Page<K,V> implements Cloneable
      * @param size number of entries
      * @return values array
      */
-    public final K[] createKeyStorage(int size)
-    {
+    public final K[] createKeyStorage(int size) {
         return map.getKeyType().createStorage(size);
     }
 
@@ -932,8 +931,7 @@ public abstract class Page<K,V> implements Cloneable
      * @param size number of entries
      * @return values array
      */
-    final V[] createValueStorage(int size)
-    {
+    final V[] createValueStorage(int size) {
         return map.getValueType().createStorage(size);
     }
 
@@ -1035,8 +1033,7 @@ public abstract class Page<K,V> implements Cloneable
     }
 
 
-    private static class NonLeaf<K,V> extends Page<K,V>
-    {
+    private static class NonLeaf<K,V> extends Page<K,V> {
         /**
          * The child page references.
          */
@@ -1380,8 +1377,7 @@ public abstract class Page<K,V> implements Cloneable
 
 
 
-    private static class Leaf<K,V> extends Page<K,V>
-    {
+    private static class Leaf<K,V> extends Page<K,V> {
         /**
          * The storage for values.
          */

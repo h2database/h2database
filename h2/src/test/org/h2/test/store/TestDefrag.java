@@ -19,8 +19,8 @@ import java.text.NumberFormat;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public class TestDefrag  extends TestDb
-{
+public class TestDefrag  extends TestDb {
+
     /**
      * Run just this test.
      *

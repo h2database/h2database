@@ -1802,7 +1802,7 @@ public class Parser {
         Expression and = readIf(AND) ? readExpression() : null;
         read("THEN");
         read("INSERT");
-        Column[] columns = readIf(OPEN_PAREN) ? parseColumnList(command.getTargetTable()) : null;
+        Column[] columns = readIf(OPEN_PAREN) ? parseColumnList(command.getTargetTableFilter().getTable()) : null;
         read(VALUES);
         read(OPEN_PAREN);
         ArrayList<Expression> values = Utils.newSmallArrayList();

@@ -46,11 +46,6 @@ import org.h2.value.Value;
 public class MergeUsing extends Prepared implements DataChangeStatement {
 
     /**
-     * Target table.
-     */
-    Table targetTable;
-
-    /**
      * Target table filter.
      */
     TableFilter targetTableFilter;
@@ -79,7 +74,6 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
 
     public MergeUsing(Session session, TableFilter targetTableFilter) {
         super(session);
-        this.targetTable = targetTableFilter.getTable();
         this.targetTableFilter = targetTableFilter;
     }
 
@@ -158,14 +152,14 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         for (When w : when) {
             w.checkRights();
         }
-        session.getUser().checkRight(targetTable, Right.SELECT);
+        session.getUser().checkRight(targetTableFilter.getTable(), Right.SELECT);
         session.getUser().checkRight(sourceTableFilter.getTable(), Right.SELECT);
     }
 
     @Override
     public String getPlanSQL(int sqlFlags) {
         StringBuilder builder = new StringBuilder("MERGE INTO ");
-        targetTable.getSQL(builder, sqlFlags).append('\n').append("USING ");
+        targetTableFilter.getTable().getSQL(builder, sqlFlags).append('\n').append("USING ");
         sourceTableFilter.getTable().getSQL(builder, sqlFlags);
         // TODO add aliases and WHEN clauses to make plan SQL more like original SQL
         return builder.toString();
@@ -234,14 +228,6 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
 
     public TableFilter getTargetTableFilter() {
         return targetTableFilter;
-    }
-
-    public Table getTargetTable() {
-        return targetTable;
-    }
-
-    public void setTargetTable(Table targetTable) {
-        this.targetTable = targetTable;
     }
 
     // Prepared interface implementations
@@ -379,7 +365,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
 
         @Override
         void checkRights() {
-            mergeUsing.getSession().getUser().checkRight(mergeUsing.targetTable, Right.DELETE);
+            mergeUsing.getSession().getUser().checkRight(mergeUsing.targetTableFilter.getTable(), Right.DELETE);
         }
 
     }
@@ -499,7 +485,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
 
         @Override
         void checkRights() {
-            mergeUsing.getSession().getUser().checkRight(mergeUsing.targetTable, Right.UPDATE);
+            mergeUsing.getSession().getUser().checkRight(mergeUsing.targetTableFilter.getTable(), Right.UPDATE);
         }
 
         @Override
@@ -526,7 +512,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
 
         @Override
         void merge(Session session) {
-            Table table = mergeUsing.targetTable;
+            Table table = mergeUsing.targetTableFilter.getTable();
             ResultTarget deltaChangeCollector = mergeUsing.deltaChangeCollector;
             ResultOption deltaChangeCollectionMode = mergeUsing.deltaChangeCollectionMode;
             Row newRow = table.getTemplateRow();
@@ -563,14 +549,14 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         @Override
         void prepare(Session session) {
             super.prepare(session);
+            TableFilter targetTableFilter = mergeUsing.targetTableFilter,
+                    sourceTableFilter = mergeUsing.sourceTableFilter;
             if (columns == null) {
-                columns = mergeUsing.targetTable.getColumns();
+                columns = targetTableFilter.getTable().getColumns();
             }
             if (values.length != columns.length) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
-            TableFilter targetTableFilter = mergeUsing.targetTableFilter,
-                    sourceTableFilter = mergeUsing.sourceTableFilter;
             for (int i = 0, len = values.length; i < len; i++) {
                 Expression e = values[i];
                 e.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
@@ -590,7 +576,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
 
         @Override
         void checkRights() {
-            mergeUsing.getSession().getUser().checkRight(mergeUsing.targetTable, Right.INSERT);
+            mergeUsing.getSession().getUser().checkRight(mergeUsing.targetTableFilter.getTable(), Right.INSERT);
         }
 
         @Override

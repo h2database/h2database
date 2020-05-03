@@ -174,7 +174,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         onCondition.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
 
         onCondition = onCondition.optimize(session);
-        onCondition.createIndexConditions(session, sourceTableFilter);
+        // Create conditions only for target table
         onCondition.createIndexConditions(session, targetTableFilter);
 
         TableFilter[] filters = new TableFilter[] { sourceTableFilter, targetTableFilter };

@@ -405,7 +405,7 @@ public abstract class Prepared {
      * @param list the expression list
      * @return the SQL snippet
      */
-    protected static String getSimpleSQL(Expression[] list) {
+    public static String getSimpleSQL(Expression[] list) {
         StringBuilder builder = new StringBuilder();
         Expression.writeExpressions(builder, list, HasSQL.TRACE_SQL_FLAGS);
         return builder.toString();

@@ -39,7 +39,7 @@ EXPLAIN PLAN
             UPDATE SET P.NAME = S.NAME WHERE 2 = 2
         WHEN NOT MATCHED THEN
             INSERT (ID, NAME) VALUES (S.ID, S.NAME);
->> MERGE INTO "PUBLIC"."PARENT" USING SELECT "X" AS "ID", ('Coco' || "X") AS "NAME" FROM SYSTEM_RANGE(1, 2) /* range index */
+>> MERGE INTO "PUBLIC"."PARENT" USING ( SELECT "X" AS "ID", ('Coco' || "X") AS "NAME" FROM SYSTEM_RANGE(1, 2) )
 
 SET MODE Regular;
 > ok
@@ -429,4 +429,47 @@ TABLE TARGET;
 > rows: 2
 
 DROP TABLE SOURCE, TARGET;
+> ok
+
+CREATE TABLE T(ID INT, V INT) AS VALUES (1, 1), (2, 2);
+> ok
+
+MERGE INTO T USING (SELECT 1) ON (TRUE)
+    WHEN MATCHED THEN UPDATE SET V = 2
+    WHEN MATCHED AND ID = 2 THEN UPDATE SET V = 3;
+> update count: 2
+
+TABLE T;
+> ID V
+> -- -
+> 1  2
+> 2  2
+> rows: 2
+
+TRUNCATE TABLE T;
+> ok
+
+INSERT INTO T VALUES (1, 1);
+> update count: 1
+
+MERGE INTO T USING (SELECT 1) ON (ID = 1)
+    WHEN MATCHED THEN UPDATE SET V = 2
+    WHEN MATCHED THEN UPDATE SET V = 3;
+> update count: 1
+
+TABLE T;
+> ID V
+> -- -
+> 1  2
+> rows: 1
+
+SELECT * FROM FINAL TABLE (MERGE INTO T USING (SELECT 1) ON (ID = 1)
+    WHEN MATCHED THEN UPDATE SET V = 4
+    WHEN MATCHED THEN UPDATE SET V = 5);
+> ID V
+> -- -
+> 1  4
+> rows: 1
+
+DROP TABLE T;
 > ok

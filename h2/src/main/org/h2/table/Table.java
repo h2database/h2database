@@ -683,7 +683,7 @@ public abstract class Table extends SchemaObjectBase {
         return new DefaultRow(new Value[columns.length]);
     }
 
-    Row getNullRow() {
+    public Row getNullRow() {
         Row row = nullRow;
         if (row == null) {
             // Here can be concurrently produced more than one row, but it must

@@ -15,7 +15,6 @@ import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.query.Query;
-import org.h2.command.query.Select;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -37,7 +36,6 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
-import org.h2.table.TableFilter;
 import org.h2.util.HasSQL;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -54,10 +52,6 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
     private boolean sortedInsertMode;
     private int rowNumber;
     private boolean insertFromSelect;
-    /**
-     * This table filter is for MERGE..USING support - not used in stand-alone DML
-     */
-    private TableFilter sourceTableFilter;
 
     /**
      * For MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ....
@@ -176,10 +170,8 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
                     int index = c.getColumnId();
                     Expression e = expr[i];
                     if (e != ValueExpression.DEFAULT) {
-                        e = e.optimize(session);
                         try {
-                            Value v = e.getValue(session);
-                            newRow.setValue(index, v);
+                            newRow.setValue(index, e.getValue(session));
                         } catch (DbException ex) {
                             throw setRow(ex, x, getSimpleSQL(expr));
                         }
@@ -325,9 +317,6 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
                 for (int i = 0, len = expr.length; i < len; i++) {
                     Expression e = expr[i];
                     if (e != null) {
-                        if(sourceTableFilter!=null){
-                            e.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
-                        }
                         e = e.optimize(session);
                         if (e instanceof Parameter) {
                             Parameter p = (Parameter) e;
@@ -486,21 +475,17 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
         return condition;
     }
 
-    public void setSourceTableFilter(TableFilter sourceTableFilter) {
-        this.sourceTableFilter = sourceTableFilter;
-    }
-
     @Override
     public void collectDependencies(HashSet<DbObject> dependencies) {
         ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);
-        if (query != null) {
-            query.isEverything(visitor);
-        }
-        if (sourceTableFilter != null) {
-            Select select = sourceTableFilter.getSelect();
-            if (select != null) {
-                select.isEverything(visitor);
+        if (!valuesExpressionList.isEmpty()) {
+            for (Expression[] expr : valuesExpressionList) {
+                for (Expression e : expr) {
+                    e.isEverything(visitor);
+                }
             }
+        } else {
+            query.isEverything(visitor);
         }
     }
 }

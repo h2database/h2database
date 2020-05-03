@@ -135,6 +135,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
                     if (condition == null || condition.getBooleanValue(session)) {
                         w.merge(session);
                         countUpdatedRows++;
+                        break;
                     }
                 }
             }

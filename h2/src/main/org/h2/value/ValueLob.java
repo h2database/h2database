@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import org.h2.engine.CastDataProvider;
-import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;

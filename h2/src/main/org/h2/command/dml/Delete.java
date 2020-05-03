@@ -11,7 +11,6 @@ import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.command.query.AllColumnsForPlan;
-import org.h2.command.query.Select;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -42,10 +41,6 @@ public class Delete extends Prepared implements DataChangeStatement {
      * The limit expression as specified in the LIMIT or TOP clause.
      */
     private Expression limitExpr;
-    /**
-     * This table filter is for MERGE..USING support - not used in stand-alone DML
-     */
-    private TableFilter sourceTableFilter;
 
     private ResultTarget deltaChangeCollector;
 
@@ -165,20 +160,11 @@ public class Delete extends Prepared implements DataChangeStatement {
     public void prepare() {
         if (condition != null) {
             condition.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
-            if (sourceTableFilter != null) {
-                condition.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
-            }
             condition = condition.optimize(session);
             condition.createIndexConditions(session, targetTableFilter);
         }
-        TableFilter[] filters;
-        if (sourceTableFilter == null) {
-            filters = new TableFilter[] { targetTableFilter };
-        } else {
-            filters = new TableFilter[] { targetTableFilter, sourceTableFilter };
-        }
-        PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0,
-                new AllColumnsForPlan(filters));
+        TableFilter[] filters = new TableFilter[] { targetTableFilter };
+        PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters));
         targetTableFilter.setPlanItem(item);
         targetTableFilter.prepare();
     }
@@ -212,16 +198,8 @@ public class Delete extends Prepared implements DataChangeStatement {
         return true;
     }
 
-    public void setSourceTableFilter(TableFilter sourceTableFilter) {
-        this.sourceTableFilter = sourceTableFilter;
-    }
-
     public TableFilter getTableFilter() {
         return targetTableFilter;
-    }
-
-    public TableFilter getSourceTableFilter() {
-        return sourceTableFilter;
     }
 
     @Override
@@ -229,12 +207,6 @@ public class Delete extends Prepared implements DataChangeStatement {
         ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);
         if (condition != null) {
             condition.isEverything(visitor);
-        }
-        if (sourceTableFilter != null) {
-            Select select = sourceTableFilter.getSelect();
-            if (select != null) {
-                select.isEverything(visitor);
-            }
         }
     }
 }

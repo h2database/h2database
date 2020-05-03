@@ -477,6 +477,10 @@ public class TableFilter implements ColumnResolver {
         return false;
     }
 
+    public boolean isNullRow() {
+        return state == NULL_ROW;
+    }
+
     /**
      * Set the state of this and all nested tables to the NULL row.
      */

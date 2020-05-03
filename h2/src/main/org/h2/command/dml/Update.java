@@ -15,7 +15,6 @@ import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.command.query.AllColumnsForPlan;
-import org.h2.command.query.Select;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -40,14 +39,10 @@ import org.h2.value.ValueNull;
  * This class represents the statement
  * UPDATE
  */
-public class Update extends Prepared implements DataChangeStatement {
+public class Update extends Prepared implements CommandWithAssignments, DataChangeStatement {
 
     private Expression condition;
     private TableFilter targetTableFilter;// target of update
-    /**
-     * This table filter is for MERGE..USING support - not used in stand-alone DML
-     */
-    private TableFilter sourceTableFilter;
 
     /** The limit expression as specified in the LIMIT clause. */
     private Expression limitExpr;
@@ -81,19 +76,13 @@ public class Update extends Prepared implements DataChangeStatement {
         return this.condition;
     }
 
-    /**
-     * Add an assignment of the form column = expression.
-     *
-     * @param column the column
-     * @param expression the expression
-     */
+    @Override
     public void setAssignment(Column column, Expression expression) {
         if (setClauseMap.putIfAbsent(column, expression) != null) {
             throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getName());
         }
         if (expression instanceof Parameter) {
-            Parameter p = (Parameter) expression;
-            p.setColumn(column);
+            ((Parameter) expression).setColumn(column);
         }
     }
 
@@ -260,20 +249,10 @@ public class Update extends Prepared implements DataChangeStatement {
         for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
             Expression e = entry.getValue();
             e.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
-            if (sourceTableFilter!=null){
-                e.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
-            }
             entry.setValue(e.optimize(session));
         }
-        TableFilter[] filters;
-        if(sourceTableFilter==null){
-            filters = new TableFilter[] { targetTableFilter };
-        }
-        else{
-            filters = new TableFilter[] { targetTableFilter, sourceTableFilter };
-        }
-        PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0,
-                new AllColumnsForPlan(filters));
+        TableFilter[] filters = new TableFilter[] { targetTableFilter };
+        PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters));
         targetTableFilter.setPlanItem(item);
         targetTableFilter.prepare();
     }
@@ -307,14 +286,6 @@ public class Update extends Prepared implements DataChangeStatement {
         return true;
     }
 
-    public TableFilter getSourceTableFilter() {
-        return sourceTableFilter;
-    }
-
-    public void setSourceTableFilter(TableFilter sourceTableFilter) {
-        this.sourceTableFilter = sourceTableFilter;
-    }
-
     /**
      * Sets expected update count for update to current values case.
      *
@@ -331,11 +302,8 @@ public class Update extends Prepared implements DataChangeStatement {
         if (condition != null) {
             condition.isEverything(visitor);
         }
-        if (sourceTableFilter != null) {
-            Select select = sourceTableFilter.getSelect();
-            if (select != null) {
-                select.isEverything(visitor);
-            }
+        for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
+            entry.getValue().isEverything(visitor);
         }
     }
 }

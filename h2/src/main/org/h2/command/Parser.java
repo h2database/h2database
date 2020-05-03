@@ -159,6 +159,7 @@ import org.h2.command.ddl.TruncateTable;
 import org.h2.command.dml.AlterTableSet;
 import org.h2.command.dml.BackupCommand;
 import org.h2.command.dml.Call;
+import org.h2.command.dml.CommandWithAssignments;
 import org.h2.command.dml.CommandWithValues;
 import org.h2.command.dml.DataChangeStatement;
 import org.h2.command.dml.Delete;
@@ -1406,19 +1407,30 @@ public class Parser {
         }
         TableFilter filter = readSimpleTableFilter();
         command.setTableFilter(filter);
-        parseUpdateSetClause(command, filter, start, true, limit == null);
+        parseUpdateSetClause(command, filter);
+        if (readIf(WHERE)) {
+            command.setCondition(readExpression());
+        }
+        if (limit == null) {
+            // for MySQL compatibility
+            // (this syntax is supported, but ignored)
+            readIfOrderBy();
+            if (readIf(LIMIT)) {
+                Expression limit1 = readTerm().optimize(session);
+                command.setLimit(limit1);
+            }
+        }
+        setSQL(command, start);
         return command;
     }
 
-    private void parseUpdateSetClause(Update command, TableFilter filter, int start, boolean allowWhere,
-            boolean allowExtensions) {
+    private void parseUpdateSetClause(CommandWithAssignments command, TableFilter filter) {
         read(SET);
         do {
             if (readIf(OPEN_PAREN)) {
                 ArrayList<Column> columns = Utils.newSmallArrayList();
                 do {
-                    Column column = readTableColumn(filter);
-                    columns.add(column);
+                    columns.add(readTableColumn(filter));
                 } while (readIfMore());
                 read(EQUAL);
                 Expression expression = readExpression();
@@ -1446,20 +1458,6 @@ public class Parser {
                 command.setAssignment(column, readExpressionOrDefault());
             }
         } while (readIf(COMMA));
-        if (allowWhere && readIf(WHERE)) {
-            Expression condition = readExpression();
-            command.setCondition(condition);
-        }
-        if (allowExtensions) {
-            // for MySQL compatibility
-            // (this syntax is supported, but ignored)
-            readIfOrderBy();
-            if (readIf(LIMIT)) {
-                Expression limit = readTerm().optimize(session);
-                command.setLimit(limit);
-            }
-        }
-        setSQL(command, start);
     }
 
     private TableFilter readSimpleTableFilter() {
@@ -1732,7 +1730,7 @@ public class Parser {
         currentPrepared = command;
 
         if (isQuery()) {
-            command.setQuery(parseQuery());
+            Query query = parseQuery();
             String queryAlias = readFromAlias(null);
             String[] cols = null;
             if (queryAlias == null) {
@@ -1743,11 +1741,9 @@ public class Parser {
                     cols = derivedColumnNames.toArray(new String[0]);
                 }
             }
-            command.setQueryAlias(queryAlias);
 
             String[] querySQLOutput = new String[1];
-            List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(cols, command.getQuery(),
-                    querySQLOutput);
+            List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(cols, query, querySQLOutput);
             TableView temporarySourceTableView = createCTEView(
                     queryAlias, querySQLOutput[0],
                     columnTemplateList, false/* no recursion */,
@@ -1760,16 +1756,7 @@ public class Parser {
             command.setSourceTableFilter(sourceTableFilter);
             command.setCteCleanups(Collections.singletonList(temporarySourceTableView));
         } else {
-            TableFilter sourceTableFilter = readTableFilter();
-            command.setSourceTableFilter(sourceTableFilter);
-
-            Select preparedQuery = new Select(session, null);
-            preparedQuery.setWildcard();
-            TableFilter filter = new TableFilter(session, sourceTableFilter.getTable(),
-                    sourceTableFilter.getTableAlias(), rightsChecked, preparedQuery, 0, null);
-            preparedQuery.addTableFilter(filter, true);
-            preparedQuery.init();
-            command.setQuery(preparedQuery);
+            command.setSourceTableFilter(readTableFilter());
         }
         read(ON);
         Expression condition = readExpression();
@@ -1792,30 +1779,21 @@ public class Parser {
     private void parseWhenMatched(MergeUsing command) {
         Expression and = readIf(AND) ? readExpression() : null;
         read("THEN");
-        int startMatched = lastParseIndex;
-        boolean allowWhere = database.getMode().mergeWhere;
+        MergeUsing.When when;
         if (readIf("UPDATE")) {
-            Update updateCommand = new Update(session);
             TableFilter filter = command.getTargetTableFilter();
-            updateCommand.setTableFilter(filter);
-            parseUpdateSetClause(updateCommand, filter, startMatched, allowWhere, false);
-            MergeUsing.WhenMatchedThenUpdate when = new MergeUsing.WhenMatchedThenUpdate(command);
-            when.setAndCondition(and);
-            when.setUpdateCommand(updateCommand);
-            command.addWhen(when);
+            MergeUsing.WhenMatchedThenUpdate update = new MergeUsing.WhenMatchedThenUpdate(command);
+            parseUpdateSetClause(update, filter);
+            when = update;
         } else {
             read("DELETE");
-            Delete deleteCommand = new Delete(session);
-            deleteCommand.setTableFilter(command.getTargetTableFilter());
-            if (allowWhere && readIf(WHERE)) {
-                deleteCommand.setCondition(readExpression());
-            }
-            setSQL(deleteCommand, startMatched);
-            MergeUsing.WhenMatchedThenDelete when = new MergeUsing.WhenMatchedThenDelete(command);
-            when.setAndCondition(and);
-            when.setDeleteCommand(deleteCommand);
-            command.addWhen(when);
+            when = new MergeUsing.WhenMatchedThenDelete(command);
         }
+        if (and == null && database.getMode().mergeWhere && readIf(WHERE)) {
+            and = readExpression();
+        }
+        when.setAndCondition(and);
+        command.addWhen(when);
     }
 
     private void parseWhenNotMatched(MergeUsing command) {
@@ -1824,13 +1802,7 @@ public class Parser {
         Expression and = readIf(AND) ? readExpression() : null;
         read("THEN");
         read("INSERT");
-        Insert insertCommand = new Insert(session);
-        insertCommand.setTable(command.getTargetTable());
-        Column[] columns = null;
-        if (readIf(OPEN_PAREN)) {
-            columns = parseColumnList(command.getTargetTable());
-            insertCommand.setColumns(columns);
-        }
+        Column[] columns = readIf(OPEN_PAREN) ? parseColumnList(command.getTargetTable()) : null;
         read(VALUES);
         read(OPEN_PAREN);
         ArrayList<Expression> values = Utils.newSmallArrayList();
@@ -1839,10 +1811,9 @@ public class Parser {
                 values.add(readExpressionOrDefault());
             } while (readIfMore());
         }
-        insertCommand.addRow(values.toArray(new Expression[0]));
-        MergeUsing.WhenNotMatched when = new MergeUsing.WhenNotMatched(command);
+        MergeUsing.WhenNotMatched when = new MergeUsing.WhenNotMatched(command, columns,
+                values.toArray(new Expression[0]));
         when.setAndCondition(and);
-        when.setInsertCommand(insertCommand);
         command.addWhen(when);
     }
 

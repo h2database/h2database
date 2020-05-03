@@ -96,7 +96,21 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         table.lock(session, true, false);
         setCurrentRowNumber(0);
         int count = 0;
+        Row previousSource = null, missedSource = null;
         while (sourceTableFilter.next()) {
+            Row source = sourceTableFilter.get();
+            if (missedSource != null) {
+                if (source != missedSource) {
+                    Row backupTarget = targetTableFilter.get();
+                    sourceTableFilter.set(missedSource);
+                    targetTableFilter.set(table.getNullRow());
+                    countUpdatedRows += merge(true);
+                    sourceTableFilter.set(source);
+                    targetTableFilter.set(backupTarget);
+                    count++;
+                }
+                missedSource = null;
+            }
             setCurrentRowNumber(count + 1);
             boolean nullRow = targetTableFilter.isNullRow();
             if (!nullRow) {
@@ -104,12 +118,18 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
                 if (table.isMVStore()) {
                     Row lockedRow = table.lockRow(session, targetRow);
                     if (lockedRow == null) {
+                        if (previousSource != source) {
+                            missedSource = source;
+                        }
                         continue;
                     }
                     if (!targetRow.hasSharedData(lockedRow)) {
                         targetRow = lockedRow;
                         targetTableFilter.set(targetRow);
                         if (!onCondition.getBooleanValue(session)) {
+                            if (previousSource != source) {
+                                missedSource = source;
+                            }
                             continue;
                         }
                     }
@@ -123,21 +143,31 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
                                     + targetTableFilter.getTable());
                 }
             }
-            for (When w : when) {
-                if (w.getClass() == WhenNotMatched.class == nullRow) {
-                    Expression condition = w.andCondition;
-                    if (condition == null || condition.getBooleanValue(session)) {
-                        w.merge(session);
-                        countUpdatedRows++;
-                        break;
-                    }
-                }
-            }
+            countUpdatedRows += merge(nullRow);
             count++;
+            previousSource = source;
+        }
+        if (missedSource != null) {
+            sourceTableFilter.set(missedSource);
+            targetTableFilter.set(table.getNullRow());
+            countUpdatedRows += merge(true);
         }
         targetRowidsRemembered.clear();
         table.fire(session, evaluateTriggerMasks(), false);
         return countUpdatedRows;
+    }
+
+    private int merge(boolean nullRow) {
+        for (When w : when) {
+            if (w.getClass() == WhenNotMatched.class == nullRow) {
+                Expression condition = w.andCondition;
+                if (condition == null || condition.getBooleanValue(session)) {
+                    w.merge(session);
+                    return 1;
+                }
+            }
+        }
+        return 0;
     }
 
     private int evaluateTriggerMasks() {

@@ -35,6 +35,7 @@ import org.h2.table.PlanItem;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.HasSQL;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 
@@ -190,9 +191,12 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
     @Override
     public String getPlanSQL(int sqlFlags) {
         StringBuilder builder = new StringBuilder("MERGE INTO ");
-        targetTableFilter.getTable().getSQL(builder, sqlFlags).append('\n').append("USING ");
-        sourceTableFilter.getTable().getSQL(builder, sqlFlags);
-        // TODO add aliases and WHEN clauses to make plan SQL more like original SQL
+        targetTableFilter.getPlanSQL(builder, false, sqlFlags);
+        builder.append('\n').append("USING ");
+        sourceTableFilter.getPlanSQL(builder, false, sqlFlags);
+        for (When w : when) {
+            w.getSQL(builder.append('\n'), sqlFlags);
+        }
         return builder.toString();
     }
 
@@ -313,7 +317,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
     /**
      * Abstract WHEN command of the MERGE statement.
      */
-    public abstract static class When {
+    public abstract static class When implements HasSQL {
 
         /**
          * The parent MERGE statement.
@@ -391,6 +395,20 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
                 andCondition.isEverything(visitor);
             }
         }
+
+        @Override
+        public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+            builder.append("WHEN ");
+            if (getClass() == WhenNotMatched.class) {
+                builder.append("NOT ");
+            }
+            builder.append("MATCHED");
+            if (andCondition != null) {
+                andCondition.getSQL(builder.append(" AND "), sqlFlags);
+            }
+            return builder.append(" THEN ");
+        }
+
     }
 
     public static final class WhenMatchedThenDelete extends When {
@@ -422,6 +440,11 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         @Override
         void checkRights() {
             mergeUsing.getSession().getUser().checkRight(mergeUsing.targetTableFilter.getTable(), Right.DELETE);
+        }
+
+        @Override
+        public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+            return super.getSQL(builder, sqlFlags).append("DELETE");
         }
 
     }
@@ -553,6 +576,13 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
             }
         }
 
+        @Override
+        public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+            super.getSQL(builder, sqlFlags).append("UPDATE");
+            Update.getSetClauseSQL(builder, setClauseMap, sqlFlags);
+            return builder;
+        }
+
     }
 
     public static final class WhenNotMatched extends When {
@@ -644,5 +674,16 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
                 e.isEverything(visitor);
             }
         }
+
+        @Override
+        public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+            super.getSQL(builder, sqlFlags).append("INSERT (");
+            Column.writeColumns(builder, columns, sqlFlags);
+            builder.append(")\nVALUES (");
+            Expression.writeExpressions(builder, values, sqlFlags);
+            return builder.append(')');
+        }
+
     }
+
 }

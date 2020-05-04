@@ -92,7 +92,7 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
             args[i] = args[i].optimize(session);
         }
         if (filterCondition != null) {
-            filterCondition = filterCondition.optimize(session);
+            filterCondition = filterCondition.optimizeCondition(session);
         }
         return super.optimize(session);
     }

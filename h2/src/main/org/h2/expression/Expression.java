@@ -116,6 +116,20 @@ public abstract class Expression implements HasSQL {
     public abstract Expression optimize(Session session);
 
     /**
+     * Try to optimize or remove the condition.
+     *
+     * @param session the session
+     * @return the optimized condition, or {@code null}
+     */
+    public final Expression optimizeCondition(Session session) {
+        Expression e = optimize(session);
+        if (e.isConstant()) {
+            return e.getBooleanValue(session) ? null : ValueExpression.FALSE;
+        }
+        return e;
+    }
+
+    /**
      * Tell the expression columns whether the table filter can return values
      * now. This is used when optimizing the query.
      *

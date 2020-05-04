@@ -218,16 +218,8 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
     @Override
     public String getPlanSQL(int sqlFlags) {
         StringBuilder builder = new StringBuilder("UPDATE ");
-        targetTableFilter.getPlanSQL(builder, false, sqlFlags).append("\nSET\n    ");
-        boolean f = false;
-        for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
-            if (f) {
-                builder.append(",\n    ");
-            }
-            f = true;
-            entry.getKey().getSQL(builder, sqlFlags).append(" = ");
-            entry.getValue().getSQL(builder, sqlFlags);
-        }
+        targetTableFilter.getPlanSQL(builder, false, sqlFlags);
+        getSetClauseSQL(builder, setClauseMap, sqlFlags);
         if (condition != null) {
             builder.append("\nWHERE ");
             condition.getUnenclosedSQL(builder, sqlFlags);
@@ -239,12 +231,27 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
         return builder.toString();
     }
 
+    static void getSetClauseSQL(StringBuilder builder, LinkedHashMap<Column, Expression> setClauseMap, int sqlFlags) {
+        builder.append("\nSET\n    ");
+        boolean f = false;
+        for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
+            if (f) {
+                builder.append(",\n    ");
+            }
+            f = true;
+            entry.getKey().getSQL(builder, sqlFlags).append(" = ");
+            entry.getValue().getSQL(builder, sqlFlags);
+        }
+    }
+
     @Override
     public void prepare() {
         if (condition != null) {
             condition.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
-            condition = condition.optimize(session);
-            condition.createIndexConditions(session, targetTableFilter);
+            condition = condition.optimizeCondition(session);
+            if (condition != null) {
+                condition.createIndexConditions(session, targetTableFilter);
+            }
         }
         for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
             Expression e = entry.getValue();

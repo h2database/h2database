@@ -691,7 +691,8 @@ public class TestCompatibility extends TestDb {
         testIdentifiers(false, true, true);
     }
 
-    private void testIdentifiers(boolean upper, boolean lower, boolean caseInsensitiveIdentifiers) throws SQLException {
+    private void testIdentifiers(boolean upper, boolean lower, boolean caseInsensitiveIdentifiers) //
+            throws SQLException {
         try (Connection conn = getConnection("compatibility;DATABASE_TO_UPPER=" + upper + ";DATABASE_TO_LOWER=" + lower
                 + ";CASE_INSENSITIVE_IDENTIFIERS=" + caseInsensitiveIdentifiers)) {
             Statement stat = conn.createStatement();

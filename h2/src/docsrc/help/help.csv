@@ -189,15 +189,17 @@ MERGE INTO TEST KEY(ID) VALUES(2, 'World')
 
 "Commands (DML)","MERGE USING","
 MERGE INTO [schemaName.]targetTableName [ [AS] targetAlias]
-USING { ( query ) | [schemaName.]sourceTableName }[ [AS] sourceAlias ]
+USING tableExpression
 ON expression
 mergeWhenClause [,...]
 ","
 Updates or deletes existing rows, and insert rows that don't exist.
 
 The ON clause specifies the matching column expression.
-Different rows from a source table may not match with the same target row,
-but one source row may be matched with multiple target rows.
+
+Different rows from a source table may not match with the same target row
+(this is not ensured by H2 if target table is an updatable view).
+One source row may be matched with multiple target rows.
 
 If statement doesn't need a source table a DUAL table can be substituted.
 ","
@@ -208,7 +210,7 @@ MERGE INTO TARGET_TABLE AS T USING SOURCE_TABLE AS S
     WHEN MATCHED AND T.COL2 = 'FINAL' THEN
         DELETE
     WHEN NOT MATCHED THEN
-        INSERT (ID, COL1, COL2) VALUES(S.ID, S.COL1, S.COL2)
+        INSERT (ID, COL1, COL2) VALUES(S.ID, S.COL1, S.COL2);
 MERGE INTO TARGET_TABLE AS T USING (SELECT * FROM SOURCE_TABLE) AS S
     ON T.ID = S.ID
     WHEN MATCHED AND T.COL2 <> 'FINAL' THEN
@@ -216,10 +218,14 @@ MERGE INTO TARGET_TABLE AS T USING (SELECT * FROM SOURCE_TABLE) AS S
     WHEN MATCHED AND T.COL2 = 'FINAL' THEN
         DELETE
     WHEN NOT MATCHED THEN
-        INSERT VALUES (S.ID, S.COL1, S.COL2)
+        INSERT VALUES (S.ID, S.COL1, S.COL2);
+MERGE INTO TARGET T USING (VALUES (1, 4), (2, 15)) S(ID, V)
+    ON T.ID = S.ID
+    WHEN MATCHED THEN UPDATE SET V = S.V
+    WHEN NOT MATCHED THEN INSERT VALUES (S.ID, S.V);
 MERGE INTO TARGET_TABLE USING DUAL ON ID = 1
     WHEN NOT MATCHED THEN INSERT VALUES (1, 'Test')
-    WHEN MATCHED THEN UPDATE SET NAME = 'Test'
+    WHEN MATCHED THEN UPDATE SET NAME = 'Test';
 "
 
 "Commands (DML)","RUNSCRIPT","

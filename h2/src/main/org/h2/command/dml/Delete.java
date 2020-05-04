@@ -160,8 +160,10 @@ public class Delete extends Prepared implements DataChangeStatement {
     public void prepare() {
         if (condition != null) {
             condition.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
-            condition = condition.optimize(session);
-            condition.createIndexConditions(session, targetTableFilter);
+            condition = condition.optimizeCondition(session);
+            if (condition != null) {
+                condition.createIndexConditions(session, targetTableFilter);
+            }
         }
         TableFilter[] filters = new TableFilter[] { targetTableFilter };
         PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters));

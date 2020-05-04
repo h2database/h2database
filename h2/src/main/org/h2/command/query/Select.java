@@ -1106,7 +1106,8 @@ public class Select extends Query {
         }
     }
 
-    private int mergeGroupByExpressions(Database db, int index, ArrayList<String> expressionSQL, boolean scanPrevious) {
+    private int mergeGroupByExpressions(Database db, int index, ArrayList<String> expressionSQL, //
+            boolean scanPrevious) {
 
         /*
          * -1: uniqueness of expression is not known yet
@@ -1174,17 +1175,19 @@ public class Select extends Query {
             cleanupOrder();
         }
         if (condition != null) {
-            condition = condition.optimize(session);
-            for (TableFilter f : filters) {
-                // outer joins: must not add index conditions such as
-                // "c is null" - example:
-                // create table parent(p int primary key) as select 1;
-                // create table child(c int primary key, pc int);
-                // insert into child values(2, 1);
-                // select p, c from parent
-                // left outer join child on p = pc where c is null;
-                if (!f.isJoinOuter() && !f.isJoinOuterIndirect()) {
-                    condition.createIndexConditions(session, f);
+            condition = condition.optimizeCondition(session);
+            if (condition != null) {
+                for (TableFilter f : filters) {
+                    // outer joins: must not add index conditions such as
+                    // "c is null" - example:
+                    // create table parent(p int primary key) as select 1;
+                    // create table child(c int primary key, pc int);
+                    // insert into child values(2, 1);
+                    // select p, c from parent
+                    // left outer join child on p = pc where c is null;
+                    if (!f.isJoinOuter() && !f.isJoinOuterIndirect()) {
+                        condition.createIndexConditions(session, f);
+                    }
                 }
             }
         }

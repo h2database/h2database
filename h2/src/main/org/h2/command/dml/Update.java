@@ -248,8 +248,10 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
     public void prepare() {
         if (condition != null) {
             condition.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
-            condition = condition.optimize(session);
-            condition.createIndexConditions(session, targetTableFilter);
+            condition = condition.optimizeCondition(session);
+            if (condition != null) {
+                condition.createIndexConditions(session, targetTableFilter);
+            }
         }
         for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
             Expression e = entry.getValue();

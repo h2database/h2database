@@ -348,16 +348,10 @@ public class TableFilter implements ColumnResolver {
             join.prepare();
         }
         if (filterCondition != null) {
-            filterCondition = filterCondition.optimize(session);
-            if (filterCondition.isConstant() && filterCondition.getBooleanValue(session)) {
-                filterCondition = null;
-            }
+            filterCondition = filterCondition.optimizeCondition(session);
         }
         if (joinCondition != null) {
-            joinCondition = joinCondition.optimize(session);
-            if (joinCondition.isConstant() && joinCondition.getBooleanValue(session)) {
-                joinCondition = null;
-            }
+            joinCondition = joinCondition.optimizeCondition(session);
         }
     }
 
@@ -650,10 +644,12 @@ public class TableFilter implements ColumnResolver {
      */
     public void createIndexConditions() {
         if (joinCondition != null) {
-            joinCondition = joinCondition.optimize(session);
-            joinCondition.createIndexConditions(session, this);
-            if (nestedJoin != null) {
-                joinCondition.createIndexConditions(session, nestedJoin);
+            joinCondition = joinCondition.optimizeCondition(session);
+            if (joinCondition != null) {
+                joinCondition.createIndexConditions(session, this);
+                if (nestedJoin != null) {
+                    joinCondition.createIndexConditions(session, nestedJoin);
+                }
             }
         }
         if (join != null) {

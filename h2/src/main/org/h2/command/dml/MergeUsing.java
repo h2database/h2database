@@ -7,6 +7,7 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Map.Entry;
@@ -213,8 +214,24 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         sourceTableFilter.setPlanItem(item);
         sourceTableFilter.prepare();
 
-        for (When w : when) {
-            w.prepare(session);
+        boolean hasFinalNotMatched = false, hasFinalMatched = false;
+        for (Iterator<When> i = when.iterator(); i.hasNext();) {
+            When w = i.next();
+            if (!w.prepare(session)) {
+                i.remove();
+            } else if (w.getClass() == WhenNotMatched.class) {
+                if (hasFinalNotMatched) {
+                    i.remove();
+                } else if (w.andCondition == null) {
+                    hasFinalNotMatched = true;
+                }
+            } else {
+                if (hasFinalMatched) {
+                    i.remove();
+                } else if (w.andCondition == null) {
+                    hasFinalMatched = true;
+                }
+            }
         }
     }
 
@@ -334,13 +351,22 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
          *
          * @param session
          *            the session
+         * @return {@code false} if this clause may be removed
          */
-        void prepare(Session session) {
+        boolean prepare(Session session) {
             if (andCondition != null) {
                 andCondition.mapColumns(mergeUsing.targetTableFilter, 0, Expression.MAP_INITIAL);
                 andCondition.mapColumns(mergeUsing.sourceTableFilter, 0, Expression.MAP_INITIAL);
                 andCondition = andCondition.optimize(session);
+                if (andCondition.isConstant()) {
+                    if (andCondition.getBooleanValue(session)) {
+                        andCondition = null;
+                    } else {
+                        return false;
+                    }
+                }
             }
+            return true;
         }
 
         /**
@@ -496,8 +522,8 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        void prepare(Session session) {
-            super.prepare(session);
+        boolean prepare(Session session) {
+            boolean result = super.prepare(session);
             TableFilter targetTableFilter = mergeUsing.targetTableFilter,
                     sourceTableFilter = mergeUsing.sourceTableFilter;
             for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
@@ -506,6 +532,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
                 e.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
                 entry.setValue(e.optimize(session));
             }
+            return result;
         }
 
         @Override
@@ -577,8 +604,8 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        void prepare(Session session) {
-            super.prepare(session);
+        boolean prepare(Session session) {
+            boolean result = super.prepare(session);
             TableFilter targetTableFilter = mergeUsing.targetTableFilter,
                     sourceTableFilter = mergeUsing.sourceTableFilter;
             if (columns == null) {
@@ -597,6 +624,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
                 }
                 values[i] = e;
             }
+            return result;
         }
 
         @Override

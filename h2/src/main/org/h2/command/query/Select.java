@@ -1106,7 +1106,8 @@ public class Select extends Query {
         }
     }
 
-    private int mergeGroupByExpressions(Database db, int index, ArrayList<String> expressionSQL, boolean scanPrevious) {
+    private int mergeGroupByExpressions(Database db, int index, ArrayList<String> expressionSQL, //
+            boolean scanPrevious) {
 
         /*
          * -1: uniqueness of expression is not known yet

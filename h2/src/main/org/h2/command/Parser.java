@@ -1732,18 +1732,15 @@ public class Parser {
         if (isQuery()) {
             Query query = parseQuery();
             String queryAlias = readFromAlias(null);
-            String[] cols = null;
+            ArrayList<String> derivedColumnNames = null;
             if (queryAlias == null) {
                 queryAlias = Constants.PREFIX_QUERY_ALIAS + parseIndex;
             } else {
-                ArrayList<String> derivedColumnNames = readDerivedColumnNames();
-                if (derivedColumnNames != null) {
-                    cols = derivedColumnNames.toArray(new String[0]);
-                }
+                derivedColumnNames = readDerivedColumnNames();
             }
 
             String[] querySQLOutput = new String[1];
-            List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(cols, query, querySQLOutput);
+            List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(null, query, querySQLOutput);
             TableView temporarySourceTableView = createCTEView(
                     queryAlias, querySQLOutput[0],
                     columnTemplateList, false/* no recursion */,
@@ -1753,6 +1750,9 @@ public class Parser {
             TableFilter sourceTableFilter = new TableFilter(session,
                     temporarySourceTableView, queryAlias,
                     rightsChecked, null, 0, null);
+            if (derivedColumnNames != null) {
+                sourceTableFilter.setDerivedColumns(derivedColumnNames);
+            }
             command.setSourceTableFilter(sourceTableFilter);
             command.setCteCleanups(Collections.singletonList(temporarySourceTableView));
         } else {

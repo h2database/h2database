@@ -349,9 +349,15 @@ public class TableFilter implements ColumnResolver {
         }
         if (filterCondition != null) {
             filterCondition = filterCondition.optimize(session);
+            if (filterCondition.isConstant() && filterCondition.getBooleanValue(session)) {
+                filterCondition = null;
+            }
         }
         if (joinCondition != null) {
             joinCondition = joinCondition.optimize(session);
+            if (joinCondition.isConstant() && joinCondition.getBooleanValue(session)) {
+                joinCondition = null;
+            }
         }
     }
 

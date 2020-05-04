@@ -99,6 +99,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         setCurrentRowNumber(0);
         int count = 0;
         Row previousSource = null, missedSource = null;
+        boolean hasRowId = table.getRowIdColumn() != null;
         while (sourceTableFilter.next()) {
             Row source = sourceTableFilter.get();
             if (missedSource != null) {
@@ -136,13 +137,15 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
                         }
                     }
                 }
-                long targetRowId = targetRow.getKey();
-                if (!targetRowidsRemembered.add(targetRowId)) {
-                    throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
-                            "Merge using ON column expression, " +
-                            "duplicate _ROWID_ target record already processed:_ROWID_="
-                                    + targetRowId + ":in:"
-                                    + targetTableFilter.getTable());
+                if (hasRowId) {
+                    long targetRowId = targetRow.getKey();
+                    if (!targetRowidsRemembered.add(targetRowId)) {
+                        throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
+                                "Merge using ON column expression, " +
+                                "duplicate _ROWID_ target record already processed:_ROWID_="
+                                        + targetRowId + ":in:"
+                                        + targetTableFilter.getTable());
+                    }
                 }
             }
             countUpdatedRows += merge(nullRow);

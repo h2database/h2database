@@ -603,7 +603,7 @@ public class TestNestedJoins extends TestDb {
                 "LEFT OUTER JOIN ( \"PUBLIC\".\"B\" " +
                 "INNER JOIN \"PUBLIC\".\"BASE\" \"B_BASE\" " +
                 "ON (\"B_BASE\".\"DELETED\" = 0) AND (\"B\".\"PK\" = \"B_BASE\".\"PK\") ) " +
-                "ON TRUE INNER JOIN \"PUBLIC\".\"A\" ON 1=1 " +
+                "ON 1=1 INNER JOIN \"PUBLIC\".\"A\" ON 1=1 " +
                 "WHERE \"A\".\"PK\" = \"A_BASE\".\"PK\"", sql);
         rs = stat.executeQuery(
                 "select a.pk, a_base.pk, b.pk, b_base.pk from a " +

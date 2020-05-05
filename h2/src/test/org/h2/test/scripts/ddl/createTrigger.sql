@@ -43,6 +43,48 @@ DROP TABLE TEST;
 > ok
 
 -- ---------------------------------------------------------------------------
+-- Checking multiple classes in trigger source
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE TEST(A VARCHAR, B VARCHAR, C VARCHAR);
+> ok
+
+CREATE TRIGGER T1 BEFORE INSERT, UPDATE ON TEST FOR EACH ROW AS 
+$$org.h2.api.Trigger create() { 
+
+    return new org.h2.api.Trigger() {
+        
+        @Override
+        public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, //
+                int type) throws SQLException {
+        }
+
+        @Override
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+            if (newRow != null) {
+                newRow[2] = ((int) newRow[2]) * 10;
+            }
+        }
+
+        @Override
+        public void close() throws SQLException {
+        }
+
+        @Override
+        public void remove() throws SQLException {
+        }
+    };
+
+} $$;
+> ok
+
+INSERT INTO TEST VALUES ('a', 'b', 'c');
+> exception ERROR_EXECUTING_TRIGGER_3
+
+DROP TABLE TEST;
+> ok
+
+-- ---------------------------------------------------------------------------
 -- PostgreSQL syntax tests
 -- ---------------------------------------------------------------------------
 

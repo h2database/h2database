@@ -565,7 +565,7 @@ public class SourceCompiler {
         /**
          * We use map because there can be nested, anonymous etc classes.
          */
-        private Map<String, JavaClassObject> classObjectsByName = new HashMap<>();
+        Map<String, JavaClassObject> classObjectsByName = new HashMap<>();
         
         private SecureClassLoader classLoader = new SecureClassLoader() {
             

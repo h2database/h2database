@@ -54,7 +54,7 @@ CREATE TRIGGER T1 BEFORE INSERT, UPDATE ON TEST FOR EACH ROW AS STRINGDECODE(
     return new org.h2.api.Trigger() {
         public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
             if (newRow != null) {
-                newRow[2] = ((int) newRow[2]) * 10\u003B
+                newRow[2] = newRow[2] + "1"\u003B
             }
         }
     }\u003B
@@ -62,10 +62,13 @@ CREATE TRIGGER T1 BEFORE INSERT, UPDATE ON TEST FOR EACH ROW AS STRINGDECODE(
 > ok
 
 INSERT INTO TEST VALUES ('a', 'b', 'c');
-> exception ERROR_EXECUTING_TRIGGER_3
+> update count: 1
 
-DROP TABLE TEST;
-> ok
+TABLE TEST;
+> A B C
+> - - --
+> a b c1
+> rows: 1
 
 -- ---------------------------------------------------------------------------
 -- PostgreSQL syntax tests

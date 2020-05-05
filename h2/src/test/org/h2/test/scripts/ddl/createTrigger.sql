@@ -49,33 +49,16 @@ DROP TABLE TEST;
 CREATE TABLE TEST(A VARCHAR, B VARCHAR, C VARCHAR);
 > ok
 
-CREATE TRIGGER T1 BEFORE INSERT, UPDATE ON TEST FOR EACH ROW AS 
-$$org.h2.api.Trigger create() { 
-
+CREATE TRIGGER T1 BEFORE INSERT, UPDATE ON TEST FOR EACH ROW AS STRINGDECODE(
+'org.h2.api.Trigger create() {
     return new org.h2.api.Trigger() {
-        
-        @Override
-        public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, //
-                int type) throws SQLException {
-        }
-
-        @Override
-        public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
             if (newRow != null) {
-                newRow[2] = ((int) newRow[2]) * 10;
+                newRow[2] = ((int) newRow[2]) * 10\u003B
             }
         }
-
-        @Override
-        public void close() throws SQLException {
-        }
-
-        @Override
-        public void remove() throws SQLException {
-        }
-    };
-
-} $$;
+    }\u003B
+}');
 > ok
 
 INSERT INTO TEST VALUES ('a', 'b', 'c');

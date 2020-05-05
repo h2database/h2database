@@ -564,9 +564,20 @@ public class SourceCompiler {
             ForwardingJavaFileManager<StandardJavaFileManager> {
 
         /**
-         * The class (only one class is kept).
+         * We use map because there can be nested, anonymous etc classes.
          */
-        JavaClassObject classObject;
+        Map<String, JavaClassObject> classObjectsByName = new HashMap<>();
+        
+        private SecureClassLoader classLoader = new SecureClassLoader() {
+            
+            @Override
+            protected Class<?> findClass(String name)
+                    throws ClassNotFoundException {
+                byte[] bytes = classObjectsByName.get(name).getBytes();
+                return super.defineClass(name, bytes, 0,
+                        bytes.length);
+            }
+        };
 
         public ClassFileManager(StandardJavaFileManager standardManager) {
             super(standardManager);
@@ -574,21 +585,14 @@ public class SourceCompiler {
 
         @Override
         public ClassLoader getClassLoader(Location location) {
-            return new SecureClassLoader() {
-                @Override
-                protected Class<?> findClass(String name)
-                        throws ClassNotFoundException {
-                    byte[] bytes = classObject.getBytes();
-                    return super.defineClass(name, bytes, 0,
-                            bytes.length);
-                }
-            };
+            return this.classLoader;
         }
 
         @Override
         public JavaFileObject getJavaFileForOutput(Location location,
                 String className, Kind kind, FileObject sibling) throws IOException {
-            classObject = new JavaClassObject(className, kind);
+            JavaClassObject classObject = new JavaClassObject(className, kind);
+            classObjectsByName.put(className, classObject);
             return classObject;
         }
     }

@@ -74,6 +74,37 @@ DROP TABLE TEST;
 > ok
 
 -- ---------------------------------------------------------------------------
+-- Checking multiple classes in trigger source
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE TEST(A VARCHAR, B VARCHAR, C VARCHAR);
+> ok
+
+CREATE TRIGGER T1 BEFORE INSERT, UPDATE ON TEST FOR EACH ROW AS STRINGDECODE(
+'org.h2.api.Trigger create() {
+    return new org.h2.api.Trigger() {
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
+            if (newRow != null) {
+                newRow[2] = newRow[2] + "1"\u003B
+            }
+        }
+    }\u003B
+}');
+> ok
+
+INSERT INTO TEST VALUES ('a', 'b', 'c');
+> update count: 1
+
+TABLE TEST;
+> A B C
+> - - --
+> a b c1
+> rows: 1
+
+DROP TABLE TEST;
+> ok
+
+-- ---------------------------------------------------------------------------
 -- PostgreSQL syntax tests
 -- ---------------------------------------------------------------------------
 

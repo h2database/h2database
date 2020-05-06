@@ -62,15 +62,15 @@ public class ConcatenationOperation extends Operation2 {
         }
         default: {
             if (l == ValueNull.INSTANCE) {
-                if (session.getDatabase().getMode().nullConcatIsNull) {
-                    return ValueNull.INSTANCE;
+                if (session.getMode().treatEmptyStringsAsNull) {
+                    return r;
                 }
-                return r;
+                return ValueNull.INSTANCE;
             } else if (r == ValueNull.INSTANCE) {
-                if (session.getDatabase().getMode().nullConcatIsNull) {
-                    return ValueNull.INSTANCE;
+                if (session.getMode().treatEmptyStringsAsNull) {
+                    return l;
                 }
-                return l;
+                return ValueNull.INSTANCE;
             }
             String s1 = l.getString(), s2 = r.getString();
             StringBuilder buff = new StringBuilder(s1.length() + s2.length());

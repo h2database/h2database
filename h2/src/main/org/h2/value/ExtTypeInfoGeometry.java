@@ -22,12 +22,11 @@ public final class ExtTypeInfoGeometry extends ExtTypeInfo {
         if (type == 0 && srid == null) {
             return "";
         }
-        StringBuilder builder = new StringBuilder();
-        builder.append('(');
+        StringBuilder builder = new StringBuilder().append('(');
         if (type == 0) {
             builder.append("GEOMETRY");
         } else {
-            builder.append(EWKTUtils.formatGeometryTypeAndDimensionSystem(type));
+            EWKTUtils.formatGeometryTypeAndDimensionSystem(builder, type);
         }
         if (srid != null) {
             builder.append(", ").append((int) srid);

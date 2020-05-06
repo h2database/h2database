@@ -2133,9 +2133,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             int type = extTypeInfo.getType();
             Integer srid = extTypeInfo.getSrid();
             if (type != 0 && result.getTypeAndDimensionSystem() != type || srid != null && result.getSRID() != srid) {
-                throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1,
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1,
                         ExtTypeInfoGeometry.toSQL(result.getTypeAndDimensionSystem(), result.getSRID())
-                                + " <> " + extTypeInfo.toString());
+                                + " -> " + extTypeInfo.toString());
             }
         }
         return result;

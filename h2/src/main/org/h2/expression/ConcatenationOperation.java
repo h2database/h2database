@@ -99,7 +99,7 @@ public class ConcatenationOperation extends Operation2 {
             type = TypeInfo.TYPE_VARCHAR;
         }
         if (left.isConstant() && right.isConstant()) {
-            return ValueExpression.get(getValue(session));
+            return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
     }

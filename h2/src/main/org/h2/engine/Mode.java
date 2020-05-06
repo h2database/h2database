@@ -133,13 +133,6 @@ public class Mode {
     public boolean indexDefinitionInCreateTable;
 
     /**
-     * Concatenation with NULL results in NULL. Usually, NULL is treated as an
-     * empty string if only one of the operands is NULL, and NULL is only
-     * returned if both operands are NULL.
-     */
-    public boolean nullConcatIsNull;
-
-    /**
      * Identifiers may be quoted using square brackets as in [Test].
      */
     public boolean squareBracketQuotedNames;
@@ -367,7 +360,6 @@ public class Mode {
 
     static {
         Mode mode = new Mode(ModeEnum.REGULAR);
-        mode.nullConcatIsNull = true;
         mode.allowEmptyInPredicate = true;
         mode.dateTimeValueWithinTransaction = true;
         add(mode);
@@ -401,7 +393,6 @@ public class Mode {
         add(mode);
 
         mode = new Mode(ModeEnum.HSQLDB);
-        mode.nullConcatIsNull = true;
         mode.allowPlusForStringConcat = true;
         // HSQLDB does not support client info properties. See
         // http://hsqldb.org/doc/apidocs/org/hsqldb/jdbc/JDBCConnection.html#setClientInfo-java.lang.String-java.lang.String-
@@ -493,7 +484,6 @@ public class Mode {
 
         mode = new Mode(ModeEnum.PostgreSQL);
         mode.aliasColumnName = true;
-        mode.nullConcatIsNull = true;
         mode.systemColumns = true;
         mode.logIsLogBase10 = true;
         mode.regexpReplaceBackslashReferences = true;

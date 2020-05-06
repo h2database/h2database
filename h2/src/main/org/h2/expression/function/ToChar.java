@@ -546,6 +546,30 @@ public class ToChar {
         }
     }
 
+    private static String getTimeZoneHours(Session session, Value value) {
+        if(value instanceof ValueTimestampTimeZone) {
+            return DateTimeUtils.timeZoneHoursFromOffsetSeconds(((ValueTimestampTimeZone) value).getTimeZoneOffsetSeconds());
+        } else if( value instanceof ValueTimeTimeZone) {
+            return DateTimeUtils.timeZoneHoursFromOffsetSeconds( ((ValueTimeTimeZone)value).getTimeZoneOffsetSeconds());
+        } else {
+            TimeZoneProvider tz = session.currentTimeZone();
+            ValueTimestamp v = (ValueTimestamp) value.convertTo(TypeInfo.TYPE_TIMESTAMP, session);
+            return DateTimeUtils.timeZoneHoursFromOffsetSeconds(tz.getTimeZoneOffsetLocal(v.getDateValue(), v.getTimeNanos()));
+        }
+    }
+
+    private static String getTimeZoneMinutes(Session session, Value value) {
+        if(value instanceof ValueTimestampTimeZone) {
+            return DateTimeUtils.timeZoneMinutesFromOffsetSeconds(((ValueTimestampTimeZone) value).getTimeZoneOffsetSeconds());
+        } else if( value instanceof ValueTimeTimeZone) {
+            return DateTimeUtils.timeZoneMinutesFromOffsetSeconds( ((ValueTimeTimeZone)value).getTimeZoneOffsetSeconds());
+        } else {
+            TimeZoneProvider tz = session.currentTimeZone();
+            ValueTimestamp v = (ValueTimestamp) value.convertTo(TypeInfo.TYPE_TIMESTAMP, session);
+            return DateTimeUtils.timeZoneMinutesFromOffsetSeconds(tz.getTimeZoneOffsetLocal(v.getDateValue(), v.getTimeNanos()));
+        }
+    }
+
     /**
      * Emulates Oracle's TO_CHAR(datetime) function.
      *
@@ -830,6 +854,14 @@ public class ToChar {
                 i += 3;
 
                 // Week
+
+            } else if(containsAt(format, i, "TZH") != null) {
+                output.append(getTimeZoneHours(session, value));
+                i += 3;
+
+            } else if(containsAt(format, i, "TZM") != null) {
+                output.append(getTimeZoneMinutes(session, value));
+                i += 3;
 
             } else if (containsAt(format, i, "WW") != null) {
                 StringUtils.appendTwoDigits(output, (DateTimeUtils.getDayOfYear(dateValue) - 1) / 7 + 1);

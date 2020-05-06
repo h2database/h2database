@@ -173,7 +173,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private volatile long cancelAtNs;
     private final ValueTimestampTimeZone sessionStart;
     private ValueTimestampTimeZone transactionStart;
-    private ValueTimestampTimeZone currentCommandStart;
+    private ValueTimestampTimeZone commandStartOrEnd;
     private HashMap<String, Value> variables;
     private HashSet<ResultInterface> temporaryResults;
     private int queryTimeout;
@@ -1333,8 +1333,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * Wait for some time if this session is throttled (slowed down).
      */
     public void throttle() {
-        if (currentCommandStart == null) {
-            currentCommandStart = DateTimeUtils.currentTimestamp(timeZone);
+        if (commandStartOrEnd == null) {
+            commandStartOrEnd = DateTimeUtils.currentTimestamp(timeZone);
         }
         if (throttleNs == 0) {
             return;
@@ -1364,7 +1364,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         transitionToState(targetState, true);
         if (isOpen()) {
             currentCommand = command;
-            currentCommandStart = DateTimeUtils.currentTimestamp(timeZone);
+            commandStartOrEnd = DateTimeUtils.currentTimestamp(timeZone);
             if (command != null) {
                 if (queryTimeout > 0) {
                     long now = System.nanoTime();
@@ -1423,11 +1423,11 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         return currentCommand;
     }
 
-    public ValueTimestampTimeZone getCurrentCommandStart() {
-        if (currentCommandStart == null) {
-            currentCommandStart = DateTimeUtils.currentTimestamp(timeZone);
+    public ValueTimestampTimeZone getCommandStartOrEnd() {
+        if (commandStartOrEnd == null) {
+            commandStartOrEnd = DateTimeUtils.currentTimestamp(timeZone);
         }
-        return currentCommandStart;
+        return commandStartOrEnd;
     }
 
     public boolean getAllowLiterals() {
@@ -2077,7 +2077,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public ValueTimestampTimeZone currentTimestamp() {
-        return database.getMode().dateTimeValueWithinTransaction ? getTransactionStart() : getCurrentCommandStart();
+        return database.getMode().dateTimeValueWithinTransaction ? getTransactionStart() : getCommandStartOrEnd();
     }
 
     @Override
@@ -2165,9 +2165,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             if (ts != null) {
                 transactionStart = moveTimestamp(ts, timeZone);
             }
-            ts = currentCommandStart;
+            ts = commandStartOrEnd;
             if (ts != null) {
-                currentCommandStart = moveTimestamp(ts, timeZone);
+                commandStartOrEnd = moveTimestamp(ts, timeZone);
             }
             modificationId++;
         }

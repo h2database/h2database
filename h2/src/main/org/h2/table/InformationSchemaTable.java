@@ -1791,7 +1791,7 @@ public final class InformationSchemaTable extends MetaTable {
                             // STATEMENT
                             command == null ? null : command.toString(),
                             // STATEMENT_START
-                            command == null ? null : s.getCurrentCommandStart(),
+                            command == null ? null : s.getCommandStartOrEnd(),
                             // CONTAINS_UNCOMMITTED
                             ValueBoolean.get(s.containsUncommitted()),
                             // STATE
@@ -1799,7 +1799,7 @@ public final class InformationSchemaTable extends MetaTable {
                             // BLOCKER_ID
                             blockingSessionId == 0 ? null : ValueInteger.get(blockingSessionId),
                             // SLEEP_SINCE
-                            s.getState() == State.SLEEP ? s.getCurrentCommandStart() : null
+                            s.getState() == State.SLEEP ? s.getCommandStartOrEnd() : null
                     );
                 }
             }

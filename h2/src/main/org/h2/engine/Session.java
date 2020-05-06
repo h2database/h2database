@@ -174,7 +174,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private final ValueTimestampTimeZone sessionStart;
     private ValueTimestampTimeZone transactionStart;
     private ValueTimestampTimeZone currentCommandStart;
-    private ValueTimestampTimeZone sleepStateSince;
     private HashMap<String, Value> variables;
     private HashSet<ResultInterface> temporaryResults;
     private int queryTimeout;
@@ -1365,19 +1364,14 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         transitionToState(targetState, true);
         if (isOpen()) {
             currentCommand = command;
+            currentCommandStart = DateTimeUtils.currentTimestamp(timeZone);
             if (command != null) {
-                currentCommandStart = DateTimeUtils.currentTimestamp(timeZone);
-                sleepStateSince = null;
                 if (queryTimeout > 0) {
                     long now = System.nanoTime();
                     cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
                 }
-            } else {
-                if (nextValueFor != null) {
-                    nextValueFor.clear();
-                }
-                currentCommandStart = null;
-                sleepStateSince = DateTimeUtils.currentTimestamp(timeZone);
+            } else if (nextValueFor != null) {
+                nextValueFor.clear();
             }
         }
     }
@@ -1434,10 +1428,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             currentCommandStart = DateTimeUtils.currentTimestamp(timeZone);
         }
         return currentCommandStart;
-    }
-
-    public ValueTimestampTimeZone getSleepStateSince() {
-        return sleepStateSince;
     }
 
     public boolean getAllowLiterals() {

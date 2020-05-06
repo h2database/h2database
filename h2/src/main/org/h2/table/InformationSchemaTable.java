@@ -1799,7 +1799,7 @@ public final class InformationSchemaTable extends MetaTable {
                             // BLOCKER_ID
                             blockingSessionId == 0 ? null : ValueInteger.get(blockingSessionId),
                             // SLEEP_SINCE
-                            s.getState() == State.SLEEP ? s.getSleepStateSince() : null
+                            s.getState() == State.SLEEP ? s.getCurrentCommandStart() : null
                     );
                 }
             }

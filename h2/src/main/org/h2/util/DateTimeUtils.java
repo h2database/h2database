@@ -1080,6 +1080,7 @@ public class DateTimeUtils {
     public static String timeZoneHoursFromOffsetSeconds(int offsetSeconds) {
         StringBuilder b = new StringBuilder();
         b.append( offsetSeconds < 0 ? '-' : '+');
+        offsetSeconds = Math.abs(offsetSeconds);
        if(offsetSeconds == 0) {
            b.append("00");
        } else {
@@ -1093,6 +1094,7 @@ public class DateTimeUtils {
             return "00";
         } else {
             StringBuilder b = new StringBuilder();
+            offsetSeconds = Math.abs(offsetSeconds);
             offsetSeconds %= 3_600;
             StringUtils.appendTwoDigits(b, offsetSeconds / 60);
             return b.toString();

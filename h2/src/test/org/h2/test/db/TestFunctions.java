@@ -1580,6 +1580,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertResult("+00", stat, "SELECT TO_CHAR(TIMESTAMP WITH TIME ZONE '2010-01-01 0:00:00+00:00', 'TZH')");
         assertResult("50", stat, "SELECT TO_CHAR(TIMESTAMP WITH TIME ZONE '2010-01-01 0:00:00+00:50', 'TZM')");
         assertResult("00", stat, "SELECT TO_CHAR(TIMESTAMP WITH TIME ZONE '2010-01-01 0:00:00+00:00', 'TZM')");
+        assertResult("-10:50", stat, "SELECT TO_CHAR(TIMESTAMP WITH TIME ZONE '2010-01-01 0:00:00-10:50', 'TZH:TZM')");
+        assertResult("+00:00", stat, "SELECT TO_CHAR(TIMESTAMP WITH TIME ZONE '2010-01-01 0:00:00+00:00', 'TZH:TZM')");
 
         expected = String.format("%f", 1.1).substring(1, 2);
         assertResult(expected, stat, "SELECT TO_CHAR(X, 'X') FROM T");

@@ -567,9 +567,9 @@ public class SourceCompiler {
          * We use map because there can be nested, anonymous etc classes.
          */
         Map<String, JavaClassObject> classObjectsByName = new HashMap<>();
-        
+
         private SecureClassLoader classLoader = new SecureClassLoader() {
-            
+
             @Override
             protected Class<?> findClass(String name)
                     throws ClassNotFoundException {

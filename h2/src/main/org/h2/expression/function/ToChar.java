@@ -548,25 +548,49 @@ public class ToChar {
 
     private static String getTimeZoneHours(Session session, Value value) {
         if(value instanceof ValueTimestampTimeZone) {
-            return DateTimeUtils.timeZoneHoursFromOffsetSeconds(((ValueTimestampTimeZone) value).getTimeZoneOffsetSeconds());
+            return printTimeZoneHoursFromOffsetSeconds(((ValueTimestampTimeZone) value).getTimeZoneOffsetSeconds());
         } else if( value instanceof ValueTimeTimeZone) {
-            return DateTimeUtils.timeZoneHoursFromOffsetSeconds( ((ValueTimeTimeZone)value).getTimeZoneOffsetSeconds());
+            return printTimeZoneHoursFromOffsetSeconds( ((ValueTimeTimeZone)value).getTimeZoneOffsetSeconds());
         } else {
             TimeZoneProvider tz = session.currentTimeZone();
             ValueTimestamp v = (ValueTimestamp) value.convertTo(TypeInfo.TYPE_TIMESTAMP, session);
-            return DateTimeUtils.timeZoneHoursFromOffsetSeconds(tz.getTimeZoneOffsetLocal(v.getDateValue(), v.getTimeNanos()));
+            return printTimeZoneHoursFromOffsetSeconds(tz.getTimeZoneOffsetLocal(v.getDateValue(), v.getTimeNanos()));
         }
     }
 
     private static String getTimeZoneMinutes(Session session, Value value) {
         if(value instanceof ValueTimestampTimeZone) {
-            return DateTimeUtils.timeZoneMinutesFromOffsetSeconds(((ValueTimestampTimeZone) value).getTimeZoneOffsetSeconds());
+            return printTimeZoneMinutesFromOffsetSeconds(((ValueTimestampTimeZone) value).getTimeZoneOffsetSeconds());
         } else if( value instanceof ValueTimeTimeZone) {
-            return DateTimeUtils.timeZoneMinutesFromOffsetSeconds( ((ValueTimeTimeZone)value).getTimeZoneOffsetSeconds());
+            return printTimeZoneMinutesFromOffsetSeconds( ((ValueTimeTimeZone)value).getTimeZoneOffsetSeconds());
         } else {
             TimeZoneProvider tz = session.currentTimeZone();
             ValueTimestamp v = (ValueTimestamp) value.convertTo(TypeInfo.TYPE_TIMESTAMP, session);
-            return DateTimeUtils.timeZoneMinutesFromOffsetSeconds(tz.getTimeZoneOffsetLocal(v.getDateValue(), v.getTimeNanos()));
+            return printTimeZoneMinutesFromOffsetSeconds(tz.getTimeZoneOffsetLocal(v.getDateValue(), v.getTimeNanos()));
+        }
+    }
+
+    private static String printTimeZoneHoursFromOffsetSeconds(int offsetSeconds) {
+        StringBuilder b = new StringBuilder();
+        b.append( offsetSeconds < 0 ? '-' : '+');
+        offsetSeconds = Math.abs(offsetSeconds);
+        if(offsetSeconds == 0) {
+            b.append("00");
+        } else {
+            StringUtils.appendTwoDigits(b, offsetSeconds / 3_600);
+        }
+        return b.toString();
+    }
+
+    private static String printTimeZoneMinutesFromOffsetSeconds(int offsetSeconds) {
+        if(offsetSeconds == 0) {
+            return "00";
+        } else {
+            StringBuilder b = new StringBuilder();
+            offsetSeconds = Math.abs(offsetSeconds);
+            offsetSeconds %= 3_600;
+            StringUtils.appendTwoDigits(b, offsetSeconds / 60);
+            return b.toString();
         }
     }
 

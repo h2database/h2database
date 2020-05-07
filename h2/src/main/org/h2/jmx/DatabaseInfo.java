@@ -262,7 +262,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
                         .append(command)
                         .append('\n')
                         .append("started: ")
-                        .append(session.getCurrentCommandStart().getString())
+                        .append(session.getCommandStartOrEnd().getString())
                         .append('\n');
             }
             for (Table table : session.getLocks()) {

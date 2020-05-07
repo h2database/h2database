@@ -3495,23 +3495,36 @@ public class Parser {
     }
 
     private Expression readConcat() {
-        Expression r = readSum();
+        Expression op1 = readSum();
         for (;;) {
             switch (currentTokenType) {
-            case CONCATENATION:
+            case CONCATENATION: {
                 read();
-                r = new ConcatenationOperation(r, readSum());
+                Expression op2 = readSum();
+                if (readIf(CONCATENATION)) {
+                    ConcatenationOperation c = new ConcatenationOperation();
+                    c.addParameter(op1);
+                    c.addParameter(op2);
+                    do {
+                        c.addParameter(readSum());
+                    } while (readIf(CONCATENATION));
+                    c.doneWithParameters();
+                    op1 = c;
+                } else {
+                    op1 = new ConcatenationOperation(op1, op2);
+                }
                 break;
+            }
             case TILDE: // PostgreSQL compatibility
-                r = readTildeCondition(r);
+                op1 = readTildeCondition(op1);
                 break;
             case NOT_TILDE: // PostgreSQL compatibility
-                r = new ConditionNot(readTildeCondition(r));
+                op1 = new ConditionNot(readTildeCondition(op1));
                 break;
             default:
                 // Don't add compatibility operators
                 addExpected(CONCATENATION);
-                return r;
+                return op1;
             }
         }
     }

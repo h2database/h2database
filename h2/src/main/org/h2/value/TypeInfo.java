@@ -534,6 +534,31 @@ public class TypeInfo {
     }
 
     /**
+     * Determines whether two specified types are the same data types without
+     * taking precision or scale into account.
+     *
+     * @param t1
+     *            first data type
+     * @param t2
+     *            second data type
+     * @return whether types are the same
+     */
+    public static boolean areSameTypes(TypeInfo t1, TypeInfo t2) {
+        for (;;) {
+            int valueType = t1.getValueType();
+            if (valueType != t2.getValueType()) {
+                return false;
+            }
+            ExtTypeInfo ext1 = t1.getExtTypeInfo(), ext2 = t2.getExtTypeInfo();
+            if (valueType != Value.ARRAY) {
+                return Objects.equals(ext1, ext2);
+            }
+            t1 = ((ExtTypeInfoArray) ext1).getComponentType();
+            t2 = ((ExtTypeInfoArray) ext2).getComponentType();
+        }
+    }
+
+    /**
      * Creates new instance of data type with parameters.
      *
      * @param valueType

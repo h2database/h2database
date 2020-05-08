@@ -1195,18 +1195,18 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        ResultSet rs;
         stat.execute("create alias array_test AS "
                 + "$$ Integer[] array_test(Integer[] in_array) "
                 + "{ return in_array; } $$;");
 
-        PreparedStatement stmt = conn.prepareStatement(
+        PreparedStatement prep = conn.prepareStatement(
                 "select array_test(?) from dual");
-        stmt.setObject(1, new Integer[] { 1, 2 });
-        rs = stmt.executeQuery();
-        rs.next();
-        assertEquals(Object[].class.getName(), rs.getObject(1).getClass()
-                .getName());
+        prep.setObject(1, new Integer[] { 1, 2 });
+        try (ResultSet rs = prep.executeQuery()) {
+            rs.next();
+            assertEquals(Object[].class.getName(), rs.getObject(1).getClass()
+                    .getName());
+        }
 
         CallableStatement call = conn.prepareCall("{ ? = call array_test(?) }");
         call.setObject(2, new Integer[] { 2, 1 });
@@ -1218,7 +1218,41 @@ public class TestFunctions extends TestDb implements AggregateFunction {
 
         stat.execute("drop alias array_test");
 
+        stat.execute("CREATE ALIAS F DETERMINISTIC FOR \"" + TestFunctions.class.getName() + ".arrayParameters1\"");
+        prep = conn.prepareStatement("SELECT F(ARRAY[ARRAY['1', '2'], ARRAY['3']])");
+        try (ResultSet rs = prep.executeQuery()) {
+            rs.next();
+            assertEquals(new Integer[][] {{1, 2}, {3}}, rs.getObject(1, Integer[][].class));
+        }
+        prep = conn.prepareStatement("SELECT F(ARRAY[ARRAY[1::BIGINT, 2::BIGINT], ARRAY[3::BIGINT]])");
+        try (ResultSet rs = prep.executeQuery()) {
+            rs.next();
+            assertEquals(new Short[][] {{1, 2}, {3}}, rs.getObject(1, Short[][].class));
+        }
+        stat.execute("DROP ALIAS F");
+
         conn.close();
+    }
+
+    /**
+     * This method is called with reflection.
+     *
+     * @param x argument
+     * @return result
+     */
+    public static Integer[][] arrayParameters1(String[][] x) {
+        int l = x.length;
+        Integer[][] result = new Integer[l][];
+        for (int i = 0; i < l; i++) {
+            String[] x1 = x[i];
+            int l1 = x1.length;
+            Integer[] r1 = new Integer[l1];
+            for (int j = 0; j < l1; j++) {
+                r1[j] = Integer.parseInt(x1[j]);
+            }
+            result[i] = r1;
+        }
+        return result;
     }
 
     private void testToDateException(Session session) {

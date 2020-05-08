@@ -11,6 +11,8 @@ import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import org.h2.engine.CastDataProvider;
@@ -246,6 +248,35 @@ public final class LegacyDateTimeUtils {
         }
         return (provider != null ? provider.currentTimeZone() : DateTimeUtils.getTimeZone())
                 .getTimeZoneOffsetUTC(seconds) * 1_000;
+    }
+
+    /**
+     * Extract object of legacy type.
+     *
+     * @param <T> the type
+     * @param type the class
+     * @param value the value
+     * @param provider the cast information provider
+     * @return an instance of the specified class, or {@code null} if not supported
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T extractObjectOfLegacyType(Class<T> type, Value value, CastDataProvider provider) {
+        if (type == Date.class) {
+            return (T) toDate(provider, null, value);
+        } else if (type == Time.class) {
+            return (T) toTime(provider, null, value);
+        } else if (type == Timestamp.class) {
+            return (T) toTimestamp(provider, null, value);
+        } else if (type == java.util.Date.class) {
+            return (T) new java.util.Date(toTimestamp(provider, null, value).getTime());
+        } else if (type == Calendar.class) {
+            GregorianCalendar calendar = new GregorianCalendar();
+            calendar.setGregorianChange(PROLEPTIC_GREGORIAN_CHANGE);
+            calendar.setTime(toTimestamp(provider, calendar.getTimeZone(), value));
+            return (T) calendar;
+        } else {
+            return null;
+        }
     }
 
 }

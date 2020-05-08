@@ -9,7 +9,11 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLXML;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -17,6 +21,13 @@ import org.h2.Driver;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.expression.Expression;
+import org.h2.jdbc.JdbcArray;
+import org.h2.jdbc.JdbcBlob;
+import org.h2.jdbc.JdbcClob;
+import org.h2.jdbc.JdbcConnection;
+import org.h2.jdbc.JdbcLob;
+import org.h2.jdbc.JdbcResultSet;
+import org.h2.jdbc.JdbcSQLXML;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.schema.Schema;
@@ -25,10 +36,10 @@ import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
 
 /**
@@ -361,8 +372,9 @@ public class FunctionAlias extends SchemaObjectBase {
             Class<?>[] paramClasses = method.getParameterTypes();
             Object[] params = new Object[paramClasses.length];
             int p = 0;
+            JdbcConnection conn = null;
             if (hasConnectionParam && params.length > 0) {
-                params[p++] = session.createConnection(columnList);
+                params[p++] = conn = session.createConnection(columnList);
             }
 
             // allocate array for varArgs parameters
@@ -383,41 +395,56 @@ public class FunctionAlias extends SchemaObjectBase {
                 } else {
                     paramClass = paramClasses[p];
                 }
-                TypeInfo type = DataType.getTypeFromClass(paramClass);
                 Value v = args[a].getValue(session);
                 Object o;
                 if (Value.class.isAssignableFrom(paramClass)) {
                     o = v;
-                } else if (v.getValueType() == Value.ARRAY &&
-                        paramClass.isArray() &&
-                        paramClass.getComponentType() != Object.class) {
-                    Value[] array = ((ValueArray) v).getList();
-                    Object[] objArray = (Object[]) Array.newInstance(
-                            paramClass.getComponentType(), array.length);
-                    TypeInfo componentType = DataType.getTypeFromClass(paramClass.getComponentType());
-                    for (int i = 0; i < objArray.length; i++) {
-                        objArray[i] = array[i].convertTo(componentType, session).getObject();
-                    }
-                    o = objArray;
                 } else {
-                    v = v.convertTo(type, session);
-                    o = v.getObject();
-                }
-                if (o == null) {
-                    if (paramClass.isPrimitive()) {
-                        if (columnList) {
-                            // If the column list is requested, the parameters
-                            // may be null. Need to set to default value,
-                            // otherwise the function can't be called at all.
-                            o = DataType.getDefaultForPrimitiveType(paramClass);
+                    boolean primitive = paramClass.isPrimitive();
+                    if (v == ValueNull.INSTANCE) {
+                        if (primitive) {
+                            if (columnList) {
+                                // If the column list is requested, the parameters
+                                // may be null. Need to set to default value,
+                                // otherwise the function can't be called at all.
+                                o = DataType.getDefaultForPrimitiveType(paramClass);
+                            } else {
+                                // NULL for a java primitive: return NULL
+                                return ValueNull.INSTANCE;
+                            }
                         } else {
-                            // NULL for a java primitive: return NULL
-                            return ValueNull.INSTANCE;
+                            o = null;
                         }
-                    }
-                } else {
-                    if (!paramClass.isAssignableFrom(o.getClass()) && !paramClass.isPrimitive()) {
-                        o = DataType.convertTo(session.createConnection(false), v, paramClass);
+                    } else {
+                        o = DataType.extractObjectOfType(
+                                (Class<?>) (primitive ? Utils.getNonPrimitiveClass(paramClass) : paramClass),
+                                v, session);
+                        if (o == null) {
+                            if (conn == null) {
+                                conn = session.createConnection(false);
+                            }
+                            if (paramClass == java.sql.Array.class) {
+                                o = new JdbcArray(conn, v, 0);
+                            } else if (paramClass == Blob.class) {
+                                o = new JdbcBlob(conn, v, JdbcLob.State.WITH_VALUE, 0);
+                            } else if (paramClass == Clob.class) {
+                                o = new JdbcClob(conn, v, JdbcLob.State.WITH_VALUE, 0);
+                            } else if (paramClass == SQLXML.class) {
+                                o = new JdbcSQLXML(conn, v, JdbcLob.State.WITH_VALUE, 0);
+                            } else if (paramClass == ResultSet.class) {
+                                o = new JdbcResultSet(conn, null, null, v.convertToResultSet().getResult(),
+                                        0, false, true, false);
+                            } else l: {
+                                if (v.getValueType() == Value.JAVA_OBJECT) {
+                                    o = JdbcUtils.deserialize(v.getBytes(), conn.getJavaObjectSerializer());
+                                    if (paramClass.isAssignableFrom(o.getClass())) {
+                                        break l;
+                                    }
+                                }
+                                throw DbException
+                                        .getUnsupportedException("converting to class " + paramClass.getName());
+                            }
+                        }
                     }
                 }
                 if (currentIsVarArg) {

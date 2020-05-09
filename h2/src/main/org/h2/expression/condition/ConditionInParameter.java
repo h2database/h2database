@@ -62,6 +62,8 @@ public class ConditionInParameter extends Condition {
 
     private Expression left;
 
+    private boolean not;
+
     private final Parameter parameter;
 
     /**
@@ -69,10 +71,11 @@ public class ConditionInParameter extends Condition {
      *
      * @param session the session
      * @param l left value.
+     * @param not whether the result should be negated
      * @param value parameter value.
      * @return Evaluated condition value.
      */
-    static Value getValue(Session session, Value l, Value value) {
+    static Value getValue(Session session, Value l, boolean not, Value value) {
         boolean hasNull = false;
         if (value.containsNull()) {
             hasNull = true;
@@ -83,7 +86,7 @@ public class ConditionInParameter extends Condition {
                 if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;
                 } else if (cmp == ValueBoolean.TRUE) {
-                    return cmp;
+                    return ValueBoolean.get(!not);
                 }
             }
         } else {
@@ -92,14 +95,14 @@ public class ConditionInParameter extends Condition {
                 if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;
                 } else if (cmp == ValueBoolean.TRUE) {
-                    return cmp;
+                    return ValueBoolean.get(!not);
                 }
             }
         }
         if (hasNull) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.FALSE;
+        return ValueBoolean.get(not);
     }
 
     /**
@@ -107,11 +110,13 @@ public class ConditionInParameter extends Condition {
      *
      * @param left
      *            the expression before {@code = ANY(?)}
+     * @param not whether the result should be negated
      * @param parameter
      *            parameter
      */
-    public ConditionInParameter(Expression left, Parameter parameter) {
+    public ConditionInParameter(Expression left, boolean not, Parameter parameter) {
         this.left = left;
+        this.not = not;
         this.parameter = parameter;
     }
 
@@ -121,7 +126,7 @@ public class ConditionInParameter extends Condition {
         if (l == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
         }
-        return getValue(session, l, parameter.getValue(session));
+        return getValue(session, l, not, parameter.getValue(session));
     }
 
     @Override
@@ -139,8 +144,13 @@ public class ConditionInParameter extends Condition {
     }
 
     @Override
+    public Expression getNotIfPossible(Session session) {
+        return new ConditionInParameter(left, !not, parameter);
+    }
+
+    @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (!(left instanceof ExpressionColumn)) {
+        if (not || !(left instanceof ExpressionColumn)) {
             return;
         }
         ExpressionColumn l = (ExpressionColumn) left;
@@ -157,9 +167,16 @@ public class ConditionInParameter extends Condition {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append('(');
-        left.getSQL(builder, sqlFlags).append(" = ANY(");
-        return parameter.getSQL(builder, sqlFlags).append("))");
+        if (not) {
+            builder.append("(NOT");
+        }
+        left.getSQL(builder.append('('), sqlFlags);
+        builder.append(" = ANY(");
+        parameter.getSQL(builder, sqlFlags).append("))");
+        if (not) {
+            builder.append(')');
+        }
+        return builder;
     }
 
     @Override

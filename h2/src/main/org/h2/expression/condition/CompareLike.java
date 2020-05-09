@@ -13,6 +13,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.SearchedCase;
 import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.index.IndexCondition;
@@ -59,6 +60,9 @@ public class CompareLike extends Condition {
 
     private final LikeType likeType;
     private Expression left;
+
+    private final boolean not;
+
     private Expression right;
     private Expression escape;
 
@@ -82,16 +86,18 @@ public class CompareLike extends Condition {
     /** indicates that we can shortcut the comparison and use contains */
     private boolean shortcutToContains;
 
-    public CompareLike(Database db, Expression left, Expression right, Expression escape, LikeType likeType) {
-        this(db.getCompareMode(), db.getSettings().defaultEscape, left, right, escape, likeType);
+    public CompareLike(Database db, Expression left, boolean not, Expression right, Expression escape,
+            LikeType likeType) {
+        this(db.getCompareMode(), db.getSettings().defaultEscape, left, not, right, escape, likeType);
     }
 
-    public CompareLike(CompareMode compareMode, String defaultEscape, Expression left, Expression right,
+    public CompareLike(CompareMode compareMode, String defaultEscape, Expression left, boolean not, Expression right,
             Expression escape, LikeType likeType) {
         this.compareMode = compareMode;
         this.defaultEscape = defaultEscape;
         this.likeType = likeType;
         this.left = left;
+        this.not = not;
         this.right = right;
         this.escape = escape;
     }
@@ -102,18 +108,21 @@ public class CompareLike extends Condition {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append('(');
+        left.getSQL(builder.append('('), sqlFlags);
+        if (not) {
+            builder.append(" NOT");
+        }
         switch (likeType) {
         case LIKE:
         case ILIKE:
-            left.getSQL(builder, sqlFlags).append(likeType == LikeType.LIKE ? " LIKE " : " ILIKE ");
+            builder.append(likeType == LikeType.LIKE ? " LIKE " : " ILIKE ");
             right.getSQL(builder, sqlFlags);
             if (escape != null) {
                 escape.getSQL(builder.append(" ESCAPE "), sqlFlags);
             }
             break;
         case REGEXP:
-            left.getSQL(builder, sqlFlags).append(" REGEXP ");
+            builder.append(" REGEXP ");
             right.getSQL(builder, sqlFlags);
             break;
         default:
@@ -157,15 +166,16 @@ public class CompareLike extends Condition {
             if (invalidPattern) {
                 return TypedValueExpression.UNKNOWN;
             }
-            if ("%".equals(p)) {
-                // optimization for X LIKE '%': convert to X IS NOT NULL
-                return new NullPredicate(left, true).optimize(session);
+            if (likeType != LikeType.REGEXP && "%".equals(p)) {
+                // optimization for X LIKE '%'
+                return new SearchedCase(new Expression[] { new NullPredicate(left, true),
+                        ValueExpression.getBoolean(!not), TypedValueExpression.UNKNOWN }).optimize(session);
             }
             if (isFullMatch()) {
                 // optimization for X LIKE 'Hello': convert to X = 'Hello'
                 Value value = ignoreCase ? ValueVarcharIgnoreCase.get(patternString) : ValueVarchar.get(patternString);
                 Expression expr = ValueExpression.get(value);
-                return new Comparison(Comparison.EQUAL, left, expr).optimize(session);
+                return new Comparison(not ? Comparison.NOT_EQUAL : Comparison.EQUAL, left, expr).optimize(session);
             }
             isInit = true;
         }
@@ -312,7 +322,7 @@ public class CompareLike extends Condition {
         } else {
             result = compareAt(value, 0, 0, value.length(), patternChars, patternTypes);
         }
-        return ValueBoolean.get(result);
+        return ValueBoolean.get(not ^ result);
     }
 
     private static boolean containsIgnoreCase(String src, String what) {
@@ -508,6 +518,11 @@ public class CompareLike extends Condition {
             }
         }
         return true;
+    }
+
+    @Override
+    public Expression getNotIfPossible(Session session) {
+        return new CompareLike(compareMode, defaultEscape, left, !not, right, escape, likeType);
     }
 
     @Override

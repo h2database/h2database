@@ -345,8 +345,8 @@ public class Comparison extends Condition {
         return result;
     }
 
-    private int getReversedCompareType(int type) {
-        switch (compareType) {
+    private static int getReversedCompareType(int type) {
+        switch (type) {
         case EQUAL:
         case EQUAL_NULL_SAFE:
         case NOT_EQUAL:
@@ -362,7 +362,7 @@ public class Comparison extends Condition {
         case SMALLER:
             return BIGGER;
         default:
-            throw DbException.throwInternalError("type=" + compareType);
+            throw DbException.throwInternalError("type=" + type);
         }
     }
 
@@ -400,6 +400,10 @@ public class Comparison extends Condition {
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
+        createIndexConditions(filter, left, right, compareType);
+    }
+
+    static void createIndexConditions(TableFilter filter, Expression left, Expression right, int compareType) {
         if (!filter.getTable().isQueryComparable()) {
             return;
         }
@@ -597,7 +601,7 @@ public class Comparison extends Condition {
         ArrayList<Expression> right = new ArrayList<>(2);
         right.add(value1);
         right.add(value2);
-        return new ConditionIn(left, right);
+        return new ConditionIn(left, false, right);
     }
 
     @Override

@@ -12,6 +12,7 @@ import static org.h2.util.ParserUtil.ALL;
 import static org.h2.util.ParserUtil.AND;
 import static org.h2.util.ParserUtil.ARRAY;
 import static org.h2.util.ParserUtil.AS;
+import static org.h2.util.ParserUtil.ASYMMETRIC;
 import static org.h2.util.ParserUtil.BETWEEN;
 import static org.h2.util.ParserUtil.CASE;
 import static org.h2.util.ParserUtil.CAST;
@@ -74,6 +75,7 @@ import static org.h2.util.ParserUtil.ROWNUM;
 import static org.h2.util.ParserUtil.SECOND;
 import static org.h2.util.ParserUtil.SELECT;
 import static org.h2.util.ParserUtil.SET;
+import static org.h2.util.ParserUtil.SYMMETRIC;
 import static org.h2.util.ParserUtil.TABLE;
 import static org.h2.util.ParserUtil.TO;
 import static org.h2.util.ParserUtil.TRUE;
@@ -234,6 +236,7 @@ import org.h2.expression.analysis.WindowFrameExclusion;
 import org.h2.expression.analysis.WindowFrameUnits;
 import org.h2.expression.analysis.WindowFunction;
 import org.h2.expression.analysis.WindowFunctionType;
+import org.h2.expression.condition.BetweenPredicate;
 import org.h2.expression.condition.BooleanTest;
 import org.h2.expression.condition.CompareLike;
 import org.h2.expression.condition.CompareLike.LikeType;
@@ -498,6 +501,8 @@ public class Parser {
             "ARRAY",
             // AS
             "AS",
+            // ASYMMETRIC
+            "ASYMMETRIC",
             // BETWEEN
             "BETWEEN",
             // CASE
@@ -616,6 +621,8 @@ public class Parser {
             "SELECT",
             // SET
             "SET",
+            // SYMMETRIC
+            "SYMMETRIC",
             // TABLE
             "TABLE",
             // TO
@@ -1569,7 +1576,7 @@ public class Parser {
         while (currentTokenType != END_OF_INPUT) {
             String s = currentToken;
             read();
-            CompareLike like = new CompareLike(database, function,
+            CompareLike like = new CompareLike(database, function, false,
                     ValueExpression.get(ValueVarchar.get('%' + s + '%')), null, LikeType.LIKE);
             select.addCondition(like);
         }
@@ -3291,47 +3298,49 @@ public class Parser {
             // TABLE TEST(ID INT DEFAULT 0 NOT NULL))
             int backup = parseIndex;
             boolean not = readIf(NOT);
-            if (not && isToken(NULL)) {
-                // this really only works for NOT NULL!
-                parseIndex = backup;
-                currentToken = "NOT";
-                currentTokenType = NOT;
-                break;
+            if (not) {
+                if (isToken(NULL)) {
+                    // this really only works for NOT NULL!
+                    parseIndex = backup;
+                    currentToken = "NOT";
+                    currentTokenType = NOT;
+                    break;
+                }
+            } else if (readIf(IS)) {
+                r = readConditionIs(r);
+                continue;
             }
             switch (currentTokenType) {
             case BETWEEN: {
                 read();
-                Expression low = readConcat();
+                boolean symmetric = readIf(SYMMETRIC);
+                if (!symmetric) {
+                    readIf(ASYMMETRIC);
+                }
+                Expression a = readConcat();
                 read(AND);
-                Expression high = readConcat();
-                Expression condLow = new Comparison(Comparison.SMALLER_EQUAL, low, r);
-                Expression condHigh = new Comparison(Comparison.BIGGER_EQUAL, high, r);
-                r = new ConditionAndOr(ConditionAndOr.AND, condLow, condHigh);
+                r = new BetweenPredicate(r, not, symmetric, a, readConcat());
                 break;
             }
             case IN:
                 read();
-                r = readInPredicate(r);
-                break;
-            case IS:
-                read();
-                r = readConditionIs(r);
+                r = readInPredicate(r, not);
                 break;
             case LIKE: {
                 read();
-                r = readLikePredicate(r, LikeType.LIKE);
+                r = readLikePredicate(r, LikeType.LIKE, not);
                 break;
             }
             default:
                 if (readIf("ILIKE")) {
-                    r = readLikePredicate(r, LikeType.ILIKE);
+                    r = readLikePredicate(r, LikeType.ILIKE, not);
                 } else if (readIf("REGEXP")) {
                     Expression b = readConcat();
                     recompileAlways = true;
-                    r = new CompareLike(database, r, b, null, LikeType.REGEXP);
+                    r = new CompareLike(database, r, not, b, null, LikeType.REGEXP);
                 } else if (not) {
                     if (expectedList != null) {
-                        addMultipleExpected(LIKE, IS, IN, BETWEEN);
+                        addMultipleExpected(BETWEEN, IN, LIKE);
                     }
                     throw getSyntaxError();
                 } else {
@@ -3341,9 +3350,6 @@ public class Parser {
                     }
                     r = readComparison(r, compareType);
                 }
-            }
-            if (not) {
-                r = new ConditionNot(r);
             }
         }
         return r;
@@ -3407,7 +3413,7 @@ public class Parser {
         return new TypePredicate(left, not, typeList.toArray(new TypeInfo[0]));
     }
 
-    private Expression readInPredicate(Expression left) {
+    private Expression readInPredicate(Expression left, boolean not) {
         read(OPEN_PAREN);
         if (database.getMode().allowEmptyInPredicate && readIf(CLOSE_PAREN)) {
             return ValueExpression.FALSE;
@@ -3416,7 +3422,7 @@ public class Parser {
         if (isQuery()) {
             Query query = parseQuery();
             if (!readIfMore()) {
-                return new ConditionInQuery(left, query, false, Comparison.EQUAL);
+                return new ConditionInQuery(left, not, query, false, Comparison.EQUAL);
             }
             v = Utils.newSmallArrayList();
             v.add(new Subquery(query));
@@ -3426,7 +3432,7 @@ public class Parser {
         do {
             v.add(readExpression());
         } while (readIfMore());
-        return new ConditionIn(left, v);
+        return new ConditionIn(left, not, v);
     }
 
     private IsJsonPredicate readJsonPredicate(Expression left, boolean not) {
@@ -3454,11 +3460,11 @@ public class Parser {
         return new IsJsonPredicate(left, not, unique, itemType);
     }
 
-    private Expression readLikePredicate(Expression left, LikeType likeType) {
+    private Expression readLikePredicate(Expression left, LikeType likeType, boolean not) {
         Expression right = readConcat();
         Expression esc = readIf("ESCAPE") ? readConcat() : null;
         recompileAlways = true;
-        return new CompareLike(database, left, right, esc, likeType);
+        return new CompareLike(database, left, not, right, esc, likeType);
     }
 
     private Expression readComparison(Expression left, int compareType) {
@@ -3468,7 +3474,7 @@ public class Parser {
             read(OPEN_PAREN);
             if (isQuery()) {
                 Query query = parseQuery();
-                left = new ConditionInQuery(left, query, true, compareType);
+                left = new ConditionInQuery(left, false, query, true, compareType);
                 read(CLOSE_PAREN);
             } else {
                 reread(start);
@@ -3478,11 +3484,11 @@ public class Parser {
             read(OPEN_PAREN);
             if (currentTokenType == PARAMETER && compareType == 0) {
                 Parameter p = readParameter();
-                left = new ConditionInParameter(left, p);
+                left = new ConditionInParameter(left, false, p);
                 read(CLOSE_PAREN);
             } else if (isQuery()) {
                 Query query = parseQuery();
-                left = new ConditionInQuery(left, query, false, compareType);
+                left = new ConditionInQuery(left, false, query, false, compareType);
                 read(CLOSE_PAREN);
             } else {
                 reread(start);
@@ -3516,10 +3522,10 @@ public class Parser {
                 break;
             }
             case TILDE: // PostgreSQL compatibility
-                op1 = readTildeCondition(op1);
+                op1 = readTildeCondition(op1, false);
                 break;
             case NOT_TILDE: // PostgreSQL compatibility
-                op1 = new ConditionNot(readTildeCondition(op1));
+                op1 = readTildeCondition(op1, true);
                 break;
             default:
                 // Don't add compatibility operators
@@ -3557,12 +3563,12 @@ public class Parser {
         }
     }
 
-    private Expression readTildeCondition(Expression r) {
+    private Expression readTildeCondition(Expression r, boolean not) {
         read();
         if (readIf(ASTERISK)) {
             r = new CastSpecification(r, TypeInfo.TYPE_VARCHAR_IGNORECASE);
         }
-        return new CompareLike(database, r, readSum(), null, LikeType.REGEXP);
+        return new CompareLike(database, r, not, readSum(), null, LikeType.REGEXP);
     }
 
     private Expression readAggregate(AggregateType aggregateType, String aggregateName) {

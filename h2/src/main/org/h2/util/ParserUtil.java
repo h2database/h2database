@@ -40,9 +40,14 @@ public class ParserUtil {
     public static final int AS = ARRAY + 1;
 
     /**
+     * The token "ASYMMETRIC".
+     */
+    public static final int ASYMMETRIC = AS + 1;
+
+    /**
      * The token "BETWEEN".
      */
-    public static final int BETWEEN = AS + 1;
+    public static final int BETWEEN = ASYMMETRIC + 1;
 
     /**
      * The token "CASE".
@@ -335,9 +340,14 @@ public class ParserUtil {
     public static final int SET = SELECT + 1;
 
     /**
+     * The token "SYMMETRIC".
+     */
+    public static final int SYMMETRIC = SET + 1;
+
+    /**
      * The token "TABLE".
      */
-    public static final int TABLE = SET + 1;
+    public static final int TABLE = SYMMETRIC + 1;
 
     /**
      * The token "TO".
@@ -578,8 +588,10 @@ public class ParserUtil {
                 return ALL;
             } else if (eq("AND", s, ignoreCase, start, length)) {
                 return AND;
-            } if (eq("ARRAY", s, ignoreCase, start, length)) {
+            } else if (eq("ARRAY", s, ignoreCase, start, length)) {
                 return ARRAY;
+            } else if (eq("ASYMMETRIC", s, ignoreCase, start, length)) {
+                return ASYMMETRIC;
             }
             return IDENTIFIER;
         case 'B':
@@ -783,6 +795,8 @@ public class ParserUtil {
                 return SELECT;
             } else if (eq("SET", s, ignoreCase, start, length)) {
                 return SET;
+            } else if (eq("SYMMETRIC", s, ignoreCase, start, length)) {
+                return SYMMETRIC;
             }
             if (additionalKeywords) {
                 if (eq("SYSDATE", s, ignoreCase, start, length) || eq("SYSTIME", s, ignoreCase, start, length)

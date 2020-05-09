@@ -30,12 +30,14 @@ import org.h2.value.ValueRow;
 public class ConditionInQuery extends PredicateWithSubquery {
 
     private Expression left;
+    private final boolean not;
     private final boolean all;
     private final int compareType;
 
-    public ConditionInQuery(Expression left, Query query, boolean all, int compareType) {
+    public ConditionInQuery(Expression left, boolean not, Query query, boolean all, int compareType) {
         super(query);
         this.left = left;
+        this.not = not;
         /*
          * Need to do it now because other methods may be invoked in different
          * order.
@@ -54,7 +56,7 @@ public class ConditionInQuery extends PredicateWithSubquery {
         LocalResult rows = (LocalResult) query.query(0);
         Value l = left.getValue(session);
         if (!rows.hasNext()) {
-            return ValueBoolean.get(all);
+            return ValueBoolean.get(not ^ all);
         } else if (l.containsNull()) {
             return ValueNull.INSTANCE;
         }
@@ -69,7 +71,7 @@ public class ConditionInQuery extends PredicateWithSubquery {
             l = l.convertTo(TypeInfo.TYPE_ROW);
             Value[] leftValue = ((ValueRow) l).getList();
             if (columnCount == leftValue.length && rows.containsDistinct(leftValue)) {
-                return ValueBoolean.TRUE;
+                return ValueBoolean.get(!not);
             }
         } else {
             TypeInfo colType = rows.getColumnType(0);
@@ -85,13 +87,13 @@ public class ConditionInQuery extends PredicateWithSubquery {
             }
             l = l.convertTo(colType, session);
             if (rows.containsDistinct(new Value[] { l })) {
-                return ValueBoolean.TRUE;
+                return ValueBoolean.get(!not);
             }
         }
         if (rows.containsNull()) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.FALSE;
+        return ValueBoolean.get(not);
     }
 
     private Value getValueSlow(Session session, ResultInterface rows, Value l) {
@@ -104,7 +106,7 @@ public class ConditionInQuery extends PredicateWithSubquery {
                 if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;
                 } else if (cmp == ValueBoolean.FALSE) {
-                    return cmp;
+                    return ValueBoolean.get(not);
                 }
             }
         } else {
@@ -113,14 +115,14 @@ public class ConditionInQuery extends PredicateWithSubquery {
                 if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;
                 } else if (cmp == ValueBoolean.TRUE) {
-                    return cmp;
+                    return ValueBoolean.get(!not);
                 }
             }
         }
         if (hasNull) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.get(all);
+        return ValueBoolean.get(not ^ all);
     }
 
     private Value compare(Session session, Value l, ResultInterface rows) {
@@ -128,6 +130,11 @@ public class ConditionInQuery extends PredicateWithSubquery {
         Value r = l.getValueType() != Value.ROW && query.getColumnCount() == 1 ? currentRow[0]
                 : ValueRow.get(currentRow);
         return Comparison.compare(session, l, r, compareType);
+    }
+
+    @Override
+    public Expression getNotIfPossible(Session session) {
+        return new ConditionInQuery(left, !not, query, all, compareType);
     }
 
     @Override
@@ -150,20 +157,27 @@ public class ConditionInQuery extends PredicateWithSubquery {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        boolean outerNot = not && (all || compareType != Comparison.EQUAL);
+        if (outerNot) {
+            builder.append("(NOT ");
+        }
         builder.append('(');
         left.getSQL(builder, sqlFlags).append(' ');
         if (all) {
-            builder.append(Comparison.getCompareOperator(compareType)).
-                append(" ALL");
-        } else {
-            if (compareType == Comparison.EQUAL) {
-                builder.append("IN");
-            } else {
-                builder.append(Comparison.getCompareOperator(compareType)).
-                    append(" ANY");
+            builder.append(Comparison.getCompareOperator(compareType)).append(" ALL");
+        } else if (compareType == Comparison.EQUAL) {
+            if (not) {
+                builder.append(" NOT ");
             }
+            builder.append("IN");
+        } else {
+            builder.append(Comparison.getCompareOperator(compareType)).append(" ANY");
         }
-        return super.getSQL(builder, sqlFlags).append(')');
+        super.getSQL(builder, sqlFlags).append(')');
+        if (outerNot) {
+            builder.append(')');
+        }
+        return builder;
     }
 
     @Override
@@ -187,7 +201,7 @@ public class ConditionInQuery extends PredicateWithSubquery {
         if (!session.getDatabase().getSettings().optimizeInList) {
             return;
         }
-        if (compareType != Comparison.EQUAL) {
+        if (not || compareType != Comparison.EQUAL) {
             return;
         }
         if (query.getColumnCount() != 1) {

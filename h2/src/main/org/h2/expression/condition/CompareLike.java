@@ -13,6 +13,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.SearchedCase;
 import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.index.IndexCondition;
@@ -157,9 +158,10 @@ public class CompareLike extends Condition {
             if (invalidPattern) {
                 return TypedValueExpression.UNKNOWN;
             }
-            if ("%".equals(p)) {
-                // optimization for X LIKE '%': convert to X IS NOT NULL
-                return new NullPredicate(left, true).optimize(session);
+            if (likeType != LikeType.REGEXP && "%".equals(p)) {
+                // optimization for X LIKE '%'
+                return new SearchedCase(new Expression[] { new NullPredicate(left, true), ValueExpression.TRUE,
+                        TypedValueExpression.UNKNOWN }).optimize(session);
             }
             if (isFullMatch()) {
                 // optimization for X LIKE 'Hello': convert to X = 'Hello'

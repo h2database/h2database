@@ -187,3 +187,11 @@ EXPLAIN SELECT ID FROM TEST WHERE NAME ILIKE 'w%';
 
 DROP TABLE TEST;
 > ok
+
+SELECT S, S LIKE '%', S ILIKE '%', S REGEXP '%' FROM (VALUES NULL, '', '1') T(S);
+> S    CASE WHEN (S IS NOT NULL) THEN TRUE ELSE UNKNOWN END CASE WHEN (S IS NOT NULL) THEN TRUE ELSE UNKNOWN END S REGEXP '%'
+> ---- ---------------------------------------------------- ---------------------------------------------------- ------------
+>      TRUE                                                 TRUE                                                 FALSE
+> 1    TRUE                                                 TRUE                                                 FALSE
+> null null                                                 null                                                 null
+> rows: 3

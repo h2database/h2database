@@ -3324,10 +3324,7 @@ public class Parser {
             }
             case IN:
                 read();
-                r = readInPredicate(r);
-                if (not) {
-                    r = new ConditionNot(r);
-                }
+                r = readInPredicate(r, not);
                 break;
             case LIKE: {
                 read();
@@ -3416,7 +3413,7 @@ public class Parser {
         return new TypePredicate(left, not, typeList.toArray(new TypeInfo[0]));
     }
 
-    private Expression readInPredicate(Expression left) {
+    private Expression readInPredicate(Expression left, boolean not) {
         read(OPEN_PAREN);
         if (database.getMode().allowEmptyInPredicate && readIf(CLOSE_PAREN)) {
             return ValueExpression.FALSE;
@@ -3425,7 +3422,7 @@ public class Parser {
         if (isQuery()) {
             Query query = parseQuery();
             if (!readIfMore()) {
-                return new ConditionInQuery(left, query, false, Comparison.EQUAL);
+                return new ConditionInQuery(left, not, query, false, Comparison.EQUAL);
             }
             v = Utils.newSmallArrayList();
             v.add(new Subquery(query));
@@ -3435,7 +3432,7 @@ public class Parser {
         do {
             v.add(readExpression());
         } while (readIfMore());
-        return new ConditionIn(left, v);
+        return new ConditionIn(left, not, v);
     }
 
     private IsJsonPredicate readJsonPredicate(Expression left, boolean not) {
@@ -3477,7 +3474,7 @@ public class Parser {
             read(OPEN_PAREN);
             if (isQuery()) {
                 Query query = parseQuery();
-                left = new ConditionInQuery(left, query, true, compareType);
+                left = new ConditionInQuery(left, false, query, true, compareType);
                 read(CLOSE_PAREN);
             } else {
                 reread(start);
@@ -3487,11 +3484,11 @@ public class Parser {
             read(OPEN_PAREN);
             if (currentTokenType == PARAMETER && compareType == 0) {
                 Parameter p = readParameter();
-                left = new ConditionInParameter(left, p);
+                left = new ConditionInParameter(left, false, p);
                 read(CLOSE_PAREN);
             } else if (isQuery()) {
                 Query query = parseQuery();
-                left = new ConditionInQuery(left, query, false, compareType);
+                left = new ConditionInQuery(left, false, query, false, compareType);
                 read(CLOSE_PAREN);
             } else {
                 reread(start);

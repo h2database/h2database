@@ -28,6 +28,7 @@ import org.h2.value.ValueNull;
 public class ConditionInConstantSet extends Condition {
 
     private Expression left;
+    private final boolean not;
     private final ArrayList<Expression> valueList;
     // HashSet cannot be used here, because we need to compare values of
     // different type or scale properly.
@@ -43,10 +44,12 @@ public class ConditionInConstantSet extends Condition {
      *            the expression before IN. Cannot have {@link Value#UNKNOWN}
      *            data type and {@link Value#ENUM} type is also supported only
      *            for {@link ExpressionColumn}.
+     * @param not whether the result should be negated
      * @param valueList the value list (at least two elements)
      */
-    public ConditionInConstantSet(Session session, Expression left, ArrayList<Expression> valueList) {
+    public ConditionInConstantSet(Session session, Expression left, boolean not, ArrayList<Expression> valueList) {
         this.left = left;
+        this.not = not;
         this.valueList = valueList;
         this.valueSet = new TreeSet<>(session.getDatabase().getCompareMode());
         type = left.getType();
@@ -73,7 +76,7 @@ public class ConditionInConstantSet extends Condition {
         if (!result && hasNull) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.get(result);
+        return ValueBoolean.get(not ^ result);
     }
 
     @Override
@@ -88,8 +91,13 @@ public class ConditionInConstantSet extends Condition {
     }
 
     @Override
+    public Expression getNotIfPossible(Session session) {
+        return new ConditionInConstantSet(session, left, !not, valueList);
+    }
+
+    @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (!(left instanceof ExpressionColumn)) {
+        if (not || !(left instanceof ExpressionColumn)) {
             return;
         }
         ExpressionColumn l = (ExpressionColumn) left;
@@ -108,8 +116,11 @@ public class ConditionInConstantSet extends Condition {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append('(');
-        left.getSQL(builder, sqlFlags).append(" IN(");
+        left.getSQL(builder.append('('), sqlFlags);
+        if (not) {
+            builder.append(" NOT");
+        }
+        builder.append(" IN(");
         writeExpressions(builder, valueList, sqlFlags);
         return builder.append("))");
     }
@@ -156,12 +167,14 @@ public class ConditionInConstantSet extends Condition {
      * @return null if the condition was not added, or the new condition
      */
     Expression getAdditional(Session session, Comparison other) {
-        Expression add = other.getIfEquals(left);
-        if (add != null) {
-            if (add.isConstant()) {
-                valueList.add(add);
-                add(add.getValue(session).convertTo(type, session));
-                return this;
+        if (!not) {
+            Expression add = other.getIfEquals(left);
+            if (add != null) {
+                if (add.isConstant()) {
+                    valueList.add(add);
+                    add(add.getValue(session).convertTo(type, session));
+                    return this;
+                }
             }
         }
         return null;

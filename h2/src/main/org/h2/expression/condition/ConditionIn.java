@@ -29,16 +29,19 @@ import org.h2.value.ValueNull;
 public class ConditionIn extends Condition {
 
     private Expression left;
+    private final boolean not;
     private final ArrayList<Expression> valueList;
 
     /**
      * Create a new IN(..) condition.
      *
      * @param left the expression before IN
+     * @param not whether the result should be negated
      * @param values the value list (at least one element)
      */
-    public ConditionIn(Expression left, ArrayList<Expression> values) {
+    public ConditionIn(Expression left, boolean not, ArrayList<Expression> values) {
         this.left = left;
+        this.not = not;
         this.valueList = values;
     }
 
@@ -52,7 +55,7 @@ public class ConditionIn extends Condition {
         if (size == 1) {
             Expression e = valueList.get(0);
             if (e instanceof TableFunction) {
-                return ConditionInParameter.getValue(session, l, e.getValue(session));
+                return ConditionInParameter.getValue(session, l, not, e.getValue(session));
             }
         }
         boolean hasNull = false;
@@ -63,13 +66,13 @@ public class ConditionIn extends Condition {
             if (cmp == ValueNull.INSTANCE) {
                 hasNull = true;
             } else if (cmp == ValueBoolean.TRUE) {
-                return cmp;
+                return ValueBoolean.get(!not);
             }
         }
         if (hasNull) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.FALSE;
+        return ValueBoolean.get(not);
     }
 
     @Override
@@ -97,7 +100,7 @@ public class ConditionIn extends Condition {
                     if (args.length == 1) {
                         Expression arg = args[0];
                         if (arg instanceof Parameter) {
-                            return new ConditionInParameter(left, (Parameter) arg);
+                            return new ConditionInParameter(left, not, (Parameter) arg);
                         }
                     }
                 }
@@ -143,7 +146,8 @@ public class ConditionIn extends Condition {
             return ValueExpression.getBoolean(getValue(session));
         }
         if (values.size() == 1) {
-            return new Comparison(Comparison.EQUAL, left, values.get(0)).optimize(session);
+            return new Comparison(not ? Comparison.NOT_EQUAL : Comparison.EQUAL, left, values.get(0))
+                    .optimize(session);
         }
         if (allValuesConstant && !allValuesNull) {
             int leftType = left.getType().getValueType();
@@ -153,7 +157,7 @@ public class ConditionIn extends Condition {
             if (leftType == Value.ENUM && !(left instanceof ExpressionColumn)) {
                 return this;
             }
-            Expression expr = new ConditionInConstantSet(session, left, values);
+            Expression expr = new ConditionInConstantSet(session, left, not, values);
             expr = expr.optimize(session);
             return expr;
         }
@@ -161,8 +165,13 @@ public class ConditionIn extends Condition {
     }
 
     @Override
+    public Expression getNotIfPossible(Session session) {
+        return new ConditionIn(left, !not, valueList);
+    }
+
+    @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (!(left instanceof ExpressionColumn)) {
+        if (not || !(left instanceof ExpressionColumn)) {
             return;
         }
         ExpressionColumn l = (ExpressionColumn) left;
@@ -190,8 +199,11 @@ public class ConditionIn extends Condition {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append('(');
-        left.getSQL(builder, sqlFlags).append(" IN(");
+        left.getSQL(builder.append('('), sqlFlags);
+        if (not) {
+            builder.append(" NOT");
+        }
+        builder.append(" IN(");
         writeExpressions(builder, valueList, sqlFlags);
         return builder.append("))");
     }
@@ -238,10 +250,12 @@ public class ConditionIn extends Condition {
      * @return null if the condition was not added, or the new condition
      */
     Expression getAdditional(Comparison other) {
-        Expression add = other.getIfEquals(left);
-        if (add != null) {
-            valueList.add(add);
-            return this;
+        if (!not) {
+            Expression add = other.getIfEquals(left);
+            if (add != null) {
+                valueList.add(add);
+                return this;
+            }
         }
         return null;
     }

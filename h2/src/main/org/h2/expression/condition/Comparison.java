@@ -601,7 +601,7 @@ public class Comparison extends Condition {
         ArrayList<Expression> right = new ArrayList<>(2);
         right.add(value1);
         right.add(value2);
-        return new ConditionIn(left, right);
+        return new ConditionIn(left, false, right);
     }
 
     @Override

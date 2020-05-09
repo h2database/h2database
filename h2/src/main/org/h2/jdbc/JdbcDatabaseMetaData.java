@@ -1554,7 +1554,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * </pre>
      * The complete list of keywords (including SQL:2003 keywords) is:
      * <pre>
-     * ALL, AND, ARRAY, AS,
+     * ALL, AND, ARRAY, AS, ASYMMETRIC,
      * BETWEEN, BOTH,
      * CASE, CAST, CHECK, CONSTRAINT, CROSS, CURRENT_CATALOG, CURRENT_DATE, CURRENT_SCHEMA,
      * CURRENT_TIME, CURRENT_TIMESTAMP, CURRENT_USER,
@@ -1573,7 +1573,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * PARTITION, PRIMARY,
      * QUALIFY,
      * RANGE, REGEXP, RIGHT, ROW, _ROWID_, ROWNUM, ROWS,
-     * SECOND, SELECT, SET, SYSDATE, SYSTIME, SYSTIMESTAMP,
+     * SECOND, SELECT, SET, SYMMETRIC, SYSDATE, SYSTIME, SYSTIMESTAMP,
      * TABLE, TODAY, TOP, TRAILING, TRUE,
      * UNION, UNIQUE, UNKNOWN, USING
      * VALUE, VALUES,

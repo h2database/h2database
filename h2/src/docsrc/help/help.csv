@@ -2773,7 +2773,7 @@ compare { { { ALL | ANY | SOME } ( query ) } | operand }
     | IS [ NOT ] OF (dataType [,...])
     | IS [ NOT ] JSON [ VALUE | ARRAY | OBJECT | SCALAR ]
         [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
-    | BETWEEN operand AND operand
+    | BETWEEN [ ASYMMETRIC | SYMMETRIC ] operand AND operand
     | IN ( { query | expression [,...] } )
     | [ NOT ] { LIKE | @h2@ { ILIKE } } operand [ ESCAPE string ]
     | @h2@ { [ NOT ] REGEXP operand }
@@ -2815,6 +2815,11 @@ binary data, or a JSON is a valid JSON.
 If ""ARRAY"", ""OBJECT"", or ""SCALAR"" is specified, only JSON items of the specified type are considered as valid.
 If ""WITH UNIQUE [ KEYS ]"" is specified only JSON with unique keys is considered as valid.
 These conditions aren't null-safe, they return NULL if operand is NULL.
+
+Between predicate ""[ NOT ] BETWEEN [ ASYMMETRIC | SYMMETRIC ]"" checks whether the value is within the range
+inclusive.
+""V BETWEEN [ ASYMMETRIC ] A AND B"" is equivalent to ""A <= V AND V <= B"".
+""V BETWEEN SYMMETRIC A AND B"" is equivalent to ""A <= V AND V <= B OR A >= V AND V >= B"".
 
 When comparing with LIKE, the wildcards characters are ""_"" (any one character)
 and ""%"" (any characters). The database uses an index when comparing with LIKE

@@ -12,6 +12,7 @@ import static org.h2.util.ParserUtil.ALL;
 import static org.h2.util.ParserUtil.AND;
 import static org.h2.util.ParserUtil.ARRAY;
 import static org.h2.util.ParserUtil.AS;
+import static org.h2.util.ParserUtil.ASYMMETRIC;
 import static org.h2.util.ParserUtil.BETWEEN;
 import static org.h2.util.ParserUtil.CASE;
 import static org.h2.util.ParserUtil.CAST;
@@ -74,6 +75,7 @@ import static org.h2.util.ParserUtil.ROWNUM;
 import static org.h2.util.ParserUtil.SECOND;
 import static org.h2.util.ParserUtil.SELECT;
 import static org.h2.util.ParserUtil.SET;
+import static org.h2.util.ParserUtil.SYMMETRIC;
 import static org.h2.util.ParserUtil.TABLE;
 import static org.h2.util.ParserUtil.TO;
 import static org.h2.util.ParserUtil.TRUE;
@@ -234,6 +236,7 @@ import org.h2.expression.analysis.WindowFrameExclusion;
 import org.h2.expression.analysis.WindowFrameUnits;
 import org.h2.expression.analysis.WindowFunction;
 import org.h2.expression.analysis.WindowFunctionType;
+import org.h2.expression.condition.BetweenPredicate;
 import org.h2.expression.condition.BooleanTest;
 import org.h2.expression.condition.CompareLike;
 import org.h2.expression.condition.CompareLike.LikeType;
@@ -498,6 +501,8 @@ public class Parser {
             "ARRAY",
             // AS
             "AS",
+            // ASYMMETRIC
+            "ASYMMETRIC",
             // BETWEEN
             "BETWEEN",
             // CASE
@@ -616,6 +621,8 @@ public class Parser {
             "SELECT",
             // SET
             "SET",
+            // SYMMETRIC
+            "SYMMETRIC",
             // TABLE
             "TABLE",
             // TO
@@ -3301,12 +3308,13 @@ public class Parser {
             switch (currentTokenType) {
             case BETWEEN: {
                 read();
-                Expression low = readConcat();
+                boolean symmetric = readIf(SYMMETRIC);
+                if (!symmetric) {
+                    readIf(ASYMMETRIC);
+                }
+                Expression a = readConcat();
                 read(AND);
-                Expression high = readConcat();
-                Expression condLow = new Comparison(Comparison.SMALLER_EQUAL, low, r);
-                Expression condHigh = new Comparison(Comparison.BIGGER_EQUAL, high, r);
-                r = new ConditionAndOr(ConditionAndOr.AND, condLow, condHigh);
+                r = new BetweenPredicate(r, false, symmetric, a, readConcat());
                 break;
             }
             case IN:

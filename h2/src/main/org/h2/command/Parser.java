@@ -1576,7 +1576,7 @@ public class Parser {
         while (currentTokenType != END_OF_INPUT) {
             String s = currentToken;
             read();
-            CompareLike like = new CompareLike(database, function,
+            CompareLike like = new CompareLike(database, function, false,
                     ValueExpression.get(ValueVarchar.get('%' + s + '%')), null, LikeType.LIKE);
             select.addCondition(like);
         }
@@ -3298,12 +3298,17 @@ public class Parser {
             // TABLE TEST(ID INT DEFAULT 0 NOT NULL))
             int backup = parseIndex;
             boolean not = readIf(NOT);
-            if (not && isToken(NULL)) {
-                // this really only works for NOT NULL!
-                parseIndex = backup;
-                currentToken = "NOT";
-                currentTokenType = NOT;
-                break;
+            if (not) {
+                if (isToken(NULL)) {
+                    // this really only works for NOT NULL!
+                    parseIndex = backup;
+                    currentToken = "NOT";
+                    currentTokenType = NOT;
+                    break;
+                }
+            } else if (readIf(IS)) {
+                r = readConditionIs(r);
+                continue;
             }
             switch (currentTokenType) {
             case BETWEEN: {
@@ -3314,32 +3319,31 @@ public class Parser {
                 }
                 Expression a = readConcat();
                 read(AND);
-                r = new BetweenPredicate(r, false, symmetric, a, readConcat());
+                r = new BetweenPredicate(r, not, symmetric, a, readConcat());
                 break;
             }
             case IN:
                 read();
                 r = readInPredicate(r);
-                break;
-            case IS:
-                read();
-                r = readConditionIs(r);
+                if (not) {
+                    r = new ConditionNot(r);
+                }
                 break;
             case LIKE: {
                 read();
-                r = readLikePredicate(r, LikeType.LIKE);
+                r = readLikePredicate(r, LikeType.LIKE, not);
                 break;
             }
             default:
                 if (readIf("ILIKE")) {
-                    r = readLikePredicate(r, LikeType.ILIKE);
+                    r = readLikePredicate(r, LikeType.ILIKE, not);
                 } else if (readIf("REGEXP")) {
                     Expression b = readConcat();
                     recompileAlways = true;
-                    r = new CompareLike(database, r, b, null, LikeType.REGEXP);
+                    r = new CompareLike(database, r, not, b, null, LikeType.REGEXP);
                 } else if (not) {
                     if (expectedList != null) {
-                        addMultipleExpected(LIKE, IS, IN, BETWEEN);
+                        addMultipleExpected(BETWEEN, IN, LIKE);
                     }
                     throw getSyntaxError();
                 } else {
@@ -3349,9 +3353,6 @@ public class Parser {
                     }
                     r = readComparison(r, compareType);
                 }
-            }
-            if (not) {
-                r = new ConditionNot(r);
             }
         }
         return r;
@@ -3462,11 +3463,11 @@ public class Parser {
         return new IsJsonPredicate(left, not, unique, itemType);
     }
 
-    private Expression readLikePredicate(Expression left, LikeType likeType) {
+    private Expression readLikePredicate(Expression left, LikeType likeType, boolean not) {
         Expression right = readConcat();
         Expression esc = readIf("ESCAPE") ? readConcat() : null;
         recompileAlways = true;
-        return new CompareLike(database, left, right, esc, likeType);
+        return new CompareLike(database, left, not, right, esc, likeType);
     }
 
     private Expression readComparison(Expression left, int compareType) {
@@ -3524,10 +3525,10 @@ public class Parser {
                 break;
             }
             case TILDE: // PostgreSQL compatibility
-                op1 = readTildeCondition(op1);
+                op1 = readTildeCondition(op1, false);
                 break;
             case NOT_TILDE: // PostgreSQL compatibility
-                op1 = new ConditionNot(readTildeCondition(op1));
+                op1 = readTildeCondition(op1, true);
                 break;
             default:
                 // Don't add compatibility operators
@@ -3565,12 +3566,12 @@ public class Parser {
         }
     }
 
-    private Expression readTildeCondition(Expression r) {
+    private Expression readTildeCondition(Expression r, boolean not) {
         read();
         if (readIf(ASTERISK)) {
             r = new CastSpecification(r, TypeInfo.TYPE_VARCHAR_IGNORECASE);
         }
-        return new CompareLike(database, r, readSum(), null, LikeType.REGEXP);
+        return new CompareLike(database, r, not, readSum(), null, LikeType.REGEXP);
     }
 
     private Expression readAggregate(AggregateType aggregateType, String aggregateName) {

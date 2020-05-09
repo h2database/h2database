@@ -2773,8 +2773,8 @@ compare { { { ALL | ANY | SOME } ( query ) } | operand }
     | IS [ NOT ] OF (dataType [,...])
     | IS [ NOT ] JSON [ VALUE | ARRAY | OBJECT | SCALAR ]
         [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
-    | BETWEEN [ ASYMMETRIC | SYMMETRIC ] operand AND operand
-    | IN ( { query | expression [,...] } )
+    | [ NOT ] BETWEEN [ ASYMMETRIC | SYMMETRIC ] operand AND operand
+    | [ NOT ] IN ( { query | expression [,...] } )
     | [ NOT ] { LIKE | @h2@ { ILIKE } } operand [ ESCAPE string ]
     | @h2@ { [ NOT ] REGEXP operand }
 ","

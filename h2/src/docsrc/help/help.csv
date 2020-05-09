@@ -2766,82 +2766,179 @@ INTERSECTS(GEOM1, GEOM2)
 "
 
 "Other Grammar","Condition Right Hand Side","
-compare { { { ALL | ANY | SOME } ( query ) } | operand }
-    | IS [ NOT ] NULL
-    | IS [ NOT ] [ DISTINCT FROM ] operand
-    | IS [ NOT ] { TRUE | FALSE | UNKNOWN }
-    | IS [ NOT ] OF (dataType [,...])
-    | IS [ NOT ] JSON [ VALUE | ARRAY | OBJECT | SCALAR ]
-        [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
-    | [ NOT ] BETWEEN [ ASYMMETRIC | SYMMETRIC ] operand AND operand
-    | [ NOT ] IN ( { query | expression [,...] } )
-    | [ NOT ] { LIKE | @h2@ { ILIKE } } operand [ ESCAPE string ]
-    | @h2@ { [ NOT ] REGEXP operand }
+comparisonRightHandSide
+    | quantifiedComparisonRightHandSide
+    | nullPredicateRightHandSide
+    | distinctPredicateRightHandSide
+    | booleanTestRightHandSide
+    | typePredicateRightHandSide
+    | jsonPredicateRightHandSide
+    | betweenPredicateRightHandSide
+    | inPredicateRightHandSide
+    | likePredicateRightHandSide
+    | regexpPredicateRightHandSide
 ","
 The right hand side of a condition.
+","
+> 10
+IS NULL
+IS NOT NULL
+IS NOT DISTINCT FROM B
+IS OF (DATE, TIMESTAMP, TIMESTAMP WITH TIME ZONE)
+IS JSON OBJECT WITH UNIQUE KEYS
+LIKE 'Jo%'
+"
+
+"Other Grammar","Comparison Right Hand Side","
+compare operand
+","
+Right side of comparison predicates.
+","
+> 10
+"
+
+"Other Grammar","Quantified Comparison Right Hand Side","
+compare { ALL | ANY | SOME } ( query )
+","
+Right side of quantified comparison predicates.
 
 Quantified comparison predicate ALL returns TRUE if specified comparison operation between
 left size of condition and each row from a subquery returns TRUE, including case when there are no rows.
 ALL predicate returns FALSE if at least one such comparison returns FALSE.
-Otherwise it returns NULL.
+Otherwise it returns UNKNOWN.
 
 Quantified comparison predicates ANY and SOME return TRUE if specified comparison operation between
 left size of condition and at least one row from a subquery returns TRUE.
 ANY and SOME predicates return FALSE if all such comparisons return FALSE.
-Otherwise it returns NULL.
+Otherwise they return UNKNOWN.
 Note that these predicates have priority over ANY and SOME aggregate functions with subquery on the right side.
 Use parentheses around aggregate function.
+","
+< ALL(SELECT V FROM TEST)
+"
 
-The conditions ""IS [ NOT ] NULL"" check whether the specified value(s) are NULL values.
+"Other Grammar","Null Predicate Right Hand Side","
+IS [ NOT ] NULL
+","
+Right side of null predicate.
+
+Check whether the specified value(s) are NULL values.
 To test multiple values a row value must be specified.
 ""IS NULL"" returns ""TRUE"" if and only if all values are ""NULL"" values; otherwise it returns ""FALSE"".
 ""IS NOT NULL"" returns ""TRUE"" if and only if all values are not ""NULL"" values; otherwise it returns ""FALSE"".
+","
+IS NULL
+"
 
-The conditions ""IS [ NOT ] DISTINCT FROM"" are null-safe, meaning
-NULL is considered the same as NULL, and the condition never evaluates to NULL.
+"Other Grammar","Distinct Predicate Right Hand Side","
+IS [ NOT ] [ DISTINCT FROM ] operand
+","
+Right side of distinct predicate.
 
-Boolean tests ""IS [ NOT ] { TRUE | FALSE | UNKNOWN }"" check whether the specified value
-is (not) ""TRUE"", ""FALSE"", or ""UNKNOWN"" (""NULL"") and return ""TRUE"" or ""FALSE"".
+Distinct predicate is null-safe, meaning NULL is considered the same as NULL,
+and the condition never evaluates to UNKNOWN.
+","
+IS NOT DISTINCT FROM OTHER
+"
 
-The conditions ""IS [ NOT ] OF"" check whether the data type of the specified operand
-is one of the specified data types.
+"Other Grammar","Boolean Test Right Hand Side","
+IS [ NOT ] { TRUE | FALSE | UNKNOWN }
+","
+Right side of boolean test.
+
+Checks whether the specified value is (not) ""TRUE"", ""FALSE"", or ""UNKNOWN"" (""NULL"")
+and return ""TRUE"" or ""FALSE"".
+This test is null-safe.
+","
+IS TRUE
+"
+
+"Other Grammar","Type Predicate Right Hand Side","
+IS [ NOT ] OF (dataType [,...])
+","
+Right side of type predicate.
+
+Checks whether the data type of the specified operand is one of the specified data types.
 Some data types have multiple names, these names are considered as equal here.
 Domains and their base data types are currently not distinguished from each other.
 Precision and scale are also ignored.
-If operand is NULL, the result is NULL.
+If operand is NULL, the result is UNKNOWN.
+","
+IS OF (INTEGER, BIGINT)
+"
 
-The conditions ""IS [ NOT ] JSON"" check whether value of the specified string,
-binary data, or a JSON is a valid JSON.
+"Other Grammar","JSON Predicate Right Hand Side","
+IS [ NOT ] JSON [ VALUE | ARRAY | OBJECT | SCALAR ]
+        [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
+","
+Right side of JSON predicate.
+
+Checks whether value of the specified string, binary data, or a JSON is a valid JSON.
 If ""ARRAY"", ""OBJECT"", or ""SCALAR"" is specified, only JSON items of the specified type are considered as valid.
 If ""WITH UNIQUE [ KEYS ]"" is specified only JSON with unique keys is considered as valid.
-These conditions aren't null-safe, they return NULL if operand is NULL.
+This predicate isn't null-safe, it returns UNKNOWN if operand is NULL.
+","
+IS JSON OBJECT WITH UNIQUE KEYS
+"
 
-Between predicate ""[ NOT ] BETWEEN [ ASYMMETRIC | SYMMETRIC ]"" checks whether the value is within the range
-inclusive.
+"Other Grammar","Between Predicate Right Hand Side","
+[ NOT ] BETWEEN [ ASYMMETRIC | SYMMETRIC ] operand AND operand
+","
+Right side of between predicate.
+
+Checks whether the value is within the range inclusive.
 ""V BETWEEN [ ASYMMETRIC ] A AND B"" is equivalent to ""A <= V AND V <= B"".
 ""V BETWEEN SYMMETRIC A AND B"" is equivalent to ""A <= V AND V <= B OR A >= V AND V >= B"".
+","
+BETWEEN LOW AND HIGH
+"
 
-When comparing with LIKE, the wildcards characters are ""_"" (any one character)
-and ""%"" (any characters). The database uses an index when comparing with LIKE
-except if the operand starts with a wildcard. To search for the characters ""%"" and
-""_"", the characters need to be escaped. The default escape character is "" \ "" (backslash).
+"Other Grammar","In Predicate Right Hand Side","
+[ NOT ] IN ( { query | expression [,...] } )
+","
+Right side of in predicate.
+
+Checks presence of value in the specified list of values or in result of the specified query.
+
+Returns ""TRUE"" if row value on the left side is equal to one of values on the right side,
+""FALSE"" if all comparison operations were evaluated to ""FALSE"" or right side has no values,
+and ""UNKNOWN"" otherwise.
+
+This operation is logically equivalent to ""OR"" between comparison operations
+comparing left side and each value from the right side.
+","
+IN (A, B, C)
+IN (SELECT V FROM TEST)
+"
+
+"Other Grammar","Like Predicate Right Hand Side","
+[ NOT ] { LIKE | @h2@ { ILIKE } } operand [ ESCAPE string ]
+","
+Right side of like predicate.
+
+The wildcards characters are ""_"" (any one character) and ""%"" (any characters).
+The database uses an index when comparing with LIKE except if the operand starts with a wildcard.
+To search for the characters ""%"" and ""_"", the characters need to be escaped.
+The default escape character is "" \ "" (backslash).
 To select no escape character, use ""ESCAPE ''"" (empty string).
 At most one escape character is allowed.
 Each character that follows the escape character in the pattern needs to match exactly.
 Patterns that end with an escape character are invalid and the expression returns NULL.
 
 ILIKE does a case-insensitive compare.
+","
+LIKE 'a%'
+"
 
-When comparing with REGEXP, regular expression matching is used.
+"Other Grammar","Regexp Predicate Right Hand Side","
+@h2@ { [ NOT ] REGEXP operand }
+","
+Right side of Regexp predicate.
+
+Regular expression matching is used.
 See Java ""Matcher.find"" for details.
 ","
-VALUE > 10
-A IS NULL
-(A, B) IS NOT NULL
-A IS NOT DISTINCT FROM B
-T IS OF (DATE, TIMESTAMP, TIMESTAMP WITH TIME ZONE)
-T IS JSON OBJECT WITH UNIQUE KEYS
-LIKE 'Jo%'
+REGEXP '[a-z]'
 "
 
 "Other Grammar","Table Constraint Definition","

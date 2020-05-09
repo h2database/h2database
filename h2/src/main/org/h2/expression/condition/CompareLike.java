@@ -86,7 +86,8 @@ public class CompareLike extends Condition {
     /** indicates that we can shortcut the comparison and use contains */
     private boolean shortcutToContains;
 
-    public CompareLike(Database db, Expression left, boolean not, Expression right, Expression escape, LikeType likeType) {
+    public CompareLike(Database db, Expression left, boolean not, Expression right, Expression escape,
+            LikeType likeType) {
         this(db.getCompareMode(), db.getSettings().defaultEscape, left, not, right, escape, likeType);
     }
 

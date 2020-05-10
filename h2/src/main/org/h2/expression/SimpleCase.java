@@ -123,7 +123,7 @@ public class SimpleCase extends Expression {
         return this;
     }
 
-    public static TypeInfo combineTypes(TypeInfo typeInfo, Expression e) {
+    static TypeInfo combineTypes(TypeInfo typeInfo, Expression e) {
         if (!e.isNullConstant()) {
             TypeInfo type = e.getType();
             int valueType = type.getValueType();

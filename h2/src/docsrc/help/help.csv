@@ -2605,6 +2605,15 @@ NULL values are included into array.
 ARRAY(SELECT * FROM SYSTEM_RANGE(1, 10));
 "
 
+"Other Grammar","Case expression","
+simpleCase | searchedCase
+","
+Performs conditional evaluation of expressions.
+","
+CASE A WHEN 'a' THEN 1 ELSE 2 END
+CASE WHEN V > 10 THEN 1 WHEN V < 0 THEN 2 END
+"
+
 "Other Grammar","Simple case","
 CASE expression
 { WHEN { expression | conditionRightHandSide } [,...] THEN expression } [...]
@@ -3554,8 +3563,7 @@ CURRENT ROW
     | { - | + } term
     | ( expression ) [ intervalQualifier ]
     | query
-    | simpleCase
-    | searchedCase
+    | caseExpression
     | castSpecification
     | userDefinedFunctionName }
 [ timeZone | intervalQualifier ]
@@ -5761,11 +5769,12 @@ CALL DATABASE_PATH();
 "
 
 "Functions (System)","DECODE","
-@h2@ DECODE(value, whenValue, thenValue [,...])
+@c@ DECODE(value, whenValue, thenValue [,...])
 ","
 Returns the first matching value. NULL is considered to match NULL.
 If no match was found, then NULL or the last parameter (if the parameter count is even) is returned.
-This function is provided for Oracle compatibility (see there for details).
+This function is provided for Oracle compatibility,
+use [CASE](https://h2database.com/html/grammar.html#case_expression) instead of it.
 ","
 CALL DECODE(RAND()>0.5, 0, 'Red', 1, 'Black');
 "

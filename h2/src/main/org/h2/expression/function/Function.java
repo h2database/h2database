@@ -43,7 +43,6 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.Format;
 import org.h2.expression.OperationN;
-import org.h2.expression.SimpleCase;
 import org.h2.expression.Subquery;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
@@ -148,7 +147,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             CARDINALITY = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
-            NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232,
+            NVL2 = 228, ARRAY_CONTAINS = 230, FILE_WRITE = 232,
             UNNEST = 233, ARRAY_SLICE = 236,
             ABORT_SESSION = 237;
 
@@ -384,8 +383,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 2, Value.BIGINT, false, false, true, false);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID,
                 0, Value.VARCHAR);
-        addFunctionWithNull("DECODE", DECODE,
-                VAR_ARGS, Value.NULL);
         addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED,
                 1, Value.BIGINT);
         addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
@@ -831,22 +828,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case SESSION_ID:
             result = ValueInteger.get(session.getId());
             break;
-        case DECODE: {
-            int index = -1;
-            for (int i = 1, len = args.length - 1; i < len; i += 2) {
-                if (session.areEqual(v0, getNullOrValue(session, args, values, i))) {
-                    index = i + 1;
-                    break;
-                }
-            }
-            if (index < 0 && args.length % 2 == 0) {
-                index = args.length - 1;
-            }
-            Value v = index < 0 ? ValueNull.INSTANCE :
-                    getNullOrValue(session, args, values, index);
-            result = v.convertTo(type, session);
-            break;
-        }
         case NVL2: {
             Value v;
             if (v0 == ValueNull.INSTANCE) {
@@ -2333,9 +2314,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             min = 2;
             max = 4;
             break;
-        case DECODE:
-            min = 3;
-            break;
         case REGEXP_REPLACE:
             min = 3;
             max = 4;
@@ -2420,23 +2398,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                         typeInfo = TypeInfo.getHigherType(typeInfo, type);
                     }
                 }
-            }
-            if (typeInfo.getValueType() == Value.UNKNOWN) {
-                typeInfo = TypeInfo.TYPE_VARCHAR;
-            }
-            break;
-        }
-        case DECODE: {
-            typeInfo = TypeInfo.TYPE_UNKNOWN;
-            // (expr, when, then)
-            // (expr, when, then, else)
-            // (expr, when, then, when, then)
-            // (expr, when, then, when, then, else)
-            for (int i = 2, len = args.length; i < len; i += 2) {
-                typeInfo = SimpleCase.combineTypes(typeInfo, args[i]);
-            }
-            if (args.length % 2 == 0) {
-                typeInfo = SimpleCase.combineTypes(typeInfo, args[args.length - 1]);
             }
             if (typeInfo.getValueType() == Value.UNKNOWN) {
                 typeInfo = TypeInfo.TYPE_VARCHAR;

@@ -4023,6 +4023,31 @@ public class Parser {
         case "ARRAY_LENGTH":
             function = Function.getFunction(Function.CARDINALITY);
             break;
+        // Simple case
+        case "DECODE": {
+            Expression caseOperand = readExpression();
+            boolean canOptimize = caseOperand.isConstant() && !caseOperand.getValue(session).containsNull();
+            read(COMMA);
+            Expression a = readExpression();
+            read(COMMA);
+            Expression b = readExpression();
+            SimpleCase.SimpleWhen when = decodeToWhen(caseOperand, canOptimize, a, b), current = when;
+            Expression elseResult = null;
+            while (readIf(COMMA)) {
+                a = readExpression();
+                if (readIf(COMMA)) {
+                    b = readExpression();
+                    SimpleCase.SimpleWhen next = decodeToWhen(caseOperand, canOptimize, a, b);
+                    current.addWhen(next);
+                    current = next;
+                } else {
+                    elseResult = a;
+                    break;
+                }
+            }
+            read(CLOSE_PAREN);
+            return new SimpleCase(caseOperand, when, elseResult);
+        }
         // Searched case
         case "CASEWHEN": {
             Expression when = readExpression();
@@ -4178,6 +4203,14 @@ public class Parser {
         }
         function.doneWithParameters();
         return function;
+    }
+
+    private SimpleCase.SimpleWhen decodeToWhen(Expression caseOperand, boolean canOptimize, Expression whenOperand,
+            Expression result) {
+        if (!canOptimize && (!whenOperand.isConstant() || whenOperand.getValue(session).containsNull())) {
+            whenOperand = new Comparison(Comparison.EQUAL_NULL_SAFE, caseOperand, whenOperand, true);
+        }
+        return new SimpleCase.SimpleWhen(whenOperand, result);
     }
 
     private Function readFunctionParameters(Function function) {

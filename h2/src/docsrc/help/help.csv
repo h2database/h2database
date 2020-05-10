@@ -2610,8 +2610,12 @@ CASE expression
 { WHEN { expression | conditionRightHandSide } [,...] THEN expression } [...]
 [ ELSE expression ] END
 ","
-Returns the first expression where the value is equal to the test expression. If
-no else part is specified, return NULL.
+Returns then expression from the first when clause where one of its operands was was evaluated to ""TRUE""
+for the case expression.
+If there are no such clauses, returns else expression or NULL if it is absent.
+
+Plain expressions are tested for equality with the case expression, ""NULL"" is not equal to ""NULL"".
+Right sides of conditions are evaluated with the case expression on the left side.
 ","
 CASE CNT WHEN IS NULL THEN 'Null' WHEN 0 THEN 'No' WHEN 1 THEN 'One' WHEN 2, 3 THEN 'Few' ELSE 'Some' END
 "

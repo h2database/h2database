@@ -3434,7 +3434,8 @@ WITHIN GROUP (ORDER BY ID DESC)
 "
 
 "Other Grammar","Wildcard expression","
-{* | @h2@ {tableAlias.*}} @h2@ [EXCEPT ([tableAlias.]columnName, [,...])]
+[[schemaName.]tableAlias.]*
+@h2@ [EXCEPT ([[schemaName.]tableAlias.]columnName, [,...])]
 ","
 A wildcard expression in a SELECT statement.
 A wildcard expression represents all visible columns. Some columns can be excluded with optional EXCEPT clause.

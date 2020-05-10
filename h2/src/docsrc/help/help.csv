@@ -2612,6 +2612,7 @@ Performs conditional evaluation of expressions.
 ","
 CASE A WHEN 'a' THEN 1 ELSE 2 END
 CASE WHEN V > 10 THEN 1 WHEN V < 0 THEN 2 END
+CASE WHEN A IS NULL THEN 'Null' ELSE 'Not null' END
 "
 
 "Other Grammar","Simple case","
@@ -2637,6 +2638,7 @@ Returns the first expression where the condition is true. If no else part is
 specified, return NULL.
 ","
 CASE WHEN CNT<10 THEN 'Low' ELSE 'High' END
+CASE WHEN A IS NULL THEN 'Null' ELSE 'Not null' END
 "
 
 "Other Grammar","Cast specification","
@@ -5950,6 +5952,10 @@ NULLIF(A, B)
 ","
 If the test value is null, then 'b' is returned. Otherwise, 'a' is returned.
 The data type of the returned value is the data type of 'a' if this is a text type.
+
+This function is provided for Oracle compatibility,
+use [CASE](https://h2database.com/html/grammar.html#case_expression)
+or [COALESCE](https://h2database.com/html/functions.html#coalesce) instead of it.
 ","
 NVL2(X, 'not null', 'null')
 "

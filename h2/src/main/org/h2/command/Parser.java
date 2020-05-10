@@ -4049,15 +4049,10 @@ public class Parser {
             return new SimpleCase(caseOperand, when, elseResult);
         }
         // Searched case
-        case "CASEWHEN": {
-            Expression when = readExpression();
-            read(COMMA);
-            Expression then = readExpression();
-            read(COMMA);
-            Expression elseExpression = readExpression();
-            read(CLOSE_PAREN);
-            return new SearchedCase(new Expression[] {when, then, elseExpression});
-        }
+        case "CASEWHEN":
+            return readCompatibilityCase(readExpression());
+        case "NVL2":
+            return readCompatibilityCase(new NullPredicate(readExpression(), true, false));
         // Cast specification
         case "CONVERT": {
             Expression arg;
@@ -4211,6 +4206,15 @@ public class Parser {
             whenOperand = new Comparison(Comparison.EQUAL_NULL_SAFE, caseOperand, whenOperand, true);
         }
         return new SimpleCase.SimpleWhen(whenOperand, result);
+    }
+
+    private Expression readCompatibilityCase(Expression when) {
+        read(COMMA);
+        Expression then = readExpression();
+        read(COMMA);
+        Expression elseExpression = readExpression();
+        read(CLOSE_PAREN);
+        return new SearchedCase(new Expression[] { when, then, elseExpression });
     }
 
     private Function readFunctionParameters(Function function) {

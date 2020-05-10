@@ -147,7 +147,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             CARDINALITY = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
-            NVL2 = 228, ARRAY_CONTAINS = 230, FILE_WRITE = 232,
+            ARRAY_CONTAINS = 230, FILE_WRITE = 232,
             UNNEST = 233, ARRAY_SLICE = 236,
             ABORT_SESSION = 237;
 
@@ -343,8 +343,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
                 3, Value.NULL);
         addFunctionWithNull("COALESCE", COALESCE, VAR_ARGS, Value.NULL);
-        addFunctionWithNull("NVL2", NVL2,
-                3, Value.NULL);
         addFunctionWithNull("NULLIF", NULLIF,
                 2, Value.NULL);
         addFunctionNotDeterministic("NEXTVAL", NEXTVAL, VAR_ARGS, Value.NULL);
@@ -828,16 +826,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case SESSION_ID:
             result = ValueInteger.get(session.getId());
             break;
-        case NVL2: {
-            Value v;
-            if (v0 == ValueNull.INSTANCE) {
-                v = getNullOrValue(session, args, values, 2);
-            } else {
-                v = getNullOrValue(session, args, values, 1);
-            }
-            result = v.convertTo(type, session);
-            break;
-        }
         case COALESCE: {
             result = v0;
             for (int i = 0; i < args.length; i++) {
@@ -2401,21 +2389,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             }
             if (typeInfo.getValueType() == Value.UNKNOWN) {
                 typeInfo = TypeInfo.TYPE_VARCHAR;
-            }
-            break;
-        }
-        case NVL2: {
-            TypeInfo t1 = args[1].getType(), t2 = args[2].getType();
-            switch (t1.getValueType()) {
-            case Value.VARCHAR:
-            case Value.CLOB:
-            case Value.CHAR:
-            case Value.VARCHAR_IGNORECASE:
-                typeInfo = TypeInfo.getTypeInfo(t1.getValueType(), -1, 0, null);
-                break;
-            default:
-                typeInfo = TypeInfo.getHigherType(t1, t2);
-                break;
             }
             break;
         }

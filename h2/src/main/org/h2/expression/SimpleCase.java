@@ -25,6 +25,10 @@ public class SimpleCase extends Expression {
 
         SimpleWhen next;
 
+        public SimpleWhen(Expression operand, Expression result) {
+            this(new Expression[] { operand }, result);
+        }
+
         public SimpleWhen(Expression[] operands, Expression result) {
             this.operands = operands;
             this.result = result;
@@ -84,12 +88,6 @@ public class SimpleCase extends Expression {
         Value v = null;
         if (allConst) {
             v = operand.getValue(session);
-            if (v == ValueNull.INSTANCE) {
-                if (elseResult != null) {
-                    return elseResult.optimize(session);
-                }
-                return ValueExpression.NULL;
-            }
         }
         for (SimpleWhen when = this.when; when != null; when = when.next) {
             Expression[] operands = when.operands;
@@ -97,7 +95,7 @@ public class SimpleCase extends Expression {
                 Expression e = operands[i].optimize(session);
                 if (allConst) {
                     if (e.isConstant()) {
-                        if (session.areEqual(v, e.getValue(session))) {
+                        if (e.getWhenValue(session, v)) {
                             return when.result.optimize(session);
                         }
                     } else {

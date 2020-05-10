@@ -5384,7 +5384,7 @@ public class Parser {
             return new SimpleCase.SimpleWhen(operands.toArray(new Expression[0]), readExpression());
         }
         read("THEN");
-        return new SimpleCase.SimpleWhen(new Expression[] { whenOperand }, readExpression());
+        return new SimpleCase.SimpleWhen(whenOperand, readExpression());
     }
 
     private Expression readWhenOperand(Expression caseOperand) {

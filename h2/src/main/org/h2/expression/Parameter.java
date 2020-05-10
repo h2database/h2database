@@ -123,7 +123,7 @@ public class Parameter extends Operation0 implements ParameterInterface {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new Comparison(Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.FALSE));
+        return new Comparison(Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.FALSE), false);
     }
 
     public void setColumn(Column column) {

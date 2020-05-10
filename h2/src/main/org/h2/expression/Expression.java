@@ -477,4 +477,30 @@ public abstract class Expression implements HasSQL {
         throw new IndexOutOfBoundsException();
     }
 
+    /**
+     * Return the resulting value of when operand for the current row.
+     *
+     * @param session
+     *            the session
+     * @param left
+     *            value on the left side
+     * @return the result
+     */
+    public boolean getWhenValue(Session session, Value left) {
+        return session.compareWithNull(left, getValue(session), true) == 0;
+    }
+
+    /**
+     * Appends the SQL statement of this when operand to the specified builder.
+     *
+     * @param builder
+     *            string builder
+     * @param sqlFlags
+     *            formatting flags
+     * @return the specified string builder
+     */
+    public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
+        return getSQL(builder.append(' '), sqlFlags);
+    }
+
 }

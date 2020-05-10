@@ -2606,13 +2606,14 @@ ARRAY(SELECT * FROM SYSTEM_RANGE(1, 10));
 "
 
 "Other Grammar","Simple case","
-CASE expression { WHEN expression [,...] THEN expression } [...]
+CASE expression
+{ WHEN { expression | conditionRightHandSide } [,...] THEN expression } [...]
 [ ELSE expression ] END
 ","
 Returns the first expression where the value is equal to the test expression. If
 no else part is specified, return NULL.
 ","
-CASE CNT WHEN 0 THEN 'No' WHEN 1 THEN 'One' WHEN 2, 3 THEN 'Few' ELSE 'Some' END
+CASE CNT WHEN IS NULL THEN 'Null' WHEN 0 THEN 'No' WHEN 1 THEN 'One' WHEN 2, 3 THEN 'Few' ELSE 'Some' END
 "
 
 "Other Grammar","Searched case","

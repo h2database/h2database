@@ -63,12 +63,10 @@ public class SimpleCase extends Expression {
     @Override
     public Value getValue(Session session) {
         Value v = operand.getValue(session);
-        if (v != ValueNull.INSTANCE) {
-            for (SimpleWhen when = this.when; when != null; when = when.next) {
-                for (Expression e : when.operands) {
-                    if (session.areEqual(v, e.getValue(session))) {
-                        return when.result.getValue(session).convertTo(type, session);
-                    }
+        for (SimpleWhen when = this.when; when != null; when = when.next) {
+            for (Expression e : when.operands) {
+                if (e.getWhenValue(session, v)) {
+                    return when.result.getValue(session).convertTo(type, session);
                 }
             }
         }
@@ -142,13 +140,13 @@ public class SimpleCase extends Expression {
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         operand.getSQL(builder.append("CASE "), sqlFlags);
         for (SimpleWhen when = this.when; when != null; when = when.next) {
-            builder.append(" WHEN ");
+            builder.append(" WHEN");
             Expression[] operands = when.operands;
             for (int i = 0, len = operands.length; i < len; i++) {
                 if (i > 0) {
-                    builder.append(", ");
+                    builder.append(',');
                 }
-                operands[i].getSQL(builder, sqlFlags);
+                operands[i].getWhenSQL(builder, sqlFlags);
             }
             when.result.getSQL(builder.append(" THEN "), sqlFlags);
         }

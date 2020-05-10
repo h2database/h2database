@@ -111,7 +111,7 @@ public class ValueExpression extends Operation0 {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new Comparison(Comparison.EQUAL, this, ValueExpression.FALSE);
+        return new Comparison(Comparison.EQUAL, this, ValueExpression.FALSE, false);
     }
 
     @Override

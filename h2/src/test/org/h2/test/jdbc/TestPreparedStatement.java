@@ -1662,6 +1662,19 @@ public class TestPreparedStatement extends TestDb {
         anyParameterCheck(ps, values, expected);
         anyParameterCheck(ps, 300, new int[] {30});
         anyParameterCheck(ps, -5, new int[0]);
+        ps = conn.prepareStatement("SELECT V, CASE V WHEN = ANY(?) THEN 1 ELSE 2 END FROM"
+                + " (VALUES DATE '2000-01-01', DATE '2010-01-01') T(V) ORDER BY V");
+        ps.setObject(1, new LocalDate[] { LocalDate.of(2000, 1, 1), LocalDate.of(2030, 1, 1) });
+        try (ResultSet rs = ps.executeQuery()) {
+            assertTrue(rs.next());
+            assertEquals(LocalDate.of(2000, 1, 1), rs.getObject(1, LocalDate.class));
+            assertEquals(1, rs.getInt(2));
+            assertTrue(rs.next());
+            assertEquals(LocalDate.of(2010, 1, 1), rs.getObject(1, LocalDate.class));
+            assertEquals(2, rs.getInt(2));
+            assertFalse(rs.next());
+            assertEquals("CASE V WHEN = ANY(?1) THEN 1 ELSE 2 END", rs.getMetaData().getColumnLabel(2));
+        }
         conn.close();
         deleteDb("preparedStatement");
     }

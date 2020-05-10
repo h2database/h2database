@@ -26,15 +26,18 @@ import org.h2.value.ValueNull;
 /**
  * IS JSON predicate.
  */
-public class IsJsonPredicate extends Condition {
+public final class IsJsonPredicate extends Condition {
 
     private Expression left;
     private final boolean not;
+    private final boolean whenOperand;
     private final boolean withUniqueKeys;
     private final JSONItemType itemType;
 
-    public IsJsonPredicate(Expression left, boolean not, boolean withUniqueKeys, JSONItemType itemType) {
+    public IsJsonPredicate(Expression left, boolean not, boolean whenOperand, boolean withUniqueKeys,
+            JSONItemType itemType) {
         this.left = left;
+        this.whenOperand = whenOperand;
         this.not = not;
         this.withUniqueKeys = withUniqueKeys;
         this.itemType = itemType;
@@ -42,8 +45,12 @@ public class IsJsonPredicate extends Condition {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append('(');
-        left.getSQL(builder, sqlFlags).append(" IS");
+        return getWhenSQL(left.getSQL(builder.append('('), sqlFlags), sqlFlags).append(')');
+    }
+
+    @Override
+    public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
+        builder.append(" IS");
         if (not) {
             builder.append(" NOT");
         }
@@ -66,13 +73,13 @@ public class IsJsonPredicate extends Condition {
         if (withUniqueKeys) {
             builder.append(" WITH UNIQUE KEYS");
         }
-        return builder.append(')');
+        return builder;
     }
 
     @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
-        if (left.isConstant()) {
+        if (!whenOperand && left.isConstant()) {
             return ValueExpression.getBoolean(getValue(session));
         }
         return this;
@@ -84,12 +91,27 @@ public class IsJsonPredicate extends Condition {
         if (l == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
         }
+        return ValueBoolean.get(getValue(l));
+    }
+
+    @Override
+    public boolean getWhenValue(Session session, Value left) {
+        if (!whenOperand) {
+            return super.getWhenValue(session, left);
+        }
+        if (left == ValueNull.INSTANCE) {
+            return false;
+        }
+        return getValue(left);
+    }
+
+    private boolean getValue(Value left) {
         boolean result;
-        switch (l.getValueType()) {
+        switch (left.getValueType()) {
         case Value.VARBINARY:
         case Value.BINARY:
         case Value.BLOB: {
-            byte[] bytes = l.getBytesNoCopy();
+            byte[] bytes = left.getBytesNoCopy();
             JSONValidationTarget target = withUniqueKeys ? new JSONValidationTargetWithUniqueKeys()
                     : new JSONValidationTargetWithoutUniqueKeys();
             try {
@@ -100,7 +122,7 @@ public class IsJsonPredicate extends Condition {
             break;
         }
         case Value.JSON: {
-            JSONItemType valueItemType = ((ValueJson) l).getItemType();
+            JSONItemType valueItemType = ((ValueJson) left).getItemType();
             if (!itemType.includes(valueItemType)) {
                 result = not;
                 break;
@@ -114,7 +136,7 @@ public class IsJsonPredicate extends Condition {
         case Value.VARCHAR_IGNORECASE:
         case Value.CHAR:
         case Value.CLOB: {
-            String string = l.getString();
+            String string = left.getString();
             JSONValidationTarget target = withUniqueKeys ? new JSONValidationTargetWithUniqueKeys()
                     : new JSONValidationTargetWithoutUniqueKeys();
             try {
@@ -127,12 +149,15 @@ public class IsJsonPredicate extends Condition {
         default:
             result = not;
         }
-        return ValueBoolean.get(result);
+        return result;
     }
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new IsJsonPredicate(left, !not, withUniqueKeys, itemType);
+        if (whenOperand) {
+            return null;
+        }
+        return new IsJsonPredicate(left, !not, false, withUniqueKeys, itemType);
     }
 
     @Override

@@ -27,7 +27,7 @@ import org.h2.value.ValueNull;
 /**
  * A condition with parameter as {@code = ANY(?)}.
  */
-public class ConditionInParameter extends Condition {
+public final class ConditionInParameter extends Condition {
     private static final class ParameterList extends AbstractList<Expression> {
         private final Parameter parameter;
 
@@ -63,6 +63,8 @@ public class ConditionInParameter extends Condition {
     private Expression left;
 
     private boolean not;
+
+    private boolean whenOperand;
 
     private final Parameter parameter;
 
@@ -111,12 +113,14 @@ public class ConditionInParameter extends Condition {
      * @param left
      *            the expression before {@code = ANY(?)}
      * @param not whether the result should be negated
+     * @param whenOperand whether this is a when operand
      * @param parameter
      *            parameter
      */
-    public ConditionInParameter(Expression left, boolean not, Parameter parameter) {
+    public ConditionInParameter(Expression left, boolean not, boolean whenOperand, Parameter parameter) {
         this.left = left;
         this.not = not;
+        this.whenOperand = whenOperand;
         this.parameter = parameter;
     }
 
@@ -130,6 +134,17 @@ public class ConditionInParameter extends Condition {
     }
 
     @Override
+    public boolean getWhenValue(Session session, Value left) {
+        if (!whenOperand) {
+            return super.getWhenValue(session, left);
+        }
+        if (left == ValueNull.INSTANCE) {
+            return false;
+        }
+        return getValue(session, left, not, parameter.getValue(session)).getBoolean();
+    }
+
+    @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         left.mapColumns(resolver, level, state);
     }
@@ -137,7 +152,7 @@ public class ConditionInParameter extends Condition {
     @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
-        if (left.isNullConstant()) {
+        if (!whenOperand && left.isNullConstant()) {
             return TypedValueExpression.UNKNOWN;
         }
         return this;
@@ -145,12 +160,15 @@ public class ConditionInParameter extends Condition {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new ConditionInParameter(left, !not, parameter);
+        if (whenOperand) {
+            return null;
+        }
+        return new ConditionInParameter(left, !not, false, parameter);
     }
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (not || !(left instanceof ExpressionColumn)) {
+        if (not || whenOperand || !(left instanceof ExpressionColumn)) {
             return;
         }
         ExpressionColumn l = (ExpressionColumn) left;
@@ -175,6 +193,18 @@ public class ConditionInParameter extends Condition {
         parameter.getSQL(builder, sqlFlags).append("))");
         if (not) {
             builder.append(')');
+        }
+        return builder;
+    }
+
+    @Override
+    public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
+        if (not) {
+            builder.append(" NOT IN(UNNEST(");
+            parameter.getSQL(builder, sqlFlags).append("))");
+        } else {
+            builder.append(" = ANY(");
+            parameter.getSQL(builder, sqlFlags).append(')');
         }
         return builder;
     }

@@ -23,19 +23,25 @@ public abstract class SimplePredicate extends Condition {
     Expression left;
 
     /**
-     * Whether it is a "not" condition (e.g. "is not like").
+     * Whether it is a "not" condition (e.g. "is not null").
      */
     final boolean not;
 
-    SimplePredicate(Expression left, boolean not) {
+    /**
+     * Where this is the when operand of the simple case.
+     */
+    final boolean whenOperand;
+
+    SimplePredicate(Expression left, boolean not, boolean whenOperand) {
         this.left = left;
         this.not = not;
+        this.whenOperand = whenOperand;
     }
 
     @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
-        if (left.isConstant()) {
+        if (!whenOperand && left.isConstant()) {
             return ValueExpression.getBoolean(getValue(session));
         }
         return this;

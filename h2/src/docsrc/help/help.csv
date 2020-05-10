@@ -2605,14 +2605,29 @@ NULL values are included into array.
 ARRAY(SELECT * FROM SYSTEM_RANGE(1, 10));
 "
 
+"Other Grammar","Case expression","
+simpleCase | searchedCase
+","
+Performs conditional evaluation of expressions.
+","
+CASE A WHEN 'a' THEN 1 ELSE 2 END
+CASE WHEN V > 10 THEN 1 WHEN V < 0 THEN 2 END
+CASE WHEN A IS NULL THEN 'Null' ELSE 'Not null' END
+"
+
 "Other Grammar","Simple case","
-CASE expression { WHEN expression [,...] THEN expression } [...]
+CASE expression
+{ WHEN { expression | conditionRightHandSide } [,...] THEN expression } [...]
 [ ELSE expression ] END
 ","
-Returns the first expression where the value is equal to the test expression. If
-no else part is specified, return NULL.
+Returns then expression from the first when clause where one of its operands was was evaluated to ""TRUE""
+for the case expression.
+If there are no such clauses, returns else expression or NULL if it is absent.
+
+Plain expressions are tested for equality with the case expression, ""NULL"" is not equal to ""NULL"".
+Right sides of conditions are evaluated with the case expression on the left side.
 ","
-CASE CNT WHEN 0 THEN 'No' WHEN 1 THEN 'One' WHEN 2, 3 THEN 'Few' ELSE 'Some' END
+CASE CNT WHEN IS NULL THEN 'Null' WHEN 0 THEN 'No' WHEN 1 THEN 'One' WHEN 2, 3 THEN 'Few' ELSE 'Some' END
 "
 
 "Other Grammar","Searched case","
@@ -2623,6 +2638,7 @@ Returns the first expression where the condition is true. If no else part is
 specified, return NULL.
 ","
 CASE WHEN CNT<10 THEN 'Low' ELSE 'High' END
+CASE WHEN A IS NULL THEN 'Null' ELSE 'Not null' END
 "
 
 "Other Grammar","Cast specification","
@@ -3433,7 +3449,8 @@ WITHIN GROUP (ORDER BY ID DESC)
 "
 
 "Other Grammar","Wildcard expression","
-{* | @h2@ {tableAlias.*}} @h2@ [EXCEPT ([tableAlias.]columnName, [,...])]
+[[schemaName.]tableAlias.]*
+@h2@ [EXCEPT ([[schemaName.]tableAlias.]columnName, [,...])]
 ","
 A wildcard expression in a SELECT statement.
 A wildcard expression represents all visible columns. Some columns can be excluded with optional EXCEPT clause.
@@ -3548,8 +3565,7 @@ CURRENT ROW
     | { - | + } term
     | ( expression ) [ intervalQualifier ]
     | query
-    | simpleCase
-    | searchedCase
+    | caseExpression
     | castSpecification
     | userDefinedFunctionName }
 [ timeZone | intervalQualifier ]
@@ -5755,11 +5771,12 @@ CALL DATABASE_PATH();
 "
 
 "Functions (System)","DECODE","
-@h2@ DECODE(value, whenValue, thenValue [,...])
+@c@ DECODE(value, whenValue, thenValue [,...])
 ","
 Returns the first matching value. NULL is considered to match NULL.
 If no match was found, then NULL or the last parameter (if the parameter count is even) is returned.
-This function is provided for Oracle compatibility (see there for details).
+This function is provided for Oracle compatibility,
+use [CASE](https://h2database.com/html/grammar.html#case_expression) instead of it.
 ","
 CALL DECODE(RAND()>0.5, 0, 'Red', 1, 'Black');
 "
@@ -5935,6 +5952,10 @@ NULLIF(A, B)
 ","
 If the test value is null, then 'b' is returned. Otherwise, 'a' is returned.
 The data type of the returned value is the data type of 'a' if this is a text type.
+
+This function is provided for Oracle compatibility,
+use [CASE](https://h2database.com/html/grammar.html#case_expression)
+or [COALESCE](https://h2database.com/html/functions.html#coalesce) instead of it.
 ","
 NVL2(X, 'not null', 'null')
 "

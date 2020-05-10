@@ -1576,7 +1576,7 @@ public class Parser {
         while (currentTokenType != END_OF_INPUT) {
             String s = currentToken;
             read();
-            CompareLike like = new CompareLike(database, function, false,
+            CompareLike like = new CompareLike(database, function, false, false,
                     ValueExpression.get(ValueVarchar.get('%' + s + '%')), null, LikeType.LIKE);
             select.addCondition(like);
         }
@@ -2601,7 +2601,7 @@ public class Parser {
                 filter1.getColumnName(column1), false);
         Expression joinExpr = new ExpressionColumn(database, filter2.getSchemaName(), filter2.getTableAlias(),
                 filter2.getColumnName(column2), false);
-        Expression equal = new Comparison(Comparison.EQUAL, tableExpr, joinExpr);
+        Expression equal = new Comparison(Comparison.EQUAL, tableExpr, joinExpr, false);
         if (on == null) {
             on = equal;
         } else {
@@ -3278,7 +3278,7 @@ public class Parser {
             read(COMMA);
             Expression r2 = readConcat();
             read(CLOSE_PAREN);
-            return new Comparison(Comparison.SPATIAL_INTERSECTS, r1, r2);
+            return new Comparison(Comparison.SPATIAL_INTERSECTS, r1, r2, false);
         }
         case UNIQUE: {
             read();
@@ -3292,24 +3292,29 @@ public class Parser {
                 addMultipleExpected(NOT, EXISTS, INTERSECTS, UNIQUE);
             }
         }
-        Expression r = readConcat();
-        loop: for (;;) {
+        Expression l, c = readConcat();
+        do {
+            l = c;
             // special case: NOT NULL is not part of an expression (as in CREATE
             // TABLE TEST(ID INT DEFAULT 0 NOT NULL))
             int backup = parseIndex;
             boolean not = readIf(NOT);
-            if (not) {
-                if (isToken(NULL)) {
-                    // this really only works for NOT NULL!
-                    parseIndex = backup;
-                    currentToken = "NOT";
-                    currentTokenType = NOT;
-                    break;
-                }
-            } else if (readIf(IS)) {
-                r = readConditionIs(r);
-                continue;
+            if (not && isToken(NULL)) {
+                // this really only works for NOT NULL!
+                parseIndex = backup;
+                currentToken = "NOT";
+                currentTokenType = NOT;
+                break;
             }
+            c = readConditionRightHandSide(l, not, false);
+        } while (c != null);
+        return l;
+    }
+
+    private Expression readConditionRightHandSide(Expression r, boolean not, boolean whenOperand) {
+        if (!not && readIf(IS)) {
+            r = readConditionIs(r, whenOperand);
+        } else {
             switch (currentTokenType) {
             case BETWEEN: {
                 read();
@@ -3319,25 +3324,25 @@ public class Parser {
                 }
                 Expression a = readConcat();
                 read(AND);
-                r = new BetweenPredicate(r, not, symmetric, a, readConcat());
+                r = new BetweenPredicate(r, not, whenOperand, symmetric, a, readConcat());
                 break;
             }
             case IN:
                 read();
-                r = readInPredicate(r, not);
+                r = readInPredicate(r, not, whenOperand);
                 break;
             case LIKE: {
                 read();
-                r = readLikePredicate(r, LikeType.LIKE, not);
+                r = readLikePredicate(r, LikeType.LIKE, not, whenOperand);
                 break;
             }
             default:
                 if (readIf("ILIKE")) {
-                    r = readLikePredicate(r, LikeType.ILIKE, not);
+                    r = readLikePredicate(r, LikeType.ILIKE, not, whenOperand);
                 } else if (readIf("REGEXP")) {
                     Expression b = readConcat();
                     recompileAlways = true;
-                    r = new CompareLike(database, r, not, b, null, LikeType.REGEXP);
+                    r = new CompareLike(database, r, not, whenOperand, b, null, LikeType.REGEXP);
                 } else if (not) {
                     if (expectedList != null) {
                         addMultipleExpected(BETWEEN, IN, LIKE);
@@ -3346,45 +3351,45 @@ public class Parser {
                 } else {
                     int compareType = getCompareType(currentTokenType);
                     if (compareType < 0) {
-                        break loop;
+                        return null;
                     }
-                    r = readComparison(r, compareType);
+                    r = readComparison(r, compareType, whenOperand);
                 }
             }
         }
         return r;
     }
 
-    private Expression readConditionIs(Expression left) {
+    private Expression readConditionIs(Expression left, boolean whenOperand) {
         boolean isNot = readIf(NOT);
         switch (currentTokenType) {
         case NULL:
             read();
-            left = new NullPredicate(left, isNot);
+            left = new NullPredicate(left, isNot, whenOperand);
             break;
         case DISTINCT:
             read();
             read(FROM);
             left = new Comparison(isNot ? Comparison.EQUAL_NULL_SAFE : Comparison.NOT_EQUAL_NULL_SAFE, left,
-                    readConcat());
+                    readConcat(), whenOperand);
             break;
         case TRUE:
             read();
-            left = new BooleanTest(left, isNot, true);
+            left = new BooleanTest(left, isNot, whenOperand, true);
             break;
         case FALSE:
             read();
-            left = new BooleanTest(left, isNot, false);
+            left = new BooleanTest(left, isNot, whenOperand, false);
             break;
         case UNKNOWN:
             read();
-            left = new BooleanTest(left, isNot, null);
+            left = new BooleanTest(left, isNot, whenOperand, null);
             break;
         default:
             if (readIf("OF")) {
-                left = readTypePredicate(left, isNot);
+                left = readTypePredicate(left, isNot, whenOperand);
             } else if (readIf("JSON")) {
-                left = readJsonPredicate(left, isNot);
+                left = readJsonPredicate(left, isNot, whenOperand);
             } else {
                 if (expectedList != null) {
                     addMultipleExpected(NULL, DISTINCT, TRUE, FALSE, UNKNOWN);
@@ -3394,26 +3399,26 @@ public class Parser {
                  * versions can contain invalid generated IS [ NOT ]
                  * expressions.
                  */
-                if (!database.isStarting()) {
+                if (whenOperand || !database.isStarting()) {
                     throw getSyntaxError();
                 }
-                left = new Comparison(
-                        isNot ? Comparison.NOT_EQUAL_NULL_SAFE : Comparison.EQUAL_NULL_SAFE, left, readConcat());
+                left = new Comparison(isNot ? Comparison.NOT_EQUAL_NULL_SAFE : Comparison.EQUAL_NULL_SAFE, left,
+                        readConcat(), false);
             }
         }
         return left;
     }
 
-    private TypePredicate readTypePredicate(Expression left, boolean not) {
+    private TypePredicate readTypePredicate(Expression left, boolean not, boolean whenOperand) {
         read(OPEN_PAREN);
         ArrayList<TypeInfo> typeList = Utils.newSmallArrayList();
         do {
             typeList.add(parseColumnWithType(null).getType());
         } while (readIfMore());
-        return new TypePredicate(left, not, typeList.toArray(new TypeInfo[0]));
+        return new TypePredicate(left, not, whenOperand, typeList.toArray(new TypeInfo[0]));
     }
 
-    private Expression readInPredicate(Expression left, boolean not) {
+    private Expression readInPredicate(Expression left, boolean not, boolean whenOperand) {
         read(OPEN_PAREN);
         if (database.getMode().allowEmptyInPredicate && readIf(CLOSE_PAREN)) {
             return ValueExpression.FALSE;
@@ -3422,7 +3427,7 @@ public class Parser {
         if (isQuery()) {
             Query query = parseQuery();
             if (!readIfMore()) {
-                return new ConditionInQuery(left, not, query, false, Comparison.EQUAL);
+                return new ConditionInQuery(left, not, whenOperand, query, false, Comparison.EQUAL);
             }
             v = Utils.newSmallArrayList();
             v.add(new Subquery(query));
@@ -3432,10 +3437,10 @@ public class Parser {
         do {
             v.add(readExpression());
         } while (readIfMore());
-        return new ConditionIn(left, not, v);
+        return new ConditionIn(left, not, whenOperand, v);
     }
 
-    private IsJsonPredicate readJsonPredicate(Expression left, boolean not) {
+    private IsJsonPredicate readJsonPredicate(Expression left, boolean not, boolean whenOperand) {
         JSONItemType itemType;
         if (readIf(VALUE)) {
             itemType = JSONItemType.VALUE;
@@ -3457,45 +3462,45 @@ public class Parser {
             read(UNIQUE);
             readIf("KEYS");
         }
-        return new IsJsonPredicate(left, not, unique, itemType);
+        return new IsJsonPredicate(left, not, whenOperand, unique, itemType);
     }
 
-    private Expression readLikePredicate(Expression left, LikeType likeType, boolean not) {
+    private Expression readLikePredicate(Expression left, LikeType likeType, boolean not, boolean whenOperand) {
         Expression right = readConcat();
         Expression esc = readIf("ESCAPE") ? readConcat() : null;
         recompileAlways = true;
-        return new CompareLike(database, left, not, right, esc, likeType);
+        return new CompareLike(database, left, not, whenOperand, right, esc, likeType);
     }
 
-    private Expression readComparison(Expression left, int compareType) {
+    private Expression readComparison(Expression left, int compareType, boolean whenOperand) {
         read();
         int start = lastParseIndex;
         if (readIf(ALL)) {
             read(OPEN_PAREN);
             if (isQuery()) {
                 Query query = parseQuery();
-                left = new ConditionInQuery(left, false, query, true, compareType);
+                left = new ConditionInQuery(left, false, whenOperand, query, true, compareType);
                 read(CLOSE_PAREN);
             } else {
                 reread(start);
-                left = new Comparison(compareType, left, readConcat());
+                left = new Comparison(compareType, left, readConcat(), whenOperand);
             }
         } else if (readIf("ANY") || readIf("SOME")) {
             read(OPEN_PAREN);
             if (currentTokenType == PARAMETER && compareType == 0) {
                 Parameter p = readParameter();
-                left = new ConditionInParameter(left, false, p);
+                left = new ConditionInParameter(left, false, whenOperand, p);
                 read(CLOSE_PAREN);
             } else if (isQuery()) {
                 Query query = parseQuery();
-                left = new ConditionInQuery(left, false, query, false, compareType);
+                left = new ConditionInQuery(left, false, whenOperand, query, false, compareType);
                 read(CLOSE_PAREN);
             } else {
                 reread(start);
-                left = new Comparison(compareType, left, readConcat());
+                left = new Comparison(compareType, left, readConcat(), whenOperand);
             }
         } else {
-            left = new Comparison(compareType, left, readConcat());
+            left = new Comparison(compareType, left, readConcat(), whenOperand);
         }
         return left;
     }
@@ -3568,7 +3573,7 @@ public class Parser {
         if (readIf(ASTERISK)) {
             r = new CastSpecification(r, TypeInfo.TYPE_VARCHAR_IGNORECASE);
         }
-        return new CompareLike(database, r, not, readSum(), null, LikeType.REGEXP);
+        return new CompareLike(database, r, not, false, readSum(), null, LikeType.REGEXP);
     }
 
     private Expression readAggregate(AggregateType aggregateType, String aggregateName) {
@@ -4018,16 +4023,36 @@ public class Parser {
         case "ARRAY_LENGTH":
             function = Function.getFunction(Function.CARDINALITY);
             break;
-        // Searched case
-        case "CASEWHEN": {
-            Expression when = readExpression();
+        // Simple case
+        case "DECODE": {
+            Expression caseOperand = readExpression();
+            boolean canOptimize = caseOperand.isConstant() && !caseOperand.getValue(session).containsNull();
             read(COMMA);
-            Expression then = readExpression();
+            Expression a = readExpression();
             read(COMMA);
-            Expression elseExpression = readExpression();
+            Expression b = readExpression();
+            SimpleCase.SimpleWhen when = decodeToWhen(caseOperand, canOptimize, a, b), current = when;
+            Expression elseResult = null;
+            while (readIf(COMMA)) {
+                a = readExpression();
+                if (readIf(COMMA)) {
+                    b = readExpression();
+                    SimpleCase.SimpleWhen next = decodeToWhen(caseOperand, canOptimize, a, b);
+                    current.addWhen(next);
+                    current = next;
+                } else {
+                    elseResult = a;
+                    break;
+                }
+            }
             read(CLOSE_PAREN);
-            return new SearchedCase(new Expression[] {when, then, elseExpression});
+            return new SimpleCase(caseOperand, when, elseResult);
         }
+        // Searched case
+        case "CASEWHEN":
+            return readCompatibilityCase(readExpression());
+        case "NVL2":
+            return readCompatibilityCase(new NullPredicate(readExpression(), true, false));
         // Cast specification
         case "CONVERT": {
             Expression arg;
@@ -4173,6 +4198,23 @@ public class Parser {
         }
         function.doneWithParameters();
         return function;
+    }
+
+    private SimpleCase.SimpleWhen decodeToWhen(Expression caseOperand, boolean canOptimize, Expression whenOperand,
+            Expression result) {
+        if (!canOptimize && (!whenOperand.isConstant() || whenOperand.getValue(session).containsNull())) {
+            whenOperand = new Comparison(Comparison.EQUAL_NULL_SAFE, caseOperand, whenOperand, true);
+        }
+        return new SimpleCase.SimpleWhen(whenOperand, result);
+    }
+
+    private Expression readCompatibilityCase(Expression when) {
+        read(COMMA);
+        Expression then = readExpression();
+        read(COMMA);
+        Expression elseExpression = readExpression();
+        read(CLOSE_PAREN);
+        return new SearchedCase(new Expression[] { when, then, elseExpression });
     }
 
     private Function readFunctionParameters(Function function) {
@@ -5350,15 +5392,15 @@ public class Parser {
             searched.doneWithParameters();
             c = searched;
         } else {
-            Expression operand = readExpression();
+            Expression caseOperand = readExpression();
             read(WHEN);
-            SimpleCase.SimpleWhen when = readSimpleWhenClause(), current = when;
+            SimpleCase.SimpleWhen when = readSimpleWhenClause(caseOperand), current = when;
             while (readIf(WHEN)) {
-                SimpleCase.SimpleWhen next = readSimpleWhenClause();
+                SimpleCase.SimpleWhen next = readSimpleWhenClause(caseOperand);
                 current.addWhen(next);
                 current = next;
             }
-            c = new SimpleCase(operand, when, readIf(ELSE) ? readExpression() : null);
+            c = new SimpleCase(caseOperand, when, readIf(ELSE) ? readExpression() : null);
         }
         read(END);
         if (currentTokenType == CASE && database.getMode().allowEndCase) {
@@ -5367,19 +5409,34 @@ public class Parser {
         return c;
     }
 
-    private SimpleCase.SimpleWhen readSimpleWhenClause() {
-        Expression operand = readExpression();
+    private SimpleCase.SimpleWhen readSimpleWhenClause(Expression caseOperand) {
+        Expression whenOperand = readWhenOperand(caseOperand);
         if (readIf(COMMA)) {
             ArrayList<Expression> operands = Utils.newSmallArrayList();
-            operands.add(operand);
+            operands.add(whenOperand);
             do {
-                operands.add(readExpression());
+                operands.add(readWhenOperand(caseOperand));
             } while (readIf(COMMA));
             read("THEN");
             return new SimpleCase.SimpleWhen(operands.toArray(new Expression[0]), readExpression());
         }
         read("THEN");
-        return new SimpleCase.SimpleWhen(new Expression[] { operand }, readExpression());
+        return new SimpleCase.SimpleWhen(whenOperand, readExpression());
+    }
+
+    private Expression readWhenOperand(Expression caseOperand) {
+        int backup = parseIndex;
+        boolean not = readIf(NOT);
+        Expression whenOperand = readConditionRightHandSide(caseOperand, not, true);
+        if (whenOperand == null) {
+            if (not) {
+                parseIndex = backup;
+                currentToken = "NOT";
+                currentTokenType = NOT;
+            }
+            whenOperand = readExpression();
+        }
+        return whenOperand;
     }
 
     private int readNonNegativeInt() {

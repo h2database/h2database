@@ -62,3 +62,69 @@ SELECT CASE WHEN TRUE THEN 1 END CASE;
 
 SET MODE Regular;
 > ok
+
+SELECT S, CASE S
+    WHEN IS NULL THEN 1
+    WHEN LOWER('A') THEN 2
+    WHEN LIKE '%b' THEN 3
+    WHEN ILIKE 'C' THEN 4
+    WHEN REGEXP '[dQ]' THEN 5
+    WHEN IS NOT DISTINCT FROM 'e' THEN 6
+    WHEN IN ('x', 'f') THEN 7
+    WHEN IN (VALUES 'g', 'z') THEN 8
+    WHEN BETWEEN 'h' AND 'i' THEN 9
+    WHEN = 'j' THEN 10
+    WHEN < ANY(VALUES 'j', 'l') THEN 11
+    WHEN NOT LIKE '%m%' THEN 12
+    WHEN IS OF (VARCHAR) THEN 13
+    ELSE 13
+    END FROM (VALUES NULL, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm') T(S);
+> S    CASE S WHEN IS NULL THEN 1 WHEN 'a' THEN 2 WHEN LIKE '%b' THEN 3 WHEN ILIKE 'C' THEN 4 WHEN REGEXP '[dQ]' THEN 5 WHEN IS NOT DISTINCT FROM 'e' THEN 6 WHEN IN('x', 'f') THEN 7 WHEN IN( VALUES ('g'), ('z'))) THEN 8 WHEN BETWEEN 'h' AND 'i' THEN 9 WHEN = 'j' THEN 10 WHEN < ANY( VALUES ('j'), ('l'))) THEN 11 WHEN NOT LIKE '%m%' THEN 12 WHEN IS OF (VARCHAR) THEN 13 ELSE 13 END
+> ---- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> a    2
+> b    3
+> c    4
+> d    5
+> e    6
+> f    7
+> g    8
+> h    9
+> i    9
+> j    10
+> k    11
+> l    12
+> m    13
+> null 1
+> rows: 14
+
+SELECT B, CASE B WHEN IS TRUE THEN 1 WHEN IS FALSE THEN 0 WHEN IS UNKNOWN THEN -1 END
+    FROM (VALUES TRUE, FALSE, UNKNOWN) T(B);
+> B     CASE B WHEN IS TRUE THEN 1 WHEN IS FALSE THEN 0 WHEN IS UNKNOWN THEN -1 END
+> ----- ---------------------------------------------------------------------------
+> FALSE 0
+> TRUE  1
+> null  -1
+> rows: 3
+
+SELECT J, CASE J WHEN IS JSON ARRAY THEN 1 WHEN IS NOT JSON OBJECT THEN 2 ELSE 3 END
+    FROM (VALUES JSON '[]', JSON 'true', JSON '{}') T(J);
+> J    CASE J WHEN IS JSON ARRAY THEN 1 WHEN IS NOT JSON OBJECT THEN 2 ELSE 3 END
+> ---- --------------------------------------------------------------------------
+> []   1
+> true 2
+> {}   3
+> rows: 3
+
+SELECT V, CASE V
+    WHEN IN(CURRENT_DATE, DATE '2010-01-01') THEN 1
+    ELSE 2
+    END FROM (VALUES DATE '2000-01-01', DATE '2010-01-01', DATE '2020-02-01') T(V);
+> V          CASE V WHEN IN(CURRENT_DATE, DATE '2010-01-01') THEN 1 ELSE 2 END
+> ---------- -----------------------------------------------------------------
+> 2000-01-01 2
+> 2010-01-01 1
+> 2020-02-01 2
+> rows: 3
+
+SELECT CASE NULL WHEN IS NOT DISTINCT FROM NULL THEN TRUE ELSE FALSE END;
+>> TRUE

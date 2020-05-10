@@ -27,17 +27,20 @@ import org.h2.value.ValueRow;
 /**
  * An IN() condition with a subquery, as in WHERE ID IN(SELECT ...)
  */
-public class ConditionInQuery extends PredicateWithSubquery {
+public final class ConditionInQuery extends PredicateWithSubquery {
 
     private Expression left;
     private final boolean not;
+    private final boolean whenOperand;
     private final boolean all;
     private final int compareType;
 
-    public ConditionInQuery(Expression left, boolean not, Query query, boolean all, int compareType) {
+    public ConditionInQuery(Expression left, boolean not, boolean whenOperand, Query query, boolean all,
+            int compareType) {
         super(query);
         this.left = left;
         this.not = not;
+        this.whenOperand = whenOperand;
         /*
          * Need to do it now because other methods may be invoked in different
          * order.
@@ -49,27 +52,38 @@ public class ConditionInQuery extends PredicateWithSubquery {
 
     @Override
     public Value getValue(Session session) {
+        return getValue(session, left.getValue(session));
+    }
+
+    @Override
+    public boolean getWhenValue(Session session, Value left) {
+        if (!whenOperand) {
+            return super.getWhenValue(session, left);
+        }
+        return getValue(session, left).getBoolean();
+    }
+
+    private Value getValue(Session session, Value left) {
         query.setSession(session);
         // We need a LocalResult
         query.setNeverLazy(true);
         query.setDistinctIfPossible();
         LocalResult rows = (LocalResult) query.query(0);
-        Value l = left.getValue(session);
         if (!rows.hasNext()) {
             return ValueBoolean.get(not ^ all);
-        } else if (l.containsNull()) {
+        } else if (left.containsNull()) {
             return ValueNull.INSTANCE;
         }
         if (!session.getDatabase().getSettings().optimizeInSelect) {
-            return getValueSlow(session, rows, l);
+            return getValueSlow(session, rows, left);
         }
         if (all || compareType != Comparison.EQUAL) {
-            return getValueSlow(session, rows, l);
+            return getValueSlow(session, rows, left);
         }
         int columnCount = query.getColumnCount();
         if (columnCount != 1) {
-            l = l.convertTo(TypeInfo.TYPE_ROW);
-            Value[] leftValue = ((ValueRow) l).getList();
+            left = left.convertTo(TypeInfo.TYPE_ROW);
+            Value[] leftValue = ((ValueRow) left).getList();
             if (columnCount == leftValue.length && rows.containsDistinct(leftValue)) {
                 return ValueBoolean.get(!not);
             }
@@ -78,15 +92,15 @@ public class ConditionInQuery extends PredicateWithSubquery {
             if (colType.getValueType() == Value.NULL) {
                 return ValueNull.INSTANCE;
             }
-            if (l.getValueType() == Value.ROW) {
-                Value[] leftList = ((ValueRow) l).getList();
+            if (left.getValueType() == Value.ROW) {
+                Value[] leftList = ((ValueRow) left).getList();
                 if (leftList.length != 1) {
                     throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }
-                l = leftList[0];
+                left = leftList[0];
             }
-            l = l.convertTo(colType, session);
-            if (rows.containsDistinct(new Value[] { l })) {
+            left = left.convertTo(colType, session);
+            if (rows.containsDistinct(new Value[] { left })) {
                 return ValueBoolean.get(!not);
             }
         }
@@ -134,7 +148,10 @@ public class ConditionInQuery extends PredicateWithSubquery {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new ConditionInQuery(left, !not, query, all, compareType);
+        if (whenOperand) {
+            return null;
+        }
+        return new ConditionInQuery(left, !not, false, query, all, compareType);
     }
 
     @Override
@@ -162,22 +179,27 @@ public class ConditionInQuery extends PredicateWithSubquery {
             builder.append("(NOT ");
         }
         builder.append('(');
-        left.getSQL(builder, sqlFlags).append(' ');
-        if (all) {
-            builder.append(Comparison.getCompareOperator(compareType)).append(" ALL");
-        } else if (compareType == Comparison.EQUAL) {
-            if (not) {
-                builder.append(" NOT ");
-            }
-            builder.append("IN");
-        } else {
-            builder.append(Comparison.getCompareOperator(compareType)).append(" ANY");
-        }
-        super.getSQL(builder, sqlFlags).append(')');
+        left.getSQL(builder, sqlFlags);
+        getWhenSQL(builder, sqlFlags);
         if (outerNot) {
             builder.append(')');
         }
         return builder;
+    }
+
+    @Override
+    public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
+        if (all) {
+            builder.append(Comparison.getCompareOperator(compareType)).append(" ALL");
+        } else if (compareType == Comparison.EQUAL) {
+            if (not) {
+                builder.append(" NOT");
+            }
+            builder.append(" IN");
+        } else {
+            builder.append(' ').append(Comparison.getCompareOperator(compareType)).append(" ANY");
+        }
+        return super.getSQL(builder, sqlFlags).append(')');
     }
 
     @Override

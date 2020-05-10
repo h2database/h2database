@@ -33,7 +33,7 @@ import org.h2.value.ValueNull;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public class Comparison extends Condition {
+public final class Comparison extends Condition {
 
     /**
      * This is a flag meaning the comparison is null safe (meaning never returns
@@ -109,23 +109,25 @@ public class Comparison extends Condition {
     private int compareType;
     private Expression left;
     private Expression right;
+    private final boolean whenOperand;
 
-    public Comparison(int compareType, Expression left, Expression right) {
+    public Comparison(int compareType, Expression left, Expression right, boolean whenOperand) {
         this.left = left;
         this.right = right;
         this.compareType = compareType;
+        this.whenOperand = whenOperand;
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return getWhenSQL(left.getSQL(builder.append('('), sqlFlags), sqlFlags).append(')');
+    }
+
+    @Override
+    public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
         boolean encloseRight = false;
-        builder.append('(');
         switch (compareType) {
         case SPATIAL_INTERSECTS:
-            builder.append("INTERSECTS(");
-            left.getSQL(builder, sqlFlags).append(", ");
-            right.getSQL(builder, sqlFlags).append(')');
-            break;
         case EQUAL:
         case BIGGER_EQUAL:
         case BIGGER:
@@ -135,18 +137,16 @@ public class Comparison extends Condition {
             if (right instanceof Aggregate && ((Aggregate) right).getAggregateType() == AggregateType.ANY) {
                 encloseRight = true;
             }
-            //$FALL-THROUGH$
-        default:
-            left.getSQL(builder, sqlFlags).append(' ').append(getCompareOperator(compareType)).append(' ');
-            if (encloseRight) {
-                builder.append('(');
-            }
-            right.getSQL(builder, sqlFlags);
-            if (encloseRight) {
-                builder.append(')');
-            }
         }
-        return builder.append(')');
+        builder.append(' ').append(getCompareOperator(compareType)).append(' ');
+        if (encloseRight) {
+            builder.append('(');
+        }
+        right.getSQL(builder, sqlFlags);
+        if (encloseRight) {
+            builder.append(')');
+        }
+        return builder;
     }
 
     /**
@@ -187,6 +187,9 @@ public class Comparison extends Condition {
         // TODO check row values too
         if (right.getType().getValueType() == Value.ARRAY && left.getType().getValueType() != Value.ARRAY) {
             throw DbException.get(ErrorCode.COMPARING_ARRAY_TO_SCALAR);
+        }
+        if (whenOperand) {
+            return this;
         }
         if (right instanceof ExpressionColumn) {
             if (left.isConstant() || left instanceof Parameter) {
@@ -234,7 +237,7 @@ public class Comparison extends Condition {
                 Expression e = left.isNullConstant() ? right : left;
                 int type = e.getType().getValueType();
                 if (type != Value.UNKNOWN && type != Value.ROW) {
-                    return new NullPredicate(e, compareType == NOT_EQUAL_NULL_SAFE);
+                    return new NullPredicate(e, compareType == NOT_EQUAL_NULL_SAFE, false);
                 }
             }
         }
@@ -249,6 +252,18 @@ public class Comparison extends Condition {
             return ValueNull.INSTANCE;
         }
         return compare(session, l, right.getValue(session), compareType);
+    }
+
+    @Override
+    public boolean getWhenValue(Session session, Value left) {
+        if (!whenOperand) {
+            return super.getWhenValue(session, left);
+        }
+        // Optimization: do not evaluate right if not necessary
+        if (left == ValueNull.INSTANCE && (compareType & NULL_SAFE) == 0) {
+            return false;
+        }
+        return compare(session, left, right.getValue(session), compareType).getBoolean();
     }
 
     /**
@@ -368,11 +383,11 @@ public class Comparison extends Condition {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        if (compareType == SPATIAL_INTERSECTS) {
+        if (compareType == SPATIAL_INTERSECTS || whenOperand) {
             return null;
         }
         int type = getNotCompareType();
-        return new Comparison(type, left, right);
+        return new Comparison(type, left, right, false);
     }
 
     private int getNotCompareType() {
@@ -400,7 +415,9 @@ public class Comparison extends Condition {
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        createIndexConditions(filter, left, right, compareType);
+        if (!whenOperand) {
+            createIndexConditions(filter, left, right, compareType);
+        }
     }
 
     static void createIndexConditions(TableFilter filter, Expression left, Expression right, int compareType) {
@@ -541,7 +558,7 @@ public class Comparison extends Condition {
      * @return null or the third condition for indexes
      */
     Expression getAdditionalAnd(Session session, Comparison other) {
-        if (compareType == EQUAL && other.compareType == EQUAL) {
+        if (compareType == EQUAL && other.compareType == EQUAL && !whenOperand) {
             boolean lc = left.isConstant();
             boolean rc = right.isConstant();
             boolean l2c = other.left.isConstant();
@@ -553,13 +570,13 @@ public class Comparison extends Condition {
             // a=b AND a=c
             // must not compare constants. example: NOT(B=2 AND B=3)
             if (!(rc && r2c) && l.equals(l2)) {
-                return new Comparison(EQUAL, right, other.right);
+                return new Comparison(EQUAL, right, other.right, false);
             } else if (!(rc && l2c) && l.equals(r2)) {
-                return new Comparison(EQUAL, right, other.left);
+                return new Comparison(EQUAL, right, other.left, false);
             } else if (!(lc && r2c) && r.equals(l2)) {
-                return new Comparison(EQUAL, left, other.right);
+                return new Comparison(EQUAL, left, other.right, false);
             } else if (!(lc && l2c) && r.equals(r2)) {
-                return new Comparison(EQUAL, left, other.left);
+                return new Comparison(EQUAL, left, other.left, false);
             }
         }
         return null;
@@ -601,7 +618,7 @@ public class Comparison extends Condition {
         ArrayList<Expression> right = new ArrayList<>(2);
         right.add(value1);
         right.add(value2);
-        return new ConditionIn(left, false, right);
+        return new ConditionIn(left, false, false, right);
     }
 
     @Override

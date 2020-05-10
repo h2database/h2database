@@ -25,10 +25,11 @@ import org.h2.value.ValueNull;
  * Used for optimised IN(...) queries where the contents of the IN list are all
  * constant and of the same type.
  */
-public class ConditionInConstantSet extends Condition {
+public final class ConditionInConstantSet extends Condition {
 
     private Expression left;
     private final boolean not;
+    private final boolean whenOperand;
     private final ArrayList<Expression> valueList;
     // HashSet cannot be used here, because we need to compare values of
     // different type or scale properly.
@@ -45,11 +46,14 @@ public class ConditionInConstantSet extends Condition {
      *            data type and {@link Value#ENUM} type is also supported only
      *            for {@link ExpressionColumn}.
      * @param not whether the result should be negated
+     * @param whenOperand whether this is a when operand
      * @param valueList the value list (at least two elements)
      */
-    public ConditionInConstantSet(Session session, Expression left, boolean not, ArrayList<Expression> valueList) {
+    public ConditionInConstantSet(Session session, Expression left, boolean not, boolean whenOperand,
+            ArrayList<Expression> valueList) {
         this.left = left;
         this.not = not;
+        this.whenOperand = whenOperand;
         this.valueList = valueList;
         this.valueSet = new TreeSet<>(session.getDatabase().getCompareMode());
         type = left.getType();
@@ -68,11 +72,22 @@ public class ConditionInConstantSet extends Condition {
 
     @Override
     public Value getValue(Session session) {
-        Value x = left.getValue(session);
-        if (x.containsNull()) {
+        return getValue(left.getValue(session));
+    }
+
+    @Override
+    public boolean getWhenValue(Session session, Value left) {
+        if (!whenOperand) {
+            return super.getWhenValue(session, left);
+        }
+        return getValue(left).getBoolean();
+    }
+
+    private Value getValue(Value left) {
+        if (left.containsNull()) {
             return ValueNull.INSTANCE;
         }
-        boolean result = valueSet.contains(x);
+        boolean result = valueSet.contains(left);
         if (!result && hasNull) {
             return ValueNull.INSTANCE;
         }
@@ -92,12 +107,15 @@ public class ConditionInConstantSet extends Condition {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new ConditionInConstantSet(session, left, !not, valueList);
+        if (whenOperand) {
+            return null;
+        }
+        return new ConditionInConstantSet(session, left, !not, false, valueList);
     }
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (not || !(left instanceof ExpressionColumn)) {
+        if (not || whenOperand || !(left instanceof ExpressionColumn)) {
             return;
         }
         ExpressionColumn l = (ExpressionColumn) left;
@@ -116,13 +134,17 @@ public class ConditionInConstantSet extends Condition {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        left.getSQL(builder.append('('), sqlFlags);
+        return getWhenSQL(left.getSQL(builder.append('('), sqlFlags), sqlFlags).append(')');
+    }
+
+    @Override
+    public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
         if (not) {
             builder.append(" NOT");
         }
         builder.append(" IN(");
         writeExpressions(builder, valueList, sqlFlags);
-        return builder.append("))");
+        return builder.append(')');
     }
 
     @Override

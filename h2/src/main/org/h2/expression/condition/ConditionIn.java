@@ -26,10 +26,11 @@ import org.h2.value.ValueNull;
 /**
  * An 'in' condition with a list of values, as in WHERE NAME IN(...)
  */
-public class ConditionIn extends Condition {
+public final class ConditionIn extends Condition {
 
     private Expression left;
     private final boolean not;
+    private final boolean whenOperand;
     private final ArrayList<Expression> valueList;
 
     /**
@@ -37,32 +38,45 @@ public class ConditionIn extends Condition {
      *
      * @param left the expression before IN
      * @param not whether the result should be negated
+     * @param whenOperand whether this is a when operand
      * @param values the value list (at least one element)
      */
-    public ConditionIn(Expression left, boolean not, ArrayList<Expression> values) {
+    public ConditionIn(Expression left, boolean not, boolean whenOperand, ArrayList<Expression> values) {
         this.left = left;
         this.not = not;
+        this.whenOperand = whenOperand;
         this.valueList = values;
     }
 
     @Override
     public Value getValue(Session session) {
-        Value l = left.getValue(session);
-        if (l.containsNull()) {
+        return getValue(session, left.getValue(session));
+    }
+
+    @Override
+    public boolean getWhenValue(Session session, Value left) {
+        if (!whenOperand) {
+            return super.getWhenValue(session, left);
+        }
+        return getValue(session, left).getBoolean();
+    }
+
+    private Value getValue(Session session, Value left) {
+        if (left.containsNull()) {
             return ValueNull.INSTANCE;
         }
         int size = valueList.size();
         if (size == 1) {
             Expression e = valueList.get(0);
             if (e instanceof TableFunction) {
-                return ConditionInParameter.getValue(session, l, not, e.getValue(session));
+                return ConditionInParameter.getValue(session, left, not, e.getValue(session));
             }
         }
         boolean hasNull = false;
         for (int i = 0; i < size; i++) {
             Expression e = valueList.get(i);
             Value r = e.getValue(session);
-            Value cmp = Comparison.compare(session, l, r, Comparison.EQUAL);
+            Value cmp = Comparison.compare(session, left, r, Comparison.EQUAL);
             if (cmp == ValueNull.INSTANCE) {
                 hasNull = true;
             } else if (cmp == ValueBoolean.TRUE) {
@@ -86,7 +100,7 @@ public class ConditionIn extends Condition {
     @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
-        boolean constant = left.isConstant();
+        boolean constant = !whenOperand && left.isConstant();
         if (constant && left.isNullConstant()) {
             return TypedValueExpression.UNKNOWN;
         }
@@ -100,7 +114,7 @@ public class ConditionIn extends Condition {
                     if (args.length == 1) {
                         Expression arg = args[0];
                         if (arg instanceof Parameter) {
-                            return new ConditionInParameter(left, not, (Parameter) arg);
+                            return new ConditionInParameter(left, not, whenOperand, (Parameter) arg);
                         }
                     }
                 }
@@ -146,7 +160,7 @@ public class ConditionIn extends Condition {
             return ValueExpression.getBoolean(getValue(session));
         }
         if (values.size() == 1) {
-            return new Comparison(not ? Comparison.NOT_EQUAL : Comparison.EQUAL, left, values.get(0))
+            return new Comparison(not ? Comparison.NOT_EQUAL : Comparison.EQUAL, left, values.get(0), whenOperand)
                     .optimize(session);
         }
         if (allValuesConstant && !allValuesNull) {
@@ -157,21 +171,22 @@ public class ConditionIn extends Condition {
             if (leftType == Value.ENUM && !(left instanceof ExpressionColumn)) {
                 return this;
             }
-            Expression expr = new ConditionInConstantSet(session, left, not, values);
-            expr = expr.optimize(session);
-            return expr;
+            return new ConditionInConstantSet(session, left, not, whenOperand, values).optimize(session);
         }
         return this;
     }
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new ConditionIn(left, !not, valueList);
+        if (whenOperand) {
+            return null;
+        }
+        return new ConditionIn(left, !not, false, valueList);
     }
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (not || !(left instanceof ExpressionColumn)) {
+        if (not || whenOperand || !(left instanceof ExpressionColumn)) {
             return;
         }
         ExpressionColumn l = (ExpressionColumn) left;
@@ -199,13 +214,17 @@ public class ConditionIn extends Condition {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        left.getSQL(builder.append('('), sqlFlags);
+        return getWhenSQL(left.getSQL(builder.append('('), sqlFlags), sqlFlags).append(')');
+    }
+
+    @Override
+    public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
         if (not) {
             builder.append(" NOT");
         }
         builder.append(" IN(");
         writeExpressions(builder, valueList, sqlFlags);
-        return builder.append("))");
+        return builder.append(')');
     }
 
     @Override
@@ -250,7 +269,7 @@ public class ConditionIn extends Condition {
      * @return null if the condition was not added, or the new condition
      */
     Expression getAdditional(Comparison other) {
-        if (!not) {
+        if (!not && !whenOperand) {
             Expression add = other.getIfEquals(left);
             if (add != null) {
                 valueList.add(add);

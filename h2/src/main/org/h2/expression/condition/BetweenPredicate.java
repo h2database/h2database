@@ -25,13 +25,17 @@ public final class BetweenPredicate extends Condition {
 
     private final boolean not;
 
+    private final boolean whenOperand;
+
     private boolean symmetric;
 
     private Expression a, b;
 
-    public BetweenPredicate(Expression left, boolean not, boolean symmetric, Expression a, Expression b) {
+    public BetweenPredicate(Expression left, boolean not, boolean whenOperand, boolean symmetric, Expression a,
+            Expression b) {
         this.left = left;
         this.not = not;
+        this.whenOperand = whenOperand;
         this.symmetric = symmetric;
         this.a = a;
         this.b = b;
@@ -39,7 +43,11 @@ public final class BetweenPredicate extends Condition {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        left.getSQL(builder.append('('), sqlFlags);
+        return getWhenSQL(left.getSQL(builder.append('('), sqlFlags), sqlFlags).append(')');
+    }
+
+    @Override
+    public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
         if (not) {
             builder.append(" NOT");
         }
@@ -48,7 +56,7 @@ public final class BetweenPredicate extends Condition {
             builder.append("SYMMETRIC ");
         }
         a.getSQL(builder, sqlFlags).append(" AND ");
-        return b.getSQL(builder, sqlFlags).append(')');
+        return b.getSQL(builder, sqlFlags);
     }
 
     @Override
@@ -56,6 +64,9 @@ public final class BetweenPredicate extends Condition {
         left = left.optimize(session);
         a = a.optimize(session);
         b = b.optimize(session);
+        if (whenOperand) {
+            return this;
+        }
         Value value = left.isConstant() ? left.getValue(session) : null,
                 aValue = a.isConstant() ? a.getValue(session) : null,
                 bValue = b.isConstant() ? b.getValue(session) : null;
@@ -75,7 +86,7 @@ public final class BetweenPredicate extends Condition {
             return TypedValueExpression.UNKNOWN;
         }
         if (aValue != null && bValue != null && session.compareWithNull(aValue, bValue, false) == 0) {
-            return new Comparison(not ? Comparison.NOT_EQUAL : Comparison.EQUAL, left, a).optimize(session);
+            return new Comparison(not ? Comparison.NOT_EQUAL : Comparison.EQUAL, left, a, false).optimize(session);
         }
         return this;
     }
@@ -87,6 +98,17 @@ public final class BetweenPredicate extends Condition {
             return ValueNull.INSTANCE;
         }
         return getValue(session, value, a.getValue(session), b.getValue(session));
+    }
+
+    @Override
+    public boolean getWhenValue(Session session, Value left) {
+        if (!whenOperand) {
+            return super.getWhenValue(session, left);
+        }
+        if (left == ValueNull.INSTANCE) {
+            return false;
+        }
+        return getValue(session, left, a.getValue(session), b.getValue(session)).getBoolean();
     }
 
     private Value getValue(Session session, Value value, Value aValue, Value bValue) {
@@ -104,12 +126,15 @@ public final class BetweenPredicate extends Condition {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new BetweenPredicate(left, !not, symmetric, a, b);
+        if (whenOperand) {
+            return null;
+        }
+        return new BetweenPredicate(left, !not, false, symmetric, a, b);
     }
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (!not && !symmetric) {
+        if (!not && !whenOperand && !symmetric) {
             Comparison.createIndexConditions(filter, a, left, Comparison.SMALLER_EQUAL);
             Comparison.createIndexConditions(filter, left, b, Comparison.SMALLER_EQUAL);
         }

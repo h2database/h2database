@@ -288,7 +288,6 @@ import org.h2.util.geometry.EWKTUtils;
 import org.h2.util.json.JSONItemType;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.ExtTypeInfoGeometry;
 import org.h2.value.TypeInfo;
@@ -4354,10 +4353,7 @@ public class Parser {
                         expr = expr.optimize(session);
                         TypeInfo exprType = expr.getType();
                         if (exprType.getValueType() == Value.ARRAY) {
-                            ExtTypeInfoArray extTypeInfoArray = (ExtTypeInfoArray) exprType.getExtTypeInfo();
-                            if (extTypeInfoArray != null) {
-                                columnType = extTypeInfoArray.getComponentType();
-                            }
+                            columnType = (TypeInfo) exprType.getExtTypeInfo();
                         }
                     }
                     function.addParameter(expr);
@@ -6905,8 +6901,7 @@ public class Parser {
             precision = readNonNegativeInt();
             read(CLOSE_BRACKET);
         }
-        TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ARRAY, precision, -1,
-                componentType != null ? new ExtTypeInfoArray(componentType) : null);
+        TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ARRAY, precision, -1, componentType);
         return new Column(columnName, typeInfo, typeInfo.toString());
     }
 
@@ -6916,9 +6911,9 @@ public class Parser {
         do {
             enumeratorList.add(readString());
         } while (readIfMore());
-        ExtTypeInfoEnum extTypeInfo = new ExtTypeInfoEnum(enumeratorList.toArray(new String[0]));
-        return new Column(columnName, TypeInfo.getTypeInfo(Value.ENUM, -1, -1, extTypeInfo),
-                "ENUM" + extTypeInfo.getCreateSQL());
+        TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ENUM, -1, -1,
+                new ExtTypeInfoEnum(enumeratorList.toArray(new String[0])));
+        return new Column(columnName, typeInfo, typeInfo.toString());
     }
 
     private Column parseGeometryType(String columnName) {
@@ -6949,8 +6944,8 @@ public class Parser {
         } else {
             extTypeInfo = null;
         }
-        return new Column(columnName, TypeInfo.getTypeInfo(Value.GEOMETRY, -1, -1, extTypeInfo),
-                extTypeInfo != null ? "GEOMETRY" + extTypeInfo.getCreateSQL() : "GEOMETRY");
+        TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.GEOMETRY, -1, -1, extTypeInfo);
+        return new Column(columnName, typeInfo, typeInfo.toString());
     }
 
     private long readPrecision(int valueType) {

@@ -7,7 +7,6 @@ package org.h2.expression;
 
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueCollectionBase;
@@ -51,7 +50,7 @@ public class ArrayElementReference extends Operation2 {
         case Value.NULL:
             return ValueExpression.NULL;
         case Value.ARRAY:
-            type = ((ExtTypeInfoArray) leftType.getExtTypeInfo()).getComponentType();
+            type = (TypeInfo) leftType.getExtTypeInfo();
             if (left.isConstant() && right.isConstant()) {
                 return TypedValueExpression.get(getValue(session), type);
             }

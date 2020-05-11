@@ -39,7 +39,6 @@ import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LegacyDateTimeUtils;
 import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -180,7 +179,7 @@ public class TestValue extends TestDb {
         String spaces = new String(new char[100]).replace((char) 0, ' ');
 
         v = ValueArray.get(new Value[] { ValueVarchar.get("hello"), ValueVarchar.get("world") }, null);
-        TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ARRAY, 1L, 0, new ExtTypeInfoArray(TypeInfo.TYPE_VARCHAR));
+        TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ARRAY, 1L, 0, TypeInfo.TYPE_VARCHAR);
         assertEquals(2, v.getType().getPrecision());
         assertEquals(1, v.castTo(typeInfo, null).getType().getPrecision());
         v = ValueArray.get(new Value[]{ValueVarchar.get(""), ValueVarchar.get("")}, null);
@@ -283,9 +282,7 @@ public class TestValue extends TestDb {
         testDataType(TypeInfo.TYPE_NULL, null);
         testDataType(TypeInfo.TYPE_NULL, Void.class);
         testDataType(TypeInfo.TYPE_NULL, void.class);
-        testDataType(
-                TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, new ExtTypeInfoArray(TypeInfo.TYPE_VARCHAR)),
-                String[].class);
+        testDataType(TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, TypeInfo.TYPE_VARCHAR), String[].class);
         testDataType(TypeInfo.TYPE_VARCHAR, String.class);
         testDataType(TypeInfo.TYPE_INTEGER, Integer.class);
         testDataType(TypeInfo.TYPE_BIGINT, Long.class);
@@ -310,8 +307,8 @@ public class TestValue extends TestDb {
         testDataType(TypeInfo.TYPE_CLOB, java.sql.Clob.class);
         testDataType(TypeInfo.TYPE_BLOB, java.io.InputStream.class);
         testDataType(TypeInfo.TYPE_BLOB, java.sql.Blob.class);
-        testDataType(TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0,
-                new ExtTypeInfoArray(TypeInfo.TYPE_JAVA_OBJECT)), Object[].class);
+        testDataType(TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, TypeInfo.TYPE_JAVA_OBJECT),
+                Object[].class);
         testDataType(TypeInfo.TYPE_JAVA_OBJECT, StringBuffer.class);
     }
 
@@ -376,15 +373,14 @@ public class TestValue extends TestDb {
         ValueArray src = ValueArray.get(
                 new Value[] {ValueVarchar.get("1"), ValueVarchar.get("22"), ValueVarchar.get("333")}, null);
         assertEquals(3, src.getType().getPrecision());
-        ExtTypeInfoArray extVarchar = new ExtTypeInfoArray(TypeInfo.TYPE_VARCHAR);
-        assertSame(src, src.castTo(TypeInfo.getTypeInfo(Value.ARRAY, 3L, 0, extVarchar), null));
+        assertSame(src, src.castTo(TypeInfo.getTypeInfo(Value.ARRAY, 3L, 0, TypeInfo.TYPE_VARCHAR), null));
         ValueArray exp = ValueArray.get(
                 new Value[] {ValueVarchar.get("1"), ValueVarchar.get("22")}, null);
-        Value got = src.castTo(TypeInfo.getTypeInfo(Value.ARRAY, 2L, 0, extVarchar), null);
+        Value got = src.castTo(TypeInfo.getTypeInfo(Value.ARRAY, 2L, 0, TypeInfo.TYPE_VARCHAR), null);
         assertEquals(exp, got);
         assertEquals(Value.VARCHAR, ((ValueArray) got).getComponentType().getValueType());
         exp = ValueArray.get(TypeInfo.TYPE_VARCHAR, new Value[0], null);
-        got = src.castTo(TypeInfo.getTypeInfo(Value.ARRAY, 0L, 0, extVarchar), null);
+        got = src.castTo(TypeInfo.getTypeInfo(Value.ARRAY, 0L, 0, TypeInfo.TYPE_VARCHAR), null);
         assertEquals(exp, got);
         assertEquals(Value.VARCHAR, ((ValueArray) got).getComponentType().getValueType());
     }
@@ -667,16 +663,16 @@ public class TestValue extends TestDb {
     private void testHigherType() {
         testHigherTypeNumeric(15L, 6, 10L, 1, 5L, 6);
         testHigherTypeNumeric(15L, 6, 5L, 6, 10L, 1);
-        TypeInfo intArray10 = TypeInfo.getTypeInfo(Value.ARRAY, 10, 0, new ExtTypeInfoArray(TypeInfo.TYPE_INTEGER));
-        TypeInfo bigintArray1 = TypeInfo.getTypeInfo(Value.ARRAY, 1, 0, new ExtTypeInfoArray(TypeInfo.TYPE_BIGINT));
-        TypeInfo bigintArray10 = TypeInfo.getTypeInfo(Value.ARRAY, 10, 0, new ExtTypeInfoArray(TypeInfo.TYPE_BIGINT));
+        TypeInfo intArray10 = TypeInfo.getTypeInfo(Value.ARRAY, 10, 0, TypeInfo.TYPE_INTEGER);
+        TypeInfo bigintArray1 = TypeInfo.getTypeInfo(Value.ARRAY, 1, 0, TypeInfo.TYPE_BIGINT);
+        TypeInfo bigintArray10 = TypeInfo.getTypeInfo(Value.ARRAY, 10, 0, TypeInfo.TYPE_BIGINT);
         assertEquals(bigintArray10, TypeInfo.getHigherType(intArray10, bigintArray1));
-        TypeInfo intArray10Array1 = TypeInfo.getTypeInfo(Value.ARRAY, 1, 0, new ExtTypeInfoArray(intArray10));
-        TypeInfo bigintArray1Array10 = TypeInfo.getTypeInfo(Value.ARRAY, 10, 0, new ExtTypeInfoArray(bigintArray1));
-        TypeInfo bigintArray10Array10 = TypeInfo.getTypeInfo(Value.ARRAY, 10, 0, new ExtTypeInfoArray(bigintArray10));
+        TypeInfo intArray10Array1 = TypeInfo.getTypeInfo(Value.ARRAY, 1, 0, intArray10);
+        TypeInfo bigintArray1Array10 = TypeInfo.getTypeInfo(Value.ARRAY, 10, 0, bigintArray1);
+        TypeInfo bigintArray10Array10 = TypeInfo.getTypeInfo(Value.ARRAY, 10, 0, bigintArray10);
         assertEquals(bigintArray10Array10, TypeInfo.getHigherType(intArray10Array1, bigintArray1Array10));
         assertEquals(bigintArray10Array10, TypeInfo.getHigherType(intArray10, bigintArray1Array10));
-        TypeInfo bigintArray10Array1 = TypeInfo.getTypeInfo(Value.ARRAY, 1, 0, new ExtTypeInfoArray(bigintArray10));
+        TypeInfo bigintArray10Array1 = TypeInfo.getTypeInfo(Value.ARRAY, 1, 0, bigintArray10);
         assertEquals(bigintArray10Array1, TypeInfo.getHigherType(intArray10Array1, bigintArray1));
     }
 

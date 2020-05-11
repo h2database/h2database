@@ -14,7 +14,7 @@ import org.h2.util.MathUtils;
 /**
  * Data type with parameters.
  */
-public class TypeInfo {
+public class TypeInfo extends ExtTypeInfo {
 
     /**
      * UNKNOWN type with parameters.
@@ -452,7 +452,7 @@ public class TypeInfo {
                 return TYPE_ENUM_UNDEFINED;
             }
         case Value.ARRAY:
-            if (!(extTypeInfo instanceof ExtTypeInfoArray)) {
+            if (!(extTypeInfo instanceof TypeInfo)) {
                 throw new IllegalArgumentException();
             }
             if (precision < 0 || precision >= Integer.MAX_VALUE) {
@@ -505,7 +505,7 @@ public class TypeInfo {
     private static int dimensions(TypeInfo type) {
         int result;
         for (result = 0; type.getValueType() == Value.ARRAY; result++) {
-            type = ((ExtTypeInfoArray) type.extTypeInfo).getComponentType();
+            type = (TypeInfo) type.extTypeInfo;
         }
         return result;
     }
@@ -515,22 +515,21 @@ public class TypeInfo {
         if (d1 > d2) {
             d1--;
             precision = Math.max(type1.getPrecision(), 1L);
-            type1 = ((ExtTypeInfoArray) type1.extTypeInfo).getComponentType();
+            type1 = (TypeInfo) type1.extTypeInfo;
         } else if (d1 < d2) {
             d2--;
             precision = Math.max(1L, type2.getPrecision());
-            type2 = ((ExtTypeInfoArray) type2.extTypeInfo).getComponentType();
+            type2 = (TypeInfo) type2.extTypeInfo;
         } else if (d1 > 0) {
             d1--;
             d2--;
             precision = Math.max(type1.getPrecision(), type2.getPrecision());
-            type1 = ((ExtTypeInfoArray) type1.extTypeInfo).getComponentType();
-            type2 = ((ExtTypeInfoArray) type2.extTypeInfo).getComponentType();
+            type1 = (TypeInfo) type1.extTypeInfo;
+            type2 = (TypeInfo) type2.extTypeInfo;
         } else {
             return getHigherType(type1, type2);
         }
-        return TypeInfo.getTypeInfo(Value.ARRAY, precision, 0,
-                new ExtTypeInfoArray(getHigherArray(type1, type2, d1, d2)));
+        return TypeInfo.getTypeInfo(Value.ARRAY, precision, 0, getHigherArray(type1, type2, d1, d2));
     }
 
     /**
@@ -553,8 +552,8 @@ public class TypeInfo {
             if (valueType != Value.ARRAY) {
                 return Objects.equals(ext1, ext2);
             }
-            t1 = ((ExtTypeInfoArray) ext1).getComponentType();
-            t2 = ((ExtTypeInfoArray) ext2).getComponentType();
+            t1 = (TypeInfo) ext1;
+            t2 = (TypeInfo) ext2;
         }
     }
 
@@ -625,14 +624,7 @@ public class TypeInfo {
         return extTypeInfo;
     }
 
-    /**
-     * Appends SQL representation of this object to the specified string
-     * builder.
-     *
-     * @param builder
-     *            string builder
-     * @return the specified string builder
-     */
+    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         switch (valueType) {
         case Value.CHAR:
@@ -694,15 +686,15 @@ public class TypeInfo {
         case Value.GEOMETRY:
             builder.append("GEOMETRY");
             if (extTypeInfo != null) {
-                builder.append(extTypeInfo.getCreateSQL());
+                extTypeInfo.getSQL(builder);
             }
             break;
         case Value.ENUM:
-            builder.append("ENUM").append(extTypeInfo.getCreateSQL());
+            extTypeInfo.getSQL(builder.append("ENUM"));
             break;
         case Value.ARRAY:
             if (extTypeInfo != null) {
-                builder.append(extTypeInfo.getCreateSQL()).append(' ');
+                extTypeInfo.getSQL(builder).append(' ');
             }
             builder.append("ARRAY");
             if (precision < Integer.MAX_VALUE) {
@@ -737,11 +729,6 @@ public class TypeInfo {
         TypeInfo other = (TypeInfo) obj;
         return valueType == other.valueType && precision == other.precision && scale == other.scale
                 && displaySize == other.displaySize && Objects.equals(extTypeInfo, other.extTypeInfo);
-    }
-
-    @Override
-    public String toString() {
-        return getSQL(new StringBuilder()).toString();
     }
 
     /**

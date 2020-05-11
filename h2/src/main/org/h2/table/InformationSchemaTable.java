@@ -68,7 +68,6 @@ import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
@@ -2195,7 +2194,7 @@ public final class InformationSchemaTable extends MetaTable {
 
     private static String getDataTypeName(DataType dt, TypeInfo typeInfo) {
         if (typeInfo.getValueType() == Value.ARRAY) {
-            typeInfo = ((ExtTypeInfoArray) typeInfo.getExtTypeInfo()).getComponentType();
+            typeInfo = (TypeInfo) typeInfo.getExtTypeInfo();
             // Use full type names with parameters for elements
             return typeInfo.getSQL(new StringBuilder()).append(" ARRAY").toString();
         }

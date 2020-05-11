@@ -63,8 +63,7 @@ public final class ValueArray extends ValueCollectionBase {
         TypeInfo type = this.type;
         if (type == null) {
             TypeInfo componentType = getComponentType();
-            this.type = type = TypeInfo.getTypeInfo(getValueType(), values.length, 0,
-                    new ExtTypeInfoArray(componentType));
+            this.type = type = TypeInfo.getTypeInfo(getValueType(), values.length, 0, componentType);
         }
         return type;
     }

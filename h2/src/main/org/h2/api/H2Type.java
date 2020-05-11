@@ -7,7 +7,6 @@ package org.h2.api;
 
 import java.sql.SQLType;
 
-import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
@@ -262,7 +261,7 @@ public final class H2Type implements SQLType {
      */
     public static H2Type array(H2Type componentType) {
         return new H2Type(
-                TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, new ExtTypeInfoArray(componentType.typeInfo)),
+                TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, componentType.typeInfo),
                 "array(" + componentType.field + ')');
     }
 

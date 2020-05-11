@@ -1202,8 +1202,7 @@ public class DataType {
             return TypeInfo.TYPE_BLOB;
         } else if (Object[].class.isAssignableFrom(x)) {
             // this includes String[] and so on
-            return TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0,
-                    new ExtTypeInfoArray(getTypeFromClass(x.getComponentType())));
+            return TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, getTypeFromClass(x.getComponentType()));
         } else if (isGeometryClass(x)) {
             return TypeInfo.TYPE_GEOMETRY;
         } else if (LocalDate.class == x) {
@@ -1504,7 +1503,7 @@ public class DataType {
         case Value.ARRAY: {
             ExtTypeInfo extTypeInfo = type.getExtTypeInfo();
             if (extTypeInfo != null) {
-                return isIndexable(((ExtTypeInfoArray) extTypeInfo).getComponentType());
+                return isIndexable((TypeInfo) extTypeInfo);
             }
         }
         //$FALL-THROUGH$
@@ -1552,8 +1551,7 @@ public class DataType {
             return t1 == t2;
         case Value.ARRAY:
             if (t2 == Value.ARRAY) {
-                return areStableComparable(((ExtTypeInfoArray) type1.getExtTypeInfo()).getComponentType(),
-                        ((ExtTypeInfoArray) type2.getExtTypeInfo()).getComponentType());
+                return areStableComparable((TypeInfo) type1.getExtTypeInfo(), (TypeInfo) type2.getExtTypeInfo());
             }
             return false;
         default:

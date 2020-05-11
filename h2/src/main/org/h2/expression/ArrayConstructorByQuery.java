@@ -15,7 +15,6 @@ import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
-import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -76,7 +75,7 @@ public class ArrayConstructorByQuery extends Expression {
             throw DbException.get(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);
         }
         componentType = query.getExpressions().get(0).getType();
-        type = TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, new ExtTypeInfoArray(componentType));
+        type = TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, componentType);
         return this;
     }
 

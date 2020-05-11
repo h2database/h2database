@@ -2133,9 +2133,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             int type = extTypeInfo.getType();
             Integer srid = extTypeInfo.getSrid();
             if (type != 0 && result.getTypeAndDimensionSystem() != type || srid != null && result.getSRID() != srid) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1,
-                        ExtTypeInfoGeometry.toSQL(result.getTypeAndDimensionSystem(), result.getSRID())
-                                + " -> " + extTypeInfo.toString());
+                StringBuilder builder = ExtTypeInfoGeometry
+                        .toSQL(new StringBuilder(), result.getTypeAndDimensionSystem(), result.getSRID())
+                        .append(" -> ");
+                extTypeInfo.getSQL(builder);
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, builder.toString());
             }
         }
         return result;
@@ -2332,7 +2334,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
 
     private ValueArray convertToArray(TypeInfo targetType, CastDataProvider provider, int conversionMode,
             Object column) {
-        ExtTypeInfoArray extTypeInfo = (ExtTypeInfoArray) targetType.getExtTypeInfo();
+        TypeInfo componentType = (TypeInfo) targetType.getExtTypeInfo();
         int valueType = getValueType();
         ValueArray v;
         if (valueType == ARRAY) {
@@ -2355,8 +2357,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             }
             v = ValueArray.get(a, provider);
         }
-        if (extTypeInfo != null) {
-            TypeInfo componentType = extTypeInfo.getComponentType();
+        if (componentType != null) {
             Value[] values = v.getList();
             int length = values.length;
             loop: for (int i = 0; i < length; i++) {

@@ -659,7 +659,7 @@ public class TestValue extends TestDb {
         assertEquals(Value.GEOMETRY, (int) H2Type.GEOMETRY.getVendorTypeNumber());
         assertEquals(Value.JSON, (int) H2Type.JSON.getVendorTypeNumber());
         assertEquals(Value.UUID, (int) H2Type.UUID.getVendorTypeNumber());
-        assertEquals(Value.ARRAY, (int) H2Type.ARRAY.getVendorTypeNumber());
+        assertEquals(Value.ARRAY, (int) H2Type.array(H2Type.VARCHAR).getVendorTypeNumber());
         assertEquals(Value.ROW, (int) H2Type.ROW.getVendorTypeNumber());
         assertEquals(Value.RESULT_SET, (int) H2Type.RESULT_SET.getVendorTypeNumber());
     }

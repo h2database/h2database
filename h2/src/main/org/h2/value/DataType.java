@@ -1124,6 +1124,9 @@ public class DataType {
         if (sqlType instanceof JDBCType) {
             return "JDBCType." + sqlType.getName();
         }
+        if (sqlType instanceof H2Type) {
+            return sqlType.toString();
+        }
         return unknownSqlTypeToString(new StringBuilder("/* "), sqlType).append(" */ null").toString();
     }
 

@@ -5604,6 +5604,14 @@ Returns NULL if any parameter is NULL.
 CALL ARRAY_APPEND(ARRAY[1, 2], 3)
 "
 
+"Functions (System)","ARRAY_MAX_CARDINALITY","
+ARRAY_MAX_CARDINALITY(arrayExpression)
+","
+Returns the maximum allowed array cardinality (length) of the declared data type of argument.
+","
+SELECT ARRAY_MAX_CARDINALITY(COL1) FROM TEST FETCH FIRST ROW ONLY;
+"
+
 "Functions (System)","ARRAY_SLICE","
 @h2@ ARRAY_SLICE(arrayExpression, lowerBoundInt, upperBoundInt)
 ","

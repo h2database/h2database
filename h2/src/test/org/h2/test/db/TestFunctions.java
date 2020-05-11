@@ -102,6 +102,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         testVersion();
         testFunctionTable();
         testFunctionTableVarArgs();
+        testArray();
         testArrayParameters();
         testDefaultConnection();
         testFunctionInSchema();
@@ -1188,6 +1189,18 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         rs = stat.executeQuery("CALL FUNCTIONS.TEST.PARSE_INT2('-2147483648', 10)");
         rs.next();
         assertEquals(-2147483648, rs.getInt(1));
+        conn.close();
+    }
+
+    private void testArray() throws SQLException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        PreparedStatement prep = conn.prepareStatement("SELECT ARRAY_MAX_CARDINALITY(?)");
+        prep.setObject(1, new Integer[] { 1, 2, 3 });
+        try (ResultSet rs = prep.executeQuery()) {
+            rs.next();
+            assertEquals(3, rs.getInt(1));
+        }
         conn.close();
     }
 

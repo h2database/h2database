@@ -207,7 +207,7 @@ public class TestScript extends TestDb {
                 "ifnull", "last-insert-id", "least", "link-schema", "lock-mode", "lock-timeout",
                 "memory-free", "memory-used", "nextval", "nullif", "nvl2",
                 "readonly", "rownum", "scope-identity", "session-id",
-                "table", "transaction-id", "truncate-value", "unnest" }) {
+                "table", "transaction-id", "trim_array", "truncate-value", "unnest" }) {
             testScript("functions/system/" + s + ".sql");
         }
         for (String s : new String[] { "current_date", "current_timestamp",

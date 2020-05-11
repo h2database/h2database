@@ -148,7 +148,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
             ARRAY_CONTAINS = 230, FILE_WRITE = 232,
-            UNNEST = 233, ARRAY_MAX_CARDINALITY = 234, ARRAY_SLICE = 236,
+            UNNEST = 233, ARRAY_MAX_CARDINALITY = 234, TRIM_ARRAY = 235, ARRAY_SLICE = 236,
             ABORT_SESSION = 237;
 
     public static final int REGEXP_LIKE = 240;
@@ -348,6 +348,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("NEXTVAL", NEXTVAL, VAR_ARGS, Value.NULL);
         addFunctionNotDeterministic("CURRVAL", CURRVAL, VAR_ARGS, Value.NULL);
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
+        addFunctionWithNull("TRIM_ARRAY", TRIM_ARRAY, 2, Value.ARRAY);
         addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
         addFunction("CSVREAD", CSVREAD,
                 VAR_ARGS, Value.RESULT_SET, false, false, true, false);
@@ -1331,6 +1332,33 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 result = ValueResultSet.get(session, csv.read(fileName, columns, charset), Integer.MAX_VALUE);
             } catch (SQLException e) {
                 throw DbException.convert(e);
+            }
+            break;
+        }
+        case TRIM_ARRAY: {
+            if (v1 == ValueNull.INSTANCE) {
+                result = ValueNull.INSTANCE;
+                break;
+            }
+            int trim = v1.getInt();
+            if (trim < 0) {
+                // This exception should be thrown even when array is null
+                throw DbException.getInvalidValueException("TRIM_ARRAY number", trim);
+            }
+            if (v0 == ValueNull.INSTANCE) {
+                result = ValueNull.INSTANCE;
+                break;
+            }
+            final ValueArray array = (ValueArray) v0.convertTo(TypeInfo.TYPE_ARRAY);
+            Value[] elements = array.getList();
+            int length = elements.length;
+            if (trim > length) {
+                throw DbException.getInvalidValueException("TRIM_ARRAY number", trim);
+            }
+            if (trim == 0) {
+                result = array;
+            } else {
+                result = ValueArray.get(array.getComponentType(), Arrays.copyOf(elements, length - trim), session);
             }
             break;
         }
@@ -2558,6 +2586,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case CURRVAL:
             typeInfo = session.getMode().decimalSequences ? TypeInfo.TYPE_NUMERIC_BIGINT : TypeInfo.TYPE_BIGINT;
             break;
+        case TRIM_ARRAY:
         case ARRAY_SLICE: {
             typeInfo = p0.getType();
             int t = typeInfo.getValueType();

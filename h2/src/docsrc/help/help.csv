@@ -5604,6 +5604,26 @@ Returns NULL if any parameter is NULL.
 CALL ARRAY_APPEND(ARRAY[1, 2], 3)
 "
 
+"Functions (System)","ARRAY_MAX_CARDINALITY","
+ARRAY_MAX_CARDINALITY(arrayExpression)
+","
+Returns the maximum allowed array cardinality (length) of the declared data type of argument.
+","
+SELECT ARRAY_MAX_CARDINALITY(COL1) FROM TEST FETCH FIRST ROW ONLY;
+"
+
+"Functions (System)","TRIM_ARRAY","
+TRIM_ARRAY(arrayExpression, int)
+","
+Removes the specified number of elements from the end of the array.
+
+Returns NULL if second parameter is NULL or if first parameter is NULL and second parameter is not negative.
+Throws exception if second parameter is negative or larger than number of elements in array.
+Otherwise returns the truncated array.
+","
+CALL TRIM_ARRAY(ARRAY[1, 2, 3, 4], 1)
+"
+
 "Functions (System)","ARRAY_SLICE","
 @h2@ ARRAY_SLICE(arrayExpression, lowerBoundInt, upperBoundInt)
 ","

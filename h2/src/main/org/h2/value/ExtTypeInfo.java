@@ -11,15 +11,18 @@ package org.h2.value;
 public abstract class ExtTypeInfo {
 
     /**
-     * Returns SQL including parentheses that should be appended to a type name.
+     * Appends SQL representation of this object to the specified string
+     * builder.
      *
-     * @return SQL including parentheses that should be appended to a type name
+     * @param builder
+     *            string builder
+     * @return the specified string builder
      */
-    public abstract String getCreateSQL();
+    public abstract StringBuilder getSQL(StringBuilder builder);
 
     @Override
     public String toString() {
-        return getCreateSQL();
+        return getSQL(new StringBuilder()).toString();
     }
 
 }

@@ -9,7 +9,6 @@ import org.h2.engine.Session;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -36,8 +35,7 @@ public class ExpressionList extends Expression {
         for (int i = 0; i < list.length; i++) {
             v[i] = list[i].getValue(session);
         }
-        return isArray ? ValueArray.get(((ExtTypeInfoArray) type.getExtTypeInfo()).getComponentType(), v, session)
-                : ValueRow.get(v);
+        return isArray ? ValueArray.get((TypeInfo) type.getExtTypeInfo(), v, session) : ValueRow.get(v);
     }
 
     @Override
@@ -68,7 +66,7 @@ public class ExpressionList extends Expression {
             for (int i = 0; i < count; i++) {
                 t = TypeInfo.getHigherType(t, list[i].getType());
             }
-            type = TypeInfo.getTypeInfo(Value.ARRAY, list.length, 0, new ExtTypeInfoArray(t));
+            type = TypeInfo.getTypeInfo(Value.ARRAY, list.length, 0, t);
         } else {
             type = TypeInfo.TYPE_ROW;
         }

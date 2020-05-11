@@ -413,7 +413,7 @@ public class Transfer {
         int valueType = type.getValueType();
         writeInt(VALUE_TO_TI[valueType + 1]).writeLong(type.getPrecision()).writeInt(type.getScale());
         if (valueType == Value.ARRAY && version >= Constants.TCP_PROTOCOL_VERSION_20) {
-            writeTypeInfo(((ExtTypeInfoArray) type.getExtTypeInfo()).getComponentType());
+            writeTypeInfo((TypeInfo) type.getExtTypeInfo());
         }
         return this;
     }
@@ -429,7 +429,7 @@ public class Transfer {
         int scale = readInt();
         ExtTypeInfo ext = null;
         if (valueType == Value.ARRAY && version >= Constants.TCP_PROTOCOL_VERSION_20) {
-            ext = new ExtTypeInfoArray(readTypeInfo());
+            ext = readTypeInfo();
         }
         return TypeInfo.getTypeInfo(valueType, precision, scale, ext);
     }

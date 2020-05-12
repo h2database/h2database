@@ -1423,7 +1423,9 @@ public class DataType {
         } else if (type == Duration.class) {
             return (T) JSR310Utils.valueToDuration(value);
         } else if (type == Object.class) {
-            return (T) value.convertToJavaObject(TypeInfo.TYPE_JAVA_OBJECT, Value.CONVERT_TO, null).getObject();
+            return (T) JdbcUtils.deserialize(
+                    value.convertToJavaObject(TypeInfo.TYPE_JAVA_OBJECT, Value.CONVERT_TO, null).getBytesNoCopy(),
+                    provider.getJavaObjectSerializer());
         } else if (type == InputStream.class) {
             return (T) value.getInputStream();
         } else if (type == Reader.class) {

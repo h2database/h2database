@@ -436,7 +436,7 @@ public class FunctionAlias extends SchemaObjectBase {
                                         0, false, true, false);
                             } else l: {
                                 if (v.getValueType() == Value.JAVA_OBJECT) {
-                                    o = JdbcUtils.deserialize(v.getBytes(), conn.getJavaObjectSerializer());
+                                    o = JdbcUtils.deserialize(v.getBytesNoCopy(), conn.getJavaObjectSerializer());
                                     if (paramClass.isAssignableFrom(o.getClass())) {
                                         break l;
                                     }

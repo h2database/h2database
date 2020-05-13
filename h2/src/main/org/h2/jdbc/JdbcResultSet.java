@@ -51,6 +51,7 @@ import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
 import org.h2.value.ValueSmallint;
 import org.h2.value.ValueTinyint;
+import org.h2.value.ValueToObjectConverter;
 import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 
@@ -3897,8 +3898,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                 throw DbException.getInvalidValueException("type", type);
             }
             debugCodeCall("getObject", columnIndex);
-            Value value = get(columnIndex);
-            return extractObjectOfType(type, value);
+            return ValueToObjectConverter.valueToObject(type, get(columnIndex), conn);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3919,35 +3919,10 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                 throw DbException.getInvalidValueException("type", type);
             }
             debugCodeCall("getObject", columnName);
-            Value value = get(columnName);
-            return extractObjectOfType(type, value);
+            return ValueToObjectConverter.valueToObject(type, get(columnName), conn);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> T extractObjectOfType(Class<T> type, Value value) throws SQLException {
-        if (value == ValueNull.INSTANCE) {
-            return null;
-        }
-        T result = DataType.extractObjectOfType(type, value, conn);
-        if (result != null) {
-            return result;
-        }
-        if (type == java.sql.Array.class) {
-            return (T) new JdbcArray(conn, value, getNextId(TraceObject.ARRAY));
-        } else if (type == Blob.class) {
-            return (T) new JdbcBlob(conn, value, JdbcLob.State.WITH_VALUE, getNextId(TraceObject.BLOB));
-        } else if (type == Clob.class) {
-            return (T) new JdbcClob(conn, value, JdbcLob.State.WITH_VALUE, getNextId(TraceObject.CLOB));
-        } else if (type == SQLXML.class) {
-            return (T) new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, getNextId(TraceObject.SQLXML));
-        } else if (type == ResultSet.class) {
-            return (T) new JdbcResultSet(conn, null, null, value.convertToResultSet().getResult(),
-                    getNextId(TraceObject.RESULT_SET), false, true, false);
-        }
-        throw unsupported(type.getName());
     }
 
     /**

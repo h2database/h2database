@@ -41,7 +41,6 @@ import org.h2.api.ErrorCode;
 import org.h2.api.H2Type;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
-import org.h2.engine.CastDataProvider;
 import org.h2.engine.Mode;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SysProperties;
@@ -1359,98 +1358,6 @@ public class DataType {
             return ValueJavaObject.getNoCopy(JdbcUtils.serialize(x, session.getJavaObjectSerializer()));
         }
         return session.addTemporaryLob(lob);
-    }
-
-    /**
-     * Extract object of the specified type.
-     *
-     * @param <T> the type
-     * @param type the class
-     * @param value the value, shouldn't be {@link ValueNull}
-     * @param provider the cast information provider
-     * @return an instance of the specified class, or {@code null} if not supported
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> T extractObjectOfType(Class<T> type, Value value, CastDataProvider provider) {
-        if (type == BigDecimal.class) {
-            return (T) value.getBigDecimal();
-        } else if (type == BigInteger.class) {
-            return (T) value.getBigDecimal().toBigInteger();
-        } else if (type == String.class) {
-            return (T) value.getString();
-        } else if (type == Boolean.class) {
-            return (T) (Boolean) value.getBoolean();
-        } else if (type == Byte.class) {
-            return (T) (Byte) value.getByte();
-        } else if (type == Short.class) {
-            return (T) (Short) value.getShort();
-        } else if (type == Integer.class) {
-            return (T) (Integer) value.getInt();
-        } else if (type == Long.class) {
-            return (T) (Long) value.getLong();
-        } else if (type == Float.class) {
-            return (T) (Float) value.getFloat();
-        } else if (type == Double.class) {
-            return (T) (Double) value.getDouble();
-        } else if (type == UUID.class) {
-            return (T) value.convertToUuid().getObject();
-        } else if (type == byte[].class) {
-            return (T) value.getBytes();
-        } else if (type == Interval.class) {
-            if (!(value instanceof ValueInterval)) {
-                value = value.convertTo(TypeInfo.TYPE_INTERVAL_DAY_TO_SECOND);
-            }
-            ValueInterval v = (ValueInterval) value;
-            return (T) new Interval(v.getQualifier(), false, v.getLeading(), v.getRemaining());
-        } else if (DataType.isGeometryClass(type)) {
-            return (T) value.convertToGeometry(null).getObject();
-        } else if (type == LocalDate.class) {
-            return (T) JSR310Utils.valueToLocalDate(value, provider);
-        } else if (type == LocalTime.class) {
-            return (T) JSR310Utils.valueToLocalTime(value, provider);
-        } else if (type == LocalDateTime.class) {
-            return (T) JSR310Utils.valueToLocalDateTime(value, provider);
-        } else if (type == Instant.class) {
-            return (T) JSR310Utils.valueToInstant(value, provider);
-        } else if (type == OffsetTime.class) {
-            return (T) JSR310Utils.valueToOffsetTime(value, provider);
-        } else if (type == OffsetDateTime.class) {
-            return (T) JSR310Utils.valueToOffsetDateTime(value, provider);
-        } else if (type == ZonedDateTime.class) {
-            return (T) JSR310Utils.valueToZonedDateTime(value, provider);
-        } else if (type == Period.class) {
-            return (T) JSR310Utils.valueToPeriod(value);
-        } else if (type == Duration.class) {
-            return (T) JSR310Utils.valueToDuration(value);
-        } else if (type == Object.class) {
-            return (T) JdbcUtils.deserialize(
-                    value.convertToJavaObject(TypeInfo.TYPE_JAVA_OBJECT, Value.CONVERT_TO, null).getBytesNoCopy(),
-                    provider.getJavaObjectSerializer());
-        } else if (type == InputStream.class) {
-            return (T) value.getInputStream();
-        } else if (type == Reader.class) {
-            return (T) value.getReader();
-        } else if (type.isArray()) {
-            Value[] array = ((ValueArray) value).getList();
-            Class<?> componentType = type.getComponentType();
-            Object[] objArray = (Object[]) java.lang.reflect.Array.newInstance(componentType, array.length);
-            for (int i = 0; i < objArray.length; i++) {
-                value = array[i];
-                Object element;
-                if (value == ValueNull.INSTANCE) {
-                    element = null;
-                } else {
-                    element = extractObjectOfType(componentType, value, provider);
-                    if (element == null) {
-                        // Unsupported
-                        return null;
-                    }
-                }
-                objArray[i] = element;
-            }
-            return (T) objArray;
-        }
-        return LegacyDateTimeUtils.extractObjectOfLegacyType(type, value, provider);
     }
 
     /**

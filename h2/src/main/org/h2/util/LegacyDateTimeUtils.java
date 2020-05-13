@@ -251,7 +251,7 @@ public final class LegacyDateTimeUtils {
     }
 
     /**
-     * Extract object of legacy type.
+     * Converts the specified value to an object of the specified legacy type.
      *
      * @param <T> the type
      * @param type the class
@@ -260,7 +260,7 @@ public final class LegacyDateTimeUtils {
      * @return an instance of the specified class, or {@code null} if not supported
      */
     @SuppressWarnings("unchecked")
-    public static <T> T extractObjectOfLegacyType(Class<T> type, Value value, CastDataProvider provider) {
+    public static <T> T valueToLegacyType(Class<T> type, Value value, CastDataProvider provider) {
         if (type == Date.class) {
             return (T) toDate(provider, null, value);
         } else if (type == Time.class) {

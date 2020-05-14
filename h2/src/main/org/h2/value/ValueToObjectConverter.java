@@ -5,13 +5,16 @@
  */
 package org.h2.value;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.SQLXML;
 import java.time.Duration;
 import java.time.Instant;
@@ -25,6 +28,7 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import org.h2.api.Interval;
+import org.h2.engine.SessionInterface;
 import org.h2.jdbc.JdbcArray;
 import org.h2.jdbc.JdbcBlob;
 import org.h2.jdbc.JdbcClob;
@@ -42,6 +46,151 @@ import org.h2.util.LegacyDateTimeUtils;
  * Data type conversion methods between values and Java objects.
  */
 public final class ValueToObjectConverter extends TraceObject {
+
+    /**
+     * Convert a Java object to a value.
+     *
+     * @param session
+     *            the session
+     * @param x
+     *            the value
+     * @param type
+     *            the suggested value type, or {@code Value#UNKNOWN}
+     * @return the value
+     */
+    public static Value objectToValue(SessionInterface session, Object x, int type) {
+        if (x == null) {
+            return ValueNull.INSTANCE;
+        } else if (type == Value.JAVA_OBJECT) {
+            return ValueJavaObject.getNoCopy(JdbcUtils.serialize(x, session.getJavaObjectSerializer()));
+        } else if (x instanceof Value) {
+            Value v = (Value) x;
+            if (v instanceof ValueLob) {
+                session.addTemporaryLob((ValueLob) v);
+            }
+            return v;
+        }
+        Class<?> clazz = x.getClass();
+        if (clazz == String.class) {
+            return ValueVarchar.get((String) x, session);
+        } else if (clazz == Long.class) {
+            return ValueBigint.get((Long) x);
+        } else if (clazz == Integer.class) {
+            return ValueInteger.get((Integer) x);
+        } else if (clazz == Boolean.class) {
+            return ValueBoolean.get((Boolean) x);
+        } else if (clazz == Byte.class) {
+            return ValueTinyint.get((Byte) x);
+        } else if (clazz == Short.class) {
+            return ValueSmallint.get((Short) x);
+        } else if (clazz == Float.class) {
+            return ValueReal.get((Float) x);
+        } else if (clazz == Double.class) {
+            return ValueDouble.get((Double) x);
+        } else if (clazz == byte[].class) {
+            return ValueVarbinary.get((byte[]) x);
+        } else if (clazz == UUID.class) {
+            return ValueUuid.get((UUID) x);
+        } else if (clazz == Character.class) {
+            return ValueChar.get(((Character) x).toString());
+        } else if (clazz == LocalDate.class) {
+            return JSR310Utils.localDateToValue(x);
+        } else if (clazz == LocalTime.class) {
+            return JSR310Utils.localTimeToValue(x);
+        } else if (clazz == LocalDateTime.class) {
+            return JSR310Utils.localDateTimeToValue(x);
+        } else if (clazz == Instant.class) {
+            return JSR310Utils.instantToValue(x);
+        } else if (clazz == OffsetTime.class) {
+            return JSR310Utils.offsetTimeToValue(x);
+        } else if (clazz == OffsetDateTime.class) {
+            return JSR310Utils.offsetDateTimeToValue(x);
+        } else if (clazz == ZonedDateTime.class) {
+            return JSR310Utils.zonedDateTimeToValue(x);
+        } else if (clazz == Interval.class) {
+            Interval i = (Interval) x;
+            return ValueInterval.from(i.getQualifier(), i.isNegative(), i.getLeading(), i.getRemaining());
+        } else if (clazz == Period.class) {
+            return JSR310Utils.periodToValue(x);
+        } else if (clazz == Duration.class) {
+            return JSR310Utils.durationToValue(x);
+        }
+        if (x instanceof Object[]) {
+            return arrayToValue(session, x);
+        } else if (DataType.isGeometry(x)) {
+            return ValueGeometry.getFromGeometry(x);
+        } else if (x instanceof BigInteger) {
+            return ValueNumeric.get((BigInteger) x);
+        } else if (x instanceof BigDecimal) {
+            return ValueNumeric.get((BigDecimal) x);
+        } else {
+            return otherToValue(session, x);
+        }
+    }
+
+    private static Value otherToValue(SessionInterface session, Object x) {
+        if (x instanceof Array) {
+            Array array = (Array) x;
+            try {
+                return arrayToValue(session, array.getArray());
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
+        } else if (x instanceof ResultSet) {
+            return ValueResultSet.get(session, (ResultSet) x, Integer.MAX_VALUE);
+        }
+        ValueLob lob;
+        if (x instanceof Reader) {
+            Reader r = (Reader) x;
+            if (!(r instanceof BufferedReader)) {
+                r = new BufferedReader(r);
+            }
+            lob = session.getDataHandler().getLobStorage().createClob(r, -1);
+        } else if (x instanceof Clob) {
+            try {
+                Clob clob = (Clob) x;
+                Reader r = new BufferedReader(clob.getCharacterStream());
+                lob = session.getDataHandler().getLobStorage().createClob(r, clob.length());
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
+        } else if (x instanceof InputStream) {
+            lob = session.getDataHandler().getLobStorage().createBlob((InputStream) x, -1);
+        } else if (x instanceof Blob) {
+            try {
+                Blob blob = (Blob) x;
+                lob = session.getDataHandler().getLobStorage().createBlob(blob.getBinaryStream(), blob.length());
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
+        } else if (x instanceof SQLXML) {
+            try {
+                lob = session.getDataHandler().getLobStorage()
+                        .createClob(new BufferedReader(((SQLXML) x).getCharacterStream()), -1);
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
+        } else {
+            Value v = LegacyDateTimeUtils.legacyObjectToValue(session, x);
+            if (v != null) {
+                return v;
+            }
+            return ValueJavaObject.getNoCopy(JdbcUtils.serialize(x, session.getJavaObjectSerializer()));
+        }
+        return session.addTemporaryLob(lob);
+    }
+
+    private static Value arrayToValue(SessionInterface session, Object x) {
+        // (a.getClass().isArray());
+        // (a.getClass().getComponentType().isPrimitive());
+        Object[] o = (Object[]) x;
+        int len = o.length;
+        Value[] v = new Value[len];
+        for (int i = 0; i < len; i++) {
+            v[i] = objectToValue(session, o[i], Value.UNKNOWN);
+        }
+        return ValueArray.get(v, session);
+    }
 
     /**
      * Converts the specified value to an object of the specified type.

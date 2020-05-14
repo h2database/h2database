@@ -49,6 +49,7 @@ import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
 import org.h2.value.ValueSmallint;
 import org.h2.value.ValueTinyint;
+import org.h2.value.ValueToObjectConverter;
 import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 
@@ -507,7 +508,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (x == null) {
                 setParameter(parameterIndex, ValueNull.INSTANCE);
             } else {
-                setParameter(parameterIndex, DataType.convertToValue(session, x, Value.UNKNOWN));
+                setParameter(parameterIndex, ValueToObjectConverter.objectToValue(session, x, Value.UNKNOWN));
             }
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -611,7 +612,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
         if (x == null) {
             setParameter(parameterIndex, ValueNull.INSTANCE);
         } else {
-            Value v = DataType.convertToValue(conn.getSession(), x, type);
+            Value v = ValueToObjectConverter.objectToValue(conn.getSession(), x, type);
             if (type != Value.UNKNOWN) {
                 v = v.convertTo(type, conn);
             }
@@ -973,7 +974,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (x == null) {
                 v = ValueNull.INSTANCE;
             } else {
-                v = DataType.convertToValue(session, x.getArray(), Value.ARRAY);
+                v = ValueToObjectConverter.objectToValue(session, x.getArray(), Value.ARRAY);
             }
             setParameter(parameterIndex, v);
         } catch (Exception e) {

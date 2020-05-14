@@ -15,12 +15,12 @@ import org.h2.engine.UserAggregate;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
-import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
+import org.h2.value.ValueToObjectConverter;
 
 /**
  * This class wraps a user-defined aggregate.
@@ -143,7 +143,7 @@ public class JavaAggregate extends AbstractAggregate {
             if (obj == null) {
                 return ValueNull.INSTANCE;
             }
-            return DataType.convertToValue(session, obj, dataType);
+            return ValueToObjectConverter.objectToValue(session, obj, dataType);
         } catch (SQLException e) {
             throw DbException.convert(e);
         }

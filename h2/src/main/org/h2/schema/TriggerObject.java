@@ -23,8 +23,8 @@ import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
-import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueToObjectConverter;
 
 /**
  *A trigger is created using the statement
@@ -266,7 +266,7 @@ public class TriggerObject extends SchemaObjectBase {
                 for (int i = 0; i < newList.length; i++) {
                     Object o = newList[i];
                     if (o != newListBackup[i]) {
-                        newRow.setValue(i, DataType.convertToValue(session, o, Value.UNKNOWN));
+                        newRow.setValue(i, ValueToObjectConverter.objectToValue(session, o, Value.UNKNOWN));
                     }
                 }
             }

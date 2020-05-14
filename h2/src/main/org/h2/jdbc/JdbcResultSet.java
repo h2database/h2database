@@ -2573,7 +2573,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (x == null) {
                 v = ValueNull.INSTANCE;
             } else {
-                v = DataType.convertToValue(stat.session, x.getArray(), Value.ARRAY);
+                v = ValueToObjectConverter.objectToValue(stat.session, x.getArray(), Value.ARRAY);
             }
             update(columnIndex, v);
         } catch (Exception e) {
@@ -2599,7 +2599,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (x == null) {
                 v = ValueNull.INSTANCE;
             } else {
-                v = DataType.convertToValue(stat.session, x.getArray(), Value.ARRAY);
+                v = ValueToObjectConverter.objectToValue(stat.session, x.getArray(), Value.ARRAY);
             }
             update(columnLabel, v);
         } catch (Exception e) {
@@ -3960,14 +3960,14 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return ValueNull.INSTANCE;
         } else {
             int type = DataType.convertSQLTypeToValueType(targetSqlType);
-            Value v = DataType.convertToValue(conn.getSession(), x, type);
+            Value v = ValueToObjectConverter.objectToValue(conn.getSession(), x, type);
             return v.convertTo(type, conn);
         }
     }
 
     private Value convertToUnknownValue(Object x) {
         checkClosed();
-        return DataType.convertToValue(conn.getSession(), x, Value.UNKNOWN);
+        return ValueToObjectConverter.objectToValue(conn.getSession(), x, Value.UNKNOWN);
     }
 
     private void checkUpdatable() {

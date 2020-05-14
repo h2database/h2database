@@ -9,29 +9,23 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.sql.Array;
-import java.sql.Blob;
-import java.sql.Clob;
 import java.sql.Date;
 import java.sql.JDBCType;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLType;
-import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
-import java.time.Period;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,7 +39,6 @@ import org.h2.engine.Mode;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
-import org.h2.store.DataHandler;
 import org.h2.util.JSR310Utils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LegacyDateTimeUtils;
@@ -736,7 +729,7 @@ public class DataType {
                 int len = list.length;
                 Value[] values = new Value[len];
                 for (int i = 0; i < len; i++) {
-                    values[i] = DataType.convertToValue(session, list[i], Value.NULL);
+                    values[i] = ValueToObjectConverter.objectToValue(session, list[i], Value.NULL);
                 }
                 v = ValueArray.get(values, session);
                 break;
@@ -754,7 +747,7 @@ public class DataType {
                 int len = list.length;
                 Value[] values = new Value[len];
                 for (int i = 0; i < len; i++) {
-                    values[i] = DataType.convertToValue(session, list[i], Value.NULL);
+                    values[i] = ValueToObjectConverter.objectToValue(session, list[i], Value.NULL);
                 }
                 v = ValueRow.get(values);
                 break;
@@ -1217,147 +1210,6 @@ public class DataType {
         } else {
             return TypeInfo.TYPE_JAVA_OBJECT;
         }
-    }
-
-    /**
-     * Convert a Java object to a value.
-     *
-     * @param session the session
-     * @param x the value
-     * @param type the value type
-     * @return the value
-     */
-    public static Value convertToValue(SessionInterface session, Object x, int type) {
-        if (x == null) {
-            return ValueNull.INSTANCE;
-        } else if (type == Value.JAVA_OBJECT) {
-            return ValueJavaObject.getNoCopy(JdbcUtils.serialize(x, session.getJavaObjectSerializer()));
-        } else if (x instanceof String) {
-            return ValueVarchar.get((String) x, session);
-        } else if (x instanceof Value) {
-            Value v = (Value) x;
-            if (v instanceof ValueLob) {
-                session.addTemporaryLob((ValueLob) v);
-            }
-            return v;
-        } else if (x instanceof Long) {
-            return ValueBigint.get((Long) x);
-        } else if (x instanceof Integer) {
-            return ValueInteger.get((Integer) x);
-        } else if (x instanceof BigInteger) {
-            return ValueNumeric.get((BigInteger) x);
-        } else if (x instanceof BigDecimal) {
-            return ValueNumeric.get((BigDecimal) x);
-        } else if (x instanceof Boolean) {
-            return ValueBoolean.get((Boolean) x);
-        } else if (x instanceof Byte) {
-            return ValueTinyint.get((Byte) x);
-        } else if (x instanceof Short) {
-            return ValueSmallint.get((Short) x);
-        } else if (x instanceof Float) {
-            return ValueReal.get((Float) x);
-        } else if (x instanceof Double) {
-            return ValueDouble.get((Double) x);
-        } else if (x instanceof byte[]) {
-            return ValueVarbinary.get((byte[]) x);
-        } else if (x instanceof Date) {
-            return LegacyDateTimeUtils.fromDate(session, null, (Date) x);
-        } else if (x instanceof Time) {
-            return LegacyDateTimeUtils.fromTime(session, null, (Time) x);
-        } else if (x instanceof Timestamp) {
-            return LegacyDateTimeUtils.fromTimestamp(session, null, (Timestamp) x);
-        } else if (x instanceof java.util.Date) {
-            return LegacyDateTimeUtils.fromTimestamp(session, ((java.util.Date) x).getTime(), 0);
-        } else if (x instanceof Array) {
-            Array array = (Array) x;
-            try {
-                return convertToValue(session, array.getArray(), Value.ARRAY);
-            } catch (SQLException e) {
-                throw DbException.convert(e);
-            }
-        } else if (x instanceof ResultSet) {
-            return ValueResultSet.get(session, (ResultSet) x, Integer.MAX_VALUE);
-        } else if (x instanceof UUID) {
-            return ValueUuid.get((UUID) x);
-        }
-        Class<?> clazz = x.getClass();
-        if (x instanceof Object[]) {
-            // (a.getClass().isArray());
-            // (a.getClass().getComponentType().isPrimitive());
-            Object[] o = (Object[]) x;
-            int len = o.length;
-            Value[] v = new Value[len];
-            for (int i = 0; i < len; i++) {
-                v[i] = convertToValue(session, o[i], Value.UNKNOWN);
-            }
-            return ValueArray.get(v, session);
-        } else if (x instanceof Character) {
-            return ValueChar.get(((Character) x).toString());
-        } else if (isGeometry(x)) {
-            return ValueGeometry.getFromGeometry(x);
-        } else if (clazz == LocalDate.class) {
-            return JSR310Utils.localDateToValue(x);
-        } else if (clazz == LocalTime.class) {
-            return JSR310Utils.localTimeToValue(x);
-        } else if (clazz == LocalDateTime.class) {
-            return JSR310Utils.localDateTimeToValue(x);
-        } else if (clazz == Instant.class) {
-            return JSR310Utils.instantToValue(x);
-        } else if (clazz == OffsetTime.class) {
-            return JSR310Utils.offsetTimeToValue(x);
-        } else if (clazz == OffsetDateTime.class) {
-            return JSR310Utils.offsetDateTimeToValue(x);
-        } else if (clazz == ZonedDateTime.class) {
-            return JSR310Utils.zonedDateTimeToValue(x);
-        } else if (x instanceof Interval) {
-            Interval i = (Interval) x;
-            return ValueInterval.from(i.getQualifier(), i.isNegative(), i.getLeading(), i.getRemaining());
-        } else if (clazz == Period.class) {
-            return JSR310Utils.periodToValue(x);
-        } else if (clazz == Duration.class) {
-            return JSR310Utils.durationToValue(x);
-        } else {
-            return convertToValueLobOrObject(session, x);
-        }
-    }
-
-    private static Value convertToValueLobOrObject(SessionInterface session, Object x) {
-        DataHandler dataHandler = session.getDataHandler();
-        ValueLob lob;
-        if (x instanceof Reader) {
-            Reader r = (Reader) x;
-            if (!(r instanceof BufferedReader)) {
-                r = new BufferedReader(r);
-            }
-            lob = dataHandler.getLobStorage().createClob(r, -1);
-        } else if (x instanceof Clob) {
-            try {
-                Clob clob = (Clob) x;
-                Reader r = new BufferedReader(clob.getCharacterStream());
-                lob = dataHandler.getLobStorage().createClob(r, clob.length());
-            } catch (SQLException e) {
-                throw DbException.convert(e);
-            }
-        } else if (x instanceof InputStream) {
-            lob = dataHandler.getLobStorage().createBlob((InputStream) x, -1);
-        } else if (x instanceof Blob) {
-            try {
-                Blob blob = (Blob) x;
-                lob = dataHandler.getLobStorage().createBlob(blob.getBinaryStream(), blob.length());
-            } catch (SQLException e) {
-                throw DbException.convert(e);
-            }
-        } else if (x instanceof SQLXML) {
-            try {
-                lob = dataHandler.getLobStorage().createClob(
-                        new BufferedReader(((SQLXML) x).getCharacterStream()), -1);
-            } catch (SQLException e) {
-                throw DbException.convert(e);
-            }
-        } else {
-            return ValueJavaObject.getNoCopy(JdbcUtils.serialize(x, session.getJavaObjectSerializer()));
-        }
-        return session.addTemporaryLob(lob);
     }
 
     /**

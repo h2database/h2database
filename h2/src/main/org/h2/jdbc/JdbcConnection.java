@@ -52,13 +52,13 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.TimeZoneProvider;
 import org.h2.value.CompareMode;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueToObjectConverter;
 import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 
@@ -1591,8 +1591,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             int id = getNextId(TraceObject.ARRAY);
             debugCodeAssign("Array", TraceObject.ARRAY, id, "createArrayOf()");
             checkClosed();
-            Value value = DataType.convertToValue(session, elements,
-                    Value.ARRAY);
+            Value value = ValueToObjectConverter.objectToValue(session, elements, Value.ARRAY);
             return new JdbcArray(this, value, id);
         } catch (Exception e) {
             throw logAndConvert(e);

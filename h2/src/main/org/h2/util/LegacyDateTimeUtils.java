@@ -251,6 +251,33 @@ public final class LegacyDateTimeUtils {
     }
 
     /**
+     * Convert a legacy Java object to a value.
+     *
+     * @param session
+     *            the session
+     * @param x
+     *            the value
+     * @return the value, or {@code null} if not supported
+     */
+    public static Value legacyObjectToValue(CastDataProvider session, Object x) {
+        if (x instanceof Date) {
+            return fromDate(session, null, (Date) x);
+        } else if (x instanceof Time) {
+            return fromTime(session, null, (Time) x);
+        } else if (x instanceof Timestamp) {
+            return fromTimestamp(session, null, (Timestamp) x);
+        } else if (x instanceof java.util.Date) {
+            return fromTimestamp(session, ((java.util.Date) x).getTime(), 0);
+        } else if (x instanceof GregorianCalendar) {
+            GregorianCalendar gc = (GregorianCalendar) x;
+            long ms = gc.getTimeInMillis();
+            return timestampFromLocalMillis(ms + gc.getTimeZone().getOffset(ms), 0);
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Converts the specified value to an object of the specified legacy type.
      *
      * @param <T> the type

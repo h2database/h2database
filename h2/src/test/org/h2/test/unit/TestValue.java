@@ -53,6 +53,7 @@ import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueToObjectConverter;
 import org.h2.value.ValueUuid;
 import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
@@ -138,7 +139,7 @@ public class TestValue extends TestDb {
         rs.addRow(new Object[]{obj});
         rs.next();
         Value v = DataType.readValue(null, rs, 1, valueType);
-        Value v2 = DataType.convertToValue(null, obj, valueType);
+        Value v2 = ValueToObjectConverter.objectToValue(null, obj, valueType);
         if (v.getValueType() == Value.RESULT_SET) {
             assertEquals(v.toString(), v2.toString());
         } else {

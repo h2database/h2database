@@ -666,7 +666,7 @@ public class TestResultSet extends TestDb {
         assertFalse(meta.isDefinitelyWritable(1));
         assertTrue(meta.getColumnDisplaySize(1) > 0);
         assertTrue(meta.getColumnDisplaySize(2) > 0);
-        assertEquals(null, meta.getColumnClassName(3));
+        assertEquals(Void.class.getName(), meta.getColumnClassName(3));
 
         assertTrue(rs.getRow() == 0);
         assertResultSetMeta(rs, 3, new String[] { "ID", "VALUE", "N" },

@@ -245,7 +245,7 @@ public class TestTools extends TestDb {
         assertTrue(rs.getMetaData().isSigned(1));
         assertFalse(rs.getMetaData().isWritable(1));
         assertEquals("", rs.getMetaData().getCatalogName(1));
-        assertEquals(null, rs.getMetaData().getColumnClassName(1));
+        assertEquals(Void.class.getName(), rs.getMetaData().getColumnClassName(1));
         assertEquals("NULL", rs.getMetaData().getColumnTypeName(1));
         assertEquals("", rs.getMetaData().getSchemaName(1));
         assertEquals("", rs.getMetaData().getTableName(1));

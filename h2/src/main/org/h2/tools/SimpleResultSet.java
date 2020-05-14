@@ -39,6 +39,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.SimpleColumnInfo;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
+import org.h2.value.ValueToObjectConverter;
 
 /**
  * This class is a simple result set and meta data implementation.
@@ -2003,7 +2004,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     @Override
     public String getColumnClassName(int columnIndex) throws SQLException {
         int type = DataType.getValueTypeFromResultSet(this, columnIndex);
-        return DataType.getTypeClassName(type);
+        return ValueToObjectConverter.getDefaultClass(type, true).getName();
     }
 
     /**

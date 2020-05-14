@@ -314,6 +314,103 @@ public final class ValueToObjectConverter extends TraceObject {
     }
 
     /**
+     * Get the name of the Java class for the given value type.
+     *
+     * @param type the value type
+     * @param forJdbc
+     *            if {@code true} get class for JDBC layer, if
+     *            {@code false} get class for Java functions API
+     * @return the class
+     */
+    public static Class<?> getDefaultClass(int type, boolean forJdbc) {
+        switch (type) {
+        case Value.NULL:
+            return Void.class;
+        case Value.CHAR:
+        case Value.VARCHAR:
+        case Value.VARCHAR_IGNORECASE:
+        case Value.ENUM:
+            return String.class;
+        case Value.CLOB:
+            return Clob.class;
+        case Value.BINARY:
+        case Value.VARBINARY:
+        case Value.JSON:
+            return byte[].class;
+        case Value.BLOB:
+            return Blob.class;
+        case Value.BOOLEAN:
+            return Boolean.class;
+        case Value.TINYINT:
+            if (forJdbc) {
+                return Integer.class;
+            }
+            return Byte.class;
+        case Value.SMALLINT:
+            if (forJdbc) {
+                return Integer.class;
+            }
+            return Short.class;
+        case Value.INTEGER:
+            return Integer.class;
+        case Value.BIGINT:
+            return Long.class;
+        case Value.NUMERIC:
+            return BigDecimal.class;
+        case Value.REAL:
+            return Float.class;
+        case Value.DOUBLE:
+            return Double.class;
+        case Value.DATE:
+            return forJdbc ? java.sql.Date.class : LocalDate.class;
+        case Value.TIME:
+            return forJdbc ? java.sql.Time.class : LocalTime.class;
+        case Value.TIME_TZ:
+            return OffsetTime.class;
+        case Value.TIMESTAMP:
+            return forJdbc ? java.sql.Timestamp.class : LocalDateTime.class;
+        case Value.TIMESTAMP_TZ:
+            return OffsetDateTime.class;
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE:
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND:
+            return Interval.class;
+        case Value.JAVA_OBJECT:
+            return forJdbc ? Object.class : byte[].class;
+        case Value.GEOMETRY: {
+            Class<?> clazz = DataType.GEOMETRY_CLASS;
+            return clazz != null ? clazz : String.class;
+        }
+        case Value.UUID:
+            return UUID.class;
+        case Value.ARRAY:
+            if (forJdbc) {
+                return Array.class;
+            }
+            return Object[].class;
+        case Value.ROW:
+            if (forJdbc) {
+                return ResultSet.class;
+            }
+            return Object[].class;
+        case Value.RESULT_SET:
+            return ResultSet.class;
+        default:
+            throw DbException.getUnsupportedException("data type " + type);
+        }
+    }
+
+    /**
      * Converts the specified value to the default Java object for its type.
      *
      * @param value

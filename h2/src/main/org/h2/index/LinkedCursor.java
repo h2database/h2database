@@ -12,10 +12,8 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.table.Column;
 import org.h2.table.TableLink;
-import org.h2.value.DataType;
-import org.h2.value.Value;
+import org.h2.value.ValueToObjectConverter2;
 
 /**
  * The cursor implementation for the linked index.
@@ -63,9 +61,8 @@ public class LinkedCursor implements Cursor {
         }
         current = tableLink.getTemplateRow();
         for (int i = 0; i < current.getColumnCount(); i++) {
-            Column col = tableLink.getColumn(i);
-            Value v = DataType.readValue(session, rs, i + 1, col.getType().getValueType());
-            current.setValue(i, v);
+            current.setValue(i, ValueToObjectConverter2.readValue(session, rs, i + 1,
+                    tableLink.getColumn(i).getType().getValueType()));
         }
         return true;
     }

@@ -100,12 +100,8 @@ public class TestValue extends TestDb {
         rs.addRow(new Object[]{null});
         rs.next();
         for (int type = Value.NULL; type < Value.TYPE_COUNT; type++) {
-            if (type == 23) {
-                // a defunct experimental type
-            } else {
-                Value v = DataType.readValue(null, rs, 1, type);
-                assertTrue(v == ValueNull.INSTANCE);
-            }
+            Value v = ValueToObjectConverter2.readValue(null, rs, 1, type);
+            assertTrue(v == ValueNull.INSTANCE);
         }
         testResultSetOperation(new byte[0]);
         testResultSetOperation(1);
@@ -138,7 +134,7 @@ public class TestValue extends TestDb {
         rs.addColumn("X", sqlType, 10, 0);
         rs.addRow(new Object[]{obj});
         rs.next();
-        Value v = DataType.readValue(null, rs, 1, valueType);
+        Value v = ValueToObjectConverter2.readValue(null, rs, 1, valueType);
         Value v2 = ValueToObjectConverter.objectToValue(null, obj, valueType);
         if (v.getValueType() == Value.RESULT_SET) {
             assertEquals(v.toString(), v2.toString());

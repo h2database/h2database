@@ -557,6 +557,31 @@ public final class ValueToObjectConverter extends TraceObject {
         return list;
     }
 
+    /**
+     * Read a value from the given result set.
+     *
+     * @param session
+     *            the session
+     * @param rs
+     *            the result set
+     * @param columnIndex
+     *            the column index (1-based)
+     * @return the value
+     */
+    public static Value readValue(SessionInterface session, JdbcResultSet rs, int columnIndex) {
+        Value value = rs.get(columnIndex);
+        switch (value.getValueType()) {
+        case Value.CLOB:
+            value = session.addTemporaryLob(
+                    session.getDataHandler().getLobStorage().createClob(new BufferedReader(value.getReader()), -1));
+            break;
+        case Value.BLOB:
+            value = session
+                    .addTemporaryLob(session.getDataHandler().getLobStorage().createBlob(value.getInputStream(), -1));
+        }
+        return value;
+    }
+
     private ValueToObjectConverter() {
     }
 

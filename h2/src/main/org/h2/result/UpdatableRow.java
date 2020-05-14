@@ -20,6 +20,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueToObjectConverter;
 
 /**
  * This class is used for updatable result sets. An updatable row provides
@@ -232,7 +233,7 @@ public class UpdatableRow {
         }
         Value[] newRow = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
-            newRow[i] = rs.get(i + 1);
+            newRow[i] = ValueToObjectConverter.readValue(conn.getSession(), rs, i + 1);
         }
         return newRow;
     }

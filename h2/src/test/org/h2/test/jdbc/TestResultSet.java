@@ -1839,7 +1839,7 @@ public class TestResultSet extends TestDb {
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
         assertEquals(1, rs.getInt(1));
-        Object[] list = (Object[]) rs.getObject(2);
+        Object[] list = (Object[]) ((Array) rs.getObject(2)).getArray();
         assertEquals(1, ((Integer) list[0]).intValue());
         assertEquals(2, ((Integer) list[1]).intValue());
 
@@ -1852,7 +1852,7 @@ public class TestResultSet extends TestDb {
 
         rs.next();
         assertEquals(2, rs.getInt(1));
-        list = (Object[]) rs.getObject(2);
+        list = (Object[]) ((Array) rs.getObject(2)).getArray();
         assertEquals(11, ((Integer) list[0]).intValue());
         assertEquals(12, ((Integer) list[1]).intValue());
 
@@ -1873,7 +1873,7 @@ public class TestResultSet extends TestDb {
 
         rs.next();
         assertEquals(3, rs.getInt(1));
-        list = (Object[]) rs.getObject(2);
+        list = (Object[]) ((Array) rs.getObject(2)).getArray();
         assertEquals(0, list.length);
 
         array = rs.getArray("VALUE");
@@ -1922,13 +1922,13 @@ public class TestResultSet extends TestDb {
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
-        assertEquals(new Object[] {10, 20}, (Object[]) rs.getObject(2));
+        assertEquals(new Object[] {10, 20}, (Object[]) ((Array) rs.getObject(2)).getArray());
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));
-        assertEquals(new Object[] {11, 22}, (Object[]) rs.getObject(2));
+        assertEquals(new Object[] {11, 22}, (Object[]) ((Array) rs.getObject(2)).getArray());
         assertTrue(rs.next());
         assertEquals(3, rs.getInt(1));
-        assertEquals(new Object[0], (Object[]) rs.getObject(2));
+        assertEquals(new Object[0], (Object[]) ((Array) rs.getObject(2)).getArray());
         assertTrue(rs.next());
         assertEquals(4, rs.getInt(1));
         assertNull(rs.getObject(2));
@@ -1942,9 +1942,12 @@ public class TestResultSet extends TestDb {
         ResultSet rs;
         rs = stat.executeQuery("SELECT (1, 'test')");
         rs.next();
-        Object[] expectedArray = new Object[] {1, "test"};
-        assertEquals(expectedArray, (Object[]) rs.getObject(1));
+        testRowValue((ResultSet) rs.getObject(1));
         ResultSet rowAsResultSet = rs.getObject(1, ResultSet.class);
+        testRowValue(rowAsResultSet);
+    }
+
+    private void testRowValue(ResultSet rowAsResultSet) throws SQLException {
         ResultSetMetaData md = rowAsResultSet.getMetaData();
         assertEquals(2, md.getColumnCount());
         assertEquals("C1", md.getColumnLabel(1));

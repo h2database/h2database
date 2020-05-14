@@ -16,6 +16,7 @@ import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
@@ -186,14 +187,14 @@ public class TriggerObject extends SchemaObjectBase {
         }
     }
 
-    private static Object[] convertToObjectList(Row row) {
+    private static Object[] convertToObjectList(Row row, JdbcConnection conn) {
         if (row == null) {
             return null;
         }
         int len = row.getColumnCount();
         Object[] list = new Object[len];
         for (int i = 0; i < len; i++) {
-            list[i] = row.getValue(i).getObject();
+            list[i] = ValueToObjectConverter.valueToDefaultObject(row.getValue(i), conn, false);
         }
         return list;
     }
@@ -243,15 +244,15 @@ public class TriggerObject extends SchemaObjectBase {
         if (!fire) {
             return false;
         }
-        oldList = convertToObjectList(oldRow);
-        newList = convertToObjectList(newRow);
+        JdbcConnection c2 = session.createConnection(false);
+        oldList = convertToObjectList(oldRow, c2);
+        newList = convertToObjectList(newRow, c2);
         Object[] newListBackup;
         if (before && newList != null) {
             newListBackup = Arrays.copyOf(newList, newList.length);
         } else {
             newListBackup = null;
         }
-        Connection c2 = session.createConnection(false);
         boolean old = session.getAutoCommit();
         boolean oldDisabled = session.setCommitOrRollbackDisabled(true);
         Value identity = session.getLastScopeIdentity();

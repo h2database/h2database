@@ -160,12 +160,7 @@ public final class ValueResultSet extends Value {
     }
 
     @Override
-    public Object getObject() {
-        return getString();
-    }
-
-    @Override
-    public ResultInterface getResult() {
+    public SimpleResult getResult() {
         return result.createShallowCopy(null);
     }
 

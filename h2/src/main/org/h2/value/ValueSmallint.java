@@ -128,11 +128,6 @@ public final class ValueSmallint extends Value {
         return value;
     }
 
-    @Override
-    public Object getObject() {
-        return value;
-    }
-
     /**
      * Get or create a SMALLINT value for the given short.
      *

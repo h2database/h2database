@@ -182,11 +182,6 @@ public final class ValueBigint extends Value {
         return (int) (value ^ (value >> 32));
     }
 
-    @Override
-    public Object getObject() {
-        return value;
-    }
-
     /**
      * Get or create a BIGINT value for the given long.
      *

@@ -231,7 +231,7 @@ public final class ValueToObjectConverter extends TraceObject {
         } else if (type == Double.class) {
             return (T) (Double) value.getDouble();
         } else if (type == UUID.class) {
-            return (T) value.convertToUuid().getObject();
+            return (T) value.convertToUuid().getUuid();
         } else if (type == byte[].class) {
             return (T) value.getBytes();
         } else if (type == Interval.class) {
@@ -241,7 +241,7 @@ public final class ValueToObjectConverter extends TraceObject {
             ValueInterval v = (ValueInterval) value;
             return (T) new Interval(v.getQualifier(), false, v.getLeading(), v.getRemaining());
         } else if (DataType.isGeometryClass(type)) {
-            return (T) value.convertToGeometry(null).getObject();
+            return (T) value.convertToGeometry(null).getGeometry();
         } else if (type == LocalDate.class) {
             return (T) JSR310Utils.valueToLocalDate(value, conn);
         } else if (type == LocalTime.class) {
@@ -311,6 +311,131 @@ public final class ValueToObjectConverter extends TraceObject {
             }
             throw DbException.getUnsupportedException("converting to class " + type.getName());
         }
+    }
+
+    /**
+     * Converts the specified value to the default Java object for its type.
+     *
+     * @param value
+     *            the value
+     * @param conn
+     *            the connection
+     * @param forJdbc
+     *            if {@code true} perform conversion for JDBC layer, if
+     *            {@code false} perform conversion for Java functions API
+     * @return the object
+     */
+    public static Object valueToDefaultObject(Value value, JdbcConnection conn, boolean forJdbc) {
+        switch (value.getValueType()) {
+        case Value.NULL:
+            return null;
+        case Value.CHAR:
+        case Value.VARCHAR:
+        case Value.VARCHAR_IGNORECASE:
+        case Value.ENUM:
+            return value.getString();
+        case Value.CLOB:
+            return new JdbcClob(conn, value, JdbcLob.State.WITH_VALUE, getNextId(TraceObject.CLOB));
+        case Value.BINARY:
+        case Value.VARBINARY:
+        case Value.JSON:
+            return value.getBytes();
+        case Value.BLOB:
+            return new JdbcBlob(conn, value, JdbcLob.State.WITH_VALUE, getNextId(TraceObject.BLOB));
+        case Value.BOOLEAN:
+            return value.getBoolean();
+        case Value.TINYINT:
+            if (forJdbc) {
+                return value.getInt();
+            }
+            return value.getByte();
+        case Value.SMALLINT:
+            if (forJdbc) {
+                return value.getInt();
+            }
+            return value.getShort();
+        case Value.INTEGER:
+            return value.getInt();
+        case Value.BIGINT:
+            return value.getLong();
+        case Value.NUMERIC:
+            return value.getBigDecimal();
+        case Value.REAL:
+            return value.getFloat();
+        case Value.DOUBLE:
+            return value.getDouble();
+        case Value.DATE:
+            return forJdbc ? LegacyDateTimeUtils.toDate(conn, null, value) : JSR310Utils.valueToLocalDate(value, null);
+        case Value.TIME:
+            return forJdbc ? LegacyDateTimeUtils.toTime(conn, null, value) : JSR310Utils.valueToLocalTime(value, null);
+        case Value.TIME_TZ:
+            return JSR310Utils.valueToOffsetTime(value, null);
+        case Value.TIMESTAMP:
+            return forJdbc ? LegacyDateTimeUtils.toTimestamp(conn, null, value)
+                    : JSR310Utils.valueToLocalDateTime(value, null);
+        case Value.TIMESTAMP_TZ:
+            return JSR310Utils.valueToOffsetDateTime(value, null);
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE:
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND:
+            return ((ValueInterval) value).getInterval();
+        case Value.JAVA_OBJECT:
+            return forJdbc ? JdbcUtils.deserialize(value.getBytesNoCopy(), conn.getJavaObjectSerializer())
+                    : value.getBytes();
+        case Value.GEOMETRY:
+            return DataType.GEOMETRY_CLASS != null ? ((ValueGeometry) value).getGeometry() : value.getString();
+        case Value.UUID:
+            return ((ValueUuid) value).getUuid();
+        case Value.ARRAY:
+            if (forJdbc) {
+                return new JdbcArray(conn, value, getNextId(TraceObject.ARRAY));
+            }
+            return valueToDefaultArray(value, conn, forJdbc);
+        case Value.ROW:
+            if (forJdbc) {
+                return new JdbcResultSet(conn, null, null, value.getResult(), getNextId(TraceObject.RESULT_SET), false,
+                        true, false);
+            }
+            return valueToDefaultArray(value, conn, forJdbc);
+        case Value.RESULT_SET:
+            return new JdbcResultSet(conn, null, null, value.getResult(), getNextId(TraceObject.RESULT_SET), false,
+                    true, false);
+        default:
+            throw DbException.getUnsupportedException("data type " + value.getValueType());
+        }
+    }
+
+    /**
+     * Converts the specified array value to array of default Java objects for
+     * its type.
+     *
+     * @param value
+     *            the array value
+     * @param conn
+     *            the connection
+     * @param forJdbc
+     *            if {@code true} perform conversion for JDBC layer, if
+     *            {@code false} perform conversion for Java functions API
+     * @return the object
+     */
+    public static Object valueToDefaultArray(Value value, JdbcConnection conn, boolean forJdbc) {
+        Value[] values = ((ValueCollectionBase) value).getList();
+        int len = values.length;
+        Object[] list = new Object[len];
+        for (int i = 0; i < len; i++) {
+            list[i] = valueToDefaultObject(values[i], conn, forJdbc);
+        }
+        return list;
     }
 
     private ValueToObjectConverter() {

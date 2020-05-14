@@ -80,7 +80,7 @@ public class LinkedIndex extends BaseIndex {
         buff.append(')');
         String sql = buff.toString();
         try {
-            link.execute(sql, params, true);
+            link.execute(sql, params, true, session);
             rowCount++;
         } catch (Exception e) {
             throw TableLink.wrapException(sql, e);
@@ -126,7 +126,7 @@ public class LinkedIndex extends BaseIndex {
         }
         String sql = builder.toString();
         try {
-            PreparedStatement prep = link.execute(sql, params, false);
+            PreparedStatement prep = link.execute(sql, params, false, session);
             ResultSet rs = prep.getResultSet();
             return new LinkedCursor(link, rs, session, sql, prep);
         } catch (Exception e) {
@@ -197,7 +197,7 @@ public class LinkedIndex extends BaseIndex {
         }
         String sql = builder.toString();
         try {
-            PreparedStatement prep = link.execute(sql, params, false);
+            PreparedStatement prep = link.execute(sql, params, false, session);
             int count = prep.executeUpdate();
             link.reusePreparedStatement(prep, sql);
             rowCount -= count;
@@ -212,8 +212,9 @@ public class LinkedIndex extends BaseIndex {
      *
      * @param oldRow the old data
      * @param newRow the new data
+     * @param session the session
      */
-    public void update(Row oldRow, Row newRow) {
+    public void update(Row oldRow, Row newRow, Session session) {
         ArrayList<Value> params = Utils.newSmallArrayList();
         StringBuilder builder = new StringBuilder("UPDATE ").append(targetTableName).append(" SET ");
         for (int i = 0; i < newRow.getColumnCount(); i++) {
@@ -247,7 +248,7 @@ public class LinkedIndex extends BaseIndex {
         }
         String sql = builder.toString();
         try {
-            link.execute(sql, params, true);
+            link.execute(sql, params, true, session);
         } catch (Exception e) {
             throw TableLink.wrapException(sql, e);
         }

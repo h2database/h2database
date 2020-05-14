@@ -514,7 +514,7 @@ public class TestTools extends TestDb {
         rs.addRow(uuid);
         rs.next();
         assertEquals(uuid, rs.getObject(1));
-        assertEquals(uuid, ValueUuid.get(rs.getBytes(1)).getObject());
+        assertEquals(uuid, ValueUuid.get(rs.getBytes(1)).getUuid());
     }
 
     private void testJdbcDriverUtils() {

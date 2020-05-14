@@ -502,8 +502,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public Object getObject(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getObject", columnIndex);
-            Value v = get(columnIndex);
-            return conn.convertToDefaultObject(v);
+            return ValueToObjectConverter.valueToDefaultObject(get(columnIndex), conn, true);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -522,8 +521,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public Object getObject(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getObject", columnLabel);
-            Value v = get(columnLabel);
-            return conn.convertToDefaultObject(v);
+            return ValueToObjectConverter.valueToDefaultObject(get(columnLabel), conn, true);
         } catch (Exception e) {
             throw logAndConvert(e);
         }

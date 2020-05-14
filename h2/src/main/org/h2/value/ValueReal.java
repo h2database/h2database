@@ -166,11 +166,6 @@ public final class ValueReal extends Value {
         return Float.floatToRawIntBits(value);
     }
 
-    @Override
-    public Object getObject() {
-        return value;
-    }
-
     /**
      * Get or create a REAL value for the given float.
      *

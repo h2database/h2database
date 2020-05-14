@@ -108,7 +108,6 @@ public class TestDate extends TestBase {
         TypeInfo type = d1.getType();
         assertEquals(d1.getString().length(), type.getDisplaySize());
         assertEquals(ValueDate.PRECISION, type.getPrecision());
-        assertEquals("java.time.LocalDate", d1.getObject().getClass().getName());
         ValueDate d1b = ValueDate.parse("2001-01-01");
         assertTrue(d1 == d1b);
         Value.clearCache();
@@ -156,7 +155,6 @@ public class TestDate extends TestBase {
         TypeInfo type = t1.getType();
         assertEquals(ValueTime.MAXIMUM_PRECISION, type.getDisplaySize());
         assertEquals(ValueTime.MAXIMUM_PRECISION, type.getPrecision());
-        assertEquals("java.time.LocalTime", t1.getObject().getClass().getName());
         ValueTime t1b = ValueTime.parse("11:11:11");
         assertTrue(t1 == t1b);
         Value.clearCache();
@@ -222,7 +220,6 @@ public class TestDate extends TestBase {
         assertEquals(ValueTimestamp.MAXIMUM_PRECISION, type.getDisplaySize());
         assertEquals(ValueTimestamp.MAXIMUM_PRECISION, type.getPrecision());
         assertEquals(9, type.getScale());
-        assertEquals("java.time.LocalDateTime", t1.getObject().getClass().getName());
         ValueTimestamp t1b = ValueTimestamp.parse("2001-01-01 01:01:01.111", null);
         assertTrue(t1 == t1b);
         Value.clearCache();

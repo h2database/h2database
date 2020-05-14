@@ -1217,8 +1217,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         prep.setObject(1, new Integer[] { 1, 2 });
         try (ResultSet rs = prep.executeQuery()) {
             rs.next();
-            assertEquals(Object[].class.getName(), rs.getObject(1).getClass()
-                    .getName());
+            assertTrue(rs.getObject(1) instanceof Array);
         }
 
         CallableStatement call = conn.prepareCall("{ ? = call array_test(?) }");
@@ -1227,7 +1226,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         call.execute();
         assertEquals(Object[].class.getName(), call.getArray(1).getArray()
                 .getClass().getName());
-        assertEquals(new Object[]{2, 1}, (Object[]) call.getObject(1));
+        assertEquals(new Object[]{2, 1}, (Object[]) ((Array) call.getObject(1)).getArray());
 
         stat.execute("drop alias array_test");
 

@@ -406,8 +406,8 @@ public class TestValue extends TestDb {
         UUID origUUID = UUID.fromString(uuidStr);
         ValueJavaObject valObj = ValueJavaObject.getNoCopy(JdbcUtils.serialize(origUUID, null));
         ValueUuid valUUID = valObj.convertToUuid();
-        assertTrue(valUUID.getString().equals(uuidStr));
-        assertTrue(valUUID.getObject().equals(origUUID));
+        assertEquals(uuidStr, valUUID.getString());
+        assertEquals(origUUID, valUUID.getUuid());
 
         ValueJavaObject voString = ValueJavaObject.getNoCopy(JdbcUtils.serialize(
                 new String("This is not a ValueUuid object"), null));

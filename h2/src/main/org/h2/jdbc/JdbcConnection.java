@@ -48,15 +48,11 @@ import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.CloseWatcher;
-import org.h2.util.JdbcUtils;
-import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.TimeZoneProvider;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
-import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueResultSet;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueToObjectConverter;
 import org.h2.value.ValueVarbinary;
@@ -1937,52 +1933,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     @Override
     public String toString() {
         return getTraceObjectName() + ": url=" + url + " user=" + user;
-    }
-
-    /**
-     * Convert an object to the default Java object for the given SQL type. For
-     * example, LOB objects are converted to java.sql.Clob / java.sql.Blob.
-     *
-     * @param v the value
-     * @return the object
-     */
-    Object convertToDefaultObject(Value v) {
-        switch (v.getValueType()) {
-        case Value.DATE:
-            return LegacyDateTimeUtils.toDate(this, null, v);
-        case Value.TIME:
-            return LegacyDateTimeUtils.toTime(this, null, v);
-        case Value.TIMESTAMP:
-            return LegacyDateTimeUtils.toTimestamp(this, null, v);
-        case Value.CLOB: {
-            int id = getNextId(TraceObject.CLOB);
-            return new JdbcClob(this, v, JdbcLob.State.WITH_VALUE, id);
-        }
-        case Value.BLOB: {
-            int id = getNextId(TraceObject.BLOB);
-            return new JdbcBlob(this, v, JdbcLob.State.WITH_VALUE, id);
-        }
-        case Value.ARRAY:
-        case Value.ROW: {
-            Value[] values = ((ValueCollectionBase) v).getList();
-            int len = values.length;
-            Object[] list = new Object[len];
-            for (int i = 0; i < len; i++) {
-                list[i] = convertToDefaultObject(values[i]);
-            }
-            return list;
-        }
-        case Value.JAVA_OBJECT:
-            return JdbcUtils.deserialize(v.getBytesNoCopy(), session.getJavaObjectSerializer());
-        case Value.RESULT_SET: {
-            int id = getNextId(TraceObject.RESULT_SET);
-            return new JdbcResultSet(this, null, null, ((ValueResultSet) v).getResult(), id, false, true, false);
-        }
-        case Value.TINYINT:
-        case Value.SMALLINT:
-            return v.getInt();
-        }
-        return v.getObject();
     }
 
     CompareMode getCompareMode() {

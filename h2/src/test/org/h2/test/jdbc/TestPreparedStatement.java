@@ -12,6 +12,7 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.JDBCType;
@@ -1403,9 +1404,9 @@ public class TestPreparedStatement extends TestDb {
                 java.sql.Time.valueOf("23:22:21")));
         assertTrue(rs.getObject(20).equals(
                 new java.math.BigInteger("12345")));
-        Object[] a = (Object[]) rs.getObject(21);
+        Object[] a = (Object[]) ((Array) rs.getObject(21)).getArray();
         assertEquals(a[0], Integer.valueOf(1));
-        a = (Object[]) rs.getObject(22);
+        a = (Object[]) ((Array) rs.getObject(22)).getArray();
         assertEquals(a[0], Integer.valueOf(-2));
 
         // } else if(x instanceof java.io.Reader) {

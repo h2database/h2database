@@ -156,11 +156,6 @@ public final class ValueDouble extends Value {
         return (int) (hash ^ (hash >>> 32));
     }
 
-    @Override
-    public Object getObject() {
-        return value;
-    }
-
     /**
      * Get or create a DOUBLE PRECISION value for the given double.
      *

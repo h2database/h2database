@@ -295,8 +295,12 @@ public final class ValueInterval extends Value {
         return negative ? bd.negate() : bd;
     }
 
-    @Override
-    public Object getObject() {
+    /**
+     * Returns the interval.
+     *
+     * @return the interval
+     */
+    public Interval getInterval() {
         return new Interval(getQualifier(), negative, leading, remaining);
     }
 

@@ -130,11 +130,6 @@ public abstract class SearchRow extends Value {
     }
 
     @Override
-    public Object getObject() {
-        return this;
-    }
-
-    @Override
     public int hashCode() {
         throw new UnsupportedOperationException();
     }

@@ -189,16 +189,8 @@ public final class ValueToObjectConverter2 extends TraceObject {
             break;
         }
         case Value.VARBINARY: {
-            Object o = rs.getObject(columnIndex);
-            if (o == null) {
-                v = ValueNull.INSTANCE;
-            } else if (o instanceof byte[]) {
-                v = ValueVarbinary.getNoCopy((byte[]) o);
-            } else if (o instanceof String) {
-                v = ValueUuid.get((String) o);
-            } else {
-                v = ValueUuid.get((UUID) o);
-            }
+            byte[] bytes = rs.getBytes(columnIndex);
+            v = bytes == null ? ValueNull.INSTANCE : ValueVarbinary.getNoCopy(bytes);
             break;
         }
         case Value.BLOB: {

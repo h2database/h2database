@@ -127,7 +127,8 @@ public class JavaAggregate extends AbstractAggregate {
                             Value[] values = ((ValueRow) value).getList();
                             Object[] argValues = new Object[args.length];
                             for (int i = 0, len = args.length; i < len; i++) {
-                                argValues[i] = ValueToObjectConverter.valueToDefaultObject(values[i], userConnection, false);
+                                argValues[i] = ValueToObjectConverter.valueToDefaultObject(values[i], userConnection,
+                                        false);
                             }
                             agg.add(argValues);
                         }

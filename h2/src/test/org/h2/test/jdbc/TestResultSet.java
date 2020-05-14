@@ -820,7 +820,7 @@ public class TestResultSet extends TestDb {
 
         o = rs.getObject("value");
         trace(o.getClass().getName());
-        assertTrue(o.getClass() == (SysProperties.OLD_RESULT_SET_GET_OBJECT ? Short.class : Integer.class));
+        assertTrue(o.getClass() == Integer.class);
         assertTrue(((Number) o).intValue() == -1);
         o = rs.getObject("value", Short.class);
         trace(o.getClass().getName());
@@ -828,7 +828,7 @@ public class TestResultSet extends TestDb {
         assertTrue((Short) o == -1);
         o = rs.getObject(2);
         trace(o.getClass().getName());
-        assertTrue(o.getClass() == (SysProperties.OLD_RESULT_SET_GET_OBJECT ? Short.class : Integer.class));
+        assertTrue(o.getClass() == Integer.class);
         assertTrue(((Number) o).intValue() == -1);
         o = rs.getObject(2, Short.class);
         trace(o.getClass().getName());

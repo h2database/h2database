@@ -371,7 +371,7 @@ public class JdbcResultSetMetaData extends TraceObject implements
             debugCodeCall("getColumnClassName", column);
             checkColumnIndex(column);
             int type = result.getColumnType(--column).getValueType();
-            return DataType.getTypeClassName(type, true);
+            return DataType.getTypeClassName(type);
         } catch (Exception e) {
             throw logAndConvert(e);
         }

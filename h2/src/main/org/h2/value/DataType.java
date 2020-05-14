@@ -814,28 +814,15 @@ public class DataType {
      * Get the name of the Java class for the given value type.
      *
      * @param type the value type
-     * @param forResultSet return mapping for result set
      * @return the class name
      */
-    public static String getTypeClassName(int type, boolean forResultSet) {
+    public static String getTypeClassName(int type) {
         switch (type) {
         case Value.BOOLEAN:
             // "java.lang.Boolean";
             return Boolean.class.getName();
         case Value.TINYINT:
-            if (forResultSet && !SysProperties.OLD_RESULT_SET_GET_OBJECT) {
-                // "java.lang.Integer";
-                return Integer.class.getName();
-            }
-            // "java.lang.Byte";
-            return Byte.class.getName();
         case Value.SMALLINT:
-            if (forResultSet && !SysProperties.OLD_RESULT_SET_GET_OBJECT) {
-                // "java.lang.Integer";
-                return Integer.class.getName();
-            }
-            // "java.lang.Short";
-            return Short.class.getName();
         case Value.INTEGER:
             // "java.lang.Integer";
             return Integer.class.getName();

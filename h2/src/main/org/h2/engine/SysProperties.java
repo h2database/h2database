@@ -319,21 +319,6 @@ public class SysProperties {
     }
 
     /**
-     * System property {@code h2.oldResultSetGetObject}, {@code true} by default
-     * unless {@code h2.preview} is enabled.
-     * <p>
-     * If {@code true} return {@code Byte} and {@code Short} from
-     * {@code ResultSet#getObject(int)} and {@code ResultSet#getObject(String)}
-     * for {@code TINYINT} and {@code SMALLINT} values.
-     * </p>
-     * <p>
-     * If {@code false} return {@code Integer} for them as specified in JDBC
-     * specification (see Mapping from JDBC Types to Java Object Types).
-     * </p>
-     */
-    public static final boolean OLD_RESULT_SET_GET_OBJECT = Utils.getProperty("h2.oldResultSetGetObject", !PREVIEW);
-
-    /**
      * System property {@code h2.bigDecimalIsDecimal}, {@code false} by default.
      * <p>
      * If {@code true} map {@code BigDecimal} to {@code DECIMAL} type.

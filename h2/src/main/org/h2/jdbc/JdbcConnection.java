@@ -1980,10 +1980,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         }
         case Value.TINYINT:
         case Value.SMALLINT:
-            if (!SysProperties.OLD_RESULT_SET_GET_OBJECT) {
-                return v.getInt();
-            }
-            break;
+            return v.getInt();
         }
         return v.getObject();
     }

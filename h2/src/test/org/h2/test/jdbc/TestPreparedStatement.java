@@ -1378,10 +1378,8 @@ public class TestPreparedStatement extends TestDb {
         assertTrue(rs.getObject(1).equals(Boolean.TRUE));
         assertTrue(rs.getObject(2).equals("Abc"));
         assertTrue(rs.getObject(3).equals(new BigDecimal("10.2")));
-        assertTrue(rs.getObject(4).equals(SysProperties.OLD_RESULT_SET_GET_OBJECT ?
-                (Object) Byte.valueOf((byte) 0xff) : (Object) Integer.valueOf(-1)));
-        assertTrue(rs.getObject(5).equals(SysProperties.OLD_RESULT_SET_GET_OBJECT ?
-                (Object) Short.valueOf(Short.MAX_VALUE) : (Object) Integer.valueOf(Short.MAX_VALUE)));
+        assertTrue(rs.getObject(4).equals(Integer.valueOf(-1)));
+        assertTrue(rs.getObject(5).equals(Integer.valueOf(Short.MAX_VALUE)));
         assertTrue(rs.getObject(6).equals(Integer.MIN_VALUE));
         assertTrue(rs.getObject(7).equals(Long.MAX_VALUE));
         assertTrue(rs.getObject(8).equals(Float.MAX_VALUE));
@@ -1406,11 +1404,9 @@ public class TestPreparedStatement extends TestDb {
         assertTrue(rs.getObject(20).equals(
                 new java.math.BigInteger("12345")));
         Object[] a = (Object[]) rs.getObject(21);
-        assertEquals(a[0], SysProperties.OLD_RESULT_SET_GET_OBJECT ?
-                (Object) Byte.valueOf((byte) 1) : (Object) Integer.valueOf(1));
+        assertEquals(a[0], Integer.valueOf(1));
         a = (Object[]) rs.getObject(22);
-        assertEquals(a[0], SysProperties.OLD_RESULT_SET_GET_OBJECT ?
-                (Object) Short.valueOf((short) -2) : (Object) Integer.valueOf(-2));
+        assertEquals(a[0], Integer.valueOf(-2));
 
         // } else if(x instanceof java.io.Reader) {
         // return session.createLob(Value.CLOB,

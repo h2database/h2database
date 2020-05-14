@@ -20,7 +20,6 @@ import java.sql.SQLType;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -40,10 +39,8 @@ import org.h2.engine.SessionInterface;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.JSR310Utils;
-import org.h2.util.JdbcUtils;
 import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 
 /**
  * This class contains meta data information about data types,
@@ -57,15 +54,6 @@ public class DataType {
      * ResultSet (OracleTypes.CURSOR = -10).
      */
     public static final int TYPE_RESULT_SET = -10;
-
-    /**
-     * The Geometry class. This object is null if the jts jar file is not in the
-     * classpath.
-     */
-    public static final Class<?> GEOMETRY_CLASS;
-
-    private static final String GEOMETRY_CLASS_NAME =
-            "org.locationtech.jts.geom.Geometry";
 
     /**
      * The list of types.
@@ -168,15 +156,6 @@ public class DataType {
     public boolean hidden;
 
     static {
-        Class<?> g;
-        try {
-            g = JdbcUtils.loadUserClass(GEOMETRY_CLASS_NAME);
-        } catch (Exception e) {
-            // class is not in the classpath - ignore
-            g = null;
-        }
-        GEOMETRY_CLASS = g;
-
         DataType dataType = new DataType();
         dataType.defaultPrecision = dataType.maxPrecision = dataType.minPrecision = ValueNull.PRECISION;
         add(Value.NULL, Types.NULL,
@@ -1018,116 +997,6 @@ public class DataType {
         return builder.append(StringUtils.quoteJavaString(sqlType.getVendor())).append('/')
                 .append(StringUtils.quoteJavaString(sqlType.getName())).append(" [")
                 .append(sqlType.getVendorTypeNumber()).append(']');
-    }
-
-    /**
-     * Get the type information for the given Java class.
-     *
-     * @param x the Java class
-     * @return the value type
-     */
-    public static TypeInfo getTypeFromClass(Class <?> x) {
-        // TODO refactor: too many if/else in functions, can reduce!
-        if (x == null || Void.TYPE == x) {
-            return TypeInfo.TYPE_NULL;
-        }
-        if (x.isPrimitive()) {
-            x = Utils.getNonPrimitiveClass(x);
-        }
-        if (String.class == x) {
-            return TypeInfo.TYPE_VARCHAR;
-        } else if (Integer.class == x) {
-            return TypeInfo.TYPE_INTEGER;
-        } else if (Long.class == x) {
-            return TypeInfo.TYPE_BIGINT;
-        } else if (Boolean.class == x) {
-            return TypeInfo.TYPE_BOOLEAN;
-        } else if (Double.class == x) {
-            return TypeInfo.TYPE_DOUBLE;
-        } else if (Byte.class == x) {
-            return TypeInfo.TYPE_TINYINT;
-        } else if (Short.class == x) {
-            return TypeInfo.TYPE_SMALLINT;
-        } else if (Character.class == x) {
-            throw DbException.get(
-                    ErrorCode.DATA_CONVERSION_ERROR_1, "char (not supported)");
-        } else if (Float.class == x) {
-            return TypeInfo.TYPE_REAL;
-        } else if (byte[].class == x) {
-            return TypeInfo.TYPE_VARBINARY;
-        } else if (UUID.class == x) {
-            return TypeInfo.TYPE_UUID;
-        } else if (Void.class == x) {
-            return TypeInfo.TYPE_NULL;
-        } else if (BigDecimal.class.isAssignableFrom(x)) {
-            return TypeInfo.TYPE_NUMERIC;
-        } else if (ResultSet.class.isAssignableFrom(x)) {
-            return TypeInfo.TYPE_RESULT_SET;
-        } else if (ValueLob.class.isAssignableFrom(x)) {
-            return TypeInfo.TYPE_BLOB;
-// FIXME no way to distinguish between these 2 types
-//        } else if (ValueLob.class.isAssignableFrom(x)) {
-//            return TypeInfo.TYPE_CLOB;
-        } else if (Date.class.isAssignableFrom(x)) {
-            return TypeInfo.TYPE_DATE;
-        } else if (Time.class.isAssignableFrom(x)) {
-            return TypeInfo.TYPE_TIME;
-        } else if (Timestamp.class.isAssignableFrom(x)) {
-            return TypeInfo.TYPE_TIMESTAMP;
-        } else if (java.util.Date.class.isAssignableFrom(x)) {
-            return TypeInfo.TYPE_TIMESTAMP;
-        } else if (java.io.Reader.class.isAssignableFrom(x)) {
-            return TypeInfo.TYPE_CLOB;
-        } else if (java.sql.Clob.class.isAssignableFrom(x)) {
-            return TypeInfo.TYPE_CLOB;
-        } else if (java.io.InputStream.class.isAssignableFrom(x)) {
-            return TypeInfo.TYPE_BLOB;
-        } else if (java.sql.Blob.class.isAssignableFrom(x)) {
-            return TypeInfo.TYPE_BLOB;
-        } else if (Object[].class.isAssignableFrom(x)) {
-            // this includes String[] and so on
-            return TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, getTypeFromClass(x.getComponentType()));
-        } else if (isGeometryClass(x)) {
-            return TypeInfo.TYPE_GEOMETRY;
-        } else if (LocalDate.class == x) {
-            return TypeInfo.TYPE_DATE;
-        } else if (LocalTime.class == x) {
-            return TypeInfo.TYPE_TIME;
-        } else if (OffsetTime.class == x) {
-            return TypeInfo.TYPE_TIME_TZ;
-        } else if (LocalDateTime.class == x) {
-            return TypeInfo.TYPE_TIMESTAMP;
-        } else if (OffsetDateTime.class == x || ZonedDateTime.class == x || Instant.class == x) {
-            return TypeInfo.TYPE_TIMESTAMP_TZ;
-        } else {
-            return TypeInfo.TYPE_JAVA_OBJECT;
-        }
-    }
-
-    /**
-     * Check whether a given class matches the Geometry class.
-     *
-     * @param x the class
-     * @return true if it is a Geometry class
-     */
-    public static boolean isGeometryClass(Class<?> x) {
-        if (x == null || GEOMETRY_CLASS == null) {
-            return false;
-        }
-        return GEOMETRY_CLASS.isAssignableFrom(x);
-    }
-
-    /**
-     * Check whether a given object is a Geometry object.
-     *
-     * @param x the object
-     * @return true if it is a Geometry object
-     */
-    public static boolean isGeometry(Object x) {
-        if (x == null) {
-            return false;
-        }
-        return isGeometryClass(x.getClass());
     }
 
     /**

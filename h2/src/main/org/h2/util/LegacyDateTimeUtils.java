@@ -306,4 +306,23 @@ public final class LegacyDateTimeUtils {
         }
     }
 
+    /**
+     * Get the type information for the given legacy Java class.
+     *
+     * @param clazz
+     *            the Java class
+     * @return the value type, or {@code null} if not supported
+     */
+    public static TypeInfo legacyClassToType(Class<?> clazz) {
+        if (Date.class.isAssignableFrom(clazz)) {
+            return TypeInfo.TYPE_DATE;
+        } else if (Time.class.isAssignableFrom(clazz)) {
+            return TypeInfo.TYPE_TIME;
+        } else if (java.util.Date.class.isAssignableFrom(clazz) || Calendar.class.isAssignableFrom(clazz)) {
+            return TypeInfo.TYPE_TIMESTAMP;
+        } else{
+            return null;
+        }
+    }
+
 }

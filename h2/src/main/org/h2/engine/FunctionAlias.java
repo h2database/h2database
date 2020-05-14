@@ -32,6 +32,7 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueToObjectConverter;
+import org.h2.value.ValueToObjectConverter2;
 
 /**
  * Represents a user-defined function, or alias.
@@ -332,7 +333,7 @@ public class FunctionAlias extends SchemaObjectBase {
                 }
             }
             Class<?> returnClass = method.getReturnType();
-            dataType = DataType.getTypeFromClass(returnClass);
+            dataType = ValueToObjectConverter2.classToType(returnClass);
         }
 
         @Override

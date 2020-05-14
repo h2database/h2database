@@ -46,7 +46,6 @@ import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
-import org.h2.value.ValueLob;
 import org.h2.value.ValueLobInMemory;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
@@ -54,6 +53,7 @@ import org.h2.value.ValueReal;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueToObjectConverter;
+import org.h2.value.ValueToObjectConverter2;
 import org.h2.value.ValueUuid;
 import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
@@ -133,7 +133,7 @@ public class TestValue extends TestDb {
     private void testResultSetOperation(Object obj) throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
         rs.setAutoClose(false);
-        int valueType = DataType.getTypeFromClass(obj.getClass()).getValueType();
+        int valueType = ValueToObjectConverter2.classToType(obj.getClass()).getValueType();
         int sqlType = DataType.convertTypeToSQLType(valueType);
         rs.addColumn("X", sqlType, 10, 0);
         rs.addRow(new Object[]{obj});
@@ -297,9 +297,6 @@ public class TestValue extends TestDb {
         testDataType(TypeInfo.TYPE_NULL, Void.class);
         testDataType(TypeInfo.TYPE_NUMERIC, BigDecimal.class);
         testDataType(TypeInfo.TYPE_RESULT_SET, ResultSet.class);
-        testDataType(TypeInfo.TYPE_BLOB, ValueLob.class);
-        // see FIXME in DataType.getTypeFromClass
-        //testDataType(TypeInfo.TYPE_CLOB, Value.ValueClob.class);
         testDataType(TypeInfo.TYPE_DATE, Date.class);
         testDataType(TypeInfo.TYPE_TIME, Time.class);
         testDataType(TypeInfo.TYPE_TIMESTAMP, Timestamp.class);
@@ -314,7 +311,7 @@ public class TestValue extends TestDb {
     }
 
     private void testDataType(TypeInfo type, Class<?> clazz) {
-        assertEquals(type, DataType.getTypeFromClass(clazz));
+        assertEquals(type, ValueToObjectConverter2.classToType(clazz));
     }
 
     private void testDouble(boolean useFloat) {

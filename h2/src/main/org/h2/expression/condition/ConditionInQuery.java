@@ -190,14 +190,14 @@ public final class ConditionInQuery extends PredicateWithSubquery {
     @Override
     public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
         if (all) {
-            builder.append(Comparison.getCompareOperator(compareType)).append(" ALL");
+            builder.append(Comparison.COMPARE_TYPES[compareType]).append(" ALL");
         } else if (compareType == Comparison.EQUAL) {
             if (not) {
                 builder.append(" NOT");
             }
             builder.append(" IN");
         } else {
-            builder.append(' ').append(Comparison.getCompareOperator(compareType)).append(" ANY");
+            builder.append(' ').append(Comparison.COMPARE_TYPES[compareType]).append(" ANY");
         }
         return super.getSQL(builder, sqlFlags).append(')');
     }

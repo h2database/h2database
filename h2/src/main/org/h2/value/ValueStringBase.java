@@ -75,11 +75,6 @@ abstract class ValueStringBase extends Value {
     }
 
     @Override
-    public Object getObject() {
-        return value;
-    }
-
-    @Override
     public int getMemory() {
         /*
          * Java 11 with -XX:-UseCompressedOops

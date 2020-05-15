@@ -17,6 +17,7 @@ import org.h2.util.MathUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueToObjectConverter;
 
 /**
  * Information about the parameters of a prepared statement.
@@ -177,7 +178,7 @@ public class JdbcParameterMetaData extends TraceObject implements
             if (type == Value.UNKNOWN) {
                 type = Value.VARCHAR;
             }
-            return DataType.getTypeClassName(type, false);
+            return ValueToObjectConverter.getDefaultClass(type, true).getName();
         } catch (Exception e) {
             throw logAndConvert(e);
         }

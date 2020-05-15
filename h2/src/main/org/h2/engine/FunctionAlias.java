@@ -9,11 +9,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.sql.Blob;
-import java.sql.Clob;
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLXML;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -21,13 +17,7 @@ import org.h2.Driver;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.expression.Expression;
-import org.h2.jdbc.JdbcArray;
-import org.h2.jdbc.JdbcBlob;
-import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.jdbc.JdbcLob;
-import org.h2.jdbc.JdbcResultSet;
-import org.h2.jdbc.JdbcSQLXML;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.schema.Schema;
@@ -41,6 +31,8 @@ import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueToObjectConverter;
+import org.h2.value.ValueToObjectConverter2;
 
 /**
  * Represents a user-defined function, or alias.
@@ -341,7 +333,7 @@ public class FunctionAlias extends SchemaObjectBase {
                 }
             }
             Class<?> returnClass = method.getReturnType();
-            dataType = DataType.getTypeFromClass(returnClass);
+            dataType = ValueToObjectConverter2.classToType(returnClass);
         }
 
         @Override
@@ -372,9 +364,9 @@ public class FunctionAlias extends SchemaObjectBase {
             Class<?>[] paramClasses = method.getParameterTypes();
             Object[] params = new Object[paramClasses.length];
             int p = 0;
-            JdbcConnection conn = null;
+            JdbcConnection conn = session.createConnection(columnList);
             if (hasConnectionParam && params.length > 0) {
-                params[p++] = conn = session.createConnection(columnList);
+                params[p++] = conn;
             }
 
             // allocate array for varArgs parameters
@@ -416,35 +408,8 @@ public class FunctionAlias extends SchemaObjectBase {
                             o = null;
                         }
                     } else {
-                        o = DataType.extractObjectOfType(
-                                (Class<?>) (primitive ? Utils.getNonPrimitiveClass(paramClass) : paramClass),
-                                v, session);
-                        if (o == null) {
-                            if (conn == null) {
-                                conn = session.createConnection(false);
-                            }
-                            if (paramClass == java.sql.Array.class) {
-                                o = new JdbcArray(conn, v, 0);
-                            } else if (paramClass == Blob.class) {
-                                o = new JdbcBlob(conn, v, JdbcLob.State.WITH_VALUE, 0);
-                            } else if (paramClass == Clob.class) {
-                                o = new JdbcClob(conn, v, JdbcLob.State.WITH_VALUE, 0);
-                            } else if (paramClass == SQLXML.class) {
-                                o = new JdbcSQLXML(conn, v, JdbcLob.State.WITH_VALUE, 0);
-                            } else if (paramClass == ResultSet.class) {
-                                o = new JdbcResultSet(conn, null, null, v.convertToResultSet().getResult(),
-                                        0, false, true, false);
-                            } else l: {
-                                if (v.getValueType() == Value.JAVA_OBJECT) {
-                                    o = JdbcUtils.deserialize(v.getBytes(), conn.getJavaObjectSerializer());
-                                    if (paramClass.isAssignableFrom(o.getClass())) {
-                                        break l;
-                                    }
-                                }
-                                throw DbException
-                                        .getUnsupportedException("converting to class " + paramClass.getName());
-                            }
-                        }
+                        o = ValueToObjectConverter.valueToObject(
+                                (Class<?>) (primitive ? Utils.getNonPrimitiveClass(paramClass) : paramClass), v, conn);
                     }
                 }
                 if (currentIsVarArg) {
@@ -485,7 +450,7 @@ public class FunctionAlias extends SchemaObjectBase {
                 if (Value.class.isAssignableFrom(method.getReturnType())) {
                     return (Value) returnValue;
                 }
-                Value ret = DataType.convertToValue(session, returnValue, dataType.getValueType());
+                Value ret = ValueToObjectConverter.objectToValue(session, returnValue, dataType.getValueType());
                 return ret.convertTo(dataType, session);
             } finally {
                 session.setLastScopeIdentity(identity);

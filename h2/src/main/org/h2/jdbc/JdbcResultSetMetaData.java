@@ -13,6 +13,7 @@ import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.MathUtils;
 import org.h2.value.DataType;
+import org.h2.value.ValueToObjectConverter;
 
 /**
  * Represents the meta data for a ResultSet.
@@ -371,7 +372,7 @@ public class JdbcResultSetMetaData extends TraceObject implements
             debugCodeCall("getColumnClassName", column);
             checkColumnIndex(column);
             int type = result.getColumnType(--column).getValueType();
-            return DataType.getTypeClassName(type, true);
+            return ValueToObjectConverter.getDefaultClass(type, true).getName();
         } catch (Exception e) {
             throw logAndConvert(e);
         }

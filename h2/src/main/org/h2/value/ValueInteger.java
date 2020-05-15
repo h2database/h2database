@@ -159,11 +159,6 @@ public final class ValueInteger extends Value {
     }
 
     @Override
-    public Object getObject() {
-        return value;
-    }
-
-    @Override
     public boolean equals(Object other) {
         return other instanceof ValueInteger && value == ((ValueInteger) other).value;
     }

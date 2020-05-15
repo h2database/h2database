@@ -69,11 +69,6 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
-    public Object getObject() {
-        return label;
-    }
-
-    @Override
     public int getSignum() {
         return Integer.signum(ordinal);
     }

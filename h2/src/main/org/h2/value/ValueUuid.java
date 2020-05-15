@@ -195,8 +195,12 @@ public final class ValueUuid extends Value {
         return high == v.high && low == v.low;
     }
 
-    @Override
-    public Object getObject() {
+    /**
+     * Returns the UUID.
+     *
+     * @return the UUID
+     */
+    public UUID getUuid() {
         return new UUID(high, low);
     }
 

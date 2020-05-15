@@ -240,7 +240,7 @@ public class SimpleResult implements ResultInterface, ResultTarget {
     }
 
     @Override
-    public ResultInterface createShallowCopy(SessionInterface targetSession) {
+    public SimpleResult createShallowCopy(SessionInterface targetSession) {
         return new SimpleResult(columns, rows);
     }
 

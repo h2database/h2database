@@ -133,11 +133,6 @@ public final class ValueNull extends Value {
     }
 
     @Override
-    public Object getObject() {
-        return null;
-    }
-
-    @Override
     public boolean equals(Object other) {
         return other == this;
     }

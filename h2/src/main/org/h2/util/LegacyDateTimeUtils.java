@@ -251,7 +251,34 @@ public final class LegacyDateTimeUtils {
     }
 
     /**
-     * Extract object of legacy type.
+     * Convert a legacy Java object to a value.
+     *
+     * @param session
+     *            the session
+     * @param x
+     *            the value
+     * @return the value, or {@code null} if not supported
+     */
+    public static Value legacyObjectToValue(CastDataProvider session, Object x) {
+        if (x instanceof Date) {
+            return fromDate(session, null, (Date) x);
+        } else if (x instanceof Time) {
+            return fromTime(session, null, (Time) x);
+        } else if (x instanceof Timestamp) {
+            return fromTimestamp(session, null, (Timestamp) x);
+        } else if (x instanceof java.util.Date) {
+            return fromTimestamp(session, ((java.util.Date) x).getTime(), 0);
+        } else if (x instanceof GregorianCalendar) {
+            GregorianCalendar gc = (GregorianCalendar) x;
+            long ms = gc.getTimeInMillis();
+            return timestampFromLocalMillis(ms + gc.getTimeZone().getOffset(ms), 0);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Converts the specified value to an object of the specified legacy type.
      *
      * @param <T> the type
      * @param type the class
@@ -260,7 +287,7 @@ public final class LegacyDateTimeUtils {
      * @return an instance of the specified class, or {@code null} if not supported
      */
     @SuppressWarnings("unchecked")
-    public static <T> T extractObjectOfLegacyType(Class<T> type, Value value, CastDataProvider provider) {
+    public static <T> T valueToLegacyType(Class<T> type, Value value, CastDataProvider provider) {
         if (type == Date.class) {
             return (T) toDate(provider, null, value);
         } else if (type == Time.class) {
@@ -275,6 +302,25 @@ public final class LegacyDateTimeUtils {
             calendar.setTime(toTimestamp(provider, calendar.getTimeZone(), value));
             return (T) calendar;
         } else {
+            return null;
+        }
+    }
+
+    /**
+     * Get the type information for the given legacy Java class.
+     *
+     * @param clazz
+     *            the Java class
+     * @return the value type, or {@code null} if not supported
+     */
+    public static TypeInfo legacyClassToType(Class<?> clazz) {
+        if (Date.class.isAssignableFrom(clazz)) {
+            return TypeInfo.TYPE_DATE;
+        } else if (Time.class.isAssignableFrom(clazz)) {
+            return TypeInfo.TYPE_TIME;
+        } else if (java.util.Date.class.isAssignableFrom(clazz) || Calendar.class.isAssignableFrom(clazz)) {
+            return TypeInfo.TYPE_TIMESTAMP;
+        } else{
             return null;
         }
     }

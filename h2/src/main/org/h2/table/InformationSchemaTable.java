@@ -75,6 +75,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueSmallint;
+import org.h2.value.ValueToObjectConverter2;
 
 /**
  * This class is responsible to build the INFORMATION_SCHEMA tables.
@@ -1437,7 +1438,7 @@ public final class InformationSchemaTable extends MetaTable {
                             continue;
                         }
                         Class<?> clazz = columnList[k];
-                        TypeInfo columnTypeInfo = DataType.getTypeFromClass(clazz);
+                        TypeInfo columnTypeInfo = ValueToObjectConverter2.classToType(clazz);
                         int dataType = columnTypeInfo.getValueType();
                         DataType dt = DataType.getDataType(dataType);
                         add(session,

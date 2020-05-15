@@ -285,14 +285,6 @@ public final class ValueGeometry extends ValueBytesBase {
     }
 
     @Override
-    public Object getObject() {
-        if (DataType.GEOMETRY_CLASS != null) {
-            return getGeometry();
-        }
-        return getString();
-    }
-
-    @Override
     public int getMemory() {
         return value.length * 20 + 24;
     }

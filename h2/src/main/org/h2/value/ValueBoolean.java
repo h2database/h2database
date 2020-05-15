@@ -85,11 +85,6 @@ public final class ValueBoolean extends Value {
         return value ? 1 : 0;
     }
 
-    @Override
-    public Object getObject() {
-        return value;
-    }
-
     /**
      * Get the boolean value for the given boolean.
      *

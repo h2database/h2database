@@ -128,11 +128,6 @@ public final class ValueTinyint extends Value {
         return value;
     }
 
-    @Override
-    public Object getObject() {
-        return value;
-    }
-
     /**
      * Get or create a TINYINT value for the given byte.
      *

@@ -178,11 +178,6 @@ public final class ValueNumeric extends Value {
         return value.hashCode();
     }
 
-    @Override
-    public Object getObject() {
-        return value;
-    }
-
     /**
      * Get or create a NUMERIC value for the given big decimal.
      *

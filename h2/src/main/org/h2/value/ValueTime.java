@@ -9,7 +9,6 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.JSR310Utils;
 
 /**
  * Implementation of the TIME data type.
@@ -127,11 +126,6 @@ public final class ValueTime extends Value {
     @Override
     public int hashCode() {
         return (int) (nanos ^ (nanos >>> 32));
-    }
-
-    @Override
-    public Object getObject() {
-        return JSR310Utils.valueToLocalTime(this, null);
     }
 
     @Override

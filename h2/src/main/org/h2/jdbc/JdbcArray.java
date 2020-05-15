@@ -21,6 +21,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueToObjectConverter;
 
 /**
  * Represents an ARRAY value.
@@ -285,11 +286,11 @@ public class JdbcArray extends TraceObject implements Array {
         }
     }
 
-    private Object[] get() {
-        return (Object[]) conn.convertToDefaultObject(value);
+    private Object get() {
+        return ValueToObjectConverter.valueToDefaultArray(value, conn, true);
     }
 
-    private Object[] get(long index, int count) {
+    private Object get(long index, int count) {
         if (value == ValueNull.INSTANCE) {
             return null;
         }
@@ -297,7 +298,7 @@ public class JdbcArray extends TraceObject implements Array {
         count = checkRange(index, count, values.length);
         Object[] a = new Object[count];
         for (int i = 0, j = (int) index - 1; i < count; i++, j++) {
-            a[i] = values[j].getObject();
+            a[i] = ValueToObjectConverter.valueToDefaultObject(values[j], conn, true);
         }
         return a;
     }

@@ -269,14 +269,6 @@ public class ValueLob extends Value {
     }
 
     @Override
-    public Object getObject() {
-        if (valueType == Value.CLOB) {
-            return getReader();
-        }
-        return getInputStream();
-    }
-
-    @Override
     public Reader getReader() {
         return IOUtils.getBufferedReader(getInputStream());
     }

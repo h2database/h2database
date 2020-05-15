@@ -423,13 +423,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      */
     public abstract String getString();
 
-    /**
-     * Get the value as an object.
-     *
-     * @return the object
-     */
-    public abstract Object getObject();
-
     @Override
     public abstract int hashCode();
 
@@ -2425,14 +2418,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case RESULT_SET:
             return (ValueResultSet) this;
         case ROW:
-            result = new SimpleResult();
-            Value[] values = ((ValueRow) this).getList();
-            for (int i = 0; i < values.length;) {
-                Value v = values[i++];
-                String columnName = "C" + i;
-                result.addColumn(columnName, columnName, v.getType());
-            }
-            result.addRow(values);
+            result = getResult();
             break;
         default:
             result = new SimpleResult();
@@ -2639,7 +2625,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      *
      * @return result
      */
-    public ResultInterface getResult() {
+    public SimpleResult getResult() {
         SimpleResult rs = new SimpleResult();
         rs.addColumn("X", "X", getType());
         rs.addRow(this);

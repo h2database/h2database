@@ -3633,7 +3633,13 @@ BOOLEAN
 Possible values are: -128 to 127.
 
 See also [integer](https://h2database.com/html/grammar.html#int) literal grammar.
-Mapped to ""java.lang.Byte"".
+
+In JDBC this data type is mapped to ""java.lang.Integer"".
+""java.lang.Byte"" is also supported.
+
+In ""org.h2.api.Aggregate"", ""org.h2.api.AggregateFunction"", and ""org.h2.api.Trigger""
+this data type is mapped to ""java.lang.Byte"".
+
 ","
 TINYINT
 "
@@ -3644,7 +3650,12 @@ SMALLINT | @c@ { INT2 | YEAR }
 Possible values: -32768 to 32767.
 
 See also [integer](https://h2database.com/html/grammar.html#int) literal grammar.
-Mapped to ""java.lang.Short"".
+
+In JDBC this data type is mapped to ""java.lang.Integer"".
+""java.lang.Short"" is also supported.
+
+In ""org.h2.api.Aggregate"", ""org.h2.api.AggregateFunction"", and ""org.h2.api.Trigger""
+this data type is mapped to ""java.lang.Short"".
 ","
 SMALLINT
 "
@@ -3871,11 +3882,14 @@ BINARY(1000)
 This type allows storing serialized Java objects. Internally, a byte array is used.
 The maximum size of serialized form is 2 GB, but the whole array is kept in memory when using this data type.
 The precision is a size constraint; only the actual data is persisted.
-Serialization and deserialization is done on the client side only with one exclusion described below.
+Serialization and deserialization is done on the client side only with two exclusions described below.
 Deserialization is only done when ""getObject"" is called.
 Java operations cannot be executed inside the database engine for security reasons.
 Use ""PreparedStatement.setObject"" with ""Types.JAVA_OBJECT"" or ""H2Type.JAVA_OBJECT""
 as a third argument to store values.
+
+If Java method alias has ""Object"" parameter(s), values are deserialized during invocation of this method
+on the server side.
 
 If a [linked table](https://h2database.com/html/advanced.html#linked_tables) has a column with ""Types.JAVA_OBJECT""
 JDBC data type and its database is not an another H2, Java objects need to be serialized and deserialized during

@@ -74,7 +74,7 @@ public final class ValueResultSet extends Value {
             for (int i = 0; i < maxrows && rs.next(); i++) {
                 Value[] list = new Value[columnCount];
                 for (int j = 0; j < columnCount; j++) {
-                    list[j] = DataType.convertToValue(session, rs.getObject(j + 1),
+                    list[j] = ValueToObjectConverter.objectToValue(session, rs.getObject(j + 1),
                             simple.getColumnType(j).getValueType());
                 }
                 simple.addRow(list);
@@ -160,12 +160,7 @@ public final class ValueResultSet extends Value {
     }
 
     @Override
-    public Object getObject() {
-        return getString();
-    }
-
-    @Override
-    public ResultInterface getResult() {
+    public SimpleResult getResult() {
         return result.createShallowCopy(null);
     }
 

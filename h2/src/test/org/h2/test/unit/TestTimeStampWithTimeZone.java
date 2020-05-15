@@ -19,6 +19,7 @@ import org.h2.engine.CastDataProvider;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.JSR310Utils;
 import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.TimeZoneProvider;
 import org.h2.value.TypeInfo;
@@ -158,7 +159,7 @@ public class TestTimeStampWithTimeZone extends TestDb {
                         + " from test5"
                         + " where (t1 < ?)");
         Value value = ValueTimestampTimeZone.parse("2016-12-24 00:00:00.000000001+00:01", null);
-        preparedStatement.setObject(1, value.getObject());
+        preparedStatement.setObject(1, JSR310Utils.valueToOffsetDateTime(value, null));
 
         ResultSet rs = preparedStatement.executeQuery();
 

@@ -3352,6 +3352,7 @@ public class Parser {
                     if (compareType < 0) {
                         return null;
                     }
+                    read();
                     r = readComparison(r, compareType, whenOperand);
                 }
             }
@@ -3369,8 +3370,8 @@ public class Parser {
         case DISTINCT:
             read();
             read(FROM);
-            left = new Comparison(isNot ? Comparison.EQUAL_NULL_SAFE : Comparison.NOT_EQUAL_NULL_SAFE, left,
-                    readConcat(), whenOperand);
+            left = readComparison(left, isNot ? Comparison.EQUAL_NULL_SAFE : Comparison.NOT_EQUAL_NULL_SAFE,
+                    whenOperand);
             break;
         case TRUE:
             read();
@@ -3472,7 +3473,6 @@ public class Parser {
     }
 
     private Expression readComparison(Expression left, int compareType, boolean whenOperand) {
-        read();
         int start = lastParseIndex;
         if (readIf(ALL)) {
             read(OPEN_PAREN);
@@ -3486,7 +3486,7 @@ public class Parser {
             }
         } else if (readIf("ANY") || readIf("SOME")) {
             read(OPEN_PAREN);
-            if (currentTokenType == PARAMETER && compareType == 0) {
+            if (currentTokenType == PARAMETER && compareType == Comparison.EQUAL) {
                 Parameter p = readParameter();
                 left = new ConditionInParameter(left, false, whenOperand, p);
                 read(CLOSE_PAREN);

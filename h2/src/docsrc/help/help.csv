@@ -2786,6 +2786,7 @@ comparisonRightHandSide
     | quantifiedComparisonRightHandSide
     | nullPredicateRightHandSide
     | distinctPredicateRightHandSide
+    | quantifiedDistinctPredicateRightHandSide
     | booleanTestRightHandSide
     | typePredicateRightHandSide
     | jsonPredicateRightHandSide
@@ -2827,6 +2828,7 @@ Quantified comparison predicates ANY and SOME return TRUE if specified compariso
 left size of condition and at least one row from a subquery returns TRUE.
 ANY and SOME predicates return FALSE if all such comparisons return FALSE.
 Otherwise they return UNKNOWN.
+
 Note that these predicates have priority over ANY and SOME aggregate functions with subquery on the right side.
 Use parentheses around aggregate function.
 ","
@@ -2855,6 +2857,28 @@ Distinct predicate is null-safe, meaning NULL is considered the same as NULL,
 and the condition never evaluates to UNKNOWN.
 ","
 IS NOT DISTINCT FROM OTHER
+"
+
+"Other Grammar","Quantified Distinct Predicate Right Hand Side","
+@h2@ IS [ NOT ] [ DISTINCT FROM ] { ALL | ANY | SOME } ( query )
+","
+Right side of quantified distinct predicate.
+
+Quantified distinct predicate is null-safe, meaning NULL is considered the same as NULL,
+and the condition never evaluates to UNKNOWN.
+
+Quantified distinct predicate ALL returns TRUE if specified distinct predicate between
+left size of condition and each row from a subquery returns TRUE, including case when there are no rows.
+Otherwise it returns FALSE.
+
+Quantified distinct predicates ANY and SOME return TRUE if specified distinct predicate between
+left size of condition and at least one row from a subquery returns TRUE.
+Otherwise they return FALSE.
+
+Note that these predicates have priority over ANY and SOME aggregate functions with subquery on the right side.
+Use parentheses around aggregate function.
+","
+IS DISTINCT FROM ALL(SELECT V FROM TEST)
 "
 
 "Other Grammar","Boolean Test Right Hand Side","
@@ -6210,9 +6234,9 @@ Returns true if any expression is true.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 
-Note that if ANY or SOME aggregate function is placed on the right side of comparison operation
+Note that if ANY or SOME aggregate function is placed on the right side of comparison operation or distinct predicate
 and argument of this function is a subquery additional parentheses around aggregate function are required,
-otherwise it will be parsed as quantified comparison predicate.
+otherwise it will be parsed as quantified predicate.
 ","
 ANY(NAME LIKE 'W%')
 A = (ANY((SELECT B FROM T)))

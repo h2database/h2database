@@ -71,13 +71,14 @@ public final class ConditionInQuery extends PredicateWithSubquery {
         LocalResult rows = (LocalResult) query.query(0);
         if (!rows.hasNext()) {
             return ValueBoolean.get(not ^ all);
-        } else if (left.containsNull()) {
+        }
+        if ((compareType & ~1) == Comparison.EQUAL_NULL_SAFE) {
+            return getNullSafeValueSlow(session, rows, left);
+        }
+        if (left.containsNull()) {
             return ValueNull.INSTANCE;
         }
-        if (!session.getDatabase().getSettings().optimizeInSelect) {
-            return getValueSlow(session, rows, left);
-        }
-        if (all || compareType != Comparison.EQUAL) {
+        if (all || compareType != Comparison.EQUAL || !session.getDatabase().getSettings().optimizeInSelect) {
             return getValueSlow(session, rows, left);
         }
         int columnCount = query.getColumnCount();
@@ -113,24 +114,17 @@ public final class ConditionInQuery extends PredicateWithSubquery {
     private Value getValueSlow(Session session, ResultInterface rows, Value l) {
         // this only returns the correct result if the result has at least one
         // row, and if l is not null
+        boolean simple = l.getValueType() != Value.ROW && query.getColumnCount() == 1;
         boolean hasNull = false;
-        if (all) {
-            while (rows.next()) {
-                Value cmp = compare(session, l, rows);
-                if (cmp == ValueNull.INSTANCE) {
-                    hasNull = true;
-                } else if (cmp == ValueBoolean.FALSE) {
-                    return ValueBoolean.get(not);
-                }
-            }
-        } else {
-            while (rows.next()) {
-                Value cmp = compare(session, l, rows);
-                if (cmp == ValueNull.INSTANCE) {
-                    hasNull = true;
-                } else if (cmp == ValueBoolean.TRUE) {
-                    return ValueBoolean.get(!not);
-                }
+        ValueBoolean searched = ValueBoolean.get(!all);
+        while (rows.next()) {
+            Value[] currentRow = rows.currentRow();
+            Value cmp = Comparison.compare(session, l, simple ? currentRow[0] : ValueRow.get(currentRow),
+                    compareType);
+            if (cmp == ValueNull.INSTANCE) {
+                hasNull = true;
+            } else if (cmp == searched) {
+                return ValueBoolean.get(not == all);
             }
         }
         if (hasNull) {
@@ -139,11 +133,16 @@ public final class ConditionInQuery extends PredicateWithSubquery {
         return ValueBoolean.get(not ^ all);
     }
 
-    private Value compare(Session session, Value l, ResultInterface rows) {
-        Value[] currentRow = rows.currentRow();
-        Value r = l.getValueType() != Value.ROW && query.getColumnCount() == 1 ? currentRow[0]
-                : ValueRow.get(currentRow);
-        return Comparison.compare(session, l, r, compareType);
+    private Value getNullSafeValueSlow(Session session, ResultInterface rows, Value l) {
+        boolean simple = l.getValueType() != Value.ROW && query.getColumnCount() == 1;
+        boolean searched = all == (compareType == Comparison.NOT_EQUAL_NULL_SAFE);
+        while (rows.next()) {
+            Value[] currentRow = rows.currentRow();
+            if (session.areEqual(l, simple ? currentRow[0] : ValueRow.get(currentRow)) == searched) {
+                return ValueBoolean.get(not == all);
+            }
+        }
+        return ValueBoolean.get(not ^ all);
     }
 
     @Override
@@ -190,14 +189,14 @@ public final class ConditionInQuery extends PredicateWithSubquery {
     @Override
     public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
         if (all) {
-            builder.append(Comparison.getCompareOperator(compareType)).append(" ALL");
+            builder.append(Comparison.COMPARE_TYPES[compareType]).append(" ALL");
         } else if (compareType == Comparison.EQUAL) {
             if (not) {
                 builder.append(" NOT");
             }
             builder.append(" IN");
         } else {
-            builder.append(' ').append(Comparison.getCompareOperator(compareType)).append(" ANY");
+            builder.append(' ').append(Comparison.COMPARE_TYPES[compareType]).append(" ANY");
         }
         return super.getSQL(builder, sqlFlags).append(')');
     }

@@ -113,37 +113,23 @@ public final class ConditionInQuery extends PredicateWithSubquery {
     private Value getValueSlow(Session session, ResultInterface rows, Value l) {
         // this only returns the correct result if the result has at least one
         // row, and if l is not null
+        boolean simple = l.getValueType() != Value.ROW && query.getColumnCount() == 1;
         boolean hasNull = false;
-        if (all) {
-            while (rows.next()) {
-                Value cmp = compare(session, l, rows);
-                if (cmp == ValueNull.INSTANCE) {
-                    hasNull = true;
-                } else if (cmp == ValueBoolean.FALSE) {
-                    return ValueBoolean.get(not);
-                }
-            }
-        } else {
-            while (rows.next()) {
-                Value cmp = compare(session, l, rows);
-                if (cmp == ValueNull.INSTANCE) {
-                    hasNull = true;
-                } else if (cmp == ValueBoolean.TRUE) {
-                    return ValueBoolean.get(!not);
-                }
+        ValueBoolean searched = ValueBoolean.get(!all);
+        while (rows.next()) {
+            Value[] currentRow = rows.currentRow();
+            Value cmp = Comparison.compare(session, l, simple ? currentRow[0] : ValueRow.get(currentRow),
+                    compareType);
+            if (cmp == ValueNull.INSTANCE) {
+                hasNull = true;
+            } else if (cmp == searched) {
+                return ValueBoolean.get(not == all);
             }
         }
         if (hasNull) {
             return ValueNull.INSTANCE;
         }
         return ValueBoolean.get(not ^ all);
-    }
-
-    private Value compare(Session session, Value l, ResultInterface rows) {
-        Value[] currentRow = rows.currentRow();
-        Value r = l.getValueType() != Value.ROW && query.getColumnCount() == 1 ? currentRow[0]
-                : ValueRow.get(currentRow);
-        return Comparison.compare(session, l, r, compareType);
     }
 
     @Override

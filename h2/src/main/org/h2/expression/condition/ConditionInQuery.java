@@ -71,13 +71,14 @@ public final class ConditionInQuery extends PredicateWithSubquery {
         LocalResult rows = (LocalResult) query.query(0);
         if (!rows.hasNext()) {
             return ValueBoolean.get(not ^ all);
-        } else if (left.containsNull()) {
+        }
+        if ((compareType & ~1) == Comparison.EQUAL_NULL_SAFE) {
+            return getNullSafeValueSlow(session, rows, left);
+        }
+        if (left.containsNull()) {
             return ValueNull.INSTANCE;
         }
-        if (!session.getDatabase().getSettings().optimizeInSelect) {
-            return getValueSlow(session, rows, left);
-        }
-        if (all || compareType != Comparison.EQUAL) {
+        if (all || compareType != Comparison.EQUAL || !session.getDatabase().getSettings().optimizeInSelect) {
             return getValueSlow(session, rows, left);
         }
         int columnCount = query.getColumnCount();
@@ -128,6 +129,18 @@ public final class ConditionInQuery extends PredicateWithSubquery {
         }
         if (hasNull) {
             return ValueNull.INSTANCE;
+        }
+        return ValueBoolean.get(not ^ all);
+    }
+
+    private Value getNullSafeValueSlow(Session session, ResultInterface rows, Value l) {
+        boolean simple = l.getValueType() != Value.ROW && query.getColumnCount() == 1;
+        boolean searched = all == (compareType == Comparison.NOT_EQUAL_NULL_SAFE);
+        while (rows.next()) {
+            Value[] currentRow = rows.currentRow();
+            if (session.areEqual(l, simple ? currentRow[0] : ValueRow.get(currentRow)) == searched) {
+                return ValueBoolean.get(not == all);
+            }
         }
         return ValueBoolean.get(not ^ all);
     }

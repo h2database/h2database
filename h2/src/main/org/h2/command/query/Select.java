@@ -1876,7 +1876,6 @@ public class Select extends Query {
                 setGroupData(SelectGroups.getInstance(getSession(), Select.this.expressions, isGroupQuery,
                         groupIndex));
             } else {
-                // TODO is this branch possible?
                 updateAgg(columnCount, DataAnalysisOperation.STAGE_RESET);
                 groupData.resetLazy();
             }

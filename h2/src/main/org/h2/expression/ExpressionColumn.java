@@ -12,6 +12,7 @@ import org.h2.command.query.SelectGroups;
 import org.h2.command.query.SelectListColumnResolver;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.condition.Comparison;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
@@ -168,6 +169,9 @@ public class ExpressionColumn extends Expression {
         Select select = columnResolver.getSelect();
         if (select == null) {
             throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getTraceSQL());
+        }
+        if (stage == DataAnalysisOperation.STAGE_RESET) {
+            return;
         }
         SelectGroups groupData = select.getGroupDataIfCurrent(false);
         if (groupData == null) {

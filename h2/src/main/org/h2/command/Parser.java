@@ -210,6 +210,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionList;
 import org.h2.expression.ExpressionWithFlags;
+import org.h2.expression.FieldReference;
 import org.h2.expression.Format;
 import org.h2.expression.Format.FormatEnum;
 import org.h2.expression.Parameter;
@@ -4860,6 +4861,9 @@ public class Parser {
                         }
                     }
                 }
+            }
+            if (readIf(DOT)) {
+                r = new FieldReference(r, readColumnIdentifier());
             }
             break;
         case ARRAY:

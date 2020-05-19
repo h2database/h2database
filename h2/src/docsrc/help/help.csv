@@ -2593,6 +2593,23 @@ Value or condition.
 ID=1 AND NAME='Hi'
 "
 
+"Other Grammar","Array element reference","
+term[indexInt]
+","
+Returns array element at specified index or NULL if array is null, index is null, or index is out of bounds.
+","
+A[2]
+"
+
+"Other Grammar","Field reference","
+(expression).fieldName
+","
+Returns field value from the row value or NULL if row value is null.
+Row value expression must be enclosed in parentheses.
+","
+(R).COL1
+"
+
 "Other Grammar","Array value constructor by query","
 ARRAY (query)
 ","
@@ -3587,7 +3604,9 @@ CURRENT ROW
     | sequenceValueExpression
     | function
     | { - | + } term
-    | ( expression ) [ intervalQualifier ]
+    | ( expression )
+    | arrayElementReference
+    | fieldReference
     | query
     | caseExpression
     | castSpecification

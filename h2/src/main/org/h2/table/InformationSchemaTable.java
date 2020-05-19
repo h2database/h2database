@@ -2194,10 +2194,13 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     private static String getDataTypeName(DataType dt, TypeInfo typeInfo) {
-        if (typeInfo.getValueType() == Value.ARRAY) {
+        switch (typeInfo.getValueType()) {
+        case Value.ARRAY:
             typeInfo = (TypeInfo) typeInfo.getExtTypeInfo();
             // Use full type names with parameters for elements
             return typeInfo.getSQL(new StringBuilder(), DEFAULT_SQL_FLAGS).append(" ARRAY").toString();
+        case Value.ROW:
+            return typeInfo.getSQL(DEFAULT_SQL_FLAGS);
         }
         return dt.name;
     }

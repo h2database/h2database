@@ -105,7 +105,7 @@ public class DataType {
     public boolean autoIncrement;
 
     /**
-     * If this data type is an autoincrement type.
+     * If this data type is case sensitive.
      */
     public boolean caseSensitive;
 
@@ -285,7 +285,6 @@ public class DataType {
         dataType.prefix = "ARRAY[";
         dataType.suffix = "]";
         dataType.params = "CARDINALITY";
-        dataType.caseSensitive = false;
         dataType.supportsPrecision = true;
         dataType.defaultPrecision = dataType.maxPrecision = Integer.MAX_VALUE;
         add(Value.ARRAY, Types.ARRAY,
@@ -311,14 +310,10 @@ public class DataType {
                 createString(true, false, "JSON '", "'"),
                 new String[]{"JSON"}
         );
-        // Row value doesn't have a type name
         dataType = new DataType();
-        dataType.type = Value.ROW;
-        dataType.name = "ROW";
-        dataType.sqlType = Types.OTHER;
         dataType.prefix = "ROW(";
         dataType.suffix = ")";
-        TYPES_BY_VALUE_TYPE[Value.ROW] = dataType;
+        add(Value.ROW, Types.OTHER, dataType, new String[] {"ROW"});
     }
 
     private static void addInterval(int type) {

@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -40,6 +41,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -739,9 +741,14 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
             type = TypeInfo.TYPE_BIGINT;
             break;
-        case HISTOGRAM:
-            type = TypeInfo.getTypeInfo(Value.ARRAY, -1, 0, TypeInfo.TYPE_ROW);
+        case HISTOGRAM: {
+            LinkedHashMap<String, TypeInfo> fields = new LinkedHashMap<>(4);
+            fields.put("VALUE", type);
+            fields.put("COUNT", TypeInfo.TYPE_BIGINT);
+            type = TypeInfo.getTypeInfo(Value.ARRAY, -1, 0,
+                    TypeInfo.getTypeInfo(Value.ROW, -1, -1, new ExtTypeInfoRow(fields)));
             break;
+        }
         case SUM: {
             int dataType = type.getValueType();
             if (dataType == Value.BOOLEAN) {

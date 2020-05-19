@@ -325,7 +325,6 @@ public class TypeInfo extends ExtTypeInfo {
         case Value.DATE:
         case Value.UUID:
         case Value.JSON:
-        case Value.ROW:
         case Value.RESULT_SET:
             return TYPE_INFOS_BY_VALUE_TYPE[type];
         case Value.UNKNOWN:
@@ -459,6 +458,12 @@ public class TypeInfo extends ExtTypeInfo {
                 precision = Integer.MAX_VALUE;
             }
             return new TypeInfo(Value.ARRAY, precision, 0, Integer.MAX_VALUE, extTypeInfo);
+        case Value.ROW:
+            if (extTypeInfo instanceof ExtTypeInfoRow) {
+                return new TypeInfo(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, extTypeInfo);
+            } else {
+                return TYPE_ROW;
+            }
         }
         return TYPE_NULL;
     }
@@ -699,6 +704,12 @@ public class TypeInfo extends ExtTypeInfo {
             builder.append("ARRAY");
             if (precision < Integer.MAX_VALUE) {
                 builder.append('[').append(precision).append(']');
+            }
+            break;
+        case Value.ROW:
+            builder.append("ROW");
+            if (extTypeInfo != null) {
+                extTypeInfo.getSQL(builder, sqlFlags);
             }
             break;
         default:

@@ -18,9 +18,9 @@ import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
+import org.h2.value.ValueRow;
 
 /**
  * This class wraps a user-defined function.
@@ -170,9 +170,8 @@ public class JavaFunction extends Expression implements FunctionCall {
         case Value.RESULT_SET:
             ValueResultSet rs = getValueForColumnList(session, getArgs());
             return getExpressionColumns(session, rs.getResult());
-        case Value.ARRAY:
         case Value.ROW:
-            return getExpressionColumns(session, (ValueCollectionBase) getValue(session));
+            return getExpressionColumns(session, (ValueRow) getValue(session));
         }
         return super.getExpressionColumns(session);
     }

@@ -102,6 +102,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import org.h2.api.ErrorCode;
@@ -290,6 +291,7 @@ import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.ExtTypeInfoGeometry;
+import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -6451,6 +6453,9 @@ public class Parser {
         case NULL:
             read();
             return new Column(columnName, TypeInfo.TYPE_NULL, "NULL");
+        case ROW:
+            read();
+            return parseRowType(columnName);
         case ARRAY:
             // Partial compatibility with 1.4.200 and older versions
             if (database.isStarting()) {
@@ -6945,6 +6950,19 @@ public class Parser {
             extTypeInfo = null;
         }
         TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.GEOMETRY, -1, -1, extTypeInfo);
+        return new Column(columnName, typeInfo, typeInfo.toString());
+    }
+
+    private Column parseRowType(String columnName) {
+        read(OPEN_PAREN);
+        LinkedHashMap<String, TypeInfo> fields = new LinkedHashMap<>();
+        do {
+            String name = readColumnIdentifier();
+            if (fields.putIfAbsent(name, parseColumnWithType(null).getType()) != null) {
+                throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, name);
+            }
+        } while (readIfMore());
+        TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ROW, -1, -1, new ExtTypeInfoRow(fields));
         return new Column(columnName, typeInfo, typeInfo.toString());
     }
 

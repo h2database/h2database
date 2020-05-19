@@ -2594,7 +2594,7 @@ ID=1 AND NAME='Hi'
 "
 
 "Other Grammar","Array element reference","
-term[indexInt]
+array '[' indexInt ']'
 ","
 Returns array element at specified index or NULL if array is null, index is null, or index is out of bounds.
 ","

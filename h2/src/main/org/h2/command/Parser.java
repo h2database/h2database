@@ -1446,13 +1446,17 @@ public class Parser {
                 int columnCount = columns.size();
                 if (expression instanceof ExpressionList) {
                     ExpressionList list = (ExpressionList) expression;
-                    if (list.isArray() || columnCount != list.getSubexpressionCount()) {
-                        throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                    if (!list.isArray()) {
+                        if (columnCount != list.getSubexpressionCount()) {
+                            throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                        }
+                        for (int i = 0; i < columnCount; i++) {
+                            command.setAssignment(columns.get(i), list.getSubexpression(i));
+                        }
+                        continue;
                     }
-                    for (int i = 0; i < columnCount; i++) {
-                        command.setAssignment(columns.get(i), list.getSubexpression(i));
-                    }
-                } else if (columnCount == 1) {
+                }
+                if (columnCount == 1) {
                     // Row value special case
                     command.setAssignment(columns.get(0), expression);
                 } else {

@@ -325,7 +325,6 @@ public class TypeInfo extends ExtTypeInfo {
         case Value.DATE:
         case Value.UUID:
         case Value.JSON:
-        case Value.ROW:
         case Value.RESULT_SET:
             return TYPE_INFOS_BY_VALUE_TYPE[type];
         case Value.UNKNOWN:
@@ -459,6 +458,12 @@ public class TypeInfo extends ExtTypeInfo {
                 precision = Integer.MAX_VALUE;
             }
             return new TypeInfo(Value.ARRAY, precision, 0, Integer.MAX_VALUE, extTypeInfo);
+        case Value.ROW:
+            if (extTypeInfo instanceof ExtTypeInfoRow) {
+                return new TypeInfo(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, extTypeInfo);
+            } else {
+                return TYPE_ROW;
+            }
         }
         return TYPE_NULL;
     }
@@ -625,7 +630,7 @@ public class TypeInfo extends ExtTypeInfo {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         switch (valueType) {
         case Value.CHAR:
         case Value.BINARY:
@@ -686,19 +691,25 @@ public class TypeInfo extends ExtTypeInfo {
         case Value.GEOMETRY:
             builder.append("GEOMETRY");
             if (extTypeInfo != null) {
-                extTypeInfo.getSQL(builder);
+                extTypeInfo.getSQL(builder, sqlFlags);
             }
             break;
         case Value.ENUM:
-            extTypeInfo.getSQL(builder.append("ENUM"));
+            extTypeInfo.getSQL(builder.append("ENUM"), sqlFlags);
             break;
         case Value.ARRAY:
             if (extTypeInfo != null) {
-                extTypeInfo.getSQL(builder).append(' ');
+                extTypeInfo.getSQL(builder, sqlFlags).append(' ');
             }
             builder.append("ARRAY");
             if (precision < Integer.MAX_VALUE) {
                 builder.append('[').append(precision).append(']');
+            }
+            break;
+        case Value.ROW:
+            builder.append("ROW");
+            if (extTypeInfo != null) {
+                extTypeInfo.getSQL(builder, sqlFlags);
             }
             break;
         default:

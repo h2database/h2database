@@ -84,6 +84,37 @@ SELECT (1, ARRAY[1]) IN (SELECT 1, ARRAY[2]);
 SELECT (1, ARRAY[NULL]) IN (SELECT 1, ARRAY[NULL]);
 >> null
 
+CREATE TABLE TEST (R ROW(A INT, B VARCHAR));
+> ok
+
+INSERT INTO TEST VALUES ((1, 2));
+> update count: 1
+
+INSERT INTO TEST VALUES ((1, X'3341'));
+> update count: 1
+
+TABLE TEST;
+> R
+> -----------
+> ROW (1, 2)
+> ROW (1, 3A)
+> rows: 2
+
+DROP TABLE TEST;
+> ok
+
+SELECT CAST((1, 2.1) AS ROW(A INT, B INT));
+>> ROW (1, 2)
+
+SELECT CAST((1, 2.1) AS ROW(A INT, B INT, C INT));
+> exception DATA_CONVERSION_ERROR_1
+
+SELECT CAST(1 AS ROW(V INT));
+>> ROW (1)
+
+SELECT CAST((1, 2) AS ROW(A INT, A INT));
+> exception DUPLICATE_COLUMN_NAME_1
+
 @reconnect off
 
 CREATE LOCAL TEMPORARY TABLE TEST AS (SELECT ROW(1, 2) R);

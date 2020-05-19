@@ -18,7 +18,7 @@ import org.h2.table.TableFilter;
 import org.h2.util.HasSQL;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueCollectionBase;
+import org.h2.value.ValueRow;
 
 /**
  * An expression is a operation, a value, or a function in a query.
@@ -425,7 +425,7 @@ public abstract class Expression implements HasSQL {
      * @param value the value to extract columns from
      * @return array of expression columns
      */
-    protected static Expression[] getExpressionColumns(Session session, ValueCollectionBase value) {
+    protected static Expression[] getExpressionColumns(Session session, ValueRow value) {
         Value[] list = value.getList();
         ExpressionColumn[] expr = new ExpressionColumn[list.length];
         for (int i = 0, len = list.length; i < len; i++) {

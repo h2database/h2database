@@ -90,7 +90,7 @@ public class TypedValueExpression extends ValueExpression {
             builder.append("UNKNOWN");
         } else {
             value.getSQL(builder.append("CAST("), sqlFlags | NO_CASTS).append(" AS ");
-            type.getSQL(builder).append(')');
+            type.getSQL(builder, sqlFlags).append(')');
         }
         return builder;
     }

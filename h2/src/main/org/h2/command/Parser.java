@@ -102,6 +102,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import org.h2.api.ErrorCode;
@@ -209,6 +210,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionList;
 import org.h2.expression.ExpressionWithFlags;
+import org.h2.expression.FieldReference;
 import org.h2.expression.Format;
 import org.h2.expression.Format.FormatEnum;
 import org.h2.expression.Parameter;
@@ -290,6 +292,7 @@ import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.ExtTypeInfoGeometry;
+import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -1443,13 +1446,17 @@ public class Parser {
                 int columnCount = columns.size();
                 if (expression instanceof ExpressionList) {
                     ExpressionList list = (ExpressionList) expression;
-                    if (list.isArray() || columnCount != list.getSubexpressionCount()) {
-                        throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                    if (!list.isArray()) {
+                        if (columnCount != list.getSubexpressionCount()) {
+                            throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                        }
+                        for (int i = 0; i < columnCount; i++) {
+                            command.setAssignment(columns.get(i), list.getSubexpression(i));
+                        }
+                        continue;
                     }
-                    for (int i = 0; i < columnCount; i++) {
-                        command.setAssignment(columns.get(i), list.getSubexpression(i));
-                    }
-                } else if (columnCount == 1) {
+                }
+                if (columnCount == 1) {
                     // Row value special case
                     command.setAssignment(columns.get(0), expression);
                 } else {
@@ -4859,6 +4866,9 @@ public class Parser {
                     }
                 }
             }
+            if (readIf(DOT)) {
+                r = new FieldReference(r, readColumnIdentifier());
+            }
             break;
         case ARRAY:
             read();
@@ -6451,6 +6461,9 @@ public class Parser {
         case NULL:
             read();
             return new Column(columnName, TypeInfo.TYPE_NULL, "NULL");
+        case ROW:
+            read();
+            return parseRowType(columnName);
         case ARRAY:
             // Partial compatibility with 1.4.200 and older versions
             if (database.isStarting()) {
@@ -6945,6 +6958,19 @@ public class Parser {
             extTypeInfo = null;
         }
         TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.GEOMETRY, -1, -1, extTypeInfo);
+        return new Column(columnName, typeInfo, typeInfo.toString());
+    }
+
+    private Column parseRowType(String columnName) {
+        read(OPEN_PAREN);
+        LinkedHashMap<String, TypeInfo> fields = new LinkedHashMap<>();
+        do {
+            String name = readColumnIdentifier();
+            if (fields.putIfAbsent(name, parseColumnWithType(null).getType()) != null) {
+                throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, name);
+            }
+        } while (readIfMore());
+        TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ROW, -1, -1, new ExtTypeInfoRow(fields));
         return new Column(columnName, typeInfo, typeInfo.toString());
     }
 

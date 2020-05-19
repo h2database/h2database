@@ -14,6 +14,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
@@ -1044,7 +1047,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case ARRAY:
             return convertToArray(targetType, provider, conversionMode, column);
         case ROW:
-            return convertToRow();
+            return convertToRow(targetType, provider, conversionMode, column);
         case RESULT_SET:
             return convertToResultSet();
         default:
@@ -2129,7 +2132,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                 StringBuilder builder = ExtTypeInfoGeometry
                         .toSQL(new StringBuilder(), result.getTypeAndDimensionSystem(), result.getSRID())
                         .append(" -> ");
-                extTypeInfo.getSQL(builder);
+                extTypeInfo.getSQL(builder, TRACE_SQL_FLAGS);
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, builder.toString());
             }
         }
@@ -2383,15 +2386,17 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         return v;
     }
 
-    private Value convertToRow() {
-        Value[] a;
+    private Value convertToRow(TypeInfo targetType, CastDataProvider provider, int conversionMode,
+            Object column) {
+        ValueRow v;
         switch (getValueType()) {
         case ROW:
-            return this;
+            v = (ValueRow) this;
+            break;
         case RESULT_SET:
             ResultInterface result = getResult();
             if (result.hasNext()) {
-                a = result.currentRow();
+                v = ValueRow.get(result.currentRow());
                 if (result.hasNext()) {
                     throw DbException.get(ErrorCode.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW);
                 }
@@ -2400,10 +2405,35 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             }
             break;
         default:
-            a = new Value[] { this };
+            v = ValueRow.get(new Value[] { this });
             break;
         }
-        return ValueRow.get(a);
+        ExtTypeInfoRow ext = (ExtTypeInfoRow) targetType.getExtTypeInfo();
+        if (ext != null) {
+            Value[] values = v.getList();
+            int length = values.length;
+            LinkedHashMap<String, TypeInfo> fields = ext.getFields();
+            if (length != fields.size()) {
+                throw getDataConversionError(targetType);
+            }
+            Iterator<Map.Entry<String, TypeInfo>> iter = fields.entrySet().iterator();
+            loop: for (int i = 0; i < length; i++) {
+                Value v1 = values[i];
+                TypeInfo componentType = iter.next().getValue();
+                Value v2 = v1.convertTo(componentType, provider, conversionMode, column);
+                if (v1 != v2) {
+                    Value[] newValues = new Value[length];
+                    System.arraycopy(values, 0, newValues, 0, i);
+                    newValues[i] = v2;
+                    while (++i < length) {
+                        newValues[i] = values[i].convertTo(componentType, provider, conversionMode, column);
+                    }
+                    v = ValueRow.get(newValues);
+                    break loop;
+                }
+            }
+        }
+        return v;
     }
 
     /**
@@ -2444,6 +2474,18 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                 + " to " + (to != null ? to.name : "type=" + targetType));
     }
 
+    /**
+     * Creates new instance of the DbException for data conversion error.
+     *
+     * @param targetType target data type.
+     * @return instance of the DbException.
+     */
+    final DbException getDataConversionError(TypeInfo targetType) {
+        DataType from = DataType.getDataType(getValueType());
+        throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, (from != null ? from.name : "type=" + getValueType())
+                + " to " + targetType.getTraceSQL());
+    }
+
     final DbException getValueTooLongException(TypeInfo targetType, Object column) {
         String s = getTraceSQL();
         if (s.length() > 127) {
@@ -2453,7 +2495,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         if (column != null) {
             builder.append(column).append(' ');
         }
-        targetType.getSQL(builder);
+        targetType.getSQL(builder, TRACE_SQL_FLAGS);
         return DbException.get(ErrorCode.VALUE_TOO_LONG_2, builder.toString(),
                 s + " (" + getType().getPrecision() + ')');
     }

@@ -444,11 +444,9 @@ public abstract class Table extends SchemaObjectBase {
             }
             col.setTable(this, i);
             String columnName = col.getName();
-            if (columnMap.get(columnName) != null) {
-                throw DbException.get(
-                        ErrorCode.DUPLICATE_COLUMN_NAME_1, columnName);
+            if (columnMap.putIfAbsent(columnName, col) != null) {
+                throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, columnName);
             }
-            columnMap.put(columnName, col);
         }
         rowFactory = database.getRowFactory().createRowFactory(database, database.getCompareMode(),
                 database.getMode(), database, columns, null);

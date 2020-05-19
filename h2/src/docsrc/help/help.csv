@@ -2593,6 +2593,23 @@ Value or condition.
 ID=1 AND NAME='Hi'
 "
 
+"Other Grammar","Array element reference","
+array '[' indexInt ']'
+","
+Returns array element at specified index or NULL if array is null, index is null, or index is out of bounds.
+","
+A[2]
+"
+
+"Other Grammar","Field reference","
+(expression).fieldName
+","
+Returns field value from the row value or NULL if row value is null.
+Row value expression must be enclosed in parentheses.
+","
+(R).COL1
+"
+
 "Other Grammar","Array value constructor by query","
 ARRAY (query)
 ","
@@ -3587,7 +3604,9 @@ CURRENT ROW
     | sequenceValueExpression
     | function
     | { - | + } term
-    | ( expression ) [ intervalQualifier ]
+    | ( expression )
+    | arrayElementReference
+    | fieldReference
     | query
     | caseExpression
     | castSpecification
@@ -4051,7 +4070,7 @@ UUID
 "Data Types","ARRAY Type","
 baseDataType ARRAY [ '[' maximumCardinalityInt ']' ]
 ","
-An array of values.
+A data type for array of values.
 Base data type specifies the data type of elements.
 Array may have NULL elements.
 Maximum cardinality, if any, specifies maximum allowed number of elements in the array.
@@ -4065,6 +4084,17 @@ and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the va
 BOOLEAN ARRAY
 VARCHAR(100) ARRAY
 INTEGER ARRAY[10]
+"
+
+"Data Types","ROW Type","
+ROW (fieldName dataType [,...])
+","
+A row value data type. This data type should not be normally used as data type of a column.
+
+See also [row value expression](https://h2database.com/html/grammar.html#row_value_expression) grammar.
+Mapped to ""java.sql.ResultSet"".
+","
+ROW(A INT, B VARCHAR(10))
 "
 
 "Data Types","ENUM Type","

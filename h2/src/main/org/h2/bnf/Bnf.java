@@ -75,10 +75,9 @@ public class Bnf {
     private RuleHead addRule(String topic, String section, Rule rule) {
         RuleHead head = new RuleHead(section, topic, rule);
         String key = StringUtils.toLowerEnglish(topic.trim().replace(' ', '_'));
-        if (ruleMap.get(key) != null) {
+        if (ruleMap.putIfAbsent(key, head) != null) {
             throw new AssertionError("already exists: " + topic);
         }
-        ruleMap.put(key, head);
         return head;
     }
 

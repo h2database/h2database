@@ -221,7 +221,7 @@ public class TestScript extends TestDb {
             testScript("functions/window/" + s + ".sql");
         }
         for (String s : new String[] { "at-time-zone", "boolean-test", "case", "concatenation", "conditions",
-                "data-change-delta-table", "help", "sequence", "set" }) {
+                "data-change-delta-table", "field-reference", "help", "sequence", "set" }) {
             testScript("other/" + s + ".sql");
         }
         for (String s : new String[] { "between", "distinct", "in", "like", "null", "type", "unique" }) {

@@ -5,24 +5,16 @@
  */
 package org.h2.value;
 
+import org.h2.util.HasSQL;
+
 /**
  * Extended parameters of a data type.
  */
-public abstract class ExtTypeInfo {
-
-    /**
-     * Appends SQL representation of this object to the specified string
-     * builder.
-     *
-     * @param builder
-     *            string builder
-     * @return the specified string builder
-     */
-    public abstract StringBuilder getSQL(StringBuilder builder);
+public abstract class ExtTypeInfo implements HasSQL {
 
     @Override
     public String toString() {
-        return getSQL(new StringBuilder()).toString();
+        return getSQL(QUOTE_ONLY_WHEN_REQUIRED);
     }
 
 }

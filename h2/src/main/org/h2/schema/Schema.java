@@ -271,10 +271,9 @@ public class Schema extends DbObjectBase {
         }
         String name = obj.getName();
         Map<String, SchemaObject> map = getMap(obj.getType());
-        if (SysProperties.CHECK && map.get(name) != null) {
+        if (map.putIfAbsent(name, obj) != null) {
             DbException.throwInternalError("object already exists: " + name);
         }
-        map.put(name, obj);
         freeUniqueName(name);
     }
 

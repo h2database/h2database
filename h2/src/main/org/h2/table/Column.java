@@ -494,7 +494,7 @@ public class Column implements HasSQL {
         if (originalSQL != null) {
             buff.append(originalSQL);
         } else {
-            type.getSQL(buff);
+            type.getSQL(buff, DEFAULT_SQL_FLAGS);
         }
 
         if (!visible) {

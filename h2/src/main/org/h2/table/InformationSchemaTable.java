@@ -2197,7 +2197,7 @@ public final class InformationSchemaTable extends MetaTable {
         if (typeInfo.getValueType() == Value.ARRAY) {
             typeInfo = (TypeInfo) typeInfo.getExtTypeInfo();
             // Use full type names with parameters for elements
-            return typeInfo.getSQL(new StringBuilder()).append(" ARRAY").toString();
+            return typeInfo.getSQL(new StringBuilder(), DEFAULT_SQL_FLAGS).append(" ARRAY").toString();
         }
         return dt.name;
     }

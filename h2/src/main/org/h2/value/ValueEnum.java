@@ -32,7 +32,7 @@ public final class ValueEnum extends ValueEnumBase {
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if ((sqlFlags & NO_CASTS) == 0) {
             StringUtils.quoteStringSQL(builder.append("CAST("), label).append(" AS ");
-            return enumerators.getType().getSQL(builder).append(')');
+            return enumerators.getType().getSQL(builder, sqlFlags).append(')');
         }
         return StringUtils.quoteStringSQL(builder, label);
     }

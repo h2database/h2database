@@ -2129,7 +2129,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                 StringBuilder builder = ExtTypeInfoGeometry
                         .toSQL(new StringBuilder(), result.getTypeAndDimensionSystem(), result.getSRID())
                         .append(" -> ");
-                extTypeInfo.getSQL(builder);
+                extTypeInfo.getSQL(builder, TRACE_SQL_FLAGS);
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, builder.toString());
             }
         }
@@ -2453,7 +2453,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         if (column != null) {
             builder.append(column).append(' ');
         }
-        targetType.getSQL(builder);
+        targetType.getSQL(builder, TRACE_SQL_FLAGS);
         return DbException.get(ErrorCode.VALUE_TOO_LONG_2, builder.toString(),
                 s + " (" + getType().getPrecision() + ')');
     }

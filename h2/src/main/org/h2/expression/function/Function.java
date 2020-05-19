@@ -2405,8 +2405,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             int valueType = typeInfo.getValueType();
             // TODO set scale when possible
             if (!DataType.isDateTimeType(valueType)) {
-                throw DbException.getInvalidValueException("DATE_TRUNC datetime argument",
-                        typeInfo.getSQL(new StringBuilder()));
+                throw DbException.getInvalidValueException("DATE_TRUNC datetime argument", typeInfo.getTraceSQL());
             } else if (session.getMode().getEnum() == ModeEnum.PostgreSQL && valueType == Value.DATE) {
                 typeInfo = TypeInfo.TYPE_TIMESTAMP_TZ;
             }
@@ -2591,8 +2590,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             typeInfo = p0.getType();
             int t = typeInfo.getValueType();
             if (t != Value.ARRAY && t != Value.NULL) {
-                throw DbException.getInvalidValueException(getName() + " array argument",
-                        typeInfo.getSQL(new StringBuilder()));
+                throw DbException.getInvalidValueException(getName() + " array argument", typeInfo.getTraceSQL());
             }
             break;
         }

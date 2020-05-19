@@ -100,11 +100,7 @@ public class CastSpecification extends Operation1 {
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append("CAST(");
         arg.getSQL(builder, arg instanceof ValueExpression ? sqlFlags | NO_CASTS : sqlFlags).append(" AS ");
-        if (domain != null) {
-            domain.getSQL(builder, sqlFlags);
-        } else {
-            type.getSQL(builder);
-        }
+        (domain != null ? domain : type).getSQL(builder, sqlFlags);
         return builder.append(')');
     }
 

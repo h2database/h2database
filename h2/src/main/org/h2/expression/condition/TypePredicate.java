@@ -43,7 +43,7 @@ public final class TypePredicate extends SimplePredicate {
             if (i > 0) {
                 builder.append(", ");
             }
-            typeList[i].getSQL(builder);
+            typeList[i].getSQL(builder, sqlFlags);
         }
         return builder.append(')');
     }

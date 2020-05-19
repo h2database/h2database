@@ -625,7 +625,7 @@ public class TypeInfo extends ExtTypeInfo {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         switch (valueType) {
         case Value.CHAR:
         case Value.BINARY:
@@ -686,15 +686,15 @@ public class TypeInfo extends ExtTypeInfo {
         case Value.GEOMETRY:
             builder.append("GEOMETRY");
             if (extTypeInfo != null) {
-                extTypeInfo.getSQL(builder);
+                extTypeInfo.getSQL(builder, sqlFlags);
             }
             break;
         case Value.ENUM:
-            extTypeInfo.getSQL(builder.append("ENUM"));
+            extTypeInfo.getSQL(builder.append("ENUM"), sqlFlags);
             break;
         case Value.ARRAY:
             if (extTypeInfo != null) {
-                extTypeInfo.getSQL(builder).append(' ');
+                extTypeInfo.getSQL(builder, sqlFlags).append(' ');
             }
             builder.append("ARRAY");
             if (precision < Integer.MAX_VALUE) {

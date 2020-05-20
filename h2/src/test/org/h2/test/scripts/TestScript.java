@@ -191,7 +191,7 @@ public class TestScript extends TestDb {
                 "concat-ws", "difference", "hextoraw", "insert", "instr",
                 "left", "length", "locate", "lower", "lpad", "ltrim",
                 "octet-length", "position", "quote_ident", "rawtohex", "regexp-like",
-                "regex-replace", "repeat", "replace", "right", "rpad", "rtrim",
+                "regex-replace", "regexp-substr", "repeat", "replace", "right", "rpad", "rtrim",
                 "soundex", "space", "stringdecode", "stringencode",
                 "stringtoutf8", "substring", "to-char", "translate", "trim",
                 "upper", "utf8tostring", "xmlattr", "xmlcdata", "xmlcomment",

@@ -152,6 +152,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             ABORT_SESSION = 237;
 
     public static final int REGEXP_LIKE = 240;
+    public static final int REGEXP_SUBSTR = 241;
 
     /**
      * Used in MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ... VALUES
@@ -313,6 +314,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("TRANSLATE", TRANSLATE, 3, Value.VARCHAR);
         addFunction("QUOTE_IDENT", QUOTE_IDENT, 1, Value.VARCHAR);
         addFunction("REGEXP_LIKE", REGEXP_LIKE, VAR_ARGS, Value.BOOLEAN);
+        addFunction("REGEXP_SUBSTR", REGEXP_SUBSTR, VAR_ARGS, Value.VARCHAR, false, true, true, false);
 
         // date
         addFunction("DATEADD", DATEADD, 3, Value.NULL);
@@ -1511,6 +1513,10 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             }
             break;
         }
+        case REGEXP_SUBSTR: {
+            result = regexpSubstr(v0, v1, v2, v3, v4, v5, session);
+            break;
+        }
         case VALUES: {
             Expression a0 = args[0];
             StringBuilder builder = new StringBuilder();
@@ -1532,6 +1538,42 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             throw DbException.throwInternalError("type=" + info.type);
         }
         return result;
+    }
+
+    private Value regexpSubstr(Value inputString, Value regexpArg, Value positionArg, 
+            Value occurrenceArg, Value regexpModeArg, Value subexpressionArg, Session session) {
+        String regexp = regexpArg.getString();
+
+        if (inputString == ValueNull.INSTANCE || regexpArg == ValueNull.INSTANCE || positionArg == ValueNull.INSTANCE 
+            || occurrenceArg == ValueNull.INSTANCE || subexpressionArg == ValueNull.INSTANCE) {
+            return ValueNull.INSTANCE;
+        }
+
+        int position = positionArg != null ? positionArg.getInt() - 1 : 0;
+        int requestedOccurrence = occurrenceArg != null ? occurrenceArg.getInt() : 1;
+        String regexpMode = regexpModeArg != null ? regexpModeArg.getString() : null;
+        int subexpression = subexpressionArg != null ? subexpressionArg.getInt() : 0;
+        int flags = makeRegexpFlags(regexpMode, false);
+        try {
+            Matcher m = Pattern.compile(regexp, flags).matcher(inputString.getString());
+
+            boolean found = m.find(position);
+            for(int occurrence = 1; occurrence < requestedOccurrence && found; occurrence++) {
+                found = m.find();
+            }
+
+            if (!found) {
+                return ValueNull.INSTANCE;
+            }
+            else {
+                return ValueVarchar.get(m.group(subexpression), session);
+            }
+        } catch (PatternSyntaxException e) {
+            throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
+        }
+        catch (IndexOutOfBoundsException e) {
+            return ValueNull.INSTANCE;
+        }
     }
 
     /**
@@ -2326,6 +2368,10 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case REGEXP_LIKE:
             min = 2;
             max = 3;
+            break;
+        case REGEXP_SUBSTR:
+            min = 2;
+            max = 6;
             break;
         case CONCAT:
         case CONCAT_WS:

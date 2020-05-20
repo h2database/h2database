@@ -104,8 +104,6 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
             // get the old rows, compute the new rows
             setCurrentRowNumber(0);
             int count = 0;
-            Column[] columns = table.getColumns();
-            int columnCount = columns.length;
             int limitRows = -1;
             if (limitExpr != null) {
                 Value v = limitExpr.getValue(session);
@@ -133,85 +131,102 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
                             }
                         }
                     }
-                    Row newRow = table.getTemplateRow();
-                    boolean setOnUpdate = false;
-                    for (int i = 0; i < columnCount; i++) {
-                        Column column = columns[i];
-                        Expression newExpr = setClauseMap.get(column);
-                        Value newValue;
-                        if (newExpr == null) {
-                            if (column.getOnUpdateExpression() != null) {
-                                setOnUpdate = true;
-                            }
-                            newValue = column.getGenerated() ? null : oldRow.getValue(i);
-                        } else if (newExpr == ValueExpression.DEFAULT) {
-                            newValue = null;
-                        } else {
-                            newValue = newExpr.getValue(session);
-                        }
-                        newRow.setValue(i, newValue);
+                    if (prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode, setClauseMap,
+                            rows, oldRow, updateToCurrentValuesReturnsZero)) {
+                        count++;
                     }
-                    newRow.setKey(oldRow.getKey());
-                    table.validateConvertUpdateSequence(session, newRow);
-                    if (setOnUpdate || updateToCurrentValuesReturnsZero) {
-                        setOnUpdate = false;
-                        for (int i = 0; i < columnCount; i++) {
-                            // Use equals here to detect changes from numeric 0 to 0.0 and similar
-                            if (!Objects.equals(oldRow.getValue(i), newRow.getValue(i))) {
-                                setOnUpdate = true;
-                                break;
-                            }
-                        }
-                        if (setOnUpdate) {
-                            for (int i = 0; i < columnCount; i++) {
-                                Column column = columns[i];
-                                if (setClauseMap.get(column) == null) {
-                                    Expression onUpdate = column.getOnUpdateExpression();
-                                    if (onUpdate != null) {
-                                        newRow.setValue(i, onUpdate.getValue(session));
-                                    }
-                                }
-                            }
-                            // Convert on update expressions and reevaluate
-                            // generated columns
-                            table.validateConvertUpdateSequence(session, newRow);
-                        } else if (updateToCurrentValuesReturnsZero) {
-                            count--;
-                        }
-                    }
-                    if (deltaChangeCollectionMode == ResultOption.OLD) {
-                        deltaChangeCollector.addRow(oldRow.getValueList());
-                    } else if (deltaChangeCollectionMode == ResultOption.NEW) {
-                        deltaChangeCollector.addRow(newRow.getValueList().clone());
-                    }
-                    if (!table.fireRow() || !table.fireBeforeRow(session, oldRow, newRow)) {
-                        rows.add(oldRow);
-                        rows.add(newRow);
-                    }
-                    if (deltaChangeCollectionMode == ResultOption.FINAL) {
-                        deltaChangeCollector.addRow(newRow.getValueList());
-                    }
-                    count++;
                 }
             }
-            // TODO self referencing referential integrity constraints
-            // don't work if update is multi-row and 'inversed' the condition!
-            // probably need multi-row triggers with 'deleted' and 'inserted'
-            // at the same time. anyway good for sql compatibility
-            // TODO update in-place (but if the key changes,
-            // we need to update all indexes) before row triggers
-
-            // the cached row is already updated - we need the old values
-            table.updateRows(this, session, rows);
-            if (table.fireRow()) {
-                for (rows.reset(); rows.hasNext();) {
-                    Row o = rows.next();
-                    Row n = rows.next();
-                    table.fireAfterRow(session, o, n, false);
-                }
-            }
+            doUpdate(this, session, table, rows);
             table.fire(session, Trigger.UPDATE, false);
             return count;
+        }
+    }
+
+    static boolean prepareUpdate(Table table, Session session, ResultTarget deltaChangeCollector,
+            ResultOption deltaChangeCollectionMode, LinkedHashMap<Column, Expression> setClauseMap, RowList rows,
+            Row oldRow, boolean updateToCurrentValuesReturnsZero) {
+        Column[] columns = table.getColumns();
+        int columnCount = columns.length;
+        Row newRow = table.getTemplateRow();
+        boolean setOnUpdate = false;
+        for (int i = 0; i < columnCount; i++) {
+            Column column = columns[i];
+            Expression newExpr = setClauseMap.get(column);
+            Value newValue;
+            if (newExpr == null) {
+                if (column.getOnUpdateExpression() != null) {
+                    setOnUpdate = true;
+                }
+                newValue = column.getGenerated() ? null : oldRow.getValue(i);
+            } else if (newExpr == ValueExpression.DEFAULT) {
+                newValue = null;
+            } else {
+                newValue = newExpr.getValue(session);
+            }
+            newRow.setValue(i, newValue);
+        }
+        newRow.setKey(oldRow.getKey());
+        table.validateConvertUpdateSequence(session, newRow);
+        boolean result = true;
+        if (setOnUpdate || updateToCurrentValuesReturnsZero) {
+            setOnUpdate = false;
+            for (int i = 0; i < columnCount; i++) {
+                // Use equals here to detect changes from numeric 0 to 0.0 and
+                // similar
+                if (!Objects.equals(oldRow.getValue(i), newRow.getValue(i))) {
+                    setOnUpdate = true;
+                    break;
+                }
+            }
+            if (setOnUpdate) {
+                for (int i = 0; i < columnCount; i++) {
+                    Column column = columns[i];
+                    if (setClauseMap.get(column) == null) {
+                        Expression onUpdate = column.getOnUpdateExpression();
+                        if (onUpdate != null) {
+                            newRow.setValue(i, onUpdate.getValue(session));
+                        }
+                    }
+                }
+                // Convert on update expressions and reevaluate
+                // generated columns
+                table.validateConvertUpdateSequence(session, newRow);
+            } else if (updateToCurrentValuesReturnsZero) {
+                result = false;
+            }
+        }
+        if (deltaChangeCollectionMode == ResultOption.OLD) {
+            deltaChangeCollector.addRow(oldRow.getValueList());
+        } else if (deltaChangeCollectionMode == ResultOption.NEW) {
+            deltaChangeCollector.addRow(newRow.getValueList().clone());
+        }
+        if (!table.fireRow() || !table.fireBeforeRow(session, oldRow, newRow)) {
+            rows.add(oldRow);
+            rows.add(newRow);
+        }
+        if (deltaChangeCollectionMode == ResultOption.FINAL) {
+            deltaChangeCollector.addRow(newRow.getValueList());
+        }
+        return result;
+    }
+
+    static void doUpdate(Prepared prepared, Session session, Table table, RowList rows) {
+        // TODO self referencing referential integrity constraints
+        // don't work if update is multi-row and 'inversed' the condition!
+        // probably need multi-row triggers with 'deleted' and 'inserted'
+        // at the same time. anyway good for sql compatibility
+        // TODO update in-place (but if the key changes,
+        // we need to update all indexes) before row triggers
+
+        // the cached row is already updated - we need the old values
+        table.updateRows(prepared, session, rows);
+        if (table.fireRow()) {
+            for (rows.reset(); rows.hasNext();) {
+                Row o = rows.next();
+                Row n = rows.next();
+                table.fireAfterRow(session, o, n, false);
+            }
         }
     }
 

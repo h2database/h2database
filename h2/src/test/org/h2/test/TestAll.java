@@ -21,6 +21,7 @@ import org.h2.test.auth.TestAuthentication;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
 import org.h2.test.db.TestAlterSchemaRename;
+import org.h2.test.db.TestAlterTableNotFound;
 import org.h2.test.db.TestAnalyzeTableTx;
 import org.h2.test.db.TestAutoRecompile;
 import org.h2.test.db.TestBackup;
@@ -68,6 +69,7 @@ import org.h2.test.db.TestRights;
 import org.h2.test.db.TestRunscript;
 import org.h2.test.db.TestSQLInjection;
 import org.h2.test.db.TestSelectCountNonNullColumn;
+import org.h2.test.db.TestSelectTableNotFound;
 import org.h2.test.db.TestSequence;
 import org.h2.test.db.TestSessionsLocks;
 import org.h2.test.db.TestSetCollation;
@@ -744,6 +746,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestReadOnly());
             addTest(new TestRecursiveQueries());
             addTest(new TestGeneralCommonTableQueries());
+            addTest(new TestAlterTableNotFound());
+            addTest(new TestSelectTableNotFound());
             if (!memory) {
                 // requires persistent store for reconnection tests
                 addTest(new TestPersistentCommonTableExpressions());

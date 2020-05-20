@@ -744,6 +744,11 @@ public class Parser {
     private final boolean identifiersToUpper;
 
     /**
+     * @see org.h2.engine.DbSettings#caseInsensitiveIdentifiers
+     */
+    private final boolean caseInsensitiveIdentifiers;
+
+    /**
      * @see org.h2.engine.Session#isVariableBinary()
      */
     private final boolean variableBinary;
@@ -832,6 +837,7 @@ public class Parser {
         DbSettings settings = database.getSettings();
         this.identifiersToLower = settings.databaseToLower;
         this.identifiersToUpper = settings.databaseToUpper;
+        this.caseInsensitiveIdentifiers = settings.caseInsensitiveIdentifiers;
         this.variableBinary = session.isVariableBinary();
         this.nonKeywords = session.getNonKeywords();
         this.session = session;
@@ -844,6 +850,7 @@ public class Parser {
         database = null;
         identifiersToLower = false;
         identifiersToUpper = false;
+        caseInsensitiveIdentifiers = false;
         variableBinary = false;
         nonKeywords = null;
         session = null;
@@ -8639,7 +8646,7 @@ public class Parser {
 
     private Table throwTableOrViewNotFound(final List<Schema> schemas, final String tableName) {
         final java.util.Set<String> candidates =
-            session.getStaticSettings().caseInsensitiveIdentifiers ?
+            caseInsensitiveIdentifiers ?
                 Collections.emptySet() :
                 findQuotedCandidates(schemas, tableName);
 

@@ -8,7 +8,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
-public class TestTableNotFound extends TestDb {
+public class TestSelectTableNotFound extends TestDb {
 
   /**
    * Run just this test.

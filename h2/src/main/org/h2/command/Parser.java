@@ -9073,7 +9073,7 @@ public class Parser {
     private Table tableIfTableExists(Schema schema, String tableName, boolean ifTableExists) {
         Table table = schema.resolveTableOrView(session, tableName);
         if (table == null && !ifTableExists) {
-            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+            throwTableOrViewNotFound(Collections.singletonList(schema), tableName);
         }
         return table;
     }

@@ -91,6 +91,7 @@ import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
 import static org.h2.util.ParserUtil.YEAR;
 import static org.h2.util.ParserUtil._ROWID_;
+
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -99,12 +100,15 @@ import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
@@ -8601,14 +8605,16 @@ public class Parser {
     }
 
     private Table readTableOrView(String tableName) {
+        final List<Schema> schemas = new ArrayList<>();
         if (schemaName != null) {
-            Table table = getSchema().resolveTableOrView(session, tableName);
+            schemas.add(getSchema());
+            Table table = schemas.get(0).resolveTableOrView(session, tableName);
             if (table != null) {
                 return table;
             }
         } else {
-            Table table = database.getSchema(session.getCurrentSchemaName())
-                    .resolveTableOrView(session, tableName);
+            schemas.add(database.getSchema(session.getCurrentSchemaName()));
+            Table table = schemas.get(0).resolveTableOrView(session, tableName);
             if (table != null) {
                 return table;
             }
@@ -8620,13 +8626,38 @@ public class Parser {
                     if (table != null) {
                         return table;
                     }
+                    schemas.add(s);
                 }
             }
         }
         if (isDualTable(tableName)) {
             return new DualTable(database);
         }
-        throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+
+        return throwTableOrViewNotFound(schemas, tableName);
+    }
+
+    private Table throwTableOrViewNotFound(final List<Schema> schemas, final String tableName) {
+        final java.util.Set<String> candidates = findQuotedCandidates(schemas, tableName);
+        if (candidates.isEmpty()) {
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+        }
+
+        throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_2,
+            tableName,
+            String.join(", ", candidates));
+    }
+
+    private java.util.Set<String> findQuotedCandidates(final List<Schema> schemas, final String tableName) {
+        final String lcTableName = tableName.toLowerCase();
+        return schemas.stream()
+            .map(Schema::getAllTablesAndViews)
+            .flatMap(Collection::stream)
+            .map(Table::getName)
+            .filter(c -> lcTableName.equals(c.toLowerCase()))
+            .sorted()
+            .map(c -> "`" + c + "`")
+            .collect(Collectors.toCollection(TreeSet::new));
     }
 
     private FunctionAlias findFunctionAlias(String schema, String aliasName) {

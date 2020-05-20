@@ -8642,12 +8642,12 @@ public class Parser {
             return new DualTable(database);
         }
 
-        return throwTableOrViewNotFound(schemas, tableName);
+        throw getTableOrViewNotFoundDbException(schemas, tableName);
     }
 
-    private Table throwTableOrViewNotFound(final List<Schema> schemas, final String tableName) {
+    private DbException getTableOrViewNotFoundDbException(final List<Schema> schemas, final String tableName) {
         if (schemas.stream().map(Schema::getAllTablesAndViews).noneMatch(not(Collection::isEmpty))) {
-            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_3, tableName);
+            return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_3, tableName);
         }
 
         final java.util.Set<String> candidates =
@@ -8656,10 +8656,10 @@ public class Parser {
                 findQuotedTableNameCandidates(schemas, tableName);
 
         if (candidates.isEmpty()) {
-            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+            return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
         }
 
-        throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_2,
+        return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_2,
             tableName,
             String.join(", ", candidates));
     }
@@ -9089,7 +9089,7 @@ public class Parser {
     private Table tableIfTableExists(Schema schema, String tableName, boolean ifTableExists) {
         Table table = schema.resolveTableOrView(session, tableName);
         if (table == null && !ifTableExists) {
-            throwTableOrViewNotFound(Collections.singletonList(schema), tableName);
+            throw getTableOrViewNotFoundDbException(Collections.singletonList(schema), tableName);
         }
         return table;
     }

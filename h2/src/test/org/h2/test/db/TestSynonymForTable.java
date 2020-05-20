@@ -82,7 +82,7 @@ public class TestSynonymForTable extends TestDb {
         stat.execute("DROP TABLE backingtable");
 
         // Backing table does not exist anymore.
-        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).execute("SELECT id FROM testsynonym");
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_3, stat).execute("SELECT id FROM testsynonym");
 
         // Synonym should be dropped as well
         ResultSet synonyms = conn.createStatement().executeQuery(

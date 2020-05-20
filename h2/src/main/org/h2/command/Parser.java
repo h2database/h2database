@@ -91,6 +91,7 @@ import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
 import static org.h2.util.ParserUtil.YEAR;
 import static org.h2.util.ParserUtil._ROWID_;
+import static org.h2.util.StreamUtils.not;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
@@ -8645,6 +8646,10 @@ public class Parser {
     }
 
     private Table throwTableOrViewNotFound(final List<Schema> schemas, final String tableName) {
+        if (schemas.stream().map(Schema::getAllTablesAndViews).noneMatch(not(Collection::isEmpty))) {
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_3, tableName);
+        }
+
         final java.util.Set<String> candidates =
             caseInsensitiveIdentifiers ?
                 Collections.emptySet() :

@@ -380,6 +380,18 @@ public class ErrorCode {
     public static final int TABLE_OR_VIEW_NOT_FOUND_2 = 42103;
 
     /**
+     * The error with code <code>42103</code> is thrown when
+     * trying to query, modify or drop a table or view that does not exists
+     * in this schema and database but it is empty anyway. A common cause is
+     * that the wrong database was opened.
+     * Example:
+     * <pre>
+     * SELECT * FROM ABC;
+     * </pre>
+     */
+    public static final int TABLE_OR_VIEW_NOT_FOUND_3 = 42104;
+
+    /**
      * The error with code <code>42111</code> is thrown when
      * trying to create an index if an index with the same name already exists.
      * Example:
@@ -2212,6 +2224,7 @@ public class ErrorCode {
         case TABLE_OR_VIEW_ALREADY_EXISTS_1:
         case TABLE_OR_VIEW_NOT_FOUND_1:
         case TABLE_OR_VIEW_NOT_FOUND_2:
+        case TABLE_OR_VIEW_NOT_FOUND_3:
         case VALUE_TOO_LONG_2:
             return true;
         }
@@ -2243,6 +2256,7 @@ public class ErrorCode {
         case TABLE_OR_VIEW_ALREADY_EXISTS_1: return "42S01";
         case TABLE_OR_VIEW_NOT_FOUND_1: return "42S02";
         case TABLE_OR_VIEW_NOT_FOUND_2: return "42S03";
+        case TABLE_OR_VIEW_NOT_FOUND_3: return "42S04";
         case INDEX_ALREADY_EXISTS_1: return "42S11";
         case INDEX_NOT_FOUND_1: return "42S12";
         case DUPLICATE_COLUMN_NAME_1: return "42S21";

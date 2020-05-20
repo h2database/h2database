@@ -26,6 +26,9 @@ public class TestSelectTableNotFound extends TestDb {
     testWithTwoCandidates();
     testWithSchema();
     testWithSchemaSearchPath();
+    testWhenSchemaIsEmpty();
+    testWithSchemaWhenSchemaIsEmpty();
+    testWithSchemaSearchPathWhenSchemaIsEmpty();
   }
 
   private void testWithoutAnyCandidate() throws SQLException {
@@ -55,7 +58,7 @@ public class TestSelectTableNotFound extends TestDb {
       fail("Table `t1` was accessible but should not have been.");
     } catch (SQLException e) {
       final String message = e.getMessage();
-      assertContains(message, "Table \"t1\" not found, candidates are: \"`T1`\"");
+      assertContains(message, "Table \"t1\" not found (candidates are: \"`T1`\")");
     }
 
     conn.close();
@@ -73,7 +76,7 @@ public class TestSelectTableNotFound extends TestDb {
       fail("Table `toast` was accessible but should not have been.");
     } catch (SQLException e) {
       final String message = e.getMessage();
-      assertContains(message, "Table \"toast\" not found, candidates are: \"`TOAST`, `Toast`");
+      assertContains(message, "Table \"toast\" not found (candidates are: \"`TOAST`, `Toast`\")");
     }
 
     conn.close();
@@ -90,7 +93,7 @@ public class TestSelectTableNotFound extends TestDb {
       fail("Table `t1` was accessible but should not have been.");
     } catch (SQLException e) {
       final String message = e.getMessage();
-      assertContains(message, "Table \"t1\" not found, candidates are: \"`T1`\"");
+      assertContains(message, "Table \"t1\" not found (candidates are: \"`T1`\")");
     }
 
     conn.close();
@@ -110,7 +113,58 @@ public class TestSelectTableNotFound extends TestDb {
       fail("Table `t1` was accessible but should not have been.");
     } catch (SQLException e) {
       final String message = e.getMessage();
-      assertContains(message, "Table \"t1\" not found, candidates are: \"`T1`\"");
+      assertContains(message, "Table \"t1\" not found (candidates are: \"`T1`\")");
+    }
+
+    conn.close();
+    deleteDb(getTestName());
+  }
+
+  private void testWhenSchemaIsEmpty() throws SQLException {
+    deleteDb(getTestName());
+    final Connection conn = getJdbcConnection();
+    final Statement stat = conn.createStatement();
+    try {
+      stat.executeQuery("SELECT 1 FROM t1");
+      fail("Table `t1` was accessible but should not have been.");
+    } catch (SQLException e) {
+      final String message = e.getMessage();
+      assertContains(message, "Table \"t1\" not found (this database is empty)");
+    }
+
+    conn.close();
+    deleteDb(getTestName());
+  }
+
+  private void testWithSchemaWhenSchemaIsEmpty() throws SQLException {
+    deleteDb(getTestName());
+    final Connection conn = getJdbcConnection();
+    final Statement stat = conn.createStatement();
+    try {
+      stat.executeQuery("SELECT 1 FROM PUBLIC.t1");
+      fail("Table `t1` was accessible but should not have been.");
+    } catch (SQLException e) {
+      final String message = e.getMessage();
+      assertContains(message, "Table \"t1\" not found (this database is empty)");
+    }
+
+    conn.close();
+    deleteDb(getTestName());
+  }
+
+  private void testWithSchemaSearchPathWhenSchemaIsEmpty() throws SQLException {
+    deleteDb(getTestName());
+    final JdbcConnection conn = getJdbcConnection();
+    final Session session = (Session) conn.getSession();
+    session.setSchemaSearchPath(new String[]{ "PUBLIC" });
+
+    final Statement stat = conn.createStatement();
+    try {
+      stat.executeQuery("SELECT 1 FROM t1");
+      fail("Table `t1` was accessible but should not have been.");
+    } catch (SQLException e) {
+      final String message = e.getMessage();
+      assertContains(message, "Table \"t1\" not found (this database is empty)");
     }
 
     conn.close();

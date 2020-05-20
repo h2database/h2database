@@ -8653,7 +8653,7 @@ public class Parser {
         final java.util.Set<String> candidates =
             caseInsensitiveIdentifiers ?
                 Collections.emptySet() :
-                findQuotedCandidates(schemas, tableName);
+                findQuotedTableNameCandidates(schemas, tableName);
 
         if (candidates.isEmpty()) {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
@@ -8664,7 +8664,7 @@ public class Parser {
             String.join(", ", candidates));
     }
 
-    private java.util.Set<String> findQuotedCandidates(final List<Schema> schemas, final String tableName) {
+    private java.util.Set<String> findQuotedTableNameCandidates(final List<Schema> schemas, final String tableName) {
         final String lcTableName = tableName.toLowerCase();
         return schemas.stream()
             .map(Schema::getAllTablesAndViews)

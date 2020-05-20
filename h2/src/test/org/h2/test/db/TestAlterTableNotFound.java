@@ -21,13 +21,70 @@ public class TestAlterTableNotFound extends TestDb {
   @Override
   public void test() throws Exception {
     testWithoutAnyCandidate();
+    testWithoutAnyCandidateWhenDatabaseToLower();
+    testWithoutAnyCandidateWhenDatabaseToUpper();
+    testWithoutAnyCandidateWhenCaseInsensitiveIdentifiers();
     testWithOneCandidate();
+    testWithOneCandidateWhenDatabaseToLower();
+    testWithOneCandidateWhenDatabaseToUpper();
+    testWithOneCandidateWhenCaseInsensitiveIdentifiers();
     testWithTwoCandidates();
   }
 
   private void testWithoutAnyCandidate() throws SQLException {
     deleteDb(getTestName());
-    final Connection conn = getJdbcConnection();
+    final Connection conn = getJdbcConnection("DATABASE_TO_LOWER=false;DATABASE_TO_UPPER=false");
+    final Statement stat = conn.createStatement();
+    stat.execute("CREATE TABLE T2 ( ID INT IDENTITY )");
+    try {
+      stat.execute("ALTER TABLE t1 DROP COLUMN ID");
+      fail("Table `t1` was accessible but should not have been.");
+    } catch (SQLException e) {
+      final String message = e.getMessage();
+      assertContains(message, "Table \"t1\" not found;");
+    }
+
+    conn.close();
+    deleteDb(getTestName());
+  }
+
+  private void testWithoutAnyCandidateWhenDatabaseToLower() throws SQLException {
+    deleteDb(getTestName());
+    final Connection conn = getJdbcConnection("DATABASE_TO_LOWER=true;DATABASE_TO_UPPER=false");
+    final Statement stat = conn.createStatement();
+    stat.execute("CREATE TABLE T2 ( ID INT IDENTITY )");
+    try {
+      stat.execute("ALTER TABLE T1 DROP COLUMN ID");
+      fail("Table `t1` was accessible but should not have been.");
+    } catch (SQLException e) {
+      final String message = e.getMessage();
+      assertContains(message, "Table \"t1\" not found;");
+    }
+
+    conn.close();
+    deleteDb(getTestName());
+  }
+
+  private void testWithoutAnyCandidateWhenDatabaseToUpper() throws SQLException {
+    deleteDb(getTestName());
+    final Connection conn = getJdbcConnection("DATABASE_TO_LOWER=false;DATABASE_TO_UPPER=true");
+    final Statement stat = conn.createStatement();
+    stat.execute("CREATE TABLE T2 ( ID INT IDENTITY )");
+    try {
+      stat.execute("ALTER TABLE t1 DROP COLUMN ID");
+      fail("Table `T1` was accessible but should not have been.");
+    } catch (SQLException e) {
+      final String message = e.getMessage();
+      assertContains(message, "Table \"T1\" not found;");
+    }
+
+    conn.close();
+    deleteDb(getTestName());
+  }
+
+  private void testWithoutAnyCandidateWhenCaseInsensitiveIdentifiers() throws SQLException {
+    deleteDb(getTestName());
+    final Connection conn = getJdbcConnection("DATABASE_TO_LOWER=false;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true");
     final Statement stat = conn.createStatement();
     stat.execute("CREATE TABLE T2 ( ID INT IDENTITY )");
     try {
@@ -44,7 +101,7 @@ public class TestAlterTableNotFound extends TestDb {
 
   private void testWithOneCandidate() throws SQLException {
     deleteDb(getTestName());
-    final Connection conn = getJdbcConnection();
+    final Connection conn = getJdbcConnection("DATABASE_TO_LOWER=false;DATABASE_TO_UPPER=false");
     final Statement stat = conn.createStatement();
     stat.execute("CREATE TABLE T1 ( ID INT IDENTITY )");
     try {
@@ -59,9 +116,39 @@ public class TestAlterTableNotFound extends TestDb {
     deleteDb(getTestName());
   }
 
+  private void testWithOneCandidateWhenDatabaseToLower() throws SQLException {
+    deleteDb(getTestName());
+    final Connection conn = getJdbcConnection("DATABASE_TO_LOWER=true;DATABASE_TO_UPPER=false");
+    final Statement stat = conn.createStatement();
+    stat.execute("CREATE TABLE t1 ( ID INT IDENTITY, PAYLOAD INT )");
+    stat.execute("ALTER TABLE T1 DROP COLUMN PAYLOAD");
+    conn.close();
+    deleteDb(getTestName());
+  }
+
+  private void testWithOneCandidateWhenDatabaseToUpper() throws SQLException {
+    deleteDb(getTestName());
+    final Connection conn = getJdbcConnection("DATABASE_TO_LOWER=false;DATABASE_TO_UPPER=true");
+    final Statement stat = conn.createStatement();
+    stat.execute("CREATE TABLE T1 ( ID INT IDENTITY, PAYLOAD INT )");
+    stat.execute("ALTER TABLE t1 DROP COLUMN PAYLOAD");
+    conn.close();
+    deleteDb(getTestName());
+  }
+
+  private void testWithOneCandidateWhenCaseInsensitiveIdentifiers() throws SQLException {
+    deleteDb(getTestName());
+    final Connection conn = getJdbcConnection("DATABASE_TO_LOWER=false;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true");
+    final Statement stat = conn.createStatement();
+    stat.execute("CREATE TABLE T1 ( ID INT IDENTITY, PAYLOAD INT )");
+    stat.execute("ALTER TABLE t1 DROP COLUMN PAYLOAD");
+    conn.close();
+    deleteDb(getTestName());
+  }
+
   private void testWithTwoCandidates() throws SQLException {
     deleteDb(getTestName());
-    final Connection conn = getJdbcConnection();
+    final Connection conn = getJdbcConnection("DATABASE_TO_LOWER=false;DATABASE_TO_UPPER=false");
     final Statement stat = conn.createStatement();
     stat.execute("CREATE TABLE Toast ( ID INT IDENTITY )");
     stat.execute("CREATE TABLE TOAST ( ID INT IDENTITY )");
@@ -77,7 +164,7 @@ public class TestAlterTableNotFound extends TestDb {
     deleteDb(getTestName());
   }
 
-  private JdbcConnection getJdbcConnection() throws SQLException {
-    return (JdbcConnection) getConnection(getTestName() + ";DATABASE_TO_LOWER=false;DATABASE_TO_UPPER=false");
+  private JdbcConnection getJdbcConnection(final String settings) throws SQLException {
+    return (JdbcConnection) getConnection(getTestName() + ";" + settings);
   }
 }

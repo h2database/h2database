@@ -8638,7 +8638,11 @@ public class Parser {
     }
 
     private Table throwTableOrViewNotFound(final List<Schema> schemas, final String tableName) {
-        final java.util.Set<String> candidates = findQuotedCandidates(schemas, tableName);
+        final java.util.Set<String> candidates =
+            session.getStaticSettings().caseInsensitiveIdentifiers ?
+                Collections.emptySet() :
+                findQuotedCandidates(schemas, tableName);
+
         if (candidates.isEmpty()) {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
         }

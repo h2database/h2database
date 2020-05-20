@@ -1357,51 +1357,33 @@ public class Parser {
     }
 
     private Column readTableColumn(TableFilter filter) {
-        boolean rowId = false;
-        String columnName = null;
-        if (currentTokenType == _ROWID_) {
-            read();
-            rowId = true;
-        } else {
+        String columnName = readColumnIdentifier();
+        if (readIf(DOT)) {
+            columnName = readTableColumn(filter, columnName);
+        }
+        return filter.getTable().getColumn(columnName);
+    }
+
+    private String readTableColumn(TableFilter filter, String tableAlias) {
+        String columnName = readColumnIdentifier();
+        if (readIf(DOT)) {
+            String schema = tableAlias;
+            tableAlias = columnName;
             columnName = readColumnIdentifier();
             if (readIf(DOT)) {
-                String tableAlias = columnName;
-                if (currentTokenType == _ROWID_) {
-                    read();
-                    rowId = true;
-                } else {
-                    columnName = readColumnIdentifier();
-                    if (readIf(DOT)) {
-                        String schema = tableAlias;
-                        tableAlias = columnName;
-                        if (currentTokenType == _ROWID_) {
-                            read();
-                            rowId = true;
-                        } else {
-                            columnName = readColumnIdentifier();
-                            if (readIf(DOT)) {
-                                checkDatabaseName(schema);
-                                schema = tableAlias;
-                                tableAlias = columnName;
-                                if (currentTokenType == _ROWID_) {
-                                    read();
-                                    rowId = true;
-                                } else {
-                                    columnName = readColumnIdentifier();
-                                }
-                            }
-                        }
-                        if (!equalsToken(schema, filter.getTable().getSchema().getName())) {
-                            throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schema);
-                        }
-                    }
-                }
-                if (!equalsToken(tableAlias, filter.getTableAlias())) {
-                    throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
-                }
+                checkDatabaseName(schema);
+                schema = tableAlias;
+                tableAlias = columnName;
+                columnName = readColumnIdentifier();
+            }
+            if (!equalsToken(schema, filter.getTable().getSchema().getName())) {
+                throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schema);
             }
         }
-        return rowId ? filter.getRowIdColumn() : filter.getTable().getColumn(columnName);
+        if (!equalsToken(tableAlias, filter.getTableAlias())) {
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
+        }
+        return columnName;
     }
 
     private Update parseUpdate(int start) {

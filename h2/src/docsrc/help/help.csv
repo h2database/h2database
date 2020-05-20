@@ -5068,9 +5068,9 @@ Replaces each substring that matches a regular expression.
 For details, see the Java ""String.replaceAll()"" method.
 If any parameter is null (except optional flagsString parameter), the result is null.
 
-Flags values limited to 'i', 'c', 'n', 'm'. Other symbols causes exception.
-Multiple symbols could be uses in one flagsString parameter (like 'im').
-Later flags overrides first ones, for example 'ic' equivalent to case sensitive matching 'c'.
+Flags values are limited to 'i', 'c', 'n', 'm'. Other symbols cause exception.
+Multiple symbols could be used in one flagsString parameter (like 'im').
+Later flags override first ones, for example 'ic' is equivalent to case sensitive matching 'c'.
 
 'i' enables case insensitive matching (Pattern.CASE_INSENSITIVE)
 
@@ -5092,9 +5092,9 @@ Matches string to a regular expression.
 For details, see the Java ""Matcher.find()"" method.
 If any parameter is null (except optional flagsString parameter), the result is null.
 
-Flags values limited to 'i', 'c', 'n', 'm'. Other symbols causes exception.
-Multiple symbols could be uses in one flagsString parameter (like 'im').
-Later flags overrides first ones, for example 'ic' equivalent to case sensitive matching 'c'.
+Flags values are limited to 'i', 'c', 'n', 'm'. Other symbols cause exception.
+Multiple symbols could be used in one flagsString parameter (like 'im').
+Later flags override first ones, for example 'ic' is equivalent to case sensitive matching 'c'.
 
 'i' enables case insensitive matching (Pattern.CASE_INSENSITIVE)
 

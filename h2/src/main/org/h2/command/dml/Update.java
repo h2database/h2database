@@ -8,7 +8,6 @@ package org.h2.command.dml;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
-import java.util.Objects;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -169,17 +168,8 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
         newRow.setKey(oldRow.getKey());
         table.validateConvertUpdateSequence(session, newRow);
         boolean result = true;
-        if (setOnUpdate || updateToCurrentValuesReturnsZero) {
-            setOnUpdate = false;
-            for (int i = 0; i < columnCount; i++) {
-                // Use equals here to detect changes from numeric 0 to 0.0 and
-                // similar
-                if (!Objects.equals(oldRow.getValue(i), newRow.getValue(i))) {
-                    setOnUpdate = true;
-                    break;
-                }
-            }
-            if (setOnUpdate) {
+        if (setOnUpdate) {
+            if (!oldRow.hasSameValues(newRow)) {
                 for (int i = 0; i < columnCount; i++) {
                     Column column = columns[i];
                     if (setClauseMap.get(column) == null) {
@@ -195,6 +185,8 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
             } else if (updateToCurrentValuesReturnsZero) {
                 result = false;
             }
+        } else if (updateToCurrentValuesReturnsZero && oldRow.hasSameValues(newRow)) {
+            result = false;
         }
         if (deltaChangeCollectionMode == ResultOption.OLD) {
             deltaChangeCollector.addRow(oldRow.getValueList());

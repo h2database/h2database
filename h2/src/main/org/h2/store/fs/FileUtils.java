@@ -111,7 +111,8 @@ public class FileUtils {
      * <code>java.nio.file.Path.deleteIfExists</code>.
      *
      * @param path the file or directory name
-     * @param makeWritable try to make file or directory writable first (some OS (e.g. Windows) require this to delete read-only files)
+     * @param makeWritable try to make file or directory writable first (some OS (e.g. Windows)
+     *                     require this to delete read-only files)
      */
     public static void delete(String path, final boolean makeWritable) {
         final FilePath filePath = FilePath.get(path);
@@ -354,7 +355,8 @@ public class FileUtils {
      * Try to delete a directory or file and all subdirectories and files even if they are read-only.
      *  @param path the path
      * @param tryOnly whether errors should  be ignored
-     * @param makeWritable try to make file or directory writable first (some OS (e.g. Windows) require this to delete read-only files)
+     * @param makeWritable try to make file or directory writable first (some OS (e.g. Windows)
+     *                     require this to delete read-only files)
      */
     public static void deleteRecursive(String path, boolean tryOnly,
         final boolean makeWritable) {

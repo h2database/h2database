@@ -5,6 +5,7 @@
  */
 package org.h2.build.doc;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,7 +38,8 @@ public class SpellChecker {
     private static final String DELIMITERS =
             " \n.();-\"=,*/{}_<>+\r:'@[]&\\!#|?$^%~`\t";
     private static final String PREFIX_IGNORE = "abc";
-    private static final String[] IGNORE_FILES = { "mainWeb.html" };
+    private static final String[] IGNORE_FILES = { "mainWeb.html",
+        "niomapped" + File.separator + "Message.java" };
 
     // These are public so we can set them during development testing
 
@@ -119,7 +121,7 @@ public class SpellChecker {
         if (name.endsWith(".svn") || name.endsWith(".DS_Store")) {
             return;
         }
-        if (name.startsWith("_") && name.indexOf("_en") < 0) {
+        if (name.startsWith("_") && !name.contains("_en")) {
             return;
         }
         if (Files.isDirectory(file)) {

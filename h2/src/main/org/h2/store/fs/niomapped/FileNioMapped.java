@@ -5,6 +5,9 @@
  */
 package org.h2.store.fs.niomapped;
 
+import static org.h2.store.fs.niomapped.Message.USER_MAPPED_SECTION_OPEN_DE;
+import static org.h2.store.fs.niomapped.Message.USER_MAPPED_SECTION_OPEN_EN;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -184,8 +187,8 @@ class FileNioMapped extends FileBaseDefault {
     }
 
     private boolean isUserMappedSectionOpenMessage(final String message) {
-        return message.contains("user-mapped section open") ||
-            message.contains("ffneten Bereich, der einem Benutzer zugeordnet");
+        return message.contains(USER_MAPPED_SECTION_OPEN_EN) ||
+            message.contains(USER_MAPPED_SECTION_OPEN_DE);
     }
 
     @Override

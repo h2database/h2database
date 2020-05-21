@@ -401,4 +401,14 @@ class FileNioMemData {
         return true;
     }
 
+    /**
+     * Unset the read-only flag.
+     *
+     * @return true
+     */
+    boolean setWritable() {
+        isReadOnly = false;
+        return true;
+    }
+
 }

@@ -153,6 +153,11 @@ public abstract class FilePathWrapper extends FilePath {
     }
 
     @Override
+    protected boolean setWritable() {
+        return base.setWritable();
+    }
+
+    @Override
     public long size() {
         return base.size();
     }

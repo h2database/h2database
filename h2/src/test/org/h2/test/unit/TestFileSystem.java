@@ -422,7 +422,7 @@ public class TestFileSystem extends TestBase {
         if (FileUtils.createFile(fileName)) {
             FileUtils.setReadOnly(fileName);
             assertFalse(FileUtils.canWrite(fileName));
-            FileUtils.delete(fileName);
+            FileUtils.delete(fileName, true);
         }
     }
 
@@ -587,8 +587,8 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testPositionedReadWrite(String fsBase) throws IOException {
-        FileUtils.deleteRecursive(fsBase + "/testFile", false);
-        FileUtils.delete(fsBase + "/testFile");
+        FileUtils.deleteRecursive(fsBase + "/testFile", false, true);
+        FileUtils.delete(fsBase + "/testFile", true);
         FileUtils.createDirectories(fsBase);
         assertTrue(FileUtils.createFile(fsBase + "/testFile"));
         FileChannel fc = FilePath.get(fsBase + "/testFile").open("rw");

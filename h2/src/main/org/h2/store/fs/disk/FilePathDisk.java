@@ -266,6 +266,32 @@ public class FilePathDisk extends FilePath {
     }
 
     @Override
+    protected boolean setWritable() {
+        Path f = Paths.get(name);
+        try {
+            FileStore fileStore = Files.getFileStore(f);
+            /*
+             * Need to check PosixFileAttributeView first because
+             * DosFileAttributeView is also supported by recent Java versions on
+             * non-Windows file systems, but it doesn't affect real access
+             * permissions.
+             */
+            if (fileStore.supportsFileAttributeView(PosixFileAttributeView.class)) {
+                HashSet<PosixFilePermission> permissions = new HashSet<>(Files.getPosixFilePermissions(f));
+                permissions.add(PosixFilePermission.OWNER_WRITE);
+                Files.setPosixFilePermissions(f, permissions);
+            } else if (fileStore.supportsFileAttributeView(DosFileAttributeView.class)) {
+                Files.setAttribute(f, "dos:readonly", false);
+            } else {
+                return false;
+            }
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    @Override
     public FilePathDisk toRealPath() {
         Path path = Paths.get(name);
         try {

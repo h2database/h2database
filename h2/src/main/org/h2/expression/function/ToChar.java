@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Currency;
 import java.util.Locale;
 
+import java.util.Locale.Category;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -69,6 +70,7 @@ public class ToChar {
     static final int AM_PM = 4;
 
     private static volatile String[][] NAMES;
+    private static volatile Locale NAMES_FORMAT_LOCALE;
 
     private ToChar() {
         // utility class
@@ -495,8 +497,9 @@ public class ToChar {
      * @return the names
      */
     public static String[] getDateNames(int names) {
+        final Locale locale = Locale.getDefault(Category.FORMAT);
         String[][] result = NAMES;
-        if (result == null) {
+        if (result == null || !locale.equals(NAMES_FORMAT_LOCALE)) {
             result = new String[5][];
             DateFormatSymbols dfs = DateFormatSymbols.getInstance();
             result[MONTHS] = dfs.getMonths();
@@ -512,6 +515,7 @@ public class ToChar {
             result[SHORT_WEEKDAYS] = dfs.getShortWeekdays();
             result[AM_PM] = dfs.getAmPmStrings();
             NAMES = result;
+            NAMES_FORMAT_LOCALE = locale;
         }
         return result[names];
     }

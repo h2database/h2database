@@ -43,6 +43,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Locale.Category;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -125,6 +126,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         testNvl2();
         testConcatWs();
         testToCharFromDateTime();
+        testToCharFromDateTimeWithChangedLocale(Locale.GERMANY);
+        testToCharFromDateTimeWithChangedLocale(Locale.US);
         testToCharFromNumber();
         testToCharFromText();
         testFileWrite();
@@ -1437,6 +1440,9 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         TimeZone tz = TimeZone.getDefault();
         final Timestamp timestamp1979 = Timestamp.valueOf("1979-11-12 08:12:34.560");
         boolean daylight = tz.inDaylightTime(timestamp1979);
+        /**
+         * Force Locale.ENGLISH here because {@link org.h2.util.TimeZoneProvider.WithTimeZone#getShortId} also uses it
+         */
         String tzShortName = tz.getDisplayName(daylight, TimeZone.SHORT, Locale.ENGLISH);
         String tzLongName = tz.getID();
 
@@ -1653,6 +1659,16 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertResult("19850101", stat, "SELECT TO_CHAR(X, 'YYYYMMDD') FROM T");
 
         conn.close();
+    }
+
+    private void testToCharFromDateTimeWithChangedLocale(final Locale locale) throws SQLException {
+        final Locale old = Locale.getDefault(Category.FORMAT);
+        Locale.setDefault(Category.FORMAT, locale);
+        try {
+            testToCharFromDateTime();
+        } finally {
+            Locale.setDefault(Category.FORMAT, old);
+        }
     }
 
     private static String stripTrailingPeriod(String expected) {

@@ -174,13 +174,18 @@ class FileNioMapped extends FileBaseDefault {
                 }
                 break;
             } catch (IOException e) {
-                if (i > 16 || !e.toString().contains("user-mapped section open")) {
+                if (i > 16 || !isUserMappedSectionOpenMessage(e.toString())) {
                     throw e;
                 }
             }
             System.gc();
         }
         reMap();
+    }
+
+    private boolean isUserMappedSectionOpenMessage(final String message) {
+        return message.contains("user-mapped section open") ||
+            message.contains("ffneten Bereich, der einem Benutzer zugeordnet");
     }
 
     @Override

@@ -39,7 +39,7 @@ public class SpellChecker {
             " \n.();-\"=,*/{}_<>+\r:'@[]&\\!#|?$^%~`\t";
     private static final String PREFIX_IGNORE = "abc";
     private static final String[] IGNORE_FILES = { "mainWeb.html",
-        "WindowsLocalizedMessages.java" };
+        "niomapped" + File.separator + "Message.java" };
 
     // These are public so we can set them during development testing
 

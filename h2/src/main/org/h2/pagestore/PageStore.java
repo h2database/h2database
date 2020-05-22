@@ -54,7 +54,6 @@ import org.h2.util.CacheWriter;
 import org.h2.util.IntArray;
 import org.h2.util.IntIntHashMap;
 import org.h2.util.StringUtils;
-import org.h2.util.WindowsLocalizedMessages;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueInteger;
@@ -332,9 +331,12 @@ public class PageStore implements CacheWriter {
             file = database.openFile(fileName, accessMode, true);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.IO_EXCEPTION_2) {
-                if (WindowsLocalizedMessages.isCannotAccessLockedFileMessage(e.getMessage())) {
+                if (e.getMessage().contains("locked")) {
                     // in Windows, you can't open a locked file
                     // (in other operating systems, you can)
+                    // the exact error message is:
+                    // "The process cannot access the file because
+                    // another process has locked a portion of the file"
                     throw DbException.get(
                             ErrorCode.DATABASE_ALREADY_OPEN_1, e, fileName);
                 }

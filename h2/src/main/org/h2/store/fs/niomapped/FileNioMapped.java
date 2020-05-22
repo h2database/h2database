@@ -5,6 +5,9 @@
  */
 package org.h2.store.fs.niomapped;
 
+import static org.h2.store.fs.niomapped.Message.USER_MAPPED_SECTION_OPEN_DE;
+import static org.h2.store.fs.niomapped.Message.USER_MAPPED_SECTION_OPEN_EN;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -20,7 +23,6 @@ import org.h2.engine.SysProperties;
 import org.h2.store.fs.FileBaseDefault;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.MemoryUnmapper;
-import org.h2.util.WindowsLocalizedMessages;
 
 /**
  * Uses memory mapped files.
@@ -175,13 +177,18 @@ class FileNioMapped extends FileBaseDefault {
                 }
                 break;
             } catch (IOException e) {
-                if (i > 16 || !WindowsLocalizedMessages.isUserMappedSectionOpenMessage(e.toString())) {
+                if (i > 16 || !isUserMappedSectionOpenMessage(e.toString())) {
                     throw e;
                 }
             }
             System.gc();
         }
         reMap();
+    }
+
+    private boolean isUserMappedSectionOpenMessage(final String message) {
+        return message.contains(USER_MAPPED_SECTION_OPEN_EN) ||
+            message.contains(USER_MAPPED_SECTION_OPEN_DE);
     }
 
     @Override

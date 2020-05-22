@@ -8,7 +8,7 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import org.h2.engine.Session;
+
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -38,7 +38,7 @@ public class TestSelectTableNotFound extends TestDb {
 
     private void testWithoutAnyCandidate() throws SQLException {
         deleteDb(getTestName());
-        Connection conn = getJdbcConnection();
+        Connection conn = getConnection();
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE T2 ( ID INT IDENTITY )");
         try {
@@ -55,7 +55,7 @@ public class TestSelectTableNotFound extends TestDb {
 
     private void testWithOneCandidate() throws SQLException {
         deleteDb(getTestName());
-        Connection conn = getJdbcConnection();
+        Connection conn = getConnection();
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE T1 ( ID INT IDENTITY )");
         try {
@@ -72,7 +72,7 @@ public class TestSelectTableNotFound extends TestDb {
 
     private void testWithTwoCandidates() throws SQLException {
         deleteDb(getTestName());
-        Connection conn = getJdbcConnection();
+        Connection conn = getConnection();
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE Toast ( ID INT IDENTITY )");
         stat.execute("CREATE TABLE TOAST ( ID INT IDENTITY )");
@@ -90,7 +90,7 @@ public class TestSelectTableNotFound extends TestDb {
 
     private void testWithSchema() throws SQLException {
         deleteDb(getTestName());
-        Connection conn = getJdbcConnection();
+        Connection conn = getConnection();
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE T1 ( ID INT IDENTITY )");
         try {
@@ -107,11 +107,9 @@ public class TestSelectTableNotFound extends TestDb {
 
     private void testWithSchemaSearchPath() throws SQLException {
         deleteDb(getTestName());
-        JdbcConnection conn = getJdbcConnection();
-        Session session = (Session) conn.getSession();
-        session.setSchemaSearchPath(new String[]{ "PUBLIC" });
-
+        Connection conn = getConnection();
         Statement stat = conn.createStatement();
+        stat.execute("SET SCHEMA_SEARCH_PATH PUBLIC");
         stat.execute("CREATE TABLE T1 ( ID INT IDENTITY )");
         try {
             stat.executeQuery("SELECT 1 FROM t1");
@@ -127,7 +125,7 @@ public class TestSelectTableNotFound extends TestDb {
 
     private void testWhenSchemaIsEmpty() throws SQLException {
         deleteDb(getTestName());
-        Connection conn = getJdbcConnection();
+        Connection conn = getConnection();
         Statement stat = conn.createStatement();
         try {
             stat.executeQuery("SELECT 1 FROM t1");
@@ -143,7 +141,7 @@ public class TestSelectTableNotFound extends TestDb {
 
     private void testWithSchemaWhenSchemaIsEmpty() throws SQLException {
         deleteDb(getTestName());
-        Connection conn = getJdbcConnection();
+        Connection conn = getConnection();
         Statement stat = conn.createStatement();
         try {
             stat.executeQuery("SELECT 1 FROM PUBLIC.t1");
@@ -159,11 +157,9 @@ public class TestSelectTableNotFound extends TestDb {
 
     private void testWithSchemaSearchPathWhenSchemaIsEmpty() throws SQLException {
         deleteDb(getTestName());
-        JdbcConnection conn = getJdbcConnection();
-        Session session = (Session) conn.getSession();
-        session.setSchemaSearchPath(new String[]{ "PUBLIC" });
-
+        Connection conn = getConnection();
         Statement stat = conn.createStatement();
+        stat.execute("SET SCHEMA_SEARCH_PATH PUBLIC");
         try {
             stat.executeQuery("SELECT 1 FROM t1");
             fail("Table `t1` was accessible but should not have been.");
@@ -176,7 +172,7 @@ public class TestSelectTableNotFound extends TestDb {
         deleteDb(getTestName());
     }
 
-    private JdbcConnection getJdbcConnection() throws SQLException {
-        return (JdbcConnection) getConnection(getTestName() + ";DATABASE_TO_LOWER=false;DATABASE_TO_UPPER=false");
+    private Connection getConnection() throws SQLException {
+        return getConnection(getTestName() + ";DATABASE_TO_UPPER=FALSE");
     }
 }

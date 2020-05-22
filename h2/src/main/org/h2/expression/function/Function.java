@@ -1540,11 +1540,11 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return result;
     }
 
-    private Value regexpSubstr(Value inputString, Value regexpArg, Value positionArg, 
+    private Value regexpSubstr(Value inputString, Value regexpArg, Value positionArg,
             Value occurrenceArg, Value regexpModeArg, Value subexpressionArg, Session session) {
         String regexp = regexpArg.getString();
 
-        if (inputString == ValueNull.INSTANCE || regexpArg == ValueNull.INSTANCE || positionArg == ValueNull.INSTANCE 
+        if (inputString == ValueNull.INSTANCE || regexpArg == ValueNull.INSTANCE || positionArg == ValueNull.INSTANCE
             || occurrenceArg == ValueNull.INSTANCE || subexpressionArg == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
         }

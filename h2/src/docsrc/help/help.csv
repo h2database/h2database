@@ -4098,7 +4098,7 @@ ROW(A INT, B VARCHAR(10))
 "
 
 "Data Types","ENUM Type","
-@h2@ { ENUM (string [, ... ]) }
+@h2@ ENUM (string [, ... ])
 ","
 A type with enumerated values.
 Mapped to ""java.lang.String"".

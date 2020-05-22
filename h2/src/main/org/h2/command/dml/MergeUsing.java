@@ -8,9 +8,6 @@ package org.h2.command.dml;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Objects;
-import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -37,7 +34,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.HasSQL;
 import org.h2.util.Utils;
-import org.h2.value.Value;
 
 /**
  * This class represents the statement syntax
@@ -452,112 +448,33 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
 
     }
 
-    public static final class WhenMatchedThenUpdate extends When implements CommandWithAssignments {
+    public static final class WhenMatchedThenUpdate extends When {
 
-        private final LinkedHashMap<Column, Expression> setClauseMap  = new LinkedHashMap<>();
+        private SetClauseList setClauseList;
 
         public WhenMatchedThenUpdate(MergeUsing mergeUsing) {
             super(mergeUsing);
         }
 
-        @Override
-        public void setAssignment(Column column, Expression expression) {
-            if (setClauseMap.putIfAbsent(column, expression) != null) {
-                throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getName());
-            }
-            if (expression instanceof Parameter) {
-                ((Parameter) expression).setColumn(column);
-            }
+        public void setSetClauseList(SetClauseList setClauseList) {
+            this.setClauseList = setClauseList;
         }
 
         @Override
         void merge(Session session) {
             TableFilter targetTableFilter = mergeUsing.targetTableFilter;
             Table table = targetTableFilter.getTable();
-            ResultTarget deltaChangeCollector = mergeUsing.deltaChangeCollector;
-            ResultOption deltaChangeCollectionMode = mergeUsing.deltaChangeCollectionMode;
             try (RowList rows = new RowList(session, table)) {
-                Column[] columns = table.getColumns();
-                int columnCount = columns.length;
-                Row oldRow = targetTableFilter.get();
-                Row newRow = table.getTemplateRow();
-                boolean setOnUpdate = false;
-                for (int i = 0; i < columnCount; i++) {
-                    Column column = columns[i];
-                    Expression newExpr = setClauseMap.get(column);
-                    Value newValue;
-                    if (newExpr == null) {
-                        if (column.getOnUpdateExpression() != null) {
-                            setOnUpdate = true;
-                        }
-                        newValue = column.getGenerated() ? null : oldRow.getValue(i);
-                    } else if (newExpr == ValueExpression.DEFAULT) {
-                        newValue = null;
-                    } else {
-                        newValue = newExpr.getValue(session);
-                    }
-                    newRow.setValue(i, newValue);
-                }
-                newRow.setKey(oldRow.getKey());
-                table.validateConvertUpdateSequence(session, newRow);
-                if (setOnUpdate) {
-                    setOnUpdate = false;
-                    for (int i = 0; i < columnCount; i++) {
-                        // Use equals here to detect changes from numeric 0 to 0.0 and similar
-                        if (!Objects.equals(oldRow.getValue(i), newRow.getValue(i))) {
-                            setOnUpdate = true;
-                            break;
-                        }
-                    }
-                    if (setOnUpdate) {
-                        for (int i = 0; i < columnCount; i++) {
-                            Column column = columns[i];
-                            if (setClauseMap.get(column) == null) {
-                                Expression onUpdate = column.getOnUpdateExpression();
-                                if (onUpdate != null) {
-                                    newRow.setValue(i, onUpdate.getValue(session));
-                                }
-                            }
-                        }
-                        // Convert on update expressions and reevaluate
-                        // generated columns
-                        table.validateConvertUpdateSequence(session, newRow);
-                    }
-                }
-                if (deltaChangeCollectionMode == ResultOption.OLD) {
-                    deltaChangeCollector.addRow(oldRow.getValueList());
-                } else if (deltaChangeCollectionMode == ResultOption.NEW) {
-                    deltaChangeCollector.addRow(newRow.getValueList().clone());
-                }
-                if (!table.fireRow() || !table.fireBeforeRow(session, oldRow, newRow)) {
-                    rows.add(oldRow);
-                    rows.add(newRow);
-                }
-                if (deltaChangeCollectionMode == ResultOption.FINAL) {
-                    deltaChangeCollector.addRow(newRow.getValueList());
-                }
-                table.updateRows(mergeUsing, session, rows);
-                if (table.fireRow()) {
-                    for (rows.reset(); rows.hasNext();) {
-                        Row o = rows.next();
-                        Row n = rows.next();
-                        table.fireAfterRow(session, o, n, false);
-                    }
-                }
+                setClauseList.prepareUpdate(table, session, mergeUsing.deltaChangeCollector,
+                        mergeUsing.deltaChangeCollectionMode, rows, targetTableFilter.get(), false);
+                Update.doUpdate(mergeUsing, session, table, rows);
             }
         }
 
         @Override
         boolean prepare(Session session) {
             boolean result = super.prepare(session);
-            TableFilter targetTableFilter = mergeUsing.targetTableFilter,
-                    sourceTableFilter = mergeUsing.sourceTableFilter;
-            for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
-                Expression e = entry.getValue();
-                e.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
-                e.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
-                entry.setValue(e.optimize(session));
-            }
+            setClauseList.mapAndOptimize(session, mergeUsing.targetTableFilter, mergeUsing.sourceTableFilter);
             return result;
         }
 
@@ -574,16 +491,12 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         @Override
         void collectDependencies(ExpressionVisitor visitor) {
             super.collectDependencies(visitor);
-            for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
-                entry.getValue().isEverything(visitor);
-            }
+            setClauseList.isEverything(visitor);
         }
 
         @Override
         public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-            super.getSQL(builder, sqlFlags).append("UPDATE");
-            Update.getSetClauseSQL(builder, setClauseMap, sqlFlags);
-            return builder;
+            return setClauseList.getSQL(super.getSQL(builder, sqlFlags).append("UPDATE"), sqlFlags);
         }
 
     }

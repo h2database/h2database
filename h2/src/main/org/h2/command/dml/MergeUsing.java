@@ -8,8 +8,6 @@ package org.h2.command.dml;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -450,22 +448,16 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
 
     }
 
-    public static final class WhenMatchedThenUpdate extends When implements CommandWithAssignments {
+    public static final class WhenMatchedThenUpdate extends When {
 
-        private final LinkedHashMap<Column, Expression> setClauseMap  = new LinkedHashMap<>();
+        private SetClauseList setClauseList;
 
         public WhenMatchedThenUpdate(MergeUsing mergeUsing) {
             super(mergeUsing);
         }
 
-        @Override
-        public void setAssignment(Column column, Expression expression) {
-            if (setClauseMap.putIfAbsent(column, expression) != null) {
-                throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getName());
-            }
-            if (expression instanceof Parameter) {
-                ((Parameter) expression).setColumn(column);
-            }
+        public void setSetClauseList(SetClauseList setClauseList) {
+            this.setClauseList = setClauseList;
         }
 
         @Override
@@ -473,9 +465,8 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
             TableFilter targetTableFilter = mergeUsing.targetTableFilter;
             Table table = targetTableFilter.getTable();
             try (RowList rows = new RowList(session, table)) {
-                Row oldRow = targetTableFilter.get();
-                Update.prepareUpdate(table, session, mergeUsing.deltaChangeCollector,
-                        mergeUsing.deltaChangeCollectionMode, setClauseMap, rows, oldRow, false);
+                setClauseList.prepareUpdate(table, session, mergeUsing.deltaChangeCollector,
+                        mergeUsing.deltaChangeCollectionMode, rows, targetTableFilter.get(), false);
                 Update.doUpdate(mergeUsing, session, table, rows);
             }
         }
@@ -483,14 +474,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         @Override
         boolean prepare(Session session) {
             boolean result = super.prepare(session);
-            TableFilter targetTableFilter = mergeUsing.targetTableFilter,
-                    sourceTableFilter = mergeUsing.sourceTableFilter;
-            for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
-                Expression e = entry.getValue();
-                e.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
-                e.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
-                entry.setValue(e.optimize(session));
-            }
+            setClauseList.mapAndOptimize(session, mergeUsing.targetTableFilter, mergeUsing.sourceTableFilter);
             return result;
         }
 
@@ -507,16 +491,12 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         @Override
         void collectDependencies(ExpressionVisitor visitor) {
             super.collectDependencies(visitor);
-            for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
-                entry.getValue().isEverything(visitor);
-            }
+            setClauseList.isEverything(visitor);
         }
 
         @Override
         public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-            super.getSQL(builder, sqlFlags).append("UPDATE");
-            Update.getSetClauseSQL(builder, setClauseMap, sqlFlags);
-            return builder;
+            return setClauseList.getSQL(super.getSQL(builder, sqlFlags).append("UPDATE"), sqlFlags);
         }
 
     }

@@ -101,7 +101,7 @@ closely closer closes closest closing cloud cls clubs clue clunky cluster cluste
 clustering cmd cms cnf cnrs cnt coalesce code codebase codebook coded codegen
 codehaus codes coding codist coffee cognitect col cold coldrick coll
 collaborative collapse collate collateral collation collations collator collators
-collect collected collecting collection collections collectively collector
+collect collected collecting collection collections collectively collector collectors
 collide collision collisions colon color cols colspan column columnlist columns
 com combination combinations combinatorics combine combined combines combining
 combo combobox come comes coming comma command commands commas comment commented
@@ -653,7 +653,7 @@ thus tick ticker tid tigers tilde time timed timely timeout timer times timestam
 timestampadd timestampdiff timestamps timezone timezones timing tiny tinyblob
 tinyint tinytext tip tips tired tis title titled titles tls tme tmendrscan tmfail
 tmjoin tmnoflags tmonephase tmp tmpdir tmresume tmstartrscan tmsuccess tmsuspend
-tmueller tmzone toc today todescato todo tofu together toggle token tokenize
+tmueller tmzone toast toc today todescato todo tofu together toggle token tokenize
 tokenizer tokens tolerant tom tomas tomcat tong too took tool toolbar toolkit
 tools toolset top topic topics toplink topology tort total totals touch toward
 tpc trace traces tracing track tracked tracker tracking tracks trade trademark

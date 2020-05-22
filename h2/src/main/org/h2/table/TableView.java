@@ -662,7 +662,7 @@ public class TableView extends Table {
         if (exception == null) {
             return false;
         }
-        final int errorCode = exception.getErrorCode();
+        int errorCode = exception.getErrorCode();
         if (errorCode != ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1 &&
                 errorCode != ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1 &&
                 errorCode != ErrorCode.TABLE_OR_VIEW_NOT_FOUND_WITH_CANDIDATES_2

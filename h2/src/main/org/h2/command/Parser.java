@@ -8633,29 +8633,29 @@ public class Parser {
         throw getTableOrViewNotFoundDbException(tableName);
     }
 
-    private DbException getTableOrViewNotFoundDbException(final String tableName) {
+    private DbException getTableOrViewNotFoundDbException(String tableName) {
         if (schemaName != null) {
             return getTableOrViewNotFoundDbException(schemaName, tableName);
         }
 
-        final String currentSchemaName = session.getCurrentSchemaName();
-        final String[] schemaSearchPath = session.getSchemaSearchPath();
+        String currentSchemaName = session.getCurrentSchemaName();
+        String[] schemaSearchPath = session.getSchemaSearchPath();
         if (schemaSearchPath == null) {
             return getTableOrViewNotFoundDbException(Collections.singleton(currentSchemaName), tableName);
         }
 
-        final LinkedHashSet<String> schemaNames = new LinkedHashSet<>();
+        LinkedHashSet<String> schemaNames = new LinkedHashSet<>();
         schemaNames.add(currentSchemaName);
         schemaNames.addAll(Arrays.asList(schemaSearchPath));
         return getTableOrViewNotFoundDbException(schemaNames, tableName);
     }
 
-    private DbException getTableOrViewNotFoundDbException(final String schemaName, final String tableName) {
+    private DbException getTableOrViewNotFoundDbException(String schemaName, String tableName) {
         return getTableOrViewNotFoundDbException(Collections.singleton(schemaName), tableName);
     }
 
     private DbException getTableOrViewNotFoundDbException(
-            final java.util.Set<String> schemaNames, final String tableName) {
+            java.util.Set<String> schemaNames, String tableName) {
         if (database == null || database.getFirstUserTable() == null) {
             return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, tableName);
         }
@@ -8664,8 +8664,8 @@ public class Parser {
             return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
         }
 
-        final java.util.Set<String> candidates = new TreeSet<>();
-        for (final String schemaName : schemaNames) {
+        java.util.Set<String> candidates = new TreeSet<>();
+        for (String schemaName : schemaNames) {
             candidates.addAll(findTableNameCandidates(schemaName, tableName));
         }
 
@@ -8678,13 +8678,13 @@ public class Parser {
             String.join(", ", candidates));
     }
 
-    private java.util.Set<String> findTableNameCandidates(final String schemaName, final String tableName) {
-        final Schema schema = database.getSchema(schemaName);
-        final String ucTableName = StringUtils.toUpperEnglish(tableName);
-        final java.util.Set<String> candidates = new TreeSet<>();
-        final Collection<Table> allTablesAndViews = schema.getAllTablesAndViews();
-        for (final Table candidate : allTablesAndViews) {
-            final String candidateName = candidate.getName();
+    private java.util.Set<String> findTableNameCandidates(String schemaName, String tableName) {
+        Schema schema = database.getSchema(schemaName);
+        String ucTableName = StringUtils.toUpperEnglish(tableName);
+        java.util.Set<String> candidates = new TreeSet<>();
+        Collection<Table> allTablesAndViews = schema.getAllTablesAndViews();
+        for (Table candidate : allTablesAndViews) {
+            String candidateName = candidate.getName();
             if (ucTableName.equals(StringUtils.toUpperEnglish(candidateName))) {
                 candidates.add(candidateName);
             }

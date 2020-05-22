@@ -622,7 +622,6 @@ public class TableLink extends Table {
 
     @Override
     public void updateRows(Prepared prepared, Session session, RowList rows) {
-        boolean deleteInsert;
         checkReadOnly();
         if (emitUpdates) {
             for (rows.reset(); rows.hasNext();) {
@@ -633,11 +632,7 @@ public class TableLink extends Table {
                 session.log(this, UndoLogRecord.DELETE, oldRow);
                 session.log(this, UndoLogRecord.INSERT, newRow);
             }
-            deleteInsert = false;
         } else {
-            deleteInsert = true;
-        }
-        if (deleteInsert) {
             super.updateRows(prepared, session, rows);
         }
     }

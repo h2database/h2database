@@ -6,11 +6,7 @@
 package org.h2.command.dml;
 
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map.Entry;
-import java.util.Objects;
 
-import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
@@ -20,14 +16,10 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.Parameter;
-import org.h2.expression.ValueExpression;
-import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.result.RowList;
-import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
@@ -39,7 +31,7 @@ import org.h2.value.ValueNull;
  * This class represents the statement
  * UPDATE
  */
-public class Update extends Prepared implements CommandWithAssignments, DataChangeStatement {
+public class Update extends Prepared implements DataChangeStatement {
 
     private Expression condition;
     private TableFilter targetTableFilter;// target of update
@@ -49,7 +41,7 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
 
     private boolean updateToCurrentValuesReturnsZero;
 
-    private final LinkedHashMap<Column, Expression> setClauseMap  = new LinkedHashMap<>();
+    private SetClauseList setClauseList;
 
     private ResultTarget deltaChangeCollector;
 
@@ -76,14 +68,8 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
         return this.condition;
     }
 
-    @Override
-    public void setAssignment(Column column, Expression expression) {
-        if (setClauseMap.putIfAbsent(column, expression) != null) {
-            throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getName());
-        }
-        if (expression instanceof Parameter) {
-            ((Parameter) expression).setColumn(column);
-        }
+    public void setSetClauseList(SetClauseList setClauseList) {
+        this.setClauseList = setClauseList;
     }
 
     @Override
@@ -104,8 +90,6 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
             // get the old rows, compute the new rows
             setCurrentRowNumber(0);
             int count = 0;
-            Column[] columns = table.getColumns();
-            int columnCount = columns.length;
             int limitRows = -1;
             if (limitExpr != null) {
                 Value v = limitExpr.getValue(session);
@@ -133,85 +117,34 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
                             }
                         }
                     }
-                    Row newRow = table.getTemplateRow();
-                    boolean setOnUpdate = false;
-                    for (int i = 0; i < columnCount; i++) {
-                        Column column = columns[i];
-                        Expression newExpr = setClauseMap.get(column);
-                        Value newValue;
-                        if (newExpr == null) {
-                            if (column.getOnUpdateExpression() != null) {
-                                setOnUpdate = true;
-                            }
-                            newValue = column.getGenerated() ? null : oldRow.getValue(i);
-                        } else if (newExpr == ValueExpression.DEFAULT) {
-                            newValue = null;
-                        } else {
-                            newValue = newExpr.getValue(session);
-                        }
-                        newRow.setValue(i, newValue);
+                    if (setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode,
+                            rows, oldRow, updateToCurrentValuesReturnsZero)) {
+                        count++;
                     }
-                    newRow.setKey(oldRow.getKey());
-                    table.validateConvertUpdateSequence(session, newRow);
-                    if (setOnUpdate || updateToCurrentValuesReturnsZero) {
-                        setOnUpdate = false;
-                        for (int i = 0; i < columnCount; i++) {
-                            // Use equals here to detect changes from numeric 0 to 0.0 and similar
-                            if (!Objects.equals(oldRow.getValue(i), newRow.getValue(i))) {
-                                setOnUpdate = true;
-                                break;
-                            }
-                        }
-                        if (setOnUpdate) {
-                            for (int i = 0; i < columnCount; i++) {
-                                Column column = columns[i];
-                                if (setClauseMap.get(column) == null) {
-                                    Expression onUpdate = column.getOnUpdateExpression();
-                                    if (onUpdate != null) {
-                                        newRow.setValue(i, onUpdate.getValue(session));
-                                    }
-                                }
-                            }
-                            // Convert on update expressions and reevaluate
-                            // generated columns
-                            table.validateConvertUpdateSequence(session, newRow);
-                        } else if (updateToCurrentValuesReturnsZero) {
-                            count--;
-                        }
-                    }
-                    if (deltaChangeCollectionMode == ResultOption.OLD) {
-                        deltaChangeCollector.addRow(oldRow.getValueList());
-                    } else if (deltaChangeCollectionMode == ResultOption.NEW) {
-                        deltaChangeCollector.addRow(newRow.getValueList().clone());
-                    }
-                    if (!table.fireRow() || !table.fireBeforeRow(session, oldRow, newRow)) {
-                        rows.add(oldRow);
-                        rows.add(newRow);
-                    }
-                    if (deltaChangeCollectionMode == ResultOption.FINAL) {
-                        deltaChangeCollector.addRow(newRow.getValueList());
-                    }
-                    count++;
                 }
             }
-            // TODO self referencing referential integrity constraints
-            // don't work if update is multi-row and 'inversed' the condition!
-            // probably need multi-row triggers with 'deleted' and 'inserted'
-            // at the same time. anyway good for sql compatibility
-            // TODO update in-place (but if the key changes,
-            // we need to update all indexes) before row triggers
-
-            // the cached row is already updated - we need the old values
-            table.updateRows(this, session, rows);
-            if (table.fireRow()) {
-                for (rows.reset(); rows.hasNext();) {
-                    Row o = rows.next();
-                    Row n = rows.next();
-                    table.fireAfterRow(session, o, n, false);
-                }
-            }
+            doUpdate(this, session, table, rows);
             table.fire(session, Trigger.UPDATE, false);
             return count;
+        }
+    }
+
+    static void doUpdate(Prepared prepared, Session session, Table table, RowList rows) {
+        // TODO self referencing referential integrity constraints
+        // don't work if update is multi-row and 'inversed' the condition!
+        // probably need multi-row triggers with 'deleted' and 'inserted'
+        // at the same time. anyway good for sql compatibility
+        // TODO update in-place (but if the key changes,
+        // we need to update all indexes) before row triggers
+
+        // the cached row is already updated - we need the old values
+        table.updateRows(prepared, session, rows);
+        if (table.fireRow()) {
+            for (rows.reset(); rows.hasNext();) {
+                Row o = rows.next();
+                Row n = rows.next();
+                table.fireAfterRow(session, o, n, false);
+            }
         }
     }
 
@@ -219,7 +152,7 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
     public String getPlanSQL(int sqlFlags) {
         StringBuilder builder = new StringBuilder("UPDATE ");
         targetTableFilter.getPlanSQL(builder, false, sqlFlags);
-        getSetClauseSQL(builder, setClauseMap, sqlFlags);
+        setClauseList.getSQL(builder, sqlFlags);
         if (condition != null) {
             builder.append("\nWHERE ");
             condition.getUnenclosedSQL(builder, sqlFlags);
@@ -231,19 +164,6 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
         return builder.toString();
     }
 
-    static void getSetClauseSQL(StringBuilder builder, LinkedHashMap<Column, Expression> setClauseMap, int sqlFlags) {
-        builder.append("\nSET\n    ");
-        boolean f = false;
-        for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
-            if (f) {
-                builder.append(",\n    ");
-            }
-            f = true;
-            entry.getKey().getSQL(builder, sqlFlags).append(" = ");
-            entry.getValue().getSQL(builder, sqlFlags);
-        }
-    }
-
     @Override
     public void prepare() {
         if (condition != null) {
@@ -253,11 +173,7 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
                 condition.createIndexConditions(session, targetTableFilter);
             }
         }
-        for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
-            Expression e = entry.getValue();
-            e.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
-            entry.setValue(e.optimize(session));
-        }
+        setClauseList.mapAndOptimize(session, targetTableFilter, null);
         TableFilter[] filters = new TableFilter[] { targetTableFilter };
         PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters));
         targetTableFilter.setPlanItem(item);
@@ -309,8 +225,6 @@ public class Update extends Prepared implements CommandWithAssignments, DataChan
         if (condition != null) {
             condition.isEverything(visitor);
         }
-        for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
-            entry.getValue().isEverything(visitor);
-        }
+        setClauseList.isEverything(visitor);
     }
 }

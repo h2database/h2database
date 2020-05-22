@@ -162,7 +162,7 @@ import org.h2.command.ddl.TruncateTable;
 import org.h2.command.dml.AlterTableSet;
 import org.h2.command.dml.BackupCommand;
 import org.h2.command.dml.Call;
-import org.h2.command.dml.CommandWithAssignments;
+import org.h2.command.dml.SetClauseList;
 import org.h2.command.dml.CommandWithValues;
 import org.h2.command.dml.DataChangeStatement;
 import org.h2.command.dml.Delete;
@@ -1357,51 +1357,33 @@ public class Parser {
     }
 
     private Column readTableColumn(TableFilter filter) {
-        boolean rowId = false;
-        String columnName = null;
-        if (currentTokenType == _ROWID_) {
-            read();
-            rowId = true;
-        } else {
+        String columnName = readColumnIdentifier();
+        if (readIf(DOT)) {
+            columnName = readTableColumn(filter, columnName);
+        }
+        return filter.getTable().getColumn(columnName);
+    }
+
+    private String readTableColumn(TableFilter filter, String tableAlias) {
+        String columnName = readColumnIdentifier();
+        if (readIf(DOT)) {
+            String schema = tableAlias;
+            tableAlias = columnName;
             columnName = readColumnIdentifier();
             if (readIf(DOT)) {
-                String tableAlias = columnName;
-                if (currentTokenType == _ROWID_) {
-                    read();
-                    rowId = true;
-                } else {
-                    columnName = readColumnIdentifier();
-                    if (readIf(DOT)) {
-                        String schema = tableAlias;
-                        tableAlias = columnName;
-                        if (currentTokenType == _ROWID_) {
-                            read();
-                            rowId = true;
-                        } else {
-                            columnName = readColumnIdentifier();
-                            if (readIf(DOT)) {
-                                checkDatabaseName(schema);
-                                schema = tableAlias;
-                                tableAlias = columnName;
-                                if (currentTokenType == _ROWID_) {
-                                    read();
-                                    rowId = true;
-                                } else {
-                                    columnName = readColumnIdentifier();
-                                }
-                            }
-                        }
-                        if (!equalsToken(schema, filter.getTable().getSchema().getName())) {
-                            throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schema);
-                        }
-                    }
-                }
-                if (!equalsToken(tableAlias, filter.getTableAlias())) {
-                    throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
-                }
+                checkDatabaseName(schema);
+                schema = tableAlias;
+                tableAlias = columnName;
+                columnName = readColumnIdentifier();
+            }
+            if (!equalsToken(schema, filter.getTable().getSchema().getName())) {
+                throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schema);
             }
         }
-        return rowId ? filter.getRowIdColumn() : filter.getTable().getColumn(columnName);
+        if (!equalsToken(tableAlias, filter.getTableAlias())) {
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
+        }
+        return columnName;
     }
 
     private Update parseUpdate(int start) {
@@ -1416,7 +1398,7 @@ public class Parser {
         }
         TableFilter filter = readSimpleTableFilter();
         command.setTableFilter(filter);
-        parseUpdateSetClause(command, filter);
+        command.setSetClauseList(readUpdateSetClause(filter));
         if (readIf(WHERE)) {
             command.setCondition(readExpression());
         }
@@ -1425,16 +1407,16 @@ public class Parser {
             // (this syntax is supported, but ignored)
             readIfOrderBy();
             if (readIf(LIMIT)) {
-                Expression limit1 = readTerm().optimize(session);
-                command.setLimit(limit1);
+                command.setLimit(readTerm().optimize(session));
             }
         }
         setSQL(command, start);
         return command;
     }
 
-    private void parseUpdateSetClause(CommandWithAssignments command, TableFilter filter) {
+    private SetClauseList readUpdateSetClause(TableFilter filter) {
         read(SET);
+        SetClauseList list = new SetClauseList(filter.getTable());
         do {
             if (readIf(OPEN_PAREN)) {
                 ArrayList<Column> columns = Utils.newSmallArrayList();
@@ -1442,35 +1424,14 @@ public class Parser {
                     columns.add(readTableColumn(filter));
                 } while (readIfMore());
                 read(EQUAL);
-                Expression expression = readExpression();
-                int columnCount = columns.size();
-                if (expression instanceof ExpressionList) {
-                    ExpressionList list = (ExpressionList) expression;
-                    if (!list.isArray()) {
-                        if (columnCount != list.getSubexpressionCount()) {
-                            throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
-                        }
-                        for (int i = 0; i < columnCount; i++) {
-                            command.setAssignment(columns.get(i), list.getSubexpression(i));
-                        }
-                        continue;
-                    }
-                }
-                if (columnCount == 1) {
-                    // Row value special case
-                    command.setAssignment(columns.get(0), expression);
-                } else {
-                    for (int i = 0; i < columnCount; i++) {
-                        command.setAssignment(columns.get(i),
-                                new ArrayElementReference(expression, ValueExpression.get(ValueInteger.get(i + 1))));
-                    }
-                }
+                list.addMultiple(columns, readExpression());
             } else {
                 Column column = readTableColumn(filter);
                 read(EQUAL);
-                command.setAssignment(column, readExpressionOrDefault());
+                list.addSingle(column, readExpressionOrDefault());
             }
         } while (readIf(COMMA));
+        return list;
     }
 
     private TableFilter readSimpleTableFilter() {
@@ -1794,9 +1755,8 @@ public class Parser {
         read("THEN");
         MergeUsing.When when;
         if (readIf("UPDATE")) {
-            TableFilter filter = command.getTargetTableFilter();
             MergeUsing.WhenMatchedThenUpdate update = new MergeUsing.WhenMatchedThenUpdate(command);
-            parseUpdateSetClause(update, filter);
+            update.setSetClauseList(readUpdateSetClause(command.getTargetTableFilter()));
             when = update;
         } else {
             read("DELETE");

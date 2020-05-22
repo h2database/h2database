@@ -103,7 +103,7 @@ public class TestQueryCache extends TestDb {
             PreparedStatement prep = conn.prepareStatement("SELECT * FROM TEST");
             prep.close();
             stat.executeUpdate("DROP TABLE TEST");
-            assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, conn).
+            assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, conn).
                     prepareStatement("SELECT * FROM TEST");
         }
     }

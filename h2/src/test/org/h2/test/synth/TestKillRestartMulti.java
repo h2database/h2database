@@ -316,7 +316,10 @@ public class TestKillRestartMulti extends TestDb {
                     rs.getString("NAME");
                 }
             } catch (SQLException e) {
-                if (e.getErrorCode() == ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1) {
+                if (e.getErrorCode() == ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1 ||
+                        e.getErrorCode() == ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1 ||
+                        e.getErrorCode() == ErrorCode.TABLE_OR_VIEW_NOT_FOUND_WITH_CANDIDATES_2
+                ) {
                     // ok
                 } else {
                     throw e;

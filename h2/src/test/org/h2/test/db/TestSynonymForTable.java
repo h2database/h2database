@@ -71,7 +71,7 @@ public class TestSynonymForTable extends TestDb {
         stat.execute("CREATE OR REPLACE SYNONYM testsynonym FOR s1.backingtable");
         stat.execute("DROP SCHEMA s1 CASCADE");
 
-        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).execute("SELECT id FROM testsynonym");
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, stat).execute("SELECT id FROM testsynonym");
         conn.close();
     }
 

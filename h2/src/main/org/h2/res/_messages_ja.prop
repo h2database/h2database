@@ -29,6 +29,8 @@
 42602=#Invalid name {0}
 42S01=テーブル {0} はすでに存在します
 42S02=テーブル {0} が見つかりません
+42S03=#Table {0} not found (candidates are: {1})
+42S04=#Table {0} not found (this database is empty)
 42S11=インデックス {0} はすでに存在します
 42S12=インデックス {0} が見つかりません
 42S21=列名 {0} が重複しています

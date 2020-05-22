@@ -29,6 +29,8 @@
 42602=#Invalid name {0}
 42S01=Tabla {0} ya existe
 42S02=Tabla {0} no encontrada
+42S03=#Table {0} not found (candidates are: {1})
+42S04=#Table {0} not found (this database is empty)
 42S11=Indice {0} ya existe
 42S12=Indice {0} no encontrado
 42S21=Nombre de columna Duplicada {0}

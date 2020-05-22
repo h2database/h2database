@@ -105,11 +105,6 @@ public class FilePathNioMem extends FilePath {
     }
 
     @Override
-    protected boolean setWritable() {
-        return getMemoryFile().setWritable();
-    }
-
-    @Override
     public boolean canWrite() {
         return getMemoryFile().canWrite();
     }

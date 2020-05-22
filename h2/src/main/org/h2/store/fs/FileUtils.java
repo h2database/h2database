@@ -101,25 +101,7 @@ public class FileUtils {
      * @param path the file or directory name
      */
     public static void delete(String path) {
-        delete(path, false);
-    }
-
-    /**
-     * Try to delete a file or directory if it exists even if it is set to read-only.
-     * Directories may only be deleted if they are empty.
-     * This method is similar to Java 7
-     * <code>java.nio.file.Path.deleteIfExists</code>.
-     *
-     * @param path the file or directory name
-     * @param makeWritable try to make file or directory writable first (some OS (e.g. Windows)
-     *                     require this to delete read-only files)
-     */
-    public static void delete(String path, final boolean makeWritable) {
-        final FilePath filePath = FilePath.get(path);
-        if (makeWritable) {
-            filePath.setWritable();
-        }
-        filePath.delete();
+        FilePath.get(path).delete();
     }
 
     /**
@@ -309,23 +291,13 @@ public class FileUtils {
     // special methods =======================================
 
     /**
-     * Disable the ability to write. The file can still be deleted afterwards on some systems.
+     * Disable the ability to write. The file can still be deleted afterwards.
      *
      * @param fileName the file name
      * @return true if the call was successful
      */
     public static boolean setReadOnly(String fileName) {
         return FilePath.get(fileName).setReadOnly();
-    }
-
-    /**
-     * Enable the ability to write for the owner.
-     *
-     * @param fileName the file name
-     * @return true if the call was successful
-     */
-    public static boolean setWritable(String fileName) {
-        return FilePath.get(fileName).setWritable();
     }
 
     /**
@@ -348,18 +320,6 @@ public class FileUtils {
      * @param tryOnly whether errors should  be ignored
      */
     public static void deleteRecursive(String path, boolean tryOnly) {
-        deleteRecursive(path, tryOnly, false);
-    }
-
-    /**
-     * Try to delete a directory or file and all subdirectories and files even if they are read-only.
-     *  @param path the path
-     * @param tryOnly whether errors should  be ignored
-     * @param makeWritable try to make file or directory writable first (some OS (e.g. Windows)
-     *                     require this to delete read-only files)
-     */
-    public static void deleteRecursive(String path, boolean tryOnly,
-        final boolean makeWritable) {
         if (exists(path)) {
             if (isDirectory(path)) {
                 for (String s : newDirectoryStream(path)) {
@@ -369,7 +329,7 @@ public class FileUtils {
             if (tryOnly) {
                 tryDelete(path);
             } else {
-                delete(path, makeWritable);
+                delete(path);
             }
         }
     }

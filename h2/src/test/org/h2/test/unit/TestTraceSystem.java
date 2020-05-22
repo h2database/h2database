@@ -63,13 +63,13 @@ public class TestTraceSystem extends TestBase {
 
     private void testReadOnly() throws Exception {
         String readOnlyFile = getBaseDir() + "/readOnly.log";
-        FileUtils.delete(readOnlyFile, true);
+        FileUtils.delete(readOnlyFile);
         FileUtils.newOutputStream(readOnlyFile, false).close();
         FileUtils.setReadOnly(readOnlyFile);
         TraceSystem ts = new TraceSystem(readOnlyFile);
         ts.setLevelFile(TraceSystem.INFO);
         ts.getTrace("test").info("test");
-        FileUtils.delete(readOnlyFile, true);
+        FileUtils.delete(readOnlyFile);
         ts.close();
     }
 

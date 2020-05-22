@@ -12,8 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.h2.store.FileLister;
-import org.h2.store.fs.FileUtils;
 import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.DeleteDbFiles;
 
@@ -179,18 +177,6 @@ public abstract class TestDb extends TestBase {
         // if (list.size() >  0) {
         //    System.out.println("Not deleted: " + list);
         // }
-    }
-
-    /**
-     * Delete all database files for a database.
-     *
-     * @param name the database name
-     */
-    protected void deleteReadOnlyDb(String name) {
-        String dir = getBaseDir();
-        FileLister.getDatabaseFiles(dir, name, true)
-            .forEach(FileUtils::setWritable);
-        DeleteDbFiles.execute(dir, name, true);
     }
 
     /**

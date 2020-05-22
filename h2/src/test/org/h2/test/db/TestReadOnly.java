@@ -147,7 +147,7 @@ public class TestReadOnly extends TestDb {
         assertFalse(f.canWrite());
         f.delete();
 
-        deleteReadOnlyDb("readonlyFiles");
+        deleteDb("readonlyFiles");
         Connection conn = getConnection("readonlyFiles");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");

@@ -122,11 +122,6 @@ public class FilePathZip extends FilePath {
     }
 
     @Override
-    protected boolean setWritable() {
-        return true;
-    }
-
-    @Override
     public long size() {
         try {
             try (ZipFile file = openZipFile()) {

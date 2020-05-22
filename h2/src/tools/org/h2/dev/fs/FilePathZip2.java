@@ -168,11 +168,6 @@ public class FilePathZip2 extends FilePath {
     }
 
     @Override
-    protected boolean setWritable() {
-        return true;
-    }
-
-    @Override
     public long size() {
         try {
             String entryName = getEntryName();

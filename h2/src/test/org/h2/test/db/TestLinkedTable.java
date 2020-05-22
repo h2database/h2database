@@ -652,7 +652,7 @@ public class TestLinkedTable extends TestDb {
             return;
         }
 
-        deleteReadOnlyDb("testLinkedTableInReadOnlyDb");
+        deleteDb("testLinkedTableInReadOnlyDb");
         org.h2.Driver.load();
 
         Connection memConn = DriverManager.getConnection(
@@ -689,7 +689,7 @@ public class TestLinkedTable extends TestDb {
         conn.close();
         memConn.close();
 
-        deleteReadOnlyDb("testLinkedTableInReadOnlyDb");
+        deleteDb("testLinkedTableInReadOnlyDb");
     }
 
     private void testGeometry() throws SQLException {

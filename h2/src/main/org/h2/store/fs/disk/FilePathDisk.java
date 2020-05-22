@@ -38,6 +38,9 @@ import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.Windows;
+
+import static org.h2.util.Windows.IS_WINDOWS;
 
 /**
  * This file system stores files on disk.
@@ -197,6 +200,9 @@ public class FilePathDisk extends FilePath {
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
             IOUtils.trace("delete", name, null);
             try {
+                if (IS_WINDOWS) {
+                    Windows.setWritableIfExists(name);
+                }
                 Files.deleteIfExists(file);
                 return;
             } catch (DirectoryNotEmptyException e) {
@@ -256,32 +262,6 @@ public class FilePathDisk extends FilePath {
                 Files.setPosixFilePermissions(f, permissions);
             } else if (fileStore.supportsFileAttributeView(DosFileAttributeView.class)) {
                 Files.setAttribute(f, "dos:readonly", true);
-            } else {
-                return false;
-            }
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
-    @Override
-    protected boolean setWritable() {
-        Path f = Paths.get(name);
-        try {
-            FileStore fileStore = Files.getFileStore(f);
-            /*
-             * Need to check PosixFileAttributeView first because
-             * DosFileAttributeView is also supported by recent Java versions on
-             * non-Windows file systems, but it doesn't affect real access
-             * permissions.
-             */
-            if (fileStore.supportsFileAttributeView(PosixFileAttributeView.class)) {
-                HashSet<PosixFilePermission> permissions = new HashSet<>(Files.getPosixFilePermissions(f));
-                permissions.add(PosixFilePermission.OWNER_WRITE);
-                Files.setPosixFilePermissions(f, permissions);
-            } else if (fileStore.supportsFileAttributeView(DosFileAttributeView.class)) {
-                Files.setAttribute(f, "dos:readonly", false);
             } else {
                 return false;
             }

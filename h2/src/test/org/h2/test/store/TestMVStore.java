@@ -130,7 +130,7 @@ public class TestMVStore extends TestBase {
         }
 
         String fileName = getBaseDir() + "/" + getTestName();
-        FileUtils.delete(fileName, true);
+        FileUtils.delete(fileName);
         try (MVStore store = new MVStore.Builder().
                 autoCommitDisabled().
                 fileName(fileName).
@@ -476,7 +476,7 @@ public class TestMVStore extends TestBase {
 
     private void testCompactFully() {
         String fileName = getBaseDir() + "/" + getTestName();
-        FileUtils.delete(fileName, true);
+        FileUtils.delete(fileName);
         MVStore s = new MVStore.Builder().
                 fileName(fileName).
                 autoCommitDisabled().
@@ -728,7 +728,7 @@ public class TestMVStore extends TestBase {
             assertTrue(s.getFileStore().isReadOnly());
         }
 
-        FileUtils.delete(fileName, true);
+        FileUtils.delete(fileName);
         assertFalse(FileUtils.exists(fileName));
     }
 

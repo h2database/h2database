@@ -271,13 +271,6 @@ public abstract class FilePath {
     public abstract boolean setReadOnly();
 
     /**
-     * Enable the ability to write for the owner.
-     *
-     * @return true if the call was successful
-     */
-    protected abstract boolean setWritable();
-
-    /**
      * Create a new temporary file.
      *
      * @param suffix the suffix

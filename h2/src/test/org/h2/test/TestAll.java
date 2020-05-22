@@ -1048,7 +1048,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      */
     public void beforeTest() throws SQLException {
         Driver.load();
-        FileUtils.deleteRecursive(TestBase.BASE_TEST_DIR, true, true);
+        FileUtils.deleteRecursive(TestBase.BASE_TEST_DIR, true);
         DeleteDbFiles.execute(TestBase.BASE_TEST_DIR, null, true);
         FileUtils.deleteRecursive("trace.db", false);
         if (networked) {

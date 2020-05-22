@@ -287,7 +287,8 @@ public class TestOptimizations extends TestDb {
         stat.execute("insert into test(data) values('World')");
         stat.execute("insert into test(_rowid_, data) values(20, 'Hello')");
         stat.execute(
-                "merge into test(_rowid_, data) key(_rowid_) values(20, 'Hallo')");
+                "merge into test using (values(20, 'Hallo')) s(id, data) on test._rowid_ = s.id"
+                + " when matched then update set data = s.data");
         rs = stat.executeQuery(
                 "select _rowid_, data from test order by _rowid_");
         rs.next();

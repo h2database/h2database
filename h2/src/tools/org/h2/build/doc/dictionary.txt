@@ -101,7 +101,7 @@ closely closer closes closest closing cloud cls clubs clue clunky cluster cluste
 clustering cmd cms cnf cnrs cnt coalesce code codebase codebook coded codegen
 codehaus codes coding codist coffee cognitect col cold coldrick coll
 collaborative collapse collate collateral collation collations collator collators
-collect collected collecting collection collections collectively collector collectors
+collect collected collecting collection collections collectively collector
 collide collision collisions colon color cols colspan column columnlist columns
 com combination combinations combinatorics combine combined combines combining
 combo combobox come comes coming comma command commands commas comment commented

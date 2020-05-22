@@ -115,7 +115,7 @@ public class TestAlterTableNotFound extends TestDb {
             fail("Table `t1` was accessible but should not have been.");
         } catch (SQLException e) {
             final String message = e.getMessage();
-            assertContains(message, "Table \"t1\" not found (candidates are: \"`T1`\")");
+            assertContains(message, "Table \"t1\" not found (candidates are: \"T1\")");
         }
 
         conn.close();
@@ -164,7 +164,7 @@ public class TestAlterTableNotFound extends TestDb {
             fail("Table `toast` was accessible but should not have been.");
         } catch (SQLException e) {
             final String message = e.getMessage();
-            assertContains(message, "Table \"toast\" not found (candidates are: \"`TOAST`, `Toast`\")");
+            assertContains(message, "Table \"toast\" not found (candidates are: \"TOAST, Toast\")");
         }
 
         conn.close();

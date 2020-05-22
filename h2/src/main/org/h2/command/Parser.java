@@ -91,7 +91,6 @@ import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
 import static org.h2.util.ParserUtil.YEAR;
 import static org.h2.util.ParserUtil._ROWID_;
-import static org.h2.util.StreamUtils.not;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
@@ -109,7 +108,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
@@ -745,11 +743,6 @@ public class Parser {
     private final boolean identifiersToUpper;
 
     /**
-     * @see org.h2.engine.DbSettings#caseInsensitiveIdentifiers
-     */
-    private final boolean caseInsensitiveIdentifiers;
-
-    /**
      * @see org.h2.engine.Session#isVariableBinary()
      */
     private final boolean variableBinary;
@@ -838,7 +831,6 @@ public class Parser {
         DbSettings settings = database.getSettings();
         this.identifiersToLower = settings.databaseToLower;
         this.identifiersToUpper = settings.databaseToUpper;
-        this.caseInsensitiveIdentifiers = settings.caseInsensitiveIdentifiers;
         this.variableBinary = session.isVariableBinary();
         this.nonKeywords = session.getNonKeywords();
         this.session = session;
@@ -851,7 +843,6 @@ public class Parser {
         database = null;
         identifiersToLower = false;
         identifiersToUpper = false;
-        caseInsensitiveIdentifiers = false;
         variableBinary = false;
         nonKeywords = null;
         session = null;
@@ -8613,16 +8604,14 @@ public class Parser {
     }
 
     private Table readTableOrView(String tableName) {
-        final List<Schema> schemas = new ArrayList<>();
         if (schemaName != null) {
-            schemas.add(getSchema());
-            Table table = schemas.get(0).resolveTableOrView(session, tableName);
+            Table table = getSchema().resolveTableOrView(session, tableName);
             if (table != null) {
                 return table;
             }
         } else {
-            schemas.add(database.getSchema(session.getCurrentSchemaName()));
-            Table table = schemas.get(0).resolveTableOrView(session, tableName);
+            Table table = database.getSchema(session.getCurrentSchemaName())
+                    .resolveTableOrView(session, tableName);
             if (table != null) {
                 return table;
             }
@@ -8634,7 +8623,6 @@ public class Parser {
                     if (table != null) {
                         return table;
                     }
-                    schemas.add(s);
                 }
             }
         }
@@ -8642,18 +8630,44 @@ public class Parser {
             return new DualTable(database);
         }
 
-        throw getTableOrViewNotFoundDbException(schemas, tableName);
+        throw getTableOrViewNotFoundDbException(tableName);
     }
 
-    private DbException getTableOrViewNotFoundDbException(final List<Schema> schemas, final String tableName) {
-        if (schemas.stream().map(Schema::getAllTablesAndViews).noneMatch(not(Collection::isEmpty))) {
+    private DbException getTableOrViewNotFoundDbException(final String tableName) {
+        if (schemaName != null) {
+            return getTableOrViewNotFoundDbException(schemaName, tableName);
+        }
+
+        final String currentSchemaName = session.getCurrentSchemaName();
+        final String[] schemaSearchPath = session.getSchemaSearchPath();
+        if (schemaSearchPath == null) {
+            return getTableOrViewNotFoundDbException(Collections.singleton(currentSchemaName), tableName);
+        }
+
+        final LinkedHashSet<String> schemaNames = new LinkedHashSet<>();
+        schemaNames.add(currentSchemaName);
+        schemaNames.addAll(Arrays.asList(schemaSearchPath));
+        return getTableOrViewNotFoundDbException(schemaNames, tableName);
+    }
+
+    private DbException getTableOrViewNotFoundDbException(final String schemaName, final String tableName) {
+        return getTableOrViewNotFoundDbException(Collections.singleton(schemaName), tableName);
+    }
+
+    private DbException getTableOrViewNotFoundDbException(
+            final java.util.Set<String> schemaNames, final String tableName) {
+        if (database == null || database.getFirstUserTable() == null) {
             return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, tableName);
         }
 
-        final java.util.Set<String> candidates =
-            caseInsensitiveIdentifiers ?
-                Collections.emptySet() :
-                findQuotedTableNameCandidates(schemas, tableName);
+        if (database.getSettings().caseInsensitiveIdentifiers) {
+            return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+        }
+
+        final java.util.Set<String> candidates = new TreeSet<>();
+        for (final String schemaName : schemaNames) {
+            candidates.addAll(findTableNameCandidates(schemaName, tableName));
+        }
 
         if (candidates.isEmpty()) {
             return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
@@ -8664,16 +8678,19 @@ public class Parser {
             String.join(", ", candidates));
     }
 
-    private java.util.Set<String> findQuotedTableNameCandidates(final List<Schema> schemas, final String tableName) {
-        final String lcTableName = tableName.toLowerCase();
-        return schemas.stream()
-            .map(Schema::getAllTablesAndViews)
-            .flatMap(Collection::stream)
-            .map(Table::getName)
-            .filter(c -> lcTableName.equals(c.toLowerCase()))
-            .sorted()
-            .map(c -> "`" + c + "`")
-            .collect(Collectors.toCollection(TreeSet::new));
+    private java.util.Set<String> findTableNameCandidates(final String schemaName, final String tableName) {
+        final Schema schema = database.getSchema(schemaName);
+        final String ucTableName = StringUtils.toUpperEnglish(tableName);
+        final java.util.Set<String> candidates = new TreeSet<>();
+        final Collection<Table> allTablesAndViews = schema.getAllTablesAndViews();
+        for (final Table candidate : allTablesAndViews) {
+            final String candidateName = candidate.getName();
+            if (ucTableName.equals(StringUtils.toUpperEnglish(candidateName))) {
+                candidates.add(candidateName);
+            }
+        }
+
+        return candidates;
     }
 
     private FunctionAlias findFunctionAlias(String schema, String aliasName) {
@@ -9089,7 +9106,7 @@ public class Parser {
     private Table tableIfTableExists(Schema schema, String tableName, boolean ifTableExists) {
         Table table = schema.resolveTableOrView(session, tableName);
         if (table == null && !ifTableExists) {
-            throw getTableOrViewNotFoundDbException(Collections.singletonList(schema), tableName);
+            throw getTableOrViewNotFoundDbException(schema.getName(), tableName);
         }
         return table;
     }

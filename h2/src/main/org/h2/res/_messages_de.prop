@@ -8,7 +8,7 @@
 22004=Numerischer Wert ausserhalb des Bereichs: {0} in Feld {1}
 22007=Kann {0} {1} nicht umwandeln
 22012=Division durch 0: {0}
-22013=#Invalid PRECEDING or FOLLOWING size in window function: {0}
+22013=Ungültige PRECEDING oder FOLLOWING Größe in Window-Funktion: {0}
 22018=Datenumwandlungsfehler beim Umwandeln von {0}
 22025=Fehler in LIKE ESCAPE: {0}
 22030=Wert nicht erlaubt für Feld {0}: {1}
@@ -26,14 +26,14 @@
 40001=Eine Verklemmung (Deadlock) ist aufgetreten. Die aktuelle Transaktion wurde rückgängig gemacht. Details: {0}
 42000=Syntax Fehler in SQL Befehl {0}
 42001=Syntax Fehler in SQL Befehl {0}; erwartet {1}
-42602=#Invalid name {0}
+42602=Ungültiger Name {0}
 42S01=Tabelle {0} besteht bereits
 42S02=Tabelle {0} nicht gefunden
 42S11=Index {0} besteht bereits
 42S12=Index {0} nicht gefunden
 42S21=Doppelter Feldname {0}
 42S22=Feld {0} nicht gefunden
-42S31=#Identical expressions should be used; expected {0}, found {1}
+42S31=Es sollten identische Ausdrücke verwendet werden; erwartet {0}, tatsächlich {1}
 57014=Befehl wurde abgebrochen oder das Session-Timeout ist abgelaufen
 90000=Funktion {0} muss Zeilen zurückgeben
 90001=Methode nicht zulässig für eine Abfrage. Erlaubt sind execute oder executeQuery, nicht jedoch executeUpdate
@@ -141,7 +141,7 @@
 90107=Kann {0} nicht löschen weil {1} davon abhängt
 90108=Nicht genug Hauptspeicher.
 90109=View {0} ist ungültig: {1}
-90110=#Comparing ARRAY to scalar value
+90110=Vergleich von ARRAY und Skalar-Wert
 90111=Fehler beim Zugriff auf eine verknüpfte Tabelle mit SQL Befehl {0}, Grund: {1}
 90112=Zeile nicht gefunden beim Löschen von Index {0}
 90113=Datenbank-Verbindungs Option {0} nicht unterstützt
@@ -153,7 +153,7 @@
 90119=Domäne {0} besteht bereits
 90120=Domäne {0} nicht gefunden
 90121=Die Datenbank wurde bereits geschlossen (um das automatische Schliessen beim Stopp der VM zu deaktivieren, die Datenbank URL mit ";DB_CLOSE_ON_EXIT=FALSE" ergänzen)
-90122=#The WITH TIES clause is not allowed without a corresponding ORDER BY clause.
+90122=Der WITH TIES Ausdruck ist ohne zugehörigem ORDER BY Ausdruck nicht erlaubt.
 90123=Kann nicht indizierte und nicht indizierte Parameter mischen
 90124=Datei nicht gefunden: {0}
 90125=Ungültig Klasse, erwartet {0} erhalten {1}
@@ -167,27 +167,27 @@
 90133=Kann das Setting {0} nicht ändern wenn die Datenbank bereits geöffnet ist
 90134=Der Zugriff auf die Klasse {0} ist nicht erlaubt
 90135=Die Datenbank befindet sich im Exclusiv Modus; es können keine zusätzlichen Verbindungen geöffnet werden
-90136=#Window not found: {0}
+90136=Bereich (Window) nicht gefunden: {0}
 90137=Werte können nur einer Variablen zugewiesen werden, nicht an: {0}
 90138=Ungültiger Datenbank Name: {0}
 90139=Die (public static) Java Funktion wurde nicht gefunden: {0}
 90140=Die Resultat-Zeilen können nicht verändert werden. Mögliche Lösung: conn.createStatement(.., ResultSet.CONCUR_UPDATABLE).
 90141=Serialisierer kann nicht geändert werden wenn eine Daten-Tabelle existiert: {0}
 90142=Schrittgrösse darf nicht 0 sein
-90143=#Row {1} not found in primary index {0}
-90144=#Authenticator not enabled on database {0}
-90145=#FOR UPDATE is not allowed in DISTINCT or grouped select
-90146=#Database {0} not found, and IFEXISTS=true, so we can't auto-create it
-90147=#Method {0} is not allowed when connection is in auto-commit mode
-90148=#Current value of sequence {0} is not yet defined in this session
-90149=#Database {0} not found, either pre-create it or allow remote database creation (not recommended in secure environments)
-90150=#Precision ({0}) must be between {1} and {2} inclusive
-90151=#Scale or fractional seconds precision ({0}) must be between {1} and {2} inclusive
-90152=#Constraint {0} is used by constraint {1}
-90153=#Column {0} references uncomparable column {1}
-90154=#Generated column {0} cannot be assigned
-90155=#Generated column {0} cannot be updatable by a referential constraint with {1} clause
-90156=#Column alias is not specified for expression {0}
+90143=Zeile {1} nicht gefunden im Primärschlüssel {0}
+90144=Authenticator ist für die Datenbank {0} nicht aktiviert
+90145=FOR UPDATE ist in einem DISTINCT oder gruppiertem Select nicht erlaubt
+90146=Datenbank {0} nicht gefunden und IFEXISTS=true, daher können wir sie nicht automatisch anlegen
+90147=Methode {0} ist nicht erlaubt, wenn sich die Verbindung im auto-commit Modus befindet
+90148=Der aktuelle Wert der Sequenz {0} ist in dieser Session noch nicht definiert
+90149=Datenbank {0} nicht gefunden. Entweder legen Sie sie an oder erlauben das Anlegen einer Datenbank aus der Ferne (nicht empfohlen in sicherheitsrelevanten Umgebungen)
+90150=Genauigkeit ({0}) muss zwischen {1} und {2} inklusive liegen
+90151=Genauigkeit von Skalierung oder anteiligen Sekunden ({0}) muss zwischen {1} und {2} inklusive liegen
+90152=Referentielle Integrität {0} wird von referentieller Integrität {1} genutzt
+90153=Spalte {0} bezieht sich auf nicht vergleichbare Spalte {1}
+90154=Erzeugte Spalte {0} kann nicht zugewiesen werden
+90155=Erzeugte Spalte {0} kann nicht durch eine referentielle Integrität mit dem Ausdruck {1} veränderbar sein
+90156=Spalten-Alias ist nicht für den Audruck {0} angegeben
 HY000=Allgemeiner Fehler: {0}
 HY004=Unbekannter Datentyp: {0}
 HYC00=Dieses Feature wird nicht unterstützt: {0}

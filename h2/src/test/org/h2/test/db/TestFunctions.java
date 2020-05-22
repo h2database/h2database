@@ -43,7 +43,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Locale.Category;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -126,8 +125,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         testNvl2();
         testConcatWs();
         testToCharFromDateTime();
-        testToCharFromDateTimeWithChangedLocale(Locale.GERMANY);
-        testToCharFromDateTimeWithChangedLocale(Locale.US);
         testToCharFromNumber();
         testToCharFromText();
         testFileWrite();
@@ -1659,16 +1656,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertResult("19850101", stat, "SELECT TO_CHAR(X, 'YYYYMMDD') FROM T");
 
         conn.close();
-    }
-
-    private void testToCharFromDateTimeWithChangedLocale(final Locale locale) throws SQLException {
-        final Locale old = Locale.getDefault(Category.FORMAT);
-        Locale.setDefault(Category.FORMAT, locale);
-        try {
-            testToCharFromDateTime();
-        } finally {
-            Locale.setDefault(Category.FORMAT, old);
-        }
     }
 
     private static String stripTrailingPeriod(String expected) {

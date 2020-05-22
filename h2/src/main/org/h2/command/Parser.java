@@ -8666,7 +8666,7 @@ public class Parser {
 
         java.util.Set<String> candidates = new TreeSet<>();
         for (String schemaName : schemaNames) {
-            candidates.addAll(findTableNameCandidates(schemaName, tableName));
+            findTableNameCandidates(schemaName, tableName, candidates);
         }
 
         if (candidates.isEmpty()) {
@@ -8674,14 +8674,13 @@ public class Parser {
         }
 
         return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_WITH_CANDIDATES_2,
-            tableName,
-            String.join(", ", candidates));
+                tableName,
+                String.join(", ", candidates));
     }
 
-    private java.util.Set<String> findTableNameCandidates(String schemaName, String tableName) {
+    private void findTableNameCandidates(String schemaName, String tableName, java.util.Set<String> candidates) {
         Schema schema = database.getSchema(schemaName);
         String ucTableName = StringUtils.toUpperEnglish(tableName);
-        java.util.Set<String> candidates = new TreeSet<>();
         Collection<Table> allTablesAndViews = schema.getAllTablesAndViews();
         for (Table candidate : allTablesAndViews) {
             String candidateName = candidate.getName();
@@ -8689,8 +8688,6 @@ public class Parser {
                 candidates.add(candidateName);
             }
         }
-
-        return candidates;
     }
 
     private FunctionAlias findFunctionAlias(String schema, String aliasName) {

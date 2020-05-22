@@ -319,7 +319,7 @@ public class TestTempTables extends TestDb {
         assertResultRowCount(1, rs);
         c1.commit();
         // test_temp should have been dropped automatically
-        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_3, s1).
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, s1).
                 executeQuery("select * from test_temp");
     }
 

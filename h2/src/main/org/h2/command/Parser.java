@@ -8647,7 +8647,7 @@ public class Parser {
 
     private DbException getTableOrViewNotFoundDbException(final List<Schema> schemas, final String tableName) {
         if (schemas.stream().map(Schema::getAllTablesAndViews).noneMatch(not(Collection::isEmpty))) {
-            return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_3, tableName);
+            return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, tableName);
         }
 
         final java.util.Set<String> candidates =
@@ -8659,7 +8659,7 @@ public class Parser {
             return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
         }
 
-        return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_2,
+        return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_WITH_CANDIDATES_2,
             tableName,
             String.join(", ", candidates));
     }

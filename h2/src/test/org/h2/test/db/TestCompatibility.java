@@ -742,7 +742,7 @@ public class TestCompatibility extends TestDb {
                 assertEquals(2, rs.getInt(2));
             }
         } else {
-            assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_2, stat).executeQuery(query);
+            assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_WITH_CANDIDATES_2, stat).executeQuery(query);
         }
     }
 

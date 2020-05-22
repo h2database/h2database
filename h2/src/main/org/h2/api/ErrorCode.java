@@ -377,7 +377,7 @@ public class ErrorCode {
      * SELECT * FROM ABC;
      * </pre>
      */
-    public static final int TABLE_OR_VIEW_NOT_FOUND_2 = 42103;
+    public static final int TABLE_OR_VIEW_NOT_FOUND_WITH_CANDIDATES_2 = 42103;
 
     /**
      * The error with code <code>42104</code> is thrown when
@@ -389,7 +389,7 @@ public class ErrorCode {
      * SELECT * FROM ABC;
      * </pre>
      */
-    public static final int TABLE_OR_VIEW_NOT_FOUND_3 = 42104;
+    public static final int TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1 = 42104;
 
     /**
      * The error with code <code>42111</code> is thrown when
@@ -2223,8 +2223,8 @@ public class ErrorCode {
         case SYNTAX_ERROR_2:
         case TABLE_OR_VIEW_ALREADY_EXISTS_1:
         case TABLE_OR_VIEW_NOT_FOUND_1:
-        case TABLE_OR_VIEW_NOT_FOUND_2:
-        case TABLE_OR_VIEW_NOT_FOUND_3:
+        case TABLE_OR_VIEW_NOT_FOUND_WITH_CANDIDATES_2:
+        case TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1:
         case VALUE_TOO_LONG_2:
             return true;
         }
@@ -2255,8 +2255,8 @@ public class ErrorCode {
         // 42: syntax error or access rule violation
         case TABLE_OR_VIEW_ALREADY_EXISTS_1: return "42S01";
         case TABLE_OR_VIEW_NOT_FOUND_1: return "42S02";
-        case TABLE_OR_VIEW_NOT_FOUND_2: return "42S03";
-        case TABLE_OR_VIEW_NOT_FOUND_3: return "42S04";
+        case TABLE_OR_VIEW_NOT_FOUND_WITH_CANDIDATES_2: return "42S03";
+        case TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1: return "42S04";
         case INDEX_ALREADY_EXISTS_1: return "42S11";
         case INDEX_NOT_FOUND_1: return "42S12";
         case DUPLICATE_COLUMN_NAME_1: return "42S21";

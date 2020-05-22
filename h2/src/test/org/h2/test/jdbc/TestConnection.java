@@ -300,7 +300,7 @@ public class TestConnection extends TestDb {
         s.executeUpdate("create schema my_test_schema");
         s.executeUpdate("create table my_test_schema.my_test_table(id int, nave varchar) as values (1, 'a')");
         assertEquals("PUBLIC", conn.getSchema());
-        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_3, s, "select * from my_test_table");
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, s, "select * from my_test_table");
         assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, conn).setSchema("my_test_table");
         conn.setSchema("MY_TEST_SCHEMA");
         assertEquals("MY_TEST_SCHEMA", conn.getSchema());

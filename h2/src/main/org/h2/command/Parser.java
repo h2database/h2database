@@ -1572,6 +1572,9 @@ public class Parser {
         } else if (readIf("DATESTYLE")) {
             // for PostgreSQL compatibility
             buff.append("'ISO' DATESTYLE");
+        } else if (readIf("SEARCH_PATH")) {
+            // for PostgreSQL compatibility
+            buff.append('\'').append(String.join(", ", session.getSchemaSearchPath())).append('\'');
         } else if (readIf("SERVER_VERSION")) {
             // for PostgreSQL compatibility
             buff.append("'" + Constants.PG_VERSION + "' SERVER_VERSION");

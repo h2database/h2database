@@ -7,8 +7,11 @@ package org.h2.mode;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
+import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
+import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.index.Index;
@@ -16,14 +19,18 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
+import org.h2.schema.SchemaObject;
 import org.h2.schema.TriggerObject;
 import org.h2.server.pg.PgServer;
 import org.h2.table.Column;
 import org.h2.table.MetaTable;
 import org.h2.table.Table;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
@@ -42,7 +49,9 @@ public class PgCatalogTable extends MetaTable {
 
     private static final int PG_AUTHID = PG_ATTRIBUTE + 1;
 
-    private static final int PG_CLASS = PG_AUTHID + 1;
+    private static final int PG_CONSTRAINT = PG_AUTHID + 1;
+
+    private static final int PG_CLASS = PG_CONSTRAINT + 1;
 
     private static final int PG_DATABASE = PG_CLASS + 1;
 
@@ -143,6 +152,17 @@ public class PgCatalogTable extends MetaTable {
                     "ROLPASSWORD BOOLEAN", //
                     "ROLVALIDUNTIL TIMESTAMP WITH TIME ZONE", //
                     "ROLCONFIG TEXT ARRAY" //
+            );
+            break;
+        case PG_CONSTRAINT:
+            setMetaTableName("PG_CONSTRAINT");
+            cols = createColumns( //
+                    "OID INTEGER", //
+                    "CONNAME VARCHAR_IGNORECASE", //
+                    "CONTYPE VARCHAR_IGNORECASE", //
+                    "CONRELID INTEGER", //
+                    "CONFRELID INTEGER", //
+                    "CONKEY SMALLINT ARRAY" //
             );
             break;
         case PG_CLASS:
@@ -282,6 +302,7 @@ public class PgCatalogTable extends MetaTable {
                     "TYPNAMESPACE INTEGER", //
                     "TYPLEN INTEGER", //
                     "TYPTYPE VARCHAR", //
+                    "TYPRELID INTEGER", //
                     "TYPBASETYPE INTEGER", //
                     "TYPTYPMOD INTEGER", //
                     "TYPNOTNULL BOOLEAN", //
@@ -350,6 +371,40 @@ public class PgCatalogTable extends MetaTable {
             }
             break;
         case PG_AUTHID:
+            break;
+        case PG_CONSTRAINT:
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                Constraint constraint = (Constraint) obj;
+                Constraint.Type constraintType = constraint.getConstraintType();
+                if (constraintType == Constraint.Type.DOMAIN) {
+                    continue;
+                }
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                List<ValueSmallint> conkey = new ArrayList<>();
+                for (Column column : constraint.getReferencedColumns(table)) {
+                    conkey.add(ValueSmallint.get((short) (column.getColumnId() + 1)));
+                }
+                Table refTable = constraint.getRefTable();
+                add(session,
+                        rows,
+                        // OID
+                        ValueInteger.get(constraint.getId()),
+                        // CONNAME
+                        constraint.getName(),
+                        // CONTYPE
+                        StringUtils.toLowerEnglish(constraintType.getSqlName().substring(0, 1)),
+                        // CONRELID
+                        ValueInteger.get(table.getId()),
+                        // CONFRELID
+                        ValueInteger.get(refTable != null && refTable != table
+                                && !hideTable(refTable, session) ? table.getId() : 0),
+                        // CONKEY
+                        ValueArray.get(TypeInfo.TYPE_SMALLINT, conkey.toArray(Value.EMPTY_VALUES), null)
+                );
+            }
             break;
         case PG_CLASS: {
             for (Table table : getAllTables(session)) {
@@ -500,6 +555,8 @@ public class PgCatalogTable extends MetaTable {
                         ValueInteger.get(-1),
                         // TYPTYPE
                         "c",
+                        // TYPRELID
+                        ValueInteger.get(0),
                         // TYPBASETYPE
                         ValueInteger.get(0),
                         // TYPTYPMOD
@@ -522,6 +579,8 @@ public class PgCatalogTable extends MetaTable {
                         ValueInteger.get((int) pgType[2]),
                         // TYPTYPE
                         pgType[3],
+                        // TYPRELID
+                        ValueInteger.get(0),
                         // TYPBASETYPE
                         ValueInteger.get(0),
                         // TYPTYPMOD

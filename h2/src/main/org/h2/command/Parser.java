@@ -21,6 +21,8 @@ import static org.h2.util.ParserUtil.CONSTRAINT;
 import static org.h2.util.ParserUtil.CROSS;
 import static org.h2.util.ParserUtil.CURRENT_CATALOG;
 import static org.h2.util.ParserUtil.CURRENT_DATE;
+import static org.h2.util.ParserUtil.CURRENT_PATH;
+import static org.h2.util.ParserUtil.CURRENT_ROLE;
 import static org.h2.util.ParserUtil.CURRENT_SCHEMA;
 import static org.h2.util.ParserUtil.CURRENT_TIME;
 import static org.h2.util.ParserUtil.CURRENT_TIMESTAMP;
@@ -74,14 +76,17 @@ import static org.h2.util.ParserUtil.ROW;
 import static org.h2.util.ParserUtil.ROWNUM;
 import static org.h2.util.ParserUtil.SECOND;
 import static org.h2.util.ParserUtil.SELECT;
+import static org.h2.util.ParserUtil.SESSION_USER;
 import static org.h2.util.ParserUtil.SET;
 import static org.h2.util.ParserUtil.SYMMETRIC;
+import static org.h2.util.ParserUtil.SYSTEM_USER;
 import static org.h2.util.ParserUtil.TABLE;
 import static org.h2.util.ParserUtil.TO;
 import static org.h2.util.ParserUtil.TRUE;
 import static org.h2.util.ParserUtil.UNION;
 import static org.h2.util.ParserUtil.UNIQUE;
 import static org.h2.util.ParserUtil.UNKNOWN;
+import static org.h2.util.ParserUtil.USER;
 import static org.h2.util.ParserUtil.USING;
 import static org.h2.util.ParserUtil.VALUE;
 import static org.h2.util.ParserUtil.VALUES;
@@ -165,7 +170,6 @@ import org.h2.command.ddl.TruncateTable;
 import org.h2.command.dml.AlterTableSet;
 import org.h2.command.dml.BackupCommand;
 import org.h2.command.dml.Call;
-import org.h2.command.dml.SetClauseList;
 import org.h2.command.dml.CommandWithValues;
 import org.h2.command.dml.DataChangeStatement;
 import org.h2.command.dml.Delete;
@@ -179,6 +183,7 @@ import org.h2.command.dml.NoOperation;
 import org.h2.command.dml.RunScriptCommand;
 import org.h2.command.dml.ScriptCommand;
 import org.h2.command.dml.Set;
+import org.h2.command.dml.SetClauseList;
 import org.h2.command.dml.SetSessionCharacteristics;
 import org.h2.command.dml.SetTypes;
 import org.h2.command.dml.TransactionCommand;
@@ -260,6 +265,7 @@ import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
 import org.h2.expression.function.CastSpecification;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
+import org.h2.expression.function.CurrentGeneralValueSpecification;
 import org.h2.expression.function.DateTimeFunctions;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
@@ -524,6 +530,10 @@ public class Parser {
             "CURRENT_CATALOG",
             // CURRENT_DATE
             "CURRENT_DATE",
+            // CURRENT_PATH
+            "CURRENT_PATH",
+            // CURRENT_ROLE
+            "CURRENT_ROLE",
             // CURRENT_SCHEMA
             "CURRENT_SCHEMA",
             // CURRENT_TIME
@@ -624,10 +634,14 @@ public class Parser {
             "SECOND",
             // SELECT
             "SELECT",
+            // SESSION_USER
+            "SESSION_USER",
             // SET
             "SET",
             // SYMMETRIC
             "SYMMETRIC",
+            // SYSTEM_USER
+            "SYSTEM_USER",
             // TABLE
             "TABLE",
             // TO
@@ -640,6 +654,8 @@ public class Parser {
             "UNIQUE",
             // UNKNOWN
             "UNKNOWN",
+            // USER
+            "USER",
             // USING
             "USING",
             // VALUE
@@ -2270,7 +2286,7 @@ public class Parser {
             type = DbObject.SEQUENCE;
         } else if (readIf("TRIGGER")) {
             type = DbObject.TRIGGER;
-        } else if (readIf("USER")) {
+        } else if (readIf(USER)) {
             type = DbObject.USER;
         } else if (readIf("DOMAIN")) {
             type = DbObject.DOMAIN;
@@ -2347,7 +2363,7 @@ public class Parser {
                 readIdentifierWithSchema();
             }
             return command;
-        } else if (readIf("USER")) {
+        } else if (readIf(USER)) {
             boolean ifExists = readIfExists(false);
             DropUser command = new DropUser(session);
             command.setUserName(readUniqueIdentifier());
@@ -4051,9 +4067,14 @@ public class Parser {
             function = Function.getFunction(Function.COALESCE);
             break;
         // CURRENT_CATALOG
+        case "CURRENT_DATABASE":
+            if (database.getMode().getEnum() != ModeEnum.PostgreSQL) {
+                return null;
+            }
+            //$FALL-THROUGH$
         case "DATABASE":
-            function = Function.getFunction(Function.CURRENT_CATALOG);
-            break;
+            read(CLOSE_PAREN);
+            return new CurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_CATALOG);
         // CURRENT_DATE
         case "CURDATE":
         case "SYSDATE":
@@ -4061,15 +4082,11 @@ public class Parser {
             return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, true, name);
         // CURRENT_SCHEMA
         case "SCHEMA":
-            function = Function.getFunction(Function.CURRENT_SCHEMA);
-            break;
+            read(CLOSE_PAREN);
+            return new CurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_SCHEMA);
         // CURRENT_TIMESTAMP
         case "SYSTIMESTAMP":
             return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_TIMESTAMP, true, name);
-        // CURRENT_USER
-        case "USER":
-            function = Function.getFunction(Function.CURRENT_USER);
-            break;
         // EXTRACT
         case "DAY":
         case "DAY_OF_MONTH":
@@ -4932,17 +4949,17 @@ public class Parser {
             break;
         }
         case CURRENT_CATALOG:
-            read();
-            r = readKeywordFunction(Function.CURRENT_CATALOG);
-            break;
+            return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_CATALOG);
         case CURRENT_DATE:
             read();
             r = readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, readIf(OPEN_PAREN), null);
             break;
+        case CURRENT_PATH:
+            return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_PATH);
+        case CURRENT_ROLE:
+            return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_ROLE);
         case CURRENT_SCHEMA:
-            read();
-            r = readKeywordFunction(Function.CURRENT_SCHEMA);
-            break;
+            return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_SCHEMA);
         case CURRENT_TIME:
             read();
             r = readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_TIME, readIf(OPEN_PAREN), null);
@@ -4953,9 +4970,12 @@ public class Parser {
                     null);
             break;
         case CURRENT_USER:
-            read();
-            r = readKeywordFunction(Function.CURRENT_USER);
-            break;
+        case USER:
+            return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_USER);
+        case SESSION_USER:
+            return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.SESSION_USER);
+        case SYSTEM_USER:
+            return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.SYSTEM_USER);
         case DAY:
         case HOUR:
         case MINUTE:
@@ -5055,6 +5075,14 @@ public class Parser {
             break;
         }
         return r;
+    }
+
+    private Expression readCurrentGeneralValueSpecification(int specification) {
+        read();
+        if (readIf(OPEN_PAREN)) {
+            read(CLOSE_PAREN);
+        }
+        return new CurrentGeneralValueSpecification(specification);
     }
 
     private Expression readTermWithIdentifier(String name) {
@@ -7003,7 +7031,7 @@ public class Parser {
             return parseCreateFunctionAlias(force);
         } else if (readIf("SEQUENCE")) {
             return parseCreateSequence();
-        } else if (readIf("USER")) {
+        } else if (readIf(USER)) {
             return parseCreateUser();
         } else if (readIf("TRIGGER")) {
             return parseCreateTrigger(force);
@@ -7780,7 +7808,7 @@ public class Parser {
     private Prepared parseAlter() {
         if (readIf(TABLE)) {
             return parseAlterTable();
-        } else if (readIf("USER")) {
+        } else if (readIf(USER)) {
             return parseAlterUser();
         } else if (readIf("INDEX")) {
             return parseAlterIndex();

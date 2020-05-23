@@ -85,9 +85,19 @@ public class ParserUtil {
     public static final int CURRENT_DATE = CURRENT_CATALOG + 1;
 
     /**
+     * The token "CURRENT_PATH".
+     */
+    public static final int CURRENT_PATH = CURRENT_DATE + 1;
+
+    /**
+     * The token "CURRENT_ROLE".
+     */
+    public static final int CURRENT_ROLE = CURRENT_PATH + 1;
+
+    /**
      * The token "CURRENT_SCHEMA".
      */
-    public static final int CURRENT_SCHEMA = CURRENT_DATE + 1;
+    public static final int CURRENT_SCHEMA = CURRENT_ROLE + 1;
 
     /**
      * The token "CURRENT_TIME".
@@ -335,9 +345,14 @@ public class ParserUtil {
     public static final int SELECT = SECOND + 1;
 
     /**
+     * The token "SESSION_USER".
+     */
+    public static final int SESSION_USER = SELECT + 1;
+
+    /**
      * The token "SET".
      */
-    public static final int SET = SELECT + 1;
+    public static final int SET = SESSION_USER + 1;
 
     /**
      * The token "SYMMETRIC".
@@ -345,9 +360,14 @@ public class ParserUtil {
     public static final int SYMMETRIC = SET + 1;
 
     /**
+     * The token "SYSTEM_USER".
+     */
+    public static final int SYSTEM_USER = SYMMETRIC + 1;
+
+    /**
      * The token "TABLE".
      */
-    public static final int TABLE = SYMMETRIC + 1;
+    public static final int TABLE = SYSTEM_USER + 1;
 
     /**
      * The token "TO".
@@ -375,9 +395,14 @@ public class ParserUtil {
     public static final int UNKNOWN = UNIQUE + 1;
 
     /**
+     * The token "USER".
+     */
+    public static final int USER = UNKNOWN + 1;
+
+    /**
      * The token "USING".
      */
-    public static final int USING = UNKNOWN + 1;
+    public static final int USING = USER + 1;
 
     /**
      * The token "VALUE".
@@ -619,6 +644,10 @@ public class ParserUtil {
                 return CURRENT_CATALOG;
             } else if (eq("CURRENT_DATE", s, ignoreCase, start, length)) {
                 return CURRENT_DATE;
+            } else if (eq("CURRENT_PATH", s, ignoreCase, start, length)) {
+                return CURRENT_PATH;
+            } else if (eq("CURRENT_ROLE", s, ignoreCase, start, length)) {
+                return CURRENT_ROLE;
             } else if (eq("CURRENT_SCHEMA", s, ignoreCase, start, length)) {
                 return CURRENT_SCHEMA;
             } else if (eq("CURRENT_TIME", s, ignoreCase, start, length)) {
@@ -793,10 +822,14 @@ public class ParserUtil {
                 return SECOND;
             } else if (eq("SELECT", s, ignoreCase, start, length)) {
                 return SELECT;
+            } else if (eq("SESSION_USER", s, ignoreCase, start, length)) {
+                return SESSION_USER;
             } else if (eq("SET", s, ignoreCase, start, length)) {
                 return SET;
             } else if (eq("SYMMETRIC", s, ignoreCase, start, length)) {
                 return SYMMETRIC;
+            } else if (eq("SYSTEM_USER", s, ignoreCase, start, length)) {
+                return SYSTEM_USER;
             }
             if (additionalKeywords) {
                 if (eq("SYSDATE", s, ignoreCase, start, length) || eq("SYSTIME", s, ignoreCase, start, length)
@@ -825,6 +858,8 @@ public class ParserUtil {
                 return UNIQUE;
             } else if (eq("UNKNOWN", s, ignoreCase, start, length)) {
                 return UNKNOWN;
+            } else if (eq("USER", s, ignoreCase, start, length)) {
+                return USER;
             } else if (eq("USING", s, ignoreCase, start, length)) {
                 return USING;
             }

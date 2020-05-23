@@ -36,11 +36,11 @@ public class RowAccessRights extends TriggerAdapter {
         Statement stat = conn.createStatement();
 
         stat.execute("create table test_data(" +
-                "id int, user varchar, data varchar, primary key(id, user))");
-        stat.execute("create index on test_data(id, user)");
+                "id int, `user` varchar, data varchar, primary key(id, `user`))");
+        stat.execute("create index on test_data(id, `user`)");
 
         stat.execute("create view test as select id, data " +
-                "from test_data where user = user()");
+                "from test_data where `user` = user");
         stat.execute("create trigger t_test instead of " +
                 "insert, update, delete on test for each row " +
                 "call \"" + RowAccessRights.class.getName() + "\"");
@@ -92,7 +92,7 @@ public class RowAccessRights extends TriggerAdapter {
     public void init(Connection conn, String schemaName, String triggerName,
             String tableName, boolean before, int type) throws SQLException {
         prepDelete = conn.prepareStatement(
-                "delete from test_data where id = ? and user = ?");
+                "delete from test_data where id = ? and `user` = ?");
         prepInsert = conn.prepareStatement(
                 "insert into test_data values(?, ?, ?)");
         super.init(conn, schemaName, triggerName, tableName, before, type);

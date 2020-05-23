@@ -51,8 +51,8 @@ public final class CurrentDateTimeValueFunction extends Operation0 {
     /**
      * Get the name for this function id.
      *
-     * @param function the name
-     * @return the id
+     * @param function the function id
+     * @return the name
      */
     public static String getName(int function) {
         return NAMES[function];
@@ -89,7 +89,6 @@ public final class CurrentDateTimeValueFunction extends Operation0 {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
-        case ExpressionVisitor.READONLY:
             return false;
         }
         return true;

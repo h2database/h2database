@@ -74,7 +74,6 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
 
     static {
-        copyFunction(FUNCTIONS, "CURRENT_CATALOG", "CURRENT_DATABASE");
         copyFunction(FUNCTIONS, "IDENTITY", "LASTVAL");
         FUNCTIONS.put("CURRTID2", new FunctionInfo("CURRTID2", CURRTID2, 2, Value.INTEGER, true, false, true, false));
         FUNCTIONS.put("FORMAT_TYPE",

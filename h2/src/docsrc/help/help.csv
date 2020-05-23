@@ -2596,7 +2596,7 @@ ID=1 AND NAME='Hi'
 "Other Grammar","Array element reference","
 array '[' indexInt ']'
 ","
-Returns array element at specified index or NULL if array is null, index is null, or index is out of bounds.
+Returns array element at specified index or NULL if array is null or index is null.
 ","
 A[2]
 "

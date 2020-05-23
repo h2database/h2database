@@ -4,16 +4,7 @@
 --
 
 SELECT (10, 20, 30)[1];
->> 10
-
-SELECT (10, 20, 30)[3];
->> 30
-
-SELECT (10, 20, 30)[0];
->> null
-
-SELECT (10, 20, 30)[4];
->> null
+> exception INVALID_VALUE_2
 
 SELECT ARRAY[];
 >> []
@@ -23,6 +14,18 @@ SELECT ARRAY[10];
 
 SELECT ARRAY[10, 20, 30];
 >> [10, 20, 30]
+
+SELECT ARRAY[10, 20, 30][1];
+>> 10
+
+SELECT ARRAY[10, 20, 30][3];
+>> 30
+
+SELECT ARRAY[10, 20, 30][0];
+> exception ARRAY_ELEMENT_ERROR_2
+
+SELECT ARRAY[10, 20, 30][4];
+> exception ARRAY_ELEMENT_ERROR_2
 
 SELECT ARRAY[1, NULL] IS NOT DISTINCT FROM ARRAY[1, NULL];
 >> TRUE
@@ -87,13 +90,8 @@ SELECT ARRAY[1, NULL] IN (SELECT A FROM TEST);
 SELECT ROW (ARRAY[1, NULL]) IN (SELECT A FROM TEST);
 >> null
 
--- Compatibility with H2 1.4.197 and older
 SELECT A FROM TEST WHERE A = (1, 2);
->> [1, 2]
-
--- Compatibility with H2 1.4.197 and older
-INSERT INTO TEST VALUES ((1, 3));
-> update count: 1
+> exception DATA_CONVERSION_ERROR_1
 
 DROP TABLE TEST;
 > ok

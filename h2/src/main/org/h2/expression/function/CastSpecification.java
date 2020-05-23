@@ -55,6 +55,11 @@ public class CastSpecification extends Operation1 {
         return this;
     }
 
+    @Override
+    public boolean isConstant() {
+        return arg instanceof ValueExpression && canOptimizeCast(arg.getType().getValueType(), type.getValueType());
+    }
+
     private static boolean canOptimizeCast(int src, int dst) {
         switch (src) {
         case Value.TIME:

@@ -1345,7 +1345,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             int trim = v1.getInt();
             if (trim < 0) {
                 // This exception should be thrown even when array is null
-                throw DbException.getInvalidValueException("TRIM_ARRAY number", trim);
+                throw DbException.get(ErrorCode.ARRAY_ELEMENT_ERROR_2, Integer.toString(trim),
+                        "0..CARDINALITY(array)");
             }
             if (v0 == ValueNull.INSTANCE) {
                 result = ValueNull.INSTANCE;
@@ -1355,7 +1356,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             Value[] elements = array.getList();
             int length = elements.length;
             if (trim > length) {
-                throw DbException.getInvalidValueException("TRIM_ARRAY number", trim);
+                throw DbException.get(ErrorCode.ARRAY_ELEMENT_ERROR_2, Integer.toString(trim), "0.." + length);
             }
             if (trim == 0) {
                 result = array;

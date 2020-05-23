@@ -212,6 +212,17 @@ public class ErrorCode {
      */
     public static final int ENUM_DUPLICATE = 22033;
 
+    /**
+     * The error with code <code>22034</code> is thrown when an
+     * attempt is made to read non-existing element of an array.
+     *
+     * Example:
+     * <pre>
+     * VALUES ARRAY[1, 2][3]
+     * </pre>
+     */
+    public static final int ARRAY_ELEMENT_ERROR_2 = 22034;
+
     // 23: constraint violation
 
     /**
@@ -2225,6 +2236,9 @@ public class ErrorCode {
 
         // 21: cardinality violation
         case COLUMN_COUNT_DOES_NOT_MATCH: return "21S02";
+
+        // 22: data exception
+        case ARRAY_ELEMENT_ERROR_2: return "2202E";
 
         // 42: syntax error or access rule violation
         case TABLE_OR_VIEW_ALREADY_EXISTS_1: return "42S01";

@@ -11,6 +11,7 @@
 22013=#Invalid PRECEDING or FOLLOWING size in window function: {0}
 22018=Erreur lors de la conversion de données {0}
 22025=Erreur dans LIKE ESCAPE: {0}
+2202E=#Array element error: {0}, expected {1}
 22030=Valeur non permise pour la colonne {0}: {1}
 22031=La valeur n''est pas un membre de l''énumération {0}: {1}
 22032=Les enums vides ne sont pas permis

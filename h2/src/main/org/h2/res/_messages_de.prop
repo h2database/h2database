@@ -11,6 +11,7 @@
 22013=Ungültige PRECEDING oder FOLLOWING Größe in Window-Funktion: {0}
 22018=Datenumwandlungsfehler beim Umwandeln von {0}
 22025=Fehler in LIKE ESCAPE: {0}
+2202E=#Array element error: {0}, expected {1}
 22030=Wert nicht erlaubt für Feld {0}: {1}
 22031=Wert nicht Teil der Aufzählung {0}: {1}
 22032=Leere Aufzählungen sind nicht erlaubt

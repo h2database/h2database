@@ -30,6 +30,8 @@
 42602=#Invalid name {0}
 42S01= {0}表已存在
 42S02=找不到表 {0}
+42S03=#Table {0} not found (candidates are: {1})
+42S04=#Table {0} not found (this database is empty)
 42S11=索引 {0} 已存在
 42S12=找不到索引 {0}
 42S21=重复的字段： {0}

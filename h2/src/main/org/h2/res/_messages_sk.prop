@@ -30,6 +30,8 @@
 42602=#Invalid name {0}
 42S01=Tabuľka {0} už existuje
 42S02=Tabuľka {0} nenájdená
+42S03=#Table {0} not found (candidates are: {1})
+42S04=#Table {0} not found (this database is empty)
 42S11=Index {0} už existuje
 42S12=Index {0} nenájdený
 42S21=Duplicitné meno stĺpca {0}

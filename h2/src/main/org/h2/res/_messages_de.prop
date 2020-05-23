@@ -30,6 +30,8 @@
 42602=Ungültiger Name {0}
 42S01=Tabelle {0} besteht bereits
 42S02=Tabelle {0} nicht gefunden
+42S03=Tabelle {0} nicht gefunden (mögliche Kandidaten: {1})
+42S04=Tabelle {0} nicht gefunden (diese Datenbank ist leer)
 42S11=Index {0} besteht bereits
 42S12=Index {0} nicht gefunden
 42S21=Doppelter Feldname {0}

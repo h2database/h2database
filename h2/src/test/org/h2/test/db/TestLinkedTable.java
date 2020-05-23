@@ -236,7 +236,7 @@ public class TestLinkedTable extends TestDb {
         assertSingleValue(sb, "SELECT * FROM T2", 2);
         sa.execute("DROP ALL OBJECTS");
         sb.execute("DROP ALL OBJECTS");
-        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, sa).
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, sa).
                 execute("SELECT * FROM TEST");
         ca.close();
         cb.close();

@@ -91,6 +91,7 @@ import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
 import static org.h2.util.ParserUtil.YEAR;
 import static org.h2.util.ParserUtil._ROWID_;
+
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -99,12 +100,14 @@ import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.TreeSet;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
@@ -8563,7 +8566,65 @@ public class Parser {
         if (isDualTable(tableName)) {
             return new DualTable(database);
         }
-        throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+
+        throw getTableOrViewNotFoundDbException(tableName);
+    }
+
+    private DbException getTableOrViewNotFoundDbException(String tableName) {
+        if (schemaName != null) {
+            return getTableOrViewNotFoundDbException(schemaName, tableName);
+        }
+
+        String currentSchemaName = session.getCurrentSchemaName();
+        String[] schemaSearchPath = session.getSchemaSearchPath();
+        if (schemaSearchPath == null) {
+            return getTableOrViewNotFoundDbException(Collections.singleton(currentSchemaName), tableName);
+        }
+
+        LinkedHashSet<String> schemaNames = new LinkedHashSet<>();
+        schemaNames.add(currentSchemaName);
+        schemaNames.addAll(Arrays.asList(schemaSearchPath));
+        return getTableOrViewNotFoundDbException(schemaNames, tableName);
+    }
+
+    private DbException getTableOrViewNotFoundDbException(String schemaName, String tableName) {
+        return getTableOrViewNotFoundDbException(Collections.singleton(schemaName), tableName);
+    }
+
+    private DbException getTableOrViewNotFoundDbException(
+            java.util.Set<String> schemaNames, String tableName) {
+        if (database == null || database.getFirstUserTable() == null) {
+            return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, tableName);
+        }
+
+        if (database.getSettings().caseInsensitiveIdentifiers) {
+            return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+        }
+
+        java.util.Set<String> candidates = new TreeSet<>();
+        for (String schemaName : schemaNames) {
+            findTableNameCandidates(schemaName, tableName, candidates);
+        }
+
+        if (candidates.isEmpty()) {
+            return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+        }
+
+        return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_WITH_CANDIDATES_2,
+                tableName,
+                String.join(", ", candidates));
+    }
+
+    private void findTableNameCandidates(String schemaName, String tableName, java.util.Set<String> candidates) {
+        Schema schema = database.getSchema(schemaName);
+        String ucTableName = StringUtils.toUpperEnglish(tableName);
+        Collection<Table> allTablesAndViews = schema.getAllTablesAndViews();
+        for (Table candidate : allTablesAndViews) {
+            String candidateName = candidate.getName();
+            if (ucTableName.equals(StringUtils.toUpperEnglish(candidateName))) {
+                candidates.add(candidateName);
+            }
+        }
     }
 
     private FunctionAlias findFunctionAlias(String schema, String aliasName) {
@@ -8979,7 +9040,7 @@ public class Parser {
     private Table tableIfTableExists(Schema schema, String tableName, boolean ifTableExists) {
         Table table = schema.resolveTableOrView(session, tableName);
         if (table == null && !ifTableExists) {
-            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+            throw getTableOrViewNotFoundDbException(schema.getName(), tableName);
         }
         return table;
     }

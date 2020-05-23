@@ -2338,9 +2338,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         } else {
             Value[] a;
             switch (valueType) {
-            case ROW:
-                a = ((ValueRow) this).getList().clone();
-                break;
             case BLOB:
                 a = new Value[] { ValueVarbinary.get(getBytesNoCopy()) };
                 break;

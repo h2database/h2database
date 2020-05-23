@@ -7192,8 +7192,8 @@ public class Parser {
     }
 
     private TableValueConstructor parseValues() {
-        ArrayList<Column> columns = Utils.newSmallArrayList();
         ArrayList<ArrayList<Expression>> rows = Utils.newSmallArrayList();
+        int columnCount = -1;
         do {
             int i = 0;
             ArrayList<Expression> row = Utils.newSmallArrayList();
@@ -7206,43 +7206,20 @@ public class Parser {
             }
             do {
                 Expression expr = readExpression();
-                expr = expr.optimize(session);
-                TypeInfo type = expr.getType();
-                Column column;
-                String columnName = "C" + (i + 1);
+                i++;
                 if (rows.isEmpty()) {
-                    if (type.getValueType() == Value.UNKNOWN) {
-                        type = TypeInfo.TYPE_VARCHAR;
-                    }
-                    column = new Column(columnName, type);
-                    columns.add(column);
-                } else {
-                    if (i >= columns.size()) {
-                        throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
-                    }
-                    type = TypeInfo.getHigherType(columns.get(i).getType(), type);
-                    column = new Column(columnName, type);
-                    columns.set(i, column);
+                    columnCount = i;
                 }
                 row.add(expr);
-                i++;
             } while (multiColumn && readIfMore());
             rows.add(row);
         } while (readIf(COMMA));
-        int columnCount = columns.size();
         for (ArrayList<Expression> row : rows) {
             if (row.size() != columnCount) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }
-        for (int i = 0; i < columnCount; i++) {
-            Column c = columns.get(i);
-            if (c.getType().getValueType() == Value.UNKNOWN) {
-                c = new Column(c.getName(), Value.VARCHAR);
-                columns.set(i, c);
-            }
-        }
-        return new TableValueConstructor(session, columns.toArray(new Column[0]), rows);
+        return new TableValueConstructor(session, rows);
     }
 
     private Call parseCall() {

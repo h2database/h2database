@@ -25,9 +25,13 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
+import java.util.regex.Pattern;
+
 import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
@@ -47,6 +51,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.CaseInsensitiveMap;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
@@ -59,6 +64,8 @@ import org.h2.value.ValueTimestampTimeZone;
  */
 public class PgServerThread implements Runnable {
     private static final boolean INTEGER_DATE_TYPES = false;
+
+    private static final Pattern SHOULD_QUOTE = Pattern.compile(".*[\",\\\\{}].*");
 
     private final PgServer server;
     private Socket socket;
@@ -582,6 +589,29 @@ public class PgServerThread implements Runnable {
                 write(data);
                 break;
             }
+            case PgServer.PG_TYPE_TEXTARRAY:
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                baos.write('{');
+                Value[] values = ((ValueArray) v).getList();
+                Charset encoding = getEncoding();
+                for (int i = 0; i < values.length; i++) {
+                    if (i > 0) {
+                        baos.write(',');
+                    }
+                    String s = values[i].getString();
+                    if (SHOULD_QUOTE.matcher(s).matches()) {
+                        List<String> ss = new ArrayList<>();
+                        for (String s0 : s.split("\\\\")) {
+                            ss.add(s0.replace("\"", "\\\""));
+                        }
+                        s = "\"" + String.join("\\\\", ss) + "\"";
+                    }
+                    baos.write(s.getBytes(encoding));
+                }
+                baos.write('}');
+                writeInt(baos.size());
+                write(baos.toByteArray());
+                break;
             default:
                 byte[] data = v.getString().getBytes(getEncoding());
                 writeInt(data.length);

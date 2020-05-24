@@ -6179,8 +6179,25 @@ If multiple arguments are specified and they have different length, cells with m
 SELECT * FROM UNNEST(ARRAY['a', 'b', 'c']);
 "
 
+"Functions (System)","CURRENT_PATH","
+CURRENT_PATH
+","
+Returns the comma-separated list of quoted schema names where user-defined functions are searched
+when they are referenced without the schema name.
+","
+CURRENT_PATH
+"
+
+"Functions (System)","CURRENT_ROLE","
+CURRENT_ROLE
+","
+Returns the name of the PUBLIC role.
+","
+CURRENT_ROLE
+"
+
 "Functions (System)","CURRENT_USER","
-CURRENT_USER | @c@ USER()
+CURRENT_USER | SESSION_USER | SYSTEM_USER | USER
 ","
 Returns the name of the current user of this session.
 ","

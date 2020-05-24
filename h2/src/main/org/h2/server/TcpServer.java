@@ -101,7 +101,7 @@ public class TcpServer implements Service {
             stat.execute("CREATE ALIAS IF NOT EXISTS STOP_SERVER FOR \"" +
                     TcpServer.class.getName() + ".stopServer\"");
             stat.execute("CREATE TABLE IF NOT EXISTS SESSIONS" +
-                    "(ID INT PRIMARY KEY, URL VARCHAR, USER VARCHAR, " +
+                    "(ID INT PRIMARY KEY, URL VARCHAR, `USER` VARCHAR, " +
                     "CONNECTED TIMESTAMP(9) WITH TIME ZONE)");
             managementDbAdd = conn.prepareStatement(
                     "INSERT INTO SESSIONS VALUES(?, ?, ?, CURRENT_TIMESTAMP(9))");

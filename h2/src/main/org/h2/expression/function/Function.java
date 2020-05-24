@@ -132,7 +132,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             FORMATDATETIME = 120, PARSEDATETIME = 121,
             DATE_TRUNC = 125;
 
-    public static final int CURRENT_CATALOG = 150, CURRENT_USER = 152,
+    public static final int
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
             READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
             DISK_SPACE_USED = 159, SIGNAL = 160, ESTIMATED_ENVELOPE = 161;
@@ -143,7 +143,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             COALESCE = 204, NULLIF = 205,
             NEXTVAL = 207, CURRVAL = 208, CSVREAD = 210,
             CSVWRITE = 211, MEMORY_FREE = 212, MEMORY_USED = 213,
-            LOCK_MODE = 214, CURRENT_SCHEMA = 215, SESSION_ID = 216,
+            LOCK_MODE = 214, SESSION_ID = 216,
             CARDINALITY = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
@@ -328,8 +328,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("PARSEDATETIME", PARSEDATETIME, VAR_ARGS, Value.TIMESTAMP);
         addFunction("DATE_TRUNC", DATE_TRUNC, 2, Value.NULL);
         // system
-        addFunctionNotDeterministic("CURRENT_CATALOG", CURRENT_CATALOG, 0, Value.VARCHAR, false);
-        addFunctionNotDeterministic("CURRENT_USER", CURRENT_USER, 0, Value.VARCHAR, false);
         addFunctionNotDeterministic("IDENTITY", IDENTITY,
                 0, Value.BIGINT);
         addFunctionNotDeterministic("SCOPE_IDENTITY", SCOPE_IDENTITY,
@@ -362,7 +360,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 0, Value.INTEGER);
         addFunctionNotDeterministic("LOCK_MODE", LOCK_MODE,
                 0, Value.INTEGER);
-        addFunctionNotDeterministic("CURRENT_SCHEMA", CURRENT_SCHEMA, 0, Value.VARCHAR, false);
         addFunctionNotDeterministic("SESSION_ID", SESSION_ID,
                 0, Value.INTEGER);
         addFunction("CARDINALITY", CARDINALITY, 1, Value.INTEGER);
@@ -781,12 +778,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = ValueVarchar.get(DateTimeFunctions.getMonthsAndWeeks(0)[month - 1], session);
             break;
         }
-        case CURRENT_CATALOG:
-            result = ValueVarchar.get(session.getDatabase().getShortName(), session);
-            break;
-        case CURRENT_USER:
-            result = ValueVarchar.get(session.getUser().getName(), session);
-            break;
         case IDENTITY:
             result = session.getLastIdentity();
             break;
@@ -823,9 +814,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             break;
         case LOCK_MODE:
             result = ValueInteger.get(session.getDatabase().getLockMode());
-            break;
-        case CURRENT_SCHEMA:
-            result = ValueVarchar.get(session.getCurrentSchemaName(), session);
             break;
         case SESSION_ID:
             result = ValueInteger.get(session.getId());
@@ -1541,7 +1529,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return result;
     }
 
-    private Value regexpSubstr(Value inputString, Value regexpArg, Value positionArg,
+    private static Value regexpSubstr(Value inputString, Value regexpArg, Value positionArg,
             Value occurrenceArg, Value regexpModeArg, Value subexpressionArg, Session session) {
         String regexp = regexpArg.getString();
 

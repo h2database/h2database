@@ -640,22 +640,8 @@ public class ParserUtil {
                 return CONSTRAINT;
             } else if (eq("CROSS", s, ignoreCase, start, length)) {
                 return CROSS;
-            } else if (eq("CURRENT_CATALOG", s, ignoreCase, start, length)) {
-                return CURRENT_CATALOG;
-            } else if (eq("CURRENT_DATE", s, ignoreCase, start, length)) {
-                return CURRENT_DATE;
-            } else if (eq("CURRENT_PATH", s, ignoreCase, start, length)) {
-                return CURRENT_PATH;
-            } else if (eq("CURRENT_ROLE", s, ignoreCase, start, length)) {
-                return CURRENT_ROLE;
-            } else if (eq("CURRENT_SCHEMA", s, ignoreCase, start, length)) {
-                return CURRENT_SCHEMA;
-            } else if (eq("CURRENT_TIME", s, ignoreCase, start, length)) {
-                return CURRENT_TIME;
-            } else if (eq("CURRENT_TIMESTAMP", s, ignoreCase, start, length)) {
-                return CURRENT_TIMESTAMP;
-            } else if (eq("CURRENT_USER", s, ignoreCase, start, length)) {
-                return CURRENT_USER;
+            } else if (length >= 12 && "CURRENT_".regionMatches(ignoreCase, 1, s, start + 1, 7)) {
+                return getTokenTypeCurrent(s, ignoreCase, start, length);
             }
             return IDENTIFIER;
         case 'D':
@@ -901,6 +887,40 @@ public class ParserUtil {
     private static boolean eq(String expected, String s, boolean ignoreCase, int start, int length) {
         // First letter was already checked
         return length == expected.length() && expected.regionMatches(ignoreCase, 1, s, start + 1, length - 1);
+    }
+
+    private static int getTokenTypeCurrent(String s, boolean ignoreCase, int start, int length) {
+        start += 8;
+        switch (length -= 8) {
+        case 4:
+            if ("CURRENT_DATE".regionMatches(ignoreCase, 8, s, start, length)) {
+                return CURRENT_DATE;
+            } else if ("CURRENT_PATH".regionMatches(ignoreCase, 8, s, start, length)) {
+                return CURRENT_PATH;
+            } else if ("CURRENT_ROLE".regionMatches(ignoreCase, 8, s, start, length)) {
+                return CURRENT_ROLE;
+            } else if ("CURRENT_TIME".regionMatches(ignoreCase, 8, s, start, length)) {
+                return CURRENT_TIME;
+            } else if ("CURRENT_USER".regionMatches(ignoreCase, 8, s, start, length)) {
+                return CURRENT_USER;
+            }
+            break;
+        case 6:
+            if ("CURRENT_SCHEMA".regionMatches(ignoreCase, 8, s, start, length)) {
+                return CURRENT_SCHEMA;
+            }
+            break;
+        case 7:
+            if ("CURRENT_CATALOG".regionMatches(ignoreCase, 8, s, start, length)) {
+                return CURRENT_CATALOG;
+            }
+            break;
+        case 9:
+            if ("CURRENT_TIMESTAMP".regionMatches(ignoreCase, 8, s, start, length)) {
+                return CURRENT_TIMESTAMP;
+            }
+        }
+        return IDENTIFIER;
     }
 
 }

@@ -1574,7 +1574,18 @@ public class Parser {
             buff.append("'ISO' DATESTYLE");
         } else if (readIf("SEARCH_PATH")) {
             // for PostgreSQL compatibility
-            buff.append('\'').append(String.join(", ", session.getSchemaSearchPath())).append('\'');
+            String[] searchPath = session.getSchemaSearchPath();
+            StringBuilder searchPathBuff = new StringBuilder();
+            if (searchPath != null) {
+                for (int i = 0; i < searchPath.length; i ++) {
+                    if (i > 0) {
+                        searchPathBuff.append(", ");
+                    }
+                    quoteIdentifier(searchPathBuff, searchPath[i], HasSQL.QUOTE_ONLY_WHEN_REQUIRED);
+                }
+            }
+            StringUtils.quoteStringSQL(buff, searchPathBuff.toString());
+            buff.append(" SEARCH_PATH");
         } else if (readIf("SERVER_VERSION")) {
             // for PostgreSQL compatibility
             buff.append("'" + Constants.PG_VERSION + "' SERVER_VERSION");

@@ -697,9 +697,15 @@ public class TestPgServer extends TestDb {
                     "LEFT OUTER JOIN pg_class c ON c.oid=t.typrelid WHERE typnamespace=-1000")) {
                 // just no exception
             }
+            stat.execute("SET search_path TO 'ab', 'c\"d', 'e''f'");
             try (ResultSet rs = stat.executeQuery("SHOW search_path")) {
                 assertTrue(rs.next());
-                assertEquals("pg_catalog, public", rs.getString(1));
+                assertEquals("pg_catalog, ab, \"c\"\"d\", \"e'f\"", rs.getString("search_path"));
+            }
+            stat.execute("SET search_path TO ab, \"c\"\"d\", \"e'f\"");
+            try (ResultSet rs = stat.executeQuery("SHOW search_path")) {
+                assertTrue(rs.next());
+                assertEquals("pg_catalog, ab, \"c\"\"d\", \"e'f\"", rs.getString("search_path"));
             }
             int oid;
             try (ResultSet rs = stat.executeQuery("SELECT oid FROM pg_class WHERE relname = 'test'")) {

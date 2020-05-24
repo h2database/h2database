@@ -274,6 +274,7 @@ import org.h2.expression.function.TableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsPostgreSQL;
+import org.h2.mode.OnDuplicateKeyValues;
 import org.h2.mode.Regclass;
 import org.h2.result.SortOrder;
 import org.h2.schema.Domain;
@@ -4942,11 +4943,16 @@ public class Parser {
             break;
         case VALUES:
             if (database.getMode().onDuplicateKeyUpdate) {
-                read();
-                r = readKeywordFunction(Function.VALUES);
-            } else {
-                r = new Subquery(parseQuery());
+                if (currentPrepared instanceof Insert) {
+                    r = readOnDuplicateKeyValues(((Insert) currentPrepared).getTable(), null);
+                    break;
+                } else if (currentPrepared instanceof Update) {
+                    Update update = (Update) currentPrepared;
+                    r = readOnDuplicateKeyValues(update.getTable(), update);
+                    break;
+                }
             }
+            r = new Subquery(parseQuery());
             break;
         case CASE:
             read();
@@ -5097,6 +5103,14 @@ public class Parser {
             read(CLOSE_PAREN);
         }
         return new CurrentGeneralValueSpecification(specification);
+    }
+
+    private Expression readOnDuplicateKeyValues(Table table, Update update) {
+        read();
+        read(OPEN_PAREN);
+        Column c = readTableColumn(new TableFilter(session, table, null, rightsChecked, null, 0, null));
+        read(CLOSE_PAREN);
+        return new OnDuplicateKeyValues(c, update);
     }
 
     private Expression readTermWithIdentifier(String name) {

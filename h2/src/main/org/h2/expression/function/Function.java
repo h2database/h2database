@@ -154,11 +154,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     public static final int REGEXP_LIKE = 240;
     public static final int REGEXP_SUBSTR = 241;
 
-    /**
-     * Used in MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ... VALUES
-     */
-    public static final int VALUES = 250;
-
     public static final int JSON_OBJECT = 251, JSON_ARRAY = 252;
 
     /**
@@ -387,9 +382,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
         addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT, VAR_ARGS, Value.RESULT_SET);
         addFunctionWithNull("UNNEST", UNNEST, VAR_ARGS, Value.RESULT_SET);
-
-        // ON DUPLICATE KEY VALUES function
-        addFunctionWithNull("VALUES", VALUES, 1, Value.NULL);
 
         addFunction("JSON_ARRAY", JSON_ARRAY, VAR_ARGS, Value.JSON, false, true, true);
         addFunction("JSON_OBJECT", JSON_OBJECT, VAR_ARGS, Value.JSON, false, true, true);
@@ -1493,15 +1485,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
         case REGEXP_SUBSTR: {
             result = regexpSubstr(v0, v1, v2, v3, v4, v5, session);
-            break;
-        }
-        case VALUES: {
-            Expression a0 = args[0];
-            StringBuilder builder = new StringBuilder();
-            Parser.quoteIdentifier(builder, a0.getSchemaName(), DEFAULT_SQL_FLAGS).append('.');
-            Parser.quoteIdentifier(builder, a0.getTableName(), DEFAULT_SQL_FLAGS).append('.');
-            Parser.quoteIdentifier(builder, a0.getColumnName(session, /* TODO */ 0), DEFAULT_SQL_FLAGS);
-            result = session.getVariable(builder.toString());
             break;
         }
         case SIGNAL: {

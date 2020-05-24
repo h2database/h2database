@@ -5073,7 +5073,7 @@ public class Parser {
                     r = new TimeZoneOperation(r, readExpression());
                     continue;
                 } else if (readIf("LOCAL")) {
-                    r = new TimeZoneOperation(r);
+                    r = new TimeZoneOperation(r, null);
                     continue;
                 } else {
                     reread(index);

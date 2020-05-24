@@ -672,7 +672,7 @@ public class TestPgServer extends TestDb {
             try (ResultSet rs = stat.executeQuery("SELECT \"p\".\"proname\", \"p\".\"proargtypes\" " +
                     "FROM \"pg_catalog\".\"pg_namespace\" AS \"n\" " +
                     "JOIN \"pg_catalog\".\"pg_proc\" AS \"p\" ON \"p\".\"pronamespace\" = \"n\".\"oid\" " +
-                    "WHERE \"n\".\"nspname\"='public';")) {
+                    "WHERE \"n\".\"nspname\"='public'")) {
                 assertFalse(rs.next()); // "pg_proc" always empty
             }
             try (ResultSet rs = stat.executeQuery("SELECT DISTINCT a.attname AS column_name, " +
@@ -690,6 +690,51 @@ public class TestPgServer extends TestDb {
                 assertTrue(rs.next());
                 assertEquals("x1", rs.getString("column_name"));
                 assertFalse(rs.next());
+            }
+
+            // DBeaver
+            try (ResultSet rs = stat.executeQuery("SELECT t.oid,t.*,c.relkind FROM pg_catalog.pg_type t " +
+                    "LEFT OUTER JOIN pg_class c ON c.oid=t.typrelid WHERE typnamespace=-1000")) {
+                // just no exception
+            }
+            stat.execute("SET search_path TO 'ab', 'c\"d', 'e''f'");
+            try (ResultSet rs = stat.executeQuery("SHOW search_path")) {
+                assertTrue(rs.next());
+                assertEquals("pg_catalog, ab, \"c\"\"d\", \"e'f\"", rs.getString("search_path"));
+            }
+            stat.execute("SET search_path TO ab, \"c\"\"d\", \"e'f\"");
+            try (ResultSet rs = stat.executeQuery("SHOW search_path")) {
+                assertTrue(rs.next());
+                assertEquals("pg_catalog, ab, \"c\"\"d\", \"e'f\"", rs.getString("search_path"));
+            }
+            int oid;
+            try (ResultSet rs = stat.executeQuery("SELECT oid FROM pg_class WHERE relname = 'test'")) {
+                rs.next();
+                oid = rs.getInt("oid");
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT i.*,i.indkey as keys,c.relname,c.relnamespace,c.relam,c.reltablespace," +
+                    "tc.relname as tabrelname,dsc.description,pg_catalog.pg_get_expr(i.indpred, i.indrelid) as pred_expr," +
+                    "pg_catalog.pg_get_expr(i.indexprs, i.indrelid, true) as expr,pg_catalog.pg_relation_size(i.indexrelid) as index_rel_size," +
+                    "pg_catalog.pg_stat_get_numscans(i.indexrelid) as index_num_scans " + 
+                    "FROM pg_catalog.pg_index i " + 
+                    "INNER JOIN pg_catalog.pg_class c ON c.oid=i.indexrelid " + 
+                    "INNER JOIN pg_catalog.pg_class tc ON tc.oid=i.indrelid " + 
+                    "LEFT OUTER JOIN pg_catalog.pg_description dsc ON i.indexrelid=dsc.objoid " + 
+                    "WHERE i.indrelid=" + oid + " ORDER BY c.relname")) {
+                // pg_index is empty
+                assertFalse(rs.next());
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT c.oid,c.*," +
+                    "t.relname as tabrelname,rt.relnamespace as refnamespace,d.description " + 
+                    "FROM pg_catalog.pg_constraint c " + 
+                    "INNER JOIN pg_catalog.pg_class t ON t.oid=c.conrelid " + 
+                    "LEFT OUTER JOIN pg_catalog.pg_class rt ON rt.oid=c.confrelid " + 
+                    "LEFT OUTER JOIN pg_catalog.pg_description d ON d.objoid=c.oid " +
+                    "AND d.objsubid=0 AND d.classoid='pg_constraint'::regclass WHERE c.conrelid=" + oid)) {
+                assertTrue(rs.next());
+                assertEquals("test", rs.getString("tabrelname"));
+                assertEquals("p", rs.getString("contype"));
+                assertEquals("1", ((Object[]) rs.getArray("conkey").getArray())[0]);
             }
         } finally {
             server.stop();

@@ -71,6 +71,8 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
 
     private static final int ARRAY_TO_STRING = SET_CONFIG + 1;
 
+    private static final int PG_STAT_GET_NUMSCANS = ARRAY_TO_STRING + 1;
+
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
 
     static {
@@ -90,7 +92,7 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
         FUNCTIONS.put("PG_ENCODING_TO_CHAR", new FunctionInfo("PG_ENCODING_TO_CHAR", PG_ENCODING_TO_CHAR, 1,
                 Value.VARCHAR, true, true, true, false));
         FUNCTIONS.put("PG_GET_EXPR",
-                new FunctionInfo("PG_GET_EXPR", PG_GET_EXPR, 2, Value.VARCHAR, true, true, true, false));
+                new FunctionInfo("PG_GET_EXPR", PG_GET_EXPR, VAR_ARGS, Value.VARCHAR, true, true, true, false));
         FUNCTIONS.put("PG_GET_INDEXDEF", //
                 new FunctionInfo("PG_GET_INDEXDEF", PG_GET_INDEXDEF, VAR_ARGS, Value.VARCHAR, //
                         true, false, true, false));
@@ -106,6 +108,8 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
                 SET_CONFIG, 3, Value.VARCHAR, true, false, true, false));
         FUNCTIONS.put("ARRAY_TO_STRING", new FunctionInfo("ARRAY_TO_STRING", //
                 ARRAY_TO_STRING, VAR_ARGS, Value.VARCHAR, false, true, true, false));
+        FUNCTIONS.put("PG_STAT_GET_NUMSCANS", new FunctionInfo("PG_STAT_GET_NUMSCANS", //
+                PG_STAT_GET_NUMSCANS, 1, Value.INTEGER, true, true, true, false));
     }
 
     /**
@@ -150,6 +154,7 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
                 throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "1, 3");
             }
             return;
+        case PG_GET_EXPR:
         case ARRAY_TO_STRING:
             min = 2;
             max = 3;
@@ -251,6 +256,10 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
                 }
             }
             result = ValueVarchar.get(joiner.toString());
+            break;
+        case PG_STAT_GET_NUMSCANS:
+            // Not implemented
+            result = ValueInteger.get(0);
             break;
         default:
             throw DbException.throwInternalError("type=" + info.type);

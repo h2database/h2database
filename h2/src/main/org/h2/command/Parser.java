@@ -4087,11 +4087,6 @@ public class Parser {
             function = Function.getFunction(Function.COALESCE);
             break;
         // CURRENT_CATALOG
-        case "CURRENT_DATABASE":
-            if (database.getMode().getEnum() != ModeEnum.PostgreSQL) {
-                return null;
-            }
-            //$FALL-THROUGH$
         case "DATABASE":
             read(CLOSE_PAREN);
             return new CurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_CATALOG);
@@ -4199,11 +4194,6 @@ public class Parser {
             return readCompatibilitySequenceValueFunction(true);
         case "NEXTVAL":
             return readCompatibilitySequenceValueFunction(false);
-        case "LASTVAL":
-            if (database.getMode().getEnum() != ModeEnum.PostgreSQL) {
-                return null;
-            }
-            //$FALL-THROUGH$
         case "IDENTITY":
             read(CLOSE_PAREN);
             return new CompatibilityIdentityFunction(false);

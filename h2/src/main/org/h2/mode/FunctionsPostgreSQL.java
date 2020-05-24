@@ -15,6 +15,8 @@ import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
+import org.h2.expression.function.CompatibilityIdentityFunction;
+import org.h2.expression.function.CurrentGeneralValueSpecification;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
 import org.h2.index.Index;
@@ -39,7 +41,9 @@ import org.h2.value.ValueVarchar;
  */
 public final class FunctionsPostgreSQL extends FunctionsBase {
 
-    private static final int CURRTID2 = 3001;
+    private static final int CURRENT_DATABASE = 3001;
+
+    private static final int CURRTID2 = CURRENT_DATABASE + 1;
 
     private static final int FORMAT_TYPE = CURRTID2 + 1;
 
@@ -49,7 +53,9 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
 
     private static final int HAS_TABLE_PRIVILEGE = HAS_SCHEMA_PRIVILEGE + 1;
 
-    private static final int VERSION = HAS_TABLE_PRIVILEGE + 1;
+    private static final int LASTVAL = HAS_TABLE_PRIVILEGE + 1;
+
+    private static final int VERSION = LASTVAL + 1;
 
     private static final int OBJ_DESCRIPTION = VERSION + 1;
 
@@ -76,6 +82,8 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
 
     static {
+        FUNCTIONS.put("CURRENT_DATABASE", new FunctionInfo("CURRENT_DATABASE", CURRENT_DATABASE, 0, Value.VARCHAR,
+                true, false, false));
         FUNCTIONS.put("CURRTID2", new FunctionInfo("CURRTID2", CURRTID2, 2, Value.INTEGER, true, false, false));
         FUNCTIONS.put("FORMAT_TYPE",
                 new FunctionInfo("FORMAT_TYPE", FORMAT_TYPE, 2, Value.VARCHAR, false, true, false));
@@ -85,6 +93,7 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
                 VAR_ARGS, Value.BOOLEAN, true, false, false));
         FUNCTIONS.put("HAS_TABLE_PRIVILEGE", new FunctionInfo("HAS_TABLE_PRIVILEGE", HAS_TABLE_PRIVILEGE,
                 VAR_ARGS, Value.BOOLEAN, true, false, false));
+        FUNCTIONS.put("LASTVAL", new FunctionInfo("LASTVAL", LASTVAL, 0, Value.BIGINT, true, false, false));
         FUNCTIONS.put("VERSION", new FunctionInfo("VERSION", VERSION, 0, Value.VARCHAR, true, false, false));
         FUNCTIONS.put("OBJ_DESCRIPTION", new FunctionInfo("OBJ_DESCRIPTION", OBJ_DESCRIPTION, VAR_ARGS, Value.VARCHAR,
                 true, false, false));
@@ -168,6 +177,13 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
 
     @Override
     public Expression optimize(Session session) {
+        switch (info.type) {
+        case CURRENT_DATABASE:
+            return new CurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_CATALOG)
+                    .optimize(session);
+        case LASTVAL:
+            return new CompatibilityIdentityFunction(false).optimize(session);
+        }
         boolean allConst = optimizeArguments(session);
         type = TypeInfo.getTypeInfo(info.returnDataType);
         if (allConst) {

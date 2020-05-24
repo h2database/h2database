@@ -8,6 +8,7 @@ package org.h2.expression.function;
 import org.h2.command.Parser;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.engine.Mode.ExpressionNames;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
@@ -29,6 +30,14 @@ public class CompatibilitySequenceValueFunction extends Operation1_2 {
     public CompatibilitySequenceValueFunction(Expression left, Expression right, boolean current) {
         super(left, right);
         this.current = current;
+    }
+
+    @Override
+    public String getAlias(Session session, int columnIndex) {
+        if (session.getMode().expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
+            return current ? "currval" : "nextval";
+        }
+        return super.getAlias(session, columnIndex);
     }
 
     @Override

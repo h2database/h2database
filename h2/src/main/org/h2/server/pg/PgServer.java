@@ -313,6 +313,8 @@ public class PgServer implements Service {
         case PG_TYPE_BYTEA:
             valueType = Value.VARBINARY;
             break;
+        case 18:
+            return "char";
         case 19:
             return "name";
         case PG_TYPE_INT8:

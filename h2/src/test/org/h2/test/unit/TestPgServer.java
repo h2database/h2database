@@ -27,6 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.h2.api.ErrorCode;
+import org.h2.server.pg.PgServer;
 import org.h2.store.Data;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -335,6 +336,13 @@ public class TestPgServer extends TestDb {
         rs = stat.executeQuery("select pg_get_indexdef("+indexId+", 2, false)");
         rs.next();
         assertEquals("id", rs.getString(1));
+
+        rs = stat.executeQuery("select * from pg_type where oid = " + PgServer.PG_TYPE_VARCHAR_ARRAY);
+        rs.next();
+        assertEquals("_varchar", rs.getString("typname"));
+        assertEquals("b", rs.getString("typtype"));
+        assertEquals(",", rs.getString("typdelim"));
+        assertEquals(PgServer.PG_TYPE_VARCHAR, rs.getInt("typelem"));
 
         conn.close();
     }

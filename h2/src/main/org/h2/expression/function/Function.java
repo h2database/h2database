@@ -23,11 +23,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
@@ -111,7 +111,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30,
             DECRYPT = 31, COMPRESS = 32, EXPAND = 33, ZERO = 34,
             RANDOM_UUID = 35, COSH = 36, SINH = 37, TANH = 38, LN = 39,
-            BITGET = 40, ORA_HASH = 41, BITNOT = 42, LSHIFT = 43, RSHIFT = 44;
+            BITGET = 40, ORA_HASH = 41, BITNOT = 42, LSHIFT = 43, RSHIFT = 44,
+            BASE64_ENCODE = 45, BASE64_DECODE = 46;
 
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
             CHAR_LENGTH = 53, CONCAT = 54, DIFFERENCE = 55, HEXTORAW = 56,
@@ -265,6 +266,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("RANDOM_UUID", RANDOM_UUID, 0, Value.UUID);
         addFunctionNotDeterministic("UUID", RANDOM_UUID, 0, Value.UUID);
         addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.BIGINT);
+        addFunction("BASE64_ENCODE", BASE64_ENCODE, VAR_ARGS, Value.VARCHAR);
+        addFunction("BASE64_DECODE", BASE64_DECODE, 1, Value.VARBINARY);
         // string
         addFunction("ASCII", ASCII, 1, Value.INTEGER);
         addFunction("BIT_LENGTH", BIT_LENGTH, 1, Value.BIGINT);
@@ -1108,6 +1111,12 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = oraHash(v0,
                     v1 == null ? 0xffff_ffffL : v1.getLong(),
                     v2 == null ? 0L : v2.getLong());
+            break;
+        case BASE64_ENCODE:
+            result = base64encode(v0.getBytesNoCopy(), v1 != null ? v1.getString() : null);
+            break;
+        case BASE64_DECODE:
+            result = base64decode(v0.getString());
             break;
         case DIFFERENCE:
             result = ValueInteger.get(getDifference(
@@ -2090,6 +2099,41 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return ValueBigint.get((hc & Long.MAX_VALUE) % (bucket + 1));
     }
 
+    private static Value base64encode(byte[] data, String algorithm) {
+        if (data!=null){
+            final String result;
+            if (algorithm == null || algorithm.isEmpty() || "BASE64".equalsIgnoreCase(algorithm)) {
+                result = Base64.getEncoder().encodeToString(data);
+            } else if ("URL".equalsIgnoreCase(algorithm)) {
+                result = Base64.getUrlEncoder().encodeToString(data);
+            } else {
+                throw DbException.getInvalidValueException("algorithmString, valid value: 'BASE64' or not set, 'URL'", algorithm);
+            }
+            return ValueVarchar.get(result);
+        }else{
+            return ValueNull.INSTANCE;
+        }
+    }
+
+    private static Value base64decode(String data) {
+        if (data!=null) {
+            try {
+                final byte[] result;
+                if (data.indexOf('_') >= 0 || data.indexOf('-') >= 0) {
+                    result = Base64.getUrlDecoder().decode(data);
+                }
+                else {
+                    result = Base64.getDecoder().decode(data);
+                }
+                return ValueVarbinary.getNoCopy(result);
+            }catch (IllegalArgumentException e){
+                throw DbException.getInvalidValueException("data, "+e.getMessage(), data);
+            }
+        } else {
+            return ValueNull.INSTANCE;
+        }
+    }
+
     private static MessageDigest hashImpl(Value value, String algorithm) {
         MessageDigest md;
         try {
@@ -2339,6 +2383,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case TRUNCATE:
         case CURRVAL:
         case NEXTVAL:
+        case BASE64_ENCODE:
             min = 1;
             max = 2;
             break;

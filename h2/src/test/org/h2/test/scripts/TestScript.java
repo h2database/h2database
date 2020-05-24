@@ -195,7 +195,7 @@ public class TestScript extends TestDb {
                 "soundex", "space", "stringdecode", "stringencode",
                 "stringtoutf8", "substring", "to-char", "translate", "trim",
                 "upper", "utf8tostring", "xmlattr", "xmlcdata", "xmlcomment",
-                "xmlnode", "xmlstartdoc", "xmltext" }) {
+                "xmlnode", "xmlstartdoc", "xmltext", "base64_encode", "base64_decode" }) {
             testScript("functions/string/" + s + ".sql");
         }
         for (String s : new String[] { "array-cat", "array-contains", "array-get",

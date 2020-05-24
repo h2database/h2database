@@ -264,6 +264,7 @@ import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
 import org.h2.expression.function.CastSpecification;
+import org.h2.expression.function.CompatibilityIdentityFunction;
 import org.h2.expression.function.CompatibilitySequenceValueFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.CurrentGeneralValueSpecification;
@@ -4195,6 +4196,17 @@ public class Parser {
             return readCompatibilitySequenceValueFunction(true);
         case "NEXTVAL":
             return readCompatibilitySequenceValueFunction(false);
+        case "LASTVAL":
+            if (database.getMode().getEnum() != ModeEnum.PostgreSQL) {
+                return null;
+            }
+            //$FALL-THROUGH$
+        case "IDENTITY":
+            read(CLOSE_PAREN);
+            return new CompatibilityIdentityFunction(false);
+        case "SCOPE_IDENTITY":
+            read(CLOSE_PAREN);
+            return new CompatibilityIdentityFunction(true);
         default:
             return null;
         }

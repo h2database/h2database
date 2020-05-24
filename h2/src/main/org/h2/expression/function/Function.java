@@ -130,7 +130,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             DATE_TRUNC = 125;
 
     public static final int
-            IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
+            AUTOCOMMIT = 155,
             READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
             DISK_SPACE_USED = 159, SIGNAL = 160, ESTIMATED_ENVELOPE = 161;
 
@@ -320,10 +320,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("PARSEDATETIME", PARSEDATETIME, VAR_ARGS, Value.TIMESTAMP);
         addFunction("DATE_TRUNC", DATE_TRUNC, 2, Value.NULL);
         // system
-        addFunctionNotDeterministic("IDENTITY", IDENTITY,
-                0, Value.BIGINT);
-        addFunctionNotDeterministic("SCOPE_IDENTITY", SCOPE_IDENTITY,
-                0, Value.BIGINT);
         addFunctionNotDeterministic("AUTOCOMMIT", AUTOCOMMIT,
                 0, Value.BOOLEAN);
         addFunctionNotDeterministic("READONLY", READONLY,
@@ -754,12 +750,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = ValueVarchar.get(DateTimeFunctions.getMonthsAndWeeks(0)[month - 1], session);
             break;
         }
-        case IDENTITY:
-            result = session.getLastIdentity();
-            break;
-        case SCOPE_IDENTITY:
-            result = session.getLastScopeIdentity();
-            break;
         case AUTOCOMMIT:
             result = ValueBoolean.get(session.getAutoCommit());
             break;

@@ -101,14 +101,14 @@ import org.h2.value.ValueVarchar;
  */
 public class Function extends OperationN implements FunctionCall, ExpressionWithFlags {
     public static final int ABS = 0,
-            BITAND = 5, BITOR = 6, BITXOR = 7, CEILING = 8,
+            CEILING = 8,
             FLOOR = 13, MOD = 16,
             PI = 17, RAND = 20, ROUND = 21,
             ROUNDMAGIC = 22, SIGN = 23,
             TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30,
             DECRYPT = 31, COMPRESS = 32, EXPAND = 33, ZERO = 34,
             RANDOM_UUID = 35,
-            BITGET = 40, ORA_HASH = 41, BITNOT = 42, LSHIFT = 43, RSHIFT = 44;
+            ORA_HASH = 41;
 
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
             CHAR_LENGTH = 53, CONCAT = 54, DIFFERENCE = 55, HEXTORAW = 56,
@@ -206,15 +206,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
         // FUNCTIONS
         addFunction("ABS", ABS, 1, Value.NULL);
-        addFunction("BITAND", BITAND, 2, Value.BIGINT);
-        addFunction("BITGET", BITGET, 2, Value.BOOLEAN);
-        addFunction("BITNOT", BITNOT, 1, Value.BIGINT);
-        addFunction("BITOR", BITOR, 2, Value.BIGINT);
-        addFunction("BITXOR", BITXOR, 2, Value.BIGINT);
         addFunction("CEILING", CEILING, 1, Value.NULL);
         addFunction("CEIL", CEILING, 1, Value.NULL);
         addFunction("FLOOR", FLOOR, 1, Value.NULL);
-        addFunction("LSHIFT", LSHIFT, 2, Value.BIGINT);
         addFunction("MOD", MOD, 2, Value.BIGINT);
         addFunction("PI", PI, 0, Value.DOUBLE);
         // RAND without argument: get the next value
@@ -223,7 +217,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("RANDOM", RAND, VAR_ARGS, Value.DOUBLE);
         addFunction("ROUND", ROUND, VAR_ARGS, Value.NULL);
         addFunction("ROUNDMAGIC", ROUNDMAGIC, 1, Value.DOUBLE);
-        addFunction("RSHIFT", RSHIFT, 2, Value.BIGINT);
         addFunction("SIGN", SIGN, 1, Value.INTEGER);
         addFunction("TRUNCATE", TRUNCATE, VAR_ARGS, Value.NULL);
         // same as TRUNCATE
@@ -922,27 +915,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         Value v5 = getNullOrValue(session, args, values, 5);
         Value result;
         switch (info.type) {
-        case BITAND:
-            result = ValueBigint.get(v0.getLong() & v1.getLong());
-            break;
-        case BITGET:
-            result = ValueBoolean.get((v0.getLong() & (1L << v1.getInt())) != 0);
-            break;
-        case BITNOT:
-            result = ValueBigint.get(~v0.getLong());
-            break;
-        case BITOR:
-            result = ValueBigint.get(v0.getLong() | v1.getLong());
-            break;
-        case BITXOR:
-            result = ValueBigint.get(v0.getLong() ^ v1.getLong());
-            break;
-        case LSHIFT:
-            result = ValueBigint.get(v0.getLong() << v1.getInt());
-            break;
-        case RSHIFT:
-            result = ValueBigint.get(v0.getLong() >> v1.getInt());
-            break;
         case MOD: {
             long x = v1.getLong();
             if (x == 0) {

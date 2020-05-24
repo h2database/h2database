@@ -263,6 +263,7 @@ import org.h2.expression.condition.IsJsonPredicate;
 import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
+import org.h2.expression.function.BitFunction;
 import org.h2.expression.function.CastSpecification;
 import org.h2.expression.function.CompatibilityIdentityFunction;
 import org.h2.expression.function.CompatibilitySequenceValueFunction;
@@ -4294,6 +4295,23 @@ public class Parser {
             return readMathFunction1(MathFunction1.DEGREES);
         case "RADIANS":
             return readMathFunction1(MathFunction1.RADIANS);
+        case "BITAND":
+            return readBitFunction(BitFunction.BITAND);
+        case "BITOR":
+            return readBitFunction(BitFunction.BITOR);
+        case "BITXOR":
+            return readBitFunction(BitFunction.BITXOR);
+        case "BITNOT": {
+            Expression arg = readExpression();
+            read(CLOSE_PAREN);
+            return new BitFunction(arg, null, BitFunction.BITNOT);
+        }
+        case "BITGET":
+            return readBitFunction(BitFunction.BITGET);
+        case "LSHIFT":
+            return readBitFunction(BitFunction.LSHIFT);
+        case "RSHIFT":
+            return readBitFunction(BitFunction.RSHIFT);
         }
         Function function = Function.getFunction(database, upperName);
         return function != null ? readFunctionParameters(function) : null;
@@ -4313,9 +4331,17 @@ public class Parser {
         return new MathFunction2(arg1, arg2, function);
     }
 
+    private Expression readBitFunction(int function) {
+        Expression arg1 = readExpression();
+        read(COMMA);
+        Expression arg2 = readExpression();
+        read(CLOSE_PAREN);
+        return new BitFunction(arg1, arg2, function);
+    }
+
     private boolean isBuiltinFunction(String upperName) {
         return Function.getFunction(database, upperName) != null || MathFunction1.exists(upperName)
-                || MathFunction2.exists(upperName);
+                || MathFunction2.exists(upperName) || BitFunction.exists(upperName);
     }
 
     private Function readFunctionParameters(Function function) {

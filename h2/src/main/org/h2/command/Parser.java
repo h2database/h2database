@@ -264,6 +264,7 @@ import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
 import org.h2.expression.function.CastSpecification;
+import org.h2.expression.function.CompatibilitySequenceValueFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.CurrentGeneralValueSpecification;
 import org.h2.expression.function.DateTimeFunctions;
@@ -4189,6 +4190,11 @@ public class Parser {
         case "UCASE":
             function = Function.getFunction(Function.UPPER);
             break;
+        // Sequence value
+        case "CURRVAL":
+            return readCompatibilitySequenceValueFunction(true);
+        case "NEXTVAL":
+            return readCompatibilitySequenceValueFunction(false);
         default:
             return null;
         }
@@ -4216,6 +4222,12 @@ public class Parser {
         Expression elseExpression = readExpression();
         read(CLOSE_PAREN);
         return new SearchedCase(new Expression[] { when, then, elseExpression });
+    }
+
+    private Expression readCompatibilitySequenceValueFunction(boolean current) {
+        Expression arg1 = readExpression(), arg2 = readIf(COMMA) ? readExpression() : null;
+        read(CLOSE_PAREN);
+        return new CompatibilitySequenceValueFunction(arg1, arg2, current);
     }
 
     private Function readFunctionParameters(Function function) {

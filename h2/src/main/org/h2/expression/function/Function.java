@@ -38,7 +38,6 @@ import org.h2.engine.Mode.ExpressionNames;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.Format;
@@ -54,8 +53,6 @@ import org.h2.mode.FunctionsMySQL;
 import org.h2.mode.FunctionsOracle;
 import org.h2.mode.FunctionsPostgreSQL;
 import org.h2.mvstore.db.MVSpatialIndex;
-import org.h2.schema.Schema;
-import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
 import org.h2.security.SHA3;
@@ -141,8 +138,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
     public static final int
             COALESCE = 204, NULLIF = 205,
-            NEXTVAL = 207, CURRVAL = 208, CSVREAD = 210,
-            CSVWRITE = 211, MEMORY_FREE = 212, MEMORY_USED = 213,
+            CSVREAD = 210, CSVWRITE = 211,
+            MEMORY_FREE = 212, MEMORY_USED = 213,
             LOCK_MODE = 214, SESSION_ID = 216,
             CARDINALITY = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
@@ -340,8 +337,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("COALESCE", COALESCE, VAR_ARGS, Value.NULL);
         addFunctionWithNull("NULLIF", NULLIF,
                 2, Value.NULL);
-        addFunctionNotDeterministic("NEXTVAL", NEXTVAL, VAR_ARGS, Value.NULL);
-        addFunctionNotDeterministic("CURRVAL", CURRVAL, VAR_ARGS, Value.NULL);
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
         addFunctionWithNull("TRIM_ARRAY", TRIM_ARRAY, 2, Value.ARRAY);
         addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
@@ -1271,12 +1266,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = session.areEqual(v0, v1) ? ValueNull.INSTANCE : v0;
             break;
             // system
-        case NEXTVAL:
-            result = session.getNextValueFor(getSequence(session, v0, v1), null);
-            break;
-        case CURRVAL:
-            result = session.getCurrentValueFor(getSequence(session, v0, v1));
-            break;
         case CSVREAD: {
             String fileName = v0.getString();
             String columnList = v1 == null ? null : v1.getString();
@@ -1657,42 +1646,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             return ValueNumeric.get(bd).convertTo(valueType);
         }
         return value;
-    }
-
-    private static Sequence getSequence(Session session, Value v0, Value v1) {
-        String schemaName, sequenceName;
-        if (v1 == null) {
-            Parser p = new Parser(session);
-            String sql = v0.getString();
-            Expression expr = p.parseExpression(sql);
-            if (expr instanceof ExpressionColumn) {
-                ExpressionColumn seq = (ExpressionColumn) expr;
-                schemaName = seq.getOriginalTableAliasName();
-                if (schemaName == null) {
-                    schemaName = session.getCurrentSchemaName();
-                    sequenceName = sql;
-                } else {
-                    sequenceName = seq.getColumnName(session, -1);
-                }
-            } else {
-                throw DbException.getSyntaxError(sql, 1);
-            }
-        } else {
-            schemaName = v0.getString();
-            sequenceName = v1.getString();
-        }
-        Database database = session.getDatabase();
-        Schema s = database.findSchema(schemaName);
-        if (s == null) {
-            schemaName = StringUtils.toUpperEnglish(schemaName);
-            s = database.getSchema(schemaName);
-        }
-        Sequence seq = s.findSequence(sequenceName);
-        if (seq == null) {
-            sequenceName = StringUtils.toUpperEnglish(sequenceName);
-            seq = s.getSequence(sequenceName);
-        }
-        return seq;
     }
 
     private static long length(Value v) {
@@ -2309,8 +2262,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case ROUND:
         case XMLTEXT:
         case TRUNCATE:
-        case CURRVAL:
-        case NEXTVAL:
             min = 1;
             max = 2;
             break;
@@ -2587,10 +2538,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case MONTH_NAME:
             // day and month names may be long in some languages
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 20, 0, null);
-            break;
-        case NEXTVAL:
-        case CURRVAL:
-            typeInfo = session.getMode().decimalSequences ? TypeInfo.TYPE_NUMERIC_BIGINT : TypeInfo.TYPE_BIGINT;
             break;
         case TRIM_ARRAY:
         case ARRAY_SLICE: {

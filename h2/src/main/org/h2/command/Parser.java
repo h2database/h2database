@@ -1654,6 +1654,9 @@ public class Parser {
         } else if (readIf("DATABASES") || readIf("SCHEMAS")) {
             // for MySQL compatibility
             buff.append("SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA");
+        } else if (database.getMode().getEnum() == ModeEnum.PostgreSQL && readIf("ALL")) {
+            // for PostgreSQL compatibility
+            buff.append("NAME, SETTING FROM PG_CATALOG.PG_SETTINGS");
         }
         boolean b = session.getAllowLiterals();
         try {

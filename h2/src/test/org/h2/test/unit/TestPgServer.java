@@ -691,6 +691,11 @@ public class TestPgServer extends TestDb {
                 assertEquals("x1", rs.getString("column_name"));
                 assertFalse(rs.next());
             }
+            try (ResultSet rs = stat.executeQuery("SHOW ALL")) {
+                ResultSetMetaData rsMeta = rs.getMetaData();
+                assertEquals("name", rsMeta.getColumnName(1));
+                assertEquals("setting", rsMeta.getColumnName(2));
+            }
 
             // DBeaver
             try (ResultSet rs = stat.executeQuery("SELECT t.oid,t.*,c.relkind FROM pg_catalog.pg_type t " +

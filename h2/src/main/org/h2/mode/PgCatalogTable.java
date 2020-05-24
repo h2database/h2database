@@ -81,6 +81,16 @@ public class PgCatalogTable extends MetaTable {
 
     private static final int META_TABLE_TYPE_COUNT = PG_USER + 1;
 
+    private static final Object[][] PG_EXTRA_TYPES = {
+            { 18, "char", 1, 0 },
+            { 19, "name", 64, 18 },
+            { 22, "int2vector", -1, 21 },
+            { 24, "regproc", 4, 0 },
+            { PgServer.PG_TYPE_INT2_ARRAY, "_int2", -1, PgServer.PG_TYPE_INT2 },
+            { PgServer.PG_TYPE_INT4_ARRAY, "_int4", -1, PgServer.PG_TYPE_INT4 },
+            { 2205, "regclass", 4, 0 },
+    };
+
     /**
      * Get the number of meta table types. Supported meta table types are 0 ..
      * this value - 1.
@@ -586,13 +596,7 @@ public class PgCatalogTable extends MetaTable {
                         // TYPINPUT
                         null);
             }
-            for (Object[] pgType : new Object[][] {
-                    { 18, "char", 1, 0 },
-                    { 19, "name", 64, 18 },
-                    { 22, "int2vector", -1, 21 },
-                    { 24, "regproc", 4, 0 },
-                    { 2205, "regclass", 4, 0 },
-            }) {
+            for (Object[] pgType : PG_EXTRA_TYPES) {
                 add(session, rows,
                         // OID
                         ValueInteger.get((int) pgType[0]),

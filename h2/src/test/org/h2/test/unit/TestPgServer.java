@@ -750,7 +750,7 @@ public class TestPgServer extends TestDb {
                 assertTrue(rs.next());
                 assertEquals("test", rs.getString("tabrelname"));
                 assertEquals("p", rs.getString("contype"));
-                assertEquals("1", ((Object[]) rs.getArray("conkey").getArray())[0]);
+                assertEquals(Short.valueOf((short) 1), ((Object[]) rs.getArray("conkey").getArray())[0]);
             }
         } finally {
             server.stop();

@@ -712,23 +712,26 @@ public class TestPgServer extends TestDb {
                 rs.next();
                 oid = rs.getInt("oid");
             }
-            try (ResultSet rs = stat.executeQuery("SELECT i.*,i.indkey as keys,c.relname,c.relnamespace,c.relam,c.reltablespace," +
-                    "tc.relname as tabrelname,dsc.description,pg_catalog.pg_get_expr(i.indpred, i.indrelid) as pred_expr," +
-                    "pg_catalog.pg_get_expr(i.indexprs, i.indrelid, true) as expr,pg_catalog.pg_relation_size(i.indexrelid) as index_rel_size," +
-                    "pg_catalog.pg_stat_get_numscans(i.indexrelid) as index_num_scans " + 
-                    "FROM pg_catalog.pg_index i " + 
-                    "INNER JOIN pg_catalog.pg_class c ON c.oid=i.indexrelid " + 
-                    "INNER JOIN pg_catalog.pg_class tc ON tc.oid=i.indrelid " + 
-                    "LEFT OUTER JOIN pg_catalog.pg_description dsc ON i.indexrelid=dsc.objoid " + 
+            try (ResultSet rs = stat.executeQuery("SELECT i.*,i.indkey as keys," +
+                    "c.relname,c.relnamespace,c.relam,c.reltablespace," +
+                    "tc.relname as tabrelname,dsc.description," +
+                    "pg_catalog.pg_get_expr(i.indpred, i.indrelid) as pred_expr," +
+                    "pg_catalog.pg_get_expr(i.indexprs, i.indrelid, true) as expr," +
+                    "pg_catalog.pg_relation_size(i.indexrelid) as index_rel_size," +
+                    "pg_catalog.pg_stat_get_numscans(i.indexrelid) as index_num_scans " +
+                    "FROM pg_catalog.pg_index i " +
+                    "INNER JOIN pg_catalog.pg_class c ON c.oid=i.indexrelid " +
+                    "INNER JOIN pg_catalog.pg_class tc ON tc.oid=i.indrelid " +
+                    "LEFT OUTER JOIN pg_catalog.pg_description dsc ON i.indexrelid=dsc.objoid " +
                     "WHERE i.indrelid=" + oid + " ORDER BY c.relname")) {
                 // pg_index is empty
                 assertFalse(rs.next());
             }
             try (ResultSet rs = stat.executeQuery("SELECT c.oid,c.*," +
-                    "t.relname as tabrelname,rt.relnamespace as refnamespace,d.description " + 
-                    "FROM pg_catalog.pg_constraint c " + 
-                    "INNER JOIN pg_catalog.pg_class t ON t.oid=c.conrelid " + 
-                    "LEFT OUTER JOIN pg_catalog.pg_class rt ON rt.oid=c.confrelid " + 
+                    "t.relname as tabrelname,rt.relnamespace as refnamespace,d.description " +
+                    "FROM pg_catalog.pg_constraint c " +
+                    "INNER JOIN pg_catalog.pg_class t ON t.oid=c.conrelid " +
+                    "LEFT OUTER JOIN pg_catalog.pg_class rt ON rt.oid=c.confrelid " +
                     "LEFT OUTER JOIN pg_catalog.pg_description d ON d.objoid=c.oid " +
                     "AND d.objsubid=0 AND d.classoid='pg_constraint'::regclass WHERE c.conrelid=" + oid)) {
                 assertTrue(rs.next());

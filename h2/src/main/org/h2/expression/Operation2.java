@@ -13,11 +13,11 @@ import org.h2.value.TypeInfo;
 /**
  * Operation with two arguments.
  */
-abstract class Operation2 extends Expression {
+public abstract class Operation2 extends Expression {
 
-    Expression left, right;
+    protected Expression left, right;
 
-    TypeInfo type;
+    protected TypeInfo type;
 
     protected Operation2(Expression left, Expression right) {
         this.left = left;

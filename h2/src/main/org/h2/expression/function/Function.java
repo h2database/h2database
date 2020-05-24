@@ -100,14 +100,14 @@ import org.h2.value.ValueVarchar;
  * This class implements most built-in functions of this database.
  */
 public class Function extends OperationN implements FunctionCall, ExpressionWithFlags {
-    public static final int ABS = 0, ACOS = 1, ASIN = 2, ATAN = 3, ATAN2 = 4,
-            BITAND = 5, BITOR = 6, BITXOR = 7, CEILING = 8, COS = 9, COT = 10,
-            DEGREES = 11, EXP = 12, FLOOR = 13, LOG = 14, LOG10 = 15, MOD = 16,
-            PI = 17, POWER = 18, RADIANS = 19, RAND = 20, ROUND = 21,
-            ROUNDMAGIC = 22, SIGN = 23, SIN = 24, SQRT = 25, TAN = 26,
+    public static final int ABS = 0,
+            BITAND = 5, BITOR = 6, BITXOR = 7, CEILING = 8,
+            FLOOR = 13, MOD = 16,
+            PI = 17, RAND = 20, ROUND = 21,
+            ROUNDMAGIC = 22, SIGN = 23,
             TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30,
             DECRYPT = 31, COMPRESS = 32, EXPAND = 33, ZERO = 34,
-            RANDOM_UUID = 35, COSH = 36, SINH = 37, TANH = 38, LN = 39,
+            RANDOM_UUID = 35,
             BITGET = 40, ORA_HASH = 41, BITNOT = 42, LSHIFT = 43, RSHIFT = 44;
 
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
@@ -206,10 +206,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
         // FUNCTIONS
         addFunction("ABS", ABS, 1, Value.NULL);
-        addFunction("ACOS", ACOS, 1, Value.DOUBLE);
-        addFunction("ASIN", ASIN, 1, Value.DOUBLE);
-        addFunction("ATAN", ATAN, 1, Value.DOUBLE);
-        addFunction("ATAN2", ATAN2, 2, Value.DOUBLE);
         addFunction("BITAND", BITAND, 2, Value.BIGINT);
         addFunction("BITGET", BITGET, 2, Value.BOOLEAN);
         addFunction("BITNOT", BITNOT, 1, Value.BIGINT);
@@ -217,20 +213,10 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("BITXOR", BITXOR, 2, Value.BIGINT);
         addFunction("CEILING", CEILING, 1, Value.NULL);
         addFunction("CEIL", CEILING, 1, Value.NULL);
-        addFunction("COS", COS, 1, Value.DOUBLE);
-        addFunction("COSH", COSH, 1, Value.DOUBLE);
-        addFunction("COT", COT, 1, Value.DOUBLE);
-        addFunction("DEGREES", DEGREES, 1, Value.DOUBLE);
-        addFunction("EXP", EXP, 1, Value.DOUBLE);
         addFunction("FLOOR", FLOOR, 1, Value.NULL);
-        addFunction("LOG", LOG, 2, Value.DOUBLE);
-        addFunction("LN", LN, 1, Value.DOUBLE);
-        addFunction("LOG10", LOG10, 1, Value.DOUBLE);
         addFunction("LSHIFT", LSHIFT, 2, Value.BIGINT);
         addFunction("MOD", MOD, 2, Value.BIGINT);
         addFunction("PI", PI, 0, Value.DOUBLE);
-        addFunction("POWER", POWER, 2, Value.DOUBLE);
-        addFunction("RADIANS", RADIANS, 1, Value.DOUBLE);
         // RAND without argument: get the next value
         // RAND with one argument: seed the random generator
         addFunctionNotDeterministic("RAND", RAND, VAR_ARGS, Value.DOUBLE);
@@ -239,11 +225,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("ROUNDMAGIC", ROUNDMAGIC, 1, Value.DOUBLE);
         addFunction("RSHIFT", RSHIFT, 2, Value.BIGINT);
         addFunction("SIGN", SIGN, 1, Value.INTEGER);
-        addFunction("SIN", SIN, 1, Value.DOUBLE);
-        addFunction("SINH", SINH, 1, Value.DOUBLE);
-        addFunction("SQRT", SQRT, 1, Value.DOUBLE);
-        addFunction("TAN", TAN, 1, Value.DOUBLE);
-        addFunction("TANH", TANH, 1, Value.DOUBLE);
         addFunction("TRUNCATE", TRUNCATE, VAR_ARGS, Value.NULL);
         // same as TRUNCATE
         addFunction("TRUNC", TRUNCATE, VAR_ARGS, Value.NULL);
@@ -533,65 +514,14 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case ABS:
             result = v0.getSignum() >= 0 ? v0 : v0.negate();
             break;
-        case ACOS:
-            result = ValueDouble.get(Math.acos(v0.getDouble()));
-            break;
-        case ASIN:
-            result = ValueDouble.get(Math.asin(v0.getDouble()));
-            break;
-        case ATAN:
-            result = ValueDouble.get(Math.atan(v0.getDouble()));
-            break;
         case CEILING:
             result = getCeilOrFloor(v0, false);
-            break;
-        case COS:
-            result = ValueDouble.get(Math.cos(v0.getDouble()));
-            break;
-        case COSH:
-            result = ValueDouble.get(Math.cosh(v0.getDouble()));
-            break;
-        case COT: {
-            double d = Math.tan(v0.getDouble());
-            if (d == 0.0) {
-                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
-            }
-            result = ValueDouble.get(1. / d);
-            break;
-        }
-        case DEGREES:
-            result = ValueDouble.get(Math.toDegrees(v0.getDouble()));
-            break;
-        case EXP:
-            result = ValueDouble.get(Math.exp(v0.getDouble()));
             break;
         case FLOOR:
             result = getCeilOrFloor(v0, true);
             break;
-        case LN: {
-            double arg = v0.getDouble();
-            if (arg <= 0) {
-                throw DbException.getInvalidValueException("LN() argument", arg);
-            }
-            result = ValueDouble.get(Math.log(arg));
-            break;
-        }
-        case LOG:
-            result = log(session, v0, getNullOrValue(session, args, values, 1));
-            break;
-        case LOG10: {
-            double arg = v0.getDouble();
-            if (arg <= 0) {
-                throw DbException.getInvalidValueException("LOG10() argument", arg);
-            }
-            result = ValueDouble.get(Math.log10(arg));
-            break;
-        }
         case PI:
             result = ValueDouble.get(Math.PI);
-            break;
-        case RADIANS:
-            result = ValueDouble.get(Math.toRadians(v0.getDouble()));
             break;
         case RAND: {
             if (v0 != null) {
@@ -605,21 +535,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             break;
         case SIGN:
             result = ValueInteger.get(v0.getSignum());
-            break;
-        case SIN:
-            result = ValueDouble.get(Math.sin(v0.getDouble()));
-            break;
-        case SINH:
-            result = ValueDouble.get(Math.sinh(v0.getDouble()));
-            break;
-        case SQRT:
-            result = ValueDouble.get(Math.sqrt(v0.getDouble()));
-            break;
-        case TAN:
-            result = ValueDouble.get(Math.tan(v0.getDouble()));
-            break;
-        case TANH:
-            result = ValueDouble.get(Math.tanh(v0.getDouble()));
             break;
         case SECURE_RAND:
             result = ValueVarbinary.getNoCopy(
@@ -1007,10 +922,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         Value v5 = getNullOrValue(session, args, values, 5);
         Value result;
         switch (info.type) {
-        case ATAN2:
-            result = ValueDouble.get(
-                    Math.atan2(v0.getDouble(), v1.getDouble()));
-            break;
         case BITAND:
             result = ValueBigint.get(v0.getLong() & v1.getLong());
             break;
@@ -1040,10 +951,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = ValueBigint.get(v0.getLong() % x);
             break;
         }
-        case POWER:
-            result = ValueDouble.get(Math.pow(
-                    v0.getDouble(), v1.getDouble()));
-            break;
         case ROUND:
             result = round(v0, v1);
             break;
@@ -1649,31 +1556,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         default:
             return v.getString().length();
         }
-    }
-
-    private static Value log(Session session, Value v0, Value v1) {
-        double base = v0.getDouble();
-        double arg = v1.getDouble();
-        if (session.getMode().swapLogFunctionParameters) {
-            double t = arg;
-            arg = base;
-            base = t;
-        }
-        if (arg <= 0) {
-            throw DbException.getInvalidValueException("LOG() argument", arg);
-        }
-        if (base <= 0 || base == 1) {
-            throw DbException.getInvalidValueException("LOG() base", base);
-        }
-        double r;
-        if (base == Math.E) {
-            r = Math.log(arg);
-        } else if (base == 10d) {
-            r = Math.log10(arg);
-        } else {
-            r = Math.log(arg) / Math.log(base);
-        }
-        return ValueDouble.get(r);
     }
 
     private static byte[] getPaddedArrayCopy(byte[] data, int blockSize) {

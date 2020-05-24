@@ -314,7 +314,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("TRANSLATE", TRANSLATE, 3, Value.VARCHAR);
         addFunction("QUOTE_IDENT", QUOTE_IDENT, 1, Value.VARCHAR);
         addFunction("REGEXP_LIKE", REGEXP_LIKE, VAR_ARGS, Value.BOOLEAN);
-        addFunction("REGEXP_SUBSTR", REGEXP_SUBSTR, VAR_ARGS, Value.VARCHAR, false, true, true, false);
+        addFunctionWithNull("REGEXP_SUBSTR", REGEXP_SUBSTR, VAR_ARGS, Value.VARCHAR);
 
         // date
         addFunction("DATEADD", DATEADD, 3, Value.NULL);
@@ -350,10 +350,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
         addFunctionWithNull("TRIM_ARRAY", TRIM_ARRAY, 2, Value.ARRAY);
         addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
-        addFunction("CSVREAD", CSVREAD,
-                VAR_ARGS, Value.RESULT_SET, false, false, true, false);
-        addFunction("CSVWRITE", CSVWRITE,
-                VAR_ARGS, Value.INTEGER, false, false, true, false);
+        addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false, false);
+        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INTEGER, false, false, false);
         addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE,
                 0, Value.INTEGER);
         addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED,
@@ -363,7 +361,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("SESSION_ID", SESSION_ID,
                 0, Value.INTEGER);
         addFunction("CARDINALITY", CARDINALITY, 1, Value.INTEGER);
-        addFunction("ARRAY_MAX_CARDINALITY", ARRAY_MAX_CARDINALITY, 1, Value.INTEGER, false, true, true, true);
+        addFunction("ARRAY_MAX_CARDINALITY", ARRAY_MAX_CARDINALITY, 1, Value.INTEGER, false, true, true);
         addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
                 6, Value.RESULT_SET);
         addFunctionWithNull("LEAST", LEAST,
@@ -374,12 +372,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 1, Value.BOOLEAN);
         addFunctionNotDeterministic("ABORT_SESSION", ABORT_SESSION,
                 1, Value.BOOLEAN);
-        addFunction("SET", SET,
-                2, Value.NULL, false, false, true, false);
-        addFunction("FILE_READ", FILE_READ,
-                VAR_ARGS, Value.NULL, false, false, true, false);
-        addFunction("FILE_WRITE", FILE_WRITE,
-                2, Value.BIGINT, false, false, true, false);
+        addFunction("SET", SET, 2, Value.NULL, false, false, false);
+        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false, false);
+        addFunction("FILE_WRITE", FILE_WRITE, 2, Value.BIGINT, false, false, false);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID,
                 0, Value.VARCHAR);
         addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED,
@@ -394,17 +389,16 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("UNNEST", UNNEST, VAR_ARGS, Value.RESULT_SET);
 
         // ON DUPLICATE KEY VALUES function
-        addFunction("VALUES", VALUES, 1, Value.NULL, false, true, true, false);
+        addFunctionWithNull("VALUES", VALUES, 1, Value.NULL);
 
-        addFunction("JSON_ARRAY", JSON_ARRAY, VAR_ARGS, Value.JSON, false, true, true, true);
-        addFunction("JSON_OBJECT", JSON_OBJECT, VAR_ARGS, Value.JSON, false, true, true, true);
+        addFunction("JSON_ARRAY", JSON_ARRAY, VAR_ARGS, Value.JSON, false, true, true);
+        addFunction("JSON_OBJECT", JSON_OBJECT, VAR_ARGS, Value.JSON, false, true, true);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
-            int returnDataType, boolean nullIfParameterIsNull, boolean deterministic,
-            boolean requireParentheses, boolean specialArguments) {
+            int returnDataType, boolean nullIfParameterIsNull, boolean deterministic, boolean specialArguments) {
         FunctionInfo info = new FunctionInfo(name, type, parameterCount, returnDataType, nullIfParameterIsNull,
-                deterministic, requireParentheses, specialArguments);
+                deterministic, specialArguments);
         if (FUNCTIONS_BY_ID[type] == null) {
             FUNCTIONS_BY_ID[type] = info;
         }
@@ -413,22 +407,17 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
     private static void addFunctionNotDeterministic(String name, int type,
             int parameterCount, int returnDataType) {
-        addFunctionNotDeterministic(name, type, parameterCount, returnDataType, true);
-    }
-
-    private static void addFunctionNotDeterministic(String name, int type,
-            int parameterCount, int returnDataType, boolean requireParentheses) {
-        addFunction(name, type, parameterCount, returnDataType, true, false, requireParentheses, false);
+        addFunction(name, type, parameterCount, returnDataType, true, false, false);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
             int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, true, true, true, false);
+        addFunction(name, type, parameterCount, returnDataType, true, true, false);
     }
 
     private static void addFunctionWithNull(String name, int type,
             int parameterCount, int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, false, true, true, false);
+        addFunction(name, type, parameterCount, returnDataType, false, true, false);
     }
 
     /**
@@ -2684,11 +2673,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append(info.name);
-        boolean addParentheses = args.length > 0 || info.requireParentheses;
-        if (addParentheses) {
-            builder.append('(');
-        }
+        builder.append(info.name).append('(');
         switch (info.type) {
         case SUBSTRING: {
             args[0].getSQL(builder, sqlFlags).append(" FROM ");
@@ -2747,10 +2732,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         default:
             writeExpressions(builder, args, sqlFlags);
         }
-        if (addParentheses) {
-            builder.append(')');
-        }
-        return builder;
+        return builder.append(')');
     }
 
     /**

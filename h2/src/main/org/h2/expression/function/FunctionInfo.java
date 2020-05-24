@@ -41,11 +41,6 @@ public final class FunctionInfo {
     public final boolean deterministic;
 
     /**
-     * Should the no-arg function require parentheses.
-     */
-    final boolean requireParentheses;
-
-    /**
      * If arguments cannot be evaluated in normal way with
      * {@link org.h2.expression.Expression#getValue(org.h2.engine.Session)}.
      */
@@ -68,21 +63,18 @@ public final class FunctionInfo {
      * @param deterministic
      *            if this function always returns the same value for the same
      *            parameters
-     * @param requireParentheses
-     *            should the no-arg function require parentheses
      * @param specialArguments
      *            if arguments cannot be evaluated in normal way with
      *            {@link org.h2.expression.Expression#getValue(org.h2.engine.Session)}.
      */
     public FunctionInfo(String name, int type, int parameterCount, int returnDataType, boolean nullIfParameterIsNull,
-            boolean deterministic, boolean requireParentheses, boolean specialArguments) {
+            boolean deterministic, boolean specialArguments) {
         this.name = name;
         this.type = type;
         this.parameterCount = parameterCount;
         this.returnDataType = returnDataType;
         this.nullIfParameterIsNull = nullIfParameterIsNull;
         this.deterministic = deterministic;
-        this.requireParentheses = requireParentheses;
         this.specialArguments = specialArguments;
     }
 
@@ -102,7 +94,6 @@ public final class FunctionInfo {
         parameterCount = source.parameterCount;
         nullIfParameterIsNull = source.nullIfParameterIsNull;
         deterministic = source.deterministic;
-        requireParentheses = true;
         specialArguments = source.specialArguments;
     }
 

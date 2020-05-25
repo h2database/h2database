@@ -35,7 +35,6 @@ public class TestBinaryOperation extends TestBase {
         testPlusMinus(BinaryOperation.OpType.MINUS);
         testMultiply();
         testDivide();
-        testModulus();
     }
 
     private void testPlusMinus(BinaryOperation.OpType type) {
@@ -61,14 +60,6 @@ public class TestBinaryOperation extends TestBase {
         assertPrecisionScale(3, 1, BinaryOperation.OpType.DIVIDE, 1, -1, 1, 0);
         assertPrecisionScale(3, 3, BinaryOperation.OpType.DIVIDE, 1, 0, 1, -1);
         assertPrecisionScale(19, -6, BinaryOperation.OpType.DIVIDE, 1, 3, 9, 27);
-    }
-
-    private void testModulus() {
-        assertPrecisionScale(1, 0, BinaryOperation.OpType.MODULUS, 1, 0, 1, 0);
-        assertPrecisionScale(1, 0, BinaryOperation.OpType.MODULUS, 1, 1, 1, 0);
-        assertPrecisionScale(1, 1, BinaryOperation.OpType.MODULUS, 1, 0, 1, 1);
-        assertPrecisionScale(1, 0, BinaryOperation.OpType.MODULUS, 1, -1, 1, 0);
-        assertPrecisionScale(1, -1, BinaryOperation.OpType.MODULUS, 1, 0, 1, -1);
     }
 
     private void assertPrecisionScale(int expectedPrecision, int expectedScale, BinaryOperation.OpType type,

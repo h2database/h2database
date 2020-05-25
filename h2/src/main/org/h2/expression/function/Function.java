@@ -5,7 +5,6 @@
  */
 package org.h2.expression.function;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -34,15 +33,12 @@ import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
-import org.h2.engine.Mode.ExpressionNames;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ExpressionWithFlags;
-import org.h2.expression.Format;
 import org.h2.expression.OperationN;
-import org.h2.expression.Subquery;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
 import org.h2.index.Index;
@@ -70,10 +66,6 @@ import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-import org.h2.util.json.JSONByteArrayTarget;
-import org.h2.util.json.JSONBytesSource;
-import org.h2.util.json.JSONStringTarget;
-import org.h2.util.json.JSONValidationTargetWithUniqueKeys;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -84,7 +76,6 @@ import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
-import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
@@ -100,9 +91,7 @@ import org.h2.value.ValueVarchar;
  * This class implements most built-in functions of this database.
  */
 public class Function extends OperationN implements FunctionCall, ExpressionWithFlags {
-    public static final int ABS = 0,
-            CEILING = 8,
-            FLOOR = 13, MOD = 16,
+    public static final int
             PI = 17, RAND = 20, ROUND = 21,
             ROUNDMAGIC = 22, SIGN = 23,
             TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30,
@@ -141,17 +130,15 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             CSVREAD = 210, CSVWRITE = 211,
             MEMORY_FREE = 212, MEMORY_USED = 213,
             LOCK_MODE = 214, SESSION_ID = 216,
-            CARDINALITY = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
+            LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
             ARRAY_CONTAINS = 230, FILE_WRITE = 232,
-            UNNEST = 233, ARRAY_MAX_CARDINALITY = 234, TRIM_ARRAY = 235, ARRAY_SLICE = 236,
+            UNNEST = 233, TRIM_ARRAY = 235, ARRAY_SLICE = 236,
             ABORT_SESSION = 237;
 
     public static final int REGEXP_LIKE = 240;
     public static final int REGEXP_SUBSTR = 241;
-
-    public static final int JSON_OBJECT = 251, JSON_ARRAY = 252;
 
     /**
      * This is called H2VERSION() and not VERSION(), because we return a fake
@@ -159,7 +146,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
      */
     public static final int H2VERSION = 231;
 
-    private static final int COUNT = JSON_ARRAY + 1;
+    private static final int COUNT = REGEXP_SUBSTR + 1;
 
     /**
      * The flag for TRIM(LEADING ...) function.
@@ -170,16 +157,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
      * The flag for TRIM(TRAILING ...) function.
      */
     public static final int TRIM_TRAILING = 2;
-
-    /**
-     * The ABSENT ON NULL flag for JSON_ARRAY and JSON_OBJECT functions.
-     */
-    public static final int JSON_ABSENT_ON_NULL = 1;
-
-    /**
-     * The WITH UNIQUE KEYS flag for JSON_OBJECT function.
-     */
-    public static final int JSON_WITH_UNIQUE_KEYS = 2;
 
     protected static final int VAR_ARGS = -1;
 
@@ -205,11 +182,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
 
         // FUNCTIONS
-        addFunction("ABS", ABS, 1, Value.NULL);
-        addFunction("CEILING", CEILING, 1, Value.NULL);
-        addFunction("CEIL", CEILING, 1, Value.NULL);
-        addFunction("FLOOR", FLOOR, 1, Value.NULL);
-        addFunction("MOD", MOD, 2, Value.BIGINT);
         addFunction("PI", PI, 0, Value.DOUBLE);
         // RAND without argument: get the next value
         // RAND with one argument: seed the random generator
@@ -310,8 +282,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
         addFunctionWithNull("TRIM_ARRAY", TRIM_ARRAY, 2, Value.ARRAY);
         addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
-        addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false, false);
-        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INTEGER, false, false, false);
+        addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false);
+        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INTEGER, false, false);
         addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE,
                 0, Value.INTEGER);
         addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED,
@@ -320,8 +292,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 0, Value.INTEGER);
         addFunctionNotDeterministic("SESSION_ID", SESSION_ID,
                 0, Value.INTEGER);
-        addFunction("CARDINALITY", CARDINALITY, 1, Value.INTEGER);
-        addFunction("ARRAY_MAX_CARDINALITY", ARRAY_MAX_CARDINALITY, 1, Value.INTEGER, false, true, true);
         addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
                 6, Value.RESULT_SET);
         addFunctionWithNull("LEAST", LEAST,
@@ -332,9 +302,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 1, Value.BOOLEAN);
         addFunctionNotDeterministic("ABORT_SESSION", ABORT_SESSION,
                 1, Value.BOOLEAN);
-        addFunction("SET", SET, 2, Value.NULL, false, false, false);
-        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false, false);
-        addFunction("FILE_WRITE", FILE_WRITE, 2, Value.BIGINT, false, false, false);
+        addFunction("SET", SET, 2, Value.NULL, false, false);
+        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false);
+        addFunction("FILE_WRITE", FILE_WRITE, 2, Value.BIGINT, false, false);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID,
                 0, Value.VARCHAR);
         addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED,
@@ -347,15 +317,12 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
         addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT, VAR_ARGS, Value.RESULT_SET);
         addFunctionWithNull("UNNEST", UNNEST, VAR_ARGS, Value.RESULT_SET);
-
-        addFunction("JSON_ARRAY", JSON_ARRAY, VAR_ARGS, Value.JSON, false, true, true);
-        addFunction("JSON_OBJECT", JSON_OBJECT, VAR_ARGS, Value.JSON, false, true, true);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
-            int returnDataType, boolean nullIfParameterIsNull, boolean deterministic, boolean specialArguments) {
+            int returnDataType, boolean nullIfParameterIsNull, boolean deterministic) {
         FunctionInfo info = new FunctionInfo(name, type, parameterCount, returnDataType, nullIfParameterIsNull,
-                deterministic, specialArguments);
+                deterministic);
         if (FUNCTIONS_BY_ID[type] == null) {
             FUNCTIONS_BY_ID[type] = info;
         }
@@ -364,17 +331,17 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
     private static void addFunctionNotDeterministic(String name, int type,
             int parameterCount, int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, true, false, false);
+        addFunction(name, type, parameterCount, returnDataType, true, false);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
             int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, true, true, false);
+        addFunction(name, type, parameterCount, returnDataType, true, true);
     }
 
     private static void addFunctionWithNull(String name, int type,
             int parameterCount, int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, false, true, false);
+        addFunction(name, type, parameterCount, returnDataType, false, true);
     }
 
     /**
@@ -504,15 +471,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             Value[] values) {
         Value result;
         switch (info.type) {
-        case ABS:
-            result = v0.getSignum() >= 0 ? v0 : v0.negate();
-            break;
-        case CEILING:
-            result = getCeilOrFloor(v0, false);
-            break;
-        case FLOOR:
-            result = getCeilOrFloor(v0, true);
-            break;
         case PI:
             result = ValueDouble.get(Math.PI);
             break;
@@ -726,25 +684,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case CARDINALITY: {
-            Value[] list = getArray(v0);
-            if (list != null) {
-                result = ValueInteger.get(list.length);
-            } else {
-                result = ValueNull.INSTANCE;
-            }
-            break;
-        }
-        case ARRAY_MAX_CARDINALITY: {
-            Expression arg = args[0];
-            TypeInfo t = arg.getType();
-            if (t.getValueType() == Value.ARRAY) {
-                result = ValueInteger.get(MathUtils.convertLongToInt(t.getPrecision()));
-            } else {
-                throw DbException.getInvalidValueException("array", arg.getValue(session).getTraceSQL());
-            }
-            break;
-        }
         case ARRAY_CONTAINS: {
             result = ValueBoolean.FALSE;
             Value[] list = getArray(v0);
@@ -773,28 +712,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = session.getTransactionId();
             break;
         }
-        case JSON_OBJECT:
-            result = jsonObject(session, args);
-            break;
-        case JSON_ARRAY:
-            result = jsonArray(session, args);
-            break;
         default:
             result = null;
-        }
-        return result;
-    }
-
-    private static Value getCeilOrFloor(Value v0, boolean floor) {
-        Value result;
-        int t = v0.getValueType();
-        if (t == Value.DOUBLE || t == Value.REAL) {
-            double v = v0.getDouble();
-            v = floor ? Math.floor(v) : Math.ceil(v);
-            result = t == Value.DOUBLE ? ValueDouble.get(v) : ValueReal.get((float) v);
-        } else {
-            result = ValueNumeric
-                    .get(v0.getBigDecimal().setScale(0, floor ? RoundingMode.FLOOR : RoundingMode.CEILING));
         }
         return result;
     }
@@ -903,7 +822,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         if (values == null) {
             return ValueNull.INSTANCE;
         }
-        Value v0 = info.specialArguments ? null : getNullOrValue(session, args, values, 0);
+        Value v0 = getNullOrValue(session, args, values, 0);
         Value resultSimple = getSimpleValue(session, v0, args, values);
         if (resultSimple != null) {
             return resultSimple;
@@ -915,14 +834,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         Value v5 = getNullOrValue(session, args, values, 5);
         Value result;
         switch (info.type) {
-        case MOD: {
-            long x = v1.getLong();
-            if (x == 0) {
-                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
-            }
-            result = ValueBigint.get(v0.getLong() % x);
-            break;
-        }
         case ROUND:
             result = round(v0, v1);
             break;
@@ -1959,124 +1870,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return flags;
     }
 
-    private Value jsonObject(Session session, Expression[] args) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        baos.write('{');
-        for (int i = 0, l = args.length; i < l;) {
-            String name = args[i++].getValue(session).getString();
-            if (name == null) {
-                throw DbException.getInvalidValueException("JSON_OBJECT key", "NULL");
-            }
-            Value value = args[i++].getValue(session);
-            if (value == ValueNull.INSTANCE) {
-                if ((flags & JSON_ABSENT_ON_NULL) != 0) {
-                    continue;
-                } else {
-                    value = ValueJson.NULL;
-                }
-            }
-            jsonObjectAppend(baos, name, value);
-        }
-        return jsonObjectFinish(baos, flags);
-    }
-
-    /**
-     * Appends a value to a JSON object in the specified string builder.
-     *
-     * @param baos the output stream to append to
-     * @param key the name of the property
-     * @param value the value of the property
-     */
-    public static void jsonObjectAppend(ByteArrayOutputStream baos, String key, Value value) {
-        if (baos.size() > 1) {
-            baos.write(',');
-        }
-        JSONByteArrayTarget.encodeString(baos, key).write(':');
-        byte[] b = value.convertTo(TypeInfo.TYPE_JSON).getBytesNoCopy();
-        baos.write(b, 0, b.length);
-    }
-
-    /**
-     * Appends trailing closing brace to the specified string builder with a
-     * JSON object, validates it, and converts to a JSON value.
-     *
-     * @param baos the output stream with the object
-     * @param flags the flags ({@link #JSON_WITH_UNIQUE_KEYS})
-     * @return the JSON value
-     * @throws DbException
-     *             if {@link #JSON_WITH_UNIQUE_KEYS} is specified and keys are
-     *             not unique
-     */
-    public static Value jsonObjectFinish(ByteArrayOutputStream baos, int flags) {
-        baos.write('}');
-        byte[] result = baos.toByteArray();
-        if ((flags & JSON_WITH_UNIQUE_KEYS) != 0) {
-            try {
-                JSONBytesSource.parse(result, new JSONValidationTargetWithUniqueKeys());
-            } catch (RuntimeException ex) {
-                String s = JSONBytesSource.parse(result, new JSONStringTarget());
-                throw DbException.getInvalidValueException("JSON WITH UNIQUE KEYS",
-                        s.length() < 128 ? result : s.substring(0, 128) + "...");
-            }
-        }
-        return ValueJson.getInternal(result);
-    }
-
-    private Value jsonArray(Session session, Expression[] args) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        baos.write('[');
-        int l = args.length;
-        evaluate: {
-            if (l == 1) {
-                Expression arg0 = args[0];
-                if (arg0 instanceof Subquery) {
-                    Subquery q = (Subquery) arg0;
-                    for (Value value : q.getAllRows(session)) {
-                        jsonArrayAppend(baos, value, flags);
-                    }
-                    break evaluate;
-                } else if (arg0 instanceof Format) {
-                    Format format = (Format) arg0;
-                    arg0 = format.getSubexpression(0);
-                    if (arg0 instanceof Subquery) {
-                        Subquery q = (Subquery) arg0;
-                        for (Value value : q.getAllRows(session)) {
-                            jsonArrayAppend(baos, format.getValue(value), flags);
-                        }
-                        break evaluate;
-                    }
-                }
-            }
-            for (int i = 0; i < l;) {
-                jsonArrayAppend(baos, args[i++].getValue(session), flags);
-            }
-        }
-        baos.write(']');
-        return ValueJson.getInternal(baos.toByteArray());
-    }
-
-    /**
-     * Appends a value to a JSON array in the specified string builder.
-     *
-     * @param baos the output stream to append to
-     * @param value the value
-     * @param flags the flags ({@link #JSON_ABSENT_ON_NULL})
-     */
-    public static void jsonArrayAppend(ByteArrayOutputStream baos, Value value, int flags) {
-        if (value == ValueNull.INSTANCE) {
-            if ((flags & JSON_ABSENT_ON_NULL) != 0) {
-                return;
-            } else {
-                value = ValueJson.NULL;
-            }
-        }
-        if (baos.size() > 1) {
-            baos.write(',');
-        }
-        byte[] b = value.convertTo(TypeInfo.TYPE_JSON).getBytesNoCopy();
-        baos.write(b, 0, b.length);
-    }
-
     @Override
     public int getValueType() {
         return type.getValueType();
@@ -2146,9 +1939,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case REGEXP_REPLACE:
             min = 3;
             max = 4;
-            break;
-        case JSON_OBJECT: // Ensured by Parser
-        case JSON_ARRAY:
             break;
         default:
             DbException.throwInternalError("type=" + info.type);
@@ -2240,8 +2030,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 typeInfo = TypeInfo.TYPE_UNKNOWN;
             }
             break;
-        case CEILING:
-        case FLOOR:
         case ROUND:
             switch (p0.getType().getValueType()) {
             case Value.DOUBLE:
@@ -2280,14 +2068,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 typeInfo = getRoundNumericType(session);
             }
             break;
-        case ABS: {
-            TypeInfo type = p0.getType();
-            typeInfo = type;
-            if (typeInfo.getValueType() == Value.NULL) {
-                typeInfo = TypeInfo.TYPE_INTEGER;
-            }
-            break;
-        }
         case SET:
             typeInfo = args[1].getType();
             if (!(p0 instanceof Variable)) {
@@ -2438,14 +2218,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     }
 
     @Override
-    public String getAlias(Session session, int columnIndex) {
-        if (session.getMode().expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
-            return StringUtils.toLowerEnglish(getName());
-        }
-        return super.getAlias(session, columnIndex);
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append(info.name).append('(');
         switch (info.type) {
@@ -2487,46 +2259,10 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             builder.append(DateTimeFunctions.getFieldName(args[0].getValue(null).getInt())).append(", ");
             args[1].getSQL(builder, sqlFlags);
             break;
-        case JSON_OBJECT: {
-            for (int i = 0, l = args.length; i < l;) {
-                if (i > 0) {
-                    builder.append(", ");
-                }
-                args[i++].getSQL(builder, sqlFlags).append(": ");
-                args[i++].getSQL(builder, sqlFlags);
-            }
-            getJsonFunctionFlagsSQL(builder, flags, false);
-            break;
-        }
-        case JSON_ARRAY: {
-            writeExpressions(builder, args, sqlFlags);
-            getJsonFunctionFlagsSQL(builder, flags, true);
-            break;
-        }
         default:
             writeExpressions(builder, args, sqlFlags);
         }
         return builder.append(')');
-    }
-
-    /**
-     * Appends flags of a JSON function to the specified string builder.
-     *
-     * @param builder string builder to append to
-     * @param flags flags to append
-     * @param forArray whether the function is an array function
-     */
-    public static void getJsonFunctionFlagsSQL(StringBuilder builder, int flags, boolean forArray) {
-        if ((flags & JSON_ABSENT_ON_NULL) != 0) {
-            if (!forArray) {
-                builder.append(" ABSENT ON NULL");
-            }
-        } else if (forArray) {
-            builder.append(" NULL ON NULL");
-        }
-        if (!forArray && (flags & JSON_WITH_UNIQUE_KEYS) != 0) {
-            builder.append(" WITH UNIQUE KEYS");
-        }
     }
 
     public int getFunctionType() {

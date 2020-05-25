@@ -14,13 +14,14 @@ import org.h2.value.ValueResultSet;
  * This interface is used by the built-in functions,
  * as well as the user-defined functions.
  */
-public interface FunctionCall extends HasSQL {
+public interface FunctionCall extends HasSQL, NamedExpression {
 
     /**
      * Get the name of the function.
      *
      * @return the name
      */
+    @Override
     String getName();
 
     /**

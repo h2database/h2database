@@ -264,6 +264,7 @@ import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
 import org.h2.expression.function.BitFunction;
+import org.h2.expression.function.CardinalityExpression;
 import org.h2.expression.function.CastSpecification;
 import org.h2.expression.function.CompatibilityIdentityFunction;
 import org.h2.expression.function.CompatibilitySequenceValueFunction;
@@ -273,6 +274,8 @@ import org.h2.expression.function.DateTimeFunctions;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.JavaFunction;
+import org.h2.expression.function.JsonConstructorFunction;
+import org.h2.expression.function.MathFunction;
 import org.h2.expression.function.MathFunction1;
 import org.h2.expression.function.MathFunction2;
 import org.h2.expression.function.TableFunction;
@@ -3566,7 +3569,7 @@ public class Parser {
             } else if (readIf(SLASH)) {
                 r = new BinaryOperation(OpType.DIVIDE, r, readTerm());
             } else if (readIf(PERCENT)) {
-                r = new BinaryOperation(OpType.MODULUS, r, readTerm());
+                r = new MathFunction(r, readTerm(), MathFunction.MOD);
             } else {
                 return r;
             }
@@ -3707,7 +3710,7 @@ public class Parser {
             r = new Aggregate(AggregateType.JSON_ARRAYAGG, new Expression[] { readExpression() }, currentSelect,
                     false);
             r.setOrderByList(readIfOrderBy());
-            r.setFlags(Function.JSON_ABSENT_ON_NULL);
+            r.setFlags(JsonConstructorFunction.JSON_ABSENT_ON_NULL);
             readJsonObjectFunctionFlags(r, true);
             break;
         }
@@ -4026,8 +4029,7 @@ public class Parser {
         }
         // CARDINALITY
         case "ARRAY_LENGTH":
-            function = Function.getFunction(Function.CARDINALITY);
-            break;
+            return readCardinalityExpression(false);
         // Simple case
         case "DECODE": {
             Expression caseOperand = readExpression();
@@ -4237,6 +4239,10 @@ public class Parser {
 
     private Expression readBuiltinFunctionIf(String upperName) {
         switch (upperName) {
+        case "ABS":
+            return readMathFunction(MathFunction.ABS, 1);
+        case "MOD":
+            return readMathFunction(MathFunction.MOD, 2);
         case "SIN":
             return readMathFunction1(MathFunction1.SIN);
         case "COS":
@@ -4281,6 +4287,11 @@ public class Parser {
             return readMathFunction2(MathFunction2.POWER);
         case "SQRT":
             return readMathFunction1(MathFunction1.SQRT);
+        case "FLOOR":
+            return readMathFunction(MathFunction.FLOOR, 1);
+        case "CEIL":
+        case "CEILING":
+            return readMathFunction(MathFunction.CEIL, 1);
         case "DEGREES":
             return readMathFunction1(MathFunction1.DEGREES);
         case "RADIANS":
@@ -4302,9 +4313,57 @@ public class Parser {
             return readBitFunction(BitFunction.LSHIFT);
         case "RSHIFT":
             return readBitFunction(BitFunction.RSHIFT);
+        case "CARDINALITY":
+            return readCardinalityExpression(false);
+        case "ARRAY_MAX_CARDINALITY":
+            return readCardinalityExpression(true);
+        case "JSON_OBJECT": {
+            JsonConstructorFunction function = new JsonConstructorFunction(false);
+            if (currentTokenType != CLOSE_PAREN && !readJsonObjectFunctionFlags(function, false)) {
+                do {
+                    boolean withKey = readIf(KEY);
+                    function.addParameter(readExpression());
+                    if (withKey) {
+                        read(VALUE);
+                    } else if (!readIf(VALUE)) {
+                        read(COLON);
+                    }
+                    function.addParameter(readExpression());
+                } while (readIf(COMMA));
+                readJsonObjectFunctionFlags(function, false);
+            }
+            read(CLOSE_PAREN);
+            function.doneWithParameters();
+            return function;
+        }
+        case "JSON_ARRAY": {
+            JsonConstructorFunction function = new JsonConstructorFunction(true);
+            function.setFlags(JsonConstructorFunction.JSON_ABSENT_ON_NULL);
+            if (currentTokenType != CLOSE_PAREN && !readJsonObjectFunctionFlags(function, true)) {
+                do {
+                    function.addParameter(readExpression());
+                } while (readIf(COMMA));
+                readJsonObjectFunctionFlags(function, true);
+            }
+            read(CLOSE_PAREN);
+            function.doneWithParameters();
+            return function;
+        }
         }
         Function function = Function.getFunction(database, upperName);
         return function != null ? readFunctionParameters(function) : null;
+    }
+
+    private Expression readMathFunction(int function, int numArgs) {
+        Expression arg1 = readExpression(), arg2;
+        if (numArgs == 2) {
+            read(COMMA);
+            arg2 = readExpression();
+        } else {
+            arg2 = null;
+        }
+        read(CLOSE_PAREN);
+        return new MathFunction(arg1, arg2, function);
     }
 
     private Expression readMathFunction1(int function) {
@@ -4329,9 +4388,16 @@ public class Parser {
         return new BitFunction(arg1, arg2, function);
     }
 
+    private Expression readCardinalityExpression(boolean max) {
+        Expression arg = readExpression();
+        read(CLOSE_PAREN);
+        return new CardinalityExpression(arg, max);
+    }
+
     private boolean isBuiltinFunction(String upperName) {
-        return Function.getFunction(database, upperName) != null || MathFunction1.exists(upperName)
-                || MathFunction2.exists(upperName) || BitFunction.exists(upperName);
+        return Function.getFunction(database, upperName) != null || MathFunction.exists(upperName)
+                || MathFunction1.exists(upperName) || MathFunction2.exists(upperName) || BitFunction.exists(upperName)
+                || JsonConstructorFunction.exists(upperName) || CardinalityExpression.exists(upperName);
     }
 
     private Function readFunctionParameters(Function function) {
@@ -4474,32 +4540,6 @@ public class Parser {
             tf.setColumns(columns);
             break;
         }
-        case Function.JSON_OBJECT:
-            if (currentTokenType != CLOSE_PAREN && !readJsonObjectFunctionFlags(function, false)) {
-                do {
-                    boolean withKey = readIf(KEY);
-                    function.addParameter(readExpression());
-                    if (withKey) {
-                        read(VALUE);
-                    } else if (!readIf(VALUE)) {
-                        read(COLON);
-                    }
-                    function.addParameter(readExpression());
-                } while (readIf(COMMA));
-                readJsonObjectFunctionFlags(function, false);
-            }
-            read(CLOSE_PAREN);
-            break;
-        case Function.JSON_ARRAY:
-            function.setFlags(Function.JSON_ABSENT_ON_NULL);
-            if (currentTokenType != CLOSE_PAREN && !readJsonObjectFunctionFlags(function, true)) {
-                do {
-                    function.addParameter(readExpression());
-                } while (readIf(COMMA));
-                readJsonObjectFunctionFlags(function, true);
-            }
-            read(CLOSE_PAREN);
-            break;
         default:
             if (!readIf(CLOSE_PAREN)) {
                 do {
@@ -4631,7 +4671,7 @@ public class Parser {
         if (readIf(NULL)) {
             if (readIf(ON)) {
                 read(NULL);
-                flags &= ~Function.JSON_ABSENT_ON_NULL;
+                flags &= ~JsonConstructorFunction.JSON_ABSENT_ON_NULL;
                 result = true;
             } else {
                 reread(start);
@@ -4640,7 +4680,7 @@ public class Parser {
         } else if (readIf("ABSENT")) {
             if (readIf(ON)) {
                 read(NULL);
-                flags |= Function.JSON_ABSENT_ON_NULL;
+                flags |= JsonConstructorFunction.JSON_ABSENT_ON_NULL;
                 result = true;
             } else {
                 reread(start);
@@ -4651,12 +4691,12 @@ public class Parser {
             if (readIf(WITH)) {
                 read(UNIQUE);
                 read("KEYS");
-                flags |= Function.JSON_WITH_UNIQUE_KEYS;
+                flags |= JsonConstructorFunction.JSON_WITH_UNIQUE_KEYS;
                 result = true;
             } else if (readIf("WITHOUT")) {
                 if (readIf(UNIQUE)) {
                     read("KEYS");
-                    flags &= ~Function.JSON_WITH_UNIQUE_KEYS;
+                    flags &= ~JsonConstructorFunction.JSON_WITH_UNIQUE_KEYS;
                     result = true;
                 } else if (result) {
                     throw getSyntaxError();

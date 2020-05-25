@@ -39,15 +39,15 @@ public final class FunctionsOracle extends FunctionsBase {
 
     static {
         FUNCTIONS.put("ADD_MONTHS",
-                new FunctionInfo("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP, true, true, false));
+                new FunctionInfo("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP, true, true));
         FUNCTIONS.put("SYS_GUID",
-                new FunctionInfo("SYS_GUID", SYS_GUID, 0, Value.VARBINARY, false, false, false));
+                new FunctionInfo("SYS_GUID", SYS_GUID, 0, Value.VARBINARY, false, false));
         FUNCTIONS.put("TO_DATE",
-                new FunctionInfo("TO_DATE", TO_DATE, VAR_ARGS, Value.TIMESTAMP, true, true, false));
+                new FunctionInfo("TO_DATE", TO_DATE, VAR_ARGS, Value.TIMESTAMP, true, true));
         FUNCTIONS.put("TO_TIMESTAMP",
-                new FunctionInfo("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP, true, true, false));
-        FUNCTIONS.put("TO_TIMESTAMP_TZ", new FunctionInfo("TO_TIMESTAMP_TZ", TO_TIMESTAMP_TZ, VAR_ARGS,
-                Value.TIMESTAMP_TZ, true, true, false));
+                new FunctionInfo("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP, true, true));
+        FUNCTIONS.put("TO_TIMESTAMP_TZ",
+                new FunctionInfo("TO_TIMESTAMP_TZ", TO_TIMESTAMP_TZ, VAR_ARGS, Value.TIMESTAMP_TZ, true, true));
     }
 
     /**

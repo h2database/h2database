@@ -5,13 +5,11 @@
  */
 package org.h2.expression.function;
 
-import org.h2.engine.Mode.ExpressionNames;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Operation1_2;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
-import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
@@ -21,7 +19,7 @@ import org.h2.value.ValueNull;
 /**
  * A bitwise function.
  */
-public class BitFunction extends Operation1_2 {
+public class BitFunction extends Operation1_2 implements NamedExpression {
 
     /**
      * BITAND() (non-standard).
@@ -137,20 +135,17 @@ public class BitFunction extends Operation1_2 {
     }
 
     @Override
-    public String getAlias(Session session, int columnIndex) {
-        if (session.getMode().expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
-            return StringUtils.toLowerEnglish(NAMES[function]);
-        }
-        return super.getAlias(session, columnIndex);
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        left.getSQL(builder.append(NAMES[function]).append('('), sqlFlags);
+        left.getSQL(builder.append(getName()).append('('), sqlFlags);
         if (right != null) {
             right.getSQL(builder.append(", "), sqlFlags);
         }
         return builder.append(')');
+    }
+
+    @Override
+    public String getName() {
+        return NAMES[function];
     }
 
 }

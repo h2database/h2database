@@ -41,12 +41,7 @@ public class BinaryOperation extends Operation2 {
         /**
          * This operation represents a division as in 4 * 2.
          */
-        DIVIDE,
-
-        /**
-         * This operation represents a modulus as in 5 % 2.
-         */
-        MODULUS
+        DIVIDE
     }
 
     private OpType opType;
@@ -89,8 +84,6 @@ public class BinaryOperation extends Operation2 {
             return "*";
         case DIVIDE:
             return "/";
-        case MODULUS:
-            return "%";
         default:
             throw DbException.throwInternalError("opType=" + opType);
         }
@@ -124,11 +117,6 @@ public class BinaryOperation extends Operation2 {
                 return ValueNull.INSTANCE;
             }
             return l.divide(r, right.getType().getPrecision());
-        case MODULUS:
-            if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
-                return ValueNull.INSTANCE;
-            }
-            return l.modulus(r);
         default:
             throw DbException.throwInternalError("type=" + opType);
         }
@@ -214,11 +202,6 @@ public class BinaryOperation extends Operation2 {
             // 10^rightScale, so add rightScale to its precision and adjust the
             // result to the changes in scale.
             precision = leftPrecision + rightScale - leftScale + scale;
-            break;
-        case MODULUS:
-            // Non-standard operation.
-            precision = rightPrecision;
-            scale = rightScale;
             break;
         default:
             throw DbException.throwInternalError("type=" + opType);

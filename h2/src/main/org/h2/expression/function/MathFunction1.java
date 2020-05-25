@@ -5,14 +5,12 @@
  */
 package org.h2.expression.function;
 
-import org.h2.engine.Mode.ExpressionNames;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Operation1;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
-import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDouble;
@@ -21,7 +19,7 @@ import org.h2.value.ValueNull;
 /**
  * A math function with one argument and DOUBLE PRECISION result.
  */
-public class MathFunction1 extends Operation1 {
+public class MathFunction1 extends Operation1 implements NamedExpression {
 
     // Trigonometric functions
 
@@ -224,16 +222,13 @@ public class MathFunction1 extends Operation1 {
     }
 
     @Override
-    public String getAlias(Session session, int columnIndex) {
-        if (session.getMode().expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
-            return StringUtils.toLowerEnglish(NAMES[function]);
-        }
-        return super.getAlias(session, columnIndex);
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return arg.getSQL(builder.append(getName()).append('('), sqlFlags).append(')');
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return arg.getSQL(builder.append(NAMES[function]).append('('), sqlFlags).append(')');
+    public String getName() {
+        return NAMES[function];
     }
 
 }

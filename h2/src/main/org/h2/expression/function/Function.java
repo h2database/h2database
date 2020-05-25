@@ -5,7 +5,6 @@
  */
 package org.h2.expression.function;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,9 +39,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ExpressionWithFlags;
-import org.h2.expression.Format;
 import org.h2.expression.OperationN;
-import org.h2.expression.Subquery;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
 import org.h2.index.Index;
@@ -70,10 +67,6 @@ import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-import org.h2.util.json.JSONByteArrayTarget;
-import org.h2.util.json.JSONBytesSource;
-import org.h2.util.json.JSONStringTarget;
-import org.h2.util.json.JSONValidationTargetWithUniqueKeys;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -84,7 +77,6 @@ import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
-import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
@@ -151,15 +143,13 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     public static final int REGEXP_LIKE = 240;
     public static final int REGEXP_SUBSTR = 241;
 
-    public static final int JSON_OBJECT = 251, JSON_ARRAY = 252;
-
     /**
      * This is called H2VERSION() and not VERSION(), because we return a fake
      * value for VERSION() when running under the PostgreSQL ODBC driver.
      */
     public static final int H2VERSION = 231;
 
-    private static final int COUNT = JSON_ARRAY + 1;
+    private static final int COUNT = REGEXP_SUBSTR + 1;
 
     /**
      * The flag for TRIM(LEADING ...) function.
@@ -170,16 +160,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
      * The flag for TRIM(TRAILING ...) function.
      */
     public static final int TRIM_TRAILING = 2;
-
-    /**
-     * The ABSENT ON NULL flag for JSON_ARRAY and JSON_OBJECT functions.
-     */
-    public static final int JSON_ABSENT_ON_NULL = 1;
-
-    /**
-     * The WITH UNIQUE KEYS flag for JSON_OBJECT function.
-     */
-    public static final int JSON_WITH_UNIQUE_KEYS = 2;
 
     protected static final int VAR_ARGS = -1;
 
@@ -347,9 +327,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
         addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT, VAR_ARGS, Value.RESULT_SET);
         addFunctionWithNull("UNNEST", UNNEST, VAR_ARGS, Value.RESULT_SET);
-
-        addFunction("JSON_ARRAY", JSON_ARRAY, VAR_ARGS, Value.JSON, false, true, true);
-        addFunction("JSON_OBJECT", JSON_OBJECT, VAR_ARGS, Value.JSON, false, true, true);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
@@ -773,12 +750,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = session.getTransactionId();
             break;
         }
-        case JSON_OBJECT:
-            result = jsonObject(session, args);
-            break;
-        case JSON_ARRAY:
-            result = jsonArray(session, args);
-            break;
         default:
             result = null;
         }
@@ -1959,124 +1930,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return flags;
     }
 
-    private Value jsonObject(Session session, Expression[] args) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        baos.write('{');
-        for (int i = 0, l = args.length; i < l;) {
-            String name = args[i++].getValue(session).getString();
-            if (name == null) {
-                throw DbException.getInvalidValueException("JSON_OBJECT key", "NULL");
-            }
-            Value value = args[i++].getValue(session);
-            if (value == ValueNull.INSTANCE) {
-                if ((flags & JSON_ABSENT_ON_NULL) != 0) {
-                    continue;
-                } else {
-                    value = ValueJson.NULL;
-                }
-            }
-            jsonObjectAppend(baos, name, value);
-        }
-        return jsonObjectFinish(baos, flags);
-    }
-
-    /**
-     * Appends a value to a JSON object in the specified string builder.
-     *
-     * @param baos the output stream to append to
-     * @param key the name of the property
-     * @param value the value of the property
-     */
-    public static void jsonObjectAppend(ByteArrayOutputStream baos, String key, Value value) {
-        if (baos.size() > 1) {
-            baos.write(',');
-        }
-        JSONByteArrayTarget.encodeString(baos, key).write(':');
-        byte[] b = value.convertTo(TypeInfo.TYPE_JSON).getBytesNoCopy();
-        baos.write(b, 0, b.length);
-    }
-
-    /**
-     * Appends trailing closing brace to the specified string builder with a
-     * JSON object, validates it, and converts to a JSON value.
-     *
-     * @param baos the output stream with the object
-     * @param flags the flags ({@link #JSON_WITH_UNIQUE_KEYS})
-     * @return the JSON value
-     * @throws DbException
-     *             if {@link #JSON_WITH_UNIQUE_KEYS} is specified and keys are
-     *             not unique
-     */
-    public static Value jsonObjectFinish(ByteArrayOutputStream baos, int flags) {
-        baos.write('}');
-        byte[] result = baos.toByteArray();
-        if ((flags & JSON_WITH_UNIQUE_KEYS) != 0) {
-            try {
-                JSONBytesSource.parse(result, new JSONValidationTargetWithUniqueKeys());
-            } catch (RuntimeException ex) {
-                String s = JSONBytesSource.parse(result, new JSONStringTarget());
-                throw DbException.getInvalidValueException("JSON WITH UNIQUE KEYS",
-                        s.length() < 128 ? result : s.substring(0, 128) + "...");
-            }
-        }
-        return ValueJson.getInternal(result);
-    }
-
-    private Value jsonArray(Session session, Expression[] args) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        baos.write('[');
-        int l = args.length;
-        evaluate: {
-            if (l == 1) {
-                Expression arg0 = args[0];
-                if (arg0 instanceof Subquery) {
-                    Subquery q = (Subquery) arg0;
-                    for (Value value : q.getAllRows(session)) {
-                        jsonArrayAppend(baos, value, flags);
-                    }
-                    break evaluate;
-                } else if (arg0 instanceof Format) {
-                    Format format = (Format) arg0;
-                    arg0 = format.getSubexpression(0);
-                    if (arg0 instanceof Subquery) {
-                        Subquery q = (Subquery) arg0;
-                        for (Value value : q.getAllRows(session)) {
-                            jsonArrayAppend(baos, format.getValue(value), flags);
-                        }
-                        break evaluate;
-                    }
-                }
-            }
-            for (int i = 0; i < l;) {
-                jsonArrayAppend(baos, args[i++].getValue(session), flags);
-            }
-        }
-        baos.write(']');
-        return ValueJson.getInternal(baos.toByteArray());
-    }
-
-    /**
-     * Appends a value to a JSON array in the specified string builder.
-     *
-     * @param baos the output stream to append to
-     * @param value the value
-     * @param flags the flags ({@link #JSON_ABSENT_ON_NULL})
-     */
-    public static void jsonArrayAppend(ByteArrayOutputStream baos, Value value, int flags) {
-        if (value == ValueNull.INSTANCE) {
-            if ((flags & JSON_ABSENT_ON_NULL) != 0) {
-                return;
-            } else {
-                value = ValueJson.NULL;
-            }
-        }
-        if (baos.size() > 1) {
-            baos.write(',');
-        }
-        byte[] b = value.convertTo(TypeInfo.TYPE_JSON).getBytesNoCopy();
-        baos.write(b, 0, b.length);
-    }
-
     @Override
     public int getValueType() {
         return type.getValueType();
@@ -2146,9 +1999,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case REGEXP_REPLACE:
             min = 3;
             max = 4;
-            break;
-        case JSON_OBJECT: // Ensured by Parser
-        case JSON_ARRAY:
             break;
         default:
             DbException.throwInternalError("type=" + info.type);
@@ -2487,46 +2337,10 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             builder.append(DateTimeFunctions.getFieldName(args[0].getValue(null).getInt())).append(", ");
             args[1].getSQL(builder, sqlFlags);
             break;
-        case JSON_OBJECT: {
-            for (int i = 0, l = args.length; i < l;) {
-                if (i > 0) {
-                    builder.append(", ");
-                }
-                args[i++].getSQL(builder, sqlFlags).append(": ");
-                args[i++].getSQL(builder, sqlFlags);
-            }
-            getJsonFunctionFlagsSQL(builder, flags, false);
-            break;
-        }
-        case JSON_ARRAY: {
-            writeExpressions(builder, args, sqlFlags);
-            getJsonFunctionFlagsSQL(builder, flags, true);
-            break;
-        }
         default:
             writeExpressions(builder, args, sqlFlags);
         }
         return builder.append(')');
-    }
-
-    /**
-     * Appends flags of a JSON function to the specified string builder.
-     *
-     * @param builder string builder to append to
-     * @param flags flags to append
-     * @param forArray whether the function is an array function
-     */
-    public static void getJsonFunctionFlagsSQL(StringBuilder builder, int flags, boolean forArray) {
-        if ((flags & JSON_ABSENT_ON_NULL) != 0) {
-            if (!forArray) {
-                builder.append(" ABSENT ON NULL");
-            }
-        } else if (forArray) {
-            builder.append(" NULL ON NULL");
-        }
-        if (!forArray && (flags & JSON_WITH_UNIQUE_KEYS) != 0) {
-            builder.append(" WITH UNIQUE KEYS");
-        }
     }
 
     public int getFunctionType() {

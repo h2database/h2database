@@ -273,6 +273,7 @@ import org.h2.expression.function.DateTimeFunctions;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.JavaFunction;
+import org.h2.expression.function.JsonConstructorFunction;
 import org.h2.expression.function.MathFunction1;
 import org.h2.expression.function.MathFunction2;
 import org.h2.expression.function.TableFunction;
@@ -3707,7 +3708,7 @@ public class Parser {
             r = new Aggregate(AggregateType.JSON_ARRAYAGG, new Expression[] { readExpression() }, currentSelect,
                     false);
             r.setOrderByList(readIfOrderBy());
-            r.setFlags(Function.JSON_ABSENT_ON_NULL);
+            r.setFlags(JsonConstructorFunction.JSON_ABSENT_ON_NULL);
             readJsonObjectFunctionFlags(r, true);
             break;
         }
@@ -4302,6 +4303,38 @@ public class Parser {
             return readBitFunction(BitFunction.LSHIFT);
         case "RSHIFT":
             return readBitFunction(BitFunction.RSHIFT);
+        case "JSON_OBJECT": {
+            JsonConstructorFunction function = new JsonConstructorFunction(false);
+            if (currentTokenType != CLOSE_PAREN && !readJsonObjectFunctionFlags(function, false)) {
+                do {
+                    boolean withKey = readIf(KEY);
+                    function.addParameter(readExpression());
+                    if (withKey) {
+                        read(VALUE);
+                    } else if (!readIf(VALUE)) {
+                        read(COLON);
+                    }
+                    function.addParameter(readExpression());
+                } while (readIf(COMMA));
+                readJsonObjectFunctionFlags(function, false);
+            }
+            read(CLOSE_PAREN);
+            function.doneWithParameters();
+            return function;
+        }
+        case "JSON_ARRAY": {
+            JsonConstructorFunction function = new JsonConstructorFunction(true);
+            function.setFlags(JsonConstructorFunction.JSON_ABSENT_ON_NULL);
+            if (currentTokenType != CLOSE_PAREN && !readJsonObjectFunctionFlags(function, true)) {
+                do {
+                    function.addParameter(readExpression());
+                } while (readIf(COMMA));
+                readJsonObjectFunctionFlags(function, true);
+            }
+            read(CLOSE_PAREN);
+            function.doneWithParameters();
+            return function;
+        }
         }
         Function function = Function.getFunction(database, upperName);
         return function != null ? readFunctionParameters(function) : null;
@@ -4331,7 +4364,8 @@ public class Parser {
 
     private boolean isBuiltinFunction(String upperName) {
         return Function.getFunction(database, upperName) != null || MathFunction1.exists(upperName)
-                || MathFunction2.exists(upperName) || BitFunction.exists(upperName);
+                || MathFunction2.exists(upperName) || BitFunction.exists(upperName)
+                || JsonConstructorFunction.exists(upperName);
     }
 
     private Function readFunctionParameters(Function function) {
@@ -4474,32 +4508,6 @@ public class Parser {
             tf.setColumns(columns);
             break;
         }
-        case Function.JSON_OBJECT:
-            if (currentTokenType != CLOSE_PAREN && !readJsonObjectFunctionFlags(function, false)) {
-                do {
-                    boolean withKey = readIf(KEY);
-                    function.addParameter(readExpression());
-                    if (withKey) {
-                        read(VALUE);
-                    } else if (!readIf(VALUE)) {
-                        read(COLON);
-                    }
-                    function.addParameter(readExpression());
-                } while (readIf(COMMA));
-                readJsonObjectFunctionFlags(function, false);
-            }
-            read(CLOSE_PAREN);
-            break;
-        case Function.JSON_ARRAY:
-            function.setFlags(Function.JSON_ABSENT_ON_NULL);
-            if (currentTokenType != CLOSE_PAREN && !readJsonObjectFunctionFlags(function, true)) {
-                do {
-                    function.addParameter(readExpression());
-                } while (readIf(COMMA));
-                readJsonObjectFunctionFlags(function, true);
-            }
-            read(CLOSE_PAREN);
-            break;
         default:
             if (!readIf(CLOSE_PAREN)) {
                 do {
@@ -4631,7 +4639,7 @@ public class Parser {
         if (readIf(NULL)) {
             if (readIf(ON)) {
                 read(NULL);
-                flags &= ~Function.JSON_ABSENT_ON_NULL;
+                flags &= ~JsonConstructorFunction.JSON_ABSENT_ON_NULL;
                 result = true;
             } else {
                 reread(start);
@@ -4640,7 +4648,7 @@ public class Parser {
         } else if (readIf("ABSENT")) {
             if (readIf(ON)) {
                 read(NULL);
-                flags |= Function.JSON_ABSENT_ON_NULL;
+                flags |= JsonConstructorFunction.JSON_ABSENT_ON_NULL;
                 result = true;
             } else {
                 reread(start);
@@ -4651,12 +4659,12 @@ public class Parser {
             if (readIf(WITH)) {
                 read(UNIQUE);
                 read("KEYS");
-                flags |= Function.JSON_WITH_UNIQUE_KEYS;
+                flags |= JsonConstructorFunction.JSON_WITH_UNIQUE_KEYS;
                 result = true;
             } else if (readIf("WITHOUT")) {
                 if (readIf(UNIQUE)) {
                     read("KEYS");
-                    flags &= ~Function.JSON_WITH_UNIQUE_KEYS;
+                    flags &= ~JsonConstructorFunction.JSON_WITH_UNIQUE_KEYS;
                     result = true;
                 } else if (result) {
                     throw getSyntaxError();

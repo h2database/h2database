@@ -61,17 +61,6 @@ public final class CurrentGeneralValueSpecification extends Operation0 {
     private static final String[] NAMES = { "CURRENT_CATALOG", "CURRENT_PATH", "CURRENT_ROLE", "CURRENT_SCHEMA",
             "CURRENT_USER", "SESSION_USER", "SYSTEM_USER" };
 
-    /**
-     * Get the name for this specification id.
-     *
-     * @param specification
-     *            the specification id
-     * @return the name
-     */
-    public static String getName(int specification) {
-        return NAMES[specification];
-    }
-
     private final int specification;
 
     public CurrentGeneralValueSpecification(int specification) {

@@ -27,7 +27,7 @@ public final class FunctionsDB2Derby extends FunctionsBase {
 
     static {
         FUNCTIONS.put("IDENTITY_VAL_LOCAL",
-                new FunctionInfo("IDENTITY_VAL_LOCAL", IDENTITY_VAL_LOCAL, 0, Value.BIGINT, true, false, false));
+                new FunctionInfo("IDENTITY_VAL_LOCAL", IDENTITY_VAL_LOCAL, 0, Value.BIGINT, true, false));
     }
 
     /**

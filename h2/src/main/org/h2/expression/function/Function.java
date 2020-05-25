@@ -289,8 +289,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
         addFunctionWithNull("TRIM_ARRAY", TRIM_ARRAY, 2, Value.ARRAY);
         addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
-        addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false, false);
-        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INTEGER, false, false, false);
+        addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false);
+        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INTEGER, false, false);
         addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE,
                 0, Value.INTEGER);
         addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED,
@@ -309,9 +309,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 1, Value.BOOLEAN);
         addFunctionNotDeterministic("ABORT_SESSION", ABORT_SESSION,
                 1, Value.BOOLEAN);
-        addFunction("SET", SET, 2, Value.NULL, false, false, false);
-        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false, false);
-        addFunction("FILE_WRITE", FILE_WRITE, 2, Value.BIGINT, false, false, false);
+        addFunction("SET", SET, 2, Value.NULL, false, false);
+        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false);
+        addFunction("FILE_WRITE", FILE_WRITE, 2, Value.BIGINT, false, false);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID,
                 0, Value.VARCHAR);
         addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED,
@@ -327,9 +327,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     }
 
     private static void addFunction(String name, int type, int parameterCount,
-            int returnDataType, boolean nullIfParameterIsNull, boolean deterministic, boolean specialArguments) {
+            int returnDataType, boolean nullIfParameterIsNull, boolean deterministic) {
         FunctionInfo info = new FunctionInfo(name, type, parameterCount, returnDataType, nullIfParameterIsNull,
-                deterministic, specialArguments);
+                deterministic);
         if (FUNCTIONS_BY_ID[type] == null) {
             FUNCTIONS_BY_ID[type] = info;
         }
@@ -338,17 +338,17 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
     private static void addFunctionNotDeterministic(String name, int type,
             int parameterCount, int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, true, false, false);
+        addFunction(name, type, parameterCount, returnDataType, true, false);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
             int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, true, true, false);
+        addFunction(name, type, parameterCount, returnDataType, true, true);
     }
 
     private static void addFunctionWithNull(String name, int type,
             int parameterCount, int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, false, true, false);
+        addFunction(name, type, parameterCount, returnDataType, false, true);
     }
 
     /**
@@ -852,7 +852,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         if (values == null) {
             return ValueNull.INSTANCE;
         }
-        Value v0 = info.specialArguments ? null : getNullOrValue(session, args, values, 0);
+        Value v0 = getNullOrValue(session, args, values, 0);
         Value resultSimple = getSimpleValue(session, v0, args, values);
         if (resultSimple != null) {
             return resultSimple;

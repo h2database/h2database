@@ -27,9 +27,8 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
 
     static {
         copyFunction(FUNCTIONS, "LOCATE", "CHARINDEX");
-        FUNCTIONS.put("GETDATE", new FunctionInfo("GETDATE", GETDATE, 0, Value.TIMESTAMP, false, true, false));
-        FUNCTIONS.put("ISNULL", new FunctionInfo("ISNULL", Function.COALESCE,
-                2, Value.NULL, false, true, false));
+        FUNCTIONS.put("GETDATE", new FunctionInfo("GETDATE", GETDATE, 0, Value.TIMESTAMP, false, true));
+        FUNCTIONS.put("ISNULL", new FunctionInfo("ISNULL", Function.COALESCE, 2, Value.NULL, false, true));
         copyFunction(FUNCTIONS, "LENGTH", "LEN");
         copyFunction(FUNCTIONS, "RANDOM_UUID", "NEWID");
     }

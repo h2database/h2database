@@ -590,7 +590,8 @@ public class PgCatalogTable extends MetaTable {
                     { 18, "char", 1, 0 },
                     { 19, "name", 64, 18 },
                     { 22, "int2vector", -1, 21 },
-                    { 2205, "regproc", 4, 0 },
+                    { 24, "regproc", 4, 0 },
+                    { 2205, "regclass", 4, 0 },
             }) {
                 add(session, rows,
                         // OID

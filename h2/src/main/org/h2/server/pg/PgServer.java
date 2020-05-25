@@ -328,6 +328,8 @@ public class PgServer implements Service {
         case PG_TYPE_INT4:
             valueType = Value.INTEGER;
             break;
+        case 24:
+            return "regproc";
         case PG_TYPE_TEXT:
             valueType = Value.CLOB;
             break;
@@ -364,7 +366,7 @@ public class PgServer implements Service {
             valueType = Value.NUMERIC;
             break;
         case 2205:
-            return "regproc";
+            return "regclass";
         default:
             return "???";
         }

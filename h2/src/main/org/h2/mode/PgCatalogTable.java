@@ -540,7 +540,10 @@ public class PgCatalogTable extends MetaTable {
                 if (t.hidden || t.sqlType == Value.NULL) {
                     continue;
                 }
-                int pgType = PgServer.convertType(t.sqlType);
+                int valueType = t.type;
+                // Only VARCHAR ARRAY is currently supported
+                int pgType = PgServer.convertType(valueType == Value.ARRAY ? TypeInfo.getTypeInfo(Value.ARRAY,
+                        Integer.MAX_VALUE, 0, TypeInfo.TYPE_VARCHAR) : TypeInfo.getTypeInfo(valueType));
                 if (pgType == PgServer.PG_TYPE_UNKNOWN || !types.add(pgType)) {
                     continue;
                 }
@@ -627,7 +630,7 @@ public class PgCatalogTable extends MetaTable {
                 // ATTNAME
                 column.getName(),
                 // ATTTYPID
-                ValueInteger.get(PgServer.convertType(DataType.convertTypeToSQLType(column.getType().getValueType()))),
+                ValueInteger.get(PgServer.convertType(column.getType())),
                 // ATTLEN
                 ValueInteger.get(precision > 255 ? -1 : (int) precision),
                 // ATTNUM

@@ -1,0 +1,95 @@
+/*
+ * Copyright 2004-2020 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
+package org.h2.expression.function;
+
+import org.h2.engine.Session;
+import org.h2.expression.Expression;
+import org.h2.expression.Operation1;
+import org.h2.expression.TypedValueExpression;
+import org.h2.message.DbException;
+import org.h2.util.MathUtils;
+import org.h2.value.TypeInfo;
+import org.h2.value.Value;
+import org.h2.value.ValueArray;
+import org.h2.value.ValueInteger;
+import org.h2.value.ValueNull;
+
+/**
+ * Cardinality expression.
+ */
+public class CardinalityExpression extends Operation1 implements NamedExpression {
+
+    /**
+     * Returns whether specified function is known by this class.
+     *
+     * @param upperName
+     *            the name of the function in upper case
+     * @return {@code true} if it exists
+     */
+    public static boolean exists(String upperName) {
+        return upperName.equals("CARDINALITY") || upperName.equals("ARRAY_MAX_CARDINALITY");
+    }
+
+    private final boolean max;
+
+    /**
+     * Creates new instance of cardinality expression.
+     *
+     * @param arg
+     *            argument
+     * @param max
+     *            {@code false} for {@code CARDINALITY}, {@code true} for
+     *            {@code ARRAY_MAX_CARDINALITY}
+     */
+    public CardinalityExpression(Expression arg, boolean max) {
+        super(arg);
+        this.max = max;
+    }
+
+    @Override
+    public Value getValue(Session session) {
+        int result;
+        if (max) {
+            TypeInfo t = arg.getType();
+            if (t.getValueType() == Value.ARRAY) {
+                result = MathUtils.convertLongToInt(t.getPrecision());
+            } else {
+                throw DbException.getInvalidValueException("array", arg.getValue(session).getTraceSQL());
+            }
+        } else {
+            Value v = arg.getValue(session);
+            if (v == ValueNull.INSTANCE) {
+                return ValueNull.INSTANCE;
+            }
+            if (v.getValueType() != Value.ARRAY) {
+                throw DbException.getInvalidValueException("array", v.getTraceSQL());
+            }
+            result = ((ValueArray) v).getList().length;
+        }
+        return ValueInteger.get(result);
+    }
+
+    @Override
+    public Expression optimize(Session session) {
+        arg = arg.optimize(session);
+        type = TypeInfo.TYPE_INTEGER;
+        if (arg.isConstant()) {
+            return TypedValueExpression.getTypedIfNull(getValue(session), type);
+        }
+        return this;
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return arg.getSQL(builder.append(getName()).append('('), sqlFlags).append(')');
+    }
+
+    @Override
+    public String getName() {
+        return max ? "ARRAY_MAX_CARDINALITY" : "CARDINALITY";
+    }
+
+}

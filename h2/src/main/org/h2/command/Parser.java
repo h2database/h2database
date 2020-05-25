@@ -264,6 +264,7 @@ import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
 import org.h2.expression.function.BitFunction;
+import org.h2.expression.function.CardinalityExpression;
 import org.h2.expression.function.CastSpecification;
 import org.h2.expression.function.CompatibilityIdentityFunction;
 import org.h2.expression.function.CompatibilitySequenceValueFunction;
@@ -4027,8 +4028,7 @@ public class Parser {
         }
         // CARDINALITY
         case "ARRAY_LENGTH":
-            function = Function.getFunction(Function.CARDINALITY);
-            break;
+            return readCardinalityExpression(false);
         // Simple case
         case "DECODE": {
             Expression caseOperand = readExpression();
@@ -4303,6 +4303,10 @@ public class Parser {
             return readBitFunction(BitFunction.LSHIFT);
         case "RSHIFT":
             return readBitFunction(BitFunction.RSHIFT);
+        case "CARDINALITY":
+            return readCardinalityExpression(false);
+        case "ARRAY_MAX_CARDINALITY":
+            return readCardinalityExpression(true);
         case "JSON_OBJECT": {
             JsonConstructorFunction function = new JsonConstructorFunction(false);
             if (currentTokenType != CLOSE_PAREN && !readJsonObjectFunctionFlags(function, false)) {
@@ -4362,10 +4366,16 @@ public class Parser {
         return new BitFunction(arg1, arg2, function);
     }
 
+    private Expression readCardinalityExpression(boolean max) {
+        Expression arg = readExpression();
+        read(CLOSE_PAREN);
+        return new CardinalityExpression(arg, max);
+    }
+
     private boolean isBuiltinFunction(String upperName) {
         return Function.getFunction(database, upperName) != null || MathFunction1.exists(upperName)
                 || MathFunction2.exists(upperName) || BitFunction.exists(upperName)
-                || JsonConstructorFunction.exists(upperName);
+                || JsonConstructorFunction.exists(upperName) || CardinalityExpression.exists(upperName);
     }
 
     private Function readFunctionParameters(Function function) {

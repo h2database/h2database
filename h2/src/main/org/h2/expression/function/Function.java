@@ -132,11 +132,11 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             CSVREAD = 210, CSVWRITE = 211,
             MEMORY_FREE = 212, MEMORY_USED = 213,
             LOCK_MODE = 214, SESSION_ID = 216,
-            CARDINALITY = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
+            LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
             ARRAY_CONTAINS = 230, FILE_WRITE = 232,
-            UNNEST = 233, ARRAY_MAX_CARDINALITY = 234, TRIM_ARRAY = 235, ARRAY_SLICE = 236,
+            UNNEST = 233, TRIM_ARRAY = 235, ARRAY_SLICE = 236,
             ABORT_SESSION = 237;
 
     public static final int REGEXP_LIKE = 240;
@@ -299,8 +299,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 0, Value.INTEGER);
         addFunctionNotDeterministic("SESSION_ID", SESSION_ID,
                 0, Value.INTEGER);
-        addFunction("CARDINALITY", CARDINALITY, 1, Value.INTEGER);
-        addFunction("ARRAY_MAX_CARDINALITY", ARRAY_MAX_CARDINALITY, 1, Value.INTEGER, false, true, true);
         addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
                 6, Value.RESULT_SET);
         addFunctionWithNull("LEAST", LEAST,
@@ -699,25 +697,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                         }
                     }
                 }
-            }
-            break;
-        }
-        case CARDINALITY: {
-            Value[] list = getArray(v0);
-            if (list != null) {
-                result = ValueInteger.get(list.length);
-            } else {
-                result = ValueNull.INSTANCE;
-            }
-            break;
-        }
-        case ARRAY_MAX_CARDINALITY: {
-            Expression arg = args[0];
-            TypeInfo t = arg.getType();
-            if (t.getValueType() == Value.ARRAY) {
-                result = ValueInteger.get(MathUtils.convertLongToInt(t.getPrecision()));
-            } else {
-                throw DbException.getInvalidValueException("array", arg.getValue(session).getTraceSQL());
             }
             break;
         }

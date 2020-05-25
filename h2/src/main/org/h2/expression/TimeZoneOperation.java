@@ -7,8 +7,6 @@ package org.h2.expression;
 
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.TimeZoneProvider;
 import org.h2.value.DataType;
@@ -23,26 +21,17 @@ import org.h2.value.ValueTimestampTimeZone;
 /**
  * A time zone specification (AT { TIME ZONE | LOCAL }).
  */
-public class TimeZoneOperation extends Expression {
+public class TimeZoneOperation extends Operation1_2 {
 
-    private Expression arg;
-    private Expression timeZone;
-    private TypeInfo type;
-
-    public TimeZoneOperation(Expression arg) {
-        this.arg = arg;
-    }
-
-    public TimeZoneOperation(Expression arg, Expression timeZone) {
-        this.arg = arg;
-        this.timeZone = timeZone;
+    public TimeZoneOperation(Expression left, Expression right) {
+        super(left, right);
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        arg.getSQL(builder.append('('), sqlFlags).append(" AT ");
-        if (timeZone != null) {
-            timeZone.getSQL(builder.append("TIME ZONE "), sqlFlags);
+        left.getSQL(builder.append('('), sqlFlags).append(" AT ");
+        if (right != null) {
+            right.getSQL(builder.append("TIME ZONE "), sqlFlags);
         } else {
             builder.append("LOCAL");
         }
@@ -51,10 +40,10 @@ public class TimeZoneOperation extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        Value a = arg.getValue(session).convertTo(type, session);
+        Value a = left.getValue(session).convertTo(type, session);
         int valueType = a.getValueType();
-        if ((valueType == Value.TIMESTAMP_TZ || valueType == Value.TIME_TZ) && timeZone != null) {
-            Value b = timeZone.getValue(session);
+        if ((valueType == Value.TIMESTAMP_TZ || valueType == Value.TIME_TZ) && right != null) {
+            Value b = right.getValue(session);
             if (b != ValueNull.INSTANCE) {
                 if (valueType == Value.TIMESTAMP_TZ) {
                     ValueTimestampTimeZone v = (ValueTimestampTimeZone) a;
@@ -119,20 +108,12 @@ public class TimeZoneOperation extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level, int state) {
-        arg.mapColumns(resolver, level, state);
-        if (timeZone != null) {
-            timeZone.mapColumns(resolver, level, state);
-        }
-    }
-
-    @Override
     public Expression optimize(Session session) {
-        arg = arg.optimize(session);
-        if (timeZone != null) {
-            timeZone = timeZone.optimize(session);
+        left = left.optimize(session);
+        if (right != null) {
+            right = right.optimize(session);
         }
-        TypeInfo type = arg.getType();
+        TypeInfo type = left.getType();
         int valueType = Value.TIMESTAMP_TZ, scale = ValueTimestamp.MAXIMUM_SCALE;
         switch (type.getValueType()) {
         case Value.TIMESTAMP:
@@ -145,72 +126,21 @@ public class TimeZoneOperation extends Expression {
             scale = type.getScale();
             break;
         default:
-            StringBuilder builder = arg.getSQL(new StringBuilder(), TRACE_SQL_FLAGS);
+            StringBuilder builder = left.getSQL(new StringBuilder(), TRACE_SQL_FLAGS);
             int offset = builder.length();
             builder.append(" AT ");
-            if (timeZone != null) {
-                timeZone.getSQL(builder.append("TIME ZONE "), TRACE_SQL_FLAGS);
+            if (right != null) {
+                right.getSQL(builder.append("TIME ZONE "), TRACE_SQL_FLAGS);
             } else {
                 builder.append("LOCAL");
             }
             throw DbException.getSyntaxError(builder.toString(), offset, "time, timestamp");
         }
         this.type = TypeInfo.getTypeInfo(valueType, -1, scale, null);
-        if (arg.isConstant() && (timeZone == null || timeZone.isConstant())) {
+        if (left.isConstant() && (right == null || right.isConstant())) {
             return ValueExpression.get(getValue(session));
         }
         return this;
-    }
-
-    @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        arg.setEvaluatable(tableFilter, b);
-        if (timeZone != null) {
-            timeZone.setEvaluatable(tableFilter, b);
-        }
-    }
-
-    @Override
-    public TypeInfo getType() {
-        return type;
-    }
-
-    @Override
-    public void updateAggregate(Session session, int stage) {
-        arg.updateAggregate(session, stage);
-        if (timeZone != null) {
-            timeZone.updateAggregate(session, stage);
-        }
-    }
-
-    @Override
-    public boolean isEverything(ExpressionVisitor visitor) {
-        return arg.isEverything(visitor) && (timeZone == null || timeZone.isEverything(visitor));
-    }
-
-    @Override
-    public int getCost() {
-        int cost = arg.getCost() + 1;
-        if (timeZone != null) {
-            cost += timeZone.getCost();
-        }
-        return cost;
-    }
-
-    @Override
-    public int getSubexpressionCount() {
-        return timeZone != null ? 2 : 1;
-    }
-
-    @Override
-    public Expression getSubexpression(int index) {
-        if (index == 0) {
-            return arg;
-        }
-        if (index == 1 && timeZone != null) {
-            return timeZone;
-        }
-        throw new IndexOutOfBoundsException();
     }
 
 }

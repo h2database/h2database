@@ -39,13 +39,13 @@ public class Update extends Prepared implements DataChangeStatement {
     /** The limit expression as specified in the LIMIT clause. */
     private Expression limitExpr;
 
-    private boolean updateToCurrentValuesReturnsZero;
-
     private SetClauseList setClauseList;
 
     private ResultTarget deltaChangeCollector;
 
     private ResultOption deltaChangeCollectionMode;
+
+    private Insert onDuplicateKeyInsert;
 
     public Update(Session session) {
         super(session);
@@ -118,7 +118,7 @@ public class Update extends Prepared implements DataChangeStatement {
                         }
                     }
                     if (setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode,
-                            rows, oldRow, updateToCurrentValuesReturnsZero)) {
+                            rows, oldRow, onDuplicateKeyInsert != null)) {
                         count++;
                     }
                 }
@@ -209,16 +209,6 @@ public class Update extends Prepared implements DataChangeStatement {
         return true;
     }
 
-    /**
-     * Sets expected update count for update to current values case.
-     *
-     * @param updateToCurrentValuesReturnsZero if zero should be returned as update
-     *        count if update set row to current values
-     */
-    public void setUpdateToCurrentValuesReturnsZero(boolean updateToCurrentValuesReturnsZero) {
-        this.updateToCurrentValuesReturnsZero = updateToCurrentValuesReturnsZero;
-    }
-
     @Override
     public void collectDependencies(HashSet<DbObject> dependencies) {
         ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);
@@ -227,4 +217,13 @@ public class Update extends Prepared implements DataChangeStatement {
         }
         setClauseList.isEverything(visitor);
     }
+
+    public Insert getOnDuplicateKeyInsert() {
+        return onDuplicateKeyInsert;
+    }
+
+    void setOnDuplicateKeyInsert(Insert onDuplicateKeyInsert) {
+        this.onDuplicateKeyInsert = onDuplicateKeyInsert;
+    }
+
 }

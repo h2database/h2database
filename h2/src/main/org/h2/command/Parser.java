@@ -263,17 +263,23 @@ import org.h2.expression.condition.IsJsonPredicate;
 import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
+import org.h2.expression.function.BitFunction;
 import org.h2.expression.function.CastSpecification;
+import org.h2.expression.function.CompatibilityIdentityFunction;
+import org.h2.expression.function.CompatibilitySequenceValueFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.CurrentGeneralValueSpecification;
 import org.h2.expression.function.DateTimeFunctions;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.JavaFunction;
+import org.h2.expression.function.MathFunction1;
+import org.h2.expression.function.MathFunction2;
 import org.h2.expression.function.TableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsPostgreSQL;
+import org.h2.mode.OnDuplicateKeyValues;
 import org.h2.mode.Regclass;
 import org.h2.result.SortOrder;
 import org.h2.schema.Domain;
@@ -3965,26 +3971,26 @@ public class Parser {
         if (agg != null) {
             return readAggregate(agg, upperName);
         }
-        Function function = Function.getFunction(database, upperName);
-        if (function == null) {
-            Expression e = readWindowFunction(upperName);
-            if (e != null) {
-                return e;
-            }
-            e = readCompatibilityFunction(upperName);
-            if (e != null) {
-                return e;
-            }
-            UserAggregate aggregate = database.findAggregate(name);
-            if (aggregate != null) {
-                return readJavaAggregate(aggregate);
-            }
-            if (allowOverride) {
-                throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, name);
-            }
-            return readJavaFunction(null, name, true);
+        Expression e = readBuiltinFunctionIf(upperName);
+        if (e != null) {
+            return e;
         }
-        return readFunctionParameters(function);
+        e = readWindowFunction(upperName);
+        if (e != null) {
+            return e;
+        }
+        e = readCompatibilityFunction(upperName);
+        if (e != null) {
+            return e;
+        }
+        UserAggregate aggregate = database.findAggregate(name);
+        if (aggregate != null) {
+            return readJavaAggregate(aggregate);
+        }
+        if (allowOverride) {
+            throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, name);
+        }
+        return readJavaFunction(null, name, true);
     }
 
     private Expression readFunctionWithSchema(Schema schema, String name, String upperName) {
@@ -4081,11 +4087,6 @@ public class Parser {
             function = Function.getFunction(Function.COALESCE);
             break;
         // CURRENT_CATALOG
-        case "CURRENT_DATABASE":
-            if (database.getMode().getEnum() != ModeEnum.PostgreSQL) {
-                return null;
-            }
-            //$FALL-THROUGH$
         case "DATABASE":
             read(CLOSE_PAREN);
             return new CurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_CATALOG);
@@ -4188,6 +4189,17 @@ public class Parser {
         case "UCASE":
             function = Function.getFunction(Function.UPPER);
             break;
+        // Sequence value
+        case "CURRVAL":
+            return readCompatibilitySequenceValueFunction(true);
+        case "NEXTVAL":
+            return readCompatibilitySequenceValueFunction(false);
+        case "IDENTITY":
+            read(CLOSE_PAREN);
+            return new CompatibilityIdentityFunction(false);
+        case "SCOPE_IDENTITY":
+            read(CLOSE_PAREN);
+            return new CompatibilityIdentityFunction(true);
         default:
             return null;
         }
@@ -4217,6 +4229,111 @@ public class Parser {
         return new SearchedCase(new Expression[] { when, then, elseExpression });
     }
 
+    private Expression readCompatibilitySequenceValueFunction(boolean current) {
+        Expression arg1 = readExpression(), arg2 = readIf(COMMA) ? readExpression() : null;
+        read(CLOSE_PAREN);
+        return new CompatibilitySequenceValueFunction(arg1, arg2, current);
+    }
+
+    private Expression readBuiltinFunctionIf(String upperName) {
+        switch (upperName) {
+        case "SIN":
+            return readMathFunction1(MathFunction1.SIN);
+        case "COS":
+            return readMathFunction1(MathFunction1.COS);
+        case "TAN":
+            return readMathFunction1(MathFunction1.TAN);
+        case "COT":
+            return readMathFunction1(MathFunction1.COT);
+        case "SINH":
+            return readMathFunction1(MathFunction1.SINH);
+        case "COSH":
+            return readMathFunction1(MathFunction1.COSH);
+        case "TANH":
+            return readMathFunction1(MathFunction1.TANH);
+        case "ASIN":
+            return readMathFunction1(MathFunction1.ASIN);
+        case "ACOS":
+            return readMathFunction1(MathFunction1.ACOS);
+        case "ATAN":
+            return readMathFunction1(MathFunction1.ATAN);
+        case "ATAN2":
+            return readMathFunction2(MathFunction2.ATAN2);
+        case "LOG": {
+            Expression arg1 = readExpression();
+            if (readIf(COMMA)) {
+                Expression arg2 = readExpression();
+                read(CLOSE_PAREN);
+                return new MathFunction2(arg1, arg2, MathFunction2.LOG);
+            } else {
+                read(CLOSE_PAREN);
+                return new MathFunction1(arg1,
+                        database.getMode().logIsLogBase10 ? MathFunction1.LOG10 : MathFunction1.LN);
+            }
+        }
+        case "LOG10":
+            return readMathFunction1(MathFunction1.LOG10);
+        case "LN":
+            return readMathFunction1(MathFunction1.LN);
+        case "EXP":
+            return readMathFunction1(MathFunction1.EXP);
+        case "POWER":
+            return readMathFunction2(MathFunction2.POWER);
+        case "SQRT":
+            return readMathFunction1(MathFunction1.SQRT);
+        case "DEGREES":
+            return readMathFunction1(MathFunction1.DEGREES);
+        case "RADIANS":
+            return readMathFunction1(MathFunction1.RADIANS);
+        case "BITAND":
+            return readBitFunction(BitFunction.BITAND);
+        case "BITOR":
+            return readBitFunction(BitFunction.BITOR);
+        case "BITXOR":
+            return readBitFunction(BitFunction.BITXOR);
+        case "BITNOT": {
+            Expression arg = readExpression();
+            read(CLOSE_PAREN);
+            return new BitFunction(arg, null, BitFunction.BITNOT);
+        }
+        case "BITGET":
+            return readBitFunction(BitFunction.BITGET);
+        case "LSHIFT":
+            return readBitFunction(BitFunction.LSHIFT);
+        case "RSHIFT":
+            return readBitFunction(BitFunction.RSHIFT);
+        }
+        Function function = Function.getFunction(database, upperName);
+        return function != null ? readFunctionParameters(function) : null;
+    }
+
+    private Expression readMathFunction1(int function) {
+        Expression arg = readExpression();
+        read(CLOSE_PAREN);
+        return new MathFunction1(arg, function);
+    }
+
+    private Expression readMathFunction2(int function) {
+        Expression arg1 = readExpression();
+        read(COMMA);
+        Expression arg2 = readExpression();
+        read(CLOSE_PAREN);
+        return new MathFunction2(arg1, arg2, function);
+    }
+
+    private Expression readBitFunction(int function) {
+        Expression arg1 = readExpression();
+        read(COMMA);
+        Expression arg2 = readExpression();
+        read(CLOSE_PAREN);
+        return new BitFunction(arg1, arg2, function);
+    }
+
+    private boolean isBuiltinFunction(String upperName) {
+        return Function.getFunction(database, upperName) != null || MathFunction1.exists(upperName)
+                || MathFunction2.exists(upperName) || BitFunction.exists(upperName);
+    }
+
     private Function readFunctionParameters(Function function) {
         switch (function.getFunctionType()) {
         case Function.EXTRACT:
@@ -4240,18 +4357,6 @@ public class Parser {
             function.addParameter(readExpression());
             read(CLOSE_PAREN);
             break;
-        case Function.LOG: {
-            Expression arg = readExpression();
-            if (readIf(COMMA)) {
-                function.addParameter(arg);
-                function.addParameter(readExpression());
-            } else {
-                function = Function.getFunction(database.getMode().logIsLogBase10 ? Function.LOG10 : Function.LN);
-                function.addParameter(arg);
-            }
-            read(CLOSE_PAREN);
-            break;
-        }
         case Function.SUBSTRING:
             // Standard variants are:
             // SUBSTRING(X FROM 1)
@@ -4942,11 +5047,16 @@ public class Parser {
             break;
         case VALUES:
             if (database.getMode().onDuplicateKeyUpdate) {
-                read();
-                r = readKeywordFunction(Function.VALUES);
-            } else {
-                r = new Subquery(parseQuery());
+                if (currentPrepared instanceof Insert) {
+                    r = readOnDuplicateKeyValues(((Insert) currentPrepared).getTable(), null);
+                    break;
+                } else if (currentPrepared instanceof Update) {
+                    Update update = (Update) currentPrepared;
+                    r = readOnDuplicateKeyValues(update.getTable(), update);
+                    break;
+                }
             }
+            r = new Subquery(parseQuery());
             break;
         case CASE:
             read();
@@ -5073,7 +5183,7 @@ public class Parser {
                     r = new TimeZoneOperation(r, readExpression());
                     continue;
                 } else if (readIf("LOCAL")) {
-                    r = new TimeZoneOperation(r);
+                    r = new TimeZoneOperation(r, null);
                     continue;
                 } else {
                     reread(index);
@@ -5097,6 +5207,14 @@ public class Parser {
             read(CLOSE_PAREN);
         }
         return new CurrentGeneralValueSpecification(specification);
+    }
+
+    private Expression readOnDuplicateKeyValues(Table table, Update update) {
+        read();
+        read(OPEN_PAREN);
+        Column c = readTableColumn(new TableFilter(session, table, null, rightsChecked, null, 0, null));
+        read(CLOSE_PAREN);
+        return new OnDuplicateKeyValues(c, update);
     }
 
     private Expression readTermWithIdentifier(String name) {
@@ -7347,7 +7465,7 @@ public class Parser {
         CreateAggregate command = new CreateAggregate(session);
         command.setForce(force);
         String name = readIdentifierWithSchema(), upperName;
-        if (isKeyword(name) || Function.getFunction(database, upperName = upperName(name)) != null
+        if (isKeyword(name) || isBuiltinFunction(upperName = upperName(name))
                 || Aggregate.getAggregateType(upperName) != null) {
             throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
         }
@@ -7554,7 +7672,7 @@ public class Parser {
             return true;
         }
         return Aggregate.getAggregateType(name) != null
-                || Function.getFunction(database, name) != null && !database.isAllowBuiltinAliasOverride();
+                || isBuiltinFunction(name) && !database.isAllowBuiltinAliasOverride();
     }
 
     private Prepared parseWith() {

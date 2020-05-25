@@ -15,6 +15,8 @@ import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
+import org.h2.expression.function.CompatibilityIdentityFunction;
+import org.h2.expression.function.CurrentGeneralValueSpecification;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
 import org.h2.index.Index;
@@ -39,7 +41,9 @@ import org.h2.value.ValueVarchar;
  */
 public final class FunctionsPostgreSQL extends FunctionsBase {
 
-    private static final int CURRTID2 = 3001;
+    private static final int CURRENT_DATABASE = 3001;
+
+    private static final int CURRTID2 = CURRENT_DATABASE + 1;
 
     private static final int FORMAT_TYPE = CURRTID2 + 1;
 
@@ -49,7 +53,9 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
 
     private static final int HAS_TABLE_PRIVILEGE = HAS_SCHEMA_PRIVILEGE + 1;
 
-    private static final int VERSION = HAS_TABLE_PRIVILEGE + 1;
+    private static final int LASTVAL = HAS_TABLE_PRIVILEGE + 1;
+
+    private static final int VERSION = LASTVAL + 1;
 
     private static final int OBJ_DESCRIPTION = VERSION + 1;
 
@@ -76,40 +82,42 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
 
     static {
-        copyFunction(FUNCTIONS, "IDENTITY", "LASTVAL");
-        FUNCTIONS.put("CURRTID2", new FunctionInfo("CURRTID2", CURRTID2, 2, Value.INTEGER, true, false, true, false));
+        FUNCTIONS.put("CURRENT_DATABASE", new FunctionInfo("CURRENT_DATABASE", CURRENT_DATABASE, 0, Value.VARCHAR,
+                true, false, false));
+        FUNCTIONS.put("CURRTID2", new FunctionInfo("CURRTID2", CURRTID2, 2, Value.INTEGER, true, false, false));
         FUNCTIONS.put("FORMAT_TYPE",
-                new FunctionInfo("FORMAT_TYPE", FORMAT_TYPE, 2, Value.VARCHAR, false, true, true, false));
+                new FunctionInfo("FORMAT_TYPE", FORMAT_TYPE, 2, Value.VARCHAR, false, true, false));
         FUNCTIONS.put("HAS_DATABASE_PRIVILEGE", new FunctionInfo("HAS_DATABASE_PRIVILEGE", HAS_DATABASE_PRIVILEGE,
-                VAR_ARGS, Value.BOOLEAN, true, false, true, false));
+                VAR_ARGS, Value.BOOLEAN, true, false, false));
         FUNCTIONS.put("HAS_SCHEMA_PRIVILEGE", new FunctionInfo("HAS_SCHEMA_PRIVILEGE", HAS_SCHEMA_PRIVILEGE,
-                VAR_ARGS, Value.BOOLEAN, true, false, true, false));
+                VAR_ARGS, Value.BOOLEAN, true, false, false));
         FUNCTIONS.put("HAS_TABLE_PRIVILEGE", new FunctionInfo("HAS_TABLE_PRIVILEGE", HAS_TABLE_PRIVILEGE,
-                VAR_ARGS, Value.BOOLEAN, true, false, true, false));
-        FUNCTIONS.put("VERSION", new FunctionInfo("VERSION", VERSION, 0, Value.VARCHAR, true, false, true, false));
+                VAR_ARGS, Value.BOOLEAN, true, false, false));
+        FUNCTIONS.put("LASTVAL", new FunctionInfo("LASTVAL", LASTVAL, 0, Value.BIGINT, true, false, false));
+        FUNCTIONS.put("VERSION", new FunctionInfo("VERSION", VERSION, 0, Value.VARCHAR, true, false, false));
         FUNCTIONS.put("OBJ_DESCRIPTION", new FunctionInfo("OBJ_DESCRIPTION", OBJ_DESCRIPTION, VAR_ARGS, Value.VARCHAR,
-                true, false, true, false));
+                true, false, false));
         FUNCTIONS.put("PG_ENCODING_TO_CHAR", new FunctionInfo("PG_ENCODING_TO_CHAR", PG_ENCODING_TO_CHAR, 1,
-                Value.VARCHAR, true, true, true, false));
+                Value.VARCHAR, true, true, false));
         FUNCTIONS.put("PG_GET_EXPR",
-                new FunctionInfo("PG_GET_EXPR", PG_GET_EXPR, VAR_ARGS, Value.VARCHAR, true, true, true, false));
+                new FunctionInfo("PG_GET_EXPR", PG_GET_EXPR, VAR_ARGS, Value.VARCHAR, true, true, false));
         FUNCTIONS.put("PG_GET_INDEXDEF", //
                 new FunctionInfo("PG_GET_INDEXDEF", PG_GET_INDEXDEF, VAR_ARGS, Value.VARCHAR, //
-                        true, false, true, false));
+                        true, false, false));
         FUNCTIONS.put("PG_GET_USERBYID",
-                new FunctionInfo("PG_GET_USERBYID", PG_GET_USERBYID, 1, Value.VARCHAR, true, false, true, false));
+                new FunctionInfo("PG_GET_USERBYID", PG_GET_USERBYID, 1, Value.VARCHAR, true, false, false));
         FUNCTIONS.put("PG_POSTMASTER_START_TIME", new FunctionInfo("PG_POSTMASTER_START_TIME", //
-                PG_POSTMASTER_START_TIME, 0, Value.TIMESTAMP_TZ, true, false, true, false));
+                PG_POSTMASTER_START_TIME, 0, Value.TIMESTAMP_TZ, true, false, false));
         FUNCTIONS.put("PG_RELATION_SIZE", new FunctionInfo("PG_RELATION_SIZE", //
-                PG_RELATION_SIZE, VAR_ARGS, Value.BIGINT, true, false, true, false));
+                PG_RELATION_SIZE, VAR_ARGS, Value.BIGINT, true, false, false));
         FUNCTIONS.put("PG_TABLE_IS_VISIBLE", new FunctionInfo("PG_TABLE_IS_VISIBLE", //
-                PG_TABLE_IS_VISIBLE, 1, Value.BOOLEAN, true, false, true, false));
+                PG_TABLE_IS_VISIBLE, 1, Value.BOOLEAN, true, false, false));
         FUNCTIONS.put("SET_CONFIG", new FunctionInfo("SET_CONFIG", //
-                SET_CONFIG, 3, Value.VARCHAR, true, false, true, false));
+                SET_CONFIG, 3, Value.VARCHAR, true, false, false));
         FUNCTIONS.put("ARRAY_TO_STRING", new FunctionInfo("ARRAY_TO_STRING", //
-                ARRAY_TO_STRING, VAR_ARGS, Value.VARCHAR, false, true, true, false));
+                ARRAY_TO_STRING, VAR_ARGS, Value.VARCHAR, false, true, false));
         FUNCTIONS.put("PG_STAT_GET_NUMSCANS", new FunctionInfo("PG_STAT_GET_NUMSCANS", //
-                PG_STAT_GET_NUMSCANS, 1, Value.INTEGER, true, true, true, false));
+                PG_STAT_GET_NUMSCANS, 1, Value.INTEGER, true, true, false));
     }
 
     /**
@@ -169,6 +177,13 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
 
     @Override
     public Expression optimize(Session session) {
+        switch (info.type) {
+        case CURRENT_DATABASE:
+            return new CurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_CATALOG)
+                    .optimize(session);
+        case LASTVAL:
+            return new CompatibilityIdentityFunction(false).optimize(session);
+        }
         boolean allConst = optimizeArguments(session);
         type = TypeInfo.getTypeInfo(info.returnDataType);
         if (allConst) {

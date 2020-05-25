@@ -5,9 +5,11 @@
  */
 package org.h2.expression.function;
 
+import org.h2.engine.Mode.ExpressionNames;
 import org.h2.engine.Session;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Operation0;
+import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueTime;
@@ -74,6 +76,14 @@ public final class CurrentDateTimeValueFunction extends Operation0 {
     @Override
     public Value getValue(Session session) {
         return session.currentTimestamp().castTo(type, session);
+    }
+
+    @Override
+    public String getAlias(Session session, int columnIndex) {
+        if (session.getMode().expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
+            return StringUtils.toLowerEnglish(NAMES[function]);
+        }
+        return super.getAlias(session, columnIndex);
     }
 
     @Override

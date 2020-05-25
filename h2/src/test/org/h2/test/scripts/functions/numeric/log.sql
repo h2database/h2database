@@ -3,10 +3,16 @@
 -- Initial Developer: H2 Group
 --
 
-SELECT LN(NULL), LOG(NULL, NULL), LOG(NULL, 2), LOG(2, NULL), LOG10(NULL), LOG(NULL);
-> NULL NULL NULL NULL NULL NULL
-> ---- ---- ---- ---- ---- ----
-> null null null null null null
+SELECT LN(NULL), LOG(NULL, NULL), LOG(NULL, 2);
+> CAST(NULL AS DOUBLE PRECISION) CAST(NULL AS DOUBLE PRECISION) CAST(NULL AS DOUBLE PRECISION)
+> ------------------------------ ------------------------------ ------------------------------
+> null                           null                           null
+> rows: 1
+
+SELECT LOG(2, NULL), LOG10(NULL), LOG(NULL);
+> CAST(NULL AS DOUBLE PRECISION) CAST(NULL AS DOUBLE PRECISION) CAST(NULL AS DOUBLE PRECISION)
+> ------------------------------ ------------------------------ ------------------------------
+> null                           null                           null
 > rows: 1
 
 SELECT LN(0);

@@ -837,3 +837,4 @@ indpred tgfoid indisprimary adsrc spcowner tgnargs typtype typinput rolcatupdate
 usesuper tgdeferrable rolpassword relam relpages tginitdeferred rolsuper autovacuum typnotnull spclocation cancreate
 nsp pgagent pga awoken serverencoding untyped ambiguities tons lhs letting rhs opportunities specifications
 usefully pipelining fetches reenable joiner visits dcl avxaaa german
+conrelid conkey tabrelname refnamespace dsc pred typrelid conname contype confrelid numscans beaver

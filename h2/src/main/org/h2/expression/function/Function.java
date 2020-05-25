@@ -38,7 +38,6 @@ import org.h2.engine.Mode.ExpressionNames;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.Format;
@@ -54,8 +53,6 @@ import org.h2.mode.FunctionsMySQL;
 import org.h2.mode.FunctionsOracle;
 import org.h2.mode.FunctionsPostgreSQL;
 import org.h2.mvstore.db.MVSpatialIndex;
-import org.h2.schema.Schema;
-import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
 import org.h2.security.SHA3;
@@ -103,15 +100,15 @@ import org.h2.value.ValueVarchar;
  * This class implements most built-in functions of this database.
  */
 public class Function extends OperationN implements FunctionCall, ExpressionWithFlags {
-    public static final int ABS = 0, ACOS = 1, ASIN = 2, ATAN = 3, ATAN2 = 4,
-            BITAND = 5, BITOR = 6, BITXOR = 7, CEILING = 8, COS = 9, COT = 10,
-            DEGREES = 11, EXP = 12, FLOOR = 13, LOG = 14, LOG10 = 15, MOD = 16,
-            PI = 17, POWER = 18, RADIANS = 19, RAND = 20, ROUND = 21,
-            ROUNDMAGIC = 22, SIGN = 23, SIN = 24, SQRT = 25, TAN = 26,
+    public static final int ABS = 0,
+            CEILING = 8,
+            FLOOR = 13, MOD = 16,
+            PI = 17, RAND = 20, ROUND = 21,
+            ROUNDMAGIC = 22, SIGN = 23,
             TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30,
             DECRYPT = 31, COMPRESS = 32, EXPAND = 33, ZERO = 34,
-            RANDOM_UUID = 35, COSH = 36, SINH = 37, TANH = 38, LN = 39,
-            BITGET = 40, ORA_HASH = 41, BITNOT = 42, LSHIFT = 43, RSHIFT = 44;
+            RANDOM_UUID = 35,
+            ORA_HASH = 41;
 
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
             CHAR_LENGTH = 53, CONCAT = 54, DIFFERENCE = 55, HEXTORAW = 56,
@@ -133,7 +130,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             DATE_TRUNC = 125;
 
     public static final int
-            IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
+            AUTOCOMMIT = 155,
             READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
             DISK_SPACE_USED = 159, SIGNAL = 160, ESTIMATED_ENVELOPE = 161;
 
@@ -141,8 +138,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
     public static final int
             COALESCE = 204, NULLIF = 205,
-            NEXTVAL = 207, CURRVAL = 208, CSVREAD = 210,
-            CSVWRITE = 211, MEMORY_FREE = 212, MEMORY_USED = 213,
+            CSVREAD = 210, CSVWRITE = 211,
+            MEMORY_FREE = 212, MEMORY_USED = 213,
             LOCK_MODE = 214, SESSION_ID = 216,
             CARDINALITY = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
@@ -153,11 +150,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
     public static final int REGEXP_LIKE = 240;
     public static final int REGEXP_SUBSTR = 241;
-
-    /**
-     * Used in MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ... VALUES
-     */
-    public static final int VALUES = 250;
 
     public static final int JSON_OBJECT = 251, JSON_ARRAY = 252;
 
@@ -214,44 +206,18 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
         // FUNCTIONS
         addFunction("ABS", ABS, 1, Value.NULL);
-        addFunction("ACOS", ACOS, 1, Value.DOUBLE);
-        addFunction("ASIN", ASIN, 1, Value.DOUBLE);
-        addFunction("ATAN", ATAN, 1, Value.DOUBLE);
-        addFunction("ATAN2", ATAN2, 2, Value.DOUBLE);
-        addFunction("BITAND", BITAND, 2, Value.BIGINT);
-        addFunction("BITGET", BITGET, 2, Value.BOOLEAN);
-        addFunction("BITNOT", BITNOT, 1, Value.BIGINT);
-        addFunction("BITOR", BITOR, 2, Value.BIGINT);
-        addFunction("BITXOR", BITXOR, 2, Value.BIGINT);
         addFunction("CEILING", CEILING, 1, Value.NULL);
         addFunction("CEIL", CEILING, 1, Value.NULL);
-        addFunction("COS", COS, 1, Value.DOUBLE);
-        addFunction("COSH", COSH, 1, Value.DOUBLE);
-        addFunction("COT", COT, 1, Value.DOUBLE);
-        addFunction("DEGREES", DEGREES, 1, Value.DOUBLE);
-        addFunction("EXP", EXP, 1, Value.DOUBLE);
         addFunction("FLOOR", FLOOR, 1, Value.NULL);
-        addFunction("LOG", LOG, 2, Value.DOUBLE);
-        addFunction("LN", LN, 1, Value.DOUBLE);
-        addFunction("LOG10", LOG10, 1, Value.DOUBLE);
-        addFunction("LSHIFT", LSHIFT, 2, Value.BIGINT);
         addFunction("MOD", MOD, 2, Value.BIGINT);
         addFunction("PI", PI, 0, Value.DOUBLE);
-        addFunction("POWER", POWER, 2, Value.DOUBLE);
-        addFunction("RADIANS", RADIANS, 1, Value.DOUBLE);
         // RAND without argument: get the next value
         // RAND with one argument: seed the random generator
         addFunctionNotDeterministic("RAND", RAND, VAR_ARGS, Value.DOUBLE);
         addFunctionNotDeterministic("RANDOM", RAND, VAR_ARGS, Value.DOUBLE);
         addFunction("ROUND", ROUND, VAR_ARGS, Value.NULL);
         addFunction("ROUNDMAGIC", ROUNDMAGIC, 1, Value.DOUBLE);
-        addFunction("RSHIFT", RSHIFT, 2, Value.BIGINT);
         addFunction("SIGN", SIGN, 1, Value.INTEGER);
-        addFunction("SIN", SIN, 1, Value.DOUBLE);
-        addFunction("SINH", SINH, 1, Value.DOUBLE);
-        addFunction("SQRT", SQRT, 1, Value.DOUBLE);
-        addFunction("TAN", TAN, 1, Value.DOUBLE);
-        addFunction("TANH", TANH, 1, Value.DOUBLE);
         addFunction("TRUNCATE", TRUNCATE, VAR_ARGS, Value.NULL);
         // same as TRUNCATE
         addFunction("TRUNC", TRUNCATE, VAR_ARGS, Value.NULL);
@@ -314,7 +280,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("TRANSLATE", TRANSLATE, 3, Value.VARCHAR);
         addFunction("QUOTE_IDENT", QUOTE_IDENT, 1, Value.VARCHAR);
         addFunction("REGEXP_LIKE", REGEXP_LIKE, VAR_ARGS, Value.BOOLEAN);
-        addFunction("REGEXP_SUBSTR", REGEXP_SUBSTR, VAR_ARGS, Value.VARCHAR, false, true, true, false);
+        addFunctionWithNull("REGEXP_SUBSTR", REGEXP_SUBSTR, VAR_ARGS, Value.VARCHAR);
 
         // date
         addFunction("DATEADD", DATEADD, 3, Value.NULL);
@@ -328,10 +294,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("PARSEDATETIME", PARSEDATETIME, VAR_ARGS, Value.TIMESTAMP);
         addFunction("DATE_TRUNC", DATE_TRUNC, 2, Value.NULL);
         // system
-        addFunctionNotDeterministic("IDENTITY", IDENTITY,
-                0, Value.BIGINT);
-        addFunctionNotDeterministic("SCOPE_IDENTITY", SCOPE_IDENTITY,
-                0, Value.BIGINT);
         addFunctionNotDeterministic("AUTOCOMMIT", AUTOCOMMIT,
                 0, Value.BOOLEAN);
         addFunctionNotDeterministic("READONLY", READONLY,
@@ -345,15 +307,11 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("COALESCE", COALESCE, VAR_ARGS, Value.NULL);
         addFunctionWithNull("NULLIF", NULLIF,
                 2, Value.NULL);
-        addFunctionNotDeterministic("NEXTVAL", NEXTVAL, VAR_ARGS, Value.NULL);
-        addFunctionNotDeterministic("CURRVAL", CURRVAL, VAR_ARGS, Value.NULL);
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
         addFunctionWithNull("TRIM_ARRAY", TRIM_ARRAY, 2, Value.ARRAY);
         addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
-        addFunction("CSVREAD", CSVREAD,
-                VAR_ARGS, Value.RESULT_SET, false, false, true, false);
-        addFunction("CSVWRITE", CSVWRITE,
-                VAR_ARGS, Value.INTEGER, false, false, true, false);
+        addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false, false);
+        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INTEGER, false, false, false);
         addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE,
                 0, Value.INTEGER);
         addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED,
@@ -363,7 +321,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("SESSION_ID", SESSION_ID,
                 0, Value.INTEGER);
         addFunction("CARDINALITY", CARDINALITY, 1, Value.INTEGER);
-        addFunction("ARRAY_MAX_CARDINALITY", ARRAY_MAX_CARDINALITY, 1, Value.INTEGER, false, true, true, true);
+        addFunction("ARRAY_MAX_CARDINALITY", ARRAY_MAX_CARDINALITY, 1, Value.INTEGER, false, true, true);
         addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
                 6, Value.RESULT_SET);
         addFunctionWithNull("LEAST", LEAST,
@@ -374,12 +332,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 1, Value.BOOLEAN);
         addFunctionNotDeterministic("ABORT_SESSION", ABORT_SESSION,
                 1, Value.BOOLEAN);
-        addFunction("SET", SET,
-                2, Value.NULL, false, false, true, false);
-        addFunction("FILE_READ", FILE_READ,
-                VAR_ARGS, Value.NULL, false, false, true, false);
-        addFunction("FILE_WRITE", FILE_WRITE,
-                2, Value.BIGINT, false, false, true, false);
+        addFunction("SET", SET, 2, Value.NULL, false, false, false);
+        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false, false);
+        addFunction("FILE_WRITE", FILE_WRITE, 2, Value.BIGINT, false, false, false);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID,
                 0, Value.VARCHAR);
         addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED,
@@ -393,18 +348,14 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT, VAR_ARGS, Value.RESULT_SET);
         addFunctionWithNull("UNNEST", UNNEST, VAR_ARGS, Value.RESULT_SET);
 
-        // ON DUPLICATE KEY VALUES function
-        addFunction("VALUES", VALUES, 1, Value.NULL, false, true, true, false);
-
-        addFunction("JSON_ARRAY", JSON_ARRAY, VAR_ARGS, Value.JSON, false, true, true, true);
-        addFunction("JSON_OBJECT", JSON_OBJECT, VAR_ARGS, Value.JSON, false, true, true, true);
+        addFunction("JSON_ARRAY", JSON_ARRAY, VAR_ARGS, Value.JSON, false, true, true);
+        addFunction("JSON_OBJECT", JSON_OBJECT, VAR_ARGS, Value.JSON, false, true, true);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
-            int returnDataType, boolean nullIfParameterIsNull, boolean deterministic,
-            boolean requireParentheses, boolean specialArguments) {
+            int returnDataType, boolean nullIfParameterIsNull, boolean deterministic, boolean specialArguments) {
         FunctionInfo info = new FunctionInfo(name, type, parameterCount, returnDataType, nullIfParameterIsNull,
-                deterministic, requireParentheses, specialArguments);
+                deterministic, specialArguments);
         if (FUNCTIONS_BY_ID[type] == null) {
             FUNCTIONS_BY_ID[type] = info;
         }
@@ -413,22 +364,17 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
     private static void addFunctionNotDeterministic(String name, int type,
             int parameterCount, int returnDataType) {
-        addFunctionNotDeterministic(name, type, parameterCount, returnDataType, true);
-    }
-
-    private static void addFunctionNotDeterministic(String name, int type,
-            int parameterCount, int returnDataType, boolean requireParentheses) {
-        addFunction(name, type, parameterCount, returnDataType, true, false, requireParentheses, false);
+        addFunction(name, type, parameterCount, returnDataType, true, false, false);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
             int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, true, true, true, false);
+        addFunction(name, type, parameterCount, returnDataType, true, true, false);
     }
 
     private static void addFunctionWithNull(String name, int type,
             int parameterCount, int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, false, true, true, false);
+        addFunction(name, type, parameterCount, returnDataType, false, true, false);
     }
 
     /**
@@ -561,65 +507,14 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case ABS:
             result = v0.getSignum() >= 0 ? v0 : v0.negate();
             break;
-        case ACOS:
-            result = ValueDouble.get(Math.acos(v0.getDouble()));
-            break;
-        case ASIN:
-            result = ValueDouble.get(Math.asin(v0.getDouble()));
-            break;
-        case ATAN:
-            result = ValueDouble.get(Math.atan(v0.getDouble()));
-            break;
         case CEILING:
             result = getCeilOrFloor(v0, false);
-            break;
-        case COS:
-            result = ValueDouble.get(Math.cos(v0.getDouble()));
-            break;
-        case COSH:
-            result = ValueDouble.get(Math.cosh(v0.getDouble()));
-            break;
-        case COT: {
-            double d = Math.tan(v0.getDouble());
-            if (d == 0.0) {
-                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
-            }
-            result = ValueDouble.get(1. / d);
-            break;
-        }
-        case DEGREES:
-            result = ValueDouble.get(Math.toDegrees(v0.getDouble()));
-            break;
-        case EXP:
-            result = ValueDouble.get(Math.exp(v0.getDouble()));
             break;
         case FLOOR:
             result = getCeilOrFloor(v0, true);
             break;
-        case LN: {
-            double arg = v0.getDouble();
-            if (arg <= 0) {
-                throw DbException.getInvalidValueException("LN() argument", arg);
-            }
-            result = ValueDouble.get(Math.log(arg));
-            break;
-        }
-        case LOG:
-            result = log(session, v0, getNullOrValue(session, args, values, 1));
-            break;
-        case LOG10: {
-            double arg = v0.getDouble();
-            if (arg <= 0) {
-                throw DbException.getInvalidValueException("LOG10() argument", arg);
-            }
-            result = ValueDouble.get(Math.log10(arg));
-            break;
-        }
         case PI:
             result = ValueDouble.get(Math.PI);
-            break;
-        case RADIANS:
-            result = ValueDouble.get(Math.toRadians(v0.getDouble()));
             break;
         case RAND: {
             if (v0 != null) {
@@ -633,21 +528,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             break;
         case SIGN:
             result = ValueInteger.get(v0.getSignum());
-            break;
-        case SIN:
-            result = ValueDouble.get(Math.sin(v0.getDouble()));
-            break;
-        case SINH:
-            result = ValueDouble.get(Math.sinh(v0.getDouble()));
-            break;
-        case SQRT:
-            result = ValueDouble.get(Math.sqrt(v0.getDouble()));
-            break;
-        case TAN:
-            result = ValueDouble.get(Math.tan(v0.getDouble()));
-            break;
-        case TANH:
-            result = ValueDouble.get(Math.tanh(v0.getDouble()));
             break;
         case SECURE_RAND:
             result = ValueVarbinary.getNoCopy(
@@ -778,12 +658,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = ValueVarchar.get(DateTimeFunctions.getMonthsAndWeeks(0)[month - 1], session);
             break;
         }
-        case IDENTITY:
-            result = session.getLastIdentity();
-            break;
-        case SCOPE_IDENTITY:
-            result = session.getLastScopeIdentity();
-            break;
         case AUTOCOMMIT:
             result = ValueBoolean.get(session.getAutoCommit());
             break;
@@ -1041,31 +915,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         Value v5 = getNullOrValue(session, args, values, 5);
         Value result;
         switch (info.type) {
-        case ATAN2:
-            result = ValueDouble.get(
-                    Math.atan2(v0.getDouble(), v1.getDouble()));
-            break;
-        case BITAND:
-            result = ValueBigint.get(v0.getLong() & v1.getLong());
-            break;
-        case BITGET:
-            result = ValueBoolean.get((v0.getLong() & (1L << v1.getInt())) != 0);
-            break;
-        case BITNOT:
-            result = ValueBigint.get(~v0.getLong());
-            break;
-        case BITOR:
-            result = ValueBigint.get(v0.getLong() | v1.getLong());
-            break;
-        case BITXOR:
-            result = ValueBigint.get(v0.getLong() ^ v1.getLong());
-            break;
-        case LSHIFT:
-            result = ValueBigint.get(v0.getLong() << v1.getInt());
-            break;
-        case RSHIFT:
-            result = ValueBigint.get(v0.getLong() >> v1.getInt());
-            break;
         case MOD: {
             long x = v1.getLong();
             if (x == 0) {
@@ -1074,10 +923,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = ValueBigint.get(v0.getLong() % x);
             break;
         }
-        case POWER:
-            result = ValueDouble.get(Math.pow(
-                    v0.getDouble(), v1.getDouble()));
-            break;
         case ROUND:
             result = round(v0, v1);
             break;
@@ -1290,12 +1135,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = session.areEqual(v0, v1) ? ValueNull.INSTANCE : v0;
             break;
             // system
-        case NEXTVAL:
-            result = session.getNextValueFor(getSequence(session, v0, v1), null);
-            break;
-        case CURRVAL:
-            result = session.getCurrentValueFor(getSequence(session, v0, v1));
-            break;
         case CSVREAD: {
             String fileName = v0.getString();
             String columnList = v1 == null ? null : v1.getString();
@@ -1506,15 +1345,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = regexpSubstr(v0, v1, v2, v3, v4, v5, session);
             break;
         }
-        case VALUES: {
-            Expression a0 = args[0];
-            StringBuilder builder = new StringBuilder();
-            Parser.quoteIdentifier(builder, a0.getSchemaName(), DEFAULT_SQL_FLAGS).append('.');
-            Parser.quoteIdentifier(builder, a0.getTableName(), DEFAULT_SQL_FLAGS).append('.');
-            Parser.quoteIdentifier(builder, a0.getColumnName(session, /* TODO */ 0), DEFAULT_SQL_FLAGS);
-            result = session.getVariable(builder.toString());
-            break;
-        }
         case SIGNAL: {
             String sqlState = v0.getString();
             if (sqlState.startsWith("00") || !SIGNAL_PATTERN.matcher(sqlState).matches()) {
@@ -1687,42 +1517,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return value;
     }
 
-    private static Sequence getSequence(Session session, Value v0, Value v1) {
-        String schemaName, sequenceName;
-        if (v1 == null) {
-            Parser p = new Parser(session);
-            String sql = v0.getString();
-            Expression expr = p.parseExpression(sql);
-            if (expr instanceof ExpressionColumn) {
-                ExpressionColumn seq = (ExpressionColumn) expr;
-                schemaName = seq.getOriginalTableAliasName();
-                if (schemaName == null) {
-                    schemaName = session.getCurrentSchemaName();
-                    sequenceName = sql;
-                } else {
-                    sequenceName = seq.getColumnName(session, -1);
-                }
-            } else {
-                throw DbException.getSyntaxError(sql, 1);
-            }
-        } else {
-            schemaName = v0.getString();
-            sequenceName = v1.getString();
-        }
-        Database database = session.getDatabase();
-        Schema s = database.findSchema(schemaName);
-        if (s == null) {
-            schemaName = StringUtils.toUpperEnglish(schemaName);
-            s = database.getSchema(schemaName);
-        }
-        Sequence seq = s.findSequence(sequenceName);
-        if (seq == null) {
-            sequenceName = StringUtils.toUpperEnglish(sequenceName);
-            seq = s.getSequence(sequenceName);
-        }
-        return seq;
-    }
-
     private static long length(Value v) {
         switch (v.getValueType()) {
         case Value.BLOB:
@@ -1734,31 +1528,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         default:
             return v.getString().length();
         }
-    }
-
-    private static Value log(Session session, Value v0, Value v1) {
-        double base = v0.getDouble();
-        double arg = v1.getDouble();
-        if (session.getMode().swapLogFunctionParameters) {
-            double t = arg;
-            arg = base;
-            base = t;
-        }
-        if (arg <= 0) {
-            throw DbException.getInvalidValueException("LOG() argument", arg);
-        }
-        if (base <= 0 || base == 1) {
-            throw DbException.getInvalidValueException("LOG() base", base);
-        }
-        double r;
-        if (base == Math.E) {
-            r = Math.log(arg);
-        } else if (base == 10d) {
-            r = Math.log10(arg);
-        } else {
-            r = Math.log(arg) / Math.log(base);
-        }
-        return ValueDouble.get(r);
     }
 
     private static byte[] getPaddedArrayCopy(byte[] data, int blockSize) {
@@ -2337,8 +2106,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case ROUND:
         case XMLTEXT:
         case TRUNCATE:
-        case CURRVAL:
-        case NEXTVAL:
             min = 1;
             max = 2;
             break;
@@ -2616,10 +2383,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             // day and month names may be long in some languages
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 20, 0, null);
             break;
-        case NEXTVAL:
-        case CURRVAL:
-            typeInfo = session.getMode().decimalSequences ? TypeInfo.TYPE_NUMERIC_BIGINT : TypeInfo.TYPE_BIGINT;
-            break;
         case TRIM_ARRAY:
         case ARRAY_SLICE: {
             typeInfo = p0.getType();
@@ -2684,11 +2447,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append(info.name);
-        boolean addParentheses = args.length > 0 || info.requireParentheses;
-        if (addParentheses) {
-            builder.append('(');
-        }
+        builder.append(info.name).append('(');
         switch (info.type) {
         case SUBSTRING: {
             args[0].getSQL(builder, sqlFlags).append(" FROM ");
@@ -2747,10 +2506,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         default:
             writeExpressions(builder, args, sqlFlags);
         }
-        if (addParentheses) {
-            builder.append(')');
-        }
-        return builder;
+        return builder.append(')');
     }
 
     /**

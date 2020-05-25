@@ -91,9 +91,7 @@ import org.h2.value.ValueVarchar;
  * This class implements most built-in functions of this database.
  */
 public class Function extends OperationN implements FunctionCall, ExpressionWithFlags {
-    public static final int ABS = 0,
-            CEILING = 8,
-            FLOOR = 13, MOD = 16,
+    public static final int
             PI = 17, RAND = 20, ROUND = 21,
             ROUNDMAGIC = 22, SIGN = 23,
             TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30,
@@ -184,11 +182,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
 
         // FUNCTIONS
-        addFunction("ABS", ABS, 1, Value.NULL);
-        addFunction("CEILING", CEILING, 1, Value.NULL);
-        addFunction("CEIL", CEILING, 1, Value.NULL);
-        addFunction("FLOOR", FLOOR, 1, Value.NULL);
-        addFunction("MOD", MOD, 2, Value.BIGINT);
         addFunction("PI", PI, 0, Value.DOUBLE);
         // RAND without argument: get the next value
         // RAND with one argument: seed the random generator
@@ -478,15 +471,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             Value[] values) {
         Value result;
         switch (info.type) {
-        case ABS:
-            result = v0.getSignum() >= 0 ? v0 : v0.negate();
-            break;
-        case CEILING:
-            result = getCeilOrFloor(v0, false);
-            break;
-        case FLOOR:
-            result = getCeilOrFloor(v0, true);
-            break;
         case PI:
             result = ValueDouble.get(Math.PI);
             break;
@@ -734,20 +718,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return result;
     }
 
-    private static Value getCeilOrFloor(Value v0, boolean floor) {
-        Value result;
-        int t = v0.getValueType();
-        if (t == Value.DOUBLE || t == Value.REAL) {
-            double v = v0.getDouble();
-            v = floor ? Math.floor(v) : Math.ceil(v);
-            result = t == Value.DOUBLE ? ValueDouble.get(v) : ValueReal.get((float) v);
-        } else {
-            result = ValueNumeric
-                    .get(v0.getBigDecimal().setScale(0, floor ? RoundingMode.FLOOR : RoundingMode.CEILING));
-        }
-        return result;
-    }
-
     private static Value[] getArray(Value v0) {
         int t = v0.getValueType();
         Value[] list;
@@ -864,14 +834,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         Value v5 = getNullOrValue(session, args, values, 5);
         Value result;
         switch (info.type) {
-        case MOD: {
-            long x = v1.getLong();
-            if (x == 0) {
-                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
-            }
-            result = ValueBigint.get(v0.getLong() % x);
-            break;
-        }
         case ROUND:
             result = round(v0, v1);
             break;
@@ -2068,8 +2030,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 typeInfo = TypeInfo.TYPE_UNKNOWN;
             }
             break;
-        case CEILING:
-        case FLOOR:
         case ROUND:
             switch (p0.getType().getValueType()) {
             case Value.DOUBLE:
@@ -2108,14 +2068,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 typeInfo = getRoundNumericType(session);
             }
             break;
-        case ABS: {
-            TypeInfo type = p0.getType();
-            typeInfo = type;
-            if (typeInfo.getValueType() == Value.NULL) {
-                typeInfo = TypeInfo.TYPE_INTEGER;
-            }
-            break;
-        }
         case SET:
             typeInfo = args[1].getType();
             if (!(p0 instanceof Variable)) {

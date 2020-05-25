@@ -36,7 +36,7 @@ public class MathFunction2 extends Operation2 implements NamedExpression {
     public static final int POWER = LOG + 1;
 
     private static final String[] NAMES = { //
-            "LOG", "POWER", //
+            "ATAN2", "LOG", "POWER" //
     };
 
     /**

@@ -275,6 +275,7 @@ import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.JavaFunction;
 import org.h2.expression.function.JsonConstructorFunction;
+import org.h2.expression.function.MathFunction;
 import org.h2.expression.function.MathFunction1;
 import org.h2.expression.function.MathFunction2;
 import org.h2.expression.function.TableFunction;
@@ -3568,7 +3569,7 @@ public class Parser {
             } else if (readIf(SLASH)) {
                 r = new BinaryOperation(OpType.DIVIDE, r, readTerm());
             } else if (readIf(PERCENT)) {
-                r = new BinaryOperation(OpType.MODULUS, r, readTerm());
+                r = new MathFunction(r, readTerm(), MathFunction.MOD);
             } else {
                 return r;
             }
@@ -4238,6 +4239,10 @@ public class Parser {
 
     private Expression readBuiltinFunctionIf(String upperName) {
         switch (upperName) {
+        case "ABS":
+            return readMathFunction(MathFunction.ABS, 1);
+        case "MOD":
+            return readMathFunction(MathFunction.MOD, 2);
         case "SIN":
             return readMathFunction1(MathFunction1.SIN);
         case "COS":
@@ -4282,6 +4287,11 @@ public class Parser {
             return readMathFunction2(MathFunction2.POWER);
         case "SQRT":
             return readMathFunction1(MathFunction1.SQRT);
+        case "FLOOR":
+            return readMathFunction(MathFunction.FLOOR, 1);
+        case "CEIL":
+        case "CEILING":
+            return readMathFunction(MathFunction.CEIL, 1);
         case "DEGREES":
             return readMathFunction1(MathFunction1.DEGREES);
         case "RADIANS":
@@ -4344,6 +4354,18 @@ public class Parser {
         return function != null ? readFunctionParameters(function) : null;
     }
 
+    private Expression readMathFunction(int function, int numArgs) {
+        Expression arg1 = readExpression(), arg2;
+        if (numArgs == 2) {
+            read(COMMA);
+            arg2 = readExpression();
+        } else {
+            arg2 = null;
+        }
+        read(CLOSE_PAREN);
+        return new MathFunction(arg1, arg2, function);
+    }
+
     private Expression readMathFunction1(int function) {
         Expression arg = readExpression();
         read(CLOSE_PAREN);
@@ -4373,8 +4395,8 @@ public class Parser {
     }
 
     private boolean isBuiltinFunction(String upperName) {
-        return Function.getFunction(database, upperName) != null || MathFunction1.exists(upperName)
-                || MathFunction2.exists(upperName) || BitFunction.exists(upperName)
+        return Function.getFunction(database, upperName) != null || MathFunction.exists(upperName)
+                || MathFunction1.exists(upperName) || MathFunction2.exists(upperName) || BitFunction.exists(upperName)
                 || JsonConstructorFunction.exists(upperName) || CardinalityExpression.exists(upperName);
     }
 

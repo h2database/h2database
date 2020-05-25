@@ -82,6 +82,11 @@ public class TypeInfo extends ExtTypeInfo {
     public static final TypeInfo TYPE_NUMERIC;
 
     /**
+     * NUMERIC type with maximum precision and scale 0.
+     */
+    public static final TypeInfo TYPE_NUMERIC_SCALE_0;
+
+    /**
      * NUMERIC type with parameters enough to hold a BIGINT value.
      */
     public static final TypeInfo TYPE_NUMERIC_BIGINT;
@@ -229,6 +234,7 @@ public class TypeInfo extends ExtTypeInfo {
                 ValueBigint.DISPLAY_SIZE, null);
         infos[Value.NUMERIC] = TYPE_NUMERIC = new TypeInfo(Value.NUMERIC, Integer.MAX_VALUE, //
                 ValueNumeric.MAXIMUM_SCALE, Integer.MAX_VALUE, null);
+        TYPE_NUMERIC_SCALE_0 = new TypeInfo(Value.NUMERIC, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         TYPE_NUMERIC_BIGINT = new TypeInfo(Value.NUMERIC, ValueBigint.PRECISION, 0, ValueBigint.DISPLAY_SIZE, null);
         TYPE_NUMERIC_FLOATING_POINT = new TypeInfo(Value.NUMERIC, ValueNumeric.DEFAULT_PRECISION,
                 ValueNumeric.DEFAULT_PRECISION / 2, ValueNumeric.DEFAULT_PRECISION + 2, null);

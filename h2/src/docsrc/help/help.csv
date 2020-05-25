@@ -3124,7 +3124,7 @@ ID=1 OR NAME='Hi'
 "
 
 "Other Grammar","Factor","
-term [ { { * | / | @h2@ { % } } term } [...] ]
+term [ { { * | / | @c@ { % } } term } [...] ]
 ","
 A value or a numeric factor.
 ","
@@ -4557,20 +4557,25 @@ RSHIFT(A, B)
 "
 
 "Functions (Numeric)","MOD","
-MOD(long, long)
+MOD(dividendNumeric, divisorNumeric)
 ","
-The modulo operation.
-This method returns a long.
-See also Java operator %.
+The modulus expression.
+
+Result has the same type as divisor.
+Result is NULL if either of arguments is NULL.
+If divisor is 0, an exception is raised.
+Result has the same sign as dividend or is equal to 0.
+
+Usually arguments should have scale 0, but it isn't required by H2.
 ","
 MOD(A, B)
 "
 
-"Functions (Numeric)","CEILING","
-{ CEILING | CEIL } (numeric)
+"Functions (Numeric)","CEIL","
+{ CEIL | CEILING } (numeric)
 ","
 Returns the smallest integer value that is greater than or equal to the argument.
-This method returns a double, float, or numeric value depending on type of the argument.
+This method returns value of the same type as argument, but with scale set to 0, if applicable.
 ","
 CEIL(A)
 "
@@ -4597,7 +4602,7 @@ EXP(A)
 FLOOR(numeric)
 ","
 Returns the largest integer value that is less than or equal to the argument.
-This method returns a double, float, or numeric value depending on type of the argument.
+This method returns value of the same type as argument, but with scale set to 0, if applicable.
 ","
 FLOOR(A)
 "

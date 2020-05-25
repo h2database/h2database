@@ -27,7 +27,7 @@ import org.h2.value.ValueNull;
 /**
  * JSON constructor function.
  */
-public class JsonConstructorFunction extends OperationN implements ExpressionWithFlags {
+public class JsonConstructorFunction extends OperationN implements ExpressionWithFlags, NamedExpression {
 
     /**
      * The ABSENT ON NULL flag.
@@ -226,10 +226,10 @@ public class JsonConstructorFunction extends OperationN implements ExpressionWit
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        builder.append(getName()).append('(');
         if (array) {
-            writeExpressions(builder.append("JSON_ARRAY").append('('), args, sqlFlags);
+            writeExpressions(builder, args, sqlFlags);
         } else {
-            builder.append("JSON_OBJECT").append('(');
             for (int i = 0, l = args.length; i < l;) {
                 if (i > 0) {
                     builder.append(", ");
@@ -264,6 +264,11 @@ public class JsonConstructorFunction extends OperationN implements ExpressionWit
             builder.append(" WITH UNIQUE KEYS");
         }
         return builder;
+    }
+
+    @Override
+    public String getName() {
+        return array ? "JSON_ARRAY" : "JSON_OBJECT";
     }
 
 }

@@ -5,11 +5,9 @@
  */
 package org.h2.expression.function;
 
-import org.h2.engine.Mode.ExpressionNames;
 import org.h2.engine.Session;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Operation0;
-import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueTime;
@@ -18,7 +16,7 @@ import org.h2.value.ValueTimestamp;
 /**
  * Current datetime value function.
  */
-public final class CurrentDateTimeValueFunction extends Operation0 {
+public final class CurrentDateTimeValueFunction extends Operation0 implements NamedExpression {
 
     /**
      * The function "CURRENT_DATE"
@@ -79,16 +77,8 @@ public final class CurrentDateTimeValueFunction extends Operation0 {
     }
 
     @Override
-    public String getAlias(Session session, int columnIndex) {
-        if (session.getMode().expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
-            return StringUtils.toLowerEnglish(NAMES[function]);
-        }
-        return super.getAlias(session, columnIndex);
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append(NAMES[function]);
+        builder.append(getName());
         if (scale >= 0) {
             builder.append('(').append(scale).append(')');
         }
@@ -112,6 +102,11 @@ public final class CurrentDateTimeValueFunction extends Operation0 {
     @Override
     public int getCost() {
         return 1;
+    }
+
+    @Override
+    public String getName() {
+        return NAMES[function];
     }
 
 }

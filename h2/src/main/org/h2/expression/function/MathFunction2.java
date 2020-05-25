@@ -5,13 +5,11 @@
  */
 package org.h2.expression.function;
 
-import org.h2.engine.Mode.ExpressionNames;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Operation2;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
-import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDouble;
@@ -20,7 +18,7 @@ import org.h2.value.ValueNull;
 /**
  * A math function with two arguments and DOUBLE PRECISION result.
  */
-public class MathFunction2 extends Operation2 {
+public class MathFunction2 extends Operation2 implements NamedExpression {
 
     /**
      * ATAN2() (non-standard).
@@ -121,18 +119,15 @@ public class MathFunction2 extends Operation2 {
     }
 
     @Override
-    public String getAlias(Session session, int columnIndex) {
-        if (session.getMode().expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
-            return StringUtils.toLowerEnglish(NAMES[function]);
-        }
-        return super.getAlias(session, columnIndex);
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        builder.append(getName()).append('(');
+        left.getSQL(builder, sqlFlags).append(", ");
+        return right.getSQL(builder, sqlFlags).append(')');
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append(NAMES[function]).append('(');
-        left.getSQL(builder, sqlFlags).append(", ");
-        return right.getSQL(builder, sqlFlags).append(')');
+    public String getName() {
+        return NAMES[function];
     }
 
 }

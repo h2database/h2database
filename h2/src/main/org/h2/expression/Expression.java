@@ -10,12 +10,14 @@ import java.util.List;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.function.NamedExpression;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.HasSQL;
+import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueRow;
@@ -348,6 +350,9 @@ public abstract class Expression implements HasSQL {
         case C_NUMBER:
             return "C" + (columnIndex + 1);
         case POSTGRESQL_STYLE:
+            if (this instanceof NamedExpression) {
+                return StringUtils.toLowerEnglish(((NamedExpression) this).getName());
+            }
             return "?column?";
         }
     }

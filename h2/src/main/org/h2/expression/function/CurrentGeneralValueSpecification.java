@@ -6,13 +6,11 @@
 package org.h2.expression.function;
 
 import org.h2.command.Parser;
-import org.h2.engine.Mode.ExpressionNames;
 import org.h2.engine.Session;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Operation0;
 import org.h2.message.DbException;
 import org.h2.util.HasSQL;
-import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -21,7 +19,7 @@ import org.h2.value.ValueVarchar;
 /**
  * Simple general value specifications.
  */
-public final class CurrentGeneralValueSpecification extends Operation0 {
+public final class CurrentGeneralValueSpecification extends Operation0 implements NamedExpression {
 
     /**
      * The "CURRENT_CATALOG" general value specification.
@@ -108,16 +106,8 @@ public final class CurrentGeneralValueSpecification extends Operation0 {
     }
 
     @Override
-    public String getAlias(Session session, int columnIndex) {
-        if (session.getMode().expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
-            return StringUtils.toLowerEnglish(NAMES[specification]);
-        }
-        return super.getAlias(session, columnIndex);
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return builder.append(NAMES[specification]);
+        return builder.append(getName());
     }
 
     @Override
@@ -137,6 +127,11 @@ public final class CurrentGeneralValueSpecification extends Operation0 {
     @Override
     public int getCost() {
         return 1;
+    }
+
+    @Override
+    public String getName() {
+        return NAMES[specification];
     }
 
 }

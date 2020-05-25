@@ -33,7 +33,6 @@ import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
-import org.h2.engine.Mode.ExpressionNames;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -2285,14 +2284,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             }
         }
         return TypeInfo.getTypeInfo(Value.NUMERIC, Integer.MAX_VALUE, scale, null);
-    }
-
-    @Override
-    public String getAlias(Session session, int columnIndex) {
-        if (session.getMode().expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
-            return StringUtils.toLowerEnglish(getName());
-        }
-        return super.getAlias(session, columnIndex);
     }
 
     @Override

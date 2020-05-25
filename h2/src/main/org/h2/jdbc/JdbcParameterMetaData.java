@@ -255,4 +255,11 @@ public class JdbcParameterMetaData extends TraceObject implements
         return getTraceObjectName() + ": parameterCount=" + paramCount;
     }
 
+    /**
+     * INTERNAL
+     */
+    public TypeInfo getParameterInternalType(int param) {
+        return getParameter(param).getType();
+    }
+
 }

@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -22,6 +21,7 @@ import org.h2.util.NetUtils;
 import org.h2.util.NetUtils2;
 import org.h2.util.Tool;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -56,7 +56,8 @@ public class PgServer implements Service {
     public static final int PG_TYPE_FLOAT4 = 700;
     public static final int PG_TYPE_FLOAT8 = 701;
     public static final int PG_TYPE_UNKNOWN = 705;
-    public static final int PG_TYPE_TEXTARRAY = 1009;
+    public static final int PG_TYPE_TEXT_ARRAY = 1009;
+    public static final int PG_TYPE_VARCHAR_ARRAY = 1015;
     public static final int PG_TYPE_DATE = 1082;
     public static final int PG_TYPE_TIME = 1083;
     public static final int PG_TYPE_TIMETZ = 1266;
@@ -334,9 +335,8 @@ public class PgServer implements Service {
         case PG_TYPE_FLOAT8:
             valueType = Value.DOUBLE;
             break;
-        case PG_TYPE_TEXTARRAY:
-            valueType = Value.ARRAY;
-            break;
+        case PG_TYPE_VARCHAR_ARRAY:
+            return "character varying[]";
         case PG_TYPE_BPCHAR:
             valueType = Value.CHAR;
             break;
@@ -375,44 +375,52 @@ public class PgServer implements Service {
      * @param type the SQL type
      * @return the PostgreSQL type
      */
-    public static int convertType(int type) {
-        switch (type) {
-        case Types.BOOLEAN:
+    public static int convertType(TypeInfo type) {
+        switch (type.getValueType()) {
+        case Value.BOOLEAN:
             return PG_TYPE_BOOL;
-        case Types.VARCHAR:
+        case Value.VARCHAR:
             return PG_TYPE_VARCHAR;
-        case Types.CLOB:
+        case Value.CLOB:
             return PG_TYPE_TEXT;
-        case Types.CHAR:
+        case Value.CHAR:
             return PG_TYPE_BPCHAR;
-        case Types.SMALLINT:
+        case Value.SMALLINT:
             return PG_TYPE_INT2;
-        case Types.INTEGER:
+        case Value.INTEGER:
             return PG_TYPE_INT4;
-        case Types.BIGINT:
+        case Value.BIGINT:
             return PG_TYPE_INT8;
-        case Types.NUMERIC:
-        case Types.DECIMAL:
+        case Value.NUMERIC:
             return PG_TYPE_NUMERIC;
-        case Types.REAL:
+        case Value.REAL:
             return PG_TYPE_FLOAT4;
-        case Types.DOUBLE:
+        case Value.DOUBLE:
             return PG_TYPE_FLOAT8;
-        case Types.TIME:
+        case Value.TIME:
             return PG_TYPE_TIME;
-        case Types.TIME_WITH_TIMEZONE:
+        case Value.TIME_TZ:
             return PG_TYPE_TIMETZ;
-        case Types.DATE:
+        case Value.DATE:
             return PG_TYPE_DATE;
-        case Types.TIMESTAMP:
+        case Value.TIMESTAMP:
             return PG_TYPE_TIMESTAMP;
-        case Types.TIMESTAMP_WITH_TIMEZONE:
+        case Value.TIMESTAMP_TZ:
             return PG_TYPE_TIMESTAMPTZ;
-        case Types.BINARY:
-        case Types.VARBINARY:
+        case Value.BINARY:
+        case Value.VARBINARY:
             return PG_TYPE_BYTEA;
-        case Types.ARRAY:
-            return PG_TYPE_TEXTARRAY;
+        case Value.ARRAY: {
+            type = (TypeInfo) type.getExtTypeInfo();
+            if (type != null) {
+                switch (type.getValueType()) {
+                case Value.VARCHAR:
+                    return PG_TYPE_VARCHAR_ARRAY;
+                }
+            }
+            // Default
+            return PG_TYPE_VARCHAR_ARRAY;
+        }
         default:
             return PG_TYPE_UNKNOWN;
         }

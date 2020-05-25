@@ -37,8 +37,10 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.jdbc.JdbcParameterMetaData;
 import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.jdbc.JdbcResultSet;
+import org.h2.jdbc.JdbcResultSetMetaData;
 import org.h2.jdbc.JdbcStatement;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
@@ -50,6 +52,7 @@ import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.CaseInsensitiveMap;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueDate;
@@ -273,7 +276,7 @@ public class PgServerThread implements Runnable {
             }
             try {
                 p.prep = (JdbcPreparedStatement) conn.prepareStatement(p.sql);
-                ParameterMetaData meta = p.prep.getParameterMetaData();
+                JdbcParameterMetaData meta = (JdbcParameterMetaData) p.prep.getParameterMetaData();
                 p.paramType = new int[meta.getParameterCount()];
                 for (int i = 0; i < p.paramType.length; i++) {
                     int type;
@@ -281,7 +284,7 @@ public class PgServerThread implements Runnable {
                         type = paramTypes[i];
                         server.checkType(type);
                     } else {
-                        type = PgServer.convertType(meta.getParameterType(i + 1));
+                        type = PgServer.convertType(meta.getParameterInternalType(i + 1));
                     }
                     p.paramType[i] = type;
                 }
@@ -356,7 +359,7 @@ public class PgServerThread implements Runnable {
                 } else {
                     try {
                         sendParameterDescription(p.prep.getParameterMetaData(), p.paramType);
-                        sendRowDescription(p.prep.getMetaData(), null);
+                        sendRowDescription((JdbcResultSetMetaData) p.prep.getMetaData(), null);
                     } catch (Exception e) {
                         sendErrorResponse(e);
                     }
@@ -368,8 +371,7 @@ public class PgServerThread implements Runnable {
                 } else {
                     PreparedStatement prep = p.prep.prep;
                     try {
-                        ResultSetMetaData meta = prep.getMetaData();
-                        sendRowDescription(meta, p.resultColumnFormat);
+                        sendRowDescription((JdbcResultSetMetaData) prep.getMetaData(), p.resultColumnFormat);
                     } catch (Exception e) {
                         sendErrorResponse(e);
                     }
@@ -443,7 +445,7 @@ public class PgServerThread implements Runnable {
                     boolean result = stat.execute(s);
                     if (result) {
                         JdbcResultSet rs = (JdbcResultSet) stat.getResultSet();
-                        ResultSetMetaData meta = rs.getMetaData();
+                        JdbcResultSetMetaData meta = (JdbcResultSetMetaData) rs.getMetaData();
                         try {
                             sendRowDescription(meta, null);
                             while (rs.next()) {
@@ -529,12 +531,12 @@ public class PgServerThread implements Runnable {
     }
 
     private void sendDataRow(JdbcResultSet rs, int[] formatCodes) throws IOException, SQLException {
-        ResultSetMetaData metaData = rs.getMetaData();
+        JdbcResultSetMetaData metaData = (JdbcResultSetMetaData) rs.getMetaData();
         int columns = metaData.getColumnCount();
         startMessage('D');
         writeShort(columns);
         for (int i = 1; i <= columns; i++) {
-            int pgType = PgServer.convertType(metaData.getColumnType(i));
+            int pgType = PgServer.convertType(metaData.getColumnInternalType(i));
             boolean text = formatAsText(pgType, formatCodes, i - 1);
             writeDataColumn(rs, i, pgType, text);
         }
@@ -589,7 +591,7 @@ public class PgServerThread implements Runnable {
                 write(data);
                 break;
             }
-            case PgServer.PG_TYPE_TEXTARRAY:
+            case PgServer.PG_TYPE_VARCHAR_ARRAY:
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 baos.write('{');
                 Value[] values = ((ValueArray) v).getList();
@@ -843,7 +845,7 @@ public class PgServerThread implements Runnable {
         sendMessage();
     }
 
-    private void sendRowDescription(ResultSetMetaData meta, int[] formatCodes) throws IOException, SQLException {
+    private void sendRowDescription(JdbcResultSetMetaData meta, int[] formatCodes) throws IOException, SQLException {
         if (meta == null) {
             sendNoData();
         } else {
@@ -854,7 +856,7 @@ public class PgServerThread implements Runnable {
             for (int i = 0; i < columns; i++) {
                 String name = meta.getColumnName(i + 1);
                 names[i] = name;
-                int type = meta.getColumnType(i + 1);
+                TypeInfo type = meta.getColumnInternalType(i + 1);
                 int pgType = PgServer.convertType(type);
                 // the ODBC client needs the column pg_catalog.pg_index
                 // to be of type 'int2vector'
@@ -864,7 +866,7 @@ public class PgServerThread implements Runnable {
                 //     type = PgServer.PG_TYPE_INT2VECTOR;
                 // }
                 precision[i] = meta.getColumnDisplaySize(i + 1);
-                if (type != Types.NULL) {
+                if (type.getValueType() != Value.NULL) {
                     server.checkType(pgType);
                 }
                 types[i] = pgType;

@@ -42,9 +42,11 @@ public final class BuiltinFunctions {
                 "IDENTITY", "SCOPE_IDENTITY",
                 // CompatibilitySequenceValueFunction
                 "CURRVAL", "NEXTVAL",
+                // Constants
+                "ZERO", "PI",
                 //
         };
-        HashSet<String> set = new HashSet<>(64);
+        HashSet<String> set = new HashSet<>(128);
         for (String n : names) {
             set.add(n);
         }

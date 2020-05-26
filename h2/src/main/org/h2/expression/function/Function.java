@@ -90,10 +90,10 @@ import org.h2.value.ValueVarchar;
  */
 public class Function extends OperationN implements FunctionCall, ExpressionWithFlags {
     public static final int
-            PI = 17, RAND = 20, ROUND = 21,
+            RAND = 20, ROUND = 21,
             ROUNDMAGIC = 22, SIGN = 23,
             TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30,
-            DECRYPT = 31, COMPRESS = 32, EXPAND = 33, ZERO = 34,
+            DECRYPT = 31, COMPRESS = 32, EXPAND = 33,
             RANDOM_UUID = 35,
             ORA_HASH = 41;
 
@@ -173,7 +173,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
 
         // FUNCTIONS
-        addFunction("PI", PI, 0, Value.DOUBLE);
         // RAND without argument: get the next value
         // RAND with one argument: seed the random generator
         addFunctionNotDeterministic("RAND", RAND, VAR_ARGS, Value.DOUBLE);
@@ -190,7 +189,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("SECURE_RAND", SECURE_RAND, 1, Value.VARBINARY);
         addFunction("COMPRESS", COMPRESS, VAR_ARGS, Value.VARBINARY);
         addFunction("EXPAND", EXPAND, 1, Value.VARBINARY);
-        addFunction("ZERO", ZERO, 0, Value.INTEGER);
         addFunctionNotDeterministic("RANDOM_UUID", RANDOM_UUID, 0, Value.UUID);
         addFunctionNotDeterministic("UUID", RANDOM_UUID, 0, Value.UUID);
         addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.BIGINT);
@@ -451,9 +449,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             Value[] values) {
         Value result;
         switch (info.type) {
-        case PI:
-            result = ValueDouble.get(Math.PI);
-            break;
         case RAND: {
             if (v0 != null) {
                 session.getRandom().setSeed(v0.getInt());
@@ -474,9 +469,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case EXPAND:
             result = ValueVarbinary.getNoCopy(
                     CompressTool.getInstance().expand(v0.getBytesNoCopy()));
-            break;
-        case ZERO:
-            result = ValueInteger.get(0);
             break;
         case RANDOM_UUID:
             result = ValueUuid.getNewRandom();

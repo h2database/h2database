@@ -319,6 +319,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJson;
@@ -4355,6 +4356,12 @@ public class Parser {
             function.doneWithParameters();
             return function;
         }
+        case "ZERO":
+            read(CLOSE_PAREN);
+            return ValueExpression.get(ValueInteger.get(0));
+        case "PI":
+            read(CLOSE_PAREN);
+            return ValueExpression.get(ValueDouble.get(Math.PI));
         }
         Function function = Function.getFunction(database, upperName);
         return function != null ? readFunctionParameters(function) : null;

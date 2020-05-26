@@ -4462,7 +4462,7 @@ public class Parser {
                     function.addParameter(readExpression());
                 }
             } else if (readIf(FOR)) {
-                function.addParameter(ValueExpression.get(ValueInteger.get(0)));
+                function.addParameter(ValueExpression.get(ValueInteger.get(1)));
                 function.addParameter(readExpression());
             } else {
                 read(COMMA);

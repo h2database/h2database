@@ -98,10 +98,10 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             ORA_HASH = 41;
 
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
-            CHAR_LENGTH = 53, CONCAT = 54, DIFFERENCE = 55, HEXTORAW = 56,
+            CHAR_LENGTH = 53, CONCAT = 54, HEXTORAW = 56,
             INSERT = 57, INSTR = 58, LEFT = 60, LENGTH = 61,
             LOCATE = 62, OCTET_LENGTH = 64, RAWTOHEX = 65,
-            REPEAT = 66, REPLACE = 67, RIGHT = 68, SOUNDEX = 70,
+            REPEAT = 66, REPLACE = 67, RIGHT = 68,
             SPACE = 71, /* 72 */ SUBSTRING = 73, LOWER = 75,
             UPPER = 76, POSITION = 77, TRIM = 78, STRINGENCODE = 79,
             STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
@@ -153,26 +153,11 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
     private static final FunctionInfo[] FUNCTIONS_BY_ID = new FunctionInfo[COUNT];
     private static final HashMap<String, FunctionInfo> FUNCTIONS_BY_NAME = new HashMap<>(128);
-    private static final char[] SOUNDEX_INDEX = new char[128];
 
     protected final FunctionInfo info;
     private int flags;
 
     static {
-        // SOUNDEX_INDEX
-        String index = "7AEIOUY8HW1BFPV2CGJKQSXZ3DT4L5MN6R";
-        char number = 0;
-        for (int i = 0, length = index.length(); i < length; i++) {
-            char c = index.charAt(i);
-            if (c < '9') {
-                number = c;
-            } else {
-                SOUNDEX_INDEX[c] = number;
-                SOUNDEX_INDEX[Character.toLowerCase(c)] = number;
-            }
-        }
-
-        // FUNCTIONS
         // RAND without argument: get the next value
         // RAND with one argument: seed the random generator
         addFunctionNotDeterministic("RAND", RAND, VAR_ARGS, Value.DOUBLE);
@@ -202,7 +187,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.INTEGER);
         addFunctionWithNull("CONCAT", CONCAT, VAR_ARGS, Value.VARCHAR);
         addFunctionWithNull("CONCAT_WS", CONCAT_WS, VAR_ARGS, Value.VARCHAR);
-        addFunction("DIFFERENCE", DIFFERENCE, 2, Value.INTEGER);
         addFunction("HEXTORAW", HEXTORAW, 1, Value.NULL);
         addFunctionWithNull("INSERT", INSERT, 4, Value.VARCHAR);
         addFunction("LEFT", LEFT, 2, Value.VARCHAR);
@@ -217,7 +201,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("REPEAT", REPEAT, 2, Value.VARCHAR);
         addFunctionWithNull("REPLACE", REPLACE, VAR_ARGS, Value.VARCHAR);
         addFunction("RIGHT", RIGHT, 2, Value.VARCHAR);
-        addFunction("SOUNDEX", SOUNDEX, 1, Value.VARCHAR);
         addFunction("SPACE", SPACE, 1, Value.VARCHAR);
         addFunction("SUBSTRING", SUBSTRING, VAR_ARGS, Value.NULL);
         addFunction("LOWER", LOWER, 1, Value.VARCHAR);
@@ -539,9 +522,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case RAWTOHEX:
             result = ValueVarchar.get(rawToHex(v0, session.getMode()), session);
             break;
-        case SOUNDEX:
-            result = ValueVarchar.get(getSoundex(v0.getString()), session);
-            break;
         case SPACE: {
             int len = Math.max(0, v0.getInt());
             char[] chars = new char[len];
@@ -826,10 +806,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = oraHash(v0,
                     v1 == null ? 0xffff_ffffL : v1.getLong(),
                     v2 == null ? 0L : v2.getLong());
-            break;
-        case DIFFERENCE:
-            result = ValueInteger.get(getDifference(
-                    v0.getString(), v1.getString()));
             break;
         case INSERT: {
             if (v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE) {
@@ -1563,19 +1539,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return ValueVarchar.get(buff.toString(), session);
     }
 
-    private static int getDifference(String s1, String s2) {
-        // TODO function difference: compatibility with SQL Server and HSQLDB
-        s1 = getSoundex(s1);
-        s2 = getSoundex(s2);
-        int e = 0;
-        for (int i = 0; i < 4; i++) {
-            if (s1.charAt(i) == s2.charAt(i)) {
-                e++;
-            }
-        }
-        return e;
-    }
-
     private static String translate(String original, String findChars,
             String replaceChars) {
         if (StringUtils.isNullOrEmpty(original) ||
@@ -1641,31 +1604,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             s.append('9');
         }
         return Double.parseDouble(s.toString());
-    }
-
-    private static String getSoundex(String s) {
-        int len = s.length();
-        char[] chars = { '0', '0', '0', '0' };
-        char lastDigit = '0';
-        for (int i = 0, j = 0; i < len && j < 4; i++) {
-            char c = s.charAt(i);
-            char newDigit = c > SOUNDEX_INDEX.length ?
-                    0 : SOUNDEX_INDEX[c];
-            if (newDigit != 0) {
-                if (j == 0) {
-                    chars[j++] = c;
-                    lastDigit = newDigit;
-                } else if (newDigit <= '6') {
-                    if (newDigit != lastDigit) {
-                        chars[j++] = newDigit;
-                        lastDigit = newDigit;
-                    }
-                } else if (newDigit == '7') {
-                    lastDigit = newDigit;
-                }
-            }
-        }
-        return new String(chars);
     }
 
     private static Value oraHash(Value value, long bucket, long seed) {
@@ -2031,9 +1969,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                     precision <= Long.MAX_VALUE / mul ? precision * mul : Long.MAX_VALUE, 0, null);
             break;
         }
-        case SOUNDEX:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 4, 0, null);
-            break;
         case TRIM_ARRAY:
         case ARRAY_SLICE: {
             typeInfo = p0.getType();

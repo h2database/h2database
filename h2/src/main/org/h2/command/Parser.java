@@ -281,6 +281,7 @@ import org.h2.expression.function.JsonConstructorFunction;
 import org.h2.expression.function.MathFunction;
 import org.h2.expression.function.MathFunction1;
 import org.h2.expression.function.MathFunction2;
+import org.h2.expression.function.SoundexFunction;
 import org.h2.expression.function.TableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
@@ -4324,6 +4325,10 @@ public class Parser {
             return readCardinalityExpression(false);
         case "ARRAY_MAX_CARDINALITY":
             return readCardinalityExpression(true);
+        case "SOUNDEX":
+            return readSoundexFunction(SoundexFunction.SOUNDEX, 1);
+        case "DIFFERENCE":
+            return readSoundexFunction(SoundexFunction.DIFFERENCE, 2);
         case "JSON_OBJECT": {
             JsonConstructorFunction function = new JsonConstructorFunction(false);
             if (currentTokenType != CLOSE_PAREN && !readJsonObjectFunctionFlags(function, false)) {
@@ -4368,15 +4373,7 @@ public class Parser {
     }
 
     private Expression readMathFunction(int function, int numArgs) {
-        Expression arg1 = readExpression(), arg2;
-        if (numArgs == 2) {
-            read(COMMA);
-            arg2 = readExpression();
-        } else {
-            arg2 = null;
-        }
-        read(CLOSE_PAREN);
-        return new MathFunction(arg1, arg2, function);
+        return new MathFunction(readExpression(), readSecondArgument(numArgs), function);
     }
 
     private Expression readMathFunction1(int function) {
@@ -4443,6 +4440,22 @@ public class Parser {
         Expression arg = readExpression();
         read(CLOSE_PAREN);
         return new CardinalityExpression(arg, max);
+    }
+
+    private Expression readSoundexFunction(int function, int numArgs) {
+        return new SoundexFunction(readExpression(), readSecondArgument(numArgs), function);
+    }
+
+    private Expression readSecondArgument(int numArgs) {
+        Expression arg2;
+        if (numArgs == 2) {
+            read(COMMA);
+            arg2 = readExpression();
+        } else {
+            arg2 = null;
+        }
+        read(CLOSE_PAREN);
+        return arg2;
     }
 
     private Function readFunctionParameters(Function function) {

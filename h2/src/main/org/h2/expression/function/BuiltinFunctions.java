@@ -38,6 +38,8 @@ public final class BuiltinFunctions {
                 "CARDINALITY", "ARRAY_MAX_CARDINALITY",
                 // JsonConstructorFunction
                 "JSON_OBJECT", "JSON_ARRAY",
+                // SoundexFunction
+                "SOUNDEX", "DIFFERENCE",
                 // CompatibilityIdentityFunction
                 "IDENTITY", "SCOPE_IDENTITY",
                 // CompatibilitySequenceValueFunction

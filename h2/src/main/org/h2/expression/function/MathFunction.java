@@ -162,8 +162,7 @@ public class MathFunction extends Operation1_2 implements NamedExpression {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append(getName()).append('(');
-        left.getSQL(builder, sqlFlags);
+        left.getSQL(builder.append(getName()).append('('), sqlFlags);
         if (right != null) {
             right.getSQL(builder.append(", "), sqlFlags);
         }

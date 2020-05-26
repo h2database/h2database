@@ -78,8 +78,8 @@ public class DateTimeFormatFunction extends OperationN implements NamedExpressio
             break;
         }
         case PARSEDATETIME: {
-            v1 = LegacyDateTimeUtils.fromTimestamp(session, parseDateTime(v1.getString(), format, locale, tz).getTime(),
-                    0);
+            v1 = LegacyDateTimeUtils.fromTimestamp(session, parseDateTime(v1.getString(), format, locale, tz) //
+                    .getTime(), 0);
             break;
         }
         default:

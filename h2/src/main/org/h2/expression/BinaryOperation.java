@@ -302,16 +302,15 @@ public class BinaryOperation extends Operation2 {
             switch (l) {
             case Value.INTEGER:
                 // Oracle date add
-                return new DateTimeFunction(left, right, DateTimeFunction.DATEADD, DateTimeFunction.DAY)
+                return new DateTimeFunction(DateTimeFunction.DATEADD, DateTimeFunction.DAY, left, right)
                         .optimize(session);
             case Value.NUMERIC:
             case Value.REAL:
             case Value.DOUBLE:
                 // Oracle date add
-                return new DateTimeFunction(
-                        new BinaryOperation(OpType.MULTIPLY, ValueExpression.get(ValueInteger.get(60 * 60 * 24)), //
-                                left),
-                        right, DateTimeFunction.DATEADD, DateTimeFunction.SECOND).optimize(session);
+                return new DateTimeFunction(DateTimeFunction.DATEADD, DateTimeFunction.SECOND,
+                        new BinaryOperation(OpType.MULTIPLY, ValueExpression.get(ValueInteger.get(60 * 60 * 24)),
+                                left), right).optimize(session);
             }
             break;
         }
@@ -326,8 +325,8 @@ public class BinaryOperation extends Operation2 {
                         throw getUnexpectedForcedTypeException();
                     }
                     // Oracle date subtract
-                    return new DateTimeFunction(new UnaryOperation(right), left, DateTimeFunction.DATEADD,
-                            DateTimeFunction.DAY).optimize(session);
+                    return new DateTimeFunction(DateTimeFunction.DATEADD, DateTimeFunction.DAY,
+                            new UnaryOperation(right), left).optimize(session);
                 }
                 case Value.NUMERIC:
                 case Value.REAL:
@@ -336,10 +335,9 @@ public class BinaryOperation extends Operation2 {
                         throw getUnexpectedForcedTypeException();
                     }
                     // Oracle date subtract
-                    return new DateTimeFunction(
+                    return new DateTimeFunction(DateTimeFunction.DATEADD, DateTimeFunction.SECOND,
                             new BinaryOperation(OpType.MULTIPLY, ValueExpression.get(ValueInteger.get(-60 * 60 * 24)),
-                                    right),
-                            left, DateTimeFunction.DATEADD, DateTimeFunction.SECOND).optimize(session);
+                                    right), left).optimize(session);
                 }
                 case Value.TIME:
                 case Value.TIME_TZ:

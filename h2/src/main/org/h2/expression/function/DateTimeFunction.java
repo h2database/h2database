@@ -339,7 +339,7 @@ public class DateTimeFunction extends Operation1_2 implements NamedExpression {
 
     private final int function, field;
 
-    public DateTimeFunction(Expression arg1, Expression arg2, int function, int field) {
+    public DateTimeFunction(int function, int field, Expression arg1, Expression arg2) {
         super(arg1, arg2);
         this.function = function;
         this.field = field;
@@ -951,11 +951,12 @@ public class DateTimeFunction extends Operation1_2 implements NamedExpression {
         if (value instanceof ValueTime) {
             result = ValueNumeric.get(BigDecimal.valueOf(timeNanos).divide(BD_NANOS_PER_SECOND));
         } else if (value instanceof ValueDate) {
-            result = ValueNumeric.get(
-                    BigInteger.valueOf(DateTimeUtils.absoluteDayFromDateValue(dateValue)).multiply(BI_SECONDS_PER_DAY));
+            result = ValueNumeric.get(BigInteger.valueOf(DateTimeUtils.absoluteDayFromDateValue(dateValue)) //
+                    .multiply(BI_SECONDS_PER_DAY));
         } else {
-            BigDecimal bd = BigDecimal.valueOf(timeNanos).divide(BD_NANOS_PER_SECOND).add(
-                    BigDecimal.valueOf(DateTimeUtils.absoluteDayFromDateValue(dateValue)).multiply(BD_SECONDS_PER_DAY));
+            BigDecimal bd = BigDecimal.valueOf(timeNanos).divide(BD_NANOS_PER_SECOND)
+                    .add(BigDecimal.valueOf(DateTimeUtils.absoluteDayFromDateValue(dateValue)) //
+                            .multiply(BD_SECONDS_PER_DAY));
             if (value instanceof ValueTimestampTimeZone) {
                 result = ValueNumeric.get(
                         bd.subtract(BigDecimal.valueOf(((ValueTimestampTimeZone) value).getTimeZoneOffsetSeconds())));

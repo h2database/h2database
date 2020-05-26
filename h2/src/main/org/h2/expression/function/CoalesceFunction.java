@@ -15,7 +15,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * A COLASELCE, GREATEST, or LEAST function.
+ * A COALESCE, GREATEST, or LEAST function.
  */
 public class CoalesceFunction extends OperationN implements NamedExpression {
 

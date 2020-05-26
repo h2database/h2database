@@ -25,7 +25,6 @@ import org.h2.table.TableFilter;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
 /**
@@ -353,10 +352,7 @@ public class ExpressionColumn extends Expression {
     public void createIndexConditions(Session session, TableFilter filter) {
         TableFilter tf = getTableFilter();
         if (filter == tf && column.getType().getValueType() == Value.BOOLEAN) {
-            IndexCondition cond = IndexCondition.get(
-                    Comparison.EQUAL, this, ValueExpression.get(
-                            ValueBoolean.TRUE));
-            filter.addIndexCondition(cond);
+            filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL, this, ValueExpression.TRUE));
         }
     }
 

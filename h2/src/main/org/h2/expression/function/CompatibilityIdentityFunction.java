@@ -15,7 +15,7 @@ import org.h2.value.Value;
 /**
  * IDENTITY() or SCOPE_IDENTITY() compatibility functions.
  */
-public final class CompatibilityIdentityFunction extends Operation0 {
+public final class CompatibilityIdentityFunction extends Operation0 implements NamedExpression {
 
     private final boolean scope;
 
@@ -32,7 +32,7 @@ public final class CompatibilityIdentityFunction extends Operation0 {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return builder.append(scope ? "SCOPE_IDENTITY()" : "IDENTITY()");
+        return builder.append(getName()).append("()");
     }
 
     @Override
@@ -61,6 +61,11 @@ public final class CompatibilityIdentityFunction extends Operation0 {
     @Override
     public int getCost() {
         return 1;
+    }
+
+    @Override
+    public String getName() {
+        return scope ? "SCOPE_IDENTITY" : "IDENTITY";
     }
 
 }

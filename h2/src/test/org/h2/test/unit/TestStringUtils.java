@@ -10,7 +10,8 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Random;
-import org.h2.expression.function.DateTimeFunctions;
+
+import org.h2.expression.function.DateTimeFormatFunction;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
@@ -113,7 +114,7 @@ public class TestStringUtils extends TestBase {
                 StringUtils.xmlText("Rand&Blue"));
         assertEquals("&lt;&lt;[[[]]]&gt;&gt;",
                 StringUtils.xmlCData("<<[[[]]]>>"));
-        Date dt = DateTimeFunctions.parseDateTime(
+        Date dt = DateTimeFormatFunction.parseDateTime(
                 "2001-02-03 04:05:06 GMT",
                 "yyyy-MM-dd HH:mm:ss z", "en", "GMT");
         String s = StringUtils.xmlStartDoc()
@@ -127,10 +128,10 @@ public class TestStringUtils extends TestBase {
                         + StringUtils.xmlNode("description", null, "H2 Database Engine")
                         + StringUtils.xmlNode("language", null, "en-us")
                         + StringUtils.xmlNode("pubDate", null,
-                                DateTimeFunctions.formatDateTime(dt,
+                                DateTimeFormatFunction.formatDateTime(dt,
                                 "EEE, d MMM yyyy HH:mm:ss z", "en", "GMT"))
                         + StringUtils.xmlNode("lastBuildDate", null,
-                                DateTimeFunctions.formatDateTime(dt,
+                                DateTimeFormatFunction.formatDateTime(dt,
                                 "EEE, d MMM yyyy HH:mm:ss z", "en", "GMT"))
                         + StringUtils.xmlNode("item", null,
                                 StringUtils.xmlNode("title", null,

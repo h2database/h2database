@@ -20,7 +20,7 @@ import java.math.BigInteger;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Session;
-import org.h2.expression.function.DateTimeFunctions;
+import org.h2.expression.function.DateTimeFunction;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
@@ -285,7 +285,7 @@ public class IntervalOperation extends Operation2 {
                 if (opType == IntervalOpType.DATETIME_MINUS_INTERVAL) {
                     m = -m;
                 }
-                return DateTimeFunctions.dateadd(session, DateTimeFunctions.MONTH, m, l);
+                return DateTimeFunction.dateadd(session, DateTimeFunction.MONTH, m, l);
             } else {
                 BigInteger a2 = IntervalUtils.intervalToAbsolute((ValueInterval) r);
                 if (lType == Value.DATE) {

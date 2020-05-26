@@ -11,7 +11,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
-import org.h2.expression.function.DateTimeFunctions;
+import org.h2.expression.function.DateTimeFunction;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
 import org.h2.message.DbException;
@@ -114,7 +114,7 @@ public final class FunctionsOracle extends FunctionsBase {
         Value result;
         switch (info.type) {
         case ADD_MONTHS:
-            result = DateTimeFunctions.dateadd(session, DateTimeFunctions.MONTH, v1.getInt(), v0);
+            result = DateTimeFunction.dateadd(session, DateTimeFunction.MONTH, v1.getInt(), v0);
             break;
         case SYS_GUID:
             result = ValueUuid.getNewRandom().convertTo(TypeInfo.TYPE_VARBINARY);

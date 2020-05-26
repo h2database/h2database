@@ -264,13 +264,16 @@ import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
 import org.h2.expression.function.BitFunction;
+import org.h2.expression.function.BuiltinFunctions;
 import org.h2.expression.function.CardinalityExpression;
 import org.h2.expression.function.CastSpecification;
 import org.h2.expression.function.CompatibilityIdentityFunction;
 import org.h2.expression.function.CompatibilitySequenceValueFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.CurrentGeneralValueSpecification;
-import org.h2.expression.function.DateTimeFunctions;
+import org.h2.expression.function.DateTimeFormatFunction;
+import org.h2.expression.function.DateTimeFunction;
+import org.h2.expression.function.DayMonthNameFunction;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.JavaFunction;
@@ -4111,59 +4114,33 @@ public class Parser {
         case "DAY":
         case "DAY_OF_MONTH":
         case "DAYOFMONTH":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY)));
-            break;
+            return readExtractExpression(DateTimeFunction.DAY);
         case "DAY_OF_WEEK":
         case "DAYOFWEEK":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY_OF_WEEK)));
-            break;
+            return readExtractExpression(DateTimeFunction.DAY_OF_WEEK);
         case "DAY_OF_YEAR":
         case "DAYOFYEAR":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY_OF_YEAR)));
-            break;
+            return readExtractExpression(DateTimeFunction.DAY_OF_YEAR);
         case "HOUR":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.HOUR)));
-            break;
+            return readExtractExpression(DateTimeFunction.HOUR);
         case "ISO_DAY_OF_WEEK":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_DAY_OF_WEEK)));
-            break;
+            return readExtractExpression(DateTimeFunction.ISO_DAY_OF_WEEK);
         case "ISO_WEEK":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_WEEK)));
-            break;
+            return readExtractExpression(DateTimeFunction.ISO_WEEK);
         case "ISO_YEAR":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_WEEK_YEAR)));
-            break;
+            return readExtractExpression(DateTimeFunction.ISO_WEEK_YEAR);
         case "MINUTE":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.MINUTE)));
-            break;
+            return readExtractExpression(DateTimeFunction.MINUTE);
         case "MONTH":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.MONTH)));
-            break;
+            return readExtractExpression(DateTimeFunction.MONTH);
         case "QUARTER":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.QUARTER)));
-            break;
+            return readExtractExpression(DateTimeFunction.QUARTER);
         case "SECOND":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.SECOND)));
-            break;
+            return readExtractExpression(DateTimeFunction.SECOND);
         case "WEEK":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.WEEK)));
-            break;
+            return readExtractExpression(DateTimeFunction.WEEK);
         case "YEAR":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.YEAR)));
-            break;
+            return readExtractExpression(DateTimeFunction.YEAR);
         // LOCALTIME
         case "CURTIME":
             return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIME, true, "CURTIME");
@@ -4316,6 +4293,32 @@ public class Parser {
             return readBitFunction(BitFunction.LSHIFT);
         case "RSHIFT":
             return readBitFunction(BitFunction.RSHIFT);
+        case "EXTRACT": {
+            int field = readDateTimeField();
+            read(FROM);
+            return readExtractExpression(field);
+        }
+        case "DATE_TRUNC": {
+            int field = readDateTimeField();
+            read(COMMA);
+            Expression arg = readExpression();
+            read(CLOSE_PAREN);
+            return new DateTimeFunction(arg, null, DateTimeFunction.DATE_TRUNC, field);
+        }
+        case "DATEADD":
+        case "TIMESTAMPADD":
+            return readDateTimeFunction(DateTimeFunction.DATEADD);
+        case "DATEDIFF":
+        case "TIMESTAMPDIFF":
+            return readDateTimeFunction(DateTimeFunction.DATEDIFF);
+        case "FORMATDATETIME":
+            return readDateTimeFormatFunction(DateTimeFormatFunction.FORMATDATETIME);
+        case "PARSEDATETIME":
+            return readDateTimeFormatFunction(DateTimeFormatFunction.PARSEDATETIME);
+        case "DAYNAME":
+            return readDayMonthNameFunction(DayMonthNameFunction.DAYNAME);
+        case "MONTHNAME":
+            return readDayMonthNameFunction(DayMonthNameFunction.MONTHNAME);
         case "CARDINALITY":
             return readCardinalityExpression(false);
         case "ARRAY_MAX_CARDINALITY":
@@ -4391,41 +4394,52 @@ public class Parser {
         return new BitFunction(arg1, arg2, function);
     }
 
+    private Expression readExtractExpression(int field) {
+        Expression arg = readExpression();
+        read(CLOSE_PAREN);
+        return new DateTimeFunction(arg, null, DateTimeFunction.EXTRACT, field);
+    }
+
+    private Expression readDateTimeFunction(int function) {
+        int field = readDateTimeField();
+        read(COMMA);
+        Expression arg1 = readExpression();
+        read(COMMA);
+        Expression arg2 = readExpression();
+        read(CLOSE_PAREN);
+        return new DateTimeFunction(arg1, arg2, function, field);
+    }
+
+    private Expression readDateTimeFormatFunction(int function) {
+        DateTimeFormatFunction f = new DateTimeFormatFunction(function);
+        f.addParameter(readExpression());
+        read(COMMA);
+        f.addParameter(readExpression());
+        if (readIf(COMMA)) {
+            f.addParameter(readExpression());
+            if (readIf(COMMA)) {
+                f.addParameter(readExpression());
+            }
+        }
+        read(CLOSE_PAREN);
+        f.doneWithParameters();
+        return f;
+    }
+
+    private Expression readDayMonthNameFunction(int function) {
+        Expression arg = readExpression();
+        read(CLOSE_PAREN);
+        return new DayMonthNameFunction(arg, function);
+    }
+
     private Expression readCardinalityExpression(boolean max) {
         Expression arg = readExpression();
         read(CLOSE_PAREN);
         return new CardinalityExpression(arg, max);
     }
 
-    private boolean isBuiltinFunction(String upperName) {
-        return Function.getFunction(database, upperName) != null || MathFunction.exists(upperName)
-                || MathFunction1.exists(upperName) || MathFunction2.exists(upperName) || BitFunction.exists(upperName)
-                || JsonConstructorFunction.exists(upperName) || CardinalityExpression.exists(upperName);
-    }
-
     private Function readFunctionParameters(Function function) {
         switch (function.getFunctionType()) {
-        case Function.EXTRACT:
-            readDateTimeField(function);
-            read(FROM);
-            function.addParameter(readExpression());
-            read(CLOSE_PAREN);
-            break;
-        case Function.DATEADD:
-        case Function.DATEDIFF:
-            readDateTimeField(function);
-            read(COMMA);
-            function.addParameter(readExpression());
-            read(COMMA);
-            function.addParameter(readExpression());
-            read(CLOSE_PAREN);
-            break;
-        case Function.DATE_TRUNC:
-            readDateTimeField(function);
-            read(COMMA);
-            function.addParameter(readExpression());
-            read(CLOSE_PAREN);
-            break;
         case Function.SUBSTRING:
             // Standard variants are:
             // SUBSTRING(X FROM 1)
@@ -4554,44 +4568,43 @@ public class Parser {
         return function;
     }
 
-    private void readDateTimeField(Function function) {
+    private int readDateTimeField() {
         int field = -1;
         switch (currentTokenType) {
         case IDENTIFIER:
             if (!currentTokenQuoted) {
-                field = DateTimeFunctions.getField(currentToken);
+                field = DateTimeFunction.getField(currentToken);
             }
             break;
         case LITERAL:
             if (currentValue.getValueType() == Value.VARCHAR) {
-                field = DateTimeFunctions.getField(currentValue.getString());
+                field = DateTimeFunction.getField(currentValue.getString());
             }
             break;
         case YEAR:
-            field = DateTimeFunctions.YEAR;
+            field = DateTimeFunction.YEAR;
             break;
         case MONTH:
-            field = DateTimeFunctions.MONTH;
+            field = DateTimeFunction.MONTH;
             break;
         case DAY:
-            field = DateTimeFunctions.DAY;
+            field = DateTimeFunction.DAY;
             break;
         case HOUR:
-            field = DateTimeFunctions.HOUR;
+            field = DateTimeFunction.HOUR;
             break;
         case MINUTE:
-            field = DateTimeFunctions.MINUTE;
+            field = DateTimeFunction.MINUTE;
             break;
         case SECOND:
-            field = DateTimeFunctions.SECOND;
+            field = DateTimeFunction.SECOND;
         }
-        if (field >= 0) {
-            function.addParameter(ValueExpression.get(ValueInteger.get(field)));
-            read();
-        } else {
+        if (field < 0) {
             addExpected("date-time field");
             throw getSyntaxError();
         }
+        read();
+        return field;
     }
 
     private WindowFunction readWindowFunction(String name) {
@@ -7508,7 +7521,7 @@ public class Parser {
         CreateAggregate command = new CreateAggregate(session);
         command.setForce(force);
         String name = readIdentifierWithSchema(), upperName;
-        if (isKeyword(name) || isBuiltinFunction(upperName = upperName(name))
+        if (isKeyword(name) || BuiltinFunctions.isBuiltinFunction(database, upperName = upperName(name))
                 || Aggregate.getAggregateType(upperName) != null) {
             throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
         }
@@ -7715,7 +7728,7 @@ public class Parser {
             return true;
         }
         return Aggregate.getAggregateType(name) != null
-                || isBuiltinFunction(name) && !database.isAllowBuiltinAliasOverride();
+                || BuiltinFunctions.isBuiltinFunction(database, name) && !database.isAllowBuiltinAliasOverride();
     }
 
     private Prepared parseWith() {

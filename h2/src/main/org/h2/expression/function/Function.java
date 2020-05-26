@@ -59,10 +59,8 @@ import org.h2.table.Table;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.Bits;
-import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -112,13 +110,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, QUOTE_IDENT = 95;
 
     public static final int
-            DATEADD = 105, DATEDIFF = 106, DAY_NAME = 107,
-            MONTH_NAME = 114,
-            EXTRACT = 119,
-            FORMATDATETIME = 120, PARSEDATETIME = 121,
-            DATE_TRUNC = 125;
-
-    public static final int
             AUTOCOMMIT = 155,
             READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
             DISK_SPACE_USED = 159, SIGNAL = 160, ESTIMATED_ENVELOPE = 161;
@@ -161,7 +152,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     protected static final int VAR_ARGS = -1;
 
     private static final FunctionInfo[] FUNCTIONS_BY_ID = new FunctionInfo[COUNT];
-    private static final HashMap<String, FunctionInfo> FUNCTIONS_BY_NAME = new HashMap<>(256);
+    private static final HashMap<String, FunctionInfo> FUNCTIONS_BY_NAME = new HashMap<>(128);
     private static final char[] SOUNDEX_INDEX = new char[128];
 
     protected final FunctionInfo info;
@@ -254,17 +245,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("REGEXP_LIKE", REGEXP_LIKE, VAR_ARGS, Value.BOOLEAN);
         addFunctionWithNull("REGEXP_SUBSTR", REGEXP_SUBSTR, VAR_ARGS, Value.VARCHAR);
 
-        // date
-        addFunction("DATEADD", DATEADD, 3, Value.NULL);
-        addFunction("TIMESTAMPADD", DATEADD, 3, Value.NULL);
-        addFunction("DATEDIFF", DATEDIFF, 3, Value.BIGINT);
-        addFunction("TIMESTAMPDIFF", DATEDIFF, 3, Value.BIGINT);
-        addFunction("DAYNAME", DAY_NAME, 1, Value.VARCHAR);
-        addFunction("MONTHNAME", MONTH_NAME, 1, Value.VARCHAR);
-        addFunction("EXTRACT", EXTRACT, 2, Value.INTEGER);
-        addFunctionWithNull("FORMATDATETIME", FORMATDATETIME, VAR_ARGS, Value.VARCHAR);
-        addFunctionWithNull("PARSEDATETIME", PARSEDATETIME, VAR_ARGS, Value.TIMESTAMP);
-        addFunction("DATE_TRUNC", DATE_TRUNC, 2, Value.NULL);
         // system
         addFunctionNotDeterministic("AUTOCOMMIT", AUTOCOMMIT,
                 0, Value.BOOLEAN);
@@ -606,16 +586,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case XMLSTARTDOC:
             result = ValueVarchar.get(StringUtils.xmlStartDoc(), session);
             break;
-        case DAY_NAME: {
-            int dayOfWeek = DateTimeUtils.getDayOfWeek(DateTimeUtils.dateAndTimeFromValue(v0, session)[0], 0);
-            result = ValueVarchar.get(DateTimeFunctions.getMonthsAndWeeks(1)[dayOfWeek], session);
-            break;
-        }
-        case MONTH_NAME: {
-            int month = DateTimeUtils.monthFromDateValue(DateTimeUtils.dateAndTimeFromValue(v0, session)[0]);
-            result = ValueVarchar.get(DateTimeFunctions.getMonthsAndWeeks(0)[month - 1], session);
-            break;
-        }
         case AUTOCOMMIT:
             result = ValueBoolean.get(session.getAutoCommit());
             break;
@@ -999,49 +969,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case H2VERSION:
             result = ValueVarchar.get(Constants.VERSION, session);
             break;
-        case DATEADD:
-            result = DateTimeFunctions.dateadd(session, v0.getInt(), v1.getLong(), v2);
-            break;
-        case DATEDIFF:
-            result = ValueBigint.get(DateTimeFunctions.datediff(session, v0.getInt(), v1, v2));
-            break;
-        case DATE_TRUNC:
-            result = DateTimeFunctions.truncateDate(session, v0.getInt(), v1);
-            break;
-        case EXTRACT:
-            result = DateTimeFunctions.extract(session, v0.getInt(), v1);
-            break;
-        case FORMATDATETIME: {
-            if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE) {
-                result = ValueNull.INSTANCE;
-            } else {
-                String locale = v2 == null ?
-                        null : v2 == ValueNull.INSTANCE ? null : v2.getString();
-                String tz = v3 == null ?
-                        null : v3 == ValueNull.INSTANCE ? null : v3.getString();
-                if (v0 instanceof ValueTimestampTimeZone) {
-                    tz = DateTimeUtils.timeZoneNameFromOffsetSeconds(
-                            ((ValueTimestampTimeZone) v0).getTimeZoneOffsetSeconds());
-                }
-                result = ValueVarchar.get(DateTimeFunctions.formatDateTime(
-                        LegacyDateTimeUtils.toTimestamp(session, null, v0), v1.getString(), locale, tz), session);
-            }
-            break;
-        }
-        case PARSEDATETIME: {
-            if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE) {
-                result = ValueNull.INSTANCE;
-            } else {
-                String locale = v2 == null ?
-                        null : v2 == ValueNull.INSTANCE ? null : v2.getString();
-                String tz = v3 == null ?
-                        null : v3 == ValueNull.INSTANCE ? null : v3.getString();
-                java.util.Date d = DateTimeFunctions.parseDateTime(
-                        v0.getString(), v1.getString(), locale, tz);
-                result = LegacyDateTimeUtils.fromTimestamp(session, d.getTime(), 0);
-            }
-            break;
-        }
         case NULLIF:
             result = session.areEqual(v0, v1) ? ValueNull.INSTANCE : v0;
             break;
@@ -1931,11 +1858,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             min = 1;
             max = 4;
             break;
-        case FORMATDATETIME:
-        case PARSEDATETIME:
-            min = 2;
-            max = 4;
-            break;
         case REGEXP_REPLACE:
             min = 3;
             max = 4;
@@ -1965,44 +1887,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         TypeInfo typeInfo;
         Expression p0 = args.length < 1 ? null : args[0];
         switch (info.type) {
-        case DATEADD: {
-            Expression p2 = args[2];
-            int valueType = p2.getType().getValueType();
-            if (valueType == Value.DATE) {
-                switch (p0.getValue(session).getInt()) {
-                case DateTimeFunctions.HOUR:
-                case DateTimeFunctions.MINUTE:
-                case DateTimeFunctions.SECOND:
-                case DateTimeFunctions.MILLISECOND:
-                case DateTimeFunctions.MICROSECOND:
-                case DateTimeFunctions.NANOSECOND:
-                case DateTimeFunctions.EPOCH:
-                    valueType = Value.TIMESTAMP;
-                }
-            }
-            typeInfo = TypeInfo.getTypeInfo(valueType);
-            break;
-        }
-        case EXTRACT: {
-            if (p0.isConstant() && p0.getValue(session).getInt() == DateTimeFunctions.EPOCH) {
-                typeInfo = TypeInfo.getTypeInfo(Value.NUMERIC, ValueBigint.PRECISION + ValueTimestamp.MAXIMUM_SCALE,
-                        ValueTimestamp.MAXIMUM_SCALE, null);
-            } else {
-                typeInfo = TypeInfo.TYPE_INTEGER;
-            }
-            break;
-        }
-        case DATE_TRUNC: {
-            typeInfo = args[1].getType();
-            int valueType = typeInfo.getValueType();
-            // TODO set scale when possible
-            if (!DataType.isDateTimeType(valueType)) {
-                throw DbException.getInvalidValueException("DATE_TRUNC datetime argument", typeInfo.getTraceSQL());
-            } else if (session.getMode().getEnum() == ModeEnum.PostgreSQL && valueType == Value.DATE) {
-                typeInfo = TypeInfo.TYPE_TIMESTAMP_TZ;
-            }
-            break;
-        }
         case NULLIF:
         case COALESCE:
         case LEAST:
@@ -2158,11 +2042,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case SOUNDEX:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 4, 0, null);
             break;
-        case DAY_NAME:
-        case MONTH_NAME:
-            // day and month names may be long in some languages
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 20, 0, null);
-            break;
         case TRIM_ARRAY:
         case ARRAY_SLICE: {
             typeInfo = p0.getType();
@@ -2190,15 +2069,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
      * @return whether all arguments are constants and function is deterministic
      */
     protected final boolean optimizeArguments(Session session) {
-        boolean allConst = info.deterministic;
-        for (int i = 0, l = args.length; i < l; i++) {
-            Expression e = args[i].optimize(session);
-            args[i] = e;
-            if (!e.isConstant()) {
-                allConst = false;
-            }
-        }
-        return allConst;
+        return optimizeArguments(session, info.deterministic);
     }
 
     private TypeInfo getRoundNumericType(Session session) {
@@ -2245,20 +2116,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             args[0].getSQL(builder, sqlFlags);
             break;
         }
-        case DATEADD:
-        case DATEDIFF:
-            builder.append(DateTimeFunctions.getFieldName(args[0].getValue(null).getInt())).append(", ");
-            args[1].getSQL(builder, sqlFlags).append(", ");
-            args[2].getSQL(builder, sqlFlags);
-            break;
-        case EXTRACT:
-            builder.append(DateTimeFunctions.getFieldName(args[0].getValue(null).getInt())).append(" FROM ");
-            args[1].getSQL(builder, sqlFlags);
-            break;
-        case DATE_TRUNC:
-            builder.append(DateTimeFunctions.getFieldName(args[0].getValue(null).getInt())).append(", ");
-            args[1].getSQL(builder, sqlFlags);
-            break;
         default:
             writeExpressions(builder, args, sqlFlags);
         }

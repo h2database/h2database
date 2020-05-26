@@ -49,22 +49,6 @@ public class MathFunction extends Operation1_2 implements NamedExpression {
             "ABS", "MOD", "FLOOR", "CEIL" //
     };
 
-    /**
-     * Returns whether specified function is known by this class.
-     *
-     * @param upperName
-     *            the name of the function in upper case
-     * @return {@code true} if it exists
-     */
-    public static boolean exists(String upperName) {
-        for (String n : NAMES) {
-            if (n.equals(upperName)) {
-                return true;
-            }
-        }
-        return "CEILING".equals(upperName);
-    }
-
     private final int function;
 
     private TypeInfo commonType;

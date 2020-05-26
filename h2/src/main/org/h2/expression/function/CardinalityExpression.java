@@ -22,17 +22,6 @@ import org.h2.value.ValueNull;
  */
 public class CardinalityExpression extends Operation1 implements NamedExpression {
 
-    /**
-     * Returns whether specified function is known by this class.
-     *
-     * @param upperName
-     *            the name of the function in upper case
-     * @return {@code true} if it exists
-     */
-    public static boolean exists(String upperName) {
-        return upperName.equals("CARDINALITY") || upperName.equals("ARRAY_MAX_CARDINALITY");
-    }
-
     private final boolean max;
 
     /**

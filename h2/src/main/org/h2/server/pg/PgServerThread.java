@@ -590,6 +590,8 @@ public class PgServerThread implements Runnable {
                 write(data);
                 break;
             }
+            case PgServer.PG_TYPE_INT2_ARRAY:
+            case PgServer.PG_TYPE_INT4_ARRAY:
             case PgServer.PG_TYPE_VARCHAR_ARRAY:
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 baos.write('{');

@@ -56,7 +56,8 @@ public class PgServer implements Service {
     public static final int PG_TYPE_FLOAT4 = 700;
     public static final int PG_TYPE_FLOAT8 = 701;
     public static final int PG_TYPE_UNKNOWN = 705;
-    public static final int PG_TYPE_TEXT_ARRAY = 1009;
+    public static final int PG_TYPE_INT2_ARRAY = 1005;
+    public static final int PG_TYPE_INT4_ARRAY = 1007;
     public static final int PG_TYPE_VARCHAR_ARRAY = 1015;
     public static final int PG_TYPE_DATE = 1082;
     public static final int PG_TYPE_TIME = 1083;
@@ -339,6 +340,10 @@ public class PgServer implements Service {
         case PG_TYPE_FLOAT8:
             valueType = Value.DOUBLE;
             break;
+        case PG_TYPE_INT2_ARRAY:
+            return "smallint[]";
+        case PG_TYPE_INT4_ARRAY:
+            return "integer[]";
         case PG_TYPE_VARCHAR_ARRAY:
             return "character varying[]";
         case PG_TYPE_BPCHAR:
@@ -416,14 +421,19 @@ public class PgServer implements Service {
             return PG_TYPE_BYTEA;
         case Value.ARRAY: {
             type = (TypeInfo) type.getExtTypeInfo();
-            if (type != null) {
-                switch (type.getValueType()) {
-                case Value.VARCHAR:
-                    return PG_TYPE_VARCHAR_ARRAY;
-                }
+            if (type == null) {
+                return PG_TYPE_VARCHAR_ARRAY;
             }
-            // Default
-            return PG_TYPE_VARCHAR_ARRAY;
+            switch (type.getValueType()) {
+            case Value.SMALLINT:
+                return PG_TYPE_INT2_ARRAY;
+            case Value.INTEGER:
+                return PG_TYPE_INT4_ARRAY;
+            case Value.VARCHAR:
+                return PG_TYPE_VARCHAR_ARRAY;
+            default:
+                return PG_TYPE_VARCHAR_ARRAY;
+            }
         }
         default:
             return PG_TYPE_UNKNOWN;

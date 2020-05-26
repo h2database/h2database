@@ -81,6 +81,17 @@ public class PgCatalogTable extends MetaTable {
 
     private static final int META_TABLE_TYPE_COUNT = PG_USER + 1;
 
+    private static final Object[][] PG_EXTRA_TYPES = {
+            { 18, "char", 1, 0 },
+            { 19, "name", 64, 18 },
+            { 22, "int2vector", -1, 21 },
+            { 24, "regproc", 4, 0 },
+            { PgServer.PG_TYPE_INT2_ARRAY, "_int2", -1, PgServer.PG_TYPE_INT2 },
+            { PgServer.PG_TYPE_INT4_ARRAY, "_int4", -1, PgServer.PG_TYPE_INT4 },
+            { PgServer.PG_TYPE_VARCHAR_ARRAY, "_varchar", -1, PgServer.PG_TYPE_VARCHAR },
+            { 2205, "regclass", 4, 0 },
+    };
+
     /**
      * Get the number of meta table types. Supported meta table types are 0 ..
      * this value - 1.
@@ -539,32 +550,18 @@ public class PgCatalogTable extends MetaTable {
         case PG_TYPE: {
             HashSet<Integer> types = new HashSet<>();
             for (DataType t : DataType.getTypes()) {
-                if (t.hidden || t.sqlType == Value.NULL) {
+                if (t.hidden || t.type == Value.NULL || t.type == Value.ARRAY) {
                     continue;
                 }
-                int valueType = t.type;
-                // Only VARCHAR ARRAY is currently supported
-                int pgType = PgServer.convertType(valueType == Value.ARRAY ? TypeInfo.getTypeInfo(Value.ARRAY,
-                        Integer.MAX_VALUE, 0, TypeInfo.TYPE_VARCHAR) : TypeInfo.getTypeInfo(valueType));
+                int pgType = PgServer.convertType(TypeInfo.getTypeInfo(t.type));
                 if (pgType == PgServer.PG_TYPE_UNKNOWN || !types.add(pgType)) {
                     continue;
-                }
-                String name;
-                int elemId;
-                switch (pgType) {
-                case PgServer.PG_TYPE_VARCHAR_ARRAY:
-                    name = "_varchar";
-                    elemId = PgServer.PG_TYPE_VARCHAR;
-                    break;
-                default:
-                    name = t.name;
-                    elemId = 0;
                 }
                 add(session, rows,
                         // OID
                         ValueInteger.get(pgType),
                         // TYPNAME
-                        name,
+                        t.name,
                         // TYPNAMESPACE
                         ValueInteger.get(Constants.PG_CATALOG_SCHEMA_ID),
                         // TYPLEN
@@ -576,7 +573,7 @@ public class PgCatalogTable extends MetaTable {
                         // TYPRELID
                         ValueInteger.get(0),
                         // TYPELEM
-                        ValueInteger.get(elemId),
+                        ValueInteger.get(0),
                         // TYPBASETYPE
                         ValueInteger.get(0),
                         // TYPTYPMOD
@@ -586,13 +583,7 @@ public class PgCatalogTable extends MetaTable {
                         // TYPINPUT
                         null);
             }
-            for (Object[] pgType : new Object[][] {
-                    { 18, "char", 1, 0 },
-                    { 19, "name", 64, 18 },
-                    { 22, "int2vector", -1, 21 },
-                    { 24, "regproc", 4, 0 },
-                    { 2205, "regclass", 4, 0 },
-            }) {
+            for (Object[] pgType : PG_EXTRA_TYPES) {
                 add(session, rows,
                         // OID
                         ValueInteger.get((int) pgType[0]),

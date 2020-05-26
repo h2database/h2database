@@ -574,17 +574,13 @@ public class TestResultSet extends TestDb {
         rs = stat.executeQuery("SELECT C || C FROM one;");
         ResultSetMetaData md = rs.getMetaData();
         assertEquals(20, md.getPrecision(1));
-        ResultSet rs2 = stat.executeQuery("SELECT UPPER (C)  FROM one;");
-        ResultSetMetaData md2 = rs2.getMetaData();
-        assertEquals(10, md2.getPrecision(1));
-        rs = stat.executeQuery("SELECT UPPER (C), CHAR(10), " +
+        rs = stat.executeQuery("SELECT CHAR(10), " +
                 "CONCAT(C,C,C), HEXTORAW(C), RAWTOHEX(C) FROM one");
         ResultSetMetaData meta = rs.getMetaData();
-        assertEquals(10, meta.getPrecision(1));
-        assertEquals(1, meta.getPrecision(2));
-        assertEquals(30, meta.getPrecision(3));
-        assertEquals(2, meta.getPrecision(4));
-        assertEquals(40, meta.getPrecision(5));
+        assertEquals(1, meta.getPrecision(1));
+        assertEquals(30, meta.getPrecision(2));
+        assertEquals(2, meta.getPrecision(3));
+        assertEquals(40, meta.getPrecision(4));
         stat.execute("DROP TABLE one");
     }
 

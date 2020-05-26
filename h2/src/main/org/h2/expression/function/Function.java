@@ -98,16 +98,15 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             ORA_HASH = 41;
 
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
-            CHAR_LENGTH = 53, CONCAT = 54, HEXTORAW = 56,
+            CHAR_LENGTH = 53, CONCAT = 54,
             INSERT = 57, INSTR = 58, LEFT = 60, LENGTH = 61,
-            LOCATE = 62, OCTET_LENGTH = 64, RAWTOHEX = 65,
+            LOCATE = 62, OCTET_LENGTH = 64,
             REPEAT = 66, REPLACE = 67, RIGHT = 68,
-            SPACE = 71, /* 72 */ SUBSTRING = 73, LOWER = 75,
-            UPPER = 76, POSITION = 77, TRIM = 78, STRINGENCODE = 79,
-            STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
+            SUBSTRING = 73,
+            POSITION = 77, TRIM = 78,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
-            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, QUOTE_IDENT = 95;
+            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94;
 
     public static final int
             AUTOCOMMIT = 155,
@@ -187,7 +186,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.INTEGER);
         addFunctionWithNull("CONCAT", CONCAT, VAR_ARGS, Value.VARCHAR);
         addFunctionWithNull("CONCAT_WS", CONCAT_WS, VAR_ARGS, Value.VARCHAR);
-        addFunction("HEXTORAW", HEXTORAW, 1, Value.NULL);
         addFunctionWithNull("INSERT", INSERT, 4, Value.VARCHAR);
         addFunction("LEFT", LEFT, 2, Value.VARCHAR);
         addFunction("LENGTH", LENGTH, 1, Value.BIGINT);
@@ -197,20 +195,12 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("POSITION", LOCATE, 2, Value.INTEGER);
         addFunction("INSTR", INSTR, VAR_ARGS, Value.INTEGER);
         addFunction("OCTET_LENGTH", OCTET_LENGTH, 1, Value.BIGINT);
-        addFunction("RAWTOHEX", RAWTOHEX, 1, Value.VARCHAR);
         addFunction("REPEAT", REPEAT, 2, Value.VARCHAR);
         addFunctionWithNull("REPLACE", REPLACE, VAR_ARGS, Value.VARCHAR);
         addFunction("RIGHT", RIGHT, 2, Value.VARCHAR);
-        addFunction("SPACE", SPACE, 1, Value.VARCHAR);
         addFunction("SUBSTRING", SUBSTRING, VAR_ARGS, Value.NULL);
-        addFunction("LOWER", LOWER, 1, Value.VARCHAR);
-        addFunction("UPPER", UPPER, 1, Value.VARCHAR);
         addFunction("POSITION", POSITION, 2, Value.INTEGER);
         addFunction("TRIM", TRIM, VAR_ARGS, Value.VARCHAR);
-        addFunction("STRINGENCODE", STRINGENCODE, 1, Value.VARCHAR);
-        addFunction("STRINGDECODE", STRINGDECODE, 1, Value.VARCHAR);
-        addFunction("STRINGTOUTF8", STRINGTOUTF8, 1, Value.VARBINARY);
-        addFunction("UTF8TOSTRING", UTF8TOSTRING, 1, Value.VARCHAR);
         addFunction("XMLATTR", XMLATTR, 2, Value.VARCHAR);
         addFunctionWithNull("XMLNODE", XMLNODE, VAR_ARGS, Value.VARCHAR);
         addFunction("XMLCOMMENT", XMLCOMMENT, 1, Value.VARCHAR);
@@ -222,7 +212,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("LPAD", LPAD, VAR_ARGS, Value.VARCHAR);
         addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.VARCHAR);
         addFunction("TRANSLATE", TRANSLATE, 3, Value.VARCHAR);
-        addFunction("QUOTE_IDENT", QUOTE_IDENT, 1, Value.VARCHAR);
         addFunction("REGEXP_LIKE", REGEXP_LIKE, VAR_ARGS, Value.BOOLEAN);
         addFunctionWithNull("REGEXP_SUBSTR", REGEXP_SUBSTR, VAR_ARGS, Value.VARCHAR);
 
@@ -511,44 +500,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case HEXTORAW:
-            result = hexToRaw(v0.getString(), session);
-            break;
-        case LOWER:
-            // TODO this is locale specific, need to document or provide a way
-            // to set the locale
-            result = ValueVarchar.get(v0.getString().toLowerCase(), session);
-            break;
-        case RAWTOHEX:
-            result = ValueVarchar.get(rawToHex(v0, session.getMode()), session);
-            break;
-        case SPACE: {
-            int len = Math.max(0, v0.getInt());
-            char[] chars = new char[len];
-            for (int i = len - 1; i >= 0; i--) {
-                chars[i] = ' ';
-            }
-            result = ValueVarchar.get(new String(chars), session);
-            break;
-        }
-        case UPPER:
-            // TODO this is locale specific, need to document or provide a way
-            // to set the locale
-            result = ValueVarchar.get(v0.getString().toUpperCase(), session);
-            break;
-        case STRINGENCODE:
-            result = ValueVarchar.get(StringUtils.javaEncode(v0.getString()), session);
-            break;
-        case STRINGDECODE:
-            result = ValueVarchar.get(StringUtils.javaDecode(v0.getString()), session);
-            break;
-        case STRINGTOUTF8:
-            result = ValueVarbinary.getNoCopy(v0.getString().
-                    getBytes(StandardCharsets.UTF_8));
-            break;
-        case UTF8TOSTRING:
-            result = ValueVarchar.get(new String(v0.getBytesNoCopy(), StandardCharsets.UTF_8), session);
-            break;
         case XMLCOMMENT:
             result = ValueVarchar.get(StringUtils.xmlComment(v0.getString()), session);
             break;
@@ -931,9 +882,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = ValueVarchar.get(translate(v0.getString(), matching, replacement), session);
             break;
         }
-        case QUOTE_IDENT:
-            result = ValueVarchar.get(StringUtils.quoteIdentifier(v0.getString()), session);
-            break;
         case H2VERSION:
             result = ValueVarchar.get(Constants.VERSION, session);
             break;
@@ -1453,26 +1401,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return buff.toString();
     }
 
-    private static String rawToHex(Value v, Mode mode) {
-        if (DataType.isBinaryStringOrSpecialBinaryType(v.getValueType())) {
-            return StringUtils.convertBytesToHex(v.getBytesNoCopy());
-        }
-        String s = v.getString();
-        if (mode.getEnum() == ModeEnum.Oracle) {
-            return StringUtils.convertBytesToHex(s.getBytes(StandardCharsets.UTF_8));
-        }
-        int length = s.length();
-        StringBuilder buff = new StringBuilder(4 * length);
-        for (int i = 0; i < length; i++) {
-            String hex = Integer.toHexString(s.charAt(i) & 0xffff);
-            for (int j = hex.length(); j < 4; j++) {
-                buff.append('0');
-            }
-            buff.append(hex);
-        }
-        return buff.toString();
-    }
-
     private static int locate(String search, String s, int start) {
         if (start < 0) {
             int i = s.length() + start;
@@ -1517,26 +1445,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             length = len1 - start;
         }
         return s1.substring(0, start) + s2 + s1.substring(start + length);
-    }
-
-    private static Value hexToRaw(String s, Session session) {
-        if (session.getMode().getEnum() == ModeEnum.Oracle) {
-            return ValueVarbinary.get(StringUtils.convertHexToBytes(s));
-        }
-        int len = s.length();
-        if (len % 4 != 0) {
-            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
-        }
-        StringBuilder buff = new StringBuilder(len / 4);
-        for (int i = 0; i < len; i += 4) {
-            try {
-                char raw = (char) Integer.parseInt(s.substring(i, i + 4), 16);
-                buff.append(raw);
-            } catch (NumberFormatException e) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
-            }
-        }
-        return ValueVarchar.get(buff.toString(), session);
     }
 
     private static String translate(String original, String findChars,
@@ -1935,40 +1843,10 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p, 0, null);
             break;
         }
-        case HEXTORAW: {
-            TypeInfo t = p0.getType();
-            if (session.getMode().getEnum() == ModeEnum.Oracle) {
-                if (DataType.isCharacterStringType(t.getValueType())) {
-                    typeInfo = TypeInfo.getTypeInfo(Value.VARBINARY, t.getPrecision() / 2, 0, null);
-                } else {
-                    typeInfo = TypeInfo.TYPE_VARBINARY;
-                }
-            } else {
-                if (DataType.isCharacterStringType(t.getValueType())) {
-                    typeInfo = TypeInfo.getTypeInfo(Value.VARCHAR, t.getPrecision() / 4, 0, null);
-                } else {
-                    typeInfo = TypeInfo.TYPE_VARCHAR;
-                }
-            }
-            break;
-        }
         case RIGHT:
-        case LOWER:
-        case UPPER:
         case TRIM:
-        case STRINGDECODE:
-        case UTF8TOSTRING:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p0.getType().getPrecision(), 0, null);
             break;
-        case RAWTOHEX: {
-            TypeInfo t = p0.getType();
-            long precision = t.getPrecision();
-            int mul = DataType.isBinaryStringOrSpecialBinaryType(t.getValueType()) ? 2
-                    : session.getMode().getEnum() == ModeEnum.Oracle ? 6 : 4;
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType,
-                    precision <= Long.MAX_VALUE / mul ? precision * mul : Long.MAX_VALUE, 0, null);
-            break;
-        }
         case TRIM_ARRAY:
         case ARRAY_SLICE: {
             typeInfo = p0.getType();

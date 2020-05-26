@@ -282,6 +282,7 @@ import org.h2.expression.function.MathFunction;
 import org.h2.expression.function.MathFunction1;
 import org.h2.expression.function.MathFunction2;
 import org.h2.expression.function.SoundexFunction;
+import org.h2.expression.function.StringFunction1;
 import org.h2.expression.function.TableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
@@ -1568,9 +1569,8 @@ public class Parser {
         String informationSchema = database.sysIdentifier("INFORMATION_SCHEMA");
         Table table = database.getSchema(informationSchema)
                 .resolveTableOrView(session, database.sysIdentifier("HELP"));
-        Function function = Function.getFunctionWithArgs(Function.UPPER,
-                new ExpressionColumn(database, informationSchema,
-                        database.sysIdentifier("HELP"), database.sysIdentifier("TOPIC"), false));
+        StringFunction1 function = new StringFunction1(new ExpressionColumn(database, informationSchema,
+                database.sysIdentifier("HELP"), database.sysIdentifier("TOPIC"), false), StringFunction1.UPPER);
         TableFilter filter = new TableFilter(session, table, null, rightsChecked, select, 0, null);
         select.addTableFilter(filter, true);
         while (currentTokenType != END_OF_INPUT) {
@@ -4154,8 +4154,7 @@ public class Parser {
             return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIMESTAMP, true, "NOW");
         // LOWER
         case "LCASE":
-            function = Function.getFunction(Function.LOWER);
-            break;
+            return readStringFunction1(StringFunction1.LOWER);
         // SUBSTRING
         case "SUBSTR":
             function = Function.getFunction(Function.SUBSTRING);
@@ -4171,8 +4170,7 @@ public class Parser {
             break;
         // UPPER
         case "UCASE":
-            function = Function.getFunction(Function.UPPER);
-            break;
+            return readStringFunction1(StringFunction1.UPPER);
         // Sequence value
         case "CURRVAL":
             return readCompatibilitySequenceValueFunction(true);
@@ -4325,6 +4323,26 @@ public class Parser {
             return readCardinalityExpression(false);
         case "ARRAY_MAX_CARDINALITY":
             return readCardinalityExpression(true);
+        case "UPPER":
+            return readStringFunction1(StringFunction1.UPPER);
+        case "LOWER":
+            return readStringFunction1(StringFunction1.LOWER);
+        case "STRINGENCODE":
+            return readStringFunction1(StringFunction1.STRINGENCODE);
+        case "STRINGDECODE":
+            return readStringFunction1(StringFunction1.STRINGDECODE);
+        case "STRINGTOUTF8":
+            return readStringFunction1(StringFunction1.STRINGTOUTF8);
+        case "UTF8TOSTRING":
+            return readStringFunction1(StringFunction1.UTF8TOSTRING);
+        case "HEXTORAW":
+            return readStringFunction1(StringFunction1.HEXTORAW);
+        case "RAWTOHEX":
+            return readStringFunction1(StringFunction1.RAWTOHEX);
+        case "SPACE":
+            return readStringFunction1(StringFunction1.SPACE);
+        case "QUOTE_IDENT":
+            return readStringFunction1(StringFunction1.QUOTE_IDENT);
         case "SOUNDEX":
             return readSoundexFunction(SoundexFunction.SOUNDEX, 1);
         case "DIFFERENCE":
@@ -4440,6 +4458,12 @@ public class Parser {
         Expression arg = readExpression();
         read(CLOSE_PAREN);
         return new CardinalityExpression(arg, max);
+    }
+
+    private Expression readStringFunction1(int function) {
+        Expression arg = readExpression();
+        read(CLOSE_PAREN);
+        return new StringFunction1(arg, function);
     }
 
     private Expression readSoundexFunction(int function, int numArgs) {

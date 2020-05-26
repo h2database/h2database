@@ -36,10 +36,13 @@ public final class BuiltinFunctions {
                 "DAYNAME", "MONTHNAME",
                 // CardinalityExpression
                 "CARDINALITY", "ARRAY_MAX_CARDINALITY",
-                // JsonConstructorFunction
-                "JSON_OBJECT", "JSON_ARRAY",
+                // StringFunction1
+                "UPPER", "LOWER", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8", "UTF8TOSTRING", //
+                "HEXTORAW", "RAWTOHEX", "SPACE", "QUOTE_IDENT",
                 // SoundexFunction
                 "SOUNDEX", "DIFFERENCE",
+                // JsonConstructorFunction
+                "JSON_OBJECT", "JSON_ARRAY",
                 // CompatibilityIdentityFunction
                 "IDENTITY", "SCOPE_IDENTITY",
                 // CompatibilitySequenceValueFunction

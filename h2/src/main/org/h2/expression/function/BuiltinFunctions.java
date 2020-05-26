@@ -43,6 +43,8 @@ public final class BuiltinFunctions {
                 "SOUNDEX", "DIFFERENCE",
                 // JsonConstructorFunction
                 "JSON_OBJECT", "JSON_ARRAY",
+                // CryptFunction
+                "ENCRYPT", "DECRYPT",
                 // CompatibilityIdentityFunction
                 "IDENTITY", "SCOPE_IDENTITY",
                 // CompatibilitySequenceValueFunction

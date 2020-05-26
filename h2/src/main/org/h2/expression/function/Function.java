@@ -49,8 +49,6 @@ import org.h2.mode.FunctionsMySQL;
 import org.h2.mode.FunctionsOracle;
 import org.h2.mode.FunctionsPostgreSQL;
 import org.h2.mvstore.db.MVSpatialIndex;
-import org.h2.security.BlockCipher;
-import org.h2.security.CipherFactory;
 import org.h2.security.SHA3;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
@@ -92,8 +90,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     public static final int
             RAND = 20, ROUND = 21,
             ROUNDMAGIC = 22, SIGN = 23,
-            TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30,
-            DECRYPT = 31, COMPRESS = 32, EXPAND = 33,
+            TRUNCATE = 27, SECURE_RAND = 28, HASH = 29,
+            COMPRESS = 32, EXPAND = 33,
             RANDOM_UUID = 35,
             ORA_HASH = 41;
 
@@ -168,8 +166,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         // same as TRUNCATE
         addFunction("TRUNC", TRUNCATE, VAR_ARGS, Value.NULL);
         addFunction("HASH", HASH, VAR_ARGS, Value.VARBINARY);
-        addFunction("ENCRYPT", ENCRYPT, 3, Value.VARBINARY);
-        addFunction("DECRYPT", DECRYPT, 3, Value.VARBINARY);
         addFunctionNotDeterministic("SECURE_RAND", SECURE_RAND, 1, Value.VARBINARY);
         addFunction("COMPRESS", COMPRESS, VAR_ARGS, Value.VARBINARY);
         addFunction("EXPAND", EXPAND, 1, Value.VARBINARY);
@@ -736,14 +732,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case HASH:
             result = getHash(v0.getString(), v1, v2 == null ? 1 : v2.getInt());
             break;
-        case ENCRYPT:
-            result = ValueVarbinary.getNoCopy(encrypt(v0.getString(),
-                    v1.getBytesNoCopy(), v2.getBytesNoCopy()));
-            break;
-        case DECRYPT:
-            result = ValueVarbinary.getNoCopy(decrypt(v0.getString(),
-                    v1.getBytesNoCopy(), v2.getBytesNoCopy()));
-            break;
         case COMPRESS: {
             String algorithm = null;
             if (v1 != null) {
@@ -1284,29 +1272,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
     }
 
-    private static byte[] getPaddedArrayCopy(byte[] data, int blockSize) {
-        int size = MathUtils.roundUpInt(data.length, blockSize);
-        return Utils.copyBytes(data, size);
-    }
-
-    private static byte[] decrypt(String algorithm, byte[] key, byte[] data) {
-        BlockCipher cipher = CipherFactory.getBlockCipher(algorithm);
-        byte[] newKey = getPaddedArrayCopy(key, cipher.getKeyLength());
-        cipher.setKey(newKey);
-        byte[] newData = getPaddedArrayCopy(data, BlockCipher.ALIGN);
-        cipher.decrypt(newData, 0, newData.length);
-        return newData;
-    }
-
-    private static byte[] encrypt(String algorithm, byte[] key, byte[] data) {
-        BlockCipher cipher = CipherFactory.getBlockCipher(algorithm);
-        byte[] newKey = getPaddedArrayCopy(key, cipher.getKeyLength());
-        cipher.setKey(newKey);
-        byte[] newData = getPaddedArrayCopy(data, BlockCipher.ALIGN);
-        cipher.encrypt(newData, 0, newData.length);
-        return newData;
-    }
-
     private static Value getHash(String algorithm, Value value, int iterations) {
         if (iterations <= 0) {
             throw DbException.getInvalidValueException("iterations", iterations);
@@ -1821,10 +1786,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                     ? Value.VARBINARY : Value.VARCHAR, p, 0, null);
             break;
         }
-        case ENCRYPT:
-        case DECRYPT:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[2].getType().getPrecision(), 0, null);
-            break;
         case COMPRESS:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p0.getType().getPrecision(), 0, null);
             break;

@@ -269,6 +269,7 @@ import org.h2.expression.function.CardinalityExpression;
 import org.h2.expression.function.CastSpecification;
 import org.h2.expression.function.CompatibilityIdentityFunction;
 import org.h2.expression.function.CompatibilitySequenceValueFunction;
+import org.h2.expression.function.CryptFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.CurrentGeneralValueSpecification;
 import org.h2.expression.function.DateTimeFormatFunction;
@@ -4379,6 +4380,10 @@ public class Parser {
             function.doneWithParameters();
             return function;
         }
+        case "ENCRYPT":
+            return readCryptFunction(CryptFunction.ENCRYPT);
+        case "DECRYPT":
+            return readCryptFunction(CryptFunction.DECRYPT);
         case "ZERO":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueInteger.get(0));
@@ -4480,6 +4485,16 @@ public class Parser {
         }
         read(CLOSE_PAREN);
         return arg2;
+    }
+
+    private Expression readCryptFunction(int function) {
+        Expression arg1 = readExpression();
+        read(COMMA);
+        Expression arg2 = readExpression();
+        read(COMMA);
+        Expression arg3 = readExpression();
+        read(CLOSE_PAREN);
+        return new CryptFunction(arg1, arg2, arg3, function);
     }
 
     private Function readFunctionParameters(Function function) {

@@ -45,6 +45,8 @@ public final class BuiltinFunctions {
                 "JSON_OBJECT", "JSON_ARRAY",
                 // CryptFunction
                 "ENCRYPT", "DECRYPT",
+                // CoalesceFunction
+                "COALESCE", "GREATEST", "LEAST",
                 // CompatibilityIdentityFunction
                 "IDENTITY", "SCOPE_IDENTITY",
                 // CompatibilitySequenceValueFunction

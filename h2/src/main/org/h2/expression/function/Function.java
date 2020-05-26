@@ -114,11 +114,11 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
     public static final int
-            COALESCE = 204, NULLIF = 205,
+            NULLIF = 205,
             CSVREAD = 210, CSVWRITE = 211,
             MEMORY_FREE = 212, MEMORY_USED = 213,
             LOCK_MODE = 214, SESSION_ID = 216,
-            LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
+            LINK_SCHEMA = 218,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
             ARRAY_CONTAINS = 230, FILE_WRITE = 232,
@@ -222,7 +222,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 0, Value.INTEGER);
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
                 3, Value.NULL);
-        addFunctionWithNull("COALESCE", COALESCE, VAR_ARGS, Value.NULL);
         addFunctionWithNull("NULLIF", NULLIF,
                 2, Value.NULL);
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
@@ -240,10 +239,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 0, Value.INTEGER);
         addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
                 6, Value.RESULT_SET);
-        addFunctionWithNull("LEAST", LEAST,
-                VAR_ARGS, Value.NULL);
-        addFunctionWithNull("GREATEST", GREATEST,
-                VAR_ARGS, Value.NULL);
         addFunctionNotDeterministic("CANCEL_SESSION", CANCEL_SESSION,
                 1, Value.BOOLEAN);
         addFunctionNotDeterministic("ABORT_SESSION", ABORT_SESSION,
@@ -539,40 +534,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case SESSION_ID:
             result = ValueInteger.get(session.getId());
             break;
-        case COALESCE: {
-            result = v0;
-            for (int i = 0; i < args.length; i++) {
-                Value v = getNullOrValue(session, args, values, i);
-                if (v != ValueNull.INSTANCE) {
-                    result = v.convertTo(type, session);
-                    break;
-                }
-            }
-            break;
-        }
-        case GREATEST:
-        case LEAST: {
-            result = ValueNull.INSTANCE;
-            for (int i = 0; i < args.length; i++) {
-                Value v = getNullOrValue(session, args, values, i);
-                if (v != ValueNull.INSTANCE) {
-                    v = v.convertTo(type, session);
-                    if (result == ValueNull.INSTANCE) {
-                        result = v;
-                    } else {
-                        int comp = session.compareTypeSafe(result, v);
-                        if (info.type == GREATEST) {
-                            if (comp < 0) {
-                                result = v;
-                            }
-                        } else if (comp > 0) {
-                            result = v;
-                        }
-                    }
-                }
-            }
-            break;
-        }
         case ARRAY_CONTAINS: {
             result = ValueBoolean.FALSE;
             Value[] list = getArray(v0);
@@ -1614,10 +1575,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     protected void checkParameterCount(int len) {
         int min = 0, max = Integer.MAX_VALUE;
         switch (info.type) {
-        case COALESCE:
         case CSVREAD:
-        case LEAST:
-        case GREATEST:
             min = 1;
             break;
         case RAND:
@@ -1691,24 +1649,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         Expression p0 = args.length < 1 ? null : args[0];
         switch (info.type) {
         case NULLIF:
-        case COALESCE:
-        case LEAST:
-        case GREATEST: {
-            typeInfo = TypeInfo.TYPE_UNKNOWN;
-            for (Expression e : args) {
-                if (!e.isNullConstant()) {
-                    TypeInfo type = e.getType();
-                    int valueType = type.getValueType();
-                    if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
-                        typeInfo = TypeInfo.getHigherType(typeInfo, type);
-                    }
-                }
-            }
-            if (typeInfo.getValueType() == Value.UNKNOWN) {
-                typeInfo = TypeInfo.TYPE_VARCHAR;
-            }
+            typeInfo = p0.getType();
             break;
-        }
         case TRUNCATE_VALUE:
             if (type != null) {
                 // data type, precision and scale is already set

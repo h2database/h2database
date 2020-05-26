@@ -31,7 +31,7 @@ import org.h2.expression.analysis.Window;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
 import org.h2.expression.condition.ConditionLocalAndGlobal;
-import org.h2.expression.function.Function;
+import org.h2.expression.function.CoalesceFunction;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -937,7 +937,7 @@ public class Select extends Query {
                             e = new ExpressionColumn(database, replacementSchema, replacementAlias,
                                     replacementFilter.getColumnName(right), false);
                         } else {
-                            e = new Alias(Function.getFunctionWithArgs(Function.COALESCE,
+                            e = new Alias(new CoalesceFunction(CoalesceFunction.COALESCE,
                                     new ExpressionColumn(database, schema, alias, filter.getColumnName(left), false),
                                     new ExpressionColumn(database, replacementSchema, replacementAlias,
                                             replacementFilter.getColumnName(right), false)), //

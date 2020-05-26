@@ -267,6 +267,7 @@ import org.h2.expression.function.BitFunction;
 import org.h2.expression.function.BuiltinFunctions;
 import org.h2.expression.function.CardinalityExpression;
 import org.h2.expression.function.CastSpecification;
+import org.h2.expression.function.CoalesceFunction;
 import org.h2.expression.function.CompatibilityIdentityFunction;
 import org.h2.expression.function.CompatibilitySequenceValueFunction;
 import org.h2.expression.function.CryptFunction;
@@ -4086,17 +4087,15 @@ public class Parser {
             return new CastSpecification(arg, column);
         }
         // COALESCE
-        case "IFNULL":
-            function = Function.getFunction(Function.COALESCE);
-            function.addParameter(readExpression());
+        case "IFNULL": {
+            Expression arg1 = readExpression();
             read(COMMA);
-            function.addParameter(readExpression());
+            Expression arg2 = readExpression();
             read(CLOSE_PAREN);
-            function.doneWithParameters();
-            return function;
+            return new CoalesceFunction(CoalesceFunction.COALESCE, arg1, arg2);
+        }
         case "NVL":
-            function = Function.getFunction(Function.COALESCE);
-            break;
+            return readCoalesceFunction(CoalesceFunction.COALESCE);
         // CURRENT_CATALOG
         case "DATABASE":
             read(CLOSE_PAREN);
@@ -4384,6 +4383,12 @@ public class Parser {
             return readCryptFunction(CryptFunction.ENCRYPT);
         case "DECRYPT":
             return readCryptFunction(CryptFunction.DECRYPT);
+        case "COALESCE":
+            return readCoalesceFunction(CoalesceFunction.COALESCE);
+        case "GREATEST":
+            return readCoalesceFunction(CoalesceFunction.GREATEST);
+        case "LEAST":
+            return readCoalesceFunction(CoalesceFunction.LEAST);
         case "ZERO":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueInteger.get(0));
@@ -4495,6 +4500,16 @@ public class Parser {
         Expression arg3 = readExpression();
         read(CLOSE_PAREN);
         return new CryptFunction(arg1, arg2, arg3, function);
+    }
+
+    private Expression readCoalesceFunction(int function) {
+        CoalesceFunction f = new CoalesceFunction(function);
+        f.addParameter(readExpression());
+        while (readIfMore()) {
+            f.addParameter(readExpression());
+        }
+        f.doneWithParameters();
+        return f;
     }
 
     private Function readFunctionParameters(Function function) {

@@ -6063,9 +6063,10 @@ NEXTVAL('TEST_SEQ')
 "Functions (System)","NULLIF","
 NULLIF(aValue, bValue)
 ","
-Returns NULL if 'a' is equals to 'b', otherwise 'a'.
+Returns NULL if 'a' is equal to 'b', otherwise 'a'.
 ","
 NULLIF(A, B)
+A / NULLIF(B, 0)
 "
 
 "Functions (System)","NVL2","

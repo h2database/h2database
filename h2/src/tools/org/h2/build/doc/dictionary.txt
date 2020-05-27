@@ -836,5 +836,5 @@ datallowconn atthasdef dattablespace rolcreatedb inhrelid inhparent attlen rolna
 indpred tgfoid indisprimary adsrc spcowner tgnargs typtype typinput rolcatupdate typnamespace tgrelid authid indexrelid
 usesuper tgdeferrable rolpassword relam relpages tginitdeferred rolsuper autovacuum typnotnull spclocation cancreate
 nsp pgagent pga awoken serverencoding untyped ambiguities tons lhs letting rhs opportunities specifications
-usefully pipelining fetches reenable joiner visits dcl avxaaa german
-conrelid conkey tabrelname refnamespace dsc pred typrelid conname contype confrelid numscans beaver
+usefully pipelining fetches reenable joiner visits dcl avxaaa german fold
+conrelid conkey tabrelname refnamespace dsc pred typrelid conname contype confrelid numscans beaver typdelim typelem

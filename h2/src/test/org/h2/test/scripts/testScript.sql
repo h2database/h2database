@@ -1650,10 +1650,10 @@ INSERT INTO TEST VALUES(1, '10', NULL), (2, '0', NULL);
 > update count: 2
 
 SELECT LEAST(ID, C, NAME), GREATEST(ID, C, NAME), LEAST(NULL, C), GREATEST(NULL, NULL), ID FROM TEST ORDER BY ID;
-> LEAST(ID, C, NAME) GREATEST(ID, C, NAME) LEAST(NULL, C) NULL ID
-> ------------------ --------------------- -------------- ---- --
-> 1                  10                    null           null 1
-> 0                  2                     null           null 2
+> LEAST(ID, C, NAME) GREATEST(ID, C, NAME) LEAST(NULL, C) CAST(NULL AS VARCHAR) ID
+> ------------------ --------------------- -------------- --------------------- --
+> 1                  10                    null           null                  1
+> 0                  2                     null           null                  2
 > rows (ordered): 2
 
 DROP TABLE IF EXISTS TEST;

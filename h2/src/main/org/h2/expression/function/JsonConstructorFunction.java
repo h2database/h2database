@@ -39,17 +39,6 @@ public class JsonConstructorFunction extends OperationN implements ExpressionWit
      */
     public static final int JSON_WITH_UNIQUE_KEYS = 2;
 
-    /**
-     * Returns whether specified function is known by this class.
-     *
-     * @param upperName
-     *            the name of the function in upper case
-     * @return {@code true} if it exists
-     */
-    public static boolean exists(String upperName) {
-        return upperName.equals("JSON_OBJECT") || upperName.equals("JSON_ARRAY");
-    }
-
     private final boolean array;
 
     private int flags;
@@ -209,14 +198,7 @@ public class JsonConstructorFunction extends OperationN implements ExpressionWit
 
     @Override
     public Expression optimize(Session session) {
-        boolean allConst = true;
-        for (int i = 0, l = args.length; i < l; i++) {
-            Expression e = args[i].optimize(session);
-            args[i] = e;
-            if (!e.isConstant()) {
-                allConst = false;
-            }
-        }
+        boolean allConst = optimizeArguments(session, true);
         type = TypeInfo.TYPE_JSON;
         if (allConst) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);

@@ -7,8 +7,7 @@ package org.h2.expression;
 
 import org.h2.engine.Session;
 import org.h2.expression.IntervalOperation.IntervalOpType;
-import org.h2.expression.function.DateTimeFunctions;
-import org.h2.expression.function.Function;
+import org.h2.expression.function.DateTimeFunction;
 import org.h2.message.DbException;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
@@ -303,19 +302,15 @@ public class BinaryOperation extends Operation2 {
             switch (l) {
             case Value.INTEGER:
                 // Oracle date add
-                return Function.getFunctionWithArgs(Function.DATEADD,
-                        ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY)), left, right).optimize(session);
+                return new DateTimeFunction(DateTimeFunction.DATEADD, DateTimeFunction.DAY, left, right)
+                        .optimize(session);
             case Value.NUMERIC:
             case Value.REAL:
             case Value.DOUBLE:
                 // Oracle date add
-                return Function
-                        .getFunctionWithArgs(Function.DATEADD,
-                                ValueExpression.get(ValueInteger.get(DateTimeFunctions.SECOND)),
-                                new BinaryOperation(OpType.MULTIPLY,
-                                        ValueExpression.get(ValueInteger.get(60 * 60 * 24)), left),
-                                right)
-                        .optimize(session);
+                return new DateTimeFunction(DateTimeFunction.DATEADD, DateTimeFunction.SECOND,
+                        new BinaryOperation(OpType.MULTIPLY, ValueExpression.get(ValueInteger.get(60 * 60 * 24)),
+                                left), right).optimize(session);
             }
             break;
         }
@@ -330,10 +325,8 @@ public class BinaryOperation extends Operation2 {
                         throw getUnexpectedForcedTypeException();
                     }
                     // Oracle date subtract
-                    return Function.getFunctionWithArgs(Function.DATEADD,
-                            ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY)), //
-                            new UnaryOperation(right), //
-                            left).optimize(session);
+                    return new DateTimeFunction(DateTimeFunction.DATEADD, DateTimeFunction.DAY,
+                            new UnaryOperation(right), left).optimize(session);
                 }
                 case Value.NUMERIC:
                 case Value.REAL:
@@ -342,11 +335,9 @@ public class BinaryOperation extends Operation2 {
                         throw getUnexpectedForcedTypeException();
                     }
                     // Oracle date subtract
-                    return Function.getFunctionWithArgs(Function.DATEADD,
-                                ValueExpression.get(ValueInteger.get(DateTimeFunctions.SECOND)),
-                                new UnaryOperation(new BinaryOperation(OpType.MULTIPLY, //
-                                        ValueExpression.get(ValueInteger.get(60 * 60 * 24)), right)), //
-                                left).optimize(session);
+                    return new DateTimeFunction(DateTimeFunction.DATEADD, DateTimeFunction.SECOND,
+                            new BinaryOperation(OpType.MULTIPLY, ValueExpression.get(ValueInteger.get(-60 * 60 * 24)),
+                                    right), left).optimize(session);
                 }
                 case Value.TIME:
                 case Value.TIME_TZ:

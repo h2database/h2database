@@ -39,22 +39,6 @@ public class MathFunction2 extends Operation2 implements NamedExpression {
             "ATAN2", "LOG", "POWER" //
     };
 
-    /**
-     * Returns whether specified function is known by this class.
-     *
-     * @param upperName
-     *            the name of the function in upper case
-     * @return {@code true} if it exists
-     */
-    public static boolean exists(String upperName) {
-        for (String n : NAMES) {
-            if (n.equals(upperName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private final int function;
 
     public MathFunction2(Expression arg1, Expression arg2, int function) {

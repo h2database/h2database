@@ -9,6 +9,7 @@ import java.util.HashMap;
 
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.function.CoalesceFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
@@ -25,10 +26,12 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
 
     private static final int GETDATE = 4001;
 
+    private static final int ISNULL = GETDATE + 1;
+
     static {
         copyFunction(FUNCTIONS, "LOCATE", "CHARINDEX");
         FUNCTIONS.put("GETDATE", new FunctionInfo("GETDATE", GETDATE, 0, Value.TIMESTAMP, false, true));
-        FUNCTIONS.put("ISNULL", new FunctionInfo("ISNULL", Function.COALESCE, 2, Value.NULL, false, true));
+        FUNCTIONS.put("ISNULL", new FunctionInfo("ISNULL", ISNULL, 2, Value.NULL, false, true));
         copyFunction(FUNCTIONS, "LENGTH", "LEN");
         copyFunction(FUNCTIONS, "RANDOM_UUID", "NEWID");
     }
@@ -60,6 +63,8 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
         switch (info.type) {
         case GETDATE:
             return new CurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIMESTAMP, 3).optimize(session);
+        case ISNULL:
+            return new CoalesceFunction(CoalesceFunction.COALESCE, args).optimize(session);
         default:
             throw DbException.throwInternalError("type=" + info.type);
         }

@@ -264,13 +264,18 @@ import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
 import org.h2.expression.function.BitFunction;
+import org.h2.expression.function.BuiltinFunctions;
 import org.h2.expression.function.CardinalityExpression;
 import org.h2.expression.function.CastSpecification;
+import org.h2.expression.function.CoalesceFunction;
 import org.h2.expression.function.CompatibilityIdentityFunction;
 import org.h2.expression.function.CompatibilitySequenceValueFunction;
+import org.h2.expression.function.CryptFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.CurrentGeneralValueSpecification;
-import org.h2.expression.function.DateTimeFunctions;
+import org.h2.expression.function.DateTimeFormatFunction;
+import org.h2.expression.function.DateTimeFunction;
+import org.h2.expression.function.DayMonthNameFunction;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.JavaFunction;
@@ -278,6 +283,8 @@ import org.h2.expression.function.JsonConstructorFunction;
 import org.h2.expression.function.MathFunction;
 import org.h2.expression.function.MathFunction1;
 import org.h2.expression.function.MathFunction2;
+import org.h2.expression.function.SoundexFunction;
+import org.h2.expression.function.StringFunction1;
 import org.h2.expression.function.TableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
@@ -316,6 +323,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJson;
@@ -1563,9 +1571,8 @@ public class Parser {
         String informationSchema = database.sysIdentifier("INFORMATION_SCHEMA");
         Table table = database.getSchema(informationSchema)
                 .resolveTableOrView(session, database.sysIdentifier("HELP"));
-        Function function = Function.getFunctionWithArgs(Function.UPPER,
-                new ExpressionColumn(database, informationSchema,
-                        database.sysIdentifier("HELP"), database.sysIdentifier("TOPIC"), false));
+        StringFunction1 function = new StringFunction1(new ExpressionColumn(database, informationSchema,
+                database.sysIdentifier("HELP"), database.sysIdentifier("TOPIC"), false), StringFunction1.UPPER);
         TableFilter filter = new TableFilter(session, table, null, rightsChecked, select, 0, null);
         select.addTableFilter(filter, true);
         while (currentTokenType != END_OF_INPUT) {
@@ -4015,32 +4022,19 @@ public class Parser {
         switch (name) {
         // ||
         case "ARRAY_APPEND":
-        case "ARRAY_CAT": {
-            Expression l = readExpression();
-            read(COMMA);
-            Expression r = readExpression();
-            read(CLOSE_PAREN);
-            return new ConcatenationOperation(l, r);
-        }
+        case "ARRAY_CAT":
+            return new ConcatenationOperation(readExpression(), readLastArgument());
         // []
-        case "ARRAY_GET": {
-            Expression l = readExpression();
-            read(COMMA);
-            Expression r = readExpression();
-            read(CLOSE_PAREN);
-            return new ArrayElementReference(l, r);
-        }
+        case "ARRAY_GET":
+            return new ArrayElementReference(readExpression(), readLastArgument());
         // CARDINALITY
         case "ARRAY_LENGTH":
-            return readCardinalityExpression(false);
+            return new CardinalityExpression(readSingleArgument(), false);
         // Simple case
         case "DECODE": {
             Expression caseOperand = readExpression();
             boolean canOptimize = caseOperand.isConstant() && !caseOperand.getValue(session).containsNull();
-            read(COMMA);
-            Expression a = readExpression();
-            read(COMMA);
-            Expression b = readExpression();
+            Expression a = readNextArgument(), b = readNextArgument();
             SimpleCase.SimpleWhen when = decodeToWhen(caseOperand, canOptimize, a, b), current = when;
             Expression elseResult = null;
             while (readIf(COMMA)) {
@@ -4069,8 +4063,7 @@ public class Parser {
             Column column;
             if (database.getMode().swapConvertFunctionParameters) {
                 column = parseColumnWithType(null);
-                read(COMMA);
-                arg = readExpression();
+                arg = readNextArgument();
             } else {
                 arg = readExpression();
                 read(COMMA);
@@ -4081,16 +4074,9 @@ public class Parser {
         }
         // COALESCE
         case "IFNULL":
-            function = Function.getFunction(Function.COALESCE);
-            function.addParameter(readExpression());
-            read(COMMA);
-            function.addParameter(readExpression());
-            read(CLOSE_PAREN);
-            function.doneWithParameters();
-            return function;
+            return new CoalesceFunction(CoalesceFunction.COALESCE, readExpression(), readLastArgument());
         case "NVL":
-            function = Function.getFunction(Function.COALESCE);
-            break;
+            return readCoalesceFunction(CoalesceFunction.COALESCE);
         // CURRENT_CATALOG
         case "DATABASE":
             read(CLOSE_PAREN);
@@ -4111,59 +4097,39 @@ public class Parser {
         case "DAY":
         case "DAY_OF_MONTH":
         case "DAYOFMONTH":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY)));
-            break;
+            return new DateTimeFunction(DateTimeFunction.EXTRACT, DateTimeFunction.DAY, readSingleArgument(), null);
         case "DAY_OF_WEEK":
         case "DAYOFWEEK":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY_OF_WEEK)));
-            break;
+            return new DateTimeFunction(DateTimeFunction.EXTRACT, DateTimeFunction.DAY_OF_WEEK, readSingleArgument(),
+                    null);
         case "DAY_OF_YEAR":
         case "DAYOFYEAR":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.DAY_OF_YEAR)));
-            break;
+            return new DateTimeFunction(DateTimeFunction.EXTRACT, DateTimeFunction.DAY_OF_YEAR, readSingleArgument(),
+                    null);
         case "HOUR":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.HOUR)));
-            break;
+            return new DateTimeFunction(DateTimeFunction.EXTRACT, DateTimeFunction.HOUR, readSingleArgument(), null);
         case "ISO_DAY_OF_WEEK":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_DAY_OF_WEEK)));
-            break;
+            return new DateTimeFunction(DateTimeFunction.EXTRACT, DateTimeFunction.ISO_DAY_OF_WEEK,
+                    readSingleArgument(), null);
         case "ISO_WEEK":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_WEEK)));
-            break;
+            return new DateTimeFunction(DateTimeFunction.EXTRACT, DateTimeFunction.ISO_WEEK, readSingleArgument(),
+                    null);
         case "ISO_YEAR":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.ISO_WEEK_YEAR)));
-            break;
+            return new DateTimeFunction(DateTimeFunction.EXTRACT, DateTimeFunction.ISO_WEEK_YEAR, readSingleArgument(),
+                    null);
         case "MINUTE":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.MINUTE)));
-            break;
+            return new DateTimeFunction(DateTimeFunction.EXTRACT, DateTimeFunction.MINUTE, readSingleArgument(), null);
         case "MONTH":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.MONTH)));
-            break;
+            return new DateTimeFunction(DateTimeFunction.EXTRACT, DateTimeFunction.MONTH, readSingleArgument(), null);
         case "QUARTER":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.QUARTER)));
-            break;
+            return new DateTimeFunction(DateTimeFunction.EXTRACT, DateTimeFunction.QUARTER, readSingleArgument(), //
+                    null);
         case "SECOND":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.SECOND)));
-            break;
+            return new DateTimeFunction(DateTimeFunction.EXTRACT, DateTimeFunction.SECOND, readSingleArgument(), null);
         case "WEEK":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.WEEK)));
-            break;
+            return new DateTimeFunction(DateTimeFunction.EXTRACT, DateTimeFunction.WEEK, readSingleArgument(), null);
         case "YEAR":
-            function = Function.getFunction(Function.EXTRACT);
-            function.addParameter(ValueExpression.get(ValueInteger.get(DateTimeFunctions.YEAR)));
-            break;
+            return new DateTimeFunction(DateTimeFunction.EXTRACT, DateTimeFunction.YEAR, readSingleArgument(), null);
         // LOCALTIME
         case "CURTIME":
             return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIME, true, "CURTIME");
@@ -4175,8 +4141,7 @@ public class Parser {
             return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIMESTAMP, true, "NOW");
         // LOWER
         case "LCASE":
-            function = Function.getFunction(Function.LOWER);
-            break;
+            return new StringFunction1(readSingleArgument(), StringFunction1.LOWER);
         // SUBSTRING
         case "SUBSTR":
             function = Function.getFunction(Function.SUBSTRING);
@@ -4192,8 +4157,7 @@ public class Parser {
             break;
         // UPPER
         case "UCASE":
-            function = Function.getFunction(Function.UPPER);
-            break;
+            return new StringFunction1(readSingleArgument(), StringFunction1.UPPER);
         // Sequence value
         case "CURRVAL":
             return readCompatibilitySequenceValueFunction(true);
@@ -4226,12 +4190,7 @@ public class Parser {
     }
 
     private Expression readCompatibilityCase(Expression when) {
-        read(COMMA);
-        Expression then = readExpression();
-        read(COMMA);
-        Expression elseExpression = readExpression();
-        read(CLOSE_PAREN);
-        return new SearchedCase(new Expression[] { when, then, elseExpression });
+        return new SearchedCase(new Expression[] { when, readNextArgument(), readLastArgument() });
     }
 
     private Expression readCompatibilitySequenceValueFunction(boolean current) {
@@ -4243,37 +4202,35 @@ public class Parser {
     private Expression readBuiltinFunctionIf(String upperName) {
         switch (upperName) {
         case "ABS":
-            return readMathFunction(MathFunction.ABS, 1);
+            return new MathFunction(readSingleArgument(), null, MathFunction.ABS);
         case "MOD":
-            return readMathFunction(MathFunction.MOD, 2);
+            return new MathFunction(readExpression(), readLastArgument(), MathFunction.MOD);
         case "SIN":
-            return readMathFunction1(MathFunction1.SIN);
+            return new MathFunction1(readSingleArgument(), MathFunction1.SIN);
         case "COS":
-            return readMathFunction1(MathFunction1.COS);
+            return new MathFunction1(readSingleArgument(), MathFunction1.COS);
         case "TAN":
-            return readMathFunction1(MathFunction1.TAN);
+            return new MathFunction1(readSingleArgument(), MathFunction1.TAN);
         case "COT":
-            return readMathFunction1(MathFunction1.COT);
+            return new MathFunction1(readSingleArgument(), MathFunction1.COT);
         case "SINH":
-            return readMathFunction1(MathFunction1.SINH);
+            return new MathFunction1(readSingleArgument(), MathFunction1.SINH);
         case "COSH":
-            return readMathFunction1(MathFunction1.COSH);
+            return new MathFunction1(readSingleArgument(), MathFunction1.COSH);
         case "TANH":
-            return readMathFunction1(MathFunction1.TANH);
+            return new MathFunction1(readSingleArgument(), MathFunction1.TANH);
         case "ASIN":
-            return readMathFunction1(MathFunction1.ASIN);
+            return new MathFunction1(readSingleArgument(), MathFunction1.ASIN);
         case "ACOS":
-            return readMathFunction1(MathFunction1.ACOS);
+            return new MathFunction1(readSingleArgument(), MathFunction1.ACOS);
         case "ATAN":
-            return readMathFunction1(MathFunction1.ATAN);
+            return new MathFunction1(readSingleArgument(), MathFunction1.ATAN);
         case "ATAN2":
-            return readMathFunction2(MathFunction2.ATAN2);
+            return new MathFunction2(readExpression(), readLastArgument(), MathFunction2.ATAN2);
         case "LOG": {
             Expression arg1 = readExpression();
             if (readIf(COMMA)) {
-                Expression arg2 = readExpression();
-                read(CLOSE_PAREN);
-                return new MathFunction2(arg1, arg2, MathFunction2.LOG);
+                return new MathFunction2(arg1, readSingleArgument(), MathFunction2.LOG);
             } else {
                 read(CLOSE_PAREN);
                 return new MathFunction1(arg1,
@@ -4281,45 +4238,92 @@ public class Parser {
             }
         }
         case "LOG10":
-            return readMathFunction1(MathFunction1.LOG10);
+            return new MathFunction1(readSingleArgument(), MathFunction1.LOG10);
         case "LN":
-            return readMathFunction1(MathFunction1.LN);
+            return new MathFunction1(readSingleArgument(), MathFunction1.LN);
         case "EXP":
-            return readMathFunction1(MathFunction1.EXP);
+            return new MathFunction1(readSingleArgument(), MathFunction1.EXP);
         case "POWER":
-            return readMathFunction2(MathFunction2.POWER);
+            return new MathFunction2(readExpression(), readLastArgument(), MathFunction2.POWER);
         case "SQRT":
-            return readMathFunction1(MathFunction1.SQRT);
+            return new MathFunction1(readSingleArgument(), MathFunction1.SQRT);
         case "FLOOR":
-            return readMathFunction(MathFunction.FLOOR, 1);
+            return new MathFunction(readSingleArgument(), null, MathFunction.FLOOR);
         case "CEIL":
         case "CEILING":
-            return readMathFunction(MathFunction.CEIL, 1);
+            return new MathFunction(readSingleArgument(), null, MathFunction.CEIL);
         case "DEGREES":
-            return readMathFunction1(MathFunction1.DEGREES);
+            return new MathFunction1(readSingleArgument(), MathFunction1.DEGREES);
         case "RADIANS":
-            return readMathFunction1(MathFunction1.RADIANS);
+            return new MathFunction1(readSingleArgument(), MathFunction1.RADIANS);
         case "BITAND":
-            return readBitFunction(BitFunction.BITAND);
+            return new BitFunction(readExpression(), readLastArgument(), BitFunction.BITAND);
         case "BITOR":
-            return readBitFunction(BitFunction.BITOR);
+            return new BitFunction(readExpression(), readLastArgument(), BitFunction.BITOR);
         case "BITXOR":
-            return readBitFunction(BitFunction.BITXOR);
+            return new BitFunction(readExpression(), readLastArgument(), BitFunction.BITXOR);
         case "BITNOT": {
             Expression arg = readExpression();
             read(CLOSE_PAREN);
             return new BitFunction(arg, null, BitFunction.BITNOT);
         }
         case "BITGET":
-            return readBitFunction(BitFunction.BITGET);
+            return new BitFunction(readExpression(), readLastArgument(), BitFunction.BITGET);
         case "LSHIFT":
-            return readBitFunction(BitFunction.LSHIFT);
+            return new BitFunction(readExpression(), readLastArgument(), BitFunction.LSHIFT);
         case "RSHIFT":
-            return readBitFunction(BitFunction.RSHIFT);
+            return new BitFunction(readExpression(), readLastArgument(), BitFunction.RSHIFT);
+        case "EXTRACT": {
+            int field = readDateTimeField();
+            read(FROM);
+            return new DateTimeFunction(DateTimeFunction.EXTRACT, field, readSingleArgument(), null);
+        }
+        case "DATE_TRUNC":
+            return new DateTimeFunction(DateTimeFunction.DATE_TRUNC, readDateTimeField(), readLastArgument(), null);
+        case "DATEADD":
+        case "TIMESTAMPADD":
+            return new DateTimeFunction(DateTimeFunction.DATEADD, readDateTimeField(), readNextArgument(),
+                    readLastArgument());
+        case "DATEDIFF":
+        case "TIMESTAMPDIFF":
+            return new DateTimeFunction(DateTimeFunction.DATEDIFF, readDateTimeField(), readNextArgument(),
+                    readLastArgument());
+        case "FORMATDATETIME":
+            return readDateTimeFormatFunction(DateTimeFormatFunction.FORMATDATETIME);
+        case "PARSEDATETIME":
+            return readDateTimeFormatFunction(DateTimeFormatFunction.PARSEDATETIME);
+        case "DAYNAME":
+            return new DayMonthNameFunction(readSingleArgument(), DayMonthNameFunction.DAYNAME);
+        case "MONTHNAME":
+            return new DayMonthNameFunction(readSingleArgument(), DayMonthNameFunction.MONTHNAME);
         case "CARDINALITY":
-            return readCardinalityExpression(false);
+            return new CardinalityExpression(readSingleArgument(), false);
         case "ARRAY_MAX_CARDINALITY":
-            return readCardinalityExpression(true);
+            return new CardinalityExpression(readSingleArgument(), true);
+        case "UPPER":
+            return new StringFunction1(readSingleArgument(), StringFunction1.UPPER);
+        case "LOWER":
+            return new StringFunction1(readSingleArgument(), StringFunction1.LOWER);
+        case "STRINGENCODE":
+            return new StringFunction1(readSingleArgument(), StringFunction1.STRINGENCODE);
+        case "STRINGDECODE":
+            return new StringFunction1(readSingleArgument(), StringFunction1.STRINGDECODE);
+        case "STRINGTOUTF8":
+            return new StringFunction1(readSingleArgument(), StringFunction1.STRINGTOUTF8);
+        case "UTF8TOSTRING":
+            return new StringFunction1(readSingleArgument(), StringFunction1.UTF8TOSTRING);
+        case "HEXTORAW":
+            return new StringFunction1(readSingleArgument(), StringFunction1.HEXTORAW);
+        case "RAWTOHEX":
+            return new StringFunction1(readSingleArgument(), StringFunction1.RAWTOHEX);
+        case "SPACE":
+            return new StringFunction1(readSingleArgument(), StringFunction1.SPACE);
+        case "QUOTE_IDENT":
+            return new StringFunction1(readSingleArgument(), StringFunction1.QUOTE_IDENT);
+        case "SOUNDEX":
+            return new SoundexFunction(readSingleArgument(), null, SoundexFunction.SOUNDEX);
+        case "DIFFERENCE":
+            return new SoundexFunction(readExpression(), readLastArgument(), SoundexFunction.DIFFERENCE);
         case "JSON_OBJECT": {
             JsonConstructorFunction function = new JsonConstructorFunction(false);
             if (currentTokenType != CLOSE_PAREN && !readJsonObjectFunctionFlags(function, false)) {
@@ -4352,80 +4356,73 @@ public class Parser {
             function.doneWithParameters();
             return function;
         }
+        case "ENCRYPT":
+            return new CryptFunction(readExpression(), readNextArgument(), readLastArgument(), CryptFunction.ENCRYPT);
+        case "DECRYPT":
+            return new CryptFunction(readExpression(), readNextArgument(), readLastArgument(), CryptFunction.DECRYPT);
+        case "COALESCE":
+            return readCoalesceFunction(CoalesceFunction.COALESCE);
+        case "GREATEST":
+            return readCoalesceFunction(CoalesceFunction.GREATEST);
+        case "LEAST":
+            return readCoalesceFunction(CoalesceFunction.LEAST);
+        case "ZERO":
+            read(CLOSE_PAREN);
+            return ValueExpression.get(ValueInteger.get(0));
+        case "PI":
+            read(CLOSE_PAREN);
+            return ValueExpression.get(ValueDouble.get(Math.PI));
         }
         Function function = Function.getFunction(database, upperName);
         return function != null ? readFunctionParameters(function) : null;
     }
 
-    private Expression readMathFunction(int function, int numArgs) {
-        Expression arg1 = readExpression(), arg2;
-        if (numArgs == 2) {
-            read(COMMA);
-            arg2 = readExpression();
-        } else {
-            arg2 = null;
+    private Expression readDateTimeFormatFunction(int function) {
+        DateTimeFormatFunction f = new DateTimeFormatFunction(function);
+        f.addParameter(readExpression());
+        read(COMMA);
+        f.addParameter(readExpression());
+        if (readIf(COMMA)) {
+            f.addParameter(readExpression());
+            if (readIf(COMMA)) {
+                f.addParameter(readExpression());
+            }
         }
         read(CLOSE_PAREN);
-        return new MathFunction(arg1, arg2, function);
+        f.doneWithParameters();
+        return f;
     }
 
-    private Expression readMathFunction1(int function) {
+    private Expression readSingleArgument() {
         Expression arg = readExpression();
         read(CLOSE_PAREN);
-        return new MathFunction1(arg, function);
+        return arg;
     }
 
-    private Expression readMathFunction2(int function) {
-        Expression arg1 = readExpression();
+    private Expression readNextArgument() {
         read(COMMA);
-        Expression arg2 = readExpression();
-        read(CLOSE_PAREN);
-        return new MathFunction2(arg1, arg2, function);
+        return readExpression();
     }
 
-    private Expression readBitFunction(int function) {
-        Expression arg1 = readExpression();
+    private Expression readLastArgument() {
         read(COMMA);
-        Expression arg2 = readExpression();
-        read(CLOSE_PAREN);
-        return new BitFunction(arg1, arg2, function);
-    }
-
-    private Expression readCardinalityExpression(boolean max) {
         Expression arg = readExpression();
         read(CLOSE_PAREN);
-        return new CardinalityExpression(arg, max);
+        return arg;
     }
 
-    private boolean isBuiltinFunction(String upperName) {
-        return Function.getFunction(database, upperName) != null || MathFunction.exists(upperName)
-                || MathFunction1.exists(upperName) || MathFunction2.exists(upperName) || BitFunction.exists(upperName)
-                || JsonConstructorFunction.exists(upperName) || CardinalityExpression.exists(upperName);
+    private Expression readCoalesceFunction(int function) {
+        CoalesceFunction f = new CoalesceFunction(function);
+        f.addParameter(readExpression());
+        while (readIfMore()) {
+            f.addParameter(readExpression());
+        }
+        f.doneWithParameters();
+        return f;
     }
 
     private Function readFunctionParameters(Function function) {
         switch (function.getFunctionType()) {
-        case Function.EXTRACT:
-            readDateTimeField(function);
-            read(FROM);
-            function.addParameter(readExpression());
-            read(CLOSE_PAREN);
-            break;
-        case Function.DATEADD:
-        case Function.DATEDIFF:
-            readDateTimeField(function);
-            read(COMMA);
-            function.addParameter(readExpression());
-            read(COMMA);
-            function.addParameter(readExpression());
-            read(CLOSE_PAREN);
-            break;
-        case Function.DATE_TRUNC:
-            readDateTimeField(function);
-            read(COMMA);
-            function.addParameter(readExpression());
-            read(CLOSE_PAREN);
-            break;
         case Function.SUBSTRING:
             // Standard variants are:
             // SUBSTRING(X FROM 1)
@@ -4441,7 +4438,7 @@ public class Parser {
                     function.addParameter(readExpression());
                 }
             } else if (readIf(FOR)) {
-                function.addParameter(ValueExpression.get(ValueInteger.get(0)));
+                function.addParameter(ValueExpression.get(ValueInteger.get(1)));
                 function.addParameter(readExpression());
             } else {
                 read(COMMA);
@@ -4554,44 +4551,43 @@ public class Parser {
         return function;
     }
 
-    private void readDateTimeField(Function function) {
+    private int readDateTimeField() {
         int field = -1;
         switch (currentTokenType) {
         case IDENTIFIER:
             if (!currentTokenQuoted) {
-                field = DateTimeFunctions.getField(currentToken);
+                field = DateTimeFunction.getField(currentToken);
             }
             break;
         case LITERAL:
             if (currentValue.getValueType() == Value.VARCHAR) {
-                field = DateTimeFunctions.getField(currentValue.getString());
+                field = DateTimeFunction.getField(currentValue.getString());
             }
             break;
         case YEAR:
-            field = DateTimeFunctions.YEAR;
+            field = DateTimeFunction.YEAR;
             break;
         case MONTH:
-            field = DateTimeFunctions.MONTH;
+            field = DateTimeFunction.MONTH;
             break;
         case DAY:
-            field = DateTimeFunctions.DAY;
+            field = DateTimeFunction.DAY;
             break;
         case HOUR:
-            field = DateTimeFunctions.HOUR;
+            field = DateTimeFunction.HOUR;
             break;
         case MINUTE:
-            field = DateTimeFunctions.MINUTE;
+            field = DateTimeFunction.MINUTE;
             break;
         case SECOND:
-            field = DateTimeFunctions.SECOND;
+            field = DateTimeFunction.SECOND;
         }
-        if (field >= 0) {
-            function.addParameter(ValueExpression.get(ValueInteger.get(field)));
-            read();
-        } else {
+        if (field < 0) {
             addExpected("date-time field");
             throw getSyntaxError();
         }
+        read();
+        return field;
     }
 
     private WindowFunction readWindowFunction(String name) {
@@ -7508,7 +7504,7 @@ public class Parser {
         CreateAggregate command = new CreateAggregate(session);
         command.setForce(force);
         String name = readIdentifierWithSchema(), upperName;
-        if (isKeyword(name) || isBuiltinFunction(upperName = upperName(name))
+        if (isKeyword(name) || BuiltinFunctions.isBuiltinFunction(database, upperName = upperName(name))
                 || Aggregate.getAggregateType(upperName) != null) {
             throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
         }
@@ -7715,7 +7711,7 @@ public class Parser {
             return true;
         }
         return Aggregate.getAggregateType(name) != null
-                || isBuiltinFunction(name) && !database.isAllowBuiltinAliasOverride();
+                || BuiltinFunctions.isBuiltinFunction(database, name) && !database.isAllowBuiltinAliasOverride();
     }
 
     private Prepared parseWith() {

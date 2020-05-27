@@ -77,6 +77,27 @@ public abstract class OperationN extends Expression {
         }
     }
 
+    /**
+     * Optimizes arguments.
+     *
+     * @param session
+     *            the session
+     * @param allConst
+     *            whether operation is deterministic
+     * @return whether operation is deterministic and all arguments are
+     *         constants
+     */
+    protected boolean optimizeArguments(Session session, boolean allConst) {
+        for (int i = 0, l = args.length; i < l; i++) {
+            Expression e = args[i].optimize(session);
+            args[i] = e;
+            if (allConst && !e.isConstant()) {
+                allConst = false;
+            }
+        }
+        return allConst;
+    }
+
     @Override
     public void setEvaluatable(TableFilter tableFilter, boolean value) {
         for (Expression e : args) {

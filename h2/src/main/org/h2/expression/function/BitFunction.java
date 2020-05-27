@@ -60,22 +60,6 @@ public class BitFunction extends Operation1_2 implements NamedExpression {
             "BITAND", "BITOR", "BITXOR", "BITNOT", "BITGET", "LSHIFT", "RSHIFT" //
     };
 
-    /**
-     * Returns whether specified function is known by this class.
-     *
-     * @param upperName
-     *            the name of the function in upper case
-     * @return {@code true} if it exists
-     */
-    public static boolean exists(String upperName) {
-        for (String n : NAMES) {
-            if (n.equals(upperName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private final int function;
 
     public BitFunction(Expression arg1, Expression arg2, int function) {

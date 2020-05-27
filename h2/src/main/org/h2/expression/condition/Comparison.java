@@ -6,6 +6,8 @@
 package org.h2.expression.condition;
 
 import java.util.ArrayList;
+
+import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -15,6 +17,7 @@ import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.aggregate.Aggregate;
 import org.h2.expression.aggregate.AggregateType;
+import org.h2.expression.function.ArrayFunction;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.Column;
@@ -138,6 +141,24 @@ public final class Comparison extends Condition {
         left = left.optimize(session);
         right = right.optimize(session);
         TypeInfo.checkComparable(left.getType(), right.getType());
+
+        // `value = ANY(array)` -> `ARRAY_CONTAINS(array, value)`
+        if (compareType == Comparison.EQUAL && right instanceof Aggregate) {
+            Aggregate any = ((Aggregate) right);
+            if (any.getAggregateType() == AggregateType.ANY && any.getSubexpressionCount() == 1) {
+                Expression arr = any.getSubexpression(0);
+                TypeInfo type = arr.getType();
+                if (type != null && type.getValueType() == Value.ARRAY) {
+                	ArrayFunction func = new ArrayFunction(arr, left, null, ArrayFunction.ARRAY_CONTAINS);
+                    return func.optimize(session);
+                }
+            } 
+        }
+        // TODO check row values too
+        if (right.getType().getValueType() == Value.ARRAY && left.getType().getValueType() != Value.ARRAY) {
+            throw DbException.get(ErrorCode.TYPES_ARE_NOT_COMPARABLE_2);
+        }
+
         if (whenOperand) {
             return this;
         }

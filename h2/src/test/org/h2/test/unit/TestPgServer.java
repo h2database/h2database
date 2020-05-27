@@ -762,6 +762,21 @@ public class TestPgServer extends TestDb {
                 assertEquals("name", rsMeta.getColumnName(1));
                 assertEquals("setting", rsMeta.getColumnName(2));
             }
+            try (ResultSet rs = stat.executeQuery("SELECT \"c\".\"conname\" AS \"CONSTRAINT_NAME\", " +
+                    "CASE \"c\".\"contype\" WHEN 'c' THEN 'CHECK' WHEN 'f' THEN 'FOREIGN KEY' " +
+                    "WHEN 'p' THEN 'PRIMARY KEY' WHEN 'u' THEN 'UNIQUE' END AS \"CONSTRAINT_TYPE\", " +
+                    "\"a\".\"attname\" AS \"COLUMN_NAME\" FROM \"pg_constraint\" AS \"c\" " +
+                    "LEFT JOIN \"pg_class\" \"t\" ON \"c\".\"conrelid\"=\"t\".\"oid\" " +
+                    "LEFT JOIN \"pg_attribute\" \"a\" ON \"t\".\"oid\"=\"a\".\"attrelid\" " +
+                    "LEFT JOIN \"pg_namespace\" \"n\" ON \"t\".\"relnamespace\"=\"n\".\"oid\" " +
+                    "WHERE c.contype IN ('p', 'u') AND \"a\".\"attnum\"=ANY(\"c\".\"conkey\") " +
+                    "AND \"n\".\"nspname\"='public' AND \"t\".\"relname\"='test' " +
+                    "ORDER BY \"a\".\"attnum\"")) {
+                assertTrue(rs.next());
+                assertEquals("PRIMARY KEY", rs.getString("constraint_type"));
+                assertEquals("id", rs.getString("column_name"));
+                assertFalse(rs.next());
+            }
 
             // DBeaver
             try (ResultSet rs = stat.executeQuery("SELECT t.oid,t.*,c.relkind FROM pg_catalog.pg_type t " +

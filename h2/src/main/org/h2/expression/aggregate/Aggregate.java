@@ -1179,4 +1179,14 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         return distinct;
     }
 
+    @Override
+    public int getSubexpressionCount() {
+        return args.length;
+    }
+
+    @Override
+    public Expression getSubexpression(int index) {
+        return args[index];
+    }
+
 }

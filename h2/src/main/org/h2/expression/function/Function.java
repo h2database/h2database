@@ -114,7 +114,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
     public static final int
-            NULLIF = 205,
             CSVREAD = 210, CSVWRITE = 211,
             MEMORY_FREE = 212, MEMORY_USED = 213,
             LOCK_MODE = 214, SESSION_ID = 216,
@@ -222,8 +221,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 0, Value.INTEGER);
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
                 3, Value.NULL);
-        addFunctionWithNull("NULLIF", NULLIF,
-                2, Value.NULL);
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
         addFunctionWithNull("TRIM_ARRAY", TRIM_ARRAY, 2, Value.ARRAY);
         addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
@@ -833,9 +830,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
         case H2VERSION:
             result = ValueVarchar.get(Constants.VERSION, session);
-            break;
-        case NULLIF:
-            result = session.areEqual(v0, v1) ? ValueNull.INSTANCE : v0;
             break;
             // system
         case CSVREAD: {
@@ -1648,9 +1642,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         TypeInfo typeInfo;
         Expression p0 = args.length < 1 ? null : args[0];
         switch (info.type) {
-        case NULLIF:
-            typeInfo = p0.getType();
-            break;
         case TRUNCATE_VALUE:
             if (type != null) {
                 // data type, precision and scale is already set

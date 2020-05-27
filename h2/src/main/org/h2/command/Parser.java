@@ -283,6 +283,7 @@ import org.h2.expression.function.JsonConstructorFunction;
 import org.h2.expression.function.MathFunction;
 import org.h2.expression.function.MathFunction1;
 import org.h2.expression.function.MathFunction2;
+import org.h2.expression.function.NullIfFunction;
 import org.h2.expression.function.SoundexFunction;
 import org.h2.expression.function.StringFunction1;
 import org.h2.expression.function.TableFunction;
@@ -4366,6 +4367,8 @@ public class Parser {
             return readCoalesceFunction(CoalesceFunction.GREATEST);
         case "LEAST":
             return readCoalesceFunction(CoalesceFunction.LEAST);
+        case "NULLIF":
+            return new NullIfFunction(readExpression(), readLastArgument());
         case "ZERO":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueInteger.get(0));

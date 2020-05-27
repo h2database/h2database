@@ -47,6 +47,8 @@ public final class BuiltinFunctions {
                 "ENCRYPT", "DECRYPT",
                 // CoalesceFunction
                 "COALESCE", "GREATEST", "LEAST",
+                // NullIfFunction
+                "NULLIF",
                 // CompatibilityIdentityFunction
                 "IDENTITY", "SCOPE_IDENTITY",
                 // CompatibilitySequenceValueFunction

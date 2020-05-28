@@ -106,7 +106,7 @@ public class TableFunction extends Function {
                 } else {
                     int type = v.getValueType();
                     if (type != Value.ARRAY && type != Value.ROW) {
-                        v = v.convertTo(TypeInfo.TYPE_ARRAY);
+                        v = v.convertToAnyArray(session);
                     }
                     Value[] l = ((ValueCollectionBase) v).getList();
                     list[i] = l;

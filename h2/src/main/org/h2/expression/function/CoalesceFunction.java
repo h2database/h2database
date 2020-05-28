@@ -94,15 +94,8 @@ public class CoalesceFunction extends OperationN implements NamedExpression {
     @Override
     public Expression optimize(Session session) {
         boolean allConst = optimizeArguments(session, true);
-        type = TypeInfo.TYPE_UNKNOWN;
-        for (Expression e : args) {
-            TypeInfo t = e.getType();
-            int valueType = t.getValueType();
-            if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
-                type = TypeInfo.getHigherType(type, t);
-            }
-        }
-        if (type.getValueType() == Value.UNKNOWN) {
+        type = TypeInfo.getHigherType(args);
+        if (type.getValueType() <= Value.NULL) {
             type = TypeInfo.TYPE_VARCHAR;
         }
         if (allConst) {

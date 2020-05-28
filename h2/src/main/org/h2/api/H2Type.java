@@ -243,7 +243,7 @@ public final class H2Type implements SQLType {
     /**
      * The ROW data type.
      */
-    public static final H2Type ROW = new H2Type(TypeInfo.TYPE_ROW, "ROW");
+    public static final H2Type ROW = new H2Type(TypeInfo.TYPE_ROW_EMPTY, "ROW");
 
     // Result set for table functions
 

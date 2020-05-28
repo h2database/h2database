@@ -421,9 +421,6 @@ public class PgServer implements Service {
             return PG_TYPE_BYTEA;
         case Value.ARRAY: {
             type = (TypeInfo) type.getExtTypeInfo();
-            if (type == null) {
-                return PG_TYPE_VARCHAR_ARRAY;
-            }
             switch (type.getValueType()) {
             case Value.SMALLINT:
                 return PG_TYPE_INT2_ARRAY;

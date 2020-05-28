@@ -41,7 +41,7 @@ import org.h2.util.geometry.GeoJsonUtils;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public abstract class Value extends VersionedValue<Value> implements HasSQL {
+public abstract class Value extends VersionedValue<Value> implements HasSQL, TypeInfo.Typed {
 
     /**
      * The data type is unknown at this time.
@@ -392,11 +392,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
     }
 
-    /**
-     * Returns the data type.
-     *
-     * @return the data type
-     */
+    @Override
     public abstract TypeInfo getType();
 
     /**
@@ -476,6 +472,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         if (t2 == NULL) {
             return t1;
         }
+        return getHigherOrderKnown(t1, t2);
+    }
+
+    static int getHigherOrderKnown(int t1, int t2) {
         int g1 = GROUPS[t1], g2 = GROUPS[t2];
         switch (g1) {
         case GROUP_BOOLEAN:
@@ -872,7 +872,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @return the converted value
      */
     public final Value convertTo(int targetType) {
-        return convertTo(TypeInfo.getTypeInfo(targetType), null, CONVERT_TO, null);
+        return convertTo(targetType, null);
     }
 
     /**
@@ -895,7 +895,14 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @return the converted value
      */
     public final Value convertTo(int targetType, CastDataProvider provider) {
-        return convertTo(TypeInfo.getTypeInfo(targetType), provider, CONVERT_TO, null);
+        switch (targetType) {
+        case ARRAY:
+            return convertToAnyArray(provider);
+        case ROW:
+            return convertToAnyRow();
+        default:
+            return convertTo(TypeInfo.getTypeInfo(targetType), provider, CONVERT_TO, null);
+        }
     }
 
     /**
@@ -927,6 +934,32 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      */
     public final Value convertTo(TypeInfo targetType, CastDataProvider provider, Object column) {
         return convertTo(targetType, provider, CONVERT_TO, column);
+    }
+
+    /**
+     * Convert this value to any ARRAY data type.
+     *
+     * @param provider
+     *            the cast information provider
+     * @return a row value
+     */
+    public final ValueArray convertToAnyArray(CastDataProvider provider) {
+        if (getValueType() == Value.ARRAY) {
+            return (ValueArray) this;
+        }
+        return ValueArray.get(new Value[] { this }, provider);
+    }
+
+    /**
+     * Convert this value to any ROW data type.
+     *
+     * @return a row value
+     */
+    public final ValueRow convertToAnyRow() {
+        if (getValueType() == Value.ROW) {
+            return (ValueRow) this;
+        }
+        return ValueRow.get(new Value[] { this });
     }
 
     /**

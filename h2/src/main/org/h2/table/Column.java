@@ -34,7 +34,7 @@ import org.h2.value.ValueUuid;
 /**
  * This class represents a column in a table.
  */
-public class Column implements HasSQL {
+public class Column implements HasSQL, TypeInfo.Typed {
 
     /**
      * The name of the rowid pseudo column.
@@ -290,6 +290,7 @@ public class Column implements HasSQL {
         return name;
     }
 
+    @Override
     public TypeInfo getType() {
         return type;
     }

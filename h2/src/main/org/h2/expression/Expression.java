@@ -25,7 +25,7 @@ import org.h2.value.ValueRow;
 /**
  * An expression is a operation, a value, or a function in a query.
  */
-public abstract class Expression implements HasSQL {
+public abstract class Expression implements HasSQL, TypeInfo.Typed {
 
     /**
      * Initial state for {@link #mapColumns(ColumnResolver, int, int)}.
@@ -92,11 +92,12 @@ public abstract class Expression implements HasSQL {
     public abstract Value getValue(Session session);
 
     /**
-     * Returns the data type. The data type may not be known before the
+     * Returns the data type. The data type may be unknown before the
      * optimization phase.
      *
      * @return the data type
      */
+    @Override
     public abstract TypeInfo getType();
 
     /**

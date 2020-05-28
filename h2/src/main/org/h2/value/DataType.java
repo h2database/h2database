@@ -693,13 +693,8 @@ public class DataType {
      */
     public static boolean isIndexable(TypeInfo type) {
         switch(type.getValueType()) {
-        case Value.ARRAY: {
-            ExtTypeInfo extTypeInfo = type.getExtTypeInfo();
-            if (extTypeInfo != null) {
-                return isIndexable((TypeInfo) extTypeInfo);
-            }
-        }
-        //$FALL-THROUGH$
+        case Value.ARRAY:
+            return isIndexable((TypeInfo) type.getExtTypeInfo());
         case Value.UNKNOWN:
         case Value.NULL:
         case Value.BLOB:

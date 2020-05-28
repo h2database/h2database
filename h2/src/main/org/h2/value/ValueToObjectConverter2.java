@@ -109,7 +109,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
         } else if (GEOMETRY_CLASS != null && GEOMETRY_CLASS.isAssignableFrom(clazz)) {
             return TypeInfo.TYPE_GEOMETRY;
         } else if (Array.class.isAssignableFrom(clazz)) {
-            return TypeInfo.TYPE_ARRAY;
+            return TypeInfo.TYPE_ARRAY_UNKNOWN;
         } else if (ResultSet.class.isAssignableFrom(clazz)) {
             return TypeInfo.TYPE_RESULT_SET;
         } else {

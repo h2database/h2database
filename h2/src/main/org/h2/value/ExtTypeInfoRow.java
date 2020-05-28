@@ -5,6 +5,7 @@
  */
 package org.h2.value;
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -13,9 +14,27 @@ import org.h2.command.Parser;
 /**
  * Extended parameters of the ROW data type.
  */
-public class ExtTypeInfoRow extends ExtTypeInfo {
+public final class ExtTypeInfoRow extends ExtTypeInfo {
 
     private final LinkedHashMap<String, TypeInfo> fields;
+
+    private int hash;
+
+    /**
+     * Creates new instance of extended parameters of ROW data type.
+     *
+     * @param fields
+     *            fields
+     */
+    public ExtTypeInfoRow(TypeInfo.Typed[] fields) {
+        int degree = fields.length;
+        LinkedHashMap<String, TypeInfo> map = new LinkedHashMap<>((int) Math.ceil(degree / .75));
+        for (int i = 0; i < degree;) {
+            TypeInfo t = fields[i].getType();
+            map.put("C" + ++i, t);
+        }
+        this.fields = map;
+    }
 
     /**
      * Creates new instance of extended parameters of ROW data type.
@@ -49,6 +68,42 @@ public class ExtTypeInfoRow extends ExtTypeInfo {
             field.getValue().getSQL(builder, sqlFlags);
         }
         return builder.append(')');
+    }
+
+    @Override
+    public int hashCode() {
+        int h = hash;
+        if (h != 0) {
+            return h;
+        }
+        h = 67_378_403;
+        for (Map.Entry<String, TypeInfo> entry : fields.entrySet()) {
+            h = (h * 31 + entry.getKey().hashCode()) * 37 + entry.getValue().hashCode();
+        }
+        return hash = h;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj.getClass() != ExtTypeInfoRow.class) {
+            return false;
+        }
+        LinkedHashMap<String, TypeInfo> fields2 = ((ExtTypeInfoRow) obj).fields;
+        int degree = fields.size();
+        if (degree != fields2.size()) {
+            return false;
+        }
+        for (Iterator<Map.Entry<String, TypeInfo>> i1 = fields.entrySet().iterator(), i2 = fields2.entrySet()
+                .iterator(); i1.hasNext();) {
+            Map.Entry<String, TypeInfo> e1 = i1.next(), e2 = i2.next();
+            if (!e1.getKey().equals(e2.getKey()) || !e1.getValue().equals(e2.getValue())) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

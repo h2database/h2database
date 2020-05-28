@@ -157,7 +157,7 @@ public class TestScript extends TestDb {
                 "uuid", "varbinary", "varchar", "varchar-ignorecase" }) {
             testScript("datatypes/" + s + ".sql");
         }
-        for (String s : new String[] { "alterTableAdd", "alterTableAlterColumn", "alterTableDropColumn",
+        for (String s : new String[] { "alterDomain", "alterTableAdd", "alterTableAlterColumn", "alterTableDropColumn",
                 "alterTableRename", "analyze", "createAlias", "createDomain", "createSequence", "createSynonym",
                 "createTable", "createTrigger", "createView", "dropAllObjects", "dropDomain", "dropIndex",
                 "dropSchema", "dropTable", "grant", "truncateTable" }) {

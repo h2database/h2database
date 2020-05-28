@@ -2167,18 +2167,18 @@ select * from test;
 
 select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, PRECISION, SCALE, TYPE_NAME, SELECTIVITY, REMARKS, SQL from information_schema.domains;
 > DOMAIN_NAME DOMAIN_DEFAULT DATA_TYPE PRECISION  SCALE TYPE_NAME SELECTIVITY REMARKS SQL
-> ----------- -------------- --------- ---------- ----- --------- ----------- ------- -------------------------------------------------------------------------
+> ----------- -------------- --------- ---------- ----- --------- ----------- ------- -----------------------------------------------------------------------
 > EMAIL       null           12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200)
 > GMAIL       '@gmail.com'   12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."GMAIL" AS "PUBLIC"."EMAIL" DEFAULT '@gmail.com'
 > STRING      ''             12        255        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT ''
 > STRING1     null           12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
 > STRING2     '<empty>'      12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>'
-> STRING_X    '<empty>'      12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2" DEFAULT '<empty>'
+> STRING_X    null           12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2"
 > rows: 6
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.ADDRESS;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER DOMAIN "PUBLIC"."EMAIL" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_3" CHECK(POSITION('@', VALUE) > 1) NOCHECK;
@@ -2189,9 +2189,9 @@ script nodata nopasswords nosettings;
 > CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT '';
 > CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR;
 > CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>';
-> CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2" DEFAULT '<empty>';
-> CREATE MEMORY TABLE "PUBLIC"."ADDRESS"( "ID" INT NOT NULL, "NAME" "PUBLIC"."EMAIL", "NAME2" "PUBLIC"."GMAIL" DEFAULT '@gmail.com' );
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" "PUBLIC"."STRING" DEFAULT '', "B" "PUBLIC"."STRING1", "C" "PUBLIC"."STRING2" DEFAULT '<empty>' );
+> CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2";
+> CREATE MEMORY TABLE "PUBLIC"."ADDRESS"( "ID" INT NOT NULL, "NAME" "PUBLIC"."EMAIL", "NAME2" "PUBLIC"."GMAIL" );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" "PUBLIC"."STRING", "B" "PUBLIC"."STRING1", "C" "PUBLIC"."STRING2" );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 14
 

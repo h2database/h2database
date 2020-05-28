@@ -533,7 +533,7 @@ public class ConstraintReferential extends Constraint {
                 if (action == ConstraintActionType.SET_NULL) {
                     value = ValueNull.INSTANCE;
                 } else {
-                    Expression expr = column.getDefaultExpression();
+                    Expression expr = column.getEffectiveDefaultExpression();
                     if (expr == null) {
                         throw DbException.get(ErrorCode.NO_DEFAULT_SET_1, column.getName());
                     }

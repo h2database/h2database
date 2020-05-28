@@ -264,7 +264,7 @@ public final class SetClauseList implements HasSQL {
             if (!oldRow.hasSameValues(newRow)) {
                 for (int i = 0; i < columnCount; i++) {
                     if (actions[i] == UpdateAction.ON_UPDATE) {
-                        newRow.setValue(i, columns[i].getOnUpdateExpression().getValue(session));
+                        newRow.setValue(i, columns[i].getEffectiveOnUpdateExpression().getValue(session));
                     }
                 }
                 // Convert on update expressions and reevaluate
@@ -329,7 +329,7 @@ public final class SetClauseList implements HasSQL {
                 action.mapAndOptimize(session, resolver1, resolver2);
             } else {
                 Column column = columns[i];
-                if (column.getOnUpdateExpression() != null) {
+                if (column.getEffectiveOnUpdateExpression() != null) {
                     actions[i] = UpdateAction.ON_UPDATE;
                     onUpdate = true;
                 }

@@ -20,10 +20,10 @@ CREATE TABLE TEST(C1 S1.D1, C2 S2.D2);
 
 SELECT COLUMN_NAME, DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, COLUMN_DEFAULT, COLUMN_TYPE, COLUMN_ON_UPDATE
     FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME COLUMN_DEFAULT COLUMN_TYPE                           COLUMN_ON_UPDATE
-> ----------- -------------- ------------- ----------- -------------- ------------------------------------- -----------------
-> C1          SCRIPT         S1            D1          1              "S1"."D1" DEFAULT 1                   null
-> C2          SCRIPT         S2            D2          null           "S2"."D2" ON UPDATE CURRENT_TIMESTAMP CURRENT_TIMESTAMP
+> COLUMN_NAME DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME COLUMN_DEFAULT COLUMN_TYPE COLUMN_ON_UPDATE
+> ----------- -------------- ------------- ----------- -------------- ----------- ----------------
+> C1          SCRIPT         S1            D1          null           "S1"."D1"   null
+> C2          SCRIPT         S2            D2          null           "S2"."D2"   null
 > rows (ordered): 2
 
 SELECT DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, DOMAIN_DEFAULT, DOMAIN_ON_UPDATE, TYPE_NAME FROM INFORMATION_SCHEMA.DOMAINS;
@@ -176,7 +176,7 @@ SELECT DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, DOMAIN_DEFAULT, DOMAIN_ON_UPD
 > -------------- ------------- ----------- -------------- ---------------- --------- --------- ----- --------- --------------------- -------------------- ------------------
 > SCRIPT         PUBLIC        D1          1              null             4         10        0     INTEGER   null                  null                 null
 > SCRIPT         PUBLIC        D2          2              null             4         10        0     INTEGER   SCRIPT                PUBLIC               D1
-> SCRIPT         PUBLIC        D3          1              null             4         10        0     INTEGER   SCRIPT                PUBLIC               D1
+> SCRIPT         PUBLIC        D3          null           null             4         10        0     INTEGER   SCRIPT                PUBLIC               D1
 > SCRIPT         PUBLIC        D4          4              null             4         10        0     INTEGER   SCRIPT                PUBLIC               D1
 > rows: 4
 

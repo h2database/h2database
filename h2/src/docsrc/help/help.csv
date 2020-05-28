@@ -361,6 +361,34 @@ WITH cte1 AS (
 SELECT sum(FIRST_COLUMN) FROM cte2;
 "
 
+"Commands (DDL)","ALTER DOMAIN","
+ALTER DOMAIN @h2@ [ IF EXISTS ] [schemaName.]domainName
+{ SET DEFAULT expression }
+    | { DROP DEFAULT }
+    | @h2@ { SET ON UPDATE expression }
+    | @h2@ { DROP ON UPDATE }
+","
+Changes the default or on update expression of a domain.
+
+SET DEFAULT changes the default expression of a domain.
+
+DROP DEFAULT removes the default expression of a domain.
+Old expression is copied into domains and columns that use this domain and don't have an own default expression.
+
+SET ON UPDATE changes the expression that is set on update if value for this domain is not specified in update
+statement.
+
+DROP ON UPDATE removes the expression that is set on update of a column with this domain.
+Old expression is copied into domains and columns that use this domain and don't have an own on update expression.
+
+This command commits an open transaction in this connection.
+","
+ALTER DOMAIN D1 SET DEFAULT '';
+ALTER DOMAIN D1 DROP DEFAULT;
+ALTER DOMAIN D1 SET ON UPDATE CURRENT_TIMESTAMP;
+ALTER DOMAIN D1 DROP ON UPDATE;
+"
+
 "Commands (DDL)","ALTER DOMAIN ADD CONSTRAINT","
 ALTER DOMAIN @h2@ [ IF EXISTS ] [schemaName.]domainName
 ADD [ constraintNameDefinition ]
@@ -1033,6 +1061,9 @@ DROP DOMAIN @h2@ [ IF EXISTS ] [schemaName.]domainName [ RESTRICT | CASCADE ]
 Drops a data type (domain).
 The command will fail if it is referenced by a column or another domain (the default).
 Column descriptors are replaced with original definition of specified domain if the CASCADE clause is used.
+Default and on update expressions are copied into domains and columns that use this domain and don't have own
+expressions. Domain constraints are copied into domains that use this domain and to columns (as check constraints) that
+use this domain.
 This command commits an open transaction in this connection.
 ","
 DROP DOMAIN EMAIL

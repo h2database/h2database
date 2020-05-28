@@ -116,6 +116,7 @@ import java.util.TreeSet;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
+import org.h2.command.ddl.AlterDomain;
 import org.h2.command.ddl.AlterDomainAddConstraint;
 import org.h2.command.ddl.AlterDomainDropConstraint;
 import org.h2.command.ddl.AlterIndexRename;
@@ -6804,12 +6805,9 @@ public class Parser {
         return new Column(columnName, TypeInfo.getTypeInfo(t, precision, scale, null), original);
     }
 
-    private Column getColumnWithDomain(String columnName, Domain domain) {
+    private static Column getColumnWithDomain(String columnName, Domain domain) {
         Column templateColumn = domain.getColumn();
         Column column = new Column(columnName, templateColumn.getType(), domain.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
-        column.setNullable(templateColumn.isNullable());
-        column.setDefaultExpression(session, templateColumn.getDefaultExpression());
-        column.setOnUpdateExpression(session, templateColumn.getOnUpdateExpression());
         int selectivity = templateColumn.getSelectivity();
         if (selectivity != Constants.SELECTIVITY_DEFAULT) {
             column.setSelectivity(selectivity);
@@ -8057,19 +8055,49 @@ public class Parser {
                 command.setCheckExisting(true);
             }
             return command;
+        } else if (readIf("DROP")) {
+            if (readIf(CONSTRAINT)) {
+                boolean ifConstraintExists = readIfExists(false);
+                String constraintName = readIdentifierWithSchema(schema.getName());
+                checkSchema(schema);
+                AlterDomainDropConstraint command = new AlterDomainDropConstraint(session, getSchema(),
+                        ifConstraintExists);
+                command.setConstraintName(constraintName);
+                command.setDomainName(domainName);
+                command.setIfDomainExists(ifDomainExists);
+                return command;
+            } else if (readIf("DEFAULT")) {
+                AlterDomain command = new AlterDomain(session, schema, CommandInterface.ALTER_DOMAIN_DEFAULT);
+                command.setDomainName(domainName);
+                command.setIfDomainExists(ifDomainExists);
+                command.setExpression(null);
+                return command;
+            } else if (readIf(ON)) {
+                read("UPDATE");
+                AlterDomain command = new AlterDomain(session, schema, CommandInterface.ALTER_DOMAIN_ON_UPDATE);
+                command.setDomainName(domainName);
+                command.setIfDomainExists(ifDomainExists);
+                command.setExpression(null);
+                return command;
+            }
         } else {
-            read("DROP");
-            read(CONSTRAINT);
-            boolean ifConstraintExists = readIfExists(false);
-            String constraintName = readIdentifierWithSchema(schema.getName());
-            checkSchema(schema);
-            AlterDomainDropConstraint command = new AlterDomainDropConstraint(session, getSchema(),
-                    ifConstraintExists);
-            command.setConstraintName(constraintName);
-            command.setDomainName(domainName);
-            command.setIfDomainExists(ifDomainExists);
-            return command;
+            read(SET);
+            if (readIf("DEFAULT")) {
+                AlterDomain command = new AlterDomain(session, schema, CommandInterface.ALTER_DOMAIN_DEFAULT);
+                command.setDomainName(domainName);
+                command.setIfDomainExists(ifDomainExists);
+                command.setExpression(readExpression());
+                return command;
+            } else if (readIf(ON)) {
+                read("UPDATE");
+                AlterDomain command = new AlterDomain(session, schema, CommandInterface.ALTER_DOMAIN_ON_UPDATE);
+                command.setDomainName(domainName);
+                command.setIfDomainExists(ifDomainExists);
+                command.setExpression(readExpression());
+                return command;
+            }
         }
+        throw getSyntaxError();
     }
 
     private DefineCommand parseAlterView() {

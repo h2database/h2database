@@ -345,7 +345,7 @@ public class Column implements HasSQL, Typed {
      * @return the new or converted value
      */
     public Value validateConvertUpdateSequence(Session session, Value value, Row row) {
-        Expression localDefaultExpression = defaultExpression;
+        Expression localDefaultExpression = getEffectiveDefaultExpression();
         boolean addKey = false;
         if (value == null) {
             if (localDefaultExpression == null) {
@@ -478,6 +478,9 @@ public class Column implements HasSQL, Typed {
         if (onUpdateExpression != null) {
             onUpdateExpression = onUpdateExpression.optimize(session);
         }
+        if (domain != null) {
+            domain.getColumn().prepareExpression(session);
+        }
     }
 
     public String getCreateSQLWithoutName() {
@@ -552,8 +555,18 @@ public class Column implements HasSQL, Typed {
         return defaultExpression;
     }
 
+    public Expression getEffectiveDefaultExpression() {
+        return defaultExpression != null ? defaultExpression
+                : domain != null ? domain.getColumn().getEffectiveDefaultExpression() : null;
+    }
+
     public Expression getOnUpdateExpression() {
         return onUpdateExpression;
+    }
+
+    public Expression getEffectiveOnUpdateExpression() {
+        return onUpdateExpression != null ? onUpdateExpression
+                : domain != null ? domain.getColumn().getEffectiveOnUpdateExpression() : null;
     }
 
     public boolean isAutoIncrement() {
@@ -659,10 +672,12 @@ public class Column implements HasSQL, Typed {
                 visitor.getDependencies().add(sequence);
             }
         }
-        if (defaultExpression != null && !defaultExpression.isEverything(visitor)) {
+        Expression e = getEffectiveDefaultExpression();
+        if (e != null && !e.isEverything(visitor)) {
             return false;
         }
-        if (onUpdateExpression != null && !onUpdateExpression.isEverything(visitor)) {
+        e = getEffectiveOnUpdateExpression();
+        if (e != null && !e.isEverything(visitor)) {
             return false;
         }
         return true;

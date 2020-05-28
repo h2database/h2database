@@ -23,10 +23,8 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.util.HasSQL;
-import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueRow;
 
 /**
  * Set clause list.
@@ -141,11 +139,11 @@ public final class SetClauseList implements HasSQL {
         Value update(Session session) {
             Value[] v;
             if (first) {
-                Value value = row.expression.getValue(session).convertTo(TypeInfo.TYPE_ROW);
+                Value value = row.expression.getValue(session);
                 if (value == ValueNull.INSTANCE) {
                     throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "NULL to assigned row value");
                 }
-                row.values = v = ((ValueRow) value).getList();
+                row.values = v = value.convertToAnyRow().getList();
                 if (v.length != row.columns.length) {
                     throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }

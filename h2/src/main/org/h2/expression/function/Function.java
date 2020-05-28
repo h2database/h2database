@@ -876,7 +876,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 result = ValueNull.INSTANCE;
                 break;
             }
-            final ValueArray array = (ValueArray) v0.convertTo(TypeInfo.TYPE_ARRAY);
+            final ValueArray array = v0.convertToAnyArray(session);
             Value[] elements = array.getList();
             int length = elements.length;
             if (trim > length) {
@@ -891,7 +891,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
         case ARRAY_SLICE: {
             result = null;
-            final ValueArray array = (ValueArray) v0.convertTo(TypeInfo.TYPE_ARRAY);
+            final ValueArray array = v0.convertToAnyArray(session);
             // SQL is 1-based
             int index1 = v1.getInt() - 1;
             // 1-based and inclusive as postgreSQL (-1+1)

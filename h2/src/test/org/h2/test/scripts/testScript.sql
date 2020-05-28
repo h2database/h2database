@@ -1656,7 +1656,7 @@ SELECT LEAST(ID, C, NAME), GREATEST(ID, C, NAME), LEAST(NULL, C), GREATEST(NULL,
 > 0                  2                     null           null                  2
 > rows (ordered): 2
 
-DROP TABLE IF EXISTS TEST;
+DROP TABLE TEST;
 > ok
 
 create table people (family varchar(1) not null, person varchar(1) not null);

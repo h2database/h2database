@@ -26,6 +26,7 @@ import org.h2.schema.Sequence;
 import org.h2.util.HasSQL;
 import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
+import org.h2.value.Typed;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueNull;
@@ -34,7 +35,7 @@ import org.h2.value.ValueUuid;
 /**
  * This class represents a column in a table.
  */
-public class Column implements HasSQL {
+public class Column implements HasSQL, Typed {
 
     /**
      * The name of the rowid pseudo column.
@@ -290,6 +291,7 @@ public class Column implements HasSQL {
         return name;
     }
 
+    @Override
     public TypeInfo getType() {
         return type;
     }

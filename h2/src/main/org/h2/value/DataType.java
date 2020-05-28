@@ -12,6 +12,7 @@ import java.sql.SQLType;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.H2Type;
@@ -693,20 +694,23 @@ public class DataType {
      */
     public static boolean isIndexable(TypeInfo type) {
         switch(type.getValueType()) {
-        case Value.ARRAY: {
-            ExtTypeInfo extTypeInfo = type.getExtTypeInfo();
-            if (extTypeInfo != null) {
-                return isIndexable((TypeInfo) extTypeInfo);
-            }
-        }
-        //$FALL-THROUGH$
         case Value.UNKNOWN:
         case Value.NULL:
         case Value.BLOB:
         case Value.CLOB:
         case Value.RESULT_SET:
-        case Value.ROW:
             return false;
+        case Value.ARRAY:
+            return isIndexable((TypeInfo) type.getExtTypeInfo());
+        case Value.ROW: {
+            ExtTypeInfoRow ext = (ExtTypeInfoRow) type.getExtTypeInfo();
+            for (Map.Entry<String, TypeInfo> entry : ext.getFields()) {
+                if (!isIndexable(entry.getValue())) {
+                    return false;
+                }
+            }
+        }
+        //$FALL-THROUGH$
         default:
             return true;
         }

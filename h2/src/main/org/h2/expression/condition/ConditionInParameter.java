@@ -92,7 +92,7 @@ public final class ConditionInParameter extends Condition {
                 }
             }
         } else {
-            for (Value r : ((ValueArray) value.convertTo(TypeInfo.TYPE_ARRAY)).getList()) {
+            for (Value r : value.convertToAnyArray(session).getList()) {
                 Value cmp = Comparison.compare(session, l, r, Comparison.EQUAL);
                 if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;

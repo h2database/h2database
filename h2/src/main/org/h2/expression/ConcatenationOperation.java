@@ -211,11 +211,7 @@ public final class ConcatenationOperation extends OperationN {
             }
         }
         if (anyArray) {
-            TypeInfo t = args[0].getType();
-            for (int i = 1; i < l; i++) {
-                t = TypeInfo.getHigherType(t, args[i].getType());
-            }
-            type = TypeInfo.getTypeInfo(Value.ARRAY, -1, 0, t.getExtTypeInfo());
+            type = TypeInfo.getTypeInfo(Value.ARRAY, -1, 0, TypeInfo.getHigherType(args).getExtTypeInfo());
         } else if (allBinary) {
             long precision = getPrecision(0);
             for (int i = 1; i < l; i++) {

@@ -37,7 +37,7 @@ public class JdbcArray extends TraceObject implements Array {
     public JdbcArray(JdbcConnection conn, Value value, int id) {
         setTrace(conn.getSession().getTrace(), TraceObject.ARRAY, id);
         this.conn = conn;
-        this.value = value.convertTo(TypeInfo.TYPE_ARRAY);
+        this.value = value.convertToAnyArray(conn);
     }
 
     /**

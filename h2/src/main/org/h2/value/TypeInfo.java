@@ -5,7 +5,12 @@
  */
 package org.h2.value;
 
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.message.DbException;
@@ -14,7 +19,7 @@ import org.h2.util.MathUtils;
 /**
  * Data type with parameters.
  */
-public class TypeInfo extends ExtTypeInfo {
+public class TypeInfo extends ExtTypeInfo implements Typed {
 
     /**
      * UNKNOWN type with parameters.
@@ -177,14 +182,14 @@ public class TypeInfo extends ExtTypeInfo {
     public static final TypeInfo TYPE_UUID;
 
     /**
-     * ARRAY type with maximum parameters.
+     * ARRAY type with unknown parameters.
      */
-    public static final TypeInfo TYPE_ARRAY;
+    public static final TypeInfo TYPE_ARRAY_UNKNOWN;
 
     /**
-     * ROW (row value) type with parameters.
+     * ROW (row value) type without fields.
      */
-    public static final TypeInfo TYPE_ROW;
+    public static final TypeInfo TYPE_ROW_EMPTY;
 
     /**
      * RESULT_SET type with parameters.
@@ -217,7 +222,7 @@ public class TypeInfo extends ExtTypeInfo {
                 Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         // BINARY
         infos[Value.BINARY] = new TypeInfo(Value.BINARY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
-        infos[Value.VARBINARY] = TYPE_VARBINARY = new TypeInfo(Value.VARBINARY, Integer.MAX_VALUE, 0,
+        infos[Value.VARBINARY] = TYPE_VARBINARY = new TypeInfo(Value.VARBINARY, Integer.MAX_VALUE, 0, //
                 Integer.MAX_VALUE, null);
         infos[Value.BLOB] = TYPE_BLOB = new TypeInfo(Value.BLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         // BOOLEAN
@@ -238,8 +243,7 @@ public class TypeInfo extends ExtTypeInfo {
         TYPE_NUMERIC_BIGINT = new TypeInfo(Value.NUMERIC, ValueBigint.PRECISION, 0, ValueBigint.DISPLAY_SIZE, null);
         TYPE_NUMERIC_FLOATING_POINT = new TypeInfo(Value.NUMERIC, ValueNumeric.DEFAULT_PRECISION,
                 ValueNumeric.DEFAULT_PRECISION / 2, ValueNumeric.DEFAULT_PRECISION + 2, null);
-        infos[Value.REAL] = TYPE_REAL = new TypeInfo(Value.REAL, ValueReal.PRECISION, 0, ValueReal.DISPLAY_SIZE,
-                null);
+        infos[Value.REAL] = TYPE_REAL = new TypeInfo(Value.REAL, ValueReal.PRECISION, 0, ValueReal.DISPLAY_SIZE, null);
         infos[Value.DOUBLE] = TYPE_DOUBLE = new TypeInfo(Value.DOUBLE, ValueDouble.PRECISION, 0,
                 ValueDouble.DISPLAY_SIZE, null);
         // DATETIME
@@ -276,9 +280,11 @@ public class TypeInfo extends ExtTypeInfo {
         infos[Value.JSON] = TYPE_JSON = new TypeInfo(Value.JSON, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.UUID] = TYPE_UUID = new TypeInfo(Value.UUID, ValueUuid.PRECISION, 0, ValueUuid.DISPLAY_SIZE, null);
         // COLLECTION
-        infos[Value.ARRAY] = TYPE_ARRAY = new TypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
-        infos[Value.ROW] = TYPE_ROW = new TypeInfo(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
-        infos[Value.RESULT_SET] = TYPE_RESULT_SET = new TypeInfo(Value.RESULT_SET, Integer.MAX_VALUE,
+        infos[Value.ARRAY] = TYPE_ARRAY_UNKNOWN = new TypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
+                TYPE_UNKNOWN);
+        infos[Value.ROW] = TYPE_ROW_EMPTY = new TypeInfo(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
+                new ExtTypeInfoRow(new LinkedHashMap<>()));
+        infos[Value.RESULT_SET] = TYPE_RESULT_SET = new TypeInfo(Value.RESULT_SET, Integer.MAX_VALUE, //
                 Integer.MAX_VALUE, Integer.MAX_VALUE, null);
         TYPE_INFOS_BY_VALUE_TYPE = infos;
     }
@@ -465,13 +471,54 @@ public class TypeInfo extends ExtTypeInfo {
             }
             return new TypeInfo(Value.ARRAY, precision, 0, Integer.MAX_VALUE, extTypeInfo);
         case Value.ROW:
-            if (extTypeInfo instanceof ExtTypeInfoRow) {
-                return new TypeInfo(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, extTypeInfo);
-            } else {
-                return TYPE_ROW;
+            if (!(extTypeInfo instanceof ExtTypeInfoRow)) {
+                throw new IllegalArgumentException();
             }
+            return new TypeInfo(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, extTypeInfo);
         }
         return TYPE_NULL;
+    }
+
+    /**
+     * Get the higher data type of all values.
+     *
+     * @param values
+     *            the values
+     * @return the higher data type
+     */
+    public static TypeInfo getHigherType(Typed[] values) {
+        int cardinality = values.length;
+        TypeInfo type;
+        if (cardinality == 0) {
+            type = TypeInfo.TYPE_NULL;
+        } else {
+            type = values[0].getType();
+            boolean hasUnknown = false, hasNull = false;
+            switch (type.getValueType()) {
+            case Value.UNKNOWN:
+                hasUnknown = true;
+                break;
+            case Value.NULL:
+                hasNull = true;
+            }
+            for (int i = 1; i < cardinality; i++) {
+                TypeInfo t = values[i].getType();
+                switch (t.getValueType()) {
+                case Value.UNKNOWN:
+                    hasUnknown = true;
+                    break;
+                case Value.NULL:
+                    hasNull = true;
+                    break;
+                default:
+                    type = getHigherType(type, t);
+                }
+            }
+            if (type.getValueType() <= Value.NULL && hasUnknown) {
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, hasNull ? "NULL, ?" : "?");
+            }
+        }
+        return type;
     }
 
     /**
@@ -486,8 +533,37 @@ public class TypeInfo extends ExtTypeInfo {
      * @return the higher data type of the two
      */
     public static TypeInfo getHigherType(TypeInfo type1, TypeInfo type2) {
-        int t1 = type1.getValueType(), t2 = type2.getValueType();
-        int dataType = Value.getHigherOrder(t1, t2);
+        int t1 = type1.getValueType(), t2 = type2.getValueType(), dataType;
+        if (t1 == t2) {
+            if (t1 == Value.UNKNOWN) {
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, ?");
+            }
+            dataType = t1;
+        } else {
+            if (t1 < t2) {
+                int t = t1;
+                t1 = t2;
+                t2 = t;
+                TypeInfo type = type1;
+                type1 = type2;
+                type2 = type;
+            }
+            if (t1 == Value.UNKNOWN) {
+                if (t2 == Value.NULL) {
+                    throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, NULL");
+                }
+                return type2;
+            } else if (t2 == Value.UNKNOWN) {
+                if (t1 == Value.NULL) {
+                    throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "NULL, ?");
+                }
+                return type1;
+            }
+            if (t2 == Value.NULL) {
+                return type1;
+            }
+            dataType = Value.getHigherOrderKnown(t1, t2);
+        }
         switch (dataType) {
         case Value.NUMERIC: {
             type1 = type1.toNumericType();
@@ -505,6 +581,8 @@ public class TypeInfo extends ExtTypeInfo {
         }
         case Value.ARRAY:
             return getHigherArray(type1, type2, dimensions(type1), dimensions(type2));
+        case Value.ROW:
+            return getHigherRow(type1, type2);
         }
         ExtTypeInfo ext1 = type1.extTypeInfo;
         return TypeInfo.getTypeInfo(dataType, //
@@ -541,6 +619,36 @@ public class TypeInfo extends ExtTypeInfo {
             return getHigherType(type1, type2);
         }
         return TypeInfo.getTypeInfo(Value.ARRAY, precision, 0, getHigherArray(type1, type2, d1, d2));
+    }
+
+    private static TypeInfo getHigherRow(TypeInfo type1, TypeInfo type2) {
+        if (type1.getValueType() != Value.ROW) {
+            type1 = typeToRow(type1);
+        }
+        if (type2.getValueType() != Value.ROW) {
+            type2 = typeToRow(type2);
+        }
+        ExtTypeInfoRow ext1 = (ExtTypeInfoRow) type1.getExtTypeInfo(), ext2 = (ExtTypeInfoRow) type2.getExtTypeInfo();
+        if (ext1.equals(ext2)) {
+            return type1;
+        }
+        Set<Map.Entry<String, TypeInfo>> m1 = ext1.getFields(), m2 = ext2.getFields();
+        int degree = m1.size();
+        if (m2.size() != degree) {
+            throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+        }
+        LinkedHashMap<String, TypeInfo> m = new LinkedHashMap<>((int) Math.ceil(degree / .75));
+        for (Iterator<Map.Entry<String, TypeInfo>> i1 = m1.iterator(), i2 = m2.iterator(); i1.hasNext();) {
+            Map.Entry<String, TypeInfo> e1 = i1.next();
+            m.put(e1.getKey(), getHigherType(e1.getValue(), i2.next().getValue()));
+        }
+        return TypeInfo.getTypeInfo(Value.ROW, 0, 0, new ExtTypeInfoRow(m));
+    }
+
+    private static TypeInfo typeToRow(TypeInfo type) {
+        LinkedHashMap<String, TypeInfo> map = new LinkedHashMap<>(2);
+        map.put("C1", type);
+        return TypeInfo.getTypeInfo(Value.ROW, 0, 0, new ExtTypeInfoRow(map));
     }
 
     /**
@@ -588,6 +696,16 @@ public class TypeInfo extends ExtTypeInfo {
         this.scale = scale;
         this.displaySize = displaySize;
         this.extTypeInfo = extTypeInfo;
+    }
+
+    /**
+     * Returns this type information.
+     *
+     * @return this
+     */
+    @Override
+    public TypeInfo getType() {
+        return this;
     }
 
     /**
@@ -766,7 +884,8 @@ public class TypeInfo extends ExtTypeInfo {
             return this;
         case Value.REAL:
             // Smallest REAL value is 1.4E-45 with precision 2 and scale 46
-            // Largest REAL value is 3.4028235E+38 with precision 8 and scale -31
+            // Largest REAL value is 3.4028235E+38 with precision 8 and scale
+            // -31
             return getTypeInfo(Value.NUMERIC, 85, 46, null);
         case Value.DOUBLE:
             // Smallest DOUBLE value is 4.9E-324 with precision 2 and scale 325

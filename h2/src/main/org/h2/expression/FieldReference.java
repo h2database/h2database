@@ -5,14 +5,12 @@
  */
 package org.h2.expression;
 
-import java.util.Iterator;
 import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.util.StringUtils;
 import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -55,40 +53,20 @@ public class FieldReference extends Operation1 {
         if (type.getValueType() != Value.ROW) {
             throw DbException.getInvalidValueException("ROW", type.getTraceSQL());
         }
-        int ordinal;
-        ExtTypeInfoRow ext = (ExtTypeInfoRow) type.getExtTypeInfo();
-        find: if (ext != null) {
-            ordinal = 0;
-            Iterator<Entry<String, TypeInfo>> iter = ext.getFields().entrySet().iterator();
-            while (iter.hasNext()) {
-                Entry<String, TypeInfo> entry = iter.next();
-                if (fieldName.equals(entry.getKey())) {
-                    type = entry.getValue();
-                    break find;
+        int ordinal = 0;
+        for (Entry<String, TypeInfo> entry : ((ExtTypeInfoRow) type.getExtTypeInfo()).getFields()) {
+            if (fieldName.equals(entry.getKey())) {
+                type = entry.getValue();
+                this.type = type;
+                this.ordinal = ordinal;
+                if (arg.isConstant()) {
+                    return TypedValueExpression.get(getValue(session), type);
                 }
-                ordinal++;
+                return this;
             }
-            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, fieldName);
-        } else {
-            if (fieldName.length() < 2 && fieldName.charAt(0) != 'C') {
-                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, fieldName);
-            }
-            try {
-                ordinal = StringUtils.parseUInt31(fieldName, 1, fieldName.length());
-            } catch (NumberFormatException e) {
-                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, fieldName);
-            }
-            if (ordinal < 1) {
-                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, fieldName);
-            }
-            ordinal--;
+            ordinal++;
         }
-        this.type = type;
-        this.ordinal = ordinal;
-        if (arg.isConstant()) {
-            return TypedValueExpression.get(getValue(session), type);
-        }
-        return this;
+        throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, fieldName);
     }
 
 }

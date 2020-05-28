@@ -19,19 +19,7 @@ import org.h2.util.MathUtils;
 /**
  * Data type with parameters.
  */
-public class TypeInfo extends ExtTypeInfo {
-
-    /**
-     * An object with data type.
-     */
-    public interface Typed {
-        /**
-         * Returns the data type.
-         *
-         * @return the data type
-         */
-        TypeInfo getType();
-    }
+public class TypeInfo extends ExtTypeInfo implements Typed {
 
     /**
      * UNKNOWN type with parameters.
@@ -234,8 +222,8 @@ public class TypeInfo extends ExtTypeInfo {
                 Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         // BINARY
         infos[Value.BINARY] = new TypeInfo(Value.BINARY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
-        infos[Value.VARBINARY] = TYPE_VARBINARY = new TypeInfo(Value.VARBINARY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
-                null);
+        infos[Value.VARBINARY] = TYPE_VARBINARY = new TypeInfo(Value.VARBINARY, Integer.MAX_VALUE, 0, //
+                Integer.MAX_VALUE, null);
         infos[Value.BLOB] = TYPE_BLOB = new TypeInfo(Value.BLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         // BOOLEAN
         infos[Value.BOOLEAN] = TYPE_BOOLEAN = new TypeInfo(Value.BOOLEAN, ValueBoolean.PRECISION, 0,
@@ -296,8 +284,8 @@ public class TypeInfo extends ExtTypeInfo {
                 TYPE_UNKNOWN);
         infos[Value.ROW] = TYPE_ROW_EMPTY = new TypeInfo(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
                 new ExtTypeInfoRow(new LinkedHashMap<>()));
-        infos[Value.RESULT_SET] = TYPE_RESULT_SET = new TypeInfo(Value.RESULT_SET, Integer.MAX_VALUE, Integer.MAX_VALUE,
-                Integer.MAX_VALUE, null);
+        infos[Value.RESULT_SET] = TYPE_RESULT_SET = new TypeInfo(Value.RESULT_SET, Integer.MAX_VALUE, //
+                Integer.MAX_VALUE, Integer.MAX_VALUE, null);
         TYPE_INFOS_BY_VALUE_TYPE = infos;
     }
 
@@ -650,8 +638,7 @@ public class TypeInfo extends ExtTypeInfo {
             throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
         }
         LinkedHashMap<String, TypeInfo> m = new LinkedHashMap<>((int) Math.ceil(degree / .75));
-        for (Iterator<Map.Entry<String, TypeInfo>> i1 = m1.iterator(), i2 = m2.iterator(); i1
-                .hasNext();) {
+        for (Iterator<Map.Entry<String, TypeInfo>> i1 = m1.iterator(), i2 = m2.iterator(); i1.hasNext();) {
             Map.Entry<String, TypeInfo> e1 = i1.next();
             m.put(e1.getKey(), getHigherType(e1.getValue(), i2.next().getValue()));
         }
@@ -709,6 +696,16 @@ public class TypeInfo extends ExtTypeInfo {
         this.scale = scale;
         this.displaySize = displaySize;
         this.extTypeInfo = extTypeInfo;
+    }
+
+    /**
+     * Returns this type information.
+     *
+     * @return this
+     */
+    @Override
+    public TypeInfo getType() {
+        return this;
     }
 
     /**

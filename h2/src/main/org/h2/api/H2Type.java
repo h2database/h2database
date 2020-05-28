@@ -7,6 +7,7 @@ package org.h2.api;
 
 import java.sql.SQLType;
 
+import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
@@ -238,12 +239,7 @@ public final class H2Type implements SQLType {
 
     // Use arrayOf() for ARRAY
 
-    // Row
-
-    /**
-     * The ROW data type.
-     */
-    public static final H2Type ROW = new H2Type(TypeInfo.TYPE_ROW_EMPTY, "ROW");
+    // Use row() for ROW
 
     // Result set for table functions
 
@@ -260,9 +256,31 @@ public final class H2Type implements SQLType {
      * @return ARRAY data type
      */
     public static H2Type array(H2Type componentType) {
-        return new H2Type(
-                TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, componentType.typeInfo),
+        return new H2Type(TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, componentType.typeInfo),
                 "array(" + componentType.field + ')');
+    }
+
+    /**
+     * Returns ROW data type with specified types of fields and default names.
+     *
+     * @param fieldTypes
+     *            the type of fields
+     * @return ROW data type
+     */
+    public static H2Type row(H2Type... fieldTypes) {
+        int degree = fieldTypes.length;
+        TypeInfo[] row = new TypeInfo[degree];
+        StringBuilder builder = new StringBuilder("row(");
+        for (int i = 0; i < degree; i++) {
+            H2Type t = fieldTypes[i];
+            row[i] = t.typeInfo;
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(t.field);
+        }
+        return new H2Type(TypeInfo.getTypeInfo(Value.ROW, 0, 0, new ExtTypeInfoRow(row)),
+                builder.append(')').toString());
     }
 
     private TypeInfo typeInfo;

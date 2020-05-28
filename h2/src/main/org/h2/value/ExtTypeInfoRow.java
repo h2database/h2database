@@ -27,7 +27,7 @@ public final class ExtTypeInfoRow extends ExtTypeInfo {
      * @param fields
      *            fields
      */
-    public ExtTypeInfoRow(TypeInfo.Typed[] fields) {
+    public ExtTypeInfoRow(Typed[] fields) {
         int degree = fields.length;
         LinkedHashMap<String, TypeInfo> map = new LinkedHashMap<>((int) Math.ceil(degree / .75));
         for (int i = 0; i < degree;) {

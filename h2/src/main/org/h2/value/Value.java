@@ -41,7 +41,7 @@ import org.h2.util.geometry.GeoJsonUtils;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public abstract class Value extends VersionedValue<Value> implements HasSQL, TypeInfo.Typed {
+public abstract class Value extends VersionedValue<Value> implements HasSQL, Typed {
 
     /**
      * The data type is unknown at this time.

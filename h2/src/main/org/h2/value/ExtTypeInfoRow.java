@@ -8,6 +8,7 @@ package org.h2.value;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.h2.command.Parser;
 
@@ -51,8 +52,8 @@ public final class ExtTypeInfoRow extends ExtTypeInfo {
      *
      * @return fields
      */
-    public LinkedHashMap<String, TypeInfo> getFields() {
-        return fields;
+    public Set<Map.Entry<String, TypeInfo>> getFields() {
+        return fields.entrySet();
     }
 
     @Override

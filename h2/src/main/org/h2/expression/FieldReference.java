@@ -54,7 +54,7 @@ public class FieldReference extends Operation1 {
             throw DbException.getInvalidValueException("ROW", type.getTraceSQL());
         }
         int ordinal = 0;
-        for (Entry<String, TypeInfo> entry : ((ExtTypeInfoRow) type.getExtTypeInfo()).getFields().entrySet()) {
+        for (Entry<String, TypeInfo> entry : ((ExtTypeInfoRow) type.getExtTypeInfo()).getFields()) {
             if (fieldName.equals(entry.getKey())) {
                 type = entry.getValue();
                 this.type = type;

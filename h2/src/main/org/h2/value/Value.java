@@ -15,8 +15,8 @@ import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
@@ -2442,11 +2442,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         if (ext != null) {
             Value[] values = v.getList();
             int length = values.length;
-            LinkedHashMap<String, TypeInfo> fields = ext.getFields();
+            Set<Map.Entry<String, TypeInfo>> fields = ext.getFields();
             if (length != fields.size()) {
                 throw getDataConversionError(targetType);
             }
-            Iterator<Map.Entry<String, TypeInfo>> iter = fields.entrySet().iterator();
+            Iterator<Map.Entry<String, TypeInfo>> iter = fields.iterator();
             loop: for (int i = 0; i < length; i++) {
                 Value v1 = values[i];
                 TypeInfo componentType = iter.next().getValue();

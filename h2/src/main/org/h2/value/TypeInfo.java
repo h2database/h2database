@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.message.DbException;
@@ -642,13 +644,13 @@ public class TypeInfo extends ExtTypeInfo {
         if (ext1.equals(ext2)) {
             return type1;
         }
-        LinkedHashMap<String, TypeInfo> m1 = ext1.getFields(), m2 = ext2.getFields();
+        Set<Map.Entry<String, TypeInfo>> m1 = ext1.getFields(), m2 = ext2.getFields();
         int degree = m1.size();
         if (m2.size() != degree) {
             throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
         }
         LinkedHashMap<String, TypeInfo> m = new LinkedHashMap<>((int) Math.ceil(degree / .75));
-        for (Iterator<Map.Entry<String, TypeInfo>> i1 = m1.entrySet().iterator(), i2 = m2.entrySet().iterator(); i1
+        for (Iterator<Map.Entry<String, TypeInfo>> i1 = m1.iterator(), i2 = m2.iterator(); i1
                 .hasNext();) {
             Map.Entry<String, TypeInfo> e1 = i1.next();
             m.put(e1.getKey(), getHigherType(e1.getValue(), i2.next().getValue()));

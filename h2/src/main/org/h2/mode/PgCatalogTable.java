@@ -550,7 +550,7 @@ public class PgCatalogTable extends MetaTable {
         case PG_TYPE: {
             HashSet<Integer> types = new HashSet<>();
             for (DataType t : DataType.getTypes()) {
-                if (t.hidden || t.type == Value.NULL || t.type == Value.ARRAY) {
+                if (t.hidden || t.type == Value.ARRAY) {
                     continue;
                 }
                 int pgType = PgServer.convertType(TypeInfo.getTypeInfo(t.type));

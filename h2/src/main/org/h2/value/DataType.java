@@ -138,6 +138,7 @@ public class DataType {
     static {
         DataType dataType = new DataType();
         dataType.defaultPrecision = dataType.maxPrecision = dataType.minPrecision = ValueNull.PRECISION;
+        dataType.hidden = true;
         add(Value.NULL, Types.NULL,
                 dataType,
                 new String[]{"NULL"}
@@ -174,16 +175,20 @@ public class DataType {
                 createNumeric(ValueInteger.PRECISION, 0, false),
                 new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"}
         );
+        dataType = createNumeric(ValueInteger.PRECISION, 0, true);
+        dataType.hidden = true;
         add(Value.INTEGER, Types.INTEGER,
-                createNumeric(ValueInteger.PRECISION, 0, true),
+                dataType,
                 new String[]{"SERIAL"}
         );
         add(Value.BIGINT, Types.BIGINT,
                 createNumeric(ValueBigint.PRECISION, 0, false),
                 new String[]{"BIGINT", "INT8", "LONG"}
         );
+        dataType = createNumeric(ValueBigint.PRECISION, 0, true);
+        dataType.hidden = true;
         add(Value.BIGINT, Types.BIGINT,
-                createNumeric(ValueBigint.PRECISION, 0, true),
+                dataType,
                 new String[]{"IDENTITY", "BIGSERIAL"}
         );
         dataType = new DataType();
@@ -363,7 +368,7 @@ public class DataType {
             dt.defaultPrecision = dataType.defaultPrecision;
             dt.defaultScale = dataType.defaultScale;
             dt.caseSensitive = dataType.caseSensitive;
-            dt.hidden = i > 0;
+            dt.hidden = dataType.hidden || i > 0;
             TYPES_BY_NAME.put(dt.name, dt);
             if (TYPES_BY_VALUE_TYPE[type] == null) {
                 TYPES_BY_VALUE_TYPE[type] = dt;

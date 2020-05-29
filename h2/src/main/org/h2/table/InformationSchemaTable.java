@@ -991,7 +991,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
         case TYPE_INFO: {
             for (DataType t : DataType.getTypes()) {
-                if (t.hidden || t.sqlType == Value.NULL) {
+                if (t.hidden) {
                     continue;
                 }
                 add(session,

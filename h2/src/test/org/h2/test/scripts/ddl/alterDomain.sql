@@ -216,3 +216,56 @@ DROP DOMAIN D2;
 
 DROP DOMAIN D3;
 > ok
+
+CREATE DOMAIN D1 AS INT;
+> ok
+
+CREATE DOMAIN D2 AS D1;
+> ok
+
+CREATE TABLE T(C1 D1, C2 D2, L BIGINT);
+> ok
+
+ALTER DOMAIN D1 RENAME TO D3;
+> ok
+
+SELECT DOMAIN_NAME, PARENT_DOMAIN_NAME, SQL FROM INFORMATION_SCHEMA.DOMAINS;
+> DOMAIN_NAME PARENT_DOMAIN_NAME SQL
+> ----------- ------------------ --------------------------------------------
+> D2          D3                 CREATE DOMAIN "PUBLIC"."D2" AS "PUBLIC"."D3"
+> D3          null               CREATE DOMAIN "PUBLIC"."D3" AS INT
+> rows: 2
+
+SELECT COLUMN_NAME, DOMAIN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'T' AND COLUMN_NAME LIKE 'C_';
+> COLUMN_NAME DOMAIN_NAME COLUMN_TYPE
+> ----------- ----------- -------------
+> C1          D3          "PUBLIC"."D3"
+> C2          D2          "PUBLIC"."D2"
+> rows: 2
+
+@reconnect
+
+SELECT DOMAIN_NAME, PARENT_DOMAIN_NAME, SQL FROM INFORMATION_SCHEMA.DOMAINS;
+> DOMAIN_NAME PARENT_DOMAIN_NAME SQL
+> ----------- ------------------ --------------------------------------------
+> D2          D3                 CREATE DOMAIN "PUBLIC"."D2" AS "PUBLIC"."D3"
+> D3          null               CREATE DOMAIN "PUBLIC"."D3" AS INT
+> rows: 2
+
+SELECT COLUMN_NAME, DOMAIN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'T' AND COLUMN_NAME LIKE 'C_';
+> COLUMN_NAME DOMAIN_NAME COLUMN_TYPE
+> ----------- ----------- -------------
+> C1          D3          "PUBLIC"."D3"
+> C2          D2          "PUBLIC"."D2"
+> rows: 2
+
+DROP TABLE T;
+> ok
+
+DROP DOMAIN D2;
+> ok
+
+DROP DOMAIN D3;
+> ok

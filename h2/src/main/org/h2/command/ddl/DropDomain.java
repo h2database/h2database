@@ -53,7 +53,7 @@ public class DropDomain extends SchemaCommand {
                 throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, typeName);
             }
         } else {
-            AlterDomain.copy(session, domain, this::copyColumn, this::copyDomain);
+            AlterDomain.copy(session, domain, this::copyColumn, this::copyDomain, true);
             session.getDatabase().removeSchemaObject(session, domain);
         }
         return 0;

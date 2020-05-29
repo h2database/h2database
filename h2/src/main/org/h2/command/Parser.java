@@ -119,6 +119,7 @@ import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterDomain;
 import org.h2.command.ddl.AlterDomainAddConstraint;
 import org.h2.command.ddl.AlterDomainDropConstraint;
+import org.h2.command.ddl.AlterDomainRename;
 import org.h2.command.ddl.AlterIndexRename;
 import org.h2.command.ddl.AlterSchemaRename;
 import org.h2.command.ddl.AlterSequence;
@@ -6808,10 +6809,6 @@ public class Parser {
     private static Column getColumnWithDomain(String columnName, Domain domain) {
         Column templateColumn = domain.getColumn();
         Column column = new Column(columnName, templateColumn.getType(), domain.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
-        int selectivity = templateColumn.getSelectivity();
-        if (selectivity != Constants.SELECTIVITY_DEFAULT) {
-            column.setSelectivity(selectivity);
-        }
         column.setComment(templateColumn.getComment());
         column.setDomain(domain);
         return column;
@@ -7532,8 +7529,9 @@ public class Parser {
             read("UPDATE");
             column.setOnUpdateExpression(session, readExpression());
         }
+        // Compatibility with 1.4.200 and older versions
         if (readIf("SELECTIVITY")) {
-            column.setSelectivity(readNonNegativeInt());
+            readNonNegativeInt();
         }
         String comment = readCommentIf();
         if (comment != null) {
@@ -8080,6 +8078,15 @@ public class Parser {
                 command.setExpression(null);
                 return command;
             }
+        } else if (readIf("RENAME")) {
+            read(TO);
+            String newName = readIdentifierWithSchema(schema.getName());
+            checkSchema(schema);
+            AlterDomainRename command = new AlterDomainRename(session, getSchema());
+            command.setOldDomainName(domainName);
+            command.setIfDomainExists(ifDomainExists);
+            command.setNewDomainName(newName);
+            return command;
         } else {
             read(SET);
             if (readIf("DEFAULT")) {

@@ -30,13 +30,15 @@ import org.h2.table.Table;
 public class AlterDomain extends SchemaCommand {
 
     static void copy(Session session, Domain domain, BiPredicate<Domain, Column> columnProcessor,
-            BiPredicate<Domain, Domain> domainProcessor) {
+            BiPredicate<Domain, Domain> domainProcessor, boolean recompileExpressions) {
         Database db = session.getDatabase();
         for (SchemaObject obj : db.getAllSchemaObjects(DbObject.DOMAIN)) {
             Domain targetDomain = (Domain) obj;
             if (targetDomain.getColumn().getDomain() == domain) {
                 if (domainProcessor.test(domain, targetDomain)) {
-                    domain.getColumn().prepareExpression(session);
+                    if (recompileExpressions) {
+                        domain.getColumn().prepareExpression(session);
+                    }
                     db.updateMeta(session, targetDomain);
                 }
             }
@@ -47,7 +49,9 @@ public class AlterDomain extends SchemaCommand {
                 if (targetColumn.getDomain() == domain) {
                     boolean m = columnProcessor.test(domain, targetColumn);
                     if (m) {
-                        targetColumn.prepareExpression(session);
+                        if (recompileExpressions) {
+                            targetColumn.prepareExpression(session);
+                        }
                         modified = true;
                     }
                 }
@@ -104,7 +108,7 @@ public class AlterDomain extends SchemaCommand {
             DbException.throwInternalError("type=" + type);
         }
         if (expression != null) {
-            AlterDomain.copy(session, domain, this::copyColumn, this::copyDomain);
+            AlterDomain.copy(session, domain, this::copyColumn, this::copyDomain, true);
         }
         session.getDatabase().updateMeta(session, domain);
         return 0;

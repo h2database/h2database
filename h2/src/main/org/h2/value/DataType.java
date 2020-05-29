@@ -300,6 +300,7 @@ public class DataType {
         );
         dataType = createString(false, false);
         dataType.supportsPrecision = false;
+        dataType.params = "ELEMENT [,...]";
         add(Value.ENUM, Types.OTHER,
                 dataType,
                 new String[]{"ENUM"}
@@ -314,6 +315,7 @@ public class DataType {
         dataType = new DataType();
         dataType.prefix = "ROW(";
         dataType.suffix = ")";
+        dataType.params = "NAME DATA_TYPE [,...]";
         add(Value.ROW, Types.OTHER, dataType, new String[] {"ROW"});
     }
 

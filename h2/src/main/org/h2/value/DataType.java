@@ -265,7 +265,7 @@ public class DataType {
                 new String[]{"UUID", "UNIQUEIDENTIFIER"}
         );
         add(Value.JAVA_OBJECT, Types.JAVA_OBJECT,
-                createString(false, false),
+                createBinary(false),
                 new String[]{"JAVA_OBJECT", "OBJECT", "OTHER"}
         );
         add(Value.BLOB, Types.BLOB,

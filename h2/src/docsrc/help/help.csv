@@ -766,7 +766,7 @@ CREATE DOMAIN @h2@ [ IF NOT EXISTS ] [schemaName.]domainName
 [ AS ] dataType
 [ DEFAULT expression ]
 @h2@ [ ON UPDATE expression ]
-@h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
+@h2@ [ COMMENT expression ]
 [ CHECK (condition) ] [...]
 ","
 Creates a new domain to define a set of permissible values.

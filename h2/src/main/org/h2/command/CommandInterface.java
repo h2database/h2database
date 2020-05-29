@@ -511,6 +511,11 @@ public interface CommandInterface extends AutoCloseable {
     int ALTER_DOMAIN_ON_UPDATE = 95;
 
     /**
+     * The type of an ALTER DOMAIN RENAME statement.
+     */
+    int ALTER_DOMAIN_RENAME = 96;
+
+    /**
      * Get command type.
      *
      * @return one of the constants above

@@ -410,6 +410,15 @@ This command commits an open transaction in this connection.
 ALTER DOMAIN D DROP CONSTRAINT D_POSITIVE
 "
 
+"Commands (DDL)","ALTER DOMAIN RENAME","
+@h2@ ALTER DOMAIN [ IF EXISTS ] [schemaName.]domainName RENAME TO newName
+","
+Renames a domain.
+This command commits an open transaction in this connection.
+","
+ALTER DOMAIN TEST RENAME TO MY_TYPE
+"
+
 "Commands (DDL)","ALTER INDEX RENAME","
 @h2@ ALTER INDEX [ IF EXISTS ] [schemaName.]indexName RENAME TO newIndexName
 ","

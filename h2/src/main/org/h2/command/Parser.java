@@ -119,6 +119,7 @@ import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterDomain;
 import org.h2.command.ddl.AlterDomainAddConstraint;
 import org.h2.command.ddl.AlterDomainDropConstraint;
+import org.h2.command.ddl.AlterDomainRename;
 import org.h2.command.ddl.AlterIndexRename;
 import org.h2.command.ddl.AlterSchemaRename;
 import org.h2.command.ddl.AlterSequence;
@@ -8080,6 +8081,15 @@ public class Parser {
                 command.setExpression(null);
                 return command;
             }
+        } else if (readIf("RENAME")) {
+            read(TO);
+            String newName = readIdentifierWithSchema(schema.getName());
+            checkSchema(schema);
+            AlterDomainRename command = new AlterDomainRename(session, getSchema());
+            command.setOldDomainName(domainName);
+            command.setIfDomainExists(ifDomainExists);
+            command.setNewDomainName(newName);
+            return command;
         } else {
             read(SET);
             if (readIf("DEFAULT")) {

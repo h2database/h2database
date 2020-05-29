@@ -4188,12 +4188,14 @@ GEOMETRY(GEOMETRY, 4326)
 "
 
 "Data Types","JSON Type","
-@h2@ JSON
+@h2@ JSON [(lengthInt)]
 ","
 A RFC 8259-compliant JSON text.
 
 See also [json](https://h2database.com/html/grammar.html#json) literal grammar.
 Mapped to ""byte[]"".
+The length is specified in bytes and it is a size constraint; only the actual data is persisted.
+
 To set a JSON value with ""java.lang.String"" in a PreparedStatement use a ""FORMAT JSON"" data format
 (""INSERT INTO TEST(ID, DATA) VALUES (?, ? FORMAT JSON)"").
 Without the data format VARCHAR values are converted to a JSON string values.

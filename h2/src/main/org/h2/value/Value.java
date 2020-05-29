@@ -1074,7 +1074,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case GEOMETRY:
             return convertToGeometry((ExtTypeInfoGeometry) targetType.getExtTypeInfo());
         case JSON:
-            return convertToJson();
+            return convertToJson(targetType, conversionMode, column);
         case UUID:
             return convertToUuid();
         case ARRAY:
@@ -2330,35 +2330,48 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
                 bigDecimal.multiply(BigDecimal.valueOf(multiplier)).setScale(0, RoundingMode.HALF_UP).toBigInteger());
     }
 
-    private Value convertToJson() {
+    private ValueJson convertToJson(TypeInfo targetType, int conversionMode, Object column) {
+        ValueJson v;
         switch (getValueType()) {
         case JSON:
-            return this;
+            v = (ValueJson) this;
+            break;
         case BOOLEAN:
-            return ValueJson.get(getBoolean());
+            v = ValueJson.get(getBoolean());
+            break;
         case TINYINT:
         case SMALLINT:
         case INTEGER:
-            return ValueJson.get(getInt());
+            v = ValueJson.get(getInt());
+            break;
         case BIGINT:
-            return ValueJson.get(getLong());
+            v = ValueJson.get(getLong());
+            break;
         case REAL:
         case DOUBLE:
         case NUMERIC:
-            return ValueJson.get(getBigDecimal());
+            v = ValueJson.get(getBigDecimal());
+            break;
         case VARBINARY:
-            return ValueJson.fromJson(getBytesNoCopy());
+            v = ValueJson.fromJson(getBytesNoCopy());
+            break;
         case VARCHAR:
         case VARCHAR_IGNORECASE:
         case CHAR:
-            return ValueJson.get(getString());
+            v = ValueJson.get(getString());
+            break;
         case GEOMETRY: {
             ValueGeometry vg = (ValueGeometry) this;
-            return ValueJson.getInternal(GeoJsonUtils.ewkbToGeoJson(vg.getBytesNoCopy(), vg.getDimensionSystem()));
+            v = ValueJson.getInternal(GeoJsonUtils.ewkbToGeoJson(vg.getBytesNoCopy(), vg.getDimensionSystem()));
+            break;
         }
         default:
             throw getDataConversionError(JSON);
         }
+        if (conversionMode != CONVERT_TO && v.getBytesNoCopy().length > targetType.getPrecision()) {
+            throw v.getValueTooLongException(targetType, column);
+        }
+        return v;
     }
 
     private ValueArray convertToArray(TypeInfo targetType, CastDataProvider provider, int conversionMode,

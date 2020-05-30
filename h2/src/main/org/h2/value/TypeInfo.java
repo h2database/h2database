@@ -336,7 +336,6 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.DOUBLE:
         case Value.DATE:
         case Value.UUID:
-        case Value.JSON:
         case Value.RESULT_SET:
             return TYPE_INFOS_BY_VALUE_TYPE[type];
         case Value.UNKNOWN:
@@ -450,18 +449,23 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
                 return TYPE_JAVA_OBJECT;
             }
             return new TypeInfo(Value.JAVA_OBJECT, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
-        case Value.GEOMETRY:
-            if (extTypeInfo instanceof ExtTypeInfoGeometry) {
-                return new TypeInfo(Value.GEOMETRY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, extTypeInfo);
-            } else {
-                return TYPE_GEOMETRY;
-            }
         case Value.ENUM:
             if (extTypeInfo instanceof ExtTypeInfoEnum) {
                 return ((ExtTypeInfoEnum) extTypeInfo).getType();
             } else {
                 return TYPE_ENUM_UNDEFINED;
             }
+        case Value.GEOMETRY:
+            if (extTypeInfo instanceof ExtTypeInfoGeometry) {
+                return new TypeInfo(Value.GEOMETRY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, extTypeInfo);
+            } else {
+                return TYPE_GEOMETRY;
+            }
+        case Value.JSON:
+            if (precision < 1 || precision > Integer.MAX_VALUE) {
+                return TYPE_JSON;
+            }
+            return new TypeInfo(Value.JSON, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
         case Value.ARRAY:
             if (!(extTypeInfo instanceof TypeInfo)) {
                 throw new IllegalArgumentException();
@@ -765,6 +769,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.VARCHAR_IGNORECASE:
         case Value.VARBINARY:
         case Value.JAVA_OBJECT:
+        case Value.JSON:
             builder.append(DataType.getDataType(valueType).name);
             if (precision < Integer.MAX_VALUE) {
                 builder.append('(').append(precision).append(')');
@@ -812,14 +817,14 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
                     precision == ValueInterval.DEFAULT_PRECISION ? -1 : (int) precision,
                     scale == ValueInterval.DEFAULT_SCALE ? -1 : scale, false);
             break;
+        case Value.ENUM:
+            extTypeInfo.getSQL(builder.append("ENUM"), sqlFlags);
+            break;
         case Value.GEOMETRY:
             builder.append("GEOMETRY");
             if (extTypeInfo != null) {
                 extTypeInfo.getSQL(builder, sqlFlags);
             }
-            break;
-        case Value.ENUM:
-            extTypeInfo.getSQL(builder.append("ENUM"), sqlFlags);
             break;
         case Value.ARRAY:
             if (extTypeInfo != null) {

@@ -192,10 +192,10 @@ alter sequence s.seq restart with 10;
 
 script NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
-> ---------------------------------------------------
+> ------------------------------------------------------------------
 > ALTER SEQUENCE "S"."SEQ" RESTART WITH 10;
 > CREATE SCHEMA IF NOT EXISTS "S" AUTHORIZATION "SA";
-> CREATE SEQUENCE "S"."SEQ" START WITH 1 NO CACHE;
+> CREATE SEQUENCE "S"."SEQ" AS NUMERIC(19, 0) START WITH 1 NO CACHE;
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > DROP SEQUENCE IF EXISTS "S"."SEQ";
 > rows: 5
@@ -238,3 +238,77 @@ DROP TABLE TEST;
 
 SET MODE Regular;
 > ok
+
+CREATE SEQUENCE SEQ1 AS TINYINT;
+> ok
+
+CREATE SEQUENCE SEQ2 AS SMALLINT;
+> ok
+
+CREATE SEQUENCE SEQ3 AS INTEGER;
+> ok
+
+CREATE SEQUENCE SEQ4 AS BIGINT;
+> ok
+
+CREATE SEQUENCE SEQ5 AS REAL;
+> ok
+
+CREATE SEQUENCE SEQ6 AS DOUBLE PRECISION;
+> ok
+
+CREATE SEQUENCE SEQ7 AS NUMERIC(10, 2);
+> ok
+
+CREATE SEQUENCE SEQ8 AS NUMERIC(100, 20);
+> ok
+
+SELECT SEQUENCE_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_SCALE, MAXIMUM_VALUE,
+    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE FROM INFORMATION_SCHEMA.SEQUENCES;
+> SEQUENCE_NAME DATA_TYPE        NUMERIC_PRECISION NUMERIC_SCALE MAXIMUM_VALUE       DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE
+> ------------- ---------------- ----------------- ------------- ------------------- ------------------ -------------------------- ----------------------
+> SEQ1          TINYINT          3                 0             127                 TINYINT            3                          0
+> SEQ2          SMALLINT         5                 0             32767               SMALLINT           5                          0
+> SEQ3          INTEGER          10                0             2147483647          INTEGER            10                         0
+> SEQ4          BIGINT           19                0             9223372036854775807 BIGINT             19                         0
+> SEQ5          REAL             8                 0             16777216            REAL               7                          0
+> SEQ6          DOUBLE PRECISION 16                0             9007199254740992    DOUBLE PRECISION   17                         0
+> SEQ7          NUMERIC          10                2             99999999            NUMERIC            10                         2
+> SEQ8          NUMERIC          39                20            9223372036854775807 NUMERIC            100                        20
+> rows: 8
+
+SELECT NEXT VALUE FOR SEQ1 IS OF (TINYINT);
+>> TRUE
+
+DROP SEQUENCE SEQ1;
+> ok
+
+DROP SEQUENCE SEQ2;
+> ok
+
+DROP SEQUENCE SEQ3;
+> ok
+
+DROP SEQUENCE SEQ4;
+> ok
+
+DROP SEQUENCE SEQ5;
+> ok
+
+DROP SEQUENCE SEQ6;
+> ok
+
+DROP SEQUENCE SEQ7;
+> ok
+
+DROP SEQUENCE SEQ8;
+> ok
+
+CREATE SEQUENCE SEQ AS NUMERIC(10, 20);
+> exception FEATURE_NOT_SUPPORTED_1
+
+CREATE SEQUENCE SEQ AS VARCHAR(10);
+> exception FEATURE_NOT_SUPPORTED_1
+
+CREATE SEQUENCE SEQ NO;
+> exception SYNTAX_ERROR_2

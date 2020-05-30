@@ -1074,7 +1074,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case GEOMETRY:
             return convertToGeometry((ExtTypeInfoGeometry) targetType.getExtTypeInfo());
         case JSON:
-            return convertToJson();
+            return convertToJson(targetType, conversionMode, column);
         case UUID:
             return convertToUuid();
         case ARRAY:
@@ -1173,9 +1173,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case REAL:
         case DOUBLE:
             return ValueTinyint.get(convertToByte(convertToLong(getDouble(), column), column));
+        case CHAR:
         case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR: {
+        case CLOB:
+        case VARCHAR_IGNORECASE: {
             String s = getString();
             try {
                 return ValueTinyint.get(Byte.parseByte(s.trim()));
@@ -1183,7 +1184,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
             }
         }
-        case VARBINARY: {
+        case BINARY:
+        case VARBINARY:
+        case BLOB: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 1) {
                 return ValueTinyint.get(bytes[0]);
@@ -1236,9 +1239,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case REAL:
         case DOUBLE:
             return ValueSmallint.get(convertToShort(convertToLong(getDouble(), column), column));
+        case CHAR:
         case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR: {
+        case CLOB:
+        case VARCHAR_IGNORECASE: {
             String s = getString();
             try {
                 return ValueSmallint.get(Short.parseShort(s.trim()));
@@ -1246,7 +1250,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
             }
         }
-        case VARBINARY: {
+        case BINARY:
+        case VARBINARY:
+        case BLOB: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 2) {
                 return ValueSmallint.get((short) ((bytes[0] << 8) + (bytes[1] & 0xff)));
@@ -1298,9 +1304,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case REAL:
         case DOUBLE:
             return ValueInteger.get(convertToInt(convertToLong(getDouble(), column), column));
+        case CHAR:
         case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR: {
+        case CLOB:
+        case VARCHAR_IGNORECASE: {
             String s = getString();
             try {
                 return ValueInteger.get(Integer.parseInt(s.trim()));
@@ -1308,7 +1315,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
             }
         }
-        case VARBINARY: {
+        case BINARY:
+        case VARBINARY:
+        case BLOB: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 4) {
                 return ValueInteger.get(Bits.readInt(bytes, 0));
@@ -1359,9 +1368,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case REAL:
         case DOUBLE:
             return ValueBigint.get(convertToLong(getDouble(), column));
+        case CHAR:
         case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR: {
+        case CLOB:
+        case VARCHAR_IGNORECASE: {
             String s = getString();
             try {
                 return ValueBigint.get(Long.parseLong(s.trim()));
@@ -1369,7 +1379,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
             }
         }
-        case VARBINARY: {
+        case BINARY:
+        case VARBINARY:
+        case BLOB: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 8) {
                 return ValueBigint.get(Bits.readLong(bytes, 0));
@@ -1798,8 +1810,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             v = (ValueVarbinary) this;
             break;
         case BINARY:
-        case JAVA_OBJECT:
         case BLOB:
+        case JAVA_OBJECT:
         case GEOMETRY:
         case JSON:
             v = ValueVarbinary.getNoCopy(getBytesNoCopy());
@@ -1827,9 +1839,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             v = ValueVarbinary.getNoCopy(b);
             break;
         }
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
         case CHAR:
+        case VARCHAR:
+        case CLOB:
+        case VARCHAR_IGNORECASE:
             v = ValueVarbinary.getNoCopy(getString().getBytes(StandardCharsets.UTF_8));
             break;
         default:
@@ -1886,9 +1899,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             v = ValueBinary.getNoCopy(b);
             break;
         }
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
         case CHAR:
+        case VARCHAR:
+        case CLOB:
+        case VARCHAR_IGNORECASE:
             v = ValueBinary.getNoCopy(getString().getBytes(StandardCharsets.UTF_8));
             break;
         default:
@@ -1966,7 +1980,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case JAVA_OBJECT:
             v = (ValueJavaObject) this;
             break;
+        case BINARY:
         case VARBINARY:
+        case BLOB:
             v = ValueJavaObject.getNoCopy(getBytesNoCopy());
             break;
         default:
@@ -2028,6 +2044,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             }
             break;
         }
+        case BINARY:
         case VARBINARY:
         case GEOMETRY:
         case JSON:
@@ -2036,9 +2053,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case UUID:
             v = ValueLobInMemory.createSmallLob(BLOB, getBytes());
             break;
+        case CHAR:
         case VARCHAR:
         case VARCHAR_IGNORECASE:
-        case CHAR:
             v = ValueLobInMemory.createSmallLob(BLOB, getString().getBytes(StandardCharsets.UTF_8));
             break;
         default:
@@ -2101,13 +2118,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         switch (getValueType()) {
         case UUID:
             return (ValueUuid) this;
+        case BINARY:
         case VARBINARY:
+        case BLOB:
             return ValueUuid.get(getBytesNoCopy());
         case JAVA_OBJECT:
             return JdbcUtils.deserializeUuid(getBytesNoCopy());
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
         case CHAR:
+        case VARCHAR:
+        case CLOB:
+        case VARCHAR_IGNORECASE:
             return ValueUuid.get(getString());
         default:
             throw getDataConversionError(UUID);
@@ -2130,7 +2150,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case GEOMETRY:
             result = (ValueGeometry) this;
             break;
+        case BINARY:
         case VARBINARY:
+        case BLOB:
             result = ValueGeometry.getFromEWKB(getBytesNoCopy());
             break;
         case JSON: {
@@ -2148,9 +2170,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             }
             break;
         }
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
         case CHAR:
+        case VARCHAR:
+        case CLOB:
+        case VARCHAR_IGNORECASE:
             result = ValueGeometry.get(getString());
             break;
         default:
@@ -2330,35 +2353,51 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
                 bigDecimal.multiply(BigDecimal.valueOf(multiplier)).setScale(0, RoundingMode.HALF_UP).toBigInteger());
     }
 
-    private Value convertToJson() {
+    private ValueJson convertToJson(TypeInfo targetType, int conversionMode, Object column) {
+        ValueJson v;
         switch (getValueType()) {
         case JSON:
-            return this;
+            v = (ValueJson) this;
+            break;
         case BOOLEAN:
-            return ValueJson.get(getBoolean());
+            v = ValueJson.get(getBoolean());
+            break;
         case TINYINT:
         case SMALLINT:
         case INTEGER:
-            return ValueJson.get(getInt());
+            v = ValueJson.get(getInt());
+            break;
         case BIGINT:
-            return ValueJson.get(getLong());
+            v = ValueJson.get(getLong());
+            break;
         case REAL:
         case DOUBLE:
         case NUMERIC:
-            return ValueJson.get(getBigDecimal());
+            v = ValueJson.get(getBigDecimal());
+            break;
+        case BINARY:
         case VARBINARY:
-            return ValueJson.fromJson(getBytesNoCopy());
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
+        case BLOB:
+            v = ValueJson.fromJson(getBytesNoCopy());
+            break;
         case CHAR:
-            return ValueJson.get(getString());
+        case VARCHAR:
+        case CLOB:
+        case VARCHAR_IGNORECASE:
+            v = ValueJson.get(getString());
+            break;
         case GEOMETRY: {
             ValueGeometry vg = (ValueGeometry) this;
-            return ValueJson.getInternal(GeoJsonUtils.ewkbToGeoJson(vg.getBytesNoCopy(), vg.getDimensionSystem()));
+            v = ValueJson.getInternal(GeoJsonUtils.ewkbToGeoJson(vg.getBytesNoCopy(), vg.getDimensionSystem()));
+            break;
         }
         default:
             throw getDataConversionError(JSON);
         }
+        if (conversionMode != CONVERT_TO && v.getBytesNoCopy().length > targetType.getPrecision()) {
+            throw v.getValueTooLongException(targetType, column);
+        }
+        return v;
     }
 
     private ValueArray convertToArray(TypeInfo targetType, CastDataProvider provider, int conversionMode,

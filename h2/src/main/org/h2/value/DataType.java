@@ -138,6 +138,7 @@ public class DataType {
     static {
         DataType dataType = new DataType();
         dataType.defaultPrecision = dataType.maxPrecision = dataType.minPrecision = ValueNull.PRECISION;
+        dataType.hidden = true;
         add(Value.NULL, Types.NULL,
                 dataType,
                 new String[]{"NULL"}
@@ -174,16 +175,20 @@ public class DataType {
                 createNumeric(ValueInteger.PRECISION, 0, false),
                 new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"}
         );
+        dataType = createNumeric(ValueInteger.PRECISION, 0, true);
+        dataType.hidden = true;
         add(Value.INTEGER, Types.INTEGER,
-                createNumeric(ValueInteger.PRECISION, 0, true),
+                dataType,
                 new String[]{"SERIAL"}
         );
         add(Value.BIGINT, Types.BIGINT,
                 createNumeric(ValueBigint.PRECISION, 0, false),
                 new String[]{"BIGINT", "INT8", "LONG"}
         );
+        dataType = createNumeric(ValueBigint.PRECISION, 0, true);
+        dataType.hidden = true;
         add(Value.BIGINT, Types.BIGINT,
-                createNumeric(ValueBigint.PRECISION, 0, true),
+                dataType,
                 new String[]{"IDENTITY", "BIGSERIAL"}
         );
         dataType = new DataType();
@@ -265,7 +270,7 @@ public class DataType {
                 new String[]{"UUID", "UNIQUEIDENTIFIER"}
         );
         add(Value.JAVA_OBJECT, Types.JAVA_OBJECT,
-                createString(false, false),
+                createBinary(false),
                 new String[]{"JAVA_OBJECT", "OBJECT", "OTHER"}
         );
         add(Value.BLOB, Types.BLOB,
@@ -300,6 +305,7 @@ public class DataType {
         );
         dataType = createString(false, false);
         dataType.supportsPrecision = false;
+        dataType.params = "ELEMENT [,...]";
         add(Value.ENUM, Types.OTHER,
                 dataType,
                 new String[]{"ENUM"}
@@ -314,6 +320,7 @@ public class DataType {
         dataType = new DataType();
         dataType.prefix = "ROW(";
         dataType.suffix = ")";
+        dataType.params = "NAME DATA_TYPE [,...]";
         add(Value.ROW, Types.OTHER, dataType, new String[] {"ROW"});
     }
 
@@ -361,7 +368,7 @@ public class DataType {
             dt.defaultPrecision = dataType.defaultPrecision;
             dt.defaultScale = dataType.defaultScale;
             dt.caseSensitive = dataType.caseSensitive;
-            dt.hidden = i > 0;
+            dt.hidden = dataType.hidden || i > 0;
             TYPES_BY_NAME.put(dt.name, dt);
             if (TYPES_BY_VALUE_TYPE[type] == null) {
                 TYPES_BY_VALUE_TYPE[type] = dt;
@@ -823,7 +830,7 @@ public class DataType {
      * @return true if the value type is a numeric type
      */
     public static boolean isNumericType(int type) {
-        return type >= Value.TINYINT && type <= Value.NUMERIC;
+        return type >= Value.TINYINT && type <= Value.DOUBLE;
     }
 
     /**

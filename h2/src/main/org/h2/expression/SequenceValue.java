@@ -56,7 +56,7 @@ public class SequenceValue extends Operation0 {
 
     @Override
     public TypeInfo getType() {
-        return sequence.getDatabase().getMode().decimalSequences ? TypeInfo.TYPE_NUMERIC_BIGINT : TypeInfo.TYPE_BIGINT;
+        return sequence.getDataType();
     }
 
     @Override

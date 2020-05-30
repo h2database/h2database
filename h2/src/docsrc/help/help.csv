@@ -438,7 +438,7 @@ ALTER SCHEMA TEST RENAME TO PRODUCTION
 "
 
 "Commands (DDL)","ALTER SEQUENCE","
-ALTER SEQUENCE @h2@ [ IF EXISTS ] [schemaName.]sequenceName sequenceOptions
+ALTER SEQUENCE @h2@ [ IF EXISTS ] [schemaName.]sequenceName sequenceOption [...]
 ","
 Changes the parameters of a sequence.
 This command does not commit the current transaction; however the new value is used by other
@@ -867,15 +867,27 @@ CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 
 "Commands (DDL)","CREATE SEQUENCE","
 CREATE SEQUENCE @h2@ [ IF NOT EXISTS ] [schemaName.]sequenceName
-[ sequenceOptions ]
+[ { AS dataType | sequenceOption } [...] ]
 ","
 Creates a new sequence.
-The data type of a sequence is BIGINT.
+
+The data type of a sequence must be a numeric type, the default is BIGINT.
+Sequence can produce only integer values.
+For TINYINT the allowed values are between -128 and 127.
+For SMALLINT the allowed values are between -32768 and 32767.
+For INTEGER the allowed values are between -2147483648 and 2147483647.
+For BIGINT the allowed values are between -9223372036854775808 and 9223372036854775807.
+For NUMERIC the allowed values depend on precision and scale,
+but cannot exceed the range of BIGINT data type (from -9223372036854775808 to 9223372036854775807).
+For REAL the allowed values are between -16777216 and 16777216.
+For DOUBLE PRECISION the allowed values are between -9007199254740992 and 9007199254740992.
+
 Used values are never re-used, even when the transaction is rolled back.
 
 This command commits an open transaction in this connection.
 ","
-CREATE SEQUENCE SEQ_ID
+CREATE SEQUENCE SEQ_ID;
+CREATE SEQUENCE SEQ2 AS INTEGER START WITH 10;
 "
 
 "Commands (DDL)","CREATE TABLE","
@@ -2726,7 +2738,7 @@ dataType @h2@ [ VISIBLE | INVISIBLE ]
 [ { DEFAULT expression
     | GENERATED ALWAYS AS (generatedColumnExpression)
     | @c@ { AS (generatedColumnExpression) }
-    | GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequenceOptions)]} ]
+    | GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequenceOption [...])]} ]
 @h2@ [ ON UPDATE expression ] @c@ [ [ NOT ] NULL ]
 @c@ [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
 @h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
@@ -3417,15 +3429,6 @@ the next value expression will be evaluated before the evaluation of current val
 ","
 NEXT VALUE FOR SEQ1
 CURRENT VALUE FOR SCHEMA2.SEQ2
-"
-
-"Other Grammar","Sequence options","
-sequenceOption [...]
-","
-Options of a sequence.
-","
-START WITH 1
-START WITH 10 INCREMENT BY 10
 "
 
 "Other Grammar","Sequence option","
@@ -4188,12 +4191,14 @@ GEOMETRY(GEOMETRY, 4326)
 "
 
 "Data Types","JSON Type","
-@h2@ JSON
+@h2@ JSON [(lengthInt)]
 ","
 A RFC 8259-compliant JSON text.
 
 See also [json](https://h2database.com/html/grammar.html#json) literal grammar.
 Mapped to ""byte[]"".
+The length is specified in bytes and it is a size constraint; only the actual data is persisted.
+
 To set a JSON value with ""java.lang.String"" in a PreparedStatement use a ""FORMAT JSON"" data format
 (""INSERT INTO TEST(ID, DATA) VALUES (?, ? FORMAT JSON)"").
 Without the data format VARCHAR values are converted to a JSON string values.

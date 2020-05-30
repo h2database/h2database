@@ -3944,7 +3944,11 @@ public class Parser {
             operation.setOverCondition(readWindowNameOrSpecification());
             currentSelect.setWindowQuery();
         } else if (operation.isAggregate()) {
-            currentSelect.setGroupQuery();
+            // setGroupQuery for ANY(...) in CommandContainer
+            if (!(operation instanceof Aggregate) ||
+                    ((Aggregate) operation).getAggregateType() != AggregateType.ANY) {
+                currentSelect.setGroupQuery();
+            }
         } else {
             throw getSyntaxError();
         }

@@ -762,7 +762,8 @@ public class TestPgServer extends TestDb {
                 assertEquals("name", rsMeta.getColumnName(1));
                 assertEquals("setting", rsMeta.getColumnName(2));
             }
-            try (ResultSet rs = stat.executeQuery("SELECT \"c\".\"conname\" AS \"CONSTRAINT_NAME\", " +
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT \"c\".\"conname\" AS \"CONSTRAINT_NAME\", " +
                     "CASE \"c\".\"contype\" WHEN 'c' THEN 'CHECK' WHEN 'f' THEN 'FOREIGN KEY' " +
                     "WHEN 'p' THEN 'PRIMARY KEY' WHEN 'u' THEN 'UNIQUE' END AS \"CONSTRAINT_TYPE\", " +
                     "\"a\".\"attname\" AS \"COLUMN_NAME\" FROM \"pg_constraint\" AS \"c\" " +
@@ -770,12 +771,39 @@ public class TestPgServer extends TestDb {
                     "LEFT JOIN \"pg_attribute\" \"a\" ON \"t\".\"oid\"=\"a\".\"attrelid\" " +
                     "LEFT JOIN \"pg_namespace\" \"n\" ON \"t\".\"relnamespace\"=\"n\".\"oid\" " +
                     "WHERE c.contype IN ('p', 'u') AND \"a\".\"attnum\"=ANY(\"c\".\"conkey\") " +
-                    "AND \"n\".\"nspname\"='public' AND \"t\".\"relname\"='test' " +
+                    "AND \"n\".\"nspname\"='public' AND \"t\".\"relname\"=? " +
                     "ORDER BY \"a\".\"attnum\"")) {
-                assertTrue(rs.next());
-                assertEquals("PRIMARY KEY", rs.getString("constraint_type"));
-                assertEquals("id", rs.getString("column_name"));
-                assertFalse(rs.next());
+                ps.setString(1, "test");
+                try (ResultSet rs = ps.executeQuery()) {
+                    assertTrue(rs.next());
+                    assertEquals("PRIMARY KEY", rs.getString("constraint_type"));
+                    assertEquals("id", rs.getString("column_name"));
+                    assertFalse(rs.next());
+                }
+
+                stat.execute("create table test2 (x1 int primary key, x2 int, unique (x2))");
+                ps.setString(1, "test2");
+                try (ResultSet rs = ps.executeQuery()) {
+                    assertTrue(rs.next());
+                    assertEquals("PRIMARY KEY", rs.getString("constraint_type"));
+                    assertEquals("x1", rs.getString("column_name"));
+                    assertTrue(rs.next());
+                    assertEquals("UNIQUE", rs.getString("constraint_type"));
+                    assertEquals("x2", rs.getString("column_name"));
+                    assertFalse(rs.next());
+                }
+
+                stat.execute("create table test3 (x1 int, x2 int, primary key (x1, x2))");
+                ps.setString(1, "test3");
+                try (ResultSet rs = ps.executeQuery()) {
+                    assertTrue(rs.next());
+                    assertEquals("PRIMARY KEY", rs.getString("constraint_type"));
+                    assertEquals("x1", rs.getString("column_name"));
+                    assertTrue(rs.next());
+                    assertEquals("PRIMARY KEY", rs.getString("constraint_type"));
+                    assertEquals("x2", rs.getString("column_name"));
+                    assertFalse(rs.next());
+                }
             }
 
             // DBeaver

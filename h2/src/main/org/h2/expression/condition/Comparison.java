@@ -152,7 +152,7 @@ public final class Comparison extends Condition {
                 	ArrayFunction func = new ArrayFunction(arr, left, null, ArrayFunction.ARRAY_CONTAINS);
                     return func.optimize(session);
                 }
-            } 
+            }
         }
         // TODO check row values too
         if (right.getType().getValueType() == Value.ARRAY && left.getType().getValueType() != Value.ARRAY) {

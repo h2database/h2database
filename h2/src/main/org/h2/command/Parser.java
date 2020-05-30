@@ -8206,7 +8206,7 @@ public class Parser {
                 } else if (readIf("CACHE")) {
                     options.setCacheSize(ValueExpression.get(ValueBigint.get(1)));
                 } else {
-                    break;
+                    throw getSyntaxError();
                 }
             } else if (readIf("CACHE")) {
                 options.setCacheSize(readExpression());

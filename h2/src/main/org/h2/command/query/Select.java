@@ -1378,7 +1378,7 @@ public class Select extends Query {
         StringBuilder builder = new StringBuilder();
         for (TableFilter f : topFilters) {
             Table t = f.getTable();
-            TableView tableView = t.isView() ? (TableView) t : null;
+            TableView tableView = t instanceof TableView ? (TableView) t : null;
             if (tableView != null && tableView.isRecursive() && tableView.isTableExpression()) {
 
                 if (!tableView.isTemporary()) {

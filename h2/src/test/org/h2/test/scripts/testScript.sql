@@ -5042,7 +5042,7 @@ SELECT * FROM TEST_ALL WHERE AID>=2;
 CREATE VIEW TEST_A_SUB AS SELECT * FROM TEST_A WHERE ID < 2;
 > ok
 
-SELECT TABLE_NAME, SQL FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='VIEW';
+SELECT TABLE_NAME, SQL FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_TYPE = 'VIEW';
 > TABLE_NAME SQL
 > ---------- -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > TEST_ALL   CREATE FORCE VIEW "PUBLIC"."TEST_ALL"("AID", "A_NAME", "BID", "B_NAME") AS SELECT "A"."ID" AS "AID", "A"."NAME" AS "A_NAME", "B"."ID" AS "BID", "B"."NAME" AS "B_NAME" FROM "PUBLIC"."TEST_A" "A" INNER JOIN "PUBLIC"."TEST_B" "B" ON 1=1 WHERE "A"."ID" = "B"."ID"

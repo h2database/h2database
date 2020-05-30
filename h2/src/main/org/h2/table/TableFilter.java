@@ -728,13 +728,13 @@ public class TableFilter implements ColumnResolver {
             }
             return builder;
         }
-        if (table.isView() && ((TableView) table).isRecursive()) {
+        if (table instanceof TableView && ((TableView) table).isRecursive()) {
             table.getSchema().getSQL(builder, sqlFlags).append('.');
             Parser.quoteIdentifier(builder, table.getName(), sqlFlags);
         } else {
             table.getSQL(builder, sqlFlags);
         }
-        if (table.isView() && ((TableView) table).isInvalid()) {
+        if (table instanceof TableView && ((TableView) table).isInvalid()) {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, table.getName(), "not compiled");
         }
         if (alias != null) {

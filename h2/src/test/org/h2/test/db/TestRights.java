@@ -290,7 +290,7 @@ public class TestRights extends TestDb {
 
         DatabaseMetaData meta = conn2.getMetaData();
         ResultSet rs;
-        rs = meta.getTables(null, null, "%", new String[]{"TABLE", "VIEW", "SEQUENCE"});
+        rs = meta.getTables(null, "PUBLIC", "%", new String[]{"TABLE", "VIEW", "SEQUENCE"});
         assertTrue(rs.next());
         assertTrue(rs.next());
         assertFalse(rs.next());

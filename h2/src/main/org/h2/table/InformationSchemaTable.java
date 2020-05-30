@@ -133,6 +133,8 @@ public final class InformationSchemaTable extends MetaTable {
         return META_TABLE_TYPE_COUNT;
     }
 
+    private final boolean isView;
+
     /**
      * Create a new metadata table.
      *
@@ -144,9 +146,11 @@ public final class InformationSchemaTable extends MetaTable {
         super(schema, id, type);
         Column[] cols;
         String indexColumnName = null;
+        boolean isView = true;
         switch (type) {
         case INFORMATION_SCHEMA_CATALOG_NAME:
             setMetaTableName("INFORMATION_SCHEMA_CATALOG_NAME");
+            isView = false;
             cols = createColumns(
                     "CATALOG_NAME"
             );
@@ -212,6 +216,7 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         case INDEXES:
             setMetaTableName("INDEXES");
+            isView = false;
             cols = createColumns(
                     "TABLE_CATALOG",
                     "TABLE_SCHEMA",
@@ -239,10 +244,12 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         case TABLE_TYPES:
             setMetaTableName("TABLE_TYPES");
+            isView = false;
             cols = createColumns("TYPE");
             break;
         case TYPE_INFO:
             setMetaTableName("TYPE_INFO");
+            isView = false;
             cols = createColumns(
                 "TYPE_NAME",
                 "DATA_TYPE INT",
@@ -262,14 +269,17 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         case CATALOGS:
             setMetaTableName("CATALOGS");
+            isView = false;
             cols = createColumns("CATALOG_NAME");
             break;
         case SETTINGS:
             setMetaTableName("SETTINGS");
+            isView = false;
             cols = createColumns("NAME", "VALUE");
             break;
         case HELP:
             setMetaTableName("HELP");
+            isView = false;
             cols = createColumns(
                     "ID INT",
                     "SECTION",
@@ -305,6 +315,7 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         case USERS:
             setMetaTableName("USERS");
+            isView = false;
             cols = createColumns(
                     "NAME",
                     "ADMIN",
@@ -314,6 +325,7 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         case ROLES:
             setMetaTableName("ROLES");
+            isView = false;
             cols = createColumns(
                     "NAME",
                     "REMARKS",
@@ -322,6 +334,7 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         case RIGHTS:
             setMetaTableName("RIGHTS");
+            isView = false;
             cols = createColumns(
                     "GRANTEE",
                     "GRANTEETYPE",
@@ -335,6 +348,7 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         case FUNCTION_ALIASES:
             setMetaTableName("FUNCTION_ALIASES");
+            isView = false;
             cols = createColumns(
                     "ALIAS_CATALOG",
                     "ALIAS_SCHEMA",
@@ -352,6 +366,7 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         case FUNCTION_COLUMNS:
             setMetaTableName("FUNCTION_COLUMNS");
+            isView = false;
             cols = createColumns(
                     "ALIAS_CATALOG",
                     "ALIAS_SCHEMA",
@@ -436,6 +451,7 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         case IN_DOUBT:
             setMetaTableName("IN_DOUBT");
+            isView = false;
             cols = createColumns(
                     "TRANSACTION",
                     "STATE"
@@ -443,6 +459,7 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         case CROSS_REFERENCES:
             setMetaTableName("CROSS_REFERENCES");
+            isView = false;
             cols = createColumns(
                     "PKTABLE_CATALOG",
                     "PKTABLE_SCHEMA",
@@ -463,6 +480,7 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         case CONSTANTS:
             setMetaTableName("CONSTANTS");
+            isView = false;
             cols = createColumns(
                     "CONSTANT_CATALOG",
                     "CONSTANT_SCHEMA",
@@ -515,6 +533,7 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         case SESSIONS: {
             setMetaTableName("SESSIONS");
+            isView = false;
             cols = createColumns(
                     "ID INT",
                     "USER_NAME",
@@ -534,6 +553,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
         case LOCKS: {
             setMetaTableName("LOCKS");
+            isView = false;
             cols = createColumns(
                     "TABLE_SCHEMA",
                     "TABLE_NAME",
@@ -544,6 +564,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
         case SESSION_STATE: {
             setMetaTableName("SESSION_STATE");
+            isView = false;
             cols = createColumns(
                     "KEY",
                     "SQL"
@@ -552,6 +573,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
         case QUERY_STATISTICS: {
             setMetaTableName("QUERY_STATISTICS");
+            isView = false;
             cols = createColumns(
                     "SQL_STATEMENT",
                     "EXECUTION_COUNT INT",
@@ -570,6 +592,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
         case SYNONYMS: {
             setMetaTableName("SYNONYMS");
+            isView = false;
             cols = createColumns(
                     "SYNONYM_CATALOG",
                     "SYNONYM_SCHEMA",
@@ -692,6 +715,7 @@ public final class InformationSchemaTable extends MetaTable {
                     new Column[] { cols[indexColumn] });
             metaIndex = new MetaIndex(this, indexCols, false);
         }
+        this.isView = isView;
     }
 
     private static String replaceNullWithEmpty(String s) {
@@ -757,7 +781,7 @@ public final class InformationSchemaTable extends MetaTable {
                         // TABLE_NAME
                         tableName,
                         // TABLE_TYPE
-                        table.getTableType().toString(),
+                        table.isView() ? "VIEW" : table.getTableType().toString(),
                         // STORAGE_TYPE
                         storageType,
                         // SQL
@@ -1586,14 +1610,13 @@ public final class InformationSchemaTable extends MetaTable {
         }
         case VIEWS: {
             for (Table table : getAllTables(session)) {
-                if (table.getTableType() != TableType.VIEW) {
+                if (!table.isView()) {
                     continue;
                 }
                 String tableName = table.getName();
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
-                TableView view = (TableView) table;
                 add(session,
                         rows,
                         // TABLE_CATALOG
@@ -1608,11 +1631,10 @@ public final class InformationSchemaTable extends MetaTable {
                         "NONE",
                         // IS_UPDATABLE
                         "NO",
-                        // STATUS
-                        view.isInvalid() ? "INVALID" : "VALID",
+                        table instanceof TableView && ((TableView) table).isInvalid() ? "INVALID" : "VALID",
                         // REMARKS
-                        replaceNullWithEmpty(view.getComment()), // ID
-                        ValueInteger.get(view.getId())
+                        replaceNullWithEmpty(table.getComment()), // ID
+                        ValueInteger.get(table.getId())
                 );
             }
             break;
@@ -2343,6 +2365,11 @@ public final class InformationSchemaTable extends MetaTable {
             return Long.MAX_VALUE;
         }
         return database.getModificationDataId();
+    }
+
+    @Override
+    public boolean isView() {
+        return isView;
     }
 
 }

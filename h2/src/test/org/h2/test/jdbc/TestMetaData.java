@@ -1086,78 +1086,17 @@ public class TestMetaData extends TestDb {
         assertEquals("TEST", rs.getString("TABLE_NAME"));
         assertFalse(rs.next());
 
-        rs = meta.getTables(null, "INFORMATION_SCHEMA",
-                null, new String[] { "TABLE", "SYSTEM TABLE" });
-        rs.next();
-        assertEquals("CATALOGS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("CHECK_CONSTRAINTS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("COLLATIONS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("COLUMNS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("COLUMN_PRIVILEGES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("CONSTANTS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("CONSTRAINT_COLUMN_USAGE", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("CROSS_REFERENCES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("DOMAINS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("DOMAIN_CONSTRAINTS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("FUNCTION_ALIASES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("FUNCTION_COLUMNS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("HELP", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("INDEXES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("IN_DOUBT", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("KEY_COLUMN_USAGE", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("LOCKS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("QUERY_STATISTICS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("REFERENTIAL_CONSTRAINTS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("RIGHTS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("ROLES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("SCHEMATA", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("SEQUENCES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("SESSIONS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("SESSION_STATE", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("SETTINGS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("SYNONYMS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("TABLES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("TABLE_CONSTRAINTS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("TABLE_PRIVILEGES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("TABLE_TYPES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("TRIGGERS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("TYPE_INFO", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("USERS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("VIEWS", rs.getString("TABLE_NAME"));
+        rs = meta.getTables(null, "INFORMATION_SCHEMA", null, new String[] { "TABLE", "VIEW", "SYSTEM TABLE" });
+        for (String name : new String[] { "CATALOGS", "CONSTANTS", "CROSS_REFERENCES", "FUNCTION_ALIASES",
+                "FUNCTION_COLUMNS", "HELP", "INDEXES", "INFORMATION_SCHEMA_CATALOG_NAME", "IN_DOUBT", "LOCKS",
+                "QUERY_STATISTICS", "RIGHTS", "ROLES", "SESSIONS", "SESSION_STATE", "SETTINGS", "SYNONYMS",
+                "TABLE_TYPES", "TYPE_INFO", "USERS", "CHECK_CONSTRAINTS", "COLLATIONS", "COLUMNS", "COLUMN_PRIVILEGES",
+                "CONSTRAINT_COLUMN_USAGE", "DOMAINS", "DOMAIN_CONSTRAINTS", "KEY_COLUMN_USAGE",
+                "REFERENTIAL_CONSTRAINTS", "SCHEMATA", "SEQUENCES", "TABLES", "TABLE_CONSTRAINTS", "TABLE_PRIVILEGES",
+                "TRIGGERS", "VIEWS" }) {
+            rs.next();
+            assertEquals(name, rs.getString("TABLE_NAME"));
+        }
         assertFalse(rs.next());
 
         rs = meta.getColumns(null, null, "TEST", null);

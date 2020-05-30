@@ -367,7 +367,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         stat.execute("create alias schema2.func as 'int x() { return 1; }'");
         stat.execute("create view test as select schema2.func()");
         ResultSet rs;
-        rs = stat.executeQuery("select * from information_schema.views");
+        rs = stat.executeQuery("select * from information_schema.views where table_schema = 'PUBLIC'");
         rs.next();
         assertContains(rs.getString("VIEW_DEFINITION"), "\"SCHEMA2\".\"FUNC\"");
 

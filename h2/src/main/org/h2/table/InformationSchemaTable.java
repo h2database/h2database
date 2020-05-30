@@ -84,7 +84,8 @@ public final class InformationSchemaTable extends MetaTable {
 
     private static final String CHARACTER_SET_NAME = "Unicode";
 
-    private static final int TABLES = 0;
+    private static final int INFORMATION_SCHEMA_CATALOG_NAME = 0;
+    private static final int TABLES = INFORMATION_SCHEMA_CATALOG_NAME + 1;
     private static final int COLUMNS = TABLES + 1;
     private static final int INDEXES = COLUMNS + 1;
     private static final int TABLE_TYPES = INDEXES + 1;
@@ -144,6 +145,12 @@ public final class InformationSchemaTable extends MetaTable {
         Column[] cols;
         String indexColumnName = null;
         switch (type) {
+        case INFORMATION_SCHEMA_CATALOG_NAME:
+            setMetaTableName("INFORMATION_SCHEMA_CATALOG_NAME");
+            cols = createColumns(
+                    "CATALOG_NAME"
+            );
+            break;
         case TABLES:
             setMetaTableName("TABLES");
             cols = createColumns(
@@ -708,6 +715,12 @@ public final class InformationSchemaTable extends MetaTable {
         String catalog = database.getShortName();
         boolean admin = session.getUser().isAdmin();
         switch (type) {
+        case INFORMATION_SCHEMA_CATALOG_NAME:
+            add(session,
+                    rows,
+                    // CATALOG_NAME
+                    catalog);
+            break;
         case TABLES: {
             for (Table table : getAllTables(session)) {
                 String tableName = table.getName();

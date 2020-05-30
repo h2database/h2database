@@ -73,6 +73,8 @@ public class AlterSequence extends SchemaCommand {
         if (table != null) {
             session.getUser().checkRight(table, Right.ALL);
         }
+        assert options.getDataType() == null;
+        options.setDataType(sequence.getDataType());
         Boolean cycle = options.getCycle();
         if (cycle != null) {
             sequence.setCycle(cycle);

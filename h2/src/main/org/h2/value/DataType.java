@@ -830,7 +830,7 @@ public class DataType {
      * @return true if the value type is a numeric type
      */
     public static boolean isNumericType(int type) {
-        return type >= Value.TINYINT && type <= Value.NUMERIC;
+        return type >= Value.TINYINT && type <= Value.DOUBLE;
     }
 
     /**

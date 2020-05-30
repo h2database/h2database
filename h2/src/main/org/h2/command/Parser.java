@@ -6538,7 +6538,7 @@ public class Parser {
             if (readIf("IDENTITY")) {
                 SequenceOptions options = new SequenceOptions();
                 if (readIf(OPEN_PAREN)) {
-                    parseSequenceOptions(options, null, true);
+                    parseSequenceOptions(options, null, false);
                     read(CLOSE_PAREN);
                 }
                 column.setAutoIncrementOptions(options);
@@ -8167,9 +8167,16 @@ public class Parser {
         return command;
     }
 
-    private void parseSequenceOptions(SequenceOptions options, CreateSequence command, boolean forCreate) {
+    private void parseSequenceOptions(SequenceOptions options, CreateSequence command, boolean allowDataType) {
         for (;;) {
-            if (readIf("START")) {
+            if (allowDataType && readIf(AS)) {
+                TypeInfo dataType = parseColumnWithType(null).getType();
+                if (!DataType.isNumericType(dataType.getValueType())) {
+                    throw DbException.getUnsupportedException(dataType
+                            .getSQL(new StringBuilder("CREATE SEQUENCE AS "), HasSQL.TRACE_SQL_FLAGS).toString());
+                }
+                options.setDataType(dataType);
+            } else if (readIf("START")) {
                 read(WITH);
                 options.setStartValue(readExpression());
             } else if (readIf("RESTART")) {

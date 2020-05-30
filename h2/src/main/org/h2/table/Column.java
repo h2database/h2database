@@ -453,6 +453,7 @@ public class Column implements HasSQL, Typed {
             s = StringUtils.toUpperEnglish(s.replace('-', '_'));
             sequenceName = "SYSTEM_SEQUENCE_" + s;
         } while (schema.findSequence(sequenceName) != null);
+        autoIncrementOptions.setDataType(type);
         Sequence seq = new Sequence(session, schema, id, sequenceName, autoIncrementOptions, true);
         seq.setTemporary(temporary);
         session.getDatabase().addSchemaObject(session, seq);

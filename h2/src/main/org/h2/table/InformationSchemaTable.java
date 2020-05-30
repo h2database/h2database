@@ -286,6 +286,9 @@ public final class InformationSchemaTable extends MetaTable {
                     "MAXIMUM_VALUE BIGINT",
                     "INCREMENT BIGINT",
                     "CYCLE_OPTION",
+                    "DECLARED_DATA_TYPE",
+                    "DECLARED_NUMERIC_PRECISION INT",
+                    "DECLARED_NUMERIC_SCALE INT",
                     "CURRENT_VALUE BIGINT",
                     "IS_GENERATED BIT",
                     "REMARKS",
@@ -1171,6 +1174,9 @@ public final class InformationSchemaTable extends MetaTable {
         case SEQUENCES: {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.SEQUENCE)) {
                 Sequence s = (Sequence) obj;
+                TypeInfo dataType = s.getDataType();
+                String dataTypeName = DataType.getDataType(dataType.getValueType()).name;
+                ValueInteger declaredScale = ValueInteger.get(dataType.getScale());
                 add(session,
                         rows,
                         // SEQUENCE_CATALOG
@@ -1180,13 +1186,13 @@ public final class InformationSchemaTable extends MetaTable {
                         // SEQUENCE_NAME
                         s.getName(),
                         // DATA_TYPE
-                        "BIGINT",
+                        dataTypeName,
                         // NUMERIC_PRECISION
-                        ValueInteger.get(ValueBigint.PRECISION),
+                        ValueInteger.get(s.getEffectivePrecision()),
                         // NUMERIC_PRECISION_RADIX
                         ValueInteger.get(10),
                         // NUMERIC_SCALE
-                        ValueInteger.get(0),
+                        declaredScale,
                         // START_VALUE
                         ValueBigint.get(s.getStartValue()),
                         // MINIMUM_VALUE
@@ -1197,6 +1203,12 @@ public final class InformationSchemaTable extends MetaTable {
                         ValueBigint.get(s.getIncrement()),
                         // CYCLE_OPTION
                         s.getCycle() ? "YES" : "NO",
+                        // DECLARED_DATA_TYPE
+                        dataTypeName,
+                        // DECLARED_NUMERIC_PRECISION
+                        ValueInteger.get((int) dataType.getPrecision()),
+                        // DECLARED_NUMERIC_SCALE
+                        declaredScale,
                         // CURRENT_VALUE
                         ValueBigint.get(s.getCurrentValue()),
                         // IS_GENERATED

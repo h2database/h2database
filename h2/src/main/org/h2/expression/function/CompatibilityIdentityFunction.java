@@ -27,7 +27,7 @@ public final class CompatibilityIdentityFunction extends Operation0 implements N
 
     @Override
     public Value getValue(Session session) {
-        return scope ? session.getLastScopeIdentity() : session.getLastIdentity();
+        return (scope ? session.getLastScopeIdentity() : session.getLastIdentity()).convertTo(type);
     }
 
     @Override

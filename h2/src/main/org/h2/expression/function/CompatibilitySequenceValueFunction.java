@@ -75,7 +75,7 @@ public class CompatibilitySequenceValueFunction extends Operation1_2 implements 
             sequenceName = StringUtils.toUpperEnglish(sequenceName);
             seq = s.getSequence(sequenceName);
         }
-        return current ? session.getCurrentValueFor(seq) : session.getNextValueFor(seq, null);
+        return (current ? session.getCurrentValueFor(seq) : session.getNextValueFor(seq, null)).convertTo(type);
     }
 
     @Override

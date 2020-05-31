@@ -563,7 +563,7 @@ public class ParserUtil {
             return IDENTIFIER;
         }
         /*
-         * JdbcDatabaseMetaData.getSQLKeywords() and tests should be updated when new
+         * DatabaseMetaLocal.getSQLKeywords() and tests should be updated when new
          * non-SQL:2003 keywords are introduced here.
          */
         char c1 = s.charAt(start);

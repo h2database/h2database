@@ -32,6 +32,8 @@ import org.h2.constraint.Constraint;
 import org.h2.index.Index;
 import org.h2.index.ViewIndex;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.jdbc.meta.DatabaseMeta;
+import org.h2.jdbc.meta.DatabaseMetaLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
@@ -2253,6 +2255,11 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public boolean isVariableBinary() {
         return variableBinary;
+    }
+
+    @Override
+    public DatabaseMeta getDatabaseMeta() {
+        return new DatabaseMetaLocal(this);
     }
 
 }

@@ -67,8 +67,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements
 
     JdbcPreparedStatement(JdbcConnection conn, String sql, int id,
             int resultSetType, int resultSetConcurrency,
-            boolean closeWithResultSet, Object generatedKeysRequest) {
-        super(conn, id, resultSetType, resultSetConcurrency, closeWithResultSet);
+            Object generatedKeysRequest) {
+        super(conn, id, resultSetType, resultSetConcurrency);
         this.generatedKeysRequest = conn.scopeGeneratedKeys() ? false : generatedKeysRequest;
         setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
         command = conn.prepareCommand(sql, fetchSize);
@@ -116,8 +116,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                         setExecutingStatement(null);
                     }
                 }
-                resultSet = new JdbcResultSet(conn, this, command, result, id,
-                        closedByResultSet, scrollable, updatable, cachedColumnLabelMap);
+                resultSet = new JdbcResultSet(conn, this, command, result, id, scrollable, updatable,
+                        cachedColumnLabelMap);
             }
             return resultSet;
         } catch (Exception e) {
@@ -191,8 +191,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                 ResultInterface gk = result.getGeneratedKeys();
                 if (gk != null) {
                     int id = getNextId(TraceObject.RESULT_SET);
-                    generatedKeys = new JdbcResultSet(conn, this, command, gk, id,
-                            false, true, false);
+                    generatedKeys = new JdbcResultSet(conn, this, command, gk, id, true, false);
                 }
             } finally {
                 setExecutingStatement(null);
@@ -230,17 +229,15 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                         boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
                         ResultInterface result = command.executeQuery(maxRows, scrollable);
                         lazy = result.isLazy();
-                        resultSet = new JdbcResultSet(conn, this, command, result,
-                                id, closedByResultSet, scrollable,
-                                updatable, cachedColumnLabelMap);
+                        resultSet = new JdbcResultSet(conn, this, command, result, id, scrollable, updatable,
+                                cachedColumnLabelMap);
                     } else {
                         returnsResultSet = false;
                         ResultWithGeneratedKeys result = command.executeUpdate(generatedKeysRequest);
                         updateCount = result.getUpdateCount();
                         ResultInterface gk = result.getGeneratedKeys();
                         if (gk != null) {
-                            generatedKeys = new JdbcResultSet(conn, this, command, gk, id,
-                                    false, true, false);
+                            generatedKeys = new JdbcResultSet(conn, this, command, gk, id, true, false);
                         }
                     }
                 } finally {
@@ -1303,8 +1300,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                     debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
                 }
                 checkClosed();
-                generatedKeys = new JdbcResultSet(conn, this, null, batchIdentities.getResult(), id, false, true,
-                        false);
+                generatedKeys = new JdbcResultSet(conn, this, null, batchIdentities.getResult(), id, true, false);
             } catch (Exception e) {
                 throw logAndConvert(e);
             }

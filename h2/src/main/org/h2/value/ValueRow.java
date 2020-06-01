@@ -68,8 +68,7 @@ public final class ValueRow extends ValueCollectionBase {
         SimpleResult result = new SimpleResult();
         for (int i = 0, l = values.length; i < l;) {
             Value v = values[i++];
-            String columnName = "C" + i;
-            result.addColumn(columnName, columnName, v.getType());
+            result.addColumn("C" + i, v.getType());
         }
         result.addRow(values);
         return result;

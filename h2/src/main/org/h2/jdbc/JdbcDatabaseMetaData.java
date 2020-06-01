@@ -2628,12 +2628,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public ResultSet getClientInfoProperties() throws SQLException {
         Properties clientInfo = conn.getClientInfo();
         SimpleResult result = new SimpleResult();
-        result.addColumn("NAME", "NAME", TypeInfo.TYPE_VARCHAR);
-        result.addColumn("MAX_LEN", "MAX_LEN", TypeInfo.TYPE_INTEGER);
-        result.addColumn("DEFAULT_VALUE", "DEFAULT_VALUE", TypeInfo.TYPE_VARCHAR);
-        result.addColumn("DESCRIPTION", "DESCRIPTION", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("MAX_LEN", TypeInfo.TYPE_INTEGER);
+        result.addColumn("DEFAULT_VALUE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("DESCRIPTION", TypeInfo.TYPE_VARCHAR);
         // Non-standard column
-        result.addColumn("VALUE", "VALUE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("VALUE", TypeInfo.TYPE_VARCHAR);
         for (Entry<Object, Object> entry : clientInfo.entrySet()) {
             result.addRow(ValueVarchar.get((String) entry.getKey()), ValueInteger.get(Integer.MAX_VALUE),
                     ValueVarchar.EMPTY, ValueVarchar.EMPTY, ValueVarchar.get((String) entry.getValue()));

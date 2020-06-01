@@ -2516,13 +2516,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         switch (getValueType()) {
         case RESULT_SET:
             return (ValueResultSet) this;
-        case ROW:
-            result = getResult();
-            break;
         default:
-            result = new SimpleResult();
-            result.addColumn("X", "X", getType());
-            result.addRow(this);
+            result = getResult();
             break;
         case NULL:
             throw DbException.throwInternalError();
@@ -2738,7 +2733,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      */
     public SimpleResult getResult() {
         SimpleResult rs = new SimpleResult();
-        rs.addColumn("X", "X", getType());
+        rs.addColumn("X", getType());
         rs.addRow(this);
         return rs;
     }

@@ -4098,13 +4098,13 @@ SELECT DISTINCT TABLE_SCHEMA, TABLE_CATALOG FROM INFORMATION_SCHEMA.TABLES ORDER
 > rows (ordered): 1
 
 SELECT * FROM INFORMATION_SCHEMA.SCHEMATA;
-> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_NAME DEFAULT_COLLATION_NAME IS_DEFAULT REMARKS ID
-> ------------ ------------------ ------------ -------------------------- ---------------------- ---------- ------- --
-> SCRIPT       INFORMATION_SCHEMA SA           Unicode                    OFF                    FALSE              -1
-> SCRIPT       PUBLIC             SA           Unicode                    OFF                    TRUE               0
+> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_CATALOG DEFAULT_CHARACTER_SET_SCHEMA DEFAULT_CHARACTER_SET_NAME SQL_PATH DEFAULT_COLLATION_NAME REMARKS ID
+> ------------ ------------------ ------------ ----------------------------- ---------------------------- -------------------------- -------- ---------------------- ------- --
+> SCRIPT       INFORMATION_SCHEMA SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                            -1
+> SCRIPT       PUBLIC             SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                            0
 > rows: 2
 
-SELECT * FROM INFORMATION_SCHEMA.CATALOGS;
+SELECT * FROM INFORMATION_SCHEMA.INFORMATION_SCHEMA_CATALOG_NAME;
 > CATALOG_NAME
 > ------------
 > SCRIPT
@@ -4118,10 +4118,10 @@ SELECT INFORMATION_SCHEMA.SCHEMATA.SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA;
 > rows: 2
 
 SELECT INFORMATION_SCHEMA.SCHEMATA.* FROM INFORMATION_SCHEMA.SCHEMATA;
-> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_NAME DEFAULT_COLLATION_NAME IS_DEFAULT REMARKS ID
-> ------------ ------------------ ------------ -------------------------- ---------------------- ---------- ------- --
-> SCRIPT       INFORMATION_SCHEMA SA           Unicode                    OFF                    FALSE              -1
-> SCRIPT       PUBLIC             SA           Unicode                    OFF                    TRUE               0
+> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_CATALOG DEFAULT_CHARACTER_SET_SCHEMA DEFAULT_CHARACTER_SET_NAME SQL_PATH DEFAULT_COLLATION_NAME REMARKS ID
+> ------------ ------------------ ------------ ----------------------------- ---------------------------- -------------------------- -------- ---------------------- ------- --
+> SCRIPT       INFORMATION_SCHEMA SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                            -1
+> SCRIPT       PUBLIC             SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                            0
 > rows: 2
 
 CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA;

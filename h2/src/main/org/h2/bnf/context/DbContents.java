@@ -233,7 +233,9 @@ public class DbContents {
     private String getDefaultSchemaName(DatabaseMetaData meta) {
         String defaultSchemaName = "";
         try {
-            if (isOracle) {
+            if (isH2) {
+                return meta.storesLowerCaseIdentifiers() ? "public" : "PUBLIC";
+            } else if (isOracle) {
                 return meta.getUserName();
             } else if (isPostgreSQL) {
                 return "public";
@@ -244,15 +246,8 @@ public class DbContents {
             } else if (isFirebird) {
                 return null;
             }
-            ResultSet rs = meta.getSchemas();
-            int index = rs.findColumn("IS_DEFAULT");
-            while (rs.next()) {
-                if (rs.getBoolean(index)) {
-                    defaultSchemaName = rs.getString("TABLE_SCHEM");
-                }
-            }
         } catch (SQLException e) {
-            // IS_DEFAULT not found
+            // Ignore
         }
         return defaultSchemaName;
     }

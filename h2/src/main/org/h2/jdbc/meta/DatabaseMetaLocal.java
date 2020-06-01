@@ -8,16 +8,22 @@ package org.h2.jdbc.meta;
 import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.ParameterInterface;
+import org.h2.expression.condition.CompareLike;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
+import org.h2.schema.Schema;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueInteger;
@@ -40,6 +46,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     private static final Value SCHEMA_MAIN = ValueVarchar.get(Constants.SCHEMA_MAIN);
 
     private final Session session;
+
+    private Comparator<String> comparator;
 
     public DatabaseMetaLocal(Session session) {
         this.session = session;
@@ -253,12 +261,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public ResultInterface getSchemas() {
-        return executeQuery("SELECT " //
-                + "SCHEMA_NAME TABLE_SCHEM, " //
-                + "CATALOG_NAME TABLE_CATALOG, " //
-                + " IS_DEFAULT " //
-                + "FROM INFORMATION_SCHEMA.SCHEMATA " //
-                + "ORDER BY SCHEMA_NAME");
+        return getSchemas(null, null);
     }
 
     @Override
@@ -630,17 +633,36 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public ResultInterface getSchemas(String catalogPattern, String schemaPattern) {
-        return executeQuery("SELECT " //
-                + "SCHEMA_NAME TABLE_SCHEM, " //
-                + "CATALOG_NAME TABLE_CATALOG, " //
-                + " IS_DEFAULT " //
-                + "FROM INFORMATION_SCHEMA.SCHEMATA " //
-                + "WHERE CATALOG_NAME LIKE ?1 ESCAPE ?3 " //
-                + "AND SCHEMA_NAME LIKE ?2 ESCAPE ?3 " //
-                + "ORDER BY SCHEMA_NAME", //
-                getCatalogPattern(catalogPattern), //
-                getSchemaPattern(schemaPattern), //
-                BACKSLASH);
+        checkClosed();
+        SimpleResult result = new SimpleResult();
+        result.addColumn("TABLE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_CATALOG", TypeInfo.TYPE_VARCHAR);
+        if (!checkCatalog(catalogPattern)) {
+            return result;
+        }
+        CompareLike schemaLike = getLike(schemaPattern);
+        Collection<Schema> allSchemas = session.getDatabase().getAllSchemas();
+        ArrayList<String> list;
+        if (schemaLike == null) {
+            list = new ArrayList<>(allSchemas.size());
+            for (Schema s : allSchemas) {
+                list.add(s.getName());
+            }
+        } else {
+            list = Utils.newSmallArrayList();
+            for (Schema s : allSchemas) {
+                String name = s.getName();
+                if (schemaLike.test(name)) {
+                    list.add(name);
+                }
+            }
+        }
+        list.sort(getComparator());
+        Value c = getString(session.getDatabase().getShortName());
+        for (String s : list) {
+            result.addRow(getString(s), c);
+        }
+        return result;
     }
 
     private ResultInterface executeQuery(String sql, Value... args) {
@@ -667,10 +689,26 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         }
     }
 
-    @Override void checkClosed() {
+    @Override
+    void checkClosed() {
         if (session.isClosed()) {
             throw DbException.get(ErrorCode.DATABASE_CALLED_AT_SHUTDOWN);
         }
+    }
+
+    private Comparator<String> getComparator() {
+        Comparator<String> comparator = this.comparator;
+        if (comparator == null) {
+            Database db = session.getDatabase();
+            comparator = new Comparator<String>() {
+                @Override
+                public int compare(String o1, String o2) {
+                    return db.getCompareMode().compareString(o1, o2, false);
+                }
+            };
+            this.comparator = comparator;
+        }
+        return comparator;
     }
 
     private Value getString(String string) {
@@ -685,9 +723,28 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         return pattern == null ? PERCENT : pattern.isEmpty() ? SCHEMA_MAIN : getString(pattern);
     }
 
+    private boolean checkCatalog(String catalogPattern) {
+        if (catalogPattern != null && !catalogPattern.isEmpty()) {
+            return getLike().test(catalogPattern, session.getDatabase().getShortName(), '\\');
+        }
+        return true;
+    }
+
+    private CompareLike getLike(String pattern) {
+        if (pattern == null) {
+            return null;
+        }
+        CompareLike like = getLike();
+        like.initPattern(pattern, '\\');
+        return like;
+    }
+
+    private CompareLike getLike() {
+        return new CompareLike(session.getDatabase().getCompareMode(), "\\", null, false, false, null, null,
+                CompareLike.LikeType.LIKE);
+    }
+
     private Value getCatalogPattern(String catalogPattern) {
-        // Workaround for OpenOffice: getColumns is called with "" as the
-        // catalog
         return catalogPattern == null || catalogPattern.isEmpty() ? PERCENT : getString(catalogPattern);
     }
 

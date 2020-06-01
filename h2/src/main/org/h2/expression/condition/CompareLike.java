@@ -417,13 +417,29 @@ public final class CompareLike extends Condition {
      */
     public boolean test(String testPattern, String value, char escapeChar) {
         initPattern(testPattern, escapeChar);
+        return test(value);
+    }
+
+    /**
+     * Test if the value matches the initialized pattern.
+     *
+     * @param value the value
+     * @return true if the value matches
+     */
+    public boolean test(String value) {
         if (invalidPattern) {
             return false;
         }
         return compareAt(value, 0, 0, value.length(), patternChars, patternTypes);
     }
 
-    private void initPattern(String p, Character escapeChar) {
+    /**
+     * Initializes the pattern.
+     *
+     * @param p the pattern
+     * @param escapeChar the escape character
+     */
+    public void initPattern(String p, Character escapeChar) {
         if (compareMode.getName().equals(CompareMode.OFF) && !ignoreCase) {
             fastCompare = true;
         }

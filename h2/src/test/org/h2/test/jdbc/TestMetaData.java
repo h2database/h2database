@@ -964,9 +964,8 @@ public class TestMetaData extends TestDb {
          */
 
         rs = meta.getSchemas();
-        assertResultSetMeta(rs, 3, new String[] { "TABLE_SCHEM",
-                "TABLE_CATALOG", "IS_DEFAULT" }, new int[] { Types.VARCHAR,
-                Types.VARCHAR, Types.BOOLEAN }, null, null);
+        assertResultSetMeta(rs, 2, new String[] { "TABLE_SCHEM", "TABLE_CATALOG" },
+                new int[] { Types.VARCHAR, Types.VARCHAR }, null, null);
         assertTrue(rs.next());
         assertEquals("INFORMATION_SCHEMA", rs.getString(1));
         assertTrue(rs.next());
@@ -974,9 +973,8 @@ public class TestMetaData extends TestDb {
         assertFalse(rs.next());
 
         rs = meta.getSchemas(null, null);
-        assertResultSetMeta(rs, 3, new String[] { "TABLE_SCHEM",
-                "TABLE_CATALOG", "IS_DEFAULT" }, new int[] { Types.VARCHAR,
-                Types.VARCHAR, Types.BOOLEAN }, null, null);
+        assertResultSetMeta(rs, 2, new String[] { "TABLE_SCHEM", "TABLE_CATALOG" },
+                new int[] { Types.VARCHAR, Types.VARCHAR }, null, null);
         assertTrue(rs.next());
         assertEquals("INFORMATION_SCHEMA", rs.getString(1));
         assertTrue(rs.next());

@@ -387,9 +387,12 @@ public final class InformationSchemaTable extends MetaTable {
                     "CATALOG_NAME",
                     "SCHEMA_NAME",
                     "SCHEMA_OWNER",
+                    "DEFAULT_CHARACTER_SET_CATALOG",
+                    "DEFAULT_CHARACTER_SET_SCHEMA",
                     "DEFAULT_CHARACTER_SET_NAME",
-                    "DEFAULT_COLLATION_NAME",
-                    "IS_DEFAULT BIT",
+                    "SQL_PATH",
+                    // extensions
+                    "DEFAULT_COLLATION_NAME", // MySQL
                     "REMARKS",
                     "ID INT"
             );
@@ -1534,12 +1537,16 @@ public final class InformationSchemaTable extends MetaTable {
                         schema.getName(),
                         // SCHEMA_OWNER
                         identifier(schema.getOwner().getName()),
+                        // DEFAULT_CHARACTER_SET_CATALOG
+                        catalog,
+                        //DEFAULT_CHARACTER_SET_SCHEMA
+                        database.getMainSchema().getName(),
                         // DEFAULT_CHARACTER_SET_NAME
                         CHARACTER_SET_NAME,
+                        // SQL_PATH
+                        null,
                         // DEFAULT_COLLATION_NAME
                         collation,
-                        // IS_DEFAULT
-                        ValueBoolean.get(schema.getId() == Constants.MAIN_SCHEMA_ID),
                         // REMARKS
                         replaceNullWithEmpty(schema.getComment()), // ID
                         ValueInteger.get(schema.getId())

@@ -542,7 +542,6 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <ol>
      * <li>TABLE_SCHEM (String) schema name</li>
      * <li>TABLE_CATALOG (String) catalog name</li>
-     * <li>IS_DEFAULT (boolean) if this is the default schema</li>
      * </ol>
      *
      * @return the schema list
@@ -2580,7 +2579,6 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <ol>
      * <li>TABLE_SCHEM (String) schema name</li>
      * <li>TABLE_CATALOG (String) catalog name</li>
-     * <li>IS_DEFAULT (boolean) if this is the default schema</li>
      * </ol>
      *
      * @param catalogPattern null (to get all objects) or the catalog name

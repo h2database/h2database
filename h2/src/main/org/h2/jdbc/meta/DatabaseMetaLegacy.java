@@ -254,8 +254,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
     public ResultInterface getSchemas() {
         return executeQuery("SELECT " //
                 + "SCHEMA_NAME TABLE_SCHEM, " //
-                + "CATALOG_NAME TABLE_CATALOG, " //
-                + " IS_DEFAULT " //
+                + "CATALOG_NAME TABLE_CATALOG " //
                 + "FROM INFORMATION_SCHEMA.SCHEMATA " //
                 + "ORDER BY SCHEMA_NAME");
     }
@@ -637,8 +636,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
     public ResultInterface getSchemas(String catalogPattern, String schemaPattern) {
         return executeQuery("SELECT " //
                 + "SCHEMA_NAME TABLE_SCHEM, " //
-                + "CATALOG_NAME TABLE_CATALOG, " //
-                + " IS_DEFAULT " //
+                + "CATALOG_NAME TABLE_CATALOG " //
                 + "FROM INFORMATION_SCHEMA.SCHEMATA " //
                 + "WHERE CATALOG_NAME LIKE ?1 ESCAPE ?3 " //
                 + "AND SCHEMA_NAME LIKE ?2 ESCAPE ?3 " //
@@ -690,8 +688,6 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
     }
 
     private Value getCatalogPattern(String catalogPattern) {
-        // Workaround for OpenOffice: getColumns is called with "" as the
-        // catalog
         return catalogPattern == null || catalogPattern.isEmpty() ? PERCENT : getString(catalogPattern);
     }
 

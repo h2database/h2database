@@ -46,8 +46,8 @@ public class TestManyJdbcObjects extends TestDb {
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rsTables = meta.getColumns(null, null, null, null);
         while (rsTables.next()) {
-            meta.getExportedKeys(null, null, null);
-            meta.getImportedKeys(null, null, null);
+            meta.getExportedKeys(null, null, "TEST");
+            meta.getImportedKeys(null, null, "TEST");
         }
         conn.close();
     }

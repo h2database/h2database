@@ -480,13 +480,13 @@ public class TestWeb extends TestDb {
                     "query.do?sql=@column_privileges null null null TEST null");
             assertContains(result, "PRIVILEGE");
             result = client.get(url,
-                    "query.do?sql=@cross_references null null null TEST");
+                    "query.do?sql=@cross_references null null TEST null null TEST");
             assertContains(result, "PKTABLE_NAME");
             result = client.get(url,
-                    "query.do?sql=@exported_keys null null null TEST");
+                    "query.do?sql=@exported_keys null null TEST");
             assertContains(result, "PKTABLE_NAME");
             result = client.get(url,
-                    "query.do?sql=@imported_keys null null null TEST");
+                    "query.do?sql=@imported_keys null null TEST");
             assertContains(result, "PKTABLE_NAME");
             result = client.get(url,
                     "query.do?sql=@primary_keys null null null TEST");

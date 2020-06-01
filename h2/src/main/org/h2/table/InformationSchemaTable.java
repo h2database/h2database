@@ -23,7 +23,6 @@ import org.h2.command.Command;
 import org.h2.command.Parser;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.Constraint.Type;
-import org.h2.constraint.ConstraintActionType;
 import org.h2.constraint.ConstraintCheck;
 import org.h2.constraint.ConstraintDomain;
 import org.h2.constraint.ConstraintReferential;
@@ -102,8 +101,7 @@ public final class InformationSchemaTable extends MetaTable {
     private static final int COLLATIONS = COLUMN_PRIVILEGES + 1;
     private static final int VIEWS = COLLATIONS + 1;
     private static final int IN_DOUBT = VIEWS + 1;
-    private static final int CROSS_REFERENCES = IN_DOUBT + 1;
-    private static final int FUNCTION_COLUMNS = CROSS_REFERENCES + 1;
+    private static final int FUNCTION_COLUMNS = IN_DOUBT + 1;
     private static final int CONSTANTS = FUNCTION_COLUMNS + 1;
     private static final int DOMAINS = CONSTANTS + 1;
     private static final int TRIGGERS = DOMAINS + 1;
@@ -432,27 +430,6 @@ public final class InformationSchemaTable extends MetaTable {
                     "TRANSACTION",
                     "STATE"
             );
-            break;
-        case CROSS_REFERENCES:
-            setMetaTableName("CROSS_REFERENCES");
-            isView = false;
-            cols = createColumns(
-                    "PKTABLE_CATALOG",
-                    "PKTABLE_SCHEMA",
-                    "PKTABLE_NAME",
-                    "PKCOLUMN_NAME",
-                    "FKTABLE_CATALOG",
-                    "FKTABLE_SCHEMA",
-                    "FKTABLE_NAME",
-                    "FKCOLUMN_NAME",
-                    "ORDINAL_POSITION SMALLINT",
-                    "UPDATE_RULE SMALLINT",
-                    "DELETE_RULE SMALLINT",
-                    "FK_NAME",
-                    "PK_NAME",
-                    "DEFERRABILITY SMALLINT"
-            );
-            indexColumnName = "PKTABLE_NAME";
             break;
         case CONSTANTS:
             setMetaTableName("CONSTANTS");
@@ -1591,59 +1568,6 @@ public final class InformationSchemaTable extends MetaTable {
             }
             break;
         }
-        case CROSS_REFERENCES: {
-            for (SchemaObject obj : database.getAllSchemaObjects(
-                    DbObject.CONSTRAINT)) {
-                Constraint constraint = (Constraint) obj;
-                if (constraint.getConstraintType() != Constraint.Type.REFERENTIAL) {
-                    continue;
-                }
-                ConstraintReferential ref = (ConstraintReferential) constraint;
-                IndexColumn[] cols = ref.getColumns();
-                IndexColumn[] refCols = ref.getRefColumns();
-                Table tab = ref.getTable();
-                Table refTab = ref.getRefTable();
-                String tableName = refTab.getName();
-                if (!checkIndex(session, tableName, indexFrom, indexTo)) {
-                    continue;
-                }
-                ValueSmallint update = ValueSmallint.get(getRefAction(ref.getUpdateAction()));
-                ValueSmallint delete = ValueSmallint.get(getRefAction(ref.getDeleteAction()));
-                for (int j = 0; j < cols.length; j++) {
-                    add(session,
-                            rows,
-                            // PKTABLE_CATALOG
-                            catalog,
-                            // PKTABLE_SCHEMA
-                            refTab.getSchema().getName(),
-                            // PKTABLE_NAME
-                            refTab.getName(),
-                            // PKCOLUMN_NAME
-                            refCols[j].column.getName(),
-                            // FKTABLE_CATALOG
-                            catalog,
-                            // FKTABLE_SCHEMA
-                            tab.getSchema().getName(),
-                            // FKTABLE_NAME
-                            tab.getName(),
-                            // FKCOLUMN_NAME
-                            cols[j].column.getName(),
-                            // ORDINAL_POSITION
-                            ValueSmallint.get((short) (j + 1)),
-                            // UPDATE_RULE
-                            update,
-                            // DELETE_RULE
-                            delete,
-                            // FK_NAME
-                            ref.getName(),
-                            // PK_NAME
-                            ref.getReferencedConstraint().getName(), // DEFERRABILITY
-                            ValueSmallint.get((short) DatabaseMetaData.importedKeyNotDeferrable)
-                    );
-                }
-            }
-            break;
-        }
         case CONSTANTS: {
             for (SchemaObject obj : database.getAllSchemaObjects(
                     DbObject.CONSTANT)) {
@@ -2188,21 +2112,6 @@ public final class InformationSchemaTable extends MetaTable {
             return typeInfo.getSQL(DEFAULT_SQL_FLAGS);
         }
         return dt.name;
-    }
-
-    private static short getRefAction(ConstraintActionType action) {
-        switch (action) {
-        case CASCADE:
-            return DatabaseMetaData.importedKeyCascade;
-        case RESTRICT:
-            return DatabaseMetaData.importedKeyRestrict;
-        case SET_DEFAULT:
-            return DatabaseMetaData.importedKeySetDefault;
-        case SET_NULL:
-            return DatabaseMetaData.importedKeySetNull;
-        default:
-            throw DbException.throwInternalError("action="+action);
-        }
     }
 
     private void addConstraintColumnUsage(Session session, ArrayList<Row> rows, String catalog, Constraint constraint,

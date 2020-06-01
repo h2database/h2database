@@ -13,8 +13,12 @@ import java.util.Comparator;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.constraint.Constraint;
+import org.h2.constraint.ConstraintActionType;
+import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
+import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.ParameterInterface;
 import org.h2.expression.condition.CompareLike;
@@ -22,9 +26,13 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.schema.Schema;
+import org.h2.schema.SchemaObject;
+import org.h2.table.IndexColumn;
+import org.h2.table.Table;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -493,93 +501,200 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public ResultInterface getImportedKeys(String catalogPattern, String schemaPattern, String tableName) {
-        return executeQuery("SELECT " //
-                + "PKTABLE_CATALOG PKTABLE_CAT, " //
-                + "PKTABLE_SCHEMA PKTABLE_SCHEM, " //
-                + "PKTABLE_NAME PKTABLE_NAME, " //
-                + "PKCOLUMN_NAME, " //
-                + "FKTABLE_CATALOG FKTABLE_CAT, " //
-                + "FKTABLE_SCHEMA FKTABLE_SCHEM, " //
-                + "FKTABLE_NAME, " //
-                + "FKCOLUMN_NAME, " //
-                + "ORDINAL_POSITION KEY_SEQ, " //
-                + "UPDATE_RULE, " //
-                + "DELETE_RULE, " //
-                + "FK_NAME, " //
-                + "PK_NAME, " //
-                + "DEFERRABILITY " //
-                + "FROM INFORMATION_SCHEMA.CROSS_REFERENCES " //
-                + "WHERE FKTABLE_CATALOG LIKE ?1 ESCAPE ?4 " //
-                + "AND FKTABLE_SCHEMA LIKE ?2 ESCAPE ?4 " //
-                + "AND FKTABLE_NAME = ?3 " //
-                + "ORDER BY PKTABLE_CAT, PKTABLE_SCHEM, PKTABLE_NAME, FK_NAME, KEY_SEQ", //
-                getCatalogPattern(catalogPattern), //
-                getSchemaPattern(schemaPattern), //
-                getString(tableName), //
-                BACKSLASH);
+        if (tableName == null) {
+            throw DbException.getInvalidValueException("tableName", null);
+        }
+        return getCrossReferenceImpl(null, null, null, catalogPattern, schemaPattern, tableName);
     }
 
     @Override
     public ResultInterface getExportedKeys(String catalogPattern, String schemaPattern, String tableName) {
-        return executeQuery("SELECT " //
-                + "PKTABLE_CATALOG PKTABLE_CAT, " //
-                + "PKTABLE_SCHEMA PKTABLE_SCHEM, " //
-                + "PKTABLE_NAME PKTABLE_NAME, " //
-                + "PKCOLUMN_NAME, " //
-                + "FKTABLE_CATALOG FKTABLE_CAT, " //
-                + "FKTABLE_SCHEMA FKTABLE_SCHEM, " //
-                + "FKTABLE_NAME, " //
-                + "FKCOLUMN_NAME, " //
-                + "ORDINAL_POSITION KEY_SEQ, " //
-                + "UPDATE_RULE, " //
-                + "DELETE_RULE, " //
-                + "FK_NAME, " //
-                + "PK_NAME, " //
-                + "DEFERRABILITY " //
-                + "FROM INFORMATION_SCHEMA.CROSS_REFERENCES " //
-                + "WHERE PKTABLE_CATALOG LIKE ?1 ESCAPE ?4 " //
-                + "AND PKTABLE_SCHEMA LIKE ?2 ESCAPE ?4 " //
-                + "AND PKTABLE_NAME = ?3 " //
-                + "ORDER BY FKTABLE_CAT, FKTABLE_SCHEM, FKTABLE_NAME, FK_NAME, KEY_SEQ", //
-                getCatalogPattern(catalogPattern), //
-                getSchemaPattern(schemaPattern), //
-                getString(tableName), //
-                BACKSLASH);
+        if (tableName == null) {
+            throw DbException.getInvalidValueException("tableName", null);
+        }
+        return getCrossReferenceImpl(catalogPattern, schemaPattern, tableName, null, null, null);
     }
 
     @Override
     public ResultInterface getCrossReference(String primaryCatalogPattern, String primarySchemaPattern,
             String primaryTable, String foreignCatalogPattern, String foreignSchemaPattern, String foreignTable) {
-        return executeQuery("SELECT " //
-                + "PKTABLE_CATALOG PKTABLE_CAT, " //
-                + "PKTABLE_SCHEMA PKTABLE_SCHEM, " //
-                + "PKTABLE_NAME PKTABLE_NAME, " //
-                + "PKCOLUMN_NAME, " //
-                + "FKTABLE_CATALOG FKTABLE_CAT, " //
-                + "FKTABLE_SCHEMA FKTABLE_SCHEM, " //
-                + "FKTABLE_NAME, " //
-                + "FKCOLUMN_NAME, " //
-                + "ORDINAL_POSITION KEY_SEQ, " //
-                + "UPDATE_RULE, " //
-                + "DELETE_RULE, " //
-                + "FK_NAME, " //
-                + "PK_NAME, " //
-                + "DEFERRABILITY " //
-                + "FROM INFORMATION_SCHEMA.CROSS_REFERENCES " //
-                + "WHERE PKTABLE_CATALOG LIKE ?1 ESCAPE ?7 " //
-                + "AND PKTABLE_SCHEMA LIKE ?2 ESCAPE ?7 " //
-                + "AND PKTABLE_NAME = ?3 " //
-                + "AND FKTABLE_CATALOG LIKE ?4 ESCAPE ?7 " //
-                + "AND FKTABLE_SCHEMA LIKE ?5 ESCAPE ?7 " //
-                + "AND FKTABLE_NAME = ?6 " //
-                + "ORDER BY FKTABLE_CAT, FKTABLE_SCHEM, FKTABLE_NAME, FK_NAME, KEY_SEQ", //
-                getCatalogPattern(primaryCatalogPattern), //
-                getSchemaPattern(primarySchemaPattern), //
-                getString(primaryTable), //
-                getCatalogPattern(foreignCatalogPattern), //
-                getSchemaPattern(foreignSchemaPattern), //
-                getString(foreignTable), //
-                BACKSLASH);
+        if (primaryTable == null) {
+            throw DbException.getInvalidValueException("primaryTable", null);
+        }
+        if (foreignTable == null) {
+            throw DbException.getInvalidValueException("foreignTable", null);
+        }
+        return getCrossReferenceImpl(primaryCatalogPattern, primarySchemaPattern, primaryTable, foreignCatalogPattern,
+                foreignSchemaPattern, foreignTable);
+    }
+
+    ResultInterface getCrossReferenceImpl(String primaryCatalogPattern, String primarySchemaPattern,
+            String primaryTable, String foreignCatalogPattern, String foreignSchemaPattern, String foreignTable) {
+        checkClosed();
+        SimpleResult result = new SimpleResult();
+        result.addColumn("PKTABLE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("PKTABLE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("PKTABLE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("PKCOLUMN_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("FKTABLE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("FKTABLE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("FKTABLE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("FKCOLUMN_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("KEY_SEQ", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("UPDATE_RULE", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("DELETE_RULE", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("FK_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("PK_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("DEFERRABILITY", TypeInfo.TYPE_SMALLINT);
+        if (!checkCatalog(primaryCatalogPattern) || !checkCatalog(foreignCatalogPattern)) {
+            return result;
+        }
+        CompareLike primarySchemaLike = getSchemaLike(primarySchemaPattern),
+                foreignSchemaLike = getSchemaLike(foreignSchemaPattern);
+        Database db = session.getDatabase();
+        CompareMode compareMode = db.getCompareMode();
+        Schema primarySchema = db.getMainSchema();
+        ArrayList<CrossReference> crossReferences = Utils.newSmallArrayList();
+        for (SchemaObject obj : db.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+            Constraint constraint = (Constraint) obj;
+            if (constraint.getConstraintType() != Constraint.Type.REFERENTIAL) {
+                continue;
+            }
+            ConstraintReferential fk = (ConstraintReferential) constraint;
+            Table pkTable = fk.getRefTable();
+            if (primaryTable != null && compareMode.compareString(pkTable.getName(), primaryTable, false) != 0) {
+                continue;
+            }
+            Table fkTable = fk.getTable();
+            if (foreignTable != null && compareMode.compareString(fkTable.getName(), foreignTable, false) != 0) {
+                continue;
+            }
+            Schema pkSchema = pkTable.getSchema();
+            if (!checkSchema(primarySchemaPattern, primarySchemaLike, pkSchema, primarySchema)) {
+                continue;
+            }
+            Schema fkSchema = fkTable.getSchema();
+            if (!checkSchema(foreignSchemaPattern, foreignSchemaLike, fkSchema, primarySchema)) {
+                continue;
+            }
+            crossReferences.add(new CrossReference(this, compareMode, pkSchema.getName(), pkTable, fkSchema.getName(),
+                    fkTable, fk));
+        }
+        crossReferences.sort(null);
+        Value catalog = getString(db.getShortName());
+        for (CrossReference r : crossReferences) {
+            r.add(this, result, catalog);
+        }
+        return result;
+    }
+
+    private static class CrossReference implements Comparable<CrossReference> {
+
+        private static final ValueSmallint IMPORTED_KEY_CASCADE = ValueSmallint
+                .get((short) DatabaseMetaData.importedKeyCascade);
+
+        private static final ValueSmallint IMPORTED_KEY_RESTRICT = ValueSmallint
+                .get((short) DatabaseMetaData.importedKeyRestrict);
+
+        private static final ValueSmallint IMPORTED_KEY_DEFAULT = ValueSmallint
+                .get((short) DatabaseMetaData.importedKeySetDefault);
+
+        private static final ValueSmallint IMPORTED_KEY_SET_NULL = ValueSmallint
+                .get((short) DatabaseMetaData.importedKeySetNull);
+
+        private static final ValueSmallint IMPORTED_KEY_NOT_DEFERRABLE = ValueSmallint
+                .get((short) DatabaseMetaData.importedKeyNotDeferrable);
+
+        private final CompareMode compareMode;
+
+        private Value pkSchemaValue;
+        private Value pkTableValue;
+        private Value fkSchemaValue;
+        private Value fkTableValue;
+        private IndexColumn[] pkCols;
+        private IndexColumn[] fkCols;
+        private ValueSmallint update;
+        private ValueSmallint delete;
+        private Value fkNameValue;
+        private Value pkNameValue;
+
+        CrossReference(DatabaseMetaLocal meta, CompareMode compareMode, String pkSchema, Table pkTable, String fkSchema,
+                Table fkTable, ConstraintReferential fk) {
+            this.compareMode = compareMode;
+            pkSchemaValue = meta.getString(pkSchema);
+            pkTableValue = meta.getString(pkTable.getName());
+            fkSchemaValue = meta.getString(fkSchema);
+            fkTableValue = meta.getString(fkTable.getName());
+            pkCols = fk.getRefColumns();
+            fkCols = fk.getColumns();
+            update = getRefAction(fk.getUpdateAction());
+            delete = getRefAction(fk.getDeleteAction());
+            fkNameValue = meta.getString(fk.getName());
+            pkNameValue = meta.getString(fk.getReferencedConstraint().getName());
+        }
+
+        @Override
+        public int compareTo(CrossReference o) {
+            int cmp = compareMode.compare(fkSchemaValue, o.fkSchemaValue);
+            if (cmp != 0) {
+                return cmp;
+            }
+            cmp = compareMode.compare(fkTableValue, o.fkTableValue);
+            if (cmp != 0) {
+                return cmp;
+            }
+            return compareMode.compare(fkNameValue, o.fkNameValue);
+        }
+
+        void add(DatabaseMetaLocal meta, SimpleResult result, Value catalog) {
+            for (int j = 0, len = fkCols.length; j < len; j++) {
+                result.addRow(
+                        // PKTABLE_CAT
+                        catalog,
+                        // PKTABLE_SCHEM
+                        pkSchemaValue,
+                        // PKTABLE_NAME
+                        pkTableValue,
+                        // PKCOLUMN_NAME
+                        meta.getString(pkCols[j].column.getName()),
+                        // FKTABLE_CAT
+                        catalog,
+                        // FKTABLE_SCHEM
+                        fkSchemaValue,
+                        // FKTABLE_NAME
+                        fkTableValue,
+                        // FKCOLUMN_NAME
+                        meta.getString(fkCols[j].column.getName()),
+                        // KEY_SEQ
+                        ValueSmallint.get((short) (j + 1)),
+                        // UPDATE_RULE
+                        update,
+                        // DELETE_RULE
+                        delete,
+                        // FK_NAME
+                        fkNameValue,
+                        // PK_NAME
+                        pkNameValue,
+                        // DEFERRABILITY
+                        IMPORTED_KEY_NOT_DEFERRABLE);
+            }
+        }
+
+        private static ValueSmallint getRefAction(ConstraintActionType action) {
+            switch (action) {
+            case CASCADE:
+                return IMPORTED_KEY_CASCADE;
+            case RESTRICT:
+                return IMPORTED_KEY_RESTRICT;
+            case SET_DEFAULT:
+                return IMPORTED_KEY_DEFAULT;
+            case SET_NULL:
+                return IMPORTED_KEY_SET_NULL;
+            default:
+                throw DbException.throwInternalError("action=" + action);
+            }
+        }
+
     }
 
     @Override
@@ -752,18 +867,12 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         Comparator<String> comparator = this.comparator;
         if (comparator == null) {
             Database db = session.getDatabase();
-            comparator = new Comparator<String>() {
-                @Override
-                public int compare(String o1, String o2) {
-                    return db.getCompareMode().compareString(o1, o2, false);
-                }
-            };
-            this.comparator = comparator;
+            this.comparator = comparator = (o1, o2) -> db.getCompareMode().compareString(o1, o2, false);
         }
         return comparator;
     }
 
-    private Value getString(String string) {
+    Value getString(String string) {
         return string != null ? ValueVarchar.get(string, session) : ValueNull.INSTANCE;
     }
 
@@ -780,6 +889,19 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             return getLike().test(catalogPattern, session.getDatabase().getShortName(), '\\');
         }
         return true;
+    }
+
+    private static boolean checkSchema(String pattern, CompareLike like, Schema schema, Schema primarySchema) {
+        return pattern == null || (pattern.isEmpty() ? schema == primarySchema : like.test(schema.getName()));
+    }
+
+    private CompareLike getSchemaLike(String pattern) {
+        if (pattern == null || pattern.isEmpty()) {
+            return null;
+        }
+        CompareLike like = getLike();
+        like.initPattern(pattern, '\\');
+        return like;
     }
 
     private CompareLike getLike(String pattern) {

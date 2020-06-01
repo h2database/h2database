@@ -314,7 +314,7 @@ public class TestMetaData extends TestDb {
                 new String[] { "TYPE_CAT", "TYPE_SCHEM", "TYPE_NAME",
                         "CLASS_NAME", "DATA_TYPE", "REMARKS", "BASE_TYPE" },
                 new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                        Types.VARCHAR, Types.SMALLINT, Types.VARCHAR,
+                        Types.VARCHAR, Types.INTEGER, Types.VARCHAR,
                         Types.SMALLINT }, null, null);
         conn.close();
     }
@@ -1087,7 +1087,7 @@ public class TestMetaData extends TestDb {
         assertFalse(rs.next());
 
         rs = meta.getTables(null, "INFORMATION_SCHEMA", null, new String[] { "TABLE", "VIEW", "SYSTEM TABLE" });
-        for (String name : new String[] { "CATALOGS", "CONSTANTS", "CROSS_REFERENCES", "FUNCTION_ALIASES",
+        for (String name : new String[] { "CONSTANTS", "CROSS_REFERENCES", "FUNCTION_ALIASES",
                 "FUNCTION_COLUMNS", "HELP", "INDEXES", "INFORMATION_SCHEMA_CATALOG_NAME", "IN_DOUBT", "LOCKS",
                 "QUERY_STATISTICS", "RIGHTS", "ROLES", "SESSIONS", "SESSION_STATE", "SETTINGS", "SYNONYMS",
                 "TABLE_TYPES", "TYPE_INFO", "USERS", "CHECK_CONSTRAINTS", "COLLATIONS", "COLUMNS", "COLUMN_PRIVILEGES",

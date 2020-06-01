@@ -465,21 +465,6 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
     }
 
     @Override
-    public ResultInterface getVersionColumns(String catalog, String schema, String tableName) {
-        return executeQuery("SELECT " //
-                + "ZERO() SCOPE, " //
-                + "COLUMN_NAME, " //
-                + "CAST(DATA_TYPE AS INT) DATA_TYPE, " //
-                + "TYPE_NAME, " //
-                + "NUMERIC_PRECISION COLUMN_SIZE, " //
-                + "NUMERIC_PRECISION BUFFER_LENGTH, " //
-                + "NUMERIC_PRECISION DECIMAL_DIGITS, " //
-                + "ZERO() PSEUDO_COLUMN " //
-                + "FROM INFORMATION_SCHEMA.COLUMNS " //
-                + "WHERE FALSE");
-    }
-
-    @Override
     public ResultInterface getPrimaryKeys(String catalogPattern, String schemaPattern, String tableName) {
         return executeQuery("SELECT " //
                 + "TABLE_CATALOG TABLE_CAT, " //
@@ -649,41 +634,6 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
     }
 
     @Override
-    public ResultInterface getUDTs(String catalog, String schemaPattern, String typeNamePattern, int[] types) {
-        return executeQuery("SELECT " //
-                + "CAST(NULL AS VARCHAR) TYPE_CAT, " //
-                + "CAST(NULL AS VARCHAR) TYPE_SCHEM, " //
-                + "CAST(NULL AS VARCHAR) TYPE_NAME, " //
-                + "CAST(NULL AS VARCHAR) CLASS_NAME, " //
-                + "CAST(NULL AS SMALLINT) DATA_TYPE, " //
-                + "CAST(NULL AS VARCHAR) REMARKS, " //
-                + "CAST(NULL AS SMALLINT) BASE_TYPE " //
-                + "WHERE FALSE");
-    }
-
-    @Override
-    public ResultInterface getSuperTypes(String catalog, String schemaPattern, String typeNamePattern) {
-        throw DbException.getUnsupportedException("getSuperTypes()");
-    }
-
-    @Override
-    public ResultInterface getSuperTables(String catalog, String schemaPattern, String tableNamePattern) {
-        return executeQuery("SELECT " //
-                + "CATALOG_NAME TABLE_CAT, " //
-                + "CATALOG_NAME TABLE_SCHEM, " //
-                + "CATALOG_NAME TABLE_NAME, " //
-                + "CATALOG_NAME SUPERTABLE_NAME " //
-                + "FROM INFORMATION_SCHEMA.CATALOGS " //
-                + "WHERE FALSE");
-    }
-
-    @Override
-    public ResultInterface getAttributes(String catalog, String schemaPattern, String typeNamePattern,
-            String attributeNamePattern) {
-        throw DbException.getUnsupportedException("getAttributes()");
-    }
-
-    @Override
     public ResultInterface getSchemas(String catalogPattern, String schemaPattern) {
         return executeQuery("SELECT " //
                 + "SCHEMA_NAME TABLE_SCHEM, " //
@@ -698,27 +648,8 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 BACKSLASH);
     }
 
-    @Override
-    public ResultInterface getFunctions(String catalog, String schemaPattern, String functionNamePattern) {
-        throw DbException.getUnsupportedException("getFunctions()");
-    }
-
-    @Override
-    public ResultInterface getFunctionColumns(String catalog, String schemaPattern, String functionNamePattern,
-            String columnNamePattern) {
-        throw DbException.getUnsupportedException("getFunctionColumns()");
-    }
-
-    @Override
-    public ResultInterface getPseudoColumns(String catalog, String schemaPattern, String tableNamePattern,
-            String columnNamePattern) {
-        throw DbException.getUnsupportedException("getPseudoColumns()");
-    }
-
     private ResultInterface executeQuery(String sql, Value... args) {
-        if (session.isClosed()) {
-            throw DbException.get(ErrorCode.DATABASE_CALLED_AT_SHUTDOWN);
-        }
+        checkClosed();
         synchronized (session) {
             CommandInterface command = session.prepareCommand(sql, Integer.MAX_VALUE);
             int l = args.length;
@@ -731,6 +662,13 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
             ResultInterface result = command.executeQuery(0, false);
             command.close();
             return result;
+        }
+    }
+
+    @Override
+    void checkClosed() {
+        if (session.isClosed()) {
+            throw DbException.get(ErrorCode.DATABASE_CALLED_AT_SHUTDOWN);
         }
     }
 

@@ -90,8 +90,7 @@ public final class InformationSchemaTable extends MetaTable {
     private static final int INDEXES = COLUMNS + 1;
     private static final int TABLE_TYPES = INDEXES + 1;
     private static final int TYPE_INFO = TABLE_TYPES + 1;
-    private static final int CATALOGS = TYPE_INFO + 1;
-    private static final int SETTINGS = CATALOGS + 1;
+    private static final int SETTINGS = TYPE_INFO + 1;
     private static final int HELP = SETTINGS + 1;
     private static final int SEQUENCES = HELP + 1;
     private static final int USERS = SEQUENCES + 1;
@@ -266,11 +265,6 @@ public final class InformationSchemaTable extends MetaTable {
                 "NULLABLE SMALLINT",
                 "SEARCHABLE SMALLINT"
             );
-            break;
-        case CATALOGS:
-            setMetaTableName("CATALOGS");
-            isView = false;
-            cols = createColumns("CATALOG_NAME");
             break;
         case SETTINGS:
             setMetaTableName("SETTINGS");
@@ -1065,10 +1059,6 @@ public final class InformationSchemaTable extends MetaTable {
                         ValueSmallint.get((short) DatabaseMetaData.typeSearchable)
                 );
             }
-            break;
-        }
-        case CATALOGS: {
-            add(session, rows, catalog);
             break;
         }
         case SETTINGS: {

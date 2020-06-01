@@ -506,11 +506,11 @@ public class TestWeb extends TestDb {
             result = client.get(url, "query.do?sql=@version_columns");
             assertContains(result, "PSEUDO_COLUMN");
             result = client.get(url, "query.do?sql=@attributes");
-            assertContains(result, "Feature not supported: &quot;getAttributes()&quot;");
+            assertContains(result, "ATTR_NAME");
             result = client.get(url, "query.do?sql=@super_tables");
             assertContains(result, "SUPERTABLE_NAME");
             result = client.get(url, "query.do?sql=@super_types");
-            assertContains(result, "Feature not supported: &quot;getSuperTypes()&quot;");
+            assertContains(result, "SUPERTYPE_NAME");
             result = client.get(url, "query.do?sql=@prof_start");
             assertContains(result, "Ok");
             result = client.get(url, "query.do?sql=@prof_stop");

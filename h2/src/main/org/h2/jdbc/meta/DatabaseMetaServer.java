@@ -42,12 +42,9 @@ import static org.h2.jdbc.meta.DatabaseMetaRemote.GET_VERSION_COLUMNS_3;
 import static org.h2.jdbc.meta.DatabaseMetaRemote.NULLS_ARE_SORTED_HIGH;
 
 import org.h2.engine.Session;
-import org.h2.expression.Alias;
-import org.h2.expression.Expression;
-import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
-import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
+import org.h2.result.SimpleResult;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -186,8 +183,8 @@ public final class DatabaseMetaServer {
     }
 
     private static ResultInterface result(Session session, Value v) {
-        Expression column = new Alias(ValueExpression.get(v), "RESULT", true);
-        LocalResult result = new LocalResult(session, new Expression[] { column }, 1, 1);
+        SimpleResult result = new SimpleResult();
+        result.addColumn("RESULT", v.getType());
         result.addRow(v);
         return result;
     }

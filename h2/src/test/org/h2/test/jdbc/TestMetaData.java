@@ -53,6 +53,7 @@ public class TestMetaData extends TestDb {
         testColumnGenerated();
         testCrossReferences();
         testProcedureColumns();
+        testTypeInfo();
         testUDTs();
         testStatic();
         testGeneral();
@@ -305,6 +306,133 @@ public class TestMetaData extends TestDb {
         conn.close();
     }
 
+    private void testTypeInfo() throws SQLException {
+        Connection conn = getConnection("metaData");
+        DatabaseMetaData meta = conn.getMetaData();
+        ResultSet rs;
+        rs = meta.getTypeInfo();
+        assertResultSetMeta(rs, 18,
+                new String[] { "TYPE_NAME", "DATA_TYPE", "PRECISION", "LITERAL_PREFIX", "LITERAL_SUFFIX",
+                        "CREATE_PARAMS", "NULLABLE", "CASE_SENSITIVE", "SEARCHABLE", "UNSIGNED_ATTRIBUTE",
+                        "FIXED_PREC_SCALE", "AUTO_INCREMENT", "LOCAL_TYPE_NAME", "MINIMUM_SCALE", "MAXIMUM_SCALE",
+                        "SQL_DATA_TYPE", "SQL_DATETIME_SUB", "NUM_PREC_RADIX"},
+                new int[] { Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
+                        Types.SMALLINT, Types.BOOLEAN, Types.SMALLINT, Types.BOOLEAN, Types.BOOLEAN, Types.BOOLEAN,
+                        Types.VARCHAR, Types.SMALLINT, Types.SMALLINT, Types.INTEGER, Types.INTEGER, Types.INTEGER },
+                null, null);
+        testTypeInfo(rs, "CHAR", Types.CHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0, (short) 0,
+                false);
+        testTypeInfo(rs, "VARCHAR", Types.VARCHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0,
+                (short) 0, false);
+        testTypeInfo(rs, "CLOB", Types.CLOB, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0, (short) 0,
+                false);
+        testTypeInfo(rs, "VARCHAR_IGNORECASE", Types.VARCHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", false, false,
+                (short) 0, (short) 0, false);
+        testTypeInfo(rs, "BINARY", Types.BINARY, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
+                (short) 0, false);
+        testTypeInfo(rs, "VARBINARY", Types.VARBINARY, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
+                (short) 0, false);
+        testTypeInfo(rs, "BLOB", Types.BLOB, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
+                (short) 0, false);
+        testTypeInfo(rs, "BOOLEAN", Types.BOOLEAN, 1, null, null, null, false, false, (short) 0,
+                (short) 0, true);
+        testTypeInfo(rs, "TINYINT", Types.TINYINT, 3, null, null, null, false, false, (short) 0,
+                (short) 0, true);
+        testTypeInfo(rs, "SMALLINT", Types.SMALLINT, 5, null, null, null, false, false, (short) 0,
+                (short) 0, true);
+        testTypeInfo(rs, "INTEGER", Types.INTEGER, 10, null, null, null, false, false, (short) 0,
+                (short) 0, true);
+        testTypeInfo(rs, "BIGINT", Types.BIGINT, 19, null, null, null, false, false, (short) 0,
+                (short) 0, true);
+        testTypeInfo(rs, "NUMERIC", Types.NUMERIC, Integer.MAX_VALUE, null, null, "PRECISION,SCALE", false, true,
+                Short.MIN_VALUE, Short.MAX_VALUE, true);
+        testTypeInfo(rs, "REAL", Types.REAL, 7, null, null, null, false, false, (short) 0, (short) 0, true);
+        testTypeInfo(rs, "DOUBLE PRECISION", Types.DOUBLE, 17, null, null, null, false, false, (short) 0, (short) 0,
+                true);
+        testTypeInfo(rs, "FLOAT", Types.FLOAT, 17, null, null, null, false, false, (short) 0, (short) 0,
+                true);
+        testTypeInfo(rs, "DATE", Types.DATE, 10, "DATE '", "'", null, false, false, (short) 0, (short) 0, false);
+        testTypeInfo(rs, "TIME", Types.TIME, 18, "TIME '", "'", "SCALE", false, false, (short) 0, (short) 9, false);
+        testTypeInfo(rs, "TIME WITH TIME ZONE", Types.TIME_WITH_TIMEZONE, 24, "TIME WITH TIME ZONE '", "'", "SCALE",
+                false, false, (short) 0, (short) 9, false);
+        testTypeInfo(rs, "TIMESTAMP", Types.TIMESTAMP, 29, "TIMESTAMP '", "'", "SCALE", false, false, (short) 0,
+                (short) 9, false);
+        testTypeInfo(rs, "TIMESTAMP WITH TIME ZONE", Types.TIMESTAMP_WITH_TIMEZONE, 35, "TIMESTAMP WITH TIME ZONE '",
+                "'", "SCALE", false, false, (short) 0, (short) 9, false);
+        testTypeInfo(rs, "INTERVAL YEAR", Types.OTHER, 18, "INTERVAL '", "' YEAR", "PRECISION", false, false,
+                (short) 0, (short) 0, false);
+        testTypeInfo(rs, "INTERVAL MONTH", Types.OTHER, 18, "INTERVAL '", "' MONTH", "PRECISION", false, false,
+                (short) 0, (short) 0, false);
+        testTypeInfo(rs, "INTERVAL DAY", Types.OTHER, 18, "INTERVAL '", "' DAY", "PRECISION", false, false,
+                (short) 0, (short) 0, false);
+        testTypeInfo(rs, "INTERVAL HOUR", Types.OTHER, 18, "INTERVAL '", "' HOUR", "PRECISION", false, false,
+                (short) 0, (short) 0, false);
+        testTypeInfo(rs, "INTERVAL MINUTE", Types.OTHER, 18, "INTERVAL '", "' MINUTE", "PRECISION", false, false,
+                (short) 0, (short) 0, false);
+        testTypeInfo(rs, "INTERVAL SECOND", Types.OTHER, 18, "INTERVAL '", "' SECOND", "PRECISION,SCALE", false, false,
+                (short) 0, (short) 9, false);
+        testTypeInfo(rs, "INTERVAL YEAR TO MONTH", Types.OTHER, 18, "INTERVAL '", "' YEAR TO MONTH", "PRECISION",
+                false, false, (short) 0, (short) 0, false);
+        testTypeInfo(rs, "INTERVAL DAY TO HOUR", Types.OTHER, 18, "INTERVAL '", "' DAY TO HOUR", "PRECISION",
+                false, false, (short) 0, (short) 0, false);
+        testTypeInfo(rs, "INTERVAL DAY TO MINUTE", Types.OTHER, 18, "INTERVAL '", "' DAY TO MINUTE", "PRECISION",
+                false, false, (short) 0, (short) 0, false);
+        testTypeInfo(rs, "INTERVAL DAY TO SECOND", Types.OTHER, 18, "INTERVAL '", "' DAY TO SECOND", "PRECISION,SCALE",
+                false, false, (short) 0, (short) 9, false);
+        testTypeInfo(rs, "INTERVAL HOUR TO MINUTE", Types.OTHER, 18, "INTERVAL '", "' HOUR TO MINUTE", "PRECISION",
+                false, false, (short) 0, (short) 0, false);
+        testTypeInfo(rs, "INTERVAL HOUR TO SECOND", Types.OTHER, 18, "INTERVAL '", "' HOUR TO SECOND",
+                "PRECISION,SCALE", false, false, (short) 0, (short) 9, false);
+        testTypeInfo(rs, "INTERVAL MINUTE TO SECOND", Types.OTHER, 18, "INTERVAL '", "' MINUTE TO SECOND",
+                "PRECISION,SCALE", false, false, (short) 0, (short) 9, false);
+        testTypeInfo(rs, "JAVA_OBJECT", Types.JAVA_OBJECT, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false,
+                (short) 0, (short) 0, false);
+        testTypeInfo(rs, "ENUM", Types.OTHER, Integer.MAX_VALUE, "'", "'", "ELEMENT [,...]", false, false, (short) 0,
+                (short) 0, false);
+        testTypeInfo(rs, "GEOMETRY", Types.OTHER, Integer.MAX_VALUE, "'", "'", "TYPE,SRID", false, false, (short) 0,
+                (short) 0, false);
+        testTypeInfo(rs, "JSON", Types.OTHER, Integer.MAX_VALUE, "JSON '", "'", "LENGTH", true, false, (short) 0,
+                (short) 0, false);
+        testTypeInfo(rs, "UUID", Types.BINARY, 16, "'", "'", null, false, false, (short) 0, (short) 0, false);
+        testTypeInfo(rs, "ARRAY", Types.ARRAY, Integer.MAX_VALUE, "ARRAY[", "]", "CARDINALITY", false, false,
+                (short) 0, (short) 0, false);
+        testTypeInfo(rs, "ROW", Types.OTHER, 0, "ROW(", ")", "NAME DATA_TYPE [,...]", false, false, (short) 0,
+                (short) 0, false);
+        testTypeInfo(rs, "RESULT_SET", DataType.TYPE_RESULT_SET, Integer.MAX_VALUE, null, null, null, false, false,
+                (short) 0, (short) 0, false);
+        assertFalse(rs.next());
+        conn.close();
+    }
+
+    private void testTypeInfo(ResultSet rs, String name, int type, int precision, String prefix, String suffix,
+            String params, boolean caseSensitive, boolean fixed, short minScale, short maxScale, boolean hasRadix)
+                    throws SQLException {
+        assertTrue(rs.next());
+        assertEquals(name, rs.getString(1));
+        assertEquals(type, rs.getInt(2));
+        assertEquals(precision, rs.getInt(3));
+        assertEquals(prefix, rs.getString(4));
+        assertEquals(suffix, rs.getString(5));
+        assertEquals(params, rs.getString(6));
+        assertEquals(DatabaseMetaData.typeNullable, rs.getShort(7));
+        assertEquals(caseSensitive, rs.getBoolean(8));
+        assertEquals(DatabaseMetaData.typeSearchable, rs.getShort(9));
+        assertFalse(rs.getBoolean(10));
+        assertEquals(fixed, rs.getBoolean(11));
+        assertFalse(rs.getBoolean(12));
+        assertEquals(name, rs.getString(13));
+        assertEquals(minScale, rs.getShort(14));
+        assertEquals(maxScale, rs.getShort(15));
+        assertEquals(type, rs.getInt(16));
+        assertEquals(0, rs.getInt(17));
+        if (hasRadix) {
+            assertEquals(10, rs.getInt(18));
+        } else {
+            rs.getInt(18);
+            assertTrue(rs.wasNull());
+        }
+    }
+
     private void testUDTs() throws SQLException {
         Connection conn = getConnection("metaData");
         DatabaseMetaData meta = conn.getMetaData();
@@ -314,7 +442,7 @@ public class TestMetaData extends TestDb {
                 new String[] { "TYPE_CAT", "TYPE_SCHEM", "TYPE_NAME",
                         "CLASS_NAME", "DATA_TYPE", "REMARKS", "BASE_TYPE" },
                 new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                        Types.VARCHAR, Types.SMALLINT, Types.VARCHAR,
+                        Types.VARCHAR, Types.INTEGER, Types.VARCHAR,
                         Types.SMALLINT }, null, null);
         conn.close();
     }
@@ -964,9 +1092,8 @@ public class TestMetaData extends TestDb {
          */
 
         rs = meta.getSchemas();
-        assertResultSetMeta(rs, 3, new String[] { "TABLE_SCHEM",
-                "TABLE_CATALOG", "IS_DEFAULT" }, new int[] { Types.VARCHAR,
-                Types.VARCHAR, Types.BOOLEAN }, null, null);
+        assertResultSetMeta(rs, 2, new String[] { "TABLE_SCHEM", "TABLE_CATALOG" },
+                new int[] { Types.VARCHAR, Types.VARCHAR }, null, null);
         assertTrue(rs.next());
         assertEquals("INFORMATION_SCHEMA", rs.getString(1));
         assertTrue(rs.next());
@@ -974,9 +1101,8 @@ public class TestMetaData extends TestDb {
         assertFalse(rs.next());
 
         rs = meta.getSchemas(null, null);
-        assertResultSetMeta(rs, 3, new String[] { "TABLE_SCHEM",
-                "TABLE_CATALOG", "IS_DEFAULT" }, new int[] { Types.VARCHAR,
-                Types.VARCHAR, Types.BOOLEAN }, null, null);
+        assertResultSetMeta(rs, 2, new String[] { "TABLE_SCHEM", "TABLE_CATALOG" },
+                new int[] { Types.VARCHAR, Types.VARCHAR }, null, null);
         assertTrue(rs.next());
         assertEquals("INFORMATION_SCHEMA", rs.getString(1));
         assertTrue(rs.next());
@@ -1087,10 +1213,10 @@ public class TestMetaData extends TestDb {
         assertFalse(rs.next());
 
         rs = meta.getTables(null, "INFORMATION_SCHEMA", null, new String[] { "TABLE", "VIEW", "SYSTEM TABLE" });
-        for (String name : new String[] { "CATALOGS", "CONSTANTS", "CROSS_REFERENCES", "FUNCTION_ALIASES",
+        for (String name : new String[] { "CONSTANTS", "CROSS_REFERENCES", "FUNCTION_ALIASES",
                 "FUNCTION_COLUMNS", "HELP", "INDEXES", "INFORMATION_SCHEMA_CATALOG_NAME", "IN_DOUBT", "LOCKS",
                 "QUERY_STATISTICS", "RIGHTS", "ROLES", "SESSIONS", "SESSION_STATE", "SETTINGS", "SYNONYMS",
-                "TABLE_TYPES", "TYPE_INFO", "USERS", "CHECK_CONSTRAINTS", "COLLATIONS", "COLUMNS", "COLUMN_PRIVILEGES",
+                "TABLE_TYPES", "USERS", "CHECK_CONSTRAINTS", "COLLATIONS", "COLUMNS", "COLUMN_PRIVILEGES",
                 "CONSTRAINT_COLUMN_USAGE", "DOMAINS", "DOMAIN_CONSTRAINTS", "KEY_COLUMN_USAGE",
                 "REFERENTIAL_CONSTRAINTS", "SCHEMATA", "SEQUENCES", "TABLES", "TABLE_CONSTRAINTS", "TABLE_PRIVILEGES",
                 "TRIGGERS", "VIEWS" }) {

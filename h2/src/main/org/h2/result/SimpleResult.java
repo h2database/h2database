@@ -106,6 +106,16 @@ public class SimpleResult implements ResultInterface, ResultTarget {
     /**
      * Add column to the result.
      *
+     * @param columnName Column's name.
+     * @param columnType Column's type.
+     */
+    public void addColumn(String columnName, TypeInfo columnType) {
+        addColumn(new Column(columnName, columnName, columnType));
+    }
+
+    /**
+     * Add column to the result.
+     *
      * @param alias Column's alias.
      * @param columnName Column's name.
      * @param columnType Column's type.

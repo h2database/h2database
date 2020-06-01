@@ -49,8 +49,7 @@ public class TableValueConstructorTable extends VirtualConstructedTable {
         int columnCount = columns.length;
         for (int i = 0; i < columnCount; i++) {
             Column column = columns[i];
-            String name = column.getName();
-            simple.addColumn(name, name, column.getType());
+            simple.addColumn(column.getName(), column.getType());
         }
         TableValueConstructor.getVisibleResult(session, simple, columns, rows);
         return simple;

@@ -6,6 +6,7 @@
 package org.h2.jdbc.meta;
 
 import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,6 +14,7 @@ import java.util.Comparator;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.command.dml.Help;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintActionType;
 import org.h2.constraint.ConstraintReferential;
@@ -106,26 +108,27 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     }
 
     private String getFunctions(String section) {
-        String sql = "SELECT TOPIC FROM INFORMATION_SCHEMA.HELP WHERE SECTION = ?";
-        Value[] args = new Value[] { getString(section) };
-        ResultInterface result = executeQuery(sql, args);
+        checkClosed();
         StringBuilder builder = new StringBuilder();
-        while (result.next()) {
-            String s = result.currentRow()[0].getString().trim();
-            String[] array = StringUtils.arraySplit(s, ',', true);
-            for (String a : array) {
-                if (builder.length() != 0) {
-                    builder.append(',');
-                }
-                String f = a.trim();
-                int spaceIndex = f.indexOf(' ');
-                if (spaceIndex >= 0) {
-                    // remove 'Function' from 'INSERT Function'
-                    StringUtils.trimSubstring(builder, f, 0, spaceIndex);
-                } else {
-                    builder.append(f);
+        try {
+            ResultSet rs = Help.getTable();
+            while (rs.next()) {
+                if (rs.getString(1).trim().equals(section)) {
+                    if (builder.length() != 0) {
+                        builder.append(',');
+                    }
+                    String f = rs.getString(2).trim();
+                    int spaceIndex = f.indexOf(' ');
+                    if (spaceIndex >= 0) {
+                        // remove 'Function' from 'INSERT Function'
+                        StringUtils.trimSubstring(builder, f, 0, spaceIndex);
+                    } else {
+                        builder.append(f);
+                    }
                 }
             }
+        } catch (Exception e) {
+            throw DbException.convert(e);
         }
         return builder.toString();
     }
@@ -618,8 +621,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         private Value fkNameValue;
         private Value pkNameValue;
 
-        CrossReference(DatabaseMetaLocal meta, CompareMode compareMode, String pkSchema, Table pkTable, String fkSchema,
-                Table fkTable, ConstraintReferential fk) {
+        CrossReference(DatabaseMetaLocal meta, CompareMode compareMode, String pkSchema, Table pkTable, //
+                String fkSchema, Table fkTable, ConstraintReferential fk) {
             this.compareMode = compareMode;
             pkSchemaValue = meta.getString(pkSchema);
             pkTableValue = meta.getString(pkTable.getName());

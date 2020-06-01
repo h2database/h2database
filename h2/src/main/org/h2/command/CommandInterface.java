@@ -516,6 +516,11 @@ public interface CommandInterface extends AutoCloseable {
     int ALTER_DOMAIN_RENAME = 96;
 
     /**
+     * The type of a HELP statement.
+     */
+    int HELP = 97;
+
+    /**
      * Get command type.
      *
      * @return one of the constants above

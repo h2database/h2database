@@ -5,12 +5,8 @@
  */
 package org.h2.table;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
 import java.sql.Types;
 import java.text.Collator;
 import java.util.ArrayList;
@@ -58,7 +54,6 @@ import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.store.InDoubtTransaction;
-import org.h2.tools.Csv;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetworkConnectionInfo;
@@ -89,8 +84,7 @@ public final class InformationSchemaTable extends MetaTable {
     private static final int INDEXES = COLUMNS + 1;
     private static final int TABLE_TYPES = INDEXES + 1;
     private static final int SETTINGS = TABLE_TYPES + 1;
-    private static final int HELP = SETTINGS + 1;
-    private static final int SEQUENCES = HELP + 1;
+    private static final int SEQUENCES = SETTINGS + 1;
     private static final int USERS = SEQUENCES + 1;
     private static final int ROLES = USERS + 1;
     private static final int RIGHTS = ROLES + 1;
@@ -247,17 +241,6 @@ public final class InformationSchemaTable extends MetaTable {
             setMetaTableName("SETTINGS");
             isView = false;
             cols = createColumns("NAME", "VALUE");
-            break;
-        case HELP:
-            setMetaTableName("HELP");
-            isView = false;
-            cols = createColumns(
-                    "ID INT",
-                    "SECTION",
-                    "TOPIC",
-                    "SYNTAX",
-                    "TEXT"
-            );
             break;
         case SEQUENCES:
             setMetaTableName("SEQUENCES");
@@ -1093,35 +1076,6 @@ public final class InformationSchemaTable extends MetaTable {
                                 "info.LEAF_RATIO", Integer.toString(mvStore.getLeafRatio()));
                     }
                 }
-            }
-            break;
-        }
-        case HELP: {
-            String resource = "/org/h2/res/help.csv";
-            try {
-                byte[] data = Utils.getResource(resource);
-                Reader reader = new InputStreamReader(
-                        new ByteArrayInputStream(data));
-                Csv csv = new Csv();
-                csv.setLineCommentCharacter('#');
-                ResultSet rs = csv.read(reader, null);
-                for (int i = 0; rs.next(); i++) {
-                    add(session,
-                        rows,
-                        // ID
-                        ValueInteger.get(i),
-                        // SECTION
-                        rs.getString(1).trim(),
-                        // TOPIC
-                        rs.getString(2).trim(),
-                        // SYNTAX
-                        rs.getString(3).trim(),
-                        // TEXT
-                        rs.getString(4).trim()
-                    );
-                }
-            } catch (Exception e) {
-                throw DbException.convert(e);
             }
             break;
         }

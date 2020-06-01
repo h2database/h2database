@@ -847,7 +847,7 @@ SELECT CONSTRAINT_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE;
 drop table test;
 > ok
 
-alter table information_schema.help rename to information_schema.help2;
+ALTER TABLE INFORMATION_SCHEMA.INFORMATION_SCHEMA_CATALOG_NAME RENAME TO INFORMATION_SCHEMA.CAT;
 > exception FEATURE_NOT_SUPPORTED_1
 
 CREATE TABLE test (id bigserial NOT NULL primary key);

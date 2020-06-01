@@ -30,7 +30,7 @@ import org.h2.util.StringUtils;
 
 /**
  * This application generates sections of the documentation
- * by converting the built-in help section (INFORMATION_SCHEMA.HELP)
+ * by converting the built-in help section
  * to cross linked html.
  */
 public class GenerateDoc {
@@ -71,7 +71,6 @@ public class GenerateDoc {
         session.put("versionDate", Constants.BUILD_DATE);
         session.put("stableVersion", Constants.VERSION_STABLE);
         session.put("stableVersionDate", Constants.BUILD_DATE_STABLE);
-        // String help = "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION";
         String help = "SELECT ROWNUM ID, * FROM CSVREAD('" +
                 IN_HELP + "', NULL, 'lineComment=#') WHERE SECTION ";
         map("commandsDML",

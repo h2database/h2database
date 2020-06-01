@@ -1213,7 +1213,7 @@ public class TestMetaData extends TestDb {
         assertFalse(rs.next());
 
         rs = meta.getTables(null, "INFORMATION_SCHEMA", null, new String[] { "TABLE", "VIEW", "SYSTEM TABLE" });
-        for (String name : new String[] { "CONSTANTS", "CROSS_REFERENCES", "FUNCTION_ALIASES",
+        for (String name : new String[] { "CONSTANTS", "FUNCTION_ALIASES",
                 "FUNCTION_COLUMNS", "HELP", "INDEXES", "INFORMATION_SCHEMA_CATALOG_NAME", "IN_DOUBT", "LOCKS",
                 "QUERY_STATISTICS", "RIGHTS", "ROLES", "SESSIONS", "SESSION_STATE", "SETTINGS", "SYNONYMS",
                 "TABLE_TYPES", "USERS", "CHECK_CONSTRAINTS", "COLLATIONS", "COLUMNS", "COLUMN_PRIVILEGES",
@@ -1305,11 +1305,11 @@ public class TestMetaData extends TestDb {
         // meta.getClientInfoProperties();
         meta.getColumnPrivileges(null, null, null, null);
         meta.getColumns(null, null, null, null);
-        meta.getCrossReference(null, null, null, null, null, null);
-        meta.getExportedKeys(null, null, null);
+        meta.getCrossReference(null, null, "TEST", null, null, "TEST");
+        meta.getExportedKeys(null, null, "TEST");
         // meta.getFunctionColumns(null, null, null, null);
         // meta.getFunctions(null, null, null);
-        meta.getImportedKeys(null, null, null);
+        meta.getImportedKeys(null, null, "TEST");
         meta.getIndexInfo(null, null, null, false, false);
         meta.getPrimaryKeys(null, null, null);
         meta.getProcedureColumns(null, null, null, null);

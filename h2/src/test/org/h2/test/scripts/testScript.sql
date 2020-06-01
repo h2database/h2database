@@ -827,13 +827,21 @@ create table test(id int primary key, lastname varchar, firstname varchar, paren
 alter table test add constraint name unique (lastname, firstname);
 > ok
 
-SELECT CONSTRAINT_NAME, COLUMN_NAME, INDEX_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE;
-> CONSTRAINT_NAME COLUMN_NAME INDEX_NAME
-> --------------- ----------- ------------------
-> CONSTRAINT_2    ID          PRIMARY_KEY_2
-> CONSTRAINT_27   PARENT      CONSTRAINT_INDEX_2
-> NAME            FIRSTNAME   NAME_INDEX_2
-> NAME            LASTNAME    NAME_INDEX_2
+SELECT CONSTRAINT_NAME, INDEX_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS;
+> CONSTRAINT_NAME INDEX_NAME
+> --------------- ------------------
+> CONSTRAINT_2    PRIMARY_KEY_2
+> CONSTRAINT_27   CONSTRAINT_INDEX_2
+> NAME            NAME_INDEX_2
+> rows: 3
+
+SELECT CONSTRAINT_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE;
+> CONSTRAINT_NAME COLUMN_NAME
+> --------------- -----------
+> CONSTRAINT_2    ID
+> CONSTRAINT_27   PARENT
+> NAME            FIRSTNAME
+> NAME            LASTNAME
 > rows: 4
 
 drop table test;
@@ -1890,19 +1898,19 @@ CREATE TABLE parent(id int PRIMARY KEY);
 CREATE TABLE child(parentid int REFERENCES parent);
 > ok
 
-select * from INFORMATION_SCHEMA.CROSS_REFERENCES;
-> PKTABLE_CATALOG PKTABLE_SCHEMA PKTABLE_NAME PKCOLUMN_NAME FKTABLE_CATALOG FKTABLE_SCHEMA FKTABLE_NAME FKCOLUMN_NAME ORDINAL_POSITION UPDATE_RULE DELETE_RULE FK_NAME      PK_NAME      DEFERRABILITY
-> --------------- -------------- ------------ ------------- --------------- -------------- ------------ ------------- ---------------- ----------- ----------- ------------ ------------ -------------
-> SCRIPT          PUBLIC         PARENT       ID            SCRIPT          PUBLIC         CHILD        PARENTID      1                1           1           CONSTRAINT_3 CONSTRAINT_8 7
+TABLE INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME UNIQUE_CONSTRAINT_CATALOG UNIQUE_CONSTRAINT_SCHEMA UNIQUE_CONSTRAINT_NAME MATCH_OPTION UPDATE_RULE DELETE_RULE
+> ------------------ ----------------- --------------- ------------------------- ------------------------ ---------------------- ------------ ----------- -----------
+> SCRIPT             PUBLIC            CONSTRAINT_3    SCRIPT                    PUBLIC                   CONSTRAINT_8           NONE         RESTRICT    RESTRICT
 > rows: 1
 
 ALTER TABLE parent ADD COLUMN name varchar;
 > ok
 
-select * from INFORMATION_SCHEMA.CROSS_REFERENCES;
-> PKTABLE_CATALOG PKTABLE_SCHEMA PKTABLE_NAME PKCOLUMN_NAME FKTABLE_CATALOG FKTABLE_SCHEMA FKTABLE_NAME FKCOLUMN_NAME ORDINAL_POSITION UPDATE_RULE DELETE_RULE FK_NAME      PK_NAME      DEFERRABILITY
-> --------------- -------------- ------------ ------------- --------------- -------------- ------------ ------------- ---------------- ----------- ----------- ------------ ------------ -------------
-> SCRIPT          PUBLIC         PARENT       ID            SCRIPT          PUBLIC         CHILD        PARENTID      1                1           1           CONSTRAINT_3 CONSTRAINT_8 7
+TABLE INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME UNIQUE_CONSTRAINT_CATALOG UNIQUE_CONSTRAINT_SCHEMA UNIQUE_CONSTRAINT_NAME MATCH_OPTION UPDATE_RULE DELETE_RULE
+> ------------------ ----------------- --------------- ------------------------- ------------------------ ---------------------- ------------ ----------- -----------
+> SCRIPT             PUBLIC            CONSTRAINT_3    SCRIPT                    PUBLIC                   CONSTRAINT_8           NONE         RESTRICT    RESTRICT
 > rows: 1
 
 drop table parent, child;
@@ -6289,12 +6297,21 @@ CREATE TABLE PARENT(A INT, B INT, PRIMARY KEY(A, B));
 CREATE TABLE CHILD(ID INT PRIMARY KEY, PA INT, PB INT, CONSTRAINT AB FOREIGN KEY(PA, PB) REFERENCES PARENT(A, B));
 > ok
 
-SELECT * FROM INFORMATION_SCHEMA.CROSS_REFERENCES;
-> PKTABLE_CATALOG PKTABLE_SCHEMA PKTABLE_NAME PKCOLUMN_NAME FKTABLE_CATALOG FKTABLE_SCHEMA FKTABLE_NAME FKCOLUMN_NAME ORDINAL_POSITION UPDATE_RULE DELETE_RULE FK_NAME PK_NAME      DEFERRABILITY
-> --------------- -------------- ------------ ------------- --------------- -------------- ------------ ------------- ---------------- ----------- ----------- ------- ------------ -------------
-> SCRIPT          PUBLIC         PARENT       A             SCRIPT          PUBLIC         CHILD        PA            1                1           1           AB      CONSTRAINT_8 7
-> SCRIPT          PUBLIC         PARENT       B             SCRIPT          PUBLIC         CHILD        PB            2                1           1           AB      CONSTRAINT_8 7
-> rows: 2
+TABLE INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME UNIQUE_CONSTRAINT_CATALOG UNIQUE_CONSTRAINT_SCHEMA UNIQUE_CONSTRAINT_NAME MATCH_OPTION UPDATE_RULE DELETE_RULE
+> ------------------ ----------------- --------------- ------------------------- ------------------------ ---------------------- ------------ ----------- -----------
+> SCRIPT             PUBLIC            AB              SCRIPT                    PUBLIC                   CONSTRAINT_8           NONE         RESTRICT    RESTRICT
+> rows: 1
+
+TABLE INFORMATION_SCHEMA.KEY_COLUMN_USAGE;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION POSITION_IN_UNIQUE_CONSTRAINT
+> ------------------ ----------------- --------------- ------------- ------------ ---------- ----------- ---------------- -----------------------------
+> SCRIPT             PUBLIC            AB              SCRIPT        PUBLIC       CHILD      PA          1                1
+> SCRIPT             PUBLIC            AB              SCRIPT        PUBLIC       CHILD      PB          2                2
+> SCRIPT             PUBLIC            CONSTRAINT_3    SCRIPT        PUBLIC       CHILD      ID          1                null
+> SCRIPT             PUBLIC            CONSTRAINT_8    SCRIPT        PUBLIC       PARENT     A           1                null
+> SCRIPT             PUBLIC            CONSTRAINT_8    SCRIPT        PUBLIC       PARENT     B           2                null
+> rows: 5
 
 DROP TABLE PARENT, CHILD;
 > ok

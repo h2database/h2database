@@ -108,7 +108,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public String getSearchStringEscape() {
-        return "\\";
+        return session.getDatabase().getSettings().defaultEscape;
     }
 
     @Override

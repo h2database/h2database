@@ -143,6 +143,10 @@ public class DataType {
                 dataType,
                 new String[]{"NULL"}
         );
+        add(Value.CHAR, Types.CHAR,
+                createString(true, true),
+                new String[]{"CHAR", "CHARACTER", "NCHAR", "NATIONAL CHARACTER", "NATIONAL CHAR"}
+        );
         add(Value.VARCHAR, Types.VARCHAR,
                 createString(true, false),
                 new String[]{"VARCHAR", "CHARACTER VARYING", "CHAR VARYING",
@@ -151,13 +155,27 @@ public class DataType {
                         "VARCHAR_CASESENSITIVE", "TID",
                         "LONGVARCHAR", "LONGNVARCHAR"}
         );
-        add(Value.CHAR, Types.CHAR,
-                createString(true, true),
-                new String[]{"CHAR", "CHARACTER", "NCHAR", "NATIONAL CHARACTER", "NATIONAL CHAR"}
+        add(Value.CLOB, Types.CLOB,
+                createLob(true),
+                new String[]{"CLOB", "CHARACTER LARGE OBJECT", "CHAR LARGE OBJECT", "TINYTEXT", "TEXT", "MEDIUMTEXT",
+                    "LONGTEXT", "NTEXT", "NCLOB", "NCHAR LARGE OBJECT", "NATIONAL CHARACTER LARGE OBJECT"}
         );
         add(Value.VARCHAR_IGNORECASE, Types.VARCHAR,
                 createString(false, false),
                 new String[]{"VARCHAR_IGNORECASE"}
+        );
+        add(Value.BINARY, Types.BINARY,
+                createBinary(true),
+                new String[]{"BINARY"}
+        );
+        add(Value.VARBINARY, Types.VARBINARY,
+                createBinary(false),
+                new String[]{"VARBINARY", "BINARY VARYING", "RAW", "BYTEA", "LONG RAW", "LONGVARBINARY"}
+        );
+        add(Value.BLOB, Types.BLOB,
+                createLob(false),
+                new String[]{"BLOB", "BINARY LARGE OBJECT", "TINYBLOB", "MEDIUMBLOB",
+                    "LONGBLOB", "IMAGE"}
         );
         add(Value.BOOLEAN, Types.BOOLEAN,
                 createNumeric(ValueBoolean.PRECISION, 0, false),
@@ -225,6 +243,11 @@ public class DataType {
                 createNumeric(ValueDouble.PRECISION, 0, false),
                 new String[] {"FLOAT", "FLOAT8" }
         );
+        add(Value.DATE, Types.DATE,
+                createDate(ValueDate.PRECISION, ValueDate.PRECISION,
+                        "DATE", false, 0, 0),
+                new String[]{"DATE"}
+        );
         add(Value.TIME, Types.TIME,
                 createDate(ValueTime.MAXIMUM_PRECISION, ValueTime.DEFAULT_PRECISION,
                         "TIME", true, ValueTime.DEFAULT_SCALE, ValueTime.MAXIMUM_SCALE),
@@ -235,11 +258,6 @@ public class DataType {
                         "TIME WITH TIME ZONE", true, ValueTime.DEFAULT_SCALE,
                         ValueTime.MAXIMUM_SCALE),
                 new String[]{"TIME WITH TIME ZONE"}
-        );
-        add(Value.DATE, Types.DATE,
-                createDate(ValueDate.PRECISION, ValueDate.PRECISION,
-                        "DATE", false, 0, 0),
-                new String[]{"DATE"}
         );
         add(Value.TIMESTAMP, Types.TIMESTAMP,
                 createDate(ValueTimestamp.MAXIMUM_PRECISION, ValueTimestamp.DEFAULT_PRECISION,
@@ -253,13 +271,27 @@ public class DataType {
                         ValueTimestamp.MAXIMUM_SCALE),
                 new String[]{"TIMESTAMP WITH TIME ZONE"}
         );
-        add(Value.VARBINARY, Types.VARBINARY,
+        for (int i = Value.INTERVAL_YEAR; i <= Value.INTERVAL_MINUTE_TO_SECOND; i++) {
+            addInterval(i);
+        }
+        add(Value.JAVA_OBJECT, Types.JAVA_OBJECT,
                 createBinary(false),
-                new String[]{"VARBINARY", "BINARY VARYING", "RAW", "BYTEA", "LONG RAW", "LONGVARBINARY"}
+                new String[]{"JAVA_OBJECT", "OBJECT", "OTHER"}
         );
-        add(Value.BINARY, Types.BINARY,
-                createBinary(true),
-                new String[]{"BINARY"}
+        dataType = createString(false, false);
+        dataType.supportsPrecision = false;
+        dataType.params = "ELEMENT [,...]";
+        add(Value.ENUM, Types.OTHER,
+                dataType,
+                new String[]{"ENUM"}
+        );
+        add(Value.GEOMETRY, Types.OTHER,
+                createGeometry(),
+                new String[]{"GEOMETRY"}
+        );
+        add(Value.JSON, Types.OTHER,
+                createString(true, false, "JSON '", "'"),
+                new String[]{"JSON"}
         );
         dataType = new DataType();
         dataType.prefix = dataType.suffix = "'";
@@ -268,24 +300,6 @@ public class DataType {
                 dataType,
                 // UNIQUEIDENTIFIER is the MSSQL mode equivalent
                 new String[]{"UUID", "UNIQUEIDENTIFIER"}
-        );
-        add(Value.JAVA_OBJECT, Types.JAVA_OBJECT,
-                createBinary(false),
-                new String[]{"JAVA_OBJECT", "OBJECT", "OTHER"}
-        );
-        add(Value.BLOB, Types.BLOB,
-                createLob(false),
-                new String[]{"BLOB", "BINARY LARGE OBJECT", "TINYBLOB", "MEDIUMBLOB",
-                    "LONGBLOB", "IMAGE"}
-        );
-        add(Value.CLOB, Types.CLOB,
-                createLob(true),
-                new String[]{"CLOB", "CHARACTER LARGE OBJECT", "CHAR LARGE OBJECT", "TINYTEXT", "TEXT", "MEDIUMTEXT",
-                    "LONGTEXT", "NTEXT", "NCLOB", "NCHAR LARGE OBJECT", "NATIONAL CHARACTER LARGE OBJECT"}
-        );
-        add(Value.GEOMETRY, Types.OTHER,
-                createGeometry(),
-                new String[]{"GEOMETRY"}
         );
         dataType = new DataType();
         dataType.prefix = "ARRAY[";
@@ -298,30 +312,16 @@ public class DataType {
                 new String[]{"ARRAY"}
         );
         dataType = new DataType();
+        dataType.prefix = "ROW(";
+        dataType.suffix = ")";
+        dataType.params = "NAME DATA_TYPE [,...]";
+        add(Value.ROW, Types.OTHER, dataType, new String[] {"ROW"});
+        dataType = new DataType();
         dataType.maxPrecision = dataType.defaultPrecision = Integer.MAX_VALUE;
         add(Value.RESULT_SET, DataType.TYPE_RESULT_SET,
                 dataType,
                 new String[]{"RESULT_SET"}
         );
-        dataType = createString(false, false);
-        dataType.supportsPrecision = false;
-        dataType.params = "ELEMENT [,...]";
-        add(Value.ENUM, Types.OTHER,
-                dataType,
-                new String[]{"ENUM"}
-        );
-        for (int i = Value.INTERVAL_YEAR; i <= Value.INTERVAL_MINUTE_TO_SECOND; i++) {
-            addInterval(i);
-        }
-        add(Value.JSON, Types.OTHER,
-                createString(true, false, "JSON '", "'"),
-                new String[]{"JSON"}
-        );
-        dataType = new DataType();
-        dataType.prefix = "ROW(";
-        dataType.suffix = ")";
-        dataType.params = "NAME DATA_TYPE [,...]";
-        add(Value.ROW, Types.OTHER, dataType, new String[] {"ROW"});
     }
 
     private static void addInterval(int type) {

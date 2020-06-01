@@ -22,12 +22,16 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.schema.Schema;
+import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueBoolean;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueSmallint;
 import org.h2.value.ValueVarchar;
 
 /**
@@ -44,6 +48,10 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     private static final Value NO = ValueVarchar.get("NO");
 
     private static final Value SCHEMA_MAIN = ValueVarchar.get(Constants.SCHEMA_MAIN);
+
+    private static final ValueSmallint TYPE_NULLABLE = ValueSmallint.get((short) DatabaseMetaData.typeNullable);
+
+    private static final ValueSmallint TYPE_SEARCHABLE = ValueSmallint.get((short) DatabaseMetaData.typeSearchable);
 
     private final Session session;
 
@@ -576,27 +584,71 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public ResultInterface getTypeInfo() {
-        return executeQuery("SELECT " //
-                + "TYPE_NAME, " //
-                + "DATA_TYPE, " //
-                + "PRECISION, " //
-                + "PREFIX LITERAL_PREFIX, " //
-                + "SUFFIX LITERAL_SUFFIX, " //
-                + "PARAMS CREATE_PARAMS, " //
-                + "NULLABLE, " //
-                + "CASE_SENSITIVE, " //
-                + "SEARCHABLE, " //
-                + "FALSE UNSIGNED_ATTRIBUTE, " //
-                + "FALSE FIXED_PREC_SCALE, " //
-                + "AUTO_INCREMENT, " //
-                + "TYPE_NAME LOCAL_TYPE_NAME, " //
-                + "MINIMUM_SCALE, " //
-                + "MAXIMUM_SCALE, " //
-                + "DATA_TYPE SQL_DATA_TYPE, " //
-                + "ZERO() SQL_DATETIME_SUB, " //
-                + "RADIX NUM_PREC_RADIX " //
-                + "FROM INFORMATION_SCHEMA.TYPE_INFO " //
-                + "ORDER BY DATA_TYPE, POS");
+        checkClosed();
+        SimpleResult result = new SimpleResult();
+        result.addColumn("TYPE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("DATA_TYPE", TypeInfo.TYPE_INTEGER);
+        result.addColumn("PRECISION", TypeInfo.TYPE_INTEGER);
+        result.addColumn("LITERAL_PREFIX", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("LITERAL_SUFFIX", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("CREATE_PARAMS", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("NULLABLE", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("CASE_SENSITIVE", TypeInfo.TYPE_BOOLEAN);
+        result.addColumn("SEARCHABLE", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("UNSIGNED_ATTRIBUTE", TypeInfo.TYPE_BOOLEAN);
+        result.addColumn("FIXED_PREC_SCALE", TypeInfo.TYPE_BOOLEAN);
+        result.addColumn("AUTO_INCREMENT", TypeInfo.TYPE_BOOLEAN);
+        result.addColumn("LOCAL_TYPE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("MINIMUM_SCALE", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("MAXIMUM_SCALE", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("SQL_DATA_TYPE", TypeInfo.TYPE_INTEGER);
+        result.addColumn("SQL_DATETIME_SUB", TypeInfo.TYPE_INTEGER);
+        result.addColumn("NUM_PREC_RADIX", TypeInfo.TYPE_INTEGER);
+        for (DataType t : DataType.getTypes()) {
+            if (t.hidden) {
+                continue;
+            }
+            Value name = getString(t.name);
+            ValueInteger sqlType = ValueInteger.get(t.sqlType);
+            result.addRow(
+                    // TYPE_NAME
+                    name,
+                    // DATA_TYPE
+                    sqlType,
+                    // PRECISION
+                    ValueInteger.get(MathUtils.convertLongToInt(t.maxPrecision)),
+                    // LITERAL_PREFIX
+                    getString(t.prefix),
+                    // LITERAL_SUFFIX
+                    getString(t.suffix),
+                    // CREATE_PARAMS
+                    getString(t.params),
+                    // NULLABLE
+                    TYPE_NULLABLE,
+                    // CASE_SENSITIVE
+                    ValueBoolean.get(t.caseSensitive),
+                    // SEARCHABLE
+                    TYPE_SEARCHABLE,
+                    // UNSIGNED_ATTRIBUTE
+                    ValueBoolean.FALSE,
+                    // FIXED_PREC_SCALE
+                    ValueBoolean.get(t.type == Value.NUMERIC),
+                    // AUTO_INCREMENT
+                    ValueBoolean.get(t.autoIncrement),
+                    // LOCAL_TYPE_NAME
+                    name,
+                    // MINIMUM_SCALE
+                    ValueSmallint.get(MathUtils.convertIntToShort(t.minScale)),
+                    // MAXIMUM_SCALE
+                    ValueSmallint.get(MathUtils.convertIntToShort(t.maxScale)),
+                    // SQL_DATA_TYPE
+                    sqlType,
+                    // SQL_DATETIME_SUB
+                    ValueInteger.get(0),
+                    // NUM_PREC_RADIX
+                    t.decimal ? ValueInteger.get(10) : ValueNull.INSTANCE);
+        }
+        return result;
     }
 
     @Override

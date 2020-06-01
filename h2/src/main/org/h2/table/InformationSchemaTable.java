@@ -89,8 +89,7 @@ public final class InformationSchemaTable extends MetaTable {
     private static final int COLUMNS = TABLES + 1;
     private static final int INDEXES = COLUMNS + 1;
     private static final int TABLE_TYPES = INDEXES + 1;
-    private static final int TYPE_INFO = TABLE_TYPES + 1;
-    private static final int SETTINGS = TYPE_INFO + 1;
+    private static final int SETTINGS = TABLE_TYPES + 1;
     private static final int HELP = SETTINGS + 1;
     private static final int SEQUENCES = HELP + 1;
     private static final int USERS = SEQUENCES + 1;
@@ -245,26 +244,6 @@ public final class InformationSchemaTable extends MetaTable {
             setMetaTableName("TABLE_TYPES");
             isView = false;
             cols = createColumns("TYPE");
-            break;
-        case TYPE_INFO:
-            setMetaTableName("TYPE_INFO");
-            isView = false;
-            cols = createColumns(
-                "TYPE_NAME",
-                "DATA_TYPE INT",
-                "PRECISION INT",
-                "PREFIX",
-                "SUFFIX",
-                "PARAMS",
-                "AUTO_INCREMENT BIT",
-                "MINIMUM_SCALE SMALLINT",
-                "MAXIMUM_SCALE SMALLINT",
-                "RADIX INT",
-                "POS INT",
-                "CASE_SENSITIVE BIT",
-                "NULLABLE SMALLINT",
-                "SEARCHABLE SMALLINT"
-            );
             break;
         case SETTINGS:
             setMetaTableName("SETTINGS");
@@ -1024,44 +1003,6 @@ public final class InformationSchemaTable extends MetaTable {
             add(session, rows, TableType.SYSTEM_TABLE.toString());
             add(session, rows, TableType.VIEW.toString());
             add(session, rows, TableType.EXTERNAL_TABLE_ENGINE.toString());
-            break;
-        }
-        case TYPE_INFO: {
-            for (DataType t : DataType.getTypes()) {
-                if (t.hidden) {
-                    continue;
-                }
-                add(session,
-                        rows,
-                        // TYPE_NAME
-                        t.name,
-                        // DATA_TYPE
-                        ValueInteger.get(t.sqlType),
-                        // PRECISION
-                        ValueInteger.get(MathUtils.convertLongToInt(t.maxPrecision)),
-                        // PREFIX
-                        t.prefix,
-                        // SUFFIX
-                        t.suffix,
-                        // PARAMS
-                        t.params,
-                        // AUTO_INCREMENT
-                        ValueBoolean.get(t.autoIncrement),
-                        // MINIMUM_SCALE
-                        ValueSmallint.get(MathUtils.convertIntToShort(t.minScale)),
-                        // MAXIMUM_SCALE
-                        ValueSmallint.get(MathUtils.convertIntToShort(t.maxScale)),
-                        // RADIX
-                        t.decimal ? ValueInteger.get(10) : null,
-                        // POS
-                        ValueInteger.get(t.type),
-                        // CASE_SENSITIVE
-                        ValueBoolean.get(t.caseSensitive),
-                        // NULLABLE
-                        ValueSmallint.get((short) DatabaseMetaData.typeNullable), // SEARCHABLE
-                        ValueSmallint.get((short) DatabaseMetaData.typeSearchable)
-                );
-            }
             break;
         }
         case SETTINGS: {

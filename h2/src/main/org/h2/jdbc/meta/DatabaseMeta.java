@@ -87,7 +87,7 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
-     * 
+     *
      * @see java.sql.DatabaseMetaData#getTables(String, String, String,
      *      String[])
      */

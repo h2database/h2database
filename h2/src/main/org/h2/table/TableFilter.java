@@ -12,7 +12,6 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.Parser;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.command.query.Select;
 import org.h2.engine.Database;
@@ -29,6 +28,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.util.HasSQL;
+import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
@@ -730,7 +730,7 @@ public class TableFilter implements ColumnResolver {
         }
         if (table instanceof TableView && ((TableView) table).isRecursive()) {
             table.getSchema().getSQL(builder, sqlFlags).append('.');
-            Parser.quoteIdentifier(builder, table.getName(), sqlFlags);
+            ParserUtil.quoteIdentifier(builder, table.getName(), sqlFlags);
         } else {
             table.getSQL(builder, sqlFlags);
         }
@@ -739,7 +739,7 @@ public class TableFilter implements ColumnResolver {
         }
         if (alias != null) {
             builder.append(' ');
-            Parser.quoteIdentifier(builder, alias, sqlFlags);
+            ParserUtil.quoteIdentifier(builder, alias, sqlFlags);
             if (derivedColumnMap != null) {
                 builder.append('(');
                 boolean f = false;
@@ -748,7 +748,7 @@ public class TableFilter implements ColumnResolver {
                         builder.append(", ");
                     }
                     f = true;
-                    Parser.quoteIdentifier(builder, name, sqlFlags);
+                    ParserUtil.quoteIdentifier(builder, name, sqlFlags);
                 }
                 builder.append(')');
             }
@@ -762,7 +762,7 @@ public class TableFilter implements ColumnResolver {
                 } else {
                     first = false;
                 }
-                Parser.quoteIdentifier(builder, index, sqlFlags);
+                ParserUtil.quoteIdentifier(builder, index, sqlFlags);
             }
             builder.append(")");
         }

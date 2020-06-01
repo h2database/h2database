@@ -5,13 +5,13 @@
  */
 package org.h2.table;
 
-import org.h2.command.Parser;
 import org.h2.command.ddl.CreateSynonymData;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
+import org.h2.util.ParserUtil;
 
 /**
  * Synonym for an existing table or view. All DML requests are forwarded to the backing table.
@@ -70,8 +70,8 @@ public class TableSynonym extends SchemaObjectBase {
     public String getCreateSQL() {
         StringBuilder builder = new StringBuilder("CREATE SYNONYM ");
         getSQL(builder, DEFAULT_SQL_FLAGS).append(" FOR ");
-        Parser.quoteIdentifier(builder, data.synonymForSchema.getName(), DEFAULT_SQL_FLAGS).append('.');
-        Parser.quoteIdentifier(builder, data.synonymFor, DEFAULT_SQL_FLAGS);
+        ParserUtil.quoteIdentifier(builder, data.synonymForSchema.getName(), DEFAULT_SQL_FLAGS).append('.');
+        ParserUtil.quoteIdentifier(builder, data.synonymFor, DEFAULT_SQL_FLAGS);
         return builder.toString();
     }
 

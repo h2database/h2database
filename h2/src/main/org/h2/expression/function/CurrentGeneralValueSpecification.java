@@ -5,12 +5,12 @@
  */
 package org.h2.expression.function;
 
-import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Operation0;
 import org.h2.message.DbException;
 import org.h2.util.HasSQL;
+import org.h2.util.ParserUtil;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -80,7 +80,7 @@ public final class CurrentGeneralValueSpecification extends Operation0 implement
                     if (i > 0) {
                         builder.append(',');
                     }
-                    Parser.quoteIdentifier(builder, searchPath[i], HasSQL.DEFAULT_SQL_FLAGS);
+                    ParserUtil.quoteIdentifier(builder, searchPath[i], HasSQL.DEFAULT_SQL_FLAGS);
                 }
                 s = builder.toString();
             } else {

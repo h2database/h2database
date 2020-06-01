@@ -8,9 +8,9 @@ package org.h2.expression;
 import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.util.ParserUtil;
 import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -33,7 +33,7 @@ public class FieldReference extends Operation1 {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return Parser.quoteIdentifier(arg.getSQL(builder.append("(("), sqlFlags).append(")."), fieldName, sqlFlags)
+        return ParserUtil.quoteIdentifier(arg.getSQL(builder.append("(("), sqlFlags).append(")."), fieldName, sqlFlags)
                 .append(')');
     }
 

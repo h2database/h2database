@@ -24,6 +24,7 @@ import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.util.HasSQL;
+import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Typed;
@@ -273,7 +274,7 @@ public class Column implements HasSQL, Typed {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return rowId ? builder.append(name) : Parser.quoteIdentifier(builder, name, sqlFlags);
+        return rowId ? builder.append(name) : ParserUtil.quoteIdentifier(builder, name, sqlFlags);
     }
 
     /**
@@ -495,7 +496,7 @@ public class Column implements HasSQL, Typed {
     private String getCreateSQL(boolean includeName) {
         StringBuilder buff = new StringBuilder();
         if (includeName && name != null) {
-            Parser.quoteIdentifier(buff, name, DEFAULT_SQL_FLAGS).append(' ');
+            ParserUtil.quoteIdentifier(buff, name, DEFAULT_SQL_FLAGS).append(' ');
         }
         if (originalSQL != null) {
             buff.append(originalSQL);

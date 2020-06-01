@@ -9,12 +9,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
-import org.h2.command.Parser;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.util.HasSQL;
 import org.h2.util.JdbcUtils;
+import org.h2.util.ParserUtil;
 import org.h2.value.DataType;
 
 /**
@@ -68,7 +68,7 @@ public class UserAggregate extends DbObjectBase {
     public String getCreateSQL() {
         StringBuilder builder = new StringBuilder("CREATE FORCE AGGREGATE ");
         getSQL(builder, DEFAULT_SQL_FLAGS).append(" FOR ");
-        Parser.quoteIdentifier(builder, className, HasSQL.DEFAULT_SQL_FLAGS);
+        ParserUtil.quoteIdentifier(builder, className, HasSQL.DEFAULT_SQL_FLAGS);
         return builder.toString();
     }
 

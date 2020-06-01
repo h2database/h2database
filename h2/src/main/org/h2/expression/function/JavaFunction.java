@@ -5,7 +5,6 @@
  */
 package org.h2.expression.function;
 
-import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
@@ -14,6 +13,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.ParserUtil;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -85,9 +85,9 @@ public class JavaFunction extends Expression implements FunctionCall {
         // TODO always append the schema once FUNCTIONS_IN_SCHEMA is enabled
         if (functionAlias.getDatabase().getSettings().functionsInSchema ||
                 functionAlias.getSchema().getId() != Constants.MAIN_SCHEMA_ID) {
-            Parser.quoteIdentifier(builder, functionAlias.getSchema().getName(), sqlFlags).append('.');
+            ParserUtil.quoteIdentifier(builder, functionAlias.getSchema().getName(), sqlFlags).append('.');
         }
-        Parser.quoteIdentifier(builder, functionAlias.getName(), sqlFlags).append('(');
+        ParserUtil.quoteIdentifier(builder, functionAlias.getName(), sqlFlags).append('(');
         writeExpressions(builder, this.args, sqlFlags);
         return builder.append(')');
     }

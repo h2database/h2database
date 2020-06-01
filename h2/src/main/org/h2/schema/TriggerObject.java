@@ -12,7 +12,6 @@ import java.util.Arrays;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
-import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
@@ -22,6 +21,7 @@ import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
+import org.h2.util.ParserUtil;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -357,7 +357,7 @@ public class TriggerObject extends SchemaObjectBase {
         }
         if (triggerClassName != null) {
             builder.append(" CALL ");
-            Parser.quoteIdentifier(builder, triggerClassName, DEFAULT_SQL_FLAGS);
+            ParserUtil.quoteIdentifier(builder, triggerClassName, DEFAULT_SQL_FLAGS);
         } else {
             builder.append(" AS ");
             StringUtils.quoteStringSQL(builder, triggerSource);

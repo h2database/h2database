@@ -827,13 +827,21 @@ create table test(id int primary key, lastname varchar, firstname varchar, paren
 alter table test add constraint name unique (lastname, firstname);
 > ok
 
-SELECT CONSTRAINT_NAME, COLUMN_NAME, INDEX_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE;
-> CONSTRAINT_NAME COLUMN_NAME INDEX_NAME
-> --------------- ----------- ------------------
-> CONSTRAINT_2    ID          PRIMARY_KEY_2
-> CONSTRAINT_27   PARENT      CONSTRAINT_INDEX_2
-> NAME            FIRSTNAME   NAME_INDEX_2
-> NAME            LASTNAME    NAME_INDEX_2
+SELECT CONSTRAINT_NAME, INDEX_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS;
+> CONSTRAINT_NAME INDEX_NAME
+> --------------- ------------------
+> CONSTRAINT_2    PRIMARY_KEY_2
+> CONSTRAINT_27   CONSTRAINT_INDEX_2
+> NAME            NAME_INDEX_2
+> rows: 3
+
+SELECT CONSTRAINT_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE;
+> CONSTRAINT_NAME COLUMN_NAME
+> --------------- -----------
+> CONSTRAINT_2    ID
+> CONSTRAINT_27   PARENT
+> NAME            FIRSTNAME
+> NAME            LASTNAME
 > rows: 4
 
 drop table test;
@@ -6296,13 +6304,13 @@ TABLE INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS;
 > rows: 1
 
 TABLE INFORMATION_SCHEMA.KEY_COLUMN_USAGE;
-> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION POSITION_IN_UNIQUE_CONSTRAINT INDEX_CATALOG INDEX_SCHEMA INDEX_NAME
-> ------------------ ----------------- --------------- ------------- ------------ ---------- ----------- ---------------- ----------------------------- ------------- ------------ -------------
-> SCRIPT             PUBLIC            AB              SCRIPT        PUBLIC       CHILD      PA          1                1                             SCRIPT        PUBLIC       AB_INDEX_3
-> SCRIPT             PUBLIC            AB              SCRIPT        PUBLIC       CHILD      PB          2                2                             SCRIPT        PUBLIC       AB_INDEX_3
-> SCRIPT             PUBLIC            CONSTRAINT_3    SCRIPT        PUBLIC       CHILD      ID          1                null                          SCRIPT        PUBLIC       PRIMARY_KEY_3
-> SCRIPT             PUBLIC            CONSTRAINT_8    SCRIPT        PUBLIC       PARENT     A           1                null                          SCRIPT        PUBLIC       PRIMARY_KEY_8
-> SCRIPT             PUBLIC            CONSTRAINT_8    SCRIPT        PUBLIC       PARENT     B           2                null                          SCRIPT        PUBLIC       PRIMARY_KEY_8
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION POSITION_IN_UNIQUE_CONSTRAINT
+> ------------------ ----------------- --------------- ------------- ------------ ---------- ----------- ---------------- -----------------------------
+> SCRIPT             PUBLIC            AB              SCRIPT        PUBLIC       CHILD      PA          1                1
+> SCRIPT             PUBLIC            AB              SCRIPT        PUBLIC       CHILD      PB          2                2
+> SCRIPT             PUBLIC            CONSTRAINT_3    SCRIPT        PUBLIC       CHILD      ID          1                null
+> SCRIPT             PUBLIC            CONSTRAINT_8    SCRIPT        PUBLIC       PARENT     A           1                null
+> SCRIPT             PUBLIC            CONSTRAINT_8    SCRIPT        PUBLIC       PARENT     B           2                null
 > rows: 5
 
 DROP TABLE PARENT, CHILD;

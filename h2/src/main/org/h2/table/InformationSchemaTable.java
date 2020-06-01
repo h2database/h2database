@@ -572,6 +572,11 @@ public final class InformationSchemaTable extends MetaTable {
                     "TABLE_NAME",
                     "IS_DEFERRABLE",
                     "INITIALLY_DEFERRED",
+                    "ENFORCED",
+                    // Extensions
+                    "INDEX_CATALOG",
+                    "INDEX_SCHEMA",
+                    "INDEX_NAME",
                     "REMARKS",
                     "SQL",
                     "ID INT"
@@ -607,10 +612,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "TABLE_NAME",
                     "COLUMN_NAME",
                     "ORDINAL_POSITION INT",
-                    "POSITION_IN_UNIQUE_CONSTRAINT INT",
-                    "INDEX_CATALOG",
-                    "INDEX_SCHEMA",
-                    "INDEX_NAME"
+                    "POSITION_IN_UNIQUE_CONSTRAINT INT"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -748,7 +750,8 @@ public final class InformationSchemaTable extends MetaTable {
                         // TYPE_NAME
                         null,
                         // TABLE_CLASS
-                        table.getClass().getName(), // ROW_COUNT_ESTIMATE
+                        table.getClass().getName(),
+                        // ROW_COUNT_ESTIMATE
                         ValueBigint.get(table.getRowCountApproximation())
                 );
             }
@@ -872,7 +875,8 @@ public final class InformationSchemaTable extends MetaTable {
                             // COLUMN_TYPE
                             createSQLWithoutName,
                             // COLUMN_ON_UPDATE
-                            c.getOnUpdateSQL(), // IS_VISIBLE
+                            c.getOnUpdateSQL(),
+                            // IS_VISIBLE
                             ValueBoolean.get(c.getVisible())
                     );
                 }
@@ -966,7 +970,8 @@ public final class InformationSchemaTable extends MetaTable {
                                 // SORT_TYPE
                                 ValueInteger.get(idxCol.sortType),
                                 // CONSTRAINT_NAME
-                                constraintName, // INDEX_CLASS
+                                constraintName,
+                                // INDEX_CLASS
                                 indexClass
                             );
                     }
@@ -1110,7 +1115,8 @@ public final class InformationSchemaTable extends MetaTable {
                         // TOPIC
                         rs.getString(2).trim(),
                         // SYNTAX
-                        rs.getString(3).trim(), // TEXT
+                        rs.getString(3).trim(),
+                        // TEXT
                         rs.getString(4).trim()
                     );
                 }
@@ -1164,7 +1170,8 @@ public final class InformationSchemaTable extends MetaTable {
                         // REMARKS
                         replaceNullWithEmpty(s.getComment()),
                         // CACHE
-                        ValueBigint.get(s.getCacheSize()), // ID
+                        ValueBigint.get(s.getCacheSize()),
+                        // ID
                         ValueInteger.get(s.getId())
                     );
             }
@@ -1180,7 +1187,8 @@ public final class InformationSchemaTable extends MetaTable {
                             // ADMIN
                             String.valueOf(u.isAdmin()),
                             // REMARKS
-                            replaceNullWithEmpty(u.getComment()), // ID
+                            replaceNullWithEmpty(u.getComment()),
+                            // ID
                             ValueInteger.get(u.getId())
                     );
                 }
@@ -1195,7 +1203,8 @@ public final class InformationSchemaTable extends MetaTable {
                             // NAME
                             identifier(r.getName()),
                             // REMARKS
-                            replaceNullWithEmpty(r.getComment()), // ID
+                            replaceNullWithEmpty(r.getComment()),
+                            // ID
                             ValueInteger.get(r.getId())
                     );
                 }
@@ -1238,7 +1247,8 @@ public final class InformationSchemaTable extends MetaTable {
                                 // TABLE_SCHEMA
                                 schemaName,
                                 // TABLE_NAME
-                                tableName, // ID
+                                tableName,
+                                // ID
                                 ValueInteger.get(r.getId())
                         );
                     } else {
@@ -1255,7 +1265,8 @@ public final class InformationSchemaTable extends MetaTable {
                                 // TABLE_SCHEMA
                                 "",
                                 // TABLE_NAME
-                                "", // ID
+                                "",
+                                // ID
                                 ValueInteger.get(r.getId())
                         );
                     }
@@ -1388,7 +1399,8 @@ public final class InformationSchemaTable extends MetaTable {
                                 // COLUMN_TYPE
                                 ValueSmallint.get((short) DatabaseMetaData.procedureColumnReturn),
                                 // REMARKS
-                                "", // COLUMN_DEFAULT
+                                "",
+                                // COLUMN_DEFAULT
                                 null
                         );
                     }
@@ -1436,7 +1448,8 @@ public final class InformationSchemaTable extends MetaTable {
                                 // COLUMN_TYPE
                                 ValueSmallint.get((short) DatabaseMetaData.procedureColumnIn),
                                 // REMARKS
-                                "", // COLUMN_DEFAULT
+                                "",
+                                // COLUMN_DEFAULT
                                 null
                         );
                     }
@@ -1466,7 +1479,8 @@ public final class InformationSchemaTable extends MetaTable {
                         // DEFAULT_COLLATION_NAME
                         collation,
                         // REMARKS
-                        replaceNullWithEmpty(schema.getComment()), // ID
+                        replaceNullWithEmpty(schema.getComment()),
+                        // ID
                         ValueInteger.get(schema.getId())
                 );
             }
@@ -1517,7 +1531,8 @@ public final class InformationSchemaTable extends MetaTable {
                 add(session,
                         rows,
                         // NAME
-                        CompareMode.getName(l), // KEY
+                        CompareMode.getName(l),
+                        // KEY
                         l.toString()
                 );
             }
@@ -1548,7 +1563,8 @@ public final class InformationSchemaTable extends MetaTable {
                         "NO",
                         table instanceof TableView && ((TableView) table).isInvalid() ? "INVALID" : "VALID",
                         // REMARKS
-                        replaceNullWithEmpty(table.getComment()), // ID
+                        replaceNullWithEmpty(table.getComment()),
+                        // ID
                         ValueInteger.get(table.getId())
                 );
             }
@@ -1561,7 +1577,8 @@ public final class InformationSchemaTable extends MetaTable {
                     add(session,
                             rows,
                             // TRANSACTION
-                            prep.getTransactionName(), // STATE
+                            prep.getTransactionName(),
+                            // STATE
                             prep.getStateDescription()
                     );
                 }
@@ -1586,7 +1603,8 @@ public final class InformationSchemaTable extends MetaTable {
                         // REMARKS
                         replaceNullWithEmpty(constant.getComment()),
                         // SQL
-                        expr.getSQL(DEFAULT_SQL_FLAGS), // ID
+                        expr.getSQL(DEFAULT_SQL_FLAGS),
+                        // ID
                         ValueInteger.get(constant.getId())
                     );
             }
@@ -1630,7 +1648,8 @@ public final class InformationSchemaTable extends MetaTable {
                         // REMARKS
                         replaceNullWithEmpty(domain.getComment()),
                         // SQL
-                        domain.getCreateSQL(), // ID
+                        domain.getCreateSQL(),
+                        // ID
                         ValueInteger.get(domain.getId())
                 );
             }
@@ -1725,7 +1744,8 @@ public final class InformationSchemaTable extends MetaTable {
                                 // TABLE_NAME
                                 table.getName(),
                                 // SESSION_ID
-                                ValueInteger.get(s.getId()), // LOCK_TYPE
+                                ValueInteger.get(s.getId()),
+                                // LOCK_TYPE
                                 table.isLockedExclusivelyBy(s) ? "WRITE" : "READ"
                         );
                     }
@@ -1741,14 +1761,17 @@ public final class InformationSchemaTable extends MetaTable {
                 add(session,
                         rows,
                         // KEY
-                        "@" + name, builder.toString()
+                        "@" + name,
+                        // SQL
+                        builder.toString()
                 );
             }
             for (Table table : session.getLocalTempTables()) {
                 add(session,
                         rows,
                         // KEY
-                        "TABLE " + table.getName(), // SQL
+                        "TABLE " + table.getName(),
+                        // SQL
                         table.getCreateSQL()
                 );
             }
@@ -1764,7 +1787,8 @@ public final class InformationSchemaTable extends MetaTable {
                 add(session,
                         rows,
                         // KEY
-                        "SCHEMA_SEARCH_PATH", // SQL
+                        "SCHEMA_SEARCH_PATH",
+                        // SQL
                         builder.toString()
                 );
             }
@@ -1773,7 +1797,8 @@ public final class InformationSchemaTable extends MetaTable {
                 add(session,
                         rows,
                         // KEY
-                        "SCHEMA", // SQL
+                        "SCHEMA",
+                        // SQL
                         StringUtils.quoteIdentifier(new StringBuilder("SET SCHEMA "), schema).toString()
                 );
             }
@@ -1782,7 +1807,8 @@ public final class InformationSchemaTable extends MetaTable {
                 add(session,
                         rows,
                         // KEY
-                        "TIME ZONE", // SQL
+                        "TIME ZONE",
+                        // SQL
                         StringUtils.quoteStringSQL(new StringBuilder("SET TIME ZONE "), currentTimeZone.getId())
                                 .toString()
                 );
@@ -1816,7 +1842,8 @@ public final class InformationSchemaTable extends MetaTable {
                             // CUMULATIVE_ROW_COUNT
                             ValueBigint.get(entry.rowCountCumulative),
                             // AVERAGE_ROW_COUNT
-                            ValueDouble.get(entry.rowCountMean), // STD_DEV_ROW_COUNT
+                            ValueDouble.get(entry.rowCountMean),
+                            // STD_DEV_ROW_COUNT
                             ValueDouble.get(entry.getRowCountStandardDeviation())
                     );
                 }
@@ -1842,7 +1869,8 @@ public final class InformationSchemaTable extends MetaTable {
                         // STATUS
                         "VALID",
                         // REMARKS
-                        replaceNullWithEmpty(synonym.getComment()), // ID
+                        replaceNullWithEmpty(synonym.getComment()),
+                        // ID
                         ValueInteger.get(synonym.getId())
                 );
             }
@@ -1862,6 +1890,14 @@ public final class InformationSchemaTable extends MetaTable {
                 String tableName = table.getName();
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
+                }
+                Index index = constraint.getIndex();
+                boolean enforced;
+                if (constraintType != Constraint.Type.REFERENTIAL) {
+                    enforced = true;
+                } else {
+                    enforced = database.getReferentialIntegrity() && table.getCheckForeignKeyConstraints()
+                            && ((ConstraintReferential) constraint).getRefTable().getCheckForeignKeyConstraints();
                 }
                 add(session,
                         rows,
@@ -1883,10 +1919,19 @@ public final class InformationSchemaTable extends MetaTable {
                         "NO",
                         // INITIALLY_DEFERRED
                         "NO",
+                        // ENFORCED
+                        enforced ? "YES" : "NO",
+                        // INDEX_CATALOG
+                        index != null ? catalog : null,
+                        // INDEX_SCHEMA
+                        index != null ? index.getSchema().getName() : null,
+                        // INDEX_NAME
+                        index != null ? index.getName() : null,
                         // REMARKS
                         replaceNullWithEmpty(constraint.getComment()),
                         // SQL
-                        constraint.getCreateSQL(), // ID
+                        constraint.getCreateSQL(),
+                        // ID
                         ValueInteger.get(constraint.getId())
                 );
             }
@@ -1920,7 +1965,8 @@ public final class InformationSchemaTable extends MetaTable {
                         // REMARKS
                         replaceNullWithEmpty(constraint.getComment()),
                         // SQL
-                        constraint.getCreateSQL(), // ID
+                        constraint.getCreateSQL(),
+                        // ID
                         ValueInteger.get(constraint.getId())
                 );
             }
@@ -1953,7 +1999,6 @@ public final class InformationSchemaTable extends MetaTable {
                 } else {
                     referenced = null;
                 }
-                Index index = constraint.getIndex();
                 for (int i = 0; i < indexColumns.length; i++) {
                     IndexColumn indexColumn = indexColumns[i];
                     ValueInteger ordinalPosition = ValueInteger.get(i + 1);
@@ -1987,12 +2032,7 @@ public final class InformationSchemaTable extends MetaTable {
                             // ORDINAL_POSITION
                             ordinalPosition,
                             // POSITION_IN_UNIQUE_CONSTRAINT
-                            positionInUniqueConstraint,
-                            // INDEX_CATALOG
-                            index != null ? catalog : null,
-                            // INDEX_SCHEMA
-                            index != null ? index.getSchema().getName() : null, // INDEX_NAME
-                            index != null ? index.getName() : null
+                            positionInUniqueConstraint
                     );
                 }
             }
@@ -2026,7 +2066,8 @@ public final class InformationSchemaTable extends MetaTable {
                         // MATCH_OPTION
                         "NONE",
                         // UPDATE_RULE
-                        constraint.getUpdateAction().getSqlName(), // DELETE_RULE
+                        constraint.getUpdateAction().getSqlName(),
+                        // DELETE_RULE
                         constraint.getDeleteAction().getSqlName()
                 );
             }
@@ -2052,7 +2093,8 @@ public final class InformationSchemaTable extends MetaTable {
                         // CONSTRAINT_SCHEMA
                         obj.getSchema().getName(),
                         // CONSTRAINT_NAME
-                        obj.getName(), // CHECK_CLAUSE
+                        obj.getName(),
+                        // CHECK_CLAUSE
                         constraint.getExpression().getUnenclosedSQL(new StringBuilder(), DEFAULT_SQL_FLAGS).toString()
                 );
             }
@@ -2130,7 +2172,8 @@ public final class InformationSchemaTable extends MetaTable {
                 // CONSTRAINT_CATALOG
                 catalog,
                 // CONSTRAINT_SCHEMA
-                constraint.getSchema().getName(), // CONSTRAINT_NAME
+                constraint.getSchema().getName(),
+                // CONSTRAINT_NAME
                 constraint.getName()
         );
     }
@@ -2175,7 +2218,8 @@ public final class InformationSchemaTable extends MetaTable {
                     // TABLE_NAME
                     table.getName(),
                     // PRIVILEGE_TYPE
-                    right, // IS_GRANTABLE
+                    right,
+                    // IS_GRANTABLE
                     isGrantable
             );
         } else {
@@ -2194,7 +2238,8 @@ public final class InformationSchemaTable extends MetaTable {
                     // COLUMN_NAME
                     column,
                     // PRIVILEGE_TYPE
-                    right, // IS_GRANTABLE
+                    right,
+                    // IS_GRANTABLE
                     isGrantable
             );
         }

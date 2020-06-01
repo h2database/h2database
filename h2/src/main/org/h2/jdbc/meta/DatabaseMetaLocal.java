@@ -18,6 +18,7 @@ import org.h2.command.dml.Help;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintActionType;
 import org.h2.constraint.ConstraintReferential;
+import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -483,23 +484,68 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public ResultInterface getPrimaryKeys(String catalogPattern, String schemaPattern, String tableName) {
-        return executeQuery("SELECT " //
-                + "TABLE_CATALOG TABLE_CAT, " //
-                + "TABLE_SCHEMA TABLE_SCHEM, " //
-                + "TABLE_NAME, " //
-                + "COLUMN_NAME, " //
-                + "ORDINAL_POSITION KEY_SEQ, " //
-                + "COALESCE(CONSTRAINT_NAME, INDEX_NAME) PK_NAME " //
-                + "FROM INFORMATION_SCHEMA.INDEXES " //
-                + "WHERE TABLE_CATALOG LIKE ?1 ESCAPE ?4 " //
-                + "AND TABLE_SCHEMA LIKE ?2 ESCAPE ?4 " //
-                + "AND TABLE_NAME = ?3 " //
-                + "AND PRIMARY_KEY = TRUE " //
-                + "ORDER BY COLUMN_NAME", //
-                getCatalogPattern(catalogPattern), //
-                getSchemaPattern(schemaPattern), //
-                getString(tableName), //
-                BACKSLASH);
+        if (tableName == null) {
+            throw DbException.getInvalidValueException("tableName", null);
+        }
+        checkClosed();
+        SimpleResult result = new SimpleResult();
+        result.addColumn("TABLE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("COLUMN_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("KEY_SEQ", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("PK_NAME", TypeInfo.TYPE_VARCHAR);
+        if (!checkCatalog(catalogPattern)) {
+            return result;
+        }
+        CompareLike schemaLike = getSchemaLike(schemaPattern);
+        Database db = session.getDatabase();
+        CompareMode compareMode = db.getCompareMode();
+        Schema primarySchema = db.getMainSchema();
+        Value catalog = getString(db.getShortName());
+        ArrayList<Value[]> rows = Utils.newSmallArrayList();
+        for (Schema schema : db.getAllSchemas()) {
+            if (!checkSchema(schemaPattern, schemaLike, schema, primarySchema)) {
+                continue;
+            }
+            Table table = schema.findTableOrView(session, tableName);
+            if (table == null) {
+                continue;
+            }
+            ArrayList<Constraint> constraints = table.getConstraints();
+            if (constraints == null) {
+                continue;
+            }
+            for (Constraint constraint : constraints) {
+                if (constraint.getConstraintType() != Constraint.Type.PRIMARY_KEY) {
+                    continue;
+                }
+                Value schemaValue = getString(schema.getName());
+                Value tableValue = getString(table.getName());
+                Value pkValue = getString(constraint.getName());
+                IndexColumn[] columns = ((ConstraintUnique) constraint).getColumns();
+                for (int i = 0, l = columns.length; i < l;) {
+                    rows.add(new Value[] {
+                            // TABLE_CAT
+                            catalog,
+                            // TABLE_SCHEM
+                            schemaValue,
+                            // TABLE_NAME
+                            tableValue,
+                            // COLUMN_NAME
+                            getString(columns[i].columnName),
+                            // KEY_SEQ
+                            ValueSmallint.get((short) ++i),
+                            // PK_NAME
+                            pkValue });
+                }
+            }
+        }
+        rows.sort((o1, o2) -> compareMode.compare(o1[3], o2[3]));
+        for (Value[] row : rows) {
+            result.addRow(row);
+        }
+        return result;
     }
 
     @Override
@@ -565,11 +611,11 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             }
             ConstraintReferential fk = (ConstraintReferential) constraint;
             Table pkTable = fk.getRefTable();
-            if (primaryTable != null && compareMode.compareString(pkTable.getName(), primaryTable, false) != 0) {
+            if (primaryTable != null && !db.equalsIdentifiers(pkTable.getName(), primaryTable)) {
                 continue;
             }
             Table fkTable = fk.getTable();
-            if (foreignTable != null && compareMode.compareString(fkTable.getName(), foreignTable, false) != 0) {
+            if (foreignTable != null && !db.equalsIdentifiers(fkTable.getName(), foreignTable)) {
                 continue;
             }
             Schema pkSchema = pkTable.getSchema();

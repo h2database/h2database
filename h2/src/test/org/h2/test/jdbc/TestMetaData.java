@@ -1311,7 +1311,7 @@ public class TestMetaData extends TestDb {
         // meta.getFunctions(null, null, null);
         meta.getImportedKeys(null, null, "TEST");
         meta.getIndexInfo(null, null, null, false, false);
-        meta.getPrimaryKeys(null, null, null);
+        meta.getPrimaryKeys(null, null, "TEST");
         meta.getProcedureColumns(null, null, null, null);
         meta.getProcedures(null, null, null);
         meta.getSchemas();

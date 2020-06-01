@@ -7,7 +7,6 @@ package org.h2.expression.aggregate;
 
 import java.sql.SQLException;
 import org.h2.api.Aggregate;
-import org.h2.command.Parser;
 import org.h2.command.query.Select;
 import org.h2.engine.Session;
 import org.h2.engine.UserAggregate;
@@ -15,6 +14,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.util.ParserUtil;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -51,7 +51,7 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        Parser.quoteIdentifier(builder, userAggregate.getName(), sqlFlags).append('(');
+        ParserUtil.quoteIdentifier(builder, userAggregate.getName(), sqlFlags).append('(');
         writeExpressions(builder, args, sqlFlags);
         builder.append(')');
         return appendTailConditions(builder, sqlFlags, false);

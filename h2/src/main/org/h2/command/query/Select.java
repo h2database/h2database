@@ -14,7 +14,6 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
-import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode.ExpressionNames;
@@ -52,6 +51,7 @@ import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.util.HasSQL;
+import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
@@ -1388,7 +1388,7 @@ public class Select extends Query {
                 } else {
                     builder.append("WITH RECURSIVE ");
                     t.getSchema().getSQL(builder, sqlFlags).append('.');
-                    Parser.quoteIdentifier(builder, t.getName(), sqlFlags).append('(');
+                    ParserUtil.quoteIdentifier(builder, t.getName(), sqlFlags).append('(');
                     Column.writeColumns(builder, t.getColumns(), sqlFlags);
                     builder.append(") AS ");
                     t.getSQL(builder, sqlFlags).append('\n');

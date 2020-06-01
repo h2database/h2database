@@ -1616,7 +1616,7 @@ public class Parser {
                     if (i > 0) {
                         searchPathBuff.append(", ");
                     }
-                    quoteIdentifier(searchPathBuff, searchPath[i], HasSQL.QUOTE_ONLY_WHEN_REQUIRED);
+                    ParserUtil.quoteIdentifier(searchPathBuff, searchPath[i], HasSQL.QUOTE_ONLY_WHEN_REQUIRED);
                 }
             }
             StringUtils.quoteStringSQL(buff, searchPathBuff.toString());
@@ -9936,25 +9936,6 @@ public class Parser {
             return s;
         }
         return StringUtils.quoteIdentifier(s);
-    }
-
-    /**
-     * Add double quotes around an identifier if required and appends it to the
-     * specified string builder.
-     *
-     * @param builder string builder to append to
-     * @param s the identifier
-     * @param sqlFlags formatting flags
-     * @return the specified builder
-     */
-    public static StringBuilder quoteIdentifier(StringBuilder builder, String s, int sqlFlags) {
-        if (s == null) {
-            return builder.append("\"\"");
-        }
-        if ((sqlFlags & HasSQL.QUOTE_ONLY_WHEN_REQUIRED) != 0 && ParserUtil.isSimpleIdentifier(s, false, false)) {
-            return builder.append(s);
-        }
-        return StringUtils.quoteIdentifier(builder, s);
     }
 
     public void setLiteralsChecked(boolean literalsChecked) {

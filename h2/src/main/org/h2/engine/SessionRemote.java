@@ -18,6 +18,9 @@ import org.h2.command.dml.SetTypes;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.expression.ParameterInterface;
 import org.h2.jdbc.JdbcException;
+import org.h2.jdbc.meta.DatabaseMeta;
+import org.h2.jdbc.meta.DatabaseMetaLegacy;
+import org.h2.jdbc.meta.DatabaseMetaRemote;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
@@ -69,6 +72,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public static final int SESSION_HAS_PENDING_TRANSACTION = 16;
     public static final int LOB_READ = 17;
     public static final int SESSION_PREPARE_READ_PARAMS2 = 18;
+    public static final int GET_JDBC_META = 19;
 
     public static final int STATUS_ERROR = 0;
     public static final int STATUS_OK = 1;
@@ -959,6 +963,12 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     @Override
     public Mode getMode() {
         return getDynamicSettings().mode;
+    }
+
+    @Override
+    public DatabaseMeta getDatabaseMeta() {
+        return clientVersion >= Constants.TCP_PROTOCOL_VERSION_20 ? new DatabaseMetaRemote(this, transferList)
+                : new DatabaseMetaLegacy(this);
     }
 
 }

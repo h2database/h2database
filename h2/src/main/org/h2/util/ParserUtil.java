@@ -490,6 +490,25 @@ public class ParserUtil {
     }
 
     /**
+     * Add double quotes around an identifier if required and appends it to the
+     * specified string builder.
+     *
+     * @param builder string builder to append to
+     * @param s the identifier
+     * @param sqlFlags formatting flags
+     * @return the specified builder
+     */
+    public static StringBuilder quoteIdentifier(StringBuilder builder, String s, int sqlFlags) {
+        if (s == null) {
+            return builder.append("\"\"");
+        }
+        if ((sqlFlags & HasSQL.QUOTE_ONLY_WHEN_REQUIRED) != 0 && isSimpleIdentifier(s, false, false)) {
+            return builder.append(s);
+        }
+        return StringUtils.quoteIdentifier(builder, s);
+    }
+
+    /**
      * Checks if this string is a SQL keyword.
      *
      * @param s the token to check
@@ -563,7 +582,7 @@ public class ParserUtil {
             return IDENTIFIER;
         }
         /*
-         * JdbcDatabaseMetaData.getSQLKeywords() and tests should be updated when new
+         * DatabaseMetaLocal.getSQLKeywords() and tests should be updated when new
          * non-SQL:2003 keywords are introduced here.
          */
         char c1 = s.charAt(start);

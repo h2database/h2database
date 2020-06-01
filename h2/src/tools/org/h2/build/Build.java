@@ -290,7 +290,11 @@ public class Build extends BuildBase {
         FileList files;
         if (clientOnly) {
             files = files("src/main/org/h2/Driver.java");
-            files.addAll(files("src/main/org/h2/jdbc"));
+            try {
+                Files.list(Paths.get("src/main/org/h2/jdbc")).forEach(files::add);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             files.addAll(files("src/main/org/h2/jdbcx"));
         } else {
             files = files("src/main");

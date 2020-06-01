@@ -5,9 +5,9 @@
  */
 package org.h2.expression;
 
-import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.util.ParserUtil;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
@@ -32,7 +32,7 @@ public class Variable extends Operation0 {
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append('@');
-        return Parser.quoteIdentifier(builder, name, sqlFlags);
+        return ParserUtil.quoteIdentifier(builder, name, sqlFlags);
     }
 
     @Override

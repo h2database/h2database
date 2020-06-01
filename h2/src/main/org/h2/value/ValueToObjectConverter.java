@@ -318,7 +318,7 @@ public final class ValueToObjectConverter extends TraceObject {
             return new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, getNextId(TraceObject.SQLXML));
         } else if (type == ResultSet.class) {
             return new JdbcResultSet(conn, null, null, value.convertToResultSet().getResult(),
-                    getNextId(TraceObject.RESULT_SET), false, true, false);
+                    getNextId(TraceObject.RESULT_SET), true, false);
         } else {
             Object obj = LegacyDateTimeUtils.valueToLegacyType(type, value, conn);
             if (obj != null) {
@@ -522,13 +522,13 @@ public final class ValueToObjectConverter extends TraceObject {
             return valueToDefaultArray(value, conn, forJdbc);
         case Value.ROW:
             if (forJdbc) {
-                return new JdbcResultSet(conn, null, null, value.getResult(), getNextId(TraceObject.RESULT_SET), false,
-                        true, false);
+                return new JdbcResultSet(conn, null, null, value.getResult(), getNextId(TraceObject.RESULT_SET), true,
+                        false);
             }
             return valueToDefaultArray(value, conn, forJdbc);
         case Value.RESULT_SET:
-            return new JdbcResultSet(conn, null, null, value.getResult(), getNextId(TraceObject.RESULT_SET), false,
-                    true, false);
+            return new JdbcResultSet(conn, null, null, value.getResult(), getNextId(TraceObject.RESULT_SET), true,
+                    false);
         default:
             throw DbException.getUnsupportedException("data type " + value.getValueType());
         }

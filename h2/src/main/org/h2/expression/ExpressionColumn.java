@@ -6,7 +6,6 @@
 package org.h2.expression;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.Parser;
 import org.h2.command.query.Select;
 import org.h2.command.query.SelectGroups;
 import org.h2.command.query.SelectListColumnResolver;
@@ -22,6 +21,7 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.ParserUtil;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -62,21 +62,21 @@ public class ExpressionColumn extends Expression {
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if (schemaName != null) {
-            Parser.quoteIdentifier(builder, schemaName, sqlFlags).append('.');
+            ParserUtil.quoteIdentifier(builder, schemaName, sqlFlags).append('.');
         }
         if (tableAlias != null) {
-            Parser.quoteIdentifier(builder, tableAlias, sqlFlags).append('.');
+            ParserUtil.quoteIdentifier(builder, tableAlias, sqlFlags).append('.');
         }
         if (column != null) {
             if (columnResolver != null && columnResolver.hasDerivedColumnList()) {
-                Parser.quoteIdentifier(builder, columnResolver.getColumnName(column), sqlFlags);
+                ParserUtil.quoteIdentifier(builder, columnResolver.getColumnName(column), sqlFlags);
             } else {
                 column.getSQL(builder, sqlFlags);
             }
         } else if (rowId) {
             builder.append(columnName);
         } else {
-            Parser.quoteIdentifier(builder, columnName, sqlFlags);
+            ParserUtil.quoteIdentifier(builder, columnName, sqlFlags);
         }
         return builder;
     }

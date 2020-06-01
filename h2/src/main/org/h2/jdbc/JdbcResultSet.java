@@ -73,7 +73,6 @@ import org.h2.value.ValueVarchar;
  */
 public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultSetBackwardsCompat {
 
-    private final boolean closeStatement;
     private final boolean scrollable;
     private final boolean updatable;
     ResultInterface result;
@@ -88,26 +87,22 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     private JdbcPreparedStatement preparedStatement;
     private final CommandInterface command;
 
-    public JdbcResultSet(JdbcConnection conn, JdbcStatement stat, CommandInterface command,
-            ResultInterface result, int id, boolean closeStatement,
-            boolean scrollable, boolean updatable) {
+    public JdbcResultSet(JdbcConnection conn, JdbcStatement stat, CommandInterface command, ResultInterface result,
+            int id, boolean scrollable, boolean updatable) {
         setTrace(conn.getSession().getTrace(), TraceObject.RESULT_SET, id);
         this.conn = conn;
         this.stat = stat;
         this.command = command;
         this.result = result;
         this.columnCount = result.getVisibleColumnCount();
-        this.closeStatement = closeStatement;
         this.scrollable = scrollable;
         this.updatable = updatable;
     }
 
-    JdbcResultSet(JdbcConnection conn, JdbcPreparedStatement preparedStatement,
-            CommandInterface command, ResultInterface result, int id, boolean closeStatement,
-            boolean scrollable, boolean updatable,
+    JdbcResultSet(JdbcConnection conn, JdbcPreparedStatement preparedStatement, CommandInterface command,
+            ResultInterface result, int id, boolean scrollable, boolean updatable,
             HashMap<String, Integer> columnLabelMap) {
-        this(conn, preparedStatement, command, result, id, closeStatement, scrollable,
-                updatable);
+        this(conn, preparedStatement, command, result, id, scrollable, updatable);
         this.columnLabelMap = columnLabelMap;
         this.preparedStatement = preparedStatement;
     }
@@ -200,16 +195,13 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     /**
      * Close the result set. This method also closes the statement if required.
      */
-    void closeInternal() throws SQLException {
+    void closeInternal() {
         if (result != null) {
             try {
                 if (result.isLazy()) {
                     stat.onLazyResultSetClose(command, preparedStatement == null);
                 }
                 result.close();
-                if (closeStatement && stat != null) {
-                    stat.close();
-                }
             } finally {
                 columnCount = 0;
                 result = null;
@@ -232,10 +224,6 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         try {
             debugCodeCall("getStatement");
             checkClosed();
-            if (closeStatement) {
-                // if the result set was opened by a DatabaseMetaData call
-                return null;
-            }
             return stat;
         } catch (Exception e) {
             throw logAndConvert(e);

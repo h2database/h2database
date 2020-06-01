@@ -15,7 +15,6 @@ import java.util.Arrays;
 
 import org.h2.Driver;
 import org.h2.api.ErrorCode;
-import org.h2.command.Parser;
 import org.h2.expression.Expression;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
@@ -24,6 +23,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
+import org.h2.util.ParserUtil;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -209,7 +209,7 @@ public class FunctionAlias extends SchemaObjectBase {
         if (database.getSettings().functionsInSchema || getSchema().getId() != Constants.MAIN_SCHEMA_ID) {
             return super.getSQL(builder, sqlFlags);
         }
-        return Parser.quoteIdentifier(builder, getName(), sqlFlags);
+        return ParserUtil.quoteIdentifier(builder, getName(), sqlFlags);
     }
 
     @Override
@@ -224,7 +224,7 @@ public class FunctionAlias extends SchemaObjectBase {
             StringUtils.quoteStringSQL(buff, source);
         } else {
             buff.append(" FOR ");
-            Parser.quoteIdentifier(buff, className + '.' + methodName, DEFAULT_SQL_FLAGS);
+            ParserUtil.quoteIdentifier(buff, className + '.' + methodName, DEFAULT_SQL_FLAGS);
         }
         return buff.toString();
     }

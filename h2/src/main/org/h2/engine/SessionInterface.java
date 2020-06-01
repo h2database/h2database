@@ -8,6 +8,7 @@ package org.h2.engine;
 import java.io.Closeable;
 import java.util.ArrayList;
 import org.h2.command.CommandInterface;
+import org.h2.jdbc.meta.DatabaseMeta;
 import org.h2.message.Trace;
 import org.h2.store.DataHandler;
 import org.h2.util.NetworkConnectionInfo;
@@ -247,5 +248,12 @@ public interface SessionInterface extends CastDataProvider, Closeable {
      * @return dynamic settings
      */
     DynamicSettings getDynamicSettings();
+
+    /**
+     * Returns database meta information.
+     *
+     * @return database meta information
+     */
+    DatabaseMeta getDatabaseMeta();
 
 }

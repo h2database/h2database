@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.h2.command.Parser;
+import org.h2.util.ParserUtil;
 
 /**
  * Extended parameters of the ROW data type.
@@ -65,7 +65,7 @@ public final class ExtTypeInfoRow extends ExtTypeInfo {
                 builder.append(", ");
             }
             f = true;
-            Parser.quoteIdentifier(builder, field.getKey(), sqlFlags).append(' ');
+            ParserUtil.quoteIdentifier(builder, field.getKey(), sqlFlags).append(' ');
             field.getValue().getSQL(builder, sqlFlags);
         }
         return builder.append(')');

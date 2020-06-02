@@ -227,15 +227,16 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <li>NON_UNIQUE (boolean) 'true' if non-unique</li>
      * <li>INDEX_QUALIFIER (String) index catalog</li>
      * <li>INDEX_NAME (String) index name</li>
-     * <li>TYPE (short) the index type (always tableIndexOther)</li>
+     * <li>TYPE (short) the index type (tableIndexOther or tableIndexHash for
+     * unique indexes on non-nullable columns, tableIndexStatistics for other
+     * indexes)</li>
      * <li>ORDINAL_POSITION (short) column index (1, 2, ...)</li>
      * <li>COLUMN_NAME (String) column name</li>
      * <li>ASC_OR_DESC (String) ascending or descending (always 'A')</li>
-     * <li>CARDINALITY (int) numbers of unique values</li>
-     * <li>PAGES (int) number of pages use (always 0)</li>
+     * <li>CARDINALITY (long) number of rows or numbers of unique values for
+     * unique indexes on non-nullable columns</li>
+     * <li>PAGES (long) number of pages use</li>
      * <li>FILTER_CONDITION (String) filter condition (always empty)</li>
-     * <li>SORT_TYPE (int) the sort type bit map: 1=DESCENDING,
-     * 2=NULLS_FIRST, 4=NULLS_LAST</li>
      * </ol>
      *
      * @param catalog null or the catalog name
@@ -243,7 +244,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      *            (uppercase for unquoted names)
      * @param table table name (must be specified)
      * @param unique only unique indexes
-     * @param approximate is ignored
+     * @param approximate if true, return fast, but approximate CARDINALITY
      * @return the list of indexes and columns
      * @throws SQLException if the connection is closed
      */

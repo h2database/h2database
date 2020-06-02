@@ -26,6 +26,7 @@ import org.h2.engine.Session;
 import org.h2.expression.ParameterInterface;
 import org.h2.expression.condition.CompareLike;
 import org.h2.index.Index;
+import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
@@ -81,6 +82,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     private static final ValueSmallint IMPORTED_KEY_NOT_DEFERRABLE = ValueSmallint
             .get((short) DatabaseMetaData.importedKeyNotDeferrable);
+
+    private static final ValueSmallint TABLE_INDEX_STATISTIC = ValueSmallint.get(DatabaseMetaData.tableIndexStatistic);
 
     private static final ValueSmallint TABLE_INDEX_HASHED = ValueSmallint.get(DatabaseMetaData.tableIndexHashed);
 
@@ -913,15 +916,24 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             if (index.getCreateSQL() == null) {
                 continue;
             }
-            boolean isUnique = index.getIndexType().isUnique();
+            IndexType indexType = index.getIndexType();
+            boolean isUnique = indexType.isUnique();
             if (unique && !isUnique) {
                 continue;
             }
             Value tableValue = getString(table.getName());
             Value indexValue = getString(index.getName());
             ValueBoolean nonUnique = ValueBoolean.get(!isUnique);
-            ValueSmallint type = index.getIndexType().isHash() ? TABLE_INDEX_HASHED : TABLE_INDEX_OTHER;
             IndexColumn[] cols = index.getIndexColumns();
+            ValueSmallint type = TABLE_INDEX_STATISTIC;
+            type: if (isUnique) {
+                for (IndexColumn c : cols) {
+                    if (c.column.isNullable()) {
+                        break type;
+                    }
+                }
+                type = indexType.isHash() ? TABLE_INDEX_HASHED : TABLE_INDEX_OTHER;
+            }
             for (int i = 0, l = cols.length; i < l; i++) {
                 IndexColumn c = cols[i];
                 result.addRow(

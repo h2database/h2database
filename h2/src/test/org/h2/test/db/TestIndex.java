@@ -461,7 +461,6 @@ public class TestIndex extends TestDb {
         rs = conn.getMetaData().getIndexInfo(null, null, "TEST", false, false);
         rs.next();
         assertEquals("D", rs.getString("ASC_OR_DESC"));
-        assertEquals(SortOrder.DESCENDING, rs.getInt("SORT_TYPE"));
         stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1, 30)");
         rs = stat.executeQuery(
                 "SELECT COUNT(*) FROM TEST WHERE ID BETWEEN 10 AND 20");
@@ -471,7 +470,6 @@ public class TestIndex extends TestDb {
         rs = conn.getMetaData().getIndexInfo(null, null, "TEST", false, false);
         rs.next();
         assertEquals("D", rs.getString("ASC_OR_DESC"));
-        assertEquals(SortOrder.DESCENDING, rs.getInt("SORT_TYPE"));
         rs = stat.executeQuery(
                 "SELECT COUNT(*) FROM TEST WHERE ID BETWEEN 10 AND 20");
         rs.next();

@@ -1639,7 +1639,9 @@ public class Parser {
                 schemaName = readUniqueIdentifier();
             }
             buff.append("C.COLUMN_NAME FIELD, "
-                    + "C.TYPE_NAME || '(' || C.NUMERIC_PRECISION || ')' TYPE, "
+                    + "C.DATA_TYPE || COALESCE("
+                    + "'(' || COALESCE(C.CHARACTER_MAXIMUM_LENGTH, C.CHARACTER_OCTET_LENGTH, C.NUMERIC_PRECISION, "
+                    + "C.DATETIME_PRECISION, C.INTERVAL_PRECISION) || ')', '') TYPE, "
                     + "C.IS_NULLABLE \"NULL\", "
                     + "CASE (SELECT MAX(I.INDEX_TYPE_NAME) FROM "
                     + "INFORMATION_SCHEMA.INDEXES I "

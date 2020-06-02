@@ -576,7 +576,7 @@ script nodata nopasswords nosettings;
 > rows: 4
 
 SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
->> 12
+>> VARCHAR
 
 drop table test;
 > ok
@@ -682,9 +682,9 @@ drop table test;
 create table test(t0 timestamp(0), t1 timestamp(1), t4 timestamp(4));
 > ok
 
-select column_name, numeric_scale from information_schema.columns c where c.table_name = 'TEST' order by column_name;
-> COLUMN_NAME NUMERIC_SCALE
-> ----------- -------------
+select column_name, datetime_precision from information_schema.columns c where c.table_name = 'TEST' order by column_name;
+> COLUMN_NAME DATETIME_PRECISION
+> ----------- ------------------
 > T0          0
 > T1          1
 > T4          4
@@ -1125,9 +1125,9 @@ CREATE TABLE FOO (A CHAR(10));
 CREATE TABLE BAR AS SELECT * FROM FOO;
 > ok
 
-select table_name, numeric_precision from information_schema.columns where column_name = 'A';
-> TABLE_NAME NUMERIC_PRECISION
-> ---------- -----------------
+select table_name, character_maximum_length from information_schema.columns where column_name = 'A';
+> TABLE_NAME CHARACTER_MAXIMUM_LENGTH
+> ---------- ------------------------
 > BAR        10
 > FOO        10
 > rows: 2

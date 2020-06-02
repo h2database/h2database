@@ -132,7 +132,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <li>SQL (String) the create table statement or NULL for systems tables.</li>
      * </ol>
      *
-     * @param catalogPattern null (to get all objects) or the catalog name
+     * @param catalog null (to get all objects) or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
      * @param tableNamePattern null (to get all objects) or a table name
@@ -142,15 +142,15 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * @throws SQLException if the connection is closed
      */
     @Override
-    public ResultSet getTables(String catalogPattern, String schemaPattern,
-            String tableNamePattern, String[] types) throws SQLException {
+    public ResultSet getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types)
+            throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getTables(" + quote(catalogPattern) + ", " +
+                debugCode("getTables(" + quote(catalog) + ", " +
                         quote(schemaPattern) + ", " + quote(tableNamePattern) +
                         ", " + quoteArray(types) + ");");
             }
-            return getResultSet(meta.getTables(catalogPattern, schemaPattern, tableNamePattern, types));
+            return getResultSet(meta.getTables(catalog, schemaPattern, tableNamePattern, types));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -188,7 +188,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <li>IS_GENERATEDCOLUMN (String) "NO" or "YES"</li>
      * </ol>
      *
-     * @param catalogPattern null (to get all objects) or the catalog name
+     * @param catalog null (to get all objects) or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
      * @param tableNamePattern null (to get all objects) or a table name
@@ -199,16 +199,16 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * @throws SQLException if the connection is closed
      */
     @Override
-    public ResultSet getColumns(String catalogPattern, String schemaPattern, String tableNamePattern,
+    public ResultSet getColumns(String catalog, String schemaPattern, String tableNamePattern,
             String columnNamePattern) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getColumns(" + quote(catalogPattern)+", "
+                debugCode("getColumns(" + quote(catalog)+", "
                         +quote(schemaPattern)+", "
                         +quote(tableNamePattern)+", "
                         +quote(columnNamePattern)+");");
             }
-            return getResultSet(meta.getColumns(catalogPattern, schemaPattern, tableNamePattern, columnNamePattern));
+            return getResultSet(meta.getColumns(catalog, schemaPattern, tableNamePattern, columnNamePattern));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -238,26 +238,25 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * 2=NULLS_FIRST, 4=NULLS_LAST</li>
      * </ol>
      *
-     * @param catalogPattern null or the catalog name
-     * @param schemaPattern null (to get all objects) or a schema name
+     * @param catalog null or the catalog name
+     * @param schema null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
-     * @param tableName table name (must be specified)
+     * @param table table name (must be specified)
      * @param unique only unique indexes
      * @param approximate is ignored
      * @return the list of indexes and columns
      * @throws SQLException if the connection is closed
      */
     @Override
-    public ResultSet getIndexInfo(String catalogPattern, String schemaPattern,
-            String tableName, boolean unique, boolean approximate)
+    public ResultSet getIndexInfo(String catalog, String schema, String table, boolean unique, boolean approximate)
             throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getIndexInfo(" + quote(catalogPattern) + ", " +
-                        quote(schemaPattern) + ", " + quote(tableName) + ", " +
+                debugCode("getIndexInfo(" + quote(catalog) + ", " +
+                        quote(schema) + ", " + quote(table) + ", " +
                         unique + ", " + approximate + ");");
             }
-            return getResultSet(meta.getIndexInfo(catalogPattern, schemaPattern, tableName, unique, approximate));
+            return getResultSet(meta.getIndexInfo(catalog, schema, table, unique, approximate));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -276,24 +275,23 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <li>PK_NAME (String) the name of the primary key index</li>
      * </ol>
      *
-     * @param catalogPattern null or the catalog name
-     * @param schemaPattern null (to get all objects) or a schema name
+     * @param catalog null or the catalog name
+     * @param schema null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
-     * @param tableName table name (must be specified)
+     * @param table table name (must be specified)
      * @return the list of primary key columns
      * @throws SQLException if the connection is closed
      */
     @Override
-    public ResultSet getPrimaryKeys(String catalogPattern,
-            String schemaPattern, String tableName) throws SQLException {
+    public ResultSet getPrimaryKeys(String catalog, String schema, String table) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getPrimaryKeys("
-                        +quote(catalogPattern)+", "
-                        +quote(schemaPattern)+", "
-                        +quote(tableName)+");");
+                        +quote(catalog)+", "
+                        +quote(schema)+", "
+                        +quote(table)+");");
             }
-            return getResultSet(meta.getPrimaryKeys(catalogPattern, schemaPattern, tableName));
+            return getResultSet(meta.getPrimaryKeys(catalog, schema, table));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -452,7 +450,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <li>SPECIFIC_NAME (String) name</li>
      * </ol>
      *
-     * @param catalogPattern null or the catalog name
+     * @param catalog null or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
      * @param procedureNamePattern the procedure name pattern
@@ -460,16 +458,16 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * @throws SQLException if the connection is closed
      */
     @Override
-    public ResultSet getProcedures(String catalogPattern, String schemaPattern,
+    public ResultSet getProcedures(String catalog, String schemaPattern,
             String procedureNamePattern) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getProcedures("
-                        +quote(catalogPattern)+", "
+                        +quote(catalog)+", "
                         +quote(schemaPattern)+", "
                         +quote(procedureNamePattern)+");");
             }
-            return getResultSet(meta.getProcedures(catalogPattern, schemaPattern, procedureNamePattern));
+            return getResultSet(meta.getProcedures(catalog, schemaPattern, procedureNamePattern));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -508,7 +506,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <li>SPECIFIC_NAME (String) name</li>
      * </ol>
      *
-     * @param catalogPattern null or the catalog name
+     * @param catalog null or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
      * @param procedureNamePattern the procedure name pattern
@@ -517,19 +515,19 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * @throws SQLException if the connection is closed
      */
     @Override
-    public ResultSet getProcedureColumns(String catalogPattern, String schemaPattern, String procedureNamePattern,
+    public ResultSet getProcedureColumns(String catalog, String schemaPattern, String procedureNamePattern,
             String columnNamePattern) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getProcedureColumns("
-                        +quote(catalogPattern)+", "
+                        +quote(catalog)+", "
                         +quote(schemaPattern)+", "
                         +quote(procedureNamePattern)+", "
                         +quote(columnNamePattern)+");");
             }
             checkClosed();
             return getResultSet(
-                    meta.getProcedureColumns(catalogPattern, schemaPattern, procedureNamePattern, columnNamePattern));
+                    meta.getProcedureColumns(catalog, schemaPattern, procedureNamePattern, columnNamePattern));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -615,8 +613,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * others</li>
      * </ol>
      *
-     * @param catalogPattern null (to get all objects) or the catalog name
-     * @param schemaPattern null (to get all objects) or a schema name
+     * @param catalog null (to get all objects) or the catalog name
+     * @param schema null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
      * @param table a table name (uppercase for unquoted names)
      * @param columnNamePattern null (to get all objects) or a column name
@@ -625,18 +623,17 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * @throws SQLException if the connection is closed
      */
     @Override
-    public ResultSet getColumnPrivileges(String catalogPattern,
-            String schemaPattern, String table, String columnNamePattern)
+    public ResultSet getColumnPrivileges(String catalog, String schema, String table, String columnNamePattern)
             throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getColumnPrivileges("
-                        +quote(catalogPattern)+", "
-                        +quote(schemaPattern)+", "
+                        +quote(catalog)+", "
+                        +quote(schema)+", "
                         +quote(table)+", "
                         +quote(columnNamePattern)+");");
             }
-            return getResultSet(meta.getColumnPrivileges(catalogPattern, schemaPattern, table, columnNamePattern));
+            return getResultSet(meta.getColumnPrivileges(catalog, schema, table, columnNamePattern));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -658,7 +655,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * others</li>
      * </ol>
      *
-     * @param catalogPattern null (to get all objects) or the catalog name
+     * @param catalog null (to get all objects) or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
      * @param tableNamePattern null (to get all objects) or a table name
@@ -667,17 +664,17 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * @throws SQLException if the connection is closed
      */
     @Override
-    public ResultSet getTablePrivileges(String catalogPattern,
-            String schemaPattern, String tableNamePattern) throws SQLException {
+    public ResultSet getTablePrivileges(String catalog, String schemaPattern, String tableNamePattern)
+            throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getTablePrivileges("
-                        +quote(catalogPattern)+", "
+                        +quote(catalog)+", "
                         +quote(schemaPattern)+", "
                         +quote(tableNamePattern)+");");
             }
             checkClosed();
-            return getResultSet(meta.getTablePrivileges(catalogPattern, schemaPattern, tableNamePattern));
+            return getResultSet(meta.getTablePrivileges(catalog, schemaPattern, tableNamePattern));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -699,27 +696,27 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <li>PSEUDO_COLUMN (short) (always bestRowNotPseudo)</li>
      * </ol>
      *
-     * @param catalogPattern null (to get all objects) or the catalog name
-     * @param schemaPattern null (to get all objects) or a schema name
+     * @param catalog null (to get all objects) or the catalog name
+     * @param schema null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
-     * @param tableName table name (must be specified)
+     * @param table table name (must be specified)
      * @param scope ignored
      * @param nullable ignored
      * @return the primary key index
      * @throws SQLException if the connection is closed
      */
     @Override
-    public ResultSet getBestRowIdentifier(String catalogPattern, String schemaPattern, String tableName, int scope,
-            boolean nullable) throws SQLException {
+    public ResultSet getBestRowIdentifier(String catalog, String schema, String table, int scope, boolean nullable)
+            throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getBestRowIdentifier("
-                        +quote(catalogPattern)+", "
-                        +quote(schemaPattern)+", "
-                        +quote(tableName)+", "
+                        +quote(catalog)+", "
+                        +quote(schema)+", "
+                        +quote(table)+", "
                         +scope+", "+nullable+");");
             }
-            return getResultSet(meta.getBestRowIdentifier(catalogPattern, schemaPattern, tableName, scope, nullable));
+            return getResultSet(meta.getBestRowIdentifier(catalog, schema, table, scope, nullable));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -743,21 +740,20 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      *
      * @param catalog null (to get all objects) or the catalog name
      * @param schema null (to get all objects) or a schema name
-     * @param tableName table name (must be specified)
+     * @param table table name (must be specified)
      * @return an empty result set
      * @throws SQLException if the connection is closed
      */
     @Override
-    public ResultSet getVersionColumns(String catalog, String schema,
-            String tableName) throws SQLException {
+    public ResultSet getVersionColumns(String catalog, String schema, String table) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getVersionColumns("
                         +quote(catalog)+", "
                         +quote(schema)+", "
-                        +quote(tableName)+");");
+                        +quote(table)+");");
             }
-            return getResultSet(meta.getVersionColumns(catalog, schema, tableName));
+            return getResultSet(meta.getVersionColumns(catalog, schema, table));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -788,23 +784,22 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * importedKeyNotDeferrable)</li>
      * </ol>
      *
-     * @param catalogPattern null (to get all objects) or the catalog name
-     * @param schemaPattern the schema name of the foreign table
-     * @param tableName the name of the foreign table
+     * @param catalog null (to get all objects) or the catalog name
+     * @param schema the schema name of the foreign table
+     * @param table the name of the foreign table
      * @return the result set
      * @throws SQLException if the connection is closed
      */
     @Override
-    public ResultSet getImportedKeys(String catalogPattern,
-            String schemaPattern, String tableName) throws SQLException {
+    public ResultSet getImportedKeys(String catalog, String schema, String table) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getImportedKeys("
-                        +quote(catalogPattern)+", "
-                        +quote(schemaPattern)+", "
-                        +quote(tableName)+");");
+                        +quote(catalog)+", "
+                        +quote(schema)+", "
+                        +quote(table)+");");
             }
-            return getResultSet(meta.getImportedKeys(catalogPattern, schemaPattern, tableName));
+            return getResultSet(meta.getImportedKeys(catalog, schema, table));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -835,23 +830,22 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * importedKeyNotDeferrable)</li>
      * </ol>
      *
-     * @param catalogPattern null or the catalog name
-     * @param schemaPattern the schema name of the primary table
-     * @param tableName the name of the primary table
+     * @param catalog null or the catalog name
+     * @param schema the schema name of the primary table
+     * @param table the name of the primary table
      * @return the result set
      * @throws SQLException if the connection is closed
      */
     @Override
-    public ResultSet getExportedKeys(String catalogPattern,
-            String schemaPattern, String tableName) throws SQLException {
+    public ResultSet getExportedKeys(String catalog, String schema, String table) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getExportedKeys("
-                        +quote(catalogPattern)+", "
-                        +quote(schemaPattern)+", "
-                        +quote(tableName)+");");
+                        +quote(catalog)+", "
+                        +quote(schema)+", "
+                        +quote(table)+");");
             }
-            return getResultSet(meta.getExportedKeys(catalogPattern, schemaPattern, tableName));
+            return getResultSet(meta.getExportedKeys(catalog, schema, table));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -883,33 +877,32 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * importedKeyNotDeferrable)</li>
      * </ol>
      *
-     * @param primaryCatalogPattern null or the catalog name
-     * @param primarySchemaPattern the schema name of the primary table
+     * @param primaryCatalog null or the catalog name
+     * @param primarySchema the schema name of the primary table
      *          (optional)
      * @param primaryTable the name of the primary table (must be specified)
-     * @param foreignCatalogPattern null or the catalog name
-     * @param foreignSchemaPattern the schema name of the foreign table
+     * @param foreignCatalog null or the catalog name
+     * @param foreignSchema the schema name of the foreign table
      *          (optional)
      * @param foreignTable the name of the foreign table (must be specified)
      * @return the result set
      * @throws SQLException if the connection is closed
      */
     @Override
-    public ResultSet getCrossReference(String primaryCatalogPattern,
-            String primarySchemaPattern, String primaryTable, String foreignCatalogPattern,
-            String foreignSchemaPattern, String foreignTable) throws SQLException {
+    public ResultSet getCrossReference(String primaryCatalog, String primarySchema, String primaryTable,
+            String foreignCatalog, String foreignSchema, String foreignTable) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getCrossReference("
-                        +quote(primaryCatalogPattern)+", "
-                        +quote(primarySchemaPattern)+", "
+                        +quote(primaryCatalog)+", "
+                        +quote(primarySchema)+", "
                         +quote(primaryTable)+", "
-                        +quote(foreignCatalogPattern)+", "
-                        +quote(foreignSchemaPattern)+", "
+                        +quote(foreignCatalog)+", "
+                        +quote(foreignSchema)+", "
                         +quote(foreignTable)+");");
             }
-            return getResultSet(meta.getCrossReference(primaryCatalogPattern, primarySchemaPattern, primaryTable,
-                    foreignCatalogPattern, foreignSchemaPattern, foreignTable));
+            return getResultSet(meta.getCrossReference(primaryCatalog, primarySchema, primaryTable, foreignCatalog,
+                    foreignSchema, foreignTable));
         } catch (Exception e) {
             throw logAndConvert(e);
         }

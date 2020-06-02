@@ -905,44 +905,44 @@ public class TestMetaData extends TestDb {
         stat.executeUpdate("CREATE INDEX IDX_TEXT_DEC ON TEST(TEXT_V,DEC_V)");
         stat.executeUpdate("CREATE UNIQUE INDEX IDX_DATE ON TEST(DATE_V)");
         rs = meta.getIndexInfo(null, null, "TEST", false, false);
-        assertResultSetMeta(rs, 14, new String[] { "TABLE_CAT", "TABLE_SCHEM",
+        assertResultSetMeta(rs, 13, new String[] { "TABLE_CAT", "TABLE_SCHEM",
                 "TABLE_NAME", "NON_UNIQUE", "INDEX_QUALIFIER", "INDEX_NAME",
                 "TYPE", "ORDINAL_POSITION", "COLUMN_NAME", "ASC_OR_DESC",
-                "CARDINALITY", "PAGES", "FILTER_CONDITION", "SORT_TYPE" },
+                "CARDINALITY", "PAGES", "FILTER_CONDITION" },
                 new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                         Types.BOOLEAN, Types.VARCHAR, Types.VARCHAR,
                         Types.SMALLINT, Types.SMALLINT, Types.VARCHAR,
-                        Types.VARCHAR, Types.INTEGER, Types.INTEGER,
-                        Types.VARCHAR, Types.INTEGER }, null, null);
+                        Types.VARCHAR, Types.BIGINT, Types.BIGINT,
+                        Types.VARCHAR }, null, null);
         assertResultSetOrdered(rs, new String[][] {
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "FALSE", CATALOG,
                         "IDX_DATE", "" + DatabaseMetaData.tableIndexOther, "1",
-                        "DATE_V", "A", "0", "0", "" },
+                        "DATE_V", "A", "0", "0" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "FALSE", CATALOG,
                         "PRIMARY_KEY_2", "" + DatabaseMetaData.tableIndexOther,
-                        "1", "ID", "A", "0", "0", "" },
+                        "1", "ID", "A", "0", "0" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TRUE", CATALOG,
                         "IDX_TEXT_DEC", "" + DatabaseMetaData.tableIndexOther,
-                        "1", "TEXT_V", "A", "0", "0", "" },
+                        "1", "TEXT_V", "A", "0", "0" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TRUE", CATALOG,
                         "IDX_TEXT_DEC", "" + DatabaseMetaData.tableIndexOther,
-                        "2", "DEC_V", "A", "0", "0", "" }, });
+                        "2", "DEC_V", "A", "0", "0" }, });
         stat.executeUpdate("DROP INDEX IDX_TEXT_DEC");
         stat.executeUpdate("DROP INDEX IDX_DATE");
         rs = meta.getIndexInfo(null, null, "TEST", false, false);
-        assertResultSetMeta(rs, 14, new String[] { "TABLE_CAT", "TABLE_SCHEM",
+        assertResultSetMeta(rs, 13, new String[] { "TABLE_CAT", "TABLE_SCHEM",
                 "TABLE_NAME", "NON_UNIQUE", "INDEX_QUALIFIER", "INDEX_NAME",
                 "TYPE", "ORDINAL_POSITION", "COLUMN_NAME", "ASC_OR_DESC",
-                "CARDINALITY", "PAGES", "FILTER_CONDITION", "SORT_TYPE" },
+                "CARDINALITY", "PAGES", "FILTER_CONDITION" },
                 new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                         Types.BOOLEAN, Types.VARCHAR, Types.VARCHAR,
                         Types.SMALLINT, Types.SMALLINT, Types.VARCHAR,
-                        Types.VARCHAR, Types.INTEGER, Types.INTEGER,
-                        Types.VARCHAR, Types.INTEGER }, null, null);
+                        Types.VARCHAR, Types.BIGINT, Types.BIGINT,
+                        Types.VARCHAR }, null, null);
         assertResultSetOrdered(rs, new String[][] { { CATALOG,
                 Constants.SCHEMA_MAIN, "TEST", "FALSE", CATALOG,
                 "PRIMARY_KEY_2", "" + DatabaseMetaData.tableIndexOther, "1",
-                "ID", "A", "0", "0", "" } });
+                "ID", "A", "0", "0" } });
         trace("getPrimaryKeys");
         rs = meta.getPrimaryKeys(null, null, "TEST");
         assertResultSetMeta(rs, 6, new String[] { "TABLE_CAT", "TABLE_SCHEM",
@@ -1310,7 +1310,7 @@ public class TestMetaData extends TestDb {
         // meta.getFunctionColumns(null, null, null, null);
         // meta.getFunctions(null, null, null);
         meta.getImportedKeys(null, null, "TEST");
-        meta.getIndexInfo(null, null, null, false, false);
+        meta.getIndexInfo(null, null, "TEST", false, false);
         meta.getPrimaryKeys(null, null, "TEST");
         meta.getProcedureColumns(null, null, null, null);
         meta.getProcedures(null, null, null);

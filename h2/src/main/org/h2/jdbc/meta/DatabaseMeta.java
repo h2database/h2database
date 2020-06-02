@@ -73,8 +73,7 @@ public abstract class DatabaseMeta {
      *
      * @see java.sql.DatabaseMetaData#getProcedures(String, String, String)
      */
-    public abstract ResultInterface getProcedures(String catalogPattern, String schemaPattern,
-            String procedureNamePattern);
+    public abstract ResultInterface getProcedures(String catalog, String schemaPattern, String procedureNamePattern);
 
     /**
      * INTERNAL
@@ -82,7 +81,7 @@ public abstract class DatabaseMeta {
      * @see java.sql.DatabaseMetaData#getProcedureColumns(String, String,
      *      String, String)
      */
-    public abstract ResultInterface getProcedureColumns(String catalogPattern, String schemaPattern,
+    public abstract ResultInterface getProcedureColumns(String catalog, String schemaPattern,
             String procedureNamePattern, String columnNamePattern);
 
     /**
@@ -91,7 +90,7 @@ public abstract class DatabaseMeta {
      * @see java.sql.DatabaseMetaData#getTables(String, String, String,
      *      String[])
      */
-    public abstract ResultInterface getTables(String catalogPattern, String schemaPattern, String tableNamePattern,
+    public abstract ResultInterface getTables(String catalog, String schemaPattern, String tableNamePattern,
             String[] types);
 
     /**
@@ -120,7 +119,7 @@ public abstract class DatabaseMeta {
      *
      * @see java.sql.DatabaseMetaData#getColumns(String, String, String, String)
      */
-    public abstract ResultInterface getColumns(String catalogPattern, String schemaPattern, String tableNamePattern,
+    public abstract ResultInterface getColumns(String catalog, String schemaPattern, String tableNamePattern,
             String columnNamePattern);
 
     /**
@@ -129,7 +128,7 @@ public abstract class DatabaseMeta {
      * @see java.sql.DatabaseMetaData#getColumnPrivileges(String, String,
      *      String, String)
      */
-    public abstract ResultInterface getColumnPrivileges(String catalogPattern, String schemaPattern, String table,
+    public abstract ResultInterface getColumnPrivileges(String catalog, String schema, String table,
             String columnNamePattern);
 
     /**
@@ -137,8 +136,7 @@ public abstract class DatabaseMeta {
      *
      * @see java.sql.DatabaseMetaData#getTablePrivileges(String, String, String)
      */
-    public abstract ResultInterface getTablePrivileges(String catalogPattern, String schemaPattern,
-            String tableNamePattern);
+    public abstract ResultInterface getTablePrivileges(String catalog, String schemaPattern, String tableNamePattern);
 
     /**
      * INTERNAL
@@ -154,28 +152,28 @@ public abstract class DatabaseMeta {
      *
      * @see java.sql.DatabaseMetaData#getVersionColumns(String, String, String)
      */
-    public abstract ResultInterface getVersionColumns(String catalog, String schema, String tableName);
+    public abstract ResultInterface getVersionColumns(String catalog, String schema, String table);
 
     /**
      * INTERNAL
      *
      * @see java.sql.DatabaseMetaData#getPrimaryKeys(String, String, String)
      */
-    public abstract ResultInterface getPrimaryKeys(String catalogPattern, String schemaPattern, String tableName);
+    public abstract ResultInterface getPrimaryKeys(String catalog, String schema, String table);
 
     /**
      * INTERNAL
      *
      * @see java.sql.DatabaseMetaData#getImportedKeys(String, String, String)
      */
-    public abstract ResultInterface getImportedKeys(String catalogPattern, String schemaPattern, String tableName);
+    public abstract ResultInterface getImportedKeys(String catalog, String schema, String table);
 
     /**
      * INTERNAL
      *
      * @see java.sql.DatabaseMetaData#getExportedKeys(String, String, String)
      */
-    public abstract ResultInterface getExportedKeys(String catalogPattern, String schemaPattern, String tableName);
+    public abstract ResultInterface getExportedKeys(String catalog, String schema, String table);
 
     /**
      * INTERNAL
@@ -183,8 +181,8 @@ public abstract class DatabaseMeta {
      * @see java.sql.DatabaseMetaData#getCrossReference(String, String, String,
      *      String, String, String)
      */
-    public abstract ResultInterface getCrossReference(String primaryCatalogPattern, String primarySchemaPattern,
-            String primaryTable, String foreignCatalogPattern, String foreignSchemaPattern, String foreignTable);
+    public abstract ResultInterface getCrossReference(String primaryCatalog, String primarySchema, String primaryTable,
+            String foreignCatalog, String foreignSchema, String foreignTable);
 
     /**
      * INTERNAL
@@ -199,8 +197,8 @@ public abstract class DatabaseMeta {
      * @see java.sql.DatabaseMetaData#getIndexInfo(String, String, String,
      *      boolean, boolean)
      */
-    public abstract ResultInterface getIndexInfo(String catalogPattern, String schemaPattern, String tableName,
-            boolean unique, boolean approximate);
+    public abstract ResultInterface getIndexInfo(String catalog, String schema, String table, boolean unique,
+            boolean approximate);
 
     /**
      * INTERNAL
@@ -251,7 +249,7 @@ public abstract class DatabaseMeta {
      *
      * @see java.sql.DatabaseMetaData#getSchemas(String, String)
      */
-    public abstract ResultInterface getSchemas(String catalogPattern, String schemaPattern);
+    public abstract ResultInterface getSchemas(String catalog, String schemaPattern);
 
     /**
      * INTERNAL

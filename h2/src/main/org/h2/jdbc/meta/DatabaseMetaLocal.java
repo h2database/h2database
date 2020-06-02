@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 
 import org.h2.api.ErrorCode;
@@ -25,9 +26,11 @@ import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.ParameterInterface;
 import org.h2.expression.condition.CompareLike;
+import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
+import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
@@ -40,6 +43,7 @@ import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
@@ -65,6 +69,10 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     private static final ValueSmallint BEST_ROW_NOT_PSEUDO = ValueSmallint
             .get((short) DatabaseMetaData.bestRowNotPseudo);
+
+    private static final ValueSmallint TABLE_INDEX_HASHED = ValueSmallint.get(DatabaseMetaData.tableIndexHashed);
+
+    private static final ValueSmallint TABLE_INDEX_OTHER = ValueSmallint.get(DatabaseMetaData.tableIndexOther);
 
     private static final ValueSmallint TYPE_NULLABLE = ValueSmallint.get((short) DatabaseMetaData.typeNullable);
 
@@ -146,7 +154,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     }
 
     @Override
-    public ResultInterface getProcedures(String catalogPattern, String schemaPattern, String procedureNamePattern) {
+    public ResultInterface getProcedures(String catalog, String schemaPattern, String procedureNamePattern) {
         return executeQuery("SELECT " //
                 + "ALIAS_CATALOG PROCEDURE_CAT, " //
                 + "ALIAS_SCHEMA PROCEDURE_SCHEM, " //
@@ -162,15 +170,15 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 + "AND ALIAS_SCHEMA LIKE ?2 ESCAPE ?4 " //
                 + "AND ALIAS_NAME LIKE ?3 ESCAPE ?4 " //
                 + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME, NUM_INPUT_PARAMS", //
-                getCatalogPattern(catalogPattern), //
+                getCatalogPattern(catalog), //
                 getSchemaPattern(schemaPattern), //
                 getPattern(procedureNamePattern), //
                 BACKSLASH);
     }
 
     @Override
-    public ResultInterface getProcedureColumns(String catalogPattern, String schemaPattern, //
-            String procedureNamePattern, String columnNamePattern) {
+    public ResultInterface getProcedureColumns(String catalog, String schemaPattern, String procedureNamePattern,
+            String columnNamePattern) {
         return executeQuery("SELECT " //
                 + "ALIAS_CATALOG PROCEDURE_CAT, " //
                 + "ALIAS_SCHEMA PROCEDURE_SCHEM, " //
@@ -199,7 +207,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 + "AND COLUMN_NAME LIKE ?5 ESCAPE ?6 " //
                 + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME, ORDINAL_POSITION", //
                 YES, //
-                getCatalogPattern(catalogPattern), //
+                getCatalogPattern(catalog), //
                 getSchemaPattern(schemaPattern), //
                 getPattern(procedureNamePattern), //
                 getPattern(columnNamePattern), //
@@ -207,8 +215,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     }
 
     @Override
-    public ResultInterface getTables(String catalogPattern, String schemaPattern, String tableNamePattern,
-            String[] types) {
+    public ResultInterface getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types) {
         int typesLength = types != null ? types.length : 0;
         boolean includeSynonyms = types == null || Arrays.asList(types).contains("SYNONYM");
         // (1024 - 16) is enough for the most cases
@@ -275,7 +282,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             select.append(')');
         }
         Value[] args = new Value[typesLength + 4];
-        args[0] = getCatalogPattern(catalogPattern);
+        args[0] = getCatalogPattern(catalog);
         args[1] = getSchemaPattern(schemaPattern);
         args[2] = getPattern(tableNamePattern);
         args[3] = BACKSLASH;
@@ -412,8 +419,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     }
 
     @Override
-    public ResultInterface getColumnPrivileges(String catalogPattern, String schemaPattern, String table,
-            String columnNamePattern) {
+    public ResultInterface getColumnPrivileges(String catalog, String schema, String table, String columnNamePattern) {
         return executeQuery("SELECT " //
                 + "TABLE_CATALOG TABLE_CAT, " //
                 + "TABLE_SCHEMA TABLE_SCHEM, " //
@@ -429,15 +435,15 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 + "AND TABLE_NAME = ?3 " //
                 + "AND COLUMN_NAME LIKE ?4 ESCAPE ?5 " //
                 + "ORDER BY COLUMN_NAME, PRIVILEGE", //
-                getCatalogPattern(catalogPattern), //
-                getSchemaPattern(schemaPattern), //
+                getCatalogPattern(catalog), //
+                getSchemaPattern(schema), //
                 getString(table), //
                 getPattern(columnNamePattern), //
                 BACKSLASH);
     }
 
     @Override
-    public ResultInterface getTablePrivileges(String catalogPattern, String schemaPattern, String tableNamePattern) {
+    public ResultInterface getTablePrivileges(String catalog, String schemaPattern, String tableNamePattern) {
         return executeQuery("SELECT " //
                 + "TABLE_CATALOG TABLE_CAT, " //
                 + "TABLE_SCHEMA TABLE_SCHEM, " //
@@ -451,17 +457,17 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 + "AND TABLE_SCHEMA LIKE ?2 ESCAPE ?4 " //
                 + "AND TABLE_NAME LIKE ?3 ESCAPE ?4 " //
                 + "ORDER BY TABLE_SCHEM, TABLE_NAME, PRIVILEGE", //
-                getCatalogPattern(catalogPattern), //
+                getCatalogPattern(catalog), //
                 getSchemaPattern(schemaPattern), //
                 getPattern(tableNamePattern), //
                 BACKSLASH);
     }
 
     @Override
-    public ResultInterface getBestRowIdentifier(String catalogPattern, String schemaPattern, String tableName,
-            int scope, boolean nullable) {
-        if (tableName == null) {
-            throw DbException.getInvalidValueException("tableName", null);
+    public ResultInterface getBestRowIdentifier(String catalog, String schema, String table, int scope,
+            boolean nullable) {
+        if (table == null) {
+            throw DbException.getInvalidValueException("table", null);
         }
         checkClosed();
         SimpleResult result = new SimpleResult();
@@ -473,21 +479,15 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         result.addColumn("BUFFER_LENGTH", TypeInfo.TYPE_INTEGER);
         result.addColumn("DECIMAL_DIGITS", TypeInfo.TYPE_SMALLINT);
         result.addColumn("PSEUDO_COLUMN", TypeInfo.TYPE_SMALLINT);
-        if (!checkCatalog(catalogPattern)) {
+        if (!checkCatalogName(catalog)) {
             return result;
         }
-        CompareLike schemaLike = getSchemaLike(schemaPattern);
-        Database db = session.getDatabase();
-        Schema primarySchema = db.getMainSchema();
-        for (Schema schema : db.getAllSchemas()) {
-            if (!checkSchema(schemaPattern, schemaLike, schema, primarySchema)) {
+        for (Schema s : getSchemas(schema)) {
+            Table t = s.findTableOrView(session, table);
+            if (t == null || t.isHidden()) {
                 continue;
             }
-            Table table = schema.findTableOrView(session, tableName);
-            if (table == null) {
-                continue;
-            }
-            ArrayList<Constraint> constraints = table.getConstraints();
+            ArrayList<Constraint> constraints = t.getConstraints();
             if (constraints == null) {
                 continue;
             }
@@ -527,9 +527,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     }
 
     @Override
-    public ResultInterface getPrimaryKeys(String catalogPattern, String schemaPattern, String tableName) {
-        if (tableName == null) {
-            throw DbException.getInvalidValueException("tableName", null);
+    public ResultInterface getPrimaryKeys(String catalog, String schema, String table) {
+        if (table == null) {
+            throw DbException.getInvalidValueException("table", null);
         }
         checkClosed();
         SimpleResult result = new SimpleResult();
@@ -539,24 +539,17 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         result.addColumn("COLUMN_NAME", TypeInfo.TYPE_VARCHAR);
         result.addColumn("KEY_SEQ", TypeInfo.TYPE_SMALLINT);
         result.addColumn("PK_NAME", TypeInfo.TYPE_VARCHAR);
-        if (!checkCatalog(catalogPattern)) {
+        if (!checkCatalogName(catalog)) {
             return result;
         }
-        CompareLike schemaLike = getSchemaLike(schemaPattern);
         Database db = session.getDatabase();
-        CompareMode compareMode = db.getCompareMode();
-        Schema primarySchema = db.getMainSchema();
-        Value catalog = getString(db.getShortName());
-        ArrayList<Value[]> rows = Utils.newSmallArrayList();
-        for (Schema schema : db.getAllSchemas()) {
-            if (!checkSchema(schemaPattern, schemaLike, schema, primarySchema)) {
+        Value catalogValue = getString(db.getShortName());
+        for (Schema s : getSchemas(schema)) {
+            Table t = s.findTableOrView(session, table);
+            if (t == null || t.isHidden()) {
                 continue;
             }
-            Table table = schema.findTableOrView(session, tableName);
-            if (table == null) {
-                continue;
-            }
-            ArrayList<Constraint> constraints = table.getConstraints();
+            ArrayList<Constraint> constraints = t.getConstraints();
             if (constraints == null) {
                 continue;
             }
@@ -564,65 +557,62 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 if (constraint.getConstraintType() != Constraint.Type.PRIMARY_KEY) {
                     continue;
                 }
-                Value schemaValue = getString(schema.getName());
-                Value tableValue = getString(table.getName());
+                Value schemaValue = getString(s.getName());
+                Value tableValue = getString(t.getName());
                 Value pkValue = getString(constraint.getName());
                 IndexColumn[] columns = ((ConstraintUnique) constraint).getColumns();
                 for (int i = 0, l = columns.length; i < l;) {
-                    rows.add(new Value[] {
+                    result.addRow(
                             // TABLE_CAT
-                            catalog,
+                            catalogValue,
                             // TABLE_SCHEM
                             schemaValue,
                             // TABLE_NAME
                             tableValue,
                             // COLUMN_NAME
-                            getString(columns[i].columnName),
+                            getString(columns[i].column.getName()),
                             // KEY_SEQ
                             ValueSmallint.get((short) ++i),
                             // PK_NAME
-                            pkValue });
+                            pkValue);
                 }
             }
         }
-        rows.sort((o1, o2) -> compareMode.compare(o1[3], o2[3]));
-        for (Value[] row : rows) {
-            result.addRow(row);
-        }
+        result.sortRows(new SortOrder(session, new int[] { 3 }, new int[0], null));
         return result;
     }
 
     @Override
-    public ResultInterface getImportedKeys(String catalogPattern, String schemaPattern, String tableName) {
-        if (tableName == null) {
-            throw DbException.getInvalidValueException("tableName", null);
+    public ResultInterface getImportedKeys(String catalog, String schema, String table) {
+        if (table == null) {
+            throw DbException.getInvalidValueException("table", null);
         }
-        return getCrossReferenceImpl(null, null, null, catalogPattern, schemaPattern, tableName);
+        return getCrossReferenceImpl(null, null, null, catalog, schema, table);
     }
 
     @Override
-    public ResultInterface getExportedKeys(String catalogPattern, String schemaPattern, String tableName) {
-        if (tableName == null) {
-            throw DbException.getInvalidValueException("tableName", null);
+    public ResultInterface getExportedKeys(String catalog, String schema, String table) {
+        if (table == null) {
+            throw DbException.getInvalidValueException("table", null);
         }
-        return getCrossReferenceImpl(catalogPattern, schemaPattern, tableName, null, null, null);
+        return getCrossReferenceImpl(catalog, schema, table, null, null, null);
     }
 
     @Override
-    public ResultInterface getCrossReference(String primaryCatalogPattern, String primarySchemaPattern,
-            String primaryTable, String foreignCatalogPattern, String foreignSchemaPattern, String foreignTable) {
+    public ResultInterface getCrossReference(String primaryCatalog, String primarySchema, String primaryTable,
+            String foreignCatalog, String foreignSchema, String foreignTable) {
         if (primaryTable == null) {
             throw DbException.getInvalidValueException("primaryTable", null);
         }
         if (foreignTable == null) {
             throw DbException.getInvalidValueException("foreignTable", null);
         }
-        return getCrossReferenceImpl(primaryCatalogPattern, primarySchemaPattern, primaryTable, foreignCatalogPattern,
-                foreignSchemaPattern, foreignTable);
+        return getCrossReferenceImpl(primaryCatalog, primarySchema, primaryTable, foreignCatalog, foreignSchema,
+                foreignTable);
     }
 
-    ResultInterface getCrossReferenceImpl(String primaryCatalogPattern, String primarySchemaPattern,
-            String primaryTable, String foreignCatalogPattern, String foreignSchemaPattern, String foreignTable) {
+    ResultInterface getCrossReferenceImpl(String primaryCatalog, String primarySchema, String primaryTable,
+            String foreignCatalog, String foreignSchema, String foreignTable) {
         checkClosed();
         SimpleResult result = new SimpleResult();
         result.addColumn("PKTABLE_CAT", TypeInfo.TYPE_VARCHAR);
@@ -639,14 +629,11 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         result.addColumn("FK_NAME", TypeInfo.TYPE_VARCHAR);
         result.addColumn("PK_NAME", TypeInfo.TYPE_VARCHAR);
         result.addColumn("DEFERRABILITY", TypeInfo.TYPE_SMALLINT);
-        if (!checkCatalog(primaryCatalogPattern) || !checkCatalog(foreignCatalogPattern)) {
+        if (!checkCatalogName(primaryCatalog) || !checkCatalogName(foreignCatalog)) {
             return result;
         }
-        CompareLike primarySchemaLike = getSchemaLike(primarySchemaPattern),
-                foreignSchemaLike = getSchemaLike(foreignSchemaPattern);
         Database db = session.getDatabase();
         CompareMode compareMode = db.getCompareMode();
-        Schema primarySchema = db.getMainSchema();
         ArrayList<CrossReference> crossReferences = Utils.newSmallArrayList();
         for (SchemaObject obj : db.getAllSchemaObjects(DbObject.CONSTRAINT)) {
             Constraint constraint = (Constraint) obj;
@@ -663,11 +650,11 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 continue;
             }
             Schema pkSchema = pkTable.getSchema();
-            if (!checkSchema(primarySchemaPattern, primarySchemaLike, pkSchema, primarySchema)) {
+            if (!checkSchema(primarySchema, pkSchema)) {
                 continue;
             }
             Schema fkSchema = fkTable.getSchema();
-            if (!checkSchema(foreignSchemaPattern, foreignSchemaLike, fkSchema, primarySchema)) {
+            if (!checkSchema(foreignSchema, fkSchema)) {
                 continue;
             }
             crossReferences.add(new CrossReference(this, compareMode, pkSchema.getName(), pkTable, fkSchema.getName(),
@@ -860,44 +847,97 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     }
 
     @Override
-    public ResultInterface getIndexInfo(String catalogPattern, String schemaPattern, String tableName, boolean unique,
+    public ResultInterface getIndexInfo(String catalog, String schema, String table, boolean unique,
             boolean approximate) {
-        String uniqueCondition = unique ? "NON_UNIQUE=FALSE" : "TRUE";
-        return executeQuery("SELECT " //
-                + "TABLE_CATALOG TABLE_CAT, " //
-                + "TABLE_SCHEMA TABLE_SCHEM, " //
-                + "TABLE_NAME, " //
-                + "NON_UNIQUE, " //
-                + "TABLE_CATALOG INDEX_QUALIFIER, " //
-                + "INDEX_NAME, " //
-                + "INDEX_TYPE TYPE, " //
-                + "ORDINAL_POSITION, " //
-                + "COLUMN_NAME, " //
-                + "ASC_OR_DESC, " //
-                // TODO meta data for number of unique values in an index
-                + "CARDINALITY, " //
-                + "PAGES, " //
-                + "FILTER_CONDITION, " //
-                + "SORT_TYPE " //
-                + "FROM INFORMATION_SCHEMA.INDEXES " //
-                + "WHERE TABLE_CATALOG LIKE ?1 ESCAPE ?4 " //
-                + "AND TABLE_SCHEMA LIKE ?2 ESCAPE ?4 " //
-                + "AND (" + uniqueCondition + ") " //
-                + "AND TABLE_NAME = ?3 " //
-                + "ORDER BY NON_UNIQUE, TYPE, TABLE_SCHEM, INDEX_NAME, ORDINAL_POSITION", //
-                getCatalogPattern(catalogPattern), //
-                getSchemaPattern(schemaPattern), //
-                getString(tableName), //
-                BACKSLASH);
+        if (table == null) {
+            throw DbException.getInvalidValueException("table", null);
+        }
+        checkClosed();
+        SimpleResult result = new SimpleResult();
+        result.addColumn("TABLE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("NON_UNIQUE", TypeInfo.TYPE_BOOLEAN);
+        result.addColumn("INDEX_QUALIFIER", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("INDEX_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TYPE", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("ORDINAL_POSITION", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("COLUMN_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("ASC_OR_DESC", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("CARDINALITY", TypeInfo.TYPE_BIGINT);
+        result.addColumn("PAGES", TypeInfo.TYPE_BIGINT);
+        result.addColumn("FILTER_CONDITION", TypeInfo.TYPE_VARCHAR);
+        if (!checkCatalogName(catalog)) {
+            return result;
+        }
+        Database db = session.getDatabase();
+        Value catalogValue = getString(db.getShortName());
+        for (Schema s : getSchemas(schema)) {
+            Table t = s.findTableOrView(session, table);
+            if (t == null || t.isHidden()) {
+                continue;
+            }
+            getIndexInfo(catalogValue, getString(s.getName()), t, unique, approximate, result, db);
+        }
+        result.sortRows(new SortOrder(session, new int[] { 3, 6, 5, 7 }, new int[4], null));
+        return result;
+    }
+
+    private void getIndexInfo(Value catalogValue, Value schemaValue, Table table, boolean unique, boolean approximate,
+            SimpleResult result, Database db) {
+        for (Index index : table.getIndexes()) {
+            if (index.getCreateSQL() == null) {
+                continue;
+            }
+            boolean isUnique = index.getIndexType().isUnique();
+            if (unique && !isUnique) {
+                continue;
+            }
+            Value tableValue = getString(table.getName());
+            Value indexValue = getString(index.getName());
+            ValueBoolean nonUnique = ValueBoolean.get(!isUnique);
+            ValueSmallint type = index.getIndexType().isHash() ? TABLE_INDEX_HASHED : TABLE_INDEX_OTHER;
+            IndexColumn[] cols = index.getIndexColumns();
+            for (int i = 0, l = cols.length; i < l; i++) {
+                IndexColumn c = cols[i];
+                result.addRow(
+                        // TABLE_CAT
+                        catalogValue,
+                        // TABLE_SCHEM
+                        schemaValue,
+                        // TABLE_NAME
+                        tableValue,
+                        // NON_UNIQUE
+                        nonUnique,
+                        // INDEX_QUALIFIER
+                        catalogValue,
+                        // INDEX_NAME
+                        indexValue,
+                        // TYPE
+                        type,
+                        // ORDINAL_POSITION
+                        ValueSmallint.get((short) (i + 1)),
+                        // COLUMN_NAME
+                        getString(c.column.getName()),
+                        // ASC_OR_DESC
+                        getString((c.sortType & SortOrder.DESCENDING) != 0 ? "D" : "A"),
+                        // CARDINALITY
+                        ValueBigint.get(approximate ? index.getRowCountApproximation() : index.getRowCount(session)),
+                        // PAGES
+                        ValueBigint.get(index.getDiskSpaceUsed() / db.getPageSize()),
+                        // FILTER_CONDITION
+                        ValueNull.INSTANCE);
+            }
+        }
     }
 
     @Override
-    public ResultInterface getSchemas(String catalogPattern, String schemaPattern) {
+    public ResultInterface getSchemas(String catalog, String schemaPattern) {
         checkClosed();
         SimpleResult result = new SimpleResult();
         result.addColumn("TABLE_SCHEM", TypeInfo.TYPE_VARCHAR);
         result.addColumn("TABLE_CATALOG", TypeInfo.TYPE_VARCHAR);
-        if (!checkCatalog(catalogPattern)) {
+        if (!checkCatalogName(catalog)) {
             return result;
         }
         CompareLike schemaLike = getLike(schemaPattern);
@@ -977,38 +1017,47 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         return pattern == null ? PERCENT : pattern.isEmpty() ? SCHEMA_MAIN : getString(pattern);
     }
 
-    private boolean checkCatalog(String catalogPattern) {
-        if (catalogPattern != null && !catalogPattern.isEmpty()) {
-            return getLike().test(catalogPattern, session.getDatabase().getShortName(), '\\');
+    private boolean checkCatalogName(String catalog) {
+        if (catalog != null && !catalog.isEmpty()) {
+            Database db = session.getDatabase();
+            return db.equalsIdentifiers(catalog, db.getShortName());
         }
         return true;
     }
 
-    private static boolean checkSchema(String pattern, CompareLike like, Schema schema, Schema primarySchema) {
-        return pattern == null || (pattern.isEmpty() ? schema == primarySchema : like.test(schema.getName()));
+    private Collection<Schema> getSchemas(String schema) {
+        Database db = session.getDatabase();
+        if (schema == null) {
+            return db.getAllSchemas();
+        } else if (schema.isEmpty()) {
+            return Collections.singleton(db.getMainSchema());
+        } else {
+            Schema s = db.findSchema(schema);
+            if (s != null) {
+                return Collections.singleton(s);
+            }
+            return Collections.emptySet();
+        }
     }
 
-    private CompareLike getSchemaLike(String pattern) {
-        if (pattern == null || pattern.isEmpty()) {
-            return null;
+    private boolean checkSchema(String schemaName, Schema schema) {
+        if (schemaName == null) {
+            return true;
+        } else if (schemaName.isEmpty()) {
+            return schema == session.getDatabase().getMainSchema();
+        } else {
+            return session.getDatabase().equalsIdentifiers(schemaName, schema.getName());
         }
-        CompareLike like = getLike();
-        like.initPattern(pattern, '\\');
-        return like;
     }
 
     private CompareLike getLike(String pattern) {
         if (pattern == null) {
             return null;
         }
-        CompareLike like = getLike();
+        CompareLike like = new CompareLike(session.getDatabase().getCompareMode(), "\\", null, false, false, null, //
+                null, CompareLike.LikeType.LIKE);
         like.initPattern(pattern, '\\');
         return like;
-    }
-
-    private CompareLike getLike() {
-        return new CompareLike(session.getDatabase().getCompareMode(), "\\", null, false, false, null, null,
-                CompareLike.LikeType.LIKE);
     }
 
     private Value getCatalogPattern(String catalogPattern) {

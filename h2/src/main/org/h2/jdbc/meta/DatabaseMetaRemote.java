@@ -163,23 +163,22 @@ public class DatabaseMetaRemote extends DatabaseMeta {
     }
 
     @Override
-    public ResultInterface getProcedures(String catalogPattern, String schemaPattern, String procedureNamePattern) {
-        return executeQuery(GET_PROCEDURES_3, getString(catalogPattern), getString(schemaPattern),
+    public ResultInterface getProcedures(String catalog, String schemaPattern, String procedureNamePattern) {
+        return executeQuery(GET_PROCEDURES_3, getString(catalog), getString(schemaPattern),
                 getString(procedureNamePattern));
     }
 
     @Override
-    public ResultInterface getProcedureColumns(String catalogPattern, String schemaPattern, //
-            String procedureNamePattern, String columnNamePattern) {
-        return executeQuery(GET_PROCEDURE_COLUMNS_4, getString(catalogPattern), getString(schemaPattern),
+    public ResultInterface getProcedureColumns(String catalog, String schemaPattern, String procedureNamePattern,
+            String columnNamePattern) {
+        return executeQuery(GET_PROCEDURE_COLUMNS_4, getString(catalog), getString(schemaPattern),
                 getString(procedureNamePattern), getString(columnNamePattern));
     }
 
     @Override
-    public ResultInterface getTables(String catalogPattern, String schemaPattern, String tableNamePattern,
-            String[] types) {
-        return executeQuery(GET_TABLES_4, getString(catalogPattern), getString(schemaPattern),
-                getString(tableNamePattern), getStringArray(types));
+    public ResultInterface getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types) {
+        return executeQuery(GET_TABLES_4, getString(catalog), getString(schemaPattern), getString(tableNamePattern),
+                getStringArray(types));
     }
 
     @Override
@@ -198,61 +197,56 @@ public class DatabaseMetaRemote extends DatabaseMeta {
     }
 
     @Override
-    public ResultInterface getColumns(String catalogPattern, String schemaPattern, String tableNamePattern,
+    public ResultInterface getColumns(String catalog, String schemaPattern, String tableNamePattern,
             String columnNamePattern) {
-        return executeQuery(GET_COLUMNS_4, getString(catalogPattern), getString(schemaPattern),
-                getString(tableNamePattern), getString(columnNamePattern));
+        return executeQuery(GET_COLUMNS_4, getString(catalog), getString(schemaPattern), getString(tableNamePattern),
+                getString(columnNamePattern));
     }
 
     @Override
-    public ResultInterface getColumnPrivileges(String catalogPattern, String schemaPattern, String table,
-            String columnNamePattern) {
-        return executeQuery(GET_COLUMN_PRIVILEGES_4, getString(catalogPattern), getString(schemaPattern),
-                getString(table), getString(columnNamePattern));
+    public ResultInterface getColumnPrivileges(String catalog, String schema, String table, String columnNamePattern) {
+        return executeQuery(GET_COLUMN_PRIVILEGES_4, getString(catalog), getString(schema), getString(table),
+                getString(columnNamePattern));
     }
 
     @Override
-    public ResultInterface getTablePrivileges(String catalogPattern, String schemaPattern, String tableNamePattern) {
-        return executeQuery(GET_TABLE_PRIVILEGES_3, getString(catalogPattern), getString(schemaPattern),
+    public ResultInterface getTablePrivileges(String catalog, String schemaPattern, String tableNamePattern) {
+        return executeQuery(GET_TABLE_PRIVILEGES_3, getString(catalog), getString(schemaPattern), //
                 getString(tableNamePattern));
     }
 
     @Override
-    public ResultInterface getBestRowIdentifier(String catalogPattern, String schemaPattern, String tableName,
-            int scope, boolean nullable) {
-        return executeQuery(GET_BEST_ROW_IDENTIFIER_5, getString(catalogPattern), getString(schemaPattern),
-                getString(tableName), ValueInteger.get(scope), ValueBoolean.get(nullable));
+    public ResultInterface getBestRowIdentifier(String catalog, String schema, String table, int scope,
+            boolean nullable) {
+        return executeQuery(GET_BEST_ROW_IDENTIFIER_5, getString(catalog), getString(schema), getString(table),
+                ValueInteger.get(scope), ValueBoolean.get(nullable));
     }
 
     @Override
-    public ResultInterface getVersionColumns(String catalog, String schema, String tableName) {
-        return executeQuery(GET_VERSION_COLUMNS_3, getString(catalog), getString(schema), getString(tableName));
+    public ResultInterface getVersionColumns(String catalog, String schema, String table) {
+        return executeQuery(GET_VERSION_COLUMNS_3, getString(catalog), getString(schema), getString(table));
     }
 
     @Override
-    public ResultInterface getPrimaryKeys(String catalogPattern, String schemaPattern, String tableName) {
-        return executeQuery(GET_PRIMARY_KEYS_3, getString(catalogPattern), getString(schemaPattern),
-                getString(tableName));
+    public ResultInterface getPrimaryKeys(String catalog, String schema, String table) {
+        return executeQuery(GET_PRIMARY_KEYS_3, getString(catalog), getString(schema), getString(table));
     }
 
     @Override
-    public ResultInterface getImportedKeys(String catalogPattern, String schemaPattern, String tableName) {
-        return executeQuery(GET_IMPORTED_KEYS_3, getString(catalogPattern), getString(schemaPattern),
-                getString(tableName));
+    public ResultInterface getImportedKeys(String catalog, String schema, String table) {
+        return executeQuery(GET_IMPORTED_KEYS_3, getString(catalog), getString(schema), getString(table));
     }
 
     @Override
-    public ResultInterface getExportedKeys(String catalogPattern, String schemaPattern, String tableName) {
-        return executeQuery(GET_EXPORTED_KEYS_3, getString(catalogPattern), getString(schemaPattern),
-                getString(tableName));
+    public ResultInterface getExportedKeys(String catalog, String schema, String table) {
+        return executeQuery(GET_EXPORTED_KEYS_3, getString(catalog), getString(schema), getString(table));
     }
 
     @Override
-    public ResultInterface getCrossReference(String primaryCatalogPattern, String primarySchemaPattern,
-            String primaryTable, String foreignCatalogPattern, String foreignSchemaPattern, String foreignTable) {
-        return executeQuery(GET_CROSS_REFERENCE_6, getString(primaryCatalogPattern), getString(primarySchemaPattern),
-                getString(primaryTable), getString(foreignCatalogPattern), getString(foreignSchemaPattern),
-                getString(foreignTable));
+    public ResultInterface getCrossReference(String primaryCatalog, String primarySchema, String primaryTable,
+            String foreignCatalog, String foreignSchema, String foreignTable) {
+        return executeQuery(GET_CROSS_REFERENCE_6, getString(primaryCatalog), getString(primarySchema),
+                getString(primaryTable), getString(foreignCatalog), getString(foreignSchema), getString(foreignTable));
     }
 
     @Override
@@ -261,10 +255,10 @@ public class DatabaseMetaRemote extends DatabaseMeta {
     }
 
     @Override
-    public ResultInterface getIndexInfo(String catalogPattern, String schemaPattern, String tableName, boolean unique,
+    public ResultInterface getIndexInfo(String catalog, String schema, String table, boolean unique,
             boolean approximate) {
-        return executeQuery(GET_INDEX_INFO_5, getString(catalogPattern), getString(schemaPattern), //
-                getString(tableName), ValueBoolean.get(unique), ValueBoolean.get(approximate));
+        return executeQuery(GET_INDEX_INFO_5, getString(catalog), getString(schema), //
+                getString(table), ValueBoolean.get(unique), ValueBoolean.get(approximate));
     }
 
     @Override
@@ -307,8 +301,8 @@ public class DatabaseMetaRemote extends DatabaseMeta {
     }
 
     @Override
-    public ResultInterface getSchemas(String catalogPattern, String schemaPattern) {
-        return executeQuery(GET_SCHEMAS_2, getString(catalogPattern), getString(schemaPattern));
+    public ResultInterface getSchemas(String catalog, String schemaPattern) {
+        return executeQuery(GET_SCHEMAS_2, getString(catalog), getString(schemaPattern));
     }
 
     @Override

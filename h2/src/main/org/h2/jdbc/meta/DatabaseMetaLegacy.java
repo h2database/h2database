@@ -111,7 +111,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
     }
 
     @Override
-    public ResultInterface getProcedures(String catalogPattern, String schemaPattern, String procedureNamePattern) {
+    public ResultInterface getProcedures(String catalog, String schemaPattern, String procedureNamePattern) {
         return executeQuery("SELECT " //
                 + "ALIAS_CATALOG PROCEDURE_CAT, " //
                 + "ALIAS_SCHEMA PROCEDURE_SCHEM, " //
@@ -127,15 +127,15 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 + "AND ALIAS_SCHEMA LIKE ?2 ESCAPE ?4 " //
                 + "AND ALIAS_NAME LIKE ?3 ESCAPE ?4 " //
                 + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME, NUM_INPUT_PARAMS", //
-                getCatalogPattern(catalogPattern), //
+                getCatalogPattern(catalog), //
                 getSchemaPattern(schemaPattern), //
                 getPattern(procedureNamePattern), //
                 BACKSLASH);
     }
 
     @Override
-    public ResultInterface getProcedureColumns(String catalogPattern, String schemaPattern, //
-            String procedureNamePattern, String columnNamePattern) {
+    public ResultInterface getProcedureColumns(String catalog, String schemaPattern, String procedureNamePattern,
+            String columnNamePattern) {
         return executeQuery("SELECT " //
                 + "ALIAS_CATALOG PROCEDURE_CAT, " //
                 + "ALIAS_SCHEMA PROCEDURE_SCHEM, " //
@@ -164,7 +164,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 + "AND COLUMN_NAME LIKE ?5 ESCAPE ?6 " //
                 + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME, ORDINAL_POSITION", //
                 YES, //
-                getCatalogPattern(catalogPattern), //
+                getCatalogPattern(catalog), //
                 getSchemaPattern(schemaPattern), //
                 getPattern(procedureNamePattern), //
                 getPattern(columnNamePattern), //
@@ -172,8 +172,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
     }
 
     @Override
-    public ResultInterface getTables(String catalogPattern, String schemaPattern, String tableNamePattern,
-            String[] types) {
+    public ResultInterface getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types) {
         int typesLength = types != null ? types.length : 0;
         boolean includeSynonyms = hasSynonyms() && (types == null || Arrays.asList(types).contains("SYNONYM"));
         // (1024 - 16) is enough for the most cases
@@ -240,7 +239,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
             select.append(')');
         }
         Value[] args = new Value[typesLength + 4];
-        args[0] = getCatalogPattern(catalogPattern);
+        args[0] = getCatalogPattern(catalog);
         args[1] = getSchemaPattern(schemaPattern);
         args[2] = getPattern(tableNamePattern);
         args[3] = BACKSLASH;
@@ -274,7 +273,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
     }
 
     @Override
-    public ResultInterface getColumns(String catalogPattern, String schemaPattern, String tableNamePattern,
+    public ResultInterface getColumns(String catalog, String schemaPattern, String tableNamePattern,
             String columnNamePattern) {
         boolean includeSynonyms = hasSynonyms();
         StringBuilder select = new StringBuilder(2432);
@@ -379,7 +378,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
         return executeQuery(select.append(" ORDER BY TABLE_SCHEM, TABLE_NAME, ORDINAL_POSITION").toString(), //
                 NO, //
                 YES, //
-                getCatalogPattern(catalogPattern), //
+                getCatalogPattern(catalog), //
                 getSchemaPattern(schemaPattern), //
                 getPattern(tableNamePattern), //
                 getPattern(columnNamePattern), //
@@ -387,8 +386,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
     }
 
     @Override
-    public ResultInterface getColumnPrivileges(String catalogPattern, String schemaPattern, String table,
-            String columnNamePattern) {
+    public ResultInterface getColumnPrivileges(String catalog, String schema, String table, String columnNamePattern) {
         return executeQuery("SELECT " //
                 + "TABLE_CATALOG TABLE_CAT, " //
                 + "TABLE_SCHEMA TABLE_SCHEM, " //
@@ -404,15 +402,15 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 + "AND TABLE_NAME = ?3 " //
                 + "AND COLUMN_NAME LIKE ?4 ESCAPE ?5 " //
                 + "ORDER BY COLUMN_NAME, PRIVILEGE", //
-                getCatalogPattern(catalogPattern), //
-                getSchemaPattern(schemaPattern), //
+                getCatalogPattern(catalog), //
+                getSchemaPattern(schema), //
                 getString(table), //
                 getPattern(columnNamePattern), //
                 BACKSLASH);
     }
 
     @Override
-    public ResultInterface getTablePrivileges(String catalogPattern, String schemaPattern, String tableNamePattern) {
+    public ResultInterface getTablePrivileges(String catalog, String schemaPattern, String tableNamePattern) {
         return executeQuery("SELECT " //
                 + "TABLE_CATALOG TABLE_CAT, " //
                 + "TABLE_SCHEMA TABLE_SCHEM, " //
@@ -426,7 +424,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 + "AND TABLE_SCHEMA LIKE ?2 ESCAPE ?4 " //
                 + "AND TABLE_NAME LIKE ?3 ESCAPE ?4 " //
                 + "ORDER BY TABLE_SCHEM, TABLE_NAME, PRIVILEGE", //
-                getCatalogPattern(catalogPattern), //
+                getCatalogPattern(catalog), //
                 getSchemaPattern(schemaPattern), //
                 getPattern(tableNamePattern), //
                 BACKSLASH);
@@ -464,7 +462,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
     }
 
     @Override
-    public ResultInterface getPrimaryKeys(String catalogPattern, String schemaPattern, String tableName) {
+    public ResultInterface getPrimaryKeys(String catalog, String schema, String table) {
         return executeQuery("SELECT " //
                 + "TABLE_CATALOG TABLE_CAT, " //
                 + "TABLE_SCHEMA TABLE_SCHEM, " //
@@ -478,14 +476,14 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 + "AND TABLE_NAME = ?3 " //
                 + "AND PRIMARY_KEY = TRUE " //
                 + "ORDER BY COLUMN_NAME", //
-                getCatalogPattern(catalogPattern), //
-                getSchemaPattern(schemaPattern), //
-                getString(tableName), //
+                getCatalogPattern(catalog), //
+                getSchemaPattern(schema), //
+                getString(table), //
                 BACKSLASH);
     }
 
     @Override
-    public ResultInterface getImportedKeys(String catalogPattern, String schemaPattern, String tableName) {
+    public ResultInterface getImportedKeys(String catalog, String schema, String table) {
         return executeQuery("SELECT " //
                 + "PKTABLE_CATALOG PKTABLE_CAT, " //
                 + "PKTABLE_SCHEMA PKTABLE_SCHEM, " //
@@ -506,14 +504,14 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 + "AND FKTABLE_SCHEMA LIKE ?2 ESCAPE ?4 " //
                 + "AND FKTABLE_NAME = ?3 " //
                 + "ORDER BY PKTABLE_CAT, PKTABLE_SCHEM, PKTABLE_NAME, FK_NAME, KEY_SEQ", //
-                getCatalogPattern(catalogPattern), //
-                getSchemaPattern(schemaPattern), //
-                getString(tableName), //
+                getCatalogPattern(catalog), //
+                getSchemaPattern(schema), //
+                getString(table), //
                 BACKSLASH);
     }
 
     @Override
-    public ResultInterface getExportedKeys(String catalogPattern, String schemaPattern, String tableName) {
+    public ResultInterface getExportedKeys(String catalog, String schema, String table) {
         return executeQuery("SELECT " //
                 + "PKTABLE_CATALOG PKTABLE_CAT, " //
                 + "PKTABLE_SCHEMA PKTABLE_SCHEM, " //
@@ -534,15 +532,15 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 + "AND PKTABLE_SCHEMA LIKE ?2 ESCAPE ?4 " //
                 + "AND PKTABLE_NAME = ?3 " //
                 + "ORDER BY FKTABLE_CAT, FKTABLE_SCHEM, FKTABLE_NAME, FK_NAME, KEY_SEQ", //
-                getCatalogPattern(catalogPattern), //
-                getSchemaPattern(schemaPattern), //
-                getString(tableName), //
+                getCatalogPattern(catalog), //
+                getSchemaPattern(schema), //
+                getString(table), //
                 BACKSLASH);
     }
 
     @Override
-    public ResultInterface getCrossReference(String primaryCatalogPattern, String primarySchemaPattern,
-            String primaryTable, String foreignCatalogPattern, String foreignSchemaPattern, String foreignTable) {
+    public ResultInterface getCrossReference(String primaryCatalog, String primarySchema, String primaryTable,
+            String foreignCatalog, String foreignSchema, String foreignTable) {
         return executeQuery("SELECT " //
                 + "PKTABLE_CATALOG PKTABLE_CAT, " //
                 + "PKTABLE_SCHEMA PKTABLE_SCHEM, " //
@@ -566,11 +564,11 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 + "AND FKTABLE_SCHEMA LIKE ?5 ESCAPE ?7 " //
                 + "AND FKTABLE_NAME = ?6 " //
                 + "ORDER BY FKTABLE_CAT, FKTABLE_SCHEM, FKTABLE_NAME, FK_NAME, KEY_SEQ", //
-                getCatalogPattern(primaryCatalogPattern), //
-                getSchemaPattern(primarySchemaPattern), //
+                getCatalogPattern(primaryCatalog), //
+                getSchemaPattern(primarySchema), //
                 getString(primaryTable), //
-                getCatalogPattern(foreignCatalogPattern), //
-                getSchemaPattern(foreignSchemaPattern), //
+                getCatalogPattern(foreignCatalog), //
+                getSchemaPattern(foreignSchema), //
                 getString(foreignTable), //
                 BACKSLASH);
     }
@@ -601,7 +599,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
     }
 
     @Override
-    public ResultInterface getIndexInfo(String catalogPattern, String schemaPattern, String tableName, boolean unique,
+    public ResultInterface getIndexInfo(String catalog, String schema, String table, boolean unique,
             boolean approximate) {
         String uniqueCondition = unique ? "NON_UNIQUE=FALSE" : "TRUE";
         return executeQuery("SELECT " //
@@ -626,14 +624,14 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 + "AND (" + uniqueCondition + ") " //
                 + "AND TABLE_NAME = ?3 " //
                 + "ORDER BY NON_UNIQUE, TYPE, TABLE_SCHEM, INDEX_NAME, ORDINAL_POSITION", //
-                getCatalogPattern(catalogPattern), //
-                getSchemaPattern(schemaPattern), //
-                getString(tableName), //
+                getCatalogPattern(catalog), //
+                getSchemaPattern(schema), //
+                getString(table), //
                 BACKSLASH);
     }
 
     @Override
-    public ResultInterface getSchemas(String catalogPattern, String schemaPattern) {
+    public ResultInterface getSchemas(String catalog, String schemaPattern) {
         return executeQuery("SELECT " //
                 + "SCHEMA_NAME TABLE_SCHEM, " //
                 + "CATALOG_NAME TABLE_CATALOG " //
@@ -641,7 +639,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 + "WHERE CATALOG_NAME LIKE ?1 ESCAPE ?3 " //
                 + "AND SCHEMA_NAME LIKE ?2 ESCAPE ?3 " //
                 + "ORDER BY SCHEMA_NAME", //
-                getCatalogPattern(catalogPattern), //
+                getCatalogPattern(catalog), //
                 getSchemaPattern(schemaPattern), //
                 BACKSLASH);
     }

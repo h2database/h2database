@@ -7,6 +7,7 @@ package org.h2.result;
 
 import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import org.h2.engine.SessionInterface;
 import org.h2.util.Utils;
@@ -19,7 +20,7 @@ import org.h2.value.Value;
 public class SimpleResult implements ResultInterface, ResultTarget {
 
     /**
-     *  Column info for the simple result.
+     * Column info for the simple result.
      */
     static final class Column {
         /** Column alias. */
@@ -93,11 +94,16 @@ public class SimpleResult implements ResultInterface, ResultTarget {
     /**
      * Add column to the result.
      *
-     * @param alias Column's alias.
-     * @param columnName Column's name.
-     * @param columnType Column's value type.
-     * @param columnPrecision Column's  precision.
-     * @param columnScale Column's scale.
+     * @param alias
+     *            Column's alias.
+     * @param columnName
+     *            Column's name.
+     * @param columnType
+     *            Column's value type.
+     * @param columnPrecision
+     *            Column's precision.
+     * @param columnScale
+     *            Column's scale.
      */
     public void addColumn(String alias, String columnName, int columnType, long columnPrecision, int columnScale) {
         addColumn(alias, columnName, TypeInfo.getTypeInfo(columnType, columnPrecision, columnScale, null));
@@ -106,8 +112,10 @@ public class SimpleResult implements ResultInterface, ResultTarget {
     /**
      * Add column to the result.
      *
-     * @param columnName Column's name.
-     * @param columnType Column's type.
+     * @param columnName
+     *            Column's name.
+     * @param columnType
+     *            Column's type.
      */
     public void addColumn(String columnName, TypeInfo columnType) {
         addColumn(new Column(columnName, columnName, columnType));
@@ -116,9 +124,12 @@ public class SimpleResult implements ResultInterface, ResultTarget {
     /**
      * Add column to the result.
      *
-     * @param alias Column's alias.
-     * @param columnName Column's name.
-     * @param columnType Column's type.
+     * @param alias
+     *            Column's alias.
+     * @param columnName
+     *            Column's name.
+     * @param columnType
+     *            Column's type.
      */
     public void addColumn(String alias, String columnName, TypeInfo columnType) {
         addColumn(new Column(alias, columnName, columnType));
@@ -127,7 +138,8 @@ public class SimpleResult implements ResultInterface, ResultTarget {
     /**
      * Add column to the result.
      *
-     * @param column Column info.
+     * @param column
+     *            Column info.
      */
     void addColumn(Column column) {
         assert rows.isEmpty();
@@ -257,6 +269,16 @@ public class SimpleResult implements ResultInterface, ResultTarget {
     @Override
     public void limitsWereApplied() {
         // Nothing to do
+    }
+
+    /**
+     * Sort rows in the list.
+     *
+     * @param comparator
+     *            the comparator
+     */
+    public void sortRows(Comparator<? super Value[]> comparator) {
+        rows.sort(comparator);
     }
 
 }

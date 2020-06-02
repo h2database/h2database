@@ -27,7 +27,7 @@ abstract class DatabaseMetaLocalBase extends DatabaseMeta {
     }
 
     @Override
-    public final ResultInterface getVersionColumns(String catalog, String schema, String tableName) {
+    public final ResultInterface getVersionColumns(String catalog, String schema, String table) {
         checkClosed();
         SimpleResult result = new SimpleResult();
         result.addColumn("SCOPE", TypeInfo.TYPE_SMALLINT);

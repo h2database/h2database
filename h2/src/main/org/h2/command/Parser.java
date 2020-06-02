@@ -178,6 +178,7 @@ import org.h2.command.dml.Delete;
 import org.h2.command.dml.ExecuteImmediate;
 import org.h2.command.dml.ExecuteProcedure;
 import org.h2.command.dml.Explain;
+import org.h2.command.dml.Help;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Merge;
 import org.h2.command.dml.MergeUsing;
@@ -1569,24 +1570,12 @@ public class Parser {
     }
 
     private Prepared parseHelp() {
-        Select select = new Select(session, null);
-        select.setWildcard();
-        String informationSchema = database.sysIdentifier("INFORMATION_SCHEMA");
-        Table table = database.getSchema(informationSchema)
-                .resolveTableOrView(session, database.sysIdentifier("HELP"));
-        StringFunction1 function = new StringFunction1(new ExpressionColumn(database, informationSchema,
-                database.sysIdentifier("HELP"), database.sysIdentifier("TOPIC"), false), StringFunction1.UPPER);
-        TableFilter filter = new TableFilter(session, table, null, rightsChecked, select, 0, null);
-        select.addTableFilter(filter, true);
+        HashSet<String> conditions = new HashSet<>();
         while (currentTokenType != END_OF_INPUT) {
-            String s = currentToken;
+            conditions.add(StringUtils.toUpperEnglish(currentToken));
             read();
-            CompareLike like = new CompareLike(database, function, false, false,
-                    ValueExpression.get(ValueVarchar.get('%' + s + '%')), null, LikeType.LIKE);
-            select.addCondition(like);
         }
-        select.init();
-        return select;
+        return new Help(session, conditions.toArray(new String[0]));
     }
 
     private Prepared parseShow() {

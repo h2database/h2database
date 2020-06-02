@@ -446,9 +446,18 @@ public class TestFullText extends TestDb {
         initFullText(stat, lucene);
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute(
-                "CREATE TABLE TEST AS SELECT * FROM INFORMATION_SCHEMA.HELP");
-        stat.execute("ALTER TABLE TEST ALTER COLUMN ID INT NOT NULL");
-        stat.execute("CREATE PRIMARY KEY ON TEST(ID)");
+                "CREATE TABLE TEST(ID INT PRIMARY KEY, SECTION VARCHAR, TOPIC VARCHAR, SYNTAX VARCHAR, TEXT VARCHAR)");
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?, ?, ?, ?)");
+        try (ResultSet rs = stat.executeQuery("HELP \"\"")) {
+            while (rs.next()) {
+                ps.setInt(1, rs.getInt(1));
+                for (int i = 2; i <= 5; i++) {
+                    ps.setString(i, rs.getString(i));
+                }
+                ps.addBatch();
+            }
+        }
+        ps.executeUpdate();
         long time = System.nanoTime();
         stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
         println("create " + prefix + ": " +

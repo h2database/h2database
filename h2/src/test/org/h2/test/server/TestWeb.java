@@ -476,20 +476,15 @@ public class TestWeb extends TestDb {
             assertContains(result, "Ok");
             result = client.get(url, "query.do?sql=@catalogs");
             assertContains(result, "PUBLIC");
-            result = client.get(url,
-                    "query.do?sql=@column_privileges null null null TEST null");
+            result = client.get(url, "query.do?sql=@column_privileges null null null TEST null");
             assertContains(result, "PRIVILEGE");
-            result = client.get(url,
-                    "query.do?sql=@cross_references null null TEST null null TEST");
+            result = client.get(url, "query.do?sql=@cross_references null null TEST null null TEST");
             assertContains(result, "PKTABLE_NAME");
-            result = client.get(url,
-                    "query.do?sql=@exported_keys null null TEST");
+            result = client.get(url, "query.do?sql=@exported_keys null null TEST");
             assertContains(result, "PKTABLE_NAME");
-            result = client.get(url,
-                    "query.do?sql=@imported_keys null null TEST");
+            result = client.get(url, "query.do?sql=@imported_keys null null TEST");
             assertContains(result, "PKTABLE_NAME");
-            result = client.get(url,
-                    "query.do?sql=@primary_keys null null null TEST");
+            result = client.get(url, "query.do?sql=@primary_keys null null TEST");
             assertContains(result, "PK_NAME");
             result = client.get(url, "query.do?sql=@procedures null null null");
             assertContains(result, "PROCEDURE_NAME");
@@ -515,8 +510,7 @@ public class TestWeb extends TestDb {
             assertContains(result, "Ok");
             result = client.get(url, "query.do?sql=@prof_stop");
             assertContains(result, "Top Stack Trace(s)");
-            result = client.get(url,
-                    "query.do?sql=@best_row_identifier null null TEST");
+            result = client.get(url, "query.do?sql=@best_row_identifier null null TEST");
             assertContains(result, "SCOPE");
             assertContains(result, "COLUMN_NAME");
             assertContains(result, "ID");

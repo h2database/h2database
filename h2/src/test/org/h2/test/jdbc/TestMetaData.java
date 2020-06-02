@@ -905,44 +905,46 @@ public class TestMetaData extends TestDb {
         stat.executeUpdate("CREATE INDEX IDX_TEXT_DEC ON TEST(TEXT_V,DEC_V)");
         stat.executeUpdate("CREATE UNIQUE INDEX IDX_DATE ON TEST(DATE_V)");
         rs = meta.getIndexInfo(null, null, "TEST", false, false);
-        assertResultSetMeta(rs, 14, new String[] { "TABLE_CAT", "TABLE_SCHEM",
+        assertResultSetMeta(rs, 13, new String[] { "TABLE_CAT", "TABLE_SCHEM",
                 "TABLE_NAME", "NON_UNIQUE", "INDEX_QUALIFIER", "INDEX_NAME",
                 "TYPE", "ORDINAL_POSITION", "COLUMN_NAME", "ASC_OR_DESC",
-                "CARDINALITY", "PAGES", "FILTER_CONDITION", "SORT_TYPE" },
+                "CARDINALITY", "PAGES", "FILTER_CONDITION" },
                 new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                         Types.BOOLEAN, Types.VARCHAR, Types.VARCHAR,
                         Types.SMALLINT, Types.SMALLINT, Types.VARCHAR,
-                        Types.VARCHAR, Types.INTEGER, Types.INTEGER,
-                        Types.VARCHAR, Types.INTEGER }, null, null);
+                        Types.VARCHAR, Types.BIGINT, Types.BIGINT,
+                        Types.VARCHAR }, null, null);
         assertResultSetOrdered(rs, new String[][] {
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "FALSE", CATALOG,
-                        "IDX_DATE", "" + DatabaseMetaData.tableIndexOther, "1",
-                        "DATE_V", "A", "0", "0", "" },
+                        "IDX_DATE", "" + DatabaseMetaData.tableIndexStatistic, "1",
+                        "DATE_V", "A", "0", "0" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "FALSE", CATALOG,
                         "PRIMARY_KEY_2", "" + DatabaseMetaData.tableIndexOther,
-                        "1", "ID", "A", "0", "0", "" },
+                        "1", "ID", "A", "0", "0" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TRUE", CATALOG,
-                        "IDX_TEXT_DEC", "" + DatabaseMetaData.tableIndexOther,
-                        "1", "TEXT_V", "A", "0", "0", "" },
+                        "IDX_TEXT_DEC", "" + DatabaseMetaData.tableIndexStatistic,
+                        "1", "TEXT_V", "A", "0", "0" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TRUE", CATALOG,
-                        "IDX_TEXT_DEC", "" + DatabaseMetaData.tableIndexOther,
-                        "2", "DEC_V", "A", "0", "0", "" }, });
+                        "IDX_TEXT_DEC", "" + DatabaseMetaData.tableIndexStatistic,
+                        "2", "DEC_V", "A", "0", "0" }, },
+                new int[] { 11 });
         stat.executeUpdate("DROP INDEX IDX_TEXT_DEC");
         stat.executeUpdate("DROP INDEX IDX_DATE");
         rs = meta.getIndexInfo(null, null, "TEST", false, false);
-        assertResultSetMeta(rs, 14, new String[] { "TABLE_CAT", "TABLE_SCHEM",
+        assertResultSetMeta(rs, 13, new String[] { "TABLE_CAT", "TABLE_SCHEM",
                 "TABLE_NAME", "NON_UNIQUE", "INDEX_QUALIFIER", "INDEX_NAME",
                 "TYPE", "ORDINAL_POSITION", "COLUMN_NAME", "ASC_OR_DESC",
-                "CARDINALITY", "PAGES", "FILTER_CONDITION", "SORT_TYPE" },
+                "CARDINALITY", "PAGES", "FILTER_CONDITION" },
                 new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                         Types.BOOLEAN, Types.VARCHAR, Types.VARCHAR,
                         Types.SMALLINT, Types.SMALLINT, Types.VARCHAR,
-                        Types.VARCHAR, Types.INTEGER, Types.INTEGER,
-                        Types.VARCHAR, Types.INTEGER }, null, null);
+                        Types.VARCHAR, Types.BIGINT, Types.BIGINT,
+                        Types.VARCHAR }, null, null);
         assertResultSetOrdered(rs, new String[][] { { CATALOG,
                 Constants.SCHEMA_MAIN, "TEST", "FALSE", CATALOG,
                 "PRIMARY_KEY_2", "" + DatabaseMetaData.tableIndexOther, "1",
-                "ID", "A", "0", "0", "" } });
+                "ID", "A", "0", "0" } },
+                new int[] { 11 });
         trace("getPrimaryKeys");
         rs = meta.getPrimaryKeys(null, null, "TEST");
         assertResultSetMeta(rs, 6, new String[] { "TABLE_CAT", "TABLE_SCHEM",
@@ -1013,14 +1015,15 @@ public class TestMetaData extends TestDb {
                         "PRIMARY_KEY_14",
                         "" + DatabaseMetaData.tableIndexOther, "3", "B", "A" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TX2", "TRUE", CATALOG,
-                        "B_INDEX", "" + DatabaseMetaData.tableIndexOther, "1",
+                        "B_INDEX", "" + DatabaseMetaData.tableIndexStatistic, "1",
                         "A", "A" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TX2", "TRUE", CATALOG,
-                        "B_INDEX", "" + DatabaseMetaData.tableIndexOther, "2",
+                        "B_INDEX", "" + DatabaseMetaData.tableIndexStatistic, "2",
                         "B", "A" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TX2", "TRUE", CATALOG,
-                        "B_INDEX", "" + DatabaseMetaData.tableIndexOther, "3",
-                        "C", "A" }, });
+                        "B_INDEX", "" + DatabaseMetaData.tableIndexStatistic, "3",
+                        "C", "A" }, },
+                new int[] { 11 });
         trace("getPrimaryKeys");
         rs = meta.getPrimaryKeys(null, null, "T_2");
         assertResultSetOrdered(rs, new String[][] {
@@ -1214,7 +1217,7 @@ public class TestMetaData extends TestDb {
 
         rs = meta.getTables(null, "INFORMATION_SCHEMA", null, new String[] { "TABLE", "VIEW", "SYSTEM TABLE" });
         for (String name : new String[] { "CONSTANTS", "FUNCTION_ALIASES",
-                "FUNCTION_COLUMNS", "HELP", "INDEXES", "INFORMATION_SCHEMA_CATALOG_NAME", "IN_DOUBT", "LOCKS",
+                "FUNCTION_COLUMNS", "INDEXES", "INFORMATION_SCHEMA_CATALOG_NAME", "IN_DOUBT", "LOCKS",
                 "QUERY_STATISTICS", "RIGHTS", "ROLES", "SESSIONS", "SESSION_STATE", "SETTINGS", "SYNONYMS",
                 "TABLE_TYPES", "USERS", "CHECK_CONSTRAINTS", "COLLATIONS", "COLUMNS", "COLUMN_PRIVILEGES",
                 "CONSTRAINT_COLUMN_USAGE", "DOMAINS", "DOMAIN_CONSTRAINTS", "KEY_COLUMN_USAGE",
@@ -1300,7 +1303,7 @@ public class TestMetaData extends TestDb {
         stat.execute("SET ALLOW_LITERALS NONE");
         DatabaseMetaData meta = conn.getMetaData();
         // meta.getAttributes(null, null, null, null);
-        meta.getBestRowIdentifier(null, null, null, 0, false);
+        meta.getBestRowIdentifier(null, null, "TEST", 0, false);
         meta.getCatalogs();
         // meta.getClientInfoProperties();
         meta.getColumnPrivileges(null, null, null, null);
@@ -1310,8 +1313,8 @@ public class TestMetaData extends TestDb {
         // meta.getFunctionColumns(null, null, null, null);
         // meta.getFunctions(null, null, null);
         meta.getImportedKeys(null, null, "TEST");
-        meta.getIndexInfo(null, null, null, false, false);
-        meta.getPrimaryKeys(null, null, null);
+        meta.getIndexInfo(null, null, "TEST", false, false);
+        meta.getPrimaryKeys(null, null, "TEST");
         meta.getProcedureColumns(null, null, null, null);
         meta.getProcedures(null, null, null);
         meta.getSchemas();

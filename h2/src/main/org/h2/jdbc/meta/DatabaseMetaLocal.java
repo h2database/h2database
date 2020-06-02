@@ -23,7 +23,10 @@ import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
+import org.h2.engine.DbObject;
+import org.h2.engine.Right;
 import org.h2.engine.Session;
+import org.h2.engine.User;
 import org.h2.expression.ParameterInterface;
 import org.h2.expression.condition.CompareLike;
 import org.h2.index.Index;
@@ -470,47 +473,166 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public ResultInterface getColumnPrivileges(String catalog, String schema, String table, String columnNamePattern) {
-        return executeQuery("SELECT " //
-                + "TABLE_CATALOG TABLE_CAT, " //
-                + "TABLE_SCHEMA TABLE_SCHEM, " //
-                + "TABLE_NAME, " //
-                + "COLUMN_NAME, " //
-                + "GRANTOR, " //
-                + "GRANTEE, " //
-                + "PRIVILEGE_TYPE PRIVILEGE, " //
-                + "IS_GRANTABLE " //
-                + "FROM INFORMATION_SCHEMA.COLUMN_PRIVILEGES " //
-                + "WHERE TABLE_CATALOG LIKE ?1 ESCAPE ?5 " //
-                + "AND TABLE_SCHEMA LIKE ?2 ESCAPE ?5 " //
-                + "AND TABLE_NAME = ?3 " //
-                + "AND COLUMN_NAME LIKE ?4 ESCAPE ?5 " //
-                + "ORDER BY COLUMN_NAME, PRIVILEGE", //
-                getCatalogPattern(catalog), //
-                getSchemaPattern(schema), //
-                getString(table), //
-                getPattern(columnNamePattern), //
-                BACKSLASH);
+        if (table == null) {
+            throw DbException.getInvalidValueException("table", null);
+        }
+        checkClosed();
+        SimpleResult result = new SimpleResult();
+        result.addColumn("TABLE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("COLUMN_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("GRANTOR", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("GRANTEE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("PRIVILEGE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("IS_GRANTABLE", TypeInfo.TYPE_VARCHAR);
+        if (!checkCatalogName(catalog)) {
+            return result;
+        }
+        Database db = session.getDatabase();
+        Value catalogValue = getString(db.getShortName());
+        CompareLike columnLike = getLike(columnNamePattern);
+        for (Right r : db.getAllRights()) {
+            DbObject object = r.getGrantedObject();
+            if (!(object instanceof Table)) {
+                continue;
+            }
+            Table t = (Table) object;
+            if (t.isHidden()) {
+                continue;
+            }
+            String tableName = t.getName();
+            if (!db.equalsIdentifiers(table, tableName)) {
+                continue;
+            }
+            Schema s = t.getSchema();
+            if (!checkSchema(schema, s)) {
+                continue;
+            }
+            addPrivileges(result, catalogValue, s.getName(), tableName, r.getGrantee(), r.getRightMask(), columnLike,
+                    t.getColumns());
+        }
+        result.sortRows(new SortOrder(session, new int[] { 3, 6 }, new int[2], null));
+        return result;
     }
 
     @Override
     public ResultInterface getTablePrivileges(String catalog, String schemaPattern, String tableNamePattern) {
-        return executeQuery("SELECT " //
-                + "TABLE_CATALOG TABLE_CAT, " //
-                + "TABLE_SCHEMA TABLE_SCHEM, " //
-                + "TABLE_NAME, " //
-                + "GRANTOR, " //
-                + "GRANTEE, " //
-                + "PRIVILEGE_TYPE PRIVILEGE, " //
-                + "IS_GRANTABLE " //
-                + "FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES " //
-                + "WHERE TABLE_CATALOG LIKE ?1 ESCAPE ?4 " //
-                + "AND TABLE_SCHEMA LIKE ?2 ESCAPE ?4 " //
-                + "AND TABLE_NAME LIKE ?3 ESCAPE ?4 " //
-                + "ORDER BY TABLE_SCHEM, TABLE_NAME, PRIVILEGE", //
-                getCatalogPattern(catalog), //
-                getSchemaPattern(schemaPattern), //
-                getPattern(tableNamePattern), //
-                BACKSLASH);
+        checkClosed();
+        SimpleResult result = new SimpleResult();
+        result.addColumn("TABLE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("GRANTOR", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("GRANTEE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("PRIVILEGE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("IS_GRANTABLE", TypeInfo.TYPE_VARCHAR);
+        if (!checkCatalogName(catalog)) {
+            return result;
+        }
+        Database db = session.getDatabase();
+        Value catalogValue = getString(db.getShortName());
+        CompareLike schemaLike = getLike(schemaPattern);
+        CompareLike tableLike = getLike(tableNamePattern);
+        for (Right r : db.getAllRights()) {
+            DbObject object = r.getGrantedObject();
+            if (!(object instanceof Table)) {
+                continue;
+            }
+            Table table = (Table) object;
+            if (table.isHidden()) {
+                continue;
+            }
+            String tableName = table.getName();
+            if (tableLike != null && !tableLike.test(tableName)) {
+                continue;
+            }
+            Schema schema = table.getSchema();
+            String schemaName = schema.getName();
+            if (schemaPattern != null) {
+                if (schemaPattern.isEmpty()) {
+                    if (schema != db.getMainSchema()) {
+                        continue;
+                    }
+                } else {
+                    if (!schemaLike.test(schemaName)) {
+                        continue;
+                    }
+                }
+            }
+            addPrivileges(result, catalogValue, schemaName, tableName, r.getGrantee(), r.getRightMask(), null, null);
+        }
+        result.sortRows(new SortOrder(session, new int[] { 0, 1, 2, 5 }, new int[4], null));
+        return result;
+    }
+
+    private void addPrivileges(SimpleResult result, Value catalogValue, String schemaName, String tableName,
+            DbObject grantee, int rightMask, CompareLike columnLike, Column[] columns) {
+        Value schemaValue = getString(schemaName);
+        Value tableValue = getString(tableName);
+        Value granteeValue = getString(grantee.getName());
+        boolean isAdmin = grantee.getType() == DbObject.USER && ((User) grantee).isAdmin();
+        if ((rightMask & Right.SELECT) != 0) {
+            addPrivilege(result, catalogValue, schemaValue, tableValue, granteeValue, "SELECT", isAdmin, columnLike,
+                    columns);
+        }
+        if ((rightMask & Right.INSERT) != 0) {
+            addPrivilege(result, catalogValue, schemaValue, tableValue, granteeValue, "INSERT", isAdmin, columnLike,
+                    columns);
+        }
+        if ((rightMask & Right.UPDATE) != 0) {
+            addPrivilege(result, catalogValue, schemaValue, tableValue, granteeValue, "UPDATE", isAdmin, columnLike,
+                    columns);
+        }
+        if ((rightMask & Right.DELETE) != 0) {
+            addPrivilege(result, catalogValue, schemaValue, tableValue, granteeValue, "DELETE", isAdmin, columnLike,
+                    columns);
+        }
+    }
+
+    private void addPrivilege(SimpleResult result, Value catalogValue, Value schemaValue, Value tableValue,
+            Value granteeValue, String right, boolean isAdmin, CompareLike columnLike, Column[] columns) {
+        if (columns == null) {
+            result.addRow(
+                    // TABLE_CAT
+                    catalogValue,
+                    // TABLE_SCHEM
+                    schemaValue,
+                    // TABLE_NAME
+                    tableValue,
+                    // GRANTOR
+                    ValueNull.INSTANCE,
+                    // GRANTEE
+                    granteeValue,
+                    // PRIVILEGE
+                    getString(right),
+                    // IS_GRANTABLE
+                    isAdmin ? YES : NO);
+        } else {
+            for (Column column : columns) {
+                String columnName = column.getName();
+                if (columnLike != null && !columnLike.test(columnName)) {
+                    continue;
+                }
+                result.addRow(
+                        // TABLE_CAT
+                        catalogValue,
+                        // TABLE_SCHEM
+                        schemaValue,
+                        // TABLE_NAME
+                        tableValue,
+                        // COLUMN_NAME
+                        getString(columnName),
+                        // GRANTOR
+                        ValueNull.INSTANCE,
+                        // GRANTEE
+                        granteeValue,
+                        // PRIVILEGE
+                        getString(right),
+                        // IS_GRANTABLE
+                        isAdmin ? YES : NO);
+            }
+        }
     }
 
     @Override

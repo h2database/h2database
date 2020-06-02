@@ -4595,11 +4595,11 @@ SELECT GRANTEE, GRANTEETYPE, GRANTEDROLE, RIGHTS, TABLE_SCHEMA, TABLE_NAME FROM 
 > rows: 3
 
 SELECT * FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES;
-> GRANTOR GRANTEE   TABLE_CATALOG TABLE_SCHEMA TABLE_NAME PRIVILEGE_TYPE IS_GRANTABLE
-> ------- --------- ------------- ------------ ---------- -------------- ------------
-> null    TEST_ROLE SCRIPT        PUBLIC       TEST       UPDATE         NO
-> null    TEST_USER SCRIPT        PUBLIC       TEST       INSERT         NO
-> null    TEST_USER SCRIPT        PUBLIC       TEST       SELECT         NO
+> GRANTOR GRANTEE   TABLE_CATALOG TABLE_SCHEMA TABLE_NAME PRIVILEGE_TYPE IS_GRANTABLE WITH_HIERARCHY
+> ------- --------- ------------- ------------ ---------- -------------- ------------ --------------
+> null    TEST_ROLE SCRIPT        PUBLIC       TEST       UPDATE         NO           NO
+> null    TEST_USER SCRIPT        PUBLIC       TEST       INSERT         NO           NO
+> null    TEST_USER SCRIPT        PUBLIC       TEST       SELECT         NO           NO
 > rows: 3
 
 SELECT * FROM INFORMATION_SCHEMA.COLUMN_PRIVILEGES;
@@ -4624,10 +4624,10 @@ SELECT GRANTEE, GRANTEETYPE, GRANTEDROLE, RIGHTS, TABLE_NAME FROM INFORMATION_SC
 > rows: 2
 
 SELECT * FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES;
-> GRANTOR GRANTEE   TABLE_CATALOG TABLE_SCHEMA TABLE_NAME PRIVILEGE_TYPE IS_GRANTABLE
-> ------- --------- ------------- ------------ ---------- -------------- ------------
-> null    TEST_ROLE SCRIPT        PUBLIC       TEST       UPDATE         NO
-> null    TEST_USER SCRIPT        PUBLIC       TEST       SELECT         NO
+> GRANTOR GRANTEE   TABLE_CATALOG TABLE_SCHEMA TABLE_NAME PRIVILEGE_TYPE IS_GRANTABLE WITH_HIERARCHY
+> ------- --------- ------------- ------------ ---------- -------------- ------------ --------------
+> null    TEST_ROLE SCRIPT        PUBLIC       TEST       UPDATE         NO           NO
+> null    TEST_USER SCRIPT        PUBLIC       TEST       SELECT         NO           NO
 > rows: 2
 
 DROP USER TEST_USER;

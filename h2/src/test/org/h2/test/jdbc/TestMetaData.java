@@ -1215,7 +1215,7 @@ public class TestMetaData extends TestDb {
         assertEquals("TEST", rs.getString("TABLE_NAME"));
         assertFalse(rs.next());
 
-        rs = meta.getTables(null, "INFORMATION_SCHEMA", null, new String[] { "TABLE", "VIEW", "SYSTEM TABLE" });
+        rs = meta.getTables(null, "INFORMATION_SCHEMA", null, new String[] { "BASE TABLE", "VIEW" });
         for (String name : new String[] { "CONSTANTS", "FUNCTION_ALIASES",
                 "FUNCTION_COLUMNS", "INDEXES", "INFORMATION_SCHEMA_CATALOG_NAME", "IN_DOUBT", "LOCKS",
                 "QUERY_STATISTICS", "RIGHTS", "ROLES", "SESSIONS", "SESSION_STATE", "SETTINGS", "SYNONYMS",
@@ -1306,7 +1306,7 @@ public class TestMetaData extends TestDb {
         meta.getBestRowIdentifier(null, null, "TEST", 0, false);
         meta.getCatalogs();
         // meta.getClientInfoProperties();
-        meta.getColumnPrivileges(null, null, null, null);
+        meta.getColumnPrivileges(null, null, "TEST", null);
         meta.getColumns(null, null, null, null);
         meta.getCrossReference(null, null, "TEST", null, null, "TEST");
         meta.getExportedKeys(null, null, "TEST");

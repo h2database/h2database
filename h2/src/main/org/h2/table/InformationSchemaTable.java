@@ -353,7 +353,8 @@ public final class InformationSchemaTable extends MetaTable {
                     "TABLE_SCHEMA",
                     "TABLE_NAME",
                     "PRIVILEGE_TYPE",
-                    "IS_GRANTABLE"
+                    "IS_GRANTABLE",
+                    "WITH_HIERARCHY"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -2209,7 +2210,9 @@ public final class InformationSchemaTable extends MetaTable {
                     // PRIVILEGE_TYPE
                     right,
                     // IS_GRANTABLE
-                    isGrantable
+                    isGrantable,
+                    // WITH_HIERARCHY
+                    "NO"
             );
         } else {
             add(session,

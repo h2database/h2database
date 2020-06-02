@@ -33,7 +33,6 @@ import org.h2.command.CommandContainer;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.command.query.Query;
-import org.h2.engine.SysProperties;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcPreparedStatement;
@@ -143,16 +142,9 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "add_months", "compatibility" }) {
             testScript("compatibility/" + s + ".sql");
         }
-
-        String decimal2;
-        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
-            decimal2 = "decimal_decimal";
-        } else {
-            decimal2 = "decimal_numeric";
-        }
         for (String s : new String[] { "array", "bigint", "binary", "blob",
-                "boolean", "char", "clob", "date", "decimal", decimal2, "double_precision", "enum",
-                "geometry", "identity", "int", "interval", "java_object", "json", "real", "row", "smallint",
+                "boolean", "char", "clob", "date", "double_precision", "enum",
+                "geometry", "identity", "int", "interval", "java_object", "json", "numeric", "real", "row", "smallint",
                 "time-with-time-zone", "time", "timestamp-with-time-zone", "timestamp", "tinyint",
                 "uuid", "varbinary", "varchar", "varchar-ignorecase" }) {
             testScript("datatypes/" + s + ".sql");

@@ -44,8 +44,7 @@ public class Regclass extends Operation1 {
         }
         String name = value.getString();
         ArrayList<Table> tables = session.getDatabase().getAllTablesAndViews(true);
-        ArrayList<Table> tempTables = session.getLocalTempTables();
-        tables.addAll(tempTables);
+        tables.addAll(session.getLocalTempTables());
         for (Table table : tables) {
             if (table.isHidden()) {
                 continue;

@@ -173,7 +173,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <li>DECIMAL_DIGITS (int) scale (0 for INTEGER and VARCHAR)</li>
      * <li>NUM_PREC_RADIX (int) radix (always 10)</li>
      * <li>NULLABLE (int) columnNoNulls or columnNullable</li>
-     * <li>REMARKS (String) comment (always empty)</li>
+     * <li>REMARKS (String) comment</li>
      * <li>COLUMN_DEF (String) default value</li>
      * <li>SQL_DATA_TYPE (int) unused</li>
      * <li>SQL_DATETIME_SUB (int) unused</li>

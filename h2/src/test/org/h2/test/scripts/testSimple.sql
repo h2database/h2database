@@ -98,13 +98,13 @@ select is_nullable from information_schema.columns c where c.table_name = 'TEST'
 alter table test alter column id set data type varchar;
 > ok
 
-select type_name from information_schema.columns c where c.table_name = 'TEST' and c.column_name = 'ID';
+select data_type from information_schema.columns c where c.table_name = 'TEST' and c.column_name = 'ID';
 >> VARCHAR
 
 alter table test alter column id type int;
 > ok
 
-select type_name from information_schema.columns c where c.table_name = 'TEST' and c.column_name = 'ID';
+select data_type from information_schema.columns c where c.table_name = 'TEST' and c.column_name = 'ID';
 >> INTEGER
 
 alter table test alter column id drop default;

@@ -495,7 +495,7 @@ public class TestWeb extends TestDb {
             result = client.get(url, "query.do?sql=@table_privileges");
             assertContains(result, "PRIVILEGE");
             result = client.get(url, "query.do?sql=@table_types");
-            assertContains(result, "SYSTEM TABLE");
+            assertContains(result, "BASE TABLE");
             result = client.get(url, "query.do?sql=@type_info");
             assertContains(result, "CLOB");
             result = client.get(url, "query.do?sql=@version_columns");

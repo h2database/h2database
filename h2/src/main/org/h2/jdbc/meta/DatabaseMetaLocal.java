@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -32,9 +33,11 @@ import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
+import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
+import org.h2.table.TableSynonym;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -68,6 +71,10 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     private static final ValueSmallint BEST_ROW_NOT_PSEUDO = ValueSmallint
             .get((short) DatabaseMetaData.bestRowNotPseudo);
 
+    private static final ValueInteger COLUMN_NO_NULLS = ValueInteger.get(DatabaseMetaData.columnNoNulls);
+
+    private static final ValueInteger COLUMN_NULLABLE = ValueInteger.get(DatabaseMetaData.columnNullable);
+
     private static final ValueSmallint IMPORTED_KEY_CASCADE = ValueSmallint
             .get((short) DatabaseMetaData.importedKeyCascade);
 
@@ -88,6 +95,10 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     private static final ValueSmallint TABLE_INDEX_HASHED = ValueSmallint.get(DatabaseMetaData.tableIndexHashed);
 
     private static final ValueSmallint TABLE_INDEX_OTHER = ValueSmallint.get(DatabaseMetaData.tableIndexOther);
+
+    // This list must be ordered
+    private static final String[] TABLE_TYPES = { "BASE TABLE", "GLOBAL TEMPORARY", "LOCAL TEMPORARY", "SYNONYM",
+            "VIEW" };
 
     private static final ValueSmallint TYPE_NULLABLE = ValueSmallint.get((short) DatabaseMetaData.typeNullable);
 
@@ -231,80 +242,85 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public ResultInterface getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types) {
-        int typesLength = types != null ? types.length : 0;
-        boolean includeSynonyms = types == null || Arrays.asList(types).contains("SYNONYM");
-        // (1024 - 16) is enough for the most cases
-        StringBuilder select = new StringBuilder(1008);
-        if (includeSynonyms) {
-            select.append("SELECT " //
-                    + "TABLE_CAT, " //
-                    + "TABLE_SCHEM, " //
-                    + "TABLE_NAME, " //
-                    + "TABLE_TYPE, " //
-                    + "REMARKS, " //
-                    + "TYPE_CAT, " //
-                    + "TYPE_SCHEM, " //
-                    + "TYPE_NAME, " //
-                    + "SELF_REFERENCING_COL_NAME, " //
-                    + "REF_GENERATION, " //
-                    + "SQL " //
-                    + "FROM (" //
-                    + "SELECT " //
-                    + "SYNONYM_CATALOG TABLE_CAT, " //
-                    + "SYNONYM_SCHEMA TABLE_SCHEM, " //
-                    + "SYNONYM_NAME as TABLE_NAME, " //
-                    + "TYPE_NAME AS TABLE_TYPE, " //
-                    + "REMARKS, " //
-                    + "TYPE_NAME TYPE_CAT, " //
-                    + "TYPE_NAME TYPE_SCHEM, " //
-                    + "TYPE_NAME AS TYPE_NAME, " //
-                    + "TYPE_NAME SELF_REFERENCING_COL_NAME, " //
-                    + "TYPE_NAME REF_GENERATION, " //
-                    + "NULL AS SQL " //
-                    + "FROM INFORMATION_SCHEMA.SYNONYMS " //
-                    + "WHERE SYNONYM_CATALOG LIKE ?1 ESCAPE ?4 " //
-                    + "AND SYNONYM_SCHEMA LIKE ?2 ESCAPE ?4 " //
-                    + "AND SYNONYM_NAME LIKE ?3 ESCAPE ?4 " //
-                    + "UNION ");
+        SimpleResult result = new SimpleResult();
+        result.addColumn("TABLE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_TYPE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("REMARKS", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TYPE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TYPE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TYPE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("SELF_REFERENCING_COL_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("REF_GENERATION", TypeInfo.TYPE_VARCHAR);
+        if (!checkCatalogName(catalog)) {
+            return result;
         }
-        select.append("SELECT " //
-                + "TABLE_CATALOG TABLE_CAT, " //
-                + "TABLE_SCHEMA TABLE_SCHEM, " //
-                + "TABLE_NAME, " //
-                + "TABLE_TYPE, " //
-                + "REMARKS, " //
-                + "TYPE_NAME TYPE_CAT, " //
-                + "TYPE_NAME TYPE_SCHEM, " //
-                + "TYPE_NAME, " //
-                + "TYPE_NAME SELF_REFERENCING_COL_NAME, " //
-                + "TYPE_NAME REF_GENERATION, " //
-                + "SQL " //
-                + "FROM INFORMATION_SCHEMA.TABLES " //
-                + "WHERE TABLE_CATALOG LIKE ?1 ESCAPE ?4 " //
-                + "AND TABLE_SCHEMA LIKE ?2 ESCAPE ?4 " //
-                + "AND TABLE_NAME LIKE ?3 ESCAPE ?4");
-        if (typesLength > 0) {
-            select.append(" AND TABLE_TYPE IN(");
-            for (int i = 0; i < typesLength; i++) {
-                if (i > 0) {
-                    select.append(", ");
+        Database db = session.getDatabase();
+        Value catalogValue = getString(db.getShortName());
+        HashSet<String> typesSet;
+        if (types != null) {
+            typesSet = new HashSet<>(8);
+            for (String type : types) {
+                int idx = Arrays.binarySearch(TABLE_TYPES, type);
+                if (idx >= 0) {
+                    typesSet.add(TABLE_TYPES[idx]);
+                } else if (type.equals("TABLE")) {
+                    typesSet.add("BASE TABLE");
                 }
-                select.append('?').append(i + 5);
             }
-            select.append(')');
+            if (typesSet.isEmpty()) {
+                return result;
+            }
+        } else {
+            typesSet = null;
         }
-        if (includeSynonyms) {
-            select.append(')');
+        for (Schema schema : getSchemasForPattern(schemaPattern)) {
+            Value schemaValue = getString(schema.getName());
+            for (SchemaObjectBase object : getTablesForPattern(schema, tableNamePattern)) {
+                Value tableName = getString(object.getName());
+                if (object instanceof Table) {
+                    Table t = (Table) object;
+                    if (!t.isHidden()) {
+                        getTablesAdd(result, catalogValue, schemaValue, tableName, t, false, typesSet);
+                    }
+                } else {
+                    getTablesAdd(result, catalogValue, schemaValue, tableName, ((TableSynonym) object).getSynonymFor(),
+                            true, typesSet);
+                }
+            }
         }
-        Value[] args = new Value[typesLength + 4];
-        args[0] = getCatalogPattern(catalog);
-        args[1] = getSchemaPattern(schemaPattern);
-        args[2] = getPattern(tableNamePattern);
-        args[3] = BACKSLASH;
-        for (int i = 0; i < typesLength; i++) {
-            args[i + 4] = getString(types[i]);
+        result.sortRows(new SortOrder(session, new int[] { 3, 0, 1, 2 }, new int[4], null));
+        return result;
+    }
+
+    private void getTablesAdd(SimpleResult result, Value catalogValue, Value schemaValue, Value tableName, Table t,
+            boolean synonym, HashSet<String> typesSet) {
+        String type = synonym ? "SYNONYM" : t.getSQLTableType();
+        if (typesSet != null && !typesSet.contains(type)) {
+            return;
         }
-        return executeQuery(select.append(" ORDER BY TABLE_TYPE, TABLE_SCHEM, TABLE_NAME").toString(), args);
+        result.addRow(
+                // TABLE_CAT
+                catalogValue,
+                // TABLE_SCHEM
+                schemaValue,
+                // TABLE_NAME
+                tableName,
+                // TABLE_TYPE
+                getString(type),
+                // REMARKS
+                getString(t.getComment()),
+                // TYPE_CAT
+                ValueNull.INSTANCE,
+                // TYPE_SCHEM
+                ValueNull.INSTANCE,
+                // TYPE_NAME
+                ValueNull.INSTANCE,
+                // SELF_REFERENCING_COL_NAME
+                ValueNull.INSTANCE,
+                // REF_GENERATION
+                ValueNull.INSTANCE);
     }
 
     @Override
@@ -323,114 +339,133 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public ResultInterface getTableTypes() {
-        return executeQuery("SELECT " //
-                + "TYPE TABLE_TYPE " //
-                + "FROM INFORMATION_SCHEMA.TABLE_TYPES " //
-                + "ORDER BY TABLE_TYPE");
+        SimpleResult result = new SimpleResult();
+        result.addColumn("TABLE_TYPE", TypeInfo.TYPE_VARCHAR);
+        result.addRow(getString("BASE TABLE"));
+        result.addRow(getString("GLOBAL TEMPORARY"));
+        result.addRow(getString("LOCAL TEMPORARY"));
+        result.addRow(getString("SYNONYM"));
+        result.addRow(getString("VIEW"));
+        return result;
     }
 
     @Override
-    public ResultInterface getColumns(String catalogPattern, String schemaPattern, String tableNamePattern,
+    public ResultInterface getColumns(String catalog, String schemaPattern, String tableNamePattern,
             String columnNamePattern) {
-        return executeQuery("SELECT " //
-                + "TABLE_CAT, " //
-                + "TABLE_SCHEM, " //
-                + "TABLE_NAME, " //
-                + "COLUMN_NAME, " //
-                + "DATA_TYPE, " //
-                + "TYPE_NAME, " //
-                + "COLUMN_SIZE, " //
-                + "BUFFER_LENGTH, " //
-                + "DECIMAL_DIGITS, " //
-                + "NUM_PREC_RADIX, " //
-                + "NULLABLE, " //
-                + "REMARKS, " //
-                + "COLUMN_DEF, " //
-                + "SQL_DATA_TYPE, " //
-                + "SQL_DATETIME_SUB, " //
-                + "CHAR_OCTET_LENGTH, " //
-                + "ORDINAL_POSITION, " //
-                + "IS_NULLABLE, " //
-                + "SCOPE_CATALOG, " //
-                + "SCOPE_SCHEMA, " //
-                + "SCOPE_TABLE, " //
-                + "SOURCE_DATA_TYPE, " //
-                + "IS_AUTOINCREMENT, " //
-                + "IS_GENERATEDCOLUMN " //
-                + "FROM (" //
-                + "SELECT " //
-                + "s.SYNONYM_CATALOG TABLE_CAT, " //
-                + "s.SYNONYM_SCHEMA TABLE_SCHEM, " //
-                + "s.SYNONYM_NAME TABLE_NAME, " //
-                + "c.COLUMN_NAME, " //
-                + "c.DATA_TYPE, " //
-                + "c.TYPE_NAME, " //
-                + "c.CHARACTER_MAXIMUM_LENGTH COLUMN_SIZE, " //
-                + "c.CHARACTER_MAXIMUM_LENGTH BUFFER_LENGTH, " //
-                + "c.NUMERIC_SCALE DECIMAL_DIGITS, " //
-                + "c.NUMERIC_PRECISION_RADIX NUM_PREC_RADIX, " //
-                + "c.NULLABLE, " //
-                + "c.REMARKS, " //
-                + "c.COLUMN_DEFAULT COLUMN_DEF, " //
-                + "c.DATA_TYPE SQL_DATA_TYPE, " //
-                + "ZERO() SQL_DATETIME_SUB, " //
-                + "c.CHARACTER_OCTET_LENGTH CHAR_OCTET_LENGTH, " //
-                + "c.ORDINAL_POSITION, " //
-                + "c.IS_NULLABLE IS_NULLABLE, " //
-                + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATALOG, " //
-                + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_SCHEMA, " //
-                + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_TABLE, " //
-                + "c.SOURCE_DATA_TYPE, " //
-                + "CASE WHEN c.SEQUENCE_NAME IS NULL THEN " //
-                + "CAST(?1 AS VARCHAR) ELSE CAST(?2 AS VARCHAR) END IS_AUTOINCREMENT, " //
-                + "CASE WHEN c.IS_COMPUTED THEN " //
-                + "CAST(?2 AS VARCHAR) ELSE CAST(?1 AS VARCHAR) END IS_GENERATEDCOLUMN " //
-                + "FROM INFORMATION_SCHEMA.COLUMNS c JOIN INFORMATION_SCHEMA.SYNONYMS s ON " //
-                + "s.SYNONYM_FOR = c.TABLE_NAME " //
-                + "AND s.SYNONYM_FOR_SCHEMA = c.TABLE_SCHEMA " //
-                + "WHERE s.SYNONYM_CATALOG LIKE ?3 ESCAPE ?7 " //
-                + "AND s.SYNONYM_SCHEMA LIKE ?4 ESCAPE ?7 " //
-                + "AND s.SYNONYM_NAME LIKE ?5 ESCAPE ?7 " //
-                + "AND c.COLUMN_NAME LIKE ?6 ESCAPE ?7 " //
-                + "UNION SELECT " //
-                + "TABLE_CATALOG TABLE_CAT, " //
-                + "TABLE_SCHEMA TABLE_SCHEM, " //
-                + "TABLE_NAME, " //
-                + "COLUMN_NAME, " //
-                + "DATA_TYPE, " //
-                + "TYPE_NAME, " //
-                + "CHARACTER_MAXIMUM_LENGTH COLUMN_SIZE, " //
-                + "CHARACTER_MAXIMUM_LENGTH BUFFER_LENGTH, " //
-                + "NUMERIC_SCALE DECIMAL_DIGITS, " //
-                + "NUMERIC_PRECISION_RADIX NUM_PREC_RADIX, " //
-                + "NULLABLE, " //
-                + "REMARKS, " //
-                + "COLUMN_DEFAULT COLUMN_DEF, " //
-                + "DATA_TYPE SQL_DATA_TYPE, " //
-                + "ZERO() SQL_DATETIME_SUB, " //
-                + "CHARACTER_OCTET_LENGTH CHAR_OCTET_LENGTH, " //
-                + "ORDINAL_POSITION, " //
-                + "IS_NULLABLE IS_NULLABLE, " //
-                + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATALOG, " //
-                + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_SCHEMA, " //
-                + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_TABLE, " //
-                + "SOURCE_DATA_TYPE, " //
-                + "CASE WHEN SEQUENCE_NAME IS NULL THEN " //
-                + "CAST(?1 AS VARCHAR) ELSE CAST(?2 AS VARCHAR) END IS_AUTOINCREMENT, " //
-                + "CASE WHEN IS_COMPUTED THEN " //
-                + "CAST(?2 AS VARCHAR) ELSE CAST(?1 AS VARCHAR) END IS_GENERATEDCOLUMN " //
-                + "FROM INFORMATION_SCHEMA.COLUMNS " //
-                + "WHERE TABLE_CATALOG LIKE ?3 ESCAPE ?7 " //
-                + "AND TABLE_SCHEMA LIKE ?4 ESCAPE ?7 " //
-                + "AND TABLE_NAME LIKE ?5 ESCAPE ?7 " //
-                + "AND COLUMN_NAME LIKE ?6 ESCAPE ?7 " //
-                + "ORDER BY TABLE_SCHEM, TABLE_NAME, ORDINAL_POSITION)", NO, //
-                YES, //
-                getCatalogPattern(catalogPattern), //
-                getSchemaPattern(schemaPattern), //
-                getPattern(tableNamePattern), //
-                getPattern(columnNamePattern), //
-                BACKSLASH);
+        SimpleResult result = new SimpleResult();
+        result.addColumn("TABLE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("COLUMN_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("DATA_TYPE", TypeInfo.TYPE_INTEGER);
+        result.addColumn("TYPE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("COLUMN_SIZE", TypeInfo.TYPE_INTEGER);
+        result.addColumn("BUFFER_LENGTH", TypeInfo.TYPE_INTEGER);
+        result.addColumn("DECIMAL_DIGITS", TypeInfo.TYPE_INTEGER);
+        result.addColumn("NUM_PREC_RADIX", TypeInfo.TYPE_INTEGER);
+        result.addColumn("NULLABLE", TypeInfo.TYPE_INTEGER);
+        result.addColumn("REMARKS", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("COLUMN_DEF", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("SQL_DATA_TYPE", TypeInfo.TYPE_INTEGER);
+        result.addColumn("SQL_DATETIME_SUB", TypeInfo.TYPE_INTEGER);
+        result.addColumn("CHAR_OCTET_LENGTH", TypeInfo.TYPE_INTEGER);
+        result.addColumn("ORDINAL_POSITION", TypeInfo.TYPE_INTEGER);
+        result.addColumn("IS_NULLABLE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("SCOPE_CATALOG", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("SCOPE_SCHEMA", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("SCOPE_TABLE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("SOURCE_DATA_TYPE", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("IS_AUTOINCREMENT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("IS_GENERATEDCOLUMN", TypeInfo.TYPE_VARCHAR);
+        if (!checkCatalogName(catalog)) {
+            return result;
+        }
+        Database db = session.getDatabase();
+        Value catalogValue = getString(db.getShortName());
+        CompareLike columnLike = getLike(columnNamePattern);
+        for (Schema schema : getSchemasForPattern(schemaPattern)) {
+            Value schemaValue = getString(schema.getName());
+            for (SchemaObjectBase object : getTablesForPattern(schema, tableNamePattern)) {
+                Value tableName = getString(object.getName());
+                if (object instanceof Table) {
+                    Table t = (Table) object;
+                    if (!t.isHidden()) {
+                        getColumnsAdd(result, catalogValue, schemaValue, tableName, t, columnLike);
+                    }
+                } else {
+                    TableSynonym s = (TableSynonym) object;
+                    Table t = s.getSynonymFor();
+                    getColumnsAdd(result, catalogValue, schemaValue, tableName, t, columnLike);
+                }
+            }
+        }
+        result.sortRows(new SortOrder(session, new int[] { 0, 1, 2, 16 }, new int[4], null));
+        return result;
+    }
+
+    private void getColumnsAdd(SimpleResult result, Value catalogValue, Value schemaValue, Value tableName, Table t,
+            CompareLike columnLike) {
+        Column[] columns = t.getColumns();
+        for (int i = 0; i < columns.length; i++) {
+            Column c = columns[i];
+            String name = c.getName();
+            if (columnLike != null && !columnLike.test(name)) {
+                continue;
+            }
+            TypeInfo type = c.getType();
+            DataType dt = DataType.getDataType(type.getValueType());
+            ValueInteger precision = ValueInteger.get(MathUtils.convertLongToInt(type.getPrecision()));
+            boolean nullable = c.isNullable(), isGenerated = c.getGenerated();
+            result.addRow(
+                    // TABLE_CAT
+                    catalogValue,
+                    // TABLE_SCHEM
+                    schemaValue,
+                    // TABLE_NAME
+                    tableName,
+                    // COLUMN_NAME
+                    getString(name),
+                    // DATA_TYPE
+                    ValueInteger.get(dt.sqlType),
+                    // TYPE_NAME
+                    getString(dt.name),
+                    // COLUMN_SIZE
+                    precision,
+                    // BUFFER_LENGTH
+                    ValueNull.INSTANCE,
+                    // DECIMAL_DIGITS
+                    ValueInteger.get(type.getScale()),
+                    // NUM_PREC_RADIX
+                    DataType.isNumericType(type.getValueType()) ? ValueInteger.get(10) : ValueNull.INSTANCE,
+                    // NULLABLE
+                    nullable ? COLUMN_NULLABLE : COLUMN_NO_NULLS,
+                    // REMARKS
+                    getString(c.getComment()),
+                    // COLUMN_DEF
+                    isGenerated ? ValueNull.INSTANCE : getString(c.getDefaultSQL()),
+                    // SQL_DATA_TYPE (unused)
+                    ValueNull.INSTANCE,
+                    // SQL_DATETIME_SUB (unused)
+                    ValueNull.INSTANCE,
+                    // CHAR_OCTET_LENGTH
+                    precision,
+                    // ORDINAL_POSITION
+                    ValueInteger.get(i + 1),
+                    // IS_NULLABLE
+                    nullable ? YES : NO,
+                    // SCOPE_CATALOG
+                    ValueNull.INSTANCE,
+                    // SCOPE_SCHEMA
+                    ValueNull.INSTANCE,
+                    // SCOPE_TABLE
+                    ValueNull.INSTANCE,
+                    // SOURCE_DATA_TYPE
+                    ValueNull.INSTANCE,
+                    // IS_AUTOINCREMENT
+                    c.isAutoIncrement() ? YES : NO,
+                    // IS_GENERATEDCOLUMN
+                    isGenerated ? YES : NO);
+        }
     }
 
     @Override
@@ -516,7 +551,6 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     Column c = ic.column;
                     TypeInfo type = c.getType();
                     DataType dt = DataType.getDataType(type.getValueType());
-                    ValueInteger precision = ValueInteger.get(MathUtils.convertLongToInt(type.getPrecision()));
                     result.addRow(
                             // SCOPE
                             BEST_ROW_SESSION,
@@ -525,11 +559,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                             // DATA_TYPE
                             ValueInteger.get(dt.sqlType),
                             // TYPE_NAME
-                            getString(dt.name),
-                            // COLUMN_SIZE
-                            precision,
+                            getString(dt.name), ValueInteger.get(MathUtils.convertLongToInt(type.getPrecision())),
                             // BUFFER_LENGTH
-                            precision,
+                            ValueNull.INSTANCE,
                             // DECIMAL_DIGITS
                             dt.supportsScale ? ValueSmallint.get(MathUtils.convertIntToShort(type.getScale()))
                                     : ValueNull.INSTANCE,
@@ -831,12 +863,11 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 continue;
             }
             Value name = getString(t.name);
-            ValueInteger sqlType = ValueInteger.get(t.sqlType);
             result.addRow(
                     // TYPE_NAME
                     name,
                     // DATA_TYPE
-                    sqlType,
+                    ValueInteger.get(t.sqlType),
                     // PRECISION
                     ValueInteger.get(MathUtils.convertLongToInt(t.maxPrecision)),
                     // LITERAL_PREFIX
@@ -863,10 +894,10 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     ValueSmallint.get(MathUtils.convertIntToShort(t.minScale)),
                     // MAXIMUM_SCALE
                     ValueSmallint.get(MathUtils.convertIntToShort(t.maxScale)),
-                    // SQL_DATA_TYPE
-                    sqlType,
-                    // SQL_DATETIME_SUB
-                    ValueInteger.get(0),
+                    // SQL_DATA_TYPE (unused)
+                    ValueNull.INSTANCE,
+                    // SQL_DATETIME_SUB (unused)
+                    ValueNull.INSTANCE,
                     // NUM_PREC_RADIX
                     t.decimal ? ValueInteger.get(10) : ValueNull.INSTANCE);
         }
@@ -1073,6 +1104,56 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 return Collections.singleton(s);
             }
             return Collections.emptySet();
+        }
+    }
+
+    private Collection<Schema> getSchemasForPattern(String schemaPattern) {
+        Database db = session.getDatabase();
+        if (schemaPattern == null) {
+            return db.getAllSchemas();
+        } else if (schemaPattern.isEmpty()) {
+            return Collections.singleton(db.getMainSchema());
+        } else {
+            ArrayList<Schema> list = Utils.newSmallArrayList();
+            CompareLike like = getLike(schemaPattern);
+            for (Schema s : db.getAllSchemas()) {
+                if (like.test(s.getName())) {
+                    list.add(s);
+                }
+            }
+            return list;
+        }
+    }
+
+    private Collection<? extends SchemaObjectBase> getTablesForPattern(Schema schema, String tablePattern) {
+        Collection<Table> tables = schema.getAllTablesAndViews();
+        Collection<TableSynonym> synonyms = schema.getAllSynonyms();
+        if (tablePattern == null) {
+            if (tables.isEmpty()) {
+                return synonyms;
+            } else if (synonyms.isEmpty()) {
+                return tables;
+            }
+            ArrayList<SchemaObjectBase> list = new ArrayList<>(tables.size() + synonyms.size());
+            list.addAll(tables);
+            list.addAll(synonyms);
+            return list;
+        } else if (tables.isEmpty() && synonyms.isEmpty()) {
+            return Collections.emptySet();
+        } else {
+            ArrayList<SchemaObjectBase> list = Utils.newSmallArrayList();
+            CompareLike like = getLike(tablePattern);
+            for (Table t : tables) {
+                if (like.test(t.getName())) {
+                    list.add(t);
+                }
+            }
+            for (TableSynonym t : synonyms) {
+                if (like.test(t.getName())) {
+                    list.add(t);
+                }
+            }
+            return list;
         }
     }
 

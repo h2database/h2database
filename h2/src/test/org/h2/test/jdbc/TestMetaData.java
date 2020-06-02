@@ -423,8 +423,10 @@ public class TestMetaData extends TestDb {
         assertEquals(name, rs.getString(13));
         assertEquals(minScale, rs.getShort(14));
         assertEquals(maxScale, rs.getShort(15));
-        assertEquals(type, rs.getInt(16));
-        assertEquals(0, rs.getInt(17));
+        rs.getInt(16);
+        assertTrue(rs.wasNull());
+        rs.getInt(17);
+        assertTrue(rs.wasNull());
         if (hasRadix) {
             assertEquals(10, rs.getInt(18));
         } else {
@@ -870,32 +872,30 @@ public class TestMetaData extends TestDb {
                 null, null);
         assertResultSetOrdered(rs, new String[][] {
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "ID",
-                        "" + Types.INTEGER, "INTEGER", "10", "10", "0", "10",
-                        "" + DatabaseMetaData.columnNoNulls, "", null,
-                        "" + Types.INTEGER, "0", "10", "1", "NO" },
+                        "" + Types.INTEGER, "INTEGER", "10", null, "0", "10",
+                        "" + DatabaseMetaData.columnNoNulls, null, null,
+                        null, null, "10", "1", "NO" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TEXT_V",
-                        "" + Types.VARCHAR, "VARCHAR", "120", "120", "0", "10",
-                        "" + DatabaseMetaData.columnNullable, "", null,
-                        "" + Types.VARCHAR, "0", "120", "2", "YES" },
+                        "" + Types.VARCHAR, "VARCHAR", "120", null, "0", null,
+                        "" + DatabaseMetaData.columnNullable, null, null,
+                        null, null, "120", "2", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DEC_V",
-                        "" + numericType, numericName, "12", "12", "3", "10",
-                        "" + DatabaseMetaData.columnNullable, "", null,
-                        "" + numericType, "0", "12", "3", "YES" },
+                        "" + numericType, numericName, "12", null, "3", "10",
+                        "" + DatabaseMetaData.columnNullable, null, null,
+                        null, null, "12", "3", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DATE_V",
-                        "" + Types.TIMESTAMP, "TIMESTAMP", "26", "26", "6",
-                        "10", "" + DatabaseMetaData.columnNullable, "", null,
-                        "" + Types.TIMESTAMP, "0", "26", "4", "YES" },
+                        "" + Types.TIMESTAMP, "TIMESTAMP", "26", null, "6", null,
+                        "" + DatabaseMetaData.columnNullable, null, null,
+                        null, null, "26", "4", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "BLOB_V",
-                        "" + Types.BLOB, "BLOB", "" + Integer.MAX_VALUE,
-                        "" + Integer.MAX_VALUE, "0", "10",
-                        "" + DatabaseMetaData.columnNullable, "", null,
-                        "" + Types.BLOB, "0", "" + Integer.MAX_VALUE, "5",
+                        "" + Types.BLOB, "BLOB", "" + Integer.MAX_VALUE, null, "0", null,
+                        "" + DatabaseMetaData.columnNullable, null, null,
+                        null, null, "" + Integer.MAX_VALUE, "5",
                         "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "CLOB_V",
-                        "" + Types.CLOB, "CLOB", "" + Integer.MAX_VALUE,
-                        "" + Integer.MAX_VALUE, "0", "10",
-                        "" + DatabaseMetaData.columnNullable, "", null,
-                        "" + Types.CLOB, "0", "" + Integer.MAX_VALUE, "6",
+                        "" + Types.CLOB, "CLOB", "" + Integer.MAX_VALUE, null, "0", null,
+                        "" + DatabaseMetaData.columnNullable, null, null,
+                        null, null, "" + Integer.MAX_VALUE, "6",
                         "YES" } });
         /*
          * rs=meta.getColumns(null,null,"TEST",null); while(rs.next()) { int

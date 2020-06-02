@@ -640,7 +640,7 @@ public class Column implements HasSQL, Typed {
         this.selectivity = selectivity;
     }
 
-    String getDefaultSQL() {
+    public String getDefaultSQL() {
         return defaultExpression == null ? null : defaultExpression.getSQL(DEFAULT_SQL_FLAGS);
     }
 

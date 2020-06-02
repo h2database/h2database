@@ -22,7 +22,6 @@ import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
-import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.ParameterInterface;
 import org.h2.expression.condition.CompareLike;
@@ -32,7 +31,6 @@ import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
@@ -684,30 +682,36 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             return result;
         }
         Database db = session.getDatabase();
-        Value catalog = getString(db.getShortName());
-        for (SchemaObject obj : db.getAllSchemaObjects(DbObject.CONSTRAINT)) {
-            Constraint constraint = (Constraint) obj;
-            if (constraint.getConstraintType() != Constraint.Type.REFERENTIAL) {
+        Value catalogValue = getString(db.getShortName());
+        for (Schema s : getSchemas(foreignSchema)) {
+            Table t = s.findTableOrView(session, foreignTable);
+            if (t == null || t.isHidden()) {
                 continue;
             }
-            ConstraintReferential fk = (ConstraintReferential) constraint;
-            Table pkTable = fk.getRefTable();
-            if (!db.equalsIdentifiers(pkTable.getName(), primaryTable)) {
+            ArrayList<Constraint> constraints = t.getConstraints();
+            if (constraints == null) {
                 continue;
             }
-            Table fkTable = fk.getTable();
-            if (!db.equalsIdentifiers(fkTable.getName(), foreignTable)) {
-                continue;
+            for (Constraint constraint : constraints) {
+                if (constraint.getConstraintType() != Constraint.Type.REFERENTIAL) {
+                    continue;
+                }
+                ConstraintReferential fk = (ConstraintReferential) constraint;
+                Table fkTable = fk.getTable();
+                if (fkTable != t) {
+                    continue;
+                }
+                Table pkTable = fk.getRefTable();
+                if (!db.equalsIdentifiers(pkTable.getName(), primaryTable)) {
+                    continue;
+                }
+                Schema pkSchema = pkTable.getSchema();
+                if (!checkSchema(primarySchema, pkSchema)) {
+                    continue;
+                }
+                addCrossReferenceResult(result, catalogValue, pkSchema.getName(), pkTable,
+                        fkTable.getSchema().getName(), fkTable, fk);
             }
-            Schema pkSchema = pkTable.getSchema();
-            if (!checkSchema(primarySchema, pkSchema)) {
-                continue;
-            }
-            Schema fkSchema = fkTable.getSchema();
-            if (!checkSchema(foreignSchema, fkSchema)) {
-                continue;
-            }
-            addCrossReferenceResult(result, catalog, pkSchema.getName(), pkTable, fkSchema.getName(), fkTable, fk);
         }
         return sortCrossReferenceResult(result);
     }

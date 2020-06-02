@@ -216,7 +216,6 @@ public final class InformationSchemaTable extends MetaTable {
                     "ORDINAL_POSITION SMALLINT",
                     "COLUMN_NAME",
                     "CARDINALITY INT",
-                    "PRIMARY_KEY BIT",
                     "INDEX_TYPE_NAME",
                     "IS_GENERATED BIT",
                     "INDEX_TYPE SMALLINT",
@@ -930,8 +929,6 @@ public final class InformationSchemaTable extends MetaTable {
                                 column.getName(),
                                 // CARDINALITY
                                 ValueInteger.get(0),
-                                // PRIMARY_KEY
-                                ValueBoolean.get(index.getIndexType().isPrimaryKey()),
                                 // INDEX_TYPE_NAME
                                 index.getIndexType().getSQL(),
                                 // IS_GENERATED

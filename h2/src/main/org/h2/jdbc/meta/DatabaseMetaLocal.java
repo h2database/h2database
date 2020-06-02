@@ -30,6 +30,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.util.MathUtils;
@@ -59,6 +60,11 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     private static final Value NO = ValueVarchar.get("NO");
 
     private static final Value SCHEMA_MAIN = ValueVarchar.get(Constants.SCHEMA_MAIN);
+
+    private static final ValueSmallint BEST_ROW_SESSION = ValueSmallint.get((short) DatabaseMetaData.bestRowSession);
+
+    private static final ValueSmallint BEST_ROW_NOT_PSEUDO = ValueSmallint
+            .get((short) DatabaseMetaData.bestRowNotPseudo);
 
     private static final ValueSmallint TYPE_NULLABLE = ValueSmallint.get((short) DatabaseMetaData.typeNullable);
 
@@ -454,32 +460,70 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     @Override
     public ResultInterface getBestRowIdentifier(String catalogPattern, String schemaPattern, String tableName,
             int scope, boolean nullable) {
-        return executeQuery("SELECT " //
-                + "CAST(?1 AS SMALLINT) SCOPE, " //
-                + "C.COLUMN_NAME, " //
-                + "C.DATA_TYPE, " //
-                + "C.TYPE_NAME, " //
-                + "C.CHARACTER_MAXIMUM_LENGTH COLUMN_SIZE, " //
-                + "C.CHARACTER_MAXIMUM_LENGTH BUFFER_LENGTH, " //
-                + "CAST(C.NUMERIC_SCALE AS SMALLINT) DECIMAL_DIGITS, " //
-                + "CAST(?2 AS SMALLINT) PSEUDO_COLUMN " //
-                + "FROM INFORMATION_SCHEMA.INDEXES I, " //
-                + "INFORMATION_SCHEMA.COLUMNS C " //
-                + "WHERE C.TABLE_NAME = I.TABLE_NAME " //
-                + "AND C.COLUMN_NAME = I.COLUMN_NAME " //
-                + "AND C.TABLE_CATALOG LIKE ?3 ESCAPE ?6 " //
-                + "AND C.TABLE_SCHEMA LIKE ?4 ESCAPE ?6 " //
-                + "AND C.TABLE_NAME = ?5 " //
-                + "AND I.PRIMARY_KEY = TRUE " //
-                + "ORDER BY SCOPE", //
-                // SCOPE
-                ValueInteger.get(DatabaseMetaData.bestRowSession), //
-                // PSEUDO_COLUMN
-                ValueInteger.get(DatabaseMetaData.bestRowNotPseudo), //
-                getCatalogPattern(catalogPattern), //
-                getSchemaPattern(schemaPattern), //
-                getString(tableName), //
-                BACKSLASH);
+        if (tableName == null) {
+            throw DbException.getInvalidValueException("tableName", null);
+        }
+        checkClosed();
+        SimpleResult result = new SimpleResult();
+        result.addColumn("SCOPE", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("COLUMN_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("DATA_TYPE", TypeInfo.TYPE_INTEGER);
+        result.addColumn("TYPE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("COLUMN_SIZE", TypeInfo.TYPE_INTEGER);
+        result.addColumn("BUFFER_LENGTH", TypeInfo.TYPE_INTEGER);
+        result.addColumn("DECIMAL_DIGITS", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("PSEUDO_COLUMN", TypeInfo.TYPE_SMALLINT);
+        if (!checkCatalog(catalogPattern)) {
+            return result;
+        }
+        CompareLike schemaLike = getSchemaLike(schemaPattern);
+        Database db = session.getDatabase();
+        Schema primarySchema = db.getMainSchema();
+        for (Schema schema : db.getAllSchemas()) {
+            if (!checkSchema(schemaPattern, schemaLike, schema, primarySchema)) {
+                continue;
+            }
+            Table table = schema.findTableOrView(session, tableName);
+            if (table == null) {
+                continue;
+            }
+            ArrayList<Constraint> constraints = table.getConstraints();
+            if (constraints == null) {
+                continue;
+            }
+            for (Constraint constraint : constraints) {
+                if (constraint.getConstraintType() != Constraint.Type.PRIMARY_KEY) {
+                    continue;
+                }
+                IndexColumn[] columns = ((ConstraintUnique) constraint).getColumns();
+                for (int i = 0, l = columns.length; i < l; i++) {
+                    IndexColumn ic = columns[i];
+                    Column c = ic.column;
+                    TypeInfo type = c.getType();
+                    DataType dt = DataType.getDataType(type.getValueType());
+                    ValueInteger precision = ValueInteger.get(MathUtils.convertLongToInt(type.getPrecision()));
+                    result.addRow(
+                            // SCOPE
+                            BEST_ROW_SESSION,
+                            // COLUMN_NAME
+                            getString(c.getName()),
+                            // DATA_TYPE
+                            ValueInteger.get(dt.sqlType),
+                            // TYPE_NAME
+                            getString(dt.name),
+                            // COLUMN_SIZE
+                            precision,
+                            // BUFFER_LENGTH
+                            precision,
+                            // DECIMAL_DIGITS
+                            dt.supportsScale ? ValueSmallint.get(MathUtils.convertIntToShort(type.getScale()))
+                                    : ValueNull.INSTANCE,
+                            // PSEUDO_COLUMN
+                            BEST_ROW_NOT_PSEUDO);
+                }
+            }
+        }
+        return result;
     }
 
     @Override

@@ -1300,7 +1300,7 @@ public class TestMetaData extends TestDb {
         stat.execute("SET ALLOW_LITERALS NONE");
         DatabaseMetaData meta = conn.getMetaData();
         // meta.getAttributes(null, null, null, null);
-        meta.getBestRowIdentifier(null, null, null, 0, false);
+        meta.getBestRowIdentifier(null, null, "TEST", 0, false);
         meta.getCatalogs();
         // meta.getClientInfoProperties();
         meta.getColumnPrivileges(null, null, null, null);

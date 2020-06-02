@@ -46,7 +46,6 @@ import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.pagestore.PageStore;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.result.SortOrder;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
@@ -211,17 +210,11 @@ public final class InformationSchemaTable extends MetaTable {
                     "TABLE_CATALOG",
                     "TABLE_SCHEMA",
                     "TABLE_NAME",
-                    "NON_UNIQUE BIT",
                     "INDEX_NAME",
                     "ORDINAL_POSITION SMALLINT",
                     "COLUMN_NAME",
-                    "CARDINALITY INT",
                     "INDEX_TYPE_NAME",
                     "IS_GENERATED BIT",
-                    "INDEX_TYPE SMALLINT",
-                    "ASC_OR_DESC",
-                    "PAGES INT",
-                    "FILTER_CONDITION",
                     "REMARKS",
                     "SQL",
                     "ID INT",
@@ -919,28 +912,16 @@ public final class InformationSchemaTable extends MetaTable {
                                 table.getSchema().getName(),
                                 // TABLE_NAME
                                 tableName,
-                                // NON_UNIQUE
-                                ValueBoolean.get(!index.getIndexType().isUnique()),
                                 // INDEX_NAME
                                 index.getName(),
                                 // ORDINAL_POSITION
                                 ValueSmallint.get((short) (k + 1)),
                                 // COLUMN_NAME
                                 column.getName(),
-                                // CARDINALITY
-                                ValueInteger.get(0),
                                 // INDEX_TYPE_NAME
                                 index.getIndexType().getSQL(),
                                 // IS_GENERATED
                                 ValueBoolean.get(index.getIndexType().getBelongsToConstraint()),
-                                // INDEX_TYPE
-                                ValueSmallint.get(DatabaseMetaData.tableIndexOther),
-                                // ASC_OR_DESC
-                                (idxCol.sortType & SortOrder.DESCENDING) != 0 ? "D" : "A",
-                                // PAGES
-                                ValueInteger.get(0),
-                                // FILTER_CONDITION
-                                "",
                                 // REMARKS
                                 replaceNullWithEmpty(index.getComment()),
                                 // SQL

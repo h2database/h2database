@@ -2757,12 +2757,12 @@ alter table test add constraint nu unique(parent);
 alter table test add constraint fk foreign key(parent) references(id);
 > ok
 
-select TABLE_NAME, NON_UNIQUE, INDEX_NAME, ORDINAL_POSITION, COLUMN_NAME, CARDINALITY, PRIMARY_KEY from INFORMATION_SCHEMA.INDEXES;
-> TABLE_NAME NON_UNIQUE INDEX_NAME    ORDINAL_POSITION COLUMN_NAME CARDINALITY PRIMARY_KEY
-> ---------- ---------- ------------- ---------------- ----------- ----------- -----------
-> TEST       FALSE      NU_INDEX_2    1                PARENT      0           FALSE
-> TEST       FALSE      PRIMARY_KEY_2 1                ID          0           TRUE
-> TEST       TRUE       NI            1                PARENT      0           FALSE
+select TABLE_NAME, INDEX_NAME, ORDINAL_POSITION, COLUMN_NAME, INDEX_TYPE_NAME from INFORMATION_SCHEMA.INDEXES;
+> TABLE_NAME INDEX_NAME    ORDINAL_POSITION COLUMN_NAME INDEX_TYPE_NAME
+> ---------- ------------- ---------------- ----------- ---------------
+> TEST       NI            1                PARENT      INDEX
+> TEST       NU_INDEX_2    1                PARENT      UNIQUE INDEX
+> TEST       PRIMARY_KEY_2 1                ID          PRIMARY KEY
 > rows: 3
 
 select SEQUENCE_NAME, CURRENT_VALUE, INCREMENT, IS_GENERATED, REMARKS from INFORMATION_SCHEMA.SEQUENCES;

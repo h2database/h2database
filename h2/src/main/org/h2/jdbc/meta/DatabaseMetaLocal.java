@@ -592,7 +592,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 }
             }
         }
-        result.sortRows(new SortOrder(session, new int[] { 3 }, new int[0], null));
+        result.sortRows(new SortOrder(session, new int[] { 3 }, new int[1], null));
         return result;
     }
 

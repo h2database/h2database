@@ -39,7 +39,6 @@ import org.h2.table.Table;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -69,6 +68,21 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     private static final ValueSmallint BEST_ROW_NOT_PSEUDO = ValueSmallint
             .get((short) DatabaseMetaData.bestRowNotPseudo);
+
+    private static final ValueSmallint IMPORTED_KEY_CASCADE = ValueSmallint
+            .get((short) DatabaseMetaData.importedKeyCascade);
+
+    private static final ValueSmallint IMPORTED_KEY_RESTRICT = ValueSmallint
+            .get((short) DatabaseMetaData.importedKeyRestrict);
+
+    private static final ValueSmallint IMPORTED_KEY_DEFAULT = ValueSmallint
+            .get((short) DatabaseMetaData.importedKeySetDefault);
+
+    private static final ValueSmallint IMPORTED_KEY_SET_NULL = ValueSmallint
+            .get((short) DatabaseMetaData.importedKeySetNull);
+
+    private static final ValueSmallint IMPORTED_KEY_NOT_DEFERRABLE = ValueSmallint
+            .get((short) DatabaseMetaData.importedKeyNotDeferrable);
 
     private static final ValueSmallint TABLE_INDEX_HASHED = ValueSmallint.get(DatabaseMetaData.tableIndexHashed);
 
@@ -587,7 +601,36 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         if (table == null) {
             throw DbException.getInvalidValueException("table", null);
         }
-        return getCrossReferenceImpl(null, null, null, catalog, schema, table);
+        SimpleResult result = initCrossReferenceResult();
+        if (!checkCatalogName(catalog)) {
+            return result;
+        }
+        Database db = session.getDatabase();
+        Value catalogValue = getString(db.getShortName());
+        for (Schema s : getSchemas(schema)) {
+            Table t = s.findTableOrView(session, table);
+            if (t == null || t.isHidden()) {
+                continue;
+            }
+            ArrayList<Constraint> constraints = t.getConstraints();
+            if (constraints == null) {
+                continue;
+            }
+            for (Constraint constraint : constraints) {
+                if (constraint.getConstraintType() != Constraint.Type.REFERENTIAL) {
+                    continue;
+                }
+                ConstraintReferential fk = (ConstraintReferential) constraint;
+                Table fkTable = fk.getTable();
+                if (fkTable != t) {
+                    continue;
+                }
+                Table pkTable = fk.getRefTable();
+                addCrossReferenceResult(result, catalogValue, pkTable.getSchema().getName(), pkTable,
+                        fkTable.getSchema().getName(), fkTable, fk);
+            }
+        }
+        return sortCrossReferenceResult(result);
     }
 
     @Override
@@ -595,7 +638,36 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         if (table == null) {
             throw DbException.getInvalidValueException("table", null);
         }
-        return getCrossReferenceImpl(catalog, schema, table, null, null, null);
+        SimpleResult result = initCrossReferenceResult();
+        if (!checkCatalogName(catalog)) {
+            return result;
+        }
+        Database db = session.getDatabase();
+        Value catalogValue = getString(db.getShortName());
+        for (Schema s : getSchemas(schema)) {
+            Table t = s.findTableOrView(session, table);
+            if (t == null || t.isHidden()) {
+                continue;
+            }
+            ArrayList<Constraint> constraints = t.getConstraints();
+            if (constraints == null) {
+                continue;
+            }
+            for (Constraint constraint : constraints) {
+                if (constraint.getConstraintType() != Constraint.Type.REFERENTIAL) {
+                    continue;
+                }
+                ConstraintReferential fk = (ConstraintReferential) constraint;
+                Table pkTable = fk.getRefTable();
+                if (pkTable != t) {
+                    continue;
+                }
+                Table fkTable = fk.getTable();
+                addCrossReferenceResult(result, catalogValue, pkTable.getSchema().getName(), pkTable,
+                        fkTable.getSchema().getName(), fkTable, fk);
+            }
+        }
+        return sortCrossReferenceResult(result);
     }
 
     @Override
@@ -607,12 +679,40 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         if (foreignTable == null) {
             throw DbException.getInvalidValueException("foreignTable", null);
         }
-        return getCrossReferenceImpl(primaryCatalog, primarySchema, primaryTable, foreignCatalog, foreignSchema,
-                foreignTable);
+        SimpleResult result = initCrossReferenceResult();
+        if (!checkCatalogName(primaryCatalog) || !checkCatalogName(foreignCatalog)) {
+            return result;
+        }
+        Database db = session.getDatabase();
+        Value catalog = getString(db.getShortName());
+        for (SchemaObject obj : db.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+            Constraint constraint = (Constraint) obj;
+            if (constraint.getConstraintType() != Constraint.Type.REFERENTIAL) {
+                continue;
+            }
+            ConstraintReferential fk = (ConstraintReferential) constraint;
+            Table pkTable = fk.getRefTable();
+            if (!db.equalsIdentifiers(pkTable.getName(), primaryTable)) {
+                continue;
+            }
+            Table fkTable = fk.getTable();
+            if (!db.equalsIdentifiers(fkTable.getName(), foreignTable)) {
+                continue;
+            }
+            Schema pkSchema = pkTable.getSchema();
+            if (!checkSchema(primarySchema, pkSchema)) {
+                continue;
+            }
+            Schema fkSchema = fkTable.getSchema();
+            if (!checkSchema(foreignSchema, fkSchema)) {
+                continue;
+            }
+            addCrossReferenceResult(result, catalog, pkSchema.getName(), pkTable, fkSchema.getName(), fkTable, fk);
+        }
+        return sortCrossReferenceResult(result);
     }
 
-    ResultInterface getCrossReferenceImpl(String primaryCatalog, String primarySchema, String primaryTable,
-            String foreignCatalog, String foreignSchema, String foreignTable) {
+    private SimpleResult initCrossReferenceResult() {
         checkClosed();
         SimpleResult result = new SimpleResult();
         result.addColumn("PKTABLE_CAT", TypeInfo.TYPE_VARCHAR);
@@ -629,152 +729,72 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         result.addColumn("FK_NAME", TypeInfo.TYPE_VARCHAR);
         result.addColumn("PK_NAME", TypeInfo.TYPE_VARCHAR);
         result.addColumn("DEFERRABILITY", TypeInfo.TYPE_SMALLINT);
-        if (!checkCatalogName(primaryCatalog) || !checkCatalogName(foreignCatalog)) {
-            return result;
-        }
-        Database db = session.getDatabase();
-        CompareMode compareMode = db.getCompareMode();
-        ArrayList<CrossReference> crossReferences = Utils.newSmallArrayList();
-        for (SchemaObject obj : db.getAllSchemaObjects(DbObject.CONSTRAINT)) {
-            Constraint constraint = (Constraint) obj;
-            if (constraint.getConstraintType() != Constraint.Type.REFERENTIAL) {
-                continue;
-            }
-            ConstraintReferential fk = (ConstraintReferential) constraint;
-            Table pkTable = fk.getRefTable();
-            if (primaryTable != null && !db.equalsIdentifiers(pkTable.getName(), primaryTable)) {
-                continue;
-            }
-            Table fkTable = fk.getTable();
-            if (foreignTable != null && !db.equalsIdentifiers(fkTable.getName(), foreignTable)) {
-                continue;
-            }
-            Schema pkSchema = pkTable.getSchema();
-            if (!checkSchema(primarySchema, pkSchema)) {
-                continue;
-            }
-            Schema fkSchema = fkTable.getSchema();
-            if (!checkSchema(foreignSchema, fkSchema)) {
-                continue;
-            }
-            crossReferences.add(new CrossReference(this, compareMode, pkSchema.getName(), pkTable, fkSchema.getName(),
-                    fkTable, fk));
-        }
-        crossReferences.sort(null);
-        Value catalog = getString(db.getShortName());
-        for (CrossReference r : crossReferences) {
-            r.add(this, result, catalog);
-        }
         return result;
     }
 
-    private static class CrossReference implements Comparable<CrossReference> {
-
-        private static final ValueSmallint IMPORTED_KEY_CASCADE = ValueSmallint
-                .get((short) DatabaseMetaData.importedKeyCascade);
-
-        private static final ValueSmallint IMPORTED_KEY_RESTRICT = ValueSmallint
-                .get((short) DatabaseMetaData.importedKeyRestrict);
-
-        private static final ValueSmallint IMPORTED_KEY_DEFAULT = ValueSmallint
-                .get((short) DatabaseMetaData.importedKeySetDefault);
-
-        private static final ValueSmallint IMPORTED_KEY_SET_NULL = ValueSmallint
-                .get((short) DatabaseMetaData.importedKeySetNull);
-
-        private static final ValueSmallint IMPORTED_KEY_NOT_DEFERRABLE = ValueSmallint
-                .get((short) DatabaseMetaData.importedKeyNotDeferrable);
-
-        private final CompareMode compareMode;
-
-        private Value pkSchemaValue;
-        private Value pkTableValue;
-        private Value fkSchemaValue;
-        private Value fkTableValue;
-        private IndexColumn[] pkCols;
-        private IndexColumn[] fkCols;
-        private ValueSmallint update;
-        private ValueSmallint delete;
-        private Value fkNameValue;
-        private Value pkNameValue;
-
-        CrossReference(DatabaseMetaLocal meta, CompareMode compareMode, String pkSchema, Table pkTable, //
-                String fkSchema, Table fkTable, ConstraintReferential fk) {
-            this.compareMode = compareMode;
-            pkSchemaValue = meta.getString(pkSchema);
-            pkTableValue = meta.getString(pkTable.getName());
-            fkSchemaValue = meta.getString(fkSchema);
-            fkTableValue = meta.getString(fkTable.getName());
-            pkCols = fk.getRefColumns();
-            fkCols = fk.getColumns();
-            update = getRefAction(fk.getUpdateAction());
-            delete = getRefAction(fk.getDeleteAction());
-            fkNameValue = meta.getString(fk.getName());
-            pkNameValue = meta.getString(fk.getReferencedConstraint().getName());
+    private void addCrossReferenceResult(SimpleResult result, Value catalog, String pkSchema, Table pkTable,
+            String fkSchema, Table fkTable, ConstraintReferential fk) {
+        Value pkSchemaValue = getString(pkSchema);
+        Value pkTableValue = getString(pkTable.getName());
+        Value fkSchemaValue = getString(fkSchema);
+        Value fkTableValue = getString(fkTable.getName());
+        IndexColumn[] pkCols = fk.getRefColumns();
+        IndexColumn[] fkCols = fk.getColumns();
+        Value update = getRefAction(fk.getUpdateAction());
+        Value delete = getRefAction(fk.getDeleteAction());
+        Value fkNameValue = getString(fk.getName());
+        Value pkNameValue = getString(fk.getReferencedConstraint().getName());
+        for (int j = 0, len = fkCols.length; j < len; j++) {
+            result.addRow(
+                    // PKTABLE_CAT
+                    catalog,
+                    // PKTABLE_SCHEM
+                    pkSchemaValue,
+                    // PKTABLE_NAME
+                    pkTableValue,
+                    // PKCOLUMN_NAME
+                    getString(pkCols[j].column.getName()),
+                    // FKTABLE_CAT
+                    catalog,
+                    // FKTABLE_SCHEM
+                    fkSchemaValue,
+                    // FKTABLE_NAME
+                    fkTableValue,
+                    // FKCOLUMN_NAME
+                    getString(fkCols[j].column.getName()),
+                    // KEY_SEQ
+                    ValueSmallint.get((short) (j + 1)),
+                    // UPDATE_RULE
+                    update,
+                    // DELETE_RULE
+                    delete,
+                    // FK_NAME
+                    fkNameValue,
+                    // PK_NAME
+                    pkNameValue,
+                    // DEFERRABILITY
+                    IMPORTED_KEY_NOT_DEFERRABLE);
         }
+    }
 
-        @Override
-        public int compareTo(CrossReference o) {
-            int cmp = compareMode.compare(fkSchemaValue, o.fkSchemaValue);
-            if (cmp != 0) {
-                return cmp;
-            }
-            cmp = compareMode.compare(fkTableValue, o.fkTableValue);
-            if (cmp != 0) {
-                return cmp;
-            }
-            return compareMode.compare(fkNameValue, o.fkNameValue);
+    private static ValueSmallint getRefAction(ConstraintActionType action) {
+        switch (action) {
+        case CASCADE:
+            return IMPORTED_KEY_CASCADE;
+        case RESTRICT:
+            return IMPORTED_KEY_RESTRICT;
+        case SET_DEFAULT:
+            return IMPORTED_KEY_DEFAULT;
+        case SET_NULL:
+            return IMPORTED_KEY_SET_NULL;
+        default:
+            throw DbException.throwInternalError("action=" + action);
         }
+    }
 
-        void add(DatabaseMetaLocal meta, SimpleResult result, Value catalog) {
-            for (int j = 0, len = fkCols.length; j < len; j++) {
-                result.addRow(
-                        // PKTABLE_CAT
-                        catalog,
-                        // PKTABLE_SCHEM
-                        pkSchemaValue,
-                        // PKTABLE_NAME
-                        pkTableValue,
-                        // PKCOLUMN_NAME
-                        meta.getString(pkCols[j].column.getName()),
-                        // FKTABLE_CAT
-                        catalog,
-                        // FKTABLE_SCHEM
-                        fkSchemaValue,
-                        // FKTABLE_NAME
-                        fkTableValue,
-                        // FKCOLUMN_NAME
-                        meta.getString(fkCols[j].column.getName()),
-                        // KEY_SEQ
-                        ValueSmallint.get((short) (j + 1)),
-                        // UPDATE_RULE
-                        update,
-                        // DELETE_RULE
-                        delete,
-                        // FK_NAME
-                        fkNameValue,
-                        // PK_NAME
-                        pkNameValue,
-                        // DEFERRABILITY
-                        IMPORTED_KEY_NOT_DEFERRABLE);
-            }
-        }
-
-        private static ValueSmallint getRefAction(ConstraintActionType action) {
-            switch (action) {
-            case CASCADE:
-                return IMPORTED_KEY_CASCADE;
-            case RESTRICT:
-                return IMPORTED_KEY_RESTRICT;
-            case SET_DEFAULT:
-                return IMPORTED_KEY_DEFAULT;
-            case SET_NULL:
-                return IMPORTED_KEY_SET_NULL;
-            default:
-                throw DbException.throwInternalError("action=" + action);
-            }
-        }
-
+    private ResultInterface sortCrossReferenceResult(SimpleResult result) {
+        result.sortRows(new SortOrder(session, new int[] { 4, 5, 6, 8 }, new int[4], null));
+        return result;
     }
 
     @Override

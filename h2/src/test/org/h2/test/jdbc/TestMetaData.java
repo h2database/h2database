@@ -836,13 +836,13 @@ public class TestMetaData extends TestDb {
         trace("getTables");
         rs = meta.getTables(null, Constants.SCHEMA_MAIN, null,
                 new String[] { "TABLE" });
-        assertResultSetMeta(rs, 11, new String[] { "TABLE_CAT", "TABLE_SCHEM",
+        assertResultSetMeta(rs, 10, new String[] { "TABLE_CAT", "TABLE_SCHEM",
                 "TABLE_NAME", "TABLE_TYPE", "REMARKS", "TYPE_CAT",
                 "TYPE_SCHEM", "TYPE_NAME", "SELF_REFERENCING_COL_NAME",
-                "REF_GENERATION", "SQL" }, new int[] { Types.VARCHAR,
+                "REF_GENERATION" }, new int[] { Types.VARCHAR,
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                Types.VARCHAR, Types.VARCHAR }, null, null);
+                Types.VARCHAR }, null, null);
         if (rs.next()) {
             fail("Database is not empty after dropping all tables");
         }
@@ -852,7 +852,7 @@ public class TestMetaData extends TestDb {
         rs = meta.getTables(null, Constants.SCHEMA_MAIN, null,
                 new String[] { "TABLE" });
         assertResultSetOrdered(rs, new String[][] { { CATALOG,
-                Constants.SCHEMA_MAIN, "TEST", "TABLE", "" } });
+                Constants.SCHEMA_MAIN, "TEST", "BASE TABLE" } });
         trace("getColumns");
         rs = meta.getColumns(null, null, "TEST", null);
         assertResultSetMeta(rs, 24, new String[] { "TABLE_CAT", "TABLE_SCHEM",
@@ -960,19 +960,19 @@ public class TestMetaData extends TestDb {
                 "CREATE TABLE TX2(B INT,A VARCHAR(6),C INT,PRIMARY KEY(C,A,B))");
         rs = meta.getTables(null, null, "T_2", null);
         assertResultSetOrdered(rs, new String[][] {
-                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "TABLE", "" },
-                { CATALOG, Constants.SCHEMA_MAIN, "T_2", "TABLE", "" } });
+                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "BASE TABLE" },
+                { CATALOG, Constants.SCHEMA_MAIN, "T_2", "BASE TABLE" } });
         trace("getTables - using a quoted _ character");
         rs = meta.getTables(null, null, "T\\_2", null);
         assertResultSetOrdered(rs, new String[][] { { CATALOG,
-                Constants.SCHEMA_MAIN, "T_2", "TABLE", "" } });
+                Constants.SCHEMA_MAIN, "T_2", "BASE TABLE" } });
         trace("getTables - using the % wildcard");
         rs = meta.getTables(null, Constants.SCHEMA_MAIN, "%",
                 new String[] { "TABLE" });
         assertResultSetOrdered(rs, new String[][] {
-                { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TABLE", "" },
-                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "TABLE", "" },
-                { CATALOG, Constants.SCHEMA_MAIN, "T_2", "TABLE", "" } });
+                { CATALOG, Constants.SCHEMA_MAIN, "TEST", "BASE TABLE" },
+                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "BASE TABLE" },
+                { CATALOG, Constants.SCHEMA_MAIN, "T_2", "BASE TABLE" } });
         stat.execute("DROP TABLE TEST");
 
         trace("getColumns - using wildcards");
@@ -1121,8 +1121,8 @@ public class TestMetaData extends TestDb {
         assertResultSetMeta(rs, 1, new String[] { "TABLE_TYPE" },
                 new int[] { Types.VARCHAR }, null, null);
         assertResultSetOrdered(rs, new String[][] {
-                { "EXTERNAL" }, { "SYSTEM TABLE" },
-                { "TABLE" }, { "TABLE LINK" }, { "VIEW" } });
+                { "BASE TABLE" }, { "GLOBAL TEMPORARY" },
+                { "LOCAL TEMPORARY" }, { "SYNONYM" }, { "VIEW" } });
 
         rs = meta.getTypeInfo();
         assertResultSetMeta(rs, 18, new String[] { "TYPE_NAME", "DATA_TYPE",
@@ -1197,13 +1197,13 @@ public class TestMetaData extends TestDb {
 
         rs = meta.getTableTypes();
         rs.next();
-        assertEquals("EXTERNAL", rs.getString("TABLE_TYPE"));
+        assertEquals("BASE TABLE", rs.getString("TABLE_TYPE"));
         rs.next();
-        assertEquals("SYSTEM TABLE", rs.getString("TABLE_TYPE"));
+        assertEquals("GLOBAL TEMPORARY", rs.getString("TABLE_TYPE"));
         rs.next();
-        assertEquals("TABLE", rs.getString("TABLE_TYPE"));
+        assertEquals("LOCAL TEMPORARY", rs.getString("TABLE_TYPE"));
         rs.next();
-        assertEquals("TABLE LINK", rs.getString("TABLE_TYPE"));
+        assertEquals("SYNONYM", rs.getString("TABLE_TYPE"));
         rs.next();
         assertEquals("VIEW", rs.getString("TABLE_TYPE"));
         assertFalse(rs.next());
@@ -1219,7 +1219,7 @@ public class TestMetaData extends TestDb {
         for (String name : new String[] { "CONSTANTS", "FUNCTION_ALIASES",
                 "FUNCTION_COLUMNS", "INDEXES", "INFORMATION_SCHEMA_CATALOG_NAME", "IN_DOUBT", "LOCKS",
                 "QUERY_STATISTICS", "RIGHTS", "ROLES", "SESSIONS", "SESSION_STATE", "SETTINGS", "SYNONYMS",
-                "TABLE_TYPES", "USERS", "CHECK_CONSTRAINTS", "COLLATIONS", "COLUMNS", "COLUMN_PRIVILEGES",
+                "USERS", "CHECK_CONSTRAINTS", "COLLATIONS", "COLUMNS", "COLUMN_PRIVILEGES",
                 "CONSTRAINT_COLUMN_USAGE", "DOMAINS", "DOMAIN_CONSTRAINTS", "KEY_COLUMN_USAGE",
                 "REFERENTIAL_CONSTRAINTS", "SCHEMATA", "SEQUENCES", "TABLES", "TABLE_CONSTRAINTS", "TABLE_PRIVILEGES",
                 "TRIGGERS", "VIEWS" }) {

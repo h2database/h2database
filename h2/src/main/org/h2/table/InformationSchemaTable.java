@@ -81,8 +81,7 @@ public final class InformationSchemaTable extends MetaTable {
     private static final int TABLES = INFORMATION_SCHEMA_CATALOG_NAME + 1;
     private static final int COLUMNS = TABLES + 1;
     private static final int INDEXES = COLUMNS + 1;
-    private static final int TABLE_TYPES = INDEXES + 1;
-    private static final int SETTINGS = TABLE_TYPES + 1;
+    private static final int SETTINGS = INDEXES + 1;
     private static final int SEQUENCES = SETTINGS + 1;
     private static final int USERS = SEQUENCES + 1;
     private static final int ROLES = USERS + 1;
@@ -151,13 +150,13 @@ public final class InformationSchemaTable extends MetaTable {
                     "TABLE_SCHEMA",
                     "TABLE_NAME",
                     "TABLE_TYPE",
+                    "COMMIT_ACTION",
                     // extensions
                     "STORAGE_TYPE",
                     "SQL",
                     "REMARKS",
                     "LAST_MODIFICATION BIGINT",
                     "ID INT",
-                    "TYPE_NAME",
                     "TABLE_CLASS",
                     "ROW_COUNT_ESTIMATE BIGINT"
             );
@@ -224,11 +223,6 @@ public final class InformationSchemaTable extends MetaTable {
                     "INDEX_CLASS"
             );
             indexColumnName = "TABLE_NAME";
-            break;
-        case TABLE_TYPES:
-            setMetaTableName("TABLE_TYPES");
-            isView = false;
-            cols = createColumns("TYPE");
             break;
         case SETTINGS:
             setMetaTableName("SETTINGS");
@@ -685,16 +679,24 @@ public final class InformationSchemaTable extends MetaTable {
                 if (hideTable(table, session)) {
                     continue;
                 }
-                String storageType;
+                String commitAction, storageType;
                 if (table.isTemporary()) {
-                    if (table.isGlobalTemporary()) {
-                        storageType = "GLOBAL TEMPORARY";
-                    } else {
-                        storageType = "LOCAL TEMPORARY";
-                    }
+                    commitAction = table.getOnCommitTruncate() ? "DELETE"
+                            : table.getOnCommitDrop() ? "DROP" : "PRESERVE";
+                    storageType = table.isGlobalTemporary() ? "GLOBAL TEMPORARY" : "LOCAL TEMPORARY";
                 } else {
-                    storageType = table.isPersistIndexes() ?
-                            "CACHED" : "MEMORY";
+                    commitAction = null;
+                    switch (table.getTableType()) {
+                    case TABLE_LINK:
+                        storageType = "TABLE LINK";
+                        break;
+                    case EXTERNAL_TABLE_ENGINE:
+                        storageType = "EXTERNAL";
+                        break;
+                    default:
+                        storageType = table.isPersistIndexes() ? "CACHED" : "MEMORY";
+                        break;
+                    }
                 }
                 String sql = table.getCreateSQL();
                 if (!admin) {
@@ -712,7 +714,9 @@ public final class InformationSchemaTable extends MetaTable {
                         // TABLE_NAME
                         tableName,
                         // TABLE_TYPE
-                        table.isView() ? "VIEW" : table.getTableType().toString(),
+                        table.getSQLTableType(),
+                        // COMMIT_ACTION
+                        commitAction,
                         // STORAGE_TYPE
                         storageType,
                         // SQL
@@ -723,8 +727,6 @@ public final class InformationSchemaTable extends MetaTable {
                         ValueBigint.get(table.getMaxDataModificationId()),
                         // ID
                         ValueInteger.get(table.getId()),
-                        // TYPE_NAME
-                        null,
                         // TABLE_CLASS
                         table.getClass().getName(),
                         // ROW_COUNT_ESTIMATE
@@ -759,7 +761,7 @@ public final class InformationSchemaTable extends MetaTable {
                 Column[] cols = table.getColumns();
                 for (int j = 0; j < cols.length; j++) {
                     Column c = cols[j];
-                    generateColumnRow(session, rows, catalog, mainSchemaName, collation, table, tableName, j, c);
+                    generateColumnrow(session, rows, catalog, mainSchemaName, collation, table, tableName, j, c);
                 }
             }
             break;
@@ -844,14 +846,6 @@ public final class InformationSchemaTable extends MetaTable {
                     }
                 }
             }
-            break;
-        }
-        case TABLE_TYPES: {
-            add(session, rows, TableType.TABLE.toString());
-            add(session, rows, TableType.TABLE_LINK.toString());
-            add(session, rows, TableType.SYSTEM_TABLE.toString());
-            add(session, rows, TableType.VIEW.toString());
-            add(session, rows, TableType.EXTERNAL_TABLE_ENGINE.toString());
             break;
         }
         case SETTINGS: {
@@ -1983,7 +1977,7 @@ public final class InformationSchemaTable extends MetaTable {
         return rows;
     }
 
-    private void generateColumnRow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+    private void generateColumnrow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
             String collation, Table table, String tableName, int j, Column c) {
         Domain domain = c.getDomain();
         TypeInfo typeInfo = c.getType();

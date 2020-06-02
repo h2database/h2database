@@ -233,6 +233,21 @@ public abstract class Table extends SchemaObjectBase {
     public abstract TableType getTableType();
 
     /**
+     * Return SQL table type for INFORMATION_SCHEMA.
+     *
+     * @return SQL table type for INFORMATION_SCHEMA
+     */
+    public String getSQLTableType() {
+        if (isView()) {
+            return "VIEW";
+        }
+        if (isTemporary()) {
+            return isGlobalTemporary() ? "GLOBAL TEMPORARY" : "LOCAL TEMPORARY";
+        }
+        return "BASE TABLE";
+    }
+
+    /**
      * Get the scan index to iterate through all rows.
      *
      * @param session the session

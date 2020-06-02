@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -386,9 +387,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         return localTempTables.get(name);
     }
 
-    public ArrayList<Table> getLocalTempTables() {
+    public List<Table> getLocalTempTables() {
         if (localTempTables == null) {
-            return Utils.newSmallArrayList();
+            return Collections.emptyList();
         }
         return new ArrayList<>(localTempTables.values());
     }

@@ -524,7 +524,7 @@ public class TestLinkedTable extends TestDb {
         rs = stat.executeQuery("SELECT * FROM " +
                 "INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='LINK_TEST'");
         rs.next();
-        assertEquals("TABLE LINK", rs.getString("TABLE_TYPE"));
+        assertEquals("TABLE LINK", rs.getString("STORAGE_TYPE"));
 
         rs.next();
         rs = stat.executeQuery("SELECT * FROM LINK_TEST WHERE ID=0");

@@ -12,6 +12,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
+import org.h2.engine.SessionInterface;
+import org.h2.engine.SessionRemote;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcResultSet;
 import org.h2.message.DbException;
@@ -65,16 +68,18 @@ public class UpdatableRow {
                 return;
             }
         }
+        String type = "BASE TABLE";
+        SessionInterface session = conn.getSession();
+        if (session instanceof SessionRemote
+                && ((SessionRemote) session).getClientVersion() <= Constants.TCP_PROTOCOL_VERSION_19) {
+            type = "TABLE";
+        }
         final DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs = meta.getTables(null,
                 StringUtils.escapeMetaDataPattern(schemaName),
                 StringUtils.escapeMetaDataPattern(tableName),
-                new String[] { "TABLE" });
+                new String[] { type });
         if (!rs.next()) {
-            return;
-        }
-        if (rs.getString("SQL") == null) {
-            // system table
             return;
         }
         String table = rs.getString("TABLE_NAME");

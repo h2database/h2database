@@ -135,8 +135,7 @@ public abstract class MetaTable extends Table {
      */
     protected final ArrayList<Table> getAllTables(Session session) {
         ArrayList<Table> tables = database.getAllTablesAndViews(true);
-        ArrayList<Table> tempTables = session.getLocalTempTables();
-        tables.addAll(tempTables);
+        tables.addAll(session.getLocalTempTables());
         return tables;
     }
 

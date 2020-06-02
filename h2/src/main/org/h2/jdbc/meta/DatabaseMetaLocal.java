@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -94,6 +95,10 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     private static final ValueSmallint TABLE_INDEX_HASHED = ValueSmallint.get(DatabaseMetaData.tableIndexHashed);
 
     private static final ValueSmallint TABLE_INDEX_OTHER = ValueSmallint.get(DatabaseMetaData.tableIndexOther);
+
+    // This list must be ordered
+    private static final String[] TABLE_TYPES = { "BASE TABLE", "GLOBAL TEMPORARY", "LOCAL TEMPORARY", "SYNONYM",
+            "VIEW" };
 
     private static final ValueSmallint TYPE_NULLABLE = ValueSmallint.get((short) DatabaseMetaData.typeNullable);
 
@@ -237,80 +242,85 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public ResultInterface getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types) {
-        int typesLength = types != null ? types.length : 0;
-        boolean includeSynonyms = types == null || Arrays.asList(types).contains("SYNONYM");
-        // (1024 - 16) is enough for the most cases
-        StringBuilder select = new StringBuilder(1008);
-        if (includeSynonyms) {
-            select.append("SELECT " //
-                    + "TABLE_CAT, " //
-                    + "TABLE_SCHEM, " //
-                    + "TABLE_NAME, " //
-                    + "TABLE_TYPE, " //
-                    + "REMARKS, " //
-                    + "TYPE_CAT, " //
-                    + "TYPE_SCHEM, " //
-                    + "TYPE_NAME, " //
-                    + "SELF_REFERENCING_COL_NAME, " //
-                    + "REF_GENERATION, " //
-                    + "SQL " //
-                    + "FROM (" //
-                    + "SELECT " //
-                    + "SYNONYM_CATALOG TABLE_CAT, " //
-                    + "SYNONYM_SCHEMA TABLE_SCHEM, " //
-                    + "SYNONYM_NAME as TABLE_NAME, " //
-                    + "TYPE_NAME AS TABLE_TYPE, " //
-                    + "REMARKS, " //
-                    + "TYPE_NAME TYPE_CAT, " //
-                    + "TYPE_NAME TYPE_SCHEM, " //
-                    + "TYPE_NAME AS TYPE_NAME, " //
-                    + "TYPE_NAME SELF_REFERENCING_COL_NAME, " //
-                    + "TYPE_NAME REF_GENERATION, " //
-                    + "NULL AS SQL " //
-                    + "FROM INFORMATION_SCHEMA.SYNONYMS " //
-                    + "WHERE SYNONYM_CATALOG LIKE ?1 ESCAPE ?4 " //
-                    + "AND SYNONYM_SCHEMA LIKE ?2 ESCAPE ?4 " //
-                    + "AND SYNONYM_NAME LIKE ?3 ESCAPE ?4 " //
-                    + "UNION ");
+        SimpleResult result = new SimpleResult();
+        result.addColumn("TABLE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_TYPE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("REMARKS", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TYPE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TYPE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TYPE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("SELF_REFERENCING_COL_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("REF_GENERATION", TypeInfo.TYPE_VARCHAR);
+        if (!checkCatalogName(catalog)) {
+            return result;
         }
-        select.append("SELECT " //
-                + "TABLE_CATALOG TABLE_CAT, " //
-                + "TABLE_SCHEMA TABLE_SCHEM, " //
-                + "TABLE_NAME, " //
-                + "TABLE_TYPE, " //
-                + "REMARKS, " //
-                + "TYPE_NAME TYPE_CAT, " //
-                + "TYPE_NAME TYPE_SCHEM, " //
-                + "TYPE_NAME, " //
-                + "TYPE_NAME SELF_REFERENCING_COL_NAME, " //
-                + "TYPE_NAME REF_GENERATION, " //
-                + "SQL " //
-                + "FROM INFORMATION_SCHEMA.TABLES " //
-                + "WHERE TABLE_CATALOG LIKE ?1 ESCAPE ?4 " //
-                + "AND TABLE_SCHEMA LIKE ?2 ESCAPE ?4 " //
-                + "AND TABLE_NAME LIKE ?3 ESCAPE ?4");
-        if (typesLength > 0) {
-            select.append(" AND TABLE_TYPE IN(");
-            for (int i = 0; i < typesLength; i++) {
-                if (i > 0) {
-                    select.append(", ");
+        Database db = session.getDatabase();
+        Value catalogValue = getString(db.getShortName());
+        HashSet<String> typesSet;
+        if (types != null) {
+            typesSet = new HashSet<>(8);
+            for (String type : types) {
+                int idx = Arrays.binarySearch(TABLE_TYPES, type);
+                if (idx >= 0) {
+                    typesSet.add(TABLE_TYPES[idx]);
+                } else if (type.equals("TABLE")) {
+                    typesSet.add("BASE TABLE");
                 }
-                select.append('?').append(i + 5);
             }
-            select.append(')');
+            if (typesSet.isEmpty()) {
+                return result;
+            }
+        } else {
+            typesSet = null;
         }
-        if (includeSynonyms) {
-            select.append(')');
+        for (Schema schema : getSchemasForPattern(schemaPattern)) {
+            Value schemaValue = getString(schema.getName());
+            for (SchemaObjectBase object : getTablesForPattern(schema, tableNamePattern)) {
+                Value tableName = getString(object.getName());
+                if (object instanceof Table) {
+                    Table t = (Table) object;
+                    if (!t.isHidden()) {
+                        getTablesAdd(result, catalogValue, schemaValue, tableName, t, false, typesSet);
+                    }
+                } else {
+                    getTablesAdd(result, catalogValue, schemaValue, tableName, ((TableSynonym) object).getSynonymFor(),
+                            true, typesSet);
+                }
+            }
         }
-        Value[] args = new Value[typesLength + 4];
-        args[0] = getCatalogPattern(catalog);
-        args[1] = getSchemaPattern(schemaPattern);
-        args[2] = getPattern(tableNamePattern);
-        args[3] = BACKSLASH;
-        for (int i = 0; i < typesLength; i++) {
-            args[i + 4] = getString(types[i]);
+        result.sortRows(new SortOrder(session, new int[] { 3, 0, 1, 2 }, new int[4], null));
+        return result;
+    }
+
+    private void getTablesAdd(SimpleResult result, Value catalogValue, Value schemaValue, Value tableName, Table t,
+            boolean synonym, HashSet<String> typesSet) {
+        String type = synonym ? "SYNONYM" : t.getSQLTableType();
+        if (typesSet != null && !typesSet.contains(type)) {
+            return;
         }
-        return executeQuery(select.append(" ORDER BY TABLE_TYPE, TABLE_SCHEM, TABLE_NAME").toString(), args);
+        result.addRow(
+                // TABLE_CAT
+                catalogValue,
+                // TABLE_SCHEM
+                schemaValue,
+                // TABLE_NAME
+                tableName,
+                // TABLE_TYPE
+                getString(type),
+                // REMARKS
+                getString(t.getComment()),
+                // TYPE_CAT
+                ValueNull.INSTANCE,
+                // TYPE_SCHEM
+                ValueNull.INSTANCE,
+                // TYPE_NAME
+                ValueNull.INSTANCE,
+                // SELF_REFERENCING_COL_NAME
+                ValueNull.INSTANCE,
+                // REF_GENERATION
+                ValueNull.INSTANCE);
     }
 
     @Override
@@ -329,10 +339,14 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public ResultInterface getTableTypes() {
-        return executeQuery("SELECT " //
-                + "TYPE TABLE_TYPE " //
-                + "FROM INFORMATION_SCHEMA.TABLE_TYPES " //
-                + "ORDER BY TABLE_TYPE");
+        SimpleResult result = new SimpleResult();
+        result.addColumn("TABLE_TYPE", TypeInfo.TYPE_VARCHAR);
+        result.addRow(getString("BASE TABLE"));
+        result.addRow(getString("GLOBAL TEMPORARY"));
+        result.addRow(getString("LOCAL TEMPORARY"));
+        result.addRow(getString("SYNONYM"));
+        result.addRow(getString("VIEW"));
+        return result;
     }
 
     @Override
@@ -375,7 +389,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 Value tableName = getString(object.getName());
                 if (object instanceof Table) {
                     Table t = (Table) object;
-                    getColumnsAdd(result, catalogValue, schemaValue, tableName, t, columnLike);
+                    if (!t.isHidden()) {
+                        getColumnsAdd(result, catalogValue, schemaValue, tableName, t, columnLike);
+                    }
                 } else {
                     TableSynonym s = (TableSynonym) object;
                     Table t = s.getSynonymFor();

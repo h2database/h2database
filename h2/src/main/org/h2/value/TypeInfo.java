@@ -240,7 +240,8 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         infos[Value.NUMERIC] = TYPE_NUMERIC = new TypeInfo(Value.NUMERIC, Integer.MAX_VALUE, //
                 ValueNumeric.MAXIMUM_SCALE, Integer.MAX_VALUE, null);
         TYPE_NUMERIC_SCALE_0 = new TypeInfo(Value.NUMERIC, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
-        TYPE_NUMERIC_BIGINT = new TypeInfo(Value.NUMERIC, ValueBigint.PRECISION, 0, ValueBigint.DISPLAY_SIZE, null);
+        TYPE_NUMERIC_BIGINT = new TypeInfo(Value.NUMERIC, ValueBigint.DECIMAL_PRECISION, 0, ValueBigint.DISPLAY_SIZE,
+                null);
         TYPE_NUMERIC_FLOATING_POINT = new TypeInfo(Value.NUMERIC, ValueNumeric.DEFAULT_PRECISION,
                 ValueNumeric.DEFAULT_PRECISION / 2, ValueNumeric.DEFAULT_PRECISION + 2, null);
         infos[Value.REAL] = TYPE_REAL = new TypeInfo(Value.REAL, ValueReal.PRECISION, 0, ValueReal.DISPLAY_SIZE, null);
@@ -882,7 +883,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.TINYINT:
         case Value.SMALLINT:
         case Value.INTEGER:
-            return getTypeInfo(Value.NUMERIC, precision, 0, null);
+            return getTypeInfo(Value.NUMERIC, getDecimalPrecision(), 0, null);
         case Value.BIGINT:
             return TYPE_NUMERIC_BIGINT;
         case Value.NUMERIC:
@@ -899,6 +900,31 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
             return getTypeInfo(Value.NUMERIC, 634, 325, null);
         default:
             return TYPE_NUMERIC_FLOATING_POINT;
+        }
+    }
+
+    /**
+     * Returns approximate precision in decimal digits for binary numeric data
+     * types and precision for all other types.
+     *
+     * @return precision in decimal digits
+     */
+    public long getDecimalPrecision() {
+        switch (valueType) {
+        case Value.TINYINT:
+            return ValueTinyint.DECIMAL_PRECISION;
+        case Value.SMALLINT:
+            return ValueSmallint.DECIMAL_PRECISION;
+        case Value.INTEGER:
+            return ValueInteger.DECIMAL_PRECISION;
+        case Value.BIGINT:
+            return ValueBigint.DECIMAL_PRECISION;
+        case Value.REAL:
+            return ValueReal.DECIMAL_PRECISION;
+        case Value.DOUBLE:
+            return ValueDouble.DECIMAL_PRECISION;
+        default:
+            return precision;
         }
     }
 

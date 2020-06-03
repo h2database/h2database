@@ -115,7 +115,7 @@ public class BinaryOperation extends Operation2 {
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
-            return l.divide(r, right.getType().getPrecision());
+            return l.divide(r, right.getType().getDecimalPrecision());
         default:
             throw DbException.throwInternalError("type=" + opType);
         }

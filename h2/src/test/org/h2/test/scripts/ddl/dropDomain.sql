@@ -15,10 +15,10 @@ INSERT INTO TEST VALUES (1, 'A', 'B');
 SELECT COLUMN_NAME, DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, IS_NULLABLE, COLUMN_TYPE
     FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
 > COLUMN_NAME DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME IS_NULLABLE COLUMN_TYPE
-> ----------- -------------- ------------- ----------- ----------- ---------------------
-> I           null           null          null        NO          INT NOT NULL
+> ----------- -------------- ------------- ----------- ----------- ------------
+> I           null           null          null        NO          INT
 > E1          SCRIPT         PUBLIC        E           YES         "PUBLIC"."E"
-> E2          SCRIPT         PUBLIC        E           NO          "PUBLIC"."E" NOT NULL
+> E2          SCRIPT         PUBLIC        E           NO          "PUBLIC"."E"
 > rows (ordered): 3
 
 DROP DOMAIN E RESTRICT;
@@ -30,10 +30,10 @@ DROP DOMAIN E CASCADE;
 SELECT COLUMN_NAME, DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, IS_NULLABLE, COLUMN_TYPE
     FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
 > COLUMN_NAME DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME IS_NULLABLE COLUMN_TYPE
-> ----------- -------------- ------------- ----------- ----------- -----------------------
-> I           null           null          null        NO          INT NOT NULL
+> ----------- -------------- ------------- ----------- ----------- --------------
+> I           null           null          null        NO          INT
 > E1          null           null          null        YES         ENUM('A', 'B')
-> E2          null           null          null        NO          ENUM('A', 'B') NOT NULL
+> E2          null           null          null        NO          ENUM('A', 'B')
 > rows (ordered): 3
 
 DROP TABLE TEST;

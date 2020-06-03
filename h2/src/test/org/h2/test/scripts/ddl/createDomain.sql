@@ -26,8 +26,8 @@ SELECT COLUMN_NAME, DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, COLUMN_DEFAULT, 
 > C2          SCRIPT         S2            D2          null           "S2"."D2"   null
 > rows (ordered): 2
 
-SELECT DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, DOMAIN_DEFAULT, DOMAIN_ON_UPDATE, TYPE_NAME FROM INFORMATION_SCHEMA.DOMAINS;
-> DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME DOMAIN_DEFAULT DOMAIN_ON_UPDATE  TYPE_NAME
+SELECT DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, DOMAIN_DEFAULT, DOMAIN_ON_UPDATE, DATA_TYPE FROM INFORMATION_SCHEMA.DOMAINS;
+> DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME DOMAIN_DEFAULT DOMAIN_ON_UPDATE  DATA_TYPE
 > -------------- ------------- ----------- -------------- ----------------- ------------------------
 > SCRIPT         S1            D1          1              null              INTEGER
 > SCRIPT         S2            D2          null           CURRENT_TIMESTAMP TIMESTAMP WITH TIME ZONE
@@ -170,14 +170,14 @@ CREATE DOMAIN D3 AS D1 CHECK (VALUE >= 3);
 CREATE DOMAIN D4 AS D1 DEFAULT 4 CHECK (VALUE >= 4);
 > ok
 
-SELECT DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, DOMAIN_DEFAULT, DOMAIN_ON_UPDATE, DATA_TYPE, PRECISION, SCALE, TYPE_NAME,
+SELECT DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, DOMAIN_DEFAULT, DOMAIN_ON_UPDATE, DATA_TYPE, NUMERIC_PRECISION,
     PARENT_DOMAIN_CATALOG, PARENT_DOMAIN_SCHEMA, PARENT_DOMAIN_NAME FROM INFORMATION_SCHEMA.DOMAINS WHERE DOMAIN_SCHEMA = 'PUBLIC';
-> DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME DOMAIN_DEFAULT DOMAIN_ON_UPDATE DATA_TYPE PRECISION SCALE TYPE_NAME PARENT_DOMAIN_CATALOG PARENT_DOMAIN_SCHEMA PARENT_DOMAIN_NAME
-> -------------- ------------- ----------- -------------- ---------------- --------- --------- ----- --------- --------------------- -------------------- ------------------
-> SCRIPT         PUBLIC        D1          1              null             4         10        0     INTEGER   null                  null                 null
-> SCRIPT         PUBLIC        D2          2              null             4         10        0     INTEGER   SCRIPT                PUBLIC               D1
-> SCRIPT         PUBLIC        D3          null           null             4         10        0     INTEGER   SCRIPT                PUBLIC               D1
-> SCRIPT         PUBLIC        D4          4              null             4         10        0     INTEGER   SCRIPT                PUBLIC               D1
+> DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME DOMAIN_DEFAULT DOMAIN_ON_UPDATE DATA_TYPE NUMERIC_PRECISION PARENT_DOMAIN_CATALOG PARENT_DOMAIN_SCHEMA PARENT_DOMAIN_NAME
+> -------------- ------------- ----------- -------------- ---------------- --------- ----------------- --------------------- -------------------- ------------------
+> SCRIPT         PUBLIC        D1          1              null             INTEGER   32                null                  null                 null
+> SCRIPT         PUBLIC        D2          2              null             INTEGER   32                SCRIPT                PUBLIC               D1
+> SCRIPT         PUBLIC        D3          null           null             INTEGER   32                SCRIPT                PUBLIC               D1
+> SCRIPT         PUBLIC        D4          4              null             INTEGER   32                SCRIPT                PUBLIC               D1
 > rows: 4
 
 SELECT DOMAIN_NAME, CHECK_CLAUSE FROM INFORMATION_SCHEMA.DOMAIN_CONSTRAINTS D JOIN INFORMATION_SCHEMA.CHECK_CONSTRAINTS C
@@ -199,13 +199,13 @@ DROP DOMAIN D1;
 DROP DOMAIN D1 CASCADE;
 > ok
 
-SELECT DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, DOMAIN_DEFAULT, DOMAIN_ON_UPDATE, DATA_TYPE, PRECISION, SCALE, TYPE_NAME,
+SELECT DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, DOMAIN_DEFAULT, DOMAIN_ON_UPDATE, DATA_TYPE, NUMERIC_PRECISION,
     PARENT_DOMAIN_CATALOG, PARENT_DOMAIN_SCHEMA, PARENT_DOMAIN_NAME FROM INFORMATION_SCHEMA.DOMAINS WHERE DOMAIN_SCHEMA = 'PUBLIC';
-> DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME DOMAIN_DEFAULT DOMAIN_ON_UPDATE DATA_TYPE PRECISION SCALE TYPE_NAME PARENT_DOMAIN_CATALOG PARENT_DOMAIN_SCHEMA PARENT_DOMAIN_NAME
-> -------------- ------------- ----------- -------------- ---------------- --------- --------- ----- --------- --------------------- -------------------- ------------------
-> SCRIPT         PUBLIC        D2          2              null             4         10        0     INTEGER   null                  null                 null
-> SCRIPT         PUBLIC        D3          1              null             4         10        0     INTEGER   null                  null                 null
-> SCRIPT         PUBLIC        D4          4              null             4         10        0     INTEGER   null                  null                 null
+> DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME DOMAIN_DEFAULT DOMAIN_ON_UPDATE DATA_TYPE NUMERIC_PRECISION PARENT_DOMAIN_CATALOG PARENT_DOMAIN_SCHEMA PARENT_DOMAIN_NAME
+> -------------- ------------- ----------- -------------- ---------------- --------- ----------------- --------------------- -------------------- ------------------
+> SCRIPT         PUBLIC        D2          2              null             INTEGER   32                null                  null                 null
+> SCRIPT         PUBLIC        D3          1              null             INTEGER   32                null                  null                 null
+> SCRIPT         PUBLIC        D4          4              null             INTEGER   32                null                  null                 null
 > rows: 3
 
 SELECT DOMAIN_NAME, CHECK_CLAUSE FROM INFORMATION_SCHEMA.DOMAIN_CONSTRAINTS D JOIN INFORMATION_SCHEMA.CHECK_CONSTRAINTS C

@@ -7,7 +7,6 @@ package org.h2.table;
 
 import java.io.IOException;
 import java.sql.DatabaseMetaData;
-import java.sql.Types;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -54,6 +53,7 @@ import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.store.InDoubtTransaction;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.HasSQL;
 import org.h2.util.MathUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.StringUtils;
@@ -67,8 +67,10 @@ import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
+import org.h2.value.ValueNull;
 import org.h2.value.ValueSmallint;
 import org.h2.value.ValueToObjectConverter2;
+import org.h2.value.ValueVarchar;
 
 /**
  * This class is responsible to build the INFORMATION_SCHEMA tables.
@@ -296,8 +298,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "ALIAS_NAME",
                     "JAVA_CLASS",
                     "JAVA_METHOD",
-                    "DATA_TYPE INT",
-                    "TYPE_NAME",
+                    "DATA_TYPE",
                     "COLUMN_COUNT INT",
                     "RETURNS_RESULT SMALLINT",
                     "REMARKS",
@@ -317,10 +318,9 @@ public final class InformationSchemaTable extends MetaTable {
                     "COLUMN_COUNT INT",
                     "POS INT",
                     "COLUMN_NAME",
-                    "DATA_TYPE INT",
-                    "TYPE_NAME",
-                    "PRECISION INT",
-                    "SCALE SMALLINT",
+                    "DATA_TYPE",
+                    "PRECISION BIGINT",
+                    "SCALE INT",
                     "RADIX SMALLINT",
                     "NULLABLE SMALLINT",
                     "COLUMN_TYPE SMALLINT",
@@ -353,7 +353,8 @@ public final class InformationSchemaTable extends MetaTable {
                     "TABLE_SCHEMA",
                     "TABLE_NAME",
                     "PRIVILEGE_TYPE",
-                    "IS_GRANTABLE"
+                    "IS_GRANTABLE",
+                    "WITH_HIERARCHY"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -408,7 +409,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "CONSTANT_CATALOG",
                     "CONSTANT_SCHEMA",
                     "CONSTANT_NAME",
-                    "DATA_TYPE INT",
+                    "DATA_TYPE",
                     "REMARKS",
                     "SQL",
                     "ID INT"
@@ -420,12 +421,25 @@ public final class InformationSchemaTable extends MetaTable {
                     "DOMAIN_CATALOG",
                     "DOMAIN_SCHEMA",
                     "DOMAIN_NAME",
+                    "DATA_TYPE",
+                    "CHARACTER_MAXIMUM_LENGTH",
+                    "CHARACTER_OCTET_LENGTH",
+                    "CHARACTER_SET_CATALOG",
+                    "CHARACTER_SET_SCHEMA",
+                    "CHARACTER_SET_NAME",
+                    "COLLATION_CATALOG",
+                    "COLLATION_SCHEMA",
+                    "COLLATION_NAME",
+                    "NUMERIC_PRECISION",
+                    "NUMERIC_PRECISION_RADIX",
+                    "NUMERIC_SCALE",
+                    "DATETIME_PRECISION",
+                    "INTERVAL_TYPE",
+                    "INTERVAL_PRECISION",
                     "DOMAIN_DEFAULT",
+                    "MAXIMUM_CARDINALITY",
+                    // extensions
                     "DOMAIN_ON_UPDATE",
-                    "DATA_TYPE INT",
-                    "PRECISION INT",
-                    "SCALE INT",
-                    "TYPE_NAME",
                     "PARENT_DOMAIN_CATALOG",
                     "PARENT_DOMAIN_SCHEMA",
                     "PARENT_DOMAIN_NAME",
@@ -761,7 +775,7 @@ public final class InformationSchemaTable extends MetaTable {
                 Column[] cols = table.getColumns();
                 for (int j = 0; j < cols.length; j++) {
                     Column c = cols[j];
-                    generateColumnrow(session, rows, catalog, mainSchemaName, collation, table, tableName, j, c);
+                    generateColumnRow(session, rows, catalog, mainSchemaName, collation, table, tableName, j, c);
                 }
             }
             break;
@@ -961,7 +975,8 @@ public final class InformationSchemaTable extends MetaTable {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.SEQUENCE)) {
                 Sequence s = (Sequence) obj;
                 TypeInfo dataType = s.getDataType();
-                String dataTypeName = DataType.getDataType(dataType.getValueType()).name;
+                int valueType = dataType.getValueType();
+                String dataTypeName = DataType.getDataType(valueType).name;
                 ValueInteger declaredScale = ValueInteger.get(dataType.getScale());
                 add(session,
                         rows,
@@ -976,7 +991,7 @@ public final class InformationSchemaTable extends MetaTable {
                         // NUMERIC_PRECISION
                         ValueInteger.get(s.getEffectivePrecision()),
                         // NUMERIC_PRECISION_RADIX
-                        ValueInteger.get(10),
+                        ValueInteger.get(valueType == Value.NUMERIC ? 10 : 2),
                         // NUMERIC_SCALE
                         declaredScale,
                         // START_VALUE
@@ -1132,8 +1147,6 @@ public final class InformationSchemaTable extends MetaTable {
                             // JAVA_METHOD
                             alias.getJavaMethodName(),
                             // DATA_TYPE
-                            ValueInteger.get(DataType.convertTypeToSQLType(valueType)),
-                            // TYPE_NAME
                             getDataTypeName(DataType.getDataType(valueType), typeInfo),
                             // COLUMN_COUNT
                             ValueInteger.get(method.getParameterCount()),
@@ -1165,8 +1178,6 @@ public final class InformationSchemaTable extends MetaTable {
                         // JAVA_METHOD
                         "",
                         // DATA_TYPE
-                        ValueInteger.get(Types.NULL),
-                        // TYPE_NAME
                         DataType.getDataType(Value.NULL).name,
                         // COLUMN_COUNT
                         ValueInteger.get(1),
@@ -1215,15 +1226,13 @@ public final class InformationSchemaTable extends MetaTable {
                                 // POS
                                 ValueInteger.get(0),
                                 // COLUMN_NAME
-                                "P0",
+                                "RESULT",
                                 // DATA_TYPE
-                                ValueInteger.get(DataType.convertTypeToSQLType(typeInfo.getValueType())),
-                                // TYPE_NAME
                                 getDataTypeName(dt, typeInfo),
                                 // PRECISION
-                                ValueInteger.get(MathUtils.convertLongToInt(dt.defaultPrecision)),
+                                ValueBigint.get(dt.defaultPrecision),
                                 // SCALE
-                                ValueSmallint.get(MathUtils.convertIntToShort(dt.defaultScale)),
+                                ValueInteger.get(dt.defaultScale),
                                 // RADIX
                                 ValueSmallint.get((short) 10),
                                 // NULLABLE
@@ -1264,13 +1273,11 @@ public final class InformationSchemaTable extends MetaTable {
                                 // COLUMN_NAME
                                 "P" + (k + 1),
                                 // DATA_TYPE
-                                ValueInteger.get(DataType.convertTypeToSQLType(dt.type)),
-                                // TYPE_NAME
                                 getDataTypeName(dt, columnTypeInfo),
                                 // PRECISION
-                                ValueInteger.get(MathUtils.convertLongToInt(dt.defaultPrecision)),
+                                ValueBigint.get(dt.defaultPrecision),
                                 // SCALE
-                                ValueSmallint.get(MathUtils.convertIntToShort(dt.defaultScale)),
+                                ValueInteger.get(dt.defaultScale),
                                 // RADIX
                                 ValueSmallint.get((short) 10),
                                 // NULLABLE
@@ -1423,6 +1430,8 @@ public final class InformationSchemaTable extends MetaTable {
                     DbObject.CONSTANT)) {
                 Constant constant = (Constant) obj;
                 ValueExpression expr = constant.getValue();
+                TypeInfo type = expr.getType();
+                DataType dt = DataType.getDataType(type.getValueType());
                 add(session,
                         rows,
                         // CONSTANT_CATALOG
@@ -1432,7 +1441,7 @@ public final class InformationSchemaTable extends MetaTable {
                         // CONSTANT_NAME
                         constant.getName(),
                         // DATA_TYPE
-                        ValueInteger.get(DataType.convertTypeToSQLType(expr.getType().getValueType())),
+                        getDataTypeName(dt, type),
                         // REMARKS
                         replaceNullWithEmpty(constant.getComment()),
                         // SQL
@@ -1444,12 +1453,23 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         }
         case DOMAINS: {
+            String mainSchemaName = database.getMainSchema().getName();
+            String collation = database.getCompareMode().getName();
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.DOMAIN)) {
                 Domain domain = (Domain) obj;
                 Column col = domain.getColumn();
                 Domain parentDomain = col.getDomain();
                 TypeInfo typeInfo = col.getType();
-                DataType dataType = DataType.getDataType(typeInfo.getValueType());
+                DataTypeInformation dt = new DataTypeInformation(typeInfo);
+                String characterSetCatalog, characterSetSchema, characterSetName, collationName;
+                if (dt.hasCharsetAndCollation) {
+                    characterSetCatalog = catalog;
+                    characterSetSchema = mainSchemaName;
+                    characterSetName = CHARACTER_SET_NAME;
+                    collationName = collation;
+                } else {
+                    characterSetCatalog = characterSetSchema = characterSetName = collationName = null;
+                }
                 add(session,
                         rows,
                         // DOMAIN_CATALOG
@@ -1458,18 +1478,42 @@ public final class InformationSchemaTable extends MetaTable {
                         domain.getSchema().getName(),
                         // DOMAIN_NAME
                         domain.getName(),
+                        // DATA_TYPE
+                        dt.dataType,
+                        // CHARACTER_MAXIMUM_LENGTH
+                        dt.characterPrecision,
+                        // CHARACTER_OCTET_LENGTH
+                        dt.characterPrecision,
+                        // CHARACTER_SET_CATALOG
+                        characterSetCatalog,
+                        // CHARACTER_SET_SCHEMA
+                        characterSetSchema,
+                        // CHARACTER_SET_NAME
+                        characterSetName,
+                        // COLLATION_CATALOG
+                        characterSetCatalog,
+                        // COLLATION_SCHEMA
+                        characterSetSchema,
+                        // COLLATION_NAME
+                        collationName,
+                        // NUMERIC_PRECISION
+                        dt.numericPrecision,
+                        // NUMERIC_PRECISION_RADIX
+                        dt.numericPrecisionRadix,
+                        // NUMERIC_SCALE
+                        dt.numericScale,
+                        // DATETIME_PRECISION
+                        dt.datetimePrecision,
+                        // INTERVAL_TYPE
+                        dt.intervalType,
+                        // INTERVAL_PRECISION
+                        dt.intervalPrecision,
                         // DOMAIN_DEFAULT
                         col.getDefaultSQL(),
+                        // MAXIMUM_CARDINALITY
+                        dt.maximumCardinality,
                         // DOMAIN_ON_UPDATE
                         col.getOnUpdateSQL(),
-                        // DATA_TYPE
-                        ValueInteger.get(dataType.sqlType),
-                        // PRECISION
-                        ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision())),
-                        // SCALE
-                        ValueInteger.get(typeInfo.getScale()),
-                        // TYPE_NAME
-                        getDataTypeName(dataType, typeInfo),
                         // PARENT_DOMAIN_CATALOG
                         parentDomain != null ? catalog : null,
                         // PARENT_DOMAIN_SCHEMA
@@ -1977,89 +2021,32 @@ public final class InformationSchemaTable extends MetaTable {
         return rows;
     }
 
-    private void generateColumnrow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+    private void generateColumnRow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
             String collation, Table table, String tableName, int j, Column c) {
-        Domain domain = c.getDomain();
         TypeInfo typeInfo = c.getType();
-        DataType dt = DataType.getDataType(typeInfo.getValueType());
-        String dataType = getDataTypeName(dt, typeInfo);
-        Sequence sequence = c.getSequence();
-        int type = typeInfo.getValueType();
-        ValueBigint characterPrecision = null;
-        ValueInteger numericPrecision = null, numericScale = null, numericPrecisionRadix = null,
-                dateTimePrecision = null, intervalPrecision = null,
-                maximumCardinality = null;
-        String characterSetCatalog = null, characterSetSchema = null, characterSetName = null, collationName = null;
-        String createSQLWithoutName = c.getCreateSQLWithoutName(), intervalType = null;
-        switch (type) {
-        case Value.CHAR:
-        case Value.VARCHAR:
-        case Value.CLOB:
-        case Value.VARCHAR_IGNORECASE:
+        DataTypeInformation dt = new DataTypeInformation(typeInfo);
+        String fullTypeName = c.getOriginalSQL();
+        if (fullTypeName == null) {
+            fullTypeName = typeInfo.getSQL(new StringBuilder(), HasSQL.DEFAULT_SQL_FLAGS).toString();
+        }
+        String characterSetCatalog, characterSetSchema, characterSetName, collationName;
+        if (dt.hasCharsetAndCollation) {
             characterSetCatalog = catalog;
             characterSetSchema = mainSchemaName;
             characterSetName = CHARACTER_SET_NAME;
             collationName = collation;
-            //$FALL-THROUGH$
-        case Value.BINARY:
-        case Value.VARBINARY:
-        case Value.BLOB:
-        case Value.JAVA_OBJECT:
-        case Value.JSON:
-            characterPrecision = ValueBigint.get(typeInfo.getPrecision());
-            break;
-        case Value.TINYINT:
-        case Value.SMALLINT:
-        case Value.INTEGER:
-        case Value.BIGINT:
-            numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
-            numericScale = ValueInteger.get(0);
-            numericPrecisionRadix = ValueInteger.get(2);
-            break;
-        case Value.NUMERIC:
-            numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
-            numericScale = ValueInteger.get(typeInfo.getScale());
-            numericPrecisionRadix = ValueInteger.get(10);
-            break;
-        case Value.REAL:
-        case Value.DOUBLE:
-            numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
-            numericPrecisionRadix = ValueInteger.get(2);
-            break;
-        case Value.INTERVAL_YEAR:
-        case Value.INTERVAL_MONTH:
-        case Value.INTERVAL_DAY:
-        case Value.INTERVAL_HOUR:
-        case Value.INTERVAL_MINUTE:
-        case Value.INTERVAL_SECOND:
-        case Value.INTERVAL_YEAR_TO_MONTH:
-        case Value.INTERVAL_DAY_TO_HOUR:
-        case Value.INTERVAL_DAY_TO_MINUTE:
-        case Value.INTERVAL_DAY_TO_SECOND:
-        case Value.INTERVAL_HOUR_TO_MINUTE:
-        case Value.INTERVAL_HOUR_TO_SECOND:
-        case Value.INTERVAL_MINUTE_TO_SECOND:
-            dataType = "INTERVAL";
-            intervalType = createSQLWithoutName.substring(9);
-            intervalPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
-            //$FALL-THROUGH$
-        case Value.DATE:
-        case Value.TIME:
-        case Value.TIME_TZ:
-        case Value.TIMESTAMP:
-        case Value.TIMESTAMP_TZ:
-            dateTimePrecision = ValueInteger.get(typeInfo.getScale());
-            break;
-        case Value.ARRAY:
-            maximumCardinality = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
+        } else {
+            characterSetCatalog = characterSetSchema = characterSetName = collationName = null;
         }
-        boolean isGenerated = c.getGenerated();
+        Domain domain = c.getDomain();
         String domainCatalog = null, domainSchema = null, domainName = null;
         if (domain != null) {
             domainCatalog = catalog;
             domainSchema = domain.getSchema().getName();
             domainName = domain.getName();
         }
+        boolean isGenerated = c.getGenerated();
+        Sequence sequence = c.getSequence();
         add(session,
                 rows,
                 // TABLE_CATALOG
@@ -2077,23 +2064,23 @@ public final class InformationSchemaTable extends MetaTable {
                 // IS_NULLABLE
                 c.isNullable() ? "YES" : "NO",
                 // DATA_TYPE
-                identifier(dataType),
+                identifier(dt.dataType),
                 // CHARACTER_MAXIMUM_LENGTH
-                characterPrecision,
+                dt.characterPrecision,
                 // CHARACTER_OCTET_LENGTH
-                characterPrecision,
+                dt.characterPrecision,
                 // NUMERIC_PRECISION
-                numericPrecision,
+                dt.numericPrecision,
                 // NUMERIC_PRECISION_RADIX
-                numericPrecisionRadix,
+                dt.numericPrecisionRadix,
                 // NUMERIC_SCALE
-                numericScale,
+                dt.numericScale,
                 // DATETIME_PRECISION
-                dateTimePrecision,
+                dt.datetimePrecision,
                 // INTERVAL_TYPE
-                intervalType,
+                dt.intervalType,
                 // INTERVAL_PRECISION
-                intervalPrecision,
+                dt.intervalPrecision,
                 // CHARACTER_SET_CATALOG
                 characterSetCatalog,
                 // CHARACTER_SET_SCHEMA
@@ -2113,7 +2100,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // DOMAIN_NAME
                 domainName,
                 // MAXIMUM_CARDINALITY
-                maximumCardinality,
+                dt.maximumCardinality,
                 // IS_GENERATED
                 isGenerated ? "ALWAYS" : "NEVER",
                 // GENERATION_EXPRESSION
@@ -2125,7 +2112,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // REMARKS
                 replaceNullWithEmpty(c.getComment()),
                 // COLUMN_TYPE
-                createSQLWithoutName,
+                fullTypeName,
                 // COLUMN_ON_UPDATE
                 c.getOnUpdateSQL(),
                 // IS_VISIBLE
@@ -2133,7 +2120,16 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private static String getDataTypeName(DataType dt, TypeInfo typeInfo) {
+    /**
+     * Get data type name.
+     *
+     * @param dt
+     *            data type
+     * @param typeInfo
+     *            type information
+     * @return data type name
+     */
+    public static String getDataTypeName(DataType dt, TypeInfo typeInfo) {
         switch (typeInfo.getValueType()) {
         case Value.ARRAY:
             typeInfo = (TypeInfo) typeInfo.getExtTypeInfo();
@@ -2209,7 +2205,9 @@ public final class InformationSchemaTable extends MetaTable {
                     // PRIVILEGE_TYPE
                     right,
                     // IS_GRANTABLE
-                    isGrantable
+                    isGrantable,
+                    // WITH_HIERARCHY
+                    "NO"
             );
         } else {
             add(session,
@@ -2251,6 +2249,139 @@ public final class InformationSchemaTable extends MetaTable {
     @Override
     public boolean isView() {
         return isView;
+    }
+
+    /**
+     * Data type information.
+     */
+    final class DataTypeInformation {
+
+        /**
+         * DATA_TYPE.
+         */
+        final String dataType;
+
+        /**
+         * CHARACTER_MAXIMUM_LENGTH and CHARACTER_OCTET_LENGTH.
+         */
+        final Value characterPrecision;
+
+        /**
+         * NUMERIC_PRECISION.
+         */
+        final Value numericPrecision;
+
+        /**
+         * NUMERIC_PRECISION_RADIX.
+         */
+        final Value numericPrecisionRadix;
+
+        /**
+         * NUMERIC_SCALE.
+         */
+        final Value numericScale;
+
+        /**
+         * DATETIME_PRECISION.
+         */
+        final Value datetimePrecision;
+
+        /**
+         * INTERVAL_PRECISION.
+         */
+        final Value intervalPrecision;
+
+        /**
+         * INTERVAL_TYPE.
+         */
+        final Value intervalType;
+
+        /**
+         * MAXIMUM_CARDINALITY.
+         */
+        final Value maximumCardinality;
+
+        final boolean hasCharsetAndCollation;
+
+        DataTypeInformation(TypeInfo typeInfo) {
+            int type = typeInfo.getValueType();
+            String dataType = getDataTypeName(DataType.getDataType(type), typeInfo);
+            ValueBigint characterPrecision = null;
+            ValueInteger numericPrecision = null, numericScale = null, numericPrecisionRadix = null,
+                    datetimePrecision = null, intervalPrecision = null, maximumCardinality = null;
+            String intervalType = null;
+            boolean hasCharsetAndCollation = false;
+            switch (type) {
+            case Value.CHAR:
+            case Value.VARCHAR:
+            case Value.CLOB:
+            case Value.VARCHAR_IGNORECASE:
+                hasCharsetAndCollation = true;
+                //$FALL-THROUGH$
+            case Value.BINARY:
+            case Value.VARBINARY:
+            case Value.BLOB:
+            case Value.JAVA_OBJECT:
+            case Value.JSON:
+                characterPrecision = ValueBigint.get(typeInfo.getPrecision());
+                break;
+            case Value.TINYINT:
+            case Value.SMALLINT:
+            case Value.INTEGER:
+            case Value.BIGINT:
+                numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
+                numericScale = ValueInteger.get(0);
+                numericPrecisionRadix = ValueInteger.get(2);
+                break;
+            case Value.NUMERIC:
+                numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
+                numericScale = ValueInteger.get(typeInfo.getScale());
+                numericPrecisionRadix = ValueInteger.get(10);
+                break;
+            case Value.REAL:
+            case Value.DOUBLE:
+                numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
+                numericPrecisionRadix = ValueInteger.get(2);
+                break;
+            case Value.INTERVAL_YEAR:
+            case Value.INTERVAL_MONTH:
+            case Value.INTERVAL_DAY:
+            case Value.INTERVAL_HOUR:
+            case Value.INTERVAL_MINUTE:
+            case Value.INTERVAL_SECOND:
+            case Value.INTERVAL_YEAR_TO_MONTH:
+            case Value.INTERVAL_DAY_TO_HOUR:
+            case Value.INTERVAL_DAY_TO_MINUTE:
+            case Value.INTERVAL_DAY_TO_SECOND:
+            case Value.INTERVAL_HOUR_TO_MINUTE:
+            case Value.INTERVAL_HOUR_TO_SECOND:
+            case Value.INTERVAL_MINUTE_TO_SECOND:
+                intervalType = typeInfo.getSQL(HasSQL.DEFAULT_SQL_FLAGS).substring(9);
+                dataType = "INTERVAL";
+                intervalPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
+                //$FALL-THROUGH$
+            case Value.DATE:
+            case Value.TIME:
+            case Value.TIME_TZ:
+            case Value.TIMESTAMP:
+            case Value.TIMESTAMP_TZ:
+                datetimePrecision = ValueInteger.get(typeInfo.getScale());
+                break;
+            case Value.ARRAY:
+                maximumCardinality = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
+            }
+            this.dataType = dataType;
+            this.characterPrecision = characterPrecision;
+            this.numericPrecision = numericPrecision;
+            this.numericPrecisionRadix = numericPrecisionRadix;
+            this.numericScale = numericScale;
+            this.datetimePrecision = datetimePrecision;
+            this.intervalPrecision = intervalPrecision;
+            this.intervalType = intervalType != null ? ValueVarchar.get(intervalType) : ValueNull.INSTANCE;
+            this.maximumCardinality = maximumCardinality;
+            this.hasCharsetAndCollation = hasCharsetAndCollation;
+        }
+
     }
 
 }

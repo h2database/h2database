@@ -979,7 +979,7 @@ public class DateTimeFunction extends Operation1_2 implements NamedExpression {
         switch (function) {
         case EXTRACT:
             type = field == EPOCH ? TypeInfo.getTypeInfo(Value.NUMERIC,
-                    ValueBigint.PRECISION + ValueTimestamp.MAXIMUM_SCALE, ValueTimestamp.MAXIMUM_SCALE, null)
+                    ValueBigint.DECIMAL_PRECISION + ValueTimestamp.MAXIMUM_SCALE, ValueTimestamp.MAXIMUM_SCALE, null)
                     : TypeInfo.TYPE_INTEGER;
             break;
         case DATE_TRUNC: {

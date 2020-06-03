@@ -442,13 +442,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <li>PROCEDURE_CAT (String) catalog</li>
      * <li>PROCEDURE_SCHEM (String) schema</li>
      * <li>PROCEDURE_NAME (String) name</li>
-     * <li>NUM_INPUT_PARAMS (int) the number of arguments</li>
-     * <li>NUM_OUTPUT_PARAMS (int) for future use, always 0</li>
-     * <li>NUM_RESULT_SETS (int) for future use, always 0</li>
+     * <li>reserved</li>
+     * <li>reserved</li>
+     * <li>reserved</li>
      * <li>REMARKS (String) description</li>
      * <li>PROCEDURE_TYPE (short) if this procedure returns a result
      * (procedureNoResult or procedureReturnsResult)</li>
-     * <li>SPECIFIC_NAME (String) name</li>
+     * <li>SPECIFIC_NAME (String) non-ambiguous name to distinguish
+     * overloads</li>
      * </ol>
      *
      * @param catalog null or the catalog name
@@ -498,13 +499,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * DatabaseMetaData.columnNullable otherwise)</li>
      * <li>REMARKS (String) description</li>
      * <li>COLUMN_DEF (String) always null</li>
-     * <li>SQL_DATA_TYPE (int) for future use, always 0</li>
-     * <li>SQL_DATETIME_SUB (int) for future use, always 0</li>
-     * <li>CHAR_OCTET_LENGTH (int) always null</li>
+     * <li>SQL_DATA_TYPE (int) for future use</li>
+     * <li>SQL_DATETIME_SUB (int) for future use</li>
+     * <li>CHAR_OCTET_LENGTH (int)</li>
      * <li>ORDINAL_POSITION (int) the parameter index
      * starting from 1 (0 is the return value)</li>
      * <li>IS_NULLABLE (String) always "YES"</li>
-     * <li>SPECIFIC_NAME (String) name</li>
+     * <li>SPECIFIC_NAME (String) non-ambiguous procedure name to distinguish
+     * overloads</li>
      * </ol>
      *
      * @param catalog null or the catalog name

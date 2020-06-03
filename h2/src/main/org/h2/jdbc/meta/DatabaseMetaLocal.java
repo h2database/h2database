@@ -11,20 +11,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.CommandInterface;
 import org.h2.command.dml.Help;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintActionType;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
+import org.h2.engine.DbObject;
+import org.h2.engine.FunctionAlias;
+import org.h2.engine.FunctionAlias.JavaMethod;
+import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.expression.ParameterInterface;
+import org.h2.engine.User;
+import org.h2.engine.UserAggregate;
 import org.h2.expression.condition.CompareLike;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -36,6 +38,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
+import org.h2.table.InformationSchemaTable;
 import org.h2.table.Table;
 import org.h2.table.TableSynonym;
 import org.h2.util.MathUtils;
@@ -49,6 +52,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueSmallint;
+import org.h2.value.ValueToObjectConverter2;
 import org.h2.value.ValueVarchar;
 
 /**
@@ -56,15 +60,9 @@ import org.h2.value.ValueVarchar;
  */
 public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
-    private static final Value PERCENT = ValueVarchar.get("%");
-
-    private static final Value BACKSLASH = ValueVarchar.get("\\");
-
     private static final Value YES = ValueVarchar.get("YES");
 
     private static final Value NO = ValueVarchar.get("NO");
-
-    private static final Value SCHEMA_MAIN = ValueVarchar.get(Constants.SCHEMA_MAIN);
 
     private static final ValueSmallint BEST_ROW_SESSION = ValueSmallint.get((short) DatabaseMetaData.bestRowSession);
 
@@ -73,7 +71,13 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     private static final ValueInteger COLUMN_NO_NULLS = ValueInteger.get(DatabaseMetaData.columnNoNulls);
 
+    private static final ValueSmallint COLUMN_NO_NULLS_SMALL = ValueSmallint
+            .get((short) DatabaseMetaData.columnNoNulls);
+
     private static final ValueInteger COLUMN_NULLABLE = ValueInteger.get(DatabaseMetaData.columnNullable);
+
+    private static final ValueSmallint COLUMN_NULLABLE_UNKNOWN_SMALL = ValueSmallint
+            .get((short) DatabaseMetaData.columnNullableUnknown);
 
     private static final ValueSmallint IMPORTED_KEY_CASCADE = ValueSmallint
             .get((short) DatabaseMetaData.importedKeyCascade);
@@ -90,6 +94,18 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     private static final ValueSmallint IMPORTED_KEY_NOT_DEFERRABLE = ValueSmallint
             .get((short) DatabaseMetaData.importedKeyNotDeferrable);
 
+    private static final ValueSmallint PROCEDURE_COLUMN_IN = ValueSmallint
+            .get((short) DatabaseMetaData.procedureColumnIn);
+
+    private static final ValueSmallint PROCEDURE_COLUMN_RETURN = ValueSmallint
+            .get((short) DatabaseMetaData.procedureColumnReturn);
+
+    private static final ValueSmallint PROCEDURE_NO_RESULT = ValueSmallint
+            .get((short) DatabaseMetaData.procedureNoResult);
+
+    private static final ValueSmallint PROCEDURE_RETURNS_RESULT = ValueSmallint
+            .get((short) DatabaseMetaData.procedureReturnsResult);
+
     private static final ValueSmallint TABLE_INDEX_STATISTIC = ValueSmallint.get(DatabaseMetaData.tableIndexStatistic);
 
     private static final ValueSmallint TABLE_INDEX_HASHED = ValueSmallint.get(DatabaseMetaData.tableIndexHashed);
@@ -105,8 +121,6 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     private static final ValueSmallint TYPE_SEARCHABLE = ValueSmallint.get((short) DatabaseMetaData.typeSearchable);
 
     private final Session session;
-
-    private Comparator<String> comparator;
 
     public DatabaseMetaLocal(Session session) {
         this.session = session;
@@ -181,63 +195,202 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public ResultInterface getProcedures(String catalog, String schemaPattern, String procedureNamePattern) {
-        return executeQuery("SELECT " //
-                + "ALIAS_CATALOG PROCEDURE_CAT, " //
-                + "ALIAS_SCHEMA PROCEDURE_SCHEM, " //
-                + "ALIAS_NAME PROCEDURE_NAME, " //
-                + "COLUMN_COUNT NUM_INPUT_PARAMS, " //
-                + "ZERO() NUM_OUTPUT_PARAMS, " //
-                + "ZERO() NUM_RESULT_SETS, " //
-                + "REMARKS, " //
-                + "RETURNS_RESULT PROCEDURE_TYPE, " //
-                + "ALIAS_NAME SPECIFIC_NAME " //
-                + "FROM INFORMATION_SCHEMA.FUNCTION_ALIASES " //
-                + "WHERE ALIAS_CATALOG LIKE ?1 ESCAPE ?4 " //
-                + "AND ALIAS_SCHEMA LIKE ?2 ESCAPE ?4 " //
-                + "AND ALIAS_NAME LIKE ?3 ESCAPE ?4 " //
-                + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME, NUM_INPUT_PARAMS", //
-                getCatalogPattern(catalog), //
-                getSchemaPattern(schemaPattern), //
-                getPattern(procedureNamePattern), //
-                BACKSLASH);
+        checkClosed();
+        SimpleResult result = new SimpleResult();
+        result.addColumn("PROCEDURE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("PROCEDURE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("PROCEDURE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("RESERVED1", TypeInfo.TYPE_NULL);
+        result.addColumn("RESERVED2", TypeInfo.TYPE_NULL);
+        result.addColumn("RESERVED3", TypeInfo.TYPE_NULL);
+        result.addColumn("REMARKS", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("PROCEDURE_TYPE", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("SPECIFIC_NAME", TypeInfo.TYPE_VARCHAR);
+        if (!checkCatalogName(catalog)) {
+            return result;
+        }
+        Database db = session.getDatabase();
+        Value catalogValue = getString(db.getShortName());
+        CompareLike procedureLike = getLike(procedureNamePattern);
+        for (Schema s : getSchemasForPattern(schemaPattern)) {
+            Value schemaValue = getString(s.getName());
+            for (FunctionAlias f : s.getAllFunctionAliases()) {
+                String procedureName = f.getName();
+                if (procedureLike != null && !procedureLike.test(procedureName)) {
+                    continue;
+                }
+                Value procedureNameValue = getString(procedureName);
+                JavaMethod[] methods;
+                try {
+                    methods = f.getJavaMethods();
+                } catch (DbException e) {
+                    continue;
+                }
+                for (int i = 0; i < methods.length; i++) {
+                    JavaMethod method = methods[i];
+                    getProceduresAdd(result, catalogValue, schemaValue, procedureNameValue, f.getComment(),
+                            method.getDataType().getValueType() != Value.NULL ? PROCEDURE_RETURNS_RESULT
+                                    : PROCEDURE_NO_RESULT,
+                            getString(procedureName + '_' + i));
+                }
+            }
+            if (s == db.getMainSchema()) {
+                for (UserAggregate a : db.getAllAggregates()) {
+                    String procedureName = a.getName();
+                    if (procedureLike != null && !procedureLike.test(procedureName)) {
+                        continue;
+                    }
+                    Value nameValue = getString(procedureName);
+                    getProceduresAdd(result, catalogValue, schemaValue, nameValue, a.getComment(),
+                            PROCEDURE_RETURNS_RESULT, nameValue);
+                }
+            }
+        }
+        // PROCEDURE_CAT, PROCEDURE_SCHEM, PROCEDURE_NAME, SPECIFIC_ NAME
+        result.sortRows(new SortOrder(session, new int[] { 1, 2, 8 }));
+        return result;
+    }
+
+    private void getProceduresAdd(SimpleResult result, Value catalogValue, Value schemaValue, Value procedureNameValue,
+            String comment, ValueSmallint procedureType, Value specificNameValue) {
+        result.addRow(
+                // PROCEDURE_CAT
+                catalogValue,
+                // PROCEDURE_SCHEM
+                schemaValue,
+                // PROCEDURE_NAME
+                procedureNameValue,
+                // RESERVED1
+                ValueNull.INSTANCE,
+                // RESERVED2
+                ValueNull.INSTANCE,
+                // RESERVED3
+                ValueNull.INSTANCE,
+                // REMARKS
+                getString(comment),
+                // PROCEDURE_TYPE
+                procedureType,
+                // SPECIFIC_NAME
+                specificNameValue);
     }
 
     @Override
     public ResultInterface getProcedureColumns(String catalog, String schemaPattern, String procedureNamePattern,
             String columnNamePattern) {
-        return executeQuery("SELECT " //
-                + "ALIAS_CATALOG PROCEDURE_CAT, " //
-                + "ALIAS_SCHEMA PROCEDURE_SCHEM, " //
-                + "ALIAS_NAME PROCEDURE_NAME, " //
-                + "COLUMN_NAME, " //
-                + "COLUMN_TYPE, " //
-                + "DATA_TYPE, " //
-                + "TYPE_NAME, " //
-                + "PRECISION, " //
-                + "PRECISION LENGTH, " //
-                + "SCALE, " //
-                + "RADIX, " //
-                + "NULLABLE, " //
-                + "REMARKS, " //
-                + "COLUMN_DEFAULT COLUMN_DEF, " //
-                + "ZERO() SQL_DATA_TYPE, " //
-                + "ZERO() SQL_DATETIME_SUB, " //
-                + "ZERO() CHAR_OCTET_LENGTH, " //
-                + "POS ORDINAL_POSITION, " //
-                + "?1 IS_NULLABLE, " //
-                + "ALIAS_NAME SPECIFIC_NAME " //
-                + "FROM INFORMATION_SCHEMA.FUNCTION_COLUMNS " //
-                + "WHERE ALIAS_CATALOG LIKE ?2 ESCAPE ?6 " //
-                + "AND ALIAS_SCHEMA LIKE ?3 ESCAPE ?6 " //
-                + "AND ALIAS_NAME LIKE ?4 ESCAPE ?6 " //
-                + "AND COLUMN_NAME LIKE ?5 ESCAPE ?6 " //
-                + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME, ORDINAL_POSITION", //
-                YES, //
-                getCatalogPattern(catalog), //
-                getSchemaPattern(schemaPattern), //
-                getPattern(procedureNamePattern), //
-                getPattern(columnNamePattern), //
-                BACKSLASH);
+        checkClosed();
+        SimpleResult result = new SimpleResult();
+        result.addColumn("PROCEDURE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("PROCEDURE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("PROCEDURE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("COLUMN_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("COLUMN_TYPE", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("DATA_TYPE", TypeInfo.TYPE_INTEGER);
+        result.addColumn("TYPE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("PRECISION", TypeInfo.TYPE_INTEGER);
+        result.addColumn("LENGTH", TypeInfo.TYPE_INTEGER);
+        result.addColumn("SCALE", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("RADIX", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("NULLABLE", TypeInfo.TYPE_SMALLINT);
+        result.addColumn("REMARKS", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("COLUMN_DEF", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("SQL_DATA_TYPE", TypeInfo.TYPE_INTEGER);
+        result.addColumn("SQL_DATETIME_SUB", TypeInfo.TYPE_INTEGER);
+        result.addColumn("CHAR_OCTET_LENGTH", TypeInfo.TYPE_INTEGER);
+        result.addColumn("ORDINAL_POSITION", TypeInfo.TYPE_INTEGER);
+        result.addColumn("IS_NULLABLE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("SPECIFIC_NAME", TypeInfo.TYPE_VARCHAR);
+        if (!checkCatalogName(catalog)) {
+            return result;
+        }
+        Database db = session.getDatabase();
+        Value catalogValue = getString(db.getShortName());
+        CompareLike procedureLike = getLike(procedureNamePattern);
+        for (Schema s : getSchemasForPattern(schemaPattern)) {
+            Value schemaValue = getString(s.getName());
+            for (FunctionAlias f : s.getAllFunctionAliases()) {
+                String procedureName = f.getName();
+                if (procedureLike != null && !procedureLike.test(procedureName)) {
+                    continue;
+                }
+                Value procedureNameValue = getString(procedureName);
+                JavaMethod[] methods;
+                try {
+                    methods = f.getJavaMethods();
+                } catch (DbException e) {
+                    continue;
+                }
+                for (int i = 0, l = methods.length; i < l; i++) {
+                    JavaMethod method = methods[i];
+                    Value specificNameValue = getString(procedureName + '_' + i);
+                    TypeInfo type = method.getDataType();
+                    if (type.getValueType() != Value.NULL) {
+                        getProcedureColumnAdd(result, catalogValue, schemaValue, procedureNameValue, specificNameValue,
+                                type, method.getClass().isPrimitive(), 0);
+                    }
+                    Class<?>[] columnList = method.getColumnClasses();
+                    for (int o = 1, p = method.hasConnectionParam() ? 1 : 0, n = columnList.length; p < n; o++, p++) {
+                        Class<?> clazz = columnList[p];
+                        getProcedureColumnAdd(result, catalogValue, schemaValue, procedureNameValue, specificNameValue,
+                                ValueToObjectConverter2.classToType(clazz), clazz.isPrimitive(), o);
+                    }
+                }
+            }
+        }
+        // PROCEDURE_CAT, PROCEDURE_SCHEM, PROCEDURE_NAME, SPECIFIC_NAME, return
+        // value first
+        result.sortRows(new SortOrder(session, new int[] { 1, 2, 19 }));
+        return result;
+    }
+
+    private void getProcedureColumnAdd(SimpleResult result, Value catalogValue, Value schemaValue,
+            Value procedureNameValue, Value specificNameValue, TypeInfo type, boolean notNull, int ordinal) {
+        int valueType = type.getValueType();
+        DataType dt = DataType.getDataType(valueType);
+        ValueInteger precisionValue = ValueInteger.get(MathUtils.convertLongToInt(type.getPrecision()));
+        result.addRow(
+                // PROCEDURE_CAT
+                catalogValue,
+                // PROCEDURE_SCHEM
+                schemaValue,
+                // PROCEDURE_NAME
+                procedureNameValue,
+                // COLUMN_NAME
+                getString(ordinal == 0 ? "RESULT" : "P" + ordinal),
+                // COLUMN_TYPE
+                ordinal == 0 ? PROCEDURE_COLUMN_RETURN : PROCEDURE_COLUMN_IN,
+                // DATA_TYPE
+                ValueInteger.get(DataType.convertTypeToSQLType(dt.type)),
+                // TYPE_NAME
+                getString(InformationSchemaTable.getDataTypeName(dt, type)),
+                // PRECISION
+                precisionValue,
+                // LENGTH
+                precisionValue,
+                // SCALE
+                dt.supportsScale //
+                        ? ValueSmallint.get(MathUtils.convertIntToShort(dt.defaultScale))
+                        : ValueNull.INSTANCE,
+                // RADIX
+                getRadix(valueType, true),
+                // NULLABLE
+                notNull ? COLUMN_NO_NULLS_SMALL : COLUMN_NULLABLE_UNKNOWN_SMALL,
+                // REMARKS
+                ValueNull.INSTANCE,
+                // COLUMN_DEF
+                ValueNull.INSTANCE,
+                // SQL_DATA_TYPE
+                ValueNull.INSTANCE,
+                // SQL_DATETIME_SUB
+                ValueNull.INSTANCE,
+                // CHAR_OCTET_LENGTH
+                DataType.isBinaryStringType(valueType) || DataType.isCharacterStringType(valueType) ? precisionValue
+                        : ValueNull.INSTANCE,
+                // ORDINAL_POSITION
+                ValueInteger.get(ordinal),
+                // IS_NULLABLE
+                ValueVarchar.EMPTY,
+                // SPECIFIC_NAME
+                specificNameValue);
     }
 
     @Override
@@ -290,7 +443,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 }
             }
         }
-        result.sortRows(new SortOrder(session, new int[] { 3, 0, 1, 2 }, new int[4], null));
+        // TABLE_TYPE, TABLE_CAT, TABLE_SCHEM, TABLE_NAME
+        result.sortRows(new SortOrder(session, new int[] { 3, 1, 2 }));
         return result;
     }
 
@@ -341,6 +495,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     public ResultInterface getTableTypes() {
         SimpleResult result = new SimpleResult();
         result.addColumn("TABLE_TYPE", TypeInfo.TYPE_VARCHAR);
+        // Order by TABLE_TYPE
         result.addRow(getString("BASE TABLE"));
         result.addRow(getString("GLOBAL TEMPORARY"));
         result.addRow(getString("LOCAL TEMPORARY"));
@@ -399,7 +554,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 }
             }
         }
-        result.sortRows(new SortOrder(session, new int[] { 0, 1, 2, 16 }, new int[4], null));
+        // TABLE_CAT, TABLE_SCHEM, TABLE_NAME, ORDINAL_POSITION
+        result.sortRows(new SortOrder(session, new int[] { 1, 2, 16 }));
         return result;
     }
 
@@ -413,7 +569,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 continue;
             }
             TypeInfo type = c.getType();
-            DataType dt = DataType.getDataType(type.getValueType());
+            int valueType = type.getValueType();
+            DataType dt = DataType.getDataType(valueType);
             ValueInteger precision = ValueInteger.get(MathUtils.convertLongToInt(type.getPrecision()));
             boolean nullable = c.isNullable(), isGenerated = c.getGenerated();
             result.addRow(
@@ -428,7 +585,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     // DATA_TYPE
                     ValueInteger.get(dt.sqlType),
                     // TYPE_NAME
-                    getString(dt.name),
+                    getString(InformationSchemaTable.getDataTypeName(dt, type)),
                     // COLUMN_SIZE
                     precision,
                     // BUFFER_LENGTH
@@ -436,7 +593,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     // DECIMAL_DIGITS
                     ValueInteger.get(type.getScale()),
                     // NUM_PREC_RADIX
-                    DataType.isNumericType(type.getValueType()) ? ValueInteger.get(10) : ValueNull.INSTANCE,
+                    getRadix(valueType, false),
                     // NULLABLE
                     nullable ? COLUMN_NULLABLE : COLUMN_NO_NULLS,
                     // REMARKS
@@ -470,47 +627,168 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public ResultInterface getColumnPrivileges(String catalog, String schema, String table, String columnNamePattern) {
-        return executeQuery("SELECT " //
-                + "TABLE_CATALOG TABLE_CAT, " //
-                + "TABLE_SCHEMA TABLE_SCHEM, " //
-                + "TABLE_NAME, " //
-                + "COLUMN_NAME, " //
-                + "GRANTOR, " //
-                + "GRANTEE, " //
-                + "PRIVILEGE_TYPE PRIVILEGE, " //
-                + "IS_GRANTABLE " //
-                + "FROM INFORMATION_SCHEMA.COLUMN_PRIVILEGES " //
-                + "WHERE TABLE_CATALOG LIKE ?1 ESCAPE ?5 " //
-                + "AND TABLE_SCHEMA LIKE ?2 ESCAPE ?5 " //
-                + "AND TABLE_NAME = ?3 " //
-                + "AND COLUMN_NAME LIKE ?4 ESCAPE ?5 " //
-                + "ORDER BY COLUMN_NAME, PRIVILEGE", //
-                getCatalogPattern(catalog), //
-                getSchemaPattern(schema), //
-                getString(table), //
-                getPattern(columnNamePattern), //
-                BACKSLASH);
+        if (table == null) {
+            throw DbException.getInvalidValueException("table", null);
+        }
+        checkClosed();
+        SimpleResult result = new SimpleResult();
+        result.addColumn("TABLE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("COLUMN_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("GRANTOR", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("GRANTEE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("PRIVILEGE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("IS_GRANTABLE", TypeInfo.TYPE_VARCHAR);
+        if (!checkCatalogName(catalog)) {
+            return result;
+        }
+        Database db = session.getDatabase();
+        Value catalogValue = getString(db.getShortName());
+        CompareLike columnLike = getLike(columnNamePattern);
+        for (Right r : db.getAllRights()) {
+            DbObject object = r.getGrantedObject();
+            if (!(object instanceof Table)) {
+                continue;
+            }
+            Table t = (Table) object;
+            if (t.isHidden()) {
+                continue;
+            }
+            String tableName = t.getName();
+            if (!db.equalsIdentifiers(table, tableName)) {
+                continue;
+            }
+            Schema s = t.getSchema();
+            if (!checkSchema(schema, s)) {
+                continue;
+            }
+            addPrivileges(result, catalogValue, s.getName(), tableName, r.getGrantee(), r.getRightMask(), columnLike,
+                    t.getColumns());
+        }
+        // COLUMN_NAME, PRIVILEGE
+        result.sortRows(new SortOrder(session, new int[] { 3, 6 }));
+        return result;
     }
 
     @Override
     public ResultInterface getTablePrivileges(String catalog, String schemaPattern, String tableNamePattern) {
-        return executeQuery("SELECT " //
-                + "TABLE_CATALOG TABLE_CAT, " //
-                + "TABLE_SCHEMA TABLE_SCHEM, " //
-                + "TABLE_NAME, " //
-                + "GRANTOR, " //
-                + "GRANTEE, " //
-                + "PRIVILEGE_TYPE PRIVILEGE, " //
-                + "IS_GRANTABLE " //
-                + "FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES " //
-                + "WHERE TABLE_CATALOG LIKE ?1 ESCAPE ?4 " //
-                + "AND TABLE_SCHEMA LIKE ?2 ESCAPE ?4 " //
-                + "AND TABLE_NAME LIKE ?3 ESCAPE ?4 " //
-                + "ORDER BY TABLE_SCHEM, TABLE_NAME, PRIVILEGE", //
-                getCatalogPattern(catalog), //
-                getSchemaPattern(schemaPattern), //
-                getPattern(tableNamePattern), //
-                BACKSLASH);
+        checkClosed();
+        SimpleResult result = new SimpleResult();
+        result.addColumn("TABLE_CAT", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_SCHEM", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("TABLE_NAME", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("GRANTOR", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("GRANTEE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("PRIVILEGE", TypeInfo.TYPE_VARCHAR);
+        result.addColumn("IS_GRANTABLE", TypeInfo.TYPE_VARCHAR);
+        if (!checkCatalogName(catalog)) {
+            return result;
+        }
+        Database db = session.getDatabase();
+        Value catalogValue = getString(db.getShortName());
+        CompareLike schemaLike = getLike(schemaPattern);
+        CompareLike tableLike = getLike(tableNamePattern);
+        for (Right r : db.getAllRights()) {
+            DbObject object = r.getGrantedObject();
+            if (!(object instanceof Table)) {
+                continue;
+            }
+            Table table = (Table) object;
+            if (table.isHidden()) {
+                continue;
+            }
+            String tableName = table.getName();
+            if (tableLike != null && !tableLike.test(tableName)) {
+                continue;
+            }
+            Schema schema = table.getSchema();
+            String schemaName = schema.getName();
+            if (schemaPattern != null) {
+                if (schemaPattern.isEmpty()) {
+                    if (schema != db.getMainSchema()) {
+                        continue;
+                    }
+                } else {
+                    if (!schemaLike.test(schemaName)) {
+                        continue;
+                    }
+                }
+            }
+            addPrivileges(result, catalogValue, schemaName, tableName, r.getGrantee(), r.getRightMask(), null, null);
+        }
+        // TABLE_CAT, TABLE_SCHEM, TABLE_NAME, PRIVILEGE
+        result.sortRows(new SortOrder(session, new int[] { 1, 2, 5 }));
+        return result;
+    }
+
+    private void addPrivileges(SimpleResult result, Value catalogValue, String schemaName, String tableName,
+            DbObject grantee, int rightMask, CompareLike columnLike, Column[] columns) {
+        Value schemaValue = getString(schemaName);
+        Value tableValue = getString(tableName);
+        Value granteeValue = getString(grantee.getName());
+        boolean isAdmin = grantee.getType() == DbObject.USER && ((User) grantee).isAdmin();
+        if ((rightMask & Right.SELECT) != 0) {
+            addPrivilege(result, catalogValue, schemaValue, tableValue, granteeValue, "SELECT", isAdmin, columnLike,
+                    columns);
+        }
+        if ((rightMask & Right.INSERT) != 0) {
+            addPrivilege(result, catalogValue, schemaValue, tableValue, granteeValue, "INSERT", isAdmin, columnLike,
+                    columns);
+        }
+        if ((rightMask & Right.UPDATE) != 0) {
+            addPrivilege(result, catalogValue, schemaValue, tableValue, granteeValue, "UPDATE", isAdmin, columnLike,
+                    columns);
+        }
+        if ((rightMask & Right.DELETE) != 0) {
+            addPrivilege(result, catalogValue, schemaValue, tableValue, granteeValue, "DELETE", isAdmin, columnLike,
+                    columns);
+        }
+    }
+
+    private void addPrivilege(SimpleResult result, Value catalogValue, Value schemaValue, Value tableValue,
+            Value granteeValue, String right, boolean isAdmin, CompareLike columnLike, Column[] columns) {
+        if (columns == null) {
+            result.addRow(
+                    // TABLE_CAT
+                    catalogValue,
+                    // TABLE_SCHEM
+                    schemaValue,
+                    // TABLE_NAME
+                    tableValue,
+                    // GRANTOR
+                    ValueNull.INSTANCE,
+                    // GRANTEE
+                    granteeValue,
+                    // PRIVILEGE
+                    getString(right),
+                    // IS_GRANTABLE
+                    isAdmin ? YES : NO);
+        } else {
+            for (Column column : columns) {
+                String columnName = column.getName();
+                if (columnLike != null && !columnLike.test(columnName)) {
+                    continue;
+                }
+                result.addRow(
+                        // TABLE_CAT
+                        catalogValue,
+                        // TABLE_SCHEM
+                        schemaValue,
+                        // TABLE_NAME
+                        tableValue,
+                        // COLUMN_NAME
+                        getString(columnName),
+                        // GRANTOR
+                        ValueNull.INSTANCE,
+                        // GRANTEE
+                        granteeValue,
+                        // PRIVILEGE
+                        getString(right),
+                        // IS_GRANTABLE
+                        isAdmin ? YES : NO);
+            }
+        }
     }
 
     @Override
@@ -559,7 +837,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                             // DATA_TYPE
                             ValueInteger.get(dt.sqlType),
                             // TYPE_NAME
-                            getString(dt.name), ValueInteger.get(MathUtils.convertLongToInt(type.getPrecision())),
+                            getString(InformationSchemaTable.getDataTypeName(dt, type)),
+                            // COLUMN_SIZE
+                            ValueInteger.get(MathUtils.convertLongToInt(type.getPrecision())),
                             // BUFFER_LENGTH
                             ValueNull.INSTANCE,
                             // DECIMAL_DIGITS
@@ -570,6 +850,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 }
             }
         }
+        // Order by SCOPE (always the same)
         return result;
     }
 
@@ -625,7 +906,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 }
             }
         }
-        result.sortRows(new SortOrder(session, new int[] { 3 }, new int[1], null));
+        // COLUMN_NAME
+        result.sortRows(new SortOrder(session, new int[] { 3 }));
         return result;
     }
 
@@ -663,7 +945,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                         fkTable.getSchema().getName(), fkTable, fk);
             }
         }
-        return sortCrossReferenceResult(result);
+        // PKTABLE_CAT, PKTABLE_SCHEM, PKTABLE_NAME, KEY_SEQ
+        result.sortRows(new SortOrder(session, new int[] { 1, 2, 8 }));
+        return result;
     }
 
     @Override
@@ -700,7 +984,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                         fkTable.getSchema().getName(), fkTable, fk);
             }
         }
-        return sortCrossReferenceResult(result);
+        // FKTABLE_CAT FKTABLE_SCHEM, FKTABLE_NAME, KEY_SEQ
+        result.sortRows(new SortOrder(session, new int[] { 5, 6, 8 }));
+        return result;
     }
 
     @Override
@@ -748,7 +1034,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                         fkTable.getSchema().getName(), fkTable, fk);
             }
         }
-        return sortCrossReferenceResult(result);
+        // FKTABLE_CAT FKTABLE_SCHEM, FKTABLE_NAME, KEY_SEQ
+        result.sortRows(new SortOrder(session, new int[] { 5, 6, 8 }));
+        return result;
     }
 
     private SimpleResult initCrossReferenceResult() {
@@ -831,11 +1119,6 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         }
     }
 
-    private ResultInterface sortCrossReferenceResult(SimpleResult result) {
-        result.sortRows(new SortOrder(session, new int[] { 4, 5, 6, 8 }, new int[4], null));
-        return result;
-    }
-
     @Override
     public ResultInterface getTypeInfo() {
         checkClosed();
@@ -899,9 +1182,19 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     // SQL_DATETIME_SUB (unused)
                     ValueNull.INSTANCE,
                     // NUM_PREC_RADIX
-                    t.decimal ? ValueInteger.get(10) : ValueNull.INSTANCE);
+                    getRadix(t.type, false));
         }
+        // DATA_TYPE, better types first
+        result.sortRows(new SortOrder(session, new int[] { 1 }));
         return result;
+    }
+
+    private static Value getRadix(int valueType, boolean small) {
+        if (DataType.isNumericType(valueType)) {
+            int radix = valueType == Value.NUMERIC ? 10 : 2;
+            return small ? ValueSmallint.get((short) radix) : ValueInteger.get(radix);
+        }
+        return ValueNull.INSTANCE;
     }
 
     @Override
@@ -937,7 +1230,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             }
             getIndexInfo(catalogValue, getString(s.getName()), t, unique, approximate, result, db);
         }
-        result.sortRows(new SortOrder(session, new int[] { 3, 6, 5, 7 }, new int[4], null));
+        // NON_UNIQUE, TYPE, INDEX_NAME, ORDINAL_POSITION
+        result.sortRows(new SortOrder(session, new int[] { 3, 6, 5, 7 }));
         return result;
     }
 
@@ -1009,51 +1303,22 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         }
         CompareLike schemaLike = getLike(schemaPattern);
         Collection<Schema> allSchemas = session.getDatabase().getAllSchemas();
-        ArrayList<String> list;
+        Value catalogValue = getString(session.getDatabase().getShortName());
         if (schemaLike == null) {
-            list = new ArrayList<>(allSchemas.size());
             for (Schema s : allSchemas) {
-                list.add(s.getName());
+                result.addRow(getString(s.getName()), catalogValue);
             }
         } else {
-            list = Utils.newSmallArrayList();
             for (Schema s : allSchemas) {
                 String name = s.getName();
                 if (schemaLike.test(name)) {
-                    list.add(name);
+                    result.addRow(getString(s.getName()), catalogValue);
                 }
             }
         }
-        list.sort(getComparator());
-        Value c = getString(session.getDatabase().getShortName());
-        for (String s : list) {
-            result.addRow(getString(s), c);
-        }
+        // TABLE_CATALOG, TABLE_SCHEM
+        result.sortRows(new SortOrder(session, new int[] { 0 }));
         return result;
-    }
-
-    private ResultInterface executeQuery(String sql, Value... args) {
-        checkClosed();
-        synchronized (session) {
-            CommandInterface command = session.prepareCommand(sql, Integer.MAX_VALUE);
-            int l = args.length;
-            if (l > 0) {
-                ArrayList<? extends ParameterInterface> parameters = command.getParameters();
-                for (int i = 0; i < l; i++) {
-                    parameters.get(i).setValue(args[i], true);
-                }
-            }
-            boolean lazy = session.isLazyQueryExecution();
-            ResultInterface result;
-            try {
-                session.setLazyQueryExecution(false);
-                result = command.executeQuery(0, false);
-                command.close();
-            } finally {
-                session.setLazyQueryExecution(lazy);
-            }
-            return result;
-        }
     }
 
     @Override
@@ -1063,25 +1328,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         }
     }
 
-    private Comparator<String> getComparator() {
-        Comparator<String> comparator = this.comparator;
-        if (comparator == null) {
-            Database db = session.getDatabase();
-            this.comparator = comparator = (o1, o2) -> db.getCompareMode().compareString(o1, o2, false);
-        }
-        return comparator;
-    }
-
     Value getString(String string) {
         return string != null ? ValueVarchar.get(string, session) : ValueNull.INSTANCE;
-    }
-
-    private Value getPattern(String pattern) {
-        return pattern == null ? PERCENT : getString(pattern);
-    }
-
-    private Value getSchemaPattern(String pattern) {
-        return pattern == null ? PERCENT : pattern.isEmpty() ? SCHEMA_MAIN : getString(pattern);
     }
 
     private boolean checkCatalogName(String catalog) {
@@ -1175,10 +1423,6 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 null, CompareLike.LikeType.LIKE);
         like.initPattern(pattern, '\\');
         return like;
-    }
-
-    private Value getCatalogPattern(String catalogPattern) {
-        return catalogPattern == null || catalogPattern.isEmpty() ? PERCENT : getString(catalogPattern);
     }
 
 }

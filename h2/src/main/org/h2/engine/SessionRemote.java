@@ -864,14 +864,16 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public StaticSettings getStaticSettings() {
         StaticSettings settings = staticSettings;
         if (settings == null) {
-            boolean databaseToUpper = true, databaseToLower = false, caseInsensitiveIdentifiers = false;
+            boolean databaseToUpper = true, databaseToLower = false, caseInsensitiveIdentifiers = false,
+                    oldInformationSchema = false;
             try (CommandInterface command = prepareCommand(
-                    "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN (?, ?, ?)",
+                    "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN (?, ?, ?, ?)",
                     Integer.MAX_VALUE)) {
                 ArrayList<? extends ParameterInterface> parameters = command.getParameters();
                 parameters.get(0).setValue(ValueVarchar.get("DATABASE_TO_UPPER"), false);
                 parameters.get(1).setValue(ValueVarchar.get("DATABASE_TO_LOWER"), false);
                 parameters.get(2).setValue(ValueVarchar.get("CASE_INSENSITIVE_IDENTIFIERS"), false);
+                parameters.get(3).setValue(ValueVarchar.get("OLD_INFORMATION_SCHEMA"), false);
                 try (ResultInterface result = command.executeQuery(Integer.MAX_VALUE, false)) {
                     while (result.next()) {
                         Value[] row = result.currentRow();
@@ -885,6 +887,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                             break;
                         case "CASE_INSENSITIVE_IDENTIFIERS":
                             caseInsensitiveIdentifiers = Boolean.valueOf(value);
+                            break;
+                        case "OLD_INFORMATION_SCHEMA":
+                            oldInformationSchema = Boolean.valueOf(value);
                         }
                     }
                 }
@@ -893,7 +898,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                 caseInsensitiveIdentifiers = !databaseToUpper;
             }
             staticSettings = settings = new StaticSettings(databaseToUpper, databaseToLower,
-                    caseInsensitiveIdentifiers);
+                    caseInsensitiveIdentifiers, oldInformationSchema);
         }
         return settings;
     }

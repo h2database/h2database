@@ -408,8 +408,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         ResultSet rs;
         stat.execute("create force alias sayHi as 'String test(String name) {\n" +
                 "return \"Hello \" + name;\n}'");
-        rs = stat.executeQuery("SELECT ALIAS_NAME " +
-                "FROM INFORMATION_SCHEMA.FUNCTION_ALIASES");
+        rs = stat.executeQuery("SELECT ROUTINE_NAME " +
+                "FROM INFORMATION_SCHEMA.ROUTINES");
         rs.next();
         assertEquals("SAY" + "HI", rs.getString(1));
         rs = stat.executeQuery("call sayHi('Joe')");
@@ -484,8 +484,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals(0, rs.getInt(1));
         stat.execute("drop alias getCount");
         rs = stat.executeQuery("SELECT * FROM " +
-                "INFORMATION_SCHEMA.FUNCTION_ALIASES " +
-                "WHERE UPPER(ALIAS_NAME) = 'GET' || 'COUNT'");
+                "INFORMATION_SCHEMA.ROUTINES " +
+                "WHERE UPPER(ROUTINE_NAME) = 'GET' || 'COUNT'");
         assertFalse(rs.next());
         stat.execute("create alias reverse deterministic for \""+
                 getClass().getName()+".reverse\"");
@@ -536,7 +536,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         rs.next();
         assertEquals(ValueNumeric.MAXIMUM_SCALE, rs.getMetaData().getScale(2));
         assertEquals(ValueNumeric.MAXIMUM_SCALE, rs.getMetaData().getScale(1));
-        stat.executeQuery("select * from information_schema.function_aliases");
+        stat.executeQuery("select * from information_schema.routines");
         conn.close();
     }
 
@@ -586,7 +586,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals(0, rs.getInt("CHAR_OCTET_LENGTH"));
         assertEquals(1, rs.getInt("ORDINAL_POSITION"));
         assertEquals("", rs.getString("IS_NULLABLE"));
-        assertEquals("MEAN2_0", rs.getString("SPECIFIC_NAME"));
+        assertEquals("MEAN2_1", rs.getString("SPECIFIC_NAME"));
         assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS printMean FOR \"" +
@@ -861,7 +861,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals(0, rs.getInt("CHAR_OCTET_LENGTH"));
         assertEquals(1, rs.getInt("ORDINAL_POSITION"));
         assertEquals("", rs.getString("IS_NULLABLE"));
-        assertEquals("ADD_ROW_0", rs.getString("SPECIFIC_NAME"));
+        assertEquals("ADD_ROW_1", rs.getString("SPECIFIC_NAME"));
         assertTrue(rs.next());
         assertEquals("P2", rs.getString("COLUMN_NAME"));
         assertEquals("VARCHAR", rs.getString("TYPE_NAME"));
@@ -1092,7 +1092,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertNull(rs.getString("REMARKS"));
         assertEquals(DatabaseMetaData.procedureReturnsResult,
                 rs.getInt("PROCEDURE_TYPE"));
-        assertEquals("NULL_RESULT_0", rs.getString("SPECIFIC_NAME"));
+        assertEquals("NULL_RESULT_1", rs.getString("SPECIFIC_NAME"));
 
         rs = meta.getProcedureColumns(null, null, "NULL_RESULT", null);
         assertTrue(rs.next());
@@ -1168,8 +1168,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         stat.execute("SET SCHEMA TEST");
         stat.execute("CREATE ALIAS PARSE_INT2 FOR " +
                 "\"java.lang.Integer.parseInt(java.lang.String, int)\";");
-        rs = stat.executeQuery("SELECT ALIAS_NAME FROM " +
-                "INFORMATION_SCHEMA.FUNCTION_ALIASES WHERE ALIAS_SCHEMA ='TEST'");
+        rs = stat.executeQuery("SELECT ROUTINE_NAME FROM " +
+                "INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA ='TEST'");
         rs.next();
         assertEquals("PARSE_INT2", rs.getString(1));
         stat.execute("DROP ALIAS PARSE_INT2");
@@ -1182,8 +1182,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         rs = stat.executeQuery("CALL PARSE_INT2('-FF', 16)");
         rs.next();
         assertEquals(-255, rs.getInt(1));
-        rs = stat.executeQuery("SELECT ALIAS_NAME FROM " +
-                "INFORMATION_SCHEMA.FUNCTION_ALIASES WHERE ALIAS_SCHEMA ='TEST'");
+        rs = stat.executeQuery("SELECT ROUTINE_NAME FROM " +
+                "INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA ='TEST'");
         rs.next();
         assertEquals("PARSE_INT2", rs.getString(1));
         rs = stat.executeQuery("CALL TEST.PARSE_INT2('-2147483648', 10)");

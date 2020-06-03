@@ -16,6 +16,7 @@ import java.util.Properties;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.jdbc.meta.DatabaseMeta;
+import org.h2.jdbc.meta.DatabaseMetaLegacy;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
@@ -38,7 +39,9 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     JdbcDatabaseMetaData(JdbcConnection conn, Trace trace, int id) {
         setTrace(trace, TraceObject.DATABASE_META_DATA, id);
         this.conn = conn;
-        meta = conn.getSession().getDatabaseMeta();
+        SessionInterface session = conn.getSession();
+        meta = session.getStaticSettings().oldInformationSchema ? new DatabaseMetaLegacy(session)
+                : conn.getSession().getDatabaseMeta();
     }
 
     /**

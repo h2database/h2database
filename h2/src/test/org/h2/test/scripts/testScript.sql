@@ -2173,15 +2173,15 @@ select * from test;
 >   x <empty>
 > rows: 1
 
-select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, PRECISION, SCALE, TYPE_NAME, SELECTIVITY, REMARKS, SQL from information_schema.domains;
-> DOMAIN_NAME DOMAIN_DEFAULT DATA_TYPE PRECISION  SCALE TYPE_NAME SELECTIVITY REMARKS SQL
-> ----------- -------------- --------- ---------- ----- --------- ----------- ------- -----------------------------------------------------------------------
-> EMAIL       null           12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200)
-> GMAIL       '@gmail.com'   12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."GMAIL" AS "PUBLIC"."EMAIL" DEFAULT '@gmail.com'
-> STRING      ''             12        255        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT ''
-> STRING1     null           12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
-> STRING2     '<empty>'      12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>'
-> STRING_X    null           12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2"
+select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, SELECTIVITY, REMARKS, SQL from information_schema.domains;
+> DOMAIN_NAME DOMAIN_DEFAULT DATA_TYPE CHARACTER_MAXIMUM_LENGTH SELECTIVITY REMARKS SQL
+> ----------- -------------- --------- ------------------------ ----------- ------- -----------------------------------------------------------------------
+> EMAIL       null           VARCHAR   200                      50                  CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200)
+> GMAIL       '@gmail.com'   VARCHAR   200                      50                  CREATE DOMAIN "PUBLIC"."GMAIL" AS "PUBLIC"."EMAIL" DEFAULT '@gmail.com'
+> STRING      ''             VARCHAR   255                      50                  CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT ''
+> STRING1     null           VARCHAR   2147483647               50                  CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
+> STRING2     '<empty>'      VARCHAR   2147483647               50                  CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>'
+> STRING_X    null           VARCHAR   2147483647               50                  CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2"
 > rows: 6
 
 script nodata nopasswords nosettings;
@@ -2305,8 +2305,8 @@ CREATE CONSTANT CONST.ONE VALUE 1;
 SELECT CONSTANT_SCHEMA, CONSTANT_NAME, DATA_TYPE, REMARKS, SQL FROM INFORMATION_SCHEMA.CONSTANTS;
 > CONSTANT_SCHEMA CONSTANT_NAME DATA_TYPE REMARKS SQL
 > --------------- ------------- --------- ------- ---
-> CONST           ONE           4                 1
-> PUBLIC          ONE           4         Eins    1
+> CONST           ONE           INTEGER           1
+> PUBLIC          ONE           INTEGER   Eins    1
 > rows: 2
 
 SELECT ONE, CONST.ONE FROM DUAL;
@@ -2324,7 +2324,7 @@ DROP SCHEMA CONST CASCADE;
 SELECT CONSTANT_SCHEMA, CONSTANT_NAME, DATA_TYPE, REMARKS, SQL FROM INFORMATION_SCHEMA.CONSTANTS;
 > CONSTANT_SCHEMA CONSTANT_NAME DATA_TYPE REMARKS SQL
 > --------------- ------------- --------- ------- ---
-> PUBLIC          ONE           4                 1
+> PUBLIC          ONE           INTEGER           1
 > rows: 1
 
 DROP CONSTANT ONE;

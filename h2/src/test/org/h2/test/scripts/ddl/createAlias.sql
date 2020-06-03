@@ -41,9 +41,9 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > rows: 2
 
 SELECT ALIAS_NAME, JAVA_CLASS, JAVA_METHOD, DATA_TYPE, COLUMN_COUNT, RETURNS_RESULT, REMARKS FROM INFORMATION_SCHEMA.FUNCTION_ALIASES;
-> ALIAS_NAME JAVA_CLASS     JAVA_METHOD DATA_TYPE COLUMN_COUNT RETURNS_RESULT REMARKS
-> ---------- -------------- ----------- --------- ------------ -------------- -------
-> MY_SQRT    java.lang.Math sqrt        8         1            2
+> ALIAS_NAME JAVA_CLASS     JAVA_METHOD DATA_TYPE        COLUMN_COUNT RETURNS_RESULT REMARKS
+> ---------- -------------- ----------- ---------------- ------------ -------------- -------
+> MY_SQRT    java.lang.Math sqrt        DOUBLE PRECISION 1            2
 > rows: 1
 
 DROP ALIAS MY_SQRT;

@@ -906,7 +906,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
     /**
      * Returns approximate precision in decimal digits for binary numeric data
      * types and precision for all other types.
-     * 
+     *
      * @return precision in decimal digits
      */
     public long getDecimalPrecision() {

@@ -565,28 +565,28 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         DatabaseMetaData meta = conn.getMetaData();
         rs = meta.getProcedureColumns(null, null, "MEAN2", null);
         assertTrue(rs.next());
-        assertEquals("P0", rs.getString("COLUMN_NAME"));
+        assertEquals("RESULT", rs.getString("COLUMN_NAME"));
         assertTrue(rs.next());
         assertEquals("FUNCTIONS", rs.getString("PROCEDURE_CAT"));
         assertEquals("PUBLIC", rs.getString("PROCEDURE_SCHEM"));
         assertEquals("MEAN2", rs.getString("PROCEDURE_NAME"));
-        assertEquals("P2", rs.getString("COLUMN_NAME"));
+        assertEquals("P1", rs.getString("COLUMN_NAME"));
         assertEquals(DatabaseMetaData.procedureColumnIn,
                 rs.getInt("COLUMN_TYPE"));
         assertEquals("DOUBLE PRECISION ARRAY", rs.getString("TYPE_NAME"));
         assertEquals(Integer.MAX_VALUE, rs.getInt("PRECISION"));
         assertEquals(Integer.MAX_VALUE, rs.getInt("LENGTH"));
         assertEquals(0, rs.getInt("SCALE"));
-        assertEquals(DatabaseMetaData.columnNullable,
+        assertEquals(DatabaseMetaData.columnNullableUnknown,
                 rs.getInt("NULLABLE"));
-        assertEquals("", rs.getString("REMARKS"));
+        assertNull(rs.getString("REMARKS"));
         assertEquals(null, rs.getString("COLUMN_DEF"));
         assertEquals(0, rs.getInt("SQL_DATA_TYPE"));
         assertEquals(0, rs.getInt("SQL_DATETIME_SUB"));
         assertEquals(0, rs.getInt("CHAR_OCTET_LENGTH"));
         assertEquals(1, rs.getInt("ORDINAL_POSITION"));
-        assertEquals("YES", rs.getString("IS_NULLABLE"));
-        assertEquals("MEAN2", rs.getString("SPECIFIC_NAME"));
+        assertEquals("", rs.getString("IS_NULLABLE"));
+        assertEquals("MEAN2_0", rs.getString("SPECIFIC_NAME"));
         assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS printMean FOR \"" +
@@ -841,29 +841,29 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         DatabaseMetaData meta = conn.getMetaData();
         rs = meta.getProcedureColumns(null, null, "ADD_ROW", null);
         assertTrue(rs.next());
-        assertEquals("P0", rs.getString("COLUMN_NAME"));
+        assertEquals("RESULT", rs.getString("COLUMN_NAME"));
         assertTrue(rs.next());
         assertEquals("FUNCTIONS", rs.getString("PROCEDURE_CAT"));
         assertEquals("PUBLIC", rs.getString("PROCEDURE_SCHEM"));
         assertEquals("ADD_ROW", rs.getString("PROCEDURE_NAME"));
-        assertEquals("P2", rs.getString("COLUMN_NAME"));
+        assertEquals("P1", rs.getString("COLUMN_NAME"));
         assertEquals(DatabaseMetaData.procedureColumnIn,
                 rs.getInt("COLUMN_TYPE"));
         assertEquals("INTEGER", rs.getString("TYPE_NAME"));
         assertEquals(10, rs.getInt("PRECISION"));
         assertEquals(10, rs.getInt("LENGTH"));
         assertEquals(0, rs.getInt("SCALE"));
-        assertEquals(DatabaseMetaData.columnNoNulls, rs.getInt("NULLABLE"));
-        assertEquals("", rs.getString("REMARKS"));
+        assertEquals(DatabaseMetaData.columnNullableUnknown, rs.getInt("NULLABLE"));
+        assertNull(rs.getString("REMARKS"));
         assertEquals(null, rs.getString("COLUMN_DEF"));
         assertEquals(0, rs.getInt("SQL_DATA_TYPE"));
         assertEquals(0, rs.getInt("SQL_DATETIME_SUB"));
         assertEquals(0, rs.getInt("CHAR_OCTET_LENGTH"));
         assertEquals(1, rs.getInt("ORDINAL_POSITION"));
-        assertEquals("YES", rs.getString("IS_NULLABLE"));
-        assertEquals("ADD_ROW", rs.getString("SPECIFIC_NAME"));
+        assertEquals("", rs.getString("IS_NULLABLE"));
+        assertEquals("ADD_ROW_0", rs.getString("SPECIFIC_NAME"));
         assertTrue(rs.next());
-        assertEquals("P3", rs.getString("COLUMN_NAME"));
+        assertEquals("P2", rs.getString("COLUMN_NAME"));
         assertEquals("VARCHAR", rs.getString("TYPE_NAME"));
         assertFalse(rs.next());
 
@@ -1083,17 +1083,20 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals("FUNCTIONS", rs.getString("PROCEDURE_CAT"));
         assertEquals("PUBLIC", rs.getString("PROCEDURE_SCHEM"));
         assertEquals("NULL_RESULT", rs.getString("PROCEDURE_NAME"));
-        assertEquals(0, rs.getInt("NUM_INPUT_PARAMS"));
-        assertEquals(0, rs.getInt("NUM_OUTPUT_PARAMS"));
-        assertEquals(0, rs.getInt("NUM_RESULT_SETS"));
-        assertEquals("", rs.getString("REMARKS"));
+        assertEquals(0, rs.getInt(4));
+        assertTrue(rs.wasNull());
+        assertEquals(0, rs.getInt(5));
+        assertTrue(rs.wasNull());
+        assertEquals(0, rs.getInt(6));
+        assertTrue(rs.wasNull());
+        assertNull(rs.getString("REMARKS"));
         assertEquals(DatabaseMetaData.procedureReturnsResult,
                 rs.getInt("PROCEDURE_TYPE"));
-        assertEquals("NULL_RESULT", rs.getString("SPECIFIC_NAME"));
+        assertEquals("NULL_RESULT_0", rs.getString("SPECIFIC_NAME"));
 
         rs = meta.getProcedureColumns(null, null, "NULL_RESULT", null);
         assertTrue(rs.next());
-        assertEquals("P0", rs.getString("COLUMN_NAME"));
+        assertEquals("RESULT", rs.getString("COLUMN_NAME"));
         assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS RESULT_WITH_NULL FOR \"" +

@@ -2134,7 +2134,16 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private static String getDataTypeName(DataType dt, TypeInfo typeInfo) {
+    /**
+     * Get data type name.
+     *
+     * @param dt
+     *            data type
+     * @param typeInfo
+     *            type information
+     * @return data type name
+     */
+    public static String getDataTypeName(DataType dt, TypeInfo typeInfo) {
         switch (typeInfo.getValueType()) {
         case Value.ARRAY:
             typeInfo = (TypeInfo) typeInfo.getExtTypeInfo();

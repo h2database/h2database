@@ -6,7 +6,6 @@
 package org.h2.table;
 
 import java.io.IOException;
-import java.sql.DatabaseMetaData;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -95,8 +94,8 @@ public final class InformationSchemaTable extends MetaTable {
     private static final int COLLATIONS = COLUMN_PRIVILEGES + 1;
     private static final int VIEWS = COLLATIONS + 1;
     private static final int IN_DOUBT = VIEWS + 1;
-    private static final int FUNCTION_COLUMNS = IN_DOUBT + 1;
-    private static final int CONSTANTS = FUNCTION_COLUMNS + 1;
+    private static final int PARAMETERS = IN_DOUBT + 1;
+    private static final int CONSTANTS = PARAMETERS + 1;
     private static final int DOMAINS = CONSTANTS + 1;
     private static final int TRIGGERS = DOMAINS + 1;
     private static final int SESSIONS = TRIGGERS + 1;
@@ -326,26 +325,36 @@ public final class InformationSchemaTable extends MetaTable {
                     "ID INT"
             );
             break;
-        case FUNCTION_COLUMNS:
-            setMetaTableName("FUNCTION_COLUMNS");
-            isView = false;
+        case PARAMETERS:
+            setMetaTableName("PARAMETERS");
             cols = createColumns(
-                    "ALIAS_CATALOG",
-                    "ALIAS_SCHEMA",
-                    "ALIAS_NAME",
-                    "JAVA_CLASS",
-                    "JAVA_METHOD",
-                    "COLUMN_COUNT INT",
-                    "POS INT",
-                    "COLUMN_NAME",
+                    "SPECIFIC_CATALOG",
+                    "SPECIFIC_SCHEMA",
+                    "SPECIFIC_NAME",
+                    "ORDINAL_POSITION",
+                    "PARAMETER_MODE",
+                    "IS_RESULT",
+                    "AS_LOCATOR",
+                    "PARAMETER_NAME",
                     "DATA_TYPE",
-                    "PRECISION BIGINT",
-                    "SCALE INT",
-                    "RADIX SMALLINT",
-                    "NULLABLE SMALLINT",
-                    "COLUMN_TYPE SMALLINT",
-                    "REMARKS",
-                    "COLUMN_DEFAULT"
+                    "CHARACTER_MAXIMUM_LENGTH BIGINT",
+                    "CHARACTER_OCTET_LENGTH BIGINT",
+                    "CHARACTER_SET_CATALOG",
+                    "CHARACTER_SET_SCHEMA",
+                    "CHARACTER_SET_NAME",
+                    "COLLATION_CATALOG",
+                    "COLLATION_SCHEMA",
+                    "COLLATION_NAME",
+                    "NUMERIC_PRECISION INT",
+                    "NUMERIC_PRECISION_RADIX INT",
+                    "NUMERIC_SCALE INT",
+                    "DATETIME_PRECISION INT",
+                    "INTERVAL_TYPE",
+                    "INTERVAL_PRECISION INT",
+                    "MAXIMUM_CARDINALITY INT",
+                    "PARAMETER_DEFAULT",
+                    // extensions
+                    "REMARKS"
             );
             break;
         case SCHEMATA:
@@ -1173,9 +1182,10 @@ public final class InformationSchemaTable extends MetaTable {
             }
             break;
         }
-        case FUNCTION_COLUMNS: {
-            for (SchemaObject aliasAsSchemaObject :
-                    database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
+        case PARAMETERS: {
+            String mainSchemaName = database.getMainSchema().getName();
+            String collation = database.getCompareMode().getName();
+            for (SchemaObject aliasAsSchemaObject : database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
                 FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
                 JavaMethod[] methods;
                 try {
@@ -1183,93 +1193,14 @@ public final class InformationSchemaTable extends MetaTable {
                 } catch (DbException e) {
                     methods = new JavaMethod[0];
                 }
-                for (FunctionAlias.JavaMethod method : methods) {
-                    // Add return column index 0
-                    TypeInfo typeInfo = method.getDataType();
-                    if (typeInfo.getValueType() != Value.NULL) {
-                        DataType dt = DataType.getDataType(typeInfo.getValueType());
-                        add(session,
-                                rows,
-                                // ALIAS_CATALOG
-                                catalog,
-                                // ALIAS_SCHEMA
-                                alias.getSchema().getName(),
-                                // ALIAS_NAME
-                                alias.getName(),
-                                // JAVA_CLASS
-                                alias.getJavaClassName(),
-                                // JAVA_METHOD
-                                alias.getJavaMethodName(),
-                                // COLUMN_COUNT
-                                ValueInteger.get(method.getParameterCount()),
-                                // POS
-                                ValueInteger.get(0),
-                                // COLUMN_NAME
-                                "RESULT",
-                                // DATA_TYPE
-                                getDataTypeName(dt, typeInfo),
-                                // PRECISION
-                                ValueBigint.get(dt.defaultPrecision),
-                                // SCALE
-                                ValueInteger.get(dt.defaultScale),
-                                // RADIX
-                                ValueSmallint.get((short) 10),
-                                // NULLABLE
-                                ValueSmallint.get((short) DatabaseMetaData.columnNullableUnknown),
-                                // COLUMN_TYPE
-                                ValueSmallint.get((short) DatabaseMetaData.procedureColumnReturn),
-                                // REMARKS
-                                "",
-                                // COLUMN_DEFAULT
-                                null
-                        );
-                    }
+                String schema = alias.getSchema().getName();
+                for (int i = 0; i < methods.length; i++) {
+                    FunctionAlias.JavaMethod method = methods[i];
                     Class<?>[] columnList = method.getColumnClasses();
-                    for (int k = 0; k < columnList.length; k++) {
-                        if (method.hasConnectionParam() && k == 0) {
-                            continue;
-                        }
-                        Class<?> clazz = columnList[k];
-                        TypeInfo columnTypeInfo = ValueToObjectConverter2.classToType(clazz);
-                        int dataType = columnTypeInfo.getValueType();
-                        DataType dt = DataType.getDataType(dataType);
-                        add(session,
-                                rows,
-                                // ALIAS_CATALOG
-                                catalog,
-                                // ALIAS_SCHEMA
-                                alias.getSchema().getName(),
-                                // ALIAS_NAME
-                                alias.getName(),
-                                // JAVA_CLASS
-                                alias.getJavaClassName(),
-                                // JAVA_METHOD
-                                alias.getJavaMethodName(),
-                                // COLUMN_COUNT
-                                ValueInteger.get(method.getParameterCount()),
-                                // POS
-                                ValueInteger.get(k + (method.hasConnectionParam() ? 0 : 1)),
-                                // COLUMN_NAME
-                                "P" + (k + 1),
-                                // DATA_TYPE
-                                getDataTypeName(dt, columnTypeInfo),
-                                // PRECISION
-                                ValueBigint.get(dt.defaultPrecision),
-                                // SCALE
-                                ValueInteger.get(dt.defaultScale),
-                                // RADIX
-                                ValueSmallint.get((short) 10),
-                                // NULLABLE
-                                ValueSmallint.get(clazz.isPrimitive()
-                                        ? (short) DatabaseMetaData.columnNoNulls
-                                        : (short) DatabaseMetaData.columnNullable),
-                                // COLUMN_TYPE
-                                ValueSmallint.get((short) DatabaseMetaData.procedureColumnIn),
-                                // REMARKS
-                                "",
-                                // COLUMN_DEFAULT
-                                null
-                        );
+                    for (int o = 1, p = method.hasConnectionParam() ? 1 : 0, n = columnList.length; p < n; o++, p++) {
+                        generateParameterRow(session, rows, catalog, mainSchemaName, collation, schema,
+                                alias.getName() + '_' + (i + 1), ValueToObjectConverter2.classToType(columnList[p]), //
+                                o);
                     }
                 }
             }
@@ -2175,6 +2106,75 @@ public final class InformationSchemaTable extends MetaTable {
                 replaceNullWithEmpty(remarks),
                 // ID
                 ValueInteger.get(id));
+    }
+
+    private void generateParameterRow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+            String collation, String schema, String specificName, TypeInfo typeInfo, int pos) {
+        DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
+        String characterSetCatalog, characterSetSchema, characterSetName, collationName;
+        if (dt.hasCharsetAndCollation) {
+            characterSetCatalog = catalog;
+            characterSetSchema = mainSchemaName;
+            characterSetName = CHARACTER_SET_NAME;
+            collationName = collation;
+        } else {
+            characterSetCatalog = characterSetSchema = characterSetName = collationName = null;
+        }
+        add(session,
+                rows,
+                // SPECIFIC_CATALOG
+                catalog,
+                // SPECIFIC_SCHEMA
+                schema,
+                // SPECIFIC_NAME
+                specificName,
+                // ORDINAL_POSITION
+                ValueInteger.get(pos),
+                // PARAMETER_MODE
+                "IN",
+                // IS_RESULT
+                "NO",
+                // AS_LOCATOR
+                DataType.isLargeObject(typeInfo.getValueType()) ? "YES" : "NO",
+                //  PARAMETER_NAME
+                "P" + pos,
+                // DATA_TYPE
+                identifier(dt.dataType),
+                // CHARACTER_MAXIMUM_LENGTH
+                dt.characterPrecision,
+                // CHARACTER_OCTET_LENGTH
+                dt.characterPrecision,
+                // CHARACTER_SET_CATALOG
+                characterSetCatalog,
+                // CHARACTER_SET_SCHEMA
+                characterSetSchema,
+                // CHARACTER_SET_NAME
+                characterSetName,
+                // COLLATION_CATALOG
+                characterSetCatalog,
+                // COLLATION_SCHEMA
+                characterSetSchema,
+                // COLLATION_NAME
+                collationName,
+                // NUMERIC_PRECISION
+                dt.numericPrecision,
+                // NUMERIC_PRECISION_RADIX
+                dt.numericPrecisionRadix,
+                // NUMERIC_SCALE
+                dt.numericScale,
+                // DATETIME_PRECISION
+                dt.datetimePrecision,
+                // INTERVAL_TYPE
+                dt.intervalType,
+                // INTERVAL_PRECISION
+                dt.intervalPrecision,
+                // MAXIMUM_CARDINALITY
+                dt.maximumCardinality,
+                // PARAMETER_DEFAULT
+                null,
+                // REMARKS
+                ""
+        );
     }
 
     /**

@@ -14,6 +14,10 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Constants;
@@ -411,11 +415,28 @@ public class Transfer {
      */
     public Transfer writeTypeInfo(TypeInfo type) throws IOException {
         int valueType = type.getValueType();
+        if (valueType == Value.BINARY && version < Constants.TCP_PROTOCOL_VERSION_20) {
+            valueType = Value.VARBINARY;
+        }
         writeInt(VALUE_TO_TI[valueType + 1]).writeLong(type.getPrecision()).writeInt(type.getScale());
-        if (valueType == Value.ARRAY && version >= Constants.TCP_PROTOCOL_VERSION_20) {
-            writeTypeInfo((TypeInfo) type.getExtTypeInfo());
+        if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
+            switch (valueType) {
+            case Value.ARRAY:
+                writeTypeInfo((TypeInfo) type.getExtTypeInfo());
+                break;
+            case Value.ROW:
+                writeTypeInfoRow(type);
+            }
         }
         return this;
+    }
+
+    private void writeTypeInfoRow(TypeInfo type) throws IOException {
+        Set<Map.Entry<String, TypeInfo>> fields = ((ExtTypeInfoRow) type.getExtTypeInfo()).getFields();
+        writeInt(fields.size());
+        for (Map.Entry<String, TypeInfo> field : fields) {
+            writeString(field.getKey()).writeTypeInfo(field.getValue());
+        }
     }
 
     /**
@@ -428,10 +449,27 @@ public class Transfer {
         long precision = readLong();
         int scale = readInt();
         ExtTypeInfo ext = null;
-        if (valueType == Value.ARRAY && version >= Constants.TCP_PROTOCOL_VERSION_20) {
-            ext = readTypeInfo();
+        if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
+            switch (valueType) {
+            case Value.ARRAY:
+                ext = readTypeInfo();
+                break;
+            case Value.ROW:
+                ext = readTypeInfoRow();
+            }
         }
         return TypeInfo.getTypeInfo(valueType, precision, scale, ext);
+    }
+
+    private ExtTypeInfo readTypeInfoRow() throws IOException {
+        LinkedHashMap<String, TypeInfo> fields = new LinkedHashMap<>();
+        for (int i = 0, l = readInt(); i < l; i++) {
+            String name = readString();
+            if (fields.putIfAbsent(name, readTypeInfo()) != null) {
+                throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, name);
+            }
+        }
+        return new ExtTypeInfoRow(fields);
     }
 
     /**
@@ -445,12 +483,15 @@ public class Transfer {
         case Value.NULL:
             writeInt(NULL);
             break;
+        case Value.BINARY:
+            if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
+                writeInt(BINARY);
+                writeBytes(v.getBytesNoCopy());
+                break;
+            }
+            //$FALL-THROUGH$
         case Value.VARBINARY:
             writeInt(VARBINARY);
-            writeBytes(v.getBytesNoCopy());
-            break;
-        case Value.BINARY:
-            writeInt(BINARY);
             writeBytes(v.getBytesNoCopy());
             break;
         case Value.JAVA_OBJECT:
@@ -920,6 +961,10 @@ public class Transfer {
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    public int getVersion() {
+        return version;
     }
 
     public synchronized boolean isClosed() {

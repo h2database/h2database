@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
@@ -108,8 +107,6 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     private static final ValueSmallint TYPE_SEARCHABLE = ValueSmallint.get((short) DatabaseMetaData.typeSearchable);
 
     private final Session session;
-
-    private Comparator<String> comparator;
 
     public DatabaseMetaLocal(Session session) {
         this.session = session;
@@ -293,7 +290,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 }
             }
         }
-        result.sortRows(new SortOrder(session, new int[] { 3, 0, 1, 2 }, new int[4], null));
+        // TABLE_TYPE, TABLE_CAT, TABLE_SCHEM, TABLE_NAME
+        result.sortRows(new SortOrder(session, new int[] { 3, 1, 2 }));
         return result;
     }
 
@@ -344,6 +342,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     public ResultInterface getTableTypes() {
         SimpleResult result = new SimpleResult();
         result.addColumn("TABLE_TYPE", TypeInfo.TYPE_VARCHAR);
+        // Order by TABLE_TYPE
         result.addRow(getString("BASE TABLE"));
         result.addRow(getString("GLOBAL TEMPORARY"));
         result.addRow(getString("LOCAL TEMPORARY"));
@@ -402,7 +401,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 }
             }
         }
-        result.sortRows(new SortOrder(session, new int[] { 0, 1, 2, 16 }, new int[4], null));
+        // TABLE_CAT, TABLE_SCHEM, TABLE_NAME, ORDINAL_POSITION
+        result.sortRows(new SortOrder(session, new int[] { 1, 2, 16 }));
         return result;
     }
 
@@ -512,7 +512,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             addPrivileges(result, catalogValue, s.getName(), tableName, r.getGrantee(), r.getRightMask(), columnLike,
                     t.getColumns());
         }
-        result.sortRows(new SortOrder(session, new int[] { 3, 6 }, new int[2], null));
+        // COLUMN_NAME, PRIVILEGE
+        result.sortRows(new SortOrder(session, new int[] { 3, 6 }));
         return result;
     }
 
@@ -562,7 +563,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             }
             addPrivileges(result, catalogValue, schemaName, tableName, r.getGrantee(), r.getRightMask(), null, null);
         }
-        result.sortRows(new SortOrder(session, new int[] { 0, 1, 2, 5 }, new int[4], null));
+        // TABLE_CAT, TABLE_SCHEM, TABLE_NAME, PRIVILEGE
+        result.sortRows(new SortOrder(session, new int[] { 1, 2, 5 }));
         return result;
     }
 
@@ -692,6 +694,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 }
             }
         }
+        // Order by SCOPE (always the same)
         return result;
     }
 
@@ -747,7 +750,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 }
             }
         }
-        result.sortRows(new SortOrder(session, new int[] { 3 }, new int[1], null));
+        // COLUMN_NAME
+        result.sortRows(new SortOrder(session, new int[] { 3 }));
         return result;
     }
 
@@ -785,7 +789,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                         fkTable.getSchema().getName(), fkTable, fk);
             }
         }
-        return sortCrossReferenceResult(result);
+        // PKTABLE_CAT, PKTABLE_SCHEM, PKTABLE_NAME, KEY_SEQ
+        result.sortRows(new SortOrder(session, new int[] { 1, 2, 8 }));
+        return result;
     }
 
     @Override
@@ -822,7 +828,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                         fkTable.getSchema().getName(), fkTable, fk);
             }
         }
-        return sortCrossReferenceResult(result);
+        // FKTABLE_CAT FKTABLE_SCHEM, FKTABLE_NAME, KEY_SEQ
+        result.sortRows(new SortOrder(session, new int[] { 5, 6, 8 }));
+        return result;
     }
 
     @Override
@@ -870,7 +878,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                         fkTable.getSchema().getName(), fkTable, fk);
             }
         }
-        return sortCrossReferenceResult(result);
+        // FKTABLE_CAT FKTABLE_SCHEM, FKTABLE_NAME, KEY_SEQ
+        result.sortRows(new SortOrder(session, new int[] { 5, 6, 8 }));
+        return result;
     }
 
     private SimpleResult initCrossReferenceResult() {
@@ -953,11 +963,6 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         }
     }
 
-    private ResultInterface sortCrossReferenceResult(SimpleResult result) {
-        result.sortRows(new SortOrder(session, new int[] { 4, 5, 6, 8 }, new int[4], null));
-        return result;
-    }
-
     @Override
     public ResultInterface getTypeInfo() {
         checkClosed();
@@ -1023,6 +1028,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     // NUM_PREC_RADIX
                     t.decimal ? ValueInteger.get(10) : ValueNull.INSTANCE);
         }
+        // DATA_TYPE, better types first
+        result.sortRows(new SortOrder(session, new int[] { 1 }));
         return result;
     }
 
@@ -1059,7 +1066,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             }
             getIndexInfo(catalogValue, getString(s.getName()), t, unique, approximate, result, db);
         }
-        result.sortRows(new SortOrder(session, new int[] { 3, 6, 5, 7 }, new int[4], null));
+        // NON_UNIQUE, TYPE, INDEX_NAME, ORDINAL_POSITION
+        result.sortRows(new SortOrder(session, new int[] { 3, 6, 5, 7 }));
         return result;
     }
 
@@ -1131,26 +1139,21 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         }
         CompareLike schemaLike = getLike(schemaPattern);
         Collection<Schema> allSchemas = session.getDatabase().getAllSchemas();
-        ArrayList<String> list;
+        Value catalogValue = getString(session.getDatabase().getShortName());
         if (schemaLike == null) {
-            list = new ArrayList<>(allSchemas.size());
             for (Schema s : allSchemas) {
-                list.add(s.getName());
+                result.addRow(getString(s.getName()), catalogValue);
             }
         } else {
-            list = Utils.newSmallArrayList();
             for (Schema s : allSchemas) {
                 String name = s.getName();
                 if (schemaLike.test(name)) {
-                    list.add(name);
+                    result.addRow(getString(s.getName()), catalogValue);
                 }
             }
         }
-        list.sort(getComparator());
-        Value c = getString(session.getDatabase().getShortName());
-        for (String s : list) {
-            result.addRow(getString(s), c);
-        }
+        // TABLE_CATALOG, TABLE_SCHEM
+        result.sortRows(new SortOrder(session, new int[] { 0 }));
         return result;
     }
 
@@ -1183,15 +1186,6 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         if (session.isClosed()) {
             throw DbException.get(ErrorCode.DATABASE_CALLED_AT_SHUTDOWN);
         }
-    }
-
-    private Comparator<String> getComparator() {
-        Comparator<String> comparator = this.comparator;
-        if (comparator == null) {
-            Database db = session.getDatabase();
-            this.comparator = comparator = (o1, o2) -> db.getCompareMode().compareString(o1, o2, false);
-        }
-        return comparator;
     }
 
     Value getString(String string) {

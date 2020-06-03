@@ -679,6 +679,10 @@ public class Schema extends DbObjectBase {
         return synonyms.values();
     }
 
+    public Collection<FunctionAlias> getAllFunctionAliases() {
+        return functions.values();
+    }
+
     /**
      * Get the table with the given name, if any.
      *

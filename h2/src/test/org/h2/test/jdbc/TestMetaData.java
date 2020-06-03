@@ -320,45 +320,40 @@ public class TestMetaData extends TestDb {
                         Types.SMALLINT, Types.BOOLEAN, Types.SMALLINT, Types.BOOLEAN, Types.BOOLEAN, Types.BOOLEAN,
                         Types.VARCHAR, Types.SMALLINT, Types.SMALLINT, Types.INTEGER, Types.INTEGER, Types.INTEGER },
                 null, null);
-        testTypeInfo(rs, "CHAR", Types.CHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0, (short) 0,
-                false);
-        testTypeInfo(rs, "VARCHAR", Types.VARCHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0,
-                (short) 0, false);
-        testTypeInfo(rs, "CLOB", Types.CLOB, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0, (short) 0,
-                false);
-        testTypeInfo(rs, "VARCHAR_IGNORECASE", Types.VARCHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", false, false,
+        testTypeInfo(rs, "RESULT_SET", DataType.TYPE_RESULT_SET, Integer.MAX_VALUE, null, null, null, false, false,
                 (short) 0, (short) 0, false);
-        testTypeInfo(rs, "BINARY", Types.BINARY, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
-                (short) 0, false);
-        testTypeInfo(rs, "VARBINARY", Types.VARBINARY, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
-                (short) 0, false);
-        testTypeInfo(rs, "BLOB", Types.BLOB, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
-                (short) 0, false);
-        testTypeInfo(rs, "BOOLEAN", Types.BOOLEAN, 1, null, null, null, false, false, (short) 0,
-                (short) 0, true);
         testTypeInfo(rs, "TINYINT", Types.TINYINT, 3, null, null, null, false, false, (short) 0,
-                (short) 0, true);
-        testTypeInfo(rs, "SMALLINT", Types.SMALLINT, 5, null, null, null, false, false, (short) 0,
-                (short) 0, true);
-        testTypeInfo(rs, "INTEGER", Types.INTEGER, 10, null, null, null, false, false, (short) 0,
                 (short) 0, true);
         testTypeInfo(rs, "BIGINT", Types.BIGINT, 19, null, null, null, false, false, (short) 0,
                 (short) 0, true);
+        testTypeInfo(rs, "VARBINARY", Types.VARBINARY, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
+                (short) 0, false);
+        testTypeInfo(rs, "BINARY", Types.BINARY, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
+                (short) 0, false);
+        testTypeInfo(rs, "UUID", Types.BINARY, 16, "'", "'", null, false, false, (short) 0, (short) 0, false);
+        testTypeInfo(rs, "CHAR", Types.CHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0, (short) 0,
+                false);
         testTypeInfo(rs, "NUMERIC", Types.NUMERIC, Integer.MAX_VALUE, null, null, "PRECISION,SCALE", false, true,
                 Short.MIN_VALUE, Short.MAX_VALUE, true);
+        testTypeInfo(rs, "INTEGER", Types.INTEGER, 10, null, null, null, false, false, (short) 0,
+                (short) 0, true);
+        testTypeInfo(rs, "SMALLINT", Types.SMALLINT, 5, null, null, null, false, false, (short) 0,
+                (short) 0, true);
+        testTypeInfo(rs, "FLOAT", Types.FLOAT, 17, null, null, null, false, false, (short) 0, (short) 0,
+                true);
         testTypeInfo(rs, "REAL", Types.REAL, 7, null, null, null, false, false, (short) 0, (short) 0, true);
         testTypeInfo(rs, "DOUBLE PRECISION", Types.DOUBLE, 17, null, null, null, false, false, (short) 0, (short) 0,
                 true);
-        testTypeInfo(rs, "FLOAT", Types.FLOAT, 17, null, null, null, false, false, (short) 0, (short) 0,
-                true);
+        testTypeInfo(rs, "VARCHAR", Types.VARCHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0,
+                (short) 0, false);
+        testTypeInfo(rs, "VARCHAR_IGNORECASE", Types.VARCHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", false, false,
+                (short) 0, (short) 0, false);
+        testTypeInfo(rs, "BOOLEAN", Types.BOOLEAN, 1, null, null, null, false, false, (short) 0,
+                (short) 0, true);
         testTypeInfo(rs, "DATE", Types.DATE, 10, "DATE '", "'", null, false, false, (short) 0, (short) 0, false);
         testTypeInfo(rs, "TIME", Types.TIME, 18, "TIME '", "'", "SCALE", false, false, (short) 0, (short) 9, false);
-        testTypeInfo(rs, "TIME WITH TIME ZONE", Types.TIME_WITH_TIMEZONE, 24, "TIME WITH TIME ZONE '", "'", "SCALE",
-                false, false, (short) 0, (short) 9, false);
         testTypeInfo(rs, "TIMESTAMP", Types.TIMESTAMP, 29, "TIMESTAMP '", "'", "SCALE", false, false, (short) 0,
                 (short) 9, false);
-        testTypeInfo(rs, "TIMESTAMP WITH TIME ZONE", Types.TIMESTAMP_WITH_TIMEZONE, 35, "TIMESTAMP WITH TIME ZONE '",
-                "'", "SCALE", false, false, (short) 0, (short) 9, false);
         testTypeInfo(rs, "INTERVAL YEAR", Types.OTHER, 18, "INTERVAL '", "' YEAR", "PRECISION", false, false,
                 (short) 0, (short) 0, false);
         testTypeInfo(rs, "INTERVAL MONTH", Types.OTHER, 18, "INTERVAL '", "' MONTH", "PRECISION", false, false,
@@ -385,21 +380,26 @@ public class TestMetaData extends TestDb {
                 "PRECISION,SCALE", false, false, (short) 0, (short) 9, false);
         testTypeInfo(rs, "INTERVAL MINUTE TO SECOND", Types.OTHER, 18, "INTERVAL '", "' MINUTE TO SECOND",
                 "PRECISION,SCALE", false, false, (short) 0, (short) 9, false);
-        testTypeInfo(rs, "JAVA_OBJECT", Types.JAVA_OBJECT, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false,
-                (short) 0, (short) 0, false);
         testTypeInfo(rs, "ENUM", Types.OTHER, Integer.MAX_VALUE, "'", "'", "ELEMENT [,...]", false, false, (short) 0,
                 (short) 0, false);
         testTypeInfo(rs, "GEOMETRY", Types.OTHER, Integer.MAX_VALUE, "'", "'", "TYPE,SRID", false, false, (short) 0,
                 (short) 0, false);
         testTypeInfo(rs, "JSON", Types.OTHER, Integer.MAX_VALUE, "JSON '", "'", "LENGTH", true, false, (short) 0,
                 (short) 0, false);
-        testTypeInfo(rs, "UUID", Types.BINARY, 16, "'", "'", null, false, false, (short) 0, (short) 0, false);
-        testTypeInfo(rs, "ARRAY", Types.ARRAY, Integer.MAX_VALUE, "ARRAY[", "]", "CARDINALITY", false, false,
-                (short) 0, (short) 0, false);
         testTypeInfo(rs, "ROW", Types.OTHER, 0, "ROW(", ")", "NAME DATA_TYPE [,...]", false, false, (short) 0,
                 (short) 0, false);
-        testTypeInfo(rs, "RESULT_SET", DataType.TYPE_RESULT_SET, Integer.MAX_VALUE, null, null, null, false, false,
+        testTypeInfo(rs, "JAVA_OBJECT", Types.JAVA_OBJECT, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false,
                 (short) 0, (short) 0, false);
+        testTypeInfo(rs, "ARRAY", Types.ARRAY, Integer.MAX_VALUE, "ARRAY[", "]", "CARDINALITY", false, false,
+                (short) 0, (short) 0, false);
+        testTypeInfo(rs, "BLOB", Types.BLOB, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
+                (short) 0, false);
+        testTypeInfo(rs, "CLOB", Types.CLOB, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0, (short) 0,
+                false);
+        testTypeInfo(rs, "TIME WITH TIME ZONE", Types.TIME_WITH_TIMEZONE, 24, "TIME WITH TIME ZONE '", "'", "SCALE",
+                false, false, (short) 0, (short) 9, false);
+        testTypeInfo(rs, "TIMESTAMP WITH TIME ZONE", Types.TIMESTAMP_WITH_TIMEZONE, 35, "TIMESTAMP WITH TIME ZONE '",
+                "'", "SCALE", false, false, (short) 0, (short) 9, false);
         assertFalse(rs.next());
         conn.close();
     }

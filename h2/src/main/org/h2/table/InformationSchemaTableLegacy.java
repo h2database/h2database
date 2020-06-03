@@ -61,6 +61,7 @@ import org.h2.schema.TriggerObject;
 import org.h2.store.InDoubtTransaction;
 import org.h2.tools.Csv;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.HasSQL;
 import org.h2.util.MathUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.StringUtils;
@@ -106,7 +107,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
     private static final int IN_DOUBT = VIEWS + 1;
     private static final int CROSS_REFERENCES = IN_DOUBT + 1;
     private static final int FUNCTION_COLUMNS = CROSS_REFERENCES + 1;
-    private static final int CONSTANTS = FUNCTION_COLUMNS + 1;
+    private static final int CONSTRAINTS = FUNCTION_COLUMNS + 1;
+    private static final int CONSTANTS = CONSTRAINTS + 1;
     private static final int DOMAINS = CONSTANTS + 1;
     private static final int TRIGGERS = DOMAINS + 1;
     private static final int SESSIONS = TRIGGERS + 1;
@@ -200,7 +202,9 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     "SOURCE_DATA_TYPE SMALLINT",
                     "COLUMN_TYPE",
                     "COLUMN_ON_UPDATE",
-                    "IS_VISIBLE"
+                    "IS_VISIBLE",
+                    // compatibility
+                    "CHECK_CONSTRAINT"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -294,7 +298,11 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     "IS_GENERATED BIT",
                     "REMARKS",
                     "CACHE BIGINT",
-                    "ID INT"
+                    "ID INT",
+                    // compatibility
+                    "MIN_VALUE BIGINT",
+                    "MAX_VALUE BIGINT",
+                    "IS_CYCLE BIT"
             );
             break;
         case USERS:
@@ -455,6 +463,25 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             );
             indexColumnName = "PKTABLE_NAME";
             break;
+        case CONSTRAINTS:
+            setMetaTableName("CONSTRAINTS");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "CONSTRAINT_TYPE",
+                    "TABLE_CATALOG",
+                    "TABLE_SCHEMA",
+                    "TABLE_NAME",
+                    "UNIQUE_INDEX_NAME",
+                    "CHECK_EXPRESSION",
+                    "COLUMN_LIST",
+                    "REMARKS",
+                    "SQL",
+                    "ID INT"
+            );
+            indexColumnName = "TABLE_NAME";
+            break;
         case CONSTANTS:
             setMetaTableName("CONSTANTS");
             cols = createColumns(
@@ -485,7 +512,11 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     "SELECTIVITY INT",
                     "REMARKS",
                     "SQL",
-                    "ID INT"
+                    "ID INT",
+                    // compatibility
+                    "COLUMN_DEFAULT",
+                    "IS_NULLABLE",
+                    "CHECK_CONSTRAINT"
             );
             break;
         case TRIGGERS:
@@ -883,8 +914,11 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                             // COLUMN_TYPE
                             createSQLWithoutName,
                             // COLUMN_ON_UPDATE
-                            c.getOnUpdateSQL(), // IS_VISIBLE
-                            ValueBoolean.get(c.getVisible())
+                            c.getOnUpdateSQL(),
+                            // IS_VISIBLE
+                            ValueBoolean.get(c.getVisible()),
+                            // CHECK_CONSTRAINT
+                            null
                     );
                 }
             }
@@ -1217,8 +1251,15 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // REMARKS
                         replaceNullWithEmpty(s.getComment()),
                         // CACHE
-                        ValueBigint.get(s.getCacheSize()), // ID
-                        ValueInteger.get(s.getId())
+                        ValueBigint.get(s.getCacheSize()),
+                        // ID
+                        ValueInteger.get(s.getId()),
+                        // "MIN_VALUE
+                        ValueBigint.get(s.getMinValue()),
+                        // MAX_VALUE
+                        ValueBigint.get(s.getMaxValue()),
+                        // IS_CYCLE BIT"
+                        ValueBoolean.get(s.getCycle())
                     );
             }
             break;
@@ -1672,6 +1713,78 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             }
             break;
         }
+        case CONSTRAINTS: {
+            for (SchemaObject obj : database.getAllSchemaObjects(
+                    DbObject.CONSTRAINT)) {
+                Constraint constraint = (Constraint) obj;
+                Constraint.Type constraintType = constraint.getConstraintType();
+                String checkExpression = null;
+                IndexColumn[] indexColumns = null;
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                Index index = constraint.getIndex();
+                String uniqueIndexName = null;
+                if (index != null) {
+                    uniqueIndexName = index.getName();
+                }
+                String tableName = table.getName();
+                if (!checkIndex(session, tableName, indexFrom, indexTo)) {
+                    continue;
+                }
+                if (constraintType == Constraint.Type.CHECK) {
+                    checkExpression = ((ConstraintCheck) constraint).getExpression().getSQL(HasSQL.DEFAULT_SQL_FLAGS);
+                } else if (constraintType == Constraint.Type.UNIQUE ||
+                        constraintType == Constraint.Type.PRIMARY_KEY) {
+                    indexColumns = ((ConstraintUnique) constraint).getColumns();
+                } else if (constraintType == Constraint.Type.REFERENTIAL) {
+                    indexColumns = ((ConstraintReferential) constraint).getColumns();
+                }
+                String columnList = null;
+                if (indexColumns != null) {
+                    StringBuilder builder = new StringBuilder();
+                    for (int i = 0, length = indexColumns.length; i < length; i++) {
+                        if (i > 0) {
+                            builder.append(',');
+                        }
+                        builder.append(indexColumns[i].column.getName());
+                    }
+                    columnList = builder.toString();
+                }
+                add(session,
+                        rows,
+                        // CONSTRAINT_CATALOG
+                        catalog,
+                        // CONSTRAINT_SCHEMA
+                        constraint.getSchema().getName(),
+                        // CONSTRAINT_NAME
+                        constraint.getName(),
+                        // CONSTRAINT_TYPE
+                        constraintType == Constraint.Type.PRIMARY_KEY ?
+                                constraintType.getSqlName() : constraintType.name(),
+                        // TABLE_CATALOG
+                        catalog,
+                        // TABLE_SCHEMA
+                        table.getSchema().getName(),
+                        // TABLE_NAME
+                        tableName,
+                        // UNIQUE_INDEX_NAME
+                        uniqueIndexName,
+                        // CHECK_EXPRESSION
+                        checkExpression,
+                        // COLUMN_LIST
+                        columnList,
+                        // REMARKS
+                        replaceNullWithEmpty(constraint.getComment()),
+                        // SQL
+                        constraint.getCreateSQL(),
+                        // ID
+                        ValueInteger.get(constraint.getId())
+                    );
+            }
+            break;
+        }
         case CONSTANTS: {
             for (SchemaObject obj : database.getAllSchemaObjects(
                     DbObject.CONSTANT)) {
@@ -1734,8 +1847,15 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // REMARKS
                         replaceNullWithEmpty(domain.getComment()),
                         // SQL
-                        domain.getCreateSQL(), // ID
-                        ValueInteger.get(domain.getId())
+                        domain.getCreateSQL(),
+                        // ID
+                        ValueInteger.get(domain.getId()),
+                        // COLUMN_DEFAULT
+                        col.getDefaultSQL(),
+                        // IS_NULLABLE
+                        "YES",
+                        // CHECK_CONSTRAINT
+                        null
                 );
             }
             break;

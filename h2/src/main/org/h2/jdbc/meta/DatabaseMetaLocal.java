@@ -71,6 +71,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     private static final ValueInteger COLUMN_NO_NULLS = ValueInteger.get(DatabaseMetaData.columnNoNulls);
 
+    private static final ValueSmallint COLUMN_NO_NULLS_SMALL = ValueSmallint
+            .get((short) DatabaseMetaData.columnNoNulls);
+
     private static final ValueInteger COLUMN_NULLABLE = ValueInteger.get(DatabaseMetaData.columnNullable);
 
     private static final ValueSmallint COLUMN_NULLABLE_UNKNOWN_SMALL = ValueSmallint
@@ -322,12 +325,13 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     TypeInfo type = method.getDataType();
                     if (type.getValueType() != Value.NULL) {
                         getProcedureColumnAdd(result, catalogValue, schemaValue, procedureNameValue, specificNameValue,
-                                type, 0);
+                                type, method.getClass().isPrimitive(), 0);
                     }
                     Class<?>[] columnList = method.getColumnClasses();
                     for (int o = 1, p = method.hasConnectionParam() ? 1 : 0, n = columnList.length; p < n; o++, p++) {
+                        Class<?> clazz = columnList[p];
                         getProcedureColumnAdd(result, catalogValue, schemaValue, procedureNameValue, specificNameValue,
-                                ValueToObjectConverter2.classToType(columnList[p]), o);
+                                ValueToObjectConverter2.classToType(clazz), clazz.isPrimitive(), o);
                     }
                 }
             }
@@ -339,7 +343,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     }
 
     private void getProcedureColumnAdd(SimpleResult result, Value catalogValue, Value schemaValue,
-            Value procedureNameValue, Value specificNameValue, TypeInfo type, int ordinal) {
+            Value procedureNameValue, Value specificNameValue, TypeInfo type, boolean notNull, int ordinal) {
         int valueType = type.getValueType();
         DataType dt = DataType.getDataType(valueType);
         ValueInteger precisionValue = ValueInteger.get(MathUtils.convertLongToInt(type.getPrecision()));
@@ -369,7 +373,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 // RADIX
                 getRadix(valueType, true),
                 // NULLABLE
-                COLUMN_NULLABLE_UNKNOWN_SMALL,
+                notNull ? COLUMN_NO_NULLS_SMALL : COLUMN_NULLABLE_UNKNOWN_SMALL,
                 // REMARKS
                 ValueNull.INSTANCE,
                 // COLUMN_DEF

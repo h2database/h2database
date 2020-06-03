@@ -853,7 +853,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals(32, rs.getInt("PRECISION"));
         assertEquals(32, rs.getInt("LENGTH"));
         assertEquals(0, rs.getInt("SCALE"));
-        assertEquals(DatabaseMetaData.columnNullableUnknown, rs.getInt("NULLABLE"));
+        assertEquals(DatabaseMetaData.columnNoNulls, rs.getInt("NULLABLE"));
         assertNull(rs.getString("REMARKS"));
         assertEquals(null, rs.getString("COLUMN_DEF"));
         assertEquals(0, rs.getInt("SQL_DATA_TYPE"));

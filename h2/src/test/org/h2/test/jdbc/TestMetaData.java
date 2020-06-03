@@ -290,7 +290,7 @@ public class TestMetaData extends TestDb {
                 { CATALOG, Constants.SCHEMA_MAIN, "EXIT", "P1",
                         "" + DatabaseMetaData.procedureColumnIn,
                         "" + Types.INTEGER, "INTEGER", "32", "32", null, "2",
-                        "" + DatabaseMetaData.procedureNullableUnknown,
+                        "" + DatabaseMetaData.procedureNoNulls,
                         null, null, null, null, null, "1", "", "EXIT_0" },
                 { CATALOG, Constants.SCHEMA_MAIN, "PROP", "RESULT",
                         "" + DatabaseMetaData.procedureColumnReturn,

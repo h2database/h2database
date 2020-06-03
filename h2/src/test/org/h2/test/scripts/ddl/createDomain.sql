@@ -174,10 +174,10 @@ SELECT DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, DOMAIN_DEFAULT, DOMAIN_ON_UPD
     PARENT_DOMAIN_CATALOG, PARENT_DOMAIN_SCHEMA, PARENT_DOMAIN_NAME FROM INFORMATION_SCHEMA.DOMAINS WHERE DOMAIN_SCHEMA = 'PUBLIC';
 > DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME DOMAIN_DEFAULT DOMAIN_ON_UPDATE DATA_TYPE PRECISION SCALE TYPE_NAME PARENT_DOMAIN_CATALOG PARENT_DOMAIN_SCHEMA PARENT_DOMAIN_NAME
 > -------------- ------------- ----------- -------------- ---------------- --------- --------- ----- --------- --------------------- -------------------- ------------------
-> SCRIPT         PUBLIC        D1          1              null             4         10        0     INTEGER   null                  null                 null
-> SCRIPT         PUBLIC        D2          2              null             4         10        0     INTEGER   SCRIPT                PUBLIC               D1
-> SCRIPT         PUBLIC        D3          null           null             4         10        0     INTEGER   SCRIPT                PUBLIC               D1
-> SCRIPT         PUBLIC        D4          4              null             4         10        0     INTEGER   SCRIPT                PUBLIC               D1
+> SCRIPT         PUBLIC        D1          1              null             4         32        0     INTEGER   null                  null                 null
+> SCRIPT         PUBLIC        D2          2              null             4         32        0     INTEGER   SCRIPT                PUBLIC               D1
+> SCRIPT         PUBLIC        D3          null           null             4         32        0     INTEGER   SCRIPT                PUBLIC               D1
+> SCRIPT         PUBLIC        D4          4              null             4         32        0     INTEGER   SCRIPT                PUBLIC               D1
 > rows: 4
 
 SELECT DOMAIN_NAME, CHECK_CLAUSE FROM INFORMATION_SCHEMA.DOMAIN_CONSTRAINTS D JOIN INFORMATION_SCHEMA.CHECK_CONSTRAINTS C
@@ -203,9 +203,9 @@ SELECT DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, DOMAIN_DEFAULT, DOMAIN_ON_UPD
     PARENT_DOMAIN_CATALOG, PARENT_DOMAIN_SCHEMA, PARENT_DOMAIN_NAME FROM INFORMATION_SCHEMA.DOMAINS WHERE DOMAIN_SCHEMA = 'PUBLIC';
 > DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME DOMAIN_DEFAULT DOMAIN_ON_UPDATE DATA_TYPE PRECISION SCALE TYPE_NAME PARENT_DOMAIN_CATALOG PARENT_DOMAIN_SCHEMA PARENT_DOMAIN_NAME
 > -------------- ------------- ----------- -------------- ---------------- --------- --------- ----- --------- --------------------- -------------------- ------------------
-> SCRIPT         PUBLIC        D2          2              null             4         10        0     INTEGER   null                  null                 null
-> SCRIPT         PUBLIC        D3          1              null             4         10        0     INTEGER   null                  null                 null
-> SCRIPT         PUBLIC        D4          4              null             4         10        0     INTEGER   null                  null                 null
+> SCRIPT         PUBLIC        D2          2              null             4         32        0     INTEGER   null                  null                 null
+> SCRIPT         PUBLIC        D3          1              null             4         32        0     INTEGER   null                  null                 null
+> SCRIPT         PUBLIC        D4          4              null             4         32        0     INTEGER   null                  null                 null
 > rows: 3
 
 SELECT DOMAIN_NAME, CHECK_CLAUSE FROM INFORMATION_SCHEMA.DOMAIN_CONSTRAINTS D JOIN INFORMATION_SCHEMA.CHECK_CONSTRAINTS C

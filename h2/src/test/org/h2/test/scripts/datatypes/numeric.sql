@@ -11,9 +11,9 @@ SELECT COLUMN_NAME, ORDINAL_POSITION, IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_
     NUMERIC_PRECISION_RADIX, NUMERIC_SCALE, COLUMN_TYPE
     FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'ORDERS';
 > COLUMN_NAME ORDINAL_POSITION IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE COLUMN_TYPE
-> ----------- ---------------- ----------- --------- ------------------------ ----------------- ----------------------- ------------- -------------------
+> ----------- ---------------- ----------- --------- ------------------------ ----------------- ----------------------- ------------- ---------------
 > A           6                YES         NUMERIC   null                     10                10                      -3            NUMERIC(10, -3)
-> COMPLETED   4                NO          NUMERIC   null                     1                 10                      0             NUMERIC(1) NOT NULL
+> COMPLETED   4                NO          NUMERIC   null                     1                 10                      0             NUMERIC(1)
 > CUSTOMER_ID 3                YES         VARCHAR   10                       null              null                    null          VARCHAR(10)
 > NAME        2                YES         VARCHAR   20                       null              null                    null          VARCHAR(20)
 > ORDERID     1                YES         VARCHAR   10                       null              null                    null          VARCHAR(10)

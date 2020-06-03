@@ -19,7 +19,7 @@ SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, DATETIME_PRECISION, INTERVAL_TYPE, I
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
 > COLUMN_NAME DATA_TYPE COLUMN_TYPE                     DATETIME_PRECISION INTERVAL_TYPE          INTERVAL_PRECISION
 > ----------- --------- ------------------------------- ------------------ ---------------------- ------------------
-> ID          INTEGER   INT NOT NULL                    null               null                   null
+> ID          INTEGER   INT                             null               null                   null
 > I01         INTERVAL  INTERVAL YEAR                   0                  YEAR                   2
 > I02         INTERVAL  INTERVAL MONTH                  0                  MONTH                  2
 > I03         INTERVAL  INTERVAL DAY                    0                  DAY                    2

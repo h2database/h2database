@@ -404,7 +404,7 @@ public class WindowFunction extends DataAnalysisOperation {
             } else {
                 v = row[0];
                 if (v != ValueNull.INSTANCE) {
-                    v = v.convertToDouble().divide(value, ValueDouble.PRECISION);
+                    v = v.convertToDouble().divide(value, ValueDouble.DECIMAL_PRECISION);
                 }
             }
             result.put(row[rowIdColumn].getInt(), v);

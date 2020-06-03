@@ -263,18 +263,18 @@ CREATE SEQUENCE SEQ7 AS NUMERIC(10, 2);
 CREATE SEQUENCE SEQ8 AS NUMERIC(100, 20);
 > ok
 
-SELECT SEQUENCE_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_SCALE, MAXIMUM_VALUE,
+SELECT SEQUENCE_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE, MAXIMUM_VALUE,
     DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE FROM INFORMATION_SCHEMA.SEQUENCES;
-> SEQUENCE_NAME DATA_TYPE        NUMERIC_PRECISION NUMERIC_SCALE MAXIMUM_VALUE       DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE
-> ------------- ---------------- ----------------- ------------- ------------------- ------------------ -------------------------- ----------------------
-> SEQ1          TINYINT          3                 0             127                 TINYINT            3                          0
-> SEQ2          SMALLINT         5                 0             32767               SMALLINT           5                          0
-> SEQ3          INTEGER          10                0             2147483647          INTEGER            10                         0
-> SEQ4          BIGINT           19                0             9223372036854775807 BIGINT             19                         0
-> SEQ5          REAL             8                 0             16777216            REAL               7                          0
-> SEQ6          DOUBLE PRECISION 16                0             9007199254740992    DOUBLE PRECISION   17                         0
-> SEQ7          NUMERIC          10                2             99999999            NUMERIC            10                         2
-> SEQ8          NUMERIC          39                20            9223372036854775807 NUMERIC            100                        20
+> SEQUENCE_NAME DATA_TYPE        NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE MAXIMUM_VALUE       DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE
+> ------------- ---------------- ----------------- ----------------------- ------------- ------------------- ------------------ -------------------------- ----------------------
+> SEQ1          TINYINT          8                 2                       0             127                 TINYINT            8                          0
+> SEQ2          SMALLINT         16                2                       0             32767               SMALLINT           16                         0
+> SEQ3          INTEGER          32                2                       0             2147483647          INTEGER            32                         0
+> SEQ4          BIGINT           64                2                       0             9223372036854775807 BIGINT             64                         0
+> SEQ5          REAL             24                2                       0             16777216            REAL               24                         0
+> SEQ6          DOUBLE PRECISION 53                2                       0             9007199254740992    DOUBLE PRECISION   53                         0
+> SEQ7          NUMERIC          10                10                      2             99999999            NUMERIC            10                         2
+> SEQ8          NUMERIC          39                10                      20            9223372036854775807 NUMERIC            100                        20
 > rows: 8
 
 SELECT NEXT VALUE FOR SEQ1 IS OF (TINYINT);

@@ -204,13 +204,13 @@ public class TestMetaData extends TestDb {
         rs = stat.executeQuery("SELECT * FROM ONE");
         rsMeta = rs.getMetaData();
         assertEquals(12, rsMeta.getPrecision(1));
-        assertEquals(17, rsMeta.getPrecision(2));
+        assertEquals(53, rsMeta.getPrecision(2));
         assertEquals(numericType, rsMeta.getColumnType(1));
         assertEquals(Types.DOUBLE, rsMeta.getColumnType(2));
         rs = stat.executeQuery("SELECT * FROM TWO");
         rsMeta = rs.getMetaData();
         assertEquals(12, rsMeta.getPrecision(1));
-        assertEquals(17, rsMeta.getPrecision(2));
+        assertEquals(53, rsMeta.getPrecision(2));
         assertEquals(numericType, rsMeta.getColumnType(1));
         assertEquals(Types.DOUBLE, rsMeta.getColumnType(2));
         stat.execute("DROP TABLE ONE, TWO");
@@ -289,7 +289,7 @@ public class TestMetaData extends TestDb {
         assertResultSetOrdered(rs, new String[][] {
                 { CATALOG, Constants.SCHEMA_MAIN, "EXIT", "P1",
                         "" + DatabaseMetaData.procedureColumnIn,
-                        "" + Types.INTEGER, "INTEGER", "10", "10", null, "2",
+                        "" + Types.INTEGER, "INTEGER", "32", "32", null, "2",
                         "" + DatabaseMetaData.procedureNullableUnknown,
                         null, null, null, null, null, "1", "", "EXIT_0" },
                 { CATALOG, Constants.SCHEMA_MAIN, "PROP", "RESULT",
@@ -325,8 +325,8 @@ public class TestMetaData extends TestDb {
                 null, null);
         testTypeInfo(rs, "RESULT_SET", DataType.TYPE_RESULT_SET, Integer.MAX_VALUE, null, null, null, false, false,
                 (short) 0, (short) 0, 0);
-        testTypeInfo(rs, "TINYINT", Types.TINYINT, 3, null, null, null, false, false, (short) 0, (short) 0, 2);
-        testTypeInfo(rs, "BIGINT", Types.BIGINT, 19, null, null, null, false, false, (short) 0, (short) 0, 2);
+        testTypeInfo(rs, "TINYINT", Types.TINYINT, 8, null, null, null, false, false, (short) 0, (short) 0, 2);
+        testTypeInfo(rs, "BIGINT", Types.BIGINT, 64, null, null, null, false, false, (short) 0, (short) 0, 2);
         testTypeInfo(rs, "VARBINARY", Types.VARBINARY, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
                 (short) 0, 0);
         testTypeInfo(rs, "BINARY", Types.BINARY, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
@@ -336,14 +336,14 @@ public class TestMetaData extends TestDb {
                 0);
         testTypeInfo(rs, "NUMERIC", Types.NUMERIC, Integer.MAX_VALUE, null, null, "PRECISION,SCALE", false, true,
                 Short.MIN_VALUE, Short.MAX_VALUE, 10);
-        testTypeInfo(rs, "INTEGER", Types.INTEGER, 10, null, null, null, false, false, (short) 0,
+        testTypeInfo(rs, "INTEGER", Types.INTEGER, 32, null, null, null, false, false, (short) 0,
                 (short) 0, 2);
-        testTypeInfo(rs, "SMALLINT", Types.SMALLINT, 5, null, null, null, false, false, (short) 0,
+        testTypeInfo(rs, "SMALLINT", Types.SMALLINT, 16, null, null, null, false, false, (short) 0,
                 (short) 0, 2);
-        testTypeInfo(rs, "FLOAT", Types.FLOAT, 17, null, null, null, false, false, (short) 0, (short) 0,
+        testTypeInfo(rs, "FLOAT", Types.FLOAT, 53, null, null, null, false, false, (short) 0, (short) 0,
                 2);
-        testTypeInfo(rs, "REAL", Types.REAL, 7, null, null, null, false, false, (short) 0, (short) 0, 2);
-        testTypeInfo(rs, "DOUBLE PRECISION", Types.DOUBLE, 17, null, null, null, false, false, (short) 0, (short) 0,
+        testTypeInfo(rs, "REAL", Types.REAL, 24, null, null, null, false, false, (short) 0, (short) 0, 2);
+        testTypeInfo(rs, "DOUBLE PRECISION", Types.DOUBLE, 53, null, null, null, false, false, (short) 0, (short) 0,
                 2);
         testTypeInfo(rs, "VARCHAR", Types.VARCHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0,
                 (short) 0, 0);
@@ -873,9 +873,9 @@ public class TestMetaData extends TestDb {
                 null, null);
         assertResultSetOrdered(rs, new String[][] {
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "ID",
-                        "" + Types.INTEGER, "INTEGER", "10", null, "0", "2",
+                        "" + Types.INTEGER, "INTEGER", "32", null, "0", "2",
                         "" + DatabaseMetaData.columnNoNulls, null, null,
-                        null, null, "10", "1", "NO" },
+                        null, null, "32", "1", "NO" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TEXT_V",
                         "" + Types.VARCHAR, "VARCHAR", "120", null, "0", null,
                         "" + DatabaseMetaData.columnNullable, null, null,
@@ -980,18 +980,18 @@ public class TestMetaData extends TestDb {
         rs = meta.getColumns(null, null, "___", "B%");
         assertResultSetOrdered(rs, new String[][] {
                 { CATALOG, Constants.SCHEMA_MAIN, "TX2", "B",
-                        "" + Types.INTEGER, "INTEGER", "10" },
+                        "" + Types.INTEGER, "INTEGER", "32" },
                 { CATALOG, Constants.SCHEMA_MAIN, "T_2", "B",
-                        "" + Types.INTEGER, "INTEGER", "10" }, });
+                        "" + Types.INTEGER, "INTEGER", "32" }, });
         trace("getColumns - using wildcards");
         rs = meta.getColumns(null, null, "_\\__", "%");
         assertResultSetOrdered(rs, new String[][] {
                 { CATALOG, Constants.SCHEMA_MAIN, "T_2", "B",
-                        "" + Types.INTEGER, "INTEGER", "10" },
+                        "" + Types.INTEGER, "INTEGER", "32" },
                 { CATALOG, Constants.SCHEMA_MAIN, "T_2", "A",
                         "" + Types.VARCHAR, "VARCHAR", "6" },
                 { CATALOG, Constants.SCHEMA_MAIN, "T_2", "C",
-                        "" + Types.INTEGER, "INTEGER", "10" }, });
+                        "" + Types.INTEGER, "INTEGER", "32" }, });
         trace("getIndexInfo");
         stat.executeUpdate("CREATE UNIQUE INDEX A_INDEX ON TX2(B,C,A)");
         stat.executeUpdate("CREATE INDEX B_INDEX ON TX2(A,B,C)");

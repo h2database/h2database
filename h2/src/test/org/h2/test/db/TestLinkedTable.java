@@ -494,7 +494,7 @@ public class TestLinkedTable extends TestDb {
         testRow(stat, "LINK_TEST");
         ResultSet rs = stat.executeQuery("SELECT * FROM LINK_TEST");
         ResultSetMetaData meta = rs.getMetaData();
-        assertEquals(10, meta.getPrecision(1));
+        assertEquals(32, meta.getPrecision(1));
         assertEquals(200, meta.getPrecision(2));
 
         conn.close();

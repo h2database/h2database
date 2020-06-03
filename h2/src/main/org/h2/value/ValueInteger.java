@@ -15,9 +15,14 @@ import org.h2.message.DbException;
 public final class ValueInteger extends Value {
 
     /**
-     * The precision in digits.
+     * The precision in bits.
      */
-    public static final int PRECISION = 10;
+    public static final int PRECISION = 32;
+
+    /**
+     * The approximate precision in decimal digits.
+     */
+    static final int DECIMAL_PRECISION = 10;
 
     /**
      * The maximum display size of an INT.

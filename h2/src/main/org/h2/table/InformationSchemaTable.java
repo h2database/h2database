@@ -54,6 +54,7 @@ import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.store.InDoubtTransaction;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.HasSQL;
 import org.h2.util.MathUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.StringUtils;
@@ -762,7 +763,7 @@ public final class InformationSchemaTable extends MetaTable {
                 Column[] cols = table.getColumns();
                 for (int j = 0; j < cols.length; j++) {
                     Column c = cols[j];
-                    generateColumnrow(session, rows, catalog, mainSchemaName, collation, table, tableName, j, c);
+                    generateColumnRow(session, rows, catalog, mainSchemaName, collation, table, tableName, j, c);
                 }
             }
             break;
@@ -962,7 +963,8 @@ public final class InformationSchemaTable extends MetaTable {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.SEQUENCE)) {
                 Sequence s = (Sequence) obj;
                 TypeInfo dataType = s.getDataType();
-                String dataTypeName = DataType.getDataType(dataType.getValueType()).name;
+                int valueType = dataType.getValueType();
+                String dataTypeName = DataType.getDataType(valueType).name;
                 ValueInteger declaredScale = ValueInteger.get(dataType.getScale());
                 add(session,
                         rows,
@@ -977,7 +979,7 @@ public final class InformationSchemaTable extends MetaTable {
                         // NUMERIC_PRECISION
                         ValueInteger.get(s.getEffectivePrecision()),
                         // NUMERIC_PRECISION_RADIX
-                        ValueInteger.get(10),
+                        ValueInteger.get(valueType == Value.NUMERIC ? 10 : 2),
                         // NUMERIC_SCALE
                         declaredScale,
                         // START_VALUE
@@ -1978,7 +1980,7 @@ public final class InformationSchemaTable extends MetaTable {
         return rows;
     }
 
-    private void generateColumnrow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+    private void generateColumnRow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
             String collation, Table table, String tableName, int j, Column c) {
         Domain domain = c.getDomain();
         TypeInfo typeInfo = c.getType();
@@ -1991,7 +1993,11 @@ public final class InformationSchemaTable extends MetaTable {
                 dateTimePrecision = null, intervalPrecision = null,
                 maximumCardinality = null;
         String characterSetCatalog = null, characterSetSchema = null, characterSetName = null, collationName = null;
-        String createSQLWithoutName = c.getCreateSQLWithoutName(), intervalType = null;
+        String fullTypeName = c.getOriginalSQL();
+        if (fullTypeName == null) {
+            fullTypeName = typeInfo.getSQL(new StringBuilder(), HasSQL.DEFAULT_SQL_FLAGS).toString();
+        }
+        String intervalType = null;
         switch (type) {
         case Value.CHAR:
         case Value.VARCHAR:
@@ -2041,7 +2047,7 @@ public final class InformationSchemaTable extends MetaTable {
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
             dataType = "INTERVAL";
-            intervalType = createSQLWithoutName.substring(9);
+            intervalType = fullTypeName.substring(9);
             intervalPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
             //$FALL-THROUGH$
         case Value.DATE:
@@ -2126,7 +2132,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // REMARKS
                 replaceNullWithEmpty(c.getComment()),
                 // COLUMN_TYPE
-                createSQLWithoutName,
+                fullTypeName,
                 // COLUMN_ON_UPDATE
                 c.getOnUpdateSQL(),
                 // IS_VISIBLE

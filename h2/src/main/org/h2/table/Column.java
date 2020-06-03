@@ -485,9 +485,17 @@ public class Column implements HasSQL, Typed {
         }
     }
 
+    public String getCreateSQLWithoutName() {
+        return getCreateSQL(false);
+    }
+
     public String getCreateSQL() {
+        return getCreateSQL(true);
+    }
+
+    private String getCreateSQL(boolean includeName) {
         StringBuilder buff = new StringBuilder();
-        if (name != null) {
+        if (includeName && name != null) {
             ParserUtil.quoteIdentifier(buff, name, DEFAULT_SQL_FLAGS).append(' ');
         }
         if (originalSQL != null) {

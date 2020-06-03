@@ -68,6 +68,7 @@ import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.InformationSchemaTable;
+import org.h2.table.InformationSchemaTableLegacy;
 import org.h2.table.Table;
 import org.h2.table.TableLinkConnection;
 import org.h2.table.TableSynonym;
@@ -900,9 +901,17 @@ public class Database implements DataHandler, CastDataProvider {
         }
         synchronized (infoSchema) {
             if (!metaTablesInitialized) {
-                for (int type = 0, count = InformationSchemaTable.getMetaTableTypeCount(); type < count; type++) {
-                    infoSchema.add(new InformationSchemaTable(infoSchema, Constants.INFORMATION_SCHEMA_ID - type,
-                            type));
+                if (dbSettings.oldInformationSchema) {
+                    for (int type = 0, count = InformationSchemaTableLegacy.getMetaTableTypeCount(); type < count;
+                            type++) {
+                        infoSchema.add(new InformationSchemaTableLegacy(infoSchema,
+                                Constants.INFORMATION_SCHEMA_ID - type, type));
+                    }
+                } else {
+                    for (int type = 0, count = InformationSchemaTable.getMetaTableTypeCount(); type < count; type++) {
+                        infoSchema.add(new InformationSchemaTable(infoSchema, Constants.INFORMATION_SCHEMA_ID - type,
+                                type));
+                    }
                 }
                 if (pgCatalogSchema != null) {
                     for (int type = 0, count = PgCatalogTable.getMetaTableTypeCount(); type < count; type++) {

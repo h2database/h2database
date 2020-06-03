@@ -58,6 +58,7 @@ public class TestCompatibility extends TestDb {
         conn.close();
         testIdentifiers();
         testIdentifiersCaseInResultSet();
+        testOldInformationSchema();
         deleteDb("compatibility");
 
         testUnknownURL();
@@ -768,6 +769,18 @@ public class TestCompatibility extends TestDb {
             rs = stat.executeQuery("SELECT a FROM (SELECT 1) t(A)");
             md = rs.getMetaData();
             assertEquals("A", md.getColumnName(1));
+        } finally {
+            deleteDb("compatibility");
+        }
+    }
+
+    private void testOldInformationSchema() throws SQLException {
+        try (Connection conn = getConnection(
+                "compatibility;OLD_INFORMATION_SCHEMA=TRUE")) {
+            Statement stat = conn.createStatement();
+            ResultSet rs = stat.executeQuery("TABLE INFORMATION_SCHEMA.TABLE_TYPES");
+            rs.next();
+            assertEquals("TABLE", rs.getString(1));
         } finally {
             deleteDb("compatibility");
         }

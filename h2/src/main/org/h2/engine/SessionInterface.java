@@ -41,6 +41,11 @@ public interface SessionInterface extends CastDataProvider, Closeable {
         public final boolean caseInsensitiveIdentifiers;
 
         /**
+         * Whether old information schema is in use.
+         */
+        public final boolean oldInformationSchema;
+
+        /**
          * Creates new instance of static settings.
          *
          * @param databaseToUpper
@@ -49,11 +54,15 @@ public interface SessionInterface extends CastDataProvider, Closeable {
          *            whether unquoted identifiers are converted to lower case
          * @param caseInsensitiveIdentifiers
          *            whether all identifiers are case insensitive
+         * @param oldInformationSchema
+         *            whether old information schema is in use
          */
-        public StaticSettings(boolean databaseToUpper, boolean databaseToLower, boolean caseInsensitiveIdentifiers) {
+        public StaticSettings(boolean databaseToUpper, boolean databaseToLower, boolean caseInsensitiveIdentifiers,
+                boolean oldInformationSchema) {
             this.databaseToUpper = databaseToUpper;
             this.databaseToLower = databaseToLower;
             this.caseInsensitiveIdentifiers = caseInsensitiveIdentifiers;
+            this.oldInformationSchema = oldInformationSchema;
         }
 
     }

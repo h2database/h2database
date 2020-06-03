@@ -2141,7 +2141,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (settings == null) {
             DbSettings dbSettings = database.getSettings();
             staticSettings = settings = new StaticSettings(dbSettings.databaseToUpper, dbSettings.databaseToLower,
-                    dbSettings.caseInsensitiveIdentifiers);
+                    dbSettings.caseInsensitiveIdentifiers, dbSettings.oldInformationSchema);
         }
         return settings;
     }

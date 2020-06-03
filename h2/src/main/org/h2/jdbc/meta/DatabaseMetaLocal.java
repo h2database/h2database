@@ -231,7 +231,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     getProceduresAdd(result, catalogValue, schemaValue, procedureNameValue, f.getComment(),
                             method.getDataType().getValueType() != Value.NULL ? PROCEDURE_RETURNS_RESULT
                                     : PROCEDURE_NO_RESULT,
-                            getString(procedureName + '_' + i));
+                            getString(procedureName + '_' + (i + 1)));
                 }
             }
             if (s == db.getMainSchema()) {
@@ -321,7 +321,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 }
                 for (int i = 0, l = methods.length; i < l; i++) {
                     JavaMethod method = methods[i];
-                    Value specificNameValue = getString(procedureName + '_' + i);
+                    Value specificNameValue = getString(procedureName + '_' + (i + 1));
                     TypeInfo type = method.getDataType();
                     if (type.getValueType() != Value.NULL) {
                         getProcedureColumnAdd(result, catalogValue, schemaValue, procedureNameValue, specificNameValue,

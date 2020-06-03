@@ -271,7 +271,7 @@ public class TestMetaData extends TestDb {
                 null, null);
         assertResultSetOrdered(rs, new String[][] { { CATALOG,
                 Constants.SCHEMA_MAIN, "EXIT", null, null, null, null,
-                "" + DatabaseMetaData.procedureNoResult, "EXIT_0" } });
+                "" + DatabaseMetaData.procedureNoResult, "EXIT_1" } });
         rs = meta.getProcedureColumns(null, null, null, null);
         assertResultSetMeta(rs, 20, new String[] { "PROCEDURE_CAT",
                 "PROCEDURE_SCHEM", "PROCEDURE_NAME", "COLUMN_NAME",
@@ -291,19 +291,19 @@ public class TestMetaData extends TestDb {
                         "" + DatabaseMetaData.procedureColumnIn,
                         "" + Types.INTEGER, "INTEGER", "32", "32", null, "2",
                         "" + DatabaseMetaData.procedureNoNulls,
-                        null, null, null, null, null, "1", "", "EXIT_0" },
+                        null, null, null, null, null, "1", "", "EXIT_1" },
                 { CATALOG, Constants.SCHEMA_MAIN, "PROP", "RESULT",
                         "" + DatabaseMetaData.procedureColumnReturn,
                         "" + Types.VARCHAR, "VARCHAR", "" + Integer.MAX_VALUE,
                         "" + Integer.MAX_VALUE, null, null,
                         "" + DatabaseMetaData.procedureNullableUnknown,
-                        null, null, null, null, "" + Integer.MAX_VALUE, "0", "", "PROP_0" },
+                        null, null, null, null, "" + Integer.MAX_VALUE, "0", "", "PROP_1" },
                 { CATALOG, Constants.SCHEMA_MAIN, "PROP", "P1",
                         "" + DatabaseMetaData.procedureColumnIn,
                         "" + Types.VARCHAR, "VARCHAR", "" + Integer.MAX_VALUE,
                         "" + Integer.MAX_VALUE, null, null,
                         "" + DatabaseMetaData.procedureNullableUnknown,
-                        null, null, null, null, "" + Integer.MAX_VALUE, "1", "", "PROP_0" }, });
+                        null, null, null, null, "" + Integer.MAX_VALUE, "1", "", "PROP_1" }, });
         stat.execute("DROP ALIAS EXIT");
         stat.execute("DROP ALIAS PROP");
         conn.close();
@@ -1217,13 +1217,13 @@ public class TestMetaData extends TestDb {
         assertFalse(rs.next());
 
         rs = meta.getTables(null, "INFORMATION_SCHEMA", null, new String[] { "BASE TABLE", "VIEW" });
-        for (String name : new String[] { "CONSTANTS", "FUNCTION_ALIASES",
+        for (String name : new String[] { "CONSTANTS",
                 "FUNCTION_COLUMNS", "INDEXES", "INFORMATION_SCHEMA_CATALOG_NAME", "IN_DOUBT", "LOCKS",
                 "QUERY_STATISTICS", "RIGHTS", "ROLES", "SESSIONS", "SESSION_STATE", "SETTINGS", "SYNONYMS",
                 "USERS", "CHECK_CONSTRAINTS", "COLLATIONS", "COLUMNS", "COLUMN_PRIVILEGES",
                 "CONSTRAINT_COLUMN_USAGE", "DOMAINS", "DOMAIN_CONSTRAINTS", "KEY_COLUMN_USAGE",
-                "REFERENTIAL_CONSTRAINTS", "SCHEMATA", "SEQUENCES", "TABLES", "TABLE_CONSTRAINTS", "TABLE_PRIVILEGES",
-                "TRIGGERS", "VIEWS" }) {
+                "REFERENTIAL_CONSTRAINTS", "ROUTINES", "SCHEMATA", "SEQUENCES", "TABLES", "TABLE_CONSTRAINTS",
+                "TABLE_PRIVILEGES", "TRIGGERS", "VIEWS" }) {
             rs.next();
             assertEquals(name, rs.getString("TABLE_NAME"));
         }

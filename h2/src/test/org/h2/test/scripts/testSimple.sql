@@ -859,12 +859,12 @@ create alias parse_long for "java.lang.Long.parseLong(java.lang.String)";
 comment on alias parse_long is 'Parse a long with base';
 > ok
 
-select remarks from information_schema.function_aliases where alias_name = 'PARSE_LONG';
+select remarks from information_schema.routines where routine_name = 'PARSE_LONG';
 >> Parse a long with base
 
 @reconnect
 
-select remarks from information_schema.function_aliases where alias_name = 'PARSE_LONG';
+select remarks from information_schema.routines where routine_name = 'PARSE_LONG';
 >> Parse a long with base
 
 drop alias parse_long;

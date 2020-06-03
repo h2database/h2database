@@ -88,8 +88,8 @@ public final class InformationSchemaTable extends MetaTable {
     private static final int USERS = SEQUENCES + 1;
     private static final int ROLES = USERS + 1;
     private static final int RIGHTS = ROLES + 1;
-    private static final int FUNCTION_ALIASES = RIGHTS + 1;
-    private static final int SCHEMATA = FUNCTION_ALIASES + 1;
+    private static final int ROUTINES = RIGHTS + 1;
+    private static final int SCHEMATA = ROUTINES + 1;
     private static final int TABLE_PRIVILEGES = SCHEMATA + 1;
     private static final int COLUMN_PRIVILEGES = TABLE_PRIVILEGES + 1;
     private static final int COLLATIONS = COLUMN_PRIVILEGES + 1;
@@ -289,21 +289,41 @@ public final class InformationSchemaTable extends MetaTable {
             );
             indexColumnName = "TABLE_NAME";
             break;
-        case FUNCTION_ALIASES:
-            setMetaTableName("FUNCTION_ALIASES");
-            isView = false;
+        case ROUTINES:
+            setMetaTableName("ROUTINES");
             cols = createColumns(
-                    "ALIAS_CATALOG",
-                    "ALIAS_SCHEMA",
-                    "ALIAS_NAME",
-                    "JAVA_CLASS",
-                    "JAVA_METHOD",
+                    "SPECIFIC_CATALOG",
+                    "SPECIFIC_SCHEMA",
+                    "SPECIFIC_NAME",
+                    "ROUTINE_CATALOG",
+                    "ROUTINE_SCHEMA",
+                    "ROUTINE_NAME",
+                    "ROUTINE_TYPE",
                     "DATA_TYPE",
-                    "COLUMN_COUNT INT",
-                    "RETURNS_RESULT SMALLINT",
+                    "CHARACTER_MAXIMUM_LENGTH BIGINT",
+                    "CHARACTER_OCTET_LENGTH BIGINT",
+                    "CHARACTER_SET_CATALOG",
+                    "CHARACTER_SET_SCHEMA",
+                    "CHARACTER_SET_NAME",
+                    "COLLATION_CATALOG",
+                    "COLLATION_SCHEMA",
+                    "COLLATION_NAME",
+                    "NUMERIC_PRECISION INT",
+                    "NUMERIC_PRECISION_RADIX INT",
+                    "NUMERIC_SCALE INT",
+                    "DATETIME_PRECISION INT",
+                    "INTERVAL_TYPE",
+                    "INTERVAL_PRECISION INT",
+                    "MAXIMUM_CARDINALITY INT",
+                    "ROUTINE_BODY",
+                    "ROUTINE_DEFINITION",
+                    "EXTERNAL_NAME",
+                    "EXTERNAL_LANGUAGE",
+                    "PARAMETER_STYLE",
+                    "IS_DETERMINISTIC",
+                    // extensions
                     "REMARKS",
-                    "ID INT",
-                    "SOURCE"
+                    "ID INT"
             );
             break;
         case FUNCTION_COLUMNS:
@@ -422,22 +442,22 @@ public final class InformationSchemaTable extends MetaTable {
                     "DOMAIN_SCHEMA",
                     "DOMAIN_NAME",
                     "DATA_TYPE",
-                    "CHARACTER_MAXIMUM_LENGTH",
-                    "CHARACTER_OCTET_LENGTH",
+                    "CHARACTER_MAXIMUM_LENGTH BIGINT",
+                    "CHARACTER_OCTET_LENGTH BIGINT",
                     "CHARACTER_SET_CATALOG",
                     "CHARACTER_SET_SCHEMA",
                     "CHARACTER_SET_NAME",
                     "COLLATION_CATALOG",
                     "COLLATION_SCHEMA",
                     "COLLATION_NAME",
-                    "NUMERIC_PRECISION",
-                    "NUMERIC_PRECISION_RADIX",
-                    "NUMERIC_SCALE",
-                    "DATETIME_PRECISION",
+                    "NUMERIC_PRECISION INT",
+                    "NUMERIC_PRECISION_RADIX INT",
+                    "NUMERIC_SCALE INT",
+                    "DATETIME_PRECISION INT",
                     "INTERVAL_TYPE",
-                    "INTERVAL_PRECISION",
+                    "INTERVAL_PRECISION INT",
                     "DOMAIN_DEFAULT",
-                    "MAXIMUM_CARDINALITY",
+                    "MAXIMUM_CARDINALITY INT",
                     // extensions
                     "DOMAIN_ON_UPDATE",
                     "PARENT_DOMAIN_CATALOG",
@@ -1121,76 +1141,35 @@ public final class InformationSchemaTable extends MetaTable {
             }
             break;
         }
-        case FUNCTION_ALIASES: {
-            for (SchemaObject aliasAsSchemaObject :
-                    database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
+        case ROUTINES: {
+            String mainSchemaName = database.getMainSchema().getName();
+            String collation = database.getCompareMode().getName();
+            for (SchemaObject aliasAsSchemaObject : database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
                 FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
+                String schema = alias.getSchema().getName();
+                String name = alias.getName();
                 JavaMethod[] methods;
                 try {
                     methods = alias.getJavaMethods();
                 } catch (DbException e) {
                     methods = new JavaMethod[0];
                 }
-                for (FunctionAlias.JavaMethod method : methods) {
+                for (int i = 0; i < methods.length; i++) {
+                    FunctionAlias.JavaMethod method = methods[i];
                     TypeInfo typeInfo = method.getDataType();
-                    int valueType = typeInfo.getValueType();
-                    add(session,
-                            rows,
-                            // ALIAS_CATALOG
-                            catalog,
-                            // ALIAS_SCHEMA
-                            alias.getSchema().getName(),
-                            // ALIAS_NAME
-                            alias.getName(),
-                            // JAVA_CLASS
-                            alias.getJavaClassName(),
-                            // JAVA_METHOD
-                            alias.getJavaMethodName(),
-                            // DATA_TYPE
-                            getDataTypeName(DataType.getDataType(valueType), typeInfo),
-                            // COLUMN_COUNT
-                            ValueInteger.get(method.getParameterCount()),
-                            // RETURNS_RESULT
-                            ValueSmallint.get(valueType == Value.NULL
-                                    ? (short) DatabaseMetaData.procedureNoResult
-                                    : (short) DatabaseMetaData.procedureReturnsResult),
-                            // REMARKS
-                            replaceNullWithEmpty(alias.getComment()),
-                            // ID
-                            ValueInteger.get(alias.getId()),
-                            // SOURCE
-                            alias.getSource()
-                            // when adding more columns, see also below
-                    );
+                    boolean procedure = typeInfo.getValueType() == Value.NULL;
+                    generateRoutineRow(session, rows, catalog, mainSchemaName, collation, schema, name,
+                            name + '_' + (i + 1), procedure ? "PROCEDURE" : "FUNCTION",
+                            admin ? alias.getSource() : null,
+                            alias.getJavaClassName() + '.' + alias.getJavaMethodName(), procedure ? null : typeInfo,
+                            alias.isDeterministic(), alias.getComment(), alias.getId());
                 }
             }
+            String schema = database.getMainSchema().getName();
             for (UserAggregate agg : database.getAllAggregates()) {
-                add(session,
-                        rows,
-                        // ALIAS_CATALOG
-                        catalog,
-                        // ALIAS_SCHEMA
-                        database.getMainSchema().getName(),
-                        // ALIAS_NAME
-                        agg.getName(),
-                        // JAVA_CLASS
-                        agg.getJavaClassName(),
-                        // JAVA_METHOD
-                        "",
-                        // DATA_TYPE
-                        DataType.getDataType(Value.NULL).name,
-                        // COLUMN_COUNT
-                        ValueInteger.get(1),
-                        // RETURNS_RESULT
-                        ValueSmallint.get((short) DatabaseMetaData.procedureReturnsResult),
-                        // REMARKS
-                        replaceNullWithEmpty(agg.getComment()),
-                        // ID
-                        ValueInteger.get(agg.getId()),
-                        // SOURCE
-                        ""
-                        // when adding more columns, see also below
-                );
+                String name = agg.getName();
+                generateRoutineRow(session, rows, catalog, mainSchemaName, collation, schema, name, name, "AGGREGATE",
+                        null, agg.getJavaClassName(), TypeInfo.TYPE_NULL, false, agg.getComment(), agg.getId());
             }
             break;
         }
@@ -1460,7 +1439,7 @@ public final class InformationSchemaTable extends MetaTable {
                 Column col = domain.getColumn();
                 Domain parentDomain = col.getDomain();
                 TypeInfo typeInfo = col.getType();
-                DataTypeInformation dt = new DataTypeInformation(typeInfo);
+                DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
                 String characterSetCatalog, characterSetSchema, characterSetName, collationName;
                 if (dt.hasCharsetAndCollation) {
                     characterSetCatalog = catalog;
@@ -2024,7 +2003,7 @@ public final class InformationSchemaTable extends MetaTable {
     private void generateColumnRow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
             String collation, Table table, String tableName, int j, Column c) {
         TypeInfo typeInfo = c.getType();
-        DataTypeInformation dt = new DataTypeInformation(typeInfo);
+        DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
         String fullTypeName = c.getOriginalSQL();
         if (fullTypeName == null) {
             fullTypeName = typeInfo.getSQL(new StringBuilder(), HasSQL.DEFAULT_SQL_FLAGS).toString();
@@ -2118,6 +2097,84 @@ public final class InformationSchemaTable extends MetaTable {
                 // IS_VISIBLE
                 ValueBoolean.get(c.getVisible())
         );
+    }
+
+    private void generateRoutineRow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+            String collation, String schema, String name, String specificName, String routineType, String definition,
+            String externalName, TypeInfo typeInfo, boolean deterministic, String remarks, int id) {
+        DataTypeInformation dt = typeInfo != null ? DataTypeInformation.valueOf(typeInfo) : DataTypeInformation.NULL;
+        String characterSetCatalog, characterSetSchema, characterSetName, collationName;
+        if (dt.hasCharsetAndCollation) {
+            characterSetCatalog = catalog;
+            characterSetSchema = mainSchemaName;
+            characterSetName = CHARACTER_SET_NAME;
+            collationName = collation;
+        } else {
+            characterSetCatalog = characterSetSchema = characterSetName = collationName = null;
+        }
+        add(session, rows,
+                // SPECIFIC_CATALOG
+                catalog,
+                // SPECIFIC_SCHEMA
+                schema,
+                // SPECIFIC_NAME
+                specificName,
+                // ROUTINE_CATALOG
+                catalog,
+                // ROUTINE_SCHEMA
+                schema,
+                // ROUTINE_NAME
+                name,
+                // ROUTINE_TYPE
+                routineType,
+                // DATA_TYPE
+                identifier(dt.dataType),
+                // CHARACTER_MAXIMUM_LENGTH
+                dt.characterPrecision,
+                // CHARACTER_OCTET_LENGTH
+                dt.characterPrecision,
+                // CHARACTER_SET_CATALOG
+                characterSetCatalog,
+                // CHARACTER_SET_SCHEMA
+                characterSetSchema,
+                // CHARACTER_SET_NAME
+                characterSetName,
+                // COLLATION_CATALOG
+                characterSetCatalog,
+                // COLLATION_SCHEMA
+                characterSetSchema,
+                // COLLATION_NAME
+                collationName,
+                // NUMERIC_PRECISION
+                dt.numericPrecision,
+                // NUMERIC_PRECISION_RADIX
+                dt.numericPrecisionRadix,
+                // NUMERIC_SCALE
+                dt.numericScale,
+                // DATETIME_PRECISION
+                dt.datetimePrecision,
+                // INTERVAL_TYPE
+                dt.intervalType,
+                // INTERVAL_PRECISION
+                dt.intervalPrecision,
+                // MAXIMUM_CARDINALITY
+                dt.maximumCardinality,
+                // ROUTINE_BODY
+                "EXTERNAL",
+                // ROUTINE_DEFINITION
+                definition,
+                // EXTERNAL_NAME
+                externalName,
+                // EXTERNAL_LANGUAGE
+                "JAVA",
+                // PARAMETER_STYLE
+                "GENERAL",
+                // IS_DETERMINISTIC
+                deterministic ? "YES" : "NO",
+                // REMARKS
+                replaceNullWithEmpty(remarks),
+                // ID
+                ValueInteger.get(id));
     }
 
     /**
@@ -2254,7 +2311,10 @@ public final class InformationSchemaTable extends MetaTable {
     /**
      * Data type information.
      */
-    final class DataTypeInformation {
+    static final class DataTypeInformation {
+
+        static final DataTypeInformation NULL = new DataTypeInformation(null, null, null, null, null, null, null, null,
+                null, false);
 
         /**
          * DATA_TYPE.
@@ -2303,7 +2363,7 @@ public final class InformationSchemaTable extends MetaTable {
 
         final boolean hasCharsetAndCollation;
 
-        DataTypeInformation(TypeInfo typeInfo) {
+        static DataTypeInformation valueOf(TypeInfo typeInfo) {
             int type = typeInfo.getValueType();
             String dataType = getDataTypeName(DataType.getDataType(type), typeInfo);
             ValueBigint characterPrecision = null;
@@ -2370,6 +2430,15 @@ public final class InformationSchemaTable extends MetaTable {
             case Value.ARRAY:
                 maximumCardinality = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
             }
+            return new DataTypeInformation(dataType, characterPrecision, numericPrecision, numericPrecisionRadix,
+                    numericScale, datetimePrecision, intervalPrecision,
+                    intervalType != null ? ValueVarchar.get(intervalType) : ValueNull.INSTANCE, maximumCardinality,
+                    hasCharsetAndCollation);
+        }
+
+        private DataTypeInformation(String dataType, Value characterPrecision, Value numericPrecision,
+                Value numericPrecisionRadix, Value numericScale, Value datetimePrecision, Value intervalPrecision,
+                Value intervalType, Value maximumCardinality, boolean hasCharsetAndCollation) {
             this.dataType = dataType;
             this.characterPrecision = characterPrecision;
             this.numericPrecision = numericPrecision;
@@ -2377,7 +2446,7 @@ public final class InformationSchemaTable extends MetaTable {
             this.numericScale = numericScale;
             this.datetimePrecision = datetimePrecision;
             this.intervalPrecision = intervalPrecision;
-            this.intervalType = intervalType != null ? ValueVarchar.get(intervalType) : ValueNull.INSTANCE;
+            this.intervalType = intervalType;
             this.maximumCardinality = maximumCardinality;
             this.hasCharsetAndCollation = hasCharsetAndCollation;
         }

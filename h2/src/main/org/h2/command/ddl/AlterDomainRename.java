@@ -63,7 +63,7 @@ public class AlterDomainRename extends SchemaCommand {
             }
         }
         db.renameSchemaObject(session, oldDomain, newDomainName);
-        AlterDomain.copy(session, oldDomain, this::copyColumn, this::copyDomain, false);
+        AlterDomain.forAllDependencies(session, oldDomain, this::copyColumn, this::copyDomain, false);
         return 0;
     }
 

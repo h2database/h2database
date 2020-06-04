@@ -29,7 +29,21 @@ import org.h2.table.Table;
  */
 public class AlterDomain extends SchemaCommand {
 
-    static void copy(Session session, Domain domain, BiPredicate<Domain, Column> columnProcessor,
+    /**
+     * Processes all columns and domains that use the specified domain.
+     *
+     * @param session
+     *            the session
+     * @param domain
+     *            the domain to process
+     * @param columnProcessor
+     *            column handler
+     * @param domainProcessor
+     *            domain handler
+     * @param recompileExpressions
+     *            whether processed expressions need to be recompiled
+     */
+    public static void forAllDependencies(Session session, Domain domain, BiPredicate<Domain, Column> columnProcessor,
             BiPredicate<Domain, Domain> domainProcessor, boolean recompileExpressions) {
         Database db = session.getDatabase();
         for (SchemaObject obj : db.getAllSchemaObjects(DbObject.DOMAIN)) {
@@ -108,7 +122,7 @@ public class AlterDomain extends SchemaCommand {
             DbException.throwInternalError("type=" + type);
         }
         if (expression != null) {
-            AlterDomain.copy(session, domain, this::copyColumn, this::copyDomain, true);
+            AlterDomain.forAllDependencies(session, domain, this::copyColumn, this::copyDomain, true);
         }
         session.getDatabase().updateMeta(session, domain);
         return 0;

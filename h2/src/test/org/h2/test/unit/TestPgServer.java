@@ -780,6 +780,18 @@ public class TestPgServer extends TestDb {
                 assertEquals("d\\\"e", arr[1]);
                 assertEquals("{,}", arr[2]);
             }
+            try (ResultSet rs = stat.executeQuery(
+                    "SELECT data_type FROM information_schema.columns WHERE table_schema = 'pg_catalog' " +
+                    "AND table_name = 'pg_database' AND column_name = 'datacl'")) {
+                assertTrue(rs.next());
+                assertEquals("varchar array", rs.getString(1));
+            }
+            try (ResultSet rs = stat.executeQuery(
+                    "SELECT data_type FROM information_schema.columns WHERE table_schema = 'pg_catalog' " +
+                    "AND table_name = 'pg_tablespace' AND column_name = 'spcacl'")) {
+                assertTrue(rs.next());
+                assertEquals("varchar array", rs.getString(1));
+            }
         } finally {
             server.stop();
         }

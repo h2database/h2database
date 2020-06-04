@@ -203,7 +203,7 @@ public class PgCatalogTable extends MetaTable {
                     "DATLASTSYSOID INTEGER", //
                     "DATALLOWCONN BOOLEAN", //
                     "DATCONFIG TEXT ARRAY", //
-                    "DATACL ARRAY", // ACLITEM[]
+                    "DATACL VARCHAR ARRAY", // ACLITEM[]
                     "DATDBA INTEGER", //
                     "DATTABLESPACE INTEGER" //
             );
@@ -288,7 +288,7 @@ public class PgCatalogTable extends MetaTable {
                     "SPCNAME VARCHAR_IGNORECASE", //
                     "SPCLOCATION VARCHAR_IGNORECASE", //
                     "SPCOWNER INTEGER", //
-                    "SPCACL ARRAY" // ACLITEM[]
+                    "SPCACL VARCHAR ARRAY" // ACLITEM[]
             );
             break;
         case PG_TRIGGER:

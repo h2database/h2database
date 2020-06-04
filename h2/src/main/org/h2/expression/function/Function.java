@@ -176,9 +176,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("BIT_LENGTH", BIT_LENGTH, 1, Value.BIGINT);
         addFunction("CHAR", CHAR, 1, Value.VARCHAR);
         addFunction("CHR", CHAR, 1, Value.VARCHAR);
-        addFunction("CHAR_LENGTH", CHAR_LENGTH, 1, Value.INTEGER);
+        addFunction("CHAR_LENGTH", CHAR_LENGTH, 1, Value.BIGINT);
         // same as CHAR_LENGTH
-        addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.INTEGER);
+        addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.BIGINT);
         addFunctionWithNull("CONCAT", CONCAT, VAR_ARGS, Value.VARCHAR);
         addFunctionWithNull("CONCAT_WS", CONCAT_WS, VAR_ARGS, Value.VARCHAR);
         addFunctionWithNull("INSERT", INSERT, 4, Value.VARCHAR);
@@ -1214,7 +1214,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return value;
     }
 
-    private static long length(Value v) {
+    public static long length(Value v) {
         switch (v.getValueType()) {
         case Value.BLOB:
         case Value.CLOB:

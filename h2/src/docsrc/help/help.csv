@@ -4048,6 +4048,9 @@ For large text data CLOB should be used; see there for details.
 Too short strings are right-padded with space characters.
 Too long strings are truncated by CAST specification and rejected by column assignment.
 
+Two CHAR strings of different length are considered as equal if all additional characters in the longer string
+are space characters.
+
 See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
 Mapped to ""java.lang.String"".
 ","

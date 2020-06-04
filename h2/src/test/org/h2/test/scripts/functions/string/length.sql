@@ -21,5 +21,11 @@ select len(null) en, len('MSSQLServer uses the len keyword') e_32;
 > null 32
 > rows: 1
 
+SELECT LEN('A ');
+>> 2
+
+SELECT LEN(CAST('A ' AS CHAR(2)));
+>> 1
+
 SET MODE Regular;
 > ok

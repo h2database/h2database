@@ -5,6 +5,7 @@
  */
 package org.h2.value;
 
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
 import org.h2.util.StringUtils;
 
@@ -19,23 +20,14 @@ public final class ValueChar extends ValueStringBase {
         super(value);
     }
 
-    private static String trimRight(String s) {
-        return trimRight(s, 0);
-    }
-
-    private static String trimRight(String s, int minLength) {
-        int endIndex = s.length() - 1;
-        int i = endIndex;
-        while (i >= minLength && s.charAt(i) == ' ') {
-            i--;
-        }
-        s = i == endIndex ? s : s.substring(0, i + 1);
-        return s;
-    }
-
     @Override
     public int getValueType() {
         return CHAR;
+    }
+
+    @Override
+    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
+        return mode.compareString(convertToChar().getString(), v.convertToChar().getString(), false);
     }
 
     @Override
@@ -56,7 +48,6 @@ public final class ValueChar extends ValueStringBase {
      * @return the value
      */
     public static ValueChar get(String s) {
-        s = trimRight(s);
         int length = s.length();
         if (length == 0) {
             return EMPTY;

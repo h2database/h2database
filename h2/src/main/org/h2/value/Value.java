@@ -21,6 +21,7 @@ import java.util.Set;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.CastDataProvider;
+import org.h2.engine.Mode.CharPadding;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -31,6 +32,7 @@ import org.h2.util.HasSQL;
 import org.h2.util.IntervalUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.StringUtils;
 import org.h2.util.geometry.GeoJsonUtils;
 
 /**
@@ -1006,14 +1008,14 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         int valueType = getValueType(), targetValueType;
         if (valueType == NULL
                 || valueType == (targetValueType = targetType.getValueType()) && conversionMode == CONVERT_TO
-                && targetType.getExtTypeInfo() == null) {
+                && targetType.getExtTypeInfo() == null && valueType != CHAR) {
             return this;
         }
         switch (targetValueType) {
         case NULL:
             return ValueNull.INSTANCE;
         case CHAR:
-            return convertToChar(targetType, conversionMode, column);
+            return convertToChar(targetType, provider, conversionMode, column);
         case VARCHAR:
             return ValueVarchar.get(convertToVarchar(targetType, conversionMode, column));
         case CLOB:
@@ -1941,24 +1943,63 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         return s;
     }
 
-    private ValueChar convertToChar(TypeInfo targetType, int conversionMode, Object column) {
-        switch (getValueType()) {
+    /**
+     * Converts this value to a CHAR value. May not be called on a NULL value.
+     *
+     * @return a CHAR value.
+     */
+    public ValueChar convertToChar() {
+        return convertToChar(TypeInfo.getTypeInfo(CHAR), null, CONVERT_TO, null);
+    }
+
+    private ValueChar convertToChar(TypeInfo targetType, CastDataProvider provider, int conversionMode, //
+            Object column) {
+        int valueType = getValueType();
+        switch (valueType) {
         case BLOB:
         case JAVA_OBJECT:
             throw getDataConversionError(targetType.getValueType());
         }
         String s = getString();
-        int p = MathUtils.convertLongToInt(targetType.getPrecision()), l = s.length();
-        if (conversionMode == CAST_TO && l > p) {
-            l = p;
+        int length = s.length(), newLength = length;
+        if (conversionMode == CONVERT_TO) {
+            while (newLength > 0 && s.charAt(newLength - 1) == ' ') {
+                newLength--;
+            }
+        } else {
+            int p = MathUtils.convertLongToInt(targetType.getPrecision());
+            if (provider == null || provider.getMode().charPadding == CharPadding.ALWAYS) {
+                if (newLength != p) {
+                    if (newLength < p) {
+                        return ValueChar.get(StringUtils.pad(s, p, null, true));
+                    } else if (conversionMode == CAST_TO) {
+                        newLength = p;
+                    } else {
+                        do {
+                            if (s.charAt(--newLength) != ' ') {
+                                throw getValueTooLongException(targetType, column);
+                            }
+                        } while (newLength > p);
+                    }
+                }
+            } else {
+                if (conversionMode == CAST_TO && newLength > p) {
+                    newLength = p;
+                }
+                while (newLength > 0 && s.charAt(newLength - 1) == ' ') {
+                    newLength--;
+                }
+                if (conversionMode == ASSIGN_TO && newLength > p) {
+                    throw getValueTooLongException(targetType, column);
+                }
+            }
         }
-        while (l > 0 && s.charAt(l - 1) == ' ') {
-            l--;
+        if (length != newLength) {
+            s = s.substring(0, newLength);
+        } else if (valueType == CHAR) {
+            return (ValueChar) this;
         }
-        if (conversionMode == ASSIGN_TO && l > p) {
-            throw getValueTooLongException(targetType, column);
-        }
-        return ValueChar.get(s.substring(0, l));
+        return ValueChar.get(s);
     }
 
     /**

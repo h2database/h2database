@@ -339,7 +339,7 @@ public class TestPgServer extends TestDb {
 
         rs = stat.executeQuery("select * from pg_type where oid = " + PgServer.PG_TYPE_VARCHAR_ARRAY);
         rs.next();
-        assertEquals("_varchar", rs.getString("typname"));
+        assertEquals("_varchar", rs.getObject("typname"));
         assertEquals("b", rs.getString("typtype"));
         assertEquals(",", rs.getString("typdelim"));
         assertEquals(PgServer.PG_TYPE_VARCHAR, rs.getInt("typelem"));

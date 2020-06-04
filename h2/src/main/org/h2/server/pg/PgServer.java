@@ -389,6 +389,7 @@ public class PgServer implements Service {
         case Value.BOOLEAN:
             return PG_TYPE_BOOL;
         case Value.VARCHAR:
+        case Value.VARCHAR_IGNORECASE:
             return PG_TYPE_VARCHAR;
         case Value.CLOB:
             return PG_TYPE_TEXT;

@@ -3950,10 +3950,18 @@ VARBINARY(1000)
 "Data Types","BINARY Type","
 BINARY [ ( lengthInt ) ]
 ","
-Represents a byte array of fixed predefined length. For very long arrays, use BLOB.
-The maximum size is 2 GB, but the whole object is kept in
-memory when using this data type. If length is not specified, 1 byte is used by default.
-Too short arrays will be zero-expanded to the declared length.
+Represents a binary string (byte array) of fixed predefined length.
+
+If length is not specified, 1 byte is used by default.
+
+The whole binary string is kept in memory when using this data type.
+For variable-length binary strings use VARBINARY data type instead.
+For large binary data BLOB should be used; see there for details.
+
+Too short binary string are right-padded with zero bytes.
+Too long binary strings are truncated by CAST specification and rejected by column assignment.
+
+Binary strings of different length are considered as not equal to each other.
 
 See also [bytes](https://h2database.com/html/grammar.html#bytes) literal grammar.
 Mapped to byte[].

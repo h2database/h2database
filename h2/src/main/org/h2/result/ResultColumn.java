@@ -7,6 +7,7 @@ package org.h2.result;
 
 import java.io.IOException;
 
+import org.h2.engine.Constants;
 import org.h2.value.Transfer;
 import org.h2.value.TypeInfo;
 
@@ -60,11 +61,10 @@ public class ResultColumn {
         schemaName = in.readString();
         tableName = in.readString();
         columnName = in.readString();
-        int valueType = in.readInt();
-        long precision = in.readLong();
-        int scale = in.readInt();
-        int displaySize = in.readInt();
-        columnType = new TypeInfo(valueType, precision, scale, displaySize, null);
+        columnType = in.readTypeInfo();
+        if (in.getVersion() < Constants.TCP_PROTOCOL_VERSION_20) {
+            in.readInt();
+        }
         autoIncrement = in.readBoolean();
         nullable = in.readInt();
     }
@@ -83,10 +83,10 @@ public class ResultColumn {
         out.writeString(result.getTableName(i));
         out.writeString(result.getColumnName(i));
         TypeInfo type = result.getColumnType(i);
-        out.writeInt(type.getValueType());
-        out.writeLong(type.getPrecision());
-        out.writeInt(type.getScale());
-        out.writeInt(type.getDisplaySize());
+        out.writeTypeInfo(type);
+        if (out.getVersion() < Constants.TCP_PROTOCOL_VERSION_20) {
+            out.writeInt(type.getDisplaySize());
+        }
         out.writeBoolean(result.isAutoIncrement(i));
         out.writeInt(result.getNullable(i));
     }

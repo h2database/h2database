@@ -199,7 +199,7 @@ public class ConstraintDomain extends Constraint {
 
         CheckExistingData(Session session, Domain domain) {
             this.session = session;
-            AlterDomain.forAllDependencies(session, domain, this::checkColumn, this::checkDomain, false);
+            checkDomain(null, domain);
         }
 
         private boolean checkColumn(Domain domain, Column targetColumn) {

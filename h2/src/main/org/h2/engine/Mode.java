@@ -526,6 +526,7 @@ public class Mode {
         disallowedTypes.add("IDENTITY");
         disallowedTypes.add("TINYINT");
         disallowedTypes.add("BLOB");
+        disallowedTypes.add("VARCHAR_IGNORECASE");
         mode.disallowedTypes = disallowedTypes;
         dt = DataType.createNumeric(19, 2, false);
         dt.type = Value.NUMERIC;

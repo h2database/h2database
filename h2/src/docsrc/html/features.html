@@ -956,6 +956,7 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
 </li><li>INSERT IGNORE is partially supported and may be used to skip rows with duplicate keys if ON DUPLICATE KEY
     UPDATE is not specified.
 </li><li>REPLACE INTO is partially supported.
+</li><li>Spaces are trimmed from the right side of CHAR values.
 </li><li>REGEXP_REPLACE() uses \ for back-references for compatibility with MariaDB.
 </li><li>Datetime value functions return the same value within a command.
 </li><li>0x literals are parsed as binary string literals.
@@ -1016,7 +1017,8 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
     <li>replaces only the first matched substring in the absence of the 'g' flag in the <code>flagsString</code> parameter.</li>
     </ul>
 </li><li>ON CONFLICT DO NOTHING is supported in INSERT statements.
-</li><li>Fixed-width strings are padded with spaces.
+</li><li>Spaces are trimmed from the right side of CHAR values, but CHAR values in result sets are right-padded with
+    spaces to the declared length.
 </li><li>MONEY data type is treated like NUMERIC(19, 2) data type.
 </li><li>Datetime value functions return the same value within a transaction.
 </li><li>ARRAY_SLICE() out of bounds parameters are silently corrected.

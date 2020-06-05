@@ -13,6 +13,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
+import org.h2.engine.Mode.CharPadding;
 import org.h2.engine.Session;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
@@ -188,7 +189,7 @@ public abstract class Command implements CommandInterface {
                     try {
                         ResultInterface result = query(maxrows);
                         callStop = !result.isLazy();
-                        if (database.getMode().padFixedLengthStrings) {
+                        if (database.getMode().charPadding == CharPadding.IN_RESULT_SETS) {
                             return ResultWithPaddedStrings.get(result);
                         }
                         return result;

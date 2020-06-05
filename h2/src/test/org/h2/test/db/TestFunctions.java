@@ -52,6 +52,7 @@ import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
+import org.h2.expression.function.ToChar;
 import org.h2.expression.function.ToChar.Capitalization;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
@@ -1432,6 +1433,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
     }
 
     private void testToCharFromDateTime() throws SQLException {
+        ToChar.clearNames();
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();

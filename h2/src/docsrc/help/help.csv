@@ -3950,10 +3950,18 @@ VARBINARY(1000)
 "Data Types","BINARY Type","
 BINARY [ ( lengthInt ) ]
 ","
-Represents a byte array of fixed predefined length. For very long arrays, use BLOB.
-The maximum size is 2 GB, but the whole object is kept in
-memory when using this data type. If length is not specified, 1 byte is used by default.
-Too short arrays will be zero-expanded to the declared length.
+Represents a binary string (byte array) of fixed predefined length.
+
+If length is not specified, 1 byte is used by default.
+
+The whole binary string is kept in memory when using this data type.
+For variable-length binary strings use VARBINARY data type instead.
+For large binary data BLOB should be used; see there for details.
+
+Too short binary string are right-padded with zero bytes.
+Too long binary strings are truncated by CAST specification and rejected by column assignment.
+
+Binary strings of different length are considered as not equal to each other.
 
 See also [bytes](https://h2database.com/html/grammar.html#bytes) literal grammar.
 Mapped to byte[].
@@ -4036,15 +4044,20 @@ VARCHAR_IGNORECASE
 { CHAR | CHARACTER | NCHAR | NATIONAL { CHARACTER | CHAR } }
 [ ( lengthInt [CHARACTERS|OCTETS] ) ]
 ","
-A Unicode String of known length.
-The difference to VARCHAR is that trailing spaces are ignored and not persisted.
+A Unicode String of fixed length.
 
-The maximum length is ""Integer.MAX_VALUE"".
 Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
 If length is not specified, 1 character is used by default.
 
 The whole text is kept in memory when using this data type.
+For variable-length strings use VARCHAR data type instead.
 For large text data CLOB should be used; see there for details.
+
+Too short strings are right-padded with space characters.
+Too long strings are truncated by CAST specification and rejected by column assignment.
+
+Two CHAR strings of different length are considered as equal if all additional characters in the longer string
+are space characters.
 
 See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
 Mapped to ""java.lang.String"".

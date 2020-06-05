@@ -9,12 +9,16 @@ import java.util.HashMap;
 
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.TypedValueExpression;
 import org.h2.expression.function.CoalesceFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
 import org.h2.message.DbException;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueBigint;
+import org.h2.value.ValueNull;
 
 /**
  * Functions for {@link org.h2.engine.Mode.ModeEnum#MSSQLServer} compatibility
@@ -26,13 +30,15 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
 
     private static final int GETDATE = 4001;
 
-    private static final int ISNULL = GETDATE + 1;
+    private static final int LEN = GETDATE + 1;
+
+    private static final int ISNULL = LEN + 1;
 
     static {
         copyFunction(FUNCTIONS, "LOCATE", "CHARINDEX");
         FUNCTIONS.put("GETDATE", new FunctionInfo("GETDATE", GETDATE, 0, Value.TIMESTAMP, false, true));
+        FUNCTIONS.put("LEN", new FunctionInfo("LEN", LEN, 1, Value.INTEGER, true, true));
         FUNCTIONS.put("ISNULL", new FunctionInfo("ISNULL", ISNULL, 2, Value.NULL, false, true));
-        copyFunction(FUNCTIONS, "LENGTH", "LEN");
         copyFunction(FUNCTIONS, "RANDOM_UUID", "NEWID");
     }
 
@@ -59,6 +65,33 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
     }
 
     @Override
+    public Value getValue(Session session) {
+        Value[] values = getArgumentsValues(session, args);
+        if (values == null) {
+            return ValueNull.INSTANCE;
+        }
+        Value v0 = getNullOrValue(session, args, values, 0);
+        switch (info.type) {
+        case LEN: {
+            long len;
+            if (v0.getValueType() == Value.CHAR) {
+                String s = v0.getString();
+                int l = s.length();
+                while (l > 0 && s.charAt(l - 1) == ' ') {
+                    l--;
+                }
+                len = l;
+            } else {
+                len = Function.length(v0);
+            }
+            return ValueBigint.get(len);
+        }
+        default:
+            throw DbException.throwInternalError("type=" + info.type);
+        }
+    }
+
+    @Override
     public Expression optimize(Session session) {
         switch (info.type) {
         case GETDATE:
@@ -66,7 +99,11 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
         case ISNULL:
             return new CoalesceFunction(CoalesceFunction.COALESCE, args).optimize(session);
         default:
-            throw DbException.throwInternalError("type=" + info.type);
+            type = TypeInfo.getTypeInfo(info.returnDataType);
+            if (optimizeArguments(session)) {
+                return TypedValueExpression.getTypedIfNull(getValue(session), type);
+            }
+            return this;
         }
     }
 

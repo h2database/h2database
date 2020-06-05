@@ -1179,7 +1179,7 @@ public class TestMVTableEngine extends TestDb {
         rs.next();
         assertEquals(1000, rs.getInt(1));
         assertEquals("", rs.getString(2));
-        assertEquals("", rs.getString(3));
+        assertEquals("          ", rs.getString(3));
         assertFalse(rs.getBoolean(4));
         assertEquals(0, rs.getByte(5));
         assertEquals(0, rs.getShort(6));
@@ -1197,7 +1197,7 @@ public class TestMVTableEngine extends TestDb {
         rs.next();
         assertEquals(1, rs.getInt(1));
         assertEquals("vc", rs.getString(2));
-        assertEquals("ch", rs.getString(3));
+        assertEquals("ch        ", rs.getString(3));
         assertTrue(rs.getBoolean(4));
         assertEquals(8, rs.getByte(5));
         assertEquals(16, rs.getShort(6));
@@ -1216,7 +1216,7 @@ public class TestMVTableEngine extends TestDb {
         assertEquals(-1, rs.getInt(1));
         assertEquals("quite a long string \u1234 \u00ff",
                 rs.getString(2));
-        assertEquals("ch", rs.getString(3));
+        assertEquals("ch        ", rs.getString(3));
         assertFalse(rs.getBoolean(4));
         assertEquals(-8, rs.getByte(5));
         assertEquals(-16, rs.getShort(6));
@@ -1234,7 +1234,7 @@ public class TestMVTableEngine extends TestDb {
         rs.next();
         assertEquals(-1000, rs.getInt(1));
         assertEquals(1000, rs.getString(2).length());
-        assertEquals("ch", rs.getString(3));
+        assertEquals("ch        ", rs.getString(3));
         assertFalse(rs.getBoolean(4));
         assertEquals(-8, rs.getByte(5));
         assertEquals(-16, rs.getShort(6));

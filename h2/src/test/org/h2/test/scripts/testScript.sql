@@ -1002,10 +1002,10 @@ INSERT INTO TEST VALUES (1, 'Mouse', 'MOUSE'), (2, 'MOUSE', 'Mouse');
 > update count: 2
 
 SELECT * FROM TEST;
-> ID LABEL LOOKUP
-> -- ----- ------
-> 1  Mouse MOUSE
-> 2  MOUSE Mouse
+> ID LABEL  LOOKUP
+> -- ------ ------
+> 1  Mouse  MOUSE
+> 2  MOUSE  Mouse
 > rows: 2
 
 DROP TABLE TEST;
@@ -1614,15 +1614,14 @@ insert into test set id = 3, c = 'abcde      ', v = 'abcde';
 select distinct length(c) from test order by length(c);
 > LENGTH(C)
 > ---------
-> 1
 > 5
-> rows (ordered): 2
+> rows (ordered): 1
 
 select id, c, v, length(c), length(v) from test order by id;
 > ID C     V     LENGTH(C) LENGTH(V)
 > -- ----- ----- --------- ---------
-> 1  a     a     1         1
-> 2  a     a     1         2
+> 1  a     a     5         1
+> 2  a     a     5         2
 > 3  abcde abcde 5         5
 > rows (ordered): 3
 

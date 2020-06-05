@@ -105,6 +105,28 @@ public class Mode {
         MYSQL_STYLE,
     }
 
+    /**
+     * When CHAR values are right-padded with spaces.
+     */
+    public enum CharPadding {
+        /**
+         * CHAR values are always right-padded with spaces.
+         */
+        ALWAYS,
+
+        /**
+         * Spaces are trimmed from the right side of CHAR values, but CHAR
+         * values in result sets are right-padded with spaces to the declared
+         * length
+         */
+        IN_RESULT_SETS,
+
+        /**
+         * Spaces are trimmed from the right side of CHAR values.
+         */
+        NEVER
+    }
+
     private static final HashMap<String, Mode> MODES = new HashMap<>();
 
     // Modes are also documented in the features section
@@ -225,9 +247,9 @@ public class Mode {
     public boolean allowEmptyInPredicate;
 
     /**
-     * Whether to right-pad fixed strings with spaces.
+     * How to pad or trim CHAR values.
      */
-    public boolean padFixedLengthStrings;
+    public CharPadding charPadding = CharPadding.ALWAYS;
 
     /**
      * Whether DB2 TIMESTAMP formats are allowed.
@@ -436,6 +458,7 @@ public class Mode {
         mode.regexpReplaceBackslashReferences = true;
         mode.onDuplicateKeyUpdate = true;
         mode.replaceInto = true;
+        mode.charPadding = CharPadding.NEVER;
         // MySQL allows to use any key for client info entries. See
         // https://github.com/mysql/mysql-connector-j/blob/5.1.47/src/com/mysql/jdbc/JDBC4CommentClientInfoProvider.java
         mode.supportedClientInfoPropertiesRegEx =
@@ -494,7 +517,7 @@ public class Mode {
         //     org/postgresql/jdbc4/AbstractJdbc4Connection.java
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile("ApplicationName");
-        mode.padFixedLengthStrings = true;
+        mode.charPadding = CharPadding.IN_RESULT_SETS;
         mode.nextValueReturnsDifferentValues = true;
         mode.expressionNames = ExpressionNames.POSTGRESQL_STYLE;
         // Enumerate all H2 types NOT supported by PostgreSQL:

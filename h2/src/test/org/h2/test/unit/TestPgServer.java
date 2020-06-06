@@ -223,10 +223,12 @@ public class TestPgServer extends TestDb {
         rs.close();
         DatabaseMetaData dbMeta = conn.getMetaData();
         rs = dbMeta.getTables(null, null, "TEST", null);
-        rs.next();
+        assertFalse(rs.next());
+        rs = dbMeta.getTables(null, null, "test", null);
+        assertTrue(rs.next());
         assertEquals("test", rs.getString("TABLE_NAME"));
         assertFalse(rs.next());
-        rs = dbMeta.getColumns(null, null, "TEST", null);
+        rs = dbMeta.getColumns(null, null, "test", null);
         rs.next();
         assertEquals("id", rs.getString("COLUMN_NAME"));
         rs.next();
@@ -340,6 +342,7 @@ public class TestPgServer extends TestDb {
         rs = stat.executeQuery("select * from pg_type where oid = " + PgServer.PG_TYPE_VARCHAR_ARRAY);
         rs.next();
         assertEquals("_varchar", rs.getString("typname"));
+        assertEquals("_varchar", rs.getObject("typname"));
         assertEquals("b", rs.getString("typtype"));
         assertEquals(",", rs.getString("typdelim"));
         assertEquals(PgServer.PG_TYPE_VARCHAR, rs.getInt("typelem"));

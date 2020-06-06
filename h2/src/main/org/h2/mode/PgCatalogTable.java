@@ -120,7 +120,7 @@ public class PgCatalogTable extends MetaTable {
             setMetaTableName("PG_AM");
             cols = createColumns( //
                     "OID INTEGER", //
-                    "AMNAME VARCHAR_IGNORECASE" //
+                    "AMNAME VARCHAR" //
             );
             break;
         case PG_ATTRDEF:
@@ -152,7 +152,7 @@ public class PgCatalogTable extends MetaTable {
             setMetaTableName("PG_AUTHID");
             cols = createColumns( //
                     "OID INTEGER", //
-                    "ROLNAME VARCHAR_IGNORECASE", //
+                    "ROLNAME VARCHAR", //
                     "ROLSUPER BOOLEAN", //
                     "ROLINHERIT BOOLEAN", //
                     "ROLCREATEROLE BOOLEAN", //
@@ -169,8 +169,8 @@ public class PgCatalogTable extends MetaTable {
             setMetaTableName("PG_CONSTRAINT");
             cols = createColumns( //
                     "OID INTEGER", //
-                    "CONNAME VARCHAR_IGNORECASE", //
-                    "CONTYPE VARCHAR_IGNORECASE", //
+                    "CONNAME VARCHAR", //
+                    "CONTYPE VARCHAR", //
                     "CONRELID INTEGER", //
                     "CONFRELID INTEGER", //
                     "CONKEY SMALLINT ARRAY" //
@@ -180,7 +180,7 @@ public class PgCatalogTable extends MetaTable {
             setMetaTableName("PG_CLASS");
             cols = createColumns( //
                     "OID INTEGER", //
-                    "RELNAME VARCHAR_IGNORECASE", //
+                    "RELNAME VARCHAR", //
                     "RELNAMESPACE INTEGER", //
                     "RELKIND CHAR", //
                     "RELAM INTEGER", //
@@ -198,7 +198,7 @@ public class PgCatalogTable extends MetaTable {
             setMetaTableName("PG_DATABASE");
             cols = createColumns( //
                     "OID INTEGER", //
-                    "DATNAME VARCHAR_IGNORECASE", //
+                    "DATNAME VARCHAR", //
                     "ENCODING INTEGER", //
                     "DATLASTSYSOID INTEGER", //
                     "DATALLOWCONN BOOLEAN", //
@@ -214,14 +214,14 @@ public class PgCatalogTable extends MetaTable {
                     "OBJOID INTEGER", //
                     "OBJSUBID INTEGER", //
                     "CLASSOID INTEGER", //
-                    "DESCRIPTION VARCHAR_IGNORECASE" //
+                    "DESCRIPTION VARCHAR" //
             );
             break;
         case PG_GROUP:
             setMetaTableName("PG_GROUP");
             cols = createColumns( //
                     "OID INTEGER", //
-                    "GRONAME VARCHAR_IGNORECASE" //
+                    "GRONAME VARCHAR" //
             );
             break;
         case PG_INDEX:
@@ -233,7 +233,7 @@ public class PgCatalogTable extends MetaTable {
                     "INDISCLUSTERED BOOLEAN", //
                     "INDISUNIQUE BOOLEAN", //
                     "INDISPRIMARY BOOLEAN", //
-                    "INDEXPRS VARCHAR_IGNORECASE", //
+                    "INDEXPRS VARCHAR", //
                     "INDKEY INT ARRAY", //
                     "INDPRED" //
             );
@@ -250,14 +250,14 @@ public class PgCatalogTable extends MetaTable {
             setMetaTableName("PG_NAMESPACE");
             cols = createColumns( //
                     "ID INTEGER", //
-                    "NSPNAME VARCHAR_IGNORECASE" //
+                    "NSPNAME VARCHAR" //
             );
             break;
         case PG_PROC:
             setMetaTableName("PG_PROC");
             cols = createColumns( //
                     "OID INTEGER", //
-                    "PRONAME VARCHAR_IGNORECASE", //
+                    "PRONAME VARCHAR", //
                     "PRORETTYPE INTEGER", //
                     "PROARGTYPES INTEGER ARRAY", //
                     "PRONAMESPACE INTEGER" //
@@ -267,7 +267,7 @@ public class PgCatalogTable extends MetaTable {
             setMetaTableName("PG_ROLES");
             cols = createColumns( //
                     "OID INTEGER", //
-                    "ROLNAME VARCHAR_IGNORECASE", //
+                    "ROLNAME VARCHAR", //
                     "ROLSUPER CHAR", //
                     "ROLCREATEROLE CHAR", //
                     "ROLCREATEDB CHAR" //
@@ -277,16 +277,16 @@ public class PgCatalogTable extends MetaTable {
             setMetaTableName("PG_SETTINGS");
             cols = createColumns( //
                     "OID INTEGER", //
-                    "NAME VARCHAR_IGNORECASE", //
-                    "SETTING VARCHAR_IGNORECASE" //
+                    "NAME VARCHAR", //
+                    "SETTING VARCHAR" //
             );
             break;
         case PG_TABLESPACE:
             setMetaTableName("PG_TABLESPACE");
             cols = createColumns( //
                     "OID INTEGER", //
-                    "SPCNAME VARCHAR_IGNORECASE", //
-                    "SPCLOCATION VARCHAR_IGNORECASE", //
+                    "SPCNAME VARCHAR", //
+                    "SPCLOCATION VARCHAR", //
                     "SPCOWNER INTEGER", //
                     "SPCACL VARCHAR ARRAY" // ACLITEM[]
             );
@@ -301,7 +301,7 @@ public class PgCatalogTable extends MetaTable {
                     "TGNARGS INTEGER", //
                     "TGDEFERRABLE BOOLEAN", //
                     "TGINITDEFERRED BOOLEAN", //
-                    "TGCONSTRNAME VARCHAR_IGNORECASE", //
+                    "TGCONSTRNAME VARCHAR", //
                     "TGRELID INTEGER" //
             );
             break;
@@ -309,7 +309,7 @@ public class PgCatalogTable extends MetaTable {
             setMetaTableName("PG_TYPE");
             cols = createColumns( //
                     "OID INTEGER", //
-                    "TYPNAME VARCHAR_IGNORECASE", //
+                    "TYPNAME VARCHAR", //
                     "TYPNAMESPACE INTEGER", //
                     "TYPLEN INTEGER", //
                     "TYPTYPE VARCHAR", //
@@ -326,7 +326,7 @@ public class PgCatalogTable extends MetaTable {
             setMetaTableName("PG_USER");
             cols = createColumns( //
                     "OID INTEGER", //
-                    "USENAME VARCHAR_IGNORECASE", //
+                    "USENAME VARCHAR", //
                     "USECREATEDB BOOLEAN", //
                     "USESUPER BOOLEAN" //
             );

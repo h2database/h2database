@@ -89,7 +89,7 @@ public final class CurrentGeneralValueSpecification extends Operation0 implement
             break;
         }
         case CURRENT_ROLE:
-            s = session.getDatabase().getPublicRole().getName();
+            s = session.getDatabase().sysIdentifier(session.getDatabase().getPublicRole().getName());
             break;
         case CURRENT_SCHEMA:
             s = session.getCurrentSchemaName();
@@ -97,7 +97,7 @@ public final class CurrentGeneralValueSpecification extends Operation0 implement
         case CURRENT_USER:
         case SESSION_USER:
         case SYSTEM_USER:
-            s = session.getUser().getName();
+            s = session.getDatabase().sysIdentifier(session.getUser().getName());
             break;
         default:
             throw DbException.throwInternalError("specification=" + specification);

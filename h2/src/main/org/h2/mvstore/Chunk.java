@@ -163,6 +163,11 @@ public final class Chunk {
      */
     private int pinCount;
 
+    /**
+     * ByteBuffer holding this Chunk's serialized content before it gets saved to file store.
+     * This allows to release pages of this Chunk earlier, allowing them to be garbage collected.
+     */
+    public volatile ByteBuffer buffer;
 
     private Chunk(String s) {
         this(DataUtils.parseMap(s), true);

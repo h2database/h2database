@@ -190,7 +190,7 @@ public class MVStore implements AutoCloseable {
      */
     private static final int STATE_CLOSED = 3;
 
-    public static final int PIPE_LENGTH = 1;
+    public static final int PIPE_LENGTH = 3;
 
 
     /**
@@ -1093,6 +1093,8 @@ public class MVStore implements AutoCloseable {
         }
     }
 
+    private int serializationExecutorHWM;
+
     private void storeNow(boolean syncWrite) {
         try {
             lastCommitTime = getTimeSinceCreation();
@@ -1103,9 +1105,9 @@ public class MVStore implements AutoCloseable {
             ArrayList<Page<?,?>> changed = collectChangedMapRoots(version);
 
             assert storeLock.isHeldByCurrentThread();
-            submitOrRun(serializationExecutor,
+            serializationExecutorHWM = submitOrRun(serializationExecutor,
                     () -> serializeAndStore(syncWrite, changed, lastCommitTime, version),
-                    syncWrite);
+                    syncWrite, PIPE_LENGTH, serializationExecutorHWM);
 
             // some pages might have been changed in the meantime (in the newest
             // version)
@@ -1119,23 +1121,29 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    private static void submitOrRun(ThreadPoolExecutor executor, Runnable action,
-                                    boolean syncRun) throws ExecutionException {
+    private static int submitOrRun(ThreadPoolExecutor executor, Runnable action,
+                                    boolean syncRun, int threshold, int hwm) throws ExecutionException {
         if (executor != null) {
             try {
                 Future<?> future = executor.submit(action);
-                if (syncRun || executor.getQueue().size() > PIPE_LENGTH) {
+                int size = executor.getQueue().size();
+                if (size > hwm) {
+                    hwm = size;
+//                    System.err.println(executor + " HWM: " + hwm);
+                }
+                if (syncRun || size > threshold) {
                     try {
                         future.get();
                     } catch (InterruptedException ignore) {/**/}
                 }
-                return;
+                return hwm;
             } catch (RejectedExecutionException ex) {
                 assert executor.isShutdown();
                 Utils.shutdownExecutor(executor);
             }
         }
         action.run();
+        return hwm;
     }
 
     private ArrayList<Page<?,?>> collectChangedMapRoots(long version) {
@@ -1176,6 +1184,8 @@ public class MVStore implements AutoCloseable {
         return changed;
     }
 
+    private int bufferSaveExecutorHWM;
+
     private void serializeAndStore(boolean syncRun, ArrayList<Page<?,?>> changed, long time, long version) {
         serializationLock.lock();
         try {
@@ -1184,7 +1194,12 @@ public class MVStore implements AutoCloseable {
             WriteBuffer buff = getWriteBuffer();
             serializeToBuffer(buff, changed, c);
 
-            submitOrRun(bufferSaveExecutor, () -> storeBuffer(c, buff, changed), syncRun);
+            for (Page<?, ?> p : changed) {
+                p.releaseSavedPages();
+            }
+
+            bufferSaveExecutorHWM = submitOrRun(bufferSaveExecutor, () -> storeBuffer(c, buff, changed),
+                    syncRun, 5, bufferSaveExecutorHWM);
 
         } catch (MVStoreException e) {
             panic(e);
@@ -1201,8 +1216,8 @@ public class MVStore implements AutoCloseable {
             chunkId &= Chunk.MAX_ID;
             Chunk lastChunk = chunks.get(chunkId);
             assert lastChunk != null;
-            assert lastChunk.isSaved();
-            assert lastChunk.version + 1 == version : lastChunk.version + " " +  version;
+//            assert lastChunk.isSaved();
+//            assert lastChunk.version + 1 == version : lastChunk.version + " " +  version;
             // the metadata of the last chunk was not stored so far, and needs to be
             // set now (it's better not to update right after storing, because that
             // would modify the meta map again)
@@ -1292,16 +1307,14 @@ public class MVStore implements AutoCloseable {
                 Chunk.FOOTER_LENGTH, FileStore.BLOCK_SIZE);
         buff.limit(length);
         c.len = buff.limit() / FileStore.BLOCK_SIZE;
-        fileStore.allocateChunkSpace(c, buff);
+        c.buffer = buff.getBuffer();
     }
 
     private void storeBuffer(Chunk c, WriteBuffer buff, ArrayList<Page<?,?>> changed) {
         try {
+            fileStore.allocateChunkSpace(c, buff);
             fileStore.storeBuffer(c, buff);
-
-            for (Page<?, ?> p : changed) {
-                p.releaseSavedPages();
-            }
+            c.buffer = null;
         } catch (MVStoreException e) {
             panic(e);
         } catch (Throwable e) {
@@ -1816,7 +1829,15 @@ public class MVStore implements AutoCloseable {
                 Chunk chunk = getChunk(pos);
                 int pageOffset = DataUtils.getPageOffset(pos);
                 try {
-                    ByteBuffer buff = chunk.readBufferForPage(fileStore, pageOffset, pos);
+                    ByteBuffer buff = chunk.buffer;
+                    if (buff == null) {
+                        buff = chunk.readBufferForPage(fileStore, pageOffset, pos);
+                    } else {
+//                        System.err.println("Using unsaved buffer " + chunk.id + "/" + pageOffset);
+                        buff = buff.duplicate();
+                        buff.position(pageOffset);
+                        buff = buff.slice();
+                    }
                     p = Page.read(buff, pos, map);
                 } catch (MVStoreException e) {
                     throw e;

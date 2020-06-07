@@ -1118,30 +1118,29 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 add(session, rows, entry.getKey(), entry.getValue());
             }
             Store store = database.getStore();
-            MVStore mvStore = store.getMvStore();
-            FileStore fs = mvStore.getFileStore();
-            if (fs != null) {
-                add(session, rows,
-                        "info.FILE_WRITE", Long.toString(fs.getWriteCount()));
-                add(session, rows,
-                        "info.FILE_WRITE_BYTES", Long.toString(fs.getWriteBytes()));
-                add(session, rows,
-                        "info.FILE_READ", Long.toString(fs.getReadCount()));
-                add(session, rows,
-                        "info.FILE_READ_BYTES", Long.toString(fs.getReadBytes()));
-                add(session, rows,
-                        "info.UPDATE_FAILURE_PERCENT",
-                        String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getUpdateFailureRatio()));
-                add(session, rows,
-                        "info.FILL_RATE", Integer.toString(mvStore.getFillRate()));
-                add(session, rows,
-                        "info.CHUNKS_FILL_RATE", Integer.toString(mvStore.getChunksFillRate()));
-                add(session, rows,
-                        "info.CHUNKS_FILL_RATE_RW", Integer.toString(mvStore.getRewritableChunksFillRate()));
-                try {
-                    add(session, rows,
-                            "info.FILE_SIZE", Long.toString(fs.getFile().size()));
-                } catch (IOException ignore) {/**/}
+
+                    MVStore mvStore = store.getMvStore();
+                    FileStore fs = mvStore.getFileStore();
+                    if (fs != null) {
+                        add(session, rows,
+                                "info.FILE_WRITE", Long.toString(fs.getWriteCount()));
+                        add(session, rows,
+                                "info.FILE_WRITE_BYTES", Long.toString(fs.getWriteBytes()));
+                        add(session, rows,
+                                "info.FILE_READ", Long.toString(fs.getReadCount()));
+                        add(session, rows,
+                                "info.FILE_READ_BYTES", Long.toString(fs.getReadBytes()));
+                        add(session, rows,
+                                "info.UPDATE_FAILURE_PERCENT",
+                                String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getUpdateFailureRatio()));
+                        add(session, rows,
+                                "info.FILL_RATE", Integer.toString(mvStore.getFillRate()));
+                        add(session, rows,
+                                "info.CHUNKS_FILL_RATE", Integer.toString(mvStore.getChunksFillRate()));
+                        add(session, rows,
+                                "info.CHUNKS_FILL_RATE_RW", Integer.toString(mvStore.getRewritableChunksFillRate()));
+                        add(session, rows,
+                                "info.FILE_SIZE", Long.toString(fs.size()));
                 add(session, rows,
                         "info.CHUNK_COUNT", Long.toString(mvStore.getChunkCount()));
                 add(session, rows,

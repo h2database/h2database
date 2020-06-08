@@ -8,7 +8,7 @@ CREATE TABLE TEST(S VARCHAR(10), B VARBINARY(10), A VARCHAR(10) ARRAY) AS VALUES
 > ok
 
 EXPLAIN SELECT S || 'v' || '' || 'x' || S || (S || S), S || '', S || (B || X'50'), B || B || B FROM TEST;
->> SELECT ("S" || 'vx' || "S" || "S" || "S"), "S", ("S" || ("B" || X'50')), ("B" || "B" || "B") FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+>> SELECT "S" || 'vx' || "S" || "S" || "S", "S", "S" || ("B" || X'50'), "B" || "B" || "B" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
 
 SELECT S || 'v' || '' || 'x' || S || (S || S), S || '', S || (B || X'50'), B || B || B FROM TEST;
 > S || 'vx' || S || S || S S    S || (B || X'50') B || B || B
@@ -19,7 +19,7 @@ SELECT S || 'v' || '' || 'x' || S || (S || S), S || '', S || (B || X'50'), B || 
 > rows: 3
 
 EXPLAIN SELECT S || A, ARRAY[] || A, S || CAST(ARRAY[] AS VARCHAR ARRAY), A || A || A FROM TEST;
->> SELECT ("S" || "A"), "A", CAST("S" AS VARCHAR ARRAY), ("A" || "A" || "A") FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+>> SELECT "S" || "A", "A", CAST("S" AS VARCHAR ARRAY), "A" || "A" || "A" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
 
 SELECT S || A, ARRAY[] || A, S || CAST(ARRAY[] AS VARCHAR ARRAY), A || A || A FROM TEST;
 > S || A A    CAST(S AS VARCHAR ARRAY) A || A || A
@@ -41,10 +41,10 @@ SELECT B || NULL, B || X'22' || NULL FROM TEST;
 > rows: 3
 
 EXPLAIN SELECT B || X'', A || ARRAY['a'] FROM TEST;
->> SELECT "B", ("A" || ARRAY ['a']) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+>> SELECT "B", "A" || ARRAY ['a'] FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
 
 EXPLAIN SELECT (S || S) || (B || B) FROM TEST;
->> SELECT ("S" || "S" || ("B" || "B")) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+>> SELECT "S" || "S" || ("B" || "B") FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
 
 DROP TABLE TEST;
 > ok

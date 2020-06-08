@@ -42,8 +42,13 @@ public final class BetweenPredicate extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return getWhenSQL(left.getSQL(builder.append('('), sqlFlags), sqlFlags).append(')');
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return getWhenSQL(left.getSQL(builder, sqlFlags, AUTO_PARENTHESES), sqlFlags);
     }
 
     @Override
@@ -55,8 +60,8 @@ public final class BetweenPredicate extends Condition {
         if (symmetric) {
             builder.append("SYMMETRIC ");
         }
-        a.getSQL(builder, sqlFlags).append(" AND ");
-        return b.getSQL(builder, sqlFlags);
+        a.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append(" AND ");
+        return b.getSQL(builder, sqlFlags, AUTO_PARENTHESES);
     }
 
     @Override

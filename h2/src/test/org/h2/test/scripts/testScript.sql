@@ -1021,8 +1021,8 @@ call set(1, 2);
 > exception CAN_ONLY_ASSIGN_TO_VARIABLE_1
 
 select x, set(@t, ifnull(@t, 0) + x) from system_range(1, 3);
-> X SET(@T, (COALESCE(@T, 0) + X))
-> - ------------------------------
+> X SET(@T, COALESCE(@T, 0) + X)
+> - ----------------------------
 > 1 1
 > 2 3
 > 3 6
@@ -1545,7 +1545,7 @@ create table test(id int);
 > ok
 
 explain select id+1 a from test group by id+1;
->> SELECT ("ID" + 1) AS "A" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ GROUP BY "ID" + 1
+>> SELECT "ID" + 1 AS "A" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ GROUP BY "ID" + 1
 
 drop table test;
 > ok
@@ -2641,7 +2641,7 @@ select * from test t1 where id in(select id from test t2 where t1.id=t2.id);
 > rows: 2
 
 explain select * from test t1 where id in(id, id+1);
->> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" IN("ID", ("ID" + 1))
+>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" IN("ID", "ID" + 1)
 
 select * from test t1 where id in(id, id+1);
 > ID NAME
@@ -3779,12 +3779,12 @@ update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id
 > update count: 2
 
 explain update test set (id, name)=(id+1, name || 'Hi');
-#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "ID" = ("ID" + 1), "NAME" = ("NAME" || 'Hi')
-#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET "ID" = ("ID" + 1), "NAME" = ("NAME" || 'Hi')
+#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "ID" = "ID" + 1, "NAME" = "NAME" || 'Hi'
+#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET "ID" = "ID" + 1, "NAME" = "NAME" || 'Hi'
 
 explain update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id=t1.id);
-#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET ("ID", "NAME") = (SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID")
-#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET ("ID", "NAME") = (SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID")
+#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET ("ID", "NAME") = (SELECT "ID" + 1, "NAME" || 'Ho' FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID")
+#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET ("ID", "NAME") = (SELECT "ID" + 1, "NAME" || 'Ho' FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID")
 
 select * from test;
 > ID NAME
@@ -4668,10 +4668,10 @@ EXPLAIN INSERT INTO TEST VALUES(1, 'Test'), (2, 'World');
 >> INSERT INTO "PUBLIC"."TEST"("ID", "NAME") VALUES (1, 'Test'), (2, 'World')
 
 EXPLAIN INSERT INTO TEST SELECT DISTINCT ID+1, NAME FROM TEST;
->> INSERT INTO "PUBLIC"."TEST"("ID", "NAME") SELECT DISTINCT ("ID" + 1), "NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+>> INSERT INTO "PUBLIC"."TEST"("ID", "NAME") SELECT DISTINCT "ID" + 1, "NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
 
 EXPLAIN SELECT DISTINCT ID + 1, NAME FROM TEST;
->> SELECT DISTINCT ("ID" + 1), "NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+>> SELECT DISTINCT "ID" + 1, "NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
 
 EXPLAIN SELECT * FROM TEST WHERE 1=0;
 >> SELECT "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan: FALSE */ WHERE FALSE
@@ -4700,13 +4700,13 @@ EXPLAIN PLAN FOR SELECT NAME, COUNT(*) FROM TEST GROUP BY NAME HAVING COUNT(*) >
 >> SELECT "NAME", COUNT(*) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ GROUP BY "NAME" HAVING COUNT(*) > 1
 
 EXPLAIN PLAN FOR SELECT * FROM test t1 inner join test t2 on t1.id=t2.id and t2.name is not null where t1.id=1;
->> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ INNER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON 1=1 WHERE ("T1"."ID" = 1) AND ("T2"."NAME" IS NOT NULL) AND ("T1"."ID" = "T2"."ID")
+>> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ INNER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON 1=1 WHERE ("T1"."ID" = 1) AND "T2"."NAME" IS NOT NULL AND ("T1"."ID" = "T2"."ID")
 
 EXPLAIN PLAN FOR SELECT * FROM test t1 left outer join test t2 on t1.id=t2.id and t2.name is not null where t1.id=1;
->> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ LEFT OUTER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON ("T2"."NAME" IS NOT NULL) AND ("T1"."ID" = "T2"."ID") WHERE "T1"."ID" = 1
+>> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ LEFT OUTER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON "T2"."NAME" IS NOT NULL AND ("T1"."ID" = "T2"."ID") WHERE "T1"."ID" = 1
 
 EXPLAIN PLAN FOR SELECT * FROM test t1 left outer join test t2 on t1.id=t2.id and t2.name is null where t1.id=1;
->> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ LEFT OUTER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON ("T2"."NAME" IS NULL) AND ("T1"."ID" = "T2"."ID") WHERE "T1"."ID" = 1
+>> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ LEFT OUTER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON "T2"."NAME" IS NULL AND ("T1"."ID" = "T2"."ID") WHERE "T1"."ID" = 1
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE EXISTS(SELECT * FROM TEST T2 WHERE T1.ID-1 = T2.ID);
 >> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE EXISTS( SELECT "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = (T1.ID - 1) */ WHERE ("T1"."ID" - 1) = "T2"."ID")

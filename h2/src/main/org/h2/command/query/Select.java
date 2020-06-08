@@ -5,6 +5,10 @@
  */
 package org.h2.command.query;
 
+import static org.h2.expression.Expression.WITHOUT_PARENTHESES;
+import static org.h2.util.HasSQL.ADD_PLAN_INFORMATION;
+import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -50,7 +54,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
-import org.h2.util.HasSQL;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -982,8 +985,7 @@ public class Select extends Query {
             for (int i = 0; i < visibleColumnCount; i++) {
                 Expression expr = expressions.get(i);
                 expr = expr.getNonAliasExpression();
-                String sql = expr.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
-                expressionSQL.add(sql);
+                expressionSQL.add(expr.getSQL(DEFAULT_SQL_FLAGS, WITHOUT_PARENTHESES));
             }
         } else {
             expressionSQL = null;
@@ -1037,13 +1039,13 @@ public class Select extends Query {
             if (fullExpSize > expSize) {
                 expressionSQL.ensureCapacity(fullExpSize);
                 for (int i = expSize; i < fullExpSize; i++) {
-                    expressionSQL.add(expressions.get(i).getSQL(HasSQL.DEFAULT_SQL_FLAGS));
+                    expressionSQL.add(expressions.get(i).getSQL(DEFAULT_SQL_FLAGS, WITHOUT_PARENTHESES));
                 }
             }
             groupIndex = new int[size];
             for (int i = 0; i < size; i++) {
                 Expression expr = group.get(i);
-                String sql = expr.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
+                String sql = expr.getSQL(DEFAULT_SQL_FLAGS, WITHOUT_PARENTHESES);
                 int found = -1;
                 for (int j = 0; j < expSize; j++) {
                     String s2 = expressionSQL.get(j);
@@ -1413,7 +1415,7 @@ public class Select extends Query {
                     builder.append(',');
                 }
                 builder.append('\n');
-                StringUtils.indent(builder, exprList[i].getSQL(sqlFlags), 4, false);
+                StringUtils.indent(builder, exprList[i].getSQL(sqlFlags, WITHOUT_PARENTHESES), 4, false);
             }
             TableFilter filter = topTableFilter;
             if (filter == null) {
@@ -1463,7 +1465,7 @@ public class Select extends Query {
         if (isForUpdate) {
             builder.append("\nFOR UPDATE");
         }
-        if ((sqlFlags & HasSQL.ADD_PLAN_INFORMATION) != 0) {
+        if ((sqlFlags & ADD_PLAN_INFORMATION) != 0) {
             if (isQuickAggregateQuery) {
                 builder.append("\n/* direct lookup */");
             }
@@ -1498,10 +1500,10 @@ public class Select extends Query {
             int conditionIndex) {
         if (condition != null) {
             builder.append(sql);
-            condition.getUnenclosedSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
+            condition.getUnenclosedSQL(builder, DEFAULT_SQL_FLAGS);
         } else if (conditionIndex >= 0) {
             builder.append(sql);
-            exprList[conditionIndex].getUnenclosedSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
+            exprList[conditionIndex].getUnenclosedSQL(builder, DEFAULT_SQL_FLAGS);
         }
     }
 

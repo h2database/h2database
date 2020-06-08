@@ -403,7 +403,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
             }
             builder.append("MATCHED");
             if (andCondition != null) {
-                andCondition.getSQL(builder.append(" AND "), sqlFlags);
+                andCondition.getUnenclosedSQL(builder.append(" AND "), sqlFlags);
             }
             return builder.append(" THEN ");
         }

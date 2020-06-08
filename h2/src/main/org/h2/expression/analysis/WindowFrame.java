@@ -853,7 +853,7 @@ public final class WindowFrame {
      * @param formattingFlags
      *            quote all identifiers
      * @return the specified string builder
-     * @see org.h2.expression.Expression#getSQL(StringBuilder, int)
+     * @see org.h2.expression.Expression#getSQL(StringBuilder, int, int)
      */
     public StringBuilder getSQL(StringBuilder builder, int formattingFlags) {
         builder.append(units.getSQL());

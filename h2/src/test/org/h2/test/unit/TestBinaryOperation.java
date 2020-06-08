@@ -91,7 +91,7 @@ public class TestBinaryOperation extends TestBase {
         }
 
         @Override
-        public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
             throw DbException.getUnsupportedException("");
         }
 

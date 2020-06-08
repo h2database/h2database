@@ -219,7 +219,7 @@ public class IndexCondition {
             DbException.throwInternalError("type=" + compareType);
         }
         if (expression != null) {
-            expression.getSQL(builder, sqlFlags);
+            expression.getSQL(builder, sqlFlags, Expression.AUTO_PARENTHESES);
         }
         return builder.toString();
     }

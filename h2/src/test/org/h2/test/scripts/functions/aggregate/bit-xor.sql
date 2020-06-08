@@ -4,7 +4,7 @@
 --
 
 SELECT BIT_XOR(V), BIT_XOR(DISTINCT V), BIT_XOR(V) FILTER (WHERE V <> 1) FROM (VALUES 1, 1, 2, 3, 4) T(V);
-> BIT_XOR(V) BIT_XOR(DISTINCT V) BIT_XOR(V) FILTER (WHERE (V <> 1))
-> ---------- ------------------- ----------------------------------
+> BIT_XOR(V) BIT_XOR(DISTINCT V) BIT_XOR(V) FILTER (WHERE V <> 1)
+> ---------- ------------------- --------------------------------
 > 5          4                   5
 > rows: 1

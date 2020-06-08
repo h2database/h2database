@@ -25,7 +25,6 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ExpressionWithFlags;
-import org.h2.expression.Subquery;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.analysis.Window;
 import org.h2.expression.function.JsonConstructorFunction;
@@ -841,7 +840,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         String text;
         switch (aggregateType) {
         case COUNT_ALL:
@@ -936,17 +935,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         } else {
             builder.append('(');
         }
-        for (int i = 0; i < args.length; i++) {
-            if (i > 0) {
-                builder.append(", ");
-            }
-            Expression arg = args[i];
-            if (arg instanceof Subquery) {
-                arg.getSQL(builder, sqlFlags);
-            } else {
-                arg.getUnenclosedSQL(builder, sqlFlags);
-            }
-        }
+        writeExpressions(builder, args, sqlFlags);
         builder.append(')');
         boolean forceOrderBy = aggregateType == AggregateType.LISTAGG;
         if (forceOrderBy || orderByList != null) {
@@ -962,7 +951,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         if (distinct) {
             builder.append("DISTINCT ");
         }
-        args[0].getSQL(builder, sqlFlags);
+        args[0].getUnenclosedSQL(builder, sqlFlags);
         Window.appendOrderBy(builder, orderByList, sqlFlags, false);
         builder.append(')');
         return appendTailConditions(builder, sqlFlags, false);
@@ -970,15 +959,15 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     private StringBuilder getSQLJsonObjectAggregate(StringBuilder builder, int sqlFlags) {
         builder.append("JSON_OBJECTAGG(");
-        args[0].getSQL(builder, sqlFlags).append(": ");
-        args[1].getSQL(builder, sqlFlags);
+        args[0].getUnenclosedSQL(builder, sqlFlags).append(": ");
+        args[1].getUnenclosedSQL(builder, sqlFlags);
         JsonConstructorFunction.getJsonFunctionFlagsSQL(builder, flags, false).append(')');
         return appendTailConditions(builder, sqlFlags, false);
     }
 
     private StringBuilder getSQLJsonArrayAggregate(StringBuilder builder, int sqlFlags) {
         builder.append("JSON_ARRAYAGG(");
-        args[0].getSQL(builder, sqlFlags);
+        args[0].getUnenclosedSQL(builder, sqlFlags);
         JsonConstructorFunction.getJsonFunctionFlagsSQL(builder, flags, true);
         Window.appendOrderBy(builder, orderByList, sqlFlags, false);
         builder.append(')');

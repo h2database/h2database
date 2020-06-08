@@ -133,8 +133,13 @@ public final class ConditionInConstantSet extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return getWhenSQL(left.getSQL(builder.append('('), sqlFlags), sqlFlags).append(')');
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return getWhenSQL(left.getSQL(builder, sqlFlags, AUTO_PARENTHESES), sqlFlags);
     }
 
     @Override

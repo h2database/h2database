@@ -82,8 +82,8 @@ public class Regclass extends Operation1 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return arg.getSQL(builder, sqlFlags).append("::REGCLASS");
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return arg.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append("::REGCLASS");
     }
 
     @Override

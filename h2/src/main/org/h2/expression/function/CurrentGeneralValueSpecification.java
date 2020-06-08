@@ -106,7 +106,7 @@ public final class CurrentGeneralValueSpecification extends Operation0 implement
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         return builder.append(getName());
     }
 

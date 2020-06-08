@@ -35,15 +35,19 @@ public final class ConcatenationOperation extends OperationN {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append('(');
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         for (int i = 0, l = args.length; i < l; i++) {
             if (i > 0) {
                 builder.append(" || ");
             }
-            args[i].getSQL(builder, sqlFlags);
+            args[i].getSQL(builder, sqlFlags, AUTO_PARENTHESES);
         }
-        return builder.append(')');
+        return builder;
     }
 
     @Override

@@ -65,12 +65,16 @@ public class BinaryOperation extends Operation2 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         // don't remove the space, otherwise it might end up some thing like
         // --1 which is a line remark
-        builder.append('(');
-        left.getSQL(builder, sqlFlags).append(' ').append(getOperationToken()).append(' ');
-        return right.getSQL(builder, sqlFlags).append(')');
+        left.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append(' ').append(getOperationToken()).append(' ');
+        return right.getSQL(builder, sqlFlags, AUTO_PARENTHESES);
     }
 
     private String getOperationToken() {
@@ -385,7 +389,7 @@ public class BinaryOperation extends Operation2 {
     }
 
     private DbException getUnexpectedForcedTypeException() {
-        StringBuilder builder = getSQL(new StringBuilder(), TRACE_SQL_FLAGS);
+        StringBuilder builder = getUnenclosedSQL(new StringBuilder(), TRACE_SQL_FLAGS);
         int index = builder.length();
         return DbException.getSyntaxError(
                 IntervalOperation.getForcedTypeSQL(builder.append(' '), forcedType).toString(), index, "");

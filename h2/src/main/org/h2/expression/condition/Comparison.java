@@ -116,17 +116,22 @@ public final class Comparison extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return getWhenSQL(left.getSQL(builder.append('('), sqlFlags), sqlFlags).append(')');
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return getWhenSQL(left.getSQL(builder, sqlFlags, AUTO_PARENTHESES), sqlFlags);
     }
 
     @Override
     public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
         builder.append(' ').append(COMPARE_TYPES[compareType]).append(' ');
-        if (right instanceof Aggregate && ((Aggregate) right).getAggregateType() == AggregateType.ANY) {
-            return right.getSQL(builder.append('('), sqlFlags).append(')');
-        }
-        return right.getSQL(builder, sqlFlags);
+        return right.getSQL(builder, sqlFlags,
+                right instanceof Aggregate && ((Aggregate) right).getAggregateType() == AggregateType.ANY
+                        ? WITH_PARENTHESES
+                        : AUTO_PARENTHESES);
     }
 
     @Override

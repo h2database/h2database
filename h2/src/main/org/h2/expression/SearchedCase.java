@@ -76,18 +76,18 @@ public class SearchedCase extends OperationN {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         builder.append("CASE");
         int len = args.length - 1;
         for (int i = 0; i < len; i += 2) {
             builder.append(" WHEN ");
-            args[i].getSQL(builder, sqlFlags);
+            args[i].getUnenclosedSQL(builder, sqlFlags);
             builder.append(" THEN ");
-            args[i + 1].getSQL(builder, sqlFlags);
+            args[i + 1].getUnenclosedSQL(builder, sqlFlags);
         }
         if ((len & 1) == 0) {
             builder.append(" ELSE ");
-            args[len].getSQL(builder, sqlFlags);
+            args[len].getUnenclosedSQL(builder, sqlFlags);
         }
         return builder.append(" END");
     }

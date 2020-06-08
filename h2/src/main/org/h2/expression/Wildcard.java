@@ -102,7 +102,7 @@ public class Wildcard extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         if (table != null) {
             StringUtils.quoteIdentifier(builder, table).append('.');
         }

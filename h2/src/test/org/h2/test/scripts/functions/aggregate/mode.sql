@@ -28,9 +28,9 @@ SELECT MODE(V), MODE() WITHIN GROUP (ORDER BY V DESC) FROM TEST;
 > rows: 1
 
 SELECT MODE(V) FILTER (WHERE (V > 1)), MODE(V) FILTER (WHERE (V < 0)) FROM TEST;
-> MODE() WITHIN GROUP (ORDER BY V) FILTER (WHERE (V > 1)) MODE() WITHIN GROUP (ORDER BY V) FILTER (WHERE (V < 0))
-> ------------------------------------------------------- -------------------------------------------------------
-> 2                                                       null
+> MODE() WITHIN GROUP (ORDER BY V) FILTER (WHERE V > 1) MODE() WITHIN GROUP (ORDER BY V) FILTER (WHERE V < 0)
+> ----------------------------------------------------- -----------------------------------------------------
+> 2                                                     null
 > rows: 1
 
 -- Oracle compatibility

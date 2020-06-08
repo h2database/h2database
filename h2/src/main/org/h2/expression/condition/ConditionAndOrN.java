@@ -65,10 +65,14 @@ public class ConditionAndOrN extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append('(');
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         Iterator<Expression> it = expressions.iterator();
-        it.next().getSQL(builder, sqlFlags);
+        it.next().getSQL(builder, sqlFlags, AUTO_PARENTHESES);
         while (it.hasNext()) {
             switch (andOrType) {
             case ConditionAndOr.AND:
@@ -80,9 +84,8 @@ public class ConditionAndOrN extends Condition {
             default:
                 throw DbException.throwInternalError("andOrType=" + andOrType);
             }
-            it.next().getSQL(builder, sqlFlags);
+            it.next().getSQL(builder, sqlFlags, AUTO_PARENTHESES);
         }
-        builder.append(')');
         return builder;
     }
 

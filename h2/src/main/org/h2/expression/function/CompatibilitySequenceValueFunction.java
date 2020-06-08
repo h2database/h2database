@@ -32,10 +32,10 @@ public class CompatibilitySequenceValueFunction extends Operation1_2 implements 
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        left.getSQL(builder.append(getName()).append('('), sqlFlags);
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        left.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags);
         if (right != null) {
-            right.getSQL(builder.append(", "), sqlFlags);
+            right.getUnenclosedSQL(builder.append(", "), sqlFlags);
         }
         return builder.append(')');
     }

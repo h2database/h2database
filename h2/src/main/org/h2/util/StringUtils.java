@@ -400,19 +400,6 @@ public class StringUtils {
     }
 
     /**
-     * Remove enclosing '(' and ')' if this text is enclosed.
-     *
-     * @param s the potentially enclosed string
-     * @return the string
-     */
-    public static String unEnclose(String s) {
-        if (s.startsWith("(") && s.endsWith(")")) {
-            return s.substring(1, s.length() - 1);
-        }
-        return s;
-    }
-
-    /**
      * Encode the string as a URL.
      *
      * @param s the string to encode

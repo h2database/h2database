@@ -28,14 +28,14 @@ public class TimeZoneOperation extends Operation1_2 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        left.getSQL(builder.append('('), sqlFlags).append(" AT ");
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        left.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append(" AT ");
         if (right != null) {
-            right.getSQL(builder.append("TIME ZONE "), sqlFlags);
+            right.getSQL(builder.append("TIME ZONE "), sqlFlags, AUTO_PARENTHESES);
         } else {
             builder.append("LOCAL");
         }
-        return builder.append(')');
+        return builder;
     }
 
     @Override
@@ -126,11 +126,11 @@ public class TimeZoneOperation extends Operation1_2 {
             scale = type.getScale();
             break;
         default:
-            StringBuilder builder = left.getSQL(new StringBuilder(), TRACE_SQL_FLAGS);
+            StringBuilder builder = left.getSQL(new StringBuilder(), TRACE_SQL_FLAGS, AUTO_PARENTHESES);
             int offset = builder.length();
             builder.append(" AT ");
             if (right != null) {
-                right.getSQL(builder.append("TIME ZONE "), TRACE_SQL_FLAGS);
+                right.getSQL(builder.append("TIME ZONE "), TRACE_SQL_FLAGS, AUTO_PARENTHESES);
             } else {
                 builder.append("LOCAL");
             }

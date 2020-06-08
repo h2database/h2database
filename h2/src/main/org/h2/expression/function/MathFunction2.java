@@ -103,10 +103,10 @@ public class MathFunction2 extends Operation2 implements NamedExpression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         builder.append(getName()).append('(');
-        left.getSQL(builder, sqlFlags).append(", ");
-        return right.getSQL(builder, sqlFlags).append(')');
+        left.getUnenclosedSQL(builder, sqlFlags).append(", ");
+        return right.getUnenclosedSQL(builder, sqlFlags).append(')');
     }
 
     @Override

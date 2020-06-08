@@ -7,8 +7,8 @@ CREATE TABLE TEST(A INTEGER ARRAY) AS VALUES ARRAY[NULL], ARRAY[1];
 > ok
 
 SELECT A, ARRAY_GET(A, 1), ARRAY_GET(A, 1) IS OF (INTEGER) FROM TEST;
-> A      A[1] (A[1]) IS OF (INTEGER)
-> ------ ---- ----------------------
+> A      A[1] A[1] IS OF (INTEGER)
+> ------ ---- --------------------
 > [1]    1    TRUE
 > [null] null null
 > rows: 2

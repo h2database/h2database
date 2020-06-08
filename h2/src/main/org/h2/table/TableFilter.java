@@ -797,8 +797,8 @@ public class TableFilter implements ColumnResolver {
         if ((sqlFlags & HasSQL.ADD_PLAN_INFORMATION) != 0) {
             if (filterCondition != null) {
                 builder.append('\n');
-                String condition = StringUtils.unEnclose(filterCondition.getSQL(
-                        HasSQL.TRACE_SQL_FLAGS | HasSQL.ADD_PLAN_INFORMATION));
+                String condition = filterCondition.getSQL(HasSQL.TRACE_SQL_FLAGS | HasSQL.ADD_PLAN_INFORMATION,
+                        Expression.WITHOUT_PARENTHESES);
                 condition = "/* WHERE " + condition + "\n*/";
                 StringUtils.indent(builder, condition, 4, false);
             }

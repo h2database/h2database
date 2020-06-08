@@ -30,9 +30,8 @@ public class Variable extends Operation0 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append('@');
-        return ParserUtil.quoteIdentifier(builder, name, sqlFlags);
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return ParserUtil.quoteIdentifier(builder.append('@'), name, sqlFlags);
     }
 
     @Override

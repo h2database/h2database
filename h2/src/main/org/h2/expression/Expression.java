@@ -45,6 +45,22 @@ public abstract class Expression implements HasSQL, Typed {
      */
     public static final int MAP_IN_AGGREGATE = 2;
 
+    /**
+     * Wrap expression in parentheses only if it can't be safely included into
+     * other expressions without them.
+     */
+    public static final int AUTO_PARENTHESES = 0;
+
+    /**
+     * Wrap expression in parentheses unconditionally.
+     */
+    public static final int WITH_PARENTHESES = 1;
+
+    /**
+     * Do not wrap expression in parentheses.
+     */
+    public static final int WITHOUT_PARENTHESES = 2;
+
     private boolean addedToFilter;
 
     /**
@@ -59,7 +75,7 @@ public abstract class Expression implements HasSQL, Typed {
             if (i > 0) {
                 builder.append(", ");
             }
-            expressions.get(i).getSQL(builder, sqlFlags);
+            expressions.get(i).getUnenclosedSQL(builder, sqlFlags);
         }
     }
 
@@ -79,7 +95,7 @@ public abstract class Expression implements HasSQL, Typed {
             if (e == null) {
                 builder.append("DEFAULT");
             } else {
-                e.getSQL(builder, sqlFlags);
+                e.getUnenclosedSQL(builder, sqlFlags);
             }
         }
     }
@@ -142,30 +158,63 @@ public abstract class Expression implements HasSQL, Typed {
      */
     public abstract void setEvaluatable(TableFilter tableFilter, boolean value);
 
-    /**
-     * Appends the SQL statement of this expression to the specified builder.
-     * This may not always be the original SQL statement, specially after
-     * optimization. Enclosing '(' and ')' are always appended.
-     *
-     * @param builder
-     *            string builder
-     * @param sqlFlags
-     *            formatting flags
-     * @return the specified string builder
-     */
-    public StringBuilder getEnclosedSQL(StringBuilder builder, int sqlFlags) {
-        int first = builder.length();
-        int last = getSQL(builder, sqlFlags).length() - 1;
-        if (last <= first || builder.charAt(first) != '(' || builder.charAt(last) != ')') {
-            builder.insert(first, '(').append(')');
-        }
-        return builder;
+    @Override
+    public final String getSQL(int sqlFlags) {
+        return getSQL(new StringBuilder(), sqlFlags, AUTO_PARENTHESES).toString();
+    }
+
+    @Override
+    public final StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return getSQL(builder, sqlFlags, AUTO_PARENTHESES);
     }
 
     /**
-     * Appends the SQL statement of this expression to the specified builder.
-     * This may not always be the original SQL statement, specially after
-     * optimization. Enclosing '(' and ')' are removed.
+     * Get the SQL statement of this expression. This may not always be the
+     * original SQL statement, especially after optimization.
+     *
+     * @param sqlFlags
+     *            formatting flags
+     * @param parentheses
+     *            parentheses mode
+     * @return the SQL statement
+     */
+    public final String getSQL(int sqlFlags, int parentheses) {
+        return getSQL(new StringBuilder(), sqlFlags, parentheses).toString();
+    }
+
+    /**
+     * Get the SQL statement of this expression. This may not always be the
+     * original SQL statement, especially after optimization.
+     *
+     * @param builder
+     *            string builder
+     * @param sqlFlags
+     *            formatting flags
+     * @param parentheses
+     *            parentheses mode
+     * @return the specified string builder
+     */
+    public final StringBuilder getSQL(StringBuilder builder, int sqlFlags, int parentheses) {
+        return parentheses == WITH_PARENTHESES || parentheses != WITHOUT_PARENTHESES && needParentheses()
+                ? getUnenclosedSQL(builder.append('('), sqlFlags).append(')')
+                : getUnenclosedSQL(builder, sqlFlags);
+    }
+
+    /**
+     * Returns whether this expressions needs to be wrapped in parentheses when
+     * it is used as an argument of other expressions.
+     *
+     * @return {@code true} if it is
+     */
+    public boolean needParentheses() {
+        return false;
+    }
+
+    /**
+     * Get the SQL statement of this expression. This may not always be the
+     * original SQL statement, especially after optimization. Enclosing '(' and
+     * ')' are always appended.
+     * 
      *
      * @param builder
      *            string builder
@@ -173,15 +222,23 @@ public abstract class Expression implements HasSQL, Typed {
      *            formatting flags
      * @return the specified string builder
      */
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        int first = builder.length();
-        int last = getSQL(builder, sqlFlags).length() - 1;
-        if (last > first && builder.charAt(first) == '(' && builder.charAt(last) == ')') {
-            builder.setLength(last);
-            builder.deleteCharAt(first);
-        }
-        return builder;
+    public final StringBuilder getEnclosedSQL(StringBuilder builder, int sqlFlags) {
+        return getUnenclosedSQL(builder.append('('), sqlFlags).append(')');
     }
+
+    /**
+     * Get the SQL statement of this expression. This may not always be the
+     * original SQL statement, especially after optimization. Enclosing '(' and
+     * ')' are never appended.
+     * 
+     *
+     * @param builder
+     *            string builder
+     * @param sqlFlags
+     *            formatting flags
+     * @return the specified string builder
+     */
+    public abstract StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags);
 
     /**
      * Update an aggregate value. This method is called at statement execution
@@ -344,7 +401,7 @@ public abstract class Expression implements HasSQL, Typed {
     public String getAlias(Session session, int columnIndex) {
         switch (session.getMode().expressionNames) {
         default:
-            return getUnenclosedSQL(new StringBuilder(), QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS).toString();
+            return getSQL(QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS, WITHOUT_PARENTHESES);
         case EMPTY:
             return "";
         case NUMBER:
@@ -374,7 +431,7 @@ public abstract class Expression implements HasSQL, Typed {
         case EXCEPTION:
             throw DbException.get(ErrorCode.COLUMN_ALIAS_IS_NOT_SPECIFIED_1, getTraceSQL());
         case MYSQL_STYLE: {
-            String name = getUnenclosedSQL(new StringBuilder(), QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS).toString();
+            String name = getSQL(QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS, WITHOUT_PARENTHESES);
             if (name.length() > 64) {
                 name = "Name_exp_" + (columnIndex + 1);
             }
@@ -507,7 +564,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @return the specified string builder
      */
     public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
-        return getSQL(builder.append(' '), sqlFlags);
+        return getUnenclosedSQL(builder.append(' '), sqlFlags);
     }
 
 }

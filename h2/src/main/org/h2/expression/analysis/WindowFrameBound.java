@@ -152,11 +152,11 @@ public class WindowFrameBound {
      * @param sqlFlags
      *            formatting flags
      * @return the specified string builder
-     * @see Expression#getSQL(StringBuilder, int)
+     * @see Expression#getSQL(StringBuilder, int, int)
      */
     public StringBuilder getSQL(StringBuilder builder, boolean following, int sqlFlags) {
         if (type == WindowFrameBoundType.PRECEDING || type == WindowFrameBoundType.FOLLOWING) {
-            value.getSQL(builder, sqlFlags).append(' ');
+            value.getUnenclosedSQL(builder, sqlFlags).append(' ');
         }
         return builder.append(type.getSQL());
     }

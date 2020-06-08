@@ -37,12 +37,7 @@ public class Rownum extends Operation0 {
     }
 
     @Override
-    public String getSQL(int sqlFlags) {
-        return "ROWNUM()";
-    }
-
-    @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         return builder.append("ROWNUM()");
     }
 

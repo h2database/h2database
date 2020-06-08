@@ -130,7 +130,7 @@ public class ValueExpression extends Operation0 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         if (this == DEFAULT) {
             builder.append("DEFAULT");
         } else {

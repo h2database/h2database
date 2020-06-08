@@ -148,14 +148,24 @@ public class IntervalOperation extends Operation2 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append('(');
-        left.getSQL(builder, sqlFlags).append(' ').append(getOperationToken()).append(' ');
-        right.getSQL(builder, sqlFlags).append(')');
+    public boolean needParentheses() {
+        return forcedType == null;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         if (forcedType != null) {
-            getForcedTypeSQL(builder.append(' '), forcedType);
+            getInnerSQL2(builder.append('('), sqlFlags);
+            getForcedTypeSQL(builder.append(") "), forcedType);
+        } else {
+            getInnerSQL2(builder, sqlFlags);
         }
         return builder;
+    }
+
+    private void getInnerSQL2(StringBuilder builder, int sqlFlags) {
+        left.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append(' ').append(getOperationToken()).append(' ');
+        right.getSQL(builder, sqlFlags, AUTO_PARENTHESES);
     }
 
     static StringBuilder getForcedTypeSQL(StringBuilder builder, TypeInfo forcedType) {

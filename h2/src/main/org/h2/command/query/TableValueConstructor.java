@@ -5,6 +5,9 @@
  */
 package org.h2.command.query;
 
+import static org.h2.expression.Expression.WITHOUT_PARENTHESES;
+import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -25,7 +28,6 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableValueConstructorTable;
-import org.h2.util.HasSQL;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
@@ -180,7 +182,7 @@ public class TableValueConstructor extends Query {
         if (orderList != null) {
             ArrayList<String> expressionsSQL = new ArrayList<>();
             for (Expression e : expressions) {
-                expressionsSQL.add(e.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
+                expressionsSQL.add(e.getSQL(DEFAULT_SQL_FLAGS, WITHOUT_PARENTHESES));
             }
             if (initOrder(expressionsSQL, false, null)) {
                 prepareOrder(orderList, expressions.size());

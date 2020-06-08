@@ -37,11 +37,7 @@ public class QueryOrderBy {
      * @param sqlFlags formatting flags
      */
     public void getSQL(StringBuilder builder, int sqlFlags) {
-        if (expression != null) {
-            expression.getSQL(builder, sqlFlags);
-        } else {
-            columnIndexExpr.getUnenclosedSQL(builder, sqlFlags);
-        }
+        (expression != null ? expression : columnIndexExpr).getUnenclosedSQL(builder, sqlFlags);
         SortOrder.typeToString(builder, sortType);
     }
 

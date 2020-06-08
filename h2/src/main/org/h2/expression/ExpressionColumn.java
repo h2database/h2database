@@ -60,7 +60,7 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         if (schemaName != null) {
             ParserUtil.quoteIdentifier(builder, schemaName, sqlFlags).append('.');
         }

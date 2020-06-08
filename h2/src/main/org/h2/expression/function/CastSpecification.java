@@ -102,11 +102,10 @@ public class CastSpecification extends Operation1 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         builder.append("CAST(");
-        arg.getSQL(builder, arg instanceof ValueExpression ? sqlFlags | NO_CASTS : sqlFlags).append(" AS ");
-        (domain != null ? domain : type).getSQL(builder, sqlFlags);
-        return builder.append(')');
+        arg.getUnenclosedSQL(builder, arg instanceof ValueExpression ? sqlFlags | NO_CASTS : sqlFlags).append(" AS ");
+        return (domain != null ? domain : type).getSQL(builder, sqlFlags).append(')');
     }
 
 }

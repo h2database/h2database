@@ -29,7 +29,7 @@ public class Parameter extends Operation0 implements ParameterInterface {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         return builder.append('?').append(index + 1);
     }
 

@@ -18,8 +18,8 @@ SELECT
         (3, (2, NULL), (1, NULL)),
         (4, (1, 1), (1, 2))
     ) T(N, A, B) ORDER BY N;
-> A = B NULLIF(A, B)  CASE WHEN (A = B) THEN NULL ELSE A END
-> ----- ------------- --------------------------------------
+> A = B NULLIF(A, B)  CASE WHEN A = B THEN NULL ELSE A END
+> ----- ------------- ------------------------------------
 > null  ROW (1, null) ROW (1, null)
 > FALSE ROW (1, null) ROW (1, null)
 > FALSE ROW (2, null) ROW (2, null)

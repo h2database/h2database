@@ -87,7 +87,7 @@ public final class SetClauseList implements HasSQL {
 
         @Override
         void getSQL(StringBuilder builder, int sqlFlags, Column column) {
-            expression.getSQL(column.getSQL(builder, sqlFlags).append(" = "), sqlFlags);
+            expression.getUnenclosedSQL(column.getSQL(builder, sqlFlags).append(" = "), sqlFlags);
         }
 
     }
@@ -362,7 +362,7 @@ public final class SetClauseList implements HasSQL {
                             }
                             columns[cols[j]].getSQL(builder, sqlFlags);
                         }
-                        r.expression.getSQL(builder.append(") = "), sqlFlags);
+                        r.expression.getUnenclosedSQL(builder.append(") = "), sqlFlags);
                     }
                 } else {
                     if (f) {

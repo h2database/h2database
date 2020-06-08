@@ -135,8 +135,8 @@ public class SimpleCase extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        operand.getSQL(builder.append("CASE "), sqlFlags);
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        operand.getUnenclosedSQL(builder.append("CASE "), sqlFlags);
         for (SimpleWhen when = this.when; when != null; when = when.next) {
             builder.append(" WHEN");
             Expression[] operands = when.operands;
@@ -146,10 +146,10 @@ public class SimpleCase extends Expression {
                 }
                 operands[i].getWhenSQL(builder, sqlFlags);
             }
-            when.result.getSQL(builder.append(" THEN "), sqlFlags);
+            when.result.getUnenclosedSQL(builder.append(" THEN "), sqlFlags);
         }
         if (elseResult != null) {
-            elseResult.getSQL(builder.append(" ELSE "), sqlFlags);
+            elseResult.getUnenclosedSQL(builder.append(" ELSE "), sqlFlags);
         }
         return builder.append(" END");
     }

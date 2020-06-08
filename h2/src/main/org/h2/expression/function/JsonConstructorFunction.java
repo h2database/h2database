@@ -207,7 +207,7 @@ public class JsonConstructorFunction extends OperationN implements ExpressionWit
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         builder.append(getName()).append('(');
         if (array) {
             writeExpressions(builder, args, sqlFlags);
@@ -216,8 +216,8 @@ public class JsonConstructorFunction extends OperationN implements ExpressionWit
                 if (i > 0) {
                     builder.append(", ");
                 }
-                args[i++].getSQL(builder, sqlFlags).append(": ");
-                args[i++].getSQL(builder, sqlFlags);
+                args[i++].getUnenclosedSQL(builder, sqlFlags).append(": ");
+                args[i++].getUnenclosedSQL(builder, sqlFlags);
             }
         }
         return getJsonFunctionFlagsSQL(builder, flags, array).append(')');

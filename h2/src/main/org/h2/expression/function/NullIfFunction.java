@@ -42,10 +42,9 @@ public class NullIfFunction extends Operation2 implements NamedExpression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append("NULLIF").append('(');
-        left.getSQL(builder, sqlFlags).append(", ");
-        return right.getSQL(builder, sqlFlags).append(')');
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        left.getUnenclosedSQL(builder.append("NULLIF").append('('), sqlFlags).append(", ");
+        return right.getUnenclosedSQL(builder, sqlFlags).append(')');
     }
 
     @Override

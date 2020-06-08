@@ -407,7 +407,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
             }
             f = true;
             entry.getKey().getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS).append('=');
-            entry.getValue().getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
+            entry.getValue().getUnenclosedSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
         }
         builder.append(" WHERE ");
         Index foundIndex = (Index) de.getSource();
@@ -415,7 +415,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
             throw DbException.getUnsupportedException(
                     "Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
         }
-        prepareUpdateCondition(foundIndex, row).getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
+        prepareUpdateCondition(foundIndex, row).getUnenclosedSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
         String sql = builder.toString();
         Update command = (Update) session.prepare(sql);
         command.setOnDuplicateKeyInsert(this);

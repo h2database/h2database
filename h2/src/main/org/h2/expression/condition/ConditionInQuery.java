@@ -171,13 +171,17 @@ public final class ConditionInQuery extends PredicateWithSubquery {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         boolean outerNot = not && (all || compareType != Comparison.EQUAL);
         if (outerNot) {
-            builder.append("(NOT ");
+            builder.append("NOT (");
         }
-        builder.append('(');
-        left.getSQL(builder, sqlFlags);
+        left.getSQL(builder, sqlFlags, AUTO_PARENTHESES);
         getWhenSQL(builder, sqlFlags);
         if (outerNot) {
             builder.append(')');
@@ -197,7 +201,7 @@ public final class ConditionInQuery extends PredicateWithSubquery {
         } else {
             builder.append(' ').append(Comparison.COMPARE_TYPES[compareType]).append(" ANY");
         }
-        return super.getSQL(builder, sqlFlags).append(')');
+        return super.getUnenclosedSQL(builder, sqlFlags);
     }
 
     @Override

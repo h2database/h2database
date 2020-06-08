@@ -77,7 +77,7 @@ public final class CurrentDateTimeValueFunction extends Operation0 implements Na
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         builder.append(getName());
         if (scale >= 0) {
             builder.append('(').append(scale).append(')');

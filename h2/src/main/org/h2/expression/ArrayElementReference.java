@@ -23,9 +23,9 @@ public class ArrayElementReference extends Operation2 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        left.getSQL(builder.append('('), sqlFlags).append('[');
-        return right.getSQL(builder, sqlFlags).append("])");
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        left.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append('[');
+        return right.getUnenclosedSQL(builder, sqlFlags).append(']');
     }
 
     @Override

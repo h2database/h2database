@@ -31,7 +31,7 @@ public final class CompatibilityIdentityFunction extends Operation0 implements N
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         return builder.append(getName()).append("()");
     }
 

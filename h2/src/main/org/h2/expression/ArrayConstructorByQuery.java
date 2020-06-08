@@ -42,7 +42,7 @@ public class ArrayConstructorByQuery extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         return StringUtils.indent(builder.append("ARRAY ("), query.getPlanSQL(sqlFlags), 4, false).append(')');
     }
 

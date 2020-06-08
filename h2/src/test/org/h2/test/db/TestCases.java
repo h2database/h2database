@@ -1813,11 +1813,11 @@ public class TestCases extends TestDb {
         rs.next();
         assertEquals("DELETE FROM \"PUBLIC\".\"TEST\"\n" +
                 "    /* PUBLIC.TEST.tableScan */\n" +
-                "LIMIT ((SELECT\n" +
+                "LIMIT (SELECT\n" +
                 "    COUNT(*)\n" +
                 "FROM \"PUBLIC\".\"TEST\"\n" +
                 "    /* PUBLIC.TEST.tableScan */\n" +
-                "/* direct lookup */) / 10)",
+                "/* direct lookup */) / 10",
                 rs.getString(1));
 
         PreparedStatement prep;

@@ -727,8 +727,8 @@ insert into test values (10), (20), (30), (40), (50), (60), (70), (80), (90), (1
 > update count: 12
 
 select median(v), median(v) filter (where v >= 40) from test where v <= 100;
-> MEDIAN(V) MEDIAN(V) FILTER (WHERE (V >= 40))
-> --------- ----------------------------------
+> MEDIAN(V) MEDIAN(V) FILTER (WHERE V >= 40)
+> --------- --------------------------------
 > 55.0      70
 > rows: 1
 
@@ -736,14 +736,14 @@ create index test_idx on test(v);
 > ok
 
 select median(v), median(v) filter (where v >= 40) from test where v <= 100;
-> MEDIAN(V) MEDIAN(V) FILTER (WHERE (V >= 40))
-> --------- ----------------------------------
+> MEDIAN(V) MEDIAN(V) FILTER (WHERE V >= 40)
+> --------- --------------------------------
 > 55.0      70
 > rows: 1
 
 select median(v), median(v) filter (where v >= 40) from test;
-> MEDIAN(V) MEDIAN(V) FILTER (WHERE (V >= 40))
-> --------- ----------------------------------
+> MEDIAN(V) MEDIAN(V) FILTER (WHERE V >= 40)
+> --------- --------------------------------
 > 65.0      80
 > rows: 1
 
@@ -770,8 +770,8 @@ select dept, median(amount) from test group by dept order by dept;
 > rows (ordered): 3
 
 select dept, median(amount) filter (where amount >= 20) from test group by dept order by dept;
-> DEPT   MEDIAN(AMOUNT) FILTER (WHERE (AMOUNT >= 20))
-> ------ --------------------------------------------
+> DEPT   MEDIAN(AMOUNT) FILTER (WHERE AMOUNT >= 20)
+> ------ ------------------------------------------
 > First  30
 > Second 22
 > Third  160.0
@@ -779,8 +779,8 @@ select dept, median(amount) filter (where amount >= 20) from test group by dept 
 
 select dept, median(amount) filter (where amount >= 20) from test
     where (amount < 200) group by dept order by dept;
-> DEPT   MEDIAN(AMOUNT) FILTER (WHERE (AMOUNT >= 20))
-> ------ --------------------------------------------
+> DEPT   MEDIAN(AMOUNT) FILTER (WHERE AMOUNT >= 20)
+> ------ ------------------------------------------
 > First  30
 > Second 21.0
 > Third  150

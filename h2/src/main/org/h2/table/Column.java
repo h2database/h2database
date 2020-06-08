@@ -514,12 +514,12 @@ public class Column implements HasSQL, Typed {
                 defaultExpression.getEnclosedSQL(buff, DEFAULT_SQL_FLAGS);
             } else {
                 buff.append(" DEFAULT ");
-                defaultExpression.getSQL(buff, DEFAULT_SQL_FLAGS);
+                defaultExpression.getUnenclosedSQL(buff, DEFAULT_SQL_FLAGS);
             }
         }
         if (onUpdateExpression != null) {
             buff.append(" ON UPDATE ");
-            onUpdateExpression.getSQL(buff, DEFAULT_SQL_FLAGS);
+            onUpdateExpression.getUnenclosedSQL(buff, DEFAULT_SQL_FLAGS);
         }
         if (convertNullToDefault) {
             buff.append(" NULL_TO_DEFAULT");

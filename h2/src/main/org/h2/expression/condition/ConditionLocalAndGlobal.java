@@ -33,14 +33,18 @@ public class ConditionLocalAndGlobal extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public boolean needParentheses() {
+        return local != null || global.needParentheses();
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         if (local == null) {
-            return global.getSQL(builder, sqlFlags);
+            return global.getUnenclosedSQL(builder, sqlFlags);
         }
-        builder.append('(');
-        local.getSQL(builder, sqlFlags);
+        local.getSQL(builder, sqlFlags, AUTO_PARENTHESES);
         builder.append("\n    _LOCAL_AND_GLOBAL_ ");
-        return global.getSQL(builder, sqlFlags).append(')');
+        return global.getSQL(builder, sqlFlags, AUTO_PARENTHESES);
     }
 
     @Override

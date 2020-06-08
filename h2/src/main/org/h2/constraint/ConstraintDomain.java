@@ -88,8 +88,8 @@ public class ConstraintDomain extends Constraint {
             builder.append(" COMMENT ");
             StringUtils.quoteStringSQL(builder, comment);
         }
-        builder.append(" CHECK(");
-        expr.getUnenclosedSQL(builder, DEFAULT_SQL_FLAGS).append(") NOCHECK");
+        builder.append(" CHECK");
+        expr.getEnclosedSQL(builder, DEFAULT_SQL_FLAGS).append(" NOCHECK");
         return builder.toString();
     }
 

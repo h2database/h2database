@@ -20,11 +20,15 @@ public class UnaryOperation extends Operation1 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         // don't remove the space, otherwise it might end up some thing like
         // --1 which is a line remark
-        builder.append("(- ");
-        return arg.getSQL(builder, sqlFlags).append(')');
+        return arg.getSQL(builder.append("- "), sqlFlags, AUTO_PARENTHESES);
     }
 
     @Override

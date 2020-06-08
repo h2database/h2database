@@ -505,7 +505,7 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         builder.append(type.getSQL()).append('(');
         if (args != null) {
             writeExpressions(builder, args, sqlFlags);

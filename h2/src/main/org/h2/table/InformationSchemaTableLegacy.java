@@ -40,6 +40,7 @@ import org.h2.engine.Session.State;
 import org.h2.engine.Setting;
 import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
+import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
@@ -2276,8 +2277,9 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // CONSTRAINT_SCHEMA
                         obj.getSchema().getName(),
                         // CONSTRAINT_NAME
-                        obj.getName(), // CHECK_CLAUSE
-                        constraint.getExpression().getUnenclosedSQL(new StringBuilder(), DEFAULT_SQL_FLAGS).toString()
+                        obj.getName(),
+                        // CHECK_CLAUSE
+                        constraint.getExpression().getSQL(DEFAULT_SQL_FLAGS, Expression.WITHOUT_PARENTHESES)
                 );
             }
             break;

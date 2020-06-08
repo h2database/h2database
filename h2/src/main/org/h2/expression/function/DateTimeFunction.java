@@ -1023,19 +1023,19 @@ public class DateTimeFunction extends Operation1_2 implements NamedExpression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         builder.append(getName()).append('(').append(getFieldName(field));
         switch (function) {
         case EXTRACT:
-            left.getSQL(builder.append(" FROM "), sqlFlags);
+            left.getUnenclosedSQL(builder.append(" FROM "), sqlFlags);
             break;
         case DATE_TRUNC:
-            left.getSQL(builder.append(", "), sqlFlags);
+            left.getUnenclosedSQL(builder.append(", "), sqlFlags);
             break;
         case DATEADD:
         case DATEDIFF:
-            left.getSQL(builder.append(", "), sqlFlags).append(", ");
-            right.getSQL(builder, sqlFlags);
+            left.getUnenclosedSQL(builder.append(", "), sqlFlags).append(", ");
+            right.getUnenclosedSQL(builder, sqlFlags);
             break;
         default:
             throw DbException.throwInternalError("function=" + function);

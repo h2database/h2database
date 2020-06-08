@@ -1788,15 +1788,15 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         builder.append(info.name).append('(');
         switch (info.type) {
         case SUBSTRING: {
-            args[0].getSQL(builder, sqlFlags).append(" FROM ");
-            args[1].getSQL(builder, sqlFlags);
+            args[0].getUnenclosedSQL(builder, sqlFlags).append(" FROM ");
+            args[1].getUnenclosedSQL(builder, sqlFlags);
             if (args.length > 2) {
                 builder.append(" FOR ");
-                args[2].getSQL(builder, sqlFlags);
+                args[2].getUnenclosedSQL(builder, sqlFlags);
             }
             break;
         }
@@ -1810,9 +1810,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 break;
             }
             if (args.length > 1) {
-                args[1].getSQL(builder, sqlFlags).append(" FROM ");
+                args[1].getUnenclosedSQL(builder, sqlFlags).append(" FROM ");
             }
-            args[0].getSQL(builder, sqlFlags);
+            args[0].getUnenclosedSQL(builder, sqlFlags);
             break;
         }
         default:

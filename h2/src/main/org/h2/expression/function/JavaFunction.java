@@ -81,7 +81,7 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         // TODO always append the schema once FUNCTIONS_IN_SCHEMA is enabled
         if (functionAlias.getDatabase().getSettings().functionsInSchema ||
                 functionAlias.getSchema().getId() != Constants.MAIN_SCHEMA_ID) {

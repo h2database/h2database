@@ -32,9 +32,8 @@ public class FieldReference extends Operation1 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return ParserUtil.quoteIdentifier(arg.getSQL(builder.append("(("), sqlFlags).append(")."), fieldName, sqlFlags)
-                .append(')');
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return ParserUtil.quoteIdentifier(arg.getEnclosedSQL(builder, sqlFlags).append('.'), fieldName, sqlFlags);
     }
 
     @Override

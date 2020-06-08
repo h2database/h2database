@@ -55,9 +55,14 @@ public class CompatibilityDatePlusTimeOperation extends Operation2 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        left.getSQL(builder.append('('), sqlFlags).append(" + ");
-        return right.getSQL(builder, sqlFlags).append(')');
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        left.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append(" + ");
+        return right.getSQL(builder, sqlFlags, AUTO_PARENTHESES);
     }
 
     @Override

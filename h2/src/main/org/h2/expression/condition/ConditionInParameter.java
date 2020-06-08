@@ -183,13 +183,17 @@ public final class ConditionInParameter extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         if (not) {
-            builder.append("(NOT");
+            builder.append("NOT (");
         }
-        left.getSQL(builder.append('('), sqlFlags);
-        builder.append(" = ANY(");
-        parameter.getSQL(builder, sqlFlags).append("))");
+        left.getSQL(builder, sqlFlags, AUTO_PARENTHESES);
+        parameter.getSQL(builder.append(" = ANY("), sqlFlags, AUTO_PARENTHESES).append(')');
         if (not) {
             builder.append(')');
         }
@@ -200,10 +204,10 @@ public final class ConditionInParameter extends Condition {
     public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
         if (not) {
             builder.append(" NOT IN(UNNEST(");
-            parameter.getSQL(builder, sqlFlags).append("))");
+            parameter.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append("))");
         } else {
             builder.append(" = ANY(");
-            parameter.getSQL(builder, sqlFlags).append(')');
+            parameter.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append(')');
         }
         return builder;
     }

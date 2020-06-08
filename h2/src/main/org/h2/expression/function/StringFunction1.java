@@ -252,8 +252,8 @@ public class StringFunction1 extends Operation1 implements NamedExpression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return arg.getSQL(builder.append(getName()).append('('), sqlFlags).append(')');
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return arg.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags).append(')');
     }
 
     @Override

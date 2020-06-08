@@ -110,8 +110,13 @@ public final class CompareLike extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return getWhenSQL(left.getSQL(builder.append('('), sqlFlags), sqlFlags).append(')');
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return getWhenSQL(left.getSQL(builder, sqlFlags, AUTO_PARENTHESES), sqlFlags);
     }
 
     @Override
@@ -123,14 +128,14 @@ public final class CompareLike extends Condition {
         case LIKE:
         case ILIKE:
             builder.append(likeType == LikeType.LIKE ? " LIKE " : " ILIKE ");
-            right.getSQL(builder, sqlFlags);
+            right.getSQL(builder, sqlFlags, AUTO_PARENTHESES);
             if (escape != null) {
-                escape.getSQL(builder.append(" ESCAPE "), sqlFlags);
+                escape.getSQL(builder.append(" ESCAPE "), sqlFlags, AUTO_PARENTHESES);
             }
             break;
         case REGEXP:
             builder.append(" REGEXP ");
-            right.getSQL(builder, sqlFlags);
+            right.getSQL(builder, sqlFlags, AUTO_PARENTHESES);
             break;
         default:
             throw DbException.getUnsupportedException(likeType.name());

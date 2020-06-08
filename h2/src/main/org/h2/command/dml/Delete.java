@@ -150,8 +150,8 @@ public class Delete extends Prepared implements DataChangeStatement {
             condition.getUnenclosedSQL(buff, sqlFlags);
         }
         if (limitExpr != null) {
-            buff.append("\nLIMIT (");
-            limitExpr.getUnenclosedSQL(buff, sqlFlags).append(')');
+            buff.append("\nLIMIT ");
+            limitExpr.getUnenclosedSQL(buff, sqlFlags);
         }
         return buff.toString();
     }

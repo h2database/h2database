@@ -14,8 +14,8 @@ insert into test values ('1'), ('2'), ('3'), ('4'), ('5'), ('6'), ('7'), ('8'), 
 select array_agg(v order by v asc),
     array_agg(v order by v desc) filter (where v >= '4')
     from test where v >= '2';
-> ARRAY_AGG(V ORDER BY V)  ARRAY_AGG(V ORDER BY V DESC) FILTER (WHERE (V >= '4'))
-> ------------------------ ------------------------------------------------------
+> ARRAY_AGG(V ORDER BY V)  ARRAY_AGG(V ORDER BY V DESC) FILTER (WHERE V >= '4')
+> ------------------------ ----------------------------------------------------
 > [2, 3, 4, 5, 6, 7, 8, 9] [9, 8, 7, 6, 5, 4]
 > rows: 1
 
@@ -25,16 +25,16 @@ create index test_idx on test(v);
 select ARRAY_AGG(v order by v asc),
     ARRAY_AGG(v order by v desc) filter (where v >= '4')
     from test where v >= '2';
-> ARRAY_AGG(V ORDER BY V)  ARRAY_AGG(V ORDER BY V DESC) FILTER (WHERE (V >= '4'))
-> ------------------------ ------------------------------------------------------
+> ARRAY_AGG(V ORDER BY V)  ARRAY_AGG(V ORDER BY V DESC) FILTER (WHERE V >= '4')
+> ------------------------ ----------------------------------------------------
 > [2, 3, 4, 5, 6, 7, 8, 9] [9, 8, 7, 6, 5, 4]
 > rows: 1
 
 select ARRAY_AGG(v order by v asc),
     ARRAY_AGG(v order by v desc) filter (where v >= '4')
     from test;
-> ARRAY_AGG(V ORDER BY V)     ARRAY_AGG(V ORDER BY V DESC) FILTER (WHERE (V >= '4'))
-> --------------------------- ------------------------------------------------------
+> ARRAY_AGG(V ORDER BY V)     ARRAY_AGG(V ORDER BY V DESC) FILTER (WHERE V >= '4')
+> --------------------------- ----------------------------------------------------
 > [1, 2, 3, 4, 5, 6, 7, 8, 9] [9, 8, 7, 6, 5, 4]
 > rows: 1
 
@@ -182,7 +182,7 @@ EXPLAIN
     WHERE ID <> 5
     GROUP BY NAME HAVING ARRAY_AGG(ID ORDER BY ID)[1] > 1
     QUALIFY ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME) <> ARRAY[ARRAY[3]];
->> SELECT ARRAY_AGG(ARRAY_AGG("ID" ORDER BY "ID")) OVER (PARTITION BY "NAME"), "NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ WHERE "ID" <> 5 GROUP BY "NAME" HAVING (ARRAY_AGG("ID" ORDER BY "ID")[1]) > 1 QUALIFY ARRAY_AGG(ARRAY_AGG("ID" ORDER BY "ID")) OVER (PARTITION BY "NAME") <> ARRAY [ARRAY [3]]
+>> SELECT ARRAY_AGG(ARRAY_AGG("ID" ORDER BY "ID")) OVER (PARTITION BY "NAME"), "NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ WHERE "ID" <> 5 GROUP BY "NAME" HAVING ARRAY_AGG("ID" ORDER BY "ID")[1] > 1 QUALIFY ARRAY_AGG(ARRAY_AGG("ID" ORDER BY "ID")) OVER (PARTITION BY "NAME") <> ARRAY [ARRAY [3]]
 
 SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME), NAME FROM TEST
     GROUP BY NAME ORDER BY NAME OFFSET 1 ROW;
@@ -194,33 +194,33 @@ SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME), NAME FROM 
 
 SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE NAME > 'b') OVER (PARTITION BY NAME), NAME FROM TEST
     GROUP BY NAME ORDER BY NAME;
-> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE (NAME > 'b')) OVER (PARTITION BY NAME) NAME
-> ----------------------------------------------------------------------------------------- ----
-> null                                                                                      a
-> null                                                                                      b
-> [[4, 5, 6]]                                                                               c
+> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE NAME > 'b') OVER (PARTITION BY NAME) NAME
+> --------------------------------------------------------------------------------------- ----
+> null                                                                                    a
+> null                                                                                    b
+> [[4, 5, 6]]                                                                             c
 > rows (ordered): 3
 
 SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE NAME > 'c') OVER (PARTITION BY NAME), NAME FROM TEST
     GROUP BY NAME ORDER BY NAME;
-> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE (NAME > 'c')) OVER (PARTITION BY NAME) NAME
-> ----------------------------------------------------------------------------------------- ----
-> null                                                                                      a
-> null                                                                                      b
-> null                                                                                      c
+> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE NAME > 'c') OVER (PARTITION BY NAME) NAME
+> --------------------------------------------------------------------------------------- ----
+> null                                                                                    a
+> null                                                                                    b
+> null                                                                                    c
 > rows (ordered): 3
 
 SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE NAME > 'b') OVER () FROM TEST GROUP BY NAME ORDER BY NAME;
-> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE (NAME > 'b')) OVER ()
-> ------------------------------------------------------------------------
+> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE NAME > 'b') OVER ()
+> ----------------------------------------------------------------------
 > [[4, 5, 6]]
 > [[4, 5, 6]]
 > [[4, 5, 6]]
 > rows (ordered): 3
 
 SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE NAME > 'c') OVER () FROM TEST GROUP BY NAME ORDER BY NAME;
-> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE (NAME > 'c')) OVER ()
-> ------------------------------------------------------------------------
+> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE NAME > 'c') OVER ()
+> ----------------------------------------------------------------------
 > null
 > null
 > null

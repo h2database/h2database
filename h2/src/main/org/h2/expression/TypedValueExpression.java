@@ -85,7 +85,7 @@ public class TypedValueExpression extends ValueExpression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         if (this == UNKNOWN) {
             builder.append("UNKNOWN");
         } else {

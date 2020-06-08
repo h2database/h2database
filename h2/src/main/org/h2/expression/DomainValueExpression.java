@@ -55,7 +55,7 @@ public class DomainValueExpression extends Operation0 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         if (columnResolver != null) {
             String name = columnResolver.getColumnName();
             if (name != null) {

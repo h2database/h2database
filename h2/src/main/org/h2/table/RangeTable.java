@@ -60,11 +60,10 @@ public class RangeTable extends VirtualTable {
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append(NAME).append('(');
-        min.getSQL(builder, sqlFlags).append(", ");
-        max.getSQL(builder, sqlFlags);
+        min.getUnenclosedSQL(builder, sqlFlags).append(", ");
+        max.getUnenclosedSQL(builder, sqlFlags);
         if (step != null) {
-            builder.append(", ");
-            step.getSQL(builder, sqlFlags);
+            step.getUnenclosedSQL(builder.append(", "), sqlFlags);
         }
         return builder.append(')');
     }

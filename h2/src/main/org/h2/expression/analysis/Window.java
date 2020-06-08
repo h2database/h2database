@@ -57,7 +57,7 @@ public final class Window {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                o.expression.getSQL(builder, sqlFlags);
+                o.expression.getUnenclosedSQL(builder, sqlFlags);
                 SortOrder.typeToString(builder, o.sortType);
             }
         } else if (forceOrderBy) {
@@ -282,7 +282,7 @@ public final class Window {
      *            whether synthetic ORDER BY clause should be generated when it
      *            is missing
      * @return the specified string builder
-     * @see Expression#getSQL(StringBuilder, int)
+     * @see Expression#getSQL(StringBuilder, int, int)
      */
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags, boolean forceOrderBy) {
         builder.append("OVER (");

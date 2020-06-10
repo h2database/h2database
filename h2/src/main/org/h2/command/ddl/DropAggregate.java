@@ -9,20 +9,21 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.engine.UserAggregate;
 import org.h2.message.DbException;
+import org.h2.schema.Schema;
+import org.h2.schema.UserAggregate;
 
 /**
  * This class represents the statement
  * DROP AGGREGATE
  */
-public class DropAggregate extends DefineCommand {
+public class DropAggregate extends SchemaCommand {
 
     private String name;
     private boolean ifExists;
 
-    public DropAggregate(Session session) {
-        super(session);
+    public DropAggregate(Session session, Schema schema) {
+        super(session, schema);
     }
 
     @Override
@@ -30,13 +31,13 @@ public class DropAggregate extends DefineCommand {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
-        UserAggregate aggregate = db.findAggregate(name);
+        UserAggregate aggregate = getSchema().findAggregate(name);
         if (aggregate == null) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.AGGREGATE_NOT_FOUND_1, name);
             }
         } else {
-            db.removeDatabaseObject(session, aggregate);
+            db.removeSchemaObject(session, aggregate);
         }
         return 0;
     }

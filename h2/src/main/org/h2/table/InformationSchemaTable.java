@@ -32,7 +32,6 @@ import org.h2.engine.Session;
 import org.h2.engine.Session.State;
 import org.h2.engine.Setting;
 import org.h2.engine.User;
-import org.h2.engine.UserAggregate;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
@@ -51,6 +50,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
+import org.h2.schema.UserAggregate;
 import org.h2.store.InDoubtTransaction;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.HasSQL;
@@ -1176,7 +1176,8 @@ public final class InformationSchemaTable extends MetaTable {
                 }
             }
             String schema = database.getMainSchema().getName();
-            for (UserAggregate agg : database.getAllAggregates()) {
+            for (SchemaObject aggregateAsSchemaObject : database.getAllSchemaObjects(DbObject.AGGREGATE)) {
+                UserAggregate agg = (UserAggregate) aggregateAsSchemaObject;
                 String name = agg.getName();
                 generateRoutineRow(session, rows, catalog, mainSchemaName, collation, schema, name, name, "AGGREGATE",
                         null, agg.getJavaClassName(), TypeInfo.TYPE_NULL, false, agg.getComment(), agg.getId());

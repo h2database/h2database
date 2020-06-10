@@ -54,6 +54,7 @@ public class Schema extends DbObjectBase {
     private final ConcurrentHashMap<String, Constraint> constraints;
     private final ConcurrentHashMap<String, Constant> constants;
     private final ConcurrentHashMap<String, FunctionAlias> functions;
+    private final ConcurrentHashMap<String, UserAggregate> aggregates;
 
     /**
      * The set of returned unique names that are not yet stored. It is used to
@@ -84,6 +85,7 @@ public class Schema extends DbObjectBase {
         constraints = database.newConcurrentStringMap();
         constants = database.newConcurrentStringMap();
         functions = database.newConcurrentStringMap();
+        aggregates = database.newConcurrentStringMap();
         this.owner = owner;
         this.system = system;
     }
@@ -126,7 +128,7 @@ public class Schema extends DbObjectBase {
     public boolean isEmpty() {
         return tablesAndViews.isEmpty() && domains.isEmpty() && synonyms.isEmpty() && indexes.isEmpty()
                 && sequences.isEmpty() && triggers.isEmpty() && constraints.isEmpty() && constants.isEmpty()
-                && functions.isEmpty();
+                && functions.isEmpty() && aggregates.isEmpty();
     }
 
     @Override
@@ -175,6 +177,7 @@ public class Schema extends DbObjectBase {
         removeChildrenFromMap(session, sequences);
         removeChildrenFromMap(session, constants);
         removeChildrenFromMap(session, functions);
+        removeChildrenFromMap(session, aggregates);
         for (Right right : database.getAllRights()) {
             if (right.getGrantedObject() == this) {
                 database.removeDatabaseObject(session, right);
@@ -251,6 +254,9 @@ public class Schema extends DbObjectBase {
             break;
         case DbObject.FUNCTION_ALIAS:
             result = functions;
+            break;
+        case DbObject.AGGREGATE:
+            result = aggregates;
             break;
         default:
             throw DbException.throwInternalError("type=" + type);
@@ -435,6 +441,17 @@ public class Schema extends DbObjectBase {
      */
     public FunctionAlias findFunction(String functionAlias) {
         return functions.get(functionAlias);
+    }
+
+    /**
+     * Get the user defined aggregate function if it exists. This method returns
+     * null if no object with this name exists.
+     *
+     * @param name the name of the user defined aggregate function
+     * @return the aggregate function or null
+     */
+    public UserAggregate findAggregate(String name) {
+        return aggregates.get(name);
     }
 
     /**
@@ -641,6 +658,7 @@ public class Schema extends DbObjectBase {
         addTo.addAll(constraints.values());
         addTo.addAll(constants.values());
         addTo.addAll(functions.values());
+        addTo.addAll(aggregates.values());
         return addTo;
     }
 
@@ -681,6 +699,10 @@ public class Schema extends DbObjectBase {
 
     public Collection<FunctionAlias> getAllFunctionAliases() {
         return functions.values();
+    }
+
+    public Collection<UserAggregate> getAllAggregates() {
+        return aggregates.values();
     }
 
     /**

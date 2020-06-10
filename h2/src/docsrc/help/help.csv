@@ -689,7 +689,7 @@ COMMENT ON TABLE TEST IS 'Table used for testing'
 "
 
 "Commands (DDL)","CREATE AGGREGATE","
-@h2@ CREATE AGGREGATE [ IF NOT EXISTS ] aggregateName FOR className
+@h2@ CREATE AGGREGATE [ IF NOT EXISTS ] [schemaName.]aggregateName FOR className
 ","
 Creates a new user-defined aggregate function. The method name must be the full
 qualified class name. The class must implement the interface

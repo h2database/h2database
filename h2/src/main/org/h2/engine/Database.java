@@ -147,7 +147,6 @@ public class Database implements DataHandler, CastDataProvider {
     private final ConcurrentHashMap<String, Setting> settings = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Schema> schemas = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Right> rights = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, UserAggregate> aggregates = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Comment> comments = new ConcurrentHashMap<>();
 
     private final HashMap<String, TableEngine> tableEngines = new HashMap<>();
@@ -1121,9 +1120,6 @@ public class Database implements DataHandler, CastDataProvider {
         case DbObject.COMMENT:
             result = comments;
             break;
-        case DbObject.AGGREGATE:
-            result = aggregates;
-            break;
         default:
             throw DbException.throwInternalError("type=" + type);
         }
@@ -1173,16 +1169,6 @@ public class Database implements DataHandler, CastDataProvider {
         lockMeta(session);
         addMeta(session, obj);
         map.put(name, obj);
-    }
-
-    /**
-     * Get the user defined aggregate function if it exists, or null if not.
-     *
-     * @param name the name of the user defined aggregate function
-     * @return the aggregate function or null
-     */
-    public UserAggregate findAggregate(String name) {
-        return aggregates.get(name);
     }
 
     /**
@@ -1636,10 +1622,6 @@ public class Database implements DataHandler, CastDataProvider {
      */
     public Schema getMainSchema() {
         return mainSchema;
-    }
-
-    public ArrayList<UserAggregate> getAllAggregates() {
-        return new ArrayList<>(aggregates.values());
     }
 
     public ArrayList<Comment> getAllComments() {

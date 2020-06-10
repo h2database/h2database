@@ -209,7 +209,6 @@ import org.h2.engine.Procedure;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.User;
-import org.h2.engine.UserAggregate;
 import org.h2.expression.Alias;
 import org.h2.expression.ArrayConstructorByQuery;
 import org.h2.expression.ArrayElementReference;
@@ -299,6 +298,7 @@ import org.h2.result.SortOrder;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
+import org.h2.schema.UserAggregate;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
@@ -2500,8 +2500,9 @@ public class Parser {
 
     private DropAggregate parseDropAggregate() {
         boolean ifExists = readIfExists(false);
-        DropAggregate command = new DropAggregate(session);
-        command.setName(readUniqueIdentifier());
+        String name = readIdentifierWithSchema();
+        DropAggregate command = new DropAggregate(session, getSchema());
+        command.setName(name);
         ifExists = readIfExists(ifExists);
         command.setIfExists(ifExists);
         return command;
@@ -3786,7 +3787,7 @@ public class Parser {
         return order;
     }
 
-    private JavaFunction readJavaFunction(Schema schema, String functionName, boolean throwIfNotFound) {
+    private JavaFunction readJavaFunction(Schema schema, String functionName) {
         FunctionAlias functionAlias;
         if (schema != null) {
             functionAlias = schema.findFunction(functionName);
@@ -3794,11 +3795,7 @@ public class Parser {
             functionAlias = findFunctionAlias(session.getCurrentSchemaName(), functionName);
         }
         if (functionAlias == null) {
-            if (throwIfNotFound) {
-                throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, functionName);
-            } else {
-                return null;
-            }
+            return null;
         }
         ArrayList<Expression> argList = Utils.newSmallArrayList();
         if (!readIf(CLOSE_PAREN)) {
@@ -3809,7 +3806,16 @@ public class Parser {
         return new JavaFunction(functionAlias, argList.toArray(new Expression[0]));
     }
 
-    private JavaAggregate readJavaAggregate(UserAggregate aggregate) {
+    private JavaAggregate readJavaAggregate(Schema schema, String aggregateName) {
+        UserAggregate aggregate;
+        if (schema != null) {
+            aggregate = schema.findAggregate(aggregateName);
+        } else {
+            aggregate = findAggregate(session.getCurrentSchemaName(), aggregateName);
+        }
+        if (aggregate == null) {
+            return null;
+        }
         boolean distinct = readDistinctAgg();
         ArrayList<Expression> params = Utils.newSmallArrayList();
         do {
@@ -3967,7 +3973,7 @@ public class Parser {
         }
         boolean allowOverride = database.isAllowBuiltinAliasOverride();
         if (allowOverride) {
-            JavaFunction jf = readJavaFunction(null, name, false);
+            JavaFunction jf = readJavaFunction(null, name);
             if (jf != null) {
                 return jf;
             }
@@ -3988,14 +3994,17 @@ public class Parser {
         if (e != null) {
             return e;
         }
-        UserAggregate aggregate = database.findAggregate(name);
-        if (aggregate != null) {
-            return readJavaAggregate(aggregate);
+        e = readJavaAggregate(null, name);
+        if (e != null) {
+            return e;
         }
-        if (allowOverride) {
-            throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, name);
+        if (!allowOverride) {
+            e = readJavaFunction(null, name);
+            if (e != null) {
+                return e;
+            }
         }
-        return readJavaFunction(null, name, true);
+        throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, name);
     }
 
     private Expression readFunctionWithSchema(Schema schema, String name, String upperName) {
@@ -4006,7 +4015,15 @@ public class Parser {
                 return readFunctionParameters(function);
             }
         }
-        return readJavaFunction(schema, name, true);
+        Expression function = readJavaFunction(schema, name);
+        if (function != null) {
+            return function;
+        }
+        function = readJavaAggregate(schema, name);
+        if (function != null) {
+            return function;
+        }
+        throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, name);
     }
 
     private Expression readCompatibilityFunction(String name) {
@@ -7488,15 +7505,14 @@ public class Parser {
 
     private CreateAggregate parseCreateAggregate(boolean force) {
         boolean ifNotExists = readIfNotExists();
-        CreateAggregate command = new CreateAggregate(session);
-        command.setForce(force);
         String name = readIdentifierWithSchema(), upperName;
         if (isKeyword(name) || BuiltinFunctions.isBuiltinFunction(database, upperName = upperName(name))
                 || Aggregate.getAggregateType(upperName) != null) {
             throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
         }
+        CreateAggregate command = new CreateAggregate(session, getSchema());
+        command.setForce(force);
         command.setName(name);
-        command.setSchema(getSchema());
         command.setIfNotExists(ifNotExists);
         read(FOR);
         command.setJavaClassMethod(readUniqueIdentifier());
@@ -8861,8 +8877,7 @@ public class Parser {
     }
 
     private FunctionAlias findFunctionAlias(String schema, String aliasName) {
-        FunctionAlias functionAlias = database.getSchema(schema).findFunction(
-                aliasName);
+        FunctionAlias functionAlias = database.getSchema(schema).findFunction(aliasName);
         if (functionAlias != null) {
             return functionAlias;
         }
@@ -8872,6 +8887,23 @@ public class Parser {
                 functionAlias = database.getSchema(n).findFunction(aliasName);
                 if (functionAlias != null) {
                     return functionAlias;
+                }
+            }
+        }
+        return null;
+    }
+
+    private UserAggregate findAggregate(String schema, String aliasName) {
+        UserAggregate aggregate = database.getSchema(schema).findAggregate(aliasName);
+        if (aggregate != null) {
+            return aggregate;
+        }
+        String[] schemaNames = session.getSchemaSearchPath();
+        if (schemaNames != null) {
+            for (String n : schemaNames) {
+                aggregate = database.getSchema(n).findAggregate(aliasName);
+                if (aggregate != null) {
+                    return aggregate;
                 }
             }
         }

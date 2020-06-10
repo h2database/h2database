@@ -1021,13 +1021,11 @@ public class TableFilter implements ColumnResolver {
         if (!session.getDatabase().getMode().systemColumns) {
             return null;
         }
-        Column[] sys = new Column[3];
+        Column[] sys = new Column[2];
         sys[0] = new Column("oid", Value.INTEGER);
         sys[0].setTable(table, 0);
         sys[1] = new Column("ctid", Value.VARCHAR);
         sys[1].setTable(table, 0);
-        sys[2] = new Column("CTID", Value.VARCHAR);
-        sys[2].setTable(table, 0);
         return sys;
     }
 

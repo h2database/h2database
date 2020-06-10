@@ -160,7 +160,7 @@ public class Mode {
     public boolean squareBracketQuotedNames;
 
     /**
-     * The system columns 'CTID' and 'OID' are supported.
+     * The system columns 'ctid' and 'oid' are supported.
      */
     public boolean systemColumns;
 

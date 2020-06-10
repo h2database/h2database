@@ -182,9 +182,7 @@ public class TableView extends Table {
                 if (type.getValueType() == Value.UNKNOWN) {
                     type = expr.getType();
                 }
-                Column col = new Column(name, type);
-                col.setTable(this, i);
-                list.add(col);
+                list.add(new Column(name, type, this, i));
             }
             cols = list.toArray(new Column[0]);
             createException = null;

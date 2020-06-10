@@ -133,6 +133,13 @@ public class Column implements HasSQL, Typed {
         this.type = type;
     }
 
+    public Column(String name, TypeInfo type, Table table, int columnId) {
+        this.name = name;
+        this.type = type;
+        this.table = table;
+        this.columnId = columnId;
+    }
+
     public Column(String name, TypeInfo type, String originalSQL) {
         this.name = name;
         this.type = type;

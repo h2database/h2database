@@ -161,8 +161,7 @@ public class TableLink extends Table {
                     int scale = rs.getInt("DECIMAL_DIGITS");
                     scale = convertScale(sqlType, scale);
                     int type = DataType.convertSQLTypeToValueType(sqlType, sqlTypeName);
-                    Column col = new Column(n, TypeInfo.getTypeInfo(type, precision, scale, null));
-                    col.setTable(this, i++);
+                    Column col = new Column(n, TypeInfo.getTypeInfo(type, precision, scale, null), this, i++);
                     columnList.add(col);
                     columnMap.put(n, col);
                 }
@@ -189,8 +188,7 @@ public class TableLink extends Table {
                     int scale = rsMeta.getScale(i + 1);
                     scale = convertScale(sqlType, scale);
                     int type = DataType.getValueTypeFromResultSet(rsMeta, i + 1);
-                    Column col = new Column(n, TypeInfo.getTypeInfo(type, precision, scale, null));
-                    col.setTable(this, i++);
+                    Column col = new Column(n, TypeInfo.getTypeInfo(type, precision, scale, null), this, i++);
                     columnList.add(col);
                     columnMap.put(n, col);
                 }

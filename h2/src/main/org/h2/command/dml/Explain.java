@@ -71,10 +71,8 @@ public class Explain extends Prepared {
 
     @Override
     public ResultInterface query(int maxrows) {
-        Column column = new Column("PLAN", TypeInfo.TYPE_VARCHAR);
         Database db = session.getDatabase();
-        ExpressionColumn expr = new ExpressionColumn(db, column);
-        Expression[] expressions = { expr };
+        Expression[] expressions = { new ExpressionColumn(db, new Column("PLAN", TypeInfo.TYPE_VARCHAR)) };
         result = new LocalResult(session, expressions, 1, 1);
         int sqlFlags = HasSQL.ADD_PLAN_INFORMATION;
         if (maxrows >= 0) {

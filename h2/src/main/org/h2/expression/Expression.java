@@ -519,9 +519,7 @@ public abstract class Expression implements HasSQL, Typed {
         for (int i = 0; i < columnCount; i++) {
             String name = result.getColumnName(i);
             TypeInfo type = result.getColumnType(i);
-            Column col = new Column(name, type);
-            Expression expr = new ExpressionColumn(db, col);
-            expressions[i] = expr;
+            expressions[i] = new ExpressionColumn(db, new Column(name, type));
         }
         return expressions;
     }

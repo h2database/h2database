@@ -88,8 +88,7 @@ public class JavaFunction extends Expression implements FunctionCall {
             ParserUtil.quoteIdentifier(builder, functionAlias.getSchema().getName(), sqlFlags).append('.');
         }
         ParserUtil.quoteIdentifier(builder, functionAlias.getName(), sqlFlags).append('(');
-        writeExpressions(builder, this.args, sqlFlags);
-        return builder.append(')');
+        return writeExpressions(builder, this.args, sqlFlags).append(')');
     }
 
     @Override

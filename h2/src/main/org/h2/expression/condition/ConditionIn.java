@@ -227,9 +227,7 @@ public final class ConditionIn extends Condition {
         if (not) {
             builder.append(" NOT");
         }
-        builder.append(" IN(");
-        writeExpressions(builder, valueList, sqlFlags);
-        return builder.append(')');
+        return writeExpressions(builder.append(" IN("), valueList, sqlFlags).append(')');
     }
 
     @Override

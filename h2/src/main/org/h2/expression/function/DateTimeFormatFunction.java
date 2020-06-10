@@ -174,8 +174,7 @@ public class DateTimeFormatFunction extends OperationN implements NamedExpressio
 
     @Override
     public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        writeExpressions(builder.append(getName()).append('('), args, sqlFlags);
-        return builder.append(')');
+        return writeExpressions(builder.append(getName()).append('('), args, sqlFlags).append(')');
     }
 
     @Override

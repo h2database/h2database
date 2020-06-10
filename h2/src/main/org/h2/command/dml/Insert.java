@@ -289,9 +289,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
                 if (row++ > 0) {
                     builder.append(",\n");
                 }
-                builder.append('(');
-                Expression.writeExpressions(builder, expr, sqlFlags);
-                builder.append(')');
+                Expression.writeExpressions(builder.append('('), expr, sqlFlags).append(')');
             }
         } else {
             builder.append(query.getPlanSQL(sqlFlags));

@@ -594,10 +594,8 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         @Override
         public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
             super.getSQL(builder, sqlFlags).append("INSERT (");
-            Column.writeColumns(builder, columns, sqlFlags);
-            builder.append(")\nVALUES (");
-            Expression.writeExpressions(builder, values, sqlFlags);
-            return builder.append(')');
+            Column.writeColumns(builder, columns, sqlFlags).append(")\nVALUES (");
+            return Expression.writeExpressions(builder, values, sqlFlags).append(')');
         }
 
     }

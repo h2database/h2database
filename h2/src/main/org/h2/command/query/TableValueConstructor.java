@@ -110,9 +110,7 @@ public class TableValueConstructor extends Query {
             if (i > 0) {
                 builder.append(", ");
             }
-            builder.append('(');
-            Expression.writeExpressions(builder, rows.get(i), sqlFlags);
-            builder.append(')');
+            Expression.writeExpressions(builder.append('('), rows.get(i), sqlFlags).append(')');
         }
     }
 

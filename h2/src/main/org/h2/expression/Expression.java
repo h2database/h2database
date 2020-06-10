@@ -69,14 +69,17 @@ public abstract class Expression implements HasSQL, Typed {
      * @param builder the builder to append the SQL to
      * @param expressions the list of expressions
      * @param sqlFlags formatting flags
+     * @return the specified string builder
      */
-    public static void writeExpressions(StringBuilder builder, List<? extends Expression> expressions, int sqlFlags) {
+    public static StringBuilder writeExpressions(StringBuilder builder, List<? extends Expression> expressions,
+            int sqlFlags) {
         for (int i = 0, length = expressions.size(); i < length; i++) {
             if (i > 0) {
                 builder.append(", ");
             }
             expressions.get(i).getUnenclosedSQL(builder, sqlFlags);
         }
+        return builder;
     }
 
     /**
@@ -85,8 +88,9 @@ public abstract class Expression implements HasSQL, Typed {
      * @param builder the builder to append the SQL to
      * @param expressions the list of expressions
      * @param sqlFlags formatting flags
+     * @return the specified string builder
      */
-    public static void writeExpressions(StringBuilder builder, Expression[] expressions, int sqlFlags) {
+    public static StringBuilder writeExpressions(StringBuilder builder, Expression[] expressions, int sqlFlags) {
         for (int i = 0, length = expressions.length; i < length; i++) {
             if (i > 0) {
                 builder.append(", ");
@@ -98,6 +102,7 @@ public abstract class Expression implements HasSQL, Typed {
                 e.getUnenclosedSQL(builder, sqlFlags);
             }
         }
+        return builder;
     }
 
     /**

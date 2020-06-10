@@ -52,8 +52,7 @@ public class JavaAggregate extends AbstractAggregate {
     @Override
     public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         ParserUtil.quoteIdentifier(builder, userAggregate.getName(), sqlFlags).append('(');
-        writeExpressions(builder, args, sqlFlags);
-        builder.append(')');
+        writeExpressions(builder, args, sqlFlags).append(')');
         return appendTailConditions(builder, sqlFlags, false);
     }
 

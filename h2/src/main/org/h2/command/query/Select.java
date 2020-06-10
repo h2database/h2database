@@ -1404,9 +1404,7 @@ public class Select extends Query {
             if (isAnyDistinct()) {
                 builder.append(" DISTINCT");
                 if (distinctExpressions != null) {
-                    builder.append(" ON(");
-                    Expression.writeExpressions(builder, distinctExpressions, sqlFlags);
-                    builder.append(')');
+                    Expression.writeExpressions(builder.append(" ON("), distinctExpressions, sqlFlags).append(')');
                 }
             }
             for (int i = 0; i < visibleColumnCount; i++) {

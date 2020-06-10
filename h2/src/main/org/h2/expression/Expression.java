@@ -219,7 +219,6 @@ public abstract class Expression implements HasSQL, Typed {
      * Get the SQL statement of this expression. This may not always be the
      * original SQL statement, especially after optimization. Enclosing '(' and
      * ')' are always appended.
-     * 
      *
      * @param builder
      *            string builder
@@ -235,7 +234,6 @@ public abstract class Expression implements HasSQL, Typed {
      * Get the SQL statement of this expression. This may not always be the
      * original SQL statement, especially after optimization. Enclosing '(' and
      * ')' are never appended.
-     * 
      *
      * @param builder
      *            string builder

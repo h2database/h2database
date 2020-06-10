@@ -453,8 +453,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
         Expression condition = null;
         for (Column column : indexedColumns) {
             ExpressionColumn expr = new ExpressionColumn(session.getDatabase(),
-                    table.getSchema().getName(), table.getName(),
-                    column.getName(), false);
+                    table.getSchema().getName(), table.getName(), column.getName());
             for (int i = 0; i < columns.length; i++) {
                 if (expr.getColumnName(session, i).equals(columns[i].getName())) {
                     if (condition == null) {

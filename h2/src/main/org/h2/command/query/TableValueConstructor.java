@@ -239,7 +239,7 @@ public class TableValueConstructor extends Query {
         Database database = session.getDatabase();
         ArrayList<Expression> expressions = new ArrayList<>(columnCount);
         for (int i = 0; i < columnCount; i++) {
-            expressions.add(new ExpressionColumn(database, null, null, columns[i].getName(), false));
+            expressions.add(new ExpressionColumn(database, null, null, columns[i].getName()));
         }
         this.expressions = expressions;
         table = new TableValueConstructorTable(session.getDatabase().getMainSchema(), session, columns, rows);

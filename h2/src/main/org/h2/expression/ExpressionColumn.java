@@ -28,35 +28,73 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * A expression that represents a column of a table or view.
+ * A column reference expression that represents a column of a table or view.
  */
 public class ExpressionColumn extends Expression {
 
     private final Database database;
     private final String schemaName;
     private final String tableAlias;
-    private String columnName;
+    private final String columnName;
     private final boolean rowId;
     private ColumnResolver columnResolver;
     private int queryLevel;
     private Column column;
 
+    /**
+     * Creates a new column reference for metadata of queries; should not be
+     * used as normal expression.
+     *
+     * @param database
+     *            the database
+     * @param column
+     *            the column
+     */
     public ExpressionColumn(Database database, Column column) {
         this.database = database;
         this.column = column;
-        this.schemaName = null;
-        this.tableAlias = null;
-        this.columnName = null;
-        this.rowId = column.isRowId();
+        columnName = tableAlias = schemaName = null;
+        rowId = column.isRowId();
     }
 
-    public ExpressionColumn(Database database, String schemaName,
-            String tableAlias, String columnName, boolean rowId) {
+    /**
+     * Creates a new instance of column reference for regular columns as normal
+     * expression.
+     *
+     * @param database
+     *            the database
+     * @param schemaName
+     *            the schema name, or {@code null}
+     * @param tableAlias
+     *            the table alias name, table name, or {@code null}
+     * @param columnName
+     *            the column name
+     */
+    public ExpressionColumn(Database database, String schemaName, String tableAlias, String columnName) {
         this.database = database;
         this.schemaName = schemaName;
         this.tableAlias = tableAlias;
         this.columnName = columnName;
-        this.rowId = rowId;
+        rowId = false;
+    }
+
+    /**
+     * Creates a new instance of column reference for {@code _ROWID_} column as
+     * normal expression.
+     *
+     * @param database
+     *            the database
+     * @param schemaName
+     *            the schema name, or {@code null}
+     * @param tableAlias
+     *            the table alias name, table name, or {@code null}
+     */
+    public ExpressionColumn(Database database, String schemaName, String tableAlias) {
+        this.database = database;
+        this.schemaName = schemaName;
+        this.tableAlias = tableAlias;
+        columnName = Column.ROWID;
+        rowId = true;
     }
 
     @Override
@@ -87,12 +125,10 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
-        if (tableAlias != null && !database.equalsIdentifiers(
-                tableAlias, resolver.getTableAlias())) {
+        if (tableAlias != null && !database.equalsIdentifiers(tableAlias, resolver.getTableAlias())) {
             return;
         }
-        if (schemaName != null && !database.equalsIdentifiers(
-                schemaName, resolver.getSchemaName())) {
+        if (schemaName != null && !database.equalsIdentifiers(schemaName, resolver.getSchemaName())) {
             return;
         }
         if (rowId) {
@@ -149,15 +185,17 @@ public class ExpressionColumn extends Expression {
 
     /**
      * Get exception to throw, with column and table info added
+     *
      * @param code SQL error code
      * @return DbException
      */
     public DbException getColumnException(int code) {
         String name = columnName;
         if (tableAlias != null) {
-            name = tableAlias + '.' + name;
             if (schemaName != null) {
-                name = schemaName + '.' + name;
+                name = schemaName + '.' + tableAlias + '.' + name;
+            } else {
+                name = tableAlias + '.' + name;
             }
         }
         return DbException.get(code, name);

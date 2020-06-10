@@ -62,7 +62,7 @@ public class DataChangeDeltaTable extends VirtualConstructedTable {
         Expression[] expressions = new Expression[columnCount];
         String tableName = getName();
         for (int i = 0; i < columnCount; i++) {
-            expressions[i] = new ExpressionColumn(database, null, tableName, c[i].getName(), false);
+            expressions[i] = new ExpressionColumn(database, null, tableName, c[i].getName());
         }
         this.expressions = expressions;
     }

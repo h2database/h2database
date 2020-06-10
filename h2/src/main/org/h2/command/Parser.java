@@ -2608,9 +2608,9 @@ public class Parser {
             filter2.addCommonJoinColumnToExclude(column2);
         }
         Expression tableExpr = new ExpressionColumn(database, filter1.getSchemaName(), filter1.getTableAlias(),
-                filter1.getColumnName(column1), false);
+                filter1.getColumnName(column1));
         Expression joinExpr = new ExpressionColumn(database, filter2.getSchemaName(), filter2.getTableAlias(),
-                filter2.getColumnName(column2), false);
+                filter2.getColumnName(column2));
         Expression equal = new Comparison(Comparison.EQUAL, tableExpr, joinExpr, false);
         if (on == null) {
             on = equal;
@@ -4712,7 +4712,7 @@ public class Parser {
         if (isToken(OPEN_PAREN)) {
             return readKeywordFunction(functionType);
         } else if (nonKeyword) {
-            return readIf(DOT) ? readTermObjectDot(name) : new ExpressionColumn(database, null, null, name, false);
+            return readIf(DOT) ? readTermObjectDot(name) : new ExpressionColumn(database, null, null, name);
         }
         throw getSyntaxError();
     }
@@ -4741,7 +4741,7 @@ public class Parser {
         if (readIf(OPEN_PAREN)) {
             return readCompatibilityFunction(upperName(name));
         } else if (nonKeyword) {
-            return readIf(DOT) ? readTermObjectDot(name) : new ExpressionColumn(database, null, null, name, false);
+            return readIf(DOT) ? readTermObjectDot(name) : new ExpressionColumn(database, null, null, name);
         }
         throw getSyntaxError();
     }
@@ -4775,7 +4775,7 @@ public class Parser {
             return parseWildcard(schema, objectName);
         }
         if (readIf(_ROWID_)) {
-            return new ExpressionColumn(database, schema, objectName, Column.ROWID, true);
+            return new ExpressionColumn(database, schema, objectName);
         }
         if (database.getMode().nextvalAndCurrvalPseudoColumns) {
             return readIfSequencePseudoColumn(schema, objectName);
@@ -4806,7 +4806,7 @@ public class Parser {
                         }
                     }
                 }
-                exceptColumns.add(new ExpressionColumn(database, s, t, name, false));
+                exceptColumns.add(new ExpressionColumn(database, s, t, name));
             } while (readIfMore());
             wildcard.setExceptColumns(exceptColumns);
         }
@@ -4862,9 +4862,9 @@ public class Parser {
                 }
                 name = readColumnIdentifier();
             }
-            return new ExpressionColumn(database, schema, objectName, name, false);
+            return new ExpressionColumn(database, schema, objectName, name);
         }
-        return new ExpressionColumn(database, null, objectName, name, false);
+        return new ExpressionColumn(database, null, objectName, name);
     }
 
     private void checkDatabaseName(String databaseName) {
@@ -5068,7 +5068,7 @@ public class Parser {
             break;
         case _ROWID_:
             read();
-            r = new ExpressionColumn(database, null, null, Column.ROWID, true);
+            r = new ExpressionColumn(database, null, null);
             break;
         case LITERAL:
             if (currentValue.getValueType() == Value.VARCHAR) {
@@ -5180,7 +5180,7 @@ public class Parser {
             } else if (readIf(DOT)) {
                 r = readTermObjectDot(name);
             } else if (quoted) {
-                r = new ExpressionColumn(database, null, null, name, false);
+                r = new ExpressionColumn(database, null, null, name);
             } else {
                 r = readTermWithIdentifier(name);
             }
@@ -5399,7 +5399,7 @@ public class Parser {
             }
             break;
         }
-        return new ExpressionColumn(database, null, null, name, false);
+        return new ExpressionColumn(database, null, null, name);
     }
 
     private Prepared getCurrentSelectOrPrepared() {
@@ -5535,7 +5535,7 @@ public class Parser {
             return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, false, null);
         }
         // No match, parse CURRENT as a column
-        return new ExpressionColumn(database, null, null, name, false);
+        return new ExpressionColumn(database, null, null, name);
     }
 
     private Expression readCase() {

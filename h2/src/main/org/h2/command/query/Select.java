@@ -938,12 +938,12 @@ public class Select extends Query {
                                 || DataType.hasTotalOrdering(left.getType().getValueType())
                                 && DataType.hasTotalOrdering(right.getType().getValueType())) {
                             e = new ExpressionColumn(database, replacementSchema, replacementAlias,
-                                    replacementFilter.getColumnName(right), false);
+                                    replacementFilter.getColumnName(right));
                         } else {
                             e = new Alias(new CoalesceFunction(CoalesceFunction.COALESCE,
-                                    new ExpressionColumn(database, schema, alias, filter.getColumnName(left), false),
+                                    new ExpressionColumn(database, schema, alias, filter.getColumnName(left)),
                                     new ExpressionColumn(database, replacementSchema, replacementAlias,
-                                            replacementFilter.getColumnName(right), false)), //
+                                            replacementFilter.getColumnName(right))), //
                                     left.getName(), true);
                         }
                         expressions.add(index++, e);
@@ -964,8 +964,7 @@ public class Select extends Query {
     private int addExpandedColumn(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except,
             String schema, String alias, Column c) {
         if ((except == null || except.remove(c) == null) && c.getVisible()) {
-            ExpressionColumn ec = new ExpressionColumn(
-                    session.getDatabase(), schema, alias, filter.getColumnName(c), false);
+            ExpressionColumn ec = new ExpressionColumn(session.getDatabase(), schema, alias, filter.getColumnName(c));
             expressions.add(index++, ec);
         }
         return index;

@@ -89,7 +89,7 @@ import org.h2.util.Utils;
 import org.h2.value.CaseInsensitiveConcurrentMap;
 import org.h2.value.CaseInsensitiveMap;
 import org.h2.value.CompareMode;
-import org.h2.value.Value;
+import org.h2.value.TypeInfo;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueTimestampTimeZone;
 
@@ -619,12 +619,12 @@ public class Database implements DataHandler, CastDataProvider {
         lobSession = new Session(this, systemUser, ++nextSessionId);
         CreateTableData data = new CreateTableData();
         ArrayList<Column> cols = data.columns;
-        Column columnId = new Column("ID", Value.INTEGER);
+        Column columnId = new Column("ID", TypeInfo.TYPE_INTEGER);
         columnId.setNullable(false);
         cols.add(columnId);
-        cols.add(new Column("HEAD", Value.INTEGER));
-        cols.add(new Column("TYPE", Value.INTEGER));
-        cols.add(new Column("SQL", Value.VARCHAR));
+        cols.add(new Column("HEAD", TypeInfo.TYPE_INTEGER));
+        cols.add(new Column("TYPE", TypeInfo.TYPE_INTEGER));
+        cols.add(new Column("SQL", TypeInfo.TYPE_VARCHAR));
         boolean create = true;
         if (pageStore != null) {
             create = pageStore.isNew();

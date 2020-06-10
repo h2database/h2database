@@ -20,7 +20,6 @@ import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.util.HasSQL;
 import org.h2.value.TypeInfo;
-import org.h2.value.Value;
 
 /**
  * This class represents the statement
@@ -114,7 +113,7 @@ public class CreateView extends SchemaCommand {
                 // non table expressions are fine to use unknown column type
                 columnTemplatesAsUnknowns[i] = new Column(columnNames[i], TypeInfo.TYPE_UNKNOWN);
                 // table expressions can't have unknown types - so we use string instead
-                columnTemplatesAsStrings[i] = new Column(columnNames[i], Value.VARCHAR);
+                columnTemplatesAsStrings[i] = new Column(columnNames[i], TypeInfo.TYPE_VARCHAR);
             }
         }
         if (view == null) {

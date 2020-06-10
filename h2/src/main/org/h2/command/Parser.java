@@ -4528,7 +4528,7 @@ public class Parser {
             }
             if (readIf(WITH)) {
                 read("ORDINALITY");
-                columns.add(new Column("NORD", Value.INTEGER));
+                columns.add(new Column("NORD", TypeInfo.TYPE_INTEGER));
             }
             TableFunction tf = (TableFunction) function;
             tf.setColumns(columns);
@@ -7802,7 +7802,7 @@ public class Parser {
             for (String c : cols) {
                 // we don't really know the type of the column, so STRING will
                 // have to do, UNKNOWN does not work here
-                columns.add(new Column(c, Value.VARCHAR));
+                columns.add(new Column(c, TypeInfo.TYPE_VARCHAR));
             }
         }
 

@@ -31,6 +31,7 @@ import org.h2.util.HasSQL;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueNull;
@@ -1022,9 +1023,9 @@ public class TableFilter implements ColumnResolver {
             return null;
         }
         Column[] sys = new Column[2];
-        sys[0] = new Column("oid", Value.INTEGER);
+        sys[0] = new Column("oid", TypeInfo.TYPE_INTEGER);
         sys[0].setTable(table, 0);
-        sys[1] = new Column("ctid", Value.VARCHAR);
+        sys[1] = new Column("ctid", TypeInfo.TYPE_VARCHAR);
         sys[1].setTable(table, 0);
         return sys;
     }

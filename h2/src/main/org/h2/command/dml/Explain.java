@@ -22,7 +22,7 @@ import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.util.HasSQL;
-import org.h2.value.Value;
+import org.h2.value.TypeInfo;
 import org.h2.value.ValueVarchar;
 
 /**
@@ -71,7 +71,7 @@ public class Explain extends Prepared {
 
     @Override
     public ResultInterface query(int maxrows) {
-        Column column = new Column("PLAN", Value.VARCHAR);
+        Column column = new Column("PLAN", TypeInfo.TYPE_VARCHAR);
         Database db = session.getDatabase();
         ExpressionColumn expr = new ExpressionColumn(db, column);
         Expression[] expressions = { expr };

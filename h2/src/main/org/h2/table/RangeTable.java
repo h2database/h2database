@@ -13,7 +13,7 @@ import org.h2.index.Index;
 import org.h2.index.RangeIndex;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.value.Value;
+import org.h2.value.TypeInfo;
 
 /**
  * The table SYSTEM_RANGE is a virtual table that generates incrementing numbers
@@ -47,7 +47,7 @@ public class RangeTable extends VirtualTable {
         super(schema, 0, NAME);
         this.min = min;
         this.max = max;
-        Column[] columns = new Column[] { new Column("X", Value.BIGINT) };
+        Column[] columns = new Column[] { new Column("X", TypeInfo.TYPE_BIGINT) };
         setColumns(columns);
         index = new RangeIndex(this, IndexColumn.wrap(columns));
     }

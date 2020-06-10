@@ -58,6 +58,7 @@ import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueVarchar;
 
@@ -136,7 +137,7 @@ public class ScriptCommand extends ScriptBase {
 
     private LocalResult createResult() {
         return new LocalResult(session, new Expression[] {
-                new ExpressionColumn(session.getDatabase(), new Column("SCRIPT", Value.VARCHAR)) }, 1, 1);
+                new ExpressionColumn(session.getDatabase(), new Column("SCRIPT", TypeInfo.TYPE_VARCHAR)) }, 1, 1);
     }
 
     @Override

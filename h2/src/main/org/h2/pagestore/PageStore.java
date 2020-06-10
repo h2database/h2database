@@ -55,7 +55,7 @@ import org.h2.util.IntArray;
 import org.h2.util.IntIntHashMap;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
-import org.h2.value.Value;
+import org.h2.value.TypeInfo;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueVarchar;
 
@@ -1589,12 +1589,12 @@ public class PageStore implements CacheWriter {
     private void openMetaIndex() {
         CreateTableData data = new CreateTableData();
         ArrayList<Column> cols = data.columns;
-        cols.add(new Column("ID", Value.INTEGER));
-        cols.add(new Column("TYPE", Value.INTEGER));
-        cols.add(new Column("PARENT", Value.INTEGER));
-        cols.add(new Column("HEAD", Value.INTEGER));
-        cols.add(new Column("OPTIONS", Value.VARCHAR));
-        cols.add(new Column("COLUMNS", Value.VARCHAR));
+        cols.add(new Column("ID", TypeInfo.TYPE_INTEGER));
+        cols.add(new Column("TYPE", TypeInfo.TYPE_INTEGER));
+        cols.add(new Column("PARENT", TypeInfo.TYPE_INTEGER));
+        cols.add(new Column("HEAD", TypeInfo.TYPE_INTEGER));
+        cols.add(new Column("OPTIONS", TypeInfo.TYPE_VARCHAR));
+        cols.add(new Column("COLUMNS", TypeInfo.TYPE_VARCHAR));
         metaSchema = new Schema(database, 0, "", null, true);
         data.schema = metaSchema;
         data.tableName = "PAGE_INDEX";
@@ -1674,7 +1674,7 @@ public class PageStore implements CacheWriter {
                 throw DbException.throwInternalError(row.toString());
             }
             for (int i = 0, len = columns.length; i < len; i++) {
-                Column col = new Column("C" + i, Value.INTEGER);
+                Column col = new Column("C" + i, TypeInfo.TYPE_INTEGER);
                 data.columns.add(col);
             }
             data.schema = metaSchema;

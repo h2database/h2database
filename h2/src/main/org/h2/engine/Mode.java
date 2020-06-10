@@ -528,6 +528,8 @@ public class Mode {
         disallowedTypes.add("BLOB");
         disallowedTypes.add("VARCHAR_IGNORECASE");
         mode.disallowedTypes = disallowedTypes;
+        dt = DataType.getDataType(Value.JSON);
+        mode.typeByNameMap.put("JSONB", dt);
         dt = DataType.createNumeric(19, 2, false);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;

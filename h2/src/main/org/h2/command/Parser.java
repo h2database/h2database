@@ -297,6 +297,7 @@ import org.h2.mode.Regclass;
 import org.h2.result.SortOrder;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
+import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.UserAggregate;
 import org.h2.table.Column;
@@ -2680,13 +2681,8 @@ public class Parser {
                 name = readColumnIdentifier();
             }
         }
-        FunctionAlias functionAlias;
-        if (schemaName != null) {
-            Schema schema = database.getSchema(schemaName);
-            functionAlias = schema.findFunction(name);
-        } else {
-            functionAlias = findFunctionAlias(session.getCurrentSchemaName(), name);
-        }
+        FunctionAlias functionAlias = findSchemaObjectWithinPath(
+                schemaName != null ? database.getSchema(schemaName) : null, name, DbObject.FUNCTION_ALIAS);
         if (functionAlias == null) {
             throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, name);
         }
@@ -3788,12 +3784,7 @@ public class Parser {
     }
 
     private JavaFunction readJavaFunction(Schema schema, String functionName) {
-        FunctionAlias functionAlias;
-        if (schema != null) {
-            functionAlias = schema.findFunction(functionName);
-        } else {
-            functionAlias = findFunctionAlias(session.getCurrentSchemaName(), functionName);
-        }
+        FunctionAlias functionAlias = findSchemaObjectWithinPath(schema, functionName, DbObject.FUNCTION_ALIAS);
         if (functionAlias == null) {
             return null;
         }
@@ -3807,12 +3798,7 @@ public class Parser {
     }
 
     private JavaAggregate readJavaAggregate(Schema schema, String aggregateName) {
-        UserAggregate aggregate;
-        if (schema != null) {
-            aggregate = schema.findAggregate(aggregateName);
-        } else {
-            aggregate = findAggregate(session.getCurrentSchemaName(), aggregateName);
-        }
+        UserAggregate aggregate = findSchemaObjectWithinPath(schema, aggregateName, DbObject.AGGREGATE);
         if (aggregate == null) {
             return null;
         }
@@ -8876,34 +8862,25 @@ public class Parser {
         }
     }
 
-    private FunctionAlias findFunctionAlias(String schema, String aliasName) {
-        FunctionAlias functionAlias = database.getSchema(schema).findFunction(aliasName);
-        if (functionAlias != null) {
-            return functionAlias;
+    @SuppressWarnings("unchecked")
+    private <T extends SchemaObject> T findSchemaObjectWithinPath(Schema schema, String name, int type) {
+        if (schema != null) {
+            return (T) schema.find(type, name);
+        }
+        schema = database.getSchema(session.getCurrentSchemaName());
+        SchemaObject object = schema.find(type, name);
+        if (object != null) {
+            return (T) object;
         }
         String[] schemaNames = session.getSchemaSearchPath();
         if (schemaNames != null) {
-            for (String n : schemaNames) {
-                functionAlias = database.getSchema(n).findFunction(aliasName);
-                if (functionAlias != null) {
-                    return functionAlias;
-                }
-            }
-        }
-        return null;
-    }
-
-    private UserAggregate findAggregate(String schema, String aliasName) {
-        UserAggregate aggregate = database.getSchema(schema).findAggregate(aliasName);
-        if (aggregate != null) {
-            return aggregate;
-        }
-        String[] schemaNames = session.getSchemaSearchPath();
-        if (schemaNames != null) {
-            for (String n : schemaNames) {
-                aggregate = database.getSchema(n).findAggregate(aliasName);
-                if (aggregate != null) {
-                    return aggregate;
+            for (String schemaName : schemaNames) {
+                Schema schemaFromPath = database.getSchema(schemaName);
+                if (schemaFromPath != schema) {
+                    object = schemaFromPath.find(type, name);
+                    if (object != null) {
+                        return (T) object;
+                    }
                 }
             }
         }

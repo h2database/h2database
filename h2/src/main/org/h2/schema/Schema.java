@@ -358,6 +358,19 @@ public class Schema extends DbObjectBase {
     }
 
     /**
+     * Get objects of the given type.
+     *
+     * @param type
+     *                  the object type
+     * @param name
+     *                  the name of the object
+     * @return the object, or null
+     */
+    public SchemaObject find(int type, String name) {
+        return getMap(type).get(name);
+    }
+
+    /**
      * Get the domain if it exists, or null if not.
      *
      * @param name the name of the domain

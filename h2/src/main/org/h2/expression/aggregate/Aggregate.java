@@ -935,8 +935,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         } else {
             builder.append('(');
         }
-        writeExpressions(builder, args, sqlFlags);
-        builder.append(')');
+        writeExpressions(builder, args, sqlFlags).append(')');
         boolean forceOrderBy = aggregateType == AggregateType.LISTAGG;
         if (forceOrderBy || orderByList != null) {
             builder.append(" WITHIN GROUP (");

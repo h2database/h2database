@@ -9,11 +9,11 @@ import java.sql.SQLException;
 import org.h2.api.Aggregate;
 import org.h2.command.query.Select;
 import org.h2.engine.Session;
-import org.h2.engine.UserAggregate;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.schema.UserAggregate;
 import org.h2.util.ParserUtil;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -52,8 +52,7 @@ public class JavaAggregate extends AbstractAggregate {
     @Override
     public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         ParserUtil.quoteIdentifier(builder, userAggregate.getName(), sqlFlags).append('(');
-        writeExpressions(builder, args, sqlFlags);
-        builder.append(')');
+        writeExpressions(builder, args, sqlFlags).append(')');
         return appendTailConditions(builder, sqlFlags, false);
     }
 

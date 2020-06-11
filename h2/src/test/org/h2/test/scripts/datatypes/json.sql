@@ -265,3 +265,18 @@ DROP TABLE TEST;
 
 SELECT CAST(JSON 'null' AS JSON(3));
 > exception VALUE_TOO_LONG_2
+
+CREATE TABLE TEST(J JSONB);
+> exception UNKNOWN_DATA_TYPE_1
+
+SET MODE PostgreSQL;
+> ok
+
+CREATE TABLE TEST(J JSONB);
+> ok
+
+DROP TABLE TEST;
+> ok
+
+SET MODE Regular;
+> ok

@@ -128,13 +128,16 @@ public class Column implements HasSQL, Typed {
         return builder;
     }
 
-    public Column(String name, int valueType) {
-        this(name, TypeInfo.getTypeInfo(valueType));
-    }
-
     public Column(String name, TypeInfo type) {
         this.name = name;
         this.type = type;
+    }
+
+    public Column(String name, TypeInfo type, Table table, int columnId) {
+        this.name = name;
+        this.type = type;
+        this.table = table;
+        this.columnId = columnId;
     }
 
     public Column(String name, TypeInfo type, String originalSQL) {

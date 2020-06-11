@@ -108,9 +108,7 @@ public class Wildcard extends Expression {
         }
         builder.append('*');
         if (exceptColumns != null) {
-            builder.append(" EXCEPT (");
-            writeExpressions(builder, exceptColumns, sqlFlags);
-            builder.append(')');
+            writeExpressions(builder.append(" EXCEPT ("), exceptColumns, sqlFlags).append(')');
         }
         return builder;
     }

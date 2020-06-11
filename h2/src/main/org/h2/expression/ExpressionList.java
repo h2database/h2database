@@ -79,9 +79,9 @@ public class ExpressionList extends Expression {
 
     @Override
     public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        builder.append(isArray ? "ARRAY [" : "ROW (");
-        writeExpressions(builder, list, sqlFlags);
-        return builder.append(isArray ? ']' : ')');
+        return isArray //
+                ? writeExpressions(builder.append("ARRAY ["), list, sqlFlags).append(']')
+                : writeExpressions(builder.append("ROW ("), list, sqlFlags).append(')');
     }
 
     @Override

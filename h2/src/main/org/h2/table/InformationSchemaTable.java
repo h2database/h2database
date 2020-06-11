@@ -32,7 +32,6 @@ import org.h2.engine.Session;
 import org.h2.engine.Session.State;
 import org.h2.engine.Setting;
 import org.h2.engine.User;
-import org.h2.engine.UserAggregate;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
@@ -51,6 +50,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
+import org.h2.schema.UserAggregate;
 import org.h2.store.InDoubtTransaction;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.HasSQL;
@@ -1154,32 +1154,38 @@ public final class InformationSchemaTable extends MetaTable {
         case ROUTINES: {
             String mainSchemaName = database.getMainSchema().getName();
             String collation = database.getCompareMode().getName();
-            for (SchemaObject aliasAsSchemaObject : database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
-                FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
-                String schema = alias.getSchema().getName();
-                String name = alias.getName();
-                JavaMethod[] methods;
-                try {
-                    methods = alias.getJavaMethods();
-                } catch (DbException e) {
-                    methods = new JavaMethod[0];
+            for (Schema schema : database.getAllSchemas()) {
+                String schemaName = schema.getName();
+                for (FunctionAlias alias : schema.getAllFunctionAliases()) {
+                    String name = alias.getName();
+                    JavaMethod[] methods;
+                    try {
+                        methods = alias.getJavaMethods();
+                    } catch (DbException e) {
+                        methods = new JavaMethod[0];
+                    }
+                    for (int i = 0; i < methods.length; i++) {
+                        FunctionAlias.JavaMethod method = methods[i];
+                        TypeInfo typeInfo = method.getDataType();
+                        String routineType;
+                        if (typeInfo.getValueType() == Value.NULL) {
+                            routineType = "PROCEDURE";
+                            typeInfo = null;
+                        } else {
+                            routineType = "FUNCTION";
+                        }
+                        generateRoutineRow(session, rows, catalog, mainSchemaName, collation, schemaName, name,
+                                name + '_' + (i + 1), routineType, admin ? alias.getSource() : null,
+                                alias.getJavaClassName() + '.' + alias.getJavaMethodName(), typeInfo,
+                                alias.isDeterministic(), alias.getComment(), alias.getId());
+                    }
                 }
-                for (int i = 0; i < methods.length; i++) {
-                    FunctionAlias.JavaMethod method = methods[i];
-                    TypeInfo typeInfo = method.getDataType();
-                    boolean procedure = typeInfo.getValueType() == Value.NULL;
-                    generateRoutineRow(session, rows, catalog, mainSchemaName, collation, schema, name,
-                            name + '_' + (i + 1), procedure ? "PROCEDURE" : "FUNCTION",
-                            admin ? alias.getSource() : null,
-                            alias.getJavaClassName() + '.' + alias.getJavaMethodName(), procedure ? null : typeInfo,
-                            alias.isDeterministic(), alias.getComment(), alias.getId());
+                for (UserAggregate agg : schema.getAllAggregates()) {
+                    String name = agg.getName();
+                    generateRoutineRow(session, rows, catalog, mainSchemaName, collation, schemaName, name, name,
+                            "AGGREGATE", null, agg.getJavaClassName(), TypeInfo.TYPE_NULL, false, agg.getComment(),
+                            agg.getId());
                 }
-            }
-            String schema = database.getMainSchema().getName();
-            for (UserAggregate agg : database.getAllAggregates()) {
-                String name = agg.getName();
-                generateRoutineRow(session, rows, catalog, mainSchemaName, collation, schema, name, name, "AGGREGATE",
-                        null, agg.getJavaClassName(), TypeInfo.TYPE_NULL, false, agg.getComment(), agg.getId());
             }
             break;
         }

@@ -3,12 +3,14 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.engine;
+package org.h2.schema;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
+import org.h2.engine.DbObject;
+import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
@@ -20,14 +22,14 @@ import org.h2.value.DataType;
 /**
  * Represents a user-defined aggregate function.
  */
-public class UserAggregate extends DbObjectBase {
+public class UserAggregate extends SchemaObjectBase {
 
     private String className;
     private Class<?> javaClass;
 
-    public UserAggregate(Database db, int id, String name, String className,
+    public UserAggregate(Schema schema, int id, String name, String className,
             boolean force) {
-        super(db, id, name, Trace.FUNCTION);
+        super(schema, id, name, Trace.FUNCTION);
         this.className = className;
         if (!force) {
             getInstance();

@@ -26,7 +26,6 @@ import org.h2.engine.FunctionAlias.JavaMethod;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.User;
-import org.h2.engine.UserAggregate;
 import org.h2.expression.condition.CompareLike;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -36,6 +35,7 @@ import org.h2.result.SimpleResult;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
+import org.h2.schema.UserAggregate;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.InformationSchemaTable;
@@ -234,16 +234,14 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                             getString(procedureName + '_' + (i + 1)));
                 }
             }
-            if (s == db.getMainSchema()) {
-                for (UserAggregate a : db.getAllAggregates()) {
-                    String procedureName = a.getName();
-                    if (procedureLike != null && !procedureLike.test(procedureName)) {
-                        continue;
-                    }
-                    Value nameValue = getString(procedureName);
-                    getProceduresAdd(result, catalogValue, schemaValue, nameValue, a.getComment(),
-                            PROCEDURE_RETURNS_RESULT, nameValue);
+            for (UserAggregate a : s.getAllAggregates()) {
+                String procedureName = a.getName();
+                if (procedureLike != null && !procedureLike.test(procedureName)) {
+                    continue;
                 }
+                Value nameValue = getString(procedureName);
+                getProceduresAdd(result, catalogValue, schemaValue, nameValue, a.getComment(), //
+                        PROCEDURE_RETURNS_RESULT, nameValue);
             }
         }
         // PROCEDURE_CAT, PROCEDURE_SCHEM, PROCEDURE_NAME, SPECIFIC_ NAME

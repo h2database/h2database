@@ -259,9 +259,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                 if (row++ > 0) {
                     builder.append(", ");
                 }
-                builder.append('(');
-                Expression.writeExpressions(builder, expr, sqlFlags);
-                builder.append(')');
+                Expression.writeExpressions(builder.append('('), expr, sqlFlags).append(')');
             }
         } else {
             builder.append(query.getPlanSQL(sqlFlags));

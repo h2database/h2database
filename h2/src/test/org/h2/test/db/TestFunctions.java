@@ -774,19 +774,21 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE AGGREGATE SIMPLE_MEDIAN FOR \"" +
-                MedianString.class.getName() + "\"");
-        stat.execute("CREATE AGGREGATE IF NOT EXISTS SIMPLE_MEDIAN FOR \"" +
-                MedianString.class.getName() + "\"");
-        ResultSet rs = stat.executeQuery(
-                "SELECT SIMPLE_MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
+        stat.execute("CREATE AGGREGATE SIMPLE_MEDIAN FOR \"" + MedianString.class.getName() + "\"");
+        stat.execute("CREATE AGGREGATE IF NOT EXISTS SIMPLE_MEDIAN FOR \"" + MedianString.class.getName() + "\"");
+        stat.execute("CREATE SCHEMA S1");
+        stat.execute("CREATE AGGREGATE S1.MEDIAN2 FOR \"" + MedianString.class.getName() + "\"");
+        ResultSet rs = stat.executeQuery("SELECT SIMPLE_MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
+        rs.next();
+        assertEquals("5", rs.getString(1));
+        assertThrows(ErrorCode.FUNCTION_NOT_FOUND_1, stat).executeQuery("SELECT MEDIAN2(X) FROM SYSTEM_RANGE(1, 9)");
+        rs = stat.executeQuery("SELECT S1.MEDIAN2(X) FROM SYSTEM_RANGE(1, 9)");
         rs.next();
         assertEquals("5", rs.getString(1));
 
         stat.execute("CREATE TABLE DATA(V INT)");
         stat.execute("INSERT INTO DATA VALUES (1), (3), (2), (1), (1), (2), (1), (1), (1), (1), (1)");
-        rs = stat.executeQuery(
-                "SELECT SIMPLE_MEDIAN(V), SIMPLE_MEDIAN(DISTINCT V) FROM DATA");
+        rs = stat.executeQuery("SELECT SIMPLE_MEDIAN(V), SIMPLE_MEDIAN(DISTINCT V) FROM DATA");
         rs.next();
         assertEquals("1", rs.getString(1));
         assertEquals("2", rs.getString(2));
@@ -803,18 +805,28 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         DatabaseMetaData meta = conn.getMetaData();
         rs = meta.getProcedures(null, null, "SIMPLE_MEDIAN");
         assertTrue(rs.next());
+        assertEquals("PUBLIC", rs.getString("PROCEDURE_SCHEM"));
+        assertFalse(rs.next());
+        rs = meta.getProcedures(null, null, "MEDIAN2");
+        assertTrue(rs.next());
+        assertEquals("S1", rs.getString("PROCEDURE_SCHEM"));
         assertFalse(rs.next());
         rs = stat.executeQuery("SCRIPT");
-        boolean found = false;
+        boolean found1 = false, found2 = false;
         while (rs.next()) {
             String sql = rs.getString(1);
-            if (sql.contains("SIMPLE_MEDIAN")) {
-                found = true;
+            if (sql.contains("\"PUBLIC\".\"SIMPLE_MEDIAN\"")) {
+                found1 = true;
+            } else if (sql.contains("\"S1\".\"MEDIAN2\"")) {
+                found2 = true;
             }
         }
-        assertTrue(found);
+        assertTrue(found1);
+        assertTrue(found2);
         stat.execute("DROP AGGREGATE SIMPLE_MEDIAN");
         stat.execute("DROP AGGREGATE IF EXISTS SIMPLE_MEDIAN");
+        stat.execute("DROP AGGREGATE S1.MEDIAN2");
+        stat.execute("DROP SCHEMA S1");
         conn.close();
     }
 

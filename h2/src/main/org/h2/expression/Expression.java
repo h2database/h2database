@@ -69,14 +69,17 @@ public abstract class Expression implements HasSQL, Typed {
      * @param builder the builder to append the SQL to
      * @param expressions the list of expressions
      * @param sqlFlags formatting flags
+     * @return the specified string builder
      */
-    public static void writeExpressions(StringBuilder builder, List<? extends Expression> expressions, int sqlFlags) {
+    public static StringBuilder writeExpressions(StringBuilder builder, List<? extends Expression> expressions,
+            int sqlFlags) {
         for (int i = 0, length = expressions.size(); i < length; i++) {
             if (i > 0) {
                 builder.append(", ");
             }
             expressions.get(i).getUnenclosedSQL(builder, sqlFlags);
         }
+        return builder;
     }
 
     /**
@@ -85,8 +88,9 @@ public abstract class Expression implements HasSQL, Typed {
      * @param builder the builder to append the SQL to
      * @param expressions the list of expressions
      * @param sqlFlags formatting flags
+     * @return the specified string builder
      */
-    public static void writeExpressions(StringBuilder builder, Expression[] expressions, int sqlFlags) {
+    public static StringBuilder writeExpressions(StringBuilder builder, Expression[] expressions, int sqlFlags) {
         for (int i = 0, length = expressions.length; i < length; i++) {
             if (i > 0) {
                 builder.append(", ");
@@ -98,6 +102,7 @@ public abstract class Expression implements HasSQL, Typed {
                 e.getUnenclosedSQL(builder, sqlFlags);
             }
         }
+        return builder;
     }
 
     /**
@@ -214,7 +219,6 @@ public abstract class Expression implements HasSQL, Typed {
      * Get the SQL statement of this expression. This may not always be the
      * original SQL statement, especially after optimization. Enclosing '(' and
      * ')' are always appended.
-     * 
      *
      * @param builder
      *            string builder
@@ -230,7 +234,6 @@ public abstract class Expression implements HasSQL, Typed {
      * Get the SQL statement of this expression. This may not always be the
      * original SQL statement, especially after optimization. Enclosing '(' and
      * ')' are never appended.
-     * 
      *
      * @param builder
      *            string builder
@@ -514,9 +517,7 @@ public abstract class Expression implements HasSQL, Typed {
         for (int i = 0; i < columnCount; i++) {
             String name = result.getColumnName(i);
             TypeInfo type = result.getColumnType(i);
-            Column col = new Column(name, type);
-            Expression expr = new ExpressionColumn(db, col);
-            expressions[i] = expr;
+            expressions[i] = new ExpressionColumn(db, new Column(name, type));
         }
         return expressions;
     }

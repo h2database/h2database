@@ -328,7 +328,7 @@ public class TableValueConstructor extends Query {
     @Override
     public Table toTable(String alias, Column[] columnTemplates, ArrayList<Parameter> parameters,
             boolean forCreateView, Query topQuery) {
-        if (!hasOrder() && offsetExpr == null && limitExpr == null && table != null) {
+        if (!hasOrder() && offsetExpr == null && fetchExpr == null && table != null) {
             return table;
         }
         return super.toTable(alias, columnTemplates, parameters, forCreateView, topQuery);
@@ -351,7 +351,7 @@ public class TableValueConstructor extends Query {
 
     @Override
     public Expression getIfSingleRow() {
-        if (offsetExpr != null || limitExpr != null || rows.size() != 1) {
+        if (offsetExpr != null || fetchExpr != null || rows.size() != 1) {
             return null;
         }
         ArrayList<Expression> row = rows.get(0);

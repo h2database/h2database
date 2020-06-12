@@ -169,7 +169,7 @@ public class TestView extends TestDb {
 
     private void testChangeSchemaSearchPath() throws SQLException {
         deleteDb("view");
-        Connection conn = getConnection("view;FUNCTIONS_IN_SCHEMA=TRUE");
+        Connection conn = getConnection("view");
         Statement stat = conn.createStatement();
         stat.execute("CREATE ALIAS X AS $$ int x() { return 1; } $$;");
         stat.execute("CREATE SCHEMA S");

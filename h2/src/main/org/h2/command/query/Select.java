@@ -1734,7 +1734,7 @@ public class Select extends Query {
 
     @Override
     public boolean allowGlobalConditions() {
-        return offsetExpr == null && (limitExpr == null && distinctExpressions == null || sort == null);
+        return offsetExpr == null && fetchExpr == null && distinctExpressions == null;
     }
 
     public SortOrder getSortOrder() {
@@ -1766,7 +1766,7 @@ public class Select extends Query {
 
     @Override
     public Expression getIfSingleRow() {
-        if (offsetExpr != null || limitExpr != null || condition != null || isGroupQuery || isWindowQuery
+        if (offsetExpr != null || fetchExpr != null || condition != null || isGroupQuery || isWindowQuery
                 || !isNoFromClause()) {
             return null;
         }

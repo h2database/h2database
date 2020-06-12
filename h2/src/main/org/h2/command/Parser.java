@@ -2824,7 +2824,7 @@ public class Parser {
             command.setOrder(orderList);
             currentSelect = oldSelect;
         }
-        if (command.getLimit() == null) {
+        if (command.getFetch() == null) {
             // make sure aggregate functions will not work here
             Select temp = currentSelect;
             currentSelect = null;
@@ -2843,10 +2843,9 @@ public class Parser {
                     read("NEXT");
                 }
                 if (readIf(ROW) || readIf("ROWS")) {
-                    command.setLimit(ValueExpression.get(ValueInteger.get(1)));
+                    command.setFetch(ValueExpression.get(ValueInteger.get(1)));
                 } else {
-                    Expression limit = readExpression().optimize(session);
-                    command.setLimit(limit);
+                    command.setFetch(readExpression().optimize(session));
                     if (readIf("PERCENT")) {
                         command.setFetchPercent(true);
                     }
@@ -2864,17 +2863,15 @@ public class Parser {
             // MySQL-style LIMIT / OFFSET
             if (!hasOffsetOrFetch && readIf(LIMIT)) {
                 Expression limit = readExpression().optimize(session);
-                command.setLimit(limit);
                 if (readIf(OFFSET)) {
-                    Expression offset = readExpression().optimize(session);
-                    command.setOffset(offset);
+                    command.setOffset(readExpression().optimize(session));
                 } else if (readIf(COMMA)) {
                     // MySQL: [offset, ] rowcount
                     Expression offset = limit;
                     limit = readExpression().optimize(session);
                     command.setOffset(offset);
-                    command.setLimit(limit);
                 }
+                command.setFetch(limit);
             }
             currentSelect = temp;
         }
@@ -2999,8 +2996,7 @@ public class Parser {
             // SELECT TOP 1 +? A FROM TEST could mean
             // SELECT TOP (1+?) A FROM TEST or
             // SELECT TOP 1 (+?) AS A FROM TEST
-            Expression limit = readTerm().optimize(session);
-            command.setLimit(limit);
+            command.setFetch(readTerm().optimize(session));
             if (readIf("PERCENT")) {
                 command.setFetchPercent(true);
             }
@@ -3009,10 +3005,8 @@ public class Parser {
                 command.setWithTies(true);
             }
         } else if (readIf(LIMIT)) {
-            Expression offset = readTerm().optimize(session);
-            command.setOffset(offset);
-            Expression limit = readTerm().optimize(session);
-            command.setLimit(limit);
+            command.setOffset(readTerm().optimize(session));
+            command.setFetch(readTerm().optimize(session));
         }
         currentSelect = temp;
         if (readIf(DISTINCT)) {

@@ -96,9 +96,9 @@ public abstract class Query extends Prepared {
     SortOrder sort;
 
     /**
-     * The limit expression as specified in the LIMIT or TOP clause.
+     * The fetch expression as specified in the FETCH, LIMIT, or TOP clause.
      */
-    Expression limitExpr;
+    Expression fetchExpr;
 
     /**
      * Whether limit expression specifies percentage of rows.
@@ -111,7 +111,7 @@ public abstract class Query extends Prepared {
     boolean withTies;
 
     /**
-     * The offset expression as specified in the LIMIT .. OFFSET clause.
+     * The offset expression as specified in the OFFSET clause.
      */
     Expression offsetExpr;
 
@@ -349,7 +349,7 @@ public abstract class Query extends Prepared {
      * optimization only.
      */
     public void setDistinctIfPossible() {
-        if (!isAnyDistinct() && offsetExpr == null && limitExpr == null) {
+        if (!isAnyDistinct() && offsetExpr == null && fetchExpr == null) {
             distinct = true;
         }
     }
@@ -739,12 +739,12 @@ public abstract class Query extends Prepared {
         return offsetExpr;
     }
 
-    public void setLimit(Expression limit) {
-        this.limitExpr = limit;
+    public void setFetch(Expression fetch) {
+        this.fetchExpr = fetch;
     }
 
-    public Expression getLimit() {
-        return limitExpr;
+    public Expression getFetch() {
+        return fetchExpr;
     }
 
     public void setFetchPercent(boolean fetchPercent) {
@@ -804,9 +804,9 @@ public abstract class Query extends Prepared {
             String count = offsetExpr.getSQL(sqlFlags, WITHOUT_PARENTHESES);
             builder.append("\nOFFSET ").append(count).append("1".equals(count) ? " ROW" : " ROWS");
         }
-        if (limitExpr != null) {
+        if (fetchExpr != null) {
             builder.append("\nFETCH ").append(offsetExpr != null ? "NEXT" : "FIRST");
-            String count = limitExpr.getSQL(sqlFlags, WITHOUT_PARENTHESES);
+            String count = fetchExpr.getSQL(sqlFlags, WITHOUT_PARENTHESES);
             boolean withCount = fetchPercent || !"1".equals(count);
             if (withCount) {
                 builder.append(' ').append(count);
@@ -828,8 +828,8 @@ public abstract class Query extends Prepared {
      */
     OffsetFetch getOffsetFetch(int maxRows) {
         int fetch = maxRows == 0 ? -1 : maxRows;
-        if (limitExpr != null) {
-            Value v = limitExpr.getValue(session);
+        if (fetchExpr != null) {
+            Value v = fetchExpr.getValue(session);
             int l = v == ValueNull.INSTANCE ? -1 : v.getInt();
             if (fetch < 0) {
                 fetch = l;
@@ -957,7 +957,7 @@ public abstract class Query extends Prepared {
      */
     public boolean isConstantQuery() {
         return !hasOrder() && (offsetExpr == null || offsetExpr.isConstant())
-                && (limitExpr == null || limitExpr.isConstant());
+                && (fetchExpr == null || fetchExpr.isConstant());
     }
 
     /**

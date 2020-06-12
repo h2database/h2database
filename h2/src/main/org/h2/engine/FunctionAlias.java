@@ -204,15 +204,6 @@ public class FunctionAlias extends SchemaObjectBase {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        // TODO can remove this method once FUNCTIONS_IN_SCHEMA is enabled
-        if (database.getSettings().functionsInSchema || getSchema().getId() != Constants.MAIN_SCHEMA_ID) {
-            return super.getSQL(builder, sqlFlags);
-        }
-        return ParserUtil.quoteIdentifier(builder, getName(), sqlFlags);
-    }
-
-    @Override
     public String getCreateSQL() {
         StringBuilder buff = new StringBuilder("CREATE FORCE ALIAS ");
         buff.append(getSQL(DEFAULT_SQL_FLAGS));

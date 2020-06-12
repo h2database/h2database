@@ -1109,3 +1109,33 @@ EXPLAIN SELECT (VALUES 1, RAND());
 
 EXPLAIN SELECT X FROM SYSTEM_RANGE(1, 10) ORDER BY X, (1+1), -X;
 >> SELECT "X" FROM SYSTEM_RANGE(1, 10) /* range index */ ORDER BY 1, - "X"
+
+
+CREATE TABLE T1 (
+    T1_ID BIGINT PRIMARY KEY
+);
+> ok
+
+INSERT INTO T1 VALUES 1, 2, 3;
+> update count: 3
+
+CREATE TABLE T2 (
+    T2_ID BIGINT PRIMARY KEY,
+    T1_ID BIGINT NOT NULL REFERENCES T1
+);
+> ok
+
+INSERT INTO T2 VALUES (1, 1), (2, 1), (3, 2), (4, 3);
+> update count: 4
+
+SELECT * FROM (SELECT * FROM T1 FETCH FIRST 2 ROWS ONLY) T1 JOIN T2 USING (T1_ID);
+> T1_ID T2_ID
+> ----- -----
+> 1     1
+> 1     2
+> 2     3
+> rows: 3
+
+
+DROP TABLE T2, T1;
+> ok

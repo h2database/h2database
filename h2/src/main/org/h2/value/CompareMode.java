@@ -163,15 +163,19 @@ public class CompareMode implements Comparator<Value> {
      * @param ignoreCase true if a case-insensitive comparison should be made
      * @return true if the characters are equals
      */
-    public boolean equalsChars(String a, int ai, String b, int bi,
-            boolean ignoreCase) {
+    public boolean equalsChars(String a, int ai, String b, int bi, boolean ignoreCase) {
         char ca = a.charAt(ai);
         char cb = b.charAt(bi);
-        if (ignoreCase) {
-            ca = Character.toUpperCase(ca);
-            cb = Character.toUpperCase(cb);
+        if (ca == cb) {
+            return true;
         }
-        return ca == cb;
+        if (ignoreCase) {
+            if (Character.toUpperCase(ca) == Character.toUpperCase(cb)
+                    || Character.toLowerCase(ca) == Character.toLowerCase(cb)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

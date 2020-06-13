@@ -20,6 +20,8 @@ public class CompareModeDefault extends CompareMode {
     private final Collator collator;
     private final SmallLRUCache<String, CollationKey> collationKeys;
 
+    private volatile CompareModeDefault caseInsensitive;
+
     protected CompareModeDefault(String name, int strength, boolean binaryUnsigned, boolean uuidUnsigned) {
         super(name, strength, binaryUnsigned, uuidUnsigned);
         collator = CompareMode.getCollator(name);
@@ -37,10 +39,13 @@ public class CompareModeDefault extends CompareMode {
 
     @Override
     public int compareString(String a, String b, boolean ignoreCase) {
-        if (ignoreCase) {
-            // this is locale sensitive
-            a = a.toUpperCase();
-            b = b.toUpperCase();
+        if (ignoreCase && getStrength() > Collator.SECONDARY) {
+            CompareModeDefault i = caseInsensitive;
+            if (i == null) {
+                caseInsensitive = i = new CompareModeDefault(getName(), Collator.SECONDARY, isBinaryUnsigned(),
+                        isUuidUnsigned());
+            }
+            return i.compareString(a, b, false);
         }
         int comp;
         if (collationKeys != null) {

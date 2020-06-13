@@ -213,7 +213,7 @@ public class CompareMode implements Comparator<Value> {
      * @return true if they match
      */
     static boolean compareLocaleNames(Locale locale, String name) {
-        return name.equalsIgnoreCase(locale.toString()) ||
+        return name.equalsIgnoreCase(locale.toString()) || name.equalsIgnoreCase(locale.toLanguageTag()) ||
                 name.equalsIgnoreCase(getName(locale));
     }
 
@@ -249,6 +249,11 @@ public class CompareMode implements Comparator<Value> {
                 if (compareLocaleNames(locale, name)) {
                     result = Collator.getInstance(locale);
                 }
+            }
+        } else if (name.indexOf('-') > 0) {
+            Locale locale = Locale.forLanguageTag(name);
+            if (!locale.getLanguage().isEmpty()) {
+                return Collator.getInstance(locale);
             }
         }
         if (result == null) {

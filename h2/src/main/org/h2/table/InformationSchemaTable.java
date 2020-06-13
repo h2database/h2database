@@ -195,9 +195,12 @@ public final class InformationSchemaTable extends MetaTable {
         case COLLATIONS:
             setMetaTableName("COLLATIONS");
             cols = createColumns(
+                    "COLLATION_CATALOG",
+                    "COLLATION_SCHEMA",
+                    "COLLATION_NAME",
+                    "PAD_ATTRIBUTE",
                     // extensions
-                    "NAME",
-                    "KEY"
+                    "LANGUAGE_TAG"
             );
             break;
         case COLUMNS:
@@ -746,7 +749,7 @@ public final class InformationSchemaTable extends MetaTable {
             checkConstraints(session, rows, catalog);
             break;
         case COLLATIONS:
-            collations(session, rows);
+            collations(session, rows, catalog);
             break;
         case COLUMNS:
             columns(session, indexFrom, indexTo, rows, catalog);
@@ -871,16 +874,32 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void collations(Session session, ArrayList<Row> rows) {
+    private void collations(Session session, ArrayList<Row> rows, String catalog) {
+        String mainSchemaName = database.getMainSchema().getName();
+        generateCollationRow(session, rows, catalog, mainSchemaName, "OFF", null);
         for (Locale l : Collator.getAvailableLocales()) {
-            add(session, rows,
-                    // extensions
-                    // NAME
-                    CompareMode.getName(l),
-                    // KEY
-                    l.toString()
-            );
+            generateCollationRow(session, rows, catalog, mainSchemaName, CompareMode.getName(l), l.toLanguageTag());
         }
+    }
+
+    private void generateCollationRow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+            String name, String languageTag) {
+        if ("und".equals(languageTag)) {
+            languageTag = null;
+        }
+        add(session, rows,
+                // COLLATION_CATALOG
+                catalog,
+                // COLLATION_SCHEMA
+                mainSchemaName,
+                // COLLATION_NAME
+                name,
+                // PAD_ATTRIBUTE
+                "NO PAD",
+                // extensions
+                // LANGUAGE_TAG
+                languageTag
+        );
     }
 
     private void columns(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {

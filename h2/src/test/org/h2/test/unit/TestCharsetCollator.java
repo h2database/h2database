@@ -37,6 +37,7 @@ public class TestCharsetCollator extends TestBase {
         testLengthComparison();
         testCreationFromCompareMode();
         testCreationFromCompareModeWithInvalidCharset();
+        testCaseInsensitive();
     }
 
     private void testCreationFromCompareModeWithInvalidCharset() {
@@ -67,4 +68,11 @@ public class TestCharsetCollator extends TestBase {
         assertTrue(cp500Collator.compare("A", "1") < 0);
         assertTrue(utf8Collator.compare("A", "1") > 0);
     }
+
+    private void testCaseInsensitive() {
+        CharsetCollator c = new CharsetCollator(StandardCharsets.UTF_8);
+        c.setStrength(Collator.SECONDARY);
+        assertEquals(0, c.compare("a", "A"));
+    }
+
 }

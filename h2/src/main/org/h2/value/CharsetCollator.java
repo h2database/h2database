@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 import java.text.CollationKey;
 import java.text.Collator;
 import java.util.Comparator;
+import java.util.Locale;
 
 import org.h2.util.Bits;
 
@@ -44,6 +45,10 @@ public class CharsetCollator extends Collator {
      * @return the bytes
      */
     byte[] toBytes(String source) {
+        if (getStrength() <= Collator.SECONDARY) {
+            // TODO perform case-insensitive comparison properly
+            source = source.toUpperCase(Locale.ROOT);
+        }
         return source.getBytes(charset);
     }
 

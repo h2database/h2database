@@ -696,6 +696,10 @@ public class Schema extends DbObjectBase {
         return addTo;
     }
 
+    public Collection<Domain> getAllDomains() {
+        return domains.values();
+    }
+
     /**
      * Get all tables and views.
      *

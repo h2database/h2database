@@ -115,6 +115,62 @@ SELECT CAST(1 AS ROW(V INT));
 SELECT CAST((1, 2) AS ROW(A INT, A INT));
 > exception DUPLICATE_COLUMN_NAME_1
 
+CREATE DOMAIN D1 AS ROW(A INT);
+> ok
+
+CREATE DOMAIN D2 AS BIGINT ARRAY;
+> ok
+
+CREATE TABLE TEST(A ROW(A INT, B INT ARRAY[1]) ARRAY, B BIGINT ARRAY[2] ARRAY[3], C ROW(V BIGINT, A INT ARRAY),
+    D D1, E D2);
+> ok
+
+SELECT COLUMN_NAME, DATA_TYPE, DOMAIN_NAME, MAXIMUM_CARDINALITY, DTD_IDENTIFIER FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = 'PUBLIC';
+> COLUMN_NAME DATA_TYPE DOMAIN_NAME MAXIMUM_CARDINALITY DTD_IDENTIFIER
+> ----------- --------- ----------- ------------------- --------------
+> A           ARRAY     null        2147483647          1
+> B           ARRAY     null        3                   2
+> C           ROW       null        null                3
+> D           ROW       D1          null                4
+> E           ARRAY     D2          2147483647          5
+> rows: 5
+
+SELECT OBJECT_NAME, OBJECT_TYPE, COLLECTION_TYPE_IDENTIFIER, DATA_TYPE, MAXIMUM_CARDINALITY, DTD_IDENTIFIER
+    FROM INFORMATION_SCHEMA.ELEMENT_TYPES;
+> OBJECT_NAME OBJECT_TYPE COLLECTION_TYPE_IDENTIFIER DATA_TYPE MAXIMUM_CARDINALITY DTD_IDENTIFIER
+> ----------- ----------- -------------------------- --------- ------------------- --------------
+> D2          DOMAIN      TYPE                       BIGINT    null                TYPE_
+> TEST        TABLE       1                          ROW       null                1_
+> TEST        TABLE       1__2                       INTEGER   null                1__2_
+> TEST        TABLE       2                          ARRAY     2                   2_
+> TEST        TABLE       2_                         BIGINT    null                2__
+> TEST        TABLE       3_2                        INTEGER   null                3_2_
+> TEST        TABLE       5                          BIGINT    null                5_
+> rows: 7
+
+SELECT OBJECT_NAME, OBJECT_TYPE, ROW_IDENTIFIER, FIELD_NAME, ORDINAL_POSITION, DATA_TYPE, MAXIMUM_CARDINALITY,
+    DTD_IDENTIFIER
+    FROM INFORMATION_SCHEMA.FIELDS;
+> OBJECT_NAME OBJECT_TYPE ROW_IDENTIFIER FIELD_NAME ORDINAL_POSITION DATA_TYPE MAXIMUM_CARDINALITY DTD_IDENTIFIER
+> ----------- ----------- -------------- ---------- ---------------- --------- ------------------- --------------
+> D1          DOMAIN      TYPE           A          1                INTEGER   null                TYPE_1
+> TEST        TABLE       1_             A          1                INTEGER   null                1__1
+> TEST        TABLE       1_             B          2                ARRAY     1                   1__2
+> TEST        TABLE       3              A          2                ARRAY     2147483647          3_2
+> TEST        TABLE       3              V          1                BIGINT    null                3_1
+> TEST        TABLE       4              A          1                INTEGER   null                4_1
+> rows: 6
+
+DROP TABLE TEST;
+> ok
+
+DROP DOMAIN D1;
+> ok
+
+DROP DOMAIN D2;
+> ok
+
 @reconnect off
 
 CREATE LOCAL TEMPORARY TABLE TEST AS (SELECT ROW(1, 2) R);

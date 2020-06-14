@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 
+import org.h2.api.IntervalQualifier;
 import org.h2.command.Command;
 import org.h2.command.Parser;
 import org.h2.constraint.Constraint;
@@ -2553,7 +2554,7 @@ public final class InformationSchemaTable extends MetaTable {
             case Value.INTERVAL_HOUR_TO_MINUTE:
             case Value.INTERVAL_HOUR_TO_SECOND:
             case Value.INTERVAL_MINUTE_TO_SECOND:
-                intervalType = typeInfo.getSQL(HasSQL.DEFAULT_SQL_FLAGS).substring(9);
+                intervalType = IntervalQualifier.valueOf(type - Value.INTERVAL_YEAR).toString();
                 dataType = "INTERVAL";
                 intervalPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
                 //$FALL-THROUGH$

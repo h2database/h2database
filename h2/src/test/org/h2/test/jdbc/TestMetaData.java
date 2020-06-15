@@ -294,13 +294,13 @@ public class TestMetaData extends TestDb {
                         null, null, null, null, null, "1", "", "EXIT_1" },
                 { CATALOG, Constants.SCHEMA_MAIN, "PROP", "RESULT",
                         "" + DatabaseMetaData.procedureColumnReturn,
-                        "" + Types.VARCHAR, "VARCHAR", "" + Integer.MAX_VALUE,
+                        "" + Types.VARCHAR, "CHARACTER VARYING", "" + Integer.MAX_VALUE,
                         "" + Integer.MAX_VALUE, null, null,
                         "" + DatabaseMetaData.procedureNullableUnknown,
                         null, null, null, null, "" + Integer.MAX_VALUE, "0", "", "PROP_1" },
                 { CATALOG, Constants.SCHEMA_MAIN, "PROP", "P1",
                         "" + DatabaseMetaData.procedureColumnIn,
-                        "" + Types.VARCHAR, "VARCHAR", "" + Integer.MAX_VALUE,
+                        "" + Types.VARCHAR, "CHARACTER VARYING", "" + Integer.MAX_VALUE,
                         "" + Integer.MAX_VALUE, null, null,
                         "" + DatabaseMetaData.procedureNullableUnknown,
                         null, null, null, null, "" + Integer.MAX_VALUE, "1", "", "PROP_1" }, });
@@ -327,13 +327,13 @@ public class TestMetaData extends TestDb {
                 (short) 0, (short) 0, 0);
         testTypeInfo(rs, "TINYINT", Types.TINYINT, 8, null, null, null, false, false, (short) 0, (short) 0, 2);
         testTypeInfo(rs, "BIGINT", Types.BIGINT, 64, null, null, null, false, false, (short) 0, (short) 0, 2);
-        testTypeInfo(rs, "VARBINARY", Types.VARBINARY, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
-                (short) 0, 0);
+        testTypeInfo(rs, "BINARY VARYING", Types.VARBINARY, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false,
+                (short) 0, (short) 0, 0);
         testTypeInfo(rs, "BINARY", Types.BINARY, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
                 (short) 0, 0);
         testTypeInfo(rs, "UUID", Types.BINARY, 16, "'", "'", null, false, false, (short) 0, (short) 0, 0);
-        testTypeInfo(rs, "CHAR", Types.CHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0, (short) 0,
-                0);
+        testTypeInfo(rs, "CHARACTER", Types.CHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0,
+                (short) 0, 0);
         testTypeInfo(rs, "NUMERIC", Types.NUMERIC, Integer.MAX_VALUE, null, null, "PRECISION,SCALE", false, true,
                 Short.MIN_VALUE, Short.MAX_VALUE, 10);
         testTypeInfo(rs, "INTEGER", Types.INTEGER, 32, null, null, null, false, false, (short) 0,
@@ -345,8 +345,8 @@ public class TestMetaData extends TestDb {
         testTypeInfo(rs, "REAL", Types.REAL, 24, null, null, null, false, false, (short) 0, (short) 0, 2);
         testTypeInfo(rs, "DOUBLE PRECISION", Types.DOUBLE, 53, null, null, null, false, false, (short) 0, (short) 0,
                 2);
-        testTypeInfo(rs, "VARCHAR", Types.VARCHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0,
-                (short) 0, 0);
+        testTypeInfo(rs, "CHARACTER VARYING", Types.VARCHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false,
+                (short) 0, (short) 0, 0);
         testTypeInfo(rs, "VARCHAR_IGNORECASE", Types.VARCHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", false, false,
                 (short) 0, (short) 0, 0);
         testTypeInfo(rs, "BOOLEAN", Types.BOOLEAN, 1, null, null, null, false, false, (short) 0,
@@ -393,10 +393,10 @@ public class TestMetaData extends TestDb {
                 (short) 0, (short) 0, 0);
         testTypeInfo(rs, "ARRAY", Types.ARRAY, Integer.MAX_VALUE, "ARRAY[", "]", "CARDINALITY", false, false,
                 (short) 0, (short) 0, 0);
-        testTypeInfo(rs, "BLOB", Types.BLOB, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
-                (short) 0, 0);
-        testTypeInfo(rs, "CLOB", Types.CLOB, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0, (short) 0,
-                0);
+        testTypeInfo(rs, "BINARY LARGE OBJECT", Types.BLOB, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false,
+                (short) 0, (short) 0, 0);
+        testTypeInfo(rs, "CHARACTER LARGE OBJECT", Types.CLOB, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false,
+                (short) 0, (short) 0, 0);
         testTypeInfo(rs, "TIME WITH TIME ZONE", Types.TIME_WITH_TIMEZONE, 24, "TIME WITH TIME ZONE '", "'", "SCALE",
                 false, false, (short) 0, (short) 9, 0);
         testTypeInfo(rs, "TIMESTAMP WITH TIME ZONE", Types.TIMESTAMP_WITH_TIMEZONE, 35, "TIMESTAMP WITH TIME ZONE '",
@@ -877,7 +877,7 @@ public class TestMetaData extends TestDb {
                         "" + DatabaseMetaData.columnNoNulls, null, null,
                         null, null, "32", "1", "NO" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TEXT_V",
-                        "" + Types.VARCHAR, "VARCHAR", "120", null, "0", null,
+                        "" + Types.VARCHAR, "CHARACTER VARYING", "120", null, "0", null,
                         "" + DatabaseMetaData.columnNullable, null, null,
                         null, null, "120", "2", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DEC_V",
@@ -889,12 +889,12 @@ public class TestMetaData extends TestDb {
                         "" + DatabaseMetaData.columnNullable, null, null,
                         null, null, "26", "4", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "BLOB_V",
-                        "" + Types.BLOB, "BLOB", "" + Integer.MAX_VALUE, null, "0", null,
+                        "" + Types.BLOB, "BINARY LARGE OBJECT", "" + Integer.MAX_VALUE, null, "0", null,
                         "" + DatabaseMetaData.columnNullable, null, null,
                         null, null, "" + Integer.MAX_VALUE, "5",
                         "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "CLOB_V",
-                        "" + Types.CLOB, "CLOB", "" + Integer.MAX_VALUE, null, "0", null,
+                        "" + Types.CLOB, "CHARACTER LARGE OBJECT", "" + Integer.MAX_VALUE, null, "0", null,
                         "" + DatabaseMetaData.columnNullable, null, null,
                         null, null, "" + Integer.MAX_VALUE, "6",
                         "YES" } });
@@ -989,7 +989,7 @@ public class TestMetaData extends TestDb {
                 { CATALOG, Constants.SCHEMA_MAIN, "T_2", "B",
                         "" + Types.INTEGER, "INTEGER", "32" },
                 { CATALOG, Constants.SCHEMA_MAIN, "T_2", "A",
-                        "" + Types.VARCHAR, "VARCHAR", "6" },
+                        "" + Types.VARCHAR, "CHARACTER VARYING", "6" },
                 { CATALOG, Constants.SCHEMA_MAIN, "T_2", "C",
                         "" + Types.INTEGER, "INTEGER", "32" }, });
         trace("getIndexInfo");

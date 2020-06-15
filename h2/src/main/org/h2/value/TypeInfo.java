@@ -42,7 +42,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
     public static final TypeInfo TYPE_VARCHAR_IGNORECASE;
 
     /**
-     * CLOB type with maximum parameters.
+     * CHARACTER LARGE OBJECT type with maximum parameters.
      */
     public static final TypeInfo TYPE_CLOB;
 
@@ -52,7 +52,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
     public static final TypeInfo TYPE_VARBINARY;
 
     /**
-     * BLOB type with maximum parameters.
+     * BINARY LARGE OBJECT type with maximum parameters.
      */
     public static final TypeInfo TYPE_BLOB;
 

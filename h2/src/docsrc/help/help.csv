@@ -239,7 +239,7 @@ case sensitive and can contain spaces.
 
 Instead of a file name, a URL may be used.
 To read a stream from the classpath, use the prefix 'classpath:'.
-See the Pluggable File System section on the Advanced page.
+See the [Pluggable File System](https://h2database.com/html/advanced.html#file_system) section.
 
 The compression algorithm must match the one used when creating the script.
 Instead of a file, a URL may be used.
@@ -3146,13 +3146,17 @@ INT
 "
 
 "Other Grammar","Predefined Type","
-intType | booleanType | smallintType | bigintType
-    | decimalType | doublePrecisionType | realType | dateType | timeType
-    | timeWithTimeZoneType | timestampType | timestampWithTimeZoneType
-    | binaryType | varcharType | charType
-    | blobType | clobType | arrayType | intervalType
-    | @h2@ { tinyintType | identityType | javaObjectType | varcharIgnorecaseType
-    | uuidType | enumType }
+characterType | characterVaryingType | characterLargeObjectType
+    | binaryType | binaryVaryingType | binaryLargeObjectType
+    | booleanType
+    | smallintType | integerType | bigintType
+    | numericType | realType | doublePrecisionType
+    | dateType | timeType | timeWithTimeZoneType
+    | timestampType | timestampWithTimeZoneType
+    | intervalType
+    | arrayType | rowType
+    | @h2@ { tinyintType | identityType | javaObjectType
+    | enumType | geometryType | jsonType | uuidType }
 ","
 A predefined data type.
 ","
@@ -3691,14 +3695,15 @@ _ROWID_ can be used to access unique row identifier.
 ID
 "
 
-"Data Types","INT Type","
-INT | INTEGER |  @c@ { MEDIUMINT | INT4 | SIGNED }
+"Data Types","INTEGER Type","
+INTEGER | INT | @c@ { MEDIUMINT | INT4 | SIGNED }
 ","
 Possible values: -2147483648 to 2147483647.
 
 See also [integer](https://h2database.com/html/grammar.html#int) literal grammar.
 Mapped to ""java.lang.Integer"".
 ","
+INTEGER
 INT
 "
 
@@ -3770,8 +3775,8 @@ Mapped to ""java.lang.Long"".
 IDENTITY
 "
 
-"Data Types","DECIMAL Type","
-{ DECIMAL | DEC | NUMERIC | @c@ { NUMBER } } ( precisionInt [ , scaleInt ] )
+"Data Types","NUMERIC Type","
+{ NUMERIC | DECIMAL | DEC | @c@ { NUMBER } } ( precisionInt [ , scaleInt ] )
 ","
 Data type with fixed precision and scale. This data type is recommended for
 storing currency values.
@@ -3782,11 +3787,11 @@ If scale is specified, it must be from -100000 to 100000, 0 is default.
 See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
 Mapped to ""java.math.BigDecimal"".
 ","
-DECIMAL(20, 2)
+NUMERIC(20, 2)
 "
 
 "Data Types","DOUBLE PRECISION Type","
-{ DOUBLE PRECISION | FLOAT [ ( precisionInt ) ] | @h2@ { DOUBLE } | @c@ { FLOAT8 } }
+DOUBLE PRECISION | FLOAT [ ( precisionInt ) ] | @c@ { DOUBLE | FLOAT8 }
 ","
 A floating point number. Should not be used to represent currency values, because
 of rounding problems.
@@ -3799,7 +3804,7 @@ DOUBLE PRECISION
 "
 
 "Data Types","REAL Type","
-{ REAL | FLOAT ( precisionInt ) | @c@ { FLOAT4 } }
+REAL | FLOAT ( precisionInt ) | @c@ { FLOAT4 }
 ","
 A single precision floating point number. Should not be used to represent currency
 values, because of rounding problems.
@@ -3931,19 +3936,22 @@ TIMESTAMP WITH TIME ZONE
 TIMESTAMP(9) WITH TIME ZONE
 "
 
-"Data Types","VARBINARY Type","
-{ VARBINARY | BINARY VARYING
+"Data Types","BINARY VARYING Type","
+{ BINARY VARYING | VARBINARY
     | @c@ { LONGVARBINARY | RAW | BYTEA } }
 [ ( lengthInt ) ]
 ","
-Represents a byte array. For very long arrays, use BLOB.
+Represents a byte array.
 The maximum size is 2 GB, but the whole object is kept in
 memory when using this data type. The length is a size constraint;
 only the actual data is persisted.
+For large binary data [BINARY LARGE OBJECT](https://h2database.com/html/datatypes.html#binary_large_object_type)
+should be used; see there for details.
 
 See also [bytes](https://h2database.com/html/grammar.html#bytes) literal grammar.
 Mapped to byte[].
 ","
+BINARY VARYING(100)
 VARBINARY(1000)
 "
 
@@ -3955,8 +3963,10 @@ Represents a binary string (byte array) of fixed predefined length.
 If length is not specified, 1 byte is used by default.
 
 The whole binary string is kept in memory when using this data type.
-For variable-length binary strings use VARBINARY data type instead.
-For large binary data BLOB should be used; see there for details.
+For variable-length binary strings use [BINARY VARYING](https://h2database.com/html/datatypes.html#binary_varying_type)
+data type instead.
+For large binary data [BINARY LARGE OBJECT](https://h2database.com/html/datatypes.html#binary_large_object_type)
+should be used; see there for details.
 
 Too short binary string are right-padded with zero bytes.
 Too long binary strings are truncated by CAST specification and rejected by column assignment.
@@ -3997,8 +4007,9 @@ JAVA_OBJECT
 JAVA_OBJECT(10000)
 "
 
-"Data Types","VARCHAR Type","
-{ VARCHAR | { CHARACTER | CHAR } VARYING
+"Data Types","CHARACTER VARYING Type","
+{ { CHARACTER | CHAR } VARYING
+    | VARCHAR
     | { NCHAR | { NATIONAL { CHARACTER | CHAR } } } VARYING
     | @c@ { LONGVARCHAR | VARCHAR2 | NVARCHAR | NVARCHAR2 }
     | @h2@ { VARCHAR_CASESENSITIVE } }
@@ -4012,11 +4023,13 @@ The length is a size constraint; only the actual data is persisted.
 Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
 
 The whole text is loaded into memory when using this data type.
-For large text data CLOB should be used; see there for details.
+For large text data [CHARACTER LARGE OBJECT](https://h2database.com/html/datatypes.html#character_large_object_type)
+should be used; see there for details.
 
 See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
 Mapped to ""java.lang.String"".
 ","
+CHARACTER VARYING(100)
 VARCHAR(255)
 "
 
@@ -4040,8 +4053,8 @@ Mapped to ""java.lang.String"".
 VARCHAR_IGNORECASE
 "
 
-"Data Types","CHAR Type","
-{ CHAR | CHARACTER | NCHAR | NATIONAL { CHARACTER | CHAR } }
+"Data Types","CHARACTER Type","
+{ CHARACTER | CHAR | NCHAR | NATIONAL { CHARACTER | CHAR } }
 [ ( lengthInt [CHARACTERS|OCTETS] ) ]
 ","
 A Unicode String of fixed length.
@@ -4050,58 +4063,65 @@ Length, if any, should be specified in characters, CHARACTERS and OCTETS units h
 If length is not specified, 1 character is used by default.
 
 The whole text is kept in memory when using this data type.
-For variable-length strings use VARCHAR data type instead.
-For large text data CLOB should be used; see there for details.
+For variable-length strings use [CHARACTER VARYING](https://h2database.com/html/datatypes.html#character_varying_type)
+data type instead.
+For large text data [CHARACTER LARGE OBJECT](https://h2database.com/html/datatypes.html#character_large_object_type)
+should be used; see there for details.
 
 Too short strings are right-padded with space characters.
 Too long strings are truncated by CAST specification and rejected by column assignment.
 
-Two CHAR strings of different length are considered as equal if all additional characters in the longer string
+Two CHARACTER strings of different length are considered as equal if all additional characters in the longer string
 are space characters.
 
 See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
 Mapped to ""java.lang.String"".
 ","
+CHARACTER
 CHAR(10)
 "
 
-"Data Types","BLOB Type","
-{ BLOB | BINARY LARGE OBJECT
+"Data Types","BINARY LARGE OBJECT Type","
+{ BINARY LARGE OBJECT | BLOB
     | @c@ { TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE } }
 [ ( lengthLong [K|M|G|T|P]) ]
 ","
-Like VARBINARY, but intended for very large values such as files or images. Unlike
-when using VARBINARY, large objects are not kept fully in-memory. Use
-""PreparedStatement.setBinaryStream"" to store values. See also CLOB and
-Advanced / Large Objects.
+BINARY LARGE OBJECT is intended for very large binary values such as files or images.
+Unlike when using [BINARY VARYING](https://h2database.com/html/datatypes.html#binary_varying_type),
+large objects are not kept fully in-memory; instead, they are streamed.
+Use ""PreparedStatement.setBinaryStream"" to store values.
+See also [CHARACTER LARGE OBJECT](https://h2database.com/html/datatypes.html#character_large_object_type)
+and [Large Objects](https://h2database.com/html/advanced.html#large_objects) section.
 
 Mapped to ""java.sql.Blob"" (""java.io.InputStream"" is also supported).
 ","
-BLOB
+BINARY LARGE OBJECT
 BLOB(10K)
 "
 
-"Data Types","CLOB Type","
-{ CLOB | { CHARACTER | CHAR } LARGE OBJECT
+"Data Types","CHARACTER LARGE OBJECT Type","
+{ { CHARACTER | CHAR } LARGE OBJECT | CLOB
     | NCLOB | { NATIONAL CHARACTER | NCHAR } LARGE OBJECT
     | @c@ { TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT } }
 [ ( lengthLong [K|M|G|T|P] [CHARACTERS|OCTETS]) ]
 ","
-CLOB is like VARCHAR, but intended for very large values. Unlike when using
-VARCHAR, large CLOB objects are not kept fully in-memory; instead, they are streamed.
-CLOB should be used for documents and texts with arbitrary size such as XML or
-HTML documents, text files, or memo fields of unlimited size. Use
-""PreparedStatement.setCharacterStream"" to store values. See also Advanced / Large Objects.
+CHARACTER LARGE OBJECT is intended for very large Unicode character string values.
+Unlike when using [CHARACTER VARYING](https://h2database.com/html/datatypes.html#character_varying_type),
+large CHARACTER LARGE OBJECT values are not kept fully in-memory; instead, they are streamed.
+CHARACTER LARGE OBJECT should be used for documents and texts with arbitrary size such as XML or
+HTML documents, text files, or memo fields of unlimited size.
+Use ""PreparedStatement.setCharacterStream"" to store values.
+See also [Large Objects](https://h2database.com/html/advanced.html#large_objects) section.
 
-VARCHAR should be used for text with relatively short average size (for example
-shorter than 200 characters). Short CLOB values are stored inline, but there is
-an overhead compared to VARCHAR.
+CHARACTER VARYING should be used for text with relatively short average size (for example
+shorter than 200 characters). Short CHARACTER LARGE OBJECT values are stored inline, but there is
+an overhead compared to CHARACTER VARYING.
 
 Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
 
 Mapped to ""java.sql.Clob"" (""java.io.Reader"" is also supported).
 ","
-CLOB
+CHARACTER LARGE OBJECT
 CLOB(10K)
 "
 

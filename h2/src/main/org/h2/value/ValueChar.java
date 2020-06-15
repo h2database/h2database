@@ -10,7 +10,7 @@ import org.h2.engine.SysProperties;
 import org.h2.util.StringUtils;
 
 /**
- * Implementation of the CHAR data type.
+ * Implementation of the CHARACTER data type.
  */
 public final class ValueChar extends ValueStringBase {
 

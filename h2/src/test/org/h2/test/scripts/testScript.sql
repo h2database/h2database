@@ -576,7 +576,7 @@ script nodata nopasswords nosettings;
 > rows: 4
 
 SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
->> VARCHAR
+>> CHARACTER VARYING
 
 drop table test;
 > ok
@@ -1657,10 +1657,10 @@ INSERT INTO TEST VALUES(1, '10', NULL), (2, '0', NULL);
 > update count: 2
 
 SELECT LEAST(ID, C, NAME), GREATEST(ID, C, NAME), LEAST(NULL, C), GREATEST(NULL, NULL), ID FROM TEST ORDER BY ID;
-> LEAST(ID, C, NAME) GREATEST(ID, C, NAME) LEAST(NULL, C) CAST(NULL AS VARCHAR) ID
-> ------------------ --------------------- -------------- --------------------- --
-> 1                  10                    null           null                  1
-> 0                  2                     null           null                  2
+> LEAST(ID, C, NAME) GREATEST(ID, C, NAME) LEAST(NULL, C) CAST(NULL AS CHARACTER VARYING) ID
+> ------------------ --------------------- -------------- ------------------------------- --
+> 1                  10                    null           null                            1
+> 0                  2                     null           null                            2
 > rows (ordered): 2
 
 DROP TABLE TEST;
@@ -2173,14 +2173,14 @@ select * from test;
 > rows: 1
 
 select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, SELECTIVITY, REMARKS, SQL from information_schema.domains;
-> DOMAIN_NAME DOMAIN_DEFAULT DATA_TYPE CHARACTER_MAXIMUM_LENGTH SELECTIVITY REMARKS SQL
-> ----------- -------------- --------- ------------------------ ----------- ------- -----------------------------------------------------------------------
-> EMAIL       null           VARCHAR   200                      50                  CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200)
-> GMAIL       '@gmail.com'   VARCHAR   200                      50                  CREATE DOMAIN "PUBLIC"."GMAIL" AS "PUBLIC"."EMAIL" DEFAULT '@gmail.com'
-> STRING      ''             VARCHAR   255                      50                  CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT ''
-> STRING1     null           VARCHAR   2147483647               50                  CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
-> STRING2     '<empty>'      VARCHAR   2147483647               50                  CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>'
-> STRING_X    null           VARCHAR   2147483647               50                  CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2"
+> DOMAIN_NAME DOMAIN_DEFAULT DATA_TYPE         CHARACTER_MAXIMUM_LENGTH SELECTIVITY REMARKS SQL
+> ----------- -------------- ----------------- ------------------------ ----------- ------- -----------------------------------------------------------------------
+> EMAIL       null           CHARACTER VARYING 200                      50                  CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200)
+> GMAIL       '@gmail.com'   CHARACTER VARYING 200                      50                  CREATE DOMAIN "PUBLIC"."GMAIL" AS "PUBLIC"."EMAIL" DEFAULT '@gmail.com'
+> STRING      ''             CHARACTER VARYING 255                      50                  CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT ''
+> STRING1     null           CHARACTER VARYING 2147483647               50                  CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
+> STRING2     '<empty>'      CHARACTER VARYING 2147483647               50                  CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>'
+> STRING_X    null           CHARACTER VARYING 2147483647               50                  CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2"
 > rows: 6
 
 script nodata nopasswords nosettings;
@@ -4723,8 +4723,8 @@ EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID NOT IN(SELECT ID FROM TEST);
 #-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" NOT IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
 
 EXPLAIN PLAN FOR SELECT CAST(ID AS VARCHAR(255)) FROM TEST;
-#+mvStore#>> SELECT CAST("ID" AS VARCHAR(255)) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
-#-mvStore#>> SELECT CAST("ID" AS VARCHAR(255)) FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */
+#+mvStore#>> SELECT CAST("ID" AS CHARACTER VARYING(255)) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+#-mvStore#>> SELECT CAST("ID" AS CHARACTER VARYING(255)) FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */
 
 EXPLAIN PLAN FOR SELECT LEFT(NAME, 2) FROM TEST;
 >> SELECT LEFT("NAME", 2) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */

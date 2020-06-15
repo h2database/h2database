@@ -452,7 +452,7 @@ public class TestPreparedStatement extends TestDb {
         ResultSetMetaData meta = prep.getMetaData();
         assertEquals(2, meta.getColumnCount());
         assertEquals("INTEGER", meta.getColumnTypeName(1));
-        assertEquals("VARCHAR", meta.getColumnTypeName(2));
+        assertEquals("CHARACTER VARYING", meta.getColumnTypeName(2));
         prep = conn.prepareStatement("call 1");
         meta = prep.getMetaData();
         assertEquals(1, meta.getColumnCount());
@@ -1001,7 +1001,7 @@ public class TestPreparedStatement extends TestDb {
         PreparedStatement prep = conn.prepareStatement("SELECT ?, ?, ? FROM DUAL");
         ParameterMetaData pm = prep.getParameterMetaData();
         assertEquals("java.lang.String", pm.getParameterClassName(1));
-        assertEquals("VARCHAR", pm.getParameterTypeName(1));
+        assertEquals("CHARACTER VARYING", pm.getParameterTypeName(1));
         assertEquals(3, pm.getParameterCount());
         assertEquals(ParameterMetaData.parameterModeIn, pm.getParameterMode(1));
         assertEquals(Types.VARCHAR, pm.getParameterType(1));
@@ -1022,15 +1022,15 @@ public class TestPreparedStatement extends TestDb {
         PreparedStatement prep2 = conn.prepareStatement(
                 "INSERT INTO TEST3 VALUES(?, ?, ?)");
         checkParameter(prep1, 1, "java.lang.Integer", 4, "INTEGER", 32, 0);
-        checkParameter(prep1, 2, "java.lang.String", 12, "VARCHAR", 255, 0);
+        checkParameter(prep1, 2, "java.lang.String", 12, "CHARACTER VARYING", 255, 0);
         checkParameter(prep1, 3, "java.math.BigDecimal", numericType, numericName, 10, 2);
         checkParameter(prep2, 1, "java.lang.Integer", 4, "INTEGER", 32, 0);
-        checkParameter(prep2, 2, "java.lang.String", 12, "VARCHAR", 255, 0);
+        checkParameter(prep2, 2, "java.lang.String", 12, "CHARACTER VARYING", 255, 0);
         checkParameter(prep2, 3, "java.math.BigDecimal", numericType, numericName, 10, 2);
         PreparedStatement prep3 = conn.prepareStatement(
                 "SELECT * FROM TEST3 WHERE ID=? AND NAME LIKE ? AND ?>DATA");
         checkParameter(prep3, 1, "java.lang.Integer", 4, "INTEGER", 32, 0);
-        checkParameter(prep3, 2, "java.lang.String", 12, "VARCHAR", 0, 0);
+        checkParameter(prep3, 2, "java.lang.String", 12, "CHARACTER VARYING", 0, 0);
         checkParameter(prep3, 3, "java.math.BigDecimal", numericType, numericName, 10, 2);
         stat.execute("DROP TABLE TEST3");
     }

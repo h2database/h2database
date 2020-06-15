@@ -56,7 +56,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     public static final int NULL = UNKNOWN + 1;
 
     /**
-     * The value type for CHAR values.
+     * The value type for CHARACTER values.
      */
     public static final int CHAR = NULL + 1;
 
@@ -66,7 +66,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     public static final int VARCHAR = CHAR + 1;
 
     /**
-     * The value type for CLOB values.
+     * The value type for CHARACTER LARGE OBJECT values.
      */
     public static final int CLOB = VARCHAR + 1;
 
@@ -86,7 +86,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     public static final int VARBINARY = BINARY + 1;
 
     /**
-     * The value type for BLOB values.
+     * The value type for BINARY LARGE OBJECT values.
      */
     public static final int BLOB = VARBINARY + 1;
 

@@ -145,11 +145,11 @@ public class DataType {
         );
         add(Value.CHAR, Types.CHAR,
                 createString(true, true),
-                new String[]{"CHAR", "CHARACTER", "NCHAR", "NATIONAL CHARACTER", "NATIONAL CHAR"}
+                new String[]{"CHARACTER", "CHAR", "NCHAR", "NATIONAL CHARACTER", "NATIONAL CHAR"}
         );
         add(Value.VARCHAR, Types.VARCHAR,
                 createString(true, false),
-                new String[]{"VARCHAR", "CHARACTER VARYING", "CHAR VARYING",
+                new String[]{"CHARACTER VARYING", "VARCHAR", "CHAR VARYING",
                         "NCHAR VARYING", "NATIONAL CHARACTER VARYING", "NATIONAL CHAR VARYING",
                         "VARCHAR2", "NVARCHAR", "NVARCHAR2",
                         "VARCHAR_CASESENSITIVE", "TID",
@@ -157,7 +157,7 @@ public class DataType {
         );
         add(Value.CLOB, Types.CLOB,
                 createLob(true),
-                new String[]{"CLOB", "CHARACTER LARGE OBJECT", "CHAR LARGE OBJECT", "TINYTEXT", "TEXT", "MEDIUMTEXT",
+                new String[]{"CHARACTER LARGE OBJECT", "CLOB", "CHAR LARGE OBJECT", "TINYTEXT", "TEXT", "MEDIUMTEXT",
                     "LONGTEXT", "NTEXT", "NCLOB", "NCHAR LARGE OBJECT", "NATIONAL CHARACTER LARGE OBJECT"}
         );
         add(Value.VARCHAR_IGNORECASE, Types.VARCHAR,
@@ -170,11 +170,11 @@ public class DataType {
         );
         add(Value.VARBINARY, Types.VARBINARY,
                 createBinary(false),
-                new String[]{"VARBINARY", "BINARY VARYING", "RAW", "BYTEA", "LONG RAW", "LONGVARBINARY"}
+                new String[]{"BINARY VARYING", "VARBINARY", "RAW", "BYTEA", "LONG RAW", "LONGVARBINARY"}
         );
         add(Value.BLOB, Types.BLOB,
                 createLob(false),
-                new String[]{"BLOB", "BINARY LARGE OBJECT", "TINYBLOB", "MEDIUMBLOB",
+                new String[]{"BINARY LARGE OBJECT", "BLOB", "TINYBLOB", "MEDIUMBLOB",
                     "LONGBLOB", "IMAGE"}
         );
         add(Value.BOOLEAN, Types.BOOLEAN,

@@ -99,7 +99,7 @@ alter table test alter column id set data type varchar;
 > ok
 
 select data_type from information_schema.columns c where c.table_name = 'TEST' and c.column_name = 'ID';
->> VARCHAR
+>> CHARACTER VARYING
 
 alter table test alter column id type int;
 > ok

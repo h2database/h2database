@@ -10,7 +10,7 @@ import org.h2.engine.SysProperties;
 import org.h2.util.StringUtils;
 
 /**
- * Implementation of the VARCHAR data type.
+ * Implementation of the CHARACTER VARYING data type.
  */
 public final class ValueVarchar extends ValueStringBase {
 

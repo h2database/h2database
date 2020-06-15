@@ -877,7 +877,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals("ADD_ROW_1", rs.getString("SPECIFIC_NAME"));
         assertTrue(rs.next());
         assertEquals("P2", rs.getString("COLUMN_NAME"));
-        assertEquals("VARCHAR", rs.getString("TYPE_NAME"));
+        assertEquals("CHARACTER VARYING", rs.getString("TYPE_NAME"));
         assertFalse(rs.next());
 
         stat.executeQuery("CALL ADD_ROW(2, 'World')");
@@ -1063,7 +1063,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals("INTEGER", meta2.getColumnTypeName(1));
         assertEquals("java.lang.Integer", meta2.getColumnClassName(1));
         assertEquals(Types.VARCHAR, meta2.getColumnType(2));
-        assertEquals("VARCHAR", meta2.getColumnTypeName(2));
+        assertEquals("CHARACTER VARYING", meta2.getColumnTypeName(2));
         assertEquals("java.lang.String", meta2.getColumnClassName(2));
 
         stat.execute("CREATE ALIAS blob2stream FOR \"" +

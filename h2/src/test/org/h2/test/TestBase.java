@@ -1045,7 +1045,7 @@ public abstract class TestBase {
                     assertEquals("java.lang.Integer", className);
                     break;
                 case Types.VARCHAR:
-                    assertEquals("VARCHAR", typeName);
+                    assertEquals("CHARACTER VARYING", typeName);
                     assertEquals("java.lang.String", className);
                     break;
                 case Types.SMALLINT:
@@ -1056,8 +1056,8 @@ public abstract class TestBase {
                     assertEquals("TIMESTAMP", typeName);
                     assertEquals("java.sql.Timestamp", className);
                     break;
-                case Types.DECIMAL:
-                    assertEquals("DECIMAL", typeName);
+                case Types.NUMERIC:
+                    assertEquals("NUMERIC", typeName);
                     assertEquals("java.math.BigDecimal", className);
                     break;
                 default:

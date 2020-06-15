@@ -10,14 +10,14 @@ create memory table orders ( orderid varchar(10), name varchar(20),  customer_id
 SELECT COLUMN_NAME, ORDINAL_POSITION, IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION,
     NUMERIC_PRECISION_RADIX, NUMERIC_SCALE, COLUMN_TYPE
     FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'ORDERS';
-> COLUMN_NAME ORDINAL_POSITION IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE COLUMN_TYPE
-> ----------- ---------------- ----------- --------- ------------------------ ----------------- ----------------------- ------------- ---------------
-> A           6                YES         NUMERIC   null                     10                10                      -3            NUMERIC(10, -3)
-> COMPLETED   4                NO          NUMERIC   null                     1                 10                      0             NUMERIC(1)
-> CUSTOMER_ID 3                YES         VARCHAR   10                       null              null                    null          VARCHAR(10)
-> NAME        2                YES         VARCHAR   20                       null              null                    null          VARCHAR(20)
-> ORDERID     1                YES         VARCHAR   10                       null              null                    null          VARCHAR(10)
-> VERIFIED    5                YES         NUMERIC   null                     1                 10                      0             NUMERIC(1)
+> COLUMN_NAME ORDINAL_POSITION IS_NULLABLE DATA_TYPE         CHARACTER_MAXIMUM_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE COLUMN_TYPE
+> ----------- ---------------- ----------- ----------------- ------------------------ ----------------- ----------------------- ------------- ---------------
+> A           6                YES         NUMERIC           null                     10                10                      -3            NUMERIC(10, -3)
+> COMPLETED   4                NO          NUMERIC           null                     1                 10                      0             NUMERIC(1)
+> CUSTOMER_ID 3                YES         CHARACTER VARYING 10                       null              null                    null          VARCHAR(10)
+> NAME        2                YES         CHARACTER VARYING 20                       null              null                    null          VARCHAR(20)
+> ORDERID     1                YES         CHARACTER VARYING 10                       null              null                    null          VARCHAR(10)
+> VERIFIED    5                YES         NUMERIC           null                     1                 10                      0             NUMERIC(1)
 > rows: 6
 
 drop table orders;

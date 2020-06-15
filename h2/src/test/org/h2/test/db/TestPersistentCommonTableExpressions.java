@@ -40,7 +40,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
             numericName = "NUMERIC";
         }
         String[] expectedRowData = new String[]{"|meat|null", "|fruit|3", "|veg|2"};
-        String[] expectedColumnTypes = new String[]{"VARCHAR", numericName};
+        String[] expectedColumnTypes = new String[]{"CHARACTER VARYING", numericName};
         String[] expectedColumnNames = new String[]{"VAL",
                 "SUM((SELECT\n" +
                 "    X\n" +

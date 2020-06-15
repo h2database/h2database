@@ -440,13 +440,12 @@ public class Mode {
         DataType dt = DataType.createNumeric(19, 4, false);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
-        dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);
         dt = DataType.createNumeric(10, 4, false);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
-        dt.name = "SMALLMONEY";
         mode.typeByNameMap.put("SMALLMONEY", dt);
+        mode.typeByNameMap.put("UNIQUEIDENTIFIER", DataType.getDataType(Value.UUID));
         mode.allowEmptySchemaValuesAsDefaultSchema = true;
         mode.expressionNames = ExpressionNames.EMPTY;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
@@ -494,14 +493,11 @@ public class Mode {
         mode.mergeWhere = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
-        dt = DataType.getDataType(Value.REAL);
-        mode.typeByNameMap.put("BINARY_FLOAT", dt);
-        dt = DataType.getDataType(Value.DOUBLE);
-        mode.typeByNameMap.put("BINARY_DOUBLE", dt);
+        mode.typeByNameMap.put("BINARY_FLOAT", DataType.getDataType(Value.REAL));
+        mode.typeByNameMap.put("BINARY_DOUBLE", DataType.getDataType(Value.DOUBLE));
         dt = DataType.createDate(/* 2001-01-01 23:59:59 */ 19, 19, "DATE", false, 0, 0);
         dt.type = Value.TIMESTAMP;
         dt.sqlType = Types.TIMESTAMP;
-        dt.name = "DATE";
         mode.typeByNameMap.put("DATE", dt);
         add(mode);
 
@@ -533,7 +529,6 @@ public class Mode {
         dt = DataType.createNumeric(19, 2, false);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
-        dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);
         dt = DataType.getDataType(Value.INTEGER);
         mode.typeByNameMap.put("OID", dt);

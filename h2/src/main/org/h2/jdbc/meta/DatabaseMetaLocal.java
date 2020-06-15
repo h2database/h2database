@@ -357,9 +357,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 // COLUMN_TYPE
                 ordinal == 0 ? PROCEDURE_COLUMN_RETURN : PROCEDURE_COLUMN_IN,
                 // DATA_TYPE
-                ValueInteger.get(DataType.convertTypeToSQLType(dt.type)),
+                ValueInteger.get(dt.sqlType),
                 // TYPE_NAME
-                getString(InformationSchemaTable.getDataTypeName(dt, type)),
+                getString(InformationSchemaTable.getDataTypeName(type)),
                 // PRECISION
                 precisionValue,
                 // LENGTH
@@ -583,7 +583,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     // DATA_TYPE
                     ValueInteger.get(dt.sqlType),
                     // TYPE_NAME
-                    getString(InformationSchemaTable.getDataTypeName(dt, type)),
+                    getString(InformationSchemaTable.getDataTypeName(type)),
                     // COLUMN_SIZE
                     precision,
                     // BUFFER_LENGTH
@@ -835,7 +835,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                             // DATA_TYPE
                             ValueInteger.get(dt.sqlType),
                             // TYPE_NAME
-                            getString(InformationSchemaTable.getDataTypeName(dt, type)),
+                            getString(InformationSchemaTable.getDataTypeName(type)),
                             // COLUMN_SIZE
                             ValueInteger.get(MathUtils.convertLongToInt(type.getPrecision())),
                             // BUFFER_LENGTH
@@ -1139,11 +1139,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         result.addColumn("SQL_DATA_TYPE", TypeInfo.TYPE_INTEGER);
         result.addColumn("SQL_DATETIME_SUB", TypeInfo.TYPE_INTEGER);
         result.addColumn("NUM_PREC_RADIX", TypeInfo.TYPE_INTEGER);
-        for (DataType t : DataType.getTypes()) {
-            if (t.hidden) {
-                continue;
-            }
-            Value name = getString(t.name);
+        for (int i = 1, l = Value.TYPE_COUNT; i < l; i++) {
+            DataType t = DataType.getDataType(i);
+            Value name = getString(Value.getTypeName(t.type));
             result.addRow(
                     // TYPE_NAME
                     name,

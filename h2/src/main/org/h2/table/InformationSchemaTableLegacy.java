@@ -897,7 +897,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                             // GENERATION_EXPRESSION
                             isGenerated ? c.getDefaultSQL() : null,
                             // TYPE_NAME
-                            identifier(isInterval ? "INTERVAL" : getDataTypeName(dataType, typeInfo)),
+                            identifier(isInterval ? "INTERVAL" : getDataTypeName(typeInfo)),
                             // NULLABLE
                             ValueInteger.get(c.isNullable()
                                     ? DatabaseMetaData.columnNullable : DatabaseMetaData.columnNoNulls),
@@ -1029,14 +1029,12 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case TYPE_INFO: {
-            for (DataType t : DataType.getTypes()) {
-                if (t.hidden) {
-                    continue;
-                }
+            for (int i = 1, l = Value.TYPE_COUNT; i < l; i++) {
+                DataType t = DataType.getDataType(i);
                 add(session,
                         rows,
                         // TYPE_NAME
-                        t.name,
+                        Value.getTypeName(t.type),
                         // DATA_TYPE
                         ValueInteger.get(t.sqlType),
                         // PRECISION
@@ -1211,7 +1209,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.SEQUENCE)) {
                 Sequence s = (Sequence) obj;
                 TypeInfo dataType = s.getDataType();
-                String dataTypeName = DataType.getDataType(dataType.getValueType()).name;
+                String dataTypeName = Value.getTypeName(dataType.getValueType());
                 ValueInteger declaredScale = ValueInteger.get(dataType.getScale());
                 add(session,
                         rows,
@@ -1386,7 +1384,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                             // DATA_TYPE
                             ValueInteger.get(DataType.convertTypeToSQLType(valueType)),
                             // TYPE_NAME
-                            getDataTypeName(DataType.getDataType(valueType), typeInfo),
+                            getDataTypeName(typeInfo),
                             // COLUMN_COUNT
                             ValueInteger.get(method.getParameterCount()),
                             // RETURNS_RESULT
@@ -1420,7 +1418,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // DATA_TYPE
                         ValueInteger.get(Types.NULL),
                         // TYPE_NAME
-                        DataType.getDataType(Value.NULL).name,
+                        "NULL",
                         // COLUMN_COUNT
                         ValueInteger.get(1),
                         // RETURNS_RESULT
@@ -1472,7 +1470,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                 // DATA_TYPE
                                 ValueInteger.get(DataType.convertTypeToSQLType(typeInfo.getValueType())),
                                 // TYPE_NAME
-                                getDataTypeName(dt, typeInfo),
+                                getDataTypeName(typeInfo),
                                 // PRECISION
                                 ValueInteger.get(MathUtils.convertLongToInt(dt.defaultPrecision)),
                                 // SCALE
@@ -1518,7 +1516,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                 // DATA_TYPE
                                 ValueInteger.get(DataType.convertTypeToSQLType(dt.type)),
                                 // TYPE_NAME
-                                getDataTypeName(dt, columnTypeInfo),
+                                getDataTypeName(columnTypeInfo),
                                 // PRECISION
                                 ValueInteger.get(MathUtils.convertLongToInt(dt.defaultPrecision)),
                                 // SCALE
@@ -1837,7 +1835,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // SCALE
                         ValueInteger.get(typeInfo.getScale()),
                         // TYPE_NAME
-                        getDataTypeName(dataType, typeInfo),
+                        getDataTypeName(typeInfo),
                         // PARENT_DOMAIN_CATALOG
                         parentDomain != null ? catalog : null,
                         // PARENT_DOMAIN_SCHEMA
@@ -2329,7 +2327,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         return rows;
     }
 
-    private static String getDataTypeName(DataType dt, TypeInfo typeInfo) {
+    private static String getDataTypeName(TypeInfo typeInfo) {
         switch (typeInfo.getValueType()) {
         case Value.ARRAY:
             typeInfo = (TypeInfo) typeInfo.getExtTypeInfo();
@@ -2338,7 +2336,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         case Value.ROW:
             return typeInfo.getSQL(DEFAULT_SQL_FLAGS);
         }
-        return dt.name;
+        return Value.getTypeName(typeInfo.getValueType());
     }
 
     private static short getRefAction(ConstraintActionType action) {

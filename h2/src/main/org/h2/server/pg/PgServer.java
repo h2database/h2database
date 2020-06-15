@@ -20,7 +20,6 @@ import org.h2.server.Service;
 import org.h2.util.NetUtils;
 import org.h2.util.NetUtils2;
 import org.h2.util.Tool;
-import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
@@ -375,7 +374,7 @@ public class PgServer implements Service {
         default:
             return "???";
         }
-        return DataType.getDataType(valueType).name;
+        return Value.getTypeName(valueType);
     }
 
     /**

@@ -763,7 +763,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         switch (valueType) {
         case Value.CHAR:
         case Value.BINARY:
-            builder.append(DataType.getDataType(valueType).name);
+            builder.append(Value.getTypeName(valueType));
             builder.append('(').append(precision).append(')');
             break;
         case Value.VARCHAR:
@@ -771,15 +771,15 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.VARBINARY:
         case Value.JAVA_OBJECT:
         case Value.JSON:
-            builder.append(DataType.getDataType(valueType).name);
+            builder.append(Value.getTypeName(valueType));
             if (precision < Integer.MAX_VALUE) {
                 builder.append('(').append(precision).append(')');
             }
             break;
         case Value.NUMERIC:
             // Can be DECIMAL or NUMERIC
-            builder.append(DataType.getDataType(valueType).name);
-            builder.append('(').append(precision).append(", ").append(scale).append(')');
+            builder.append(Value.getTypeName(valueType)) //
+                    .append('(').append(precision).append(", ").append(scale).append(')');
             break;
         case Value.TIME:
         case Value.TIME_TZ:
@@ -843,7 +843,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
             }
             break;
         default:
-            builder.append(DataType.getDataType(valueType).name);
+            builder.append(Value.getTypeName(valueType));
         }
         return builder;
     }

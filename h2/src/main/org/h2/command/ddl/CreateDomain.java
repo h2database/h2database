@@ -17,6 +17,7 @@ import org.h2.table.Table;
 import org.h2.util.HasSQL;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
+import org.h2.value.Value;
 
 /**
  * This class represents the statement
@@ -58,16 +59,18 @@ public class CreateDomain extends SchemaCommand {
             }
             throw DbException.get(ErrorCode.DOMAIN_ALREADY_EXISTS_1, typeName);
         }
-        DataType builtIn = DataType.getTypeByName(typeName, session.getDatabase().getMode());
-        if (builtIn != null) {
-            if (!builtIn.hidden) {
-                throw DbException.get(ErrorCode.DOMAIN_ALREADY_EXISTS_1, typeName);
-            }
-            Table table = session.getDatabase().getFirstUserTable();
-            if (table != null) {
-                StringBuilder builder = new StringBuilder(typeName).append(" (");
-                table.getSQL(builder, HasSQL.TRACE_SQL_FLAGS).append(')');
-                throw DbException.get(ErrorCode.DOMAIN_ALREADY_EXISTS_1, builder.toString());
+        if (typeName.indexOf(' ') < 0) {
+            DataType builtIn = DataType.getTypeByName(typeName, session.getDatabase().getMode());
+            if (builtIn != null) {
+                if (session.getDatabase().equalsIdentifiers(typeName, Value.getTypeName(builtIn.type))) {
+                    throw DbException.get(ErrorCode.DOMAIN_ALREADY_EXISTS_1, typeName);
+                }
+                Table table = session.getDatabase().getFirstUserTable();
+                if (table != null) {
+                    StringBuilder builder = new StringBuilder(typeName).append(" (");
+                    table.getSQL(builder, HasSQL.TRACE_SQL_FLAGS).append(')');
+                    throw DbException.get(ErrorCode.DOMAIN_ALREADY_EXISTS_1, builder.toString());
+                }
             }
         }
         int id = getObjectId();

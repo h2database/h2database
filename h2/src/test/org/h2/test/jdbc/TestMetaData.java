@@ -340,8 +340,6 @@ public class TestMetaData extends TestDb {
                 (short) 0, 2);
         testTypeInfo(rs, "SMALLINT", Types.SMALLINT, 16, null, null, null, false, false, (short) 0,
                 (short) 0, 2);
-        testTypeInfo(rs, "FLOAT", Types.FLOAT, 53, null, null, null, false, false, (short) 0, (short) 0,
-                2);
         testTypeInfo(rs, "REAL", Types.REAL, 24, null, null, null, false, false, (short) 0, (short) 0, 2);
         testTypeInfo(rs, "DOUBLE PRECISION", Types.DOUBLE, 53, null, null, null, false, false, (short) 0, (short) 0,
                 2);

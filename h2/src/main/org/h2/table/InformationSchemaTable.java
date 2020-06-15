@@ -1859,7 +1859,7 @@ public final class InformationSchemaTable extends MetaTable {
             Sequence s = (Sequence) obj;
             TypeInfo dataType = s.getDataType();
             int valueType = dataType.getValueType();
-            String dataTypeName = DataType.getDataType(valueType).name;
+            String dataTypeName = Value.getTypeName(valueType);
             ValueInteger declaredScale = ValueInteger.get(dataType.getScale());
             add(session, rows,
                     // SEQUENCE_CATALOG
@@ -2129,7 +2129,6 @@ public final class InformationSchemaTable extends MetaTable {
             Constant constant = (Constant) obj;
             ValueExpression expr = constant.getValue();
             TypeInfo type = expr.getType();
-            DataType dt = DataType.getDataType(type.getValueType());
             add(session, rows,
                     // CONSTANT_CATALOG
                     catalog,
@@ -2138,7 +2137,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // CONSTANT_NAME
                     constant.getName(),
                     // DATA_TYPE
-                    getDataTypeName(dt, type),
+                    getDataTypeName(type),
                     // REMARKS
                     replaceNullWithEmpty(constant.getComment()),
                     // SQL
@@ -2625,13 +2624,11 @@ public final class InformationSchemaTable extends MetaTable {
     /**
      * Get data type name.
      *
-     * @param dt
-     *            data type
      * @param typeInfo
      *            type information
      * @return data type name
      */
-    public static String getDataTypeName(DataType dt, TypeInfo typeInfo) {
+    public static String getDataTypeName(TypeInfo typeInfo) {
         switch (typeInfo.getValueType()) {
         case Value.ARRAY:
             typeInfo = (TypeInfo) typeInfo.getExtTypeInfo();
@@ -2640,7 +2637,7 @@ public final class InformationSchemaTable extends MetaTable {
         case Value.ROW:
             return typeInfo.getSQL(DEFAULT_SQL_FLAGS);
         }
-        return dt.name;
+        return Value.getTypeName(typeInfo.getValueType());
     }
 
     private void addConstraintColumnUsage(Session session, ArrayList<Row> rows, String catalog, Constraint constraint,
@@ -2807,7 +2804,7 @@ public final class InformationSchemaTable extends MetaTable {
 
         static DataTypeInformation valueOf(TypeInfo typeInfo) {
             int type = typeInfo.getValueType();
-            String dataType = DataType.getDataType(type).name;
+            String dataType = Value.getTypeName(type);
             ValueBigint characterPrecision = null;
             ValueInteger numericPrecision = null, numericScale = null, numericPrecisionRadix = null,
                     datetimePrecision = null, intervalPrecision = null, maximumCardinality = null;

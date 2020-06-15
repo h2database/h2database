@@ -549,8 +549,9 @@ public class PgCatalogTable extends MetaTable {
             break;
         case PG_TYPE: {
             HashSet<Integer> types = new HashSet<>();
-            for (DataType t : DataType.getTypes()) {
-                if (t.hidden || t.type == Value.ARRAY) {
+            for (int i = 1, l = Value.TYPE_COUNT; i < l; i++) {
+                DataType t = DataType.getDataType(i);
+                if (t.type == Value.ARRAY) {
                     continue;
                 }
                 int pgType = PgServer.convertType(TypeInfo.getTypeInfo(t.type));
@@ -561,7 +562,7 @@ public class PgCatalogTable extends MetaTable {
                         // OID
                         ValueInteger.get(pgType),
                         // TYPNAME
-                        t.name,
+                        Value.getTypeName(t.type),
                         // TYPNAMESPACE
                         ValueInteger.get(Constants.PG_CATALOG_SCHEMA_ID),
                         // TYPLEN

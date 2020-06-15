@@ -385,7 +385,7 @@ public class BinaryOperation extends Operation2 {
 
     private DbException getUnsupported(int l, int r) {
         return DbException.getUnsupportedException(
-                DataType.getDataType(l).name + ' ' + getOperationToken() + ' ' + DataType.getDataType(r).name);
+                Value.getTypeName(l) + ' ' + getOperationToken() + ' ' + Value.getTypeName(r));
     }
 
     private DbException getUnexpectedForcedTypeException() {

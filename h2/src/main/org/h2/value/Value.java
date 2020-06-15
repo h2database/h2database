@@ -346,6 +346,24 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             //
     };
 
+    private static final String NAMES[] = {
+            "NULL", //
+            "CHARACTER", "CHARACTER VARYING", "CHARACTER LARGE OBJECT", "VARCHAR_IGNORECASE", //
+            "BINARY", "BINARY VARYING", "BINARY LARGE OBJECT", //
+            "BOOLEAN", //
+            "TINYINT", "SMALLINT", "INTEGER", "BIGINT", //
+            SysProperties.BIG_DECIMAL_IS_DECIMAL ? "DECIMAL" : "NUMERIC", //
+            "REAL", "DOUBLE PRECISION", //
+            "DATE", "TIME", "TIME WITH TIME ZONE", "TIMESTAMP", "TIMESTAMP WITH TIME ZONE", //
+            "INTERVAL YEAR", "INTERVAL MONTH", //
+            "INTERVAL DAY", "INTERVAL HOUR", "INTERVAL MINUTE", "INTERVAL SECOND", //
+            "INTERVAL YEAR TO MONTH", //
+            "INTERVAL DAY TO HOUR", "INTERVAL DAY TO MINUTE", "INTERVAL DAY TO SECOND", //
+            "INTERVAL HOUR TO MINUTE", "INTERVAL HOUR TO SECOND", "INTERVAL MINUTE TO SECOND", //
+            "JAVA_OBJECT", "ENUM", "GEOMETRY", "JSON", "UUID", //
+            "ARRAY", "ROW", "RESULT_SET" //
+    };
+
     /**
      * Empty array of values.
      */
@@ -377,6 +395,17 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * applicable. If precision is too large an exception is thrown.
      */
     static final int ASSIGN_TO = 2;
+
+    /**
+     * Returns name of the specified data type.
+     *
+     * @param valueType
+     *            the value type
+     * @return the name
+     */
+    public static String getTypeName(int valueType) {
+        return NAMES[valueType];
+    }
 
     /**
      * Check the range of the parameters.
@@ -681,8 +710,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     }
 
     private static DbException getDataTypeCombinationException(int t1, int t2) {
-        return DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1,
-                DataType.getDataType(t1).name + ", " + DataType.getDataType(t2).name);
+        return DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, getTypeName(t1) + ", " + getTypeName(t2));
     }
 
     /**
@@ -2573,10 +2601,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * @return instance of the DbException.
      */
     final DbException getDataConversionError(int targetType) {
-        DataType from = DataType.getDataType(getValueType());
-        DataType to = DataType.getDataType(targetType);
-        throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, (from != null ? from.name : "type=" + getValueType())
-                + " to " + (to != null ? to.name : "type=" + targetType));
+        throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, getTypeName(getValueType()) + " to "
+                + getTypeName(targetType));
     }
 
     /**
@@ -2586,9 +2612,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * @return instance of the DbException.
      */
     final DbException getDataConversionError(TypeInfo targetType) {
-        DataType from = DataType.getDataType(getValueType());
-        throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, (from != null ? from.name : "type=" + getValueType())
-                + " to " + targetType.getTraceSQL());
+        throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, getTypeName(getValueType()) + " to "
+                + targetType.getTraceSQL());
     }
 
     final DbException getValueTooLongException(TypeInfo targetType, Object column) {
@@ -2762,8 +2787,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * @return the exception
      */
     protected final DbException getUnsupportedExceptionForOperation(String op) {
-        return DbException.getUnsupportedException(
-                DataType.getDataType(getValueType()).name + " " + op);
+        return DbException.getUnsupportedException(getTypeName(getValueType()) + ' ' + op);
     }
 
     /**

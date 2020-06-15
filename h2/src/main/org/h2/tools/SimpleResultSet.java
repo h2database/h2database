@@ -39,6 +39,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.SimpleColumnInfo;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
+import org.h2.value.Value;
 import org.h2.value.ValueToObjectConverter;
 
 /**
@@ -100,8 +101,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      */
     public void addColumn(String name, int sqlType, int precision, int scale) {
         int valueType = DataType.convertSQLTypeToValueType(sqlType);
-        addColumn(name, sqlType, DataType.getDataType(valueType).name,
-                precision, scale);
+        addColumn(name, sqlType, Value.getTypeName(valueType), precision, scale);
     }
 
     /**

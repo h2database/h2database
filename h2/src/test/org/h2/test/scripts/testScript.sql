@@ -2160,12 +2160,12 @@ select * from test;
 select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, SELECTIVITY, REMARKS, SQL from information_schema.domains;
 > DOMAIN_NAME DOMAIN_DEFAULT DATA_TYPE         CHARACTER_MAXIMUM_LENGTH SELECTIVITY REMARKS SQL
 > ----------- -------------- ----------------- ------------------------ ----------- ------- -----------------------------------------------------------------------
-> EMAIL       null           CHARACTER VARYING 200                      50                  CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200)
-> GMAIL       '@gmail.com'   CHARACTER VARYING 200                      50                  CREATE DOMAIN "PUBLIC"."GMAIL" AS "PUBLIC"."EMAIL" DEFAULT '@gmail.com'
-> STRING      ''             CHARACTER VARYING 255                      50                  CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT ''
-> STRING1     null           CHARACTER VARYING 2147483647               50                  CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
-> STRING2     '<empty>'      CHARACTER VARYING 2147483647               50                  CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>'
-> STRING_X    null           CHARACTER VARYING 2147483647               50                  CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2"
+> EMAIL       null           CHARACTER VARYING 200                      50          null    CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200)
+> GMAIL       '@gmail.com'   CHARACTER VARYING 200                      50          null    CREATE DOMAIN "PUBLIC"."GMAIL" AS "PUBLIC"."EMAIL" DEFAULT '@gmail.com'
+> STRING      ''             CHARACTER VARYING 255                      50          null    CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT ''
+> STRING1     null           CHARACTER VARYING 2147483647               50          null    CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
+> STRING2     '<empty>'      CHARACTER VARYING 2147483647               50          null    CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>'
+> STRING_X    null           CHARACTER VARYING 2147483647               50          null    CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2"
 > rows: 6
 
 script nodata nopasswords nosettings;
@@ -2703,7 +2703,7 @@ select TABLE_NAME, INDEX_NAME, ORDINAL_POSITION, COLUMN_NAME, INDEX_TYPE_NAME fr
 select SEQUENCE_NAME, CURRENT_VALUE, INCREMENT, IS_GENERATED, REMARKS from INFORMATION_SCHEMA.SEQUENCES;
 > SEQUENCE_NAME CURRENT_VALUE INCREMENT IS_GENERATED REMARKS
 > ------------- ------------- --------- ------------ -------
-> TEST_SEQ      0             1         FALSE
+> TEST_SEQ      0             1         FALSE        null
 > rows: 1
 
 drop table test;
@@ -4043,8 +4043,8 @@ SELECT DISTINCT TABLE_SCHEMA, TABLE_CATALOG FROM INFORMATION_SCHEMA.TABLES ORDER
 SELECT * FROM INFORMATION_SCHEMA.SCHEMATA;
 > CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_CATALOG DEFAULT_CHARACTER_SET_SCHEMA DEFAULT_CHARACTER_SET_NAME SQL_PATH DEFAULT_COLLATION_NAME REMARKS ID
 > ------------ ------------------ ------------ ----------------------------- ---------------------------- -------------------------- -------- ---------------------- ------- --
-> SCRIPT       INFORMATION_SCHEMA SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                            -1
-> SCRIPT       PUBLIC             SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                            0
+> SCRIPT       INFORMATION_SCHEMA SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null    -1
+> SCRIPT       PUBLIC             SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null    0
 > rows: 2
 
 SELECT * FROM INFORMATION_SCHEMA.INFORMATION_SCHEMA_CATALOG_NAME;
@@ -4063,8 +4063,8 @@ SELECT INFORMATION_SCHEMA.SCHEMATA.SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA;
 SELECT INFORMATION_SCHEMA.SCHEMATA.* FROM INFORMATION_SCHEMA.SCHEMATA;
 > CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_CATALOG DEFAULT_CHARACTER_SET_SCHEMA DEFAULT_CHARACTER_SET_NAME SQL_PATH DEFAULT_COLLATION_NAME REMARKS ID
 > ------------ ------------------ ------------ ----------------------------- ---------------------------- -------------------------- -------- ---------------------- ------- --
-> SCRIPT       INFORMATION_SCHEMA SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                            -1
-> SCRIPT       PUBLIC             SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                            0
+> SCRIPT       INFORMATION_SCHEMA SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null    -1
+> SCRIPT       PUBLIC             SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null    0
 > rows: 2
 
 CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA;
@@ -4577,7 +4577,7 @@ DROP ROLE TEST_ROLE;
 SELECT * FROM INFORMATION_SCHEMA.ROLES;
 > NAME   REMARKS ID
 > ------ ------- --
-> PUBLIC         0
+> PUBLIC null    0
 > rows: 1
 
 SELECT * FROM INFORMATION_SCHEMA.RIGHTS;

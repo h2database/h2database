@@ -804,10 +804,6 @@ public final class InformationSchemaTable extends MetaTable {
         this.isView = isView;
     }
 
-    private static String replaceNullWithEmpty(String s) {
-        return s == null ? "" : s;
-    }
-
     @Override
     public ArrayList<Row> generateRows(Session session, SearchRow first, SearchRow last) {
         Value indexFrom = null, indexTo = null;
@@ -1112,7 +1108,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // SEQUENCE_NAME
                 sequence == null ? null : sequence.getName(),
                 // REMARKS
-                replaceNullWithEmpty(c.getComment()),
+                c.getComment(),
                 // COLUMN_TYPE
                 fullTypeName,
                 // COLUMN_ON_UPDATE
@@ -1257,7 +1253,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // SELECTIVITY INT
                     ValueInteger.get(col.getSelectivity()),
                     // REMARKS
-                    replaceNullWithEmpty(domain.getComment()),
+                    domain.getComment(),
                     // SQL
                     domain.getCreateSQL(),
                     // ID
@@ -1292,7 +1288,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "NO",
                     // extensions
                     // REMARKS
-                    replaceNullWithEmpty(constraint.getComment()),
+                    constraint.getComment(),
                     // SQL
                     constraint.getCreateSQL(),
                     // ID
@@ -1839,7 +1835,7 @@ public final class InformationSchemaTable extends MetaTable {
                 deterministic ? "YES" : "NO",
                 // extensions
                 // REMARKS
-                replaceNullWithEmpty(remarks),
+                remarks,
                 // ID
                 ValueInteger.get(id));
     }
@@ -1867,7 +1863,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // DEFAULT_COLLATION_NAME
                     collation,
                     // REMARKS
-                    replaceNullWithEmpty(schema.getComment()),
+                    schema.getComment(),
                     // ID
                     ValueInteger.get(schema.getId())
             );
@@ -1918,7 +1914,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // IS_GENERATED
                     ValueBoolean.get(s.getBelongsToTable()),
                     // REMARKS
-                    replaceNullWithEmpty(s.getComment()),
+                    s.getComment(),
                     // CACHE
                     ValueBigint.get(s.getCacheSize()),
                     // ID
@@ -1979,7 +1975,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // SQL
                     sql,
                     // REMARKS
-                    replaceNullWithEmpty(table.getComment()),
+                    table.getComment(),
                     // LAST_MODIFICATION
                     ValueBigint.get(table.getMaxDataModificationId()),
                     // ID
@@ -2045,7 +2041,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // INDEX_NAME
                     index != null ? index.getName() : null,
                     // REMARKS
-                    replaceNullWithEmpty(constraint.getComment()),
+                    constraint.getComment(),
                     // SQL
                     constraint.getCreateSQL(),
                     // ID
@@ -2102,7 +2098,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // NO_WAIT
                     ValueBoolean.get(trigger.isNoWait()),
                     // REMARKS
-                    replaceNullWithEmpty(trigger.getComment()),
+                    trigger.getComment(),
                     // SQL
                     trigger.getCreateSQL(),
                     // ID
@@ -2137,7 +2133,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // STATUS
                     table instanceof TableView && ((TableView) table).isInvalid() ? "INVALID" : "VALID",
                     // REMARKS
-                    replaceNullWithEmpty(table.getComment()),
+                    table.getComment(),
                     // ID
                     ValueInteger.get(table.getId())
             );
@@ -2203,7 +2199,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // DTD_IDENTIFIER
                     "TYPE",
                     // REMARKS
-                    replaceNullWithEmpty(constant.getComment()),
+                    constant.getComment(),
                     // SQL
                     expr.getSQL(DEFAULT_SQL_FLAGS),
                     // ID
@@ -2276,7 +2272,7 @@ public final class InformationSchemaTable extends MetaTable {
                             // IS_GENERATED
                             ValueBoolean.get(index.getIndexType().getBelongsToConstraint()),
                             // REMARKS
-                            replaceNullWithEmpty(index.getComment()),
+                            index.getComment(),
                             // SQL
                             index.getCreateSQL(),
                             // ID
@@ -2433,7 +2429,7 @@ public final class InformationSchemaTable extends MetaTable {
                         // NAME
                         identifier(r.getName()),
                         // REMARKS
-                        replaceNullWithEmpty(r.getComment()),
+                        r.getComment(),
                         // ID
                         ValueInteger.get(r.getId())
                 );
@@ -2660,7 +2656,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // STATUS
                     "VALID",
                     // REMARKS
-                    replaceNullWithEmpty(synonym.getComment()),
+                    synonym.getComment(),
                     // ID
                     ValueInteger.get(synonym.getId())
             );
@@ -2677,7 +2673,7 @@ public final class InformationSchemaTable extends MetaTable {
                         // ADMIN
                         String.valueOf(u.isAdmin()),
                         // REMARKS
-                        replaceNullWithEmpty(u.getComment()),
+                        u.getComment(),
                         // ID
                         ValueInteger.get(u.getId())
                 );

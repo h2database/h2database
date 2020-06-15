@@ -252,7 +252,7 @@ public class TestSequence extends TestDb {
         assertEquals(0, rs.getLong("CURRENT_VALUE"));
         assertEquals(1, rs.getLong("INCREMENT"));
         assertEquals(false, rs.getBoolean("IS_GENERATED"));
-        assertEquals("", rs.getString("REMARKS"));
+        assertNull(rs.getString("REMARKS"));
         assertEquals(32, rs.getLong("CACHE"));
         assertEquals(1, rs.getLong("MINIMUM_VALUE"));
         assertEquals(Long.MAX_VALUE, rs.getLong("MAXIMUM_VALUE"));
@@ -264,7 +264,7 @@ public class TestSequence extends TestDb {
         assertEquals(5, rs.getLong("CURRENT_VALUE"));
         assertEquals(2, rs.getLong("INCREMENT"));
         assertEquals(false, rs.getBoolean("IS_GENERATED"));
-        assertEquals("", rs.getString("REMARKS"));
+        assertNull(rs.getString("REMARKS"));
         assertEquals(1, rs.getLong("CACHE"));
         assertEquals(5, rs.getLong("MINIMUM_VALUE"));
         assertEquals(9, rs.getLong("MAXIMUM_VALUE"));
@@ -276,7 +276,7 @@ public class TestSequence extends TestDb {
         assertEquals(-2, rs.getLong("CURRENT_VALUE"));
         assertEquals(-2, rs.getLong("INCREMENT"));
         assertEquals(false, rs.getBoolean("IS_GENERATED"));
-        assertEquals("", rs.getString("REMARKS"));
+        assertNull(rs.getString("REMARKS"));
         assertEquals(3, rs.getLong("CACHE"));
         assertEquals(-9, rs.getLong("MINIMUM_VALUE"));
         assertEquals(-3, rs.getLong("MAXIMUM_VALUE"));

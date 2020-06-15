@@ -680,7 +680,7 @@ ANALYZE SAMPLE_SIZE 1000
     | SCHEMA | SEQUENCE | TRIGGER | USER | DOMAIN } [schemaName.]objectName } }
 @h2@ IS expression
 ","
-Sets the comment of a database object. Use NULL to remove the comment.
+Sets the comment of a database object. Use NULL or empty string to remove the comment.
 
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.

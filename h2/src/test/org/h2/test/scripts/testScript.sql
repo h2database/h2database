@@ -1742,21 +1742,6 @@ drop table t1;
 drop table t2;
 > ok
 
-create constant abc value 1;
-> ok
-
-call abc;
-> 1
-> -
-> 1
-> rows: 1
-
-drop all objects;
-> ok
-
-call abc;
-> exception COLUMN_NOT_FOUND_1
-
 CREATE TABLE test (family_name VARCHAR_IGNORECASE(63) NOT NULL);
 > ok
 
@@ -2284,55 +2269,6 @@ drop table a, a;
 > ok
 
 drop table b, c;
-> ok
-
-CREATE SCHEMA CONST;
-> ok
-
-CREATE CONSTANT IF NOT EXISTS ONE VALUE 1;
-> ok
-
-COMMENT ON CONSTANT ONE IS 'Eins';
-> ok
-
-CREATE CONSTANT IF NOT EXISTS ONE VALUE 1;
-> ok
-
-CREATE CONSTANT CONST.ONE VALUE 1;
-> ok
-
-SELECT CONSTANT_SCHEMA, CONSTANT_NAME, DATA_TYPE, REMARKS, SQL FROM INFORMATION_SCHEMA.CONSTANTS;
-> CONSTANT_SCHEMA CONSTANT_NAME DATA_TYPE REMARKS SQL
-> --------------- ------------- --------- ------- ---
-> CONST           ONE           INTEGER           1
-> PUBLIC          ONE           INTEGER   Eins    1
-> rows: 2
-
-SELECT ONE, CONST.ONE FROM DUAL;
-> 1 1
-> - -
-> 1 1
-> rows: 1
-
-COMMENT ON CONSTANT ONE IS NULL;
-> ok
-
-DROP SCHEMA CONST CASCADE;
-> ok
-
-SELECT CONSTANT_SCHEMA, CONSTANT_NAME, DATA_TYPE, REMARKS, SQL FROM INFORMATION_SCHEMA.CONSTANTS;
-> CONSTANT_SCHEMA CONSTANT_NAME DATA_TYPE REMARKS SQL
-> --------------- ------------- --------- ------- ---
-> PUBLIC          ONE           INTEGER           1
-> rows: 1
-
-DROP CONSTANT ONE;
-> ok
-
-DROP CONSTANT IF EXISTS ONE;
-> ok
-
-DROP CONSTANT IF EXISTS ONE;
 > ok
 
 CREATE TABLE A (ID_A int primary key);

@@ -629,6 +629,22 @@ public final class InformationSchemaTable extends MetaTable {
                     "CONSTANT_SCHEMA",
                     "CONSTANT_NAME",
                     "DATA_TYPE",
+                    "CHARACTER_MAXIMUM_LENGTH BIGINT",
+                    "CHARACTER_OCTET_LENGTH BIGINT",
+                    "CHARACTER_SET_CATALOG",
+                    "CHARACTER_SET_SCHEMA",
+                    "CHARACTER_SET_NAME",
+                    "COLLATION_CATALOG",
+                    "COLLATION_SCHEMA",
+                    "COLLATION_NAME",
+                    "NUMERIC_PRECISION INT",
+                    "NUMERIC_PRECISION_RADIX INT",
+                    "NUMERIC_SCALE INT",
+                    "DATETIME_PRECISION INT",
+                    "INTERVAL_TYPE",
+                    "INTERVAL_PRECISION INT",
+                    "MAXIMUM_CARDINALITY INT",
+                    "DTD_IDENTIFIER",
                     "REMARKS",
                     "SQL",
                     "ID INT"
@@ -1329,6 +1345,10 @@ public final class InformationSchemaTable extends MetaTable {
                                 ValueToObjectConverter2.classToType(columnList[p]));
                     }
                 }
+            }
+            for (Constant constant : schema.getAllConstants()) {
+                generateElementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, schemaName,
+                        constant.getName(), "CONSTANT", "TYPE", constant.getValue().getType());
             }
         }
         for (Table table : session.getLocalTempTables()) {
@@ -2125,10 +2145,22 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     private void constants(Session session, ArrayList<Row> rows, String catalog) {
+        String mainSchemaName = database.getMainSchema().getName();
+        String collation = database.getCompareMode().getName();
         for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTANT)) {
             Constant constant = (Constant) obj;
             ValueExpression expr = constant.getValue();
-            TypeInfo type = expr.getType();
+            TypeInfo typeInfo = expr.getType();
+            DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
+            String characterSetCatalog, characterSetSchema, characterSetName, collationName;
+            if (dt.hasCharsetAndCollation) {
+                characterSetCatalog = catalog;
+                characterSetSchema = mainSchemaName;
+                characterSetName = CHARACTER_SET_NAME;
+                collationName = collation;
+            } else {
+                characterSetCatalog = characterSetSchema = characterSetName = collationName = null;
+            }
             add(session, rows,
                     // CONSTANT_CATALOG
                     catalog,
@@ -2137,7 +2169,39 @@ public final class InformationSchemaTable extends MetaTable {
                     // CONSTANT_NAME
                     constant.getName(),
                     // DATA_TYPE
-                    getDataTypeName(type),
+                    dt.dataType,
+                    // CHARACTER_MAXIMUM_LENGTH
+                    dt.characterPrecision,
+                    // CHARACTER_OCTET_LENGTH
+                    dt.characterPrecision,
+                    // CHARACTER_SET_CATALOG
+                    characterSetCatalog,
+                    // CHARACTER_SET_SCHEMA
+                    characterSetSchema,
+                    // CHARACTER_SET_NAME
+                    characterSetName,
+                    // COLLATION_CATALOG
+                    characterSetCatalog,
+                    // COLLATION_SCHEMA
+                    characterSetSchema,
+                    // COLLATION_NAME
+                    collationName,
+                    // NUMERIC_PRECISION
+                    dt.numericPrecision,
+                    // NUMERIC_PRECISION_RADIX
+                    dt.numericPrecisionRadix,
+                    // NUMERIC_SCALE
+                    dt.numericScale,
+                    // DATETIME_PRECISION
+                    dt.datetimePrecision,
+                    // INTERVAL_TYPE
+                    dt.intervalType,
+                    // INTERVAL_PRECISION
+                    dt.intervalPrecision,
+                    // MAXIMUM_CARDINALITY
+                    dt.maximumCardinality,
+                    // DTD_IDENTIFIER
+                    "TYPE",
                     // REMARKS
                     replaceNullWithEmpty(constant.getComment()),
                     // SQL

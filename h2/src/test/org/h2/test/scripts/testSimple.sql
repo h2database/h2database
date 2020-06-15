@@ -953,23 +953,6 @@ drop schema tests cascade;
 
 @reconnect
 
-create constant abc value 1;
-> ok
-
-comment on constant abc is 'One';
-> ok
-
-select remarks from information_schema.constants where constant_name = 'ABC';
->> One
-
-@reconnect
-
-select remarks from information_schema.constants where constant_name = 'ABC';
->> One
-
-drop constant abc;
-> ok
-
 drop table test;
 > ok
 

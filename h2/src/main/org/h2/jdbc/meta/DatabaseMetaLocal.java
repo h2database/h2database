@@ -1166,7 +1166,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     // FIXED_PREC_SCALE
                     ValueBoolean.get(t.type == Value.NUMERIC),
                     // AUTO_INCREMENT
-                    ValueBoolean.get(t.autoIncrement),
+                    ValueBoolean.FALSE,
                     // LOCAL_TYPE_NAME
                     name,
                     // MINIMUM_SCALE

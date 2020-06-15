@@ -90,11 +90,6 @@ public class DataType {
     public String params;
 
     /**
-     * If this is an autoincrement type.
-     */
-    public boolean autoIncrement;
-
-    /**
      * If this data type is case sensitive.
      */
     public boolean caseSensitive;
@@ -140,20 +135,14 @@ public class DataType {
                 "BINARY VARYING", "VARBINARY", "RAW", "BYTEA", "LONG RAW", "LONGVARBINARY");
         add(Value.BLOB, Types.BLOB, createLob(false),
                 "BINARY LARGE OBJECT", "BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "IMAGE");
-        add(Value.BOOLEAN, Types.BOOLEAN,
-                createNumeric(ValueBoolean.PRECISION, 0, false),
-                "BOOLEAN", "BIT", "BOOL");
-        add(Value.TINYINT, Types.TINYINT, createNumeric(ValueTinyint.PRECISION, 0, false), "TINYINT");
-        add(Value.SMALLINT, Types.SMALLINT, createNumeric(ValueSmallint.PRECISION, 0, false),
-                "SMALLINT", "YEAR", "INT2");
-        add(Value.INTEGER, Types.INTEGER, createNumeric(ValueInteger.PRECISION, 0, false),
-                "INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"
+        add(Value.BOOLEAN, Types.BOOLEAN, createNumeric(ValueBoolean.PRECISION, 0), "BOOLEAN", "BIT", "BOOL");
+        add(Value.TINYINT, Types.TINYINT, createNumeric(ValueTinyint.PRECISION, 0), "TINYINT");
+        add(Value.SMALLINT, Types.SMALLINT, createNumeric(ValueSmallint.PRECISION, 0), "SMALLINT", "YEAR", "INT2");
+        add(Value.INTEGER, Types.INTEGER, createNumeric(ValueInteger.PRECISION, 0),
+                "INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED", "SERIAL"
         );
-        dataType = createNumeric(ValueInteger.PRECISION, 0, true);
-        add(Value.INTEGER, Types.INTEGER, dataType, "SERIAL");
-        add(Value.BIGINT, Types.BIGINT, createNumeric(ValueBigint.PRECISION, 0, false), "BIGINT", "INT8", "LONG");
-        dataType = createNumeric(ValueBigint.PRECISION, 0, true);
-        add(Value.BIGINT, Types.BIGINT, dataType, "IDENTITY", "BIGSERIAL");
+        add(Value.BIGINT, Types.BIGINT, createNumeric(ValueBigint.PRECISION, 0),
+                "BIGINT", "INT8", "LONG", "IDENTITY", "BIGSERIAL");
         dataType = new DataType();
         dataType.minPrecision = 1;
         dataType.maxPrecision = Integer.MAX_VALUE;
@@ -169,11 +158,10 @@ public class DataType {
         } else {
             add(Value.NUMERIC, Types.NUMERIC, dataType, "NUMERIC", "DECIMAL", "DEC", "NUMBER");
         }
-        add(Value.REAL, Types.REAL, createNumeric(ValueReal.PRECISION, 0, false), "REAL", "FLOAT4");
-        add(Value.DOUBLE, Types.DOUBLE, createNumeric(ValueDouble.PRECISION, 0, false),
+        add(Value.REAL, Types.REAL, createNumeric(ValueReal.PRECISION, 0), "REAL", "FLOAT4");
+        add(Value.DOUBLE, Types.DOUBLE, createNumeric(ValueDouble.PRECISION, 0),
                 "DOUBLE PRECISION", "DOUBLE", "FLOAT8");
-        dataType = createNumeric(ValueDouble.PRECISION, 0, false);
-        add(Value.DOUBLE, Types.FLOAT, dataType, "FLOAT");
+        add(Value.DOUBLE, Types.FLOAT, createNumeric(ValueDouble.PRECISION, 0), "FLOAT");
         add(Value.DATE, Types.DATE, createDate(ValueDate.PRECISION, ValueDate.PRECISION, "DATE", false, 0, 0), "DATE");
         add(Value.TIME, Types.TIME,
                 createDate(ValueTime.MAXIMUM_PRECISION, ValueTime.DEFAULT_PRECISION,
@@ -259,14 +247,12 @@ public class DataType {
      *
      * @param precision precision
      * @param scale scale
-     * @param autoInc whether the data type is an auto-increment type
      * @return data type
      */
-    public static DataType createNumeric(int precision, int scale, boolean autoInc) {
+    public static DataType createNumeric(int precision, int scale) {
         DataType dataType = new DataType();
         dataType.defaultPrecision = dataType.maxPrecision = dataType.minPrecision = precision;
         dataType.defaultScale = dataType.maxScale = dataType.minScale = scale;
-        dataType.autoIncrement = autoInc;
         return dataType;
     }
 

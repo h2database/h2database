@@ -1046,7 +1046,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // PARAMS
                         t.params,
                         // AUTO_INCREMENT
-                        ValueBoolean.get(t.autoIncrement),
+                        ValueBoolean.FALSE,
                         // MINIMUM_SCALE
                         ValueSmallint.get(MathUtils.convertIntToShort(t.minScale)),
                         // MAXIMUM_SCALE

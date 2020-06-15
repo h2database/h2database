@@ -437,11 +437,11 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx = null;
         mode.zeroExLiteralsAreBinaryStrings = true;
         mode.truncateTableRestartIdentity = true;
-        DataType dt = DataType.createNumeric(19, 4, false);
+        DataType dt = DataType.createNumeric(19, 4);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
         mode.typeByNameMap.put("MONEY", dt);
-        dt = DataType.createNumeric(10, 4, false);
+        dt = DataType.createNumeric(10, 4);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
         mode.typeByNameMap.put("SMALLMONEY", dt);
@@ -526,7 +526,7 @@ public class Mode {
         mode.disallowedTypes = disallowedTypes;
         dt = DataType.getDataType(Value.JSON);
         mode.typeByNameMap.put("JSONB", dt);
-        dt = DataType.createNumeric(19, 2, false);
+        dt = DataType.createNumeric(19, 2);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
         mode.typeByNameMap.put("MONEY", dt);

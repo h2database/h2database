@@ -3155,8 +3155,8 @@ characterType | characterVaryingType | characterLargeObjectType
     | timestampType | timestampWithTimeZoneType
     | intervalType
     | arrayType | rowType
-    | @h2@ { tinyintType | identityType | javaObjectType
-    | enumType | geometryType | jsonType | uuidType }
+    | @h2@ { tinyintType | javaObjectType | enumType
+    | geometryType | jsonType | uuidType }
 ","
 A predefined data type.
 ","
@@ -3695,16 +3695,166 @@ _ROWID_ can be used to access unique row identifier.
 ID
 "
 
-"Data Types","INTEGER Type","
-INTEGER | INT | @c@ { MEDIUMINT | INT4 | SIGNED }
+"Data Types","CHARACTER Type","
+{ CHARACTER | CHAR | NCHAR | NATIONAL { CHARACTER | CHAR } }
+[ ( lengthInt [CHARACTERS|OCTETS] ) ]
 ","
-Possible values: -2147483648 to 2147483647.
+A Unicode String of fixed length.
 
-See also [integer](https://h2database.com/html/grammar.html#int) literal grammar.
-Mapped to ""java.lang.Integer"".
+Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
+If length is not specified, 1 character is used by default.
+
+The whole text is kept in memory when using this data type.
+For variable-length strings use [CHARACTER VARYING](https://h2database.com/html/datatypes.html#character_varying_type)
+data type instead.
+For large text data [CHARACTER LARGE OBJECT](https://h2database.com/html/datatypes.html#character_large_object_type)
+should be used; see there for details.
+
+Too short strings are right-padded with space characters.
+Too long strings are truncated by CAST specification and rejected by column assignment.
+
+Two CHARACTER strings of different length are considered as equal if all additional characters in the longer string
+are space characters.
+
+See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
+Mapped to ""java.lang.String"".
 ","
-INTEGER
-INT
+CHARACTER
+CHAR(10)
+"
+
+"Data Types","CHARACTER VARYING Type","
+{ { CHARACTER | CHAR } VARYING
+    | VARCHAR
+    | { NCHAR | { NATIONAL { CHARACTER | CHAR } } } VARYING
+    | @c@ { LONGVARCHAR | VARCHAR2 | NVARCHAR | NVARCHAR2 }
+    | @h2@ { VARCHAR_CASESENSITIVE } }
+[ ( lengthInt [CHARACTERS|OCTETS] ) ]
+","
+A Unicode String.
+Use two single quotes ('') to create a quote.
+
+The maximum length is ""Integer.MAX_VALUE"".
+The length is a size constraint; only the actual data is persisted.
+Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
+
+The whole text is loaded into memory when using this data type.
+For large text data [CHARACTER LARGE OBJECT](https://h2database.com/html/datatypes.html#character_large_object_type)
+should be used; see there for details.
+
+See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
+Mapped to ""java.lang.String"".
+","
+CHARACTER VARYING(100)
+VARCHAR(255)
+"
+
+"Data Types","CHARACTER LARGE OBJECT Type","
+{ { CHARACTER | CHAR } LARGE OBJECT | CLOB
+    | NCLOB | { NATIONAL CHARACTER | NCHAR } LARGE OBJECT
+    | @c@ { TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT } }
+[ ( lengthLong [K|M|G|T|P] [CHARACTERS|OCTETS]) ]
+","
+CHARACTER LARGE OBJECT is intended for very large Unicode character string values.
+Unlike when using [CHARACTER VARYING](https://h2database.com/html/datatypes.html#character_varying_type),
+large CHARACTER LARGE OBJECT values are not kept fully in-memory; instead, they are streamed.
+CHARACTER LARGE OBJECT should be used for documents and texts with arbitrary size such as XML or
+HTML documents, text files, or memo fields of unlimited size.
+Use ""PreparedStatement.setCharacterStream"" to store values.
+See also [Large Objects](https://h2database.com/html/advanced.html#large_objects) section.
+
+CHARACTER VARYING should be used for text with relatively short average size (for example
+shorter than 200 characters). Short CHARACTER LARGE OBJECT values are stored inline, but there is
+an overhead compared to CHARACTER VARYING.
+
+Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
+
+Mapped to ""java.sql.Clob"" (""java.io.Reader"" is also supported).
+","
+CHARACTER LARGE OBJECT
+CLOB(10K)
+"
+
+"Data Types","VARCHAR_IGNORECASE Type","
+@h2@ VARCHAR_IGNORECASE
+[ ( lengthInt [CHARACTERS|OCTETS] ) ]
+","
+Same as VARCHAR, but not case sensitive when comparing.
+Stored in mixed case.
+
+The maximum length is ""Integer.MAX_VALUE"".
+The length is a size constraint; only the actual data is persisted.
+Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
+
+The whole text is loaded into memory when using this data type.
+For large text data CLOB should be used; see there for details.
+
+See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
+Mapped to ""java.lang.String"".
+","
+VARCHAR_IGNORECASE
+"
+
+"Data Types","BINARY Type","
+BINARY [ ( lengthInt ) ]
+","
+Represents a binary string (byte array) of fixed predefined length.
+
+If length is not specified, 1 byte is used by default.
+
+The whole binary string is kept in memory when using this data type.
+For variable-length binary strings use [BINARY VARYING](https://h2database.com/html/datatypes.html#binary_varying_type)
+data type instead.
+For large binary data [BINARY LARGE OBJECT](https://h2database.com/html/datatypes.html#binary_large_object_type)
+should be used; see there for details.
+
+Too short binary string are right-padded with zero bytes.
+Too long binary strings are truncated by CAST specification and rejected by column assignment.
+
+Binary strings of different length are considered as not equal to each other.
+
+See also [bytes](https://h2database.com/html/grammar.html#bytes) literal grammar.
+Mapped to byte[].
+","
+BINARY
+BINARY(1000)
+"
+
+"Data Types","BINARY VARYING Type","
+{ BINARY VARYING | VARBINARY
+    | @c@ { LONGVARBINARY | RAW | BYTEA } }
+[ ( lengthInt ) ]
+","
+Represents a byte array.
+The maximum size is 2 GB, but the whole object is kept in
+memory when using this data type. The length is a size constraint;
+only the actual data is persisted.
+For large binary data [BINARY LARGE OBJECT](https://h2database.com/html/datatypes.html#binary_large_object_type)
+should be used; see there for details.
+
+See also [bytes](https://h2database.com/html/grammar.html#bytes) literal grammar.
+Mapped to byte[].
+","
+BINARY VARYING(100)
+VARBINARY(1000)
+"
+
+"Data Types","BINARY LARGE OBJECT Type","
+{ BINARY LARGE OBJECT | BLOB
+    | @c@ { TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE } }
+[ ( lengthLong [K|M|G|T|P]) ]
+","
+BINARY LARGE OBJECT is intended for very large binary values such as files or images.
+Unlike when using [BINARY VARYING](https://h2database.com/html/datatypes.html#binary_varying_type),
+large objects are not kept fully in-memory; instead, they are streamed.
+Use ""PreparedStatement.setBinaryStream"" to store values.
+See also [CHARACTER LARGE OBJECT](https://h2database.com/html/datatypes.html#character_large_object_type)
+and [Large Objects](https://h2database.com/html/advanced.html#large_objects) section.
+
+Mapped to ""java.sql.Blob"" (""java.io.InputStream"" is also supported).
+","
+BINARY LARGE OBJECT
+BLOB(10K)
 "
 
 "Data Types","BOOLEAN Type","
@@ -3751,6 +3901,18 @@ this data type is mapped to ""java.lang.Short"".
 SMALLINT
 "
 
+"Data Types","INTEGER Type","
+INTEGER | INT | @c@ { MEDIUMINT | INT4 | SIGNED }
+","
+Possible values: -2147483648 to 2147483647.
+
+See also [integer](https://h2database.com/html/grammar.html#int) literal grammar.
+Mapped to ""java.lang.Integer"".
+","
+INTEGER
+INT
+"
+
 "Data Types","BIGINT Type","
 BIGINT | @c@ INT8
 ","
@@ -3760,19 +3922,6 @@ See also [long](https://h2database.com/html/grammar.html#long) literal grammar.
 Mapped to ""java.lang.Long"".
 ","
 BIGINT
-"
-
-"Data Types","IDENTITY Type","
-@c@ IDENTITY
-","
-Auto-Increment value. Possible values: -9223372036854775808 to
-9223372036854775807. Used values are never re-used, even when the transaction is
-rolled back.
-
-See also [long](https://h2database.com/html/grammar.html#long) literal grammar.
-Mapped to ""java.lang.Long"".
-","
-IDENTITY
 "
 
 "Data Types","NUMERIC Type","
@@ -3790,11 +3939,24 @@ Mapped to ""java.math.BigDecimal"".
 NUMERIC(20, 2)
 "
 
+"Data Types","REAL Type","
+REAL | FLOAT ( precisionInt ) | @c@ { FLOAT4 }
+","
+A single precision floating point number.
+Should not be used to represent currency values, because of rounding problems.
+Precision value for FLOAT type name should be from 1 to 24.
+
+See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
+Mapped to ""java.lang.Float"".
+","
+REAL
+"
+
 "Data Types","DOUBLE PRECISION Type","
 DOUBLE PRECISION | FLOAT [ ( precisionInt ) ] | @c@ { DOUBLE | FLOAT8 }
 ","
-A floating point number. Should not be used to represent currency values, because
-of rounding problems.
+A double precision floating point number.
+Should not be used to represent currency values, because of rounding problems.
 If precision value is specified for FLOAT type name, it should be from 25 to 53.
 
 See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
@@ -3803,17 +3965,29 @@ Mapped to ""java.lang.Double"".
 DOUBLE PRECISION
 "
 
-"Data Types","REAL Type","
-REAL | FLOAT ( precisionInt ) | @c@ { FLOAT4 }
+"Data Types","DATE Type","
+DATE
 ","
-A single precision floating point number. Should not be used to represent currency
-values, because of rounding problems.
-Precision value for FLOAT type name should be from 1 to 24.
+The date data type. The proleptic Gregorian calendar is used.
 
-See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
-Mapped to ""java.lang.Float"".
+See also [date](https://h2database.com/html/grammar.html#date) literal grammar.
+
+In JDBC this data type is mapped to ""java.sql.Date"", with the time set to ""00:00:00""
+(or to the next possible time if midnight doesn't exist for the given date and time zone due to a daylight saving change).
+""java.time.LocalDate"" is also supported and recommended.
+
+In ""org.h2.api.Aggregate"", ""org.h2.api.AggregateFunction"", and ""org.h2.api.Trigger""
+this data type is mapped to ""java.time.LocalDate"".
+
+If your time zone had LMT (local mean time) in the past and you use such old dates
+(depends on the time zone, usually 100 or more years ago),
+don't use ""java.sql.Date"" to read and write them.
+
+If you deal with very old dates (before 1582-10-15) note that ""java.sql.Date"" uses a mixed Julian/Gregorian calendar,
+""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
+""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of dates.
 ","
-REAL
+DATE
 "
 
 "Data Types","TIME Type","
@@ -3855,31 +4029,6 @@ The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the
 ","
 TIME WITH TIME ZONE
 TIME(9) WITH TIME ZONE
-"
-
-"Data Types","DATE Type","
-DATE
-","
-The date data type. The proleptic Gregorian calendar is used.
-
-See also [date](https://h2database.com/html/grammar.html#date) literal grammar.
-
-In JDBC this data type is mapped to ""java.sql.Date"", with the time set to ""00:00:00""
-(or to the next possible time if midnight doesn't exist for the given date and time zone due to a daylight saving change).
-""java.time.LocalDate"" is also supported and recommended.
-
-In ""org.h2.api.Aggregate"", ""org.h2.api.AggregateFunction"", and ""org.h2.api.Trigger""
-this data type is mapped to ""java.time.LocalDate"".
-
-If your time zone had LMT (local mean time) in the past and you use such old dates
-(depends on the time zone, usually 100 or more years ago),
-don't use ""java.sql.Date"" to read and write them.
-
-If you deal with very old dates (before 1582-10-15) note that ""java.sql.Date"" uses a mixed Julian/Gregorian calendar,
-""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
-""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of dates.
-","
-DATE
 "
 
 "Data Types","TIMESTAMP Type","
@@ -3936,48 +4085,23 @@ TIMESTAMP WITH TIME ZONE
 TIMESTAMP(9) WITH TIME ZONE
 "
 
-"Data Types","BINARY VARYING Type","
-{ BINARY VARYING | VARBINARY
-    | @c@ { LONGVARBINARY | RAW | BYTEA } }
-[ ( lengthInt ) ]
+"Data Types","INTERVAL Type","
+intervalYearType | intervalMonthType | intervalDayType
+    | intervalHourType| intervalMinuteType | intervalSecondType
+    | intervalYearToMonthType | intervalDayToHourType
+    | intervalDayToMinuteType | intervalDayToSecondType
+    | intervalHourToMinuteType | intervalHourToSecondType
+    | intervalMinuteToSecondType
 ","
-Represents a byte array.
-The maximum size is 2 GB, but the whole object is kept in
-memory when using this data type. The length is a size constraint;
-only the actual data is persisted.
-For large binary data [BINARY LARGE OBJECT](https://h2database.com/html/datatypes.html#binary_large_object_type)
-should be used; see there for details.
+Interval data type.
+There are two classes of intervals. Year-month intervals can store years and months.
+Day-time intervals can store days, hours, minutes, and seconds.
+Year-month intervals are comparable only with another year-month intervals.
+Day-time intervals are comparable only with another day-time intervals.
 
-See also [bytes](https://h2database.com/html/grammar.html#bytes) literal grammar.
-Mapped to byte[].
+Mapped to ""org.h2.api.Interval"".
 ","
-BINARY VARYING(100)
-VARBINARY(1000)
-"
-
-"Data Types","BINARY Type","
-BINARY [ ( lengthInt ) ]
-","
-Represents a binary string (byte array) of fixed predefined length.
-
-If length is not specified, 1 byte is used by default.
-
-The whole binary string is kept in memory when using this data type.
-For variable-length binary strings use [BINARY VARYING](https://h2database.com/html/datatypes.html#binary_varying_type)
-data type instead.
-For large binary data [BINARY LARGE OBJECT](https://h2database.com/html/datatypes.html#binary_large_object_type)
-should be used; see there for details.
-
-Too short binary string are right-padded with zero bytes.
-Too long binary strings are truncated by CAST specification and rejected by column assignment.
-
-Binary strings of different length are considered as not equal to each other.
-
-See also [bytes](https://h2database.com/html/grammar.html#bytes) literal grammar.
-Mapped to byte[].
-","
-BINARY
-BINARY(1000)
+INTERVAL DAY TO SECOND
 "
 
 "Data Types","JAVA_OBJECT Type","
@@ -4005,172 +4129,6 @@ Mapped to ""java.lang.Object"" (or any subclass).
 ","
 JAVA_OBJECT
 JAVA_OBJECT(10000)
-"
-
-"Data Types","CHARACTER VARYING Type","
-{ { CHARACTER | CHAR } VARYING
-    | VARCHAR
-    | { NCHAR | { NATIONAL { CHARACTER | CHAR } } } VARYING
-    | @c@ { LONGVARCHAR | VARCHAR2 | NVARCHAR | NVARCHAR2 }
-    | @h2@ { VARCHAR_CASESENSITIVE } }
-[ ( lengthInt [CHARACTERS|OCTETS] ) ]
-","
-A Unicode String.
-Use two single quotes ('') to create a quote.
-
-The maximum length is ""Integer.MAX_VALUE"".
-The length is a size constraint; only the actual data is persisted.
-Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
-
-The whole text is loaded into memory when using this data type.
-For large text data [CHARACTER LARGE OBJECT](https://h2database.com/html/datatypes.html#character_large_object_type)
-should be used; see there for details.
-
-See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
-Mapped to ""java.lang.String"".
-","
-CHARACTER VARYING(100)
-VARCHAR(255)
-"
-
-"Data Types","VARCHAR_IGNORECASE Type","
-@h2@ VARCHAR_IGNORECASE
-[ ( lengthInt [CHARACTERS|OCTETS] ) ]
-","
-Same as VARCHAR, but not case sensitive when comparing.
-Stored in mixed case.
-
-The maximum length is ""Integer.MAX_VALUE"".
-The length is a size constraint; only the actual data is persisted.
-Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
-
-The whole text is loaded into memory when using this data type.
-For large text data CLOB should be used; see there for details.
-
-See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
-Mapped to ""java.lang.String"".
-","
-VARCHAR_IGNORECASE
-"
-
-"Data Types","CHARACTER Type","
-{ CHARACTER | CHAR | NCHAR | NATIONAL { CHARACTER | CHAR } }
-[ ( lengthInt [CHARACTERS|OCTETS] ) ]
-","
-A Unicode String of fixed length.
-
-Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
-If length is not specified, 1 character is used by default.
-
-The whole text is kept in memory when using this data type.
-For variable-length strings use [CHARACTER VARYING](https://h2database.com/html/datatypes.html#character_varying_type)
-data type instead.
-For large text data [CHARACTER LARGE OBJECT](https://h2database.com/html/datatypes.html#character_large_object_type)
-should be used; see there for details.
-
-Too short strings are right-padded with space characters.
-Too long strings are truncated by CAST specification and rejected by column assignment.
-
-Two CHARACTER strings of different length are considered as equal if all additional characters in the longer string
-are space characters.
-
-See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
-Mapped to ""java.lang.String"".
-","
-CHARACTER
-CHAR(10)
-"
-
-"Data Types","BINARY LARGE OBJECT Type","
-{ BINARY LARGE OBJECT | BLOB
-    | @c@ { TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE } }
-[ ( lengthLong [K|M|G|T|P]) ]
-","
-BINARY LARGE OBJECT is intended for very large binary values such as files or images.
-Unlike when using [BINARY VARYING](https://h2database.com/html/datatypes.html#binary_varying_type),
-large objects are not kept fully in-memory; instead, they are streamed.
-Use ""PreparedStatement.setBinaryStream"" to store values.
-See also [CHARACTER LARGE OBJECT](https://h2database.com/html/datatypes.html#character_large_object_type)
-and [Large Objects](https://h2database.com/html/advanced.html#large_objects) section.
-
-Mapped to ""java.sql.Blob"" (""java.io.InputStream"" is also supported).
-","
-BINARY LARGE OBJECT
-BLOB(10K)
-"
-
-"Data Types","CHARACTER LARGE OBJECT Type","
-{ { CHARACTER | CHAR } LARGE OBJECT | CLOB
-    | NCLOB | { NATIONAL CHARACTER | NCHAR } LARGE OBJECT
-    | @c@ { TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT } }
-[ ( lengthLong [K|M|G|T|P] [CHARACTERS|OCTETS]) ]
-","
-CHARACTER LARGE OBJECT is intended for very large Unicode character string values.
-Unlike when using [CHARACTER VARYING](https://h2database.com/html/datatypes.html#character_varying_type),
-large CHARACTER LARGE OBJECT values are not kept fully in-memory; instead, they are streamed.
-CHARACTER LARGE OBJECT should be used for documents and texts with arbitrary size such as XML or
-HTML documents, text files, or memo fields of unlimited size.
-Use ""PreparedStatement.setCharacterStream"" to store values.
-See also [Large Objects](https://h2database.com/html/advanced.html#large_objects) section.
-
-CHARACTER VARYING should be used for text with relatively short average size (for example
-shorter than 200 characters). Short CHARACTER LARGE OBJECT values are stored inline, but there is
-an overhead compared to CHARACTER VARYING.
-
-Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
-
-Mapped to ""java.sql.Clob"" (""java.io.Reader"" is also supported).
-","
-CHARACTER LARGE OBJECT
-CLOB(10K)
-"
-
-"Data Types","UUID Type","
-@h2@ UUID
-","
-Universally unique identifier. This is a 128 bit value.
-To store values, use ""PreparedStatement.setBytes"",
-""setString"", or ""setObject(uuid)"" (where ""uuid"" is a ""java.util.UUID"").
-""ResultSet.getObject"" will return a ""java.util.UUID"".
-
-Please note that using an index on randomly generated data will
-result on poor performance once there are millions of rows in a table.
-The reason is that the cache behavior is very bad with randomly distributed data.
-This is a problem for any database system.
-
-For details, see the documentation of ""java.util.UUID"".
-","
-UUID
-"
-
-"Data Types","ARRAY Type","
-baseDataType ARRAY [ '[' maximumCardinalityInt ']' ]
-","
-A data type for array of values.
-Base data type specifies the data type of elements.
-Array may have NULL elements.
-Maximum cardinality, if any, specifies maximum allowed number of elements in the array.
-
-See also [array](https://h2database.com/html/grammar.html#array) literal grammar.
-Mapped to ""java.lang.Object[]"" (arrays of any non-primitive type are also supported).
-
-Use ""PreparedStatement.setArray(..)"" or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
-and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the values.
-","
-BOOLEAN ARRAY
-VARCHAR(100) ARRAY
-INTEGER ARRAY[10]
-"
-
-"Data Types","ROW Type","
-ROW (fieldName dataType [,...])
-","
-A row value data type. This data type should not be normally used as data type of a column.
-
-See also [row value expression](https://h2database.com/html/grammar.html#row_value_expression) grammar.
-Mapped to ""java.sql.ResultSet"".
-","
-ROW(A INT, B VARCHAR(10))
 "
 
 "Data Types","ENUM Type","
@@ -4242,23 +4200,52 @@ Duplicate object member names are allowed.
 JSON
 "
 
-"Data Types","INTERVAL Type","
-intervalYearType | intervalMonthType | intervalDayType
-    | intervalHourType| intervalMinuteType | intervalSecondType
-    | intervalYearToMonthType | intervalDayToHourType
-    | intervalDayToMinuteType | intervalDayToSecondType
-    | intervalHourToMinuteType | intervalHourToSecondType
-    | intervalMinuteToSecondType
+"Data Types","UUID Type","
+@h2@ UUID
 ","
-Interval data type.
-There are two classes of intervals. Year-month intervals can store years and months.
-Day-time intervals can store days, hours, minutes, and seconds.
-Year-month intervals are comparable only with another year-month intervals.
-Day-time intervals are comparable only with another day-time intervals.
+Universally unique identifier. This is a 128 bit value.
+To store values, use ""PreparedStatement.setBytes"",
+""setString"", or ""setObject(uuid)"" (where ""uuid"" is a ""java.util.UUID"").
+""ResultSet.getObject"" will return a ""java.util.UUID"".
 
-Mapped to ""org.h2.api.Interval"".
+Please note that using an index on randomly generated data will
+result on poor performance once there are millions of rows in a table.
+The reason is that the cache behavior is very bad with randomly distributed data.
+This is a problem for any database system.
+
+For details, see the documentation of ""java.util.UUID"".
 ","
-INTERVAL DAY TO SECOND
+UUID
+"
+
+"Data Types","ARRAY Type","
+baseDataType ARRAY [ '[' maximumCardinalityInt ']' ]
+","
+A data type for array of values.
+Base data type specifies the data type of elements.
+Array may have NULL elements.
+Maximum cardinality, if any, specifies maximum allowed number of elements in the array.
+
+See also [array](https://h2database.com/html/grammar.html#array) literal grammar.
+Mapped to ""java.lang.Object[]"" (arrays of any non-primitive type are also supported).
+
+Use ""PreparedStatement.setArray(..)"" or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
+and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the values.
+","
+BOOLEAN ARRAY
+VARCHAR(100) ARRAY
+INTEGER ARRAY[10]
+"
+
+"Data Types","ROW Type","
+ROW (fieldName dataType [,...])
+","
+A row value data type. This data type should not be normally used as data type of a column.
+
+See also [row value expression](https://h2database.com/html/grammar.html#row_value_expression) grammar.
+Mapped to ""java.sql.ResultSet"".
+","
+ROW(A INT, B VARCHAR(10))
 "
 
 "Interval Data Types","INTERVAL YEAR Type","

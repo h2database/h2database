@@ -1052,7 +1052,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // MAXIMUM_SCALE
                         ValueSmallint.get(MathUtils.convertIntToShort(t.maxScale)),
                         // RADIX
-                        t.decimal ? ValueInteger.get(10) : null,
+                        DataType.isNumericType(i) ? ValueInteger.get(10) : null,
                         // POS
                         ValueInteger.get(t.type),
                         // CASE_SENSITIVE

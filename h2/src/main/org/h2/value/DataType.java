@@ -75,11 +75,6 @@ public class DataType {
     public int maxScale;
 
     /**
-     * If this is a numeric type.
-     */
-    public boolean decimal;
-
-    /**
      * The prefix required for the SQL literal representation.
      */
     public String prefix;
@@ -169,7 +164,6 @@ public class DataType {
         dataType.params = "PRECISION,SCALE";
         dataType.supportsPrecision = true;
         dataType.supportsScale = true;
-        dataType.decimal = true;
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
             add(Value.NUMERIC, Types.DECIMAL, dataType, "DECIMAL", "NUMERIC", "DEC", "NUMBER");
         } else {
@@ -272,7 +266,6 @@ public class DataType {
         DataType dataType = new DataType();
         dataType.defaultPrecision = dataType.maxPrecision = dataType.minPrecision = precision;
         dataType.defaultScale = dataType.maxScale = dataType.minScale = scale;
-        dataType.decimal = true;
         dataType.autoIncrement = autoInc;
         return dataType;
     }

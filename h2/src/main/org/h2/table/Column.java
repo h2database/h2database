@@ -652,7 +652,7 @@ public class Column implements HasSQL, Typed {
     }
 
     public void setComment(String comment) {
-        this.comment = comment;
+        this.comment = comment != null && !comment.isEmpty() ? comment : null;
     }
 
     public String getComment() {

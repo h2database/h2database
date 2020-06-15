@@ -150,8 +150,8 @@ public class TestScript extends TestDb {
             testScript("datatypes/" + s + ".sql");
         }
         for (String s : new String[] { "alterDomain", "alterTableAdd", "alterTableAlterColumn", "alterTableDropColumn",
-                "alterTableRename", "analyze", "createAlias", "createConstant", "createDomain", "createSequence",
-                "createSynonym",
+                "alterTableRename", "analyze", "commentOn", "createAlias", "createConstant", "createDomain",
+                "createSequence", "createSynonym",
                 "createTable", "createTrigger", "createView", "dropAllObjects", "dropDomain", "dropIndex",
                 "dropSchema", "dropTable", "grant", "truncateTable" }) {
             testScript("ddl/" + s + ".sql");

@@ -146,7 +146,7 @@ public abstract class DbObjectBase implements DbObject {
 
     @Override
     public void setComment(String comment) {
-        this.comment = comment;
+        this.comment = comment != null && !comment.isEmpty() ? comment : null;
     }
 
     @Override

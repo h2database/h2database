@@ -21,7 +21,7 @@ CREATE CONSTANT CONST.ONE VALUE 1;
 SELECT CONSTANT_SCHEMA, CONSTANT_NAME, DATA_TYPE, NUMERIC_PRECISION, REMARKS, SQL FROM INFORMATION_SCHEMA.CONSTANTS;
 > CONSTANT_SCHEMA CONSTANT_NAME DATA_TYPE NUMERIC_PRECISION REMARKS SQL
 > --------------- ------------- --------- ----------------- ------- ---
-> CONST           ONE           INTEGER   32                        1
+> CONST           ONE           INTEGER   32                null    1
 > PUBLIC          ONE           INTEGER   32                Eins    1
 > rows: 2
 
@@ -40,7 +40,7 @@ DROP SCHEMA CONST CASCADE;
 SELECT CONSTANT_SCHEMA, CONSTANT_NAME, DATA_TYPE, REMARKS, SQL FROM INFORMATION_SCHEMA.CONSTANTS;
 > CONSTANT_SCHEMA CONSTANT_NAME DATA_TYPE REMARKS SQL
 > --------------- ------------- --------- ------- ---
-> PUBLIC          ONE           INTEGER           1
+> PUBLIC          ONE           INTEGER   null    1
 > rows: 1
 
 DROP CONSTANT ONE;

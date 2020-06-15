@@ -90,6 +90,9 @@ public class SetComment extends DefineCommand {
             throw DbException.get(errorCode, objectName);
         }
         String text = expr.optimize(session).getValue(session).getString();
+        if (text != null && text.isEmpty()) {
+            text = null;
+        }
         if (column) {
             Table table = (Table) object;
             table.getColumn(columnName).setComment(text);

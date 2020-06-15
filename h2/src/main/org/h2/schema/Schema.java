@@ -700,6 +700,10 @@ public class Schema extends DbObjectBase {
         return domains.values();
     }
 
+    public Collection<Constant> getAllConstants() {
+        return constants.values();
+    }
+
     /**
      * Get all tables and views.
      *

@@ -497,7 +497,7 @@ public class TestWeb extends TestDb {
             result = client.get(url, "query.do?sql=@table_types");
             assertContains(result, "BASE TABLE");
             result = client.get(url, "query.do?sql=@type_info");
-            assertContains(result, "CLOB");
+            assertContains(result, "CHARACTER LARGE OBJECT");
             result = client.get(url, "query.do?sql=@version_columns");
             assertContains(result, "PSEUDO_COLUMN");
             result = client.get(url, "query.do?sql=@attributes");

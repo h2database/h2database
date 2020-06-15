@@ -154,7 +154,7 @@ public class JdbcArray extends TraceObject implements Array {
             debugCodeCall("getBaseTypeName");
             checkClosed();
             return value == ValueNull.INSTANCE ? "NULL"
-                    : DataType.getDataType(((ValueArray) value).getComponentType().getValueType()).name;
+                    : Value.getTypeName(((ValueArray) value).getComponentType().getValueType());
         } catch (Exception e) {
             throw logAndConvert(e);
         }

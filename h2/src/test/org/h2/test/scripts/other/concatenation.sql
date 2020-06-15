@@ -19,25 +19,25 @@ SELECT S || 'v' || '' || 'x' || S || (S || S), S || '', S || (B || X'50'), B || 
 > rows: 3
 
 EXPLAIN SELECT S || A, ARRAY[] || A, S || CAST(ARRAY[] AS VARCHAR ARRAY), A || A || A FROM TEST;
->> SELECT "S" || "A", "A", CAST("S" AS VARCHAR ARRAY), "A" || "A" || "A" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+>> SELECT "S" || "A", "A", CAST("S" AS CHARACTER VARYING ARRAY), "A" || "A" || "A" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
 
 SELECT S || A, ARRAY[] || A, S || CAST(ARRAY[] AS VARCHAR ARRAY), A || A || A FROM TEST;
-> S || A A    CAST(S AS VARCHAR ARRAY) A || A || A
-> ------ ---- ------------------------ -----------
-> []     []   []                       []
-> [a, b] [b]  [a]                      [b, b, b]
-> null   null null                     null
+> S || A A    CAST(S AS CHARACTER VARYING ARRAY) A || A || A
+> ------ ---- ---------------------------------- -----------
+> []     []   []                                 []
+> [a, b] [b]  [a]                                [b, b, b]
+> null   null null                               null
 > rows: 3
 
 EXPLAIN SELECT B || NULL, B || X'22' || NULL FROM TEST;
->> SELECT CAST(NULL AS VARBINARY(10)), CAST(NULL AS VARBINARY(11)) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+>> SELECT CAST(NULL AS BINARY VARYING(10)), CAST(NULL AS BINARY VARYING(11)) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
 
 SELECT B || NULL, B || X'22' || NULL FROM TEST;
-> CAST(NULL AS VARBINARY(10)) CAST(NULL AS VARBINARY(11))
-> --------------------------- ---------------------------
-> null                        null
-> null                        null
-> null                        null
+> CAST(NULL AS BINARY VARYING(10)) CAST(NULL AS BINARY VARYING(11))
+> -------------------------------- --------------------------------
+> null                             null
+> null                             null
+> null                             null
 > rows: 3
 
 EXPLAIN SELECT B || X'', A || ARRAY['a'] FROM TEST;

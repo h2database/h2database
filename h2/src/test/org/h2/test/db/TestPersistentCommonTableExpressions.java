@@ -33,14 +33,8 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
     }
 
     private void testRecursiveTable() throws Exception {
-        String numericName;
-        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
-            numericName = "DECIMAL";
-        } else {
-            numericName = "NUMERIC";
-        }
         String[] expectedRowData = new String[]{"|meat|null", "|fruit|3", "|veg|2"};
-        String[] expectedColumnTypes = new String[]{"VARCHAR", numericName};
+        String[] expectedColumnTypes = new String[]{"CHARACTER VARYING", "NUMERIC"};
         String[] expectedColumnNames = new String[]{"VAL",
                 "SUM((SELECT\n" +
                 "    X\n" +

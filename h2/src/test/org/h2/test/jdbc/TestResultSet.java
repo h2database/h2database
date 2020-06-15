@@ -49,7 +49,6 @@ import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
-import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.IOUtils;
@@ -1113,12 +1112,6 @@ public class TestResultSet extends TestDb {
     }
 
     private void testDecimal() throws SQLException {
-        int numericType;
-        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
-            numericType = Types.DECIMAL;
-        } else {
-            numericType = Types.NUMERIC;
-        }
         trace("Test DECIMAL");
         ResultSet rs;
         Object o;
@@ -1133,7 +1126,7 @@ public class TestResultSet extends TestDb {
         stat.execute("INSERT INTO TEST VALUES(8,NULL)");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
-                new int[] { Types.INTEGER, numericType }, new int[] {
+                new int[] { Types.INTEGER, Types.NUMERIC }, new int[] {
                 32, 10 }, new int[] { 0, 2 });
         BigDecimal bd;
 

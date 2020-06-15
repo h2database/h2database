@@ -14,6 +14,7 @@ import org.h2.result.ResultInterface;
 import org.h2.util.MathUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
+import org.h2.value.Value;
 import org.h2.value.ValueToObjectConverter;
 
 /**
@@ -123,8 +124,7 @@ public class JdbcResultSetMetaData extends TraceObject implements
         try {
             debugCodeCall("getColumnTypeName", column);
             checkColumnIndex(column);
-            int type = result.getColumnType(--column).getValueType();
-            return DataType.getDataType(type).name;
+            return Value.getTypeName(result.getColumnType(--column).getValueType());
         } catch (Exception e) {
             throw logAndConvert(e);
         }

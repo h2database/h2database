@@ -10,7 +10,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLType;
 import java.sql.Types;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,10 +35,10 @@ public class DataType {
     public static final int TYPE_RESULT_SET = -10;
 
     /**
-     * The list of types.
+     * The map of types.
      */
-    private static final ArrayList<DataType> TYPES = new ArrayList<>(96);
     private static final HashMap<String, DataType> TYPES_BY_NAME = new HashMap<>(128);
+
     /**
      * Mapping from Value type numbers to DataType.
      */
@@ -49,11 +48,6 @@ public class DataType {
      * The value type of this data type.
      */
     public int type;
-
-    /**
-     * The data type name.
-     */
-    public String name;
 
     /**
      * The SQL type.
@@ -81,11 +75,6 @@ public class DataType {
     public int maxScale;
 
     /**
-     * If this is a numeric type.
-     */
-    public boolean decimal;
-
-    /**
      * The prefix required for the SQL literal representation.
      */
     public String prefix;
@@ -99,11 +88,6 @@ public class DataType {
      * The list of parameters used in the column definition.
      */
     public String params;
-
-    /**
-     * If this is an autoincrement type.
-     */
-    public boolean autoIncrement;
 
     /**
      * If this data type is case sensitive.
@@ -130,85 +114,35 @@ public class DataType {
      */
     public int defaultScale;
 
-    /**
-     * If this data type should not be listed in the database meta data.
-     */
-    public boolean hidden;
-
     static {
         DataType dataType = new DataType();
         dataType.defaultPrecision = dataType.maxPrecision = dataType.minPrecision = ValueNull.PRECISION;
-        dataType.hidden = true;
-        add(Value.NULL, Types.NULL,
-                dataType,
-                new String[]{"NULL"}
+        add(Value.NULL, Types.NULL, dataType, "NULL");
+        add(Value.CHAR, Types.CHAR, createString(true, true),
+                "CHARACTER", "CHAR", "NCHAR", "NATIONAL CHARACTER", "NATIONAL CHAR");
+        add(Value.VARCHAR, Types.VARCHAR, createString(true, false),
+                "CHARACTER VARYING", "VARCHAR", "CHAR VARYING",
+                "NCHAR VARYING", "NATIONAL CHARACTER VARYING", "NATIONAL CHAR VARYING",
+                "VARCHAR2", "NVARCHAR", "NVARCHAR2",
+                "VARCHAR_CASESENSITIVE", "TID",
+                "LONGVARCHAR", "LONGNVARCHAR");
+        add(Value.CLOB, Types.CLOB, createLob(true),
+                "CHARACTER LARGE OBJECT", "CLOB", "CHAR LARGE OBJECT", "TINYTEXT", "TEXT", "MEDIUMTEXT",
+                "LONGTEXT", "NTEXT", "NCLOB", "NCHAR LARGE OBJECT", "NATIONAL CHARACTER LARGE OBJECT");
+        add(Value.VARCHAR_IGNORECASE, Types.VARCHAR, createString(false, false), "VARCHAR_IGNORECASE");
+        add(Value.BINARY, Types.BINARY, createBinary(true), "BINARY");
+        add(Value.VARBINARY, Types.VARBINARY, createBinary(false),
+                "BINARY VARYING", "VARBINARY", "RAW", "BYTEA", "LONG RAW", "LONGVARBINARY");
+        add(Value.BLOB, Types.BLOB, createLob(false),
+                "BINARY LARGE OBJECT", "BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "IMAGE");
+        add(Value.BOOLEAN, Types.BOOLEAN, createNumeric(ValueBoolean.PRECISION, 0), "BOOLEAN", "BIT", "BOOL");
+        add(Value.TINYINT, Types.TINYINT, createNumeric(ValueTinyint.PRECISION, 0), "TINYINT");
+        add(Value.SMALLINT, Types.SMALLINT, createNumeric(ValueSmallint.PRECISION, 0), "SMALLINT", "YEAR", "INT2");
+        add(Value.INTEGER, Types.INTEGER, createNumeric(ValueInteger.PRECISION, 0),
+                "INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED", "SERIAL"
         );
-        add(Value.CHAR, Types.CHAR,
-                createString(true, true),
-                new String[]{"CHAR", "CHARACTER", "NCHAR", "NATIONAL CHARACTER", "NATIONAL CHAR"}
-        );
-        add(Value.VARCHAR, Types.VARCHAR,
-                createString(true, false),
-                new String[]{"VARCHAR", "CHARACTER VARYING", "CHAR VARYING",
-                        "NCHAR VARYING", "NATIONAL CHARACTER VARYING", "NATIONAL CHAR VARYING",
-                        "VARCHAR2", "NVARCHAR", "NVARCHAR2",
-                        "VARCHAR_CASESENSITIVE", "TID",
-                        "LONGVARCHAR", "LONGNVARCHAR"}
-        );
-        add(Value.CLOB, Types.CLOB,
-                createLob(true),
-                new String[]{"CLOB", "CHARACTER LARGE OBJECT", "CHAR LARGE OBJECT", "TINYTEXT", "TEXT", "MEDIUMTEXT",
-                    "LONGTEXT", "NTEXT", "NCLOB", "NCHAR LARGE OBJECT", "NATIONAL CHARACTER LARGE OBJECT"}
-        );
-        add(Value.VARCHAR_IGNORECASE, Types.VARCHAR,
-                createString(false, false),
-                new String[]{"VARCHAR_IGNORECASE"}
-        );
-        add(Value.BINARY, Types.BINARY,
-                createBinary(true),
-                new String[]{"BINARY"}
-        );
-        add(Value.VARBINARY, Types.VARBINARY,
-                createBinary(false),
-                new String[]{"VARBINARY", "BINARY VARYING", "RAW", "BYTEA", "LONG RAW", "LONGVARBINARY"}
-        );
-        add(Value.BLOB, Types.BLOB,
-                createLob(false),
-                new String[]{"BLOB", "BINARY LARGE OBJECT", "TINYBLOB", "MEDIUMBLOB",
-                    "LONGBLOB", "IMAGE"}
-        );
-        add(Value.BOOLEAN, Types.BOOLEAN,
-                createNumeric(ValueBoolean.PRECISION, 0, false),
-                new String[]{"BOOLEAN", "BIT", "BOOL"}
-        );
-        add(Value.TINYINT, Types.TINYINT,
-                createNumeric(ValueTinyint.PRECISION, 0, false),
-                new String[]{"TINYINT"}
-        );
-        add(Value.SMALLINT, Types.SMALLINT,
-                createNumeric(ValueSmallint.PRECISION, 0, false),
-                new String[]{"SMALLINT", "YEAR", "INT2"}
-        );
-        add(Value.INTEGER, Types.INTEGER,
-                createNumeric(ValueInteger.PRECISION, 0, false),
-                new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"}
-        );
-        dataType = createNumeric(ValueInteger.PRECISION, 0, true);
-        dataType.hidden = true;
-        add(Value.INTEGER, Types.INTEGER,
-                dataType,
-                new String[]{"SERIAL"}
-        );
-        add(Value.BIGINT, Types.BIGINT,
-                createNumeric(ValueBigint.PRECISION, 0, false),
-                new String[]{"BIGINT", "INT8", "LONG"}
-        );
-        dataType = createNumeric(ValueBigint.PRECISION, 0, true);
-        dataType.hidden = true;
-        add(Value.BIGINT, Types.BIGINT,
-                dataType,
-                new String[]{"IDENTITY", "BIGSERIAL"}
-        );
+        add(Value.BIGINT, Types.BIGINT, createNumeric(ValueBigint.PRECISION, 0),
+                "BIGINT", "INT8", "LONG", "IDENTITY", "BIGSERIAL");
         dataType = new DataType();
         dataType.minPrecision = 1;
         dataType.maxPrecision = Integer.MAX_VALUE;
@@ -219,109 +153,61 @@ public class DataType {
         dataType.params = "PRECISION,SCALE";
         dataType.supportsPrecision = true;
         dataType.supportsScale = true;
-        dataType.decimal = true;
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
-            add(Value.NUMERIC, Types.DECIMAL,
-                    dataType,
-                    new String[]{"DECIMAL", "NUMERIC", "DEC", "NUMBER"}
-            );
+            add(Value.NUMERIC, Types.DECIMAL, dataType, "DECIMAL", "NUMERIC", "DEC", "NUMBER");
         } else {
-            add(Value.NUMERIC, Types.NUMERIC,
-                    dataType,
-                    new String[]{"NUMERIC", "DECIMAL", "DEC", "NUMBER"}
-            );
+            add(Value.NUMERIC, Types.NUMERIC, dataType, "NUMERIC", "DECIMAL", "DEC", "NUMBER");
         }
-        add(Value.REAL, Types.REAL,
-                createNumeric(ValueReal.PRECISION, 0, false),
-                new String[] {"REAL", "FLOAT4"}
-        );
-        add(Value.DOUBLE, Types.DOUBLE,
-                createNumeric(ValueDouble.PRECISION, 0, false),
-                new String[] { "DOUBLE PRECISION", "DOUBLE" }
-        );
-        add(Value.DOUBLE, Types.FLOAT,
-                createNumeric(ValueDouble.PRECISION, 0, false),
-                new String[] {"FLOAT", "FLOAT8" }
-        );
-        add(Value.DATE, Types.DATE,
-                createDate(ValueDate.PRECISION, ValueDate.PRECISION,
-                        "DATE", false, 0, 0),
-                new String[]{"DATE"}
-        );
+        add(Value.REAL, Types.REAL, createNumeric(ValueReal.PRECISION, 0), "REAL", "FLOAT4");
+        add(Value.DOUBLE, Types.DOUBLE, createNumeric(ValueDouble.PRECISION, 0),
+                "DOUBLE PRECISION", "DOUBLE", "FLOAT8");
+        add(Value.DOUBLE, Types.FLOAT, createNumeric(ValueDouble.PRECISION, 0), "FLOAT");
+        add(Value.DATE, Types.DATE, createDate(ValueDate.PRECISION, ValueDate.PRECISION, "DATE", false, 0, 0), "DATE");
         add(Value.TIME, Types.TIME,
                 createDate(ValueTime.MAXIMUM_PRECISION, ValueTime.DEFAULT_PRECISION,
                         "TIME", true, ValueTime.DEFAULT_SCALE, ValueTime.MAXIMUM_SCALE),
-                new String[]{"TIME", "TIME WITHOUT TIME ZONE"}
-        );
+                "TIME", "TIME WITHOUT TIME ZONE");
         add(Value.TIME_TZ, Types.TIME_WITH_TIMEZONE,
                 createDate(ValueTimeTimeZone.MAXIMUM_PRECISION, ValueTimeTimeZone.DEFAULT_PRECISION,
-                        "TIME WITH TIME ZONE", true, ValueTime.DEFAULT_SCALE,
-                        ValueTime.MAXIMUM_SCALE),
-                new String[]{"TIME WITH TIME ZONE"}
-        );
+                        "TIME WITH TIME ZONE", true, ValueTime.DEFAULT_SCALE, ValueTime.MAXIMUM_SCALE),
+                "TIME WITH TIME ZONE");
         add(Value.TIMESTAMP, Types.TIMESTAMP,
                 createDate(ValueTimestamp.MAXIMUM_PRECISION, ValueTimestamp.DEFAULT_PRECISION,
                         "TIMESTAMP", true, ValueTimestamp.DEFAULT_SCALE, ValueTimestamp.MAXIMUM_SCALE),
-                new String[]{"TIMESTAMP", "TIMESTAMP WITHOUT TIME ZONE",
-                        "DATETIME", "DATETIME2", "SMALLDATETIME"}
-        );
+                "TIMESTAMP", "TIMESTAMP WITHOUT TIME ZONE", "DATETIME", "DATETIME2", "SMALLDATETIME");
         add(Value.TIMESTAMP_TZ, Types.TIMESTAMP_WITH_TIMEZONE,
                 createDate(ValueTimestampTimeZone.MAXIMUM_PRECISION, ValueTimestampTimeZone.DEFAULT_PRECISION,
-                        "TIMESTAMP WITH TIME ZONE", true, ValueTimestamp.DEFAULT_SCALE,
-                        ValueTimestamp.MAXIMUM_SCALE),
-                new String[]{"TIMESTAMP WITH TIME ZONE"}
-        );
+                        "TIMESTAMP WITH TIME ZONE", true, ValueTimestamp.DEFAULT_SCALE, ValueTimestamp.MAXIMUM_SCALE),
+                "TIMESTAMP WITH TIME ZONE");
         for (int i = Value.INTERVAL_YEAR; i <= Value.INTERVAL_MINUTE_TO_SECOND; i++) {
             addInterval(i);
         }
-        add(Value.JAVA_OBJECT, Types.JAVA_OBJECT,
-                createBinary(false),
-                new String[]{"JAVA_OBJECT", "OBJECT", "OTHER"}
-        );
+        add(Value.JAVA_OBJECT, Types.JAVA_OBJECT, createBinary(false), "JAVA_OBJECT", "OBJECT", "OTHER");
         dataType = createString(false, false);
         dataType.supportsPrecision = false;
         dataType.params = "ELEMENT [,...]";
-        add(Value.ENUM, Types.OTHER,
-                dataType,
-                new String[]{"ENUM"}
-        );
-        add(Value.GEOMETRY, Types.OTHER,
-                createGeometry(),
-                new String[]{"GEOMETRY"}
-        );
-        add(Value.JSON, Types.OTHER,
-                createString(true, false, "JSON '", "'"),
-                new String[]{"JSON"}
-        );
+        add(Value.ENUM, Types.OTHER, dataType, "ENUM");
+        add(Value.GEOMETRY, Types.OTHER, createGeometry(), "GEOMETRY");
+        add(Value.JSON, Types.OTHER, createString(true, false, "JSON '", "'"), "JSON");
         dataType = new DataType();
         dataType.prefix = dataType.suffix = "'";
         dataType.defaultPrecision = dataType.maxPrecision = dataType.minPrecision = ValueUuid.PRECISION;
-        add(Value.UUID, Types.BINARY,
-                dataType,
-                // UNIQUEIDENTIFIER is the MSSQL mode equivalent
-                new String[]{"UUID", "UNIQUEIDENTIFIER"}
-        );
+        add(Value.UUID, Types.BINARY, dataType, "UUID");
         dataType = new DataType();
         dataType.prefix = "ARRAY[";
         dataType.suffix = "]";
         dataType.params = "CARDINALITY";
         dataType.supportsPrecision = true;
         dataType.defaultPrecision = dataType.maxPrecision = Integer.MAX_VALUE;
-        add(Value.ARRAY, Types.ARRAY,
-                dataType,
-                new String[]{"ARRAY"}
-        );
+        add(Value.ARRAY, Types.ARRAY, dataType, "ARRAY");
         dataType = new DataType();
         dataType.prefix = "ROW(";
         dataType.suffix = ")";
         dataType.params = "NAME DATA_TYPE [,...]";
-        add(Value.ROW, Types.OTHER, dataType, new String[] {"ROW"});
+        add(Value.ROW, Types.OTHER, dataType, "ROW");
         dataType = new DataType();
         dataType.maxPrecision = dataType.defaultPrecision = Integer.MAX_VALUE;
-        add(Value.RESULT_SET, DataType.TYPE_RESULT_SET,
-                dataType,
-                new String[]{"RESULT_SET"}
-        );
+        add(Value.RESULT_SET, DataType.TYPE_RESULT_SET, dataType, "RESULT_SET");
     }
 
     private static void addInterval(int type) {
@@ -342,38 +228,17 @@ public class DataType {
         } else {
             dataType.params = "PRECISION";
         }
-        add(type, Types.OTHER, dataType,
-                new String[]{("INTERVAL " + name).intern()}
-        );
+        add(type, Types.OTHER, dataType, ("INTERVAL " + name).intern());
     }
 
-    private static void add(int type, int sqlType,
-            DataType dataType, String[] names) {
-        for (int i = 0; i < names.length; i++) {
-            DataType dt = new DataType();
-            dt.type = type;
-            dt.sqlType = sqlType;
-            dt.name = names[i];
-            dt.autoIncrement = dataType.autoIncrement;
-            dt.decimal = dataType.decimal;
-            dt.minPrecision = dataType.minPrecision;
-            dt.maxPrecision = dataType.maxPrecision;
-            dt.maxScale = dataType.maxScale;
-            dt.minScale = dataType.minScale;
-            dt.params = dataType.params;
-            dt.prefix = dataType.prefix;
-            dt.suffix = dataType.suffix;
-            dt.supportsPrecision = dataType.supportsPrecision;
-            dt.supportsScale = dataType.supportsScale;
-            dt.defaultPrecision = dataType.defaultPrecision;
-            dt.defaultScale = dataType.defaultScale;
-            dt.caseSensitive = dataType.caseSensitive;
-            dt.hidden = dataType.hidden || i > 0;
-            TYPES_BY_NAME.put(dt.name, dt);
-            if (TYPES_BY_VALUE_TYPE[type] == null) {
-                TYPES_BY_VALUE_TYPE[type] = dt;
-            }
-            TYPES.add(dt);
+    private static void add(int type, int sqlType, DataType dataType, String... names) {
+        dataType.type = type;
+        dataType.sqlType = sqlType;
+        if (TYPES_BY_VALUE_TYPE[type] == null) {
+            TYPES_BY_VALUE_TYPE[type] = dataType;
+        }
+        for (String name : names) {
+            TYPES_BY_NAME.put(name, dataType);
         }
     }
 
@@ -382,15 +247,12 @@ public class DataType {
      *
      * @param precision precision
      * @param scale scale
-     * @param autoInc whether the data type is an auto-increment type
      * @return data type
      */
-    public static DataType createNumeric(int precision, int scale, boolean autoInc) {
+    public static DataType createNumeric(int precision, int scale) {
         DataType dataType = new DataType();
         dataType.defaultPrecision = dataType.maxPrecision = dataType.minPrecision = precision;
         dataType.defaultScale = dataType.maxScale = dataType.minScale = scale;
-        dataType.decimal = true;
-        dataType.autoIncrement = autoInc;
         return dataType;
     }
 
@@ -460,15 +322,6 @@ public class DataType {
     }
 
     /**
-     * Get the list of data types.
-     *
-     * @return the list
-     */
-    public static ArrayList<DataType> getTypes() {
-        return TYPES;
-    }
-
-    /**
      * Get the data type object for the given value type.
      *
      * @param type the value type
@@ -479,10 +332,7 @@ public class DataType {
             throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?");
         }
         if (type >= Value.NULL && type < Value.TYPE_COUNT) {
-            DataType dt = TYPES_BY_VALUE_TYPE[type];
-            if (dt != null) {
-                return dt;
-            }
+            return TYPES_BY_VALUE_TYPE[type];
         }
         return TYPES_BY_VALUE_TYPE[Value.NULL];
     }

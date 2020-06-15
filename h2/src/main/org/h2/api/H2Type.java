@@ -19,19 +19,19 @@ public final class H2Type implements SQLType {
     // Character strings
 
     /**
-     * The CHAR data type.
+     * The CHARACTER data type.
      */
-    public static final H2Type CHAR = new H2Type(TypeInfo.getTypeInfo(Value.CHAR), "CHAR");
+    public static final H2Type CHAR = new H2Type(TypeInfo.getTypeInfo(Value.CHAR), "CHARACTER");
 
     /**
-     * The VARCHAR data type.
+     * The CHARACTER VARYING data type.
      */
-    public static final H2Type VARCHAR = new H2Type(TypeInfo.TYPE_VARCHAR, "VARCHAR");
+    public static final H2Type VARCHAR = new H2Type(TypeInfo.TYPE_VARCHAR, "CHARACTER VARYING");
 
     /**
-     * The CLOB data type.
+     * The CHARACTER LARGE OBJECT data type.
      */
-    public static final H2Type CLOB = new H2Type(TypeInfo.TYPE_CLOB, "CLOB");
+    public static final H2Type CLOB = new H2Type(TypeInfo.TYPE_CLOB, "CHARACTER LARGE OBJECT");
 
     /**
      * The VARCHAR_IGNORECASE data type.
@@ -41,19 +41,19 @@ public final class H2Type implements SQLType {
     // Binary strings
 
     /**
-     * The VARBINARY data type.
+     * The BINARY data type.
      */
     public static final H2Type BINARY = new H2Type(TypeInfo.getTypeInfo(Value.BINARY), "BINARY");
 
     /**
-     * The VARBINARY data type.
+     * The BINARY VARYING data type.
      */
-    public static final H2Type VARBINARY = new H2Type(TypeInfo.TYPE_VARBINARY, "VARBINARY");
+    public static final H2Type VARBINARY = new H2Type(TypeInfo.TYPE_VARBINARY, "BINARY VARYING");
 
     /**
-     * The BLOB data type.
+     * The BINARY LARGE OBJECT data type.
      */
-    public static final H2Type BLOB = new H2Type(TypeInfo.TYPE_BLOB, "BLOB");
+    public static final H2Type BLOB = new H2Type(TypeInfo.TYPE_BLOB, "BINARY LARGE OBJECT");
 
     // Boolean
 
@@ -99,7 +99,7 @@ public final class H2Type implements SQLType {
     /**
      * The DOUBLE PRECISION data type.
      */
-    public static final H2Type DOUBLE_PRECISION = new H2Type(TypeInfo.TYPE_DOUBLE, "DOUBLE_PRECISION");
+    public static final H2Type DOUBLE_PRECISION = new H2Type(TypeInfo.TYPE_DOUBLE, "DOUBLE PRECISION");
 
     // Date-time data types
 

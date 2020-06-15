@@ -6773,7 +6773,7 @@ public class Parser {
                         Integer.toString(dataType.minScale), Integer.toString(dataType.maxScale));
             }
         }
-        if (mode.allNumericTypesHavePrecision && dataType.decimal) {
+        if (mode.allNumericTypesHavePrecision && DataType.isNumericType(dataType.type)) {
             if (readIf(OPEN_PAREN)) {
                 // Support for MySQL: INT(11), MEDIUMINT(8) and so on.
                 // Just ignore the precision.

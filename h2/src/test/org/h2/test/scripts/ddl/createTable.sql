@@ -123,10 +123,10 @@ CREATE TABLE TEST(A, B, C) AS SELECT 1, 2, CAST ('A' AS VARCHAR);
 
 SELECT COLUMN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
 > COLUMN_NAME COLUMN_TYPE
-> ----------- -----------
+> ----------- -----------------
 > A           INTEGER
 > B           INTEGER
-> C           VARCHAR
+> C           CHARACTER VARYING
 > rows: 3
 
 DROP TABLE TEST;

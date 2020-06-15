@@ -99,7 +99,7 @@ alter table test alter column id set data type varchar;
 > ok
 
 select data_type from information_schema.columns c where c.table_name = 'TEST' and c.column_name = 'ID';
->> VARCHAR
+>> CHARACTER VARYING
 
 alter table test alter column id type int;
 > ok
@@ -952,23 +952,6 @@ drop schema tests cascade;
 > ok
 
 @reconnect
-
-create constant abc value 1;
-> ok
-
-comment on constant abc is 'One';
-> ok
-
-select remarks from information_schema.constants where constant_name = 'ABC';
->> One
-
-@reconnect
-
-select remarks from information_schema.constants where constant_name = 'ABC';
->> One
-
-drop constant abc;
-> ok
 
 drop table test;
 > ok

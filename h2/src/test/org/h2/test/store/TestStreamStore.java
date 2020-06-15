@@ -41,6 +41,7 @@ public class TestStreamStore extends TestBase {
 
     @Override
     public void test() throws IOException {
+        FileUtils.createDirectories(getBaseDir());
         testMaxBlockKey();
         testIOException();
         testSaveCount();

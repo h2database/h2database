@@ -38,7 +38,6 @@ import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Utils.ClassFactory;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueToObjectConverter;
@@ -591,7 +590,7 @@ public class JdbcUtils {
             }
             break;
         default:
-            throw DbException.getUnsupportedException(DataType.getDataType(valueType).name);
+            throw DbException.getUnsupportedException(Value.getTypeName(valueType));
         }
     }
 

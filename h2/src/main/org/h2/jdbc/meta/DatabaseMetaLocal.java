@@ -5,6 +5,8 @@
  */
 package org.h2.jdbc.meta;
 
+import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
+
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -38,7 +40,6 @@ import org.h2.schema.SchemaObjectBase;
 import org.h2.schema.UserAggregate;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.InformationSchemaTable;
 import org.h2.table.Table;
 import org.h2.table.TableSynonym;
 import org.h2.util.MathUtils;
@@ -359,7 +360,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 // DATA_TYPE
                 ValueInteger.get(dt.sqlType),
                 // TYPE_NAME
-                getString(InformationSchemaTable.getDataTypeName(type)),
+                getDataTypeName(type),
                 // PRECISION
                 precisionValue,
                 // LENGTH
@@ -583,7 +584,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     // DATA_TYPE
                     ValueInteger.get(dt.sqlType),
                     // TYPE_NAME
-                    getString(InformationSchemaTable.getDataTypeName(type)),
+                    getDataTypeName(type),
                     // COLUMN_SIZE
                     precision,
                     // BUFFER_LENGTH
@@ -835,7 +836,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                             // DATA_TYPE
                             ValueInteger.get(dt.sqlType),
                             // TYPE_NAME
-                            getString(InformationSchemaTable.getDataTypeName(type)),
+                            getDataTypeName(type),
                             // COLUMN_SIZE
                             ValueInteger.get(MathUtils.convertLongToInt(type.getPrecision())),
                             // BUFFER_LENGTH
@@ -850,6 +851,23 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         }
         // Order by SCOPE (always the same)
         return result;
+    }
+
+    private Value getDataTypeName(TypeInfo typeInfo) {
+        String name;
+        switch (typeInfo.getValueType()) {
+        case Value.ARRAY:
+            typeInfo = (TypeInfo) typeInfo.getExtTypeInfo();
+            // Use full type names with parameters for elements
+            name = typeInfo.getSQL(new StringBuilder(), DEFAULT_SQL_FLAGS).append(" ARRAY").toString();
+            break;
+        case Value.ROW:
+            name = typeInfo.getSQL(DEFAULT_SQL_FLAGS);
+            break;
+        default:
+            name = Value.getTypeName(typeInfo.getValueType());
+        }
+        return getString(name);
     }
 
     @Override

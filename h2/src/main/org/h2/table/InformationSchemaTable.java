@@ -2685,25 +2685,6 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    /**
-     * Get data type name.
-     *
-     * @param typeInfo
-     *            type information
-     * @return data type name
-     */
-    public static String getDataTypeName(TypeInfo typeInfo) {
-        switch (typeInfo.getValueType()) {
-        case Value.ARRAY:
-            typeInfo = (TypeInfo) typeInfo.getExtTypeInfo();
-            // Use full type names with parameters for elements
-            return typeInfo.getSQL(new StringBuilder(), DEFAULT_SQL_FLAGS).append(" ARRAY").toString();
-        case Value.ROW:
-            return typeInfo.getSQL(DEFAULT_SQL_FLAGS);
-        }
-        return Value.getTypeName(typeInfo.getValueType());
-    }
-
     private void addConstraintColumnUsage(Session session, ArrayList<Row> rows, String catalog, Constraint constraint,
             Column column) {
         Table table = column.getTable();

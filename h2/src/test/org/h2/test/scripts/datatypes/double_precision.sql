@@ -9,15 +9,16 @@ CREATE MEMORY TABLE TEST(D1 DOUBLE, D2 DOUBLE PRECISION, D3 FLOAT, D4 FLOAT(25),
 ALTER TABLE TEST ADD COLUMN D6 FLOAT(54);
 > exception INVALID_VALUE_PRECISION
 
-SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE,
+    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE        COLUMN_TYPE
-> ----------- ---------------- ----------------
-> D1          DOUBLE PRECISION DOUBLE
-> D2          DOUBLE PRECISION DOUBLE PRECISION
-> D3          DOUBLE PRECISION FLOAT
-> D4          DOUBLE PRECISION FLOAT(25)
-> D5          DOUBLE PRECISION FLOAT(53)
+> COLUMN_NAME DATA_TYPE        NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE COLUMN_TYPE
+> ----------- ---------------- ----------------- ----------------------- ------------- ------------------ -------------------------- ---------------------- ----------------
+> D1          DOUBLE PRECISION 53                2                       null          DOUBLE PRECISION   null                       null                   DOUBLE
+> D2          DOUBLE PRECISION 53                2                       null          DOUBLE PRECISION   null                       null                   DOUBLE PRECISION
+> D3          DOUBLE PRECISION 53                2                       null          FLOAT              null                       null                   FLOAT
+> D4          DOUBLE PRECISION 53                2                       null          FLOAT              25                         null                   FLOAT(25)
+> D5          DOUBLE PRECISION 53                2                       null          FLOAT              53                         null                   FLOAT(53)
 > rows (ordered): 5
 
 SCRIPT NODATA NOPASSWORDS NOSETTINGS TABLE TEST;

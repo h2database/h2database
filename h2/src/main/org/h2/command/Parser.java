@@ -321,7 +321,9 @@ import org.h2.util.json.JSONItemType;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfoEnum;
+import org.h2.value.ExtTypeInfoFloat;
 import org.h2.value.ExtTypeInfoGeometry;
+import org.h2.value.ExtTypeInfoNumeric;
 import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -6673,6 +6675,9 @@ public class Parser {
         case "DATETIME":
         case "DATETIME2":
             return parseDateTimeType(columnName, original, false);
+        case "DEC":
+        case "DECIMAL":
+            return parseNumericType(columnName, true);
         case "DOUBLE":
             if (readIf("PRECISION")) {
                 original = "DOUBLE PRECISION";
@@ -6716,6 +6721,8 @@ public class Parser {
                 original = "NCHAR LARGE OBJECT";
             }
             break;
+        case "NUMERIC":
+            return parseNumericType(columnName, false);
         case "SMALLDATETIME":
             return parseDateTimeType(columnName, original, true);
         case "TIME":
@@ -6802,9 +6809,10 @@ public class Parser {
 
     private Column parseFloatType(String columnName) {
         int type = Value.DOUBLE;
-        int precision = -1;
+        ExtTypeInfoFloat extTypeInfo;
+        String original;
         if (readIf(OPEN_PAREN)) {
-            precision = readNonNegativeInt();
+            int precision = readNonNegativeInt();
             read(CLOSE_PAREN);
             if (precision < 1 || precision > 53) {
                 throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Integer.toString(precision), "1", "53");
@@ -6812,9 +6820,43 @@ public class Parser {
             if (precision <= 24) {
                 type = Value.REAL;
             }
+            extTypeInfo = new ExtTypeInfoFloat(precision);
+            original = "FLOAT(" + precision + ')';
+        } else {
+            extTypeInfo = ExtTypeInfoFloat.NO_ARG;
+            original = "FLOAT";
         }
-        return new Column(columnName, TypeInfo.getTypeInfo(type, -1, -1, null),
-                precision >= 0 ? "FLOAT(" + precision + ')' : "FLOAT");
+        return new Column(columnName, TypeInfo.getTypeInfo(type, -1, -1, extTypeInfo), original);
+    }
+
+    private Column parseNumericType(String columnName, boolean decimal) {
+        ExtTypeInfoNumeric extTypeInfo;
+        long precision = ValueNumeric.DEFAULT_PRECISION;
+        int scale = ValueNumeric.DEFAULT_SCALE;
+        if (readIf(OPEN_PAREN)) {
+            precision = readPrecision(Value.NUMERIC);
+            if (readIf(COMMA)) {
+                scale = readInt();
+                extTypeInfo = decimal ? ExtTypeInfoNumeric.DECIMAL_PRECISION_SCALE
+                        : ExtTypeInfoNumeric.NUMERIC_PRECISION_SCALE;
+            } else {
+                scale = 0;
+                extTypeInfo = decimal ? ExtTypeInfoNumeric.DECIMAL_PRECISION : ExtTypeInfoNumeric.NUMERIC_PRECISION;
+            }
+            read(CLOSE_PAREN);
+        } else {
+            extTypeInfo = decimal ? ExtTypeInfoNumeric.DECIMAL : ExtTypeInfoNumeric.NUMERIC;
+        }
+        if (precision < 1 || precision > Integer.MAX_VALUE) {
+            throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Long.toString(precision),
+                    "1", "" + Integer.MAX_VALUE);
+        }
+        if (scale < ValueNumeric.MINIMUM_SCALE || scale > ValueNumeric.MAXIMUM_SCALE) {
+            throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale),
+                    "" + ValueNumeric.MINIMUM_SCALE, "" + ValueNumeric.MAXIMUM_SCALE);
+        }
+        TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.NUMERIC, precision, scale, extTypeInfo);
+        return new Column(columnName, typeInfo, typeInfo.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
     }
 
     private Column parseTimeType(String columnName) {

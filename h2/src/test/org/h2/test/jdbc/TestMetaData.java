@@ -199,13 +199,13 @@ public class TestMetaData extends TestDb {
         assertEquals(12, rsMeta.getPrecision(1));
         assertEquals(53, rsMeta.getPrecision(2));
         assertEquals(Types.NUMERIC, rsMeta.getColumnType(1));
-        assertEquals(Types.DOUBLE, rsMeta.getColumnType(2));
+        assertEquals(Types.FLOAT, rsMeta.getColumnType(2));
         rs = stat.executeQuery("SELECT * FROM TWO");
         rsMeta = rs.getMetaData();
         assertEquals(12, rsMeta.getPrecision(1));
         assertEquals(53, rsMeta.getPrecision(2));
         assertEquals(Types.NUMERIC, rsMeta.getColumnType(1));
-        assertEquals(Types.DOUBLE, rsMeta.getColumnType(2));
+        assertEquals(Types.FLOAT, rsMeta.getColumnType(2));
         stat.execute("DROP TABLE ONE, TWO");
         conn.close();
     }
@@ -830,7 +830,7 @@ public class TestMetaData extends TestDb {
             fail("Database is not empty after dropping all tables");
         }
         stat.executeUpdate("CREATE TABLE TEST(" + "ID INT PRIMARY KEY,"
-                + "TEXT_V VARCHAR(120)," + "DEC_V DECIMAL(12,3),"
+                + "TEXT_V VARCHAR(120)," + "DEC_V DECIMAL(12,3)," + "NUM_V NUMERIC(12,3),"
                 + "DATE_V DATETIME," + "BLOB_V BLOB," + "CLOB_V CLOB" + ")");
         rs = meta.getTables(null, Constants.SCHEMA_MAIN, null,
                 new String[] { "TABLE" });
@@ -863,22 +863,26 @@ public class TestMetaData extends TestDb {
                         "" + DatabaseMetaData.columnNullable, null, null,
                         null, null, "120", "2", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DEC_V",
-                        "" + Types.NUMERIC, "NUMERIC", "12", null, "3", "10",
+                        "" + Types.DECIMAL, "DECIMAL", "12", null, "3", "10",
                         "" + DatabaseMetaData.columnNullable, null, null,
                         null, null, "12", "3", "YES" },
+                { CATALOG, Constants.SCHEMA_MAIN, "TEST", "NUM_V",
+                            "" + Types.NUMERIC, "NUMERIC", "12", null, "3", "10",
+                            "" + DatabaseMetaData.columnNullable, null, null,
+                            null, null, "12", "4", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DATE_V",
                         "" + Types.TIMESTAMP, "TIMESTAMP", "26", null, "6", null,
                         "" + DatabaseMetaData.columnNullable, null, null,
-                        null, null, "26", "4", "YES" },
+                        null, null, "26", "5", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "BLOB_V",
                         "" + Types.BLOB, "BINARY LARGE OBJECT", "" + Integer.MAX_VALUE, null, "0", null,
                         "" + DatabaseMetaData.columnNullable, null, null,
-                        null, null, "" + Integer.MAX_VALUE, "5",
+                        null, null, "" + Integer.MAX_VALUE, "6",
                         "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "CLOB_V",
                         "" + Types.CLOB, "CHARACTER LARGE OBJECT", "" + Integer.MAX_VALUE, null, "0", null,
                         "" + DatabaseMetaData.columnNullable, null, null,
-                        null, null, "" + Integer.MAX_VALUE, "6",
+                        null, null, "" + Integer.MAX_VALUE, "7",
                         "YES" } });
         /*
          * rs=meta.getColumns(null,null,"TEST",null); while(rs.next()) { int

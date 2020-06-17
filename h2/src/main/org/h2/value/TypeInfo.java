@@ -333,8 +333,6 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.SMALLINT:
         case Value.INTEGER:
         case Value.BIGINT:
-        case Value.REAL:
-        case Value.DOUBLE:
         case Value.DATE:
         case Value.UUID:
         case Value.RESULT_SET:
@@ -391,7 +389,18 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
             } else if (precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
             }
-            return new TypeInfo(Value.NUMERIC, precision, scale, MathUtils.convertLongToInt(precision + 2), null);
+            return new TypeInfo(Value.NUMERIC, precision, scale, MathUtils.convertLongToInt(precision + 2),
+                    extTypeInfo instanceof ExtTypeInfoNumeric ? extTypeInfo : null);
+        case Value.REAL:
+            if (extTypeInfo instanceof ExtTypeInfoFloat) {
+                return new TypeInfo(Value.REAL, ValueReal.PRECISION, 0, ValueReal.DISPLAY_SIZE, extTypeInfo);
+            }
+            return TYPE_REAL;
+        case Value.DOUBLE:
+            if (extTypeInfo instanceof ExtTypeInfoFloat) {
+                return new TypeInfo(Value.DOUBLE, ValueDouble.PRECISION, 0, ValueDouble.DISPLAY_SIZE, extTypeInfo);
+            }
+            return TYPE_DOUBLE;
         case Value.TIME: {
             if (scale < 0 || scale >= ValueTime.MAXIMUM_SCALE) {
                 return TYPE_TIME;
@@ -777,9 +786,29 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
             }
             break;
         case Value.NUMERIC:
-            // Can be DECIMAL or NUMERIC
-            builder.append(Value.getTypeName(valueType)) //
-                    .append('(').append(precision).append(", ").append(scale).append(')');
+            if (extTypeInfo != null) {
+                ExtTypeInfoNumeric numeric = (ExtTypeInfoNumeric) extTypeInfo;
+                numeric.getSQL(builder, sqlFlags);
+                boolean withPrecision = numeric.withPrecision() || precision != ValueNumeric.DEFAULT_PRECISION;
+                boolean withScale = numeric.withScale() || scale != ValueNumeric.DEFAULT_SCALE;
+                if (withPrecision || withScale) {
+                    builder.append('(').append(precision);
+                    if (withScale) {
+                        builder.append(", ").append(scale);
+                    }
+                    builder.append(')');
+                }
+            } else {
+                builder.append("NUMERIC").append('(').append(precision).append(", ").append(scale).append(')');
+            }
+            break;
+        case Value.REAL:
+        case Value.DOUBLE:
+            if (extTypeInfo == null) {
+                builder.append(Value.getTypeName(valueType));
+            } else {
+                extTypeInfo.getSQL(builder, sqlFlags);
+            }
             break;
         case Value.TIME:
         case Value.TIME_TZ:
@@ -926,6 +955,25 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         default:
             return precision;
         }
+    }
+
+    /**
+     * Returns the declared name of this data type.
+     *
+     * @return the declared name
+     */
+    public String getDeclaredTypeName() {
+        switch (valueType) {
+        case Value.NUMERIC:
+            return extTypeInfo != null && ((ExtTypeInfoNumeric) extTypeInfo).decimal() ? "DECIMAL" : "NUMERIC";
+        case Value.REAL:
+        case Value.DOUBLE:
+            if (extTypeInfo != null) {
+                return "FLOAT";
+            }
+            break;
+        }
+        return Value.getTypeName(valueType);
     }
 
 }

@@ -421,6 +421,15 @@ public class Transfer {
         writeInt(VALUE_TO_TI[valueType + 1]).writeLong(type.getPrecision()).writeInt(type.getScale());
         if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
             switch (valueType) {
+            case Value.NUMERIC:
+                writeTypeInfoNumeric(type);
+                break;
+            case Value.REAL:
+            case Value.DOUBLE: {
+                ExtTypeInfoFloat extTypeInfo = (ExtTypeInfoFloat) type.getExtTypeInfo();
+                writeByte((byte) (extTypeInfo == null ? -1 : extTypeInfo.getPrecision()));
+                break;
+            }
             case Value.ARRAY:
                 writeTypeInfo((TypeInfo) type.getExtTypeInfo());
                 break;
@@ -429,6 +438,26 @@ public class Transfer {
             }
         }
         return this;
+    }
+
+    private void writeTypeInfoNumeric(TypeInfo type) throws IOException {
+        ExtTypeInfoNumeric extTypeInfo = (ExtTypeInfoNumeric) type.getExtTypeInfo();
+        int b;
+        if (extTypeInfo != null) {
+            b = 0;
+            if (extTypeInfo.decimal()) {
+                b += 3;
+            }
+            if (extTypeInfo.withPrecision()) {
+                b++;
+                if (extTypeInfo.withScale()) {
+                    b++;
+                }
+            }
+        } else {
+            b = -1;
+        }
+        writeByte((byte) b);
     }
 
     private void writeTypeInfoRow(TypeInfo type) throws IOException {
@@ -451,6 +480,17 @@ public class Transfer {
         ExtTypeInfo ext = null;
         if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
             switch (valueType) {
+            case Value.NUMERIC:
+                ext = readTypeInfoNumeric();
+                break;
+            case Value.REAL:
+            case Value.DOUBLE: {
+                int p = readByte();
+                if (p >= 0) {
+                    ext = ExtTypeInfoFloat.get(p);
+                }
+                break;
+            }
             case Value.ARRAY:
                 ext = readTypeInfo();
                 break;
@@ -459,6 +499,25 @@ public class Transfer {
             }
         }
         return TypeInfo.getTypeInfo(valueType, precision, scale, ext);
+    }
+
+    private ExtTypeInfo readTypeInfoNumeric() throws IOException {
+        switch (readByte()) {
+        case 0:
+            return ExtTypeInfoNumeric.NUMERIC;
+        case 1:
+            return ExtTypeInfoNumeric.NUMERIC_PRECISION;
+        case 2:
+            return ExtTypeInfoNumeric.NUMERIC_PRECISION_SCALE;
+        case 3:
+            return ExtTypeInfoNumeric.DECIMAL;
+        case 4:
+            return ExtTypeInfoNumeric.DECIMAL_PRECISION;
+        case 5:
+            return ExtTypeInfoNumeric.DECIMAL_PRECISION_SCALE;
+        default:
+            return null;
+        }
     }
 
     private ExtTypeInfo readTypeInfoRow() throws IOException {
@@ -685,7 +744,7 @@ public class Transfer {
                     writeTypeInfo(columnType);
                 } else {
                     writeString(result.getColumnName(i));
-                    writeInt(DataType.convertTypeToSQLType(columnType.getValueType()));
+                    writeInt(DataType.convertTypeToSQLType(columnType));
                     writeInt(MathUtils.convertLongToInt(columnType.getPrecision()));
                     writeInt(columnType.getScale());
                 }

@@ -824,7 +824,6 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     Column c = cols[j];
                     Domain domain = c.getDomain();
                     TypeInfo typeInfo = c.getType();
-                    DataType dataType = DataType.getDataType(typeInfo.getValueType());
                     ValueInteger precision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
                     ValueInteger scale = ValueInteger.get(typeInfo.getScale());
                     Sequence sequence = c.getSequence();
@@ -865,7 +864,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                             // IS_NULLABLE
                             c.isNullable() ? "YES" : "NO",
                             // DATA_TYPE
-                            ValueInteger.get(dataType.sqlType),
+                            ValueInteger.get(DataType.convertTypeToSQLType(typeInfo)),
                             // CHARACTER_MAXIMUM_LENGTH
                             precision,
                             // CHARACTER_OCTET_LENGTH
@@ -1368,7 +1367,6 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 }
                 for (FunctionAlias.JavaMethod method : methods) {
                     TypeInfo typeInfo = method.getDataType();
-                    int valueType = typeInfo.getValueType();
                     add(session,
                             rows,
                             // ALIAS_CATALOG
@@ -1382,13 +1380,13 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                             // JAVA_METHOD
                             alias.getJavaMethodName(),
                             // DATA_TYPE
-                            ValueInteger.get(DataType.convertTypeToSQLType(valueType)),
+                            ValueInteger.get(DataType.convertTypeToSQLType(typeInfo)),
                             // TYPE_NAME
                             getDataTypeName(typeInfo),
                             // COLUMN_COUNT
                             ValueInteger.get(method.getParameterCount()),
                             // RETURNS_RESULT
-                            ValueSmallint.get(valueType == Value.NULL
+                            ValueSmallint.get(typeInfo.getValueType() == Value.NULL
                                     ? (short) DatabaseMetaData.procedureNoResult
                                     : (short) DatabaseMetaData.procedureReturnsResult),
                             // REMARKS
@@ -1468,7 +1466,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                 // COLUMN_NAME
                                 "P0",
                                 // DATA_TYPE
-                                ValueInteger.get(DataType.convertTypeToSQLType(typeInfo.getValueType())),
+                                ValueInteger.get(DataType.convertTypeToSQLType(typeInfo)),
                                 // TYPE_NAME
                                 getDataTypeName(typeInfo),
                                 // PRECISION
@@ -1493,8 +1491,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         }
                         Class<?> clazz = columnList[k];
                         TypeInfo columnTypeInfo = ValueToObjectConverter2.classToType(clazz);
-                        int dataType = columnTypeInfo.getValueType();
-                        DataType dt = DataType.getDataType(dataType);
+                        DataType dt = DataType.getDataType(columnTypeInfo.getValueType());
                         add(session,
                                 rows,
                                 // ALIAS_CATALOG
@@ -1514,7 +1511,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                 // COLUMN_NAME
                                 "P" + (k + 1),
                                 // DATA_TYPE
-                                ValueInteger.get(DataType.convertTypeToSQLType(dt.type)),
+                                ValueInteger.get(DataType.convertTypeToSQLType(columnTypeInfo)),
                                 // TYPE_NAME
                                 getDataTypeName(columnTypeInfo),
                                 // PRECISION
@@ -1799,7 +1796,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // CONSTANT_NAME
                         constant.getName(),
                         // DATA_TYPE
-                        ValueInteger.get(DataType.convertTypeToSQLType(expr.getType().getValueType())),
+                        ValueInteger.get(DataType.convertTypeToSQLType(expr.getType())),
                         // REMARKS
                         replaceNullWithEmpty(constant.getComment()),
                         // SQL
@@ -1815,7 +1812,6 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 Column col = domain.getColumn();
                 Domain parentDomain = col.getDomain();
                 TypeInfo typeInfo = col.getType();
-                DataType dataType = DataType.getDataType(typeInfo.getValueType());
                 add(session,
                         rows,
                         // DOMAIN_CATALOG
@@ -1829,7 +1825,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // DOMAIN_ON_UPDATE
                         col.getOnUpdateSQL(),
                         // DATA_TYPE
-                        ValueInteger.get(dataType.sqlType),
+                        ValueInteger.get(DataType.convertTypeToSQLType(typeInfo)),
                         // PRECISION
                         ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision())),
                         // SCALE
@@ -2336,7 +2332,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         case Value.ROW:
             return typeInfo.getSQL(DEFAULT_SQL_FLAGS);
         }
-        return Value.getTypeName(typeInfo.getValueType());
+        return typeInfo.getDeclaredTypeName();
     }
 
     private static short getRefAction(ConstraintActionType action) {

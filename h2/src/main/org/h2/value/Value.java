@@ -352,8 +352,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             "BINARY", "BINARY VARYING", "BINARY LARGE OBJECT", //
             "BOOLEAN", //
             "TINYINT", "SMALLINT", "INTEGER", "BIGINT", //
-            SysProperties.BIG_DECIMAL_IS_DECIMAL ? "DECIMAL" : "NUMERIC", //
-            "REAL", "DOUBLE PRECISION", //
+            "NUMERIC", "REAL", "DOUBLE PRECISION", //
             "DATE", "TIME", "TIME WITH TIME ZONE", "TIMESTAMP", "TIMESTAMP WITH TIME ZONE", //
             "INTERVAL YEAR", "INTERVAL MONTH", //
             "INTERVAL DAY", "INTERVAL HOUR", "INTERVAL MINUTE", "INTERVAL SECOND", //

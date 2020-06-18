@@ -1006,22 +1006,25 @@ public class TestPreparedStatement extends TestDb {
 
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST3(ID INT, " +
-                "NAME VARCHAR(255), DATA DECIMAL(10,2))");
+                "NAME VARCHAR(255), DATA1 DECIMAL(10,2), DATA2 NUMERIC(10,2))");
         PreparedStatement prep1 = conn.prepareStatement(
-                "UPDATE TEST3 SET ID=?, NAME=?, DATA=?");
+                "UPDATE TEST3 SET ID=?, NAME=?, DATA1=?, DATA2=?");
         PreparedStatement prep2 = conn.prepareStatement(
-                "INSERT INTO TEST3 VALUES(?, ?, ?)");
+                "INSERT INTO TEST3 VALUES(?, ?, ?, ?)");
         checkParameter(prep1, 1, "java.lang.Integer", 4, "INTEGER", 32, 0);
         checkParameter(prep1, 2, "java.lang.String", 12, "CHARACTER VARYING", 255, 0);
-        checkParameter(prep1, 3, "java.math.BigDecimal", Types.NUMERIC, "NUMERIC", 10, 2);
+        checkParameter(prep1, 3, "java.math.BigDecimal", Types.DECIMAL, "DECIMAL", 10, 2);
+        checkParameter(prep1, 4, "java.math.BigDecimal", Types.NUMERIC, "NUMERIC", 10, 2);
         checkParameter(prep2, 1, "java.lang.Integer", 4, "INTEGER", 32, 0);
         checkParameter(prep2, 2, "java.lang.String", 12, "CHARACTER VARYING", 255, 0);
-        checkParameter(prep2, 3, "java.math.BigDecimal", Types.NUMERIC, "NUMERIC", 10, 2);
+        checkParameter(prep2, 3, "java.math.BigDecimal", Types.DECIMAL, "DECIMAL", 10, 2);
+        checkParameter(prep2, 4, "java.math.BigDecimal", Types.NUMERIC, "NUMERIC", 10, 2);
         PreparedStatement prep3 = conn.prepareStatement(
-                "SELECT * FROM TEST3 WHERE ID=? AND NAME LIKE ? AND ?>DATA");
+                "SELECT * FROM TEST3 WHERE ID=? AND NAME LIKE ? AND ?>DATA1 AND ?>DATA2");
         checkParameter(prep3, 1, "java.lang.Integer", 4, "INTEGER", 32, 0);
         checkParameter(prep3, 2, "java.lang.String", 12, "CHARACTER VARYING", 0, 0);
-        checkParameter(prep3, 3, "java.math.BigDecimal", Types.NUMERIC, "NUMERIC", 10, 2);
+        checkParameter(prep3, 3, "java.math.BigDecimal", Types.DECIMAL, "DECIMAL", 10, 2);
+        checkParameter(prep3, 4, "java.math.BigDecimal", Types.NUMERIC, "NUMERIC", 10, 2);
         stat.execute("DROP TABLE TEST3");
     }
 

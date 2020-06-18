@@ -129,8 +129,9 @@ public class TestValue extends TestDb {
     private void testResultSetOperation(Object obj) throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
         rs.setAutoClose(false);
-        int valueType = ValueToObjectConverter2.classToType(obj.getClass()).getValueType();
-        int sqlType = DataType.convertTypeToSQLType(valueType);
+        TypeInfo typeInfo = ValueToObjectConverter2.classToType(obj.getClass());
+        int valueType = typeInfo.getValueType();
+        int sqlType = DataType.convertTypeToSQLType(typeInfo);
         rs.addColumn("X", sqlType, 10, 0);
         rs.addRow(new Object[]{obj});
         rs.next();

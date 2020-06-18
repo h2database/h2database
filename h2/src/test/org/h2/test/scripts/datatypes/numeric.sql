@@ -3,24 +3,32 @@
 -- Initial Developer: H2 Group
 --
 
-create memory table orders ( orderid varchar(10), name varchar(20),  customer_id varchar(10),
-    completed numeric(1) not null, verified numeric(1), a numeric(10, -3) );
+CREATE MEMORY TABLE TEST(
+    N1 NUMERIC, N2 NUMERIC(10), N3 NUMERIC(10, 0), N4 NUMERIC(10, 2), N5 NUMERIC(10, -2),
+    D1 DECIMAL, D2 DECIMAL(10), D3 DECIMAL(10, 0), D4 DECIMAL(10, 2), D5 DECIMAL(10, -2), D6 DEC,
+    X1 NUMBER);
 > ok
 
-SELECT COLUMN_NAME, ORDINAL_POSITION, IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION,
-    NUMERIC_PRECISION_RADIX, NUMERIC_SCALE, COLUMN_TYPE
-    FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'ORDERS';
-> COLUMN_NAME ORDINAL_POSITION IS_NULLABLE DATA_TYPE         CHARACTER_MAXIMUM_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE COLUMN_TYPE
-> ----------- ---------------- ----------- ----------------- ------------------------ ----------------- ----------------------- ------------- ---------------
-> A           6                YES         NUMERIC           null                     10                10                      -3            NUMERIC(10, -3)
-> COMPLETED   4                NO          NUMERIC           null                     1                 10                      0             NUMERIC(1)
-> CUSTOMER_ID 3                YES         CHARACTER VARYING 10                       null              null                    null          VARCHAR(10)
-> NAME        2                YES         CHARACTER VARYING 20                       null              null                    null          VARCHAR(20)
-> ORDERID     1                YES         CHARACTER VARYING 10                       null              null                    null          VARCHAR(10)
-> VERIFIED    5                YES         NUMERIC           null                     1                 10                      0             NUMERIC(1)
-> rows: 6
+SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE,
+    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
+> COLUMN_NAME DATA_TYPE NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE COLUMN_TYPE
+> ----------- --------- ----------------- ----------------------- ------------- ------------------ -------------------------- ---------------------- ---------------
+> N1          NUMERIC   65535             10                      0             NUMERIC            null                       null                   NUMERIC
+> N2          NUMERIC   10                10                      0             NUMERIC            10                         null                   NUMERIC(10)
+> N3          NUMERIC   10                10                      0             NUMERIC            10                         0                      NUMERIC(10, 0)
+> N4          NUMERIC   10                10                      2             NUMERIC            10                         2                      NUMERIC(10, 2)
+> N5          NUMERIC   10                10                      -2            NUMERIC            10                         -2                     NUMERIC(10, -2)
+> D1          NUMERIC   65535             10                      0             DECIMAL            null                       null                   DECIMAL
+> D2          NUMERIC   10                10                      0             DECIMAL            10                         null                   DECIMAL(10)
+> D3          NUMERIC   10                10                      0             DECIMAL            10                         0                      DECIMAL(10, 0)
+> D4          NUMERIC   10                10                      2             DECIMAL            10                         2                      DECIMAL(10, 2)
+> D5          NUMERIC   10                10                      -2            DECIMAL            10                         -2                     DECIMAL(10, -2)
+> D6          NUMERIC   65535             10                      0             DECIMAL            null                       null                   DECIMAL
+> X1          NUMERIC   65535             10                      0             NUMERIC            null                       null                   NUMBER
+> rows (ordered): 12
 
-drop table orders;
+DROP TABLE TEST;
 > ok
 
 CREATE TABLE TEST(ID INT, X1 BIT, XT TINYINT, X_SM SMALLINT, XB BIGINT, XD DECIMAL(10,2), XD2 DOUBLE PRECISION, XR REAL);

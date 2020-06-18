@@ -32,12 +32,12 @@ public final class ValueNumeric extends Value {
     /**
      * The default precision for a NUMERIC value.
      */
-    static final int DEFAULT_PRECISION = 65535;
+    public static final int DEFAULT_PRECISION = 65535;
 
     /**
      * The default scale for a NUMERIC value.
      */
-    static final int DEFAULT_SCALE = 0;
+    public static final int DEFAULT_SCALE = 0;
 
     /**
      * The default display size for a NUMERIC value.

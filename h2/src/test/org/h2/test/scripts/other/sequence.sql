@@ -239,69 +239,68 @@ DROP TABLE TEST;
 SET MODE Regular;
 > ok
 
-CREATE SEQUENCE SEQ1 AS TINYINT;
+CREATE SEQUENCE SEQ01 AS TINYINT;
 > ok
 
-CREATE SEQUENCE SEQ2 AS SMALLINT;
+CREATE SEQUENCE SEQ02 AS SMALLINT;
 > ok
 
-CREATE SEQUENCE SEQ3 AS INTEGER;
+CREATE SEQUENCE SEQ03 AS INTEGER;
 > ok
 
-CREATE SEQUENCE SEQ4 AS BIGINT;
+CREATE SEQUENCE SEQ04 AS BIGINT;
 > ok
 
-CREATE SEQUENCE SEQ5 AS REAL;
+CREATE SEQUENCE SEQ05 AS REAL;
 > ok
 
-CREATE SEQUENCE SEQ6 AS DOUBLE PRECISION;
+CREATE SEQUENCE SEQ06 AS DOUBLE PRECISION;
 > ok
 
-CREATE SEQUENCE SEQ7 AS NUMERIC(10, 2);
+CREATE SEQUENCE SEQ07 AS NUMERIC(10, 2);
 > ok
 
-CREATE SEQUENCE SEQ8 AS NUMERIC(100, 20);
+CREATE SEQUENCE SEQ08 AS NUMERIC(100, 20);
+> ok
+
+CREATE SEQUENCE SEQ09 AS DECIMAL;
+> ok
+
+CREATE SEQUENCE SEQ10 AS DECIMAL(10);
+> ok
+
+CREATE SEQUENCE SEQ11 AS DECIMAL(10, 2);
+> ok
+
+CREATE SEQUENCE SEQ12 AS FLOAT;
+> ok
+
+CREATE SEQUENCE SEQ13 AS FLOAT(20);
 > ok
 
 SELECT SEQUENCE_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE, MAXIMUM_VALUE,
     DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE FROM INFORMATION_SCHEMA.SEQUENCES;
 > SEQUENCE_NAME DATA_TYPE        NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE MAXIMUM_VALUE       DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE
 > ------------- ---------------- ----------------- ----------------------- ------------- ------------------- ------------------ -------------------------- ----------------------
-> SEQ1          TINYINT          8                 2                       0             127                 TINYINT            8                          0
-> SEQ2          SMALLINT         16                2                       0             32767               SMALLINT           16                         0
-> SEQ3          INTEGER          32                2                       0             2147483647          INTEGER            32                         0
-> SEQ4          BIGINT           64                2                       0             9223372036854775807 BIGINT             64                         0
-> SEQ5          REAL             24                2                       0             16777216            REAL               24                         0
-> SEQ6          DOUBLE PRECISION 53                2                       0             9007199254740992    DOUBLE PRECISION   53                         0
-> SEQ7          NUMERIC          10                10                      2             99999999            NUMERIC            10                         2
-> SEQ8          NUMERIC          39                10                      20            9223372036854775807 NUMERIC            100                        20
-> rows: 8
+> SEQ01         TINYINT          8                 2                       0             127                 TINYINT            null                       null
+> SEQ02         SMALLINT         16                2                       0             32767               SMALLINT           null                       null
+> SEQ03         INTEGER          32                2                       0             2147483647          INTEGER            null                       null
+> SEQ04         BIGINT           64                2                       0             9223372036854775807 BIGINT             null                       null
+> SEQ05         REAL             24                2                       null          16777216            REAL               null                       null
+> SEQ06         DOUBLE PRECISION 53                2                       null          9007199254740992    DOUBLE PRECISION   null                       null
+> SEQ07         NUMERIC          10                10                      2             99999999            NUMERIC            10                         2
+> SEQ08         NUMERIC          39                10                      20            9223372036854775807 NUMERIC            100                        20
+> SEQ09         NUMERIC          19                10                      0             9223372036854775807 DECIMAL            null                       null
+> SEQ10         NUMERIC          10                10                      0             9999999999          DECIMAL            10                         null
+> SEQ11         NUMERIC          10                10                      2             99999999            DECIMAL            10                         2
+> SEQ12         DOUBLE PRECISION 53                2                       null          9007199254740992    FLOAT              null                       null
+> SEQ13         REAL             24                2                       null          16777216            FLOAT              20                         null
+> rows: 13
 
-SELECT NEXT VALUE FOR SEQ1 IS OF (TINYINT);
+SELECT NEXT VALUE FOR SEQ01 IS OF (TINYINT);
 >> TRUE
 
-DROP SEQUENCE SEQ1;
-> ok
-
-DROP SEQUENCE SEQ2;
-> ok
-
-DROP SEQUENCE SEQ3;
-> ok
-
-DROP SEQUENCE SEQ4;
-> ok
-
-DROP SEQUENCE SEQ5;
-> ok
-
-DROP SEQUENCE SEQ6;
-> ok
-
-DROP SEQUENCE SEQ7;
-> ok
-
-DROP SEQUENCE SEQ8;
+DROP ALL OBJECTS;
 > ok
 
 CREATE SEQUENCE SEQ AS NUMERIC(10, 20);

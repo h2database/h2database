@@ -358,7 +358,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 // COLUMN_TYPE
                 ordinal == 0 ? PROCEDURE_COLUMN_RETURN : PROCEDURE_COLUMN_IN,
                 // DATA_TYPE
-                ValueInteger.get(dt.sqlType),
+                ValueInteger.get(DataType.convertTypeToSQLType(type)),
                 // TYPE_NAME
                 getDataTypeName(type),
                 // PRECISION
@@ -568,8 +568,6 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 continue;
             }
             TypeInfo type = c.getType();
-            int valueType = type.getValueType();
-            DataType dt = DataType.getDataType(valueType);
             ValueInteger precision = ValueInteger.get(MathUtils.convertLongToInt(type.getPrecision()));
             boolean nullable = c.isNullable(), isGenerated = c.getGenerated();
             result.addRow(
@@ -582,7 +580,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     // COLUMN_NAME
                     getString(name),
                     // DATA_TYPE
-                    ValueInteger.get(dt.sqlType),
+                    ValueInteger.get(DataType.convertTypeToSQLType(type)),
                     // TYPE_NAME
                     getDataTypeName(type),
                     // COLUMN_SIZE
@@ -592,7 +590,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     // DECIMAL_DIGITS
                     ValueInteger.get(type.getScale()),
                     // NUM_PREC_RADIX
-                    getRadix(valueType, false),
+                    getRadix(type.getValueType(), false),
                     // NULLABLE
                     nullable ? COLUMN_NULLABLE : COLUMN_NO_NULLS,
                     // REMARKS
@@ -834,7 +832,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                             // COLUMN_NAME
                             getString(c.getName()),
                             // DATA_TYPE
-                            ValueInteger.get(dt.sqlType),
+                            ValueInteger.get(DataType.convertTypeToSQLType(type)),
                             // TYPE_NAME
                             getDataTypeName(type),
                             // COLUMN_SIZE
@@ -865,7 +863,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             name = typeInfo.getSQL(DEFAULT_SQL_FLAGS);
             break;
         default:
-            name = Value.getTypeName(typeInfo.getValueType());
+            name = typeInfo.getDeclaredTypeName();
         }
         return getString(name);
     }

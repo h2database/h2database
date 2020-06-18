@@ -17,7 +17,6 @@ import org.h2.api.ErrorCode;
 import org.h2.api.H2Type;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Mode;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
 
@@ -153,11 +152,7 @@ public class DataType {
         dataType.params = "PRECISION,SCALE";
         dataType.supportsPrecision = true;
         dataType.supportsScale = true;
-        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
-            add(Value.NUMERIC, Types.DECIMAL, dataType, "DECIMAL", "NUMERIC", "DEC", "NUMBER");
-        } else {
-            add(Value.NUMERIC, Types.NUMERIC, dataType, "NUMERIC", "DECIMAL", "DEC", "NUMBER");
-        }
+        add(Value.NUMERIC, Types.NUMERIC, dataType, "NUMERIC", "DECIMAL", "DEC", "NUMBER");
         add(Value.REAL, Types.REAL, createNumeric(ValueReal.PRECISION, 0), "REAL", "FLOAT4");
         add(Value.DOUBLE, Types.DOUBLE, createNumeric(ValueDouble.PRECISION, 0),
                 "DOUBLE PRECISION", "DOUBLE", "FLOAT8");
@@ -340,11 +335,24 @@ public class DataType {
     /**
      * Convert a value type to a SQL type.
      *
-     * @param type the value type
+     * @param type the type
      * @return the SQL type
      */
-    public static int convertTypeToSQLType(int type) {
-        return getDataType(type).sqlType;
+    public static int convertTypeToSQLType(TypeInfo type) {
+        int valueType = type.getValueType();
+        switch (valueType) {
+        case Value.NUMERIC: {
+            ExtTypeInfo extTypeInfo = type.getExtTypeInfo();
+            return extTypeInfo != null && ((ExtTypeInfoNumeric) extTypeInfo).decimal() ? Types.DECIMAL : Types.NUMERIC;
+        }
+        case Value.REAL:
+        case Value.DOUBLE:
+            if (type.getExtTypeInfo() != null) {
+                return Types.FLOAT;
+            }
+            break;
+        }
+        return getDataType(valueType).sqlType;
     }
 
     /**

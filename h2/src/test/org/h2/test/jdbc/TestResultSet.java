@@ -1126,7 +1126,7 @@ public class TestResultSet extends TestDb {
         stat.execute("INSERT INTO TEST VALUES(8,NULL)");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
-                new int[] { Types.INTEGER, Types.NUMERIC }, new int[] {
+                new int[] { Types.INTEGER, Types.DECIMAL }, new int[] {
                 32, 10 }, new int[] { 0, 2 });
         BigDecimal bd;
 

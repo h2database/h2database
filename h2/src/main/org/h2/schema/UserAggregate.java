@@ -18,6 +18,7 @@ import org.h2.util.HasSQL;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ParserUtil;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 
 /**
  * Represents a user-defined aggregate function.
@@ -116,7 +117,7 @@ public class UserAggregate extends SchemaObjectBase {
         public int getInternalType(int[] inputTypes) throws SQLException {
             int[] sqlTypes = new int[inputTypes.length];
             for (int i = 0; i < inputTypes.length; i++) {
-                sqlTypes[i] = DataType.convertTypeToSQLType(inputTypes[i]);
+                sqlTypes[i] = DataType.convertTypeToSQLType(TypeInfo.getTypeInfo(inputTypes[i]));
             }
             return  DataType.convertSQLTypeToValueType(aggregateFunction.getType(sqlTypes));
         }

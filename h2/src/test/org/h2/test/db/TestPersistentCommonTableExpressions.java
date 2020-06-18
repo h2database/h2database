@@ -5,7 +5,6 @@
  */
 package org.h2.test.db;
 
-import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 
 /**

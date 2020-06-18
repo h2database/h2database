@@ -205,6 +205,7 @@ public class TestPgServer extends TestDb {
         ResultSetMetaData rsMeta = rs.getMetaData();
         assertEquals(Types.INTEGER, rsMeta.getColumnType(1));
         assertEquals(Types.VARCHAR, rsMeta.getColumnType(2));
+        assertEquals("test", rsMeta.getTableName(1));
 
         prep.close();
         assertEquals(1, rs.getInt(1));

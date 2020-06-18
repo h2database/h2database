@@ -17,7 +17,6 @@ import java.io.StringReader;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -34,6 +33,8 @@ import java.util.regex.Pattern;
 import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
+import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcParameterMetaData;
@@ -42,6 +43,9 @@ import org.h2.jdbc.JdbcResultSet;
 import org.h2.jdbc.JdbcResultSetMetaData;
 import org.h2.jdbc.JdbcStatement;
 import org.h2.message.DbException;
+import org.h2.schema.Schema;
+import org.h2.table.Column;
+import org.h2.table.Table;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -71,7 +75,7 @@ public class PgServerThread implements Runnable {
 
     private final PgServer server;
     private Socket socket;
-    private Connection conn;
+    private JdbcConnection conn;
     private boolean stop;
     private DataInputStream dataInRaw;
     private DataInputStream dataIn;
@@ -851,11 +855,26 @@ public class PgServerThread implements Runnable {
             sendNoData();
         } else {
             int columns = meta.getColumnCount();
+            int[] oids = new int[columns];
+            int[] attnums = new int[columns];
             int[] types = new int[columns];
             int[] precision = new int[columns];
             String[] names = new String[columns];
+            Session session = (Session) conn.getSession();
+            Database database = session.getDatabase();
             for (int i = 0; i < columns; i++) {
                 String name = meta.getColumnName(i + 1);
+                Schema schema = database.findSchema(meta.getSchemaName(i + 1));
+                if (schema != null) {
+                    Table table = schema.findTableOrView(session, meta.getTableName(i + 1));
+                    if (table != null) {
+                        oids[i] = table.getId();
+                        Column column = table.findColumn(name);
+                        if (column != null) {
+                            attnums[i] = column.getColumnId() + 1;
+                        }
+                    }
+                }
                 names[i] = name;
                 TypeInfo type = meta.getColumnInternalType(i + 1);
                 int pgType = PgServer.convertType(type);
@@ -877,9 +896,9 @@ public class PgServerThread implements Runnable {
             for (int i = 0; i < columns; i++) {
                 writeString(StringUtils.toLowerEnglish(names[i]));
                 // object ID
-                writeInt(0);
+                writeInt(oids[i]);
                 // attribute number of the column
-                writeShort(0);
+                writeShort(attnums[i]);
                 // data type
                 writeInt(types[i]);
                 // pg_type.typlen

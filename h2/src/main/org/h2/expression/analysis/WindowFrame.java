@@ -329,8 +329,9 @@ public final class WindowFrame {
         case Value.INTEGER:
         case Value.BIGINT:
         case Value.NUMERIC:
-        case Value.DOUBLE:
         case Value.REAL:
+        case Value.DOUBLE:
+        case Value.DECFLOAT:
         case Value.TIME:
         case Value.TIME_TZ:
         case Value.DATE:

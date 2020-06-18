@@ -35,6 +35,7 @@ import org.h2.value.ValueBinary;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueChar;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInteger;
@@ -189,6 +190,8 @@ public class TestValueMemory extends TestBase implements DataHandler {
             return ValueDouble.get(random.nextDouble());
         case Value.REAL:
             return ValueReal.get(random.nextFloat());
+        case Value.DECFLOAT:
+            return ValueDecfloat.get(new BigDecimal(random.nextInt()));
         case Value.TIME:
             return ValueTime.fromNanos(randomTimeNanos());
         case Value.TIME_TZ:

@@ -263,6 +263,7 @@ final class Percentile {
             return ValueNumeric.get(
                     interpolateDecimal(BigDecimal.valueOf(v0.getLong()), BigDecimal.valueOf(v1.getLong()), factor));
         case Value.NUMERIC:
+        case Value.DECFLOAT:
             return ValueNumeric.get(interpolateDecimal(v0.getBigDecimal(), v1.getBigDecimal(), factor));
         case Value.REAL:
         case Value.DOUBLE:

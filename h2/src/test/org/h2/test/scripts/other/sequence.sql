@@ -278,6 +278,15 @@ CREATE SEQUENCE SEQ12 AS FLOAT;
 CREATE SEQUENCE SEQ13 AS FLOAT(20);
 > ok
 
+CREATE SEQUENCE SEQ14 AS DECFLOAT;
+> ok
+
+CREATE SEQUENCE SEQ15 AS DECFLOAT(10);
+> ok
+
+CREATE SEQUENCE SEQ16 AS DECFLOAT(20);
+> ok
+
 SELECT SEQUENCE_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE, MAXIMUM_VALUE,
     DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE FROM INFORMATION_SCHEMA.SEQUENCES;
 > SEQUENCE_NAME DATA_TYPE        NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE MAXIMUM_VALUE       DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE
@@ -295,7 +304,10 @@ SELECT SEQUENCE_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUM
 > SEQ11         NUMERIC          10                10                      2             99999999            DECIMAL            10                         2
 > SEQ12         DOUBLE PRECISION 53                2                       null          9007199254740992    FLOAT              null                       null
 > SEQ13         REAL             24                2                       null          16777216            FLOAT              20                         null
-> rows: 13
+> SEQ14         DECFLOAT         19                10                      null          9223372036854775807 DECFLOAT           null                       null
+> SEQ15         DECFLOAT         10                10                      null          10000000000         DECFLOAT           10                         null
+> SEQ16         DECFLOAT         19                10                      null          9223372036854775807 DECFLOAT           20                         null
+> rows: 16
 
 SELECT NEXT VALUE FOR SEQ01 IS OF (TINYINT);
 >> TRUE

@@ -112,6 +112,16 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
     public static final TypeInfo TYPE_DOUBLE;
 
     /**
+     * DECFLOAT type with maximum parameters.
+     */
+    public static final TypeInfo TYPE_DECFLOAT;
+
+    /**
+     * DECFLOAT type with parameters enough to hold a BIGINT value.
+     */
+    public static final TypeInfo TYPE_DECFLOAT_BIGINT;
+
+    /**
      * DATE type with parameters.
      */
     public static final TypeInfo TYPE_DATE;
@@ -247,6 +257,10 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         infos[Value.REAL] = TYPE_REAL = new TypeInfo(Value.REAL, ValueReal.PRECISION, 0, ValueReal.DISPLAY_SIZE, null);
         infos[Value.DOUBLE] = TYPE_DOUBLE = new TypeInfo(Value.DOUBLE, ValueDouble.PRECISION, 0,
                 ValueDouble.DISPLAY_SIZE, null);
+        infos[Value.DECFLOAT] = TYPE_DECFLOAT = new TypeInfo(Value.DECFLOAT, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
+                null);
+        TYPE_DECFLOAT_BIGINT = new TypeInfo(Value.DECFLOAT, ValueBigint.DECIMAL_PRECISION, 0, ValueBigint.DISPLAY_SIZE,
+                null);
         // DATETIME
         infos[Value.DATE] = TYPE_DATE = new TypeInfo(Value.DATE, ValueDate.PRECISION, 0, ValueDate.PRECISION, null);
         infos[Value.TIME] = TYPE_TIME = new TypeInfo(Value.TIME, ValueTime.MAXIMUM_PRECISION, ValueTime.MAXIMUM_SCALE,
@@ -401,6 +415,14 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
                 return new TypeInfo(Value.DOUBLE, ValueDouble.PRECISION, 0, ValueDouble.DISPLAY_SIZE, extTypeInfo);
             }
             return TYPE_DOUBLE;
+        case Value.DECFLOAT:
+            if (precision < 1) {
+                precision = ValueDecfloat.DEFAULT_PRECISION;
+            } else if (precision >= Integer.MAX_VALUE) {
+                return TYPE_DECFLOAT;
+            }
+            return new TypeInfo(Value.DECFLOAT, precision, 0, MathUtils.convertLongToInt(precision + 12),
+                    extTypeInfo == ExtTypeInfoNumeric.NUMERIC ? extTypeInfo : null);
         case Value.TIME: {
             if (scale < 0 || scale >= ValueTime.MAXIMUM_SCALE) {
                 return TYPE_TIME;
@@ -810,6 +832,12 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
                 extTypeInfo.getSQL(builder, sqlFlags);
             }
             break;
+        case Value.DECFLOAT:
+            builder.append("DECFLOAT");
+            if (extTypeInfo != ExtTypeInfoNumeric.NUMERIC) {
+                builder.append('(').append(precision).append(')');
+            }
+            break;
         case Value.TIME:
         case Value.TIME_TZ:
             builder.append("TIME");
@@ -929,6 +957,33 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
             return getTypeInfo(Value.NUMERIC, 634, 325, null);
         default:
             return TYPE_NUMERIC_FLOATING_POINT;
+        }
+    }
+
+    /**
+     * Convert this type information to compatible DECFLOAT type information.
+     *
+     * @return DECFLOAT type information
+     */
+    public TypeInfo toDecfloatType() {
+        switch (valueType) {
+        case Value.BOOLEAN:
+        case Value.TINYINT:
+        case Value.SMALLINT:
+        case Value.INTEGER:
+            return getTypeInfo(Value.DECFLOAT, getDecimalPrecision(), 0, null);
+        case Value.BIGINT:
+            return TYPE_DECFLOAT_BIGINT;
+        case Value.NUMERIC:
+            return getTypeInfo(Value.DECFLOAT, getPrecision(), 0, null);
+        case Value.REAL:
+            return getTypeInfo(Value.DECFLOAT, ValueReal.DECIMAL_PRECISION, 0, null);
+        case Value.DOUBLE:
+            return getTypeInfo(Value.DECFLOAT, ValueReal.DECIMAL_PRECISION, 0, null);
+        case Value.DECFLOAT:
+            return this;
+        default:
+            return TYPE_DECFLOAT;
         }
     }
 

@@ -1203,7 +1203,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     private static Value getRadix(int valueType, boolean small) {
         if (DataType.isNumericType(valueType)) {
-            int radix = valueType == Value.NUMERIC ? 10 : 2;
+            int radix = valueType == Value.NUMERIC || valueType == Value.DECFLOAT ? 10 : 2;
             return small ? ValueSmallint.get((short) radix) : ValueInteger.get(radix);
         }
         return ValueNull.INSTANCE;

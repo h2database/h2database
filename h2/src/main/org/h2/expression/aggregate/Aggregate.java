@@ -786,8 +786,9 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             case Value.INTEGER:
             case Value.BIGINT:
             case Value.NUMERIC:
-            case Value.DOUBLE:
             case Value.REAL:
+            case Value.DOUBLE:
+            case Value.DECFLOAT:
                 type = TypeInfo.TYPE_NUMERIC_FLOATING_POINT;
                 break;
             }

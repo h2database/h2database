@@ -152,6 +152,8 @@ public class BinaryOperation extends Operation2 {
             int dataType = Value.getHigherOrder(l, r);
             if (dataType == Value.NUMERIC) {
                 optimizeNumeric(leftType, rightType);
+            } else if (dataType == Value.DECFLOAT) {
+                optimizeDecfloat(leftType, rightType);
             } else if (dataType == Value.ENUM) {
                 type = TypeInfo.TYPE_INTEGER;
             } else if (DataType.isCharacterStringType(dataType)
@@ -210,6 +212,28 @@ public class BinaryOperation extends Operation2 {
             throw DbException.throwInternalError("type=" + opType);
         }
         type = TypeInfo.getTypeInfo(Value.NUMERIC, precision, scale, null);
+    }
+
+    private void optimizeDecfloat(TypeInfo leftType, TypeInfo rightType) {
+        leftType = leftType.toDecfloatType();
+        rightType = rightType.toDecfloatType();
+        long leftPrecision = leftType.getPrecision(), rightPrecision = rightType.getPrecision();
+        long precision;
+        switch (opType) {
+        case PLUS:
+        case MINUS:
+        case DIVIDE:
+            // Add one extra digit to the largest precision.
+            precision = Math.max(leftPrecision, rightPrecision) + 1;
+            break;
+        case MULTIPLY:
+            // Use sum of precisions.
+            precision = leftPrecision + rightPrecision;
+            break;
+        default:
+            throw DbException.throwInternalError("type=" + opType);
+        }
+        type = TypeInfo.getTypeInfo(Value.DECFLOAT, precision, 0, null);
     }
 
     private Expression optimizeInterval(Session session, int l, int r) {
@@ -311,6 +335,7 @@ public class BinaryOperation extends Operation2 {
             case Value.NUMERIC:
             case Value.REAL:
             case Value.DOUBLE:
+            case Value.DECFLOAT:
                 // Oracle date add
                 return new DateTimeFunction(DateTimeFunction.DATEADD, DateTimeFunction.SECOND,
                         new BinaryOperation(OpType.MULTIPLY, ValueExpression.get(ValueInteger.get(60 * 60 * 24)),
@@ -334,7 +359,8 @@ public class BinaryOperation extends Operation2 {
                 }
                 case Value.NUMERIC:
                 case Value.REAL:
-                case Value.DOUBLE: {
+                case Value.DOUBLE:
+                case Value.DECFLOAT: {
                     if (forcedType != null) {
                         throw getUnexpectedForcedTypeException();
                     }

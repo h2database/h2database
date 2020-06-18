@@ -81,9 +81,10 @@ public class Transfer {
     private static final int TIME_TZ = 29;
     // 201
     private static final int BINARY = 30;
+    private static final int DECFLOAT = 31;
 
     private static final int[] VALUE_TO_TI = new int[Value.TYPE_COUNT + 1];
-    private static final int[] TI_TO_VALUE = new int[44];
+    private static final int[] TI_TO_VALUE = new int[45];
 
     static {
         addType(-1, Value.UNKNOWN);
@@ -129,6 +130,7 @@ public class Transfer {
         addType(40, Value.JSON);
         addType(41, Value.TIME_TZ);
         addType(42, Value.BINARY);
+        addType(43, Value.DECFLOAT);
     }
 
     private static void addType(int typeInformationType, int valueType) {
@@ -415,8 +417,15 @@ public class Transfer {
      */
     public Transfer writeTypeInfo(TypeInfo type) throws IOException {
         int valueType = type.getValueType();
-        if (valueType == Value.BINARY && version < Constants.TCP_PROTOCOL_VERSION_20) {
-            valueType = Value.VARBINARY;
+        if (version < Constants.TCP_PROTOCOL_VERSION_20) {
+            switch (valueType) {
+            case Value.BINARY:
+                valueType = Value.VARBINARY;
+                break;
+            case Value.DECFLOAT:
+                valueType = Value.NUMERIC;
+                break;
+            }
         }
         writeInt(VALUE_TO_TI[valueType + 1]).writeLong(type.getPrecision()).writeInt(type.getScale());
         if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
@@ -430,6 +439,9 @@ public class Transfer {
                 writeByte((byte) (extTypeInfo == null ? -1 : extTypeInfo.getPrecision()));
                 break;
             }
+            case Value.DECFLOAT:
+                writeBoolean(type.getExtTypeInfo() == null);
+                break;
             case Value.ARRAY:
                 writeTypeInfo((TypeInfo) type.getExtTypeInfo());
                 break;
@@ -491,6 +503,11 @@ public class Transfer {
                 }
                 break;
             }
+            case Value.DECFLOAT:
+                if (!readBoolean()) {
+                    ext = ExtTypeInfoNumeric.NUMERIC;
+                }
+                break;
             case Value.ARRAY:
                 ext = readTypeInfo();
                 break;
@@ -618,6 +635,13 @@ public class Transfer {
                     ? timeZoneOffset : timeZoneOffset / 60);
             break;
         }
+        case Value.DECFLOAT:
+            if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
+                writeInt(DECFLOAT);
+                writeString(v.getString());
+                break;
+            }
+        //$FALL-THROUGH$
         case Value.NUMERIC:
             writeInt(NUMERIC);
             writeString(v.getString());
@@ -972,6 +996,8 @@ public class Transfer {
         case JSON:
             // Do not trust the value
             return ValueJson.fromJson(readBytes());
+        case DECFLOAT:
+            return ValueDecfloat.get(new BigDecimal(readString()));
         default:
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }

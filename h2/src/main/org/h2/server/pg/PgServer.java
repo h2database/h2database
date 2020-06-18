@@ -400,6 +400,7 @@ public class PgServer implements Service {
         case Value.BIGINT:
             return PG_TYPE_INT8;
         case Value.NUMERIC:
+        case Value.DECFLOAT:
             return PG_TYPE_NUMERIC;
         case Value.REAL:
             return PG_TYPE_FLOAT4;

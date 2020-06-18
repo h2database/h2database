@@ -45,6 +45,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueChar;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInteger;
@@ -120,6 +121,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     private static final int TIMESTAMP_TZ_2 = 135;
     private static final int TIME_TZ = 136;
     private static final int BINARY = 137;
+    private static final int DECFLOAT = 138;
 
     final DataHandler handler;
     final CastDataProvider provider;
@@ -339,6 +341,15 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                         put(bytes);
                 }
             }
+            break;
+        }
+        case Value.DECFLOAT: {
+            BigDecimal x = v.getBigDecimal();
+            byte[] bytes = x.unscaledValue().toByteArray();
+            buff.put((byte) DECFLOAT).
+                putVarInt(x.scale()).
+                putVarInt(bytes.length).
+                put(bytes);
             break;
         }
         case Value.TIME: {
@@ -681,8 +692,14 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             int len = readVarInt(buff);
             byte[] buff2 = Utils.newBytes(len);
             buff.get(buff2, 0, len);
-            BigInteger b = new BigInteger(buff2);
-            return ValueNumeric.get(new BigDecimal(b, scale));
+            return ValueNumeric.get(new BigDecimal(new BigInteger(buff2), scale));
+        }
+        case DECFLOAT: {
+            int scale = readVarInt(buff);
+            int len = readVarInt(buff);
+            byte[] buff2 = Utils.newBytes(len);
+            buff.get(buff2, 0, len);
+            return ValueDecfloat.get(new BigDecimal(new BigInteger(buff2), scale));
         }
         case DATE: {
             return ValueDate.fromDateValue(readVarLong(buff));

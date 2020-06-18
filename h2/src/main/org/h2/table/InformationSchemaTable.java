@@ -60,10 +60,12 @@ import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.StringUtils;
 import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
+import org.h2.util.geometry.EWKTUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfo;
 import org.h2.value.ExtTypeInfoFloat;
+import org.h2.value.ExtTypeInfoGeometry;
 import org.h2.value.ExtTypeInfoNumeric;
 import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
@@ -248,6 +250,8 @@ public final class InformationSchemaTable extends MetaTable {
                     "DECLARED_NUMERIC_PRECISION INT",
                     "DECLARED_NUMERIC_SCALE INT",
                     // extensions
+                    "GEOMETRY_TYPE",
+                    "GEOMETRY_SRID INT",
                     "SELECTIVITY INT",
                     "SEQUENCE_NAME",
                     "REMARKS",
@@ -312,6 +316,8 @@ public final class InformationSchemaTable extends MetaTable {
                     "DECLARED_NUMERIC_PRECISION INT",
                     "DECLARED_NUMERIC_SCALE INT",
                     // extensions
+                    "GEOMETRY_TYPE",
+                    "GEOMETRY_SRID INT",
                     "DOMAIN_ON_UPDATE",
                     "PARENT_DOMAIN_CATALOG",
                     "PARENT_DOMAIN_SCHEMA",
@@ -366,7 +372,10 @@ public final class InformationSchemaTable extends MetaTable {
                     "DTD_IDENTIFIER",
                     "DECLARED_DATA_TYPE",
                     "DECLARED_NUMERIC_PRECISION INT",
-                    "DECLARED_NUMERIC_SCALE INT"
+                    "DECLARED_NUMERIC_SCALE INT",
+                    // extensions
+                    "GEOMETRY_TYPE",
+                    "GEOMETRY_SRID INT"
             );
             break;
         case FIELDS:
@@ -398,7 +407,10 @@ public final class InformationSchemaTable extends MetaTable {
                     "DTD_IDENTIFIER",
                     "DECLARED_DATA_TYPE",
                     "DECLARED_NUMERIC_PRECISION INT",
-                    "DECLARED_NUMERIC_SCALE INT"
+                    "DECLARED_NUMERIC_SCALE INT",
+                    // extensions
+                    "GEOMETRY_TYPE",
+                    "GEOMETRY_SRID INT"
             );
             break;
         case KEY_COLUMN_USAGE:
@@ -449,6 +461,8 @@ public final class InformationSchemaTable extends MetaTable {
                     "DECLARED_NUMERIC_SCALE INT",
                     "PARAMETER_DEFAULT",
                     // extensions
+                    "GEOMETRY_TYPE",
+                    "GEOMETRY_SRID INT",
                     "REMARKS"
             );
             break;
@@ -503,6 +517,8 @@ public final class InformationSchemaTable extends MetaTable {
                     "DECLARED_NUMERIC_PRECISION INT",
                     "DECLARED_NUMERIC_SCALE INT",
                     // extensions
+                    "GEOMETRY_TYPE",
+                    "GEOMETRY_SRID INT",
                     "REMARKS",
                     "ID INT"
             );
@@ -669,6 +685,8 @@ public final class InformationSchemaTable extends MetaTable {
                     "DECLARED_DATA_TYPE",
                     "DECLARED_NUMERIC_PRECISION INT",
                     "DECLARED_NUMERIC_SCALE INT",
+                    "GEOMETRY_TYPE",
+                    "GEOMETRY_SRID INT",
                     "REMARKS",
                     "SQL",
                     "ID INT"
@@ -1133,6 +1151,10 @@ public final class InformationSchemaTable extends MetaTable {
                 // DECLARED_NUMERIC_SCALE INT
                 dt.declaredNumericScale,
                 // extensions
+                // GEOMETRY_TYPE
+                dt.geometryType,
+                // GEOMETRY_SRID INT
+                dt.geometrySrid,
                 // SELECTIVITY
                 ValueInteger.get(c.getSelectivity()),
                 // SEQUENCE_NAME
@@ -1278,6 +1300,10 @@ public final class InformationSchemaTable extends MetaTable {
                     // DECLARED_NUMERIC_SCALE INT
                     dt.declaredNumericScale,
                     // extensions
+                    // GEOMETRY_TYPE
+                    dt.geometryType,
+                    // GEOMETRY_SRID INT
+                    dt.geometrySrid,
                     // DOMAIN_ON_UPDATE
                     col.getOnUpdateSQL(),
                     // PARENT_DOMAIN_CATALOG
@@ -1499,7 +1525,12 @@ public final class InformationSchemaTable extends MetaTable {
                 // DECLARED_NUMERIC_PRECISION INT
                 dt.declaredNumericPrecision,
                 // DECLARED_NUMERIC_SCALE INT
-                dt.declaredNumericScale
+                dt.declaredNumericScale,
+                // extensions
+                // GEOMETRY_TYPE
+                dt.geometryType,
+                // GEOMETRY_SRID INT
+                dt.geometrySrid
         );
     }
 
@@ -1570,7 +1601,12 @@ public final class InformationSchemaTable extends MetaTable {
                 // DECLARED_NUMERIC_PRECISION INT
                 dt.declaredNumericPrecision,
                 // DECLARED_NUMERIC_SCALE INT
-                dt.declaredNumericScale
+                dt.declaredNumericScale,
+                // extensions
+                // GEOMETRY_TYPE
+                dt.geometryType,
+                // GEOMETRY_SRID INT
+                dt.geometrySrid
         );
     }
 
@@ -1735,6 +1771,10 @@ public final class InformationSchemaTable extends MetaTable {
                 // PARAMETER_DEFAULT
                 null,
                 // extensions
+                // GEOMETRY_TYPE
+                dt.geometryType,
+                // GEOMETRY_SRID INT
+                dt.geometrySrid,
                 // REMARKS
                 ""
         );
@@ -1894,6 +1934,10 @@ public final class InformationSchemaTable extends MetaTable {
                 // DECLARED_NUMERIC_SCALE INT
                 dt.declaredNumericScale,
                 // extensions
+                // GEOMETRY_TYPE
+                dt.geometryType,
+                // GEOMETRY_SRID INT
+                dt.geometrySrid,
                 // REMARKS
                 remarks,
                 // ID
@@ -2261,6 +2305,10 @@ public final class InformationSchemaTable extends MetaTable {
                     dt.declaredNumericPrecision,
                     // DECLARED_NUMERIC_SCALE INT
                     dt.declaredNumericScale,
+                    // GEOMETRY_TYPE
+                    dt.geometryType,
+                    // GEOMETRY_SRID INT
+                    dt.geometrySrid,
                     // REMARKS
                     constant.getComment(),
                     // SQL
@@ -2857,7 +2905,7 @@ public final class InformationSchemaTable extends MetaTable {
     static final class DataTypeInformation {
 
         static final DataTypeInformation NULL = new DataTypeInformation(null, null, null, null, null, null, null, null,
-                null, false, null, null, null);
+                null, false, null, null, null, null, null);
 
         /**
          * DATA_TYPE.
@@ -2921,6 +2969,16 @@ public final class InformationSchemaTable extends MetaTable {
          */
         final Value declaredNumericScale;
 
+        /**
+         * GEOMETRY_TYPE.
+         */
+        final String geometryType;
+
+        /**
+         * GEOMETRY_SRID.
+         */
+        final Value geometrySrid;
+
         static DataTypeInformation valueOf(TypeInfo typeInfo) {
             int type = typeInfo.getValueType();
             String dataType = Value.getTypeName(type);
@@ -2931,6 +2989,8 @@ public final class InformationSchemaTable extends MetaTable {
             boolean hasCharsetAndCollation = false;
             String declaredDataType = dataType;
             ValueInteger declaredNumericPrecision = null, declaredNumericScale = null;
+            String geometryType = null;
+            ValueInteger geometrySrid = null;
             switch (type) {
             case Value.CHAR:
             case Value.VARCHAR:
@@ -3006,19 +3066,35 @@ public final class InformationSchemaTable extends MetaTable {
             case Value.TIMESTAMP_TZ:
                 datetimePrecision = ValueInteger.get(typeInfo.getScale());
                 break;
+            case Value.GEOMETRY: {
+                ExtTypeInfoGeometry extTypeInfo = (ExtTypeInfoGeometry) typeInfo.getExtTypeInfo();
+                if (extTypeInfo != null) {
+                    int typeCode = extTypeInfo.getType();
+                    if (typeCode != 0) {
+                        geometryType = EWKTUtils.formatGeometryTypeAndDimensionSystem(new StringBuilder(), typeCode)
+                                .toString();
+                    }
+                    Integer srid = extTypeInfo.getSrid();
+                    if (srid != null) {
+                        geometrySrid = ValueInteger.get(srid);
+                    }
+                }
+                break;
+            }
             case Value.ARRAY:
                 maximumCardinality = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
             }
             return new DataTypeInformation(dataType, characterPrecision, numericPrecision, numericPrecisionRadix,
                     numericScale, datetimePrecision, intervalPrecision,
                     intervalType != null ? ValueVarchar.get(intervalType) : ValueNull.INSTANCE, maximumCardinality,
-                    hasCharsetAndCollation, declaredDataType, declaredNumericPrecision, declaredNumericScale);
+                    hasCharsetAndCollation, declaredDataType, declaredNumericPrecision, declaredNumericScale,
+                    geometryType, geometrySrid);
         }
 
         private DataTypeInformation(String dataType, Value characterPrecision, Value numericPrecision,
                 Value numericPrecisionRadix, Value numericScale, Value datetimePrecision, Value intervalPrecision,
                 Value intervalType, Value maximumCardinality, boolean hasCharsetAndCollation, String declaredDataType,
-                Value declaredNumericPrecision, Value declaredNumericScale) {
+                Value declaredNumericPrecision, Value declaredNumericScale, String geometryType, Value geometrySrid) {
             this.dataType = dataType;
             this.characterPrecision = characterPrecision;
             this.numericPrecision = numericPrecision;
@@ -3032,6 +3108,8 @@ public final class InformationSchemaTable extends MetaTable {
             this.declaredDataType = declaredDataType;
             this.declaredNumericPrecision = declaredNumericPrecision;
             this.declaredNumericScale = declaredNumericScale;
+            this.geometryType = geometryType;
+            this.geometrySrid = geometrySrid;
         }
 
     }

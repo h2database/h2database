@@ -627,6 +627,7 @@ public class TestValue extends TestDb {
         assertEquals(Value.NUMERIC, (int) H2Type.NUMERIC.getVendorTypeNumber());
         assertEquals(Value.REAL, (int) H2Type.REAL.getVendorTypeNumber());
         assertEquals(Value.DOUBLE, (int) H2Type.DOUBLE_PRECISION.getVendorTypeNumber());
+        assertEquals(Value.DECFLOAT, (int) H2Type.DECFLOAT.getVendorTypeNumber());
         assertEquals(Value.DATE, (int) H2Type.DATE.getVendorTypeNumber());
         assertEquals(Value.TIME, (int) H2Type.TIME.getVendorTypeNumber());
         assertEquals(Value.TIME_TZ, (int) H2Type.TIME_WITH_TIME_ZONE.getVendorTypeNumber());

@@ -329,6 +329,8 @@ public class TestMetaData extends TestDb {
                 (short) 0, 0);
         testTypeInfo(rs, "NUMERIC", Types.NUMERIC, Integer.MAX_VALUE, null, null, "PRECISION,SCALE", false, true,
                 Short.MIN_VALUE, Short.MAX_VALUE, 10);
+        testTypeInfo(rs, "DECFLOAT", Types.NUMERIC, Integer.MAX_VALUE, null, null, "PRECISION", false, false,
+                (short) 0, (short) 0, 10);
         testTypeInfo(rs, "INTEGER", Types.INTEGER, 32, null, null, null, false, false, (short) 0,
                 (short) 0, 2);
         testTypeInfo(rs, "SMALLINT", Types.SMALLINT, 16, null, null, null, false, false, (short) 0,

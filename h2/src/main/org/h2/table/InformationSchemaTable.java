@@ -3042,6 +3042,13 @@ public final class InformationSchemaTable extends MetaTable {
                 }
                 break;
             }
+            case Value.DECFLOAT:
+                numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
+                numericPrecisionRadix = ValueInteger.get(10);
+                if (typeInfo.getExtTypeInfo() != ExtTypeInfoNumeric.NUMERIC) {
+                    declaredNumericPrecision = numericPrecision;
+                }
+                break;
             case Value.INTERVAL_YEAR:
             case Value.INTERVAL_MONTH:
             case Value.INTERVAL_DAY:

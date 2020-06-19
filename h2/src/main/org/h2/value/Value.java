@@ -131,9 +131,14 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     public static final int DOUBLE = REAL + 1;
 
     /**
+     * The value type for DECFLOAT values.
+     */
+    public static final int DECFLOAT = DOUBLE + 1;
+
+    /**
      * The value type for DATE values.
      */
-    public static final int DATE = DOUBLE + 1;
+    public static final int DATE = DECFLOAT + 1;
 
     /**
      * The value type for TIME values.
@@ -324,8 +329,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             GROUP_BINARY_STRING, GROUP_BINARY_STRING, GROUP_BINARY_STRING,
             // BOOLEAN
             GROUP_BOOLEAN,
-            // TINYINT, SMALLINT, INTEGER, BIGINT, NUMERIC, REAL, DOUBLE
+            // TINYINT, SMALLINT, INTEGER, BIGINT, NUMERIC, REAL, DOUBLE, DECFLOAT
             GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC,
+            GROUP_NUMERIC,
             // DATE, TIME, TIME_TZ, TIMESTAMP, TIMESTAMP_TZ
             GROUP_DATETIME, GROUP_DATETIME, GROUP_DATETIME, GROUP_DATETIME, GROUP_DATETIME,
             // INTERVAL_YEAR, INTERVAL_MONTH
@@ -352,7 +358,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             "BINARY", "BINARY VARYING", "BINARY LARGE OBJECT", //
             "BOOLEAN", //
             "TINYINT", "SMALLINT", "INTEGER", "BIGINT", //
-            "NUMERIC", "REAL", "DOUBLE PRECISION", //
+            "NUMERIC", "REAL", "DOUBLE PRECISION", "DECFLOAT", //
             "DATE", "TIME", "TIME WITH TIME ZONE", "TIMESTAMP", "TIMESTAMP WITH TIME ZONE", //
             "INTERVAL YEAR", "INTERVAL MONTH", //
             "INTERVAL DAY", "INTERVAL HOUR", "INTERVAL MINUTE", "INTERVAL SECOND", //
@@ -529,18 +535,23 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
 
     private static int getHigherNumeric(int t1, int t2, int g2) {
         if (g2 == GROUP_NUMERIC) {
-            if (t1 == NUMERIC || t2 == NUMERIC) {
-                return NUMERIC;
-            }
-            if (t1 == REAL) {
-                if (t2 == INTEGER) {
+            switch (t1) {
+            case REAL:
+                switch (t2) {
+                case INTEGER:
                     return DOUBLE;
+                case BIGINT:
+                case NUMERIC:
+                    return DECFLOAT;
                 }
-                if (t2 == BIGINT) {
-                    return NUMERIC;
+                break;
+            case DOUBLE:
+                switch (t2) {
+                case BIGINT:
+                case NUMERIC:
+                    return DECFLOAT;
                 }
-            } else if (t1 == DOUBLE && t2 == BIGINT) {
-                return NUMERIC;
+                break;
             }
         } else if (g2 == GROUP_BINARY_STRING) {
             throw getDataTypeCombinationException(t1, t2);
@@ -1071,6 +1082,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             return convertToReal();
         case DOUBLE:
             return convertToDouble();
+        case DECFLOAT:
+            return convertToDecfloat(targetType, conversionMode, column);
         case DATE:
             return convertToDate(provider);
         case TIME:
@@ -1134,6 +1147,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case NUMERIC:
         case DOUBLE:
         case REAL:
+        case DECFLOAT:
             return ValueBoolean.get(getSignum() != 0);
         case VARCHAR:
         case VARCHAR_IGNORECASE:
@@ -1198,6 +1212,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case INTERVAL_MINUTE_TO_SECOND:
             return ValueTinyint.get(convertToByte(getLong(), column));
         case NUMERIC:
+        case DECFLOAT:
             return ValueTinyint.get(convertToByte(convertToLong(getBigDecimal(), column), column));
         case REAL:
         case DOUBLE:
@@ -1264,6 +1279,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case INTERVAL_MINUTE_TO_SECOND:
             return ValueSmallint.get(convertToShort(getLong(), column));
         case NUMERIC:
+        case DECFLOAT:
             return ValueSmallint.get(convertToShort(convertToLong(getBigDecimal(), column), column));
         case REAL:
         case DOUBLE:
@@ -1329,6 +1345,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case INTERVAL_MINUTE_TO_SECOND:
             return ValueInteger.get(convertToInt(getLong(), column));
         case NUMERIC:
+        case DECFLOAT:
             return ValueInteger.get(convertToInt(convertToLong(getBigDecimal(), column), column));
         case REAL:
         case DOUBLE:
@@ -1393,6 +1410,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case INTERVAL_MINUTE_TO_SECOND:
             return ValueBigint.get(getInt());
         case NUMERIC:
+        case DECFLOAT:
             return ValueBigint.get(convertToLong(getBigDecimal(), column));
         case REAL:
         case DOUBLE:
@@ -1445,6 +1463,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             break;
         case DOUBLE:
         case REAL:
+        case DECFLOAT:
         case INTERVAL_YEAR:
         case INTERVAL_MONTH:
         case INTERVAL_DAY:
@@ -1511,6 +1530,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case INTERVAL_MINUTE:
             return ValueDouble.get(getLong());
         case NUMERIC:
+        case DECFLOAT:
         case INTERVAL_SECOND:
         case INTERVAL_YEAR_TO_MONTH:
         case INTERVAL_DAY_TO_HOUR:
@@ -1562,6 +1582,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case INTERVAL_MINUTE:
             return ValueReal.get(getLong());
         case NUMERIC:
+        case DECFLOAT:
         case INTERVAL_SECOND:
         case INTERVAL_YEAR_TO_MONTH:
         case INTERVAL_DAY_TO_HOUR:
@@ -1588,6 +1609,66 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case NULL:
             throw DbException.throwInternalError();
         }
+    }
+
+    private ValueDecfloat convertToDecfloat(TypeInfo targetType, int conversionMode, Object column) {
+        ValueDecfloat v;
+        switch (getValueType()) {
+        case DECFLOAT:
+            v = (ValueDecfloat) this;
+            break;
+        case BOOLEAN:
+            v = getBoolean() ? ValueDecfloat.ONE : ValueDecfloat.ZERO;
+            break;
+        case TINYINT:
+        case SMALLINT:
+        case ENUM:
+        case INTEGER:
+            v =  ValueDecfloat.get(BigDecimal.valueOf(getInt()));
+            break;
+        case BIGINT:
+            v = ValueDecfloat.get(BigDecimal.valueOf(getLong()));
+            break;
+        case NUMERIC:
+        case DOUBLE:
+        case REAL:
+        case INTERVAL_YEAR:
+        case INTERVAL_MONTH:
+        case INTERVAL_DAY:
+        case INTERVAL_HOUR:
+        case INTERVAL_MINUTE:
+        case INTERVAL_SECOND:
+        case INTERVAL_YEAR_TO_MONTH:
+        case INTERVAL_DAY_TO_HOUR:
+        case INTERVAL_DAY_TO_MINUTE:
+        case INTERVAL_DAY_TO_SECOND:
+        case INTERVAL_HOUR_TO_MINUTE:
+        case INTERVAL_HOUR_TO_SECOND:
+        case INTERVAL_MINUTE_TO_SECOND:
+            v = ValueDecfloat.get(getBigDecimal());
+            break;
+        case VARCHAR:
+        case VARCHAR_IGNORECASE:
+        case CHAR: {
+            String s = getString();
+            try {
+                v = ValueDecfloat.get(new BigDecimal(s.trim()));
+            } catch (NumberFormatException e) {
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
+            }
+            break;
+        }
+        default:
+            throw getDataConversionError(DECFLOAT);
+        }
+        if (conversionMode != CONVERT_TO) {
+            BigDecimal bd = v.getBigDecimal();
+            int precision = bd.precision(), targetPrecision = (int) targetType.getPrecision();
+            if (precision > targetPrecision) {
+                v = ValueDecfloat.get(bd.setScale(bd.scale() - precision + targetPrecision, RoundingMode.HALF_UP));
+            }
+        }
+        return v;
     }
 
     /**
@@ -2085,6 +2166,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case INTEGER:
         case BIGINT:
         case NUMERIC:
+        case DECFLOAT:
             return extTypeInfo.getValue(getInt());
         case VARCHAR:
         case VARCHAR_IGNORECASE:
@@ -2293,6 +2375,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             leading = convertToLong(getDouble(), column);
             break;
         case NUMERIC:
+        case DECFLOAT:
             if (targetType == INTERVAL_YEAR_TO_MONTH) {
                 return IntervalUtils.intervalFromAbsolute(IntervalQualifier.YEAR_TO_MONTH, getBigDecimal()
                         .multiply(BigDecimal.valueOf(12)).setScale(0, RoundingMode.HALF_UP).toBigInteger());
@@ -2355,6 +2438,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             leading = convertToLong(getDouble(), column);
             break;
         case NUMERIC:
+        case DECFLOAT:
             if (targetType > INTERVAL_MINUTE) {
                 return convertToIntervalDayTime(getBigDecimal(), targetType);
             }
@@ -2441,6 +2525,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case REAL:
         case DOUBLE:
         case NUMERIC:
+        case DECFLOAT:
             v = ValueJson.get(getBigDecimal());
             break;
         case BINARY:

@@ -236,6 +236,20 @@ public class SequenceOptions {
             }
             break;
         }
+        case Value.DECFLOAT: {
+            long p = dataType.getPrecision();
+            if (p > 18) {
+                min = Long.MIN_VALUE;
+                max = Long.MAX_VALUE;
+            } else {
+                max = 10;
+                for (int i = 1; i < p; i++) {
+                    max *= 10;
+                }
+                min = -max;
+            }
+            break;
+        }
         default:
             throw DbException.getUnsupportedException(dataType.getTraceSQL());
         }

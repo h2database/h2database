@@ -70,6 +70,7 @@ import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueLob;
@@ -1127,6 +1128,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case Value.REAL:
             result = ValueReal.get(bd.floatValue());
             break;
+        case Value.DECFLOAT:
+            result = ValueDecfloat.get(bd);
+            break;
         default:
             result = ValueNumeric.get(bd);
         }
@@ -1155,7 +1159,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             break;
         default:
             int scale = v1 == null ? 0 : v1.getInt();
-            if (t == Value.DOUBLE || t == Value.REAL) {
+            switch (t) {
+            case Value.DOUBLE:
+            case Value.REAL:
                 double d = v0.getDouble();
                 if (scale == 0) {
                     d = d < 0 ? Math.ceil(d) : Math.floor(d);
@@ -1165,8 +1171,13 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                     d = (d < 0 ? Math.ceil(d) : Math.floor(d)) / f;
                 }
                 result = t == Value.DOUBLE ? ValueDouble.get(d) : ValueReal.get((float) d);
-            } else {
+                break;
+            case Value.DECFLOAT:
+                result = ValueDecfloat.get(v0.getBigDecimal().setScale(scale, RoundingMode.DOWN));
+                break;
+            default:
                 result = ValueNumeric.get(v0.getBigDecimal().setScale(scale, RoundingMode.DOWN));
+                break;
             }
             break;
         }
@@ -1182,10 +1193,14 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         int valueType = t.getValueType();
         if (DataType.getDataType(valueType).supportsPrecision) {
             if (precision < t.getPrecision()) {
-                if (valueType == Value.NUMERIC) {
+                switch (valueType) {
+                case Value.NUMERIC:
                     return ValueNumeric.get(value.getBigDecimal().round(new MathContext(
                             MathUtils.convertLongToInt(precision))));
-                } else {
+                case Value.DECFLOAT:
+                    return ValueDecfloat.get(value.getBigDecimal().round(new MathContext(
+                            MathUtils.convertLongToInt(precision))));
+                default:
                     return value.castTo(TypeInfo.getTypeInfo(valueType, precision, t.getScale(), t.getExtTypeInfo()),
                             session);
                 }
@@ -1653,10 +1668,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case ROUND:
             switch (p0.getType().getValueType()) {
             case Value.DOUBLE:
-                typeInfo = TypeInfo.TYPE_DOUBLE;
-                break;
             case Value.REAL:
-                typeInfo = TypeInfo.TYPE_REAL;
+            case Value.DECFLOAT:
+                typeInfo = p0.getType();
                 break;
             default:
                 typeInfo = getRoundNumericType(session);
@@ -1665,10 +1679,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case TRUNCATE:
             switch (p0.getType().getValueType()) {
             case Value.DOUBLE:
-                typeInfo = TypeInfo.TYPE_DOUBLE;
-                break;
             case Value.REAL:
-                typeInfo = TypeInfo.TYPE_REAL;
+            case Value.DECFLOAT:
+                typeInfo = p0.getType();
                 break;
             case Value.VARCHAR:
             case Value.DATE:

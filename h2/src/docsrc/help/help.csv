@@ -3150,7 +3150,7 @@ characterType | characterVaryingType | characterLargeObjectType
     | binaryType | binaryVaryingType | binaryLargeObjectType
     | booleanType
     | smallintType | integerType | bigintType
-    | numericType | realType | doublePrecisionType
+    | numericType | realType | doublePrecisionType | decfloatType
     | dateType | timeType | timeWithTimeZoneType
     | timestampType | timestampWithTimeZoneType
     | intervalType
@@ -3925,10 +3925,10 @@ BIGINT
 "
 
 "Data Types","NUMERIC Type","
-{ NUMERIC | DECIMAL | DEC | @c@ { NUMBER } } ( precisionInt [ , scaleInt ] )
+{ NUMERIC | DECIMAL | DEC | @c@ { NUMBER } } [ ( precisionInt [ , scaleInt ] ) ]
 ","
-Data type with fixed precision and scale. This data type is recommended for
-storing currency values.
+Data type with fixed decimal precision and scale.
+This data type is recommended for storing currency values.
 
 If precision is specified, it must be positive.
 If scale is specified, it must be from -100000 to 100000, 0 is default.
@@ -3963,6 +3963,21 @@ See also [numeric](https://h2database.com/html/grammar.html#numeric) literal gra
 Mapped to ""java.lang.Double"".
 ","
 DOUBLE PRECISION
+"
+
+"Data Types","DECFLOAT Type","
+DECFLOAT [ ( precisionInt ) ]
+","
+Decimal floating point number.
+This data type is not recommended to represent currency values, because of variable scale.
+
+If precision is specified, it must be positive.
+
+See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
+Mapped to ""java.math.BigDecimal"".
+","
+DECFLOAT
+DECFLOAT(20)
 "
 
 "Data Types","DATE Type","

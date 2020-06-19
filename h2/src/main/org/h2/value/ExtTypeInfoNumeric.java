@@ -6,12 +6,12 @@
 package org.h2.value;
 
 /**
- * Extended parameters of the NUMERIC data type.
+ * Extended parameters of the NUMERIC and DECFLOAT data types.
  */
 public final class ExtTypeInfoNumeric extends ExtTypeInfo {
 
     /**
-     * NUMERIC data type without parameters.
+     * NUMERIC or DECFLOAT data type without parameters.
      */
     public static final ExtTypeInfoNumeric NUMERIC = new ExtTypeInfoNumeric(false, false, false);
 

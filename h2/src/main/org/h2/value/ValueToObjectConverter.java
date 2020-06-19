@@ -378,6 +378,7 @@ public final class ValueToObjectConverter extends TraceObject {
         case Value.BIGINT:
             return Long.class;
         case Value.NUMERIC:
+        case Value.DECFLOAT:
             return BigDecimal.class;
         case Value.REAL:
             return Float.class;
@@ -478,6 +479,7 @@ public final class ValueToObjectConverter extends TraceObject {
         case Value.BIGINT:
             return value.getLong();
         case Value.NUMERIC:
+        case Value.DECFLOAT:
             return value.getBigDecimal();
         case Value.REAL:
             return value.getFloat();

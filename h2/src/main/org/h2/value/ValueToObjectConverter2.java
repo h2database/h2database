@@ -244,6 +244,11 @@ public final class ValueToObjectConverter2 extends TraceObject {
             v = rs.wasNull() ? ValueNull.INSTANCE : ValueDouble.get(value);
             break;
         }
+        case Value.DECFLOAT: {
+            BigDecimal value = rs.getBigDecimal(columnIndex);
+            v = value == null ? ValueNull.INSTANCE : ValueDecfloat.get(value);
+            break;
+        }
         case Value.DATE: {
             try {
                 LocalDate value = rs.getObject(columnIndex, LocalDate.class);

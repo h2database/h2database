@@ -5,6 +5,7 @@
  */
 package org.h2.expression.function;
 
+import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import org.h2.engine.Session;
@@ -15,6 +16,7 @@ import org.h2.message.DbException;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
@@ -73,13 +75,24 @@ public class MathFunction extends Operation1_2 implements NamedExpression {
         case FLOOR:
         case CEIL:
             int t = v1.getValueType();
-            if (t == Value.NUMERIC) {
+            switch (t) {
+            case Value.NUMERIC:
                 v1 = ValueNumeric.get(
                         v1.getBigDecimal().setScale(0, function == FLOOR ? RoundingMode.FLOOR : RoundingMode.CEILING));
-            } else {
+                break;
+            case Value.DECFLOAT: {
+                BigDecimal bd = v1.getBigDecimal();
+                if (bd.scale() > 0) {
+                    v1 = ValueDecfloat.get(
+                            bd.setScale(0, function == FLOOR ? RoundingMode.FLOOR : RoundingMode.CEILING));
+                }
+                break;
+            }
+            default:
                 double v = v1.getDouble();
                 v = function == FLOOR ? Math.floor(v) : Math.ceil(v);
                 v1 = t == Value.DOUBLE ? ValueDouble.get(v) : ValueReal.get((float) v);
+                break;
             }
             break;
         default:
@@ -128,6 +141,7 @@ public class MathFunction extends Operation1_2 implements NamedExpression {
                 return left;
             case Value.REAL:
             case Value.DOUBLE:
+            case Value.DECFLOAT:
                 break;
             case Value.NUMERIC:
                 if (type.getScale() > 0) {

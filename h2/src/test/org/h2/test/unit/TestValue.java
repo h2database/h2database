@@ -430,7 +430,7 @@ public class TestValue extends TestDb {
             vd1.modulus(ValueNumeric.get(new BigDecimal(0)));
         }};
         ValueNumeric vd2 = ValueNumeric.get(new BigDecimal(10));
-        ValueNumeric vd3 = vd1.modulus(vd2);
+        Value vd3 = vd1.modulus(vd2);
         assertEquals(2, vd3.getDouble());
     }
 

@@ -330,6 +330,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
@@ -6678,6 +6679,8 @@ public class Parser {
         case "DEC":
         case "DECIMAL":
             return parseNumericType(columnName, true);
+        case "DECFLOAT":
+            return parseDecfloatType(columnName);
         case "DOUBLE":
             if (readIf("PRECISION")) {
                 original = "DOUBLE PRECISION";
@@ -6856,6 +6859,24 @@ public class Parser {
                     "" + ValueNumeric.MINIMUM_SCALE, "" + ValueNumeric.MAXIMUM_SCALE);
         }
         TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.NUMERIC, precision, scale, extTypeInfo);
+        return new Column(columnName, typeInfo, typeInfo.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
+    }
+
+    private Column parseDecfloatType(String columnName) {
+        ExtTypeInfoNumeric extTypeInfo;
+        long precision = ValueDecfloat.DEFAULT_PRECISION;
+        if (readIf(OPEN_PAREN)) {
+            precision = readPrecision(Value.DECFLOAT);
+            extTypeInfo = null;
+            read(CLOSE_PAREN);
+        } else {
+            extTypeInfo = ExtTypeInfoNumeric.NUMERIC;
+        }
+        if (precision < 1 || precision > Integer.MAX_VALUE) {
+            throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Long.toString(precision),
+                    "1", "" + Integer.MAX_VALUE);
+        }
+        TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.DECFLOAT, precision, 0, extTypeInfo);
         return new Column(columnName, typeInfo, typeInfo.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
     }
 

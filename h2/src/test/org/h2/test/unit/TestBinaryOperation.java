@@ -38,38 +38,43 @@ public class TestBinaryOperation extends TestBase {
     }
 
     private void testPlusMinus(BinaryOperation.OpType type) {
-        assertPrecisionScale(2, 0, type, 1, 0, 1, 0);
-        assertPrecisionScale(3, 1, type, 1, 1, 1, 0);
-        assertPrecisionScale(3, 1, type, 1, 0, 1, 1);
-        assertPrecisionScale(3, 0, type, 1, -1, 1, 0);
-        assertPrecisionScale(3, 0, type, 1, 0, 1, -1);
+        assertPrecisionScale(2, 0, 2, type, 1, 0, 1, 0);
+        assertPrecisionScale(3, 1, 2, type, 1, 1, 1, 0);
+        assertPrecisionScale(3, 1, 2, type, 1, 0, 1, 1);
+        assertPrecisionScale(3, 0, 2, type, 1, -1, 1, 0);
+        assertPrecisionScale(3, 0, 2, type, 1, 0, 1, -1);
     }
 
     private void testMultiply() {
-        assertPrecisionScale(2, 0, BinaryOperation.OpType.MULTIPLY, 1, 0, 1, 0);
-        assertPrecisionScale(2, 1, BinaryOperation.OpType.MULTIPLY, 1, 1, 1, 0);
-        assertPrecisionScale(2, 1, BinaryOperation.OpType.MULTIPLY, 1, 0, 1, 1);
-        assertPrecisionScale(2, -1, BinaryOperation.OpType.MULTIPLY, 1, -1, 1, 0);
-        assertPrecisionScale(2, -1, BinaryOperation.OpType.MULTIPLY, 1, 0, 1, -1);
+        assertPrecisionScale(2, 0, 2, BinaryOperation.OpType.MULTIPLY, 1, 0, 1, 0);
+        assertPrecisionScale(2, 1, 2, BinaryOperation.OpType.MULTIPLY, 1, 1, 1, 0);
+        assertPrecisionScale(2, 1, 2, BinaryOperation.OpType.MULTIPLY, 1, 0, 1, 1);
+        assertPrecisionScale(2, -1, 2, BinaryOperation.OpType.MULTIPLY, 1, -1, 1, 0);
+        assertPrecisionScale(2, -1, 2, BinaryOperation.OpType.MULTIPLY, 1, 0, 1, -1);
     }
 
     private void testDivide() {
-        assertPrecisionScale(3, 2, BinaryOperation.OpType.DIVIDE, 1, 0, 1, 0);
-        assertPrecisionScale(3, 3, BinaryOperation.OpType.DIVIDE, 1, 1, 1, 0);
-        assertPrecisionScale(3, 1, BinaryOperation.OpType.DIVIDE, 1, 0, 1, 1);
-        assertPrecisionScale(3, 1, BinaryOperation.OpType.DIVIDE, 1, -1, 1, 0);
-        assertPrecisionScale(3, 3, BinaryOperation.OpType.DIVIDE, 1, 0, 1, -1);
-        assertPrecisionScale(19, -6, BinaryOperation.OpType.DIVIDE, 1, 3, 9, 27);
+        assertPrecisionScale(3, 2, 2, BinaryOperation.OpType.DIVIDE, 1, 0, 1, 0);
+        assertPrecisionScale(3, 3, 2, BinaryOperation.OpType.DIVIDE, 1, 1, 1, 0);
+        assertPrecisionScale(3, 1, 2, BinaryOperation.OpType.DIVIDE, 1, 0, 1, 1);
+        assertPrecisionScale(3, 1, 2, BinaryOperation.OpType.DIVIDE, 1, -1, 1, 0);
+        assertPrecisionScale(3, 3, 2, BinaryOperation.OpType.DIVIDE, 1, 0, 1, -1);
+        assertPrecisionScale(19, -6, 10, BinaryOperation.OpType.DIVIDE, 1, 3, 9, 27);
     }
 
-    private void assertPrecisionScale(int expectedPrecision, int expectedScale, BinaryOperation.OpType type,
-            int precision1, int scale1, int precision2, int scale2) {
+    private void assertPrecisionScale(int expectedPrecision, int expectedScale, int expectedDecfloatPrecision,
+            BinaryOperation.OpType type, int precision1, int scale1, int precision2, int scale2) {
         TestExpression left = new TestExpression(TypeInfo.getTypeInfo(Value.NUMERIC, precision1, scale1, null));
         TestExpression right = new TestExpression(TypeInfo.getTypeInfo(Value.NUMERIC, precision2, scale2, null));
         TypeInfo typeInfo = new BinaryOperation(type, left, right).optimize(null).getType();
         assertEquals(Value.NUMERIC, typeInfo.getValueType());
         assertEquals(expectedPrecision, typeInfo.getPrecision());
         assertEquals(expectedScale, typeInfo.getScale());
+        left = new TestExpression(TypeInfo.getTypeInfo(Value.DECFLOAT, precision1, 0, null));
+        right = new TestExpression(TypeInfo.getTypeInfo(Value.DECFLOAT, precision2, 0, null));
+        typeInfo = new BinaryOperation(type, left, right).optimize(null).getType();
+        assertEquals(Value.DECFLOAT, typeInfo.getValueType());
+        assertEquals(expectedDecfloatPrecision, typeInfo.getPrecision());
     }
 
     private static final class TestExpression extends Operation0 {

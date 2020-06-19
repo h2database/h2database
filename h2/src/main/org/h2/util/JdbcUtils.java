@@ -496,6 +496,7 @@ public class JdbcUtils {
             prep.setLong(parameterIndex, value.getLong());
             break;
         case Value.NUMERIC:
+        case Value.DECFLOAT:
             prep.setBigDecimal(parameterIndex, value.getBigDecimal());
             break;
         case Value.DOUBLE:

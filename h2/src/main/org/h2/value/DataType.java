@@ -157,6 +157,13 @@ public class DataType {
         add(Value.DOUBLE, Types.DOUBLE, createNumeric(ValueDouble.PRECISION, 0),
                 "DOUBLE PRECISION", "DOUBLE", "FLOAT8");
         add(Value.DOUBLE, Types.FLOAT, createNumeric(ValueDouble.PRECISION, 0), "FLOAT");
+        dataType = new DataType();
+        dataType.minPrecision = 1;
+        dataType.maxPrecision = Integer.MAX_VALUE;
+        dataType.defaultPrecision = ValueDecfloat.DEFAULT_PRECISION;
+        dataType.params = "PRECISION";
+        dataType.supportsPrecision = true;
+        add(Value.DECFLOAT, Types.NUMERIC, dataType, "DECFLOAT");
         add(Value.DATE, Types.DATE, createDate(ValueDate.PRECISION, ValueDate.PRECISION, "DATE", false, 0, 0), "DATE");
         add(Value.TIME, Types.TIME,
                 createDate(ValueTime.MAXIMUM_PRECISION, ValueTime.DEFAULT_PRECISION,
@@ -688,7 +695,7 @@ public class DataType {
      * @return true if the value type is a numeric type
      */
     public static boolean isNumericType(int type) {
-        return type >= Value.TINYINT && type <= Value.DOUBLE;
+        return type >= Value.TINYINT && type <= Value.DECFLOAT;
     }
 
     /**
@@ -800,12 +807,13 @@ public class DataType {
     public static boolean supportsAdd(int type) {
         switch (type) {
         case Value.TINYINT:
-        case Value.NUMERIC:
-        case Value.DOUBLE:
-        case Value.REAL:
+        case Value.SMALLINT:
         case Value.INTEGER:
         case Value.BIGINT:
-        case Value.SMALLINT:
+        case Value.NUMERIC:
+        case Value.REAL:
+        case Value.DOUBLE:
+        case Value.DECFLOAT:
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
         case Value.INTERVAL_DAY:

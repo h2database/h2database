@@ -203,14 +203,18 @@ public class Sequence extends SchemaObjectBase {
 
     public int getEffectivePrecision() {
         TypeInfo dataType = this.dataType;
-        if (dataType.getValueType() == Value.NUMERIC) {
+        switch (dataType.getValueType()) {
+        case Value.NUMERIC: {
             int p = (int) dataType.getPrecision();
             int s = dataType.getScale();
             if (p - s > ValueBigint.DECIMAL_PRECISION) {
                 return ValueBigint.DECIMAL_PRECISION + s;
             }
             return p;
-        } else {
+        }
+        case Value.DECFLOAT:
+            return Math.min((int) dataType.getPrecision(), ValueBigint.DECIMAL_PRECISION);
+        default:
             return (int) dataType.getPrecision();
         }
     }

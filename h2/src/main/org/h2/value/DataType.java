@@ -646,16 +646,7 @@ public class DataType {
      * @return true if the value type is a date-time type
      */
     public static boolean isDateTimeType(int type) {
-        switch (type) {
-        case Value.TIME:
-        case Value.TIME_TZ:
-        case Value.DATE:
-        case Value.TIMESTAMP:
-        case Value.TIMESTAMP_TZ:
-            return true;
-        default:
-            return false;
-        }
+        return type >= Value.DATE && type <= Value.TIMESTAMP_TZ;
     }
 
     /**

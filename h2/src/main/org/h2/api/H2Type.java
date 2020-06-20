@@ -101,6 +101,13 @@ public final class H2Type implements SQLType {
      */
     public static final H2Type DOUBLE_PRECISION = new H2Type(TypeInfo.TYPE_DOUBLE, "DOUBLE PRECISION");
 
+    // Decimal floating-point type
+
+    /**
+     * The DECFLOAT data type.
+     */
+    public static final H2Type DECFLOAT = new H2Type(TypeInfo.TYPE_DECFLOAT, "DECFLOAT");
+
     // Date-time data types
 
     /**

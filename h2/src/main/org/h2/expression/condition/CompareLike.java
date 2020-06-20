@@ -218,7 +218,7 @@ public final class CompareLike extends Condition {
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (whenOperand || likeType == LikeType.REGEXP || !(left instanceof ExpressionColumn)) {
+        if (not || whenOperand || likeType == LikeType.REGEXP || !(left instanceof ExpressionColumn)) {
             return;
         }
         ExpressionColumn l = (ExpressionColumn) left;

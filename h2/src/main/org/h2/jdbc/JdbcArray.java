@@ -8,7 +8,6 @@ package org.h2.jdbc;
 import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.Map;
 
 import org.h2.api.ErrorCode;
@@ -20,7 +19,6 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueToObjectConverter;
 
 /**
@@ -28,7 +26,7 @@ import org.h2.value.ValueToObjectConverter;
  */
 public class JdbcArray extends TraceObject implements Array {
 
-    private Value value;
+    private ValueArray value;
     private final JdbcConnection conn;
 
     /**
@@ -135,8 +133,7 @@ public class JdbcArray extends TraceObject implements Array {
         try {
             debugCodeCall("getBaseType");
             checkClosed();
-            return value == ValueNull.INSTANCE ? Types.NULL
-                    : DataType.convertTypeToSQLType(((ValueArray) value).getComponentType());
+            return DataType.convertTypeToSQLType(value.getComponentType());
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -153,8 +150,7 @@ public class JdbcArray extends TraceObject implements Array {
         try {
             debugCodeCall("getBaseTypeName");
             checkClosed();
-            return value == ValueNull.INSTANCE ? "NULL"
-                    : ((ValueArray) value).getComponentType().getDeclaredTypeName();
+            return value.getComponentType().getDeclaredTypeName();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -261,20 +257,12 @@ public class JdbcArray extends TraceObject implements Array {
     private ResultSet getResultSetImpl(long index, int count) {
         int id = getNextId(TraceObject.RESULT_SET);
         SimpleResult rs = new SimpleResult();
-        ValueArray array;
-        if (value != ValueNull.INSTANCE) {
-            array = (ValueArray) value;
-        } else {
-            array = null;
-        }
         rs.addColumn("INDEX", TypeInfo.TYPE_BIGINT);
-        rs.addColumn("VALUE", array != null ? array.getComponentType() : TypeInfo.TYPE_NULL);
-        if (array != null) {
-            Value[] values = array.getList();
-            count = checkRange(index, count, values.length);
-            for (int i = (int) index; i < index + count; i++) {
-                rs.addRow(ValueBigint.get(i), values[i - 1]);
-            }
+        rs.addColumn("VALUE", value.getComponentType());
+        Value[] values = value.getList();
+        count = checkRange(index, count, values.length);
+        for (int i = (int) index; i < index + count; i++) {
+            rs.addRow(ValueBigint.get(i), values[i - 1]);
         }
         return new JdbcResultSet(conn, null, null, rs, id, true, false);
     }
@@ -291,10 +279,7 @@ public class JdbcArray extends TraceObject implements Array {
     }
 
     private Object get(long index, int count) {
-        if (value == ValueNull.INSTANCE) {
-            return null;
-        }
-        Value[] values = ((ValueArray) value).getList();
+        Value[] values = value.getList();
         count = checkRange(index, count, values.length);
         Object[] a = new Object[count];
         for (int i = 0, j = (int) index - 1; i < count; i++, j++) {

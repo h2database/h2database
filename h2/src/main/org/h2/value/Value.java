@@ -635,7 +635,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             }
             break;
         case INTERVAL_DAY_TO_MINUTE:
-            if (t1 == INTERVAL_SECOND) {
+            if (t2 == INTERVAL_SECOND) {
                 return INTERVAL_DAY_TO_SECOND;
             }
             break;

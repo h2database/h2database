@@ -28,7 +28,7 @@ public class ConfigProperties {
 
     public ConfigProperties(Collection<PropertyConfig> configProperties) {
         properties = new HashMap<>();
-        if (properties != null) {
+        if (configProperties != null) {
             for (PropertyConfig currentProperty : configProperties) {
                 if (properties.putIfAbsent(currentProperty.getName(), currentProperty.getValue()) != null) {
                     throw new AuthConfigException("duplicate property " + currentProperty.getName());

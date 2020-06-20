@@ -85,8 +85,6 @@ public class TestWeb extends TestDb {
         final HashMap<String, String> configMap = new HashMap<>();
         configMap.put("ifExists", "");
         configMap.put("", "");
-        configMap.put("", "");
-        configMap.put("", "");
         ServletConfig config = new ServletConfig() {
 
             @Override

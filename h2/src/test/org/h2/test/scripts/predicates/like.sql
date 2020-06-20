@@ -203,3 +203,12 @@ SELECT S, S NOT LIKE '%', S NOT ILIKE '%', S NOT REGEXP '%' FROM (VALUES NULL, '
 > 1    FALSE                                               FALSE                                               TRUE
 > null null                                                null                                                null
 > rows: 3
+
+CREATE TABLE TEST(ID BIGINT PRIMARY KEY, V VARCHAR UNIQUE) AS VALUES (1, 'aa'), (2, 'bb');
+> ok
+
+SELECT ID FROM (SELECT * FROM TEST) WHERE V NOT LIKE 'a%';
+>> 2
+
+DROP TABLE TEST;
+> ok

@@ -398,9 +398,7 @@ public class Transfer {
                 if (out != null) {
                     out.flush();
                 }
-                if (socket != null) {
-                    socket.close();
-                }
+                socket.close();
             } catch (IOException e) {
                 DbException.traceThrowable(e);
             } finally {

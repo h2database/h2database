@@ -99,7 +99,7 @@ public class TestPattern extends TestBase {
         for (int i = 0; i < len; i++) {
             char c = pattern.charAt(i);
             if (escape == c) {
-                if (i >= len) {
+                if (i >= len - 1) {
                     fail("escape can't be last char");
                 }
                 c = pattern.charAt(++i);

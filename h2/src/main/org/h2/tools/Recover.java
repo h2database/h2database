@@ -1031,8 +1031,6 @@ public class Recover extends Tool implements DataHandler {
                 int sessionId = in.readVarInt();
                 String transaction = in.readString();
                 writer.println("-- prepare commit " + sessionId + " " + transaction);
-            } else if (x == PageLog.NOOP) {
-                // nothing to do
             } else if (x == PageLog.CHECKPOINT) {
                 writer.println("-- checkpoint");
             } else if (x == PageLog.FREE_LOG) {

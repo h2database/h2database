@@ -419,6 +419,8 @@ For an in-memory database, this means the content is lost.
 To keep the database open, add <code>;DB_CLOSE_DELAY=-1</code> to the database URL.
 To keep the content of an in-memory database as long as the virtual machine is alive, use
 <code>jdbc:h2:mem:test;DB_CLOSE_DELAY=-1</code>.
+This may create a memory leak, when you need to remove the database, use
+the <a href="commands.html#shutdown">SHUTDOWN</a> command.
 </p>
 
 <h2 id="file_encryption">Database Files Encryption</h2>

@@ -9,6 +9,7 @@ import java.lang.management.ManagementFactory;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TimerTask;
@@ -21,6 +22,7 @@ import org.h2.test.auth.TestAuthentication;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
 import org.h2.test.db.TestAlterSchemaRename;
+import org.h2.test.db.TestAlterTableNotFound;
 import org.h2.test.db.TestAnalyzeTableTx;
 import org.h2.test.db.TestAutoRecompile;
 import org.h2.test.db.TestBackup;
@@ -68,6 +70,7 @@ import org.h2.test.db.TestRights;
 import org.h2.test.db.TestRunscript;
 import org.h2.test.db.TestSQLInjection;
 import org.h2.test.db.TestSelectCountNonNullColumn;
+import org.h2.test.db.TestSelectTableNotFound;
 import org.h2.test.db.TestSequence;
 import org.h2.test.db.TestSessionsLocks;
 import org.h2.test.db.TestSetCollation;
@@ -422,6 +425,8 @@ java org.h2.test.TestAll timer
 
     private Server server;
 
+    HashSet<String> excludedTests = new HashSet<>();
+
     /**
      * The map of executed tests to detect not executed tests.
      * Boolean value is 'false' for a disabled test.
@@ -493,10 +498,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         if (args.length > 0) {
             if ("travis".equals(args[0])) {
                 test.travis = true;
-                test.testAll();
+                test.testAll(args, 1);
             } else if ("vmlens".equals(args[0])) {
                 test.vmlens = true;
-                test.testAll();
+                test.testAll(args, 1);
             } else if ("reopen".equals(args[0])) {
                 System.setProperty("h2.delayWrongPasswordMin", "0");
                 System.setProperty("h2.analyzeAuto", "100");
@@ -536,13 +541,22 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 new TestTimer().runTest(test);
             }
         } else {
-            test.testAll();
+            test.testAll(args, 0);
         }
         System.out.println(TestBase.formatTime(new StringBuilder(),
                 TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time)).append(" total").toString());
     }
 
-    private void testAll() throws Exception {
+    private void testAll(String[] args, int offset) throws Exception {
+        int l = args.length;
+        while (l > offset + 1) {
+            if ("-exclude".equals(args[offset])) {
+                excludedTests.add(args[offset + 1]);
+                offset += 2;
+            } else {
+                break;
+            }
+        }
         runTests();
         if (!travis && !vmlens) {
             Profiler prof = new Profiler();
@@ -744,6 +758,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestReadOnly());
             addTest(new TestRecursiveQueries());
             addTest(new TestGeneralCommonTableQueries());
+            addTest(new TestAlterTableNotFound());
+            addTest(new TestSelectTableNotFound());
             if (!memory) {
                 // requires persistent store for reconnection tests
                 addTest(new TestPersistentCommonTableExpressions());
@@ -971,6 +987,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     }
 
     private void addTest(TestBase test) {
+        if (excludedTests.contains(test.getClass().getName())) {
+            return;
+        }
         // tests.add(test);
         // run directly for now, because concurrently running tests
         // fails on Raspberry Pi quite often (seems to be a JVM problem)
@@ -1011,7 +1030,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                             }
                             test = tests.remove(0);
                         }
-                        test.runTest(TestAll.this);
+                        if (!excludedTests.contains(test.getClass().getName())) {
+                            test.runTest(TestAll.this);
+                        }
                     }
                 }
             };

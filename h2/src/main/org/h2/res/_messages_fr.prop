@@ -11,6 +11,7 @@
 22013=#Invalid PRECEDING or FOLLOWING size in window function: {0}
 22018=Erreur lors de la conversion de données {0}
 22025=Erreur dans LIKE ESCAPE: {0}
+2202E=#Array element error: {0}, expected {1}
 22030=Valeur non permise pour la colonne {0}: {1}
 22031=La valeur n''est pas un membre de l''énumération {0}: {1}
 22032=Les enums vides ne sont pas permis
@@ -29,6 +30,8 @@
 42602=#Invalid name {0}
 42S01=La table {0} existe déjà
 42S02=Table {0} non trouvée
+42S03=#Table {0} not found (candidates are: {1})
+42S04=#Table {0} not found (this database is empty)
 42S11=L''index {0} existe déjà
 42S12=Index {0} non trouvé
 42S21=Duplication du nom de colonnes {0}

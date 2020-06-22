@@ -186,7 +186,7 @@ class AggregateDataDefault extends AggregateData {
         }
         int type = Value.getHigherOrder(a.getValueType(), Value.BIGINT);
         Value b = ValueBigint.get(by).convertTo(type);
-        a = a.convertTo(type).divide(b, ValueBigint.PRECISION);
+        a = a.convertTo(type).divide(b, ValueBigint.DECIMAL_PRECISION);
         return a;
     }
 

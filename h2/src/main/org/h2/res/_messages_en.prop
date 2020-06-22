@@ -11,6 +11,7 @@
 22013=Invalid PRECEDING or FOLLOWING size in window function: {0}
 22018=Data conversion error converting {0}
 22025=Error in LIKE ESCAPE: {0}
+2202E=Array element error: {0}, expected {1}
 22030=Value not permitted for column {0}: {1}
 22031=Value not a member of enumerators {0}: {1}
 22032=Empty enums are not allowed
@@ -29,6 +30,8 @@
 42602=Invalid name {0}
 42S01=Table {0} already exists
 42S02=Table {0} not found
+42S03=Table {0} not found (candidates are: {1})
+42S04=Table {0} not found (this database is empty)
 42S11=Index {0} already exists
 42S12=Index {0} not found
 42S21=Duplicate column name {0}

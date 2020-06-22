@@ -188,7 +188,7 @@ class Parser {
                     number.indexOf('.') >= 0) {
                 Double v = Double.parseDouble(number);
                 return new Arg(double.class, v);
-            } else if (number.endsWith("L") || number.endsWith("l")) {
+            } else if (number.endsWith("l")) {
                 Long v = Long.parseLong(number.substring(0, number.length() - 1));
                 return new Arg(long.class, v);
             } else {

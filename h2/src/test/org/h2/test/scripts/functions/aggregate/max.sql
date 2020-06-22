@@ -12,8 +12,8 @@ insert into test values (1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11),
 > update count: 12
 
 select max(v), max(v) filter (where v <= 8) from test where v <= 10;
-> MAX(V) MAX(V) FILTER (WHERE (V <= 8))
-> ------ ------------------------------
+> MAX(V) MAX(V) FILTER (WHERE V <= 8)
+> ------ ----------------------------
 > 10     8
 > rows: 1
 
@@ -21,14 +21,14 @@ create index test_idx on test(v);
 > ok
 
 select max(v), max(v) filter (where v <= 8) from test where v <= 10;
-> MAX(V) MAX(V) FILTER (WHERE (V <= 8))
-> ------ ------------------------------
+> MAX(V) MAX(V) FILTER (WHERE V <= 8)
+> ------ ----------------------------
 > 10     8
 > rows: 1
 
 select max(v), max(v) filter (where v <= 8) from test;
-> MAX(V) MAX(V) FILTER (WHERE (V <= 8))
-> ------ ------------------------------
+> MAX(V) MAX(V) FILTER (WHERE V <= 8)
+> ------ ----------------------------
 > 12     8
 > rows: 1
 

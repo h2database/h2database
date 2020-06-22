@@ -15,9 +15,14 @@ import org.h2.message.DbException;
 public final class ValueTinyint extends Value {
 
     /**
-     * The precision in digits.
+     * The precision in bits.
      */
-    static final int PRECISION = 3;
+    static final int PRECISION = 8;
+
+    /**
+     * The approximate precision in decimal digits.
+     */
+    static final int DECIMAL_PRECISION = 3;
 
     /**
      * The display size for a TINYINT.
@@ -125,11 +130,6 @@ public final class ValueTinyint extends Value {
 
     @Override
     public int hashCode() {
-        return value;
-    }
-
-    @Override
-    public Object getObject() {
         return value;
     }
 

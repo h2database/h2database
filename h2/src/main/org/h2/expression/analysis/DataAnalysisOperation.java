@@ -156,7 +156,7 @@ public abstract class DataAnalysisOperation extends Expression {
             if (orderBy != null) {
                 overOrderBySort = createOrder(session, orderBy, getNumExpressions());
             } else if (!isAggregate()) {
-                overOrderBySort = new SortOrder(session, new int[getNumExpressions()], new int[0], null);
+                overOrderBySort = new SortOrder(session, new int[getNumExpressions()]);
             }
             WindowFrame frame = over.getWindowFrame();
             if (frame != null) {

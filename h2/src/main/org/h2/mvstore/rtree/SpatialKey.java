@@ -152,8 +152,4 @@ public class SpatialKey extends Value {
         return getTraceSQL();
     }
 
-    @Override
-    public Object getObject() {
-        return this;
-    }
 }

@@ -12,7 +12,6 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.Parser;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.command.query.Select;
 import org.h2.engine.Database;
@@ -29,8 +28,10 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.util.HasSQL;
+import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueNull;
@@ -728,18 +729,18 @@ public class TableFilter implements ColumnResolver {
             }
             return builder;
         }
-        if (table.isView() && ((TableView) table).isRecursive()) {
+        if (table instanceof TableView && ((TableView) table).isRecursive()) {
             table.getSchema().getSQL(builder, sqlFlags).append('.');
-            Parser.quoteIdentifier(builder, table.getName(), sqlFlags);
+            ParserUtil.quoteIdentifier(builder, table.getName(), sqlFlags);
         } else {
             table.getSQL(builder, sqlFlags);
         }
-        if (table.isView() && ((TableView) table).isInvalid()) {
+        if (table instanceof TableView && ((TableView) table).isInvalid()) {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, table.getName(), "not compiled");
         }
         if (alias != null) {
             builder.append(' ');
-            Parser.quoteIdentifier(builder, alias, sqlFlags);
+            ParserUtil.quoteIdentifier(builder, alias, sqlFlags);
             if (derivedColumnMap != null) {
                 builder.append('(');
                 boolean f = false;
@@ -748,7 +749,7 @@ public class TableFilter implements ColumnResolver {
                         builder.append(", ");
                     }
                     f = true;
-                    Parser.quoteIdentifier(builder, name, sqlFlags);
+                    ParserUtil.quoteIdentifier(builder, name, sqlFlags);
                 }
                 builder.append(')');
             }
@@ -762,7 +763,7 @@ public class TableFilter implements ColumnResolver {
                 } else {
                     first = false;
                 }
-                Parser.quoteIdentifier(builder, index, sqlFlags);
+                ParserUtil.quoteIdentifier(builder, index, sqlFlags);
             }
             builder.append(")");
         }
@@ -797,8 +798,8 @@ public class TableFilter implements ColumnResolver {
         if ((sqlFlags & HasSQL.ADD_PLAN_INFORMATION) != 0) {
             if (filterCondition != null) {
                 builder.append('\n');
-                String condition = StringUtils.unEnclose(filterCondition.getSQL(
-                        HasSQL.TRACE_SQL_FLAGS | HasSQL.ADD_PLAN_INFORMATION));
+                String condition = filterCondition.getSQL(HasSQL.TRACE_SQL_FLAGS | HasSQL.ADD_PLAN_INFORMATION,
+                        Expression.WITHOUT_PARENTHESES);
                 condition = "/* WHERE " + condition + "\n*/";
                 StringUtils.indent(builder, condition, 4, false);
             }
@@ -1021,13 +1022,10 @@ public class TableFilter implements ColumnResolver {
         if (!session.getDatabase().getMode().systemColumns) {
             return null;
         }
-        Column[] sys = new Column[3];
-        sys[0] = new Column("oid", Value.INTEGER);
-        sys[0].setTable(table, 0);
-        sys[1] = new Column("ctid", Value.VARCHAR);
-        sys[1].setTable(table, 0);
-        sys[2] = new Column("CTID", Value.VARCHAR);
-        sys[2].setTable(table, 0);
+        Column[] sys = { //
+                new Column("oid", TypeInfo.TYPE_INTEGER, table, 0), //
+                new Column("ctid", TypeInfo.TYPE_VARCHAR, table, 0) //
+        };
         return sys;
     }
 

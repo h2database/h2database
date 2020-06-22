@@ -137,16 +137,6 @@ public class DbSettings extends SettingsBase {
             "ESTIMATED_FUNCTION_TABLE_ROWS", 1000);
 
     /**
-     * Database setting <code>FUNCTIONS_IN_SCHEMA</code>
-     * (default: true).<br />
-     * If set, all functions are stored in a schema. Specially, the SCRIPT
-     * statement will always include the schema name in the CREATE ALIAS
-     * statement. This is not backward compatible with H2 versions 1.2.134 and
-     * older.
-     */
-    public final boolean functionsInSchema = get("FUNCTIONS_IN_SCHEMA", true);
-
-    /**
      * Database setting <code>LOB_TIMEOUT</code> (default: 300000,
      * which means 5 minutes).<br />
      * The number of milliseconds a temporary LOB reference is kept until it
@@ -323,6 +313,13 @@ public class DbSettings extends SettingsBase {
      * without comparing them with the short name of the database.
      */
     public final boolean ignoreCatalogs = get("IGNORE_CATALOGS", false);
+
+    /**
+     * Database setting <code>OLD_INFORMATION_SCHEMA</code>
+     * (default: false).<br />
+     * If set, INFORMATION_SCHEMA contains old-style tables.
+     */
+    public final boolean oldInformationSchema = get("OLD_INFORMATION_SCHEMA", false);
 
     private DbSettings(HashMap<String, String> s) {
         super(s);

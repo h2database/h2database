@@ -11,6 +11,8 @@ import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import org.h2.engine.CastDataProvider;
@@ -246,6 +248,81 @@ public final class LegacyDateTimeUtils {
         }
         return (provider != null ? provider.currentTimeZone() : DateTimeUtils.getTimeZone())
                 .getTimeZoneOffsetUTC(seconds) * 1_000;
+    }
+
+    /**
+     * Convert a legacy Java object to a value.
+     *
+     * @param session
+     *            the session
+     * @param x
+     *            the value
+     * @return the value, or {@code null} if not supported
+     */
+    public static Value legacyObjectToValue(CastDataProvider session, Object x) {
+        if (x instanceof Date) {
+            return fromDate(session, null, (Date) x);
+        } else if (x instanceof Time) {
+            return fromTime(session, null, (Time) x);
+        } else if (x instanceof Timestamp) {
+            return fromTimestamp(session, null, (Timestamp) x);
+        } else if (x instanceof java.util.Date) {
+            return fromTimestamp(session, ((java.util.Date) x).getTime(), 0);
+        } else if (x instanceof GregorianCalendar) {
+            GregorianCalendar gc = (GregorianCalendar) x;
+            long ms = gc.getTimeInMillis();
+            return timestampFromLocalMillis(ms + gc.getTimeZone().getOffset(ms), 0);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Converts the specified value to an object of the specified legacy type.
+     *
+     * @param <T> the type
+     * @param type the class
+     * @param value the value
+     * @param provider the cast information provider
+     * @return an instance of the specified class, or {@code null} if not supported
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T valueToLegacyType(Class<T> type, Value value, CastDataProvider provider) {
+        if (type == Date.class) {
+            return (T) toDate(provider, null, value);
+        } else if (type == Time.class) {
+            return (T) toTime(provider, null, value);
+        } else if (type == Timestamp.class) {
+            return (T) toTimestamp(provider, null, value);
+        } else if (type == java.util.Date.class) {
+            return (T) new java.util.Date(toTimestamp(provider, null, value).getTime());
+        } else if (type == Calendar.class) {
+            GregorianCalendar calendar = new GregorianCalendar();
+            calendar.setGregorianChange(PROLEPTIC_GREGORIAN_CHANGE);
+            calendar.setTime(toTimestamp(provider, calendar.getTimeZone(), value));
+            return (T) calendar;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Get the type information for the given legacy Java class.
+     *
+     * @param clazz
+     *            the Java class
+     * @return the value type, or {@code null} if not supported
+     */
+    public static TypeInfo legacyClassToType(Class<?> clazz) {
+        if (Date.class.isAssignableFrom(clazz)) {
+            return TypeInfo.TYPE_DATE;
+        } else if (Time.class.isAssignableFrom(clazz)) {
+            return TypeInfo.TYPE_TIME;
+        } else if (java.util.Date.class.isAssignableFrom(clazz) || Calendar.class.isAssignableFrom(clazz)) {
+            return TypeInfo.TYPE_TIMESTAMP;
+        } else{
+            return null;
+        }
     }
 
 }

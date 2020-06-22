@@ -102,15 +102,13 @@ public class Wildcard extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         if (table != null) {
             StringUtils.quoteIdentifier(builder, table).append('.');
         }
         builder.append('*');
         if (exceptColumns != null) {
-            builder.append(" EXCEPT (");
-            writeExpressions(builder, exceptColumns, sqlFlags);
-            builder.append(')');
+            writeExpressions(builder.append(" EXCEPT ("), exceptColumns, sqlFlags).append(')');
         }
         return builder;
     }

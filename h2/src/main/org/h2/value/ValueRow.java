@@ -8,6 +8,7 @@ package org.h2.value;
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
+import org.h2.result.SimpleResult;
 
 /**
  * Row value.
@@ -40,7 +41,7 @@ public final class ValueRow extends ValueCollectionBase {
     public TypeInfo getType() {
         TypeInfo type = this.type;
         if (type == null) {
-            this.type = type = TypeInfo.getTypeInfo(getValueType(), values.length, 0, null);
+            this.type = type = TypeInfo.getTypeInfo(Value.ROW, 0, 0, new ExtTypeInfoRow(values));
         }
         return type;
     }
@@ -60,6 +61,17 @@ public final class ValueRow extends ValueCollectionBase {
             builder.append(values[i].getString());
         }
         return builder.append(')').toString();
+    }
+
+    @Override
+    public SimpleResult getResult() {
+        SimpleResult result = new SimpleResult();
+        for (int i = 0, l = values.length; i < l;) {
+            Value v = values[i++];
+            result.addColumn("C" + i, v.getType());
+        }
+        result.addRow(values);
+        return result;
     }
 
     @Override

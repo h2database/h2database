@@ -354,7 +354,7 @@ public class TestPageStore extends TestDb {
         conn = getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("CREATE TEMP TABLE A(A INT)");
-        stat.execute("CREATE TABLE B(A VARCHAR IDENTITY)");
+        stat.execute("CREATE TABLE B(A VARCHAR, B IDENTITY)");
         stat.execute("CREATE TEMP TABLE C(A INT)");
         conn.close();
         conn = getConnection(url);

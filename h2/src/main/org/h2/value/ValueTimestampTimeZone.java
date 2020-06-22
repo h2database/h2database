@@ -9,7 +9,6 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.JSR310Utils;
 
 /**
  * Implementation of the TIMESTAMP WITH TIME ZONE data type.
@@ -208,11 +207,6 @@ public final class ValueTimestampTimeZone extends Value {
     public int hashCode() {
         return (int) (dateValue ^ (dateValue >>> 32) ^ timeNanos
                 ^ (timeNanos >>> 32) ^ timeZoneOffsetSeconds);
-    }
-
-    @Override
-    public Object getObject() {
-        return JSR310Utils.valueToOffsetDateTime(this, null);
     }
 
 }

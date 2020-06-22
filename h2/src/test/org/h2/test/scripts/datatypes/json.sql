@@ -3,13 +3,6 @@
 -- Initial Developer: H2 Group
 --
 
-SELECT TYPE_NAME, PRECISION, PREFIX, SUFFIX, PARAMS, MINIMUM_SCALE, MAXIMUM_SCALE FROM INFORMATION_SCHEMA.TYPE_INFO
-    WHERE TYPE_NAME = 'JSON';
-> TYPE_NAME PRECISION  PREFIX SUFFIX PARAMS MINIMUM_SCALE MAXIMUM_SCALE
-> --------- ---------- ------ ------ ------ ------------- -------------
-> JSON      2147483647 JSON ' '      LENGTH 0             0
-> rows: 1
-
 SELECT '{"tag1":"simple string"}' FORMAT JSON;
 >> {"tag1":"simple string"}
 
@@ -257,3 +250,33 @@ DROP TABLE TEST;
 
 CREATE TABLE T(C JSON(0));
 > exception INVALID_VALUE_2
+
+CREATE TABLE TEST(J JSON(3));
+> ok
+
+INSERT INTO TEST VALUES JSON '[1]';
+> update count: 1
+
+INSERT INTO TEST VALUES JSON 'null';
+> exception VALUE_TOO_LONG_2
+
+DROP TABLE TEST;
+> ok
+
+SELECT CAST(JSON 'null' AS JSON(3));
+> exception VALUE_TOO_LONG_2
+
+CREATE TABLE TEST(J JSONB);
+> exception UNKNOWN_DATA_TYPE_1
+
+SET MODE PostgreSQL;
+> ok
+
+CREATE TABLE TEST(J JSONB);
+> ok
+
+DROP TABLE TEST;
+> ok
+
+SET MODE Regular;
+> ok

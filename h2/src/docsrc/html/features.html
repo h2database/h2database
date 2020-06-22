@@ -419,6 +419,8 @@ For an in-memory database, this means the content is lost.
 To keep the database open, add <code>;DB_CLOSE_DELAY=-1</code> to the database URL.
 To keep the content of an in-memory database as long as the virtual machine is alive, use
 <code>jdbc:h2:mem:test;DB_CLOSE_DELAY=-1</code>.
+This may create a memory leak, when you need to remove the database, use
+the <a href="commands.html#shutdown">SHUTDOWN</a> command.
 </p>
 
 <h2 id="file_encryption">Database Files Encryption</h2>
@@ -956,6 +958,7 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
 </li><li>INSERT IGNORE is partially supported and may be used to skip rows with duplicate keys if ON DUPLICATE KEY
     UPDATE is not specified.
 </li><li>REPLACE INTO is partially supported.
+</li><li>Spaces are trimmed from the right side of CHAR values.
 </li><li>REGEXP_REPLACE() uses \ for back-references for compatibility with MariaDB.
 </li><li>Datetime value functions return the same value within a command.
 </li><li>0x literals are parsed as binary string literals.
@@ -1006,8 +1009,8 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
     <code>null</code>.
 </li><li>When converting a floating point number to an integer, the fractional
     digits are not be truncated, but the value is rounded.
-</li><li>The system columns <code>CTID</code> and
-    <code>OID</code> are supported.
+</li><li>The system columns <code>ctid</code> and
+    <code>oid</code> are supported.
 </li><li>LOG(x) is base 10 in this mode.
 </li><li>REGEXP_REPLACE():
     <ul>
@@ -1016,7 +1019,8 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
     <li>replaces only the first matched substring in the absence of the 'g' flag in the <code>flagsString</code> parameter.</li>
     </ul>
 </li><li>ON CONFLICT DO NOTHING is supported in INSERT statements.
-</li><li>Fixed-width strings are padded with spaces.
+</li><li>Spaces are trimmed from the right side of CHAR values, but CHAR values in result sets are right-padded with
+    spaces to the declared length.
 </li><li>MONEY data type is treated like NUMERIC(19, 2) data type.
 </li><li>Datetime value functions return the same value within a transaction.
 </li><li>ARRAY_SLICE() out of bounds parameters are silently corrected.

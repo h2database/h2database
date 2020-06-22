@@ -14,8 +14,8 @@ insert into test values (1), (2), (4), (8), (16), (32), (64), (128), (256), (512
 > update count: 12
 
 select bit_or(v), bit_or(v) filter (where v >= 8) from test where v <= 512;
-> BIT_OR(V) BIT_OR(V) FILTER (WHERE (V >= 8))
-> --------- ---------------------------------
+> BIT_OR(V) BIT_OR(V) FILTER (WHERE V >= 8)
+> --------- -------------------------------
 > 1023      1016
 > rows: 1
 
@@ -23,8 +23,8 @@ create index test_idx on test(v);
 > ok
 
 select bit_or(v), bit_or(v) filter (where v >= 8) from test where v <= 512;
-> BIT_OR(V) BIT_OR(V) FILTER (WHERE (V >= 8))
-> --------- ---------------------------------
+> BIT_OR(V) BIT_OR(V) FILTER (WHERE V >= 8)
+> --------- -------------------------------
 > 1023      1016
 > rows: 1
 

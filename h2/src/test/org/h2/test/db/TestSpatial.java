@@ -18,10 +18,11 @@ import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
 import org.h2.tools.SimpleRowSource;
 import org.h2.util.HasSQL;
-import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
+import org.h2.value.ValueToObjectConverter;
+import org.h2.value.ValueToObjectConverter2;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
@@ -59,7 +60,7 @@ public class TestSpatial extends TestDb {
         if (config.memory && config.mvStore) {
             return false;
         }
-        if (DataType.GEOMETRY_CLASS == null) {
+        if (ValueToObjectConverter.GEOMETRY_CLASS == null) {
             return false;
         }
         return true;
@@ -603,7 +604,7 @@ public class TestSpatial extends TestDb {
     private void testGeometryDataType() {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createPoint(new Coordinate(0, 0));
-        assertEquals(TypeInfo.TYPE_GEOMETRY, DataType.getTypeFromClass(geometry.getClass()));
+        assertEquals(TypeInfo.TYPE_GEOMETRY, ValueToObjectConverter2.classToType(geometry.getClass()));
     }
 
     /**

@@ -18,7 +18,6 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.api.ErrorCode;
 import org.h2.command.query.Select;
-import org.h2.result.SortOrder;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
@@ -461,7 +460,6 @@ public class TestIndex extends TestDb {
         rs = conn.getMetaData().getIndexInfo(null, null, "TEST", false, false);
         rs.next();
         assertEquals("D", rs.getString("ASC_OR_DESC"));
-        assertEquals(SortOrder.DESCENDING, rs.getInt("SORT_TYPE"));
         stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1, 30)");
         rs = stat.executeQuery(
                 "SELECT COUNT(*) FROM TEST WHERE ID BETWEEN 10 AND 20");
@@ -471,7 +469,6 @@ public class TestIndex extends TestDb {
         rs = conn.getMetaData().getIndexInfo(null, null, "TEST", false, false);
         rs.next();
         assertEquals("D", rs.getString("ASC_OR_DESC"));
-        assertEquals(SortOrder.DESCENDING, rs.getInt("SORT_TYPE"));
         rs = stat.executeQuery(
                 "SELECT COUNT(*) FROM TEST WHERE ID BETWEEN 10 AND 20");
         rs.next();

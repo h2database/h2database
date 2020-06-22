@@ -105,6 +105,28 @@ public class Mode {
         MYSQL_STYLE,
     }
 
+    /**
+     * When CHAR values are right-padded with spaces.
+     */
+    public enum CharPadding {
+        /**
+         * CHAR values are always right-padded with spaces.
+         */
+        ALWAYS,
+
+        /**
+         * Spaces are trimmed from the right side of CHAR values, but CHAR
+         * values in result sets are right-padded with spaces to the declared
+         * length
+         */
+        IN_RESULT_SETS,
+
+        /**
+         * Spaces are trimmed from the right side of CHAR values.
+         */
+        NEVER
+    }
+
     private static final HashMap<String, Mode> MODES = new HashMap<>();
 
     // Modes are also documented in the features section
@@ -138,7 +160,7 @@ public class Mode {
     public boolean squareBracketQuotedNames;
 
     /**
-     * The system columns 'CTID' and 'OID' are supported.
+     * The system columns 'ctid' and 'oid' are supported.
      */
     public boolean systemColumns;
 
@@ -225,9 +247,9 @@ public class Mode {
     public boolean allowEmptyInPredicate;
 
     /**
-     * Whether to right-pad fixed strings with spaces.
+     * How to pad or trim CHAR values.
      */
-    public boolean padFixedLengthStrings;
+    public CharPadding charPadding = CharPadding.ALWAYS;
 
     /**
      * Whether DB2 TIMESTAMP formats are allowed.
@@ -415,16 +437,15 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx = null;
         mode.zeroExLiteralsAreBinaryStrings = true;
         mode.truncateTableRestartIdentity = true;
-        DataType dt = DataType.createNumeric(19, 4, false);
+        DataType dt = DataType.createNumeric(19, 4);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
-        dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);
-        dt = DataType.createNumeric(10, 4, false);
+        dt = DataType.createNumeric(10, 4);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
-        dt.name = "SMALLMONEY";
         mode.typeByNameMap.put("SMALLMONEY", dt);
+        mode.typeByNameMap.put("UNIQUEIDENTIFIER", DataType.getDataType(Value.UUID));
         mode.allowEmptySchemaValuesAsDefaultSchema = true;
         mode.expressionNames = ExpressionNames.EMPTY;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
@@ -436,6 +457,7 @@ public class Mode {
         mode.regexpReplaceBackslashReferences = true;
         mode.onDuplicateKeyUpdate = true;
         mode.replaceInto = true;
+        mode.charPadding = CharPadding.NEVER;
         // MySQL allows to use any key for client info entries. See
         // https://github.com/mysql/mysql-connector-j/blob/5.1.47/src/com/mysql/jdbc/JDBC4CommentClientInfoProvider.java
         mode.supportedClientInfoPropertiesRegEx =
@@ -471,14 +493,11 @@ public class Mode {
         mode.mergeWhere = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
-        dt = DataType.getDataType(Value.REAL);
-        mode.typeByNameMap.put("BINARY_FLOAT", dt);
-        dt = DataType.getDataType(Value.DOUBLE);
-        mode.typeByNameMap.put("BINARY_DOUBLE", dt);
+        mode.typeByNameMap.put("BINARY_FLOAT", DataType.getDataType(Value.REAL));
+        mode.typeByNameMap.put("BINARY_DOUBLE", DataType.getDataType(Value.DOUBLE));
         dt = DataType.createDate(/* 2001-01-01 23:59:59 */ 19, 19, "DATE", false, 0, 0);
         dt.type = Value.TIMESTAMP;
         dt.sqlType = Types.TIMESTAMP;
-        dt.name = "DATE";
         mode.typeByNameMap.put("DATE", dt);
         add(mode);
 
@@ -494,7 +513,7 @@ public class Mode {
         //     org/postgresql/jdbc4/AbstractJdbc4Connection.java
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile("ApplicationName");
-        mode.padFixedLengthStrings = true;
+        mode.charPadding = CharPadding.IN_RESULT_SETS;
         mode.nextValueReturnsDifferentValues = true;
         mode.expressionNames = ExpressionNames.POSTGRESQL_STYLE;
         // Enumerate all H2 types NOT supported by PostgreSQL:
@@ -503,11 +522,13 @@ public class Mode {
         disallowedTypes.add("IDENTITY");
         disallowedTypes.add("TINYINT");
         disallowedTypes.add("BLOB");
+        disallowedTypes.add("VARCHAR_IGNORECASE");
         mode.disallowedTypes = disallowedTypes;
-        dt = DataType.createNumeric(19, 2, false);
+        dt = DataType.getDataType(Value.JSON);
+        mode.typeByNameMap.put("JSONB", dt);
+        dt = DataType.createNumeric(19, 2);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
-        dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);
         dt = DataType.getDataType(Value.INTEGER);
         mode.typeByNameMap.put("OID", dt);

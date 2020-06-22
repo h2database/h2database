@@ -18,7 +18,6 @@ import org.h2.index.IndexCondition;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -27,7 +26,7 @@ import org.h2.value.ValueNull;
 /**
  * A condition with parameter as {@code = ANY(?)}.
  */
-public class ConditionInParameter extends Condition {
+public final class ConditionInParameter extends Condition {
     private static final class ParameterList extends AbstractList<Expression> {
         private final Parameter parameter;
 
@@ -62,6 +61,10 @@ public class ConditionInParameter extends Condition {
 
     private Expression left;
 
+    private boolean not;
+
+    private boolean whenOperand;
+
     private final Parameter parameter;
 
     /**
@@ -69,10 +72,11 @@ public class ConditionInParameter extends Condition {
      *
      * @param session the session
      * @param l left value.
+     * @param not whether the result should be negated
      * @param value parameter value.
      * @return Evaluated condition value.
      */
-    static Value getValue(Session session, Value l, Value value) {
+    static Value getValue(Session session, Value l, boolean not, Value value) {
         boolean hasNull = false;
         if (value.containsNull()) {
             hasNull = true;
@@ -83,23 +87,23 @@ public class ConditionInParameter extends Condition {
                 if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;
                 } else if (cmp == ValueBoolean.TRUE) {
-                    return cmp;
+                    return ValueBoolean.get(!not);
                 }
             }
         } else {
-            for (Value r : ((ValueArray) value.convertTo(TypeInfo.TYPE_ARRAY)).getList()) {
+            for (Value r : value.convertToAnyArray(session).getList()) {
                 Value cmp = Comparison.compare(session, l, r, Comparison.EQUAL);
                 if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;
                 } else if (cmp == ValueBoolean.TRUE) {
-                    return cmp;
+                    return ValueBoolean.get(!not);
                 }
             }
         }
         if (hasNull) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.FALSE;
+        return ValueBoolean.get(not);
     }
 
     /**
@@ -107,11 +111,15 @@ public class ConditionInParameter extends Condition {
      *
      * @param left
      *            the expression before {@code = ANY(?)}
+     * @param not whether the result should be negated
+     * @param whenOperand whether this is a when operand
      * @param parameter
      *            parameter
      */
-    public ConditionInParameter(Expression left, Parameter parameter) {
+    public ConditionInParameter(Expression left, boolean not, boolean whenOperand, Parameter parameter) {
         this.left = left;
+        this.not = not;
+        this.whenOperand = whenOperand;
         this.parameter = parameter;
     }
 
@@ -121,7 +129,18 @@ public class ConditionInParameter extends Condition {
         if (l == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
         }
-        return getValue(session, l, parameter.getValue(session));
+        return getValue(session, l, not, parameter.getValue(session));
+    }
+
+    @Override
+    public boolean getWhenValue(Session session, Value left) {
+        if (!whenOperand) {
+            return super.getWhenValue(session, left);
+        }
+        if (left == ValueNull.INSTANCE) {
+            return false;
+        }
+        return getValue(session, left, not, parameter.getValue(session)).getBoolean();
     }
 
     @Override
@@ -132,15 +151,23 @@ public class ConditionInParameter extends Condition {
     @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
-        if (left.isNullConstant()) {
+        if (!whenOperand && left.isNullConstant()) {
             return TypedValueExpression.UNKNOWN;
         }
         return this;
     }
 
     @Override
+    public Expression getNotIfPossible(Session session) {
+        if (whenOperand) {
+            return null;
+        }
+        return new ConditionInParameter(left, !not, false, parameter);
+    }
+
+    @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (!(left instanceof ExpressionColumn)) {
+        if (not || whenOperand || !(left instanceof ExpressionColumn)) {
             return;
         }
         ExpressionColumn l = (ExpressionColumn) left;
@@ -156,10 +183,33 @@ public class ConditionInParameter extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append('(');
-        left.getSQL(builder, sqlFlags).append(" = ANY(");
-        return parameter.getSQL(builder, sqlFlags).append("))");
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        if (not) {
+            builder.append("NOT (");
+        }
+        left.getSQL(builder, sqlFlags, AUTO_PARENTHESES);
+        parameter.getSQL(builder.append(" = ANY("), sqlFlags, AUTO_PARENTHESES).append(')');
+        if (not) {
+            builder.append(')');
+        }
+        return builder;
+    }
+
+    @Override
+    public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
+        if (not) {
+            builder.append(" NOT IN(UNNEST(");
+            parameter.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append("))");
+        } else {
+            builder.append(" = ANY(");
+            parameter.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append(')');
+        }
+        return builder;
     }
 
     @Override

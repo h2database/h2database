@@ -233,6 +233,21 @@ public abstract class Table extends SchemaObjectBase {
     public abstract TableType getTableType();
 
     /**
+     * Return SQL table type for INFORMATION_SCHEMA.
+     *
+     * @return SQL table type for INFORMATION_SCHEMA
+     */
+    public String getSQLTableType() {
+        if (isView()) {
+            return "VIEW";
+        }
+        if (isTemporary()) {
+            return isGlobalTemporary() ? "GLOBAL TEMPORARY" : "LOCAL TEMPORARY";
+        }
+        return "BASE TABLE";
+    }
+
+    /**
      * Get the scan index to iterate through all rows.
      *
      * @param session the session
@@ -444,11 +459,9 @@ public abstract class Table extends SchemaObjectBase {
             }
             col.setTable(this, i);
             String columnName = col.getName();
-            if (columnMap.get(columnName) != null) {
-                throw DbException.get(
-                        ErrorCode.DUPLICATE_COLUMN_NAME_1, columnName);
+            if (columnMap.putIfAbsent(columnName, col) != null) {
+                throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, columnName);
             }
-            columnMap.put(columnName, col);
         }
         rowFactory = database.getRowFactory().createRowFactory(database, database.getCompareMode(),
                 database.getMode(), database, columns, null);

@@ -167,7 +167,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                 } else {
                     Value v = row.getValue(col.getColumnId());
                     if (v == null) {
-                        Expression defaultExpression = col.getDefaultExpression();
+                        Expression defaultExpression = col.getEffectiveDefaultExpression();
                         v = defaultExpression != null ? defaultExpression.getValue(session) : ValueNull.INSTANCE;
                     }
                     k.get(j++).setValue(v);
@@ -259,9 +259,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                 if (row++ > 0) {
                     builder.append(", ");
                 }
-                builder.append('(');
-                Expression.writeExpressions(builder, expr, sqlFlags);
-                builder.append(')');
+                Expression.writeExpressions(builder.append('('), expr, sqlFlags).append(')');
             }
         } else {
             builder.append(query.getPlanSQL(sqlFlags));

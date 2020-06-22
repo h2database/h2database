@@ -32,16 +32,15 @@ import javax.naming.Context;
 import javax.sql.DataSource;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
-import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Utils.ClassFactory;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueToObjectConverter;
 import org.h2.value.ValueUuid;
 
 /**
@@ -458,10 +457,10 @@ public class JdbcUtils {
      *            the parameter index
      * @param value
      *            the value
-     * @param provider
-     *            the cast information provider
+     * @param conn
+     *            the own connection
      */
-    public static void set(PreparedStatement prep, int parameterIndex, Value value, CastDataProvider provider)
+    public static void set(PreparedStatement prep, int parameterIndex, Value value, JdbcConnection conn)
             throws SQLException {
         if (prep instanceof JdbcPreparedStatement) {
             if (value instanceof ValueLob) {
@@ -470,11 +469,11 @@ public class JdbcUtils {
                 prep.setObject(parameterIndex, value);
             }
         } else {
-            setOther(prep, parameterIndex, value, provider);
+            setOther(prep, parameterIndex, value, conn);
         }
     }
 
-    private static void setOther(PreparedStatement prep, int parameterIndex, Value value, CastDataProvider provider)
+    private static void setOther(PreparedStatement prep, int parameterIndex, Value value, JdbcConnection conn)
                 throws SQLException {
         int valueType = value.getValueType();
         switch (valueType) {
@@ -497,6 +496,7 @@ public class JdbcUtils {
             prep.setLong(parameterIndex, value.getLong());
             break;
         case Value.NUMERIC:
+        case Value.DECFLOAT:
             prep.setBigDecimal(parameterIndex, value.getBigDecimal());
             break;
         case Value.DOUBLE:
@@ -555,11 +555,12 @@ public class JdbcUtils {
             setLob(prep, parameterIndex, (ValueLob) value);
             break;
         case Value.ARRAY:
-            prep.setArray(parameterIndex, prep.getConnection().createArrayOf("NULL", (Object[]) value.getObject()));
+            prep.setArray(parameterIndex, prep.getConnection().createArrayOf("NULL",
+                    (Object[]) ValueToObjectConverter.valueToDefaultObject(value, conn, true)));
             break;
         case Value.JAVA_OBJECT:
             prep.setObject(parameterIndex,
-                    JdbcUtils.deserialize(value.getBytesNoCopy(), provider.getJavaObjectSerializer()),
+                    JdbcUtils.deserialize(value.getBytesNoCopy(), conn.getJavaObjectSerializer()),
                     Types.JAVA_OBJECT);
             break;
         case Value.UUID:
@@ -590,7 +591,7 @@ public class JdbcUtils {
             }
             break;
         default:
-            throw DbException.getUnsupportedException(DataType.getDataType(valueType).name);
+            throw DbException.getUnsupportedException(Value.getTypeName(valueType));
         }
     }
 

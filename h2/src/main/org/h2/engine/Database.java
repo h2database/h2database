@@ -68,6 +68,7 @@ import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.InformationSchemaTable;
+import org.h2.table.InformationSchemaTableLegacy;
 import org.h2.table.Table;
 import org.h2.table.TableLinkConnection;
 import org.h2.table.TableSynonym;
@@ -88,7 +89,7 @@ import org.h2.util.Utils;
 import org.h2.value.CaseInsensitiveConcurrentMap;
 import org.h2.value.CaseInsensitiveMap;
 import org.h2.value.CompareMode;
-import org.h2.value.Value;
+import org.h2.value.TypeInfo;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueTimestampTimeZone;
 
@@ -146,7 +147,6 @@ public class Database implements DataHandler, CastDataProvider {
     private final ConcurrentHashMap<String, Setting> settings = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Schema> schemas = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Right> rights = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, UserAggregate> aggregates = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Comment> comments = new ConcurrentHashMap<>();
 
     private final HashMap<String, TableEngine> tableEngines = new HashMap<>();
@@ -618,12 +618,12 @@ public class Database implements DataHandler, CastDataProvider {
         lobSession = new Session(this, systemUser, ++nextSessionId);
         CreateTableData data = new CreateTableData();
         ArrayList<Column> cols = data.columns;
-        Column columnId = new Column("ID", Value.INTEGER);
+        Column columnId = new Column("ID", TypeInfo.TYPE_INTEGER);
         columnId.setNullable(false);
         cols.add(columnId);
-        cols.add(new Column("HEAD", Value.INTEGER));
-        cols.add(new Column("TYPE", Value.INTEGER));
-        cols.add(new Column("SQL", Value.VARCHAR));
+        cols.add(new Column("HEAD", TypeInfo.TYPE_INTEGER));
+        cols.add(new Column("TYPE", TypeInfo.TYPE_INTEGER));
+        cols.add(new Column("SQL", TypeInfo.TYPE_VARCHAR));
         boolean create = true;
         if (pageStore != null) {
             create = pageStore.isNew();
@@ -900,9 +900,17 @@ public class Database implements DataHandler, CastDataProvider {
         }
         synchronized (infoSchema) {
             if (!metaTablesInitialized) {
-                for (int type = 0, count = InformationSchemaTable.getMetaTableTypeCount(); type < count; type++) {
-                    infoSchema.add(new InformationSchemaTable(infoSchema, Constants.INFORMATION_SCHEMA_ID - type,
-                            type));
+                if (dbSettings.oldInformationSchema) {
+                    for (int type = 0, count = InformationSchemaTableLegacy.getMetaTableTypeCount(); type < count;
+                            type++) {
+                        infoSchema.add(new InformationSchemaTableLegacy(infoSchema,
+                                Constants.INFORMATION_SCHEMA_ID - type, type));
+                    }
+                } else {
+                    for (int type = 0, count = InformationSchemaTable.getMetaTableTypeCount(); type < count; type++) {
+                        infoSchema.add(new InformationSchemaTable(infoSchema, Constants.INFORMATION_SCHEMA_ID - type,
+                                type));
+                    }
                 }
                 if (pgCatalogSchema != null) {
                     for (int type = 0, count = PgCatalogTable.getMetaTableTypeCount(); type < count; type++) {
@@ -1112,9 +1120,6 @@ public class Database implements DataHandler, CastDataProvider {
         case DbObject.COMMENT:
             result = comments;
             break;
-        case DbObject.AGGREGATE:
-            result = aggregates;
-            break;
         default:
             throw DbException.throwInternalError("type=" + type);
         }
@@ -1164,16 +1169,6 @@ public class Database implements DataHandler, CastDataProvider {
         lockMeta(session);
         addMeta(session, obj);
         map.put(name, obj);
-    }
-
-    /**
-     * Get the user defined aggregate function if it exists, or null if not.
-     *
-     * @param name the name of the user defined aggregate function
-     * @return the aggregate function or null
-     */
-    public UserAggregate findAggregate(String name) {
-        return aggregates.get(name);
     }
 
     /**
@@ -1627,10 +1622,6 @@ public class Database implements DataHandler, CastDataProvider {
      */
     public Schema getMainSchema() {
         return mainSchema;
-    }
-
-    public ArrayList<UserAggregate> getAllAggregates() {
-        return new ArrayList<>(aggregates.values());
     }
 
     public ArrayList<Comment> getAllComments() {

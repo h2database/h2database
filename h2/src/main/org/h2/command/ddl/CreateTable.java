@@ -188,8 +188,7 @@ public class CreateTable extends CommandWithColumns {
         ArrayList<Expression> expressions = asQuery.getExpressions();
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
-            Column col = new Column(expr.getColumnNameForView(session, i), expr.getType());
-            addColumn(col);
+            addColumn(new Column(expr.getColumnNameForView(session, i), expr.getType()));
         }
     }
 

@@ -3,31 +3,34 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.engine;
+package org.h2.schema;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
-import org.h2.command.Parser;
+import org.h2.engine.DbObject;
+import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.util.HasSQL;
 import org.h2.util.JdbcUtils;
+import org.h2.util.ParserUtil;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 
 /**
  * Represents a user-defined aggregate function.
  */
-public class UserAggregate extends DbObjectBase {
+public class UserAggregate extends SchemaObjectBase {
 
     private String className;
     private Class<?> javaClass;
 
-    public UserAggregate(Database db, int id, String name, String className,
+    public UserAggregate(Schema schema, int id, String name, String className,
             boolean force) {
-        super(db, id, name, Trace.FUNCTION);
+        super(schema, id, name, Trace.FUNCTION);
         this.className = className;
         if (!force) {
             getInstance();
@@ -68,7 +71,7 @@ public class UserAggregate extends DbObjectBase {
     public String getCreateSQL() {
         StringBuilder builder = new StringBuilder("CREATE FORCE AGGREGATE ");
         getSQL(builder, DEFAULT_SQL_FLAGS).append(" FOR ");
-        Parser.quoteIdentifier(builder, className, HasSQL.DEFAULT_SQL_FLAGS);
+        ParserUtil.quoteIdentifier(builder, className, HasSQL.DEFAULT_SQL_FLAGS);
         return builder.toString();
     }
 
@@ -114,7 +117,7 @@ public class UserAggregate extends DbObjectBase {
         public int getInternalType(int[] inputTypes) throws SQLException {
             int[] sqlTypes = new int[inputTypes.length];
             for (int i = 0; i < inputTypes.length; i++) {
-                sqlTypes[i] = DataType.convertTypeToSQLType(inputTypes[i]);
+                sqlTypes[i] = DataType.convertTypeToSQLType(TypeInfo.getTypeInfo(inputTypes[i]));
             }
             return  DataType.convertSQLTypeToValueType(aggregateFunction.getType(sqlTypes));
         }

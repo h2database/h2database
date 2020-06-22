@@ -50,7 +50,7 @@ public class TestViewDropView extends TestDb {
     }
 
     private void testCreateForceView() throws SQLException {
-        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, stat).
                 execute("create view test_view as select * from test");
         stat.execute("create force view test_view as select * from test");
         stat.execute("create table test(id int)");

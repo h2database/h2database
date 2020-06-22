@@ -80,9 +80,9 @@ public class TestFunctionOverload extends TestDb {
         assertFalse(rs.next());
         rs = meta.getProcedures(null, null, "OVERLOAD1OR2");
         rs.next();
-        assertEquals(1, rs.getInt("NUM_INPUT_PARAMS"));
+        assertEquals("OVERLOAD1OR2_1", rs.getString("SPECIFIC_NAME"));
         rs.next();
-        assertEquals(2, rs.getInt("NUM_INPUT_PARAMS"));
+        assertEquals("OVERLOAD1OR2_2", rs.getString("SPECIFIC_NAME"));
         assertFalse(rs.next());
     }
 

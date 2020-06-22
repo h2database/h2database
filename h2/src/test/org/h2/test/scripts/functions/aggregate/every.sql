@@ -10,8 +10,8 @@ INSERT INTO TEST VALUES (1, 1), (1, 3), (2, 1), (2, 5), (3, 4);
 > update count: 5
 
 SELECT A, EVERY(B < 5), BOOL_AND(B > 1), EVERY(B >= 1) FILTER (WHERE A = 1) FROM TEST GROUP BY A;
-> A EVERY(B < 5) EVERY(B > 1) EVERY(B >= 1) FILTER (WHERE (A = 1))
-> - ------------ ------------ ------------------------------------
+> A EVERY(B < 5) EVERY(B > 1) EVERY(B >= 1) FILTER (WHERE A = 1)
+> - ------------ ------------ ----------------------------------
 > 1 TRUE         FALSE        TRUE
 > 2 FALSE        FALSE        null
 > 3 TRUE         TRUE         null

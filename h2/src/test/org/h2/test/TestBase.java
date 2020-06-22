@@ -37,7 +37,6 @@ import java.util.Objects;
 import java.util.SimpleTimeZone;
 import java.util.concurrent.TimeUnit;
 
-import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
@@ -1046,20 +1045,19 @@ public abstract class TestBase {
                     assertEquals("java.lang.Integer", className);
                     break;
                 case Types.VARCHAR:
-                    assertEquals("VARCHAR", typeName);
+                    assertEquals("CHARACTER VARYING", typeName);
                     assertEquals("java.lang.String", className);
                     break;
                 case Types.SMALLINT:
                     assertEquals("SMALLINT", typeName);
-                    assertEquals(SysProperties.OLD_RESULT_SET_GET_OBJECT ? "java.lang.Short" : "java.lang.Integer",
-                            className);
+                    assertEquals("java.lang.Integer", className);
                     break;
                 case Types.TIMESTAMP:
                     assertEquals("TIMESTAMP", typeName);
                     assertEquals("java.sql.Timestamp", className);
                     break;
-                case Types.DECIMAL:
-                    assertEquals("DECIMAL", typeName);
+                case Types.NUMERIC:
+                    assertEquals("NUMERIC", typeName);
                     assertEquals("java.math.BigDecimal", className);
                     break;
                 default:
@@ -1087,11 +1085,25 @@ public abstract class TestBase {
      *
      * @param rs the result set
      * @param data the expected data
+     * @param ignoreColumns columns to ignore, or {@code null}
+     * @throws AssertionError if there is a mismatch
+     */
+    protected void assertResultSetOrdered(ResultSet rs, String[][] data, int[] ignoreColumns)
+            throws SQLException {
+        assertResultSet(true, rs, data, ignoreColumns);
+    }
+
+    /**
+     * Check if a result set contains the expected data.
+     * The sort order is significant
+     *
+     * @param rs the result set
+     * @param data the expected data
      * @throws AssertionError if there is a mismatch
      */
     protected void assertResultSetOrdered(ResultSet rs, String[][] data)
             throws SQLException {
-        assertResultSet(true, rs, data);
+        assertResultSet(true, rs, data, null);
     }
 
     /**
@@ -1100,9 +1112,10 @@ public abstract class TestBase {
      * @param ordered if the sort order is significant
      * @param rs the result set
      * @param data the expected data
+     * @param ignoreColumns columns to ignore, or {@code null}
      * @throws AssertionError if there is a mismatch
      */
-    private void assertResultSet(boolean ordered, ResultSet rs, String[][] data)
+    private void assertResultSet(boolean ordered, ResultSet rs, String[][] data, int[] ignoreColumns)
             throws SQLException {
         int len = rs.getMetaData().getColumnCount();
         int rows = data.length;
@@ -1123,7 +1136,7 @@ public abstract class TestBase {
             String[] row = getData(rs, len);
             if (ordered) {
                 String[] good = data[i];
-                if (!testRow(good, row, good.length)) {
+                if (!testRow(good, row, good.length, ignoreColumns)) {
                     fail("testResultSet row not equal, got:\n" + formatRow(row)
                             + "\n" + formatRow(good));
                 }
@@ -1131,7 +1144,7 @@ public abstract class TestBase {
                 boolean found = false;
                 for (int j = 0; j < rows; j++) {
                     String[] good = data[i];
-                    if (testRow(good, row, good.length)) {
+                    if (testRow(good, row, good.length, ignoreColumns)) {
                         found = true;
                         break;
                     }
@@ -1148,8 +1161,15 @@ public abstract class TestBase {
         }
     }
 
-    private static boolean testRow(String[] a, String[] b, int len) {
-        for (int i = 0; i < len; i++) {
+    private static boolean testRow(String[] a, String[] b, int len, int[] ignoreColumns) {
+        loop: for (int i = 0; i < len; i++) {
+            if (ignoreColumns != null) {
+                for (int c : ignoreColumns) {
+                    if (c == i) {
+                        continue loop;
+                    }
+                }
+            }
             String sa = a[i];
             String sb = b[i];
             if (sa == null || sb == null) {

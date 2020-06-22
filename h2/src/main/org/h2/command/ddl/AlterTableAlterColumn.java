@@ -427,13 +427,13 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             case CommandInterface.ALTER_TABLE_ADD_COLUMN:
                 if (columnsToAdd != null && columnsToAdd.contains(nc)) {
                     if (usingExpression != null) {
-                        usingExpression.getSQL(columnList, HasSQL.DEFAULT_SQL_FLAGS);
+                        usingExpression.getUnenclosedSQL(columnList, HasSQL.DEFAULT_SQL_FLAGS);
                     } else {
                         Expression def = nc.getDefaultExpression();
                         if (def == null) {
                             columnList.append("NULL");
                         } else {
-                            def.getSQL(columnList, HasSQL.DEFAULT_SQL_FLAGS);
+                            def.getUnenclosedSQL(columnList, HasSQL.DEFAULT_SQL_FLAGS);
                         }
                     }
                     continue;
@@ -441,7 +441,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 break;
             case CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE:
                 if (nc.equals(newColumn) && usingExpression != null) {
-                    usingExpression.getSQL(columnList, HasSQL.DEFAULT_SQL_FLAGS);
+                    usingExpression.getUnenclosedSQL(columnList, HasSQL.DEFAULT_SQL_FLAGS);
                     continue;
                 }
             }

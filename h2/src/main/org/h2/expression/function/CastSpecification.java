@@ -55,6 +55,11 @@ public class CastSpecification extends Operation1 {
         return this;
     }
 
+    @Override
+    public boolean isConstant() {
+        return arg instanceof ValueExpression && canOptimizeCast(arg.getType().getValueType(), type.getValueType());
+    }
+
     private static boolean canOptimizeCast(int src, int dst) {
         switch (src) {
         case Value.TIME:
@@ -97,15 +102,10 @@ public class CastSpecification extends Operation1 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         builder.append("CAST(");
-        arg.getSQL(builder, arg instanceof ValueExpression ? sqlFlags | NO_CASTS : sqlFlags).append(" AS ");
-        if (domain != null) {
-            domain.getSQL(builder, sqlFlags);
-        } else {
-            type.getSQL(builder);
-        }
-        return builder.append(')');
+        arg.getUnenclosedSQL(builder, arg instanceof ValueExpression ? sqlFlags | NO_CASTS : sqlFlags).append(" AS ");
+        return (domain != null ? domain : type).getSQL(builder, sqlFlags).append(')');
     }
 
 }

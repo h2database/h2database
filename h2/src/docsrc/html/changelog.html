@@ -21,6 +21,124 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #2716: Fix URL of Maven repository
+</li>
+<li>Issue #2715: Mention `DB_CLOSE_DELAY=-1` flag in JDBC URL on the "Cheat Sheet" page
+</li>
+<li>PR #2714: fixed few code smells discovered by PVS-Studio
+</li>
+<li>Issue #2712: `NOT LIKE` to a sub-query doesn't work
+</li>
+<li>PR #2710: PgServer: set oid and attnum in RowDescription
+</li>
+<li>Issue #2254: Add standard DECFLOAT data type
+</li>
+<li>PR #2708: Add declared data type attributes to the INFORMATION_SCHEMA
+</li>
+<li>Issue #2706: Empty comments / remarks on objects
+</li>
+<li>PR #2705: Return standard-compliant DATA_TYPE for strings
+</li>
+<li>PR #2703: Fix case-insensitive comparison issues with national characters
+</li>
+<li>Issue #2701: Subquery with FETCH should not accept global conditions
+</li>
+<li>Issue #2699: Remove FUNCTIONS_IN_SCHEMA setting
+</li>
+<li>Issue #452: Add possibility to use user-defined aggregate functions with schema
+</li>
+<li>PR #2695: Refactor handling of parentheses in getSQL() methods
+</li>
+<li>PR #2693: disallow VARCHAR_IGNORECASE in PostgreSQL mode
+</li>
+<li>Issue #2407: Implement CHAR whitespace handling correctly
+</li>
+<li>PR #2685: Check existing data in ALTER DOMAIN ADD CONSTRAINT
+</li>
+<li>PR #2683: Fix data types in Transfer
+</li>
+<li>PR #2681: Report user functions in standard ROUTINES and PARAMETERS views
+</li>
+<li>PR #2680: Reimplement remaining DatabaseMetaData methods and fix precision of binary numeric types
+</li>
+<li>PR #2679: Reimplement getTables(), getTableTypes(), and getColumns()
+</li>
+<li>PR #2678: Reimplement getPrimaryKeys(), getBestRowIdentifier(), getIndexInfo() and others
+</li>
+<li>PR #2675: Reimplement getImportedKeys(), getExportedKeys(), and getCrossReferences()
+</li>
+<li>PR #2673: Reimplement some metadata methods
+</li>
+<li>PR #2672: Forward DatabaseMetaData calls to server
+</li>
+<li>Issue #2329: Content of INFORMATION_SCHEMA should be listed as VIEWS
+</li>
+<li>PR #2668: Sequence generator data type option and length parameter for JSON data type
+</li>
+<li>PR #2666: Add ALTER DOMAIN RENAME command
+</li>
+<li>PR #2663: Add ALTER DOMAIN { SET | DROP } { DEFAULT | ON UPDATE }
+</li>
+<li>PR #2661: Don't allow construction of incomplete ARRAY and ROW data types
+</li>
+<li>Issue #2659: NULLIF with row values
+</li>
+<li>PR #2658: Extract date-time and some other groups of functions into own classes
+</li>
+<li>PR #2656: add `_int2` and `_int4` for PgServer
+</li>
+<li>PR #2654: Move out JSON, cardinality, ABS, MOD, FLOOR, and CEIL functions from the Function class
+</li>
+<li>PR #2653: Use full TypeInfo for conversions between PG and H2 data types
+</li>
+<li>PR #2652: Add "SHOW ALL"
+</li>
+<li>PR #2651: add `pg_type.typelem` and `pg_type.typdelim`
+</li>
+<li>PR #2649: Extract some groups of functions from Function class
+</li>
+<li>PR #2646: Add some PostgreSQL compatibility features
+</li>
+<li>PR #2645: Add CURRENT_PATH, CURRENT_ROLE, SESSION_USER, and SYSTEM_USER
+</li>
+<li>Issue #2643: Send PG_TYPE_TEXTARRAY values to ODBC drivers properly
+</li>
+<li>PR #2642: Throw proper exceptions from array element reference and TRIM_ARRAY
+</li>
+<li>PR #2640: German translations
+</li>
+<li>Issue #2108: Add possible candidates in different case to table not found exception
+</li>
+<li>Issue #2633: Multi-column UPDATE assignment needs to be reimplemented
+</li>
+<li>PR #2635: Implement REGEXP_SUBSTR function
+</li>
+<li>PR #2632: Improve ROW data type
+</li>
+<li>PR #2630: fix: quoted VALUE in documentation
+</li>
+<li>Issue #2628: Cached SQL throws JdbcSQLSyntaxErrorException if executed with different parameter values than before
+</li>
+<li>Issue #2611: Add quantified distinct predicate
+</li>
+<li>Issue #2620: LOBs in triggers
+</li>
+<li>PR #2619: ARRAY_MAX_CARDINALITY and TRIM_ARRAY functions
+</li>
+<li>PR #2617: Add Feature F262: Extended CASE expression
+</li>
+<li>PR #2615: Add feature T461: Symmetric BETWEEN predicate
+</li>
+<li>PR #2614: Fix support of multi-dimensional arrays in Java functions
+</li>
+<li>Issue #2608: Improve concatenation operation for multiple operands
+</li>
+<li>PR #2605: Assorted minor changes
+</li>
+<li>Issue #2602: H2 doesn't allow to create trigger from Java source code if there are nested classes
+</li>
+<li>PR #2601: Add field SLEEP_SINCE to INFORMATION_SCHEMA.SESSIONS table
+</li>
 <li>Issue #1973: Standard MERGE statement doesn't work with views
 </li>
 <li>Issue #2552: MERGE statement should process each row only once

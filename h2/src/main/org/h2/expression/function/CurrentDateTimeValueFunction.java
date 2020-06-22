@@ -16,7 +16,7 @@ import org.h2.value.ValueTimestamp;
 /**
  * Current datetime value function.
  */
-public final class CurrentDateTimeValueFunction extends Operation0 {
+public final class CurrentDateTimeValueFunction extends Operation0 implements NamedExpression {
 
     /**
      * The function "CURRENT_DATE"
@@ -51,8 +51,8 @@ public final class CurrentDateTimeValueFunction extends Operation0 {
     /**
      * Get the name for this function id.
      *
-     * @param function the name
-     * @return the id
+     * @param function the function id
+     * @return the name
      */
     public static String getName(int function) {
         return NAMES[function];
@@ -77,8 +77,8 @@ public final class CurrentDateTimeValueFunction extends Operation0 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append(NAMES[function]);
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        builder.append(getName());
         if (scale >= 0) {
             builder.append('(').append(scale).append(')');
         }
@@ -89,7 +89,6 @@ public final class CurrentDateTimeValueFunction extends Operation0 {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
-        case ExpressionVisitor.READONLY:
             return false;
         }
         return true;
@@ -103,6 +102,11 @@ public final class CurrentDateTimeValueFunction extends Operation0 {
     @Override
     public int getCost() {
         return 1;
+    }
+
+    @Override
+    public String getName() {
+        return NAMES[function];
     }
 
 }

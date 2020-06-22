@@ -10,20 +10,23 @@ import java.util.List;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.function.NamedExpression;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.HasSQL;
+import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
+import org.h2.value.Typed;
 import org.h2.value.Value;
-import org.h2.value.ValueCollectionBase;
+import org.h2.value.ValueRow;
 
 /**
  * An expression is a operation, a value, or a function in a query.
  */
-public abstract class Expression implements HasSQL {
+public abstract class Expression implements HasSQL, Typed {
 
     /**
      * Initial state for {@link #mapColumns(ColumnResolver, int, int)}.
@@ -42,6 +45,22 @@ public abstract class Expression implements HasSQL {
      */
     public static final int MAP_IN_AGGREGATE = 2;
 
+    /**
+     * Wrap expression in parentheses only if it can't be safely included into
+     * other expressions without them.
+     */
+    public static final int AUTO_PARENTHESES = 0;
+
+    /**
+     * Wrap expression in parentheses unconditionally.
+     */
+    public static final int WITH_PARENTHESES = 1;
+
+    /**
+     * Do not wrap expression in parentheses.
+     */
+    public static final int WITHOUT_PARENTHESES = 2;
+
     private boolean addedToFilter;
 
     /**
@@ -50,14 +69,17 @@ public abstract class Expression implements HasSQL {
      * @param builder the builder to append the SQL to
      * @param expressions the list of expressions
      * @param sqlFlags formatting flags
+     * @return the specified string builder
      */
-    public static void writeExpressions(StringBuilder builder, List<? extends Expression> expressions, int sqlFlags) {
+    public static StringBuilder writeExpressions(StringBuilder builder, List<? extends Expression> expressions,
+            int sqlFlags) {
         for (int i = 0, length = expressions.size(); i < length; i++) {
             if (i > 0) {
                 builder.append(", ");
             }
-            expressions.get(i).getSQL(builder, sqlFlags);
+            expressions.get(i).getUnenclosedSQL(builder, sqlFlags);
         }
+        return builder;
     }
 
     /**
@@ -66,8 +88,9 @@ public abstract class Expression implements HasSQL {
      * @param builder the builder to append the SQL to
      * @param expressions the list of expressions
      * @param sqlFlags formatting flags
+     * @return the specified string builder
      */
-    public static void writeExpressions(StringBuilder builder, Expression[] expressions, int sqlFlags) {
+    public static StringBuilder writeExpressions(StringBuilder builder, Expression[] expressions, int sqlFlags) {
         for (int i = 0, length = expressions.length; i < length; i++) {
             if (i > 0) {
                 builder.append(", ");
@@ -76,9 +99,10 @@ public abstract class Expression implements HasSQL {
             if (e == null) {
                 builder.append("DEFAULT");
             } else {
-                e.getSQL(builder, sqlFlags);
+                e.getUnenclosedSQL(builder, sqlFlags);
             }
         }
+        return builder;
     }
 
     /**
@@ -90,11 +114,12 @@ public abstract class Expression implements HasSQL {
     public abstract Value getValue(Session session);
 
     /**
-     * Returns the data type. The data type may not be known before the
+     * Returns the data type. The data type may be unknown before the
      * optimization phase.
      *
      * @return the data type
      */
+    @Override
     public abstract TypeInfo getType();
 
     /**
@@ -138,30 +163,62 @@ public abstract class Expression implements HasSQL {
      */
     public abstract void setEvaluatable(TableFilter tableFilter, boolean value);
 
-    /**
-     * Appends the SQL statement of this expression to the specified builder.
-     * This may not always be the original SQL statement, specially after
-     * optimization. Enclosing '(' and ')' are always appended.
-     *
-     * @param builder
-     *            string builder
-     * @param sqlFlags
-     *            formatting flags
-     * @return the specified string builder
-     */
-    public StringBuilder getEnclosedSQL(StringBuilder builder, int sqlFlags) {
-        int first = builder.length();
-        int last = getSQL(builder, sqlFlags).length() - 1;
-        if (last <= first || builder.charAt(first) != '(' || builder.charAt(last) != ')') {
-            builder.insert(first, '(').append(')');
-        }
-        return builder;
+    @Override
+    public final String getSQL(int sqlFlags) {
+        return getSQL(new StringBuilder(), sqlFlags, AUTO_PARENTHESES).toString();
+    }
+
+    @Override
+    public final StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return getSQL(builder, sqlFlags, AUTO_PARENTHESES);
     }
 
     /**
-     * Appends the SQL statement of this expression to the specified builder.
-     * This may not always be the original SQL statement, specially after
-     * optimization. Enclosing '(' and ')' are removed.
+     * Get the SQL statement of this expression. This may not always be the
+     * original SQL statement, especially after optimization.
+     *
+     * @param sqlFlags
+     *            formatting flags
+     * @param parentheses
+     *            parentheses mode
+     * @return the SQL statement
+     */
+    public final String getSQL(int sqlFlags, int parentheses) {
+        return getSQL(new StringBuilder(), sqlFlags, parentheses).toString();
+    }
+
+    /**
+     * Get the SQL statement of this expression. This may not always be the
+     * original SQL statement, especially after optimization.
+     *
+     * @param builder
+     *            string builder
+     * @param sqlFlags
+     *            formatting flags
+     * @param parentheses
+     *            parentheses mode
+     * @return the specified string builder
+     */
+    public final StringBuilder getSQL(StringBuilder builder, int sqlFlags, int parentheses) {
+        return parentheses == WITH_PARENTHESES || parentheses != WITHOUT_PARENTHESES && needParentheses()
+                ? getUnenclosedSQL(builder.append('('), sqlFlags).append(')')
+                : getUnenclosedSQL(builder, sqlFlags);
+    }
+
+    /**
+     * Returns whether this expressions needs to be wrapped in parentheses when
+     * it is used as an argument of other expressions.
+     *
+     * @return {@code true} if it is
+     */
+    public boolean needParentheses() {
+        return false;
+    }
+
+    /**
+     * Get the SQL statement of this expression. This may not always be the
+     * original SQL statement, especially after optimization. Enclosing '(' and
+     * ')' are always appended.
      *
      * @param builder
      *            string builder
@@ -169,15 +226,22 @@ public abstract class Expression implements HasSQL {
      *            formatting flags
      * @return the specified string builder
      */
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        int first = builder.length();
-        int last = getSQL(builder, sqlFlags).length() - 1;
-        if (last > first && builder.charAt(first) == '(' && builder.charAt(last) == ')') {
-            builder.setLength(last);
-            builder.deleteCharAt(first);
-        }
-        return builder;
+    public final StringBuilder getEnclosedSQL(StringBuilder builder, int sqlFlags) {
+        return getUnenclosedSQL(builder.append('('), sqlFlags).append(')');
     }
+
+    /**
+     * Get the SQL statement of this expression. This may not always be the
+     * original SQL statement, especially after optimization. Enclosing '(' and
+     * ')' are never appended.
+     *
+     * @param builder
+     *            string builder
+     * @param sqlFlags
+     *            formatting flags
+     * @return the specified string builder
+     */
+    public abstract StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags);
 
     /**
      * Update an aggregate value. This method is called at statement execution
@@ -340,7 +404,7 @@ public abstract class Expression implements HasSQL {
     public String getAlias(Session session, int columnIndex) {
         switch (session.getMode().expressionNames) {
         default:
-            return getUnenclosedSQL(new StringBuilder(), QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS).toString();
+            return getSQL(QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS, WITHOUT_PARENTHESES);
         case EMPTY:
             return "";
         case NUMBER:
@@ -348,6 +412,9 @@ public abstract class Expression implements HasSQL {
         case C_NUMBER:
             return "C" + (columnIndex + 1);
         case POSTGRESQL_STYLE:
+            if (this instanceof NamedExpression) {
+                return StringUtils.toLowerEnglish(((NamedExpression) this).getName());
+            }
             return "?column?";
         }
     }
@@ -367,7 +434,7 @@ public abstract class Expression implements HasSQL {
         case EXCEPTION:
             throw DbException.get(ErrorCode.COLUMN_ALIAS_IS_NOT_SPECIFIED_1, getTraceSQL());
         case MYSQL_STYLE: {
-            String name = getUnenclosedSQL(new StringBuilder(), QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS).toString();
+            String name = getSQL(QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS, WITHOUT_PARENTHESES);
             if (name.length() > 64) {
                 name = "Name_exp_" + (columnIndex + 1);
             }
@@ -425,7 +492,7 @@ public abstract class Expression implements HasSQL {
      * @param value the value to extract columns from
      * @return array of expression columns
      */
-    protected static Expression[] getExpressionColumns(Session session, ValueCollectionBase value) {
+    protected static Expression[] getExpressionColumns(Session session, ValueRow value) {
         Value[] list = value.getList();
         ExpressionColumn[] expr = new ExpressionColumn[list.length];
         for (int i = 0, len = list.length; i < len; i++) {
@@ -450,9 +517,7 @@ public abstract class Expression implements HasSQL {
         for (int i = 0; i < columnCount; i++) {
             String name = result.getColumnName(i);
             TypeInfo type = result.getColumnType(i);
-            Column col = new Column(name, type);
-            Expression expr = new ExpressionColumn(db, col);
-            expressions[i] = expr;
+            expressions[i] = new ExpressionColumn(db, new Column(name, type));
         }
         return expressions;
     }
@@ -475,6 +540,32 @@ public abstract class Expression implements HasSQL {
      */
     public Expression getSubexpression(int index) {
         throw new IndexOutOfBoundsException();
+    }
+
+    /**
+     * Return the resulting value of when operand for the current row.
+     *
+     * @param session
+     *            the session
+     * @param left
+     *            value on the left side
+     * @return the result
+     */
+    public boolean getWhenValue(Session session, Value left) {
+        return session.compareWithNull(left, getValue(session), true) == 0;
+    }
+
+    /**
+     * Appends the SQL statement of this when operand to the specified builder.
+     *
+     * @param builder
+     *            string builder
+     * @param sqlFlags
+     *            formatting flags
+     * @return the specified string builder
+     */
+    public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
+        return getUnenclosedSQL(builder.append(' '), sqlFlags);
     }
 
 }

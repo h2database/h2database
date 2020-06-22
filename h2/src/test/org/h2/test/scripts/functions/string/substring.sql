@@ -71,9 +71,9 @@ SELECT SUBSTRING(X'00', 0, 1);
 
 SCRIPT NOPASSWORDS NOSETTINGS TABLE TEST;
 > SCRIPT
-> ---------------------------------------------------------
+> --------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "C1" VARBINARY(1) );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "C1" BINARY VARYING(1) );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > INSERT INTO "PUBLIC"."TEST" VALUES (X'11');
 > rows: 4

@@ -15,21 +15,24 @@ import java.util.Arrays;
 
 import org.h2.Driver;
 import org.h2.api.ErrorCode;
-import org.h2.command.Parser;
 import org.h2.expression.Expression;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
+import org.h2.util.ParserUtil;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueToObjectConverter;
+import org.h2.value.ValueToObjectConverter2;
 
 /**
  * Represents a user-defined function, or alias.
@@ -201,15 +204,6 @@ public class FunctionAlias extends SchemaObjectBase {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        // TODO can remove this method once FUNCTIONS_IN_SCHEMA is enabled
-        if (database.getSettings().functionsInSchema || getSchema().getId() != Constants.MAIN_SCHEMA_ID) {
-            return super.getSQL(builder, sqlFlags);
-        }
-        return Parser.quoteIdentifier(builder, getName(), sqlFlags);
-    }
-
-    @Override
     public String getCreateSQL() {
         StringBuilder buff = new StringBuilder("CREATE FORCE ALIAS ");
         buff.append(getSQL(DEFAULT_SQL_FLAGS));
@@ -221,7 +215,7 @@ public class FunctionAlias extends SchemaObjectBase {
             StringUtils.quoteStringSQL(buff, source);
         } else {
             buff.append(" FOR ");
-            Parser.quoteIdentifier(buff, className + '.' + methodName, DEFAULT_SQL_FLAGS);
+            ParserUtil.quoteIdentifier(buff, className + '.' + methodName, DEFAULT_SQL_FLAGS);
         }
         return buff.toString();
     }
@@ -330,7 +324,7 @@ public class FunctionAlias extends SchemaObjectBase {
                 }
             }
             Class<?> returnClass = method.getReturnType();
-            dataType = DataType.getTypeFromClass(returnClass);
+            dataType = ValueToObjectConverter2.classToType(returnClass);
         }
 
         @Override
@@ -361,8 +355,9 @@ public class FunctionAlias extends SchemaObjectBase {
             Class<?>[] paramClasses = method.getParameterTypes();
             Object[] params = new Object[paramClasses.length];
             int p = 0;
+            JdbcConnection conn = session.createConnection(columnList);
             if (hasConnectionParam && params.length > 0) {
-                params[p++] = session.createConnection(columnList);
+                params[p++] = conn;
             }
 
             // allocate array for varArgs parameters
@@ -383,41 +378,29 @@ public class FunctionAlias extends SchemaObjectBase {
                 } else {
                     paramClass = paramClasses[p];
                 }
-                TypeInfo type = DataType.getTypeFromClass(paramClass);
                 Value v = args[a].getValue(session);
                 Object o;
                 if (Value.class.isAssignableFrom(paramClass)) {
                     o = v;
-                } else if (v.getValueType() == Value.ARRAY &&
-                        paramClass.isArray() &&
-                        paramClass.getComponentType() != Object.class) {
-                    Value[] array = ((ValueArray) v).getList();
-                    Object[] objArray = (Object[]) Array.newInstance(
-                            paramClass.getComponentType(), array.length);
-                    TypeInfo componentType = DataType.getTypeFromClass(paramClass.getComponentType());
-                    for (int i = 0; i < objArray.length; i++) {
-                        objArray[i] = array[i].convertTo(componentType, session).getObject();
-                    }
-                    o = objArray;
                 } else {
-                    v = v.convertTo(type, session);
-                    o = v.getObject();
-                }
-                if (o == null) {
-                    if (paramClass.isPrimitive()) {
-                        if (columnList) {
-                            // If the column list is requested, the parameters
-                            // may be null. Need to set to default value,
-                            // otherwise the function can't be called at all.
-                            o = DataType.getDefaultForPrimitiveType(paramClass);
+                    boolean primitive = paramClass.isPrimitive();
+                    if (v == ValueNull.INSTANCE) {
+                        if (primitive) {
+                            if (columnList) {
+                                // If the column list is requested, the parameters
+                                // may be null. Need to set to default value,
+                                // otherwise the function can't be called at all.
+                                o = DataType.getDefaultForPrimitiveType(paramClass);
+                            } else {
+                                // NULL for a java primitive: return NULL
+                                return ValueNull.INSTANCE;
+                            }
                         } else {
-                            // NULL for a java primitive: return NULL
-                            return ValueNull.INSTANCE;
+                            o = null;
                         }
-                    }
-                } else {
-                    if (!paramClass.isAssignableFrom(o.getClass()) && !paramClass.isPrimitive()) {
-                        o = DataType.convertTo(session.createConnection(false), v, paramClass);
+                    } else {
+                        o = ValueToObjectConverter.valueToObject(
+                                (Class<?>) (primitive ? Utils.getNonPrimitiveClass(paramClass) : paramClass), v, conn);
                     }
                 }
                 if (currentIsVarArg) {
@@ -458,7 +441,7 @@ public class FunctionAlias extends SchemaObjectBase {
                 if (Value.class.isAssignableFrom(method.getReturnType())) {
                     return (Value) returnValue;
                 }
-                Value ret = DataType.convertToValue(session, returnValue, dataType.getValueType());
+                Value ret = ValueToObjectConverter.objectToValue(session, returnValue, dataType.getValueType());
                 return ret.convertTo(dataType, session);
             } finally {
                 session.setLastScopeIdentity(identity);

@@ -45,26 +45,24 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
         return label == null ? null : label.trim().toUpperCase(Locale.ENGLISH);
     }
 
-    private static String toSQL(String[] enumerators) {
-        StringBuilder result = new StringBuilder();
-        result.append('(');
+    private static StringBuilder toSQL(StringBuilder builder, String[] enumerators) {
+        builder.append('(');
         for (int i = 0; i < enumerators.length; i++) {
             if (i != 0) {
-                result.append(", ");
+                builder.append(", ");
             }
-            result.append('\'');
+            builder.append('\'');
             String s = enumerators[i];
             for (int j = 0, length = s.length(); j < length; j++) {
                 char c = s.charAt(j);
                 if (c == '\'') {
-                    result.append('\'');
+                    builder.append('\'');
                 }
-                result.append(c);
+                builder.append(c);
             }
-            result.append('\'');
+            builder.append('\'');
         }
-        result.append(')');
-        return result.toString();
+        return builder.append(')');
     }
 
     /**
@@ -85,7 +83,8 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
             }
             for (int j = 0; j < i; j++) {
                 if (l.equals(cleaned[j])) {
-                    throw DbException.get(ErrorCode.ENUM_DUPLICATE, toSQL(enumerators));
+                    throw DbException.get(ErrorCode.ENUM_DUPLICATE, //
+                            toSQL(new StringBuilder(), enumerators).toString());
                 }
             }
             cleaned[i] = l;
@@ -175,8 +174,8 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
     }
 
     @Override
-    public String getCreateSQL() {
-        return toSQL(enumerators);
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return toSQL(builder, enumerators);
     }
 
 }

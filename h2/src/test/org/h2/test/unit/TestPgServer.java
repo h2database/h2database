@@ -27,6 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.h2.api.ErrorCode;
+import org.h2.server.pg.PgServer;
 import org.h2.store.Data;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -67,6 +68,7 @@ public class TestPgServer extends TestDb {
         testDateTime();
         testPrepareWithUnspecifiedType();
         testOtherPgClients();
+        testArray();
     }
 
     private boolean getPgJdbcDriver() {
@@ -203,6 +205,7 @@ public class TestPgServer extends TestDb {
         ResultSetMetaData rsMeta = rs.getMetaData();
         assertEquals(Types.INTEGER, rsMeta.getColumnType(1));
         assertEquals(Types.VARCHAR, rsMeta.getColumnType(2));
+        assertEquals("test", rsMeta.getTableName(1));
 
         prep.close();
         assertEquals(1, rs.getInt(1));
@@ -221,10 +224,12 @@ public class TestPgServer extends TestDb {
         rs.close();
         DatabaseMetaData dbMeta = conn.getMetaData();
         rs = dbMeta.getTables(null, null, "TEST", null);
-        rs.next();
+        assertFalse(rs.next());
+        rs = dbMeta.getTables(null, null, "test", null);
+        assertTrue(rs.next());
         assertEquals("test", rs.getString("TABLE_NAME"));
         assertFalse(rs.next());
-        rs = dbMeta.getColumns(null, null, "TEST", null);
+        rs = dbMeta.getColumns(null, null, "test", null);
         rs.next();
         assertEquals("id", rs.getString("COLUMN_NAME"));
         rs.next();
@@ -334,6 +339,14 @@ public class TestPgServer extends TestDb {
         rs = stat.executeQuery("select pg_get_indexdef("+indexId+", 2, false)");
         rs.next();
         assertEquals("id", rs.getString(1));
+
+        rs = stat.executeQuery("select * from pg_type where oid = " + PgServer.PG_TYPE_VARCHAR_ARRAY);
+        rs.next();
+        assertEquals("_varchar", rs.getString("typname"));
+        assertEquals("_varchar", rs.getObject("typname"));
+        assertEquals("b", rs.getString("typtype"));
+        assertEquals(",", rs.getString("typdelim"));
+        assertEquals(PgServer.PG_TYPE_VARCHAR, rs.getInt("typelem"));
 
         conn.close();
     }
@@ -671,7 +684,7 @@ public class TestPgServer extends TestDb {
             try (ResultSet rs = stat.executeQuery("SELECT \"p\".\"proname\", \"p\".\"proargtypes\" " +
                     "FROM \"pg_catalog\".\"pg_namespace\" AS \"n\" " +
                     "JOIN \"pg_catalog\".\"pg_proc\" AS \"p\" ON \"p\".\"pronamespace\" = \"n\".\"oid\" " +
-                    "WHERE \"n\".\"nspname\"='public';")) {
+                    "WHERE \"n\".\"nspname\"='public'")) {
                 assertFalse(rs.next()); // "pg_proc" always empty
             }
             try (ResultSet rs = stat.executeQuery("SELECT DISTINCT a.attname AS column_name, " +
@@ -690,9 +703,102 @@ public class TestPgServer extends TestDb {
                 assertEquals("x1", rs.getString("column_name"));
                 assertFalse(rs.next());
             }
+            try (ResultSet rs = stat.executeQuery("SHOW ALL")) {
+                ResultSetMetaData rsMeta = rs.getMetaData();
+                assertEquals("name", rsMeta.getColumnName(1));
+                assertEquals("setting", rsMeta.getColumnName(2));
+            }
+
+            // DBeaver
+            try (ResultSet rs = stat.executeQuery("SELECT t.oid,t.*,c.relkind FROM pg_catalog.pg_type t " +
+                    "LEFT OUTER JOIN pg_class c ON c.oid=t.typrelid WHERE typnamespace=-1000")) {
+                // just no exception
+            }
+            stat.execute("SET search_path TO 'ab', 'c\"d', 'e''f'");
+            try (ResultSet rs = stat.executeQuery("SHOW search_path")) {
+                assertTrue(rs.next());
+                assertEquals("pg_catalog, ab, \"c\"\"d\", \"e'f\"", rs.getString("search_path"));
+            }
+            stat.execute("SET search_path TO ab, \"c\"\"d\", \"e'f\"");
+            try (ResultSet rs = stat.executeQuery("SHOW search_path")) {
+                assertTrue(rs.next());
+                assertEquals("pg_catalog, ab, \"c\"\"d\", \"e'f\"", rs.getString("search_path"));
+            }
+            int oid;
+            try (ResultSet rs = stat.executeQuery("SELECT oid FROM pg_class WHERE relname = 'test'")) {
+                rs.next();
+                oid = rs.getInt("oid");
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT i.*,i.indkey as keys," +
+                    "c.relname,c.relnamespace,c.relam,c.reltablespace," +
+                    "tc.relname as tabrelname,dsc.description," +
+                    "pg_catalog.pg_get_expr(i.indpred, i.indrelid) as pred_expr," +
+                    "pg_catalog.pg_get_expr(i.indexprs, i.indrelid, true) as expr," +
+                    "pg_catalog.pg_relation_size(i.indexrelid) as index_rel_size," +
+                    "pg_catalog.pg_stat_get_numscans(i.indexrelid) as index_num_scans " +
+                    "FROM pg_catalog.pg_index i " +
+                    "INNER JOIN pg_catalog.pg_class c ON c.oid=i.indexrelid " +
+                    "INNER JOIN pg_catalog.pg_class tc ON tc.oid=i.indrelid " +
+                    "LEFT OUTER JOIN pg_catalog.pg_description dsc ON i.indexrelid=dsc.objoid " +
+                    "WHERE i.indrelid=" + oid + " ORDER BY c.relname")) {
+                // pg_index is empty
+                assertFalse(rs.next());
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT c.oid,c.*," +
+                    "t.relname as tabrelname,rt.relnamespace as refnamespace,d.description " +
+                    "FROM pg_catalog.pg_constraint c " +
+                    "INNER JOIN pg_catalog.pg_class t ON t.oid=c.conrelid " +
+                    "LEFT OUTER JOIN pg_catalog.pg_class rt ON rt.oid=c.confrelid " +
+                    "LEFT OUTER JOIN pg_catalog.pg_description d ON d.objoid=c.oid " +
+                    "AND d.objsubid=0 AND d.classoid='pg_constraint'::regclass WHERE c.conrelid=" + oid)) {
+                assertTrue(rs.next());
+                assertEquals("test", rs.getString("tabrelname"));
+                assertEquals("p", rs.getString("contype"));
+                assertEquals(Short.valueOf((short) 1), ((Object[]) rs.getArray("conkey").getArray())[0]);
+            }
         } finally {
             server.stop();
             conn0.close();
         }
     }
+
+    private void testArray() throws Exception {
+        if (!getPgJdbcDriver()) {
+            return;
+        }
+
+        Server server = createPgServer(
+                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+        try (
+                Connection conn = DriverManager.getConnection(
+                        "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
+                Statement stat = conn.createStatement();
+        ) {
+            stat.execute("CREATE TABLE test (id int primary key, x1 varchar array)");
+            stat.execute("INSERT INTO test (id, x1) VALUES (1, ARRAY['abc', 'd\\\"e', '{,}'])");
+            try (ResultSet rs = stat.executeQuery(
+                    "SELECT x1 FROM test WHERE id = 1")) {
+                assertTrue(rs.next());
+                Object[] arr = (Object[]) rs.getArray(1).getArray();
+                assertEquals("abc", arr[0]);
+                assertEquals("d\\\"e", arr[1]);
+                assertEquals("{,}", arr[2]);
+            }
+            try (ResultSet rs = stat.executeQuery(
+                    "SELECT data_type FROM information_schema.columns WHERE table_schema = 'pg_catalog' " +
+                    "AND table_name = 'pg_database' AND column_name = 'datacl'")) {
+                assertTrue(rs.next());
+                assertEquals("array", rs.getString(1));
+            }
+            try (ResultSet rs = stat.executeQuery(
+                    "SELECT data_type FROM information_schema.columns WHERE table_schema = 'pg_catalog' " +
+                    "AND table_name = 'pg_tablespace' AND column_name = 'spcacl'")) {
+                assertTrue(rs.next());
+                assertEquals("array", rs.getString(1));
+            }
+        } finally {
+            server.stop();
+        }
+    }
+
 }

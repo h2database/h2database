@@ -93,6 +93,16 @@ public class SortOrder implements Comparator<Value[]> {
     private final ArrayList<QueryOrderBy> orderList;
 
     /**
+     * Construct a new sort order object with default sort directions.
+     *
+     * @param session the session
+     * @param queryColumnIndexes the column index list
+     */
+    public SortOrder(Session session, int[] queryColumnIndexes) {
+        this (session, queryColumnIndexes, new int[queryColumnIndexes.length], null);
+    }
+
+    /**
      * Construct a new sort order object.
      *
      * @param session the session

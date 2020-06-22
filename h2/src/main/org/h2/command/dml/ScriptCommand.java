@@ -34,7 +34,6 @@ import org.h2.engine.Session;
 import org.h2.engine.Setting;
 import org.h2.engine.SysProperties;
 import org.h2.engine.User;
-import org.h2.engine.UserAggregate;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.index.Cursor;
@@ -58,6 +57,7 @@ import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueVarchar;
 
@@ -136,7 +136,7 @@ public class ScriptCommand extends ScriptBase {
 
     private LocalResult createResult() {
         return new LocalResult(session, new Expression[] {
-                new ExpressionColumn(session.getDatabase(), new Column("SCRIPT", Value.VARCHAR)) }, 1, 1);
+                new ExpressionColumn(session.getDatabase(), new Column("SCRIPT", TypeInfo.TYPE_VARCHAR)) }, 1, 1);
     }
 
     @Override
@@ -228,8 +228,7 @@ public class ScriptCommand extends ScriptBase {
                     add(table.getDropSQL(), false);
                 }
             }
-            for (SchemaObject obj : db.getAllSchemaObjects(
-                    DbObject.FUNCTION_ALIAS)) {
+            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
                 if (excludeSchema(obj.getSchema())) {
                     continue;
                 }
@@ -238,14 +237,16 @@ public class ScriptCommand extends ScriptBase {
                 }
                 add(obj.getCreateSQL(), false);
             }
-            for (UserAggregate agg : db.getAllAggregates()) {
-                if (drop) {
-                    add(agg.getDropSQL(), false);
+            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.AGGREGATE)) {
+                if (excludeSchema(obj.getSchema())) {
+                    continue;
                 }
-                add(agg.getCreateSQL(), false);
+                if (drop) {
+                    add(obj.getDropSQL(), false);
+                }
+                add(obj.getCreateSQL(), false);
             }
-            for (SchemaObject obj : db.getAllSchemaObjects(
-                    DbObject.SEQUENCE)) {
+            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.SEQUENCE)) {
                 if (excludeSchema(obj.getSchema())) {
                     continue;
                 }

@@ -18,7 +18,6 @@ import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -87,8 +86,8 @@ public abstract class MetaTable extends Table {
                     dataType = TypeInfo.getTypeInfo(t.type);
                 } else {
                     assert tName.endsWith(" ARRAY");
-                    dataType = TypeInfo.getTypeInfo(Value.ARRAY, -1L, 0, new ExtTypeInfoArray(TypeInfo.getTypeInfo(
-                            DataType.getTypeByName(tName.substring(0, tName.length() - 6), mode).type)));
+                    dataType = TypeInfo.getTypeInfo(Value.ARRAY, -1L, 0, TypeInfo.getTypeInfo(
+                            DataType.getTypeByName(tName.substring(0, tName.length() - 6), mode).type));
                 }
                 name = nameType.substring(0, idx);
             }
@@ -136,8 +135,7 @@ public abstract class MetaTable extends Table {
      */
     protected final ArrayList<Table> getAllTables(Session session) {
         ArrayList<Table> tables = database.getAllTablesAndViews(true);
-        ArrayList<Table> tempTables = session.getLocalTempTables();
-        tables.addAll(tempTables);
+        tables.addAll(session.getLocalTempTables());
         return tables;
     }
 

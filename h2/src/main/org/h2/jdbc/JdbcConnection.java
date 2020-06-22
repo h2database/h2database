@@ -48,17 +48,13 @@ import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.CloseWatcher;
-import org.h2.util.JdbcUtils;
-import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.TimeZoneProvider;
 import org.h2.value.CompareMode;
-import org.h2.value.DataType;
 import org.h2.value.Value;
-import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueResultSet;
 import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueToObjectConverter;
 import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 
@@ -218,8 +214,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                         "createStatement()");
             }
             checkClosed();
-            return new JdbcStatement(this, id, ResultSet.TYPE_FORWARD_ONLY,
-                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, false);
+            return new JdbcStatement(this, id, ResultSet.TYPE_FORWARD_ONLY, Constants.DEFAULT_RESULT_SET_CONCURRENCY);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -246,8 +241,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             }
             checkTypeConcurrency(resultSetType, resultSetConcurrency);
             checkClosed();
-            return new JdbcStatement(this, id, resultSetType,
-                    resultSetConcurrency, false);
+            return new JdbcStatement(this, id, resultSetType, resultSetConcurrency);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -279,8 +273,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             checkTypeConcurrency(resultSetType, resultSetConcurrency);
             checkHoldability(resultSetHoldability);
             checkClosed();
-            return new JdbcStatement(this, id, resultSetType,
-                    resultSetConcurrency, false);
+            return new JdbcStatement(this, id, resultSetType, resultSetConcurrency);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -304,35 +297,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             }
             checkClosed();
             sql = translateSQL(sql);
-            return new JdbcPreparedStatement(this, sql, id,
-                    ResultSet.TYPE_FORWARD_ONLY,
-                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, false, null);
-        } catch (Exception e) {
-            throw logAndConvert(e);
-        }
-    }
-
-    /**
-     * Prepare a statement that will automatically close when the result set is
-     * closed. This method is used to retrieve database meta data.
-     *
-     * @param sql the SQL statement
-     * @return the prepared statement
-     */
-    PreparedStatement prepareAutoCloseStatement(String sql)
-            throws SQLException {
-        try {
-            int id = getNextId(TraceObject.PREPARED_STATEMENT);
-            if (isDebugEnabled()) {
-                debugCodeAssign("PreparedStatement",
-                        TraceObject.PREPARED_STATEMENT, id,
-                        "prepareStatement(" + quote(sql) + ")");
-            }
-            checkClosed();
-            sql = translateSQL(sql);
-            return new JdbcPreparedStatement(this, sql, id,
-                    ResultSet.TYPE_FORWARD_ONLY,
-                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, true, null);
+            return new JdbcPreparedStatement(this, sql, id, ResultSet.TYPE_FORWARD_ONLY,
+                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -686,8 +652,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             checkTypeConcurrency(resultSetType, resultSetConcurrency);
             checkClosed();
             sql = translateSQL(sql);
-            return new JdbcPreparedStatement(this, sql, id, resultSetType,
-                    resultSetConcurrency, false, null);
+            return new JdbcPreparedStatement(this, sql, id, resultSetType, resultSetConcurrency, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1075,8 +1040,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             checkHoldability(resultSetHoldability);
             checkClosed();
             sql = translateSQL(sql);
-            return new JdbcPreparedStatement(this, sql, id, resultSetType,
-                    resultSetConcurrency, false, null);
+            return new JdbcPreparedStatement(this, sql, id, resultSetType, resultSetConcurrency, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1106,10 +1070,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             }
             checkClosed();
             sql = translateSQL(sql);
-            return new JdbcPreparedStatement(this, sql, id,
-                    ResultSet.TYPE_FORWARD_ONLY,
-                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, false,
-                    autoGeneratedKeys == Statement.RETURN_GENERATED_KEYS);
+            return new JdbcPreparedStatement(this, sql, id, ResultSet.TYPE_FORWARD_ONLY,
+                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, autoGeneratedKeys == Statement.RETURN_GENERATED_KEYS);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1138,9 +1100,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             }
             checkClosed();
             sql = translateSQL(sql);
-            return new JdbcPreparedStatement(this, sql, id,
-                    ResultSet.TYPE_FORWARD_ONLY,
-                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, false, columnIndexes);
+            return new JdbcPreparedStatement(this, sql, id, ResultSet.TYPE_FORWARD_ONLY,
+                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, columnIndexes);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1169,9 +1130,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             }
             checkClosed();
             sql = translateSQL(sql);
-            return new JdbcPreparedStatement(this, sql, id,
-                    ResultSet.TYPE_FORWARD_ONLY,
-                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, false, columnNames);
+            return new JdbcPreparedStatement(this, sql, id, ResultSet.TYPE_FORWARD_ONLY,
+                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, columnNames);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1505,8 +1465,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                         + "WHERE SCOPE_IDENTITY() IS NOT NULL",
                 getGeneratedKeys);
         ResultInterface result = getGeneratedKeys.executeQuery(0, false);
-        return new JdbcResultSet(this, stat, getGeneratedKeys, result,
-                id, false, true, false);
+        return new JdbcResultSet(this, stat, getGeneratedKeys, result, id, true, false);
     }
 
     /**
@@ -1591,8 +1550,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             int id = getNextId(TraceObject.ARRAY);
             debugCodeAssign("Array", TraceObject.ARRAY, id, "createArrayOf()");
             checkClosed();
-            Value value = DataType.convertToValue(session, elements,
-                    Value.ARRAY);
+            Value value = ValueToObjectConverter.objectToValue(session, elements, Value.ARRAY);
             return new JdbcArray(this, value, id);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1938,55 +1896,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     @Override
     public String toString() {
         return getTraceObjectName() + ": url=" + url + " user=" + user;
-    }
-
-    /**
-     * Convert an object to the default Java object for the given SQL type. For
-     * example, LOB objects are converted to java.sql.Clob / java.sql.Blob.
-     *
-     * @param v the value
-     * @return the object
-     */
-    Object convertToDefaultObject(Value v) {
-        switch (v.getValueType()) {
-        case Value.DATE:
-            return LegacyDateTimeUtils.toDate(this, null, v);
-        case Value.TIME:
-            return LegacyDateTimeUtils.toTime(this, null, v);
-        case Value.TIMESTAMP:
-            return LegacyDateTimeUtils.toTimestamp(this, null, v);
-        case Value.CLOB: {
-            int id = getNextId(TraceObject.CLOB);
-            return new JdbcClob(this, v, JdbcLob.State.WITH_VALUE, id);
-        }
-        case Value.BLOB: {
-            int id = getNextId(TraceObject.BLOB);
-            return new JdbcBlob(this, v, JdbcLob.State.WITH_VALUE, id);
-        }
-        case Value.ARRAY:
-        case Value.ROW: {
-            Value[] values = ((ValueCollectionBase) v).getList();
-            int len = values.length;
-            Object[] list = new Object[len];
-            for (int i = 0; i < len; i++) {
-                list[i] = convertToDefaultObject(values[i]);
-            }
-            return list;
-        }
-        case Value.JAVA_OBJECT:
-            return JdbcUtils.deserialize(v.getBytesNoCopy(), session.getJavaObjectSerializer());
-        case Value.RESULT_SET: {
-            int id = getNextId(TraceObject.RESULT_SET);
-            return new JdbcResultSet(this, null, null, ((ValueResultSet) v).getResult(), id, false, true, false);
-        }
-        case Value.TINYINT:
-        case Value.SMALLINT:
-            if (!SysProperties.OLD_RESULT_SET_GET_OBJECT) {
-                return v.getInt();
-            }
-            break;
-        }
-        return v.getObject();
     }
 
     CompareMode getCompareMode() {

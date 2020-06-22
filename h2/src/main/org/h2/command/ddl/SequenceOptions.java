@@ -5,10 +5,13 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
+import org.h2.message.DbException;
 import org.h2.schema.Sequence;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -16,6 +19,8 @@ import org.h2.value.ValueNull;
  * Sequence options.
  */
 public class SequenceOptions {
+
+    private TypeInfo dataType;
 
     private Expression start;
 
@@ -31,6 +36,8 @@ public class SequenceOptions {
 
     private Expression cacheSize;
 
+    private long[] bounds;
+
     private static Long getLong(Session session, Expression expr) {
         if (expr != null) {
             Value value = expr.optimize(session).getValue(session);
@@ -41,6 +48,14 @@ public class SequenceOptions {
         return null;
     }
 
+    public TypeInfo getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(TypeInfo dataType) {
+        this.dataType = dataType;
+    }
+
     /**
      * Gets start value.
      *
@@ -48,7 +63,7 @@ public class SequenceOptions {
      * @return start value or {@code null} if value is not defined.
      */
     public Long getStartValue(Session session) {
-        return getLong(session, start);
+        return check(getLong(session, start));
     }
 
     /**
@@ -70,7 +85,7 @@ public class SequenceOptions {
      * @return restart value or {@code null} if value is not defined.
      */
     public Long getRestartValue(Session session, long startValue) {
-        return restart == ValueExpression.DEFAULT ? (Long) startValue : getLong(session, restart);
+        return check(restart == ValueExpression.DEFAULT ? (Long) startValue : getLong(session, restart));
     }
 
     /**
@@ -91,7 +106,7 @@ public class SequenceOptions {
      * @return increment value or {@code null} if value is not defined.
      */
     public Long getIncrement(Session session) {
-        return getLong(session, increment);
+        return check(getLong(session, increment));
     }
 
     /**
@@ -111,11 +126,14 @@ public class SequenceOptions {
      * @return max value when the MAXVALUE expression is set, otherwise returns default max value.
      */
     public Long getMaxValue(Sequence sequence, Session session) {
+        Long v;
         if (maxValue == ValueExpression.NULL && sequence != null) {
-            return Sequence.getDefaultMaxValue(getCurrentStart(sequence, session),
-                    increment != null ? getIncrement(session) : sequence.getIncrement());
+            v = Sequence.getDefaultMaxValue(getCurrentStart(sequence, session),
+                    increment != null ? getIncrement(session) : sequence.getIncrement(), getBounds());
+        } else {
+            v = getLong(session, maxValue);
         }
-        return getLong(session, maxValue);
+        return check(v);
     }
 
     /**
@@ -135,11 +153,14 @@ public class SequenceOptions {
      * @return min value when the MINVALUE expression is set, otherwise returns default min value.
      */
     public Long getMinValue(Sequence sequence, Session session) {
+        Long v;
         if (minValue == ValueExpression.NULL && sequence != null) {
-            return Sequence.getDefaultMinValue(getCurrentStart(sequence, session),
-                    increment != null ? getIncrement(session) : sequence.getIncrement());
+            v = Sequence.getDefaultMinValue(getCurrentStart(sequence, session),
+                    increment != null ? getIncrement(session) : sequence.getIncrement(), getBounds());
+        } else {
+            v = getLong(session, minValue);
         }
-        return getLong(session, minValue);
+        return check(v);
     }
 
     /**
@@ -149,6 +170,91 @@ public class SequenceOptions {
      */
     public void setMinValue(Expression minValue) {
         this.minValue = minValue;
+    }
+
+    private Long check(Long value) {
+        if (value == null) {
+            return null;
+        } else {
+            long[] bounds = getBounds();
+            long v = value;
+            if (v < bounds[0] || v > bounds[1]) {
+                throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Long.toString(v));
+            }
+        }
+        return value;
+    }
+
+    public long[] getBounds() {
+        long[] bounds = this.bounds;
+        if (bounds == null) {
+            this.bounds = bounds = getBounds(dataType);
+        }
+        return bounds;
+    }
+
+    public static long[] getBounds(TypeInfo dataType) {
+        long min, max;
+        switch (dataType.getValueType()) {
+        case Value.TINYINT:
+            min = Byte.MIN_VALUE;
+            max = Byte.MAX_VALUE;
+            break;
+        case Value.SMALLINT:
+            min = Short.MIN_VALUE;
+            max = Short.MAX_VALUE;
+            break;
+        case Value.INTEGER:
+            min = Integer.MIN_VALUE;
+            max = Integer.MAX_VALUE;
+            break;
+        case Value.BIGINT:
+            min = Long.MIN_VALUE;
+            max = Long.MAX_VALUE;
+            break;
+        case Value.REAL:
+            min = -0x100_0000;
+            max = 0x100_0000;
+            break;
+        case Value.DOUBLE:
+            min = -0x20_0000_0000_0000L;
+            max = 0x20_0000_0000_0000L;
+            break;
+        case Value.NUMERIC: {
+            long p = (dataType.getPrecision() - dataType.getScale());
+            if (p <= 0) {
+                throw DbException.getUnsupportedException(dataType.getTraceSQL());
+            } else if (p > 18) {
+                min = Long.MIN_VALUE;
+                max = Long.MAX_VALUE;
+            } else {
+                max = 10;
+                for (int i = 1; i < p; i++) {
+                    max *= 10;
+                }
+                min = - --max;
+            }
+            break;
+        }
+        case Value.DECFLOAT: {
+            long p = dataType.getPrecision();
+            if (p > 18) {
+                min = Long.MIN_VALUE;
+                max = Long.MAX_VALUE;
+            } else {
+                max = 10;
+                for (int i = 1; i < p; i++) {
+                    max *= 10;
+                }
+                min = -max;
+            }
+            break;
+        }
+        default:
+            throw DbException.getUnsupportedException(dataType.getTraceSQL());
+        }
+        long bounds[] = { min, max };
+        return bounds;
     }
 
     /**

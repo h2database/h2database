@@ -5,22 +5,22 @@
  */
 package org.h2.expression.aggregate;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import org.h2.api.Aggregate;
-import org.h2.command.Parser;
 import org.h2.command.query.Select;
 import org.h2.engine.Session;
-import org.h2.engine.UserAggregate;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.value.DataType;
+import org.h2.schema.UserAggregate;
+import org.h2.util.ParserUtil;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
+import org.h2.value.ValueToObjectConverter;
 
 /**
  * This class wraps a user-defined aggregate.
@@ -30,7 +30,7 @@ public class JavaAggregate extends AbstractAggregate {
     private final UserAggregate userAggregate;
     private int[] argTypes;
     private int dataType;
-    private Connection userConnection;
+    private JdbcConnection userConnection;
 
     public JavaAggregate(UserAggregate userAggregate, Expression[] args, Select select, boolean distinct) {
         super(select, args, distinct);
@@ -50,10 +50,9 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        Parser.quoteIdentifier(builder, userAggregate.getName(), sqlFlags).append('(');
-        writeExpressions(builder, args, sqlFlags);
-        builder.append(')');
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        ParserUtil.quoteIdentifier(builder, userAggregate.getName(), sqlFlags).append('(');
+        writeExpressions(builder, args, sqlFlags).append(')');
         return appendTailConditions(builder, sqlFlags, false);
     }
 
@@ -122,12 +121,13 @@ public class JavaAggregate extends AbstractAggregate {
                 if (data != null) {
                     for (Value value : data.values) {
                         if (args.length == 1) {
-                            agg.add(value.getObject());
+                            agg.add(ValueToObjectConverter.valueToDefaultObject(value, userConnection, false));
                         } else {
                             Value[] values = ((ValueRow) value).getList();
                             Object[] argValues = new Object[args.length];
                             for (int i = 0, len = args.length; i < len; i++) {
-                                argValues[i] = values[i].getObject();
+                                argValues[i] = ValueToObjectConverter.valueToDefaultObject(values[i], userConnection,
+                                        false);
                             }
                             agg.add(argValues);
                         }
@@ -143,7 +143,7 @@ public class JavaAggregate extends AbstractAggregate {
             if (obj == null) {
                 return ValueNull.INSTANCE;
             }
-            return DataType.convertToValue(session, obj, dataType);
+            return ValueToObjectConverter.objectToValue(session, obj, dataType);
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
@@ -171,7 +171,7 @@ public class JavaAggregate extends AbstractAggregate {
                 Object arg = null;
                 for (int i = 0, len = args.length; i < len; i++) {
                     Value v = remembered == null ? args[i].getValue(session) : remembered[i];
-                    arg = v.getObject();
+                    arg = ValueToObjectConverter.valueToDefaultObject(v, userConnection, false);
                     argValues[i] = arg;
                 }
                 agg.add(args.length == 1 ? arg : argValues);

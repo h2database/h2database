@@ -17,19 +17,24 @@ import org.h2.value.ValueNull;
 /**
  * Type predicate (IS [NOT] OF).
  */
-public class TypePredicate extends SimplePredicate {
+public final class TypePredicate extends SimplePredicate {
 
     private final TypeInfo[] typeList;
     private int[] valueTypes;
 
-    public TypePredicate(Expression left, boolean not, TypeInfo[] typeList) {
-        super(left, not);
+    public TypePredicate(Expression left, boolean not, boolean whenOperand, TypeInfo[] typeList) {
+        super(left, not, whenOperand);
         this.typeList = typeList;
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        left.getSQL(builder.append('('), sqlFlags).append(" IS");
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return getWhenSQL(left.getSQL(builder, sqlFlags, AUTO_PARENTHESES), sqlFlags);
+    }
+
+    @Override
+    public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
+        builder.append(" IS");
         if (not) {
             builder.append(" NOT");
         }
@@ -38,9 +43,9 @@ public class TypePredicate extends SimplePredicate {
             if (i > 0) {
                 builder.append(", ");
             }
-            typeList[i].getSQL(builder);
+            typeList[i].getSQL(builder, sqlFlags);
         }
-        return builder.append("))");
+        return builder.append(')');
     }
 
     @Override
@@ -64,8 +69,22 @@ public class TypePredicate extends SimplePredicate {
     }
 
     @Override
+    public boolean getWhenValue(Session session, Value left) {
+        if (!whenOperand) {
+            return super.getWhenValue(session, left);
+        }
+        if (left == ValueNull.INSTANCE) {
+            return false;
+        }
+        return Arrays.binarySearch(valueTypes, left.getValueType()) >= 0 ^ not;
+    }
+
+    @Override
     public Expression getNotIfPossible(Session session) {
-        return new TypePredicate(left, !not, typeList);
+        if (whenOperand) {
+            return null;
+        }
+        return new TypePredicate(left, !not, false, typeList);
     }
 
 }

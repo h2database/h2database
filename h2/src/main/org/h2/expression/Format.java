@@ -77,8 +77,8 @@ public class Format extends Operation1 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return arg.getSQL(builder, sqlFlags).append(" FORMAT ").append(format.name());
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return arg.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append(" FORMAT ").append(format.name());
     }
 
     @Override

@@ -192,10 +192,10 @@ alter sequence s.seq restart with 10;
 
 script NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
-> ---------------------------------------------------
+> ------------------------------------------------------------------
 > ALTER SEQUENCE "S"."SEQ" RESTART WITH 10;
 > CREATE SCHEMA IF NOT EXISTS "S" AUTHORIZATION "SA";
-> CREATE SEQUENCE "S"."SEQ" START WITH 1 NO CACHE;
+> CREATE SEQUENCE "S"."SEQ" AS NUMERIC(19, 0) START WITH 1 NO CACHE;
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > DROP SEQUENCE IF EXISTS "S"."SEQ";
 > rows: 5
@@ -238,3 +238,88 @@ DROP TABLE TEST;
 
 SET MODE Regular;
 > ok
+
+CREATE SEQUENCE SEQ01 AS TINYINT;
+> ok
+
+CREATE SEQUENCE SEQ02 AS SMALLINT;
+> ok
+
+CREATE SEQUENCE SEQ03 AS INTEGER;
+> ok
+
+CREATE SEQUENCE SEQ04 AS BIGINT;
+> ok
+
+CREATE SEQUENCE SEQ05 AS REAL;
+> ok
+
+CREATE SEQUENCE SEQ06 AS DOUBLE PRECISION;
+> ok
+
+CREATE SEQUENCE SEQ07 AS NUMERIC(10, 2);
+> ok
+
+CREATE SEQUENCE SEQ08 AS NUMERIC(100, 20);
+> ok
+
+CREATE SEQUENCE SEQ09 AS DECIMAL;
+> ok
+
+CREATE SEQUENCE SEQ10 AS DECIMAL(10);
+> ok
+
+CREATE SEQUENCE SEQ11 AS DECIMAL(10, 2);
+> ok
+
+CREATE SEQUENCE SEQ12 AS FLOAT;
+> ok
+
+CREATE SEQUENCE SEQ13 AS FLOAT(20);
+> ok
+
+CREATE SEQUENCE SEQ14 AS DECFLOAT;
+> ok
+
+CREATE SEQUENCE SEQ15 AS DECFLOAT(10);
+> ok
+
+CREATE SEQUENCE SEQ16 AS DECFLOAT(20);
+> ok
+
+SELECT SEQUENCE_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE, MAXIMUM_VALUE,
+    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE FROM INFORMATION_SCHEMA.SEQUENCES;
+> SEQUENCE_NAME DATA_TYPE        NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE MAXIMUM_VALUE       DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE
+> ------------- ---------------- ----------------- ----------------------- ------------- ------------------- ------------------ -------------------------- ----------------------
+> SEQ01         TINYINT          8                 2                       0             127                 TINYINT            null                       null
+> SEQ02         SMALLINT         16                2                       0             32767               SMALLINT           null                       null
+> SEQ03         INTEGER          32                2                       0             2147483647          INTEGER            null                       null
+> SEQ04         BIGINT           64                2                       0             9223372036854775807 BIGINT             null                       null
+> SEQ05         REAL             24                2                       null          16777216            REAL               null                       null
+> SEQ06         DOUBLE PRECISION 53                2                       null          9007199254740992    DOUBLE PRECISION   null                       null
+> SEQ07         NUMERIC          10                10                      2             99999999            NUMERIC            10                         2
+> SEQ08         NUMERIC          39                10                      20            9223372036854775807 NUMERIC            100                        20
+> SEQ09         NUMERIC          19                10                      0             9223372036854775807 DECIMAL            null                       null
+> SEQ10         NUMERIC          10                10                      0             9999999999          DECIMAL            10                         null
+> SEQ11         NUMERIC          10                10                      2             99999999            DECIMAL            10                         2
+> SEQ12         DOUBLE PRECISION 53                2                       null          9007199254740992    FLOAT              null                       null
+> SEQ13         REAL             24                2                       null          16777216            FLOAT              20                         null
+> SEQ14         DECFLOAT         19                10                      null          9223372036854775807 DECFLOAT           null                       null
+> SEQ15         DECFLOAT         10                10                      null          10000000000         DECFLOAT           10                         null
+> SEQ16         DECFLOAT         19                10                      null          9223372036854775807 DECFLOAT           20                         null
+> rows: 16
+
+SELECT NEXT VALUE FOR SEQ01 IS OF (TINYINT);
+>> TRUE
+
+DROP ALL OBJECTS;
+> ok
+
+CREATE SEQUENCE SEQ AS NUMERIC(10, 20);
+> exception FEATURE_NOT_SUPPORTED_1
+
+CREATE SEQUENCE SEQ AS VARCHAR(10);
+> exception FEATURE_NOT_SUPPORTED_1
+
+CREATE SEQUENCE SEQ NO;
+> exception SYNTAX_ERROR_2

@@ -15,9 +15,14 @@ import org.h2.message.DbException;
 public final class ValueSmallint extends Value {
 
     /**
-     * The precision in digits.
+     * The precision in bits.
      */
-    static final int PRECISION = 5;
+    static final int PRECISION = 16;
+
+    /**
+     * The approximate precision in decimal digits.
+     */
+    static final int DECIMAL_PRECISION = 5;
 
     /**
      * The maximum display size of a SMALLINT.
@@ -125,11 +130,6 @@ public final class ValueSmallint extends Value {
 
     @Override
     public int hashCode() {
-        return value;
-    }
-
-    @Override
-    public Object getObject() {
         return value;
     }
 

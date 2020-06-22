@@ -12,6 +12,7 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.JDBCType;
@@ -43,7 +44,6 @@ import org.h2.api.H2Type;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
-import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.Task;
@@ -451,7 +451,7 @@ public class TestPreparedStatement extends TestDb {
         ResultSetMetaData meta = prep.getMetaData();
         assertEquals(2, meta.getColumnCount());
         assertEquals("INTEGER", meta.getColumnTypeName(1));
-        assertEquals("VARCHAR", meta.getColumnTypeName(2));
+        assertEquals("CHARACTER VARYING", meta.getColumnTypeName(2));
         prep = conn.prepareStatement("call 1");
         meta = prep.getMetaData();
         assertEquals(1, meta.getColumnCount());
@@ -988,19 +988,10 @@ public class TestPreparedStatement extends TestDb {
     }
 
     private void testParameterMetaData(Connection conn) throws SQLException {
-        int numericType;
-        String numericName;
-        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
-            numericType = Types.DECIMAL;
-            numericName = "DECIMAL";
-        } else {
-            numericType = Types.NUMERIC;
-            numericName = "NUMERIC";
-        }
         PreparedStatement prep = conn.prepareStatement("SELECT ?, ?, ? FROM DUAL");
         ParameterMetaData pm = prep.getParameterMetaData();
         assertEquals("java.lang.String", pm.getParameterClassName(1));
-        assertEquals("VARCHAR", pm.getParameterTypeName(1));
+        assertEquals("CHARACTER VARYING", pm.getParameterTypeName(1));
         assertEquals(3, pm.getParameterCount());
         assertEquals(ParameterMetaData.parameterModeIn, pm.getParameterMode(1));
         assertEquals(Types.VARCHAR, pm.getParameterType(1));
@@ -1015,22 +1006,25 @@ public class TestPreparedStatement extends TestDb {
 
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST3(ID INT, " +
-                "NAME VARCHAR(255), DATA DECIMAL(10,2))");
+                "NAME VARCHAR(255), DATA1 DECIMAL(10,2), DATA2 NUMERIC(10,2))");
         PreparedStatement prep1 = conn.prepareStatement(
-                "UPDATE TEST3 SET ID=?, NAME=?, DATA=?");
+                "UPDATE TEST3 SET ID=?, NAME=?, DATA1=?, DATA2=?");
         PreparedStatement prep2 = conn.prepareStatement(
-                "INSERT INTO TEST3 VALUES(?, ?, ?)");
-        checkParameter(prep1, 1, "java.lang.Integer", 4, "INTEGER", 10, 0);
-        checkParameter(prep1, 2, "java.lang.String", 12, "VARCHAR", 255, 0);
-        checkParameter(prep1, 3, "java.math.BigDecimal", numericType, numericName, 10, 2);
-        checkParameter(prep2, 1, "java.lang.Integer", 4, "INTEGER", 10, 0);
-        checkParameter(prep2, 2, "java.lang.String", 12, "VARCHAR", 255, 0);
-        checkParameter(prep2, 3, "java.math.BigDecimal", numericType, numericName, 10, 2);
+                "INSERT INTO TEST3 VALUES(?, ?, ?, ?)");
+        checkParameter(prep1, 1, "java.lang.Integer", 4, "INTEGER", 32, 0);
+        checkParameter(prep1, 2, "java.lang.String", 12, "CHARACTER VARYING", 255, 0);
+        checkParameter(prep1, 3, "java.math.BigDecimal", Types.DECIMAL, "DECIMAL", 10, 2);
+        checkParameter(prep1, 4, "java.math.BigDecimal", Types.NUMERIC, "NUMERIC", 10, 2);
+        checkParameter(prep2, 1, "java.lang.Integer", 4, "INTEGER", 32, 0);
+        checkParameter(prep2, 2, "java.lang.String", 12, "CHARACTER VARYING", 255, 0);
+        checkParameter(prep2, 3, "java.math.BigDecimal", Types.DECIMAL, "DECIMAL", 10, 2);
+        checkParameter(prep2, 4, "java.math.BigDecimal", Types.NUMERIC, "NUMERIC", 10, 2);
         PreparedStatement prep3 = conn.prepareStatement(
-                "SELECT * FROM TEST3 WHERE ID=? AND NAME LIKE ? AND ?>DATA");
-        checkParameter(prep3, 1, "java.lang.Integer", 4, "INTEGER", 10, 0);
-        checkParameter(prep3, 2, "java.lang.String", 12, "VARCHAR", 0, 0);
-        checkParameter(prep3, 3, "java.math.BigDecimal", numericType, numericName, 10, 2);
+                "SELECT * FROM TEST3 WHERE ID=? AND NAME LIKE ? AND ?>DATA1 AND ?>DATA2");
+        checkParameter(prep3, 1, "java.lang.Integer", 4, "INTEGER", 32, 0);
+        checkParameter(prep3, 2, "java.lang.String", 12, "CHARACTER VARYING", 0, 0);
+        checkParameter(prep3, 3, "java.math.BigDecimal", Types.DECIMAL, "DECIMAL", 10, 2);
+        checkParameter(prep3, 4, "java.math.BigDecimal", Types.NUMERIC, "NUMERIC", 10, 2);
         stat.execute("DROP TABLE TEST3");
     }
 
@@ -1378,10 +1372,8 @@ public class TestPreparedStatement extends TestDb {
         assertTrue(rs.getObject(1).equals(Boolean.TRUE));
         assertTrue(rs.getObject(2).equals("Abc"));
         assertTrue(rs.getObject(3).equals(new BigDecimal("10.2")));
-        assertTrue(rs.getObject(4).equals(SysProperties.OLD_RESULT_SET_GET_OBJECT ?
-                (Object) Byte.valueOf((byte) 0xff) : (Object) Integer.valueOf(-1)));
-        assertTrue(rs.getObject(5).equals(SysProperties.OLD_RESULT_SET_GET_OBJECT ?
-                (Object) Short.valueOf(Short.MAX_VALUE) : (Object) Integer.valueOf(Short.MAX_VALUE)));
+        assertTrue(rs.getObject(4).equals(Integer.valueOf(-1)));
+        assertTrue(rs.getObject(5).equals(Integer.valueOf(Short.MAX_VALUE)));
         assertTrue(rs.getObject(6).equals(Integer.MIN_VALUE));
         assertTrue(rs.getObject(7).equals(Long.MAX_VALUE));
         assertTrue(rs.getObject(8).equals(Float.MAX_VALUE));
@@ -1405,12 +1397,10 @@ public class TestPreparedStatement extends TestDb {
                 java.sql.Time.valueOf("23:22:21")));
         assertTrue(rs.getObject(20).equals(
                 new java.math.BigInteger("12345")));
-        Object[] a = (Object[]) rs.getObject(21);
-        assertEquals(a[0], SysProperties.OLD_RESULT_SET_GET_OBJECT ?
-                (Object) Byte.valueOf((byte) 1) : (Object) Integer.valueOf(1));
-        a = (Object[]) rs.getObject(22);
-        assertEquals(a[0], SysProperties.OLD_RESULT_SET_GET_OBJECT ?
-                (Object) Short.valueOf((short) -2) : (Object) Integer.valueOf(-2));
+        Object[] a = (Object[]) ((Array) rs.getObject(21)).getArray();
+        assertEquals(a[0], Integer.valueOf(1));
+        a = (Object[]) ((Array) rs.getObject(22)).getArray();
+        assertEquals(a[0], Integer.valueOf(-2));
 
         // } else if(x instanceof java.io.Reader) {
         // return session.createLob(Value.CLOB,
@@ -1662,6 +1652,19 @@ public class TestPreparedStatement extends TestDb {
         anyParameterCheck(ps, values, expected);
         anyParameterCheck(ps, 300, new int[] {30});
         anyParameterCheck(ps, -5, new int[0]);
+        ps = conn.prepareStatement("SELECT V, CASE V WHEN = ANY(?) THEN 1 ELSE 2 END FROM"
+                + " (VALUES DATE '2000-01-01', DATE '2010-01-01') T(V) ORDER BY V");
+        ps.setObject(1, new LocalDate[] { LocalDate.of(2000, 1, 1), LocalDate.of(2030, 1, 1) });
+        try (ResultSet rs = ps.executeQuery()) {
+            assertTrue(rs.next());
+            assertEquals(LocalDate.of(2000, 1, 1), rs.getObject(1, LocalDate.class));
+            assertEquals(1, rs.getInt(2));
+            assertTrue(rs.next());
+            assertEquals(LocalDate.of(2010, 1, 1), rs.getObject(1, LocalDate.class));
+            assertEquals(2, rs.getInt(2));
+            assertFalse(rs.next());
+            assertEquals("CASE V WHEN = ANY(?1) THEN 1 ELSE 2 END", rs.getMetaData().getColumnLabel(2));
+        }
         conn.close();
         deleteDb("preparedStatement");
     }

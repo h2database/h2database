@@ -112,7 +112,7 @@ li {
     <a href="https://github.com/h2database/h2database">open source</a>,
     <a href="license.html">free to use and distribute</a>.
 </li><li><a href="https://h2database.com/html/download.html">Download</a>:
-    <a href="http://repo1.maven.org/maven2/com/h2database/h2/${version}/h2-${version}.jar" class="link">jar</a>,
+    <a href="https://repo1.maven.org/maven2/com/h2database/h2/${version}/h2-${version}.jar" class="link">jar</a>,
     <a href="https://h2database.com/h2-setup-${versionDate}.exe" class="link">installer (Windows)</a>,
     <a href="https://h2database.com/h2-${versionDate}.zip" class="link">zip</a>.
 </li><li>To start the
@@ -151,7 +151,11 @@ Reference:
 <code>jdbc:h2:./test</code> in the current(!) working directory<br />
 </p><p>
 <b><a href="features.html#in_memory_databases">In-Memory</a></b><br />
-<code>jdbc:h2:mem:test</code> multiple connections in one process<br />
+<code>jdbc:h2:mem:test</code> multiple connections in one process,
+database is removed when all connections are closed<br />
+<code>jdbc:h2:mem:test;DB_CLOSE_DELAY=-1</code> multiple connections in one process,
+database in not removed when all connections are closed
+(<a href="features.html#in_memory_databases">may create a memory leak</a>)<br />
 <code>jdbc:h2:mem:</code> unnamed private; one connection<br />
 </p><p>
 <b><a href="tutorial.html#using_server">Server Mode</a></b><br />
@@ -160,7 +164,8 @@ Reference:
 <a href="tutorial.html#using_server">Server start</a>:<code>java -cp *.jar org.h2.tools.Server</code>
 </p><p>
 <b><a href="features.html#database_url">Settings</a></b><br />
-<code>jdbc:h2:..;MODE=MySQL</code> <a href="features.html#compatibility" >compatibility (or HSQLDB,...)</a><br />
+<code>jdbc:h2:..;MODE=MySQL;DATABASE_TO_LOWER=TRUE</code>
+<a href="features.html#compatibility" >compatibility (or HSQLDB,...)</a><br />
 <code>jdbc:h2:..;TRACE_LEVEL_FILE=3</code> <a href="features.html#trace_options">log to *.trace.db</a><br />
 </p>
 

@@ -329,8 +329,9 @@ public final class WindowFrame {
         case Value.INTEGER:
         case Value.BIGINT:
         case Value.NUMERIC:
-        case Value.DOUBLE:
         case Value.REAL:
+        case Value.DOUBLE:
+        case Value.DECFLOAT:
         case Value.TIME:
         case Value.TIME_TZ:
         case Value.DATE:
@@ -853,7 +854,7 @@ public final class WindowFrame {
      * @param formattingFlags
      *            quote all identifiers
      * @return the specified string builder
-     * @see org.h2.expression.Expression#getSQL(StringBuilder, int)
+     * @see org.h2.expression.Expression#getSQL(StringBuilder, int, int)
      */
     public StringBuilder getSQL(StringBuilder builder, int formattingFlags) {
         builder.append(units.getSQL());

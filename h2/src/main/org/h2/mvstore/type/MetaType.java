@@ -73,15 +73,15 @@ public final class MetaType<D> extends BasicDataType<DataType<?>> {
                 return factory.create(buff, this, database);
             }
             Class<?> clazz = Class.forName(className);
-            Object obj = clazz.newInstance();
+            Object obj = clazz.getDeclaredConstructor().newInstance();
             if (obj instanceof StatefulDataType.Factory) {
                 factory = (StatefulDataType.Factory<D>) obj;
                 cache.put(className, factory);
                 return factory.create(buff, this, database);
             }
             return (DataType<?>) obj;
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            if(exceptionHandler != null) {
+        } catch (ReflectiveOperationException | SecurityException | IllegalArgumentException e) {
+            if (exceptionHandler != null) {
                 exceptionHandler.uncaughtException(Thread.currentThread(), e);
             }
             throw new RuntimeException(e);

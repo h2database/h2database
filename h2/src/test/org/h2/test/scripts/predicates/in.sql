@@ -208,8 +208,8 @@ SELECT CASE WHEN NOT (false IN (null)) THEN false END;
 > rows: 1
 
 select a.v as av, b.v as bv, a.v IN (b.v), not a.v IN (b.v) from test a, test b;
-> AV    BV    A.V = B.V NOT (A.V = B.V)
-> ----- ----- --------- ---------------
+> AV    BV    A.V = B.V A.V <> B.V
+> ----- ----- --------- ----------
 > FALSE FALSE TRUE      FALSE
 > FALSE TRUE  FALSE     TRUE
 > FALSE null  null      null
@@ -222,8 +222,8 @@ select a.v as av, b.v as bv, a.v IN (b.v), not a.v IN (b.v) from test a, test b;
 > rows: 9
 
 select a.v as av, b.v as bv, a.v IN (b.v, null), not a.v IN (b.v, null) from test a, test b;
-> AV    BV    A.V IN(B.V, NULL) NOT (A.V IN(B.V, NULL))
-> ----- ----- ----------------- -----------------------
+> AV    BV    A.V IN(B.V, NULL) A.V NOT IN(B.V, NULL)
+> ----- ----- ----------------- ---------------------
 > FALSE FALSE TRUE              FALSE
 > FALSE TRUE  null              null
 > FALSE null  null              null

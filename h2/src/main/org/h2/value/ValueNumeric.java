@@ -9,15 +9,13 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
-import org.h2.api.ErrorCode;
-import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 
 /**
  * Implementation of the NUMERIC data type.
  */
-public final class ValueNumeric extends Value {
+public final class ValueNumeric extends ValueBigDecimalBase {
 
     /**
      * The value 'zero'.
@@ -32,17 +30,12 @@ public final class ValueNumeric extends Value {
     /**
      * The default precision for a NUMERIC value.
      */
-    static final int DEFAULT_PRECISION = 65535;
+    public static final int DEFAULT_PRECISION = 65535;
 
     /**
      * The default scale for a NUMERIC value.
      */
-    static final int DEFAULT_SCALE = 0;
-
-    /**
-     * The default display size for a NUMERIC value.
-     */
-    static final int DEFAULT_DISPLAY_SIZE = 65535;
+    public static final int DEFAULT_SCALE = 0;
 
     /**
      * The maximum scale.
@@ -54,76 +47,13 @@ public final class ValueNumeric extends Value {
      */
     public static final int MINIMUM_SCALE = -100_000;
 
-    private final BigDecimal value;
-    private TypeInfo type;
-
     private ValueNumeric(BigDecimal value) {
-        if (value == null) {
-            throw new IllegalArgumentException("null");
-        } else if (value.getClass() != BigDecimal.class) {
-            throw DbException.get(ErrorCode.INVALID_CLASS_2,
-                    BigDecimal.class.getName(), value.getClass().getName());
-        }
-        this.value = value;
+        super(value);
     }
 
     @Override
-    public Value add(Value v) {
-        ValueNumeric dec = (ValueNumeric) v;
-        return ValueNumeric.get(value.add(dec.value));
-    }
-
-    @Override
-    public Value subtract(Value v) {
-        ValueNumeric dec = (ValueNumeric) v;
-        return ValueNumeric.get(value.subtract(dec.value));
-    }
-
-    @Override
-    public Value negate() {
-        return ValueNumeric.get(value.negate());
-    }
-
-    @Override
-    public Value multiply(Value v) {
-        ValueNumeric dec = (ValueNumeric) v;
-        return ValueNumeric.get(value.multiply(dec.value));
-    }
-
-    @Override
-    public Value divide(Value v, long divisorPrecision) {
-        BigDecimal divisor = ((ValueNumeric) v).value;
-        if (divisor.signum() == 0) {
-            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
-        }
-        return ValueNumeric.get(value.divide(divisor,
-                getQuotientScale(value.scale(), divisorPrecision, divisor.scale()), RoundingMode.HALF_DOWN));
-    }
-
-    /**
-     * Evaluates the scale of the quotient.
-     *
-     * @param dividerScale
-     *            the scale of the divider
-     * @param divisorPrecision
-     *            the precision of the divisor
-     * @param divisorScale
-     *            the scale of the divisor
-     * @return the scale of the quotient
-     */
-    public static int getQuotientScale(int dividerScale, long divisorPrecision, int divisorScale) {
-        long scale = dividerScale - divisorScale + divisorPrecision * 2;
-        return scale >= MAXIMUM_SCALE ? MAXIMUM_SCALE : (int) scale;
-    }
-
-    @Override
-    public ValueNumeric modulus(Value v) {
-        ValueNumeric dec = (ValueNumeric) v;
-        if (dec.value.signum() == 0) {
-            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
-        }
-        BigDecimal bd = value.remainder(dec.value);
-        return ValueNumeric.get(bd);
+    ValueBigDecimalBase getValue(BigDecimal value) {
+        return get(value);
     }
 
     @Override
@@ -151,36 +81,6 @@ public final class ValueNumeric extends Value {
     @Override
     public int getValueType() {
         return NUMERIC;
-    }
-
-    @Override
-    public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
-        return value.compareTo(((ValueNumeric) o).value);
-    }
-
-    @Override
-    public int getSignum() {
-        return value.signum();
-    }
-
-    @Override
-    public BigDecimal getBigDecimal() {
-        return value;
-    }
-
-    @Override
-    public String getString() {
-        return value.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        return value.hashCode();
-    }
-
-    @Override
-    public Object getObject() {
-        return value;
     }
 
     /**
@@ -211,21 +111,6 @@ public final class ValueNumeric extends Value {
             return ONE;
         }
         return (ValueNumeric) Value.cache(new ValueNumeric(new BigDecimal(bigInteger)));
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        // Two BigDecimal objects are considered equal only if they are equal in
-        // value and scale (thus 2.0 is not equal to 2.00 when using equals;
-        // however -0.0 and 0.0 are). Can not use compareTo because 2.0 and 2.00
-        // have different hash codes
-        return other instanceof ValueNumeric &&
-                value.equals(((ValueNumeric) other).value);
-    }
-
-    @Override
-    public int getMemory() {
-        return value.precision() + 120;
     }
 
     /**

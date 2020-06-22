@@ -236,7 +236,7 @@ public class TestLinkedTable extends TestDb {
         assertSingleValue(sb, "SELECT * FROM T2", 2);
         sa.execute("DROP ALL OBJECTS");
         sb.execute("DROP ALL OBJECTS");
-        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, sa).
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, sa).
                 execute("SELECT * FROM TEST");
         ca.close();
         cb.close();
@@ -494,7 +494,7 @@ public class TestLinkedTable extends TestDb {
         testRow(stat, "LINK_TEST");
         ResultSet rs = stat.executeQuery("SELECT * FROM LINK_TEST");
         ResultSetMetaData meta = rs.getMetaData();
-        assertEquals(10, meta.getPrecision(1));
+        assertEquals(32, meta.getPrecision(1));
         assertEquals(200, meta.getPrecision(2));
 
         conn.close();
@@ -524,7 +524,7 @@ public class TestLinkedTable extends TestDb {
         rs = stat.executeQuery("SELECT * FROM " +
                 "INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='LINK_TEST'");
         rs.next();
-        assertEquals("TABLE LINK", rs.getString("TABLE_TYPE"));
+        assertEquals("TABLE LINK", rs.getString("STORAGE_TYPE"));
 
         rs.next();
         rs = stat.executeQuery("SELECT * FROM LINK_TEST WHERE ID=0");

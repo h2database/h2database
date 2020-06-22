@@ -96,14 +96,14 @@ public class TestQueryCache extends TestDb {
 
     private void testClearingCacheWithTableStructureChanges() throws Exception {
         try (Connection conn = getConnection("queryCache;QUERY_CACHE_SIZE=10")) {
-            assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, conn).
+            assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, conn).
                     prepareStatement("SELECT * FROM TEST");
             Statement stat = conn.createStatement();
             stat.executeUpdate("CREATE TABLE TEST(col1 bigint, col2 varchar(255))");
             PreparedStatement prep = conn.prepareStatement("SELECT * FROM TEST");
             prep.close();
             stat.executeUpdate("DROP TABLE TEST");
-            assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, conn).
+            assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, conn).
                     prepareStatement("SELECT * FROM TEST");
         }
     }

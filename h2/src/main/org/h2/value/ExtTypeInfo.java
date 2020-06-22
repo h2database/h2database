@@ -5,21 +5,16 @@
  */
 package org.h2.value;
 
+import org.h2.util.HasSQL;
+
 /**
  * Extended parameters of a data type.
  */
-public abstract class ExtTypeInfo {
-
-    /**
-     * Returns SQL including parentheses that should be appended to a type name.
-     *
-     * @return SQL including parentheses that should be appended to a type name
-     */
-    public abstract String getCreateSQL();
+public abstract class ExtTypeInfo implements HasSQL {
 
     @Override
     public String toString() {
-        return getCreateSQL();
+        return getSQL(QUOTE_ONLY_WHEN_REQUIRED);
     }
 
 }

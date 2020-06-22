@@ -458,7 +458,6 @@ public interface CommandInterface extends AutoCloseable {
      */
     int ALTER_TABLE_RENAME_CONSTRAINT = 85;
 
-
     /**
      * The type of an EXPLAIN ANALYZE statement.
      */
@@ -498,6 +497,28 @@ public interface CommandInterface extends AutoCloseable {
      * The type of ALTER DOMAIN DROP CONSTRAINT statement.
      */
     int ALTER_DOMAIN_DROP_CONSTRAINT = 93;
+
+    /**
+     * The type of an ALTER DOMAIN SET DEFAULT and ALTER DOMAIN DROP DEFAULT
+     * statements.
+     */
+    int ALTER_DOMAIN_DEFAULT = 94;
+
+    /**
+     * The type of an ALTER DOMAIN SET ON UPDATE and ALTER DOMAIN DROP ON UPDATE
+     * statements.
+     */
+    int ALTER_DOMAIN_ON_UPDATE = 95;
+
+    /**
+     * The type of an ALTER DOMAIN RENAME statement.
+     */
+    int ALTER_DOMAIN_RENAME = 96;
+
+    /**
+     * The type of a HELP statement.
+     */
+    int HELP = 97;
 
     /**
      * Get command type.

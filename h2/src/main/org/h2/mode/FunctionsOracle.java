@@ -11,7 +11,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
-import org.h2.expression.function.DateTimeFunctions;
+import org.h2.expression.function.DateTimeFunction;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
 import org.h2.message.DbException;
@@ -39,15 +39,15 @@ public final class FunctionsOracle extends FunctionsBase {
 
     static {
         FUNCTIONS.put("ADD_MONTHS",
-                new FunctionInfo("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP, true, true, true, false));
+                new FunctionInfo("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP, true, true));
         FUNCTIONS.put("SYS_GUID",
-                new FunctionInfo("SYS_GUID", SYS_GUID, 0, Value.VARBINARY, false, false, true, false));
+                new FunctionInfo("SYS_GUID", SYS_GUID, 0, Value.VARBINARY, false, false));
         FUNCTIONS.put("TO_DATE",
-                new FunctionInfo("TO_DATE", TO_DATE, VAR_ARGS, Value.TIMESTAMP, true, true, true, false));
+                new FunctionInfo("TO_DATE", TO_DATE, VAR_ARGS, Value.TIMESTAMP, true, true));
         FUNCTIONS.put("TO_TIMESTAMP",
-                new FunctionInfo("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP, true, true, true, false));
-        FUNCTIONS.put("TO_TIMESTAMP_TZ", new FunctionInfo("TO_TIMESTAMP_TZ", TO_TIMESTAMP_TZ, VAR_ARGS,
-                Value.TIMESTAMP_TZ, true, true, true, false));
+                new FunctionInfo("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP, true, true));
+        FUNCTIONS.put("TO_TIMESTAMP_TZ",
+                new FunctionInfo("TO_TIMESTAMP_TZ", TO_TIMESTAMP_TZ, VAR_ARGS, Value.TIMESTAMP_TZ, true, true));
     }
 
     /**
@@ -114,7 +114,7 @@ public final class FunctionsOracle extends FunctionsBase {
         Value result;
         switch (info.type) {
         case ADD_MONTHS:
-            result = DateTimeFunctions.dateadd(session, DateTimeFunctions.MONTH, v1.getInt(), v0);
+            result = DateTimeFunction.dateadd(session, DateTimeFunction.MONTH, v1.getInt(), v0);
             break;
         case SYS_GUID:
             result = ValueUuid.getNewRandom().convertTo(TypeInfo.TYPE_VARBINARY);

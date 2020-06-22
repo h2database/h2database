@@ -49,6 +49,7 @@ import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
 import org.h2.value.ValueSmallint;
 import org.h2.value.ValueTinyint;
+import org.h2.value.ValueToObjectConverter;
 import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 
@@ -66,8 +67,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements
 
     JdbcPreparedStatement(JdbcConnection conn, String sql, int id,
             int resultSetType, int resultSetConcurrency,
-            boolean closeWithResultSet, Object generatedKeysRequest) {
-        super(conn, id, resultSetType, resultSetConcurrency, closeWithResultSet);
+            Object generatedKeysRequest) {
+        super(conn, id, resultSetType, resultSetConcurrency);
         this.generatedKeysRequest = conn.scopeGeneratedKeys() ? false : generatedKeysRequest;
         setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
         command = conn.prepareCommand(sql, fetchSize);
@@ -115,8 +116,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                         setExecutingStatement(null);
                     }
                 }
-                resultSet = new JdbcResultSet(conn, this, command, result, id,
-                        closedByResultSet, scrollable, updatable, cachedColumnLabelMap);
+                resultSet = new JdbcResultSet(conn, this, command, result, id, scrollable, updatable,
+                        cachedColumnLabelMap);
             }
             return resultSet;
         } catch (Exception e) {
@@ -190,8 +191,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                 ResultInterface gk = result.getGeneratedKeys();
                 if (gk != null) {
                     int id = getNextId(TraceObject.RESULT_SET);
-                    generatedKeys = new JdbcResultSet(conn, this, command, gk, id,
-                            false, true, false);
+                    generatedKeys = new JdbcResultSet(conn, this, command, gk, id, true, false);
                 }
             } finally {
                 setExecutingStatement(null);
@@ -229,17 +229,15 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                         boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
                         ResultInterface result = command.executeQuery(maxRows, scrollable);
                         lazy = result.isLazy();
-                        resultSet = new JdbcResultSet(conn, this, command, result,
-                                id, closedByResultSet, scrollable,
-                                updatable, cachedColumnLabelMap);
+                        resultSet = new JdbcResultSet(conn, this, command, result, id, scrollable, updatable,
+                                cachedColumnLabelMap);
                     } else {
                         returnsResultSet = false;
                         ResultWithGeneratedKeys result = command.executeUpdate(generatedKeysRequest);
                         updateCount = result.getUpdateCount();
                         ResultInterface gk = result.getGeneratedKeys();
                         if (gk != null) {
-                            generatedKeys = new JdbcResultSet(conn, this, command, gk, id,
-                                    false, true, false);
+                            generatedKeys = new JdbcResultSet(conn, this, command, gk, id, true, false);
                         }
                     }
                 } finally {
@@ -507,7 +505,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (x == null) {
                 setParameter(parameterIndex, ValueNull.INSTANCE);
             } else {
-                setParameter(parameterIndex, DataType.convertToValue(session, x, Value.UNKNOWN));
+                setParameter(parameterIndex, ValueToObjectConverter.objectToValue(session, x, Value.UNKNOWN));
             }
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -611,7 +609,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
         if (x == null) {
             setParameter(parameterIndex, ValueNull.INSTANCE);
         } else {
-            Value v = DataType.convertToValue(conn.getSession(), x, type);
+            Value v = ValueToObjectConverter.objectToValue(conn.getSession(), x, type);
             if (type != Value.UNKNOWN) {
                 v = v.convertTo(type, conn);
             }
@@ -973,7 +971,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (x == null) {
                 v = ValueNull.INSTANCE;
             } else {
-                v = DataType.convertToValue(session, x.getArray(), Value.ARRAY);
+                v = ValueToObjectConverter.objectToValue(session, x.getArray(), Value.ARRAY);
             }
             setParameter(parameterIndex, v);
         } catch (Exception e) {
@@ -1302,8 +1300,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                     debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
                 }
                 checkClosed();
-                generatedKeys = new JdbcResultSet(conn, this, null, batchIdentities.getResult(), id, false, true,
-                        false);
+                generatedKeys = new JdbcResultSet(conn, this, null, batchIdentities.getResult(), id, true, false);
             } catch (Exception e) {
                 throw logAndConvert(e);
             }

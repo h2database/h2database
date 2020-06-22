@@ -415,7 +415,7 @@ public class TestServlet extends TestDb {
         stat2.execute("SELECT * FROM T");
         stat2.execute("DROP TABLE T");
 
-        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat1).
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, stat1).
                 execute("SELECT * FROM T");
         conn2.close();
 

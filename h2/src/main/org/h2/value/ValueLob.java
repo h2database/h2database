@@ -21,9 +21,9 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
- * A implementation of the BLOB and CLOB data types. Small objects are kept in
- * memory and stored in the record. Large objects are either stored in the
- * database, or in temporary files.
+ * A implementation of the BINARY LARGE OBJECT and CHARACTER LARGE OBJECT data
+ * types. Small objects are kept in memory and stored in the record. Large
+ * objects are either stored in the database, or in temporary files.
  */
 public class ValueLob extends Value {
 
@@ -266,14 +266,6 @@ public class ValueLob extends Value {
         }
         ValueLob v2 = (ValueLob) v;
         return compare(this, v2);
-    }
-
-    @Override
-    public Object getObject() {
-        if (valueType == Value.CLOB) {
-            return getReader();
-        }
-        return getInputStream();
     }
 
     @Override

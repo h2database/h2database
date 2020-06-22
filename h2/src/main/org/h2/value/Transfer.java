@@ -14,6 +14,10 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Constants;
@@ -77,9 +81,10 @@ public class Transfer {
     private static final int TIME_TZ = 29;
     // 201
     private static final int BINARY = 30;
+    private static final int DECFLOAT = 31;
 
     private static final int[] VALUE_TO_TI = new int[Value.TYPE_COUNT + 1];
-    private static final int[] TI_TO_VALUE = new int[44];
+    private static final int[] TI_TO_VALUE = new int[45];
 
     static {
         addType(-1, Value.UNKNOWN);
@@ -125,6 +130,7 @@ public class Transfer {
         addType(40, Value.JSON);
         addType(41, Value.TIME_TZ);
         addType(42, Value.BINARY);
+        addType(43, Value.DECFLOAT);
     }
 
     private static void addType(int typeInformationType, int valueType) {
@@ -392,9 +398,7 @@ public class Transfer {
                 if (out != null) {
                     out.flush();
                 }
-                if (socket != null) {
-                    socket.close();
-                }
+                socket.close();
             } catch (IOException e) {
                 DbException.traceThrowable(e);
             } finally {
@@ -411,11 +415,67 @@ public class Transfer {
      */
     public Transfer writeTypeInfo(TypeInfo type) throws IOException {
         int valueType = type.getValueType();
+        if (version < Constants.TCP_PROTOCOL_VERSION_20) {
+            switch (valueType) {
+            case Value.BINARY:
+                valueType = Value.VARBINARY;
+                break;
+            case Value.DECFLOAT:
+                valueType = Value.NUMERIC;
+                break;
+            }
+        }
         writeInt(VALUE_TO_TI[valueType + 1]).writeLong(type.getPrecision()).writeInt(type.getScale());
-        if (valueType == Value.ARRAY && version >= Constants.TCP_PROTOCOL_VERSION_20) {
-            writeTypeInfo(((ExtTypeInfoArray) type.getExtTypeInfo()).getComponentType());
+        if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
+            switch (valueType) {
+            case Value.NUMERIC:
+                writeTypeInfoNumeric(type);
+                break;
+            case Value.REAL:
+            case Value.DOUBLE: {
+                ExtTypeInfoFloat extTypeInfo = (ExtTypeInfoFloat) type.getExtTypeInfo();
+                writeByte((byte) (extTypeInfo == null ? -1 : extTypeInfo.getPrecision()));
+                break;
+            }
+            case Value.DECFLOAT:
+                writeBoolean(type.getExtTypeInfo() == null);
+                break;
+            case Value.ARRAY:
+                writeTypeInfo((TypeInfo) type.getExtTypeInfo());
+                break;
+            case Value.ROW:
+                writeTypeInfoRow(type);
+            }
         }
         return this;
+    }
+
+    private void writeTypeInfoNumeric(TypeInfo type) throws IOException {
+        ExtTypeInfoNumeric extTypeInfo = (ExtTypeInfoNumeric) type.getExtTypeInfo();
+        int b;
+        if (extTypeInfo != null) {
+            b = 0;
+            if (extTypeInfo.decimal()) {
+                b += 3;
+            }
+            if (extTypeInfo.withPrecision()) {
+                b++;
+                if (extTypeInfo.withScale()) {
+                    b++;
+                }
+            }
+        } else {
+            b = -1;
+        }
+        writeByte((byte) b);
+    }
+
+    private void writeTypeInfoRow(TypeInfo type) throws IOException {
+        Set<Map.Entry<String, TypeInfo>> fields = ((ExtTypeInfoRow) type.getExtTypeInfo()).getFields();
+        writeInt(fields.size());
+        for (Map.Entry<String, TypeInfo> field : fields) {
+            writeString(field.getKey()).writeTypeInfo(field.getValue());
+        }
     }
 
     /**
@@ -428,10 +488,62 @@ public class Transfer {
         long precision = readLong();
         int scale = readInt();
         ExtTypeInfo ext = null;
-        if (valueType == Value.ARRAY && version >= Constants.TCP_PROTOCOL_VERSION_20) {
-            ext = new ExtTypeInfoArray(readTypeInfo());
+        if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
+            switch (valueType) {
+            case Value.NUMERIC:
+                ext = readTypeInfoNumeric();
+                break;
+            case Value.REAL:
+            case Value.DOUBLE: {
+                int p = readByte();
+                if (p >= 0) {
+                    ext = ExtTypeInfoFloat.get(p);
+                }
+                break;
+            }
+            case Value.DECFLOAT:
+                if (!readBoolean()) {
+                    ext = ExtTypeInfoNumeric.NUMERIC;
+                }
+                break;
+            case Value.ARRAY:
+                ext = readTypeInfo();
+                break;
+            case Value.ROW:
+                ext = readTypeInfoRow();
+            }
         }
         return TypeInfo.getTypeInfo(valueType, precision, scale, ext);
+    }
+
+    private ExtTypeInfo readTypeInfoNumeric() throws IOException {
+        switch (readByte()) {
+        case 0:
+            return ExtTypeInfoNumeric.NUMERIC;
+        case 1:
+            return ExtTypeInfoNumeric.NUMERIC_PRECISION;
+        case 2:
+            return ExtTypeInfoNumeric.NUMERIC_PRECISION_SCALE;
+        case 3:
+            return ExtTypeInfoNumeric.DECIMAL;
+        case 4:
+            return ExtTypeInfoNumeric.DECIMAL_PRECISION;
+        case 5:
+            return ExtTypeInfoNumeric.DECIMAL_PRECISION_SCALE;
+        default:
+            return null;
+        }
+    }
+
+    private ExtTypeInfo readTypeInfoRow() throws IOException {
+        LinkedHashMap<String, TypeInfo> fields = new LinkedHashMap<>();
+        for (int i = 0, l = readInt(); i < l; i++) {
+            String name = readString();
+            if (fields.putIfAbsent(name, readTypeInfo()) != null) {
+                throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, name);
+            }
+        }
+        return new ExtTypeInfoRow(fields);
     }
 
     /**
@@ -445,12 +557,15 @@ public class Transfer {
         case Value.NULL:
             writeInt(NULL);
             break;
+        case Value.BINARY:
+            if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
+                writeInt(BINARY);
+                writeBytes(v.getBytesNoCopy());
+                break;
+            }
+            //$FALL-THROUGH$
         case Value.VARBINARY:
             writeInt(VARBINARY);
-            writeBytes(v.getBytesNoCopy());
-            break;
-        case Value.BINARY:
-            writeInt(BINARY);
             writeBytes(v.getBytesNoCopy());
             break;
         case Value.JAVA_OBJECT:
@@ -518,6 +633,13 @@ public class Transfer {
                     ? timeZoneOffset : timeZoneOffset / 60);
             break;
         }
+        case Value.DECFLOAT:
+            if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
+                writeInt(DECFLOAT);
+                writeString(v.getString());
+                break;
+            }
+        //$FALL-THROUGH$
         case Value.NUMERIC:
             writeInt(NUMERIC);
             writeString(v.getString());
@@ -644,7 +766,7 @@ public class Transfer {
                     writeTypeInfo(columnType);
                 } else {
                     writeString(result.getColumnName(i));
-                    writeInt(DataType.convertTypeToSQLType(columnType.getValueType()));
+                    writeInt(DataType.convertTypeToSQLType(columnType));
                     writeInt(MathUtils.convertLongToInt(columnType.getPrecision()));
                     writeInt(columnType.getScale());
                 }
@@ -872,6 +994,8 @@ public class Transfer {
         case JSON:
             // Do not trust the value
             return ValueJson.fromJson(readBytes());
+        case DECFLOAT:
+            return ValueDecfloat.get(new BigDecimal(readString()));
         default:
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }
@@ -920,6 +1044,10 @@ public class Transfer {
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    public int getVersion() {
+        return version;
     }
 
     public synchronized boolean isClosed() {

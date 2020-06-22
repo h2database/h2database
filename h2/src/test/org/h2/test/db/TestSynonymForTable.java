@@ -71,7 +71,7 @@ public class TestSynonymForTable extends TestDb {
         stat.execute("CREATE OR REPLACE SYNONYM testsynonym FOR s1.backingtable");
         stat.execute("DROP SCHEMA s1 CASCADE");
 
-        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).execute("SELECT id FROM testsynonym");
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, stat).execute("SELECT id FROM testsynonym");
         conn.close();
     }
 
@@ -82,7 +82,7 @@ public class TestSynonymForTable extends TestDb {
         stat.execute("DROP TABLE backingtable");
 
         // Backing table does not exist anymore.
-        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).execute("SELECT id FROM testsynonym");
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, stat).execute("SELECT id FROM testsynonym");
 
         // Synonym should be dropped as well
         ResultSet synonyms = conn.createStatement().executeQuery(
@@ -185,7 +185,7 @@ public class TestSynonymForTable extends TestDb {
         assertEquals("TESTSYNONYM", synonyms.getString("SYNONYM_NAME"));
         assertEquals("BACKINGTABLE", synonyms.getString("SYNONYM_FOR"));
         assertEquals("VALID", synonyms.getString("STATUS"));
-        assertEquals("", synonyms.getString("REMARKS"));
+        assertNull(synonyms.getString("REMARKS"));
         assertNotNull(synonyms.getString("ID"));
         assertFalse(synonyms.next());
         conn.close();

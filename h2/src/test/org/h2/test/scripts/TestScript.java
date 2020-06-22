@@ -33,7 +33,6 @@ import org.h2.command.CommandContainer;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.command.query.Query;
-import org.h2.engine.SysProperties;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcPreparedStatement;
@@ -143,22 +142,16 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "add_months", "compatibility" }) {
             testScript("compatibility/" + s + ".sql");
         }
-
-        String decimal2;
-        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
-            decimal2 = "decimal_decimal";
-        } else {
-            decimal2 = "decimal_numeric";
-        }
         for (String s : new String[] { "array", "bigint", "binary", "blob",
-                "boolean", "char", "clob", "date", "decimal", decimal2, "double_precision", "enum",
-                "geometry", "identity", "int", "interval", "java_object", "json", "real", "row", "smallint",
+                "boolean", "char", "clob", "date", "decfloat", "double_precision", "enum",
+                "geometry", "identity", "int", "interval", "java_object", "json", "numeric", "real", "row", "smallint",
                 "time-with-time-zone", "time", "timestamp-with-time-zone", "timestamp", "tinyint",
                 "uuid", "varbinary", "varchar", "varchar-ignorecase" }) {
             testScript("datatypes/" + s + ".sql");
         }
-        for (String s : new String[] { "alterTableAdd", "alterTableAlterColumn", "alterTableDropColumn",
-                "alterTableRename", "analyze", "createAlias", "createDomain", "createSequence", "createSynonym",
+        for (String s : new String[] { "alterDomain", "alterTableAdd", "alterTableAlterColumn", "alterTableDropColumn",
+                "alterTableRename", "analyze", "commentOn", "createAlias", "createConstant", "createDomain",
+                "createSequence", "createSynonym",
                 "createTable", "createTrigger", "createView", "dropAllObjects", "dropDomain", "dropIndex",
                 "dropSchema", "dropTable", "grant", "truncateTable" }) {
             testScript("ddl/" + s + ".sql");
@@ -180,9 +173,9 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",
                 "bitand", "bitget", "bitnot", "bitor", "bitxor", "ceil", "compress",
                 "cos", "cosh", "cot", "decrypt", "degrees", "encrypt", "exp",
-                "expand", "floor", "hash", "length", "log", "mod", "ora-hash", "pi",
+                "expand", "floor", "hash", "length", "log", "lshift", "mod", "ora-hash", "pi",
                 "power", "radians", "rand", "random-uuid", "round",
-                "roundmagic", "secure-rand", "sign", "sin", "sinh", "sqrt",
+                "roundmagic", "rshift", "secure-rand", "sign", "sin", "sinh", "sqrt",
                 "tan", "tanh", "truncate", "zero" }) {
             testScript("functions/numeric/" + s + ".sql");
         }
@@ -191,7 +184,7 @@ public class TestScript extends TestDb {
                 "concat-ws", "difference", "hextoraw", "insert", "instr",
                 "left", "length", "locate", "lower", "lpad", "ltrim",
                 "octet-length", "position", "quote_ident", "rawtohex", "regexp-like",
-                "regex-replace", "repeat", "replace", "right", "rpad", "rtrim",
+                "regex-replace", "regexp-substr", "repeat", "replace", "right", "rpad", "rtrim",
                 "soundex", "space", "stringdecode", "stringencode",
                 "stringtoutf8", "substring", "to-char", "translate", "trim",
                 "upper", "utf8tostring", "xmlattr", "xmlcdata", "xmlcomment",
@@ -207,7 +200,7 @@ public class TestScript extends TestDb {
                 "ifnull", "last-insert-id", "least", "link-schema", "lock-mode", "lock-timeout",
                 "memory-free", "memory-used", "nextval", "nullif", "nvl2",
                 "readonly", "rownum", "scope-identity", "session-id",
-                "table", "transaction-id", "truncate-value", "unnest" }) {
+                "table", "transaction-id", "trim_array", "truncate-value", "unnest" }) {
             testScript("functions/system/" + s + ".sql");
         }
         for (String s : new String[] { "current_date", "current_timestamp",
@@ -220,11 +213,11 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "lead", "nth_value", "ntile", "ratio_to_report", "row_number" }) {
             testScript("functions/window/" + s + ".sql");
         }
-        for (String s : new String[] { "at-time-zone", "boolean-test", "case", "conditions", "data-change-delta-table",
-                "help", "sequence", "set" }) {
+        for (String s : new String[] { "at-time-zone", "boolean-test", "case", "concatenation", "conditions",
+                "data-change-delta-table", "field-reference", "help", "sequence", "set" }) {
             testScript("other/" + s + ".sql");
         }
-        for (String s : new String[] { "in", "like", "null", "type", "unique" }) {
+        for (String s : new String[] { "between", "distinct", "in", "like", "null", "type", "unique" }) {
             testScript("predicates/" + s + ".sql");
         }
         for (String s : new String[] { "derived-column-names", "distinct", "joins", "query-optimisations", "select",

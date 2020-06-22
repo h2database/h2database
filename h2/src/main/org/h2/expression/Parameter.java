@@ -12,7 +12,6 @@ import org.h2.message.DbException;
 import org.h2.table.Column;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueVarchar;
 
@@ -30,7 +29,7 @@ public class Parameter extends Operation0 implements ParameterInterface {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         return builder.append('?').append(index + 1);
     }
 
@@ -123,7 +122,7 @@ public class Parameter extends Operation0 implements ParameterInterface {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new Comparison(Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.FALSE));
+        return new Comparison(Comparison.EQUAL, this, ValueExpression.FALSE, false);
     }
 
     public void setColumn(Column column) {

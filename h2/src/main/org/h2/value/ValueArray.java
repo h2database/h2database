@@ -38,11 +38,7 @@ public final class ValueArray extends ValueCollectionBase {
      * @return the value
      */
     public static ValueArray get(Value[] list, CastDataProvider provider) {
-        TypeInfo t = TypeInfo.TYPE_NULL;
-        for (Value v : list) {
-            t = TypeInfo.getHigherType(t, v.getType());
-        }
-        return new ValueArray(t, list, provider);
+        return new ValueArray(TypeInfo.getHigherType(list), list, provider);
     }
 
     /**
@@ -63,8 +59,7 @@ public final class ValueArray extends ValueCollectionBase {
         TypeInfo type = this.type;
         if (type == null) {
             TypeInfo componentType = getComponentType();
-            this.type = type = TypeInfo.getTypeInfo(getValueType(), values.length, 0,
-                    new ExtTypeInfoArray(componentType));
+            this.type = type = TypeInfo.getTypeInfo(getValueType(), values.length, 0, componentType);
         }
         return type;
     }

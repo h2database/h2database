@@ -104,7 +104,7 @@ public abstract class SearchRow extends Value {
 
     @Override
     public TypeInfo getType() {
-        return TypeInfo.TYPE_ROW;
+        return TypeInfo.TYPE_ROW_EMPTY;
     }
 
     @Override
@@ -127,11 +127,6 @@ public abstract class SearchRow extends Value {
     @Override
     public String getString() {
         return getTraceSQL();
-    }
-
-    @Override
-    public Object getObject() {
-        return this;
     }
 
     @Override

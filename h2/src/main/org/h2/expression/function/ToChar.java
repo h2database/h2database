@@ -517,6 +517,13 @@ public class ToChar {
     }
 
     /**
+     * Used for testing.
+     */
+    public static void clearNames() {
+        NAMES = null;
+    }
+
+    /**
      * Returns time zone display name or ID for the specified date-time value.
      *
      * @param session

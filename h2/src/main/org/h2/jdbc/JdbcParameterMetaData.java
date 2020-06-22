@@ -17,6 +17,7 @@ import org.h2.util.MathUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueToObjectConverter;
 
 /**
  * Information about the parameters of a prepared statement.
@@ -81,9 +82,9 @@ public class JdbcParameterMetaData extends TraceObject implements
     public int getParameterType(int param) throws SQLException {
         try {
             debugCodeCall("getParameterType", param);
-            int type = getParameter(param).getType().getValueType();
-            if (type == Value.UNKNOWN) {
-                type = Value.VARCHAR;
+            TypeInfo type = getParameter(param).getType();
+            if (type.getValueType() == Value.UNKNOWN) {
+                type = TypeInfo.TYPE_VARCHAR;
             }
             return DataType.convertTypeToSQLType(type);
         } catch (Exception e) {
@@ -177,7 +178,7 @@ public class JdbcParameterMetaData extends TraceObject implements
             if (type == Value.UNKNOWN) {
                 type = Value.VARCHAR;
             }
-            return DataType.getTypeClassName(type, false);
+            return ValueToObjectConverter.getDefaultClass(type, true).getName();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -194,11 +195,11 @@ public class JdbcParameterMetaData extends TraceObject implements
     public String getParameterTypeName(int param) throws SQLException {
         try {
             debugCodeCall("getParameterTypeName", param);
-            int type = getParameter(param).getType().getValueType();
-            if (type == Value.UNKNOWN) {
-                type = Value.VARCHAR;
+            TypeInfo type = getParameter(param).getType();
+            if (type.getValueType() == Value.UNKNOWN) {
+                type = TypeInfo.TYPE_VARCHAR;
             }
-            return DataType.getDataType(type).name;
+            return type.getDeclaredTypeName();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -252,6 +253,13 @@ public class JdbcParameterMetaData extends TraceObject implements
     @Override
     public String toString() {
         return getTraceObjectName() + ": parameterCount=" + paramCount;
+    }
+
+    /**
+     * INTERNAL
+     */
+    public TypeInfo getParameterInternalType(int param) {
+        return getParameter(param).getType();
     }
 
 }

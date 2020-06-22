@@ -203,9 +203,7 @@ public class IndexCondition {
             builder.append(" < ");
             break;
         case Comparison.IN_LIST:
-            builder.append(" IN(");
-            Expression.writeExpressions(builder, expressionList, sqlFlags);
-            builder.append(')');
+            Expression.writeExpressions(builder.append(" IN("), expressionList, sqlFlags).append(')');
             break;
         case Comparison.IN_QUERY:
             builder.append(" IN(");
@@ -219,7 +217,7 @@ public class IndexCondition {
             DbException.throwInternalError("type=" + compareType);
         }
         if (expression != null) {
-            expression.getSQL(builder, sqlFlags);
+            expression.getSQL(builder, sqlFlags, Expression.AUTO_PARENTHESES);
         }
         return builder.toString();
     }

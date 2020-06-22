@@ -6,15 +6,15 @@
 CREATE TABLE TEST(C1 CHAR, C2 CHARACTER, C3 NCHAR, C4 NATIONAL CHARACTER, C5 NATIONAL CHAR);
 > ok
 
-SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE TYPE_NAME COLUMN_TYPE
-> ----------- --------- --------- ------------------
-> C1          1         CHAR      CHAR
-> C2          1         CHAR      CHARACTER
-> C3          1         CHAR      NCHAR
-> C4          1         CHAR      NATIONAL CHARACTER
-> C5          1         CHAR      NATIONAL CHAR
+> COLUMN_NAME DATA_TYPE COLUMN_TYPE
+> ----------- --------- ------------------
+> C1          CHARACTER CHAR
+> C2          CHARACTER CHARACTER
+> C3          CHARACTER NCHAR
+> C4          CHARACTER NATIONAL CHARACTER
+> C5          CHARACTER NATIONAL CHAR
 > rows (ordered): 5
 
 DROP TABLE TEST;
@@ -39,7 +39,7 @@ SELECT C || 'x' V FROM TEST;
 > V
 > ---
 > aax
-> bx
+> b x
 > rows: 2
 
 DROP TABLE TEST;
@@ -80,7 +80,7 @@ EXPLAIN VALUES CAST('a' AS CHAR(1));
 >> VALUES (CAST('a' AS CHAR(1)))
 
 EXPLAIN VALUES CAST('' AS CHAR(1));
->> VALUES (CAST('' AS CHAR(1)))
+>> VALUES (CAST(' ' AS CHAR(1)))
 
 CREATE TABLE T(C CHAR(0));
 > exception INVALID_VALUE_2
@@ -93,3 +93,81 @@ DROP TABLE T;
 
 VALUES CAST('ab' AS CHAR);
 >> a
+
+CREATE TABLE TEST(A CHAR(2) NOT NULL, B CHAR(3) NOT NULL);
+> ok
+
+INSERT INTO TEST VALUES ('a', 'a'), ('aa', 'aaa'), ('bb   ', 'bb');
+> update count: 3
+
+INSERT INTO TEST VALUES ('a a', 'a a');
+> exception VALUE_TOO_LONG_2
+
+VALUES CAST('a a' AS CHAR(2)) || '*';
+>> a *
+
+SELECT A || '*', B || '*', A || B || '*', CHAR_LENGTH(A), A = B FROM TEST;
+> A || '*' B || '*' A || B || '*' CHAR_LENGTH(A) A = B
+> -------- -------- ------------- -------------- -----
+> a *      a *      a a *         2              TRUE
+> aa*      aaa*     aaaaa*        2              FALSE
+> bb*      bb *     bbbb *        2              TRUE
+> rows: 3
+
+DROP TABLE TEST;
+> ok
+
+SET MODE MySQL;
+> ok
+
+CREATE TABLE TEST(A CHAR(2) NOT NULL, B CHAR(3) NOT NULL);
+> ok
+
+INSERT INTO TEST VALUES ('a', 'a'), ('aa', 'aaa'), ('bb   ', 'bb');
+> update count: 3
+
+INSERT INTO TEST VALUES ('a a', 'a a');
+> exception VALUE_TOO_LONG_2
+
+VALUES CAST('a a' AS CHAR(2)) || '*';
+>> a*
+
+SELECT A || '*', B || '*', A || B || '*', CHAR_LENGTH(A), A = B FROM TEST;
+> A || '*' B || '*' A || B || '*' CHAR_LENGTH(A) A = B
+> -------- -------- ------------- -------------- -----
+> a*       a*       aa*           1              TRUE
+> aa*      aaa*     aaaaa*        2              FALSE
+> bb*      bb*      bbbb*         2              TRUE
+> rows: 3
+
+DROP TABLE TEST;
+> ok
+
+SET MODE PostgreSQL;
+> ok
+
+CREATE TABLE TEST(A CHAR(2) NOT NULL, B CHAR(3) NOT NULL);
+> ok
+
+INSERT INTO TEST VALUES ('a', 'a'), ('aa', 'aaa'), ('bb   ', 'bb');
+> update count: 3
+
+INSERT INTO TEST VALUES ('a a', 'a a');
+> exception VALUE_TOO_LONG_2
+
+VALUES CAST('a a' AS CHAR(2)) || '*';
+>> a*
+
+SELECT A || '*', B || '*', A || B || '*', CHAR_LENGTH(A), A = B FROM TEST;
+> ?column? ?column? ?column? char_length ?column?
+> -------- -------- -------- ----------- --------
+> a*       a*       aa*      1           TRUE
+> aa*      aaa*     aaaaa*   2           FALSE
+> bb*      bb*      bbbb*    2           TRUE
+> rows: 3
+
+DROP TABLE TEST;
+> ok
+
+SET MODE Regular;
+> ok

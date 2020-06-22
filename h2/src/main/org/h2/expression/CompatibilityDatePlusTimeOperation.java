@@ -10,7 +10,6 @@ import static org.h2.util.DateTimeUtils.NANOS_PER_DAY;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -49,15 +48,20 @@ public class CompatibilityDatePlusTimeOperation extends Operation2 {
             break;
         default:
             throw DbException.getUnsupportedException(
-                    DataType.getDataType(l.getValueType()).name + " + " + DataType.getDataType(r.getValueType()).name);
+                    Value.getTypeName(l.getValueType()) + " + " + Value.getTypeName(r.getValueType()));
         }
         type = TypeInfo.getTypeInfo(t, 0L, Math.max(l.getScale(), r.getScale()), null);
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        left.getSQL(builder.append('('), sqlFlags).append(" + ");
-        return right.getSQL(builder, sqlFlags).append(')');
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        left.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append(" + ");
+        return right.getSQL(builder, sqlFlags, AUTO_PARENTHESES);
     }
 
     @Override

@@ -25,9 +25,11 @@ import org.h2.value.ValueNull;
  * Used for optimised IN(...) queries where the contents of the IN list are all
  * constant and of the same type.
  */
-public class ConditionInConstantSet extends Condition {
+public final class ConditionInConstantSet extends Condition {
 
     private Expression left;
+    private final boolean not;
+    private final boolean whenOperand;
     private final ArrayList<Expression> valueList;
     // HashSet cannot be used here, because we need to compare values of
     // different type or scale properly.
@@ -43,10 +45,15 @@ public class ConditionInConstantSet extends Condition {
      *            the expression before IN. Cannot have {@link Value#UNKNOWN}
      *            data type and {@link Value#ENUM} type is also supported only
      *            for {@link ExpressionColumn}.
+     * @param not whether the result should be negated
+     * @param whenOperand whether this is a when operand
      * @param valueList the value list (at least two elements)
      */
-    public ConditionInConstantSet(Session session, Expression left, ArrayList<Expression> valueList) {
+    public ConditionInConstantSet(Session session, Expression left, boolean not, boolean whenOperand,
+            ArrayList<Expression> valueList) {
         this.left = left;
+        this.not = not;
+        this.whenOperand = whenOperand;
         this.valueList = valueList;
         this.valueSet = new TreeSet<>(session.getDatabase().getCompareMode());
         type = left.getType();
@@ -65,15 +72,26 @@ public class ConditionInConstantSet extends Condition {
 
     @Override
     public Value getValue(Session session) {
-        Value x = left.getValue(session);
-        if (x.containsNull()) {
+        return getValue(left.getValue(session));
+    }
+
+    @Override
+    public boolean getWhenValue(Session session, Value left) {
+        if (!whenOperand) {
+            return super.getWhenValue(session, left);
+        }
+        return getValue(left).getBoolean();
+    }
+
+    private Value getValue(Value left) {
+        if (left.containsNull()) {
             return ValueNull.INSTANCE;
         }
-        boolean result = valueSet.contains(x);
+        boolean result = valueSet.contains(left);
         if (!result && hasNull) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.get(result);
+        return ValueBoolean.get(not ^ result);
     }
 
     @Override
@@ -88,8 +106,16 @@ public class ConditionInConstantSet extends Condition {
     }
 
     @Override
+    public Expression getNotIfPossible(Session session) {
+        if (whenOperand) {
+            return null;
+        }
+        return new ConditionInConstantSet(session, left, !not, false, valueList);
+    }
+
+    @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (!(left instanceof ExpressionColumn)) {
+        if (not || whenOperand || !(left instanceof ExpressionColumn)) {
             return;
         }
         ExpressionColumn l = (ExpressionColumn) left;
@@ -107,11 +133,21 @@ public class ConditionInConstantSet extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append('(');
-        left.getSQL(builder, sqlFlags).append(" IN(");
-        writeExpressions(builder, valueList, sqlFlags);
-        return builder.append("))");
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return getWhenSQL(left.getSQL(builder, sqlFlags, AUTO_PARENTHESES), sqlFlags);
+    }
+
+    @Override
+    public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
+        if (not) {
+            builder.append(" NOT");
+        }
+        return writeExpressions(builder.append(" IN("), valueList, sqlFlags).append(')');
     }
 
     @Override
@@ -156,12 +192,14 @@ public class ConditionInConstantSet extends Condition {
      * @return null if the condition was not added, or the new condition
      */
     Expression getAdditional(Session session, Comparison other) {
-        Expression add = other.getIfEquals(left);
-        if (add != null) {
-            if (add.isConstant()) {
-                valueList.add(add);
-                add(add.getValue(session).convertTo(type, session));
-                return this;
+        if (!not) {
+            Expression add = other.getIfEquals(left);
+            if (add != null) {
+                if (add.isConstant()) {
+                    valueList.add(add);
+                    add(add.getValue(session).convertTo(type, session));
+                    return this;
+                }
             }
         }
         return null;

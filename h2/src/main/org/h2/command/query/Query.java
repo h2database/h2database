@@ -5,6 +5,9 @@
  */
 package org.h2.command.query;
 
+import static org.h2.expression.Expression.WITHOUT_PARENTHESES;
+import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,8 +35,6 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
-import org.h2.util.HasSQL;
-import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueInteger;
@@ -95,9 +96,9 @@ public abstract class Query extends Prepared {
     SortOrder sort;
 
     /**
-     * The limit expression as specified in the LIMIT or TOP clause.
+     * The fetch expression as specified in the FETCH, LIMIT, or TOP clause.
      */
-    Expression limitExpr;
+    Expression fetchExpr;
 
     /**
      * Whether limit expression specifies percentage of rows.
@@ -110,7 +111,7 @@ public abstract class Query extends Prepared {
     boolean withTies;
 
     /**
-     * The offset expression as specified in the LIMIT .. OFFSET clause.
+     * The offset expression as specified in the OFFSET clause.
      */
     Expression offsetExpr;
 
@@ -348,7 +349,7 @@ public abstract class Query extends Prepared {
      * optimization only.
      */
     public void setDistinctIfPossible() {
-        if (!isAnyDistinct() && offsetExpr == null && limitExpr == null) {
+        if (!isAnyDistinct() && offsetExpr == null && fetchExpr == null) {
             distinct = true;
         }
     }
@@ -574,8 +575,8 @@ public abstract class Query extends Prepared {
                     Expression ec2 = ec.getNonAliasExpression();
                     if (ec2 instanceof ExpressionColumn) {
                         ExpressionColumn c2 = (ExpressionColumn) ec2;
-                        String ta = exprCol.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
-                        String tb = c2.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
+                        String ta = exprCol.getSQL(DEFAULT_SQL_FLAGS, WITHOUT_PARENTHESES);
+                        String tb = c2.getSQL(DEFAULT_SQL_FLAGS, WITHOUT_PARENTHESES);
                         String s2 = c2.getColumnName(session, j);
                         if (db.equalsIdentifiers(col, s2) && db.equalsIdentifiers(ta, tb)) {
                             return j;
@@ -584,7 +585,7 @@ public abstract class Query extends Prepared {
                 }
             }
         } else if (expressionSQL != null) {
-            String s = e.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
+            String s = e.getSQL(DEFAULT_SQL_FLAGS, WITHOUT_PARENTHESES);
             for (int j = 0, size = expressionSQL.size(); j < size; j++) {
                 if (db.equalsIdentifiers(expressionSQL.get(j), s)) {
                     return j;
@@ -598,7 +599,7 @@ public abstract class Query extends Prepared {
         }
         int idx = expressions.size();
         expressions.add(e);
-        expressionSQL.add(e.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
+        expressionSQL.add(e.getSQL(DEFAULT_SQL_FLAGS, WITHOUT_PARENTHESES));
         return idx;
     }
 
@@ -619,7 +620,7 @@ public abstract class Query extends Prepared {
             // ValueExpression, null expression in CASE, or other
             return true;
         }
-        String exprSQL = expr.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
+        String exprSQL = expr.getSQL(DEFAULT_SQL_FLAGS, WITHOUT_PARENTHESES);
         for (String sql: expressionSQL) {
             if (session.getDatabase().equalsIdentifiers(exprSQL, sql)) {
                 return true;
@@ -738,12 +739,12 @@ public abstract class Query extends Prepared {
         return offsetExpr;
     }
 
-    public void setLimit(Expression limit) {
-        this.limitExpr = limit;
+    public void setFetch(Expression fetch) {
+        this.fetchExpr = fetch;
     }
 
-    public Expression getLimit() {
-        return limitExpr;
+    public Expression getFetch() {
+        return fetchExpr;
     }
 
     public void setFetchPercent(boolean fetchPercent) {
@@ -800,12 +801,12 @@ public abstract class Query extends Prepared {
             }
         }
         if (offsetExpr != null) {
-            String count = StringUtils.unEnclose(offsetExpr.getSQL(sqlFlags));
+            String count = offsetExpr.getSQL(sqlFlags, WITHOUT_PARENTHESES);
             builder.append("\nOFFSET ").append(count).append("1".equals(count) ? " ROW" : " ROWS");
         }
-        if (limitExpr != null) {
+        if (fetchExpr != null) {
             builder.append("\nFETCH ").append(offsetExpr != null ? "NEXT" : "FIRST");
-            String count = StringUtils.unEnclose(limitExpr.getSQL(sqlFlags));
+            String count = fetchExpr.getSQL(sqlFlags, WITHOUT_PARENTHESES);
             boolean withCount = fetchPercent || !"1".equals(count);
             if (withCount) {
                 builder.append(' ').append(count);
@@ -827,8 +828,8 @@ public abstract class Query extends Prepared {
      */
     OffsetFetch getOffsetFetch(int maxRows) {
         int fetch = maxRows == 0 ? -1 : maxRows;
-        if (limitExpr != null) {
-            Value v = limitExpr.getValue(session);
+        if (fetchExpr != null) {
+            Value v = fetchExpr.getValue(session);
             int l = v == ValueNull.INSTANCE ? -1 : v.getInt();
             if (fetch < 0) {
                 fetch = l;
@@ -956,7 +957,7 @@ public abstract class Query extends Prepared {
      */
     public boolean isConstantQuery() {
         return !hasOrder() && (offsetExpr == null || offsetExpr.isConstant())
-                && (limitExpr == null || limitExpr.isConstant());
+                && (fetchExpr == null || fetchExpr.isConstant());
     }
 
     /**

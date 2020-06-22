@@ -5,22 +5,18 @@
  */
 package org.h2.expression.function;
 
-import org.h2.command.Parser;
-import org.h2.engine.Constants;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
-import org.h2.engine.Mode.ExpressionNames;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
+import org.h2.value.ValueRow;
 
 /**
  * This class wraps a user-defined function.
@@ -83,23 +79,8 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public String getAlias(Session session, int columnIndex) {
-        if (session.getMode().expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
-            return StringUtils.toLowerEnglish(getName());
-        }
-        return super.getAlias(session, columnIndex);
-    }
-
-    @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        // TODO always append the schema once FUNCTIONS_IN_SCHEMA is enabled
-        if (functionAlias.getDatabase().getSettings().functionsInSchema ||
-                functionAlias.getSchema().getId() != Constants.MAIN_SCHEMA_ID) {
-            Parser.quoteIdentifier(builder, functionAlias.getSchema().getName(), sqlFlags).append('.');
-        }
-        Parser.quoteIdentifier(builder, functionAlias.getName(), sqlFlags).append('(');
-        writeExpressions(builder, this.args, sqlFlags);
-        return builder.append(')');
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return writeExpressions(functionAlias.getSQL(builder, sqlFlags).append('('), args, sqlFlags).append(')');
     }
 
     @Override
@@ -170,9 +151,8 @@ public class JavaFunction extends Expression implements FunctionCall {
         case Value.RESULT_SET:
             ValueResultSet rs = getValueForColumnList(session, getArgs());
             return getExpressionColumns(session, rs.getResult());
-        case Value.ARRAY:
         case Value.ROW:
-            return getExpressionColumns(session, (ValueCollectionBase) getValue(session));
+            return getExpressionColumns(session, (ValueRow) getValue(session));
         }
         return super.getExpressionColumns(session);
     }

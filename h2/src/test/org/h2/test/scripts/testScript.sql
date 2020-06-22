@@ -576,7 +576,7 @@ script nodata nopasswords nosettings;
 > rows: 4
 
 SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
->> 12
+>> CHARACTER VARYING
 
 drop table test;
 > ok
@@ -682,9 +682,9 @@ drop table test;
 create table test(t0 timestamp(0), t1 timestamp(1), t4 timestamp(4));
 > ok
 
-select column_name, numeric_scale from information_schema.columns c where c.table_name = 'TEST' order by column_name;
-> COLUMN_NAME NUMERIC_SCALE
-> ----------- -------------
+select column_name, datetime_precision from information_schema.columns c where c.table_name = 'TEST' order by column_name;
+> COLUMN_NAME DATETIME_PRECISION
+> ----------- ------------------
 > T0          0
 > T1          1
 > T4          4
@@ -827,19 +827,27 @@ create table test(id int primary key, lastname varchar, firstname varchar, paren
 alter table test add constraint name unique (lastname, firstname);
 > ok
 
-SELECT CONSTRAINT_NAME, COLUMN_NAME, INDEX_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE;
-> CONSTRAINT_NAME COLUMN_NAME INDEX_NAME
-> --------------- ----------- ------------------
-> CONSTRAINT_2    ID          PRIMARY_KEY_2
-> CONSTRAINT_27   PARENT      CONSTRAINT_INDEX_2
-> NAME            FIRSTNAME   NAME_INDEX_2
-> NAME            LASTNAME    NAME_INDEX_2
+SELECT CONSTRAINT_NAME, INDEX_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS;
+> CONSTRAINT_NAME INDEX_NAME
+> --------------- ------------------
+> CONSTRAINT_2    PRIMARY_KEY_2
+> CONSTRAINT_27   CONSTRAINT_INDEX_2
+> NAME            NAME_INDEX_2
+> rows: 3
+
+SELECT CONSTRAINT_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE;
+> CONSTRAINT_NAME COLUMN_NAME
+> --------------- -----------
+> CONSTRAINT_2    ID
+> CONSTRAINT_27   PARENT
+> NAME            FIRSTNAME
+> NAME            LASTNAME
 > rows: 4
 
 drop table test;
 > ok
 
-alter table information_schema.help rename to information_schema.help2;
+ALTER TABLE INFORMATION_SCHEMA.INFORMATION_SCHEMA_CATALOG_NAME RENAME TO INFORMATION_SCHEMA.CAT;
 > exception FEATURE_NOT_SUPPORTED_1
 
 CREATE TABLE test (id bigserial NOT NULL primary key);
@@ -994,10 +1002,10 @@ INSERT INTO TEST VALUES (1, 'Mouse', 'MOUSE'), (2, 'MOUSE', 'Mouse');
 > update count: 2
 
 SELECT * FROM TEST;
-> ID LABEL LOOKUP
-> -- ----- ------
-> 1  Mouse MOUSE
-> 2  MOUSE Mouse
+> ID LABEL  LOOKUP
+> -- ------ ------
+> 1  Mouse  MOUSE
+> 2  MOUSE  Mouse
 > rows: 2
 
 DROP TABLE TEST;
@@ -1013,8 +1021,8 @@ call set(1, 2);
 > exception CAN_ONLY_ASSIGN_TO_VARIABLE_1
 
 select x, set(@t, ifnull(@t, 0) + x) from system_range(1, 3);
-> X SET(@T, (COALESCE(@T, 0) + X))
-> - ------------------------------
+> X SET(@T, COALESCE(@T, 0) + X)
+> - ----------------------------
 > 1 1
 > 2 3
 > 3 6
@@ -1117,9 +1125,9 @@ CREATE TABLE FOO (A CHAR(10));
 CREATE TABLE BAR AS SELECT * FROM FOO;
 > ok
 
-select table_name, numeric_precision from information_schema.columns where column_name = 'A';
-> TABLE_NAME NUMERIC_PRECISION
-> ---------- -----------------
+select table_name, character_maximum_length from information_schema.columns where column_name = 'A';
+> TABLE_NAME CHARACTER_MAXIMUM_LENGTH
+> ---------- ------------------------
 > BAR        10
 > FOO        10
 > rows: 2
@@ -1537,7 +1545,7 @@ create table test(id int);
 > ok
 
 explain select id+1 a from test group by id+1;
->> SELECT ("ID" + 1) AS "A" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ GROUP BY "ID" + 1
+>> SELECT "ID" + 1 AS "A" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ GROUP BY "ID" + 1
 
 drop table test;
 > ok
@@ -1606,15 +1614,14 @@ insert into test set id = 3, c = 'abcde      ', v = 'abcde';
 select distinct length(c) from test order by length(c);
 > LENGTH(C)
 > ---------
-> 1
 > 5
-> rows (ordered): 2
+> rows (ordered): 1
 
 select id, c, v, length(c), length(v) from test order by id;
 > ID C     V     LENGTH(C) LENGTH(V)
 > -- ----- ----- --------- ---------
-> 1  a     a     1         1
-> 2  a     a     1         2
+> 1  a     a     5         1
+> 2  a     a     5         2
 > 3  abcde abcde 5         5
 > rows (ordered): 3
 
@@ -1650,13 +1657,13 @@ INSERT INTO TEST VALUES(1, '10', NULL), (2, '0', NULL);
 > update count: 2
 
 SELECT LEAST(ID, C, NAME), GREATEST(ID, C, NAME), LEAST(NULL, C), GREATEST(NULL, NULL), ID FROM TEST ORDER BY ID;
-> LEAST(ID, C, NAME) GREATEST(ID, C, NAME) LEAST(NULL, C) NULL ID
-> ------------------ --------------------- -------------- ---- --
-> 1                  10                    null           null 1
-> 0                  2                     null           null 2
+> LEAST(ID, C, NAME) GREATEST(ID, C, NAME) LEAST(NULL, C) CAST(NULL AS CHARACTER VARYING) ID
+> ------------------ --------------------- -------------- ------------------------------- --
+> 1                  10                    null           null                            1
+> 0                  2                     null           null                            2
 > rows (ordered): 2
 
-DROP TABLE IF EXISTS TEST;
+DROP TABLE TEST;
 > ok
 
 create table people (family varchar(1) not null, person varchar(1) not null);
@@ -1734,21 +1741,6 @@ drop table t1;
 
 drop table t2;
 > ok
-
-create constant abc value 1;
-> ok
-
-call abc;
-> 1
-> -
-> 1
-> rows: 1
-
-drop all objects;
-> ok
-
-call abc;
-> exception COLUMN_NOT_FOUND_1
 
 CREATE TABLE test (family_name VARCHAR_IGNORECASE(63) NOT NULL);
 > ok
@@ -1890,19 +1882,19 @@ CREATE TABLE parent(id int PRIMARY KEY);
 CREATE TABLE child(parentid int REFERENCES parent);
 > ok
 
-select * from INFORMATION_SCHEMA.CROSS_REFERENCES;
-> PKTABLE_CATALOG PKTABLE_SCHEMA PKTABLE_NAME PKCOLUMN_NAME FKTABLE_CATALOG FKTABLE_SCHEMA FKTABLE_NAME FKCOLUMN_NAME ORDINAL_POSITION UPDATE_RULE DELETE_RULE FK_NAME      PK_NAME      DEFERRABILITY
-> --------------- -------------- ------------ ------------- --------------- -------------- ------------ ------------- ---------------- ----------- ----------- ------------ ------------ -------------
-> SCRIPT          PUBLIC         PARENT       ID            SCRIPT          PUBLIC         CHILD        PARENTID      1                1           1           CONSTRAINT_3 CONSTRAINT_8 7
+TABLE INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME UNIQUE_CONSTRAINT_CATALOG UNIQUE_CONSTRAINT_SCHEMA UNIQUE_CONSTRAINT_NAME MATCH_OPTION UPDATE_RULE DELETE_RULE
+> ------------------ ----------------- --------------- ------------------------- ------------------------ ---------------------- ------------ ----------- -----------
+> SCRIPT             PUBLIC            CONSTRAINT_3    SCRIPT                    PUBLIC                   CONSTRAINT_8           NONE         RESTRICT    RESTRICT
 > rows: 1
 
 ALTER TABLE parent ADD COLUMN name varchar;
 > ok
 
-select * from INFORMATION_SCHEMA.CROSS_REFERENCES;
-> PKTABLE_CATALOG PKTABLE_SCHEMA PKTABLE_NAME PKCOLUMN_NAME FKTABLE_CATALOG FKTABLE_SCHEMA FKTABLE_NAME FKCOLUMN_NAME ORDINAL_POSITION UPDATE_RULE DELETE_RULE FK_NAME      PK_NAME      DEFERRABILITY
-> --------------- -------------- ------------ ------------- --------------- -------------- ------------ ------------- ---------------- ----------- ----------- ------------ ------------ -------------
-> SCRIPT          PUBLIC         PARENT       ID            SCRIPT          PUBLIC         CHILD        PARENTID      1                1           1           CONSTRAINT_3 CONSTRAINT_8 7
+TABLE INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME UNIQUE_CONSTRAINT_CATALOG UNIQUE_CONSTRAINT_SCHEMA UNIQUE_CONSTRAINT_NAME MATCH_OPTION UPDATE_RULE DELETE_RULE
+> ------------------ ----------------- --------------- ------------------------- ------------------------ ---------------------- ------------ ----------- -----------
+> SCRIPT             PUBLIC            CONSTRAINT_3    SCRIPT                    PUBLIC                   CONSTRAINT_8           NONE         RESTRICT    RESTRICT
 > rows: 1
 
 drop table parent, child;
@@ -2165,20 +2157,20 @@ select * from test;
 >   x <empty>
 > rows: 1
 
-select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, PRECISION, SCALE, TYPE_NAME, SELECTIVITY, REMARKS, SQL from information_schema.domains;
-> DOMAIN_NAME DOMAIN_DEFAULT DATA_TYPE PRECISION  SCALE TYPE_NAME SELECTIVITY REMARKS SQL
-> ----------- -------------- --------- ---------- ----- --------- ----------- ------- -------------------------------------------------------------------------
-> EMAIL       null           12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200)
-> GMAIL       '@gmail.com'   12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."GMAIL" AS "PUBLIC"."EMAIL" DEFAULT '@gmail.com'
-> STRING      ''             12        255        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT ''
-> STRING1     null           12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
-> STRING2     '<empty>'      12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>'
-> STRING_X    '<empty>'      12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2" DEFAULT '<empty>'
+select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, SELECTIVITY, REMARKS, SQL from information_schema.domains;
+> DOMAIN_NAME DOMAIN_DEFAULT DATA_TYPE         CHARACTER_MAXIMUM_LENGTH SELECTIVITY REMARKS SQL
+> ----------- -------------- ----------------- ------------------------ ----------- ------- -----------------------------------------------------------------------
+> EMAIL       null           CHARACTER VARYING 200                      50          null    CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200)
+> GMAIL       '@gmail.com'   CHARACTER VARYING 200                      50          null    CREATE DOMAIN "PUBLIC"."GMAIL" AS "PUBLIC"."EMAIL" DEFAULT '@gmail.com'
+> STRING      ''             CHARACTER VARYING 255                      50          null    CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT ''
+> STRING1     null           CHARACTER VARYING 2147483647               50          null    CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
+> STRING2     '<empty>'      CHARACTER VARYING 2147483647               50          null    CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>'
+> STRING_X    null           CHARACTER VARYING 2147483647               50          null    CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2"
 > rows: 6
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.ADDRESS;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER DOMAIN "PUBLIC"."EMAIL" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_3" CHECK(POSITION('@', VALUE) > 1) NOCHECK;
@@ -2189,9 +2181,9 @@ script nodata nopasswords nosettings;
 > CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT '';
 > CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR;
 > CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>';
-> CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2" DEFAULT '<empty>';
-> CREATE MEMORY TABLE "PUBLIC"."ADDRESS"( "ID" INT NOT NULL, "NAME" "PUBLIC"."EMAIL", "NAME2" "PUBLIC"."GMAIL" DEFAULT '@gmail.com' );
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" "PUBLIC"."STRING" DEFAULT '', "B" "PUBLIC"."STRING1", "C" "PUBLIC"."STRING2" DEFAULT '<empty>' );
+> CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2";
+> CREATE MEMORY TABLE "PUBLIC"."ADDRESS"( "ID" INT NOT NULL, "NAME" "PUBLIC"."EMAIL", "NAME2" "PUBLIC"."GMAIL" );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" "PUBLIC"."STRING", "B" "PUBLIC"."STRING1", "C" "PUBLIC"."STRING2" );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 14
 
@@ -2277,55 +2269,6 @@ drop table a, a;
 > ok
 
 drop table b, c;
-> ok
-
-CREATE SCHEMA CONST;
-> ok
-
-CREATE CONSTANT IF NOT EXISTS ONE VALUE 1;
-> ok
-
-COMMENT ON CONSTANT ONE IS 'Eins';
-> ok
-
-CREATE CONSTANT IF NOT EXISTS ONE VALUE 1;
-> ok
-
-CREATE CONSTANT CONST.ONE VALUE 1;
-> ok
-
-SELECT CONSTANT_SCHEMA, CONSTANT_NAME, DATA_TYPE, REMARKS, SQL FROM INFORMATION_SCHEMA.CONSTANTS;
-> CONSTANT_SCHEMA CONSTANT_NAME DATA_TYPE REMARKS SQL
-> --------------- ------------- --------- ------- ---
-> CONST           ONE           4                 1
-> PUBLIC          ONE           4         Eins    1
-> rows: 2
-
-SELECT ONE, CONST.ONE FROM DUAL;
-> 1 1
-> - -
-> 1 1
-> rows: 1
-
-COMMENT ON CONSTANT ONE IS NULL;
-> ok
-
-DROP SCHEMA CONST CASCADE;
-> ok
-
-SELECT CONSTANT_SCHEMA, CONSTANT_NAME, DATA_TYPE, REMARKS, SQL FROM INFORMATION_SCHEMA.CONSTANTS;
-> CONSTANT_SCHEMA CONSTANT_NAME DATA_TYPE REMARKS SQL
-> --------------- ------------- --------- ------- ---
-> PUBLIC          ONE           4                 1
-> rows: 1
-
-DROP CONSTANT ONE;
-> ok
-
-DROP CONSTANT IF EXISTS ONE;
-> ok
-
-DROP CONSTANT IF EXISTS ONE;
 > ok
 
 CREATE TABLE A (ID_A int primary key);
@@ -2634,7 +2577,7 @@ select * from test t1 where id in(select id from test t2 where t1.id=t2.id);
 > rows: 2
 
 explain select * from test t1 where id in(id, id+1);
->> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" IN("ID", ("ID" + 1))
+>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" IN("ID", "ID" + 1)
 
 select * from test t1 where id in(id, id+1);
 > ID NAME
@@ -2749,18 +2692,18 @@ alter table test add constraint nu unique(parent);
 alter table test add constraint fk foreign key(parent) references(id);
 > ok
 
-select TABLE_NAME, NON_UNIQUE, INDEX_NAME, ORDINAL_POSITION, COLUMN_NAME, CARDINALITY, PRIMARY_KEY from INFORMATION_SCHEMA.INDEXES;
-> TABLE_NAME NON_UNIQUE INDEX_NAME    ORDINAL_POSITION COLUMN_NAME CARDINALITY PRIMARY_KEY
-> ---------- ---------- ------------- ---------------- ----------- ----------- -----------
-> TEST       FALSE      NU_INDEX_2    1                PARENT      0           FALSE
-> TEST       FALSE      PRIMARY_KEY_2 1                ID          0           TRUE
-> TEST       TRUE       NI            1                PARENT      0           FALSE
+select TABLE_NAME, INDEX_NAME, ORDINAL_POSITION, COLUMN_NAME, INDEX_TYPE_NAME from INFORMATION_SCHEMA.INDEXES;
+> TABLE_NAME INDEX_NAME    ORDINAL_POSITION COLUMN_NAME INDEX_TYPE_NAME
+> ---------- ------------- ---------------- ----------- ---------------
+> TEST       NI            1                PARENT      INDEX
+> TEST       NU_INDEX_2    1                PARENT      UNIQUE INDEX
+> TEST       PRIMARY_KEY_2 1                ID          PRIMARY KEY
 > rows: 3
 
 select SEQUENCE_NAME, CURRENT_VALUE, INCREMENT, IS_GENERATED, REMARKS from INFORMATION_SCHEMA.SEQUENCES;
 > SEQUENCE_NAME CURRENT_VALUE INCREMENT IS_GENERATED REMARKS
 > ------------- ------------- --------- ------------ -------
-> TEST_SEQ      0             1         FALSE
+> TEST_SEQ      0             1         FALSE        null
 > rows: 1
 
 drop table test;
@@ -3772,12 +3715,12 @@ update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id
 > update count: 2
 
 explain update test set (id, name)=(id+1, name || 'Hi');
-#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "ID" = ("ID" + 1), "NAME" = ("NAME" || 'Hi')
-#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET "ID" = ("ID" + 1), "NAME" = ("NAME" || 'Hi')
+#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "ID" = "ID" + 1, "NAME" = "NAME" || 'Hi'
+#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET "ID" = "ID" + 1, "NAME" = "NAME" || 'Hi'
 
 explain update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id=t1.id);
-#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "ID" = ((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID")[1]), "NAME" = ((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID")[2])
-#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET "ID" = ((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID")[1]), "NAME" = ((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID")[2])
+#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET ("ID", "NAME") = (SELECT "ID" + 1, "NAME" || 'Ho' FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID")
+#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET ("ID", "NAME") = (SELECT "ID" + 1, "NAME" || 'Ho' FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID")
 
 select * from test;
 > ID NAME
@@ -4098,13 +4041,13 @@ SELECT DISTINCT TABLE_SCHEMA, TABLE_CATALOG FROM INFORMATION_SCHEMA.TABLES ORDER
 > rows (ordered): 1
 
 SELECT * FROM INFORMATION_SCHEMA.SCHEMATA;
-> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_NAME DEFAULT_COLLATION_NAME IS_DEFAULT REMARKS ID
-> ------------ ------------------ ------------ -------------------------- ---------------------- ---------- ------- --
-> SCRIPT       INFORMATION_SCHEMA SA           Unicode                    OFF                    FALSE              -1
-> SCRIPT       PUBLIC             SA           Unicode                    OFF                    TRUE               0
+> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_CATALOG DEFAULT_CHARACTER_SET_SCHEMA DEFAULT_CHARACTER_SET_NAME SQL_PATH DEFAULT_COLLATION_NAME REMARKS ID
+> ------------ ------------------ ------------ ----------------------------- ---------------------------- -------------------------- -------- ---------------------- ------- --
+> SCRIPT       INFORMATION_SCHEMA SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null    -1
+> SCRIPT       PUBLIC             SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null    0
 > rows: 2
 
-SELECT * FROM INFORMATION_SCHEMA.CATALOGS;
+SELECT * FROM INFORMATION_SCHEMA.INFORMATION_SCHEMA_CATALOG_NAME;
 > CATALOG_NAME
 > ------------
 > SCRIPT
@@ -4118,10 +4061,10 @@ SELECT INFORMATION_SCHEMA.SCHEMATA.SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA;
 > rows: 2
 
 SELECT INFORMATION_SCHEMA.SCHEMATA.* FROM INFORMATION_SCHEMA.SCHEMATA;
-> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_NAME DEFAULT_COLLATION_NAME IS_DEFAULT REMARKS ID
-> ------------ ------------------ ------------ -------------------------- ---------------------- ---------- ------- --
-> SCRIPT       INFORMATION_SCHEMA SA           Unicode                    OFF                    FALSE              -1
-> SCRIPT       PUBLIC             SA           Unicode                    OFF                    TRUE               0
+> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_CATALOG DEFAULT_CHARACTER_SET_SCHEMA DEFAULT_CHARACTER_SET_NAME SQL_PATH DEFAULT_COLLATION_NAME REMARKS ID
+> ------------ ------------------ ------------ ----------------------------- ---------------------------- -------------------------- -------- ---------------------- ------- --
+> SCRIPT       INFORMATION_SCHEMA SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null    -1
+> SCRIPT       PUBLIC             SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null    0
 > rows: 2
 
 CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA;
@@ -4587,11 +4530,11 @@ SELECT GRANTEE, GRANTEETYPE, GRANTEDROLE, RIGHTS, TABLE_SCHEMA, TABLE_NAME FROM 
 > rows: 3
 
 SELECT * FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES;
-> GRANTOR GRANTEE   TABLE_CATALOG TABLE_SCHEMA TABLE_NAME PRIVILEGE_TYPE IS_GRANTABLE
-> ------- --------- ------------- ------------ ---------- -------------- ------------
-> null    TEST_ROLE SCRIPT        PUBLIC       TEST       UPDATE         NO
-> null    TEST_USER SCRIPT        PUBLIC       TEST       INSERT         NO
-> null    TEST_USER SCRIPT        PUBLIC       TEST       SELECT         NO
+> GRANTOR GRANTEE   TABLE_CATALOG TABLE_SCHEMA TABLE_NAME PRIVILEGE_TYPE IS_GRANTABLE WITH_HIERARCHY
+> ------- --------- ------------- ------------ ---------- -------------- ------------ --------------
+> null    TEST_ROLE SCRIPT        PUBLIC       TEST       UPDATE         NO           NO
+> null    TEST_USER SCRIPT        PUBLIC       TEST       INSERT         NO           NO
+> null    TEST_USER SCRIPT        PUBLIC       TEST       SELECT         NO           NO
 > rows: 3
 
 SELECT * FROM INFORMATION_SCHEMA.COLUMN_PRIVILEGES;
@@ -4616,10 +4559,10 @@ SELECT GRANTEE, GRANTEETYPE, GRANTEDROLE, RIGHTS, TABLE_NAME FROM INFORMATION_SC
 > rows: 2
 
 SELECT * FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES;
-> GRANTOR GRANTEE   TABLE_CATALOG TABLE_SCHEMA TABLE_NAME PRIVILEGE_TYPE IS_GRANTABLE
-> ------- --------- ------------- ------------ ---------- -------------- ------------
-> null    TEST_ROLE SCRIPT        PUBLIC       TEST       UPDATE         NO
-> null    TEST_USER SCRIPT        PUBLIC       TEST       SELECT         NO
+> GRANTOR GRANTEE   TABLE_CATALOG TABLE_SCHEMA TABLE_NAME PRIVILEGE_TYPE IS_GRANTABLE WITH_HIERARCHY
+> ------- --------- ------------- ------------ ---------- -------------- ------------ --------------
+> null    TEST_ROLE SCRIPT        PUBLIC       TEST       UPDATE         NO           NO
+> null    TEST_USER SCRIPT        PUBLIC       TEST       SELECT         NO           NO
 > rows: 2
 
 DROP USER TEST_USER;
@@ -4634,7 +4577,7 @@ DROP ROLE TEST_ROLE;
 SELECT * FROM INFORMATION_SCHEMA.ROLES;
 > NAME   REMARKS ID
 > ------ ------- --
-> PUBLIC         0
+> PUBLIC null    0
 > rows: 1
 
 SELECT * FROM INFORMATION_SCHEMA.RIGHTS;
@@ -4661,10 +4604,10 @@ EXPLAIN INSERT INTO TEST VALUES(1, 'Test'), (2, 'World');
 >> INSERT INTO "PUBLIC"."TEST"("ID", "NAME") VALUES (1, 'Test'), (2, 'World')
 
 EXPLAIN INSERT INTO TEST SELECT DISTINCT ID+1, NAME FROM TEST;
->> INSERT INTO "PUBLIC"."TEST"("ID", "NAME") SELECT DISTINCT ("ID" + 1), "NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+>> INSERT INTO "PUBLIC"."TEST"("ID", "NAME") SELECT DISTINCT "ID" + 1, "NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
 
 EXPLAIN SELECT DISTINCT ID + 1, NAME FROM TEST;
->> SELECT DISTINCT ("ID" + 1), "NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+>> SELECT DISTINCT "ID" + 1, "NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
 
 EXPLAIN SELECT * FROM TEST WHERE 1=0;
 >> SELECT "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan: FALSE */ WHERE FALSE
@@ -4682,8 +4625,8 @@ EXPLAIN SELECT * FROM TEST WHERE ID=1 GROUP BY NAME, ID;
 >> SELECT "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE "ID" = 1 GROUP BY "NAME", "ID"
 
 EXPLAIN PLAN FOR UPDATE TEST SET NAME='Hello', ID=1 WHERE NAME LIKE 'T%' ESCAPE 'x';
-#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "NAME" = 'Hello', "ID" = 1 WHERE "NAME" LIKE 'T%' ESCAPE 'x'
-#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET "NAME" = 'Hello', "ID" = 1 WHERE "NAME" LIKE 'T%' ESCAPE 'x'
+#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "ID" = 1, "NAME" = 'Hello' WHERE "NAME" LIKE 'T%' ESCAPE 'x'
+#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET "ID" = 1, "NAME" = 'Hello' WHERE "NAME" LIKE 'T%' ESCAPE 'x'
 
 EXPLAIN PLAN FOR DELETE FROM TEST;
 #+mvStore#>> DELETE FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
@@ -4693,13 +4636,13 @@ EXPLAIN PLAN FOR SELECT NAME, COUNT(*) FROM TEST GROUP BY NAME HAVING COUNT(*) >
 >> SELECT "NAME", COUNT(*) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ GROUP BY "NAME" HAVING COUNT(*) > 1
 
 EXPLAIN PLAN FOR SELECT * FROM test t1 inner join test t2 on t1.id=t2.id and t2.name is not null where t1.id=1;
->> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ INNER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON 1=1 WHERE ("T1"."ID" = 1) AND ("T2"."NAME" IS NOT NULL) AND ("T1"."ID" = "T2"."ID")
+>> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ INNER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON 1=1 WHERE ("T1"."ID" = 1) AND "T2"."NAME" IS NOT NULL AND ("T1"."ID" = "T2"."ID")
 
 EXPLAIN PLAN FOR SELECT * FROM test t1 left outer join test t2 on t1.id=t2.id and t2.name is not null where t1.id=1;
->> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ LEFT OUTER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON ("T2"."NAME" IS NOT NULL) AND ("T1"."ID" = "T2"."ID") WHERE "T1"."ID" = 1
+>> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ LEFT OUTER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON "T2"."NAME" IS NOT NULL AND ("T1"."ID" = "T2"."ID") WHERE "T1"."ID" = 1
 
 EXPLAIN PLAN FOR SELECT * FROM test t1 left outer join test t2 on t1.id=t2.id and t2.name is null where t1.id=1;
->> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ LEFT OUTER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON ("T2"."NAME" IS NULL) AND ("T1"."ID" = "T2"."ID") WHERE "T1"."ID" = 1
+>> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ LEFT OUTER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON "T2"."NAME" IS NULL AND ("T1"."ID" = "T2"."ID") WHERE "T1"."ID" = 1
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE EXISTS(SELECT * FROM TEST T2 WHERE T1.ID-1 = T2.ID);
 >> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE EXISTS( SELECT "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = (T1.ID - 1) */ WHERE ("T1"."ID" - 1) = "T2"."ID")
@@ -4712,12 +4655,12 @@ EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(SELECT ID FROM TEST);
 #-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID NOT IN(SELECT ID FROM TEST);
-#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE NOT ("ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */))
-#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE NOT ("ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */))
+#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" NOT IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */)
+#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" NOT IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
 
 EXPLAIN PLAN FOR SELECT CAST(ID AS VARCHAR(255)) FROM TEST;
-#+mvStore#>> SELECT CAST("ID" AS VARCHAR(255)) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
-#-mvStore#>> SELECT CAST("ID" AS VARCHAR(255)) FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */
+#+mvStore#>> SELECT CAST("ID" AS CHARACTER VARYING(255)) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+#-mvStore#>> SELECT CAST("ID" AS CHARACTER VARYING(255)) FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */
 
 EXPLAIN PLAN FOR SELECT LEFT(NAME, 2) FROM TEST;
 >> SELECT LEFT("NAME", 2) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
@@ -5042,7 +4985,7 @@ SELECT * FROM TEST_ALL WHERE AID>=2;
 CREATE VIEW TEST_A_SUB AS SELECT * FROM TEST_A WHERE ID < 2;
 > ok
 
-SELECT TABLE_NAME, SQL FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='VIEW';
+SELECT TABLE_NAME, SQL FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_TYPE = 'VIEW';
 > TABLE_NAME SQL
 > ---------- -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > TEST_ALL   CREATE FORCE VIEW "PUBLIC"."TEST_ALL"("AID", "A_NAME", "BID", "B_NAME") AS SELECT "A"."ID" AS "AID", "A"."NAME" AS "A_NAME", "B"."ID" AS "BID", "B"."NAME" AS "B_NAME" FROM "PUBLIC"."TEST_A" "A" INNER JOIN "PUBLIC"."TEST_B" "B" ON 1=1 WHERE "A"."ID" = "B"."ID"
@@ -5971,8 +5914,8 @@ INSERT INTO TEST VALUES(?, ?, ?);
 > update count: 9
 
 SELECT IFNULL(NAME, '') || ': ' || GROUP_CONCAT("VALUE" ORDER BY NAME, "VALUE" DESC SEPARATOR ', ') FROM TEST GROUP BY NAME ORDER BY 1;
-> (COALESCE(NAME, '') || ': ') || LISTAGG("VALUE", ', ') WITHIN GROUP (ORDER BY NAME, "VALUE" DESC)
-> -------------------------------------------------------------------------------------------------
+> COALESCE(NAME, '') || ': ' || LISTAGG("VALUE", ', ') WITHIN GROUP (ORDER BY NAME, "VALUE" DESC)
+> -----------------------------------------------------------------------------------------------
 > : 3.10, -10.00
 > Apples: 1.50, 1.20, 1.10
 > Bananas: 2.50
@@ -6289,12 +6232,21 @@ CREATE TABLE PARENT(A INT, B INT, PRIMARY KEY(A, B));
 CREATE TABLE CHILD(ID INT PRIMARY KEY, PA INT, PB INT, CONSTRAINT AB FOREIGN KEY(PA, PB) REFERENCES PARENT(A, B));
 > ok
 
-SELECT * FROM INFORMATION_SCHEMA.CROSS_REFERENCES;
-> PKTABLE_CATALOG PKTABLE_SCHEMA PKTABLE_NAME PKCOLUMN_NAME FKTABLE_CATALOG FKTABLE_SCHEMA FKTABLE_NAME FKCOLUMN_NAME ORDINAL_POSITION UPDATE_RULE DELETE_RULE FK_NAME PK_NAME      DEFERRABILITY
-> --------------- -------------- ------------ ------------- --------------- -------------- ------------ ------------- ---------------- ----------- ----------- ------- ------------ -------------
-> SCRIPT          PUBLIC         PARENT       A             SCRIPT          PUBLIC         CHILD        PA            1                1           1           AB      CONSTRAINT_8 7
-> SCRIPT          PUBLIC         PARENT       B             SCRIPT          PUBLIC         CHILD        PB            2                1           1           AB      CONSTRAINT_8 7
-> rows: 2
+TABLE INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME UNIQUE_CONSTRAINT_CATALOG UNIQUE_CONSTRAINT_SCHEMA UNIQUE_CONSTRAINT_NAME MATCH_OPTION UPDATE_RULE DELETE_RULE
+> ------------------ ----------------- --------------- ------------------------- ------------------------ ---------------------- ------------ ----------- -----------
+> SCRIPT             PUBLIC            AB              SCRIPT                    PUBLIC                   CONSTRAINT_8           NONE         RESTRICT    RESTRICT
+> rows: 1
+
+TABLE INFORMATION_SCHEMA.KEY_COLUMN_USAGE;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION POSITION_IN_UNIQUE_CONSTRAINT
+> ------------------ ----------------- --------------- ------------- ------------ ---------- ----------- ---------------- -----------------------------
+> SCRIPT             PUBLIC            AB              SCRIPT        PUBLIC       CHILD      PA          1                1
+> SCRIPT             PUBLIC            AB              SCRIPT        PUBLIC       CHILD      PB          2                2
+> SCRIPT             PUBLIC            CONSTRAINT_3    SCRIPT        PUBLIC       CHILD      ID          1                null
+> SCRIPT             PUBLIC            CONSTRAINT_8    SCRIPT        PUBLIC       PARENT     A           1                null
+> SCRIPT             PUBLIC            CONSTRAINT_8    SCRIPT        PUBLIC       PARENT     B           2                null
+> rows: 5
 
 DROP TABLE PARENT, CHILD;
 > ok

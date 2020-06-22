@@ -32,13 +32,18 @@ public final class ValueBigint extends Value {
     public static final BigInteger MAX_BI = BigInteger.valueOf(Long.MAX_VALUE);
 
     /**
-     * The precision in digits.
+     * The precision in bits.
      */
-    public static final int PRECISION = 19;
+    static final int PRECISION = 64;
+
+    /**
+     * The approximate precision in decimal digits.
+     */
+    public static final int DECIMAL_PRECISION = 19;
 
     /**
      * The maximum display size of a BIGINT.
-     * Example: 9223372036854775808
+     * Example: -9223372036854775808
      */
     public static final int DISPLAY_SIZE = 20;
 
@@ -180,11 +185,6 @@ public final class ValueBigint extends Value {
     @Override
     public int hashCode() {
         return (int) (value ^ (value >> 32));
-    }
-
-    @Override
-    public Object getObject() {
-        return value;
     }
 
     /**

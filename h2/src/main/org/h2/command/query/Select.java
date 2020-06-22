@@ -5,6 +5,10 @@
  */
 package org.h2.command.query;
 
+import static org.h2.expression.Expression.WITHOUT_PARENTHESES;
+import static org.h2.util.HasSQL.ADD_PLAN_INFORMATION;
+import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -14,7 +18,6 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
-import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode.ExpressionNames;
@@ -31,7 +34,7 @@ import org.h2.expression.analysis.Window;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
 import org.h2.expression.condition.ConditionLocalAndGlobal;
-import org.h2.expression.function.Function;
+import org.h2.expression.function.CoalesceFunction;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -51,7 +54,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
-import org.h2.util.HasSQL;
+import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
@@ -935,12 +938,12 @@ public class Select extends Query {
                                 || DataType.hasTotalOrdering(left.getType().getValueType())
                                 && DataType.hasTotalOrdering(right.getType().getValueType())) {
                             e = new ExpressionColumn(database, replacementSchema, replacementAlias,
-                                    replacementFilter.getColumnName(right), false);
+                                    replacementFilter.getColumnName(right));
                         } else {
-                            e = new Alias(Function.getFunctionWithArgs(Function.COALESCE,
-                                    new ExpressionColumn(database, schema, alias, filter.getColumnName(left), false),
+                            e = new Alias(new CoalesceFunction(CoalesceFunction.COALESCE,
+                                    new ExpressionColumn(database, schema, alias, filter.getColumnName(left)),
                                     new ExpressionColumn(database, replacementSchema, replacementAlias,
-                                            replacementFilter.getColumnName(right), false)), //
+                                            replacementFilter.getColumnName(right))), //
                                     left.getName(), true);
                         }
                         expressions.add(index++, e);
@@ -961,8 +964,7 @@ public class Select extends Query {
     private int addExpandedColumn(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except,
             String schema, String alias, Column c) {
         if ((except == null || except.remove(c) == null) && c.getVisible()) {
-            ExpressionColumn ec = new ExpressionColumn(
-                    session.getDatabase(), schema, alias, filter.getColumnName(c), false);
+            ExpressionColumn ec = new ExpressionColumn(session.getDatabase(), schema, alias, filter.getColumnName(c));
             expressions.add(index++, ec);
         }
         return index;
@@ -982,8 +984,7 @@ public class Select extends Query {
             for (int i = 0; i < visibleColumnCount; i++) {
                 Expression expr = expressions.get(i);
                 expr = expr.getNonAliasExpression();
-                String sql = expr.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
-                expressionSQL.add(sql);
+                expressionSQL.add(expr.getSQL(DEFAULT_SQL_FLAGS, WITHOUT_PARENTHESES));
             }
         } else {
             expressionSQL = null;
@@ -1037,13 +1038,13 @@ public class Select extends Query {
             if (fullExpSize > expSize) {
                 expressionSQL.ensureCapacity(fullExpSize);
                 for (int i = expSize; i < fullExpSize; i++) {
-                    expressionSQL.add(expressions.get(i).getSQL(HasSQL.DEFAULT_SQL_FLAGS));
+                    expressionSQL.add(expressions.get(i).getSQL(DEFAULT_SQL_FLAGS, WITHOUT_PARENTHESES));
                 }
             }
             groupIndex = new int[size];
             for (int i = 0; i < size; i++) {
                 Expression expr = group.get(i);
-                String sql = expr.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
+                String sql = expr.getSQL(DEFAULT_SQL_FLAGS, WITHOUT_PARENTHESES);
                 int found = -1;
                 for (int j = 0; j < expSize; j++) {
                     String s2 = expressionSQL.get(j);
@@ -1378,7 +1379,7 @@ public class Select extends Query {
         StringBuilder builder = new StringBuilder();
         for (TableFilter f : topFilters) {
             Table t = f.getTable();
-            TableView tableView = t.isView() ? (TableView) t : null;
+            TableView tableView = t instanceof TableView ? (TableView) t : null;
             if (tableView != null && tableView.isRecursive() && tableView.isTableExpression()) {
 
                 if (!tableView.isTemporary()) {
@@ -1388,7 +1389,7 @@ public class Select extends Query {
                 } else {
                     builder.append("WITH RECURSIVE ");
                     t.getSchema().getSQL(builder, sqlFlags).append('.');
-                    Parser.quoteIdentifier(builder, t.getName(), sqlFlags).append('(');
+                    ParserUtil.quoteIdentifier(builder, t.getName(), sqlFlags).append('(');
                     Column.writeColumns(builder, t.getColumns(), sqlFlags);
                     builder.append(") AS ");
                     t.getSQL(builder, sqlFlags).append('\n');
@@ -1403,9 +1404,7 @@ public class Select extends Query {
             if (isAnyDistinct()) {
                 builder.append(" DISTINCT");
                 if (distinctExpressions != null) {
-                    builder.append(" ON(");
-                    Expression.writeExpressions(builder, distinctExpressions, sqlFlags);
-                    builder.append(')');
+                    Expression.writeExpressions(builder.append(" ON("), distinctExpressions, sqlFlags).append(')');
                 }
             }
             for (int i = 0; i < visibleColumnCount; i++) {
@@ -1413,7 +1412,7 @@ public class Select extends Query {
                     builder.append(',');
                 }
                 builder.append('\n');
-                StringUtils.indent(builder, exprList[i].getSQL(sqlFlags), 4, false);
+                StringUtils.indent(builder, exprList[i].getSQL(sqlFlags, WITHOUT_PARENTHESES), 4, false);
             }
             TableFilter filter = topTableFilter;
             if (filter == null) {
@@ -1463,7 +1462,7 @@ public class Select extends Query {
         if (isForUpdate) {
             builder.append("\nFOR UPDATE");
         }
-        if ((sqlFlags & HasSQL.ADD_PLAN_INFORMATION) != 0) {
+        if ((sqlFlags & ADD_PLAN_INFORMATION) != 0) {
             if (isQuickAggregateQuery) {
                 builder.append("\n/* direct lookup */");
             }
@@ -1498,10 +1497,10 @@ public class Select extends Query {
             int conditionIndex) {
         if (condition != null) {
             builder.append(sql);
-            condition.getUnenclosedSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
+            condition.getUnenclosedSQL(builder, DEFAULT_SQL_FLAGS);
         } else if (conditionIndex >= 0) {
             builder.append(sql);
-            exprList[conditionIndex].getUnenclosedSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
+            exprList[conditionIndex].getUnenclosedSQL(builder, DEFAULT_SQL_FLAGS);
         }
     }
 
@@ -1616,11 +1615,11 @@ public class Select extends Query {
         Expression col = expressions.get(columnId);
         col = col.getNonAliasExpression();
         if (col.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR)) {
-            comp = new Comparison(comparisonType, col, param);
+            comp = new Comparison(comparisonType, col, param, false);
         } else {
             // this condition will always evaluate to true, but need to
             // add the parameter, so it can be set later
-            comp = new Comparison(Comparison.EQUAL_NULL_SAFE, param, param);
+            comp = new Comparison(Comparison.EQUAL_NULL_SAFE, param, param, false);
         }
         comp = comp.optimize(session);
         if (isWindowQuery) {
@@ -1735,7 +1734,7 @@ public class Select extends Query {
 
     @Override
     public boolean allowGlobalConditions() {
-        return offsetExpr == null && (limitExpr == null && distinctExpressions == null || sort == null);
+        return offsetExpr == null && fetchExpr == null && distinctExpressions == null;
     }
 
     public SortOrder getSortOrder() {
@@ -1767,7 +1766,7 @@ public class Select extends Query {
 
     @Override
     public Expression getIfSingleRow() {
-        if (offsetExpr != null || limitExpr != null || condition != null || isGroupQuery || isWindowQuery
+        if (offsetExpr != null || fetchExpr != null || condition != null || isGroupQuery || isWindowQuery
                 || !isNoFromClause()) {
             return null;
         }
@@ -1876,7 +1875,6 @@ public class Select extends Query {
                 setGroupData(SelectGroups.getInstance(getSession(), Select.this.expressions, isGroupQuery,
                         groupIndex));
             } else {
-                // TODO is this branch possible?
                 updateAgg(columnCount, DataAnalysisOperation.STAGE_RESET);
                 groupData.resetLazy();
             }

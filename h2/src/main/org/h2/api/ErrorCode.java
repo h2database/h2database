@@ -212,6 +212,17 @@ public class ErrorCode {
      */
     public static final int ENUM_DUPLICATE = 22033;
 
+    /**
+     * The error with code <code>22034</code> is thrown when an
+     * attempt is made to read non-existing element of an array.
+     *
+     * Example:
+     * <pre>
+     * VALUES ARRAY[1, 2][3]
+     * </pre>
+     */
+    public static final int ARRAY_ELEMENT_ERROR_2 = 22034;
+
     // 23: constraint violation
 
     /**
@@ -366,6 +377,30 @@ public class ErrorCode {
      * </pre>
      */
     public static final int TABLE_OR_VIEW_NOT_FOUND_1 = 42102;
+
+    /**
+     * The error with code <code>42103</code> is thrown when
+     * trying to query, modify or drop a table or view that does not exists
+     * in this schema and database but similar names were found. A common cause
+     * is that the names are written in different case.
+     * Example:
+     * <pre>
+     * SELECT * FROM ABC;
+     * </pre>
+     */
+    public static final int TABLE_OR_VIEW_NOT_FOUND_WITH_CANDIDATES_2 = 42103;
+
+    /**
+     * The error with code <code>42104</code> is thrown when
+     * trying to query, modify or drop a table or view that does not exists
+     * in this schema and database but it is empty anyway. A common cause is
+     * that the wrong database was opened.
+     * Example:
+     * <pre>
+     * SELECT * FROM ABC;
+     * </pre>
+     */
+    public static final int TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1 = 42104;
 
     /**
      * The error with code <code>42111</code> is thrown when
@@ -2199,6 +2234,8 @@ public class ErrorCode {
         case SYNTAX_ERROR_2:
         case TABLE_OR_VIEW_ALREADY_EXISTS_1:
         case TABLE_OR_VIEW_NOT_FOUND_1:
+        case TABLE_OR_VIEW_NOT_FOUND_WITH_CANDIDATES_2:
+        case TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1:
         case VALUE_TOO_LONG_2:
             return true;
         }
@@ -2226,9 +2263,14 @@ public class ErrorCode {
         // 21: cardinality violation
         case COLUMN_COUNT_DOES_NOT_MATCH: return "21S02";
 
+        // 22: data exception
+        case ARRAY_ELEMENT_ERROR_2: return "2202E";
+
         // 42: syntax error or access rule violation
         case TABLE_OR_VIEW_ALREADY_EXISTS_1: return "42S01";
         case TABLE_OR_VIEW_NOT_FOUND_1: return "42S02";
+        case TABLE_OR_VIEW_NOT_FOUND_WITH_CANDIDATES_2: return "42S03";
+        case TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1: return "42S04";
         case INDEX_ALREADY_EXISTS_1: return "42S11";
         case INDEX_NOT_FOUND_1: return "42S12";
         case DUPLICATE_COLUMN_NAME_1: return "42S21";

@@ -9,6 +9,9 @@ import java.nio.charset.Charset;
 import java.text.CollationKey;
 import java.text.Collator;
 import java.util.Comparator;
+import java.util.Locale;
+
+import org.h2.util.Bits;
 
 /**
  * The charset collator sorts strings according to the order in the given charset.
@@ -18,16 +21,7 @@ public class CharsetCollator extends Collator {
     /**
      * The comparator used to compare byte arrays.
      */
-    static final Comparator<byte[]> COMPARATOR = (b1, b2) -> {
-        int minLength = Math.min(b1.length, b2.length);
-        for (int index = 0; index < minLength; index++) {
-            int result = b1[index] - b2[index];
-            if (result != 0) {
-                return result;
-            }
-        }
-        return b1.length - b2.length;
-    };
+    static final Comparator<byte[]> COMPARATOR = Bits::compareNotNullSigned;
 
     private final Charset charset;
 
@@ -51,11 +45,15 @@ public class CharsetCollator extends Collator {
      * @return the bytes
      */
     byte[] toBytes(String source) {
+        if (getStrength() <= Collator.SECONDARY) {
+            // TODO perform case-insensitive comparison properly
+            source = source.toUpperCase(Locale.ROOT);
+        }
         return source.getBytes(charset);
     }
 
     @Override
-    public CollationKey getCollationKey(final String source) {
+    public CollationKey getCollationKey(String source) {
         return new CharsetCollationKey(source);
     }
 
@@ -66,18 +64,21 @@ public class CharsetCollator extends Collator {
 
     private class CharsetCollationKey extends CollationKey {
 
+        private final byte[] bytes;
+
         CharsetCollationKey(String source) {
             super(source);
+            bytes = toBytes(source);
         }
 
         @Override
         public int compareTo(CollationKey target) {
-            return COMPARATOR.compare(toByteArray(), toBytes(target.getSourceString()));
+            return COMPARATOR.compare(bytes, target.toByteArray());
         }
 
         @Override
         public byte[] toByteArray() {
-            return toBytes(getSourceString());
+            return bytes;
         }
 
     }

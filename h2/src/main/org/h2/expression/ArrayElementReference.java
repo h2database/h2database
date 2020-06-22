@@ -5,12 +5,12 @@
  */
 package org.h2.expression;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueCollectionBase;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
 
 /**
@@ -23,9 +23,9 @@ public class ArrayElementReference extends Operation2 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        left.getSQL(builder.append('('), sqlFlags).append('[');
-        return right.getSQL(builder, sqlFlags).append("])");
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        left.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append('[');
+        return right.getUnenclosedSQL(builder, sqlFlags).append(']');
     }
 
     @Override
@@ -33,11 +33,13 @@ public class ArrayElementReference extends Operation2 {
         Value l = left.getValue(session);
         Value r = right.getValue(session);
         if (l != ValueNull.INSTANCE && r != ValueNull.INSTANCE) {
-            Value[] list = ((ValueCollectionBase) l).getList();
+            Value[] list = ((ValueArray) l).getList();
             int element = r.getInt();
-            if (element >= 1 && element <= list.length) {
+            int cardinality = list.length;
+            if (element >= 1 && element <= cardinality) {
                 return list[element - 1];
             }
+            throw DbException.get(ErrorCode.ARRAY_ELEMENT_ERROR_2, Integer.toString(element), "1.." + cardinality);
         }
         return ValueNull.INSTANCE;
     }
@@ -51,19 +53,13 @@ public class ArrayElementReference extends Operation2 {
         case Value.NULL:
             return ValueExpression.NULL;
         case Value.ARRAY:
-            type = ((ExtTypeInfoArray) leftType.getExtTypeInfo()).getComponentType();
+            type = (TypeInfo) leftType.getExtTypeInfo();
             if (left.isConstant() && right.isConstant()) {
                 return TypedValueExpression.get(getValue(session), type);
             }
             break;
-        case Value.ROW:
-            type = TypeInfo.TYPE_NULL;
-            if (left.isConstant() && right.isConstant()) {
-                return ValueExpression.get(getValue(session));
-            }
-            break;
         default:
-            throw DbException.getInvalidValueException("Array", leftType.getSQL(new StringBuilder()));
+            throw DbException.getInvalidValueException("Array", leftType.getTraceSQL());
         }
         return this;
     }

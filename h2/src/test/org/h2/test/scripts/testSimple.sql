@@ -98,13 +98,13 @@ select is_nullable from information_schema.columns c where c.table_name = 'TEST'
 alter table test alter column id set data type varchar;
 > ok
 
-select type_name from information_schema.columns c where c.table_name = 'TEST' and c.column_name = 'ID';
->> VARCHAR
+select data_type from information_schema.columns c where c.table_name = 'TEST' and c.column_name = 'ID';
+>> CHARACTER VARYING
 
 alter table test alter column id type int;
 > ok
 
-select type_name from information_schema.columns c where c.table_name = 'TEST' and c.column_name = 'ID';
+select data_type from information_schema.columns c where c.table_name = 'TEST' and c.column_name = 'ID';
 >> INTEGER
 
 alter table test alter column id drop default;
@@ -859,12 +859,12 @@ create alias parse_long for "java.lang.Long.parseLong(java.lang.String)";
 comment on alias parse_long is 'Parse a long with base';
 > ok
 
-select remarks from information_schema.function_aliases where alias_name = 'PARSE_LONG';
+select remarks from information_schema.routines where routine_name = 'PARSE_LONG';
 >> Parse a long with base
 
 @reconnect
 
-select remarks from information_schema.function_aliases where alias_name = 'PARSE_LONG';
+select remarks from information_schema.routines where routine_name = 'PARSE_LONG';
 >> Parse a long with base
 
 drop alias parse_long;
@@ -952,23 +952,6 @@ drop schema tests cascade;
 > ok
 
 @reconnect
-
-create constant abc value 1;
-> ok
-
-comment on constant abc is 'One';
-> ok
-
-select remarks from information_schema.constants where constant_name = 'ABC';
->> One
-
-@reconnect
-
-select remarks from information_schema.constants where constant_name = 'ABC';
->> One
-
-drop constant abc;
-> ok
 
 drop table test;
 > ok

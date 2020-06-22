@@ -182,9 +182,7 @@ public class TableView extends Table {
                 if (type.getValueType() == Value.UNKNOWN) {
                     type = expr.getType();
                 }
-                Column col = new Column(name, type);
-                col.setTable(this, i);
-                list.add(col);
+                list.add(new Column(name, type, this, i));
             }
             cols = list.toArray(new Column[0]);
             createException = null;
@@ -662,7 +660,11 @@ public class TableView extends Table {
         if (exception == null) {
             return false;
         }
-        if (exception.getErrorCode() != ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1) {
+        int errorCode = exception.getErrorCode();
+        if (errorCode != ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1 &&
+                errorCode != ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1 &&
+                errorCode != ErrorCode.TABLE_OR_VIEW_NOT_FOUND_WITH_CANDIDATES_2
+        ) {
             return false;
         }
         return exception.getMessage().contains("\"" + this.getName() + "\"");

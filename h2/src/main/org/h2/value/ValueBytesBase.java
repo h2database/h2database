@@ -70,11 +70,6 @@ abstract class ValueBytesBase extends Value {
     }
 
     @Override
-    public Object getObject() {
-        return getBytes();
-    }
-
-    @Override
     public int getMemory() {
         return value.length + 24;
     }

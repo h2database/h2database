@@ -239,7 +239,7 @@ case sensitive and can contain spaces.
 
 Instead of a file name, a URL may be used.
 To read a stream from the classpath, use the prefix 'classpath:'.
-See the Pluggable File System section on the Advanced page.
+See the [Pluggable File System](https://h2database.com/html/advanced.html#file_system) section.
 
 The compression algorithm must match the one used when creating the script.
 Instead of a file, a URL may be used.
@@ -361,6 +361,34 @@ WITH cte1 AS (
 SELECT sum(FIRST_COLUMN) FROM cte2;
 "
 
+"Commands (DDL)","ALTER DOMAIN","
+ALTER DOMAIN @h2@ [ IF EXISTS ] [schemaName.]domainName
+{ SET DEFAULT expression }
+    | { DROP DEFAULT }
+    | @h2@ { SET ON UPDATE expression }
+    | @h2@ { DROP ON UPDATE }
+","
+Changes the default or on update expression of a domain.
+
+SET DEFAULT changes the default expression of a domain.
+
+DROP DEFAULT removes the default expression of a domain.
+Old expression is copied into domains and columns that use this domain and don't have an own default expression.
+
+SET ON UPDATE changes the expression that is set on update if value for this domain is not specified in update
+statement.
+
+DROP ON UPDATE removes the expression that is set on update of a column with this domain.
+Old expression is copied into domains and columns that use this domain and don't have an own on update expression.
+
+This command commits an open transaction in this connection.
+","
+ALTER DOMAIN D1 SET DEFAULT '';
+ALTER DOMAIN D1 DROP DEFAULT;
+ALTER DOMAIN D1 SET ON UPDATE CURRENT_TIMESTAMP;
+ALTER DOMAIN D1 DROP ON UPDATE;
+"
+
 "Commands (DDL)","ALTER DOMAIN ADD CONSTRAINT","
 ALTER DOMAIN @h2@ [ IF EXISTS ] [schemaName.]domainName
 ADD [ constraintNameDefinition ]
@@ -382,6 +410,15 @@ This command commits an open transaction in this connection.
 ALTER DOMAIN D DROP CONSTRAINT D_POSITIVE
 "
 
+"Commands (DDL)","ALTER DOMAIN RENAME","
+@h2@ ALTER DOMAIN [ IF EXISTS ] [schemaName.]domainName RENAME TO newName
+","
+Renames a domain.
+This command commits an open transaction in this connection.
+","
+ALTER DOMAIN TEST RENAME TO MY_TYPE
+"
+
 "Commands (DDL)","ALTER INDEX RENAME","
 @h2@ ALTER INDEX [ IF EXISTS ] [schemaName.]indexName RENAME TO newIndexName
 ","
@@ -401,7 +438,7 @@ ALTER SCHEMA TEST RENAME TO PRODUCTION
 "
 
 "Commands (DDL)","ALTER SEQUENCE","
-ALTER SEQUENCE @h2@ [ IF EXISTS ] [schemaName.]sequenceName sequenceOptions
+ALTER SEQUENCE @h2@ [ IF EXISTS ] [schemaName.]sequenceName sequenceOption [...]
 ","
 Changes the parameters of a sequence.
 This command does not commit the current transaction; however the new value is used by other
@@ -643,7 +680,7 @@ ANALYZE SAMPLE_SIZE 1000
     | SCHEMA | SEQUENCE | TRIGGER | USER | DOMAIN } [schemaName.]objectName } }
 @h2@ IS expression
 ","
-Sets the comment of a database object. Use NULL to remove the comment.
+Sets the comment of a database object. Use NULL or empty string to remove the comment.
 
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
@@ -652,7 +689,7 @@ COMMENT ON TABLE TEST IS 'Table used for testing'
 "
 
 "Commands (DDL)","CREATE AGGREGATE","
-@h2@ CREATE AGGREGATE [ IF NOT EXISTS ] aggregateName FOR className
+@h2@ CREATE AGGREGATE [ IF NOT EXISTS ] [schemaName.]aggregateName FOR className
 ","
 Creates a new user-defined aggregate function. The method name must be the full
 qualified class name. The class must implement the interface
@@ -729,7 +766,7 @@ CREATE DOMAIN @h2@ [ IF NOT EXISTS ] [schemaName.]domainName
 [ AS ] dataType
 [ DEFAULT expression ]
 @h2@ [ ON UPDATE expression ]
-@h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
+@h2@ [ COMMENT expression ]
 [ CHECK (condition) ] [...]
 ","
 Creates a new domain to define a set of permissible values.
@@ -830,15 +867,27 @@ CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 
 "Commands (DDL)","CREATE SEQUENCE","
 CREATE SEQUENCE @h2@ [ IF NOT EXISTS ] [schemaName.]sequenceName
-[ sequenceOptions ]
+[ { AS dataType | sequenceOption } [...] ]
 ","
 Creates a new sequence.
-The data type of a sequence is BIGINT.
+
+The data type of a sequence must be a numeric type, the default is BIGINT.
+Sequence can produce only integer values.
+For TINYINT the allowed values are between -128 and 127.
+For SMALLINT the allowed values are between -32768 and 32767.
+For INTEGER the allowed values are between -2147483648 and 2147483647.
+For BIGINT the allowed values are between -9223372036854775808 and 9223372036854775807.
+For NUMERIC the allowed values depend on precision and scale,
+but cannot exceed the range of BIGINT data type (from -9223372036854775808 to 9223372036854775807).
+For REAL the allowed values are between -16777216 and 16777216.
+For DOUBLE PRECISION the allowed values are between -9007199254740992 and 9007199254740992.
+
 Used values are never re-used, even when the transaction is rolled back.
 
 This command commits an open transaction in this connection.
 ","
-CREATE SEQUENCE SEQ_ID
+CREATE SEQUENCE SEQ_ID;
+CREATE SEQUENCE SEQ2 AS INTEGER START WITH 10;
 "
 
 "Commands (DDL)","CREATE TABLE","
@@ -1033,6 +1082,9 @@ DROP DOMAIN @h2@ [ IF EXISTS ] [schemaName.]domainName [ RESTRICT | CASCADE ]
 Drops a data type (domain).
 The command will fail if it is referenced by a column or another domain (the default).
 Column descriptors are replaced with original definition of specified domain if the CASCADE clause is used.
+Default and on update expressions are copied into domains and columns that use this domain and don't have own
+expressions. Domain constraints are copied into domains that use this domain and to columns (as check constraints) that
+use this domain.
 This command commits an open transaction in this connection.
 ","
 DROP DOMAIN EMAIL
@@ -2593,6 +2645,23 @@ Value or condition.
 ID=1 AND NAME='Hi'
 "
 
+"Other Grammar","Array element reference","
+array '[' indexInt ']'
+","
+Returns array element at specified index or NULL if array is null or index is null.
+","
+A[2]
+"
+
+"Other Grammar","Field reference","
+(expression).fieldName
+","
+Returns field value from the row value or NULL if row value is null.
+Row value expression must be enclosed in parentheses.
+","
+(R).COL1
+"
+
 "Other Grammar","Array value constructor by query","
 ARRAY (query)
 ","
@@ -2605,14 +2674,29 @@ NULL values are included into array.
 ARRAY(SELECT * FROM SYSTEM_RANGE(1, 10));
 "
 
+"Other Grammar","Case expression","
+simpleCase | searchedCase
+","
+Performs conditional evaluation of expressions.
+","
+CASE A WHEN 'a' THEN 1 ELSE 2 END
+CASE WHEN V > 10 THEN 1 WHEN V < 0 THEN 2 END
+CASE WHEN A IS NULL THEN 'Null' ELSE 'Not null' END
+"
+
 "Other Grammar","Simple case","
-CASE expression { WHEN expression [,...] THEN expression } [...]
+CASE expression
+{ WHEN { expression | conditionRightHandSide } [,...] THEN expression } [...]
 [ ELSE expression ] END
 ","
-Returns the first expression where the value is equal to the test expression. If
-no else part is specified, return NULL.
+Returns then expression from the first when clause where one of its operands was was evaluated to ""TRUE""
+for the case expression.
+If there are no such clauses, returns else expression or NULL if it is absent.
+
+Plain expressions are tested for equality with the case expression, ""NULL"" is not equal to ""NULL"".
+Right sides of conditions are evaluated with the case expression on the left side.
 ","
-CASE CNT WHEN 0 THEN 'No' WHEN 1 THEN 'One' WHEN 2, 3 THEN 'Few' ELSE 'Some' END
+CASE CNT WHEN IS NULL THEN 'Null' WHEN 0 THEN 'No' WHEN 1 THEN 'One' WHEN 2, 3 THEN 'Few' ELSE 'Some' END
 "
 
 "Other Grammar","Searched case","
@@ -2623,6 +2707,7 @@ Returns the first expression where the condition is true. If no else part is
 specified, return NULL.
 ","
 CASE WHEN CNT<10 THEN 'Low' ELSE 'High' END
+CASE WHEN A IS NULL THEN 'Null' ELSE 'Not null' END
 "
 
 "Other Grammar","Cast specification","
@@ -2653,7 +2738,7 @@ dataType @h2@ [ VISIBLE | INVISIBLE ]
 [ { DEFAULT expression
     | GENERATED ALWAYS AS (generatedColumnExpression)
     | @c@ { AS (generatedColumnExpression) }
-    | GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequenceOptions)]} ]
+    | GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequenceOption [...])]} ]
 @h2@ [ ON UPDATE expression ] @c@ [ [ NOT ] NULL ]
 @c@ [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
 @h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
@@ -2766,77 +2851,203 @@ INTERSECTS(GEOM1, GEOM2)
 "
 
 "Other Grammar","Condition Right Hand Side","
-compare { { { ALL | ANY | SOME } ( query ) } | operand }
-    | IS [ NOT ] NULL
-    | IS [ NOT ] [ DISTINCT FROM ] operand
-    | IS [ NOT ] { TRUE | FALSE | UNKNOWN }
-    | IS [ NOT ] OF (dataType [,...])
-    | IS [ NOT ] JSON [ VALUE | ARRAY | OBJECT | SCALAR ]
-        [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
-    | BETWEEN operand AND operand
-    | IN ( { query | expression [,...] } )
-    | [ NOT ] { LIKE | @h2@ { ILIKE } } operand [ ESCAPE string ]
-    | @h2@ { [ NOT ] REGEXP operand }
+comparisonRightHandSide
+    | quantifiedComparisonRightHandSide
+    | nullPredicateRightHandSide
+    | distinctPredicateRightHandSide
+    | quantifiedDistinctPredicateRightHandSide
+    | booleanTestRightHandSide
+    | typePredicateRightHandSide
+    | jsonPredicateRightHandSide
+    | betweenPredicateRightHandSide
+    | inPredicateRightHandSide
+    | likePredicateRightHandSide
+    | regexpPredicateRightHandSide
 ","
 The right hand side of a condition.
+","
+> 10
+IS NULL
+IS NOT NULL
+IS NOT DISTINCT FROM B
+IS OF (DATE, TIMESTAMP, TIMESTAMP WITH TIME ZONE)
+IS JSON OBJECT WITH UNIQUE KEYS
+LIKE 'Jo%'
+"
+
+"Other Grammar","Comparison Right Hand Side","
+compare operand
+","
+Right side of comparison predicates.
+","
+> 10
+"
+
+"Other Grammar","Quantified Comparison Right Hand Side","
+compare { ALL | ANY | SOME } ( query )
+","
+Right side of quantified comparison predicates.
 
 Quantified comparison predicate ALL returns TRUE if specified comparison operation between
 left size of condition and each row from a subquery returns TRUE, including case when there are no rows.
 ALL predicate returns FALSE if at least one such comparison returns FALSE.
-Otherwise it returns NULL.
+Otherwise it returns UNKNOWN.
 
 Quantified comparison predicates ANY and SOME return TRUE if specified comparison operation between
 left size of condition and at least one row from a subquery returns TRUE.
 ANY and SOME predicates return FALSE if all such comparisons return FALSE.
-Otherwise it returns NULL.
+Otherwise they return UNKNOWN.
+
 Note that these predicates have priority over ANY and SOME aggregate functions with subquery on the right side.
 Use parentheses around aggregate function.
+","
+< ALL(SELECT V FROM TEST)
+"
 
-The conditions ""IS [ NOT ] NULL"" check whether the specified value(s) are NULL values.
+"Other Grammar","Null Predicate Right Hand Side","
+IS [ NOT ] NULL
+","
+Right side of null predicate.
+
+Check whether the specified value(s) are NULL values.
 To test multiple values a row value must be specified.
 ""IS NULL"" returns ""TRUE"" if and only if all values are ""NULL"" values; otherwise it returns ""FALSE"".
 ""IS NOT NULL"" returns ""TRUE"" if and only if all values are not ""NULL"" values; otherwise it returns ""FALSE"".
+","
+IS NULL
+"
 
-The conditions ""IS [ NOT ] DISTINCT FROM"" are null-safe, meaning
-NULL is considered the same as NULL, and the condition never evaluates to NULL.
+"Other Grammar","Distinct Predicate Right Hand Side","
+IS [ NOT ] [ DISTINCT FROM ] operand
+","
+Right side of distinct predicate.
 
-Boolean tests ""IS [ NOT ] { TRUE | FALSE | UNKNOWN }"" check whether the specified value
-is (not) ""TRUE"", ""FALSE"", or ""UNKNOWN"" (""NULL"") and return ""TRUE"" or ""FALSE"".
+Distinct predicate is null-safe, meaning NULL is considered the same as NULL,
+and the condition never evaluates to UNKNOWN.
+","
+IS NOT DISTINCT FROM OTHER
+"
 
-The conditions ""IS [ NOT ] OF"" check whether the data type of the specified operand
-is one of the specified data types.
+"Other Grammar","Quantified Distinct Predicate Right Hand Side","
+@h2@ IS [ NOT ] [ DISTINCT FROM ] { ALL | ANY | SOME } ( query )
+","
+Right side of quantified distinct predicate.
+
+Quantified distinct predicate is null-safe, meaning NULL is considered the same as NULL,
+and the condition never evaluates to UNKNOWN.
+
+Quantified distinct predicate ALL returns TRUE if specified distinct predicate between
+left size of condition and each row from a subquery returns TRUE, including case when there are no rows.
+Otherwise it returns FALSE.
+
+Quantified distinct predicates ANY and SOME return TRUE if specified distinct predicate between
+left size of condition and at least one row from a subquery returns TRUE.
+Otherwise they return FALSE.
+
+Note that these predicates have priority over ANY and SOME aggregate functions with subquery on the right side.
+Use parentheses around aggregate function.
+","
+IS DISTINCT FROM ALL(SELECT V FROM TEST)
+"
+
+"Other Grammar","Boolean Test Right Hand Side","
+IS [ NOT ] { TRUE | FALSE | UNKNOWN }
+","
+Right side of boolean test.
+
+Checks whether the specified value is (not) ""TRUE"", ""FALSE"", or ""UNKNOWN"" (""NULL"")
+and return ""TRUE"" or ""FALSE"".
+This test is null-safe.
+","
+IS TRUE
+"
+
+"Other Grammar","Type Predicate Right Hand Side","
+IS [ NOT ] OF (dataType [,...])
+","
+Right side of type predicate.
+
+Checks whether the data type of the specified operand is one of the specified data types.
 Some data types have multiple names, these names are considered as equal here.
 Domains and their base data types are currently not distinguished from each other.
 Precision and scale are also ignored.
-If operand is NULL, the result is NULL.
+If operand is NULL, the result is UNKNOWN.
+","
+IS OF (INTEGER, BIGINT)
+"
 
-The conditions ""IS [ NOT ] JSON"" check whether value of the specified string,
-binary data, or a JSON is a valid JSON.
+"Other Grammar","JSON Predicate Right Hand Side","
+IS [ NOT ] JSON [ VALUE | ARRAY | OBJECT | SCALAR ]
+        [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
+","
+Right side of JSON predicate.
+
+Checks whether value of the specified string, binary data, or a JSON is a valid JSON.
 If ""ARRAY"", ""OBJECT"", or ""SCALAR"" is specified, only JSON items of the specified type are considered as valid.
 If ""WITH UNIQUE [ KEYS ]"" is specified only JSON with unique keys is considered as valid.
-These conditions aren't null-safe, they return NULL if operand is NULL.
+This predicate isn't null-safe, it returns UNKNOWN if operand is NULL.
+","
+IS JSON OBJECT WITH UNIQUE KEYS
+"
 
-When comparing with LIKE, the wildcards characters are ""_"" (any one character)
-and ""%"" (any characters). The database uses an index when comparing with LIKE
-except if the operand starts with a wildcard. To search for the characters ""%"" and
-""_"", the characters need to be escaped. The default escape character is "" \ "" (backslash).
+"Other Grammar","Between Predicate Right Hand Side","
+[ NOT ] BETWEEN [ ASYMMETRIC | SYMMETRIC ] operand AND operand
+","
+Right side of between predicate.
+
+Checks whether the value is within the range inclusive.
+""V BETWEEN [ ASYMMETRIC ] A AND B"" is equivalent to ""A <= V AND V <= B"".
+""V BETWEEN SYMMETRIC A AND B"" is equivalent to ""A <= V AND V <= B OR A >= V AND V >= B"".
+","
+BETWEEN LOW AND HIGH
+"
+
+"Other Grammar","In Predicate Right Hand Side","
+[ NOT ] IN ( { query | expression [,...] } )
+","
+Right side of in predicate.
+
+Checks presence of value in the specified list of values or in result of the specified query.
+
+Returns ""TRUE"" if row value on the left side is equal to one of values on the right side,
+""FALSE"" if all comparison operations were evaluated to ""FALSE"" or right side has no values,
+and ""UNKNOWN"" otherwise.
+
+This operation is logically equivalent to ""OR"" between comparison operations
+comparing left side and each value from the right side.
+","
+IN (A, B, C)
+IN (SELECT V FROM TEST)
+"
+
+"Other Grammar","Like Predicate Right Hand Side","
+[ NOT ] { LIKE | @h2@ { ILIKE } } operand [ ESCAPE string ]
+","
+Right side of like predicate.
+
+The wildcards characters are ""_"" (any one character) and ""%"" (any characters).
+The database uses an index when comparing with LIKE except if the operand starts with a wildcard.
+To search for the characters ""%"" and ""_"", the characters need to be escaped.
+The default escape character is "" \ "" (backslash).
 To select no escape character, use ""ESCAPE ''"" (empty string).
 At most one escape character is allowed.
 Each character that follows the escape character in the pattern needs to match exactly.
 Patterns that end with an escape character are invalid and the expression returns NULL.
 
 ILIKE does a case-insensitive compare.
+","
+LIKE 'a%'
+"
 
-When comparing with REGEXP, regular expression matching is used.
+"Other Grammar","Regexp Predicate Right Hand Side","
+@h2@ { [ NOT ] REGEXP operand }
+","
+Right side of Regexp predicate.
+
+Regular expression matching is used.
 See Java ""Matcher.find"" for details.
 ","
-VALUE > 10
-A IS NULL
-(A, B) IS NOT NULL
-A IS NOT DISTINCT FROM B
-T IS OF (DATE, TIMESTAMP, TIMESTAMP WITH TIME ZONE)
-T IS JSON OBJECT WITH UNIQUE KEYS
-LIKE 'Jo%'
+REGEXP '[a-z]'
 "
 
 "Other Grammar","Table Constraint Definition","
@@ -2935,13 +3146,17 @@ INT
 "
 
 "Other Grammar","Predefined Type","
-intType | booleanType | smallintType | bigintType
-    | decimalType | doublePrecisionType | realType | dateType | timeType
-    | timeWithTimeZoneType | timestampType | timestampWithTimeZoneType
-    | binaryType | varcharType | charType
-    | blobType | clobType | arrayType | intervalType
-    | @h2@ { tinyintType | identityType | javaObjectType | varcharIgnorecaseType
-    | uuidType | enumType }
+characterType | characterVaryingType | characterLargeObjectType
+    | binaryType | binaryVaryingType | binaryLargeObjectType
+    | booleanType
+    | smallintType | integerType | bigintType
+    | numericType | realType | doublePrecisionType | decfloatType
+    | dateType | timeType | timeWithTimeZoneType
+    | timestampType | timestampWithTimeZoneType
+    | intervalType
+    | arrayType | rowType
+    | @h2@ { tinyintType | javaObjectType | enumType
+    | geometryType | jsonType | uuidType }
 ","
 A predefined data type.
 ","
@@ -2965,7 +3180,7 @@ ID=1 OR NAME='Hi'
 "
 
 "Other Grammar","Factor","
-term [ { { * | / | @h2@ { % } } term } [...] ]
+term [ { { * | / | @c@ { % } } term } [...] ]
 ","
 A value or a numeric factor.
 ","
@@ -3220,15 +3435,6 @@ NEXT VALUE FOR SEQ1
 CURRENT VALUE FOR SCHEMA2.SEQ2
 "
 
-"Other Grammar","Sequence options","
-sequenceOption [...]
-","
-Options of a sequence.
-","
-START WITH 1
-START WITH 10 INCREMENT BY 10
-"
-
 "Other Grammar","Sequence option","
 START WITH long
     | RESTART [ WITH long ]
@@ -3331,7 +3537,8 @@ WITHIN GROUP (ORDER BY ID DESC)
 "
 
 "Other Grammar","Wildcard expression","
-{* | @h2@ {tableAlias.*}} @h2@ [EXCEPT ([tableAlias.]columnName, [,...])]
+[[schemaName.]tableAlias.]*
+@h2@ [EXCEPT ([[schemaName.]tableAlias.]columnName, [,...])]
 ","
 A wildcard expression in a SELECT statement.
 A wildcard expression represents all visible columns. Some columns can be excluded with optional EXCEPT clause.
@@ -3444,10 +3651,11 @@ CURRENT ROW
     | sequenceValueExpression
     | function
     | { - | + } term
-    | ( expression ) [ intervalQualifier ]
+    | ( expression )
+    | arrayElementReference
+    | fieldReference
     | query
-    | simpleCase
-    | searchedCase
+    | caseExpression
     | castSpecification
     | userDefinedFunctionName }
 [ timeZone | intervalQualifier ]
@@ -3487,15 +3695,166 @@ _ROWID_ can be used to access unique row identifier.
 ID
 "
 
-"Data Types","INT Type","
-INT | INTEGER |  @c@ { MEDIUMINT | INT4 | SIGNED }
+"Data Types","CHARACTER Type","
+{ CHARACTER | CHAR | NATIONAL { CHARACTER | CHAR } | NCHAR }
+[ ( lengthInt [CHARACTERS|OCTETS] ) ]
 ","
-Possible values: -2147483648 to 2147483647.
+A Unicode String of fixed length.
 
-See also [integer](https://h2database.com/html/grammar.html#int) literal grammar.
-Mapped to ""java.lang.Integer"".
+Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
+If length is not specified, 1 character is used by default.
+
+The whole text is kept in memory when using this data type.
+For variable-length strings use [CHARACTER VARYING](https://h2database.com/html/datatypes.html#character_varying_type)
+data type instead.
+For large text data [CHARACTER LARGE OBJECT](https://h2database.com/html/datatypes.html#character_large_object_type)
+should be used; see there for details.
+
+Too short strings are right-padded with space characters.
+Too long strings are truncated by CAST specification and rejected by column assignment.
+
+Two CHARACTER strings of different length are considered as equal if all additional characters in the longer string
+are space characters.
+
+See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
+Mapped to ""java.lang.String"".
 ","
-INT
+CHARACTER
+CHAR(10)
+"
+
+"Data Types","CHARACTER VARYING Type","
+{ { CHARACTER | CHAR } VARYING
+    | VARCHAR
+    | { NATIONAL { CHARACTER | CHAR } | NCHAR } VARYING
+    | @c@ { LONGVARCHAR | VARCHAR2 | NVARCHAR | NVARCHAR2 }
+    | @h2@ { VARCHAR_CASESENSITIVE } }
+[ ( lengthInt [CHARACTERS|OCTETS] ) ]
+","
+A Unicode String.
+Use two single quotes ('') to create a quote.
+
+The maximum length is ""Integer.MAX_VALUE"".
+The length is a size constraint; only the actual data is persisted.
+Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
+
+The whole text is loaded into memory when using this data type.
+For large text data [CHARACTER LARGE OBJECT](https://h2database.com/html/datatypes.html#character_large_object_type)
+should be used; see there for details.
+
+See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
+Mapped to ""java.lang.String"".
+","
+CHARACTER VARYING(100)
+VARCHAR(255)
+"
+
+"Data Types","CHARACTER LARGE OBJECT Type","
+{ { CHARACTER | CHAR } LARGE OBJECT | CLOB
+    | { NATIONAL CHARACTER | NCHAR } LARGE OBJECT | NCLOB
+    | @c@ { TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT } }
+[ ( lengthLong [K|M|G|T|P] [CHARACTERS|OCTETS]) ]
+","
+CHARACTER LARGE OBJECT is intended for very large Unicode character string values.
+Unlike when using [CHARACTER VARYING](https://h2database.com/html/datatypes.html#character_varying_type),
+large CHARACTER LARGE OBJECT values are not kept fully in-memory; instead, they are streamed.
+CHARACTER LARGE OBJECT should be used for documents and texts with arbitrary size such as XML or
+HTML documents, text files, or memo fields of unlimited size.
+Use ""PreparedStatement.setCharacterStream"" to store values.
+See also [Large Objects](https://h2database.com/html/advanced.html#large_objects) section.
+
+CHARACTER VARYING should be used for text with relatively short average size (for example
+shorter than 200 characters). Short CHARACTER LARGE OBJECT values are stored inline, but there is
+an overhead compared to CHARACTER VARYING.
+
+Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
+
+Mapped to ""java.sql.Clob"" (""java.io.Reader"" is also supported).
+","
+CHARACTER LARGE OBJECT
+CLOB(10K)
+"
+
+"Data Types","VARCHAR_IGNORECASE Type","
+@h2@ VARCHAR_IGNORECASE
+[ ( lengthInt [CHARACTERS|OCTETS] ) ]
+","
+Same as VARCHAR, but not case sensitive when comparing.
+Stored in mixed case.
+
+The maximum length is ""Integer.MAX_VALUE"".
+The length is a size constraint; only the actual data is persisted.
+Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
+
+The whole text is loaded into memory when using this data type.
+For large text data CLOB should be used; see there for details.
+
+See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
+Mapped to ""java.lang.String"".
+","
+VARCHAR_IGNORECASE
+"
+
+"Data Types","BINARY Type","
+BINARY [ ( lengthInt ) ]
+","
+Represents a binary string (byte array) of fixed predefined length.
+
+If length is not specified, 1 byte is used by default.
+
+The whole binary string is kept in memory when using this data type.
+For variable-length binary strings use [BINARY VARYING](https://h2database.com/html/datatypes.html#binary_varying_type)
+data type instead.
+For large binary data [BINARY LARGE OBJECT](https://h2database.com/html/datatypes.html#binary_large_object_type)
+should be used; see there for details.
+
+Too short binary string are right-padded with zero bytes.
+Too long binary strings are truncated by CAST specification and rejected by column assignment.
+
+Binary strings of different length are considered as not equal to each other.
+
+See also [bytes](https://h2database.com/html/grammar.html#bytes) literal grammar.
+Mapped to byte[].
+","
+BINARY
+BINARY(1000)
+"
+
+"Data Types","BINARY VARYING Type","
+{ BINARY VARYING | VARBINARY
+    | @c@ { LONGVARBINARY | RAW | BYTEA } }
+[ ( lengthInt ) ]
+","
+Represents a byte array.
+The maximum size is 2 GB, but the whole object is kept in
+memory when using this data type. The length is a size constraint;
+only the actual data is persisted.
+For large binary data [BINARY LARGE OBJECT](https://h2database.com/html/datatypes.html#binary_large_object_type)
+should be used; see there for details.
+
+See also [bytes](https://h2database.com/html/grammar.html#bytes) literal grammar.
+Mapped to byte[].
+","
+BINARY VARYING(100)
+VARBINARY(1000)
+"
+
+"Data Types","BINARY LARGE OBJECT Type","
+{ BINARY LARGE OBJECT | BLOB
+    | @c@ { TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE } }
+[ ( lengthLong [K|M|G|T|P]) ]
+","
+BINARY LARGE OBJECT is intended for very large binary values such as files or images.
+Unlike when using [BINARY VARYING](https://h2database.com/html/datatypes.html#binary_varying_type),
+large objects are not kept fully in-memory; instead, they are streamed.
+Use ""PreparedStatement.setBinaryStream"" to store values.
+See also [CHARACTER LARGE OBJECT](https://h2database.com/html/datatypes.html#character_large_object_type)
+and [Large Objects](https://h2database.com/html/advanced.html#large_objects) section.
+
+Mapped to ""java.sql.Blob"" (""java.io.InputStream"" is also supported).
+","
+BINARY LARGE OBJECT
+BLOB(10K)
 "
 
 "Data Types","BOOLEAN Type","
@@ -3515,7 +3874,13 @@ BOOLEAN
 Possible values are: -128 to 127.
 
 See also [integer](https://h2database.com/html/grammar.html#int) literal grammar.
-Mapped to ""java.lang.Byte"".
+
+In JDBC this data type is mapped to ""java.lang.Integer"".
+""java.lang.Byte"" is also supported.
+
+In ""org.h2.api.Aggregate"", ""org.h2.api.AggregateFunction"", and ""org.h2.api.Trigger""
+this data type is mapped to ""java.lang.Byte"".
+
 ","
 TINYINT
 "
@@ -3526,9 +3891,26 @@ SMALLINT | @c@ { INT2 | YEAR }
 Possible values: -32768 to 32767.
 
 See also [integer](https://h2database.com/html/grammar.html#int) literal grammar.
-Mapped to ""java.lang.Short"".
+
+In JDBC this data type is mapped to ""java.lang.Integer"".
+""java.lang.Short"" is also supported.
+
+In ""org.h2.api.Aggregate"", ""org.h2.api.AggregateFunction"", and ""org.h2.api.Trigger""
+this data type is mapped to ""java.lang.Short"".
 ","
 SMALLINT
+"
+
+"Data Types","INTEGER Type","
+INTEGER | INT | @c@ { MEDIUMINT | INT4 | SIGNED }
+","
+Possible values: -2147483648 to 2147483647.
+
+See also [integer](https://h2database.com/html/grammar.html#int) literal grammar.
+Mapped to ""java.lang.Integer"".
+","
+INTEGER
+INT
 "
 
 "Data Types","BIGINT Type","
@@ -3542,24 +3924,11 @@ Mapped to ""java.lang.Long"".
 BIGINT
 "
 
-"Data Types","IDENTITY Type","
-@c@ IDENTITY
+"Data Types","NUMERIC Type","
+{ NUMERIC | DECIMAL | DEC | @c@ { NUMBER } } [ ( precisionInt [ , scaleInt ] ) ]
 ","
-Auto-Increment value. Possible values: -9223372036854775808 to
-9223372036854775807. Used values are never re-used, even when the transaction is
-rolled back.
-
-See also [long](https://h2database.com/html/grammar.html#long) literal grammar.
-Mapped to ""java.lang.Long"".
-","
-IDENTITY
-"
-
-"Data Types","DECIMAL Type","
-{ DECIMAL | DEC | NUMERIC | @c@ { NUMBER } } ( precisionInt [ , scaleInt ] )
-","
-Data type with fixed precision and scale. This data type is recommended for
-storing currency values.
+Data type with fixed decimal precision and scale.
+This data type is recommended for storing currency values.
 
 If precision is specified, it must be positive.
 If scale is specified, it must be from -100000 to 100000, 0 is default.
@@ -3567,14 +3936,27 @@ If scale is specified, it must be from -100000 to 100000, 0 is default.
 See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
 Mapped to ""java.math.BigDecimal"".
 ","
-DECIMAL(20, 2)
+NUMERIC(20, 2)
+"
+
+"Data Types","REAL Type","
+REAL | FLOAT ( precisionInt ) | @c@ { FLOAT4 }
+","
+A single precision floating point number.
+Should not be used to represent currency values, because of rounding problems.
+Precision value for FLOAT type name should be from 1 to 24.
+
+See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
+Mapped to ""java.lang.Float"".
+","
+REAL
 "
 
 "Data Types","DOUBLE PRECISION Type","
-{ DOUBLE PRECISION | FLOAT [ ( precisionInt ) ] | @h2@ { DOUBLE } | @c@ { FLOAT8 } }
+DOUBLE PRECISION | FLOAT [ ( precisionInt ) ] | @c@ { DOUBLE | FLOAT8 }
 ","
-A floating point number. Should not be used to represent currency values, because
-of rounding problems.
+A double precision floating point number.
+Should not be used to represent currency values, because of rounding problems.
 If precision value is specified for FLOAT type name, it should be from 25 to 53.
 
 See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
@@ -3583,17 +3965,44 @@ Mapped to ""java.lang.Double"".
 DOUBLE PRECISION
 "
 
-"Data Types","REAL Type","
-{ REAL | FLOAT ( precisionInt ) | @c@ { FLOAT4 } }
+"Data Types","DECFLOAT Type","
+DECFLOAT [ ( precisionInt ) ]
 ","
-A single precision floating point number. Should not be used to represent currency
-values, because of rounding problems.
-Precision value for FLOAT type name should be from 1 to 24.
+Decimal floating point number.
+This data type is not recommended to represent currency values, because of variable scale.
+
+If precision is specified, it must be positive.
 
 See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
-Mapped to ""java.lang.Float"".
+Mapped to ""java.math.BigDecimal"".
 ","
-REAL
+DECFLOAT
+DECFLOAT(20)
+"
+
+"Data Types","DATE Type","
+DATE
+","
+The date data type. The proleptic Gregorian calendar is used.
+
+See also [date](https://h2database.com/html/grammar.html#date) literal grammar.
+
+In JDBC this data type is mapped to ""java.sql.Date"", with the time set to ""00:00:00""
+(or to the next possible time if midnight doesn't exist for the given date and time zone due to a daylight saving change).
+""java.time.LocalDate"" is also supported and recommended.
+
+In ""org.h2.api.Aggregate"", ""org.h2.api.AggregateFunction"", and ""org.h2.api.Trigger""
+this data type is mapped to ""java.time.LocalDate"".
+
+If your time zone had LMT (local mean time) in the past and you use such old dates
+(depends on the time zone, usually 100 or more years ago),
+don't use ""java.sql.Date"" to read and write them.
+
+If you deal with very old dates (before 1582-10-15) note that ""java.sql.Date"" uses a mixed Julian/Gregorian calendar,
+""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
+""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of dates.
+","
+DATE
 "
 
 "Data Types","TIME Type","
@@ -3635,31 +4044,6 @@ The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the
 ","
 TIME WITH TIME ZONE
 TIME(9) WITH TIME ZONE
-"
-
-"Data Types","DATE Type","
-DATE
-","
-The date data type. The proleptic Gregorian calendar is used.
-
-See also [date](https://h2database.com/html/grammar.html#date) literal grammar.
-
-In JDBC this data type is mapped to ""java.sql.Date"", with the time set to ""00:00:00""
-(or to the next possible time if midnight doesn't exist for the given date and time zone due to a daylight saving change).
-""java.time.LocalDate"" is also supported and recommended.
-
-In ""org.h2.api.Aggregate"", ""org.h2.api.AggregateFunction"", and ""org.h2.api.Trigger""
-this data type is mapped to ""java.time.LocalDate"".
-
-If your time zone had LMT (local mean time) in the past and you use such old dates
-(depends on the time zone, usually 100 or more years ago),
-don't use ""java.sql.Date"" to read and write them.
-
-If you deal with very old dates (before 1582-10-15) note that ""java.sql.Date"" uses a mixed Julian/Gregorian calendar,
-""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
-""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of dates.
-","
-DATE
 "
 
 "Data Types","TIMESTAMP Type","
@@ -3716,35 +4100,23 @@ TIMESTAMP WITH TIME ZONE
 TIMESTAMP(9) WITH TIME ZONE
 "
 
-"Data Types","VARBINARY Type","
-{ VARBINARY | BINARY VARYING
-    | @c@ { LONGVARBINARY | RAW | BYTEA } }
-[ ( lengthInt ) ]
+"Data Types","INTERVAL Type","
+intervalYearType | intervalMonthType | intervalDayType
+    | intervalHourType| intervalMinuteType | intervalSecondType
+    | intervalYearToMonthType | intervalDayToHourType
+    | intervalDayToMinuteType | intervalDayToSecondType
+    | intervalHourToMinuteType | intervalHourToSecondType
+    | intervalMinuteToSecondType
 ","
-Represents a byte array. For very long arrays, use BLOB.
-The maximum size is 2 GB, but the whole object is kept in
-memory when using this data type. The length is a size constraint;
-only the actual data is persisted.
+Interval data type.
+There are two classes of intervals. Year-month intervals can store years and months.
+Day-time intervals can store days, hours, minutes, and seconds.
+Year-month intervals are comparable only with another year-month intervals.
+Day-time intervals are comparable only with another day-time intervals.
 
-See also [bytes](https://h2database.com/html/grammar.html#bytes) literal grammar.
-Mapped to byte[].
+Mapped to ""org.h2.api.Interval"".
 ","
-VARBINARY(1000)
-"
-
-"Data Types","BINARY Type","
-BINARY [ ( lengthInt ) ]
-","
-Represents a byte array of fixed predefined length. For very long arrays, use BLOB.
-The maximum size is 2 GB, but the whole object is kept in
-memory when using this data type. If length is not specified, 1 byte is used by default.
-Too short arrays will be zero-expanded to the declared length.
-
-See also [bytes](https://h2database.com/html/grammar.html#bytes) literal grammar.
-Mapped to byte[].
-","
-BINARY
-BINARY(1000)
+INTERVAL DAY TO SECOND
 "
 
 "Data Types","JAVA_OBJECT Type","
@@ -3753,11 +4125,14 @@ BINARY(1000)
 This type allows storing serialized Java objects. Internally, a byte array is used.
 The maximum size of serialized form is 2 GB, but the whole array is kept in memory when using this data type.
 The precision is a size constraint; only the actual data is persisted.
-Serialization and deserialization is done on the client side only with one exclusion described below.
+Serialization and deserialization is done on the client side only with two exclusions described below.
 Deserialization is only done when ""getObject"" is called.
 Java operations cannot be executed inside the database engine for security reasons.
 Use ""PreparedStatement.setObject"" with ""Types.JAVA_OBJECT"" or ""H2Type.JAVA_OBJECT""
 as a third argument to store values.
+
+If Java method alias has ""Object"" parameter(s), values are deserialized during invocation of this method
+on the server side.
 
 If a [linked table](https://h2database.com/html/advanced.html#linked_tables) has a column with ""Types.JAVA_OBJECT""
 JDBC data type and its database is not an another H2, Java objects need to be serialized and deserialized during
@@ -3771,148 +4146,8 @@ JAVA_OBJECT
 JAVA_OBJECT(10000)
 "
 
-"Data Types","VARCHAR Type","
-{ VARCHAR | { CHARACTER | CHAR } VARYING
-    | { NCHAR | { NATIONAL { CHARACTER | CHAR } } } VARYING
-    | @c@ { LONGVARCHAR | VARCHAR2 | NVARCHAR | NVARCHAR2 }
-    | @h2@ { VARCHAR_CASESENSITIVE } }
-[ ( lengthInt [CHARACTERS|OCTETS] ) ]
-","
-A Unicode String.
-Use two single quotes ('') to create a quote.
-
-The maximum length is ""Integer.MAX_VALUE"".
-The length is a size constraint; only the actual data is persisted.
-Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
-
-The whole text is loaded into memory when using this data type.
-For large text data CLOB should be used; see there for details.
-
-See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
-Mapped to ""java.lang.String"".
-","
-VARCHAR(255)
-"
-
-"Data Types","VARCHAR_IGNORECASE Type","
-@h2@ VARCHAR_IGNORECASE
-[ ( lengthInt [CHARACTERS|OCTETS] ) ]
-","
-Same as VARCHAR, but not case sensitive when comparing.
-Stored in mixed case.
-
-The maximum length is ""Integer.MAX_VALUE"".
-The length is a size constraint; only the actual data is persisted.
-Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
-
-The whole text is loaded into memory when using this data type.
-For large text data CLOB should be used; see there for details.
-
-See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
-Mapped to ""java.lang.String"".
-","
-VARCHAR_IGNORECASE
-"
-
-"Data Types","CHAR Type","
-{ CHAR | CHARACTER | NCHAR | NATIONAL { CHARACTER | CHAR } }
-[ ( lengthInt [CHARACTERS|OCTETS] ) ]
-","
-A Unicode String of known length.
-The difference to VARCHAR is that trailing spaces are ignored and not persisted.
-
-The maximum length is ""Integer.MAX_VALUE"".
-Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
-If length is not specified, 1 character is used by default.
-
-The whole text is kept in memory when using this data type.
-For large text data CLOB should be used; see there for details.
-
-See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
-Mapped to ""java.lang.String"".
-","
-CHAR(10)
-"
-
-"Data Types","BLOB Type","
-{ BLOB | BINARY LARGE OBJECT
-    | @c@ { TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE } }
-[ ( lengthLong [K|M|G|T|P]) ]
-","
-Like VARBINARY, but intended for very large values such as files or images. Unlike
-when using VARBINARY, large objects are not kept fully in-memory. Use
-""PreparedStatement.setBinaryStream"" to store values. See also CLOB and
-Advanced / Large Objects.
-
-Mapped to ""java.sql.Blob"" (""java.io.InputStream"" is also supported).
-","
-BLOB
-BLOB(10K)
-"
-
-"Data Types","CLOB Type","
-{ CLOB | { CHARACTER | CHAR } LARGE OBJECT
-    | NCLOB | { NATIONAL CHARACTER | NCHAR } LARGE OBJECT
-    | @c@ { TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT } }
-[ ( lengthLong [K|M|G|T|P] [CHARACTERS|OCTETS]) ]
-","
-CLOB is like VARCHAR, but intended for very large values. Unlike when using
-VARCHAR, large CLOB objects are not kept fully in-memory; instead, they are streamed.
-CLOB should be used for documents and texts with arbitrary size such as XML or
-HTML documents, text files, or memo fields of unlimited size. Use
-""PreparedStatement.setCharacterStream"" to store values. See also Advanced / Large Objects.
-
-VARCHAR should be used for text with relatively short average size (for example
-shorter than 200 characters). Short CLOB values are stored inline, but there is
-an overhead compared to VARCHAR.
-
-Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
-
-Mapped to ""java.sql.Clob"" (""java.io.Reader"" is also supported).
-","
-CLOB
-CLOB(10K)
-"
-
-"Data Types","UUID Type","
-@h2@ UUID
-","
-Universally unique identifier. This is a 128 bit value.
-To store values, use ""PreparedStatement.setBytes"",
-""setString"", or ""setObject(uuid)"" (where ""uuid"" is a ""java.util.UUID"").
-""ResultSet.getObject"" will return a ""java.util.UUID"".
-
-Please note that using an index on randomly generated data will
-result on poor performance once there are millions of rows in a table.
-The reason is that the cache behavior is very bad with randomly distributed data.
-This is a problem for any database system.
-
-For details, see the documentation of ""java.util.UUID"".
-","
-UUID
-"
-
-"Data Types","ARRAY Type","
-baseDataType ARRAY [ '[' maximumCardinalityInt ']' ]
-","
-An array of values.
-Base data type specifies the data type of elements.
-Array may have NULL elements.
-Maximum cardinality, if any, specifies maximum allowed number of elements in the array.
-
-See also [array](https://h2database.com/html/grammar.html#array) literal grammar.
-Mapped to ""java.lang.Object[]"" (arrays of any non-primitive type are also supported).
-
-Use ""PreparedStatement.setArray(..)"" or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
-and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the values.
-","
-BOOLEAN ARRAY
-VARCHAR(100) ARRAY
-INTEGER ARRAY[10]
-"
-
 "Data Types","ENUM Type","
-@h2@ { ENUM (string [, ... ]) }
+@h2@ ENUM (string [, ... ])
 ","
 A type with enumerated values.
 Mapped to ""java.lang.String"".
@@ -3962,12 +4197,14 @@ GEOMETRY(GEOMETRY, 4326)
 "
 
 "Data Types","JSON Type","
-@h2@ JSON
+@h2@ JSON [(lengthInt)]
 ","
 A RFC 8259-compliant JSON text.
 
 See also [json](https://h2database.com/html/grammar.html#json) literal grammar.
 Mapped to ""byte[]"".
+The length is specified in bytes and it is a size constraint; only the actual data is persisted.
+
 To set a JSON value with ""java.lang.String"" in a PreparedStatement use a ""FORMAT JSON"" data format
 (""INSERT INTO TEST(ID, DATA) VALUES (?, ? FORMAT JSON)"").
 Without the data format VARCHAR values are converted to a JSON string values.
@@ -3978,23 +4215,52 @@ Duplicate object member names are allowed.
 JSON
 "
 
-"Data Types","INTERVAL Type","
-intervalYearType | intervalMonthType | intervalDayType
-    | intervalHourType| intervalMinuteType | intervalSecondType
-    | intervalYearToMonthType | intervalDayToHourType
-    | intervalDayToMinuteType | intervalDayToSecondType
-    | intervalHourToMinuteType | intervalHourToSecondType
-    | intervalMinuteToSecondType
+"Data Types","UUID Type","
+@h2@ UUID
 ","
-Interval data type.
-There are two classes of intervals. Year-month intervals can store years and months.
-Day-time intervals can store days, hours, minutes, and seconds.
-Year-month intervals are comparable only with another year-month intervals.
-Day-time intervals are comparable only with another day-time intervals.
+Universally unique identifier. This is a 128 bit value.
+To store values, use ""PreparedStatement.setBytes"",
+""setString"", or ""setObject(uuid)"" (where ""uuid"" is a ""java.util.UUID"").
+""ResultSet.getObject"" will return a ""java.util.UUID"".
 
-Mapped to ""org.h2.api.Interval"".
+Please note that using an index on randomly generated data will
+result on poor performance once there are millions of rows in a table.
+The reason is that the cache behavior is very bad with randomly distributed data.
+This is a problem for any database system.
+
+For details, see the documentation of ""java.util.UUID"".
 ","
-INTERVAL DAY TO SECOND
+UUID
+"
+
+"Data Types","ARRAY Type","
+baseDataType ARRAY [ '[' maximumCardinalityInt ']' ]
+","
+A data type for array of values.
+Base data type specifies the data type of elements.
+Array may have NULL elements.
+Maximum cardinality, if any, specifies maximum allowed number of elements in the array.
+
+See also [array](https://h2database.com/html/grammar.html#array) literal grammar.
+Mapped to ""java.lang.Object[]"" (arrays of any non-primitive type are also supported).
+
+Use ""PreparedStatement.setArray(..)"" or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
+and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the values.
+","
+BOOLEAN ARRAY
+VARCHAR(100) ARRAY
+INTEGER ARRAY[10]
+"
+
+"Data Types","ROW Type","
+ROW (fieldName dataType [,...])
+","
+A row value data type. This data type should not be normally used as data type of a column.
+
+See also [row value expression](https://h2database.com/html/grammar.html#row_value_expression) grammar.
+Mapped to ""java.sql.ResultSet"".
+","
+ROW(A INT, B VARCHAR(10))
 "
 
 "Interval Data Types","INTERVAL YEAR Type","
@@ -4371,20 +4637,25 @@ RSHIFT(A, B)
 "
 
 "Functions (Numeric)","MOD","
-MOD(long, long)
+MOD(dividendNumeric, divisorNumeric)
 ","
-The modulo operation.
-This method returns a long.
-See also Java operator %.
+The modulus expression.
+
+Result has the same type as divisor.
+Result is NULL if either of arguments is NULL.
+If divisor is 0, an exception is raised.
+Result has the same sign as dividend or is equal to 0.
+
+Usually arguments should have scale 0, but it isn't required by H2.
 ","
 MOD(A, B)
 "
 
-"Functions (Numeric)","CEILING","
-{ CEILING | CEIL } (numeric)
+"Functions (Numeric)","CEIL","
+{ CEIL | CEILING } (numeric)
 ","
 Returns the smallest integer value that is greater than or equal to the argument.
-This method returns a double, float, or numeric value depending on type of the argument.
+This method returns value of the same type as argument, but with scale set to 0, if applicable.
 ","
 CEIL(A)
 "
@@ -4411,7 +4682,7 @@ EXP(A)
 FLOOR(numeric)
 ","
 Returns the largest integer value that is less than or equal to the argument.
-This method returns a double, float, or numeric value depending on type of the argument.
+This method returns value of the same type as argument, but with scale set to 0, if applicable.
 ","
 FLOOR(A)
 "
@@ -4882,9 +5153,9 @@ Replaces each substring that matches a regular expression.
 For details, see the Java ""String.replaceAll()"" method.
 If any parameter is null (except optional flagsString parameter), the result is null.
 
-Flags values limited to 'i', 'c', 'n', 'm'. Other symbols causes exception.
-Multiple symbols could be uses in one flagsString parameter (like 'im').
-Later flags overrides first ones, for example 'ic' equivalent to case sensitive matching 'c'.
+Flags values are limited to 'i', 'c', 'n', 'm'. Other symbols cause exception.
+Multiple symbols could be used in one flagsString parameter (like 'im').
+Later flags override first ones, for example 'ic' is equivalent to case sensitive matching 'c'.
 
 'i' enables case insensitive matching (Pattern.CASE_INSENSITIVE)
 
@@ -4906,9 +5177,9 @@ Matches string to a regular expression.
 For details, see the Java ""Matcher.find()"" method.
 If any parameter is null (except optional flagsString parameter), the result is null.
 
-Flags values limited to 'i', 'c', 'n', 'm'. Other symbols causes exception.
-Multiple symbols could be uses in one flagsString parameter (like 'im').
-Later flags overrides first ones, for example 'ic' equivalent to case sensitive matching 'c'.
+Flags values are limited to 'i', 'c', 'n', 'm'. Other symbols cause exception.
+Multiple symbols could be used in one flagsString parameter (like 'im').
+Later flags override first ones, for example 'ic' is equivalent to case sensitive matching 'c'.
 
 'i' enables case insensitive matching (Pattern.CASE_INSENSITIVE)
 
@@ -4920,6 +5191,34 @@ Later flags overrides first ones, for example 'ic' equivalent to case sensitive 
 
 ","
 REGEXP_LIKE('Hello    World', '[A-Z ]*', 'i')
+"
+
+"Functions (String)","REGEXP_SUBSTR","
+@h2@ REGEXP_SUBSTR(inputString, regexString [, position, occurrenceInt, flagsString, groupInt])
+","
+Matches string to a regular expression and returns the matched substring.
+For details, see the java.util.regex.Pattern and related functionality.
+
+The parameter position specifies where in inputString the match should start. Occurrence indicates
+which occurrence of pattern in inputString to search for.
+
+Flags values are limited to 'i', 'c', 'n', 'm'. Other symbols cause exception.
+Multiple symbols could be used in one flagsString parameter (like 'im').
+Later flags override first ones, for example 'ic' is equivalent to case sensitive matching 'c'.
+
+'i' enables case insensitive matching (Pattern.CASE_INSENSITIVE)
+
+'c' disables case insensitive matching (Pattern.CASE_INSENSITIVE)
+
+'n' allows the period to match the newline character (Pattern.DOTALL)
+
+'m' enables multiline mode (Pattern.MULTILINE)
+
+If the pattern has groups, the group parameter can be used to specify which group to return.
+
+","
+REGEXP_SUBSTR('2020-10-01', '\d{4}')
+REGEXP_SUBSTR('2020-10-01', '(\d{4})-(\d{2})-(\d{2})', 1, 1, NULL, 2)
 "
 
 "Functions (String)","REPEAT","
@@ -5486,6 +5785,26 @@ Returns NULL if any parameter is NULL.
 CALL ARRAY_APPEND(ARRAY[1, 2], 3)
 "
 
+"Functions (System)","ARRAY_MAX_CARDINALITY","
+ARRAY_MAX_CARDINALITY(arrayExpression)
+","
+Returns the maximum allowed array cardinality (length) of the declared data type of argument.
+","
+SELECT ARRAY_MAX_CARDINALITY(COL1) FROM TEST FETCH FIRST ROW ONLY;
+"
+
+"Functions (System)","TRIM_ARRAY","
+TRIM_ARRAY(arrayExpression, int)
+","
+Removes the specified number of elements from the end of the array.
+
+Returns NULL if second parameter is NULL or if first parameter is NULL and second parameter is not negative.
+Throws exception if second parameter is negative or larger than number of elements in array.
+Otherwise returns the truncated array.
+","
+CALL TRIM_ARRAY(ARRAY[1, 2, 3, 4], 1)
+"
+
 "Functions (System)","ARRAY_SLICE","
 @h2@ ARRAY_SLICE(arrayExpression, lowerBoundInt, upperBoundInt)
 ","
@@ -5653,11 +5972,12 @@ CALL DATABASE_PATH();
 "
 
 "Functions (System)","DECODE","
-@h2@ DECODE(value, whenValue, thenValue [,...])
+@c@ DECODE(value, whenValue, thenValue [,...])
 ","
 Returns the first matching value. NULL is considered to match NULL.
 If no match was found, then NULL or the last parameter (if the parameter count is even) is returned.
-This function is provided for Oracle compatibility (see there for details).
+This function is provided for Oracle compatibility,
+use [CASE](https://h2database.com/html/grammar.html#case_expression) instead of it.
 ","
 CALL DECODE(RAND()>0.5, 0, 'Red', 1, 'Black');
 "
@@ -5823,9 +6143,10 @@ NEXTVAL('TEST_SEQ')
 "Functions (System)","NULLIF","
 NULLIF(aValue, bValue)
 ","
-Returns NULL if 'a' is equals to 'b', otherwise 'a'.
+Returns NULL if 'a' is equal to 'b', otherwise 'a'.
 ","
 NULLIF(A, B)
+A / NULLIF(B, 0)
 "
 
 "Functions (System)","NVL2","
@@ -5833,6 +6154,10 @@ NULLIF(A, B)
 ","
 If the test value is null, then 'b' is returned. Otherwise, 'a' is returned.
 The data type of the returned value is the data type of 'a' if this is a text type.
+
+This function is provided for Oracle compatibility,
+use [CASE](https://h2database.com/html/grammar.html#case_expression)
+or [COALESCE](https://h2database.com/html/functions.html#coalesce) instead of it.
 ","
 NVL2(X, 'not null', 'null')
 "
@@ -5940,8 +6265,25 @@ If multiple arguments are specified and they have different length, cells with m
 SELECT * FROM UNNEST(ARRAY['a', 'b', 'c']);
 "
 
+"Functions (System)","CURRENT_PATH","
+CURRENT_PATH
+","
+Returns the comma-separated list of quoted schema names where user-defined functions are searched
+when they are referenced without the schema name.
+","
+CURRENT_PATH
+"
+
+"Functions (System)","CURRENT_ROLE","
+CURRENT_ROLE
+","
+Returns the name of the PUBLIC role.
+","
+CURRENT_ROLE
+"
+
 "Functions (System)","CURRENT_USER","
-CURRENT_USER | @c@ USER()
+CURRENT_USER | SESSION_USER | SYSTEM_USER | USER
 ","
 Returns the name of the current user of this session.
 ","
@@ -6053,9 +6395,9 @@ Returns true if any expression is true.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 
-Note that if ANY or SOME aggregate function is placed on the right side of comparison operation
+Note that if ANY or SOME aggregate function is placed on the right side of comparison operation or distinct predicate
 and argument of this function is a subquery additional parentheses around aggregate function are required,
-otherwise it will be parsed as quantified comparison predicate.
+otherwise it will be parsed as quantified predicate.
 ","
 ANY(NAME LIKE 'W%')
 A = (ANY((SELECT B FROM T)))

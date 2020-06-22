@@ -111,7 +111,7 @@ public final class ValueLobDatabase extends ValueLob {
             return super.compareTypeSafe(v, mode, provider);
         }
         ValueLobDatabase v2 = (ValueLobDatabase) v;
-        if (v2 != null && lobId == v2.lobId) {
+        if (lobId == v2.lobId) {
             return 0;
         }
         return compare(this, v2);

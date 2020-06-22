@@ -24,6 +24,7 @@ import org.h2.engine.UndoLogRecord;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.LinkedIndex;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.RowList;
@@ -160,8 +161,7 @@ public class TableLink extends Table {
                     int scale = rs.getInt("DECIMAL_DIGITS");
                     scale = convertScale(sqlType, scale);
                     int type = DataType.convertSQLTypeToValueType(sqlType, sqlTypeName);
-                    Column col = new Column(n, TypeInfo.getTypeInfo(type, precision, scale, null));
-                    col.setTable(this, i++);
+                    Column col = new Column(n, TypeInfo.getTypeInfo(type, precision, scale, null), this, i++);
                     columnList.add(col);
                     columnMap.put(n, col);
                 }
@@ -188,8 +188,7 @@ public class TableLink extends Table {
                     int scale = rsMeta.getScale(i + 1);
                     scale = convertScale(sqlType, scale);
                     int type = DataType.getValueTypeFromResultSet(rsMeta, i + 1);
-                    Column col = new Column(n, TypeInfo.getTypeInfo(type, precision, scale, null));
-                    col.setTable(this, i++);
+                    Column col = new Column(n, TypeInfo.getTypeInfo(type, precision, scale, null), this, i++);
                     columnList.add(col);
                     columnMap.put(n, col);
                 }
@@ -457,7 +456,7 @@ public class TableLink extends Table {
         //The foo alias is used to support the PostgreSQL syntax
         String sql = "SELECT COUNT(*) FROM " + qualifiedTableName + " as foo";
         try {
-            PreparedStatement prep = execute(sql, null, false);
+            PreparedStatement prep = execute(sql, null, false, session);
             ResultSet rs = prep.getResultSet();
             rs.next();
             long count = rs.getLong(1);
@@ -493,10 +492,10 @@ public class TableLink extends Table {
      * @param sql the SQL statement
      * @param params the parameters or null
      * @param reusePrepared if the prepared statement can be re-used immediately
+     * @param session the session
      * @return the prepared statement, or null if it is re-used
      */
-    public PreparedStatement execute(String sql, ArrayList<Value> params,
-            boolean reusePrepared) {
+    public PreparedStatement execute(String sql, ArrayList<Value> params, boolean reusePrepared, Session session) {
         if (conn == null) {
             throw connectException;
         }
@@ -525,9 +524,10 @@ public class TableLink extends Table {
                         trace.debug(builder.toString());
                     }
                     if (params != null) {
+                        JdbcConnection ownConnection = session.createConnection(false);
                         for (int i = 0, size = params.size(); i < size; i++) {
                             Value v = params.get(i);
-                            JdbcUtils.set(prep, i + 1, v, database);
+                            JdbcUtils.set(prep, i + 1, v, ownConnection);
                         }
                     }
                     prep.execute();
@@ -620,22 +620,17 @@ public class TableLink extends Table {
 
     @Override
     public void updateRows(Prepared prepared, Session session, RowList rows) {
-        boolean deleteInsert;
         checkReadOnly();
         if (emitUpdates) {
             for (rows.reset(); rows.hasNext();) {
                 prepared.checkCanceled();
                 Row oldRow = rows.next();
                 Row newRow = rows.next();
-                linkedIndex.update(oldRow, newRow);
+                linkedIndex.update(oldRow, newRow, session);
                 session.log(this, UndoLogRecord.DELETE, oldRow);
                 session.log(this, UndoLogRecord.INSERT, newRow);
             }
-            deleteInsert = false;
         } else {
-            deleteInsert = true;
-        }
-        if (deleteInsert) {
             super.updateRows(prepared, session, rows);
         }
     }

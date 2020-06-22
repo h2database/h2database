@@ -13,6 +13,8 @@ import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.MathUtils;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
+import org.h2.value.ValueToObjectConverter;
 
 /**
  * Represents the meta data for a ResultSet.
@@ -102,8 +104,7 @@ public class JdbcResultSetMetaData extends TraceObject implements
         try {
             debugCodeCall("getColumnType", column);
             checkColumnIndex(column);
-            int type = result.getColumnType(--column).getValueType();
-            return DataType.convertTypeToSQLType(type);
+            return DataType.convertTypeToSQLType(result.getColumnType(--column));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -121,8 +122,7 @@ public class JdbcResultSetMetaData extends TraceObject implements
         try {
             debugCodeCall("getColumnTypeName", column);
             checkColumnIndex(column);
-            int type = result.getColumnType(--column).getValueType();
-            return DataType.getDataType(type).name;
+            return result.getColumnType(--column).getDeclaredTypeName();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -371,7 +371,7 @@ public class JdbcResultSetMetaData extends TraceObject implements
             debugCodeCall("getColumnClassName", column);
             checkColumnIndex(column);
             int type = result.getColumnType(--column).getValueType();
-            return DataType.getTypeClassName(type, true);
+            return ValueToObjectConverter.getDefaultClass(type, true).getName();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -484,6 +484,13 @@ public class JdbcResultSetMetaData extends TraceObject implements
     @Override
     public String toString() {
         return getTraceObjectName() + ": columns=" + columnCount;
+    }
+
+    /**
+     * INTERNAL
+     */
+    public TypeInfo getColumnInternalType(int column) {
+        return result.getColumnType(--column);
     }
 
 }

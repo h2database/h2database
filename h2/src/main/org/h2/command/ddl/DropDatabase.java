@@ -114,6 +114,7 @@ public class DropDatabase extends DefineCommand {
         list.addAll(db.getAllSchemaObjects(DbObject.TRIGGER));
         list.addAll(db.getAllSchemaObjects(DbObject.CONSTANT));
         list.addAll(db.getAllSchemaObjects(DbObject.FUNCTION_ALIAS));
+        list.addAll(db.getAllSchemaObjects(DbObject.AGGREGATE));
         list.addAll(db.getAllSchemaObjects(DbObject.DOMAIN));
         for (SchemaObject obj : list) {
             if (!obj.getSchema().isValid() || obj.isHidden()) {
@@ -135,7 +136,6 @@ public class DropDatabase extends DefineCommand {
         }
         ArrayList<DbObject> dbObjects = new ArrayList<>();
         dbObjects.addAll(db.getAllRights());
-        dbObjects.addAll(db.getAllAggregates());
         for (DbObject obj : dbObjects) {
             String sql = obj.getCreateSQL();
             // the role PUBLIC must not be dropped

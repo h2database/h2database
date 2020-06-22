@@ -29,8 +29,8 @@ public class ExistsPredicate extends PredicateWithSubquery {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return super.getSQL(builder.append("EXISTS"), sqlFlags);
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return super.getUnenclosedSQL(builder.append("EXISTS"), sqlFlags);
     }
 
 }

@@ -38,6 +38,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueChar;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInteger;
@@ -129,6 +130,7 @@ public class Data {
     private static final int TIMESTAMP_TZ_2 = 137;
     private static final int TIME_TZ = 138;
     private static final int BINARY = 139;
+    private static final int DECFLOAT = 140;
 
     private static final long MILLIS_PER_MINUTE = 1000 * 60;
 
@@ -534,6 +536,15 @@ public class Data {
             }
             break;
         }
+        case Value.DECFLOAT: {
+            writeByte((byte) DECFLOAT);
+            BigDecimal x = v.getBigDecimal();
+            writeVarInt(x.scale());
+            byte[] bytes = x.unscaledValue().toByteArray();
+            writeVarInt(bytes.length);
+            write(bytes, 0, bytes.length);
+            break;
+        }
         case Value.TIME:
             if (storeLocalTime) {
                 writeByte((byte) LOCAL_TIME);
@@ -828,8 +839,14 @@ public class Data {
             int len = readVarInt();
             byte[] buff = Utils.newBytes(len);
             read(buff, 0, len);
-            BigInteger b = new BigInteger(buff);
-            return ValueNumeric.get(new BigDecimal(b, scale));
+            return ValueNumeric.get(new BigDecimal(new BigInteger(buff), scale));
+        }
+        case DECFLOAT: {
+            int scale = readVarInt();
+            int len = readVarInt();
+            byte[] buff = Utils.newBytes(len);
+            read(buff, 0, len);
+            return ValueDecfloat.get(new BigDecimal(new BigInteger(buff), scale));
         }
         case LOCAL_DATE:
             return ValueDate.fromDateValue(readVarLong());
@@ -1095,8 +1112,13 @@ public class Data {
                 }
                 return 1 + getVarIntLen(scale) + getVarLongLen(b.longValue());
             }
-            byte[] bytes = b.toByteArray();
-            return 1 + getVarIntLen(scale) + getVarIntLen(bytes.length) + bytes.length;
+            int len = b.toByteArray().length;
+            return 1 + getVarIntLen(scale) + getVarIntLen(len) + len;
+        }
+        case Value.DECFLOAT: {
+            BigDecimal x = v.getBigDecimal();
+            int len = x.unscaledValue().toByteArray().length;
+            return 1 + getVarIntLen(x.scale()) + getVarIntLen(len) + len;
         }
         case Value.TIME:
             if (storeLocalTime) {

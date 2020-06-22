@@ -83,6 +83,7 @@ public class TestCases extends TestDb {
         testExplain();
         testExplainAnalyze();
         testDataChangeDeltaTable();
+        testGroupSortedReset();
         if (config.memory) {
             return;
         }
@@ -1285,7 +1286,7 @@ public class TestCases extends TestDb {
         conn.close();
         conn = getConnection("cases");
         stat = conn.createStatement();
-        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, stat).
                 execute("select * from abc");
         conn.close();
     }
@@ -1812,11 +1813,11 @@ public class TestCases extends TestDb {
         rs.next();
         assertEquals("DELETE FROM \"PUBLIC\".\"TEST\"\n" +
                 "    /* PUBLIC.TEST.tableScan */\n" +
-                "LIMIT ((SELECT\n" +
+                "LIMIT (SELECT\n" +
                 "    COUNT(*)\n" +
                 "FROM \"PUBLIC\".\"TEST\"\n" +
                 "    /* PUBLIC.TEST.tableScan */\n" +
-                "/* direct lookup */) / 10)",
+                "/* direct lookup */) / 10",
                 rs.getString(1));
 
         PreparedStatement prep;
@@ -1866,6 +1867,19 @@ public class TestCases extends TestDb {
         rs = stat.executeQuery("SELECT V FROM TEST");
         assertTrue(rs.next());
         assertEquals(3, rs.getInt(1));
+        conn.close();
+    }
+
+    private void testGroupSortedReset() throws SQLException {
+        // This test case didn't reproduce the issue in the TestScript.
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE T1(A INT PRIMARY KEY, B INT) AS VALUES (1, 4), (2, 5), (3, 6)");
+        String sql = "SELECT B FROM T1 LEFT JOIN (VALUES 2) T2(A) USING(A) WHERE T2.A = 2 GROUP BY T1.A";
+        stat.execute(sql);
+        stat.execute("UPDATE T1 SET B = 7 WHERE A = 3");
+        stat.execute(sql);
         conn.close();
     }
 

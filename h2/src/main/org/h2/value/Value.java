@@ -14,10 +14,14 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.CastDataProvider;
+import org.h2.engine.Mode.CharPadding;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -28,6 +32,7 @@ import org.h2.util.HasSQL;
 import org.h2.util.IntervalUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.StringUtils;
 import org.h2.util.geometry.GeoJsonUtils;
 
 /**
@@ -38,7 +43,7 @@ import org.h2.util.geometry.GeoJsonUtils;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public abstract class Value extends VersionedValue<Value> implements HasSQL {
+public abstract class Value extends VersionedValue<Value> implements HasSQL, Typed {
 
     /**
      * The data type is unknown at this time.
@@ -51,7 +56,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     public static final int NULL = UNKNOWN + 1;
 
     /**
-     * The value type for CHAR values.
+     * The value type for CHARACTER values.
      */
     public static final int CHAR = NULL + 1;
 
@@ -61,7 +66,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     public static final int VARCHAR = CHAR + 1;
 
     /**
-     * The value type for CLOB values.
+     * The value type for CHARACTER LARGE OBJECT values.
      */
     public static final int CLOB = VARCHAR + 1;
 
@@ -81,7 +86,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     public static final int VARBINARY = BINARY + 1;
 
     /**
-     * The value type for BLOB values.
+     * The value type for BINARY LARGE OBJECT values.
      */
     public static final int BLOB = VARBINARY + 1;
 
@@ -126,9 +131,14 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     public static final int DOUBLE = REAL + 1;
 
     /**
+     * The value type for DECFLOAT values.
+     */
+    public static final int DECFLOAT = DOUBLE + 1;
+
+    /**
      * The value type for DATE values.
      */
-    public static final int DATE = DOUBLE + 1;
+    public static final int DATE = DECFLOAT + 1;
 
     /**
      * The value type for TIME values.
@@ -319,8 +329,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             GROUP_BINARY_STRING, GROUP_BINARY_STRING, GROUP_BINARY_STRING,
             // BOOLEAN
             GROUP_BOOLEAN,
-            // TINYINT, SMALLINT, INTEGER, BIGINT, NUMERIC, REAL, DOUBLE
+            // TINYINT, SMALLINT, INTEGER, BIGINT, NUMERIC, REAL, DOUBLE, DECFLOAT
             GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC, GROUP_NUMERIC,
+            GROUP_NUMERIC,
             // DATE, TIME, TIME_TZ, TIMESTAMP, TIMESTAMP_TZ
             GROUP_DATETIME, GROUP_DATETIME, GROUP_DATETIME, GROUP_DATETIME, GROUP_DATETIME,
             // INTERVAL_YEAR, INTERVAL_MONTH
@@ -339,6 +350,23 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             // ARRAY, ROW, RESULT_SET
             GROUP_COLLECTION, GROUP_COLLECTION, GROUP_COLLECTION,
             //
+    };
+
+    private static final String NAMES[] = {
+            "NULL", //
+            "CHARACTER", "CHARACTER VARYING", "CHARACTER LARGE OBJECT", "VARCHAR_IGNORECASE", //
+            "BINARY", "BINARY VARYING", "BINARY LARGE OBJECT", //
+            "BOOLEAN", //
+            "TINYINT", "SMALLINT", "INTEGER", "BIGINT", //
+            "NUMERIC", "REAL", "DOUBLE PRECISION", "DECFLOAT", //
+            "DATE", "TIME", "TIME WITH TIME ZONE", "TIMESTAMP", "TIMESTAMP WITH TIME ZONE", //
+            "INTERVAL YEAR", "INTERVAL MONTH", //
+            "INTERVAL DAY", "INTERVAL HOUR", "INTERVAL MINUTE", "INTERVAL SECOND", //
+            "INTERVAL YEAR TO MONTH", //
+            "INTERVAL DAY TO HOUR", "INTERVAL DAY TO MINUTE", "INTERVAL DAY TO SECOND", //
+            "INTERVAL HOUR TO MINUTE", "INTERVAL HOUR TO SECOND", "INTERVAL MINUTE TO SECOND", //
+            "JAVA_OBJECT", "ENUM", "GEOMETRY", "JSON", "UUID", //
+            "ARRAY", "ROW", "RESULT_SET" //
     };
 
     /**
@@ -374,6 +402,17 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     static final int ASSIGN_TO = 2;
 
     /**
+     * Returns name of the specified data type.
+     *
+     * @param valueType
+     *            the value type
+     * @return the name
+     */
+    public static String getTypeName(int valueType) {
+        return NAMES[valueType];
+    }
+
+    /**
      * Check the range of the parameters.
      *
      * @param zeroBasedOffset the offset (0 meaning no offset)
@@ -389,11 +428,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         }
     }
 
-    /**
-     * Returns the data type.
-     *
-     * @return the data type
-     */
+    @Override
     public abstract TypeInfo getType();
 
     /**
@@ -422,13 +457,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @return the string
      */
     public abstract String getString();
-
-    /**
-     * Get the value as an object.
-     *
-     * @return the object
-     */
-    public abstract Object getObject();
 
     @Override
     public abstract int hashCode();
@@ -480,6 +508,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         if (t2 == NULL) {
             return t1;
         }
+        return getHigherOrderKnown(t1, t2);
+    }
+
+    static int getHigherOrderKnown(int t1, int t2) {
         int g1 = GROUPS[t1], g2 = GROUPS[t2];
         switch (g1) {
         case GROUP_BOOLEAN:
@@ -503,18 +535,23 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
 
     private static int getHigherNumeric(int t1, int t2, int g2) {
         if (g2 == GROUP_NUMERIC) {
-            if (t1 == NUMERIC || t2 == NUMERIC) {
-                return NUMERIC;
-            }
-            if (t1 == REAL) {
-                if (t2 == INTEGER) {
+            switch (t1) {
+            case REAL:
+                switch (t2) {
+                case INTEGER:
                     return DOUBLE;
+                case BIGINT:
+                case NUMERIC:
+                    return DECFLOAT;
                 }
-                if (t2 == BIGINT) {
-                    return NUMERIC;
+                break;
+            case DOUBLE:
+                switch (t2) {
+                case BIGINT:
+                case NUMERIC:
+                    return DECFLOAT;
                 }
-            } else if (t1 == DOUBLE && t2 == BIGINT) {
-                return NUMERIC;
+                break;
             }
         } else if (g2 == GROUP_BINARY_STRING) {
             throw getDataTypeCombinationException(t1, t2);
@@ -598,7 +635,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             }
             break;
         case INTERVAL_DAY_TO_MINUTE:
-            if (t1 == INTERVAL_SECOND) {
+            if (t2 == INTERVAL_SECOND) {
                 return INTERVAL_DAY_TO_SECOND;
             }
             break;
@@ -683,8 +720,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     }
 
     private static DbException getDataTypeCombinationException(int t1, int t2) {
-        return DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1,
-                DataType.getDataType(t1).name + ", " + DataType.getDataType(t2).name);
+        return DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, getTypeName(t1) + ", " + getTypeName(t2));
     }
 
     /**
@@ -876,7 +912,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @return the converted value
      */
     public final Value convertTo(int targetType) {
-        return convertTo(TypeInfo.getTypeInfo(targetType), null, CONVERT_TO, null);
+        return convertTo(targetType, null);
     }
 
     /**
@@ -899,7 +935,14 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @return the converted value
      */
     public final Value convertTo(int targetType, CastDataProvider provider) {
-        return convertTo(TypeInfo.getTypeInfo(targetType), provider, CONVERT_TO, null);
+        switch (targetType) {
+        case ARRAY:
+            return convertToAnyArray(provider);
+        case ROW:
+            return convertToAnyRow();
+        default:
+            return convertTo(TypeInfo.getTypeInfo(targetType), provider, CONVERT_TO, null);
+        }
     }
 
     /**
@@ -931,6 +974,32 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      */
     public final Value convertTo(TypeInfo targetType, CastDataProvider provider, Object column) {
         return convertTo(targetType, provider, CONVERT_TO, column);
+    }
+
+    /**
+     * Convert this value to any ARRAY data type.
+     *
+     * @param provider
+     *            the cast information provider
+     * @return a row value
+     */
+    public final ValueArray convertToAnyArray(CastDataProvider provider) {
+        if (getValueType() == Value.ARRAY) {
+            return (ValueArray) this;
+        }
+        return ValueArray.get(new Value[] { this }, provider);
+    }
+
+    /**
+     * Convert this value to any ROW data type.
+     *
+     * @return a row value
+     */
+    public final ValueRow convertToAnyRow() {
+        if (getValueType() == Value.ROW) {
+            return (ValueRow) this;
+        }
+        return ValueRow.get(new Value[] { this });
     }
 
     /**
@@ -977,14 +1046,14 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         int valueType = getValueType(), targetValueType;
         if (valueType == NULL
                 || valueType == (targetValueType = targetType.getValueType()) && conversionMode == CONVERT_TO
-                && targetType.getExtTypeInfo() == null) {
+                && targetType.getExtTypeInfo() == null && valueType != CHAR) {
             return this;
         }
         switch (targetValueType) {
         case NULL:
             return ValueNull.INSTANCE;
         case CHAR:
-            return convertToChar(targetType, conversionMode, column);
+            return convertToChar(targetType, provider, conversionMode, column);
         case VARCHAR:
             return ValueVarchar.get(convertToVarchar(targetType, conversionMode, column));
         case CLOB:
@@ -1013,6 +1082,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             return convertToReal();
         case DOUBLE:
             return convertToDouble();
+        case DECFLOAT:
+            return convertToDecfloat(targetType, conversionMode, column);
         case DATE:
             return convertToDate(provider);
         case TIME:
@@ -1045,13 +1116,13 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case GEOMETRY:
             return convertToGeometry((ExtTypeInfoGeometry) targetType.getExtTypeInfo());
         case JSON:
-            return convertToJson();
+            return convertToJson(targetType, conversionMode, column);
         case UUID:
             return convertToUuid();
         case ARRAY:
             return convertToArray(targetType, provider, conversionMode, column);
         case ROW:
-            return convertToRow();
+            return convertToRow(targetType, provider, conversionMode, column);
         case RESULT_SET:
             return convertToResultSet();
         default:
@@ -1076,6 +1147,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case NUMERIC:
         case DOUBLE:
         case REAL:
+        case DECFLOAT:
             return ValueBoolean.get(getSignum() != 0);
         case VARCHAR:
         case VARCHAR_IGNORECASE:
@@ -1140,13 +1212,15 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INTERVAL_MINUTE_TO_SECOND:
             return ValueTinyint.get(convertToByte(getLong(), column));
         case NUMERIC:
+        case DECFLOAT:
             return ValueTinyint.get(convertToByte(convertToLong(getBigDecimal(), column), column));
         case REAL:
         case DOUBLE:
             return ValueTinyint.get(convertToByte(convertToLong(getDouble(), column), column));
+        case CHAR:
         case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR: {
+        case CLOB:
+        case VARCHAR_IGNORECASE: {
             String s = getString();
             try {
                 return ValueTinyint.get(Byte.parseByte(s.trim()));
@@ -1154,7 +1228,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
             }
         }
-        case VARBINARY: {
+        case BINARY:
+        case VARBINARY:
+        case BLOB: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 1) {
                 return ValueTinyint.get(bytes[0]);
@@ -1203,13 +1279,15 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INTERVAL_MINUTE_TO_SECOND:
             return ValueSmallint.get(convertToShort(getLong(), column));
         case NUMERIC:
+        case DECFLOAT:
             return ValueSmallint.get(convertToShort(convertToLong(getBigDecimal(), column), column));
         case REAL:
         case DOUBLE:
             return ValueSmallint.get(convertToShort(convertToLong(getDouble(), column), column));
+        case CHAR:
         case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR: {
+        case CLOB:
+        case VARCHAR_IGNORECASE: {
             String s = getString();
             try {
                 return ValueSmallint.get(Short.parseShort(s.trim()));
@@ -1217,7 +1295,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
             }
         }
-        case VARBINARY: {
+        case BINARY:
+        case VARBINARY:
+        case BLOB: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 2) {
                 return ValueSmallint.get((short) ((bytes[0] << 8) + (bytes[1] & 0xff)));
@@ -1265,13 +1345,15 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INTERVAL_MINUTE_TO_SECOND:
             return ValueInteger.get(convertToInt(getLong(), column));
         case NUMERIC:
+        case DECFLOAT:
             return ValueInteger.get(convertToInt(convertToLong(getBigDecimal(), column), column));
         case REAL:
         case DOUBLE:
             return ValueInteger.get(convertToInt(convertToLong(getDouble(), column), column));
+        case CHAR:
         case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR: {
+        case CLOB:
+        case VARCHAR_IGNORECASE: {
             String s = getString();
             try {
                 return ValueInteger.get(Integer.parseInt(s.trim()));
@@ -1279,7 +1361,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
             }
         }
-        case VARBINARY: {
+        case BINARY:
+        case VARBINARY:
+        case BLOB: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 4) {
                 return ValueInteger.get(Bits.readInt(bytes, 0));
@@ -1326,13 +1410,15 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INTERVAL_MINUTE_TO_SECOND:
             return ValueBigint.get(getInt());
         case NUMERIC:
+        case DECFLOAT:
             return ValueBigint.get(convertToLong(getBigDecimal(), column));
         case REAL:
         case DOUBLE:
             return ValueBigint.get(convertToLong(getDouble(), column));
+        case CHAR:
         case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR: {
+        case CLOB:
+        case VARCHAR_IGNORECASE: {
             String s = getString();
             try {
                 return ValueBigint.get(Long.parseLong(s.trim()));
@@ -1340,7 +1426,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
             }
         }
-        case VARBINARY: {
+        case BINARY:
+        case VARBINARY:
+        case BLOB: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 8) {
                 return ValueBigint.get(Bits.readLong(bytes, 0));
@@ -1375,6 +1463,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             break;
         case DOUBLE:
         case REAL:
+        case DECFLOAT:
         case INTERVAL_YEAR:
         case INTERVAL_MONTH:
         case INTERVAL_DAY:
@@ -1441,6 +1530,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INTERVAL_MINUTE:
             return ValueDouble.get(getLong());
         case NUMERIC:
+        case DECFLOAT:
         case INTERVAL_SECOND:
         case INTERVAL_YEAR_TO_MONTH:
         case INTERVAL_DAY_TO_HOUR:
@@ -1492,6 +1582,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INTERVAL_MINUTE:
             return ValueReal.get(getLong());
         case NUMERIC:
+        case DECFLOAT:
         case INTERVAL_SECOND:
         case INTERVAL_YEAR_TO_MONTH:
         case INTERVAL_DAY_TO_HOUR:
@@ -1518,6 +1609,66 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case NULL:
             throw DbException.throwInternalError();
         }
+    }
+
+    private ValueDecfloat convertToDecfloat(TypeInfo targetType, int conversionMode, Object column) {
+        ValueDecfloat v;
+        switch (getValueType()) {
+        case DECFLOAT:
+            v = (ValueDecfloat) this;
+            break;
+        case BOOLEAN:
+            v = getBoolean() ? ValueDecfloat.ONE : ValueDecfloat.ZERO;
+            break;
+        case TINYINT:
+        case SMALLINT:
+        case ENUM:
+        case INTEGER:
+            v =  ValueDecfloat.get(BigDecimal.valueOf(getInt()));
+            break;
+        case BIGINT:
+            v = ValueDecfloat.get(BigDecimal.valueOf(getLong()));
+            break;
+        case NUMERIC:
+        case DOUBLE:
+        case REAL:
+        case INTERVAL_YEAR:
+        case INTERVAL_MONTH:
+        case INTERVAL_DAY:
+        case INTERVAL_HOUR:
+        case INTERVAL_MINUTE:
+        case INTERVAL_SECOND:
+        case INTERVAL_YEAR_TO_MONTH:
+        case INTERVAL_DAY_TO_HOUR:
+        case INTERVAL_DAY_TO_MINUTE:
+        case INTERVAL_DAY_TO_SECOND:
+        case INTERVAL_HOUR_TO_MINUTE:
+        case INTERVAL_HOUR_TO_SECOND:
+        case INTERVAL_MINUTE_TO_SECOND:
+            v = ValueDecfloat.get(getBigDecimal());
+            break;
+        case VARCHAR:
+        case VARCHAR_IGNORECASE:
+        case CHAR: {
+            String s = getString();
+            try {
+                v = ValueDecfloat.get(new BigDecimal(s.trim()));
+            } catch (NumberFormatException e) {
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
+            }
+            break;
+        }
+        default:
+            throw getDataConversionError(DECFLOAT);
+        }
+        if (conversionMode != CONVERT_TO) {
+            BigDecimal bd = v.getBigDecimal();
+            int precision = bd.precision(), targetPrecision = (int) targetType.getPrecision();
+            if (precision > targetPrecision) {
+                v = ValueDecfloat.get(bd.setScale(bd.scale() - precision + targetPrecision, RoundingMode.HALF_UP));
+            }
+        }
+        return v;
     }
 
     /**
@@ -1769,8 +1920,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             v = (ValueVarbinary) this;
             break;
         case BINARY:
-        case JAVA_OBJECT:
         case BLOB:
+        case JAVA_OBJECT:
         case GEOMETRY:
         case JSON:
             v = ValueVarbinary.getNoCopy(getBytesNoCopy());
@@ -1798,9 +1949,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             v = ValueVarbinary.getNoCopy(b);
             break;
         }
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
         case CHAR:
+        case VARCHAR:
+        case CLOB:
+        case VARCHAR_IGNORECASE:
             v = ValueVarbinary.getNoCopy(getString().getBytes(StandardCharsets.UTF_8));
             break;
         default:
@@ -1857,9 +2009,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             v = ValueBinary.getNoCopy(b);
             break;
         }
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
         case CHAR:
+        case VARCHAR:
+        case CLOB:
+        case VARCHAR_IGNORECASE:
             v = ValueBinary.getNoCopy(getString().getBytes(StandardCharsets.UTF_8));
             break;
         default:
@@ -1898,24 +2051,63 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         return s;
     }
 
-    private ValueChar convertToChar(TypeInfo targetType, int conversionMode, Object column) {
-        switch (getValueType()) {
+    /**
+     * Converts this value to a CHAR value. May not be called on a NULL value.
+     *
+     * @return a CHAR value.
+     */
+    public ValueChar convertToChar() {
+        return convertToChar(TypeInfo.getTypeInfo(CHAR), null, CONVERT_TO, null);
+    }
+
+    private ValueChar convertToChar(TypeInfo targetType, CastDataProvider provider, int conversionMode, //
+            Object column) {
+        int valueType = getValueType();
+        switch (valueType) {
         case BLOB:
         case JAVA_OBJECT:
             throw getDataConversionError(targetType.getValueType());
         }
         String s = getString();
-        int p = MathUtils.convertLongToInt(targetType.getPrecision()), l = s.length();
-        if (conversionMode == CAST_TO && l > p) {
-            l = p;
+        int length = s.length(), newLength = length;
+        if (conversionMode == CONVERT_TO) {
+            while (newLength > 0 && s.charAt(newLength - 1) == ' ') {
+                newLength--;
+            }
+        } else {
+            int p = MathUtils.convertLongToInt(targetType.getPrecision());
+            if (provider == null || provider.getMode().charPadding == CharPadding.ALWAYS) {
+                if (newLength != p) {
+                    if (newLength < p) {
+                        return ValueChar.get(StringUtils.pad(s, p, null, true));
+                    } else if (conversionMode == CAST_TO) {
+                        newLength = p;
+                    } else {
+                        do {
+                            if (s.charAt(--newLength) != ' ') {
+                                throw getValueTooLongException(targetType, column);
+                            }
+                        } while (newLength > p);
+                    }
+                }
+            } else {
+                if (conversionMode == CAST_TO && newLength > p) {
+                    newLength = p;
+                }
+                while (newLength > 0 && s.charAt(newLength - 1) == ' ') {
+                    newLength--;
+                }
+                if (conversionMode == ASSIGN_TO && newLength > p) {
+                    throw getValueTooLongException(targetType, column);
+                }
+            }
         }
-        while (l > 0 && s.charAt(l - 1) == ' ') {
-            l--;
+        if (length != newLength) {
+            s = s.substring(0, newLength);
+        } else if (valueType == CHAR) {
+            return (ValueChar) this;
         }
-        if (conversionMode == ASSIGN_TO && l > p) {
-            throw getValueTooLongException(targetType, column);
-        }
-        return ValueChar.get(s.substring(0, l));
+        return ValueChar.get(s);
     }
 
     /**
@@ -1937,7 +2129,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case JAVA_OBJECT:
             v = (ValueJavaObject) this;
             break;
+        case BINARY:
         case VARBINARY:
+        case BLOB:
             v = ValueJavaObject.getNoCopy(getBytesNoCopy());
             break;
         default:
@@ -1972,6 +2166,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case INTEGER:
         case BIGINT:
         case NUMERIC:
+        case DECFLOAT:
             return extTypeInfo.getValue(getInt());
         case VARCHAR:
         case VARCHAR_IGNORECASE:
@@ -1999,6 +2194,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             }
             break;
         }
+        case BINARY:
         case VARBINARY:
         case GEOMETRY:
         case JSON:
@@ -2007,9 +2203,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case UUID:
             v = ValueLobInMemory.createSmallLob(BLOB, getBytes());
             break;
+        case CHAR:
         case VARCHAR:
         case VARCHAR_IGNORECASE:
-        case CHAR:
             v = ValueLobInMemory.createSmallLob(BLOB, getString().getBytes(StandardCharsets.UTF_8));
             break;
         default:
@@ -2072,13 +2268,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         switch (getValueType()) {
         case UUID:
             return (ValueUuid) this;
+        case BINARY:
         case VARBINARY:
+        case BLOB:
             return ValueUuid.get(getBytesNoCopy());
         case JAVA_OBJECT:
             return JdbcUtils.deserializeUuid(getBytesNoCopy());
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
         case CHAR:
+        case VARCHAR:
+        case CLOB:
+        case VARCHAR_IGNORECASE:
             return ValueUuid.get(getString());
         default:
             throw getDataConversionError(UUID);
@@ -2101,7 +2300,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case GEOMETRY:
             result = (ValueGeometry) this;
             break;
+        case BINARY:
         case VARBINARY:
+        case BLOB:
             result = ValueGeometry.getFromEWKB(getBytesNoCopy());
             break;
         case JSON: {
@@ -2119,9 +2320,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             }
             break;
         }
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
         case CHAR:
+        case VARCHAR:
+        case CLOB:
+        case VARCHAR_IGNORECASE:
             result = ValueGeometry.get(getString());
             break;
         default:
@@ -2133,9 +2335,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             int type = extTypeInfo.getType();
             Integer srid = extTypeInfo.getSrid();
             if (type != 0 && result.getTypeAndDimensionSystem() != type || srid != null && result.getSRID() != srid) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1,
-                        ExtTypeInfoGeometry.toSQL(result.getTypeAndDimensionSystem(), result.getSRID())
-                                + " -> " + extTypeInfo.toString());
+                StringBuilder builder = ExtTypeInfoGeometry
+                        .toSQL(new StringBuilder(), result.getTypeAndDimensionSystem(), result.getSRID())
+                        .append(" -> ");
+                extTypeInfo.getSQL(builder, TRACE_SQL_FLAGS);
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, builder.toString());
             }
         }
         return result;
@@ -2171,6 +2375,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             leading = convertToLong(getDouble(), column);
             break;
         case NUMERIC:
+        case DECFLOAT:
             if (targetType == INTERVAL_YEAR_TO_MONTH) {
                 return IntervalUtils.intervalFromAbsolute(IntervalQualifier.YEAR_TO_MONTH, getBigDecimal()
                         .multiply(BigDecimal.valueOf(12)).setScale(0, RoundingMode.HALF_UP).toBigInteger());
@@ -2233,6 +2438,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             leading = convertToLong(getDouble(), column);
             break;
         case NUMERIC:
+        case DECFLOAT:
             if (targetType > INTERVAL_MINUTE) {
                 return convertToIntervalDayTime(getBigDecimal(), targetType);
             }
@@ -2299,40 +2505,57 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                 bigDecimal.multiply(BigDecimal.valueOf(multiplier)).setScale(0, RoundingMode.HALF_UP).toBigInteger());
     }
 
-    private Value convertToJson() {
+    private ValueJson convertToJson(TypeInfo targetType, int conversionMode, Object column) {
+        ValueJson v;
         switch (getValueType()) {
         case JSON:
-            return this;
+            v = (ValueJson) this;
+            break;
         case BOOLEAN:
-            return ValueJson.get(getBoolean());
+            v = ValueJson.get(getBoolean());
+            break;
         case TINYINT:
         case SMALLINT:
         case INTEGER:
-            return ValueJson.get(getInt());
+            v = ValueJson.get(getInt());
+            break;
         case BIGINT:
-            return ValueJson.get(getLong());
+            v = ValueJson.get(getLong());
+            break;
         case REAL:
         case DOUBLE:
         case NUMERIC:
-            return ValueJson.get(getBigDecimal());
+        case DECFLOAT:
+            v = ValueJson.get(getBigDecimal());
+            break;
+        case BINARY:
         case VARBINARY:
-            return ValueJson.fromJson(getBytesNoCopy());
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
+        case BLOB:
+            v = ValueJson.fromJson(getBytesNoCopy());
+            break;
         case CHAR:
-            return ValueJson.get(getString());
+        case VARCHAR:
+        case CLOB:
+        case VARCHAR_IGNORECASE:
+            v = ValueJson.get(getString());
+            break;
         case GEOMETRY: {
             ValueGeometry vg = (ValueGeometry) this;
-            return ValueJson.getInternal(GeoJsonUtils.ewkbToGeoJson(vg.getBytesNoCopy(), vg.getDimensionSystem()));
+            v = ValueJson.getInternal(GeoJsonUtils.ewkbToGeoJson(vg.getBytesNoCopy(), vg.getDimensionSystem()));
+            break;
         }
         default:
             throw getDataConversionError(JSON);
         }
+        if (conversionMode != CONVERT_TO && v.getBytesNoCopy().length > targetType.getPrecision()) {
+            throw v.getValueTooLongException(targetType, column);
+        }
+        return v;
     }
 
     private ValueArray convertToArray(TypeInfo targetType, CastDataProvider provider, int conversionMode,
             Object column) {
-        ExtTypeInfoArray extTypeInfo = (ExtTypeInfoArray) targetType.getExtTypeInfo();
+        TypeInfo componentType = (TypeInfo) targetType.getExtTypeInfo();
         int valueType = getValueType();
         ValueArray v;
         if (valueType == ARRAY) {
@@ -2340,9 +2563,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         } else {
             Value[] a;
             switch (valueType) {
-            case ROW:
-                a = ((ValueRow) this).getList().clone();
-                break;
             case BLOB:
                 a = new Value[] { ValueVarbinary.get(getBytesNoCopy()) };
                 break;
@@ -2355,8 +2575,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             }
             v = ValueArray.get(a, provider);
         }
-        if (extTypeInfo != null) {
-            TypeInfo componentType = extTypeInfo.getComponentType();
+        if (componentType != null) {
             Value[] values = v.getList();
             int length = values.length;
             loop: for (int i = 0; i < length; i++) {
@@ -2389,15 +2608,17 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         return v;
     }
 
-    private Value convertToRow() {
-        Value[] a;
+    private Value convertToRow(TypeInfo targetType, CastDataProvider provider, int conversionMode,
+            Object column) {
+        ValueRow v;
         switch (getValueType()) {
         case ROW:
-            return this;
+            v = (ValueRow) this;
+            break;
         case RESULT_SET:
             ResultInterface result = getResult();
             if (result.hasNext()) {
-                a = result.currentRow();
+                v = ValueRow.get(result.currentRow());
                 if (result.hasNext()) {
                     throw DbException.get(ErrorCode.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW);
                 }
@@ -2406,10 +2627,35 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             }
             break;
         default:
-            a = new Value[] { this };
+            v = ValueRow.get(new Value[] { this });
             break;
         }
-        return ValueRow.get(a);
+        ExtTypeInfoRow ext = (ExtTypeInfoRow) targetType.getExtTypeInfo();
+        if (ext != null) {
+            Value[] values = v.getList();
+            int length = values.length;
+            Set<Map.Entry<String, TypeInfo>> fields = ext.getFields();
+            if (length != fields.size()) {
+                throw getDataConversionError(targetType);
+            }
+            Iterator<Map.Entry<String, TypeInfo>> iter = fields.iterator();
+            loop: for (int i = 0; i < length; i++) {
+                Value v1 = values[i];
+                TypeInfo componentType = iter.next().getValue();
+                Value v2 = v1.convertTo(componentType, provider, conversionMode, column);
+                if (v1 != v2) {
+                    Value[] newValues = new Value[length];
+                    System.arraycopy(values, 0, newValues, 0, i);
+                    newValues[i] = v2;
+                    while (++i < length) {
+                        newValues[i] = values[i].convertTo(componentType, provider, conversionMode, column);
+                    }
+                    v = ValueRow.get(newValues);
+                    break loop;
+                }
+            }
+        }
+        return v;
     }
 
     /**
@@ -2423,20 +2669,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         switch (getValueType()) {
         case RESULT_SET:
             return (ValueResultSet) this;
-        case ROW:
-            result = new SimpleResult();
-            Value[] values = ((ValueRow) this).getList();
-            for (int i = 0; i < values.length;) {
-                Value v = values[i++];
-                String columnName = "C" + i;
-                result.addColumn(columnName, columnName, v.getType());
-            }
-            result.addRow(values);
-            break;
         default:
-            result = new SimpleResult();
-            result.addColumn("X", "X", getType());
-            result.addRow(this);
+            result = getResult();
             break;
         case NULL:
             throw DbException.throwInternalError();
@@ -2451,10 +2685,19 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @return instance of the DbException.
      */
     final DbException getDataConversionError(int targetType) {
-        DataType from = DataType.getDataType(getValueType());
-        DataType to = DataType.getDataType(targetType);
-        throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, (from != null ? from.name : "type=" + getValueType())
-                + " to " + (to != null ? to.name : "type=" + targetType));
+        throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, getTypeName(getValueType()) + " to "
+                + getTypeName(targetType));
+    }
+
+    /**
+     * Creates new instance of the DbException for data conversion error.
+     *
+     * @param targetType target data type.
+     * @return instance of the DbException.
+     */
+    final DbException getDataConversionError(TypeInfo targetType) {
+        throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, getTypeName(getValueType()) + " to "
+                + targetType.getTraceSQL());
     }
 
     final DbException getValueTooLongException(TypeInfo targetType, Object column) {
@@ -2466,7 +2709,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         if (column != null) {
             builder.append(column).append(' ');
         }
-        targetType.getSQL(builder);
+        targetType.getSQL(builder, TRACE_SQL_FLAGS);
         return DbException.get(ErrorCode.VALUE_TOO_LONG_2, builder.toString(),
                 s + " (" + getType().getPrecision() + ')');
     }
@@ -2628,8 +2871,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @return the exception
      */
     protected final DbException getUnsupportedExceptionForOperation(String op) {
-        return DbException.getUnsupportedException(
-                DataType.getDataType(getValueType()).name + " " + op);
+        return DbException.getUnsupportedException(getTypeName(getValueType()) + ' ' + op);
     }
 
     /**
@@ -2638,9 +2880,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      *
      * @return result
      */
-    public ResultInterface getResult() {
+    public SimpleResult getResult() {
         SimpleResult rs = new SimpleResult();
-        rs.addColumn("X", "X", getType());
+        rs.addColumn("X", getType());
         rs.addRow(this);
         return rs;
     }

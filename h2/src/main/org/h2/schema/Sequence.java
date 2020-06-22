@@ -5,7 +5,6 @@
  */
 package org.h2.schema;
 
-import java.math.BigDecimal;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.SequenceOptions;
 import org.h2.engine.DbObject;
@@ -13,9 +12,9 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
-import org.h2.value.ValueNumeric;
 
 /**
  * A sequence is created using the statement
@@ -30,6 +29,9 @@ public class Sequence extends SchemaObjectBase {
 
     private long value;
     private long valueWithMargin;
+
+    private TypeInfo dataType;
+
     private long increment;
     private long cacheSize;
     private long startValue;
@@ -59,13 +61,19 @@ public class Sequence extends SchemaObjectBase {
     public Sequence(Session session, Schema schema, int id, String name, SequenceOptions options,
             boolean belongsToTable) {
         super(schema, id, name, Trace.SEQUENCE);
+        dataType = options.getDataType();
+        if (dataType == null) {
+            options.setDataType(dataType = session.getMode().decimalSequences ? TypeInfo.TYPE_NUMERIC_BIGINT
+                    : TypeInfo.TYPE_BIGINT);
+        }
+        long bounds[] = options.getBounds();
         Long t = options.getIncrement(session);
         long increment = t != null ? t : 1;
         Long start = options.getStartValue(session);
         Long min = options.getMinValue(null, session);
         Long max = options.getMaxValue(null, session);
-        long minValue = min != null ? min : getDefaultMinValue(start, increment);
-        long maxValue = max != null ? max : getDefaultMaxValue(start, increment);
+        long minValue = min != null ? min : getDefaultMinValue(start, increment, bounds);
+        long maxValue = max != null ? max : getDefaultMaxValue(start, increment, bounds);
         long startValue = start != null ? start : increment >= 0 ? minValue : maxValue;
         Long restart = options.getRestartValue(session, startValue);
         long value = restart != null ? restart : startValue;
@@ -158,10 +166,11 @@ public class Sequence extends SchemaObjectBase {
      *
      * @param startValue the start value of the sequence.
      * @param increment the increment of the sequence value.
+     * @param bounds min and max bounds of data type of the sequence
      * @return min value.
      */
-    public static long getDefaultMinValue(Long startValue, long increment) {
-        long v = increment >= 0 ? 1 : Long.MIN_VALUE;
+    public static long getDefaultMinValue(Long startValue, long increment, long[] bounds) {
+        long v = increment >= 0 ? 1 : bounds[0];
         if (startValue != null && increment >= 0 && startValue < v) {
             v = startValue;
         }
@@ -173,10 +182,11 @@ public class Sequence extends SchemaObjectBase {
      *
      * @param startValue the start value of the sequence.
      * @param increment the increment of the sequence value.
+     * @param bounds min and max bounds of data type of the sequence
      * @return min value.
      */
-    public static long getDefaultMaxValue(Long startValue, long increment) {
-        long v = increment >= 0 ? Long.MAX_VALUE : -1;
+    public static long getDefaultMaxValue(Long startValue, long increment, long[] bounds) {
+        long v = increment >= 0 ? bounds[1] : -1;
         if (startValue != null && increment < 0 && startValue > v) {
             v = startValue;
         }
@@ -185,6 +195,28 @@ public class Sequence extends SchemaObjectBase {
 
     public boolean getBelongsToTable() {
         return belongsToTable;
+    }
+
+    public TypeInfo getDataType() {
+        return dataType;
+    }
+
+    public int getEffectivePrecision() {
+        TypeInfo dataType = this.dataType;
+        switch (dataType.getValueType()) {
+        case Value.NUMERIC: {
+            int p = (int) dataType.getPrecision();
+            int s = dataType.getScale();
+            if (p - s > ValueBigint.DECIMAL_PRECISION) {
+                return ValueBigint.DECIMAL_PRECISION + s;
+            }
+            return p;
+        }
+        case Value.DECFLOAT:
+            return Math.min((int) dataType.getPrecision(), ValueBigint.DECIMAL_PRECISION);
+        default:
+            return (int) dataType.getPrecision();
+        }
     }
 
     public long getIncrement() {
@@ -254,18 +286,22 @@ public class Sequence extends SchemaObjectBase {
             return getSQL(new StringBuilder("ALTER SEQUENCE "), DEFAULT_SQL_FLAGS).append(" RESTART WITH ").append(v)
                     .toString();
         }
-        StringBuilder builder = new StringBuilder("CREATE SEQUENCE ");
-        getSQL(builder, DEFAULT_SQL_FLAGS).append(" START WITH ").append(startValue);
+        StringBuilder builder = getSQL(new StringBuilder("CREATE SEQUENCE "), DEFAULT_SQL_FLAGS);
+        if (dataType.getValueType() != Value.BIGINT) {
+            dataType.getSQL(builder.append(" AS "), DEFAULT_SQL_FLAGS);
+        }
+        builder.append(" START WITH ").append(startValue);
         if (!forExport && v != startValue) {
             builder.append(" RESTART WITH ").append(v);
         }
         if (increment != 1) {
             builder.append(" INCREMENT BY ").append(increment);
         }
-        if (minValue != getDefaultMinValue(v, increment)) {
+        long[] bounds = SequenceOptions.getBounds(dataType);
+        if (minValue != getDefaultMinValue(v, increment, bounds)) {
             builder.append(" MINVALUE ").append(minValue);
         }
-        if (maxValue != getDefaultMaxValue(v, increment)) {
+        if (maxValue != getDefaultMaxValue(v, increment, bounds)) {
             builder.append(" MAXVALUE ").append(maxValue);
         }
         if (cycle) {
@@ -314,13 +350,7 @@ public class Sequence extends SchemaObjectBase {
         if (needsFlush) {
             flush(session);
         }
-        Value result;
-        if (database.getMode().decimalSequences) {
-            result = ValueNumeric.get(BigDecimal.valueOf(resultAsLong));
-        } else {
-            result = ValueBigint.get(resultAsLong);
-        }
-        return result;
+        return ValueBigint.get(resultAsLong).castTo(dataType, session);
     }
 
     /**

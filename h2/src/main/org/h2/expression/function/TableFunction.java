@@ -15,7 +15,6 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.table.Column;
-import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueInteger;
@@ -46,23 +45,24 @@ public class TableFunction extends Function {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         if (info.type == UNNEST) {
-            super.getSQL(builder, sqlFlags);
+            super.getUnenclosedSQL(builder, sqlFlags);
             if (args.length < columns.length) {
                 builder.append(" WITH ORDINALITY");
             }
-            return builder;
-        }
-        builder.append(getName()).append('(');
-        for (int i = 0; i < args.length; i++) {
-            if (i > 0) {
-                builder.append(", ");
+        } else {
+            builder.append(getName()).append('(');
+            for (int i = 0; i < args.length; i++) {
+                if (i > 0) {
+                    builder.append(", ");
+                }
+                builder.append(columns[i].getCreateSQL()).append('=');
+                args[i].getUnenclosedSQL(builder, sqlFlags);
             }
-            builder.append(columns[i].getCreateSQL()).append('=');
-            args[i].getSQL(builder, sqlFlags);
+            builder.append(')');
         }
-        return builder.append(')');
+        return builder;
     }
 
     @Override
@@ -106,7 +106,7 @@ public class TableFunction extends Function {
                 } else {
                     int type = v.getValueType();
                     if (type != Value.ARRAY && type != Value.ROW) {
-                        v = v.convertTo(TypeInfo.TYPE_ARRAY);
+                        v = v.convertToAnyArray(session);
                     }
                     Value[] l = ((ValueCollectionBase) v).getList();
                     list[i] = l;

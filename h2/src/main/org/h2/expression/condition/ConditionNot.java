@@ -69,9 +69,13 @@ public class ConditionNot extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        builder.append("(NOT ");
-        return condition.getSQL(builder, sqlFlags).append(')');
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return condition.getSQL(builder.append("NOT "), sqlFlags, AUTO_PARENTHESES);
     }
 
     @Override

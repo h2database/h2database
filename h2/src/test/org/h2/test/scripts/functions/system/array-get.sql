@@ -3,14 +3,14 @@
 -- Initial Developer: H2 Group
 --
 
-CREATE TABLE TEST(A INTEGER ARRAY) AS VALUES ARRAY[], ARRAY[1];
+CREATE TABLE TEST(A INTEGER ARRAY) AS VALUES ARRAY[NULL], ARRAY[1];
 > ok
 
 SELECT A, ARRAY_GET(A, 1), ARRAY_GET(A, 1) IS OF (INTEGER) FROM TEST;
-> A   A[1] (A[1]) IS OF (INTEGER)
-> --- ---- ----------------------
-> [1] 1    TRUE
-> []  null null
+> A      A[1] A[1] IS OF (INTEGER)
+> ------ ---- --------------------
+> [1]    1    TRUE
+> [null] null null
 > rows: 2
 
 DROP TABLE TEST;

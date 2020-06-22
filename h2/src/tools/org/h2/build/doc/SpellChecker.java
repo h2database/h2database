@@ -184,10 +184,7 @@ public class SpellChecker {
                 System.out.println();
             }
         }
-        if (notFound.isEmpty()) {
-            return;
-        }
-        if (notFound.size() > 0) {
+        if (!notFound.isEmpty()) {
             System.out.println("file: " + fileName);
             for (String s : notFound) {
                 System.out.print(s + " ");

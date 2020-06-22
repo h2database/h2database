@@ -56,11 +56,11 @@ public class SequenceValue extends Operation0 {
 
     @Override
     public TypeInfo getType() {
-        return sequence.getDatabase().getMode().decimalSequences ? TypeInfo.TYPE_NUMERIC_BIGINT : TypeInfo.TYPE_BIGINT;
+        return sequence.getDataType();
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         builder.append(current ? "CURRENT" : "NEXT").append(" VALUE FOR ");
         return sequence.getSQL(builder, sqlFlags);
     }

@@ -8,6 +8,7 @@ package org.h2.engine;
 import java.io.Closeable;
 import java.util.ArrayList;
 import org.h2.command.CommandInterface;
+import org.h2.jdbc.meta.DatabaseMeta;
 import org.h2.message.Trace;
 import org.h2.store.DataHandler;
 import org.h2.util.NetworkConnectionInfo;
@@ -40,6 +41,11 @@ public interface SessionInterface extends CastDataProvider, Closeable {
         public final boolean caseInsensitiveIdentifiers;
 
         /**
+         * Whether old information schema is in use.
+         */
+        public final boolean oldInformationSchema;
+
+        /**
          * Creates new instance of static settings.
          *
          * @param databaseToUpper
@@ -48,11 +54,15 @@ public interface SessionInterface extends CastDataProvider, Closeable {
          *            whether unquoted identifiers are converted to lower case
          * @param caseInsensitiveIdentifiers
          *            whether all identifiers are case insensitive
+         * @param oldInformationSchema
+         *            whether old information schema is in use
          */
-        public StaticSettings(boolean databaseToUpper, boolean databaseToLower, boolean caseInsensitiveIdentifiers) {
+        public StaticSettings(boolean databaseToUpper, boolean databaseToLower, boolean caseInsensitiveIdentifiers,
+                boolean oldInformationSchema) {
             this.databaseToUpper = databaseToUpper;
             this.databaseToLower = databaseToLower;
             this.caseInsensitiveIdentifiers = caseInsensitiveIdentifiers;
+            this.oldInformationSchema = oldInformationSchema;
         }
 
     }
@@ -247,5 +257,12 @@ public interface SessionInterface extends CastDataProvider, Closeable {
      * @return dynamic settings
      */
     DynamicSettings getDynamicSettings();
+
+    /**
+     * Returns database meta information.
+     *
+     * @return database meta information
+     */
+    DatabaseMeta getDatabaseMeta();
 
 }

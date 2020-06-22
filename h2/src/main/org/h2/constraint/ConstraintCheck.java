@@ -59,8 +59,8 @@ public class ConstraintCheck extends Constraint {
             buff.append(" COMMENT ");
             StringUtils.quoteStringSQL(buff, comment);
         }
-        buff.append(" CHECK(");
-        expr.getUnenclosedSQL(buff, DEFAULT_SQL_FLAGS).append(") NOCHECK");
+        buff.append(" CHECK");
+        expr.getEnclosedSQL(buff, DEFAULT_SQL_FLAGS).append(" NOCHECK");
         return buff.toString();
     }
 
@@ -147,9 +147,9 @@ public class ConstraintCheck extends Constraint {
             // don't check at startup
             return;
         }
-        StringBuilder builder = new StringBuilder().append("SELECT 1 FROM ");
-        filter.getTable().getSQL(builder, DEFAULT_SQL_FLAGS).append(" WHERE NOT(");
-        expr.getSQL(builder, DEFAULT_SQL_FLAGS).append(')');
+        StringBuilder builder = new StringBuilder().append("SELECT NULL FROM ");
+        filter.getTable().getSQL(builder, DEFAULT_SQL_FLAGS).append(" WHERE NOT ");
+        expr.getSQL(builder, DEFAULT_SQL_FLAGS, Expression.AUTO_PARENTHESES);
         String sql = builder.toString();
         ResultInterface r = session.prepare(sql).query(1);
         if (r.next()) {

@@ -24,8 +24,10 @@ import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.util.HasSQL;
+import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
+import org.h2.value.Typed;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueNull;
@@ -34,7 +36,7 @@ import org.h2.value.ValueUuid;
 /**
  * This class represents a column in a table.
  */
-public class Column implements HasSQL {
+public class Column implements HasSQL, Typed {
 
     /**
      * The name of the rowid pseudo column.
@@ -126,13 +128,16 @@ public class Column implements HasSQL {
         return builder;
     }
 
-    public Column(String name, int valueType) {
-        this(name, TypeInfo.getTypeInfo(valueType));
-    }
-
     public Column(String name, TypeInfo type) {
         this.name = name;
         this.type = type;
+    }
+
+    public Column(String name, TypeInfo type, Table table, int columnId) {
+        this.name = name;
+        this.type = type;
+        this.table = table;
+        this.columnId = columnId;
     }
 
     public Column(String name, TypeInfo type, String originalSQL) {
@@ -272,7 +277,7 @@ public class Column implements HasSQL {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return rowId ? builder.append(name) : Parser.quoteIdentifier(builder, name, sqlFlags);
+        return rowId ? builder.append(name) : ParserUtil.quoteIdentifier(builder, name, sqlFlags);
     }
 
     /**
@@ -290,6 +295,7 @@ public class Column implements HasSQL {
         return name;
     }
 
+    @Override
     public TypeInfo getType() {
         return type;
     }
@@ -343,7 +349,7 @@ public class Column implements HasSQL {
      * @return the new or converted value
      */
     public Value validateConvertUpdateSequence(Session session, Value value, Row row) {
-        Expression localDefaultExpression = defaultExpression;
+        Expression localDefaultExpression = getEffectiveDefaultExpression();
         boolean addKey = false;
         if (value == null) {
             if (localDefaultExpression == null) {
@@ -451,6 +457,7 @@ public class Column implements HasSQL {
             s = StringUtils.toUpperEnglish(s.replace('-', '_'));
             sequenceName = "SYSTEM_SEQUENCE_" + s;
         } while (schema.findSequence(sequenceName) != null);
+        autoIncrementOptions.setDataType(type);
         Sequence seq = new Sequence(session, schema, id, sequenceName, autoIncrementOptions, true);
         seq.setTemporary(temporary);
         session.getDatabase().addSchemaObject(session, seq);
@@ -476,6 +483,9 @@ public class Column implements HasSQL {
         if (onUpdateExpression != null) {
             onUpdateExpression = onUpdateExpression.optimize(session);
         }
+        if (domain != null) {
+            domain.getColumn().prepareExpression(session);
+        }
     }
 
     public String getCreateSQLWithoutName() {
@@ -489,12 +499,12 @@ public class Column implements HasSQL {
     private String getCreateSQL(boolean includeName) {
         StringBuilder buff = new StringBuilder();
         if (includeName && name != null) {
-            Parser.quoteIdentifier(buff, name, DEFAULT_SQL_FLAGS).append(' ');
+            ParserUtil.quoteIdentifier(buff, name, DEFAULT_SQL_FLAGS).append(' ');
         }
         if (originalSQL != null) {
             buff.append(originalSQL);
         } else {
-            type.getSQL(buff);
+            type.getSQL(buff, DEFAULT_SQL_FLAGS);
         }
 
         if (!visible) {
@@ -507,12 +517,12 @@ public class Column implements HasSQL {
                 defaultExpression.getEnclosedSQL(buff, DEFAULT_SQL_FLAGS);
             } else {
                 buff.append(" DEFAULT ");
-                defaultExpression.getSQL(buff, DEFAULT_SQL_FLAGS);
+                defaultExpression.getUnenclosedSQL(buff, DEFAULT_SQL_FLAGS);
             }
         }
         if (onUpdateExpression != null) {
             buff.append(" ON UPDATE ");
-            onUpdateExpression.getSQL(buff, DEFAULT_SQL_FLAGS);
+            onUpdateExpression.getUnenclosedSQL(buff, DEFAULT_SQL_FLAGS);
         }
         if (convertNullToDefault) {
             buff.append(" NULL_TO_DEFAULT");
@@ -550,8 +560,18 @@ public class Column implements HasSQL {
         return defaultExpression;
     }
 
+    public Expression getEffectiveDefaultExpression() {
+        return defaultExpression != null ? defaultExpression
+                : domain != null ? domain.getColumn().getEffectiveDefaultExpression() : null;
+    }
+
     public Expression getOnUpdateExpression() {
         return onUpdateExpression;
+    }
+
+    public Expression getEffectiveOnUpdateExpression() {
+        return onUpdateExpression != null ? onUpdateExpression
+                : domain != null ? domain.getColumn().getEffectiveOnUpdateExpression() : null;
     }
 
     public boolean isAutoIncrement() {
@@ -623,7 +643,7 @@ public class Column implements HasSQL {
         this.selectivity = selectivity;
     }
 
-    String getDefaultSQL() {
+    public String getDefaultSQL() {
         return defaultExpression == null ? null : defaultExpression.getSQL(DEFAULT_SQL_FLAGS);
     }
 
@@ -632,7 +652,7 @@ public class Column implements HasSQL {
     }
 
     public void setComment(String comment) {
-        this.comment = comment;
+        this.comment = comment != null && !comment.isEmpty() ? comment : null;
     }
 
     public String getComment() {
@@ -657,10 +677,12 @@ public class Column implements HasSQL {
                 visitor.getDependencies().add(sequence);
             }
         }
-        if (defaultExpression != null && !defaultExpression.isEverything(visitor)) {
+        Expression e = getEffectiveDefaultExpression();
+        if (e != null && !e.isEverything(visitor)) {
             return false;
         }
-        if (onUpdateExpression != null && !onUpdateExpression.isEverything(visitor)) {
+        e = getEffectiveOnUpdateExpression();
+        if (e != null && !e.isEverything(visitor)) {
             return false;
         }
         return true;

@@ -49,7 +49,6 @@ import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
-import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.IOUtils;
@@ -574,17 +573,13 @@ public class TestResultSet extends TestDb {
         rs = stat.executeQuery("SELECT C || C FROM one;");
         ResultSetMetaData md = rs.getMetaData();
         assertEquals(20, md.getPrecision(1));
-        ResultSet rs2 = stat.executeQuery("SELECT UPPER (C)  FROM one;");
-        ResultSetMetaData md2 = rs2.getMetaData();
-        assertEquals(10, md2.getPrecision(1));
-        rs = stat.executeQuery("SELECT UPPER (C), CHAR(10), " +
+        rs = stat.executeQuery("SELECT CHAR(10), " +
                 "CONCAT(C,C,C), HEXTORAW(C), RAWTOHEX(C) FROM one");
         ResultSetMetaData meta = rs.getMetaData();
-        assertEquals(10, meta.getPrecision(1));
-        assertEquals(1, meta.getPrecision(2));
-        assertEquals(30, meta.getPrecision(3));
-        assertEquals(2, meta.getPrecision(4));
-        assertEquals(40, meta.getPrecision(5));
+        assertEquals(1, meta.getPrecision(1));
+        assertEquals(30, meta.getPrecision(2));
+        assertEquals(2, meta.getPrecision(3));
+        assertEquals(40, meta.getPrecision(4));
         stat.execute("DROP TABLE one");
     }
 
@@ -666,12 +661,12 @@ public class TestResultSet extends TestDb {
         assertFalse(meta.isDefinitelyWritable(1));
         assertTrue(meta.getColumnDisplaySize(1) > 0);
         assertTrue(meta.getColumnDisplaySize(2) > 0);
-        assertEquals(null, meta.getColumnClassName(3));
+        assertEquals(Void.class.getName(), meta.getColumnClassName(3));
 
         assertTrue(rs.getRow() == 0);
         assertResultSetMeta(rs, 3, new String[] { "ID", "VALUE", "N" },
                 new int[] { Types.INTEGER, Types.INTEGER,
-                Types.NULL }, new int[] { 10, 10, 1 }, new int[] { 0, 0, 0 });
+                Types.NULL }, new int[] { 32, 32, 1 }, new int[] { 0, 0, 0 });
         rs.next();
         assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
         assertEquals(ResultSet.FETCH_FORWARD, rs.getFetchDirection());
@@ -800,7 +795,7 @@ public class TestResultSet extends TestDb {
         assertTrue(rs.getRow() == 0);
         assertResultSetMeta(rs, 3, new String[] { "ID", "VALUE", "N" },
                         new int[] { Types.INTEGER, Types.SMALLINT,
-                                Types.NULL }, new int[] { 10, 5, 1 }, new int[] { 0, 0, 0 });
+                                Types.NULL }, new int[] { 32, 16, 1 }, new int[] { 0, 0, 0 });
         rs.next();
 
         assertTrue(rs.getRow() == 1);
@@ -820,7 +815,7 @@ public class TestResultSet extends TestDb {
 
         o = rs.getObject("value");
         trace(o.getClass().getName());
-        assertTrue(o.getClass() == (SysProperties.OLD_RESULT_SET_GET_OBJECT ? Short.class : Integer.class));
+        assertTrue(o.getClass() == Integer.class);
         assertTrue(((Number) o).intValue() == -1);
         o = rs.getObject("value", Short.class);
         trace(o.getClass().getName());
@@ -828,7 +823,7 @@ public class TestResultSet extends TestDb {
         assertTrue((Short) o == -1);
         o = rs.getObject(2);
         trace(o.getClass().getName());
-        assertTrue(o.getClass() == (SysProperties.OLD_RESULT_SET_GET_OBJECT ? Short.class : Integer.class));
+        assertTrue(o.getClass() == Integer.class);
         assertTrue(((Number) o).intValue() == -1);
         o = rs.getObject(2, Short.class);
         trace(o.getClass().getName());
@@ -923,7 +918,7 @@ public class TestResultSet extends TestDb {
         assertTrue(rs.getRow() == 0);
         assertResultSetMeta(rs, 3, new String[] { "ID", "VALUE", "N" },
                         new int[] { Types.INTEGER, Types.BIGINT,
-                                Types.NULL }, new int[] { 10, 19, 1 }, new int[] { 0, 0, 0 });
+                                Types.NULL }, new int[] { 32, 64, 1 }, new int[] { 0, 0, 0 });
         rs.next();
 
         assertTrue(rs.getRow() == 1);
@@ -1047,7 +1042,7 @@ public class TestResultSet extends TestDb {
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
                 new int[] { Types.INTEGER, Types.VARCHAR }, new int[] {
-                10, 255 }, new int[] { 0, 0 });
+                32, 255 }, new int[] { 0, 0 });
         String value;
         rs.next();
         value = rs.getString(2);
@@ -1117,12 +1112,6 @@ public class TestResultSet extends TestDb {
     }
 
     private void testDecimal() throws SQLException {
-        int numericType;
-        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
-            numericType = Types.DECIMAL;
-        } else {
-            numericType = Types.NUMERIC;
-        }
         trace("Test DECIMAL");
         ResultSet rs;
         Object o;
@@ -1137,8 +1126,8 @@ public class TestResultSet extends TestDb {
         stat.execute("INSERT INTO TEST VALUES(8,NULL)");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
-                new int[] { Types.INTEGER, numericType }, new int[] {
-                10, 10 }, new int[] { 0, 2 });
+                new int[] { Types.INTEGER, Types.DECIMAL }, new int[] {
+                32, 10 }, new int[] { 0, 2 });
         BigDecimal bd;
 
         rs.next();
@@ -1214,7 +1203,7 @@ public class TestResultSet extends TestDb {
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 3, new String[] { "ID", "D", "R" },
                 new int[] { Types.INTEGER, Types.DOUBLE, Types.REAL },
-                new int[] { 10, 17, 7 }, new int[] { 0, 0, 0 });
+                new int[] { 32, 53, 24 }, new int[] { 0, 0, 0 });
         BigDecimal bd;
         rs.next();
         assertTrue(rs.getInt(1) == 1);
@@ -1301,11 +1290,11 @@ public class TestResultSet extends TestDb {
                 "TIMESTAMP '9999-12-31 23:59:59' \"VALUE\" FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
                 new int[] { Types.INTEGER, Types.TIMESTAMP },
-                new int[] { 10, 29 }, new int[] { 0, 9 });
+                new int[] { 32, 29 }, new int[] { 0, 9 });
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
                 new int[] { Types.INTEGER, Types.TIMESTAMP },
-                new int[] { 10, 26 }, new int[] { 0, 6 });
+                new int[] { 32, 26 }, new int[] { 0, 6 });
         rs.next();
         java.sql.Date date;
         java.sql.Time time;
@@ -1533,7 +1522,7 @@ public class TestResultSet extends TestDb {
                 new String[] { "ID", "D", "T", "TS" },
                 new int[] { Types.INTEGER, Types.DATE,
                 Types.TIME, Types.TIMESTAMP },
-                new int[] { 10, 10, 8, 29 }, new int[] { 0, 0, 0, 9 });
+                new int[] { 32, 10, 8, 29 }, new int[] { 0, 0, 0, 9 });
 
         rs.next();
         assertEquals(0, rs.getInt(1));
@@ -1639,7 +1628,7 @@ public class TestResultSet extends TestDb {
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
                 new int[] { Types.INTEGER, Types.BLOB }, new int[] {
-                10, Integer.MAX_VALUE }, new int[] { 0, 0 });
+                32, Integer.MAX_VALUE }, new int[] { 0, 0 });
         rs.next();
 
         assertEqualsWithNull(new byte[] { (byte) 0x01, (byte) 0x01,
@@ -1743,7 +1732,7 @@ public class TestResultSet extends TestDb {
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
                 new int[] { Types.INTEGER, Types.CLOB }, new int[] {
-                10, Integer.MAX_VALUE }, new int[] { 0, 0 });
+                32, Integer.MAX_VALUE }, new int[] { 0, 0 });
         rs.next();
         Object obj = rs.getObject(2);
         assertTrue(obj instanceof java.sql.Clob);
@@ -1839,7 +1828,7 @@ public class TestResultSet extends TestDb {
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
         assertEquals(1, rs.getInt(1));
-        Object[] list = (Object[]) rs.getObject(2);
+        Object[] list = (Object[]) ((Array) rs.getObject(2)).getArray();
         assertEquals(1, ((Integer) list[0]).intValue());
         assertEquals(2, ((Integer) list[1]).intValue());
 
@@ -1852,7 +1841,7 @@ public class TestResultSet extends TestDb {
 
         rs.next();
         assertEquals(2, rs.getInt(1));
-        list = (Object[]) rs.getObject(2);
+        list = (Object[]) ((Array) rs.getObject(2)).getArray();
         assertEquals(11, ((Integer) list[0]).intValue());
         assertEquals(12, ((Integer) list[1]).intValue());
 
@@ -1873,7 +1862,7 @@ public class TestResultSet extends TestDb {
 
         rs.next();
         assertEquals(3, rs.getInt(1));
-        list = (Object[]) rs.getObject(2);
+        list = (Object[]) ((Array) rs.getObject(2)).getArray();
         assertEquals(0, list.length);
 
         array = rs.getArray("VALUE");
@@ -1922,13 +1911,13 @@ public class TestResultSet extends TestDb {
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
-        assertEquals(new Object[] {10, 20}, (Object[]) rs.getObject(2));
+        assertEquals(new Object[] {10, 20}, (Object[]) ((Array) rs.getObject(2)).getArray());
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));
-        assertEquals(new Object[] {11, 22}, (Object[]) rs.getObject(2));
+        assertEquals(new Object[] {11, 22}, (Object[]) ((Array) rs.getObject(2)).getArray());
         assertTrue(rs.next());
         assertEquals(3, rs.getInt(1));
-        assertEquals(new Object[0], (Object[]) rs.getObject(2));
+        assertEquals(new Object[0], (Object[]) ((Array) rs.getObject(2)).getArray());
         assertTrue(rs.next());
         assertEquals(4, rs.getInt(1));
         assertNull(rs.getObject(2));
@@ -1942,9 +1931,12 @@ public class TestResultSet extends TestDb {
         ResultSet rs;
         rs = stat.executeQuery("SELECT (1, 'test')");
         rs.next();
-        Object[] expectedArray = new Object[] {1, "test"};
-        assertEquals(expectedArray, (Object[]) rs.getObject(1));
+        testRowValue((ResultSet) rs.getObject(1));
         ResultSet rowAsResultSet = rs.getObject(1, ResultSet.class);
+        testRowValue(rowAsResultSet);
+    }
+
+    private void testRowValue(ResultSet rowAsResultSet) throws SQLException {
         ResultSetMetaData md = rowAsResultSet.getMetaData();
         assertEquals(2, md.getColumnCount());
         assertEquals("C1", md.getColumnLabel(1));

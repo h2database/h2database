@@ -245,7 +245,7 @@ public class TestTools extends TestDb {
         assertTrue(rs.getMetaData().isSigned(1));
         assertFalse(rs.getMetaData().isWritable(1));
         assertEquals("", rs.getMetaData().getCatalogName(1));
-        assertEquals(null, rs.getMetaData().getColumnClassName(1));
+        assertEquals(Void.class.getName(), rs.getMetaData().getColumnClassName(1));
         assertEquals("NULL", rs.getMetaData().getColumnTypeName(1));
         assertEquals("", rs.getMetaData().getSchemaName(1));
         assertEquals("", rs.getMetaData().getTableName(1));
@@ -514,7 +514,7 @@ public class TestTools extends TestDb {
         rs.addRow(uuid);
         rs.next();
         assertEquals(uuid, rs.getObject(1));
-        assertEquals(uuid, ValueUuid.get(rs.getBytes(1)).getObject());
+        assertEquals(uuid, ValueUuid.get(rs.getBytes(1)).getUuid());
     }
 
     private void testJdbcDriverUtils() {

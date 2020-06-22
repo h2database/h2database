@@ -5,7 +5,6 @@
  */
 package org.h2.command.dml;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -38,7 +37,6 @@ import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.util.HasSQL;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 
 /**
  * This class represents the statement
@@ -57,6 +55,8 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
      * For MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ....
      */
     private HashMap<Column, Expression> duplicateKeyAssignmentMap;
+
+    private Value[] onDuplicateKeyRow;
 
     /**
      * For MySQL-style INSERT IGNORE and PostgreSQL-style ON CONFLICT DO
@@ -289,9 +289,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
                 if (row++ > 0) {
                     builder.append(",\n");
                 }
-                builder.append('(');
-                Expression.writeExpressions(builder, expr, sqlFlags);
-                builder.append(')');
+                Expression.writeExpressions(builder.append('('), expr, sqlFlags).append(')');
             }
         } else {
             builder.append(query.getPlanSQL(sqlFlags));
@@ -384,13 +382,10 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
         }
 
         int columnCount = columns.length;
-        ArrayList<String> variableNames = new ArrayList<>(columnCount);
         Expression[] row = (currentRow == null) ? valuesExpressionList.get((int) getCurrentRowNumber() - 1)
                 : new Expression[columnCount];
+        onDuplicateKeyRow = new Value[table.getColumns().length];
         for (int i = 0; i < columnCount; i++) {
-            StringBuilder builder = table.getSQL(new StringBuilder(), HasSQL.DEFAULT_SQL_FLAGS).append('.');
-            String key = columns[i].getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS).toString();
-            variableNames.add(key);
             Value value;
             if (currentRow != null) {
                 value = currentRow[i];
@@ -398,7 +393,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
             } else {
                 value = row[i].getValue(session);
             }
-            session.setVariable(key, value);
+            onDuplicateKeyRow[columns[i].getColumnId()] = value;
         }
 
         StringBuilder builder = new StringBuilder("UPDATE ");
@@ -410,7 +405,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
             }
             f = true;
             entry.getKey().getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS).append('=');
-            entry.getValue().getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
+            entry.getValue().getUnenclosedSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
         }
         builder.append(" WHERE ");
         Index foundIndex = (Index) de.getSource();
@@ -418,18 +413,16 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
             throw DbException.getUnsupportedException(
                     "Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
         }
-        prepareUpdateCondition(foundIndex, row).getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
+        prepareUpdateCondition(foundIndex, row).getUnenclosedSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
         String sql = builder.toString();
         Update command = (Update) session.prepare(sql);
-        command.setUpdateToCurrentValuesReturnsZero(true);
+        command.setOnDuplicateKeyInsert(this);
         for (Parameter param : command.getParameters()) {
             Parameter insertParam = parameters.get(param.getIndex());
             param.setValue(insertParam.getValue(session));
         }
         boolean result = command.update() > 0;
-        for (String variableName : variableNames) {
-            session.setVariable(variableName, ValueNull.INSTANCE);
-        }
+        onDuplicateKeyRow = null;
         return result;
     }
 
@@ -458,21 +451,24 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
         Expression condition = null;
         for (Column column : indexedColumns) {
             ExpressionColumn expr = new ExpressionColumn(session.getDatabase(),
-                    table.getSchema().getName(), table.getName(),
-                    column.getName(), false);
+                    table.getSchema().getName(), table.getName(), column.getName());
             for (int i = 0; i < columns.length; i++) {
                 if (expr.getColumnName(session, i).equals(columns[i].getName())) {
                     if (condition == null) {
-                        condition = new Comparison(Comparison.EQUAL, expr, row[i]);
+                        condition = new Comparison(Comparison.EQUAL, expr, row[i], false);
                     } else {
                         condition = new ConditionAndOr(ConditionAndOr.AND, condition,
-                                new Comparison(Comparison.EQUAL, expr, row[i]));
+                                new Comparison(Comparison.EQUAL, expr, row[i], false));
                     }
                     break;
                 }
             }
         }
         return condition;
+    }
+
+    public Value getOnDuplicateKeyValue(int columnIndex) {
+        return onDuplicateKeyRow[columnIndex];
     }
 
     @Override

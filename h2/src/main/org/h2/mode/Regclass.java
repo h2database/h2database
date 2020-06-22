@@ -44,8 +44,7 @@ public class Regclass extends Operation1 {
         }
         String name = value.getString();
         ArrayList<Table> tables = session.getDatabase().getAllTablesAndViews(true);
-        ArrayList<Table> tempTables = session.getLocalTempTables();
-        tables.addAll(tempTables);
+        tables.addAll(session.getLocalTempTables());
         for (Table table : tables) {
             if (table.isHidden()) {
                 continue;
@@ -83,8 +82,8 @@ public class Regclass extends Operation1 {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return arg.getSQL(builder, sqlFlags).append("::REGCLASS");
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        return arg.getSQL(builder, sqlFlags, AUTO_PARENTHESES).append("::REGCLASS");
     }
 
     @Override

@@ -313,14 +313,7 @@ public class CacheLongKeyLIRS<V> {
      * @return the entry set
      */
     public synchronized Set<Map.Entry<Long, V>> entrySet() {
-        HashMap<Long, V> map = new HashMap<>();
-        for (long k : keySet()) {
-            V value = peek(k);
-            if (value != null) {
-                map.put(k, value);
-            }
-        }
-        return map.entrySet();
+        return getMap().entrySet();
     }
 
     /**

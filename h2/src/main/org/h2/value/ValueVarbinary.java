@@ -12,7 +12,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 
 /**
- * Implementation of the VARBINARY data type.
+ * Implementation of the BINARY VARYING data type.
  */
 public final class ValueVarbinary extends ValueBytesBase {
 

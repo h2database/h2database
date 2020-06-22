@@ -809,7 +809,7 @@ public final class DateTimeFunctions {
      *            the field type, see {@link Function} for constants
      * @return the value
      */
-    private static int extractIntegerField(Session session, Value date, int field) {
+    public static int extractIntegerField(Session session, Value date, int field) {
         if (date instanceof ValueInterval) {
             ValueInterval interval = (ValueInterval) date;
             IntervalQualifier qualifier = interval.getQualifier();

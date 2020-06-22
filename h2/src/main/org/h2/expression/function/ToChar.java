@@ -546,54 +546,6 @@ public class ToChar {
         }
     }
 
-    private static String getTimeZoneHours(Session session, Value value) {
-        if(value instanceof ValueTimestampTimeZone) {
-            return printTimeZoneHoursFromOffsetSeconds(((ValueTimestampTimeZone) value).getTimeZoneOffsetSeconds());
-        } else if( value instanceof ValueTimeTimeZone) {
-            return printTimeZoneHoursFromOffsetSeconds( ((ValueTimeTimeZone)value).getTimeZoneOffsetSeconds());
-        } else {
-            TimeZoneProvider tz = session.currentTimeZone();
-            ValueTimestamp v = (ValueTimestamp) value.convertTo(TypeInfo.TYPE_TIMESTAMP, session);
-            return printTimeZoneHoursFromOffsetSeconds(tz.getTimeZoneOffsetLocal(v.getDateValue(), v.getTimeNanos()));
-        }
-    }
-
-    private static String getTimeZoneMinutes(Session session, Value value) {
-        if(value instanceof ValueTimestampTimeZone) {
-            return printTimeZoneMinutesFromOffsetSeconds(((ValueTimestampTimeZone) value).getTimeZoneOffsetSeconds());
-        } else if( value instanceof ValueTimeTimeZone) {
-            return printTimeZoneMinutesFromOffsetSeconds( ((ValueTimeTimeZone)value).getTimeZoneOffsetSeconds());
-        } else {
-            TimeZoneProvider tz = session.currentTimeZone();
-            ValueTimestamp v = (ValueTimestamp) value.convertTo(TypeInfo.TYPE_TIMESTAMP, session);
-            return printTimeZoneMinutesFromOffsetSeconds(tz.getTimeZoneOffsetLocal(v.getDateValue(), v.getTimeNanos()));
-        }
-    }
-
-    private static String printTimeZoneHoursFromOffsetSeconds(int offsetSeconds) {
-        StringBuilder b = new StringBuilder();
-        b.append( offsetSeconds < 0 ? '-' : '+');
-        offsetSeconds = Math.abs(offsetSeconds);
-        if(offsetSeconds == 0) {
-            b.append("00");
-        } else {
-            StringUtils.appendTwoDigits(b, offsetSeconds / 3_600);
-        }
-        return b.toString();
-    }
-
-    private static String printTimeZoneMinutesFromOffsetSeconds(int offsetSeconds) {
-        if(offsetSeconds == 0) {
-            return "00";
-        } else {
-            StringBuilder b = new StringBuilder();
-            offsetSeconds = Math.abs(offsetSeconds);
-            offsetSeconds %= 3_600;
-            StringUtils.appendTwoDigits(b, offsetSeconds / 60);
-            return b.toString();
-        }
-    }
-
     /**
      * Emulates Oracle's TO_CHAR(datetime) function.
      *
@@ -876,17 +828,32 @@ public class ToChar {
             } else if (containsAt(format, i, "TZD") != null) {
                 output.append(getTimeZone(session, value, true));
                 i += 3;
+            } else if (containsAt(format, i, "TZH") != null) {
+                String result;
+                int hours = DateTimeFunctions.extractIntegerField(session, value, DateTimeFunctions.TIMEZONE_HOUR);
+                StringBuilder b = new StringBuilder();
+                b.append( hours < 0 ? '-' : '+');
+                hours = Math.abs(hours);
+                if(hours == 0) {
+                    result = b.append("00").toString();
+                } else {
+                    result = StringUtils.appendTwoDigits(b, hours).toString();
+                }
+                output.append(result);
+                i += 3;
+
+            } else if (containsAt(format, i, "TZM") != null) {
+                String result;
+                int mins = Math.abs(DateTimeFunctions.extractIntegerField(session, value, DateTimeFunctions.TIMEZONE_MINUTE));
+                if(mins == 0) {
+                    result = "00";
+                } else {
+                    result = StringUtils.appendTwoDigits(new StringBuilder(), mins).toString();
+                }
+                output.append(result);
+                i += 3;
 
                 // Week
-
-            } else if(containsAt(format, i, "TZH") != null) {
-                output.append(getTimeZoneHours(session, value));
-                i += 3;
-
-            } else if(containsAt(format, i, "TZM") != null) {
-                output.append(getTimeZoneMinutes(session, value));
-                i += 3;
-
             } else if (containsAt(format, i, "WW") != null) {
                 StringUtils.appendTwoDigits(output, (DateTimeUtils.getDayOfYear(dateValue) - 1) / 7 + 1);
                 i += 2;

@@ -835,9 +835,17 @@ public class ToChar {
             } else if (containsAt(format, i, "TZD") != null) {
                 output.append(getTimeZone(session, value, true));
                 i += 3;
+            } else if (containsAt(format, i, "TZH") != null) {
+                int hours = DateTimeFunction.extractDateTime(session, value, DateTimeFunction.TIMEZONE_HOUR);
+                output.append( hours < 0 ? '-' : '+');
+                StringUtils.appendTwoDigits(output, Math.abs(hours));
+                i += 3;
+
+            } else if (containsAt(format, i, "TZM") != null) {
+                StringUtils.appendTwoDigits(output, Math.abs(DateTimeFunction.extractDateTime(session, value, DateTimeFunction.TIMEZONE_MINUTE)));
+                i += 3;
 
                 // Week
-
             } else if (containsAt(format, i, "WW") != null) {
                 StringUtils.appendTwoDigits(output, (DateTimeUtils.getDayOfYear(dateValue) - 1) / 7 + 1);
                 i += 2;

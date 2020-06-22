@@ -836,28 +836,23 @@ public class ToChar {
                 output.append(getTimeZone(session, value, true));
                 i += 3;
             } else if (containsAt(format, i, "TZH") != null) {
-                String result;
-                int hours = DateTimeFunctions.extractIntegerField(session, value, DateTimeFunctions.TIMEZONE_HOUR);
-                StringBuilder b = new StringBuilder();
-                b.append( hours < 0 ? '-' : '+');
+                int hours = DateTimeFunction.extractDateTime(session, value, DateTimeFunction.TIMEZONE_HOUR);
+                output.append( hours < 0 ? '-' : '+');
                 hours = Math.abs(hours);
-                if(hours == 0) {
-                    result = b.append("00").toString();
+                if (hours == 0) {
+                    output.append("00");
                 } else {
-                    result = StringUtils.appendTwoDigits(b, hours).toString();
+                  StringUtils.appendTwoDigits(output, hours);
                 }
-                output.append(result);
                 i += 3;
 
             } else if (containsAt(format, i, "TZM") != null) {
-                String result;
-                int mins = Math.abs(DateTimeFunctions.extractIntegerField(session, value, DateTimeFunctions.TIMEZONE_MINUTE));
-                if(mins == 0) {
-                    result = "00";
+                int mins = Math.abs(DateTimeFunction.extractDateTime(session, value, DateTimeFunction.TIMEZONE_MINUTE));
+                if (mins == 0) {
+                    output.append("00");
                 } else {
-                    result = StringUtils.appendTwoDigits(new StringBuilder(), mins).toString();
+                    StringUtils.appendTwoDigits(output, mins);
                 }
-                output.append(result);
                 i += 3;
 
                 // Week

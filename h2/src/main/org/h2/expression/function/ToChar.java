@@ -838,21 +838,11 @@ public class ToChar {
             } else if (containsAt(format, i, "TZH") != null) {
                 int hours = DateTimeFunction.extractDateTime(session, value, DateTimeFunction.TIMEZONE_HOUR);
                 output.append( hours < 0 ? '-' : '+');
-                hours = Math.abs(hours);
-                if (hours == 0) {
-                    output.append("00");
-                } else {
-                  StringUtils.appendTwoDigits(output, hours);
-                }
+                StringUtils.appendTwoDigits(output, Math.abs(hours));
                 i += 3;
 
             } else if (containsAt(format, i, "TZM") != null) {
-                int mins = Math.abs(DateTimeFunction.extractDateTime(session, value, DateTimeFunction.TIMEZONE_MINUTE));
-                if (mins == 0) {
-                    output.append("00");
-                } else {
-                    StringUtils.appendTwoDigits(output, mins);
-                }
+                StringUtils.appendTwoDigits(output, Math.abs(DateTimeFunction.extractDateTime(session, value, DateTimeFunction.TIMEZONE_MINUTE)));
                 i += 3;
 
                 // Week

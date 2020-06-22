@@ -6,6 +6,8 @@
 package org.h2.mvstore;
 
 import static org.h2.mvstore.MVMap.INITIAL_VERSION;
+import static org.h2.mvstore.MVStore.META_ID_KEY;
+import org.h2.mvstore.type.StringDataType;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -15,9 +17,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -54,6 +60,9 @@ public abstract class FileStore
     static final int BLOCK_SIZE = 4 * 1024;
     static final int FORMAT_WRITE = 1;
     static final int FORMAT_READ = 1;
+
+    private MVStore mvStore;
+
     /**
      * The number of read operations.
      */
@@ -106,13 +115,20 @@ public abstract class FileStore
 
     private final Queue<WriteBuffer> writeBufferPool = new ArrayBlockingQueue<>(MVStore.PIPE_LENGTH + 1);
 
+    /**
+     * The layout map. Contains chunks metadata and root locations for all maps.
+     * This is relatively fast changing part of metadata
+     */
+    private MVMap<String, String> layout;
 
 
 
     public FileStore() {
     }
 
-    public void open(String fileName, boolean readOnly, char[] encryptionKey, ConcurrentHashMap<Integer, Chunk> chunks) {
+
+    public void open(String fileName, boolean readOnly, char[] encryptionKey,
+                     MVStore mvStore, ConcurrentHashMap<Integer, Chunk> chunks) {
         open(fileName, readOnly,
                 encryptionKey == null ? null
                         : fileChannel -> new FileEncrypt(fileName, FilePathEncrypt.getPasswordBytes(encryptionKey),
@@ -135,10 +151,168 @@ public abstract class FileStore
         FilePathCache.INSTANCE.getScheme();
         this.fileName = fileName;
         this.readOnly = readOnly;
-        setChunks(chunks);
+        bind(mvStore, chunks);
+        scrubLayoutMap();
     }
 
-    public void setChunks(ConcurrentHashMap<Integer, Chunk> chunks) {
+    public int getMetaMapId() {
+        String metaIdStr = layout.get(META_ID_KEY);
+        int metaId;
+        if (metaIdStr == null) {
+            metaId = mvStore.getNextMapId();
+            layout.put(META_ID_KEY, Integer.toHexString(metaId));
+        } else {
+            metaId = DataUtils.parseHexInt(metaIdStr);
+        }
+        return metaId;
+    }
+
+    /**
+     * Get this store's layout map. This data is for informational purposes only. The
+     * data is subject to change in future versions.
+     * <p>
+     * The data in this map should not be modified (changing system data may corrupt the store).
+     * <p>
+     * The layout map contains the following entries:
+     * <pre>
+     * chunk.{chunkId} = {chunk metadata}
+     * root.{mapId} = {root position}
+     * </pre>
+     *
+     * @return the metadata map
+     */
+    public MVMap<String, String> getLayoutMap() {
+        return layout;
+    }
+
+    public long getRootPos(int mapId) {
+        String root = layout.get(MVMap.getMapRootKey(mapId));
+        return root == null ? 0 : DataUtils.parseHexLong(root);
+    }
+
+    /**
+     * Performs final stage of map removal - delete root location info from the layout table.
+     * Map is supposedly closed and anonymous and has no outstanding usage by now.
+     *
+     * @param mapId to deregister
+     */
+    public boolean deregisterMapRoot(int mapId) {
+        return layout.remove(MVMap.getMapRootKey(mapId)) != null;
+    }
+
+    /**
+     * Check whether all data can be read from this version. This requires that
+     * all chunks referenced by this version are still available (not
+     * overwritten).
+     *
+     * @param version the version
+     * @return true if all data can be read
+     */
+    public boolean isKnownVersion(long version) {
+        if (chunks.isEmpty()) {
+            // no stored data
+            return true;
+        }
+        // need to check if a chunk for this version exists
+        Chunk c = getChunkForVersion(version);
+        if (c == null) {
+            return false;
+        }
+        try {
+            // also, all chunks referenced by this version
+            // need to be available in the file
+            MVMap<String, String> oldLayoutMap = getLayoutMap(version);
+            for (Chunk chunk : getChunksFromLayoutMap(oldLayoutMap)) {
+                String chunkKey = Chunk.getMetaKey(chunk.id);
+                // if current layout map does not have it - verify it's existence
+                if (!layout.containsKey(chunkKey) && !isValidChunk(chunk)) {
+                    return false;
+                }
+            }
+        } catch (MVStoreException e) {
+            // the chunk missing where the metadata is stored
+            return false;
+        }
+        return true;
+    }
+
+    public void setWriteVersion(long version) {
+        layout.setWriteVersion(version);
+    }
+
+    public void rollbackTo(long version) {
+        if (version == 0) {
+            // special case: remove all data
+            layout.setInitialRoot(layout.createEmptyLeaf(), INITIAL_VERSION);
+        } else {
+            layout.rollbackTo(version);
+        }
+    }
+
+    private MVMap<String, String> getLayoutMap(long version) {
+        Chunk chunk = getChunkForVersion(version);
+        DataUtils.checkArgument(chunk != null, "Unknown version {0}", version);
+        return layout.openReadOnly(chunk.layoutRootPos, version);
+    }
+
+    private Chunk getChunkForVersion(long version) {
+        Chunk newest = null;
+        for (Chunk c : chunks.values()) {
+            if (c.version <= version) {
+                if (newest == null || c.id > newest.id) {
+                    newest = c;
+                }
+            }
+        }
+        return newest;
+    }
+
+    /**
+     * Check whether there are any unsaved changes since specified version.
+     *
+     * @return if there are any changes
+     */
+    public boolean hasChangesSince(long lastStoredVersion) {
+        return layout.hasChangesSince(lastStoredVersion) && lastStoredVersion > INITIAL_VERSION;
+    }
+
+    private void scrubLayoutMap() {
+        MVMap<String, String> meta = mvStore.getMetaMap();
+        Set<String> keysToRemove = new HashSet<>();
+
+        // split meta map off layout map
+        for (String prefix : new String[]{ DataUtils.META_NAME, DataUtils.META_MAP }) {
+            for (Iterator<String> it = layout.keyIterator(prefix); it.hasNext(); ) {
+                String key = it.next();
+                if (!key.startsWith(prefix)) {
+                    break;
+                }
+                meta.putIfAbsent(key, layout.get(key));
+                mvStore.markMetaChanged();
+                keysToRemove.add(key);
+            }
+        }
+
+        // remove roots of non-existent maps (leftover after unfinished map removal)
+        for (Iterator<String> it = layout.keyIterator(DataUtils.META_ROOT); it.hasNext();) {
+            String key = it.next();
+            if (!key.startsWith(DataUtils.META_ROOT)) {
+                break;
+            }
+            String mapIdStr = key.substring(key.lastIndexOf('.') + 1);
+            if(!meta.containsKey(DataUtils.META_MAP + mapIdStr) && DataUtils.parseHexInt(mapIdStr) != meta.getId()) {
+                keysToRemove.add(key);
+            }
+        }
+
+        for (String key : keysToRemove) {
+            layout.remove(key);
+        }
+    }
+
+    public void bind(MVStore mvStore, ConcurrentHashMap<Integer, Chunk> chunks) {
+        layout = new MVMap<>(mvStore, 0, StringDataType.INSTANCE, StringDataType.INSTANCE);
+        this.mvStore = mvStore;
         this.chunks = chunks;
     }
 
@@ -166,9 +340,10 @@ public abstract class FileStore
      */
     public abstract ByteBuffer readFully(long pos, int len);
 
-    public abstract void allocateChunkSpace(Chunk c, WriteBuffer buff);
+    protected abstract void allocateChunkSpace(Chunk c, WriteBuffer buff);
 
     public void storeBuffer(Chunk c, WriteBuffer buff) {
+        allocateChunkSpace(c, buff);
         saveChunkLock.lock();
         try {
             buff.position(0);
@@ -243,7 +418,7 @@ public abstract class FileStore
         writeStoreHeader();
     }
 
-    public void writeStoreHeader() {
+    protected void writeStoreHeader() {
         StringBuilder buff = new StringBuilder(112);
         if (hasPersitentData()) {
             storeHeader.put(HDR_BLOCK, lastChunk.block);
@@ -298,7 +473,7 @@ public abstract class FileStore
         free(start, length);
     }
 
-    public boolean validateFileLength(String msg) {
+    protected boolean validateFileLength(String msg) {
         assert saveChunkLock.isHeldByCurrentThread();
         assert getFileLengthInUse() == measureFileLengthInUse() :
                 getFileLengthInUse() + " != " + measureFileLengthInUse() + " " + msg;
@@ -322,7 +497,7 @@ public abstract class FileStore
      *
      * @param minPercent the minimum percentage to save
      */
-    public void shrinkStoreIfPossible(int minPercent) {
+    protected void shrinkStoreIfPossible(int minPercent) {
         assert saveChunkLock.isHeldByCurrentThread();
         long result = getFileLengthInUse();
         assert result == measureFileLengthInUse() : result + " != " + measureFileLengthInUse();
@@ -356,16 +531,16 @@ public abstract class FileStore
     protected abstract boolean compactMoveChunks(long moveSize, MVStore mvStore);
 
 
-    public void readStoreHeader(MVStore mvStore, boolean recoveryMode) {
+    public void readStoreHeader(boolean recoveryMode) {
         saveChunkLock.lock();
         try {
-            _readStoreHeader(mvStore, recoveryMode);
+            _readStoreHeader(recoveryMode);
         } finally {
             saveChunkLock.unlock();
         }
     }
 
-    public void _readStoreHeader(MVStore mvStore, boolean recoveryMode) {
+    private void _readStoreHeader(boolean recoveryMode) {
         Chunk newest = null;
         boolean assumeCleanShutdown = true;
         boolean validStoreHeader = false;
@@ -504,7 +679,7 @@ public abstract class FileStore
                 mvStore.setLastChunk(newest);
                 // load the chunk metadata: although meta's root page resides in the lastChunk,
                 // traversing meta map might recursively load another chunk(s)
-                for (Chunk c : mvStore.getChunksFromLayoutMap()) {
+                for (Chunk c : getChunksFromLayoutMap()) {
                     // might be there already, due to meta traversal
                     // see readPage() ... getChunkIfFound()
                     chunksToVerify.offer(c);
@@ -640,7 +815,7 @@ public abstract class FileStore
                 mvStore.setLastChunk(chunk);
                 // load the chunk metadata: although meta's root page resides in the lastChunk,
                 // traversing meta map might recursively load another chunk(s)
-                for (Chunk c : mvStore.getChunksFromLayoutMap()) {
+                for (Chunk c : getChunksFromLayoutMap()) {
                     Chunk test;
                     if ((test = validChunksByLocation.get(c.block)) == null || test.id != c.id) {
                         if ((test = validChunksById.get(c.id)) != null) {
@@ -684,7 +859,7 @@ public abstract class FileStore
         return false;
     }
 
-    public Chunk readChunkHeader(long block) {
+    private Chunk readChunkHeader(long block) {
         long p = block * FileStore.BLOCK_SIZE;
         ByteBuffer buff = readFully(p, Chunk.MAX_HEADER_LENGTH);
         Chunk chunk = Chunk.readChunkHeader(buff, p);
@@ -697,6 +872,45 @@ public abstract class FileStore
         }
         return chunk;
     }
+
+    private Iterable<Chunk> getChunksFromLayoutMap() {
+        return getChunksFromLayoutMap(layout);
+    }
+
+    private Iterable<Chunk> getChunksFromLayoutMap(MVMap<String, String> layoutMap) {
+        return () -> new Iterator<Chunk>() {
+            private final Cursor<String, String> cursor = layoutMap.cursor(DataUtils.META_CHUNK);
+            private Chunk nextChunk;
+
+            @Override
+            public boolean hasNext() {
+                if(nextChunk == null && cursor.hasNext()) {
+                    if (cursor.next().startsWith(DataUtils.META_CHUNK)) {
+                        nextChunk = Chunk.fromString(cursor.getValue());
+                        // might be there already, due to layout traversal
+                        // see readPage() ... getChunkIfFound(),
+                        // then take existing one instead
+                        Chunk existingChunk = chunks.putIfAbsent(nextChunk.id, nextChunk);
+                        if (existingChunk != null) {
+                            nextChunk = existingChunk;
+                        }
+                    }
+                }
+                return nextChunk != null;
+            }
+
+            @Override
+            public Chunk next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
+                Chunk chunk = nextChunk;
+                nextChunk = null;
+                return chunk;
+            }
+        };
+    }
+
 
     /**
      * Read a chunk header and footer, and verify the stored data is consistent.
@@ -747,7 +961,7 @@ public abstract class FileStore
      * @param block the index of the next block after the chunk
      * @return the chunk, or null if not successful
      */
-    public Chunk readChunkFooter(long block) {
+    private Chunk readChunkFooter(long block) {
         // the following can fail for various reasons
         try {
             // read the chunk footer of the last block of the file
@@ -811,7 +1025,7 @@ public abstract class FileStore
      * @param pos the write "position"
      * @param src the source buffer
      */
-    public abstract void writeFully(long pos, ByteBuffer src);
+    protected abstract void writeFully(long pos, ByteBuffer src);
 
     public void sync() {}
 
@@ -942,28 +1156,6 @@ public abstract class FileStore
     public abstract void markUsed(long pos, int length);
 
     /**
-     * Allocate a number of blocks and mark them as used.
-     *
-     * @param length the number of bytes to allocate
-     * @param reservedLow start block index of the reserved area (inclusive)
-     * @param reservedHigh end block index of the reserved area (exclusive),
-     *                     special value -1 means beginning of the infinite free area
-     * @return the start position in bytes
-     */
-    abstract long allocate(int length, long reservedLow, long reservedHigh);
-
-    /**
-     * Calculate starting position of the prospective allocation.
-     *
-     * @param blocks the number of blocks to allocate
-     * @param reservedLow start block index of the reserved area (inclusive)
-     * @param reservedHigh end block index of the reserved area (exclusive),
-     *                     special value -1 means beginning of the infinite free area
-     * @return the starting block index
-     */
-    abstract long predictAllocation(int blocks, long reservedLow, long reservedHigh);
-
-    /**
      * Mark the space as free.
      *
      * @param pos the position in bytes
@@ -975,7 +1167,7 @@ public abstract class FileStore
 
     public abstract void backup(ZipOutputStream out) throws IOException;
 
-    public void rollback(Chunk keep, ArrayList<Chunk> remove, MVStore mvStore) {
+    public void rollback(Chunk keep, ArrayList<Chunk> remove) {
         // remove the youngest first, so we don't create gaps
         // (in case we remove many chunks)
         remove.sort(Comparator.<Chunk>comparingLong(o -> o.version).reversed());
@@ -1007,7 +1199,7 @@ public abstract class FileStore
             }
             lastChunk = keep;
             writeStoreHeader();
-            readStoreHeader(mvStore, false);
+            readStoreHeader(false);
         } finally {
             saveChunkLock.unlock();
         }

@@ -40,6 +40,7 @@ public abstract class RandomAccessStore extends FileStore {
 
 
     public RandomAccessStore() {
+        super();
     }
 
     /**
@@ -61,7 +62,7 @@ public abstract class RandomAccessStore extends FileStore {
      *                     special value -1 means beginning of the infinite free area
      * @return the start position in bytes
      */
-    long allocate(int length, long reservedLow, long reservedHigh) {
+    private long allocate(int length, long reservedLow, long reservedHigh) {
         return freeSpace.allocate(length, reservedLow, reservedHigh);
     }
 
@@ -74,7 +75,7 @@ public abstract class RandomAccessStore extends FileStore {
      *                     special value -1 means beginning of the infinite free area
      * @return the starting block index
      */
-    long predictAllocation(int blocks, long reservedLow, long reservedHigh) {
+    private long predictAllocation(int blocks, long reservedLow, long reservedHigh) {
         return freeSpace.predictAllocation(blocks, reservedLow, reservedHigh);
     }
 
@@ -130,7 +131,7 @@ public abstract class RandomAccessStore extends FileStore {
         return freeSpace.getLastFree();
     }
 
-    public void allocateChunkSpace(Chunk c, WriteBuffer buff) {
+    protected void allocateChunkSpace(Chunk c, WriteBuffer buff) {
         saveChunkLock.lock();
         try {
             int headerLength = (int)c.next;
@@ -144,8 +145,8 @@ public abstract class RandomAccessStore extends FileStore {
                 // just after this chunk
                 c.next = 0;
             }
-            assert c.pageCountLive == c.pageCount : c;
-            assert c.occupancy.cardinality() == 0 : c;
+//            assert c.pageCountLive == c.pageCount : c;
+//            assert c.occupancy.cardinality() == 0 : c;
 
             buff.position(0);
             c.writeChunkHeader(buff, headerLength);

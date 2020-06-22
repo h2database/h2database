@@ -154,9 +154,10 @@ public class TestMVStore extends TestBase {
         FileStore fileStore = new OffHeapStore() {
 
             @Override
-            public void open(String fileName, boolean readOnly, char[] encryptionKey, ConcurrentHashMap<Integer, Chunk> chunks) {
+            public void open(String fileName, boolean readOnly, char[] encryptionKey,
+                             MVStore mvStore, ConcurrentHashMap<Integer, Chunk> chunks) {
                 openClose.incrementAndGet();
-                super.open(fileName, readOnly, encryptionKey, chunks);
+                super.open(fileName, readOnly, encryptionKey, mvStore, chunks);
             }
 
             @Override

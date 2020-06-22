@@ -522,7 +522,7 @@ public final class Chunk {
      *         removed, and false otherwise
      */
     boolean accountForRemovedPage(int pageNo, int pageLength, boolean pinned, long now, long version) {
-        assert isSaved() : this;
+        assert buffer != null || isSaved() : this;
         // legacy chunks do not have a table of content,
         // therefore pageNo is not valid, skip
         if (tocPos > 0) {
@@ -558,7 +558,7 @@ public final class Chunk {
 
     @Override
     public String toString() {
-        return asString();
+        return asString() + (buffer == null ? "" : ", buf");
     }
 
 

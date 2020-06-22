@@ -45,6 +45,11 @@ public class SingleFileStore extends RandomAccessStore {
      */
     private FileLock fileLock;
 
+
+    public SingleFileStore() {
+        super();
+    }
+
     @Override
     public String toString() {
         return getFileName();
@@ -89,7 +94,8 @@ public class SingleFileStore extends RandomAccessStore {
      *            used
      */
     @Override
-    public void open(String fileName, boolean readOnly, char[] encryptionKey, ConcurrentHashMap<Integer, Chunk> chunks) {
+    public void open(String fileName, boolean readOnly, char[] encryptionKey,
+                     MVStore mvStore, ConcurrentHashMap<Integer, Chunk> chunks) {
         if (file != null && file.isOpen()) {
             return;
         }
@@ -104,7 +110,7 @@ public class SingleFileStore extends RandomAccessStore {
         if (f.exists() && !f.canWrite()) {
             readOnly = true;
         }
-        super.open(fileName, readOnly, encryptionKey, chunks);
+        super.open(fileName, readOnly, encryptionKey, mvStore, chunks);
         try {
             file = f.open(readOnly ? "r" : "rw");
             if (encryptionKey != null) {

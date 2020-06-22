@@ -20,9 +20,13 @@ public class OffHeapStore extends RandomAccessStore {
 
     private final TreeMap<Long, ByteBuffer> memory = new TreeMap<>();
 
+    public OffHeapStore() {
+        super();
+    }
 
     @Override
-    public void open(String fileName, boolean readOnly, char[] encryptionKey, ConcurrentHashMap<Integer, Chunk> chunks) {
+    public void open(String fileName, boolean readOnly, char[] encryptionKey,
+                     MVStore mvStore, ConcurrentHashMap<Integer, Chunk> chunks) {
         memory.clear();
     }
 

@@ -52,10 +52,12 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
         LongDBDataType keyType = new LongDBDataType();
         RowDataType valueType = table.getRowFactory().getRowDataType();
         mapName = "table." + getId();
-        assert db.isStarting() || !db.getStore().getMvStore().getMetaMap().containsKey(DataUtils.META_NAME + mapName);
         Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(mapName, keyType, valueType);
         dataMap.map.setVolatile(!table.isPersistData() || !indexType.isPersistent());
+        if (!db.isStarting()) {
+            dataMap.clear();
+        }
         t.commit();
         Long k = dataMap.map.lastKey();    // include uncommitted keys as well
         lastKey.set(k == null ? 0 : k);

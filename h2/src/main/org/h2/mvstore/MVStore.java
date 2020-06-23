@@ -3920,6 +3920,10 @@ public class MVStore implements AutoCloseable {
             return set("readOnly", 1);
         }
 
+        public Builder keysPerPage(int keyCount) {
+            return set("keysPerPage", keyCount);
+        }
+
         /**
          * Open the file in recovery mode, where some errors may be ignored.
          *

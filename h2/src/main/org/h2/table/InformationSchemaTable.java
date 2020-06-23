@@ -158,17 +158,11 @@ public final class InformationSchemaTable extends MetaTable {
 
     private static final int USERS = SYNONYMS + 1;
 
-    private static final int META_TABLE_TYPE_COUNT = USERS + 1;
-
     /**
-     * Get the number of meta table types. Supported meta table
-     * types are 0 .. this value - 1.
-     *
-     * @return the number of meta table types
+     * The number of meta table types. Supported meta table types are
+     * {@code 0..META_TABLE_TYPE_COUNT - 1}.
      */
-    public static int getMetaTableTypeCount() {
-        return META_TABLE_TYPE_COUNT;
-    }
+    public static final int META_TABLE_TYPE_COUNT = USERS + 1;
 
     private final boolean isView;
 

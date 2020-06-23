@@ -901,19 +901,18 @@ public class Database implements DataHandler, CastDataProvider {
         synchronized (infoSchema) {
             if (!metaTablesInitialized) {
                 if (dbSettings.oldInformationSchema) {
-                    for (int type = 0, count = InformationSchemaTableLegacy.getMetaTableTypeCount(); type < count;
-                            type++) {
+                    for (int type = 0; type < InformationSchemaTableLegacy.META_TABLE_TYPE_COUNT; type++) {
                         infoSchema.add(new InformationSchemaTableLegacy(infoSchema,
                                 Constants.INFORMATION_SCHEMA_ID - type, type));
                     }
                 } else {
-                    for (int type = 0, count = InformationSchemaTable.getMetaTableTypeCount(); type < count; type++) {
+                    for (int type = 0; type < InformationSchemaTable.META_TABLE_TYPE_COUNT; type++) {
                         infoSchema.add(new InformationSchemaTable(infoSchema, Constants.INFORMATION_SCHEMA_ID - type,
                                 type));
                     }
                 }
                 if (pgCatalogSchema != null) {
-                    for (int type = 0, count = PgCatalogTable.getMetaTableTypeCount(); type < count; type++) {
+                    for (int type = 0; type < PgCatalogTable.META_TABLE_TYPE_COUNT; type++) {
                         pgCatalogSchema.add(new PgCatalogTable(pgCatalogSchema, Constants.PG_CATALOG_SCHEMA_ID - type,
                                 type));
                     }

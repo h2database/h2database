@@ -1002,14 +1002,14 @@ public final class InformationSchemaTable extends MetaTable {
 
     private void collations(Session session, ArrayList<Row> rows, String catalog) {
         String mainSchemaName = database.getMainSchema().getName();
-        generateCollationRow(session, rows, catalog, mainSchemaName, "OFF", null);
+        collations(session, rows, catalog, mainSchemaName, "OFF", null);
         for (Locale l : Collator.getAvailableLocales()) {
-            generateCollationRow(session, rows, catalog, mainSchemaName, CompareMode.getName(l), l.toLanguageTag());
+            collations(session, rows, catalog, mainSchemaName, CompareMode.getName(l), l.toLanguageTag());
         }
     }
 
-    private void generateCollationRow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
-            String name, String languageTag) {
+    private void collations(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName, String name,
+            String languageTag) {
         if ("und".equals(languageTag)) {
             languageTag = null;
         }
@@ -1054,13 +1054,13 @@ public final class InformationSchemaTable extends MetaTable {
             Column[] cols = table.getColumns();
             for (int j = 0; j < cols.length; j++) {
                 Column c = cols[j];
-                generateColumnRow(session, rows, catalog, mainSchemaName, collation, table, tableName, j + 1, c);
+                columns(session, rows, catalog, mainSchemaName, collation, table, tableName, j + 1, c);
             }
         }
     }
 
-    private void generateColumnRow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
-            String collation, Table table, String tableName, int ordinalPosition, Column c) {
+    private void columns(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName, String collation,
+            Table table, String tableName, int ordinalPosition, Column c) {
         TypeInfo typeInfo = c.getType();
         DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
         String fullTypeName = c.getOriginalSQL();
@@ -1377,7 +1377,7 @@ public final class InformationSchemaTable extends MetaTable {
                         table);
             }
             for (Domain domain : schema.getAllDomains()) {
-                generateElementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, schemaName,
+                elementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, schemaName,
                         domain.getName(), "DOMAIN", "TYPE", domain.getColumn().getType());
             }
             for (FunctionAlias alias : schema.getAllFunctionAliases()) {
@@ -1393,19 +1393,19 @@ public final class InformationSchemaTable extends MetaTable {
                     TypeInfo typeInfo = method.getDataType();
                     String specificName = name + '_' + (i + 1);
                     if (typeInfo.getValueType() != Value.NULL) {
-                        generateElementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation,
+                        elementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation,
                                 schemaName, specificName, "ROUTINE", "RESULT", typeInfo);
                     }
                     Class<?>[] columnList = method.getColumnClasses();
                     for (int o = 1, p = method.hasConnectionParam() ? 1 : 0, n = columnList.length; p < n; o++, p++) {
-                        generateElementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation,
+                        elementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation,
                                 schemaName, specificName, "ROUTINE", Integer.toString(o),
                                 ValueToObjectConverter2.classToType(columnList[p]));
                     }
                 }
             }
             for (Constant constant : schema.getAllConstants()) {
-                generateElementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, schemaName,
+                elementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, schemaName,
                         constant.getName(), "CONSTANT", "TYPE", constant.getValue().getType());
             }
         }
@@ -1424,12 +1424,12 @@ public final class InformationSchemaTable extends MetaTable {
         String tableName = table.getName();
         Column[] cols = table.getColumns();
         for (int i = 0; i < cols.length; i++) {
-            generateElementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, schemaName,
+            elementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, schemaName,
                     tableName, "TABLE", Integer.toString(i + 1), cols[i].getType());
         }
     }
 
-    private void generateElementTypesFieldsRow(Session session, ArrayList<Row> rows, String catalog, boolean fields,
+    private void elementTypesFieldsRow(Session session, ArrayList<Row> rows, String catalog, boolean fields,
             String mainSchemaName, String collation, String objectSchema, String objectName, String objectType,
             String identifier, TypeInfo typeInfo) {
         switch (typeInfo.getValueType()) {
@@ -1437,10 +1437,10 @@ public final class InformationSchemaTable extends MetaTable {
             typeInfo = (TypeInfo) typeInfo.getExtTypeInfo();
             String dtdIdentifier = identifier + '_';
             if (!fields) {
-                generateElementTypesRow(session, rows, catalog, mainSchemaName, collation, objectSchema, objectName,
+                elementTypes(session, rows, catalog, mainSchemaName, collation, objectSchema, objectName,
                         objectType, identifier, dtdIdentifier, typeInfo);
             }
-            generateElementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, objectSchema,
+            elementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, objectSchema,
                     objectName, objectType, dtdIdentifier, typeInfo);
             break;
         }
@@ -1452,17 +1452,17 @@ public final class InformationSchemaTable extends MetaTable {
                 String fieldName = entry.getKey();
                 String dtdIdentifier = identifier + '_' + ++ordinalPosition;
                 if (fields) {
-                    generateFieldsRow(session, rows, catalog, mainSchemaName, collation, objectSchema, objectName,
+                    fields(session, rows, catalog, mainSchemaName, collation, objectSchema, objectName,
                             objectType, identifier, fieldName, ordinalPosition, dtdIdentifier, typeInfo);
                 }
-                generateElementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, objectSchema,
+                elementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, objectSchema,
                         objectName, objectType, dtdIdentifier, typeInfo);
             }
         }
         }
     }
 
-    private void generateElementTypesRow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+    private void elementTypes(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
             String collation, String objectSchema, String objectName, String objectType, String collectionIdentifier,
             String dtdIdentifier, TypeInfo typeInfo) {
         DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
@@ -1534,9 +1534,9 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void generateFieldsRow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
-            String collation, String objectSchema, String objectName, String objectType, String rowIdentifier,
-            String fieldName, int ordinalPosition, String dtdIdentifier, TypeInfo typeInfo) {
+    private void fields(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName, String collation,
+            String objectSchema, String objectName, String objectType, String rowIdentifier, String fieldName,
+            int ordinalPosition, String dtdIdentifier, TypeInfo typeInfo) {
         DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
         String characterSetCatalog, characterSetSchema, characterSetName, collationName;
         if (dt.hasCharsetAndCollation) {
@@ -1691,7 +1691,7 @@ public final class InformationSchemaTable extends MetaTable {
                 FunctionAlias.JavaMethod method = methods[i];
                 Class<?>[] columnList = method.getColumnClasses();
                 for (int o = 1, p = method.hasConnectionParam() ? 1 : 0, n = columnList.length; p < n; o++, p++) {
-                    generateParameterRow(session, rows, catalog, mainSchemaName, collation, schema,
+                    parameters(session, rows, catalog, mainSchemaName, collation, schema,
                             alias.getName() + '_' + (i + 1), ValueToObjectConverter2.classToType(columnList[p]), //
                             o);
                 }
@@ -1699,7 +1699,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void generateParameterRow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+    private void parameters(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
             String collation, String schema, String specificName, TypeInfo typeInfo, int pos) {
         DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
         String characterSetCatalog, characterSetSchema, characterSetName, collationName;
@@ -1838,7 +1838,7 @@ public final class InformationSchemaTable extends MetaTable {
                     } else {
                         routineType = "FUNCTION";
                     }
-                    generateRoutineRow(session, rows, catalog, mainSchemaName, collation, schemaName, name,
+                    routines(session, rows, catalog, mainSchemaName, collation, schemaName, name,
                             name + '_' + (i + 1), routineType, admin ? alias.getSource() : null,
                             alias.getJavaClassName() + '.' + alias.getJavaMethodName(), typeInfo,
                             alias.isDeterministic(), alias.getComment(), alias.getId());
@@ -1846,14 +1846,14 @@ public final class InformationSchemaTable extends MetaTable {
             }
             for (UserAggregate agg : schema.getAllAggregates()) {
                 String name = agg.getName();
-                generateRoutineRow(session, rows, catalog, mainSchemaName, collation, schemaName, name, name,
+                routines(session, rows, catalog, mainSchemaName, collation, schemaName, name, name,
                         "AGGREGATE", null, agg.getJavaClassName(), TypeInfo.TYPE_NULL, false, agg.getComment(),
                         agg.getId());
             }
         }
     }
 
-    private void generateRoutineRow(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+    private void routines(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName, //
             String collation, String schema, String name, String specificName, String routineType, String definition,
             String externalName, TypeInfo typeInfo, boolean deterministic, String remarks, int id) {
         DataTypeInformation dt = typeInfo != null ? DataTypeInformation.valueOf(typeInfo) : DataTypeInformation.NULL;
@@ -2417,22 +2417,27 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     private void locks(Session session, ArrayList<Row> rows) {
-        boolean admin = session.getUser().isAdmin();
-        for (Session s : database.getSessions(false)) {
-            if (admin || s == session) {
-                for (Table table : s.getLocks()) {
-                    add(session, rows,
-                            // TABLE_SCHEMA
-                            table.getSchema().getName(),
-                            // TABLE_NAME
-                            table.getName(),
-                            // SESSION_ID
-                            ValueInteger.get(s.getId()),
-                            // LOCK_TYPE
-                            table.isLockedExclusivelyBy(s) ? "WRITE" : "READ"
-                    );
-                }
+        if (session.getUser().isAdmin()) {
+            for (Session s : database.getSessions(false)) {
+                locks(session, rows, s);
             }
+        } else {
+            locks(session, rows, session);
+        }
+    }
+
+    private void locks(Session session, ArrayList<Row> rows, Session sessionWithLocks) {
+        for (Table table : sessionWithLocks.getLocks()) {
+            add(session, rows,
+                    // TABLE_SCHEMA
+                    table.getSchema().getName(),
+                    // TABLE_NAME
+                    table.getName(),
+                    // SESSION_ID
+                    ValueInteger.get(sessionWithLocks.getId()),
+                    // LOCK_TYPE
+                    table.isLockedExclusivelyBy(sessionWithLocks) ? "WRITE" : "READ"
+            );
         }
     }
 
@@ -2549,42 +2554,47 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     private void sessions(Session session, ArrayList<Row> rows) {
-        boolean admin = session.getUser().isAdmin();
-        for (Session s : database.getSessions(false)) {
-            if (admin || s == session) {
-                NetworkConnectionInfo networkConnectionInfo = s.getNetworkConnectionInfo();
-                Command command = s.getCurrentCommand();
-                int blockingSessionId = s.getBlockingSessionId();
-                add(session, rows,
-                        // ID
-                        ValueInteger.get(s.getId()),
-                        // USER_NAME
-                        s.getUser().getName(),
-                        // SERVER
-                        networkConnectionInfo == null ? null : networkConnectionInfo.getServer(),
-                        // CLIENT_ADDR
-                        networkConnectionInfo == null ? null : networkConnectionInfo.getClient(),
-                        // CLIENT_INFO
-                        networkConnectionInfo == null ? null : networkConnectionInfo.getClientInfo(),
-                        // SESSION_START
-                        s.getSessionStart(),
-                        // ISOLATION_LEVEL
-                        session.getIsolationLevel().getSQL(),
-                        // STATEMENT
-                        command == null ? null : command.toString(),
-                        // STATEMENT_START
-                        command == null ? null : s.getCommandStartOrEnd(),
-                        // CONTAINS_UNCOMMITTED
-                        ValueBoolean.get(s.containsUncommitted()),
-                        // STATE
-                        String.valueOf(s.getState()),
-                        // BLOCKER_ID
-                        blockingSessionId == 0 ? null : ValueInteger.get(blockingSessionId),
-                        // SLEEP_SINCE
-                        s.getState() == State.SLEEP ? s.getCommandStartOrEnd() : null
-                );
+        if (session.getUser().isAdmin()) {
+            for (Session s : database.getSessions(false)) {
+                sessions(session, rows, s);
             }
+        } else {
+            sessions(session, rows, session);
         }
+    }
+
+    private void sessions(Session session, ArrayList<Row> rows, Session s) {
+        NetworkConnectionInfo networkConnectionInfo = s.getNetworkConnectionInfo();
+        Command command = s.getCurrentCommand();
+        int blockingSessionId = s.getBlockingSessionId();
+        add(session, rows,
+                // ID
+                ValueInteger.get(s.getId()),
+                // USER_NAME
+                s.getUser().getName(),
+                // SERVER
+                networkConnectionInfo == null ? null : networkConnectionInfo.getServer(),
+                // CLIENT_ADDR
+                networkConnectionInfo == null ? null : networkConnectionInfo.getClient(),
+                // CLIENT_INFO
+                networkConnectionInfo == null ? null : networkConnectionInfo.getClientInfo(),
+                // SESSION_START
+                s.getSessionStart(),
+                // ISOLATION_LEVEL
+                session.getIsolationLevel().getSQL(),
+                // STATEMENT
+                command == null ? null : command.toString(),
+                // STATEMENT_START
+                command == null ? null : s.getCommandStartOrEnd(),
+                // CONTAINS_UNCOMMITTED
+                ValueBoolean.get(s.containsUncommitted()),
+                // STATE
+                String.valueOf(s.getState()),
+                // BLOCKER_ID
+                blockingSessionId == 0 ? null : ValueInteger.get(blockingSessionId),
+                // SLEEP_SINCE
+                s.getState() == State.SLEEP ? s.getCommandStartOrEnd() : null
+        );
     }
 
     private void sessionState(Session session, ArrayList<Row> rows) {
@@ -2775,21 +2785,27 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     private void users(Session session, ArrayList<Row> rows) {
-        boolean admin = session.getUser().isAdmin();
-        for (User u : database.getAllUsers()) {
-            if (admin || session.getUser() == u) {
-                add(session, rows,
-                        // NAME
-                        identifier(u.getName()),
-                        // ADMIN
-                        String.valueOf(u.isAdmin()),
-                        // REMARKS
-                        u.getComment(),
-                        // ID
-                        ValueInteger.get(u.getId())
-                );
+        User currentUser = session.getUser();
+        if (currentUser.isAdmin()) {
+            for (User u : database.getAllUsers()) {
+                users(session, rows, u);
             }
+        } else {
+            users(session, rows, currentUser);
         }
+    }
+
+    private void users(Session session, ArrayList<Row> rows, User user) {
+        add(session, rows,
+                // NAME
+                identifier(user.getName()),
+                // ADMIN
+                String.valueOf(user.isAdmin()),
+                // REMARKS
+                user.getComment(),
+                // ID
+                ValueInteger.get(user.getId())
+        );
     }
 
     private void addConstraintColumnUsage(Session session, ArrayList<Row> rows, String catalog, Constraint constraint,

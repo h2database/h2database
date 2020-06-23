@@ -137,9 +137,6 @@ public class OffHeapStore extends RandomAccessStore {
     }
 
     @Override
-    public void close() {}
-
-    @Override
     public int getDefaultRetentionTime() {
         return 0;
     }

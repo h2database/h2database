@@ -809,7 +809,7 @@ public abstract class Page<K,V> implements Cloneable {
      * update the position and the children.
      * @param chunk the chunk
      * @param buff the target buffer
-     * @param toc prospective table of content
+     * @param toc chunk's prospective table of content to be filled
      */
     abstract void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff, List<Long> toc);
 

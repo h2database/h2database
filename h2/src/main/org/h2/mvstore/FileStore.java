@@ -6,19 +6,22 @@
 package org.h2.mvstore;
 
 import static org.h2.mvstore.MVMap.INITIAL_VERSION;
-import static org.h2.mvstore.MVStore.META_ID_KEY;
+import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.type.StringDataType;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.PriorityQueue;
@@ -52,6 +55,13 @@ public abstract class FileStore
     static final String HDR_VERSION = "version";
     static final String HDR_CLEAN = "clean";
     private static final String HDR_FLETCHER = "fletcher";
+
+    /**
+     * The key for the entry within "layout" map, which contains id of "meta" map.
+     * Entry value (hex encoded) is usually equal to 1, unless it's a legacy
+     * (upgraded) database and id 1 has been taken already by another map.
+     */
+    public static final String META_ID_KEY = "meta.id";
 
     /**
      * The block size (physical sector size) of the disk. The store header is
@@ -113,6 +123,7 @@ public abstract class FileStore
      */
     private long creationTime;
 
+
     private final Queue<WriteBuffer> writeBufferPool = new ArrayBlockingQueue<>(MVStore.PIPE_LENGTH + 1);
 
     /**
@@ -120,6 +131,8 @@ public abstract class FileStore
      * This is relatively fast changing part of metadata
      */
     private MVMap<String, String> layout;
+
+    private final Deque<Chunk> deadChunks = new ArrayDeque<>();
 
 
 
@@ -311,12 +324,16 @@ public abstract class FileStore
     }
 
     public void bind(MVStore mvStore, ConcurrentHashMap<Integer, Chunk> chunks) {
-        layout = new MVMap<>(mvStore, 0, StringDataType.INSTANCE, StringDataType.INSTANCE);
-        this.mvStore = mvStore;
-        this.chunks = chunks;
+        if(this.mvStore != mvStore) {
+            layout = new MVMap<>(mvStore, 0, StringDataType.INSTANCE, StringDataType.INSTANCE);
+            this.mvStore = mvStore;
+            this.chunks = chunks;
+        }
     }
 
-    public abstract void close();
+    public void close() {
+        mvStore = null;
+    }
 
     public boolean hasPersitentData() {
         return lastChunk != null;
@@ -330,6 +347,67 @@ public abstract class FileStore
     public void setLastChunk(Chunk last) {
         lastChunk = last;
     }
+
+    public void registerDeadChunk(Chunk chunk) {
+//        if (!chunk.isLive()) {
+            deadChunks.offer(chunk);
+//        }
+    }
+
+    public int dropUnusedChunks() {
+        int count = 0;
+        if (!deadChunks.isEmpty()) {
+            long oldestVersionToKeep = mvStore.getOldestVersionToKeep();
+            long time = mvStore.getTimeSinceCreation();
+            List<Chunk> toBeFreed = new ArrayList<>();
+            Chunk chunk;
+            while ((chunk = deadChunks.poll()) != null &&
+                    (isSeasonedChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
+                            // if chunk is not ready yet, put it back and exit
+                            // since this deque is unbounded, offerFirst() always return true
+                            !deadChunks.offerFirst(chunk))) {
+
+                if (chunks.remove(chunk.id) != null) {
+                    // purge dead pages from cache
+                    CacheLongKeyLIRS<long[]> toCCache = mvStore.getToCCache();
+                    long[] toc = toCCache.remove(chunk.id);
+                    CacheLongKeyLIRS<Page<?, ?>> cache = mvStore.getCache();
+                    if (toc != null && cache != null) {
+                        for (long tocElement : toc) {
+                            long pagePos = DataUtils.getPagePos(chunk.id, tocElement);
+                            cache.remove(pagePos);
+                        }
+                    }
+
+                    if (getLayoutMap().remove(Chunk.getMetaKey(chunk.id)) != null) {
+                        mvStore.markMetaChanged();
+                    }
+                    if (chunk.isSaved()) {
+                        toBeFreed.add(chunk);
+                    }
+                    ++count;
+                }
+            }
+            if (!toBeFreed.isEmpty()) {
+                freeChunkSpace(toBeFreed);
+            }
+        }
+        return count;
+    }
+
+    private static boolean canOverwriteChunk(Chunk c, long oldestVersionToKeep) {
+        return !c.isLive() && c.unusedAtVersion < oldestVersionToKeep;
+    }
+
+    private boolean isSeasonedChunk(Chunk chunk, long time) {
+        int retentionTime = mvStore.getRetentionTime();
+        return retentionTime < 0 || chunk.time + retentionTime <= time;
+    }
+
+    public boolean isRewritable(Chunk chunk, long time) {
+        return chunk.isRewritable() && isSeasonedChunk(chunk, time);
+    }
+
 
     /**
      * Read data from the store.
@@ -455,7 +533,11 @@ public abstract class FileStore
         }
     }
 
-    public void freeChunkSpace(Iterable<Chunk> chunks) {
+    public void acceptChunkChanges(Chunk chunk) {
+        layout.put(Chunk.getMetaKey(chunk.id), chunk.asString());
+    }
+
+    private void freeChunkSpace(Iterable<Chunk> chunks) {
         saveChunkLock.lock();
         try {
             for (Chunk chunk : chunks) {
@@ -621,7 +703,7 @@ public abstract class FileStore
             // we assume the system doesn't have a real-time clock,
             // and we set the creationTime to the past, so that
             // existing chunks are overwritten
-            creationTime = now - getDefaultRetentionTime();
+            creationTime = now - mvStore.getRetentionTime();
         } else if (now < creationTime) {
             // the system time was set to the past:
             // we change the creation time
@@ -756,7 +838,7 @@ public abstract class FileStore
                 markUsed(start, length);
             }
             if (!c.isLive()) {
-                mvStore.registerDeadChunk(c);
+                registerDeadChunk(c);
             }
         }
         assert validateFileLength("on open");
@@ -1113,6 +1195,7 @@ public abstract class FileStore
     public void clear() {
         saveChunkLock.lock();
         try {
+            deadChunks.clear();
             lastChunk = null;
             readCount.set(0);
             readBytes.set(0);
@@ -1197,6 +1280,7 @@ public abstract class FileStore
                     sync();
                 }
             }
+            deadChunks.clear();
             lastChunk = keep;
             writeStoreHeader();
             readStoreHeader(false);

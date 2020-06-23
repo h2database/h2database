@@ -162,6 +162,7 @@ public class SingleFileStore extends RandomAccessStore {
                     "Closing failed for file {0}", getFileName(), e);
         } finally {
             fileLock = null;
+            super.close();
         }
     }
 

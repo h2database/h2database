@@ -8,10 +8,8 @@ package org.h2.mvstore;
 import static org.h2.mvstore.MVMap.INITIAL_VERSION;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.ByteBuffer;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
@@ -228,7 +226,7 @@ public class MVStore implements AutoCloseable {
 
     private final AtomicInteger lastMapId = new AtomicInteger();
 
-    private int lastChunkId;
+//    private int lastChunkId;
 
     private int versionsToKeep = 5;
 
@@ -392,7 +390,6 @@ public class MVStore implements AutoCloseable {
                     fileStore.bind(this, chunks);
                 }
                 if (this.fileStore.size() == 0) {
-                    setLastChunk(null);
                     fileStore.initializeStoreHeader(getTimeAbsolute());
                 } else {
                     fileStore.readStoreHeader(recoveryMode);
@@ -460,10 +457,7 @@ public class MVStore implements AutoCloseable {
             String mapName = DataUtils.getMapName(meta.get(key));
             String mapIdStr = key.substring(DataUtils.META_MAP.length());
             // ensure that last map id is not smaller than max of any existing map ids
-            int mapId = DataUtils.parseHexInt(mapIdStr);
-            if (mapId > lastMapId.get()) {
-                lastMapId.set(mapId);
-            }
+            adjustLastMapId(DataUtils.parseHexInt(mapIdStr));
             // each map should have a proper name
             if(!mapIdStr.equals(meta.get(DataUtils.META_NAME + mapName))) {
                 meta.put(DataUtils.META_NAME + mapName, mapIdStr);
@@ -547,7 +541,8 @@ public class MVStore implements AutoCloseable {
             id = getNextMapId();
             assert getMap(id) == null;
             c.put("id", id);
-            c.put("createVersion", currentVersion);
+            long curVersion = currentVersion;
+            c.put("createVersion", curVersion);
             M map = builder.create(this, c);
             String x = Integer.toHexString(id);
             meta.put(MVMap.getMapKey(id), map.asString(name));
@@ -557,8 +552,7 @@ public class MVStore implements AutoCloseable {
                 meta.remove(MVMap.getMapKey(id));
                 return openMap(name, builder);
             }
-            long lastStoredVersion = currentVersion - 1;
-            map.setRootPos(0, lastStoredVersion);
+            map.setRootPos(0, curVersion - 1);
             markMetaChanged();
             @SuppressWarnings("unchecked")
             M existingMap = (M) maps.putIfAbsent(id, map);
@@ -712,26 +706,12 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    private boolean hasPersitentData() {
-        return fileStore != null && fileStore.hasPersitentData();
+    void resetLastMapId(int mapId) {
+        lastMapId.set(mapId);
     }
 
-    public void setLastChunk(Chunk last) {
-        fileStore.setLastChunk(last);
-        currentVersion = fileStore.lastChunkVersion();
-        chunks.clear();
-        lastChunkId = 0;
-        long layoutRootPos = 0;
-        int mapId = 0;
-        if (last != null) { // there is a valid chunk
-            lastChunkId = last.id;
-            currentVersion = last.version;
-            layoutRootPos = last.layoutRootPos;
-            mapId = last.mapId;
-            chunks.put(last.id, last);
-        }
-        lastMapId.set(mapId);
-        getLayoutMap().setRootPos(layoutRootPos, currentVersion - 1);
+    private boolean hasPersitentData() {
+        return fileStore != null && fileStore.hasPersitentData();
     }
 
     /**
@@ -1065,7 +1045,7 @@ public class MVStore implements AutoCloseable {
     private void serializeAndStore(boolean syncRun, ArrayList<Page<?,?>> changed, long time, long version) {
         serializationLock.lock();
         try {
-            Chunk c = createChunk(time, version);
+            Chunk c = fileStore.createChunk(time, version);
             chunks.put(c.id, c);
             WriteBuffer buff = getWriteBuffer();
             serializeToBuffer(buff, changed, c);
@@ -1084,42 +1064,6 @@ public class MVStore implements AutoCloseable {
         } finally {
             serializationLock.unlock();
         }
-    }
-
-    private Chunk createChunk(long time, long version) {
-        int chunkId = lastChunkId;
-        if (chunkId != 0) {
-            chunkId &= Chunk.MAX_ID;
-            Chunk lastChunk = chunks.get(chunkId);
-            assert lastChunk != null;
-//            assert lastChunk.isSaved();
-//            assert lastChunk.version + 1 == version : lastChunk.version + " " +  version;
-            // the metadata of the last chunk was not stored so far, and needs to be
-            // set now (it's better not to update right after storing, because that
-            // would modify the meta map again)
-            fileStore.acceptChunkChanges(lastChunk);
-            // never go backward in time
-            time = Math.max(lastChunk.time, time);
-        }
-        int newChunkId;
-        while (true) {
-            newChunkId = ++lastChunkId & Chunk.MAX_ID;
-            Chunk old = chunks.get(newChunkId);
-            if (old == null) {
-                break;
-            }
-            if (!old.isSaved()) {
-                MVStoreException e = DataUtils.newMVStoreException(
-                        DataUtils.ERROR_INTERNAL,
-                        "Last block {0} not stored, possibly due to out-of-memory", old);
-                panic(e);
-            }
-        }
-        Chunk c = new Chunk(newChunkId);
-        c.time = time;
-        c.version = version;
-        c.occupancy = new BitSet();
-        return c;
     }
 
     private void serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, Chunk c) {
@@ -1465,7 +1409,7 @@ public class MVStore implements AutoCloseable {
         try {
             TxCounter txCounter = registerVersionUsage();
             try {
-                acceptChunkOccupancyChanges(getTimeSinceCreation(), currentVersion);
+                acceptChunkOccupancyChanges(getTimeSinceCreation(), getCurrentVersion());
                 Iterable<Chunk> old = findOldChunks(writeLimit, targetFillRate);
                 if (old != null) {
                     HashSet<Integer> idSet = createIdSet(old);
@@ -1625,9 +1569,9 @@ public class MVStore implements AutoCloseable {
     private int compactRewrite(Set<Integer> set) {
         assert storeLock.isHeldByCurrentThread();
         assert currentStoreVersion < 0; // we should be able to do tryCommit() -> store()
-        acceptChunkOccupancyChanges(getTimeSinceCreation(), currentVersion);
+        acceptChunkOccupancyChanges(getTimeSinceCreation(), getCurrentVersion());
         int rewrittenPageCount = rewriteChunks(set, false);
-        acceptChunkOccupancyChanges(getTimeSinceCreation(), currentVersion);
+        acceptChunkOccupancyChanges(getTimeSinceCreation(), getCurrentVersion());
         rewrittenPageCount += rewriteChunks(set, true);
         return rewrittenPageCount;
     }
@@ -1939,10 +1883,11 @@ public class MVStore implements AutoCloseable {
      * @return true if all data can be read
      */
     private boolean isKnownVersion(long version) {
-        if (version > currentVersion || version < 0) {
+        long curVersion = getCurrentVersion();
+        if (version > curVersion || version < 0) {
             return false;
         }
-        if (version == currentVersion) {
+        if (version == curVersion) {
             // no stored data
             return true;
         }
@@ -2190,6 +2135,10 @@ public class MVStore implements AutoCloseable {
      */
     public long getCurrentVersion() {
         return currentVersion;
+    }
+
+    void setCurrentVersion(long curVersion) {
+        currentVersion = curVersion;
     }
 
     /**

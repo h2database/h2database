@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -108,6 +109,8 @@ public abstract class FileStore
      * The newest chunk. If nothing was stored yet, this field is not set.
      */
     volatile Chunk lastChunk;
+
+    private int lastChunkId;   // protected by serializationLock
 
     protected final ReentrantLock saveChunkLock = new ReentrantLock(true);
 
@@ -346,6 +349,21 @@ public abstract class FileStore
 
     public void setLastChunk(Chunk last) {
         lastChunk = last;
+        long curVersion = lastChunkVersion();
+        chunks.clear();
+        lastChunkId = 0;
+        long layoutRootPos = 0;
+        int mapId = 0;
+        if (last != null) { // there is a valid chunk
+            lastChunkId = last.id;
+            curVersion = last.version;
+            layoutRootPos = last.layoutRootPos;
+            mapId = last.mapId;
+            chunks.put(last.id, last);
+        }
+        mvStore.resetLastMapId(mapId);
+        mvStore.setCurrentVersion(curVersion);
+        layout.setRootPos(layoutRootPos, curVersion - 1);
     }
 
     public void registerDeadChunk(Chunk chunk) {
@@ -488,12 +506,49 @@ public abstract class FileStore
     }
 
     public void initializeStoreHeader(long time) {
+        setLastChunk(null);
         creationTime = time;
         storeHeader.put(FileStore.HDR_H, 2);
         storeHeader.put(FileStore.HDR_BLOCK_SIZE, FileStore.BLOCK_SIZE);
         storeHeader.put(FileStore.HDR_FORMAT, FileStore.FORMAT_WRITE);
         storeHeader.put(FileStore.HDR_CREATED, creationTime);
         writeStoreHeader();
+    }
+
+    public Chunk createChunk(long time, long version) {
+        int chunkId = lastChunkId;
+        if (chunkId != 0) {
+            chunkId &= Chunk.MAX_ID;
+            Chunk lastChunk = chunks.get(chunkId);
+            assert lastChunk != null;
+//            assert lastChunk.isSaved();
+//            assert lastChunk.version + 1 == version : lastChunk.version + " " +  version;
+            // the metadata of the last chunk was not stored so far, and needs to be
+            // set now (it's better not to update right after storing, because that
+            // would modify the meta map again)
+            acceptChunkChanges(lastChunk);
+            // never go backward in time
+            time = Math.max(lastChunk.time, time);
+        }
+        int newChunkId;
+        while (true) {
+            newChunkId = ++lastChunkId & Chunk.MAX_ID;
+            Chunk old = chunks.get(newChunkId);
+            if (old == null) {
+                break;
+            }
+            if (!old.isSaved()) {
+                MVStoreException e = DataUtils.newMVStoreException(
+                        DataUtils.ERROR_INTERNAL,
+                        "Last block {0} not stored, possibly due to out-of-memory", old);
+                mvStore.panic(e);
+            }
+        }
+        Chunk c = new Chunk(newChunkId);
+        c.time = time;
+        c.version = version;
+        c.occupancy = new BitSet();
+        return c;
     }
 
     protected void writeStoreHeader() {
@@ -758,7 +813,7 @@ public abstract class FileStore
             // quickly check latest 20 chunks referenced in meta table
             Queue<Chunk> chunksToVerify = new PriorityQueue<>(20, Collections.reverseOrder(chunkComparator));
             try {
-                mvStore.setLastChunk(newest);
+                setLastChunk(newest);
                 // load the chunk metadata: although meta's root page resides in the lastChunk,
                 // traversing meta map might recursively load another chunk(s)
                 for (Chunk c : getChunksFromLayoutMap()) {
@@ -894,7 +949,7 @@ public abstract class FileStore
         for (Chunk chunk : lastChunkCandidates) {
             boolean verified = true;
             try {
-                mvStore.setLastChunk(chunk);
+                setLastChunk(chunk);
                 // load the chunk metadata: although meta's root page resides in the lastChunk,
                 // traversing meta map might recursively load another chunk(s)
                 for (Chunk c : getChunksFromLayoutMap()) {

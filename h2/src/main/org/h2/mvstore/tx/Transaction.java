@@ -312,10 +312,6 @@ public final class Transaction {
         return isolationLevel == IsolationLevel.READ_COMMITTED;
     }
 
-    boolean isReadUncommitted() {
-        return isolationLevel == IsolationLevel.READ_UNCOMMITTED;
-    }
-    
     /**
      * Whether this transaction has isolation level READ_COMMITTED or below.
      * @return true if isolation level is READ_COMMITTED or READ_UNCOMMITTED

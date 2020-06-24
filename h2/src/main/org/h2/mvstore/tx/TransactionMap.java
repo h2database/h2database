@@ -124,7 +124,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the size
      */
     public long sizeAsLong() {
-        if (!transaction.isReadCommitted() && !transaction.isReadUncommitted()) {
+        if (!transaction.allowNonRepeatableRead()) {
             return sizeAsLongSlow();
         }
         // getting coherent picture of the map, committing transactions, and undo logs
@@ -140,14 +140,14 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         RootReference<K,VersionedValue<V>> mapRootReference = snapshot.root;
         BitSet committingTransactions = snapshot.committingTransactions;
         long size = mapRootReference.getTotalCount();
+        // if we are in READ_UNCOMMITTED, no need to check the undologs
+        if (!transaction.isReadCommitted()) {
+            return size;
+        }
         long undoLogsTotalSize = undoLogRootReferences == null ? size
                 : TransactionStore.calculateUndoLogsTotalSize(undoLogRootReferences);
         // if we are looking at the map without any uncommitted values
         if (undoLogsTotalSize == 0) {
-            return size;
-        }
-        // if we are in READ_UNCOMMITTED, no need to check the undologs
-        if (transaction.isReadUncommitted()) {
             return size;
         }
 

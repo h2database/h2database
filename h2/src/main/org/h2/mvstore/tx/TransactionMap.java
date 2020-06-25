@@ -124,9 +124,6 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the size
      */
     public long sizeAsLong() {
-        if (!transaction.isReadCommitted()) {
-            return sizeAsLongSlow();
-        }
         // getting coherent picture of the map, committing transactions, and undo logs
         // either from values stored in transaction (never loops in that case),
         // or current values from the transaction store (loops until moment of silence)
@@ -138,7 +135,6 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         } while (!snapshot.equals(getSnapshot()));
 
         RootReference<K,VersionedValue<V>> mapRootReference = snapshot.root;
-        BitSet committingTransactions = snapshot.committingTransactions;
         long size = mapRootReference.getTotalCount();
         long undoLogsTotalSize = undoLogRootReferences == null ? size
                 : TransactionStore.calculateUndoLogsTotalSize(undoLogRootReferences);
@@ -146,7 +142,20 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         if (undoLogsTotalSize == 0) {
             return size;
         }
+        switch (transaction.getIsolationLevel()) {
+        case READ_UNCOMMITTED:
+            return adjustSize(undoLogRootReferences, mapRootReference, null, size, undoLogsTotalSize);
+        case READ_COMMITTED:
+            return adjustSize(undoLogRootReferences, mapRootReference, snapshot.committingTransactions, size,
+                    undoLogsTotalSize);
+        default:
+            return sizeAsLongSlow();
+        }
+    }
 
+    private long adjustSize(RootReference<Long, Record<?, ?>>[] undoLogRootReferences,
+            RootReference<K, VersionedValue<V>> mapRootReference, BitSet committingTransactions, long size,
+            long undoLogsTotalSize) {
         // Entries describing removals from the map by this transaction and all transactions,
         // which are committed but not closed yet,
         // and entries about additions to the map by other uncommitted transactions were counted,
@@ -154,7 +163,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         if (2 * undoLogsTotalSize > size) {
             // the undo log is larger than half of the map - scan the entries of the map directly
             Cursor<K, VersionedValue<V>> cursor = map.cursor(mapRootReference, null, null, false);
-            while(cursor.hasNext()) {
+            while (cursor.hasNext()) {
                 cursor.next();
                 VersionedValue<?> currentValue = cursor.getValue();
                 assert currentValue != null;
@@ -202,6 +211,18 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         return size;
     }
 
+    private boolean isIrrelevant(long operationId, VersionedValue<?> currentValue, BitSet committingTransactions) {
+        Object v;
+        if (committingTransactions == null) {
+            v = currentValue.getCurrentValue();
+        } else {
+            int txId = TransactionStore.getTransactionId(operationId);
+            v = txId == transaction.transactionId || committingTransactions.get(txId)
+                    ? currentValue.getCurrentValue() : currentValue.getCommittedValue();
+        }
+        return v == null;
+    }
+
     private long sizeAsLongSlow() {
         long count = 0L;
         Iterator<K> iterator = keyIterator(null, null);
@@ -211,14 +232,6 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         }
         return count;
     }
-
-    private boolean isIrrelevant(long operationId, VersionedValue<?> currentValue, BitSet committingTransactions) {
-        int txId = TransactionStore.getTransactionId(operationId);
-        boolean isVisible = txId == transaction.transactionId || committingTransactions.get(txId);
-        Object v = isVisible ? currentValue.getCurrentValue() : currentValue.getCommittedValue();
-        return v == null;
-    }
-
 
     /**
      * Remove an entry.

@@ -1227,18 +1227,18 @@ public class TestTransaction extends TestDb {
     }
 
     private void testIsolationLevelsCountAggregate() throws SQLException {
-        testIsolationLevelsCountAggregate(Connection.TRANSACTION_READ_UNCOMMITTED, 12, 15, 15);
+        testIsolationLevelsCountAggregate(Connection.TRANSACTION_READ_UNCOMMITTED, 12, 15, 15, 16);
         if (!config.mvStore) {
             return;
         }
-        testIsolationLevelsCountAggregate(Connection.TRANSACTION_READ_COMMITTED, 6, 9, 15);
-        testIsolationLevelsCountAggregate(Connection.TRANSACTION_REPEATABLE_READ, 6, 9, 9);
-        testIsolationLevelsCountAggregate(Constants.TRANSACTION_SNAPSHOT, 6, 9, 9);
-        testIsolationLevelsCountAggregate(Connection.TRANSACTION_SERIALIZABLE, 6, 9, 9);
+        testIsolationLevelsCountAggregate(Connection.TRANSACTION_READ_COMMITTED, 6, 9, 15, 16);
+        testIsolationLevelsCountAggregate(Connection.TRANSACTION_REPEATABLE_READ, 6, 9, 9, 15);
+        testIsolationLevelsCountAggregate(Constants.TRANSACTION_SNAPSHOT, 6, 9, 9, 15);
+        testIsolationLevelsCountAggregate(Connection.TRANSACTION_SERIALIZABLE, 6, 9, 9, 15);
     }
 
     private void testIsolationLevelsCountAggregate(int isolationLevel, long uncommitted1, long uncommitted2,
-            long committed) throws SQLException {
+            long committed, long committedOther) throws SQLException {
         deleteDb("transaction");
         try (Connection conn1 = getConnection("transaction"); Connection conn2 = getConnection("transaction")) {
             Statement stat1 = conn1.createStatement();
@@ -1260,6 +1260,10 @@ public class TestTransaction extends TestDb {
             testIsolationLevelsCountAggregate(all, simple, committed);
             conn1.commit();
             testIsolationLevelsCountAggregate(all, simple, 15);
+            stat2.executeUpdate("DELETE FROM TEST WHERE V = 17");
+            stat2.executeUpdate("INSERT INTO TEST VALUES 19, 20");
+            conn2.commit();
+            testIsolationLevelsCountAggregate(all, simple, committedOther);
         }
     }
 

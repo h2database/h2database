@@ -79,7 +79,11 @@ public class PgCatalogTable extends MetaTable {
 
     private static final int PG_USER = PG_TYPE + 1;
 
-    private static final int META_TABLE_TYPE_COUNT = PG_USER + 1;
+    /**
+     * The number of meta table types. Supported meta table types are
+     * {@code 0..META_TABLE_TYPE_COUNT - 1}.
+     */
+    public static final int META_TABLE_TYPE_COUNT = PG_USER + 1;
 
     private static final Object[][] PG_EXTRA_TYPES = {
             { 18, "char", 1, 0 },
@@ -91,16 +95,6 @@ public class PgCatalogTable extends MetaTable {
             { PgServer.PG_TYPE_VARCHAR_ARRAY, "_varchar", -1, PgServer.PG_TYPE_VARCHAR },
             { 2205, "regclass", 4, 0 },
     };
-
-    /**
-     * Get the number of meta table types. Supported meta table types are 0 ..
-     * this value - 1.
-     *
-     * @return the number of meta table types
-     */
-    public static int getMetaTableTypeCount() {
-        return META_TABLE_TYPE_COUNT;
-    }
 
     /**
      * Create a new metadata table.

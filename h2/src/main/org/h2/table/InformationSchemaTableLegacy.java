@@ -124,17 +124,11 @@ public final class InformationSchemaTableLegacy extends MetaTable {
     private static final int CHECK_CONSTRAINTS = REFERENTIAL_CONSTRAINTS + 1;
     private static final int CONSTRAINT_COLUMN_USAGE = CHECK_CONSTRAINTS + 1;
 
-    private static final int META_TABLE_TYPE_COUNT = CONSTRAINT_COLUMN_USAGE + 1;
-
     /**
-     * Get the number of meta table types. Supported meta table
-     * types are 0 .. this value - 1.
-     *
-     * @return the number of meta table types
+     * The number of meta table types. Supported meta table types are
+     * {@code 0..META_TABLE_TYPE_COUNT - 1}.
      */
-    public static int getMetaTableTypeCount() {
-        return META_TABLE_TYPE_COUNT;
-    }
+    public static final int META_TABLE_TYPE_COUNT = CONSTRAINT_COLUMN_USAGE + 1;
 
     /**
      * Create a new metadata table.

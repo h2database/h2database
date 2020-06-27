@@ -22,10 +22,7 @@ import org.h2.value.CompareMode;
 import org.h2.value.Value;
 
 /**
- * Class RowDataType.
- * <UL>
- * <LI> 8/12/17 10:48 AM initial creation
- * </UL>
+ * The data type for rows.
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */

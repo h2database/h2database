@@ -10,7 +10,7 @@ import org.h2.mvstore.WriteBuffer;
 import java.nio.ByteBuffer;
 
 /**
- * Interface StatefulDataType.
+ * A data type that allows to save its state.
  *
  * @param <D> type of opaque parameter passed as an operational context to Factory.create()
  *
@@ -18,6 +18,12 @@ import java.nio.ByteBuffer;
  */
 public interface StatefulDataType<D> {
 
+    /**
+     * Save the state.
+     *
+     * @param buff the target buffer
+     * @param metaType the meta type
+     */
     void save(WriteBuffer buff, MetaType<D> metaType);
 
     Factory<D> getFactory();

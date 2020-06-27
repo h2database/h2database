@@ -935,6 +935,12 @@ public abstract class Page<K,V> implements Cloneable {
         return map.getValueType().createStorage(size);
     }
 
+    /**
+     * Create an array of page references.
+     *
+     * @param size the number of entries
+     * @return the array
+     */
     @SuppressWarnings("unchecked")
     public static <K,V> PageReference<K,V>[] createRefStorage(int size) {
         return new PageReference[size];
@@ -966,6 +972,11 @@ public abstract class Page<K,V> implements Cloneable {
          */
         final long count;
 
+        /**
+         * Get an empty page reference.
+         *
+         * @return the page reference
+         */
         @SuppressWarnings("unchecked")
         public static <X,Y> PageReference<X,Y> empty() {
             return EMPTY;

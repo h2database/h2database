@@ -413,7 +413,11 @@ public class ObjectDataType extends BasicDataType<Object> {
      */
     abstract static class AutoDetectDataType<T> extends BasicDataType<T> {
 
-        protected final ObjectDataType base;
+        private final ObjectDataType base;
+
+        /**
+         * The type id.
+         */
         final int typeId;
 
         AutoDetectDataType(int typeId) {

@@ -656,6 +656,16 @@ public class MVStore implements AutoCloseable {
         }
     }
 
+    /**
+     * Open an existing map with the given builder.
+     *
+     * @param <M> the map type
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param id the map id
+     * @param builder the map builder
+     * @return the map
+     */
     public <M extends MVMap<K, V>, K, V> M openMap(int id, MVMap.MapBuilder<M, K, V> builder) {
         storeLock.lock();
         try {
@@ -1384,7 +1394,7 @@ public class MVStore implements AutoCloseable {
         return tryCommit(x -> true);
     }
 
-    public long tryCommit(Predicate<MVStore> check) {
+    private long tryCommit(Predicate<MVStore> check) {
         // we need to prevent re-entrance, which may be possible,
         // because meta map is modified within storeNow() and that
         // causes beforeWrite() call with possibility of going back here

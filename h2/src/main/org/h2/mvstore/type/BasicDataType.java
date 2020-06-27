@@ -10,10 +10,7 @@ import org.h2.mvstore.WriteBuffer;
 import java.nio.ByteBuffer;
 
 /**
- * Class BasicDataType.
- * <UL>
- * <LI> 8/7/19 5:28 PM initial creation
- * </UL>
+ * The base class for data type implementations.
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */

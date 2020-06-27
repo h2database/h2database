@@ -119,6 +119,12 @@ public abstract class MetaTable extends Table {
         return false;
     }
 
+    /**
+     * If needed, convert the identifier to lower case.
+     *
+     * @param s the identifier to convert
+     * @return the converted identifier
+     */
     protected final String identifier(String s) {
         if (database.getSettings().databaseToLower) {
             s = s == null ? null : StringUtils.toLowerEnglish(s);
@@ -167,6 +173,14 @@ public abstract class MetaTable extends Table {
         return true;
     }
 
+    /**
+     * Check whether to hide the table. Tables are never hidden in the system
+     * session.
+     *
+     * @param table the table
+     * @param session the session
+     * @return whether the table is hidden
+     */
     protected final boolean hideTable(Table table, Session session) {
         return table.isHidden() && session != database.getSystemSession();
     }
@@ -207,6 +221,13 @@ public abstract class MetaTable extends Table {
         // nothing to do
     }
 
+    /**
+     * Add a row to a list.
+     *
+     * @param session the session
+     * @param rows the original row list
+     * @param stringsOrValues the values, or strings
+     */
     protected final void add(Session session, ArrayList<Row> rows, Object... stringsOrValues) {
         Value[] values = new Value[stringsOrValues.length];
         for (int i = 0; i < stringsOrValues.length; i++) {

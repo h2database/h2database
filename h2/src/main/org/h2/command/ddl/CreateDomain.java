@@ -90,6 +90,11 @@ public class CreateDomain extends SchemaCommand {
         return CommandInterface.CREATE_DOMAIN;
     }
 
+    /**
+     * Add a constraint command.
+     *
+     * @param command the command to add
+     */
     public void addConstraintCommand(AlterDomainAddConstraint command) {
         if (constraintCommands == null) {
             constraintCommands = Utils.newSmallArrayList();

@@ -378,7 +378,9 @@ public abstract class Command implements CommandInterface {
     public abstract Set<DbObject> getDependencies();
 
     /**
-     * Is the command we just tried to execute a DefineCommand (i.e. DDL)
+     * Is the command we just tried to execute a DefineCommand (i.e. DDL).
+     *
+     * @return true if yes
      */
     protected abstract boolean isCurrentCommandADefineCommand();
 }

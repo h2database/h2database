@@ -1114,7 +1114,7 @@ public final class DataUtils {
      * @return the parsed value
      * @throws MVStoreException if parsing fails
      */
-    public static int readHexInt(Map<String, ?> map, String key, int defaultValue) {
+    static int readHexInt(Map<String, ?> map, String key, int defaultValue) {
         Object v = map.get(key);
         if (v == null) {
             return defaultValue;
@@ -1130,7 +1130,14 @@ public final class DataUtils {
         }
     }
 
-    public static byte[] parseHexBytes(Map<String, ?> map, String key) {
+    /**
+     * Parse the hex-encoded bytes of an entry in the map.
+     *
+     * @param map the map
+     * @param key the key
+     * @return the byte array, or null if not in the map
+     */
+    static byte[] parseHexBytes(Map<String, ?> map, String key) {
         Object v = map.get(key);
         if (v == null) {
             return null;
@@ -1146,7 +1153,7 @@ public final class DataUtils {
      * @param defaultValue the default
      * @return the configured value or default
      */
-    public static int getConfigParam(Map<String, ?> config, String key, int defaultValue) {
+    static int getConfigParam(Map<String, ?> config, String key, int defaultValue) {
         Object o = config.get(key);
         if (o instanceof Number) {
             return ((Number) o).intValue();

@@ -382,10 +382,6 @@ class Command {
         return result;
     }
 
-//    public String getNextTableAlias() {
-//        return "S" + nextAlias++;
-//    }
-
     /**
      * Get a random table alias name.
      *

@@ -58,6 +58,12 @@ public class ConstraintDomain extends Constraint {
         return domain;
     }
 
+    /**
+     * Set the expression.
+     *
+     * @param session the session
+     * @param expr the expression
+     */
     public void setExpression(Session session, Expression expr) {
         expr.mapColumns(resolver, 0, Expression.MAP_INITIAL);
         expr = expr.optimize(session);
@@ -127,6 +133,13 @@ public class ConstraintDomain extends Constraint {
         }
     }
 
+    /**
+     * Get the check constraint expression for this column.
+     *
+     * @param session the session
+     * @param columnName the column name
+     * @return the expression
+     */
     public Expression getCheckConstraint(Session session, String columnName) {
         String sql;
         if (columnName != null) {

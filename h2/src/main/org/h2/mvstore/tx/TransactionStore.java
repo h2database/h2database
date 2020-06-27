@@ -167,7 +167,7 @@ public class TransactionStore {
                 .valueType(new Record.Type(this));
     }
 
-    public static MVMap<String, DataType<?>> openTypeRegistry(MVStore store, MetaType<?> metaDataType) {
+    private static MVMap<String, DataType<?>> openTypeRegistry(MVStore store, MetaType<?> metaDataType) {
         MVMap.Builder<String, DataType<?>> typeRegistryBuilder =
                                     new MVMap.Builder<String, DataType<?>>()
                                                 .keyType(StringDataType.INSTANCE)

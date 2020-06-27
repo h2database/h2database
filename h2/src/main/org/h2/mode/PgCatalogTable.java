@@ -11,7 +11,6 @@ import java.util.List;
 
 import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
-import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.index.Index;
@@ -19,7 +18,6 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObject;
 import org.h2.schema.TriggerObject;
 import org.h2.server.pg.PgServer;
 import org.h2.table.Column;
@@ -380,38 +378,7 @@ public class PgCatalogTable extends MetaTable {
         case PG_AUTHID:
             break;
         case PG_CONSTRAINT:
-            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
-                Constraint constraint = (Constraint) obj;
-                Constraint.Type constraintType = constraint.getConstraintType();
-                if (constraintType == Constraint.Type.DOMAIN) {
-                    continue;
-                }
-                Table table = constraint.getTable();
-                if (hideTable(table, session)) {
-                    continue;
-                }
-                List<ValueSmallint> conkey = new ArrayList<>();
-                for (Column column : constraint.getReferencedColumns(table)) {
-                    conkey.add(ValueSmallint.get((short) (column.getColumnId() + 1)));
-                }
-                Table refTable = constraint.getRefTable();
-                add(session,
-                        rows,
-                        // OID
-                        ValueInteger.get(constraint.getId()),
-                        // CONNAME
-                        constraint.getName(),
-                        // CONTYPE
-                        StringUtils.toLowerEnglish(constraintType.getSqlName().substring(0, 1)),
-                        // CONRELID
-                        ValueInteger.get(table.getId()),
-                        // CONFRELID
-                        ValueInteger.get(refTable != null && refTable != table
-                                && !hideTable(refTable, session) ? table.getId() : 0),
-                        // CONKEY
-                        ValueArray.get(TypeInfo.TYPE_SMALLINT, conkey.toArray(Value.EMPTY_VALUES), null)
-                );
-            }
+            pgConstraint(session, rows);
             break;
         case PG_CLASS: {
             for (Table table : getAllTables(session)) {
@@ -629,6 +596,42 @@ public class PgCatalogTable extends MetaTable {
         }
         return rows;
 
+    }
+
+    private void pgConstraint(Session session, ArrayList<Row> rows) {
+        for (Schema schema : database.getAllSchemasNoMeta()) {
+            for (Constraint constraint : schema.getAllConstraints()) {
+                Constraint.Type constraintType = constraint.getConstraintType();
+                if (constraintType == Constraint.Type.DOMAIN) {
+                    continue;
+                }
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                List<ValueSmallint> conkey = new ArrayList<>();
+                for (Column column : constraint.getReferencedColumns(table)) {
+                    conkey.add(ValueSmallint.get((short) (column.getColumnId() + 1)));
+                }
+                Table refTable = constraint.getRefTable();
+                add(session,
+                        rows,
+                        // OID
+                        ValueInteger.get(constraint.getId()),
+                        // CONNAME
+                        constraint.getName(),
+                        // CONTYPE
+                        StringUtils.toLowerEnglish(constraintType.getSqlName().substring(0, 1)),
+                        // CONRELID
+                        ValueInteger.get(table.getId()),
+                        // CONFRELID
+                        ValueInteger.get(refTable != null && refTable != table
+                                && !hideTable(refTable, session) ? table.getId() : 0),
+                        // CONKEY
+                        ValueArray.get(TypeInfo.TYPE_SMALLINT, conkey.toArray(Value.EMPTY_VALUES), null)
+                );
+            }
+        }
     }
 
     private void addAttribute(Session session, ArrayList<Row> rows, int id, int relId, Table table, Column column,

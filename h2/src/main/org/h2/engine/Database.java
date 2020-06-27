@@ -1424,19 +1424,19 @@ public class Database implements DataHandler, CastDataProvider {
                                 table.close(systemSession);
                             }
                         }
-                        for (SchemaObject obj : getAllSchemaObjects(
-                                DbObject.SEQUENCE)) {
-                            Sequence sequence = (Sequence) obj;
-                            sequence.close();
+                        for (Schema schema : getAllSchemasNoMeta()) {
+                            for (Sequence sequence : schema.getAllSequences()) {
+                                sequence.close();
+                            }
                         }
                     }
-                    for (SchemaObject obj : getAllSchemaObjects(
-                            DbObject.TRIGGER)) {
-                        TriggerObject trigger = (TriggerObject) obj;
-                        try {
-                            trigger.close();
-                        } catch (SQLException e) {
-                            trace.error(e, "close");
+                    for (Schema schema : getAllSchemasNoMeta()) {
+                        for (TriggerObject trigger : schema.getAllTriggers()) {
+                            try {
+                                trigger.close();
+                            } catch (SQLException e) {
+                                trace.error(e, "close");
+                            }
                         }
                     }
                     if (powerOffCount != -1) {
@@ -1652,23 +1652,6 @@ public class Database implements DataHandler, CastDataProvider {
         ArrayList<SchemaObject> list = new ArrayList<>();
         for (Schema schema : schemas.values()) {
             schema.getAll(list);
-        }
-        return list;
-    }
-
-    /**
-     * Get all schema objects of the given type.
-     *
-     * @param type the object type
-     * @return all objects of that type
-     */
-    public ArrayList<SchemaObject> getAllSchemaObjects(int type) {
-        if (type == DbObject.TABLE_OR_VIEW) {
-            initMetaTables();
-        }
-        ArrayList<SchemaObject> list = new ArrayList<>();
-        for (Schema schema : schemas.values()) {
-            schema.getAll(type, list);
         }
         return list;
     }

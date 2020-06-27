@@ -725,6 +725,9 @@ public class Schema extends DbObjectBase {
         return tablesAndViews.values();
     }
 
+    public Collection<Index> getAllIndexes() {
+        return indexes.values();
+    }
 
     public Collection<TableSynonym> getAllSynonyms() {
         return synonyms.values();

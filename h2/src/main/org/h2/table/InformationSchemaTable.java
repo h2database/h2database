@@ -6,7 +6,6 @@
 package org.h2.table;
 
 import java.io.IOException;
-import java.text.Collator;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
@@ -997,7 +996,7 @@ public final class InformationSchemaTable extends MetaTable {
     private void collations(Session session, ArrayList<Row> rows, String catalog) {
         String mainSchemaName = database.getMainSchema().getName();
         collations(session, rows, catalog, mainSchemaName, "OFF", null);
-        for (Locale l : Collator.getAvailableLocales()) {
+        for (Locale l : CompareMode.getCollationLocales(false)) {
             collations(session, rows, catalog, mainSchemaName, CompareMode.getName(l), l.toLanguageTag());
         }
     }

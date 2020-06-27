@@ -12,7 +12,6 @@ import java.io.Reader;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.Types;
-import java.text.Collator;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
@@ -1595,7 +1594,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case COLLATIONS: {
-            for (Locale l : Collator.getAvailableLocales()) {
+            for (Locale l : CompareMode.getCollationLocales(false)) {
                 add(session,
                         rows,
                         // NAME

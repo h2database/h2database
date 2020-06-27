@@ -681,19 +681,10 @@ public class Schema extends DbObjectBase {
      * @param type
      *                  the object type
      * @param addTo
-     *                  list to add objects to, or {@code null} to allocate a new
-     *                  list
-     * @return the specified list with added objects, or a new (possibly empty) list
-     *         with objects of the given type
+     *                  list to add objects to
      */
-    public ArrayList<SchemaObject> getAll(int type, ArrayList<SchemaObject> addTo) {
-        Collection<SchemaObject> values = getMap(type).values();
-        if (addTo != null) {
-            addTo.addAll(values);
-        } else {
-            addTo = new ArrayList<>(values);
-        }
-        return addTo;
+    public void getAll(int type, ArrayList<SchemaObject> addTo) {
+        addTo.addAll(getMap(type).values());
     }
 
     public Collection<Domain> getAllDomains() {

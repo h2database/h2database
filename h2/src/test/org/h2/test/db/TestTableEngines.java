@@ -523,8 +523,8 @@ public class TestTableEngines extends TestDb {
                 }
 
                 @Override
-                public long getRowCountApproximation() {
-                    return table.getRowCountApproximation();
+                public long getRowCountApproximation(Session session) {
+                    return table.getRowCountApproximation(session);
                 }
 
                 @Override
@@ -617,7 +617,7 @@ public class TestTableEngines extends TestDb {
             }
 
             @Override
-            public boolean canGetRowCount() {
+            public boolean canGetRowCount(Session session) {
                 return true;
             }
 
@@ -643,11 +643,11 @@ public class TestTableEngines extends TestDb {
 
             @Override
             public long getRowCount(Session session) {
-                return getRowCountApproximation();
+                return getRowCountApproximation(session);
             }
 
             @Override
-            public long getRowCountApproximation() {
+            public long getRowCountApproximation(Session session) {
                 return row == null ? 0 : 1;
             }
 
@@ -893,8 +893,8 @@ public class TestTableEngines extends TestDb {
         }
 
         @Override
-        public long getRowCountApproximation() {
-            return getScanIndex(null).getRowCountApproximation();
+        public long getRowCountApproximation(Session session) {
+            return getScanIndex(null).getRowCountApproximation(session);
         }
 
         @Override
@@ -928,7 +928,7 @@ public class TestTableEngines extends TestDb {
         }
 
         @Override
-        public boolean canGetRowCount() {
+        public boolean canGetRowCount(Session session) {
             return true;
         }
 
@@ -1054,7 +1054,7 @@ public class TestTableEngines extends TestDb {
         }
 
         @Override
-        public long getRowCountApproximation() {
+        public long getRowCountApproximation(Session session) {
             return getRowCount(null);
         }
 

@@ -842,7 +842,8 @@ public class ToChar {
                 i += 3;
 
             } else if (containsAt(format, i, "TZM") != null) {
-                StringUtils.appendTwoDigits(output, Math.abs(DateTimeFunction.extractDateTime(session, value, DateTimeFunction.TIMEZONE_MINUTE)));
+                StringUtils.appendTwoDigits(output,
+                        Math.abs(DateTimeFunction.extractDateTime(session, value, DateTimeFunction.TIMEZONE_MINUTE)));
                 i += 3;
 
                 // Week

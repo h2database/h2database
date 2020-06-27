@@ -28,6 +28,7 @@ import org.h2.engine.Comment;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
+import org.h2.engine.FunctionAlias;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
 import org.h2.engine.Session;
@@ -45,9 +46,9 @@ import org.h2.result.Row;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
+import org.h2.schema.UserAggregate;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
@@ -180,26 +181,26 @@ public class ScriptCommand extends ScriptBase {
             for (Role role : db.getAllRoles()) {
                 add(role.getCreateSQL(true), false);
             }
+            ArrayList<Schema> schemas = new ArrayList<>();
             for (Schema schema : db.getAllSchemas()) {
                 if (excludeSchema(schema)) {
                     continue;
                 }
+                schemas.add(schema);
                 add(schema.getCreateSQL(), false);
             }
-            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.DOMAIN)) {
-                Domain domain = (Domain) obj;
-                if (drop) {
-                    add(domain.getDropSQL(), false);
+            for (Schema schema : schemas) {
+                for (Domain domain : schema.getAllDomains()) {
+                    if (drop) {
+                        add(domain.getDropSQL(), false);
+                    }
+                    add(domain.getCreateSQL(), false);
                 }
-                add(domain.getCreateSQL(), false);
             }
-            for (SchemaObject obj : db.getAllSchemaObjects(
-                    DbObject.CONSTANT)) {
-                if (excludeSchema(obj.getSchema())) {
-                    continue;
+            for (Schema schema : schemas) {
+                for (Constant constant : schema.getAllConstants()) {
+                    add(constant.getCreateSQL(), false);
                 }
-                Constant constant = (Constant) obj;
-                add(constant.getCreateSQL(), false);
             }
 
             final ArrayList<Table> tables = db.getAllTablesAndViews(false);
@@ -228,40 +229,36 @@ public class ScriptCommand extends ScriptBase {
                     add(table.getDropSQL(), false);
                 }
             }
-            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
-                if (excludeSchema(obj.getSchema())) {
-                    continue;
+            for (Schema schema : schemas) {
+                for (FunctionAlias obj : schema.getAllFunctionAliases()) {
+                    if (drop) {
+                        add(obj.getDropSQL(), false);
+                    }
+                    add(obj.getCreateSQL(), false);
                 }
-                if (drop) {
-                    add(obj.getDropSQL(), false);
-                }
-                add(obj.getCreateSQL(), false);
             }
-            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.AGGREGATE)) {
-                if (excludeSchema(obj.getSchema())) {
-                    continue;
+            for (Schema schema : schemas) {
+                for (UserAggregate obj : schema.getAllAggregates()) {
+                    if (drop) {
+                        add(obj.getDropSQL(), false);
+                    }
+                    add(obj.getCreateSQL(), false);
                 }
-                if (drop) {
-                    add(obj.getDropSQL(), false);
-                }
-                add(obj.getCreateSQL(), false);
             }
-            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.SEQUENCE)) {
-                if (excludeSchema(obj.getSchema())) {
-                    continue;
-                }
-                Sequence sequence = (Sequence) obj;
-                if (drop) {
-                    add(sequence.getDropSQL(), false);
-                }
-                String createSQL, alterSQL;
-                synchronized (sequence) {
-                    createSQL = sequence.getCreateSQL(true, false);
-                    alterSQL = sequence.getCreateSQL(true, true);
-                }
-                add(createSQL, false);
-                if (alterSQL != null) {
-                    add(alterSQL, false);
+            for (Schema schema : schemas) {
+                for (Sequence sequence : schema.getAllSequences()) {
+                    if (drop) {
+                        add(sequence.getDropSQL(), false);
+                    }
+                    String createSQL, alterSQL;
+                    synchronized (sequence) {
+                        createSQL = sequence.getCreateSQL(true, false);
+                        alterSQL = sequence.getCreateSQL(true, true);
+                    }
+                    add(createSQL, false);
+                    if (alterSQL != null) {
+                        add(alterSQL, false);
+                    }
                 }
             }
 
@@ -294,8 +291,9 @@ public class ScriptCommand extends ScriptBase {
                     }
                 }
                 if (TableType.TABLE == tableType) {
-                    if (table.canGetRowCount()) {
-                        StringBuilder builder = new StringBuilder("-- ").append(table.getRowCountApproximation())
+                    if (table.canGetRowCount(session)) {
+                        StringBuilder builder = new StringBuilder("-- ")
+                                .append(table.getRowCountApproximation(session))
                                 .append(" +/- SELECT COUNT(*) FROM ");
                         table.getSQL(builder, HasSQL.TRACE_SQL_FLAGS);
                         add(builder.toString(), false);
@@ -320,34 +318,33 @@ public class ScriptCommand extends ScriptBase {
                 tempLobTableCreated = false;
             }
             // Generate CREATE CONSTRAINT ...
-            final ArrayList<SchemaObject> constraints = db.getAllSchemaObjects(DbObject.CONSTRAINT);
-            constraints.sort(null);
-            for (SchemaObject obj : constraints) {
-                if (excludeSchema(obj.getSchema())) {
-                    continue;
-                }
-                Constraint constraint = (Constraint) obj;
-                if (excludeTable(constraint.getTable())) {
-                    continue;
-                }
-                Type constraintType = constraint.getConstraintType();
-                if (constraintType != Type.DOMAIN && constraint.getTable().isHidden()) {
-                    continue;
-                }
-                if (constraintType != Constraint.Type.PRIMARY_KEY) {
-                    add(constraint.getCreateSQLWithoutIndexes(), false);
+            ArrayList<Constraint> constraints = new ArrayList<>();
+            for (Schema schema : schemas) {
+                for (Constraint constraint : schema.getAllConstraints()) {
+                    if (excludeTable(constraint.getTable())) {
+                        continue;
+                    }
+                    Type constraintType = constraint.getConstraintType();
+                    if (constraintType != Type.DOMAIN && constraint.getTable().isHidden()) {
+                        continue;
+                    }
+                    if (constraintType != Constraint.Type.PRIMARY_KEY) {
+                        constraints.add(constraint);
+                    }
                 }
             }
+            constraints.sort(null);
+            for (Constraint constraint : constraints) {
+                add(constraint.getCreateSQLWithoutIndexes(), false);
+            }
             // Generate CREATE TRIGGER ...
-            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.TRIGGER)) {
-                if (excludeSchema(obj.getSchema())) {
-                    continue;
+            for (Schema schema : schemas) {
+                for (TriggerObject trigger : schema.getAllTriggers()) {
+                    if (excludeTable(trigger.getTable())) {
+                        continue;
+                    }
+                    add(trigger.getCreateSQL(), false);
                 }
-                TriggerObject trigger = (TriggerObject) obj;
-                if (excludeTable(trigger.getTable())) {
-                    continue;
-                }
-                add(trigger.getCreateSQL(), false);
             }
             // Generate GRANT ...
             for (Right right : db.getAllRights()) {

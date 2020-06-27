@@ -45,8 +45,8 @@ public class VirtualConstructedTableIndex extends VirtualTableIndex {
             throw DbException.getUnsupportedException("Virtual table");
         }
         long expectedRows;
-        if (table.canGetRowCount()) {
-            expectedRows = table.getRowCountApproximation();
+        if (table.canGetRowCount(session)) {
+            expectedRows = table.getRowCountApproximation(session);
         } else {
             expectedRows = database.getSettings().estimatedFunctionTableRows;
         }

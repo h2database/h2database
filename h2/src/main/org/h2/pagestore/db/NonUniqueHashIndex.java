@@ -121,7 +121,7 @@ public class NonUniqueHashIndex extends BaseIndex {
     }
 
     @Override
-    public long getRowCountApproximation() {
+    public long getRowCountApproximation(Session session) {
         return rowCount;
     }
 

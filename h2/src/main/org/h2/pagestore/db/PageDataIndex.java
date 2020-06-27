@@ -271,7 +271,7 @@ public class PageDataIndex extends PageIndex {
         // columns, will take precedence. This all works out easier in the MVStore case,
         // because MVStore uses the same cost calculation code for the ScanIndex (i.e.
         // the MVPrimaryIndex) and all other indices.
-        return 10 * (tableData.getRowCountApproximation() +
+        return 10 * (tableData.getRowCountApproximation(session) +
                 Constants.COST_ROW_OFFSET) + 200;
     }
 
@@ -374,7 +374,7 @@ public class PageDataIndex extends PageIndex {
     }
 
     @Override
-    public long getRowCountApproximation() {
+    public long getRowCountApproximation(Session session) {
         return rowCount;
     }
 

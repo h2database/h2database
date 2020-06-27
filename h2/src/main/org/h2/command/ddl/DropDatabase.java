@@ -6,6 +6,7 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
@@ -94,28 +95,31 @@ public class DropDatabase extends DefineCommand {
         } while (runLoopAgain);
 
         // TODO session-local temp tables are not removed
-        for (Schema schema : db.getAllSchemas()) {
+        Collection<Schema> schemas = db.getAllSchemasNoMeta();
+        for (Schema schema : schemas) {
             if (schema.canDrop()) {
                 db.removeDatabaseObject(session, schema);
             }
         }
         ArrayList<SchemaObject> list = new ArrayList<>();
-        for (SchemaObject obj : db.getAllSchemaObjects(DbObject.SEQUENCE))  {
-            // ignore these. the ones we want to drop will get dropped when we
-            // drop their associated tables, and we will ignore the problematic
-            // ones that belong to session-local temp tables.
-            if (!((Sequence) obj).getBelongsToTable()) {
-                list.add(obj);
+        for (Schema schema : schemas) {
+            for (Sequence sequence : schema.getAllSequences()) {
+                // ignore these. the ones we want to drop will get dropped when we
+                // drop their associated tables, and we will ignore the problematic
+                // ones that belong to session-local temp tables.
+                if (!sequence.getBelongsToTable()) {
+                    list.add(sequence);
+                }
             }
         }
         // maybe constraints and triggers on system tables will be allowed in
         // the future
-        list.addAll(db.getAllSchemaObjects(DbObject.CONSTRAINT));
-        list.addAll(db.getAllSchemaObjects(DbObject.TRIGGER));
-        list.addAll(db.getAllSchemaObjects(DbObject.CONSTANT));
-        list.addAll(db.getAllSchemaObjects(DbObject.FUNCTION_ALIAS));
-        list.addAll(db.getAllSchemaObjects(DbObject.AGGREGATE));
-        list.addAll(db.getAllSchemaObjects(DbObject.DOMAIN));
+        addAll(schemas, DbObject.CONSTRAINT, list);
+        addAll(schemas, DbObject.TRIGGER, list);
+        addAll(schemas, DbObject.CONSTANT, list);
+        addAll(schemas, DbObject.FUNCTION_ALIAS, list);
+        addAll(schemas, DbObject.AGGREGATE, list);
+        addAll(schemas, DbObject.DOMAIN, list);
         for (SchemaObject obj : list) {
             if (!obj.getSchema().isValid() || obj.isHidden()) {
                 continue;
@@ -142,6 +146,12 @@ public class DropDatabase extends DefineCommand {
             if (sql != null) {
                 db.removeDatabaseObject(session, obj);
             }
+        }
+    }
+
+    private static void addAll(Collection<Schema> schemas, int type, ArrayList<SchemaObject> list) {
+        for (Schema schema : schemas) {
+            schema.getAll(type, list);
         }
     }
 

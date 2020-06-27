@@ -339,7 +339,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
     }
 
     @Override
-    public long getRowCountApproximation() {
+    public long getRowCountApproximation(Session session) {
         try {
             return dataMap.sizeAsLongMax();
         } catch (MVStoreException e) {

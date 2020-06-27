@@ -68,7 +68,7 @@ public class DataChangeDeltaTable extends VirtualConstructedTable {
     }
 
     @Override
-    public boolean canGetRowCount() {
+    public boolean canGetRowCount(Session session) {
         return false;
     }
 
@@ -78,7 +78,7 @@ public class DataChangeDeltaTable extends VirtualConstructedTable {
     }
 
     @Override
-    public long getRowCountApproximation() {
+    public long getRowCountApproximation(Session session) {
         return Long.MAX_VALUE;
     }
 

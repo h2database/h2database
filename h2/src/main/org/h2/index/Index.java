@@ -184,9 +184,10 @@ public interface Index extends SchemaObject {
     /**
      * Get the approximated row count for this table.
      *
+     * @param session the session
      * @return the approximated row count
      */
-    long getRowCountApproximation();
+    long getRowCountApproximation(Session session);
 
     /**
      * Get the used disk space for this index.

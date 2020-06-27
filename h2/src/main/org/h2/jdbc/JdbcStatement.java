@@ -153,7 +153,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         }
     }
 
-    private int executeUpdateInternal(String sql, Object generatedKeysRequest) throws SQLException {
+    private int executeUpdateInternal(String sql, Object generatedKeysRequest) {
         checkClosed();
         closeOldResultSet();
         sql = JdbcConnection.translateSQL(sql, escapeProcessing);
@@ -199,7 +199,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         }
     }
 
-    private boolean executeInternal(String sql, Object generatedKeysRequest) throws SQLException {
+    private boolean executeInternal(String sql, Object generatedKeysRequest) {
         int id = getNextId(TraceObject.RESULT_SET);
         checkClosed();
         closeOldResultSet();

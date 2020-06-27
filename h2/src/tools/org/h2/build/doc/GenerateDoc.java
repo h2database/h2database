@@ -142,7 +142,7 @@ public class GenerateDoc {
     /**
      * Process a file.
      *
-     * @param file the file
+     * @param inFile the file
      */
     void process(Path inFile) throws IOException {
         Path outFile = outDir.resolve(inDir.relativize(inFile));

@@ -56,6 +56,8 @@ public class CompareMode implements Comparator<Value> {
      */
     public static final String UNSIGNED = "UNSIGNED";
 
+    private static Locale[] LOCALES;
+
     private static volatile CompareMode lastUsed;
 
     private static final boolean CAN_USE_ICU4J;
@@ -151,6 +153,22 @@ public class CompareMode implements Comparator<Value> {
         }
         lastUsed = last;
         return last;
+    }
+
+    /**
+     * Returns available locales for collations.
+     *
+     * @param onlyIfInitialized
+     *            if {@code true}, returns {@code null} when locales are not yet
+     *            initialized
+     * @return available locales for collations.
+     */
+    public static Locale[] getCollationLocales(boolean onlyIfInitialized) {
+        Locale[] locales = LOCALES;
+        if (locales == null && !onlyIfInitialized) {
+            LOCALES = locales = Collator.getAvailableLocales();
+        }
+        return locales;
     }
 
     /**
@@ -261,7 +279,7 @@ public class CompareMode implements Comparator<Value> {
             }
         }
         if (result == null) {
-            for (Locale locale : Collator.getAvailableLocales()) {
+            for (Locale locale : getCollationLocales(false)) {
                 if (compareLocaleNames(locale, name)) {
                     result = Collator.getInstance(locale);
                     break;

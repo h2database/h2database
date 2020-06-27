@@ -167,3 +167,18 @@ DROP TABLE T2, T1;
 > ok
 
 @reconnect on
+
+SELECT TABLE_NAME, ROW_COUNT_ESTIMATE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'INFORMATION_SCHEMA'
+    AND TABLE_NAME IN ('INFORMATION_SCHEMA_CATALOG_NAME', 'SCHEMATA', 'ROLES', 'SESSIONS', 'IN_DOUBT', 'USERS');
+> TABLE_NAME                      ROW_COUNT_ESTIMATE
+> ------------------------------- ------------------
+> INFORMATION_SCHEMA_CATALOG_NAME 1
+> IN_DOUBT                        0
+> ROLES                           1
+> SCHEMATA                        2
+> SESSIONS                        1
+> USERS                           1
+> rows: 6
+
+EXPLAIN SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLLATIONS;
+>> SELECT COUNT(*) FROM "INFORMATION_SCHEMA"."COLLATIONS" /* meta */ /* direct lookup */

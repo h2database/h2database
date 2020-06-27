@@ -132,8 +132,8 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     @Override
-    public long getRowCountApproximation() {
-        return mainIndex.getRowCountApproximation();
+    public long getRowCountApproximation(Session session) {
+        return mainIndex.getRowCountApproximation(session);
     }
 
     @Override

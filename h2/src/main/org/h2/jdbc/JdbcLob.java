@@ -116,6 +116,9 @@ public abstract class JdbcLob extends TraceObject {
     /**
      * Check the state of the LOB and throws the exception when check failed
      * (the LOB must be set completely before read).
+     *
+     * @throws SQLException on SQL exception
+     * @throws IOException on I/O exception
      */
     void checkReadable() throws SQLException, IOException {
         checkClosed();

@@ -21,6 +21,7 @@ import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
 import org.h2.index.Index;
 import org.h2.message.DbException;
+import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.server.pg.PgServer;
 import org.h2.table.Column;
@@ -295,20 +296,21 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
     }
 
     private static Value getIndexdef(Session session, int indexId, Value ordinalPosition, Value pretty) {
-        for (SchemaObject obj : session.getDatabase().getAllSchemaObjects(SchemaObject.INDEX)) {
-            if (obj.getId() == indexId) {
-                Index index = (Index) obj;
-                if (!index.getTable().isHidden()) {
-                    int ordinal;
-                    if (ordinalPosition == null || (ordinal = ordinalPosition.getInt()) == 0) {
-                        return ValueVarchar.get(index.getCreateSQL());
+        for (Schema schema : session.getDatabase().getAllSchemasNoMeta()) {
+            for (Index index : schema.getAllIndexes()) {
+                if (index.getId() == indexId) {
+                    if (!index.getTable().isHidden()) {
+                        int ordinal;
+                        if (ordinalPosition == null || (ordinal = ordinalPosition.getInt()) == 0) {
+                            return ValueVarchar.get(index.getCreateSQL());
+                        }
+                        Column[] columns;
+                        if (ordinal >= 1 && ordinal <= (columns = index.getColumns()).length) {
+                            return ValueVarchar.get(columns[ordinal - 1].getName());
+                        }
                     }
-                    Column[] columns;
-                    if (ordinal >= 1 && ordinal <= (columns = index.getColumns()).length) {
-                        return ValueVarchar.get(columns[ordinal - 1].getName());
-                    }
+                    break;
                 }
-                break;
             }
         }
         return ValueNull.INSTANCE;

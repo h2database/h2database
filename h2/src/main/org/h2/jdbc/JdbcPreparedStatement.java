@@ -181,7 +181,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
         }
     }
 
-    private int executeUpdateInternal() throws SQLException {
+    private int executeUpdateInternal() {
         closeOldResultSet();
         synchronized (session) {
             try {

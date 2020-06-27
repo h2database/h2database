@@ -1295,7 +1295,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                         // ASC_OR_DESC
                         getString((c.sortType & SortOrder.DESCENDING) != 0 ? "D" : "A"),
                         // CARDINALITY
-                        ValueBigint.get(approximate ? index.getRowCountApproximation() : index.getRowCount(session)),
+                        ValueBigint.get(approximate //
+                                ? index.getRowCountApproximation(session) : index.getRowCount(session)),
                         // PAGES
                         ValueBigint.get(index.getDiskSpaceUsed() / db.getPageSize()),
                         // FILTER_CONDITION

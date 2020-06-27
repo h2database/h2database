@@ -12,7 +12,6 @@ import java.io.Reader;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.Types;
-import java.text.Collator;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
@@ -785,8 +784,9 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // TYPE_NAME
                         null,
                         // TABLE_CLASS
-                        table.getClass().getName(), // ROW_COUNT_ESTIMATE
-                        ValueBigint.get(table.getRowCountApproximation())
+                        table.getClass().getName(),
+                        // ROW_COUNT_ESTIMATE
+                        ValueBigint.get(table.getRowCountApproximation(session))
                 );
             }
             break;
@@ -1199,7 +1199,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case SEQUENCES: {
-            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.SEQUENCE)) {
+            for (SchemaObject obj : getAllSchemaObjects(DbObject.SEQUENCE)) {
                 Sequence s = (Sequence) obj;
                 TypeInfo dataType = s.getDataType();
                 String dataTypeName = Value.getTypeName(dataType.getValueType());
@@ -1351,7 +1351,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         }
         case FUNCTION_ALIASES: {
             for (SchemaObject aliasAsSchemaObject :
-                    database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
+                    getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
                 FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
                 JavaMethod[] methods;
                 try {
@@ -1393,7 +1393,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     );
                 }
             }
-            for (SchemaObject aggregateAsSchemaObject : database.getAllSchemaObjects(DbObject.AGGREGATE)) {
+            for (SchemaObject aggregateAsSchemaObject : getAllSchemaObjects(DbObject.AGGREGATE)) {
                 UserAggregate agg = (UserAggregate) aggregateAsSchemaObject;
                 add(session,
                         rows,
@@ -1428,7 +1428,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         }
         case FUNCTION_COLUMNS: {
             for (SchemaObject aliasAsSchemaObject :
-                    database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
+                    getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
                 FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
                 JavaMethod[] methods;
                 try {
@@ -1594,7 +1594,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case COLLATIONS: {
-            for (Locale l : Collator.getAvailableLocales()) {
+            for (Locale l : CompareMode.getCollationLocales(false)) {
                 add(session,
                         rows,
                         // NAME
@@ -1652,7 +1652,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case CROSS_REFERENCES: {
-            for (SchemaObject obj : database.getAllSchemaObjects(
+            for (SchemaObject obj : getAllSchemaObjects(
                     DbObject.CONSTRAINT)) {
                 Constraint constraint = (Constraint) obj;
                 if (constraint.getConstraintType() != Constraint.Type.REFERENTIAL) {
@@ -1705,7 +1705,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case CONSTRAINTS: {
-            for (SchemaObject obj : database.getAllSchemaObjects(
+            for (SchemaObject obj : getAllSchemaObjects(
                     DbObject.CONSTRAINT)) {
                 Constraint constraint = (Constraint) obj;
                 Constraint.Type constraintType = constraint.getConstraintType();
@@ -1777,7 +1777,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case CONSTANTS: {
-            for (SchemaObject obj : database.getAllSchemaObjects(
+            for (SchemaObject obj : getAllSchemaObjects(
                     DbObject.CONSTANT)) {
                 Constant constant = (Constant) obj;
                 ValueExpression expr = constant.getValue();
@@ -1801,7 +1801,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case DOMAINS: {
-            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.DOMAIN)) {
+            for (SchemaObject obj : getAllSchemaObjects(DbObject.DOMAIN)) {
                 Domain domain = (Domain) obj;
                 Column col = domain.getColumn();
                 Domain parentDomain = col.getDomain();
@@ -1851,7 +1851,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case TRIGGERS: {
-            for (SchemaObject obj : database.getAllSchemaObjects(
+            for (SchemaObject obj : getAllSchemaObjects(
                     DbObject.TRIGGER)) {
                 TriggerObject trigger = (TriggerObject) obj;
                 Table table = trigger.getTable();
@@ -2063,7 +2063,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case TABLE_CONSTRAINTS: {
-            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+            for (SchemaObject obj : getAllSchemaObjects(DbObject.CONSTRAINT)) {
                 Constraint constraint = (Constraint) obj;
                 Constraint.Type constraintType = constraint.getConstraintType();
                 if (constraintType == Constraint.Type.DOMAIN) {
@@ -2107,7 +2107,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case DOMAIN_CONSTRAINTS: {
-            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+            for (SchemaObject obj : getAllSchemaObjects(DbObject.CONSTRAINT)) {
                 if (((Constraint) obj).getConstraintType() != Constraint.Type.DOMAIN) {
                     continue;
                 }
@@ -2141,7 +2141,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case KEY_COLUMN_USAGE: {
-            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+            for (SchemaObject obj : getAllSchemaObjects(DbObject.CONSTRAINT)) {
                 Constraint constraint = (Constraint) obj;
                 Constraint.Type constraintType = constraint.getConstraintType();
                 IndexColumn[] indexColumns = null;
@@ -2213,7 +2213,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case REFERENTIAL_CONSTRAINTS: {
-            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+            for (SchemaObject obj : getAllSchemaObjects(DbObject.CONSTRAINT)) {
                 if (((Constraint) obj).getConstraintType() != Constraint.Type.REFERENTIAL) {
                     continue;
                 }
@@ -2247,7 +2247,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case CHECK_CONSTRAINTS: {
-            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+            for (SchemaObject obj : getAllSchemaObjects(DbObject.CONSTRAINT)) {
                 Constraint constraint = (Constraint) obj;
                 Type constraintType = constraint.getConstraintType();
                 if (constraintType == Constraint.Type.CHECK) {
@@ -2274,7 +2274,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case CONSTRAINT_COLUMN_USAGE: {
-            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+            for (SchemaObject obj : getAllSchemaObjects(DbObject.CONSTRAINT)) {
                 Constraint constraint = (Constraint) obj;
                 switch (constraint.getConstraintType()) {
                 case CHECK:
@@ -2428,6 +2428,14 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     isGrantable
             );
         }
+    }
+
+    private ArrayList<SchemaObject> getAllSchemaObjects(int type) {
+        ArrayList<SchemaObject> list = new ArrayList<>();
+        for (Schema schema : database.getAllSchemas()) {
+            schema.getAll(type, list);
+        }
+        return list;
     }
 
     @Override

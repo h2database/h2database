@@ -10,13 +10,11 @@ import java.util.function.BiPredicate;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
-import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
 import org.h2.table.Table;
 
@@ -46,14 +44,15 @@ public class AlterDomain extends SchemaCommand {
     public static void forAllDependencies(Session session, Domain domain, BiPredicate<Domain, Column> columnProcessor,
             BiPredicate<Domain, Domain> domainProcessor, boolean recompileExpressions) {
         Database db = session.getDatabase();
-        for (SchemaObject obj : db.getAllSchemaObjects(DbObject.DOMAIN)) {
-            Domain targetDomain = (Domain) obj;
-            if (targetDomain.getColumn().getDomain() == domain) {
-                if (domainProcessor.test(domain, targetDomain)) {
-                    if (recompileExpressions) {
-                        domain.getColumn().prepareExpression(session);
+        for (Schema schema : db.getAllSchemasNoMeta()) {
+            for (Domain targetDomain : schema.getAllDomains()) {
+                if (targetDomain.getColumn().getDomain() == domain) {
+                    if (domainProcessor.test(domain, targetDomain)) {
+                        if (recompileExpressions) {
+                            domain.getColumn().prepareExpression(session);
+                        }
+                        db.updateMeta(session, targetDomain);
                     }
-                    db.updateMeta(session, targetDomain);
                 }
             }
         }

@@ -61,8 +61,8 @@ public abstract class VirtualTableIndex extends BaseIndex {
     }
 
     @Override
-    public long getRowCountApproximation() {
-        return table.getRowCountApproximation();
+    public long getRowCountApproximation(Session session) {
+        return table.getRowCountApproximation(session);
     }
 
     @Override

@@ -1728,6 +1728,10 @@ public class Database implements DataHandler, CastDataProvider {
         return schemas.values();
     }
 
+    public Collection<Schema> getAllSchemasNoMeta() {
+        return schemas.values();
+    }
+
     public Collection<Setting> getAllSettings() {
         return settings.values();
     }

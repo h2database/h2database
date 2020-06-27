@@ -6,6 +6,7 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
@@ -94,7 +95,8 @@ public class DropDatabase extends DefineCommand {
         } while (runLoopAgain);
 
         // TODO session-local temp tables are not removed
-        for (Schema schema : db.getAllSchemas()) {
+        Collection<Schema> schemas = db.getAllSchemasNoMeta();
+        for (Schema schema : schemas) {
             if (schema.canDrop()) {
                 db.removeDatabaseObject(session, schema);
             }

@@ -187,6 +187,9 @@ public class ScriptCommand extends ScriptBase {
                 add(schema.getCreateSQL(), false);
             }
             for (SchemaObject obj : db.getAllSchemaObjects(DbObject.DOMAIN)) {
+                if (excludeSchema(obj.getSchema())) {
+                    continue;
+                }
                 Domain domain = (Domain) obj;
                 if (drop) {
                     add(domain.getDropSQL(), false);

@@ -22,6 +22,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -209,7 +210,7 @@ public class MVStore implements AutoCloseable {
     /**
      * The map of chunks.
      */
-    private final ConcurrentHashMap<Integer, Chunk> chunks = new ConcurrentHashMap<>();
+    private ConcurrentMap<Integer, Chunk> chunks;
 
     private final Queue<RemovedPageInfo> removedPages = new PriorityBlockingQueue<>();
 
@@ -385,9 +386,11 @@ public class MVStore implements AutoCloseable {
             try {
                 if (fileStoreShallBeOpen) {
                     boolean readOnly = config.containsKey("readOnly");
-                    this.fileStore.open(fileName, readOnly, encryptionKey, this, chunks);
+                    this.fileStore.open(fileName, readOnly, encryptionKey, this);
+                    chunks = fileStore.getChunks();
                 } else {
-                    fileStore.bind(this, chunks);
+                    fileStore.bind(this);
+                    chunks = fileStore.getChunks();
                 }
                 if (this.fileStore.size() == 0) {
                     fileStore.initializeStoreHeader(getTimeAbsolute());
@@ -784,7 +787,6 @@ public class MVStore implements AutoCloseable {
                             for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
                                 m.close();
                             }
-                            chunks.clear();
                             maps.clear();
                         } finally {
                             if (fileStore != null && fileStoreShallBeClosed) {
@@ -1049,6 +1051,7 @@ public class MVStore implements AutoCloseable {
             chunks.put(c.id, c);
             WriteBuffer buff = getWriteBuffer();
             serializeToBuffer(buff, changed, c);
+            fileStore.allocateChunkSpace(c, buff);
 
             for (Page<?, ?> p : changed) {
                 p.releaseSavedPages();
@@ -2012,9 +2015,9 @@ public class MVStore implements AutoCloseable {
                 meta.setInitialRoot(meta.createEmptyLeaf(), INITIAL_VERSION);
                 layout.put(META_ID_KEY, Integer.toHexString(meta.getId()));
                 removedPages.clear();
-                chunks.clear();
                 clearCaches();
                 if (fileStore != null) {
+                    chunks.clear();
                     fileStore.clear();
                 }
                 versions.clear();
@@ -2046,28 +2049,30 @@ public class MVStore implements AutoCloseable {
                 meta.setRootPos(getRootPos(meta.getId()), version - 1);
             }
             metaChanged = false;
-            // find out which chunks to remove,
-            // and which is the newest chunk to keep
-            // (the chunk list can have gaps)
-            ArrayList<Chunk> remove = new ArrayList<>();
-            Chunk keep = null;
-            serializationLock.lock();
-            try {
-                for (Iterator<Map.Entry<Integer, Chunk>> iterator = chunks.entrySet().iterator(); iterator.hasNext(); ) {
-                    Map.Entry<Integer, Chunk> entry = iterator.next();
-                    Chunk c = entry.getValue();
-                    if (c.version > version) {
-                        remove.add(c);
-                        iterator.remove();
-                    } else if (keep == null || keep.version < c.version) {
-                        keep = c;
+            if (fileStore != null) {
+                // find out which chunks to remove,
+                // and which is the newest chunk to keep
+                // (the chunk list can have gaps)
+                ArrayList<Chunk> remove = new ArrayList<>();
+                Chunk keep = null;
+                serializationLock.lock();
+                try {
+                    for (Iterator<Map.Entry<Integer, Chunk>> iterator = chunks.entrySet().iterator(); iterator.hasNext(); ) {
+                        Map.Entry<Integer, Chunk> entry = iterator.next();
+                        Chunk c = entry.getValue();
+                        if (c.version > version) {
+                            remove.add(c);
+                            iterator.remove();
+                        } else if (keep == null || keep.version < c.version) {
+                            keep = c;
+                        }
                     }
+                    if (!remove.isEmpty()) {
+                        fileStore.rollback(keep, remove, this);
+                    }
+                } finally {
+                    serializationLock.unlock();
                 }
-                if (!remove.isEmpty()) {
-                    fileStore.rollback(keep, remove, this);
-                }
-            } finally {
-                serializationLock.unlock();
             }
             removedPages.clear();
             clearCaches();

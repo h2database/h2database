@@ -14,7 +14,6 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -132,6 +131,7 @@ public class TestMVStore extends TestBase {
 
         FileUtils.createDirectories(getTestDir(""));
         String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.createDirectories(getBaseDir());
         FileUtils.delete(fileName);
         try (MVStore store = new MVStore.Builder().
                 autoCommitDisabled().
@@ -155,9 +155,9 @@ public class TestMVStore extends TestBase {
 
             @Override
             public void open(String fileName, boolean readOnly, char[] encryptionKey,
-                             MVStore mvStore, ConcurrentHashMap<Integer, Chunk> chunks) {
+                             MVStore mvStore) {
                 openClose.incrementAndGet();
-                super.open(fileName, readOnly, encryptionKey, mvStore, chunks);
+                super.open(fileName, readOnly, encryptionKey, mvStore);
             }
 
             @Override

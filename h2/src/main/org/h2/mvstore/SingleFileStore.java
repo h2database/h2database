@@ -11,14 +11,11 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import org.h2.message.DbException;
 import org.h2.mvstore.cache.FilePathCache;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FilePath;
-import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.encrypt.FileEncrypt;
 import org.h2.store.fs.encrypt.FilePathEncrypt;
 import org.h2.util.IOUtils;
@@ -86,16 +83,14 @@ public class SingleFileStore extends RandomAccessStore {
 
     /**
      * Try to open the file.
-     *
-     * @param fileName the file name
+     *  @param fileName the file name
      * @param readOnly whether the file should only be opened in read-only mode,
      *            even if the file is writable
      * @param encryptionKey the encryption key, or null if encryption is not
-     *            used
      */
     @Override
     public void open(String fileName, boolean readOnly, char[] encryptionKey,
-                     MVStore mvStore, ConcurrentHashMap<Integer, Chunk> chunks) {
+                     MVStore mvStore) {
         if (file != null && file.isOpen()) {
             return;
         }
@@ -110,7 +105,7 @@ public class SingleFileStore extends RandomAccessStore {
         if (f.exists() && !f.canWrite()) {
             readOnly = true;
         }
-        super.open(fileName, readOnly, encryptionKey, mvStore, chunks);
+        super.open(fileName, readOnly, encryptionKey, mvStore);
         try {
             file = f.open(readOnly ? "r" : "rw");
             if (encryptionKey != null) {

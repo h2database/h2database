@@ -838,4 +838,4 @@ usesuper tgdeferrable rolpassword relam relpages tginitdeferred rolsuper autovac
 nsp pgagent pga awoken serverencoding untyped ambiguities tons lhs letting rhs opportunities specifications
 usefully pipelining fetches reenable joiner visits dcl avxaaa german fold degree supertype overloads hierarchy locator
 conrelid conkey tabrelname refnamespace dsc pred typrelid conname contype confrelid numscans beaver typdelim typelem
-jsonb und decfloat attnums oids studio smells pvs
+jsonb und decfloat attnums oids studio smells pvs mention

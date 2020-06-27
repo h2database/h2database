@@ -700,8 +700,20 @@ public class Schema extends DbObjectBase {
         return domains.values();
     }
 
+    public Collection<Constraint> getAllConstraints() {
+        return constraints.values();
+    }
+
     public Collection<Constant> getAllConstants() {
         return constants.values();
+    }
+
+    public Collection<Sequence> getAllSequences() {
+        return sequences.values();
+    }
+
+    public Collection<TriggerObject> getAllTriggers() {
+        return triggers.values();
     }
 
     /**

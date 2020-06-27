@@ -47,7 +47,6 @@ import org.h2.result.SearchRow;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.schema.UserAggregate;
@@ -195,6 +194,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "CONSTRAINT_NAME",
                     "CHECK_CLAUSE"
             );
+            indexColumnName = "CONSTRAINT_NAME";
             break;
         case COLLATIONS:
             setMetaTableName("COLLATIONS");
@@ -320,6 +320,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "SQL",
                     "ID INT"
             );
+            indexColumnName = "DOMAIN_NAME";
             break;
         case DOMAIN_CONSTRAINTS:
             setMetaTableName("DOMAIN_CONSTRAINTS");
@@ -337,6 +338,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "SQL",
                     "ID INT"
             );
+            indexColumnName = "DOMAIN_NAME";
             break;
         case ELEMENT_TYPES:
             setMetaTableName("ELEMENT_TYPES");
@@ -472,6 +474,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "UPDATE_RULE",
                     "DELETE_RULE"
             );
+            indexColumnName = "CONSTRAINT_NAME";
             break;
         case ROUTINES:
             setMetaTableName("ROUTINES");
@@ -557,6 +560,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "CACHE BIGINT",
                     "ID INT"
             );
+            indexColumnName = "SEQUENCE_NAME";
             break;
         case TABLES:
             setMetaTableName("TABLES");
@@ -633,6 +637,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "SQL",
                     "ID INT"
             );
+            indexColumnName = "TABLE_NAME";
             break;
         case VIEWS:
             setMetaTableName("VIEWS");
@@ -684,6 +689,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "SQL",
                     "ID INT"
             );
+            indexColumnName = "CONSTANT_NAME";
             break;
         case INDEXES:
             setMetaTableName("INDEXES");
@@ -859,7 +865,7 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         // Standard views
         case CHECK_CONSTRAINTS:
-            checkConstraints(session, rows, catalog);
+            checkConstraints(session, indexFrom, indexTo, rows, catalog);
             break;
         case COLLATIONS:
             collations(session, rows, catalog);
@@ -874,10 +880,10 @@ public final class InformationSchemaTable extends MetaTable {
             constraintColumnUsage(session, indexFrom, indexTo, rows, catalog);
             break;
         case DOMAINS:
-            domains(session, rows, catalog);
+            domains(session, indexFrom, indexTo, rows, catalog);
             break;
         case DOMAIN_CONSTRAINTS:
-            domainConstraints(session, rows, catalog);
+            domainConstraints(session, indexFrom, indexTo, rows, catalog);
             break;
         case ELEMENT_TYPES:
             elementTypes(session, rows, catalog);
@@ -892,7 +898,7 @@ public final class InformationSchemaTable extends MetaTable {
             parameters(session, rows, catalog);
             break;
         case REFERENTIAL_CONSTRAINTS:
-            referentialConstraints(session, rows, catalog);
+            referentialConstraints(session, indexFrom, indexTo, rows, catalog);
             break;
         case ROUTINES:
             routines(session, rows, catalog);
@@ -901,7 +907,7 @@ public final class InformationSchemaTable extends MetaTable {
             schemata(session, rows, catalog);
             break;
         case SEQUENCES:
-            sequences(session, rows, catalog);
+            sequences(session, indexFrom, indexTo, rows, catalog);
             break;
         case TABLES:
             tables(session, indexFrom, indexTo, rows, catalog);
@@ -913,14 +919,14 @@ public final class InformationSchemaTable extends MetaTable {
             tablePrivileges(session, indexFrom, indexTo, rows, catalog);
             break;
         case TRIGGERS:
-            triggers(session, rows, catalog);
+            triggers(session, indexFrom, indexTo, rows, catalog);
             break;
         case VIEWS:
             views(session, indexFrom, indexTo, rows, catalog);
             break;
         // Extensions
         case CONSTANTS:
-            constants(session, rows, catalog);
+            constants(session, indexFrom, indexTo, rows, catalog);
             break;
         case INDEXES:
             indexes(session, indexFrom, indexTo, rows, catalog);
@@ -967,30 +973,41 @@ public final class InformationSchemaTable extends MetaTable {
                 catalog);
     }
 
-    private void checkConstraints(Session session, ArrayList<Row> rows, String catalog) {
-        for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
-            Constraint constraint = (Constraint) obj;
-            Type constraintType = constraint.getConstraintType();
-            if (constraintType == Constraint.Type.CHECK) {
-                ConstraintCheck check = (ConstraintCheck) obj;
-                Table table = check.getTable();
-                if (hideTable(table, session)) {
+    private void checkConstraints(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
+            String catalog) {
+        for (Schema schema : database.getAllSchemas()) {
+            for (Constraint constraint : schema.getAllConstraints()) {
+                Type constraintType = constraint.getConstraintType();
+                if (constraintType == Constraint.Type.CHECK) {
+                    ConstraintCheck check = (ConstraintCheck) constraint;
+                    Table table = check.getTable();
+                    if (hideTable(table, session)) {
+                        continue;
+                    }
+                } else if (constraintType != Constraint.Type.DOMAIN) {
                     continue;
                 }
-            } else if (constraintType != Constraint.Type.DOMAIN) {
-                continue;
+                String constraintName = constraint.getName();
+                if (!checkIndex(session, constraintName, indexFrom, indexTo)) {
+                    continue;
+                }
+                checkConstraints(session, rows, catalog, constraint, constraintName);
             }
-            add(session, rows,
-                    // CONSTRAINT_CATALOG
-                    catalog,
-                    // CONSTRAINT_SCHEMA
-                    obj.getSchema().getName(),
-                    // CONSTRAINT_NAME
-                    obj.getName(),
-                    // CHECK_CLAUSE
-                    constraint.getExpression().getSQL(DEFAULT_SQL_FLAGS, Expression.WITHOUT_PARENTHESES)
-            );
         }
+    }
+
+    private void checkConstraints(Session session, ArrayList<Row> rows, String catalog, Constraint constraint,
+            String constraintName) {
+        add(session, rows,
+                // CONSTRAINT_CATALOG
+                catalog,
+                // CONSTRAINT_SCHEMA
+                constraint.getSchema().getName(),
+                // CONSTRAINT_NAME
+                constraintName,
+                // CHECK_CLAUSE
+                constraint.getExpression().getSQL(DEFAULT_SQL_FLAGS, Expression.WITHOUT_PARENTHESES)
+        );
     }
 
     private void collations(Session session, ArrayList<Row> rows, String catalog) {
@@ -1188,168 +1205,196 @@ public final class InformationSchemaTable extends MetaTable {
 
     private void constraintColumnUsage(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
             String catalog) {
-        for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
-            Constraint constraint = (Constraint) obj;
-            switch (constraint.getConstraintType()) {
-            case CHECK:
-            case DOMAIN: {
-                HashSet<Column> columns = new HashSet<>();
-                constraint.getExpression().isEverything(ExpressionVisitor.getColumnsVisitor(columns, null));
-                for (Column column : columns) {
-                    Table table = column.getTable();
-                    if (checkIndex(session, table.getName(), indexFrom, indexTo) && !hideTable(table, session)) {
-                        addConstraintColumnUsage(session, rows, catalog, constraint, column);
-                    }
-                }
-                break;
-            }
-            case REFERENTIAL: {
-                Table table = constraint.getRefTable();
-                if (checkIndex(session, table.getName(), indexFrom, indexTo) && !hideTable(table, session)) {
-                    for (Column column : constraint.getReferencedColumns(table)) {
-                        addConstraintColumnUsage(session, rows, catalog, constraint, column);
-                    }
-                }
-            }
-            //$FALL-THROUGH$
-            case PRIMARY_KEY:
-            case UNIQUE: {
-                Table table = constraint.getTable();
-                if (checkIndex(session, table.getName(), indexFrom, indexTo) && !hideTable(table, session)) {
-                    for (Column column : constraint.getReferencedColumns(table)) {
-                        addConstraintColumnUsage(session, rows, catalog, constraint, column);
-                    }
-                }
-            }
+        for (Schema schema : database.getAllSchemas()) {
+            for (Constraint constraint : schema.getAllConstraints()) {
+                constraintColumnUsage(session, indexFrom, indexTo, rows, catalog, constraint);
             }
         }
     }
 
-    private void domains(Session session, ArrayList<Row> rows, String catalog) {
+    private void constraintColumnUsage(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
+            String catalog, Constraint constraint) {
+        switch (constraint.getConstraintType()) {
+        case CHECK:
+        case DOMAIN: {
+            HashSet<Column> columns = new HashSet<>();
+            constraint.getExpression().isEverything(ExpressionVisitor.getColumnsVisitor(columns, null));
+            for (Column column : columns) {
+                Table table = column.getTable();
+                if (checkIndex(session, table.getName(), indexFrom, indexTo) && !hideTable(table, session)) {
+                    addConstraintColumnUsage(session, rows, catalog, constraint, column);
+                }
+            }
+            break;
+        }
+        case REFERENTIAL: {
+            Table table = constraint.getRefTable();
+            if (checkIndex(session, table.getName(), indexFrom, indexTo) && !hideTable(table, session)) {
+                for (Column column : constraint.getReferencedColumns(table)) {
+                    addConstraintColumnUsage(session, rows, catalog, constraint, column);
+                }
+            }
+        }
+        //$FALL-THROUGH$
+        case PRIMARY_KEY:
+        case UNIQUE: {
+            Table table = constraint.getTable();
+            if (checkIndex(session, table.getName(), indexFrom, indexTo) && !hideTable(table, session)) {
+                for (Column column : constraint.getReferencedColumns(table)) {
+                    addConstraintColumnUsage(session, rows, catalog, constraint, column);
+                }
+            }
+        }
+        }
+    }
+
+    private void domains(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         String mainSchemaName = database.getMainSchema().getName();
         String collation = database.getCompareMode().getName();
-        for (SchemaObject obj : database.getAllSchemaObjects(DbObject.DOMAIN)) {
-            Domain domain = (Domain) obj;
-            Column col = domain.getColumn();
-            Domain parentDomain = col.getDomain();
-            TypeInfo typeInfo = col.getType();
-            DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
-            String characterSetCatalog, characterSetSchema, characterSetName, collationName;
-            if (dt.hasCharsetAndCollation) {
-                characterSetCatalog = catalog;
-                characterSetSchema = mainSchemaName;
-                characterSetName = CHARACTER_SET_NAME;
-                collationName = collation;
-            } else {
-                characterSetCatalog = characterSetSchema = characterSetName = collationName = null;
+        for (Schema schema : database.getAllSchemas()) {
+            for (Domain domain : schema.getAllDomains()) {
+                String domainName = domain.getName();
+                if (!checkIndex(session, domainName, indexFrom, indexTo)) {
+                    continue;
+                }
+                domains(session, rows, catalog, mainSchemaName, collation, domain, domainName);
             }
-            add(session, rows,
-                    // DOMAIN_CATALOG
-                    catalog,
-                    // DOMAIN_SCHEMA
-                    domain.getSchema().getName(),
-                    // DOMAIN_NAME
-                    domain.getName(),
-                    // DATA_TYPE
-                    dt.dataType,
-                    // CHARACTER_MAXIMUM_LENGTH
-                    dt.characterPrecision,
-                    // CHARACTER_OCTET_LENGTH
-                    dt.characterPrecision,
-                    // CHARACTER_SET_CATALOG
-                    characterSetCatalog,
-                    // CHARACTER_SET_SCHEMA
-                    characterSetSchema,
-                    // CHARACTER_SET_NAME
-                    characterSetName,
-                    // COLLATION_CATALOG
-                    characterSetCatalog,
-                    // COLLATION_SCHEMA
-                    characterSetSchema,
-                    // COLLATION_NAME
-                    collationName,
-                    // NUMERIC_PRECISION
-                    dt.numericPrecision,
-                    // NUMERIC_PRECISION_RADIX
-                    dt.numericPrecisionRadix,
-                    // NUMERIC_SCALE
-                    dt.numericScale,
-                    // DATETIME_PRECISION
-                    dt.datetimePrecision,
-                    // INTERVAL_TYPE
-                    dt.intervalType,
-                    // INTERVAL_PRECISION
-                    dt.intervalPrecision,
-                    // DOMAIN_DEFAULT
-                    col.getDefaultSQL(),
-                    // MAXIMUM_CARDINALITY
-                    dt.maximumCardinality,
-                    // DTD_IDENTIFIER
-                    "TYPE",
-                    // DECLARED_DATA_TYPE
-                    dt.declaredDataType,
-                    // DECLARED_NUMERIC_PRECISION INT
-                    dt.declaredNumericPrecision,
-                    // DECLARED_NUMERIC_SCALE INT
-                    dt.declaredNumericScale,
-                    // extensions
-                    // GEOMETRY_TYPE
-                    dt.geometryType,
-                    // GEOMETRY_SRID INT
-                    dt.geometrySrid,
-                    // DOMAIN_ON_UPDATE
-                    col.getOnUpdateSQL(),
-                    // PARENT_DOMAIN_CATALOG
-                    parentDomain != null ? catalog : null,
-                    // PARENT_DOMAIN_SCHEMA
-                    parentDomain != null ? parentDomain.getSchema().getName() : null,
-                    // PARENT_DOMAIN_NAME
-                    parentDomain != null ? parentDomain.getName() : null,
-                    // SELECTIVITY INT
-                    ValueInteger.get(col.getSelectivity()),
-                    // REMARKS
-                    domain.getComment(),
-                    // SQL
-                    domain.getCreateSQL(),
-                    // ID
-                    ValueInteger.get(domain.getId())
-            );
         }
     }
 
-    private void domainConstraints(Session session, ArrayList<Row> rows, String catalog) {
-        for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
-            if (((Constraint) obj).getConstraintType() != Constraint.Type.DOMAIN) {
-                continue;
-            }
-            ConstraintDomain constraint = (ConstraintDomain) obj;
-            Domain domain = constraint.getDomain();
-            add(session, rows,
-                    // CONSTRAINT_CATALOG
-                    catalog,
-                    // CONSTRAINT_SCHEMA
-                    constraint.getSchema().getName(),
-                    // CONSTRAINT_NAME
-                    constraint.getName(),
-                    // DOMAIN_CATALOG
-                    catalog,
-                    // DOMAIN_SCHEMA
-                    domain.getSchema().getName(),
-                    // DOMAIN_NAME
-                    domain.getName(),
-                    // IS_DEFERRABLE
-                    "NO",
-                    // INITIALLY_DEFERRED
-                    "NO",
-                    // extensions
-                    // REMARKS
-                    constraint.getComment(),
-                    // SQL
-                    constraint.getCreateSQL(),
-                    // ID
-                    ValueInteger.get(constraint.getId())
-            );
+    private void domains(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName, String collation,
+            Domain domain, String domainName) {
+        Column col = domain.getColumn();
+        Domain parentDomain = col.getDomain();
+        TypeInfo typeInfo = col.getType();
+        DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
+        String characterSetCatalog, characterSetSchema, characterSetName, collationName;
+        if (dt.hasCharsetAndCollation) {
+            characterSetCatalog = catalog;
+            characterSetSchema = mainSchemaName;
+            characterSetName = CHARACTER_SET_NAME;
+            collationName = collation;
+        } else {
+            characterSetCatalog = characterSetSchema = characterSetName = collationName = null;
         }
+        add(session, rows,
+                // DOMAIN_CATALOG
+                catalog,
+                // DOMAIN_SCHEMA
+                domain.getSchema().getName(),
+                // DOMAIN_NAME
+                domainName,
+                // DATA_TYPE
+                dt.dataType,
+                // CHARACTER_MAXIMUM_LENGTH
+                dt.characterPrecision,
+                // CHARACTER_OCTET_LENGTH
+                dt.characterPrecision,
+                // CHARACTER_SET_CATALOG
+                characterSetCatalog,
+                // CHARACTER_SET_SCHEMA
+                characterSetSchema,
+                // CHARACTER_SET_NAME
+                characterSetName,
+                // COLLATION_CATALOG
+                characterSetCatalog,
+                // COLLATION_SCHEMA
+                characterSetSchema,
+                // COLLATION_NAME
+                collationName,
+                // NUMERIC_PRECISION
+                dt.numericPrecision,
+                // NUMERIC_PRECISION_RADIX
+                dt.numericPrecisionRadix,
+                // NUMERIC_SCALE
+                dt.numericScale,
+                // DATETIME_PRECISION
+                dt.datetimePrecision,
+                // INTERVAL_TYPE
+                dt.intervalType,
+                // INTERVAL_PRECISION
+                dt.intervalPrecision,
+                // DOMAIN_DEFAULT
+                col.getDefaultSQL(),
+                // MAXIMUM_CARDINALITY
+                dt.maximumCardinality,
+                // DTD_IDENTIFIER
+                "TYPE",
+                // DECLARED_DATA_TYPE
+                dt.declaredDataType,
+                // DECLARED_NUMERIC_PRECISION INT
+                dt.declaredNumericPrecision,
+                // DECLARED_NUMERIC_SCALE INT
+                dt.declaredNumericScale,
+                // extensions
+                // GEOMETRY_TYPE
+                dt.geometryType,
+                // GEOMETRY_SRID INT
+                dt.geometrySrid,
+                // DOMAIN_ON_UPDATE
+                col.getOnUpdateSQL(),
+                // PARENT_DOMAIN_CATALOG
+                parentDomain != null ? catalog : null,
+                // PARENT_DOMAIN_SCHEMA
+                parentDomain != null ? parentDomain.getSchema().getName() : null,
+                // PARENT_DOMAIN_NAME
+                parentDomain != null ? parentDomain.getName() : null,
+                // SELECTIVITY INT
+                ValueInteger.get(col.getSelectivity()),
+                // REMARKS
+                domain.getComment(),
+                // SQL
+                domain.getCreateSQL(),
+                // ID
+                ValueInteger.get(domain.getId())
+        );
+    }
+
+    private void domainConstraints(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
+            String catalog) {
+        for (Schema schema : database.getAllSchemas()) {
+            for (Constraint constraint : schema.getAllConstraints()) {
+                if (constraint.getConstraintType() != Constraint.Type.DOMAIN) {
+                    continue;
+                }
+                ConstraintDomain domainConstraint = (ConstraintDomain) constraint;
+                Domain domain = domainConstraint.getDomain();
+                String domainName = domain.getName();
+                if (!checkIndex(session, domainName, indexFrom, indexTo)) {
+                    continue;
+                }
+                domainConstraints(session, rows, catalog, domainConstraint, domain, domainName);
+            }
+        }
+    }
+
+    private void domainConstraints(Session session, ArrayList<Row> rows, String catalog, ConstraintDomain constraint,
+            Domain domain, String domainName) {
+        add(session, rows,
+                // CONSTRAINT_CATALOG
+                catalog,
+                // CONSTRAINT_SCHEMA
+                constraint.getSchema().getName(),
+                // CONSTRAINT_NAME
+                constraint.getName(),
+                // DOMAIN_CATALOG
+                catalog,
+                // DOMAIN_SCHEMA
+                domain.getSchema().getName(),
+                // DOMAIN_NAME
+                domainName,
+                // IS_DEFERRABLE
+                "NO",
+                // INITIALLY_DEFERRED
+                "NO",
+                // extensions
+                // REMARKS
+                constraint.getComment(),
+                // SQL
+                constraint.getCreateSQL(),
+                // ID
+                ValueInteger.get(constraint.getId())
+        );
     }
 
     private void elementTypes(Session session, ArrayList<Row> rows, String catalog) {
@@ -1604,89 +1649,95 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     private void keyColumnUsage(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
-        for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
-            Constraint constraint = (Constraint) obj;
-            Constraint.Type constraintType = constraint.getConstraintType();
-            IndexColumn[] indexColumns = null;
-            if (constraintType == Constraint.Type.UNIQUE || constraintType == Constraint.Type.PRIMARY_KEY) {
-                indexColumns = ((ConstraintUnique) constraint).getColumns();
-            } else if (constraintType == Constraint.Type.REFERENTIAL) {
-                indexColumns = ((ConstraintReferential) constraint).getColumns();
+        for (Schema schema : database.getAllSchemas()) {
+            for (Constraint constraint : schema.getAllConstraints()) {
+                Constraint.Type constraintType = constraint.getConstraintType();
+                IndexColumn[] indexColumns = null;
+                if (constraintType == Constraint.Type.UNIQUE || constraintType == Constraint.Type.PRIMARY_KEY) {
+                    indexColumns = ((ConstraintUnique) constraint).getColumns();
+                } else if (constraintType == Constraint.Type.REFERENTIAL) {
+                    indexColumns = ((ConstraintReferential) constraint).getColumns();
+                }
+                if (indexColumns == null) {
+                    continue;
+                }
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                String tableName = table.getName();
+                if (!checkIndex(session, tableName, indexFrom, indexTo)) {
+                    continue;
+                }
+                keyColumnUsage(session, rows, catalog, constraint, constraintType, indexColumns, table, tableName);
             }
-            if (indexColumns == null) {
-                continue;
-            }
-            Table table = constraint.getTable();
-            if (hideTable(table, session)) {
-                continue;
-            }
-            String tableName = table.getName();
-            if (!checkIndex(session, tableName, indexFrom, indexTo)) {
-                continue;
-            }
-            ConstraintUnique referenced;
-            if (constraintType == Constraint.Type.REFERENTIAL) {
-                referenced = ((ConstraintReferential) constraint).getReferencedConstraint();
-            } else {
-                referenced = null;
-            }
-            for (int i = 0; i < indexColumns.length; i++) {
-                IndexColumn indexColumn = indexColumns[i];
-                ValueInteger ordinalPosition = ValueInteger.get(i + 1);
-                ValueInteger positionInUniqueConstraint = null;
-                if (referenced != null) {
-                    Column c = ((ConstraintReferential) constraint).getRefColumns()[i].column;
-                    IndexColumn[] refColumns = referenced.getColumns();
-                    for (int j = 0; j < refColumns.length; j++) {
-                        if (refColumns[j].column.equals(c)) {
-                            positionInUniqueConstraint = ValueInteger.get(j + 1);
-                            break;
-                        }
+        }
+    }
+
+    private void keyColumnUsage(Session session, ArrayList<Row> rows, String catalog, Constraint constraint,
+            Constraint.Type constraintType, IndexColumn[] indexColumns, Table table, String tableName) {
+        ConstraintUnique referenced;
+        if (constraintType == Constraint.Type.REFERENTIAL) {
+            referenced = ((ConstraintReferential) constraint).getReferencedConstraint();
+        } else {
+            referenced = null;
+        }
+        for (int i = 0; i < indexColumns.length; i++) {
+            IndexColumn indexColumn = indexColumns[i];
+            ValueInteger ordinalPosition = ValueInteger.get(i + 1);
+            ValueInteger positionInUniqueConstraint = null;
+            if (referenced != null) {
+                Column c = ((ConstraintReferential) constraint).getRefColumns()[i].column;
+                IndexColumn[] refColumns = referenced.getColumns();
+                for (int j = 0; j < refColumns.length; j++) {
+                    if (refColumns[j].column.equals(c)) {
+                        positionInUniqueConstraint = ValueInteger.get(j + 1);
+                        break;
                     }
                 }
-                add(session, rows,
-                        // CONSTRAINT_CATALOG
-                        catalog,
-                        // CONSTRAINT_SCHEMA
-                        constraint.getSchema().getName(),
-                        // CONSTRAINT_NAME
-                        constraint.getName(),
-                        // TABLE_CATALOG
-                        catalog,
-                        // TABLE_SCHEMA
-                        table.getSchema().getName(),
-                        // TABLE_NAME
-                        tableName,
-                        // COLUMN_NAME
-                        indexColumn.columnName,
-                        // ORDINAL_POSITION
-                        ordinalPosition,
-                        // POSITION_IN_UNIQUE_CONSTRAINT
-                        positionInUniqueConstraint
-                );
             }
+            add(session, rows,
+                    // CONSTRAINT_CATALOG
+                    catalog,
+                    // CONSTRAINT_SCHEMA
+                    constraint.getSchema().getName(),
+                    // CONSTRAINT_NAME
+                    constraint.getName(),
+                    // TABLE_CATALOG
+                    catalog,
+                    // TABLE_SCHEMA
+                    table.getSchema().getName(),
+                    // TABLE_NAME
+                    tableName,
+                    // COLUMN_NAME
+                    indexColumn.columnName,
+                    // ORDINAL_POSITION
+                    ordinalPosition,
+                    // POSITION_IN_UNIQUE_CONSTRAINT
+                    positionInUniqueConstraint
+            );
         }
     }
 
     private void parameters(Session session, ArrayList<Row> rows, String catalog) {
         String mainSchemaName = database.getMainSchema().getName();
         String collation = database.getCompareMode().getName();
-        for (SchemaObject aliasAsSchemaObject : database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
-            FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
-            JavaMethod[] methods;
-            try {
-                methods = alias.getJavaMethods();
-            } catch (DbException e) {
-                methods = new JavaMethod[0];
-            }
-            String schema = alias.getSchema().getName();
-            for (int i = 0; i < methods.length; i++) {
-                FunctionAlias.JavaMethod method = methods[i];
-                Class<?>[] columnList = method.getColumnClasses();
-                for (int o = 1, p = method.hasConnectionParam() ? 1 : 0, n = columnList.length; p < n; o++, p++) {
-                    parameters(session, rows, catalog, mainSchemaName, collation, schema,
-                            alias.getName() + '_' + (i + 1), ValueToObjectConverter2.classToType(columnList[p]), //
-                            o);
+        for (Schema schema : database.getAllSchemas()) {
+            for (FunctionAlias alias : schema.getAllFunctionAliases()) {
+                JavaMethod[] methods;
+                try {
+                    methods = alias.getJavaMethods();
+                } catch (DbException e) {
+                    methods = new JavaMethod[0];
+                }
+                for (int i = 0; i < methods.length; i++) {
+                    FunctionAlias.JavaMethod method = methods[i];
+                    Class<?>[] columnList = method.getColumnClasses();
+                    for (int o = 1, p = method.hasConnectionParam() ? 1 : 0, n = columnList.length; p < n; o++, p++) {
+                        parameters(session, rows, catalog, mainSchemaName, collation, schema.getName(),
+                                alias.getName() + '_' + (i + 1), ValueToObjectConverter2.classToType(columnList[p]), //
+                                o);
+                    }
                 }
             }
         }
@@ -1773,38 +1824,48 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void referentialConstraints(Session session, ArrayList<Row> rows, String catalog) {
-        for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
-            if (((Constraint) obj).getConstraintType() != Constraint.Type.REFERENTIAL) {
-                continue;
+    private void referentialConstraints(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
+            String catalog) {
+        for (Schema schema : database.getAllSchemas()) {
+            for (Constraint constraint : schema.getAllConstraints()) {
+                if (constraint.getConstraintType() != Constraint.Type.REFERENTIAL) {
+                    continue;
+                }
+                if (hideTable(constraint.getTable(), session)) {
+                    continue;
+                }
+                String constraintName = constraint.getName();
+                if (!checkIndex(session, constraintName, indexFrom, indexTo)) {
+                    continue;
+                }
+                referentialConstraints(session, rows, catalog, (ConstraintReferential) constraint, constraintName);
             }
-            ConstraintReferential constraint = (ConstraintReferential) obj;
-            Table table = constraint.getTable();
-            if (hideTable(table, session)) {
-                continue;
-            }
-            ConstraintUnique unique = constraint.getReferencedConstraint();
-            add(session, rows,
-                    // CONSTRAINT_CATALOG
-                    catalog,
-                    // CONSTRAINT_SCHEMA
-                    constraint.getSchema().getName(),
-                    // CONSTRAINT_NAME
-                    constraint.getName(),
-                    // UNIQUE_CONSTRAINT_CATALOG
-                    catalog,
-                    // UNIQUE_CONSTRAINT_SCHEMA
-                    unique.getSchema().getName(),
-                    // UNIQUE_CONSTRAINT_NAME
-                    unique.getName(),
-                    // MATCH_OPTION
-                    "NONE",
-                    // UPDATE_RULE
-                    constraint.getUpdateAction().getSqlName(),
-                    // DELETE_RULE
-                    constraint.getDeleteAction().getSqlName()
-            );
         }
+    }
+
+    private void referentialConstraints(Session session, ArrayList<Row> rows, String catalog,
+            ConstraintReferential constraint, String constraintName) {
+        ConstraintUnique unique = constraint.getReferencedConstraint();
+        add(session, rows,
+                // CONSTRAINT_CATALOG
+                catalog,
+                // CONSTRAINT_SCHEMA
+                constraint.getSchema().getName(),
+                // CONSTRAINT_NAME
+                constraintName,
+                // UNIQUE_CONSTRAINT_CATALOG
+                catalog,
+                // UNIQUE_CONSTRAINT_SCHEMA
+                unique.getSchema().getName(),
+                // UNIQUE_CONSTRAINT_NAME
+                unique.getName(),
+                // MATCH_OPTION
+                "NONE",
+                // UPDATE_RULE
+                constraint.getUpdateAction().getSqlName(),
+                // DELETE_RULE
+                constraint.getDeleteAction().getSqlName()
+        );
     }
 
     private void routines(Session session, ArrayList<Row> rows, String catalog) {
@@ -1967,54 +2028,64 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void sequences(Session session, ArrayList<Row> rows, String catalog) {
-        for (SchemaObject obj : database.getAllSchemaObjects(DbObject.SEQUENCE)) {
-            Sequence s = (Sequence) obj;
-            DataTypeInformation dt = DataTypeInformation.valueOf(s.getDataType());
-            add(session, rows,
-                    // SEQUENCE_CATALOG
-                    catalog,
-                    // SEQUENCE_SCHEMA
-                    s.getSchema().getName(),
-                    // SEQUENCE_NAME
-                    s.getName(),
-                    // DATA_TYPE
-                    dt.dataType,
-                    // NUMERIC_PRECISION
-                    ValueInteger.get(s.getEffectivePrecision()),
-                    // NUMERIC_PRECISION_RADIX
-                    dt.numericPrecisionRadix,
-                    // NUMERIC_SCALE
-                    dt.numericScale,
-                    // START_VALUE
-                    ValueBigint.get(s.getStartValue()),
-                    // MINIMUM_VALUE
-                    ValueBigint.get(s.getMinValue()),
-                    // MAXIMUM_VALUE
-                    ValueBigint.get(s.getMaxValue()),
-                    // INCREMENT
-                    ValueBigint.get(s.getIncrement()),
-                    // CYCLE_OPTION
-                    s.getCycle() ? "YES" : "NO",
-                    // DECLARED_DATA_TYPE
-                    dt.declaredDataType,
-                    // DECLARED_NUMERIC_PRECISION
-                    dt.declaredNumericPrecision,
-                    // DECLARED_NUMERIC_SCALE
-                    dt.declaredNumericScale,
-                    // extensions
-                    // CURRENT_VALUE
-                    ValueBigint.get(s.getCurrentValue()),
-                    // IS_GENERATED
-                    ValueBoolean.get(s.getBelongsToTable()),
-                    // REMARKS
-                    s.getComment(),
-                    // CACHE
-                    ValueBigint.get(s.getCacheSize()),
-                    // ID
-                    ValueInteger.get(s.getId())
-                );
+    private void sequences(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
+        for (Schema schema : database.getAllSchemas()) {
+            for (Sequence sequence : schema.getAllSequences()) {
+                String sequenceName = sequence.getName();
+                if (!checkIndex(session, sequenceName, indexFrom, indexTo)) {
+                    continue;
+                }
+                sequences(session, rows, catalog, sequence, sequenceName);
+            }
         }
+    }
+
+    private void sequences(Session session, ArrayList<Row> rows, String catalog, Sequence sequence,
+            String sequenceName) {
+        DataTypeInformation dt = DataTypeInformation.valueOf(sequence.getDataType());
+        add(session, rows,
+                // SEQUENCE_CATALOG
+                catalog,
+                // SEQUENCE_SCHEMA
+                sequence.getSchema().getName(),
+                // SEQUENCE_NAME
+                sequenceName,
+                // DATA_TYPE
+                dt.dataType,
+                // NUMERIC_PRECISION
+                ValueInteger.get(sequence.getEffectivePrecision()),
+                // NUMERIC_PRECISION_RADIX
+                dt.numericPrecisionRadix,
+                // NUMERIC_SCALE
+                dt.numericScale,
+                // START_VALUE
+                ValueBigint.get(sequence.getStartValue()),
+                // MINIMUM_VALUE
+                ValueBigint.get(sequence.getMinValue()),
+                // MAXIMUM_VALUE
+                ValueBigint.get(sequence.getMaxValue()),
+                // INCREMENT
+                ValueBigint.get(sequence.getIncrement()),
+                // CYCLE_OPTION
+                sequence.getCycle() ? "YES" : "NO",
+                // DECLARED_DATA_TYPE
+                dt.declaredDataType,
+                // DECLARED_NUMERIC_PRECISION
+                dt.declaredNumericPrecision,
+                // DECLARED_NUMERIC_SCALE
+                dt.declaredNumericScale,
+                // extensions
+                // CURRENT_VALUE
+                ValueBigint.get(sequence.getCurrentValue()),
+                // IS_GENERATED
+                ValueBoolean.get(sequence.getBelongsToTable()),
+                // REMARKS
+                sequence.getComment(),
+                // CACHE
+                ValueBigint.get(sequence.getCacheSize()),
+                // ID
+                ValueInteger.get(sequence.getId())
+            );
     }
 
     private void tables(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
@@ -2084,64 +2155,70 @@ public final class InformationSchemaTable extends MetaTable {
 
     private void tableConstraints(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
             String catalog) {
-        for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
-            Constraint constraint = (Constraint) obj;
-            Constraint.Type constraintType = constraint.getConstraintType();
-            if (constraintType == Constraint.Type.DOMAIN) {
-                continue;
+        for (Schema schema : database.getAllSchemas()) {
+            for (Constraint constraint : schema.getAllConstraints()) {
+                Constraint.Type constraintType = constraint.getConstraintType();
+                if (constraintType == Constraint.Type.DOMAIN) {
+                    continue;
+                }
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                String tableName = table.getName();
+                if (!checkIndex(session, tableName, indexFrom, indexTo)) {
+                    continue;
+                }
+                tableConstraints(session, rows, catalog, constraint, constraintType, table, tableName);
             }
-            Table table = constraint.getTable();
-            if (hideTable(table, session)) {
-                continue;
-            }
-            String tableName = table.getName();
-            if (!checkIndex(session, tableName, indexFrom, indexTo)) {
-                continue;
-            }
-            Index index = constraint.getIndex();
-            boolean enforced;
-            if (constraintType != Constraint.Type.REFERENTIAL) {
-                enforced = true;
-            } else {
-                enforced = database.getReferentialIntegrity() && table.getCheckForeignKeyConstraints()
-                        && ((ConstraintReferential) constraint).getRefTable().getCheckForeignKeyConstraints();
-            }
-            add(session, rows,
-                    // CONSTRAINT_CATALOG
-                    catalog,
-                    // CONSTRAINT_SCHEMA
-                    constraint.getSchema().getName(),
-                    // CONSTRAINT_NAME
-                    constraint.getName(),
-                    // CONSTRAINT_TYPE
-                    constraintType.getSqlName(),
-                    // TABLE_CATALOG
-                    catalog,
-                    // TABLE_SCHEMA
-                    table.getSchema().getName(),
-                    // TABLE_NAME
-                    tableName,
-                    // IS_DEFERRABLE
-                    "NO",
-                    // INITIALLY_DEFERRED
-                    "NO",
-                    // ENFORCED
-                    enforced ? "YES" : "NO",
-                    // extensions
-                    // INDEX_CATALOG
-                    index != null ? catalog : null,
-                    // INDEX_SCHEMA
-                    index != null ? index.getSchema().getName() : null,
-                    // INDEX_NAME
-                    index != null ? index.getName() : null,
-                    // REMARKS
-                    constraint.getComment(),
-                    // SQL
-                    constraint.getCreateSQL(),
-                    // ID
-                    ValueInteger.get(constraint.getId())
-            );
         }
+    }
+
+    private void tableConstraints(Session session, ArrayList<Row> rows, String catalog, Constraint constraint,
+            Constraint.Type constraintType, Table table, String tableName) {
+        Index index = constraint.getIndex();
+        boolean enforced;
+        if (constraintType != Constraint.Type.REFERENTIAL) {
+            enforced = true;
+        } else {
+            enforced = database.getReferentialIntegrity() && table.getCheckForeignKeyConstraints()
+                    && ((ConstraintReferential) constraint).getRefTable().getCheckForeignKeyConstraints();
+        }
+        add(session, rows,
+                // CONSTRAINT_CATALOG
+                catalog,
+                // CONSTRAINT_SCHEMA
+                constraint.getSchema().getName(),
+                // CONSTRAINT_NAME
+                constraint.getName(),
+                // CONSTRAINT_TYPE
+                constraintType.getSqlName(),
+                // TABLE_CATALOG
+                catalog,
+                // TABLE_SCHEMA
+                table.getSchema().getName(),
+                // TABLE_NAME
+                tableName,
+                // IS_DEFERRABLE
+                "NO",
+                // INITIALLY_DEFERRED
+                "NO",
+                // ENFORCED
+                enforced ? "YES" : "NO",
+                // extensions
+                // INDEX_CATALOG
+                index != null ? catalog : null,
+                // INDEX_SCHEMA
+                index != null ? index.getSchema().getName() : null,
+                // INDEX_NAME
+                index != null ? index.getName() : null,
+                // REMARKS
+                constraint.getComment(),
+                // SQL
+                constraint.getCreateSQL(),
+                // ID
+                ValueInteger.get(constraint.getId())
+        );
     }
 
     private void tablePrivileges(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, //
@@ -2163,42 +2240,52 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void triggers(Session session, ArrayList<Row> rows, String catalog) {
-        for (SchemaObject obj : database.getAllSchemaObjects(DbObject.TRIGGER)) {
-            TriggerObject trigger = (TriggerObject) obj;
-            Table table = trigger.getTable();
-            add(session, rows,
-                    // TRIGGER_CATALOG
-                    catalog,
-                    // TRIGGER_SCHEMA
-                    trigger.getSchema().getName(),
-                    // TRIGGER_NAME
-                    trigger.getName(),
-                    // extensions
-                    // TRIGGER_TYPE
-                    trigger.getTypeNameList(new StringBuilder()).toString(),
-                    // TABLE_CATALOG
-                    catalog,
-                    // TABLE_SCHEMA
-                    table.getSchema().getName(),
-                    // TABLE_NAME
-                    table.getName(),
-                    // BEFORE
-                    ValueBoolean.get(trigger.isBefore()),
-                    // JAVA_CLASS
-                    trigger.getTriggerClassName(),
-                    // QUEUE_SIZE
-                    ValueInteger.get(trigger.getQueueSize()),
-                    // NO_WAIT
-                    ValueBoolean.get(trigger.isNoWait()),
-                    // REMARKS
-                    trigger.getComment(),
-                    // SQL
-                    trigger.getCreateSQL(),
-                    // ID
-                    ValueInteger.get(trigger.getId())
-            );
+    private void triggers(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
+        for (Schema schema : database.getAllSchemas()) {
+            for (TriggerObject trigger : schema.getAllTriggers()) {
+                Table table = trigger.getTable();
+                String tableName = table.getName();
+                if (!checkIndex(session, tableName, indexFrom, indexTo)) {
+                    continue;
+                }
+                triggers(session, rows, catalog, trigger, table, tableName);
+            }
         }
+    }
+
+    private void triggers(Session session, ArrayList<Row> rows, String catalog, TriggerObject trigger, Table table,
+            String tableName) {
+        add(session, rows,
+                // TRIGGER_CATALOG
+                catalog,
+                // TRIGGER_SCHEMA
+                trigger.getSchema().getName(),
+                // TRIGGER_NAME
+                trigger.getName(),
+                // extensions
+                // TRIGGER_TYPE
+                trigger.getTypeNameList(new StringBuilder()).toString(),
+                // TABLE_CATALOG
+                catalog,
+                // TABLE_SCHEMA
+                table.getSchema().getName(),
+                // TABLE_NAME
+                tableName,
+                // BEFORE
+                ValueBoolean.get(trigger.isBefore()),
+                // JAVA_CLASS
+                trigger.getTriggerClassName(),
+                // QUEUE_SIZE
+                ValueInteger.get(trigger.getQueueSize()),
+                // NO_WAIT
+                ValueBoolean.get(trigger.isNoWait()),
+                // REMARKS
+                trigger.getComment(),
+                // SQL
+                trigger.getCreateSQL(),
+                // ID
+                ValueInteger.get(trigger.getId())
+        );
     }
 
     private void views(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
@@ -2234,82 +2321,92 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void constants(Session session, ArrayList<Row> rows, String catalog) {
+    private void constants(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         String mainSchemaName = database.getMainSchema().getName();
         String collation = database.getCompareMode().getName();
-        for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTANT)) {
-            Constant constant = (Constant) obj;
-            ValueExpression expr = constant.getValue();
-            TypeInfo typeInfo = expr.getType();
-            DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
-            String characterSetCatalog, characterSetSchema, characterSetName, collationName;
-            if (dt.hasCharsetAndCollation) {
-                characterSetCatalog = catalog;
-                characterSetSchema = mainSchemaName;
-                characterSetName = CHARACTER_SET_NAME;
-                collationName = collation;
-            } else {
-                characterSetCatalog = characterSetSchema = characterSetName = collationName = null;
+        for (Schema schema : database.getAllSchemas()) {
+            for (Constant constant : schema.getAllConstants()) {
+                String constantName = constant.getName();
+                if (!checkIndex(session, constantName, indexFrom, indexTo)) {
+                    continue;
+                }
+                constants(session, rows, catalog, mainSchemaName, collation, constant, constantName);
             }
-            add(session, rows,
-                    // CONSTANT_CATALOG
-                    catalog,
-                    // CONSTANT_SCHEMA
-                    constant.getSchema().getName(),
-                    // CONSTANT_NAME
-                    constant.getName(),
-                    // DATA_TYPE
-                    dt.dataType,
-                    // CHARACTER_MAXIMUM_LENGTH
-                    dt.characterPrecision,
-                    // CHARACTER_OCTET_LENGTH
-                    dt.characterPrecision,
-                    // CHARACTER_SET_CATALOG
-                    characterSetCatalog,
-                    // CHARACTER_SET_SCHEMA
-                    characterSetSchema,
-                    // CHARACTER_SET_NAME
-                    characterSetName,
-                    // COLLATION_CATALOG
-                    characterSetCatalog,
-                    // COLLATION_SCHEMA
-                    characterSetSchema,
-                    // COLLATION_NAME
-                    collationName,
-                    // NUMERIC_PRECISION
-                    dt.numericPrecision,
-                    // NUMERIC_PRECISION_RADIX
-                    dt.numericPrecisionRadix,
-                    // NUMERIC_SCALE
-                    dt.numericScale,
-                    // DATETIME_PRECISION
-                    dt.datetimePrecision,
-                    // INTERVAL_TYPE
-                    dt.intervalType,
-                    // INTERVAL_PRECISION
-                    dt.intervalPrecision,
-                    // MAXIMUM_CARDINALITY
-                    dt.maximumCardinality,
-                    // DTD_IDENTIFIER
-                    "TYPE",
-                    // DECLARED_DATA_TYPE
-                    dt.declaredDataType,
-                    // DECLARED_NUMERIC_PRECISION INT
-                    dt.declaredNumericPrecision,
-                    // DECLARED_NUMERIC_SCALE INT
-                    dt.declaredNumericScale,
-                    // GEOMETRY_TYPE
-                    dt.geometryType,
-                    // GEOMETRY_SRID INT
-                    dt.geometrySrid,
-                    // REMARKS
-                    constant.getComment(),
-                    // SQL
-                    expr.getSQL(DEFAULT_SQL_FLAGS),
-                    // ID
-                    ValueInteger.get(constant.getId())
-                );
         }
+    }
+
+    private void constants(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+            String collation, Constant constant, String constantName) {
+        ValueExpression expr = constant.getValue();
+        TypeInfo typeInfo = expr.getType();
+        DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
+        String characterSetCatalog, characterSetSchema, characterSetName, collationName;
+        if (dt.hasCharsetAndCollation) {
+            characterSetCatalog = catalog;
+            characterSetSchema = mainSchemaName;
+            characterSetName = CHARACTER_SET_NAME;
+            collationName = collation;
+        } else {
+            characterSetCatalog = characterSetSchema = characterSetName = collationName = null;
+        }
+        add(session, rows,
+                // CONSTANT_CATALOG
+                catalog,
+                // CONSTANT_SCHEMA
+                constant.getSchema().getName(),
+                // CONSTANT_NAME
+                constantName,
+                // DATA_TYPE
+                dt.dataType,
+                // CHARACTER_MAXIMUM_LENGTH
+                dt.characterPrecision,
+                // CHARACTER_OCTET_LENGTH
+                dt.characterPrecision,
+                // CHARACTER_SET_CATALOG
+                characterSetCatalog,
+                // CHARACTER_SET_SCHEMA
+                characterSetSchema,
+                // CHARACTER_SET_NAME
+                characterSetName,
+                // COLLATION_CATALOG
+                characterSetCatalog,
+                // COLLATION_SCHEMA
+                characterSetSchema,
+                // COLLATION_NAME
+                collationName,
+                // NUMERIC_PRECISION
+                dt.numericPrecision,
+                // NUMERIC_PRECISION_RADIX
+                dt.numericPrecisionRadix,
+                // NUMERIC_SCALE
+                dt.numericScale,
+                // DATETIME_PRECISION
+                dt.datetimePrecision,
+                // INTERVAL_TYPE
+                dt.intervalType,
+                // INTERVAL_PRECISION
+                dt.intervalPrecision,
+                // MAXIMUM_CARDINALITY
+                dt.maximumCardinality,
+                // DTD_IDENTIFIER
+                "TYPE",
+                // DECLARED_DATA_TYPE
+                dt.declaredDataType,
+                // DECLARED_NUMERIC_PRECISION INT
+                dt.declaredNumericPrecision,
+                // DECLARED_NUMERIC_SCALE INT
+                dt.declaredNumericScale,
+                // GEOMETRY_TYPE
+                dt.geometryType,
+                // GEOMETRY_SRID INT
+                dt.geometrySrid,
+                // REMARKS
+                constant.getComment(),
+                // SQL
+                expr.getSQL(DEFAULT_SQL_FLAGS),
+                // ID
+                ValueInteger.get(constant.getId())
+            );
     }
 
     private void indexes(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {

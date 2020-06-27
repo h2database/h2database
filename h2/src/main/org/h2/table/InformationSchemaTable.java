@@ -2908,6 +2908,80 @@ public final class InformationSchemaTable extends MetaTable {
         return isView;
     }
 
+    @Override
+    public long getRowCount(Session session) {
+        return getRowCount(session, false);
+    }
+
+    @Override
+    public long getRowCountApproximation(Session session) {
+        return getRowCount(session, true);
+    }
+
+    private long getRowCount(Session session, boolean approximation) {
+        switch (type) {
+        case INFORMATION_SCHEMA_CATALOG_NAME:
+            return 1L;
+        case COLLATIONS: {
+            Locale[] locales = CompareMode.getCollationLocales(approximation);
+            if (locales != null) {
+                return locales.length + 1;
+            }
+            break;
+        }
+        case SCHEMATA:
+            return session.getDatabase().getAllSchemas().size();
+        case IN_DOUBT:
+            if (session.getUser().isAdmin()) {
+                ArrayList<InDoubtTransaction> inDoubt = session.getDatabase().getInDoubtTransactions();
+                if (inDoubt != null) {
+                    return inDoubt.size();
+                }
+            }
+            return 0L;
+        case ROLES:
+            if (session.getUser().isAdmin()) {
+                return session.getDatabase().getAllRoles().size();
+            }
+            break;
+        case SESSIONS:
+            if (session.getUser().isAdmin()) {
+                return session.getDatabase().getSessionCount();
+            } else {
+                return 1L;
+            }
+        case USERS:
+            if (session.getUser().isAdmin()) {
+                return session.getDatabase().getAllUsers().size();
+            } else {
+                return 1L;
+            }
+        }
+        if (approximation) {
+            return ROW_COUNT_APPROXIMATION;
+        }
+        throw DbException.throwInternalError(toString());
+    }
+
+    @Override
+    public boolean canGetRowCount(Session session) {
+        switch (type) {
+        case INFORMATION_SCHEMA_CATALOG_NAME:
+        case COLLATIONS:
+        case SCHEMATA:
+        case IN_DOUBT:
+        case SESSIONS:
+        case USERS:
+            return true;
+        case ROLES:
+            if (session.getUser().isAdmin()) {
+                return true;
+            }
+            break;
+        }
+        return false;
+    }
+
     /**
      * Data type information.
      */

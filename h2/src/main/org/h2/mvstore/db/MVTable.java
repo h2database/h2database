@@ -14,7 +14,6 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Constants;
-import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.index.Cursor;
@@ -29,7 +28,6 @@ import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
@@ -615,16 +613,6 @@ public class MVTable extends RegularTable {
         }
         primaryIndex.remove(session);
         indexes.clear();
-        if (SysProperties.CHECK) {
-            for (SchemaObject obj : database
-                    .getAllSchemaObjects(DbObject.INDEX)) {
-                Index index = (Index) obj;
-                if (index.getTable() == this) {
-                    throw DbException.throwInternalError("index not dropped: " +
-                            index.getName());
-                }
-            }
-        }
         close(session);
         invalidate();
     }

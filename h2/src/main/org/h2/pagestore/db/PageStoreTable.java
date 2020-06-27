@@ -12,7 +12,6 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Constants;
-import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.index.Cursor;
@@ -21,7 +20,6 @@ import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
-import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
@@ -483,14 +481,6 @@ public class PageStoreTable extends RegularTable {
             }
             // needed for session temporary indexes
             indexes.remove(index);
-        }
-        if (SysProperties.CHECK) {
-            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.INDEX)) {
-                Index index = (Index) obj;
-                if (index.getTable() == this) {
-                    DbException.throwInternalError("index not dropped: " + index.getName());
-                }
-            }
         }
         scanIndex.remove(session);
         database.removeMeta(session, getId());

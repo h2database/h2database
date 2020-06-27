@@ -49,6 +49,7 @@ public interface Trigger {
      *            operation is performed
      * @param type the operation type: INSERT, UPDATE, DELETE, SELECT, or a
      *            combination (this parameter is a bit field)
+     * @throws SQLException on SQL exception
      */
     default void init(Connection conn, String schemaName, String triggerName,
             String tableName, boolean before, int type) throws SQLException {
@@ -84,6 +85,8 @@ public interface Trigger {
      * This method is called when the database is closed.
      * If the method throws an exception, it will be logged, but
      * closing the database will continue.
+     *
+     * @throws SQLException on SQL exception
      */
     default void close() throws SQLException {
         // Does nothing by default
@@ -91,6 +94,8 @@ public interface Trigger {
 
     /**
      * This method is called when the trigger is dropped.
+     *
+     * @throws SQLException on SQL exception
      */
     default void remove() throws SQLException {
         // Does nothing by default

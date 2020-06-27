@@ -24,6 +24,7 @@ public interface AggregateFunction {
      * A new object is created for each invocation.
      *
      * @param conn a connection to the database
+     * @throws SQLException on SQL exception
      */
     default void init(Connection conn) throws SQLException {
         // Do nothing by default

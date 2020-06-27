@@ -359,7 +359,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchR
     }
 
     @Override
-    public long getRowCountApproximation() {
+    public long getRowCountApproximation(Session session) {
         try {
             return dataMap.sizeAsLongMax();
         } catch (MVStoreException e) {

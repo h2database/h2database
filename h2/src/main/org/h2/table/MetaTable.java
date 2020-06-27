@@ -233,12 +233,12 @@ public abstract class MetaTable extends Table {
     }
 
     @Override
-    public final long getRowCount(Session session) {
+    public long getRowCount(Session session) {
         throw DbException.throwInternalError(toString());
     }
 
     @Override
-    public final boolean canGetRowCount() {
+    public boolean canGetRowCount(Session session) {
         return false;
     }
 
@@ -275,7 +275,7 @@ public abstract class MetaTable extends Table {
     }
 
     @Override
-    public final long getRowCountApproximation() {
+    public long getRowCountApproximation(Session session) {
         return ROW_COUNT_APPROXIMATION;
     }
 

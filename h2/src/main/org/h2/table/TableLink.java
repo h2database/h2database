@@ -563,7 +563,7 @@ public class TableLink extends Table {
     }
 
     @Override
-    public boolean canGetRowCount() {
+    public boolean canGetRowCount(Session session) {
         return true;
     }
 
@@ -644,7 +644,7 @@ public class TableLink extends Table {
     }
 
     @Override
-    public long getRowCountApproximation() {
+    public long getRowCountApproximation(Session session) {
         return ROW_COUNT_APPROXIMATION;
     }
 

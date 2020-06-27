@@ -506,8 +506,8 @@ public class PageStoreTable extends RegularTable {
     }
 
     @Override
-    public long getRowCountApproximation() {
-        return scanIndex.getRowCountApproximation();
+    public long getRowCountApproximation(Session session) {
+        return scanIndex.getRowCountApproximation(session);
     }
 
     @Override

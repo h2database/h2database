@@ -2078,7 +2078,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // TABLE_CLASS
                     table.getClass().getName(),
                     // ROW_COUNT_ESTIMATE
-                    ValueBigint.get(table.getRowCountApproximation())
+                    ValueBigint.get(table.getRowCountApproximation(session))
             );
         }
     }

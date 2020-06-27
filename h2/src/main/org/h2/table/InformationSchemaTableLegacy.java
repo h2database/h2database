@@ -785,8 +785,9 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // TYPE_NAME
                         null,
                         // TABLE_CLASS
-                        table.getClass().getName(), // ROW_COUNT_ESTIMATE
-                        ValueBigint.get(table.getRowCountApproximation())
+                        table.getClass().getName(),
+                        // ROW_COUNT_ESTIMATE
+                        ValueBigint.get(table.getRowCountApproximation(session))
                 );
             }
             break;

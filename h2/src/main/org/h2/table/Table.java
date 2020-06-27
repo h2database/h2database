@@ -329,9 +329,10 @@ public abstract class Table extends SchemaObjectBase {
     /**
      * Check if the row count can be retrieved quickly.
      *
+     * @param session the session
      * @return true if it can
      */
-    public abstract boolean canGetRowCount();
+    public abstract boolean canGetRowCount(Session session);
 
     /**
      * Check if this table can be referenced.
@@ -360,9 +361,10 @@ public abstract class Table extends SchemaObjectBase {
     /**
      * Get the approximated row count for this table.
      *
+     * @param session the session
      * @return the approximated row count
      */
-    public abstract long getRowCountApproximation();
+    public abstract long getRowCountApproximation(Session session);
 
     public abstract long getDiskSpaceUsed();
 

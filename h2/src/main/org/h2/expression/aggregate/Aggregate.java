@@ -1000,11 +1000,11 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             switch (aggregateType) {
             case COUNT:
                 if (!distinct && args[0].getNullable() == Column.NOT_NULLABLE) {
-                    return visitor.getTable().canGetRowCount();
+                    return visitor.getTable().canGetRowCount(select.getSession());
                 }
                 return false;
             case COUNT_ALL:
-                return visitor.getTable().canGetRowCount();
+                return visitor.getTable().canGetRowCount(select.getSession());
             case MIN:
             case MAX:
                 Index index = getMinMaxColumnIndex();

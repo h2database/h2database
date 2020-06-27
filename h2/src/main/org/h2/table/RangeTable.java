@@ -69,7 +69,7 @@ public class RangeTable extends VirtualTable {
     }
 
     @Override
-    public boolean canGetRowCount() {
+    public boolean canGetRowCount(Session session) {
         return true;
     }
 
@@ -166,7 +166,7 @@ public class RangeTable extends VirtualTable {
     }
 
     @Override
-    public long getRowCountApproximation() {
+    public long getRowCountApproximation(Session session) {
         return 100;
     }
 

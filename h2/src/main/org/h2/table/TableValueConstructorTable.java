@@ -29,7 +29,7 @@ public class TableValueConstructorTable extends VirtualConstructedTable {
     }
 
     @Override
-    public boolean canGetRowCount() {
+    public boolean canGetRowCount(Session session) {
         return true;
     }
 
@@ -39,7 +39,7 @@ public class TableValueConstructorTable extends VirtualConstructedTable {
     }
 
     @Override
-    public long getRowCountApproximation() {
+    public long getRowCountApproximation(Session session) {
         return rows.size();
     }
 

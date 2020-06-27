@@ -347,7 +347,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     }
 
     @Override
-    public long getRowCountApproximation() {
+    public long getRowCountApproximation(Session session) {
         return getRowCountMax();
     }
 

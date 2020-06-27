@@ -380,7 +380,7 @@ public class TableView extends Table {
     }
 
     @Override
-    public boolean canGetRowCount() {
+    public boolean canGetRowCount(Session session) {
         // TODO view: could get the row count, but not that easy
         return false;
     }
@@ -537,7 +537,7 @@ public class TableView extends Table {
     }
 
     @Override
-    public long getRowCountApproximation() {
+    public long getRowCountApproximation(Session session) {
         return ROW_COUNT_APPROXIMATION;
     }
 

@@ -134,7 +134,7 @@ public abstract class RegularTable extends TableBase {
     }
 
     @Override
-    public boolean canGetRowCount() {
+    public boolean canGetRowCount(Session session) {
         return true;
     }
 

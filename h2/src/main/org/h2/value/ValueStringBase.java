@@ -28,7 +28,7 @@ abstract class ValueStringBase extends Value {
         TypeInfo type = this.type;
         if (type == null) {
             int length = value.length();
-            this.type = type = new TypeInfo(getValueType(), length, 0, length, null);
+            this.type = type = new TypeInfo(getValueType(), length, 0, null);
         }
         return type;
     }

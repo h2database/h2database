@@ -75,7 +75,7 @@ public class ArrayConstructorByQuery extends Expression {
             throw DbException.get(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);
         }
         componentType = query.getExpressions().get(0).getType();
-        type = TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, componentType);
+        type = TypeInfo.getTypeInfo(Value.ARRAY, -1L, -1, componentType);
         return this;
     }
 

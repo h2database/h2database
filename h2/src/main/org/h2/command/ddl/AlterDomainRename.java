@@ -12,8 +12,6 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
-import org.h2.table.Column;
-import org.h2.util.HasSQL;
 
 /**
  * This class represents the statement
@@ -63,22 +61,8 @@ public class AlterDomainRename extends SchemaCommand {
             }
         }
         db.renameSchemaObject(session, oldDomain, newDomainName);
-        AlterDomain.forAllDependencies(session, oldDomain, this::copyColumn, this::copyDomain, false);
+        AlterDomain.forAllDependencies(session, oldDomain, null, null, false);
         return 0;
-    }
-
-    private boolean copyColumn(Domain domain, Column targetColumn) {
-        updateOriginalSQL(session, domain, targetColumn);
-        return true;
-    }
-
-    private boolean copyDomain(Domain domain, Domain targetDomain) {
-        updateOriginalSQL(session, domain, targetDomain.getColumn());
-        return true;
-    }
-
-    private static void updateOriginalSQL(Session session, Domain domain, Column targetColumn) {
-        targetColumn.setOriginalSQL(domain.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
     }
 
     @Override

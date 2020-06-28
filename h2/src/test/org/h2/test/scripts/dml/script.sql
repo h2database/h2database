@@ -14,7 +14,7 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > -------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT NOT NULL, "NAME" VARCHAR(255) );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INTEGER NOT NULL, "NAME" CHARACTER VARYING(255) );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > INSERT INTO "PUBLIC"."TEST" VALUES (2, STRINGDECODE('abcsond\u00e4rzeich\u00e4 \u56ce \u00f6\u00e4\u00fc\u00d6\u00c4\u00dc\u00e9\u00e8\u00e0\u00f1!'));
 > rows: 5
@@ -24,7 +24,7 @@ SCRIPT COLUMNS NOPASSWORDS NOSETTINGS;
 > ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT NOT NULL, "NAME" VARCHAR(255) );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INTEGER NOT NULL, "NAME" CHARACTER VARYING(255) );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > INSERT INTO "PUBLIC"."TEST"("ID", "NAME") VALUES (2, STRINGDECODE('abcsond\u00e4rzeich\u00e4 \u56ce \u00f6\u00e4\u00fc\u00d6\u00c4\u00dc\u00e9\u00e8\u00e0\u00f1!'));
 > rows: 5

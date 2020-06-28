@@ -103,9 +103,18 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
                     p = l;
                 }
             }
-            this.type = type = new TypeInfo(Value.ENUM, p, 0, p, this);
+            this.type = type = new TypeInfo(Value.ENUM, p, 0, this);
         }
         return type;
+    }
+
+    /**
+     * Get count of elements in enumeration.
+     *
+     * @return count of elements in enumeration
+     */
+    public int getCount() {
+        return enumerators.length;
     }
 
     /**

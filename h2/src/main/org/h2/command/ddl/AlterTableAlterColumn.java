@@ -193,7 +193,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                     oldColumn.setVisible(newColumn.getVisible());
                 }
                 convertAutoIncrementColumn(table, newColumn);
-                copyData(table);
+                copyData(table, null, true);
             }
             table.setModified();
             break;
@@ -268,12 +268,11 @@ public class AlterTableAlterColumn extends CommandWithColumns {
     private void convertAutoIncrementColumn(Table table, Column c) {
         if (c.isAutoIncrement()) {
             if (c.isPrimaryKey()) {
-                c.setOriginalSQL("IDENTITY");
-            } else {
-                int objId = getObjectId();
-                c.convertAutoIncrementToSequence(session, getSchema(), objId,
-                        table.isTemporary());
+                addConstraintCommand(
+                        Parser.newPrimaryKeyConstraintCommand(session, table.getSchema(), table.getName(), c));
             }
+            int objId = getObjectId();
+            c.convertAutoIncrementToSequence(session, getSchema(), objId, table.isTemporary());
         }
     }
 

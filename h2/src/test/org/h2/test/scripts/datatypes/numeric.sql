@@ -25,7 +25,7 @@ SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMER
 > D4          NUMERIC   10                10                      2             DECIMAL            10                         2                      DECIMAL(10, 2)
 > D5          NUMERIC   10                10                      -2            DECIMAL            10                         -2                     DECIMAL(10, -2)
 > D6          NUMERIC   65535             10                      0             DECIMAL            null                       null                   DECIMAL
-> X1          NUMERIC   65535             10                      0             NUMERIC            null                       null                   NUMBER
+> X1          NUMERIC   65535             10                      0             NUMERIC            null                       null                   NUMERIC
 > rows (ordered): 12
 
 DROP TABLE TEST;

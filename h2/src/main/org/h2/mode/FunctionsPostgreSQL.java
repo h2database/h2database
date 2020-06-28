@@ -22,7 +22,6 @@ import org.h2.expression.function.FunctionInfo;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObject;
 import org.h2.server.pg.PgServer;
 import org.h2.table.Column;
 import org.h2.table.Table;

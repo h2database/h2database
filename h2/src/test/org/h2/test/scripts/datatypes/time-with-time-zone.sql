@@ -28,12 +28,12 @@ ALTER TABLE TEST ADD (T3 TIME(0), T4 TIME(9) WITHOUT TIME ZONE);
 
 SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE           COLUMN_TYPE               DATETIME_PRECISION
-> ----------- ------------------- ------------------------- ------------------
-> T1          TIME WITH TIME ZONE TIME WITH TIME ZONE       0
-> T2          TIME WITH TIME ZONE TIME WITH TIME ZONE       0
-> T3          TIME                TIME(0)                   0
-> T4          TIME                TIME(9) WITHOUT TIME ZONE 9
+> COLUMN_NAME DATA_TYPE           COLUMN_TYPE         DATETIME_PRECISION
+> ----------- ------------------- ------------------- ------------------
+> T1          TIME WITH TIME ZONE TIME WITH TIME ZONE 0
+> T2          TIME WITH TIME ZONE TIME WITH TIME ZONE 0
+> T3          TIME                TIME(0)             0
+> T4          TIME                TIME(9)             9
 > rows (ordered): 4
 
 ALTER TABLE TEST ADD T5 TIME(10);

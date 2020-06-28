@@ -16,7 +16,6 @@ import org.h2.store.RangeInputStream;
 import org.h2.store.RangeReader;
 import org.h2.util.Bits;
 import org.h2.util.IOUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -208,7 +207,7 @@ public class ValueLob extends Value {
     public TypeInfo getType() {
         TypeInfo type = this.type;
         if (type == null) {
-            this.type = type = new TypeInfo(valueType, precision, 0, MathUtils.convertLongToInt(precision), null);
+            this.type = type = new TypeInfo(valueType, precision, 0, null);
         }
         return type;
     }

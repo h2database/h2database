@@ -233,7 +233,7 @@ SELECT DOMAIN_NAME, PARENT_DOMAIN_NAME, SQL FROM INFORMATION_SCHEMA.DOMAINS;
 > DOMAIN_NAME PARENT_DOMAIN_NAME SQL
 > ----------- ------------------ --------------------------------------------
 > D2          D3                 CREATE DOMAIN "PUBLIC"."D2" AS "PUBLIC"."D3"
-> D3          null               CREATE DOMAIN "PUBLIC"."D3" AS INT
+> D3          null               CREATE DOMAIN "PUBLIC"."D3" AS INTEGER
 > rows: 2
 
 SELECT COLUMN_NAME, DOMAIN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
@@ -250,7 +250,7 @@ SELECT DOMAIN_NAME, PARENT_DOMAIN_NAME, SQL FROM INFORMATION_SCHEMA.DOMAINS;
 > DOMAIN_NAME PARENT_DOMAIN_NAME SQL
 > ----------- ------------------ --------------------------------------------
 > D2          D3                 CREATE DOMAIN "PUBLIC"."D2" AS "PUBLIC"."D3"
-> D3          null               CREATE DOMAIN "PUBLIC"."D3" AS INT
+> D3          null               CREATE DOMAIN "PUBLIC"."D3" AS INTEGER
 > rows: 2
 
 SELECT COLUMN_NAME, DOMAIN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS

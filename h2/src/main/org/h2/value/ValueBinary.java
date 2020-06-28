@@ -8,7 +8,6 @@ package org.h2.value;
 import java.nio.charset.StandardCharsets;
 
 import org.h2.engine.SysProperties;
-import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 
 /**
@@ -56,7 +55,7 @@ public final class ValueBinary extends ValueBytesBase {
         TypeInfo type = this.type;
         if (type == null) {
             long precision = value.length;
-            this.type = type = new TypeInfo(BINARY, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
+            this.type = type = new TypeInfo(BINARY, precision, 0, null);
         }
         return type;
     }

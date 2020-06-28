@@ -140,9 +140,9 @@ CREATE MEMORY TABLE TEST(A INT, B INT GENERATED ALWAYS AS (1), C INT GENERATED A
 
 SCRIPT NOPASSWORDS NOSETTINGS TABLE TEST;
 > SCRIPT
-> -----------------------------------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" INT, "B" INT GENERATED ALWAYS AS (1), "C" INT GENERATED ALWAYS AS ("A" + 1) );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" INTEGER, "B" INTEGER GENERATED ALWAYS AS (1), "C" INTEGER GENERATED ALWAYS AS ("A" + 1) );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 3
 

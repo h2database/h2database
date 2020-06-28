@@ -500,7 +500,7 @@ ALTER COLUMN @h2@ [ IF EXISTS ] columnName
     | @h2@ { DROP ON UPDATE }
     | { SET NOT NULL }
     | { DROP NOT NULL } | @c@ { SET NULL }
-    | { SET DATA TYPE dataType @h2@ [ USING newValueExpression ] }
+    | { SET DATA TYPE dataTypeOrDomain @h2@ [ USING newValueExpression ] }
     | @h2@ { SET { VISIBLE | INVISIBLE } } }
 ","
 Changes the data type of a column, rename a column,
@@ -763,7 +763,7 @@ CREATE CONSTANT ONE VALUE 1
 
 "Commands (DDL)","CREATE DOMAIN","
 CREATE DOMAIN @h2@ [ IF NOT EXISTS ] [schemaName.]domainName
-[ AS ] dataType
+[ AS ] dataTypeOrDomain
 [ DEFAULT expression ]
 @h2@ [ ON UPDATE expression ]
 @h2@ [ COMMENT expression ]
@@ -2711,7 +2711,7 @@ CASE WHEN A IS NULL THEN 'Null' ELSE 'Not null' END
 "
 
 "Other Grammar","Cast specification","
-CAST(value AS dataType)
+CAST(value AS dataTypeOrDomain)
 ","
 Converts a value to another data type. The following conversion rules are used:
 When converting a number to a boolean, 0 is false and every other value is true.
@@ -2734,7 +2734,7 @@ AES
 "
 
 "Other Grammar","Column Definition","
-dataType @h2@ [ VISIBLE | INVISIBLE ]
+dataTypeOrDomain @h2@ [ VISIBLE | INVISIBLE ]
 [ { DEFAULT expression
     | GENERATED ALWAYS AS (generatedColumnExpression)
     | @c@ { AS (generatedColumnExpression) }
@@ -3137,12 +3137,21 @@ Executes the inner data change command and returns old, new, or final rows.
 SELECT ID FROM FINAL TABLE (INSERT INTO TEST (A, B) VALUES (1, 2))
 "
 
+"Other Grammar","Data Type or Domain","
+dataType | [schemaName.]domainName
+","
+A data type or domain name.
+","
+INTEGER
+MY_DOMAIN
+"
+
 "Other Grammar","Data Type","
-predefinedType | [schemaName.]domainName
+predefinedType | arrayType | rowType
 ","
-A predefined or domain data type.
+A data type.
 ","
-INT
+INTEGER
 "
 
 "Other Grammar","Predefined Type","
@@ -3154,13 +3163,12 @@ characterType | characterVaryingType | characterLargeObjectType
     | dateType | timeType | timeWithTimeZoneType
     | timestampType | timestampWithTimeZoneType
     | intervalType
-    | arrayType | rowType
     | @h2@ { tinyintType | javaObjectType | enumType
     | geometryType | jsonType | uuidType }
 ","
 A predefined data type.
 ","
-INT
+INTEGER
 "
 
 "Other Grammar","Digit","
@@ -5855,7 +5863,7 @@ COALESCE(A, B, C)
 "
 
 "Functions (System)","CONVERT","
-@c@ CONVERT(value, dataType)
+@c@ CONVERT(value, dataTypeOrDomain)
 ","
 Converts a value to another data type.
 
@@ -6222,7 +6230,7 @@ SELECT X, SET(@I, COALESCE(@I, 0)+X) RUNNING_TOTAL FROM SYSTEM_RANGE(1, 10)
 
 "Functions (System)","TABLE","
 @h2@ { TABLE | TABLE_DISTINCT }
-@h2@ ( { name dataType = {array|rowValueExpression} } [,...] )
+@h2@ ( { name dataTypeOrDomain = {array|rowValueExpression} } [,...] )
 ","
 Returns the result set. TABLE_DISTINCT removes duplicate rows.
 ","

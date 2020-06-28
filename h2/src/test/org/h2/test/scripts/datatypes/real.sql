@@ -18,16 +18,16 @@ SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMER
 > COLUMN_NAME DATA_TYPE NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE COLUMN_TYPE
 > ----------- --------- ----------------- ----------------------- ------------- ------------------ -------------------------- ---------------------- -----------
 > D1          REAL      24                2                       null          REAL               null                       null                   REAL
-> D2          REAL      24                2                       null          REAL               null                       null                   FLOAT4
+> D2          REAL      24                2                       null          REAL               null                       null                   REAL
 > D3          REAL      24                2                       null          FLOAT              1                          null                   FLOAT(1)
 > D4          REAL      24                2                       null          FLOAT              24                         null                   FLOAT(24)
 > rows (ordered): 4
 
 SCRIPT NODATA NOPASSWORDS NOSETTINGS TABLE TEST;
 > SCRIPT
-> ---------------------------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "D1" REAL, "D2" FLOAT4, "D3" FLOAT(1), "D4" FLOAT(24) );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "D1" REAL, "D2" REAL, "D3" FLOAT(1), "D4" FLOAT(24) );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 3
 

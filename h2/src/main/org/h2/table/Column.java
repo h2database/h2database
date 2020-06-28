@@ -68,7 +68,6 @@ public class Column implements HasSQL, Typed {
     private boolean nullable = true;
     private Expression defaultExpression;
     private Expression onUpdateExpression;
-    private String originalSQL;
     private SequenceOptions autoIncrementOptions;
     private boolean convertNullToDefault;
     private Sequence sequence;
@@ -138,12 +137,6 @@ public class Column implements HasSQL, Typed {
         this.type = type;
         this.table = table;
         this.columnId = columnId;
-    }
-
-    public Column(String name, TypeInfo type, String originalSQL) {
-        this.name = name;
-        this.type = type;
-        this.originalSQL = originalSQL;
     }
 
     @Override
@@ -445,11 +438,6 @@ public class Column implements HasSQL, Typed {
         if (autoIncrementOptions == null) {
             DbException.throwInternalError();
         }
-        if ("IDENTITY".equals(originalSQL)) {
-            originalSQL = "BIGINT";
-        } else if ("SERIAL".equals(originalSQL)) {
-            originalSQL = "INT";
-        }
         String sequenceName;
         do {
             ValueUuid uuid = ValueUuid.getNewRandom();
@@ -501,8 +489,8 @@ public class Column implements HasSQL, Typed {
         if (includeName && name != null) {
             ParserUtil.quoteIdentifier(buff, name, DEFAULT_SQL_FLAGS).append(' ');
         }
-        if (originalSQL != null) {
-            buff.append(originalSQL);
+        if (domain != null) {
+            domain.getSQL(buff, DEFAULT_SQL_FLAGS);
         } else {
             type.getSQL(buff, DEFAULT_SQL_FLAGS);
         }
@@ -546,14 +534,6 @@ public class Column implements HasSQL, Typed {
 
     public boolean isNullable() {
         return nullable;
-    }
-
-    public void setOriginalSQL(String original) {
-        originalSQL = original;
-    }
-
-    public String getOriginalSQL() {
-        return originalSQL;
     }
 
     public Expression getDefaultExpression() {
@@ -760,12 +740,12 @@ public class Column implements HasSQL, Typed {
     public void copy(Column source) {
         name = source.name;
         type = source.type;
+        domain = source.domain;
         // table is not set
         // columnId is not set
         nullable = source.nullable;
         defaultExpression = source.defaultExpression;
         onUpdateExpression = source.onUpdateExpression;
-        originalSQL = source.originalSQL;
         // autoIncrement, start, increment is not set
         convertNullToDefault = source.convertNullToDefault;
         sequence = source.sequence;

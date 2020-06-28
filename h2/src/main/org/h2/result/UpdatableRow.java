@@ -51,6 +51,9 @@ public class UpdatableRow {
         this.conn = conn;
         this.result = result;
         columnCount = result.getVisibleColumnCount();
+        if (columnCount == 0) {
+            return;
+        }
         for (int i = 0; i < columnCount; i++) {
             String t = result.getTableName(i);
             String s = result.getSchemaName(i);

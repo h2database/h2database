@@ -268,7 +268,8 @@ public class AlterTableAlterColumn extends CommandWithColumns {
     private void convertAutoIncrementColumn(Table table, Column c) {
         if (c.isAutoIncrement()) {
             if (c.isPrimaryKey()) {
-                addConstraintCommand(Parser.newPrimaryKeyConstraintCommand(session, table.getSchema(), table.getName(), c));
+                addConstraintCommand(
+                        Parser.newPrimaryKeyConstraintCommand(session, table.getSchema(), table.getName(), c));
             }
             int objId = getObjectId();
             c.convertAutoIncrementToSequence(session, getSchema(), objId, table.isTemporary());

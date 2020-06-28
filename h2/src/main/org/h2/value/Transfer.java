@@ -220,6 +220,26 @@ public class Transfer {
     }
 
     /**
+     * Write a short.
+     *
+     * @param x the value
+     * @return itself
+     */
+    private Transfer writeShort(short x) throws IOException {
+        out.writeShort(x);
+        return this;
+    }
+
+    /**
+     * Read a short.
+     *
+     * @return the value
+     */
+    private short readShort() throws IOException {
+        return in.readShort();
+    }
+
+    /**
      * Write an int.
      *
      * @param x the value
@@ -424,25 +444,86 @@ public class Transfer {
 
     private void writeTypeInfo20(TypeInfo type) throws IOException {
         int valueType = type.getValueType();
-        writeInt(VALUE_TO_TI[valueType + 1]).writeLong(type.getPrecision()).writeInt(type.getScale());
+        writeInt(VALUE_TO_TI[valueType + 1]);
         switch (valueType) {
+        case Value.UNKNOWN:
+        case Value.NULL:
+        case Value.BOOLEAN:
+        case Value.TINYINT:
+        case Value.SMALLINT:
+        case Value.INTEGER:
+        case Value.BIGINT:
+        case Value.DATE:
+        case Value.UUID:
+        case Value.RESULT_SET:
+            break;
+        case Value.CHAR:
+        case Value.VARCHAR:
+        case Value.VARCHAR_IGNORECASE:
+        case Value.BINARY:
+        case Value.VARBINARY:
+        case Value.JAVA_OBJECT:
+        case Value.JSON:
+            writeInt((int) type.getPrecision());
+            break;
+        case Value.CLOB:
+        case Value.BLOB:
+            writeLong(type.getPrecision());
+            break;
         case Value.NUMERIC:
+            writeInt((int) type.getPrecision());
+            writeInt(type.getScale());
             writeTypeInfoNumeric(type);
             break;
         case Value.REAL:
         case Value.DOUBLE: {
-            ExtTypeInfoFloat extTypeInfo = (ExtTypeInfoFloat) type.getExtTypeInfo();
-            writeByte((byte) (extTypeInfo == null ? -1 : extTypeInfo.getPrecision()));
+            ExtTypeInfoFloat ext = (ExtTypeInfoFloat) type.getExtTypeInfo();
+            writeByte(ext == null ? -1 : (byte) ext.getPrecision());
             break;
         }
         case Value.DECFLOAT:
+            writeInt((int) type.getPrecision());
             writeBoolean(type.getExtTypeInfo() == null);
             break;
+        case Value.TIME:
+        case Value.TIME_TZ:
+        case Value.TIMESTAMP:
+        case Value.TIMESTAMP_TZ:
+            writeByte((byte) type.getScale());
+            break;
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+            writeByte((byte) type.getPrecision());
+            break;
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND:
+            writeByte((byte) type.getPrecision());
+            writeByte((byte) type.getScale());
+            break;
+        case Value.ENUM:
+            writeTypeInfoEnum(type);
+            break;
+        case Value.GEOMETRY:
+            writeTypeInfoGeometry(type);
+            break;
         case Value.ARRAY:
+            writeInt((int) type.getPrecision());
             writeTypeInfo((TypeInfo) type.getExtTypeInfo());
             break;
         case Value.ROW:
             writeTypeInfoRow(type);
+            break;
+        default:
+            throw DbException.getUnsupportedException("value type " + valueType);
         }
     }
 
@@ -464,6 +545,46 @@ public class Transfer {
             b = -1;
         }
         writeByte((byte) b);
+    }
+
+    private void writeTypeInfoEnum(TypeInfo type) throws IOException {
+        ExtTypeInfoEnum ext = (ExtTypeInfoEnum) type.getExtTypeInfo();
+        if (ext != null) {
+            int c = ext.getCount();
+            writeInt(c);
+            for (int i = 0; i < c; i++) {
+                writeString(ext.getEnumerator(i));
+            }
+        } else {
+            writeInt(0);
+        }
+    }
+
+    private void writeTypeInfoGeometry(TypeInfo type) throws IOException {
+        ExtTypeInfoGeometry ext = (ExtTypeInfoGeometry) type.getExtTypeInfo();
+        if (ext == null) {
+            writeByte((byte) 0);
+        } else {
+            int t = ext.getType();
+            Integer srid = ext.getSrid();
+            if (t == 0) {
+                if (srid == null) {
+                    writeByte((byte) 0);
+                } else {
+                    writeByte((byte) 2);
+                    writeInt(srid);
+                }
+            } else {
+                if (srid == null) {
+                    writeByte((byte) 1);
+                    writeShort((short) t);
+                } else {
+                    writeByte((byte) 3);
+                    writeShort((short) t);
+                    writeInt(srid);
+                }
+            }
+        }
     }
 
     private void writeTypeInfoRow(TypeInfo type) throws IOException {
@@ -502,11 +623,36 @@ public class Transfer {
 
     private TypeInfo readTypeInfo20() throws IOException {
         int valueType = TI_TO_VALUE[readInt() + 1];
-        long precision = readLong();
-        int scale = readInt();
+        long precision = -1L;
+        int scale = -1;
         ExtTypeInfo ext = null;
         switch (valueType) {
+        case Value.UNKNOWN:
+        case Value.NULL:
+        case Value.BOOLEAN:
+        case Value.TINYINT:
+        case Value.SMALLINT:
+        case Value.INTEGER:
+        case Value.BIGINT:
+        case Value.DATE:
+        case Value.UUID:
+            break;
+        case Value.CHAR:
+        case Value.VARCHAR:
+        case Value.VARCHAR_IGNORECASE:
+        case Value.BINARY:
+        case Value.VARBINARY:
+        case Value.JAVA_OBJECT:
+        case Value.JSON:
+            precision = readInt();
+            break;
+        case Value.CLOB:
+        case Value.BLOB:
+            precision = readLong();
+            break;
         case Value.NUMERIC:
+            precision = readInt();
+            scale = readInt();
             ext = readTypeInfoNumeric();
             break;
         case Value.REAL:
@@ -518,15 +664,50 @@ public class Transfer {
             break;
         }
         case Value.DECFLOAT:
+            precision = readInt();
             if (!readBoolean()) {
                 ext = ExtTypeInfoNumeric.NUMERIC;
             }
             break;
+        case Value.TIME:
+        case Value.TIME_TZ:
+        case Value.TIMESTAMP:
+        case Value.TIMESTAMP_TZ:
+            scale = readByte();
+            break;
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+            precision = readByte();
+            break;
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND:
+            precision = readByte();
+            scale = readByte();
+            break;
+        case Value.ENUM:
+            ext = readTypeInfoEnum();
+            break;
+        case Value.GEOMETRY:
+            ext = readTypeInfoGeometry();
+            break;
         case Value.ARRAY:
+            precision = readInt();
             ext = readTypeInfo();
             break;
         case Value.ROW:
             ext = readTypeInfoRow();
+            break;
+        default:
+            throw DbException.getUnsupportedException("value type " + valueType);
         }
         return TypeInfo.getTypeInfo(valueType, precision, scale, ext);
     }
@@ -548,6 +729,43 @@ public class Transfer {
         default:
             return null;
         }
+    }
+
+    private ExtTypeInfo readTypeInfoEnum() throws IOException {
+        ExtTypeInfo ext;
+        int c = readInt();
+        if (c > 0) {
+            String[] enumerators = new String[c];
+            for (int i = 0; i < c; i++) {
+                enumerators[i] = readString();
+            }
+            ext = new ExtTypeInfoEnum(enumerators);
+        } else {
+            ext = null;
+        }
+        return ext;
+    }
+
+    private ExtTypeInfo readTypeInfoGeometry() throws IOException {
+        ExtTypeInfo ext;
+        int e = readByte();
+        switch (e) {
+        case 0:
+            ext = null;
+            break;
+        case 1:
+            ext = new ExtTypeInfoGeometry(readShort(), null);
+            break;
+        case 2:
+            ext = new ExtTypeInfoGeometry(0, readInt());
+            break;
+        case 3:
+            ext = new ExtTypeInfoGeometry(readShort(), readInt());
+            break;
+        default:
+            throw DbException.getUnsupportedException("GEOMETRY type encoding " + e);
+        }
+        return ext;
     }
 
     private ExtTypeInfo readTypeInfoRow() throws IOException {
@@ -681,7 +899,11 @@ public class Transfer {
             break;
         case Value.SMALLINT:
             writeInt(SMALLINT);
-            writeInt(v.getShort());
+            if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
+                writeShort(v.getShort());
+            } else {
+                writeInt(v.getShort());
+            }
             break;
         case Value.VARCHAR:
             writeInt(VARCHAR);
@@ -908,7 +1130,11 @@ public class Transfer {
         case BIGINT:
             return ValueBigint.get(readLong());
         case SMALLINT:
-            return ValueSmallint.get((short) readInt());
+            if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
+                return ValueSmallint.get(readShort());
+            } else {
+                return ValueSmallint.get((short) readInt());
+            }
         case VARCHAR:
             return ValueVarchar.get(readString());
         case VARCHAR_IGNORECASE:

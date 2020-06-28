@@ -109,6 +109,15 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
     }
 
     /**
+     * Get count of elements in enumeration.
+     *
+     * @return count of elements in enumeration
+     */
+    public int getCount() {
+        return enumerators.length;
+    }
+
+    /**
      * Returns an enumerator with specified 0-based ordinal value.
      *
      * @param ordinal

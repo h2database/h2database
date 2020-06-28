@@ -42,7 +42,7 @@ public final class ExtTypeInfoFloat extends ExtTypeInfo {
     /**
      * Returns precision.
      *
-     * @return precision
+     * @return precision, or 0 if not specified
      */
     public int getPrecision() {
         return precision;

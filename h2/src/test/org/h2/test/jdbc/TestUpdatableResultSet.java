@@ -71,6 +71,8 @@ public class TestUpdatableResultSet extends TestDb {
         rs = stat.executeQuery("select name from test");
         assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
         stat.execute("drop table test");
+        rs = stat.executeQuery("SELECT");
+        assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
 
         stat.execute("create table test(a int, b int, " +
                 "name varchar, primary key(a, b))");

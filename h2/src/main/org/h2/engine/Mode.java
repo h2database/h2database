@@ -440,10 +440,12 @@ public class Mode {
         DataType dt = DataType.createNumeric(19, 4);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
+        dt.specialPrecisionScale = true;
         mode.typeByNameMap.put("MONEY", dt);
         dt = DataType.createNumeric(10, 4);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
+        dt.specialPrecisionScale = true;
         mode.typeByNameMap.put("SMALLMONEY", dt);
         mode.typeByNameMap.put("UNIQUEIDENTIFIER", DataType.getDataType(Value.UUID));
         mode.allowEmptySchemaValuesAsDefaultSchema = true;
@@ -498,6 +500,7 @@ public class Mode {
         dt = DataType.createDate(/* 2001-01-01 23:59:59 */ 19, 19, "DATE", false, 0, 0);
         dt.type = Value.TIMESTAMP;
         dt.sqlType = Types.TIMESTAMP;
+        dt.specialPrecisionScale = true;
         mode.typeByNameMap.put("DATE", dt);
         add(mode);
 
@@ -529,6 +532,7 @@ public class Mode {
         dt = DataType.createNumeric(19, 2);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
+        dt.specialPrecisionScale = true;
         mode.typeByNameMap.put("MONEY", dt);
         dt = DataType.getDataType(Value.INTEGER);
         mode.typeByNameMap.put("OID", dt);

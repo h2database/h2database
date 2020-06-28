@@ -263,7 +263,7 @@ public final class H2Type implements SQLType {
      * @return ARRAY data type
      */
     public static H2Type array(H2Type componentType) {
-        return new H2Type(TypeInfo.getTypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, componentType.typeInfo),
+        return new H2Type(TypeInfo.getTypeInfo(Value.ARRAY, -1L, -1, componentType.typeInfo),
                 "array(" + componentType.field + ')');
     }
 
@@ -286,7 +286,7 @@ public final class H2Type implements SQLType {
             }
             builder.append(t.field);
         }
-        return new H2Type(TypeInfo.getTypeInfo(Value.ROW, 0, 0, new ExtTypeInfoRow(row)),
+        return new H2Type(TypeInfo.getTypeInfo(Value.ROW, -1L, -1, new ExtTypeInfoRow(row)),
                 builder.append(')').toString());
     }
 

@@ -217,50 +217,45 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
 
     static {
         TypeInfo[] infos = new TypeInfo[Value.TYPE_COUNT];
-        TYPE_UNKNOWN = new TypeInfo(Value.UNKNOWN, -1L, -1, null);
+        TYPE_UNKNOWN = new TypeInfo(Value.UNKNOWN);
         // NULL
-        infos[Value.NULL] = TYPE_NULL = new TypeInfo(Value.NULL, ValueNull.PRECISION, 0, null);
+        infos[Value.NULL] = TYPE_NULL = new TypeInfo(Value.NULL);
         // CHARACTER
-        infos[Value.CHAR] = new TypeInfo(Value.CHAR, Integer.MAX_VALUE, 0, null);
-        infos[Value.VARCHAR] = TYPE_VARCHAR = new TypeInfo(Value.VARCHAR, Integer.MAX_VALUE, 0, null);
-        infos[Value.CLOB] = TYPE_CLOB = new TypeInfo(Value.CLOB, Long.MAX_VALUE, 0, null);
-        infos[Value.VARCHAR_IGNORECASE] = TYPE_VARCHAR_IGNORECASE = new TypeInfo(Value.VARCHAR_IGNORECASE,
-                Integer.MAX_VALUE, 0, null);
+        infos[Value.CHAR] = new TypeInfo(Value.CHAR, (long) Integer.MAX_VALUE);
+        infos[Value.VARCHAR] = TYPE_VARCHAR = new TypeInfo(Value.VARCHAR);
+        infos[Value.CLOB] = TYPE_CLOB = new TypeInfo(Value.CLOB);
+        infos[Value.VARCHAR_IGNORECASE] = TYPE_VARCHAR_IGNORECASE = new TypeInfo(Value.VARCHAR_IGNORECASE);
         // BINARY
-        infos[Value.BINARY] = new TypeInfo(Value.BINARY, Integer.MAX_VALUE, 0, null);
-        infos[Value.VARBINARY] = TYPE_VARBINARY = new TypeInfo(Value.VARBINARY, Integer.MAX_VALUE, 0, null);
-        infos[Value.BLOB] = TYPE_BLOB = new TypeInfo(Value.BLOB, Long.MAX_VALUE, 0, null);
+        infos[Value.BINARY] = new TypeInfo(Value.BINARY, (long) Integer.MAX_VALUE);
+        infos[Value.VARBINARY] = TYPE_VARBINARY = new TypeInfo(Value.VARBINARY);
+        infos[Value.BLOB] = TYPE_BLOB = new TypeInfo(Value.BLOB);
         // BOOLEAN
-        infos[Value.BOOLEAN] = TYPE_BOOLEAN = new TypeInfo(Value.BOOLEAN, ValueBoolean.PRECISION, 0, null);
+        infos[Value.BOOLEAN] = TYPE_BOOLEAN = new TypeInfo(Value.BOOLEAN);
         // NUMERIC
-        infos[Value.TINYINT] = TYPE_TINYINT = new TypeInfo(Value.TINYINT, ValueTinyint.PRECISION, 0, null);
-        infos[Value.SMALLINT] = TYPE_SMALLINT = new TypeInfo(Value.SMALLINT, ValueSmallint.PRECISION, 0, null);
-        infos[Value.INTEGER] = TYPE_INTEGER = new TypeInfo(Value.INTEGER, ValueInteger.PRECISION, 0, null);
-        infos[Value.BIGINT] = TYPE_BIGINT = new TypeInfo(Value.BIGINT, ValueBigint.PRECISION, 0, null);
+        infos[Value.TINYINT] = TYPE_TINYINT = new TypeInfo(Value.TINYINT);
+        infos[Value.SMALLINT] = TYPE_SMALLINT = new TypeInfo(Value.SMALLINT);
+        infos[Value.INTEGER] = TYPE_INTEGER = new TypeInfo(Value.INTEGER);
+        infos[Value.BIGINT] = TYPE_BIGINT = new TypeInfo(Value.BIGINT);
         infos[Value.NUMERIC] = TYPE_NUMERIC = new TypeInfo(Value.NUMERIC, Integer.MAX_VALUE, //
                 ValueNumeric.MAXIMUM_SCALE, null);
         TYPE_NUMERIC_SCALE_0 = new TypeInfo(Value.NUMERIC, Integer.MAX_VALUE, 0, null);
         TYPE_NUMERIC_BIGINT = new TypeInfo(Value.NUMERIC, ValueBigint.DECIMAL_PRECISION, 0, null);
         TYPE_NUMERIC_FLOATING_POINT = new TypeInfo(Value.NUMERIC, ValueNumeric.DEFAULT_PRECISION,
                 ValueNumeric.DEFAULT_PRECISION / 2, null);
-        infos[Value.REAL] = TYPE_REAL = new TypeInfo(Value.REAL, ValueReal.PRECISION, 0, null);
-        infos[Value.DOUBLE] = TYPE_DOUBLE = new TypeInfo(Value.DOUBLE, ValueDouble.PRECISION, 0, null);
-        infos[Value.DECFLOAT] = TYPE_DECFLOAT = new TypeInfo(Value.DECFLOAT, Integer.MAX_VALUE, 0, null);
-        TYPE_DECFLOAT_BIGINT = new TypeInfo(Value.DECFLOAT, ValueBigint.DECIMAL_PRECISION, 0, null);
+        infos[Value.REAL] = TYPE_REAL = new TypeInfo(Value.REAL);
+        infos[Value.DOUBLE] = TYPE_DOUBLE = new TypeInfo(Value.DOUBLE);
+        infos[Value.DECFLOAT] = TYPE_DECFLOAT = new TypeInfo(Value.DECFLOAT);
+        TYPE_DECFLOAT_BIGINT = new TypeInfo(Value.DECFLOAT, (long) ValueBigint.DECIMAL_PRECISION);
         // DATETIME
-        infos[Value.DATE] = TYPE_DATE = new TypeInfo(Value.DATE, ValueDate.PRECISION, 0, null);
-        infos[Value.TIME] = TYPE_TIME = new TypeInfo(Value.TIME, ValueTime.MAXIMUM_PRECISION, ValueTime.MAXIMUM_SCALE,
-                null);
-        infos[Value.TIME_TZ] = TYPE_TIME_TZ = new TypeInfo(Value.TIME_TZ, ValueTimeTimeZone.MAXIMUM_PRECISION,
-                ValueTime.MAXIMUM_SCALE, null);
-        infos[Value.TIMESTAMP] = TYPE_TIMESTAMP = new TypeInfo(Value.TIMESTAMP, ValueTimestamp.MAXIMUM_PRECISION,
-                ValueTimestamp.MAXIMUM_SCALE, null);
-        infos[Value.TIMESTAMP_TZ] = TYPE_TIMESTAMP_TZ = new TypeInfo(Value.TIMESTAMP_TZ,
-                ValueTimestampTimeZone.MAXIMUM_PRECISION, ValueTimestamp.MAXIMUM_SCALE, null);
+        infos[Value.DATE] = TYPE_DATE = new TypeInfo(Value.DATE);
+        infos[Value.TIME] = TYPE_TIME = new TypeInfo(Value.TIME, ValueTime.MAXIMUM_SCALE);
+        infos[Value.TIME_TZ] = TYPE_TIME_TZ = new TypeInfo(Value.TIME_TZ, ValueTime.MAXIMUM_SCALE);
+        infos[Value.TIMESTAMP] = TYPE_TIMESTAMP = new TypeInfo(Value.TIMESTAMP, ValueTimestamp.MAXIMUM_SCALE);
+        infos[Value.TIMESTAMP_TZ] = TYPE_TIMESTAMP_TZ = new TypeInfo(Value.TIMESTAMP_TZ, ValueTimestamp.MAXIMUM_SCALE);
         // INTERVAL
         for (int i = Value.INTERVAL_YEAR; i <= Value.INTERVAL_MINUTE_TO_SECOND; i++) {
             infos[i] = new TypeInfo(i, ValueInterval.MAXIMUM_PRECISION,
-                    IntervalQualifier.valueOf(i - Value.INTERVAL_YEAR).hasSeconds() ? ValueInterval.MAXIMUM_SCALE : 0,
+                    IntervalQualifier.valueOf(i - Value.INTERVAL_YEAR).hasSeconds() ? ValueInterval.MAXIMUM_SCALE : -1,
                     null);
         }
         TYPE_INTERVAL_DAY = infos[Value.INTERVAL_DAY];
@@ -268,17 +263,16 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         TYPE_INTERVAL_DAY_TO_SECOND = infos[Value.INTERVAL_DAY_TO_SECOND];
         TYPE_INTERVAL_HOUR_TO_SECOND = infos[Value.INTERVAL_HOUR_TO_SECOND];
         // OTHER
-        infos[Value.JAVA_OBJECT] = TYPE_JAVA_OBJECT = new TypeInfo(Value.JAVA_OBJECT, Integer.MAX_VALUE, 0, null);
-        infos[Value.ENUM] = TYPE_ENUM_UNDEFINED = new TypeInfo(Value.ENUM, Integer.MAX_VALUE, 0, null);
-        infos[Value.GEOMETRY] = TYPE_GEOMETRY = new TypeInfo(Value.GEOMETRY, Integer.MAX_VALUE, 0, null);
-        infos[Value.JSON] = TYPE_JSON = new TypeInfo(Value.JSON, Integer.MAX_VALUE, 0, null);
-        infos[Value.UUID] = TYPE_UUID = new TypeInfo(Value.UUID, ValueUuid.PRECISION, 0, null);
+        infos[Value.JAVA_OBJECT] = TYPE_JAVA_OBJECT = new TypeInfo(Value.JAVA_OBJECT);
+        infos[Value.ENUM] = TYPE_ENUM_UNDEFINED = new TypeInfo(Value.ENUM);
+        infos[Value.GEOMETRY] = TYPE_GEOMETRY = new TypeInfo(Value.GEOMETRY);
+        infos[Value.JSON] = TYPE_JSON = new TypeInfo(Value.JSON);
+        infos[Value.UUID] = TYPE_UUID = new TypeInfo(Value.UUID);
         // COLLECTION
-        infos[Value.ARRAY] = TYPE_ARRAY_UNKNOWN = new TypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, TYPE_UNKNOWN);
-        infos[Value.ROW] = TYPE_ROW_EMPTY = new TypeInfo(Value.ROW, Integer.MAX_VALUE, 0,
+        infos[Value.ARRAY] = TYPE_ARRAY_UNKNOWN = new TypeInfo(Value.ARRAY);
+        infos[Value.ROW] = TYPE_ROW_EMPTY = new TypeInfo(Value.ROW, -1L, -1, //
                 new ExtTypeInfoRow(new LinkedHashMap<>()));
-        infos[Value.RESULT_SET] = TYPE_RESULT_SET = new TypeInfo(Value.RESULT_SET, Integer.MAX_VALUE, //
-                Integer.MAX_VALUE, null);
+        infos[Value.RESULT_SET] = TYPE_RESULT_SET = new TypeInfo(Value.RESULT_SET);
         TYPE_INFOS_BY_VALUE_TYPE = infos;
     }
 
@@ -310,11 +304,11 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
      * @param type
      *            the value type
      * @param precision
-     *            the precision
+     *            the precision or {@code -1L} for default
      * @param scale
-     *            the scale
+     *            the scale or {@link Integer#MIN_VALUE} for default
      * @param extTypeInfo
-     *            the extended type information, or null
+     *            the extended type information or null
      * @return the data type with parameters object
      */
     public static TypeInfo getTypeInfo(int type, long precision, int scale, ExtTypeInfo extTypeInfo) {
@@ -333,11 +327,11 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
             return TYPE_UNKNOWN;
         case Value.CHAR:
             if (precision < 1) {
-                precision = 1;
+                precision = -1L;
             } else if (precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
             }
-            return new TypeInfo(Value.CHAR, precision, 0, null);
+            return new TypeInfo(Value.CHAR, precision);
         case Value.VARCHAR:
             if (precision < 1 || precision >= Integer.MAX_VALUE) {
                 if (precision != 0) {
@@ -345,13 +339,17 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
                 }
                 precision = 1;
             }
-            return new TypeInfo(Value.VARCHAR, precision, 0, null);
+            return new TypeInfo(Value.VARCHAR, precision);
         case Value.CLOB:
+            if (precision < 1) {
+                return TYPE_CLOB;
+            }
+            return new TypeInfo(Value.CLOB, precision);
         case Value.BLOB:
             if (precision < 1) {
-                precision = Long.MAX_VALUE;
+                return TYPE_BLOB;
             }
-            return new TypeInfo(type, precision, 0, null);
+            return new TypeInfo(Value.BLOB, precision);
         case Value.VARCHAR_IGNORECASE:
             if (precision < 1 || precision >= Integer.MAX_VALUE) {
                 if (precision != 0) {
@@ -359,76 +357,75 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
                 }
                 precision = 1;
             }
-            return new TypeInfo(Value.VARCHAR_IGNORECASE, precision, 0, null);
+            return new TypeInfo(Value.VARCHAR_IGNORECASE, precision);
         case Value.BINARY:
             if (precision < 1) {
-                precision = 1;
+                precision = -1L;
             } else if (precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
             }
-            return new TypeInfo(Value.BINARY, precision, 0, null);
+            return new TypeInfo(Value.BINARY, precision);
         case Value.VARBINARY:
-            if (precision < 1 || precision > Integer.MAX_VALUE) {
+            if (precision < 1 || precision >= Integer.MAX_VALUE) {
                 if (precision != 0) {
                     return TYPE_VARBINARY;
                 }
                 precision = 1;
             }
-            return new TypeInfo(Value.VARBINARY, precision, 0, null);
+            return new TypeInfo(Value.VARBINARY, precision);
         case Value.NUMERIC:
             if (precision < 1) {
-                precision = ValueNumeric.DEFAULT_PRECISION;
+                precision = -1L;
             } else if (precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
             }
             return new TypeInfo(Value.NUMERIC, precision, scale,
                     extTypeInfo instanceof ExtTypeInfoNumeric ? extTypeInfo : null);
         case Value.REAL:
-            if (extTypeInfo instanceof ExtTypeInfoFloat) {
-                return new TypeInfo(Value.REAL, ValueReal.PRECISION, 0, extTypeInfo);
+            if (precision >= 1 && precision <= 24) {
+                return new TypeInfo(Value.REAL, precision, -1, extTypeInfo);
             }
             return TYPE_REAL;
         case Value.DOUBLE:
-            if (extTypeInfo instanceof ExtTypeInfoFloat) {
-                return new TypeInfo(Value.DOUBLE, ValueDouble.PRECISION, 0, extTypeInfo);
+            if (precision == 0 || precision >= 25 && precision <= 53) {
+                return new TypeInfo(Value.DOUBLE, precision, -1, extTypeInfo);
             }
             return TYPE_DOUBLE;
         case Value.DECFLOAT:
             if (precision < 1) {
-                precision = ValueDecfloat.DEFAULT_PRECISION;
+                precision = -1L;
             } else if (precision >= Integer.MAX_VALUE) {
                 return TYPE_DECFLOAT;
             }
-            return new TypeInfo(Value.DECFLOAT, precision, 0,
-                    extTypeInfo == ExtTypeInfoNumeric.NUMERIC ? extTypeInfo : null);
-        case Value.TIME: {
-            if (scale < 0 || scale >= ValueTime.MAXIMUM_SCALE) {
+            return new TypeInfo(Value.DECFLOAT, precision, -1, null);
+        case Value.TIME:
+            if (scale < 0) {
+                scale = Integer.MIN_VALUE;
+            } else if (scale >= ValueTime.MAXIMUM_SCALE) {
                 return TYPE_TIME;
             }
-            int d = scale == 0 ? 8 : 9 + scale;
-            return new TypeInfo(Value.TIME, d, scale, null);
-        }
-        case Value.TIME_TZ: {
-            if (scale < 0 || scale >= ValueTime.MAXIMUM_SCALE) {
+            return new TypeInfo(Value.TIME, scale);
+        case Value.TIME_TZ:
+            if (scale < 0) {
+                scale = Integer.MIN_VALUE;
+            } else if (scale >= ValueTime.MAXIMUM_SCALE) {
                 return TYPE_TIME_TZ;
             }
-            int d = scale == 0 ? 14 : 15 + scale;
-            return new TypeInfo(Value.TIME_TZ, d, scale, null);
-        }
-        case Value.TIMESTAMP: {
-            if (scale < 0 || scale >= ValueTimestamp.MAXIMUM_SCALE) {
+            return new TypeInfo(Value.TIME_TZ, scale);
+        case Value.TIMESTAMP:
+            if (scale < 0) {
+                scale = Integer.MIN_VALUE;
+            } else if (scale >= ValueTimestamp.MAXIMUM_SCALE) {
                 return TYPE_TIMESTAMP;
             }
-            int d = scale == 0 ? 19 : 20 + scale;
-            return new TypeInfo(Value.TIMESTAMP, d, scale, null);
-        }
-        case Value.TIMESTAMP_TZ: {
-            if (scale < 0 || scale >= ValueTimestamp.MAXIMUM_SCALE) {
+            return new TypeInfo(Value.TIMESTAMP, scale);
+        case Value.TIMESTAMP_TZ:
+            if (scale < 0) {
+                scale = Integer.MIN_VALUE;
+            } else if (scale >= ValueTimestamp.MAXIMUM_SCALE) {
                 return TYPE_TIMESTAMP_TZ;
             }
-            int d = scale == 0 ? 25 : 26 + scale;
-            return new TypeInfo(Value.TIMESTAMP_TZ, d, scale, null);
-        }
+            return new TypeInfo(Value.TIMESTAMP_TZ, scale);
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
         case Value.INTERVAL_DAY:
@@ -438,26 +435,34 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.INTERVAL_DAY_TO_HOUR:
         case Value.INTERVAL_DAY_TO_MINUTE:
         case Value.INTERVAL_HOUR_TO_MINUTE:
-            if (precision < 1 || precision > ValueInterval.MAXIMUM_PRECISION) {
+            if (precision < 1) {
+                precision = -1L;
+            } else if (precision > ValueInterval.MAXIMUM_PRECISION) {
                 precision = ValueInterval.MAXIMUM_PRECISION;
             }
-            return new TypeInfo(type, precision, 0, null);
+            return new TypeInfo(type, precision);
         case Value.INTERVAL_SECOND:
         case Value.INTERVAL_DAY_TO_SECOND:
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
-            if (precision < 1 || precision > ValueInterval.MAXIMUM_PRECISION) {
+            if (precision < 1) {
+                precision = -1L;
+            } else if (precision > ValueInterval.MAXIMUM_PRECISION) {
                 precision = ValueInterval.MAXIMUM_PRECISION;
             }
-            if (scale < 0 || scale > ValueInterval.MAXIMUM_SCALE) {
+            if (scale < 0) {
+                scale = Integer.MIN_VALUE;
+            } else if (scale > ValueInterval.MAXIMUM_SCALE) {
                 scale = ValueInterval.MAXIMUM_SCALE;
             }
             return new TypeInfo(type, precision, scale, null);
         case Value.JAVA_OBJECT:
-            if (precision < 1 || precision > Integer.MAX_VALUE) {
+            if (precision < 1) {
                 return TYPE_JAVA_OBJECT;
+            } else if (precision > Integer.MAX_VALUE) {
+                precision = Integer.MAX_VALUE;
             }
-            return new TypeInfo(Value.JAVA_OBJECT, precision, 0, null);
+            return new TypeInfo(Value.JAVA_OBJECT, precision);
         case Value.ENUM:
             if (extTypeInfo instanceof ExtTypeInfoEnum) {
                 return ((ExtTypeInfoEnum) extTypeInfo).getType();
@@ -466,28 +471,30 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
             }
         case Value.GEOMETRY:
             if (extTypeInfo instanceof ExtTypeInfoGeometry) {
-                return new TypeInfo(Value.GEOMETRY, Integer.MAX_VALUE, 0, extTypeInfo);
+                return new TypeInfo(Value.GEOMETRY, -1L, -1, extTypeInfo);
             } else {
                 return TYPE_GEOMETRY;
             }
         case Value.JSON:
-            if (precision < 1 || precision > Integer.MAX_VALUE) {
+            if (precision < 1) {
                 return TYPE_JSON;
+            } else if (precision > Integer.MAX_VALUE) {
+                precision = Integer.MAX_VALUE;
             }
-            return new TypeInfo(Value.JSON, precision, 0, null);
+            return new TypeInfo(Value.JSON, precision);
         case Value.ARRAY:
             if (!(extTypeInfo instanceof TypeInfo)) {
                 throw new IllegalArgumentException();
             }
             if (precision < 0 || precision >= Integer.MAX_VALUE) {
-                precision = Integer.MAX_VALUE;
+                precision = -1L;
             }
-            return new TypeInfo(Value.ARRAY, precision, 0, extTypeInfo);
+            return new TypeInfo(Value.ARRAY, precision, -1, extTypeInfo);
         case Value.ROW:
             if (!(extTypeInfo instanceof ExtTypeInfoRow)) {
                 throw new IllegalArgumentException();
             }
-            return new TypeInfo(Value.ROW, Integer.MAX_VALUE, 0, extTypeInfo);
+            return new TypeInfo(Value.ROW, -1L, -1, extTypeInfo);
         }
         return TYPE_NULL;
     }
@@ -577,6 +584,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
             }
             dataType = Value.getHigherOrderKnown(t1, t2);
         }
+        long precision;
         switch (dataType) {
         case Value.NUMERIC: {
             type1 = type1.toNumericType();
@@ -590,16 +598,22 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
                 precision2 += scale1 - scale2;
                 scale = scale1;
             }
-            return TypeInfo.getTypeInfo(dataType, Math.max(precision1, precision2), scale, null);
+            return TypeInfo.getTypeInfo(Value.NUMERIC, Math.max(precision1, precision2), scale, null);
         }
+        case Value.REAL:
+        case Value.DOUBLE:
+            precision = -1L;
+            break;
         case Value.ARRAY:
             return getHigherArray(type1, type2, dimensions(type1), dimensions(type2));
         case Value.ROW:
             return getHigherRow(type1, type2);
+        default:
+            precision = Math.max(type1.getPrecision(), type2.getPrecision());
         }
         ExtTypeInfo ext1 = type1.extTypeInfo;
         return TypeInfo.getTypeInfo(dataType, //
-                Math.max(type1.getPrecision(), type2.getPrecision()), //
+                precision, //
                 Math.max(type1.getScale(), type2.getScale()), //
                 dataType == t1 && ext1 != null ? ext1 : dataType == t2 ? type2.extTypeInfo : null);
     }
@@ -689,6 +703,27 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         }
     }
 
+    private TypeInfo(int valueType) {
+        this.valueType = valueType;
+        precision = -1L;
+        scale = -1;
+        extTypeInfo = null;
+    }
+
+    private TypeInfo(int valueType, long precision) {
+        this.valueType = valueType;
+        this.precision = precision;
+        scale = -1;
+        extTypeInfo = null;
+    }
+
+    private TypeInfo(int valueType, int scale) {
+        this.valueType = valueType;
+        precision = -1L;
+        this.scale = scale;
+        extTypeInfo = null;
+    }
+
     /**
      * Creates new instance of data type with parameters.
      *
@@ -733,6 +768,95 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
      * @return the precision
      */
     public long getPrecision() {
+        switch (valueType) {
+        case Value.UNKNOWN:
+            return -1L;
+        case Value.NULL:
+            return ValueNull.PRECISION;
+        case Value.CHAR:
+        case Value.BINARY:
+            return precision >= 0L ? precision : 1L;
+        case Value.VARCHAR:
+        case Value.VARCHAR_IGNORECASE:
+        case Value.VARBINARY:
+        case Value.JAVA_OBJECT:
+        case Value.JSON:
+        case Value.ARRAY:
+            return precision >= 0L ? precision : Integer.MAX_VALUE;
+        case Value.CLOB:
+        case Value.BLOB:
+            return precision >= 0L ? precision : Long.MAX_VALUE;
+        case Value.BOOLEAN:
+            return ValueBoolean.PRECISION;
+        case Value.TINYINT:
+            return ValueTinyint.PRECISION;
+        case Value.SMALLINT:
+            return ValueSmallint.PRECISION;
+        case Value.INTEGER:
+            return ValueInteger.PRECISION;
+        case Value.BIGINT:
+            return ValueBigint.PRECISION;
+        case Value.NUMERIC:
+            return precision >= 0L ? precision : ValueNumeric.DEFAULT_PRECISION;
+        case Value.REAL:
+            return ValueReal.PRECISION;
+        case Value.DOUBLE:
+            return ValueDouble.PRECISION;
+        case Value.DECFLOAT:
+            return precision >= 0L ? precision : ValueDecfloat.DEFAULT_PRECISION;
+        case Value.DATE:
+            return ValueDate.PRECISION;
+        case Value.TIME: {
+            int s = scale >= 0 ? scale : ValueTime.DEFAULT_SCALE;
+            return s == 0 ? 8 : 9 + s;
+        }
+        case Value.TIME_TZ: {
+            int s = scale >= 0 ? scale : ValueTime.DEFAULT_SCALE;
+            return s == 0 ? 14 : 15 + s;
+        }
+        case Value.TIMESTAMP: {
+            int s = scale >= 0 ? scale : ValueTimestamp.DEFAULT_SCALE;
+            return s == 0 ? 19 : 20 + s;
+        }
+        case Value.TIMESTAMP_TZ: {
+            int s = scale >= 0 ? scale : ValueTimestamp.DEFAULT_SCALE;
+            return s == 0 ? 25 : 26 + s;
+        }
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE:
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND:
+            return precision >= 0L ? precision : ValueInterval.DEFAULT_PRECISION;
+        case Value.ENUM:
+            return precision >= 0L ? precision : Integer.MAX_VALUE;
+        case Value.GEOMETRY:
+        case Value.ROW:
+        case Value.RESULT_SET:
+            return Integer.MAX_VALUE;
+        case Value.UUID:
+            return ValueUuid.PRECISION;
+        default:
+            return precision;
+        }
+    }
+
+    /**
+     * Returns the precision, or {@code -1L} if not specified in data type
+     * definition.
+     *
+     * @return the precision, or {@code -1L} if not specified in data type
+     *         definition
+     */
+    public long getDeclaredPrecision() {
         return precision;
     }
 
@@ -742,6 +866,70 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
      * @return the scale
      */
     public int getScale() {
+        switch (valueType) {
+        case Value.UNKNOWN:
+            return -1;
+        case Value.NULL:
+        case Value.CHAR:
+        case Value.VARCHAR:
+        case Value.CLOB:
+        case Value.VARCHAR_IGNORECASE:
+        case Value.BINARY:
+        case Value.VARBINARY:
+        case Value.BLOB:
+        case Value.BOOLEAN:
+        case Value.TINYINT:
+        case Value.SMALLINT:
+        case Value.INTEGER:
+        case Value.BIGINT:
+        case Value.REAL:
+        case Value.DOUBLE:
+        case Value.DECFLOAT:
+        case Value.DATE:
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+        case Value.JAVA_OBJECT:
+        case Value.ENUM:
+        case Value.GEOMETRY:
+        case Value.JSON:
+        case Value.UUID:
+        case Value.ARRAY:
+        case Value.ROW:
+        case Value.RESULT_SET:
+            return 0;
+        case Value.NUMERIC:
+            return scale != Integer.MIN_VALUE ? scale : 0;
+        case Value.TIME:
+        case Value.TIME_TZ:
+            return scale != Integer.MIN_VALUE ? scale : ValueTime.DEFAULT_SCALE;
+        case Value.TIMESTAMP:
+        case Value.TIMESTAMP_TZ:
+            return scale != Integer.MIN_VALUE ? scale : ValueTimestamp.DEFAULT_SCALE;
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND:
+            return scale != Integer.MIN_VALUE ? scale : ValueInterval.DEFAULT_SCALE;
+        default:
+            return scale;
+        }
+    }
+
+    /**
+     * Returns the scale, or {@link Integer#MIN_VALUE} if not specified in data
+     * type definition.
+     *
+     * @return the scale, or {@link Integer#MIN_VALUE} if not specified in data
+     *         type definition
+     */
+    public int getDeclaredScale() {
         return scale;
     }
 
@@ -850,55 +1038,57 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         switch (valueType) {
         case Value.CHAR:
-        case Value.BINARY:
-            builder.append(Value.getTypeName(valueType));
-            builder.append('(').append(precision).append(')');
-            break;
         case Value.VARCHAR:
+        case Value.CLOB:
         case Value.VARCHAR_IGNORECASE:
+        case Value.BINARY:
         case Value.VARBINARY:
+        case Value.BLOB:
         case Value.JAVA_OBJECT:
         case Value.JSON:
             builder.append(Value.getTypeName(valueType));
-            if (precision < Integer.MAX_VALUE) {
+            if (precision >= 0L) {
                 builder.append('(').append(precision).append(')');
             }
             break;
-        case Value.NUMERIC:
+        case Value.NUMERIC: {
             if (extTypeInfo != null) {
-                ExtTypeInfoNumeric numeric = (ExtTypeInfoNumeric) extTypeInfo;
-                numeric.getSQL(builder, sqlFlags);
-                boolean withPrecision = numeric.withPrecision() || precision != ValueNumeric.DEFAULT_PRECISION;
-                boolean withScale = numeric.withScale() || scale != ValueNumeric.DEFAULT_SCALE;
-                if (withPrecision || withScale) {
-                    builder.append('(').append(precision);
-                    if (withScale) {
-                        builder.append(", ").append(scale);
-                    }
-                    builder.append(')');
-                }
+                extTypeInfo.getSQL(builder, sqlFlags);
             } else {
-                builder.append("NUMERIC").append('(').append(precision).append(", ").append(scale).append(')');
+                builder.append("NUMERIC");
+            }
+            boolean withPrecision = precision >= 0;
+            boolean withScale = scale != Integer.MIN_VALUE;
+            if (withPrecision || withScale) {
+                builder.append('(').append(withPrecision ? precision : ValueNumeric.DEFAULT_PRECISION);
+                if (withScale) {
+                    builder.append(", ").append(scale);
+                }
+                builder.append(')');
             }
             break;
+        }
         case Value.REAL:
         case Value.DOUBLE:
-            if (extTypeInfo == null) {
+            if (precision < 0) {
                 builder.append(Value.getTypeName(valueType));
             } else {
-                extTypeInfo.getSQL(builder, sqlFlags);
+                builder.append("FLOAT");
+                if (precision > 0) {
+                    builder.append('(').append(precision).append(')');
+                }
             }
             break;
         case Value.DECFLOAT:
             builder.append("DECFLOAT");
-            if (extTypeInfo != ExtTypeInfoNumeric.NUMERIC) {
+            if (precision >= 0) {
                 builder.append('(').append(precision).append(')');
             }
             break;
         case Value.TIME:
         case Value.TIME_TZ:
             builder.append("TIME");
-            if (scale != ValueTime.DEFAULT_SCALE) {
+            if (scale != Integer.MIN_VALUE) {
                 builder.append('(').append(scale).append(')');
             }
             if (valueType == Value.TIME_TZ) {
@@ -908,7 +1098,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.TIMESTAMP:
         case Value.TIMESTAMP_TZ:
             builder.append("TIMESTAMP");
-            if (scale != ValueTimestamp.DEFAULT_SCALE) {
+            if (scale != Integer.MIN_VALUE) {
                 builder.append('(').append(scale).append(')');
             }
             if (valueType == Value.TIMESTAMP_TZ) {
@@ -929,8 +1119,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
             IntervalQualifier.valueOf(valueType - Value.INTERVAL_YEAR).getTypeName(builder,
-                    precision == ValueInterval.DEFAULT_PRECISION ? -1 : (int) precision,
-                    scale == ValueInterval.DEFAULT_SCALE ? -1 : scale, false);
+                    precision < 0L ? -1 : (int) precision, scale == Integer.MIN_VALUE ? -1 : scale, false);
             break;
         case Value.ENUM:
             extTypeInfo.getSQL(builder.append("ENUM"), sqlFlags);
@@ -946,7 +1135,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
                 extTypeInfo.getSQL(builder, sqlFlags).append(' ');
             }
             builder.append("ARRAY");
-            if (precision < Integer.MAX_VALUE) {
+            if (precision >= 0L) {
                 builder.append('[').append(precision).append(']');
             }
             break;
@@ -1076,7 +1265,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
     public String getDeclaredTypeName() {
         switch (valueType) {
         case Value.NUMERIC:
-            return extTypeInfo != null && ((ExtTypeInfoNumeric) extTypeInfo).decimal() ? "DECIMAL" : "NUMERIC";
+            return extTypeInfo != null ? "DECIMAL" : "NUMERIC";
         case Value.REAL:
         case Value.DOUBLE:
             if (extTypeInfo != null) {

@@ -61,10 +61,7 @@ import org.h2.util.Utils;
 import org.h2.util.geometry.EWKTUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfo;
-import org.h2.value.ExtTypeInfoFloat;
 import org.h2.value.ExtTypeInfoGeometry;
-import org.h2.value.ExtTypeInfoNumeric;
 import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -3197,15 +3194,12 @@ public final class InformationSchemaTable extends MetaTable {
                 numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
                 numericScale = ValueInteger.get(typeInfo.getScale());
                 numericPrecisionRadix = ValueInteger.get(10);
-                ExtTypeInfoNumeric extTypeInfo = (ExtTypeInfoNumeric) typeInfo.getExtTypeInfo();
-                if (extTypeInfo != null) {
-                    declaredDataType = extTypeInfo.getSQL(DEFAULT_SQL_FLAGS);
-                    if (extTypeInfo.withPrecision()) {
-                        declaredNumericPrecision = numericPrecision;
-                    }
-                    if (extTypeInfo.withScale()) {
-                        declaredNumericScale = numericScale;
-                    }
+                declaredDataType = typeInfo.getExtTypeInfo() != null ? "DECIMAL" : "NUMERIC";
+                if (typeInfo.getDeclaredPrecision() >= 0L) {
+                    declaredNumericPrecision = numericPrecision;
+                }
+                if (typeInfo.getDeclaredScale() != Integer.MIN_VALUE) {
+                    declaredNumericScale = numericScale;
                 }
                 break;
             }
@@ -3213,11 +3207,11 @@ public final class InformationSchemaTable extends MetaTable {
             case Value.DOUBLE: {
                 numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
                 numericPrecisionRadix = ValueInteger.get(2);
-                ExtTypeInfo extTypeInfo = typeInfo.getExtTypeInfo();
-                if (extTypeInfo != null) {
+                long declaredPrecision = typeInfo.getDeclaredPrecision();
+                if (declaredPrecision >= 0) {
                     declaredDataType = "FLOAT";
-                    if (extTypeInfo != ExtTypeInfoFloat.NO_ARG) {
-                        declaredNumericPrecision = ValueInteger.get(((ExtTypeInfoFloat) extTypeInfo).getPrecision());
+                    if (declaredPrecision > 0) {
+                        declaredNumericPrecision = ValueInteger.get((int) declaredPrecision);
                     }
                 }
                 break;
@@ -3225,7 +3219,7 @@ public final class InformationSchemaTable extends MetaTable {
             case Value.DECFLOAT:
                 numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
                 numericPrecisionRadix = ValueInteger.get(10);
-                if (typeInfo.getExtTypeInfo() != ExtTypeInfoNumeric.NUMERIC) {
+                if (typeInfo.getDeclaredPrecision() >= 0L) {
                     declaredNumericPrecision = numericPrecision;
                 }
                 break;

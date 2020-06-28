@@ -113,6 +113,11 @@ public class DataType {
      */
     public int defaultScale;
 
+    /**
+     * If precision and scale have non-standard default values.
+     */
+    public boolean specialPrecisionScale;
+
     static {
         DataType dataType = new DataType();
         dataType.defaultPrecision = dataType.maxPrecision = dataType.minPrecision = ValueNull.PRECISION;
@@ -348,13 +353,11 @@ public class DataType {
     public static int convertTypeToSQLType(TypeInfo type) {
         int valueType = type.getValueType();
         switch (valueType) {
-        case Value.NUMERIC: {
-            ExtTypeInfo extTypeInfo = type.getExtTypeInfo();
-            return extTypeInfo != null && ((ExtTypeInfoNumeric) extTypeInfo).decimal() ? Types.DECIMAL : Types.NUMERIC;
-        }
+        case Value.NUMERIC:
+            return type.getExtTypeInfo() != null ? Types.DECIMAL : Types.NUMERIC;
         case Value.REAL:
         case Value.DOUBLE:
-            if (type.getExtTypeInfo() != null) {
+            if (type.getDeclaredPrecision() >= 0) {
                 return Types.FLOAT;
             }
             break;

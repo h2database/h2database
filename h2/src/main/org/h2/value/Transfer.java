@@ -462,34 +462,31 @@ public class Transfer {
         case Value.VARCHAR_IGNORECASE:
         case Value.BINARY:
         case Value.VARBINARY:
+        case Value.DECFLOAT:
         case Value.JAVA_OBJECT:
         case Value.JSON:
-            writeInt((int) type.getPrecision());
+            writeInt((int) type.getDeclaredPrecision());
             break;
         case Value.CLOB:
         case Value.BLOB:
-            writeLong(type.getPrecision());
+            writeLong(type.getDeclaredPrecision());
             break;
         case Value.NUMERIC:
-            writeInt((int) type.getPrecision());
-            writeInt(type.getScale());
-            writeTypeInfoNumeric(type);
+            writeInt((int) type.getDeclaredPrecision());
+            writeInt(type.getDeclaredScale());
+            writeBoolean(type.getExtTypeInfo() != null);
             break;
         case Value.REAL:
         case Value.DOUBLE: {
-            ExtTypeInfoFloat ext = (ExtTypeInfoFloat) type.getExtTypeInfo();
-            writeByte(ext == null ? -1 : (byte) ext.getPrecision());
+            long precision = type.getDeclaredPrecision();
+            writeByte(precision < 0 ? -1 : (byte) precision);
             break;
         }
-        case Value.DECFLOAT:
-            writeInt((int) type.getPrecision());
-            writeBoolean(type.getExtTypeInfo() == null);
-            break;
         case Value.TIME:
         case Value.TIME_TZ:
         case Value.TIMESTAMP:
         case Value.TIMESTAMP_TZ:
-            writeByte((byte) type.getScale());
+            writeByte((byte) type.getDeclaredScale());
             break;
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
@@ -500,14 +497,14 @@ public class Transfer {
         case Value.INTERVAL_DAY_TO_HOUR:
         case Value.INTERVAL_DAY_TO_MINUTE:
         case Value.INTERVAL_HOUR_TO_MINUTE:
-            writeByte((byte) type.getPrecision());
+            writeByte((byte) type.getDeclaredPrecision());
             break;
         case Value.INTERVAL_SECOND:
         case Value.INTERVAL_DAY_TO_SECOND:
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
-            writeByte((byte) type.getPrecision());
-            writeByte((byte) type.getScale());
+            writeByte((byte) type.getDeclaredPrecision());
+            writeByte((byte) type.getDeclaredScale());
             break;
         case Value.ENUM:
             writeTypeInfoEnum(type);
@@ -516,7 +513,7 @@ public class Transfer {
             writeTypeInfoGeometry(type);
             break;
         case Value.ARRAY:
-            writeInt((int) type.getPrecision());
+            writeInt((int) type.getDeclaredPrecision());
             writeTypeInfo((TypeInfo) type.getExtTypeInfo());
             break;
         case Value.ROW:
@@ -525,26 +522,6 @@ public class Transfer {
         default:
             throw DbException.getUnsupportedException("value type " + valueType);
         }
-    }
-
-    private void writeTypeInfoNumeric(TypeInfo type) throws IOException {
-        ExtTypeInfoNumeric extTypeInfo = (ExtTypeInfoNumeric) type.getExtTypeInfo();
-        int b;
-        if (extTypeInfo != null) {
-            b = 0;
-            if (extTypeInfo.decimal()) {
-                b += 3;
-            }
-            if (extTypeInfo.withPrecision()) {
-                b++;
-                if (extTypeInfo.withScale()) {
-                    b++;
-                }
-            }
-        } else {
-            b = -1;
-        }
-        writeByte((byte) b);
     }
 
     private void writeTypeInfoEnum(TypeInfo type) throws IOException {
@@ -636,12 +613,14 @@ public class Transfer {
         case Value.BIGINT:
         case Value.DATE:
         case Value.UUID:
+        case Value.RESULT_SET:
             break;
         case Value.CHAR:
         case Value.VARCHAR:
         case Value.VARCHAR_IGNORECASE:
         case Value.BINARY:
         case Value.VARBINARY:
+        case Value.DECFLOAT:
         case Value.JAVA_OBJECT:
         case Value.JSON:
             precision = readInt();
@@ -653,22 +632,18 @@ public class Transfer {
         case Value.NUMERIC:
             precision = readInt();
             scale = readInt();
-            ext = readTypeInfoNumeric();
+            if (readBoolean()) {
+                ext = ExtTypeInfoNumeric.DECIMAL;
+            }
             break;
         case Value.REAL:
         case Value.DOUBLE: {
             int p = readByte();
             if (p >= 0) {
-                ext = ExtTypeInfoFloat.get(p);
+                precision = p;
             }
             break;
         }
-        case Value.DECFLOAT:
-            precision = readInt();
-            if (!readBoolean()) {
-                ext = ExtTypeInfoNumeric.NUMERIC;
-            }
-            break;
         case Value.TIME:
         case Value.TIME_TZ:
         case Value.TIMESTAMP:
@@ -710,25 +685,6 @@ public class Transfer {
             throw DbException.getUnsupportedException("value type " + valueType);
         }
         return TypeInfo.getTypeInfo(valueType, precision, scale, ext);
-    }
-
-    private ExtTypeInfo readTypeInfoNumeric() throws IOException {
-        switch (readByte()) {
-        case 0:
-            return ExtTypeInfoNumeric.NUMERIC;
-        case 1:
-            return ExtTypeInfoNumeric.NUMERIC_PRECISION;
-        case 2:
-            return ExtTypeInfoNumeric.NUMERIC_PRECISION_SCALE;
-        case 3:
-            return ExtTypeInfoNumeric.DECIMAL;
-        case 4:
-            return ExtTypeInfoNumeric.DECIMAL_PRECISION;
-        case 5:
-            return ExtTypeInfoNumeric.DECIMAL_PRECISION_SCALE;
-        default:
-            return null;
-        }
     }
 
     private ExtTypeInfo readTypeInfoEnum() throws IOException {

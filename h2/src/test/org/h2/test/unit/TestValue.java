@@ -549,8 +549,8 @@ public class TestValue extends TestDb {
 
         testTypeInfoCheck(Value.ARRAY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_ARRAY_UNKNOWN,
                 TypeInfo.getTypeInfo(Value.ARRAY));
-        testTypeInfoCheck(Value.RESULT_SET, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE,
-                TypeInfo.TYPE_RESULT_SET, TypeInfo.getTypeInfo(Value.RESULT_SET));
+        testTypeInfoCheck(Value.RESULT_SET, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_RESULT_SET,
+                TypeInfo.getTypeInfo(Value.RESULT_SET));
         testTypeInfoCheck(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_ROW_EMPTY,
                 TypeInfo.getTypeInfo(Value.ROW));
 

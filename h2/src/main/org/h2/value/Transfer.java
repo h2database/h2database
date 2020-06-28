@@ -414,40 +414,36 @@ public class Transfer {
      * @return itself
      */
     public Transfer writeTypeInfo(TypeInfo type) throws IOException {
-        int valueType = type.getValueType();
-        if (version < Constants.TCP_PROTOCOL_VERSION_20) {
-            switch (valueType) {
-            case Value.BINARY:
-                valueType = Value.VARBINARY;
-                break;
-            case Value.DECFLOAT:
-                valueType = Value.NUMERIC;
-                break;
-            }
-        }
-        writeInt(VALUE_TO_TI[valueType + 1]).writeLong(type.getPrecision()).writeInt(type.getScale());
         if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
-            switch (valueType) {
-            case Value.NUMERIC:
-                writeTypeInfoNumeric(type);
-                break;
-            case Value.REAL:
-            case Value.DOUBLE: {
-                ExtTypeInfoFloat extTypeInfo = (ExtTypeInfoFloat) type.getExtTypeInfo();
-                writeByte((byte) (extTypeInfo == null ? -1 : extTypeInfo.getPrecision()));
-                break;
-            }
-            case Value.DECFLOAT:
-                writeBoolean(type.getExtTypeInfo() == null);
-                break;
-            case Value.ARRAY:
-                writeTypeInfo((TypeInfo) type.getExtTypeInfo());
-                break;
-            case Value.ROW:
-                writeTypeInfoRow(type);
-            }
+            writeTypeInfo20(type);
+        } else {
+            writeTypeInfo19(type);
         }
         return this;
+    }
+
+    private void writeTypeInfo20(TypeInfo type) throws IOException {
+        int valueType = type.getValueType();
+        writeInt(VALUE_TO_TI[valueType + 1]).writeLong(type.getPrecision()).writeInt(type.getScale());
+        switch (valueType) {
+        case Value.NUMERIC:
+            writeTypeInfoNumeric(type);
+            break;
+        case Value.REAL:
+        case Value.DOUBLE: {
+            ExtTypeInfoFloat extTypeInfo = (ExtTypeInfoFloat) type.getExtTypeInfo();
+            writeByte((byte) (extTypeInfo == null ? -1 : extTypeInfo.getPrecision()));
+            break;
+        }
+        case Value.DECFLOAT:
+            writeBoolean(type.getExtTypeInfo() == null);
+            break;
+        case Value.ARRAY:
+            writeTypeInfo((TypeInfo) type.getExtTypeInfo());
+            break;
+        case Value.ROW:
+            writeTypeInfoRow(type);
+        }
     }
 
     private void writeTypeInfoNumeric(TypeInfo type) throws IOException {
@@ -478,40 +474,59 @@ public class Transfer {
         }
     }
 
+    private void writeTypeInfo19(TypeInfo type) throws IOException {
+        int valueType = type.getValueType();
+        switch (valueType) {
+        case Value.BINARY:
+            valueType = Value.VARBINARY;
+            break;
+        case Value.DECFLOAT:
+            valueType = Value.NUMERIC;
+            break;
+        }
+        writeInt(VALUE_TO_TI[valueType + 1]).writeLong(type.getPrecision()).writeInt(type.getScale());
+    }
+
     /**
      * Read a type information.
      *
      * @return the type information
      */
     public TypeInfo readTypeInfo() throws IOException {
+        if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
+            return readTypeInfo20();
+        } else {
+            return readTypeInfo19();
+        }
+    }
+
+    private TypeInfo readTypeInfo20() throws IOException {
         int valueType = TI_TO_VALUE[readInt() + 1];
         long precision = readLong();
         int scale = readInt();
         ExtTypeInfo ext = null;
-        if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
-            switch (valueType) {
-            case Value.NUMERIC:
-                ext = readTypeInfoNumeric();
-                break;
-            case Value.REAL:
-            case Value.DOUBLE: {
-                int p = readByte();
-                if (p >= 0) {
-                    ext = ExtTypeInfoFloat.get(p);
-                }
-                break;
+        switch (valueType) {
+        case Value.NUMERIC:
+            ext = readTypeInfoNumeric();
+            break;
+        case Value.REAL:
+        case Value.DOUBLE: {
+            int p = readByte();
+            if (p >= 0) {
+                ext = ExtTypeInfoFloat.get(p);
             }
-            case Value.DECFLOAT:
-                if (!readBoolean()) {
-                    ext = ExtTypeInfoNumeric.NUMERIC;
-                }
-                break;
-            case Value.ARRAY:
-                ext = readTypeInfo();
-                break;
-            case Value.ROW:
-                ext = readTypeInfoRow();
+            break;
+        }
+        case Value.DECFLOAT:
+            if (!readBoolean()) {
+                ext = ExtTypeInfoNumeric.NUMERIC;
             }
+            break;
+        case Value.ARRAY:
+            ext = readTypeInfo();
+            break;
+        case Value.ROW:
+            ext = readTypeInfoRow();
         }
         return TypeInfo.getTypeInfo(valueType, precision, scale, ext);
     }
@@ -544,6 +559,10 @@ public class Transfer {
             }
         }
         return new ExtTypeInfoRow(fields);
+    }
+
+    private TypeInfo readTypeInfo19() throws IOException {
+        return TypeInfo.getTypeInfo(TI_TO_VALUE[readInt() + 1], readLong(), readInt(), null);
     }
 
     /**

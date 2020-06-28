@@ -477,17 +477,7 @@ public class Transfer {
             writeBoolean(type.getExtTypeInfo() != null);
             break;
         case Value.REAL:
-        case Value.DOUBLE: {
-            long precision = type.getDeclaredPrecision();
-            writeByte(precision < 0 ? -1 : (byte) precision);
-            break;
-        }
-        case Value.TIME:
-        case Value.TIME_TZ:
-        case Value.TIMESTAMP:
-        case Value.TIMESTAMP_TZ:
-            writeByte((byte) type.getDeclaredScale());
-            break;
+        case Value.DOUBLE:
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
         case Value.INTERVAL_DAY:
@@ -497,14 +487,20 @@ public class Transfer {
         case Value.INTERVAL_DAY_TO_HOUR:
         case Value.INTERVAL_DAY_TO_MINUTE:
         case Value.INTERVAL_HOUR_TO_MINUTE:
-            writeByte((byte) type.getDeclaredPrecision());
+            writeBytePrecisionWithDefault(type.getDeclaredPrecision());
+            break;
+        case Value.TIME:
+        case Value.TIME_TZ:
+        case Value.TIMESTAMP:
+        case Value.TIMESTAMP_TZ:
+            writeByteScaleWithDefault(type.getDeclaredScale());
             break;
         case Value.INTERVAL_SECOND:
         case Value.INTERVAL_DAY_TO_SECOND:
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
-            writeByte((byte) type.getDeclaredPrecision());
-            writeByte((byte) type.getDeclaredScale());
+            writeBytePrecisionWithDefault(type.getDeclaredPrecision());
+            writeByteScaleWithDefault(type.getDeclaredScale());
             break;
         case Value.ENUM:
             writeTypeInfoEnum(type);
@@ -522,6 +518,14 @@ public class Transfer {
         default:
             throw DbException.getUnsupportedException("value type " + valueType);
         }
+    }
+
+    private void writeBytePrecisionWithDefault(long precision) throws IOException {
+        writeByte(precision >= 0 ? (byte) precision : -1);
+    }
+
+    private void writeByteScaleWithDefault(int scale) throws IOException {
+        writeByte(scale >= 0 ? (byte) scale : -1);
     }
 
     private void writeTypeInfoEnum(TypeInfo type) throws IOException {
@@ -637,19 +641,7 @@ public class Transfer {
             }
             break;
         case Value.REAL:
-        case Value.DOUBLE: {
-            int p = readByte();
-            if (p >= 0) {
-                precision = p;
-            }
-            break;
-        }
-        case Value.TIME:
-        case Value.TIME_TZ:
-        case Value.TIMESTAMP:
-        case Value.TIMESTAMP_TZ:
-            scale = readByte();
-            break;
+        case Value.DOUBLE:
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
         case Value.INTERVAL_DAY:
@@ -660,6 +652,12 @@ public class Transfer {
         case Value.INTERVAL_DAY_TO_MINUTE:
         case Value.INTERVAL_HOUR_TO_MINUTE:
             precision = readByte();
+            break;
+        case Value.TIME:
+        case Value.TIME_TZ:
+        case Value.TIMESTAMP:
+        case Value.TIMESTAMP_TZ:
+            scale = readByte();
             break;
         case Value.INTERVAL_SECOND:
         case Value.INTERVAL_DAY_TO_SECOND:

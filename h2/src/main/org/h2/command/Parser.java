@@ -4989,7 +4989,7 @@ public class Parser {
                 } else if (r instanceof BinaryOperation) {
                     BinaryOperation binaryOperation = (BinaryOperation) r;
                     if (binaryOperation.getOperationType() == OpType.MINUS) {
-                        TypeInfo ti = (TypeInfo) readIntervalQualifier(null, false);
+                        TypeInfo ti = readIntervalQualifier();
                         if (ti != null) {
                             binaryOperation.setForcedType(ti);
                         }
@@ -5203,7 +5203,7 @@ public class Parser {
             r = new CastSpecification(r, parseColumnWithType(null));
         }
         for (;;) {
-            TypeInfo ti = (TypeInfo) readIntervalQualifier(null, false);
+            TypeInfo ti = readIntervalQualifier();
             if (ti != null) {
                 r = new CastSpecification(r, ti);
             }
@@ -6475,14 +6475,14 @@ public class Parser {
                 throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
                         currentToken);
             }
-            column = new Column(columnName, TypeInfo.TYPE_BIGINT, "IDENTITY");
+            column = new Column(columnName, TypeInfo.TYPE_BIGINT);
             parseAutoIncrement(column);
             // PostgreSQL compatibility
             if (!database.getMode().serialColumnIsNotPK) {
                 column.setPrimaryKey(true);
             }
         } else if (readIf("SERIAL")) {
-            column = new Column(columnName, TypeInfo.TYPE_INTEGER, "SERIAL");
+            column = new Column(columnName, TypeInfo.TYPE_INTEGER);
             parseAutoIncrement(column);
             // PostgreSQL compatibility
             if (!database.getMode().serialColumnIsNotPK) {
@@ -6609,12 +6609,17 @@ public class Parser {
         switch (currentTokenType) {
         case IDENTIFIER:
             break;
-        case INTERVAL:
+        case INTERVAL: {
             read();
-            return (Column) readIntervalQualifier(columnName, true);
+            TypeInfo typeInfo = readIntervalQualifier();
+            if (typeInfo == null) {
+                throw intervalQualifierError();
+            }
+            return new Column(columnName, typeInfo);
+        }
         case NULL:
             read();
-            return new Column(columnName, TypeInfo.TYPE_NULL, "NULL");
+            return new Column(columnName, TypeInfo.TYPE_NULL);
         case ROW:
             read();
             return parseRowType(columnName);
@@ -6673,7 +6678,7 @@ public class Parser {
             break;
         case "DATETIME":
         case "DATETIME2":
-            return parseDateTimeType(columnName, original, false);
+            return parseDateTimeType(columnName, false);
         case "DEC":
         case "DECIMAL":
             return parseNumericType(columnName, true);
@@ -6725,7 +6730,7 @@ public class Parser {
         case "NUMERIC":
             return parseNumericType(columnName, false);
         case "SMALLDATETIME":
-            return parseDateTimeType(columnName, original, true);
+            return parseDateTimeType(columnName, true);
         case "TIME":
             return parseTimeType(columnName);
         case "TIMESTAMP":
@@ -6754,7 +6759,6 @@ public class Parser {
         }
         int t = dataType.type;
         if (database.getIgnoreCase() && t == Value.VARCHAR && !equalsToken("VARCHAR_CASESENSITIVE", original)) {
-            original = "VARCHAR_IGNORECASE";
             dataType = DataType.getDataType(t = Value.VARCHAR_IGNORECASE);
         }
         if ((dataType.supportsPrecision || dataType.supportsScale) && readIf(OPEN_PAREN)) {
@@ -6772,12 +6776,7 @@ public class Parser {
                                 throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale),
                                         Integer.toString(dataType.minScale), Integer.toString(dataType.maxScale));
                             }
-                            original = original + '(' + precision + ", " + scale + ')';
-                        } else {
-                            original = original + '(' + precision + ')';
                         }
-                    } else {
-                        original = original + '(' + precision + ')';
                     }
                 } else {
                     scale = readInt();
@@ -6785,7 +6784,6 @@ public class Parser {
                         throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale),
                                 Integer.toString(dataType.minScale), Integer.toString(dataType.maxScale));
                     }
-                    original = original + '(' + scale + ')';
                 }
             }
             read(CLOSE_PAREN);
@@ -6806,12 +6804,12 @@ public class Parser {
                 dataType = DataType.getDataType(t = Value.VARBINARY);
             }
         }
-        return new Column(columnName, TypeInfo.getTypeInfo(t, precision, scale, null), original);
+        return new Column(columnName, TypeInfo.getTypeInfo(t, precision, scale, null));
     }
 
     private static Column getColumnWithDomain(String columnName, Domain domain) {
         Column templateColumn = domain.getColumn();
-        Column column = new Column(columnName, templateColumn.getType(), domain.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
+        Column column = new Column(columnName, templateColumn.getType());
         column.setComment(templateColumn.getComment());
         column.setDomain(domain);
         return column;
@@ -6820,7 +6818,6 @@ public class Parser {
     private Column parseFloatType(String columnName) {
         int type = Value.DOUBLE;
         int precision;
-        String original;
         if (readIf(OPEN_PAREN)) {
             precision = readNonNegativeInt();
             read(CLOSE_PAREN);
@@ -6830,12 +6827,10 @@ public class Parser {
             if (precision <= 24) {
                 type = Value.REAL;
             }
-            original = "FLOAT(" + precision + ')';
         } else {
             precision = 0;
-            original = "FLOAT";
         }
-        return new Column(columnName, TypeInfo.getTypeInfo(type, precision, -1, null), original);
+        return new Column(columnName, TypeInfo.getTypeInfo(type, precision, -1, null));
     }
 
     private Column parseNumericType(String columnName, boolean decimal) {
@@ -6858,7 +6853,7 @@ public class Parser {
         }
         TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.NUMERIC, precision, scale,
                 decimal ? ExtTypeInfoNumeric.DECIMAL : null);
-        return new Column(columnName, typeInfo, typeInfo.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
+        return new Column(columnName, typeInfo);
     }
 
     private Column parseDecfloatType(String columnName) {
@@ -6872,7 +6867,7 @@ public class Parser {
             read(CLOSE_PAREN);
         }
         TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.DECFLOAT, precision, -1, null);
-        return new Column(columnName, typeInfo, typeInfo.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
+        return new Column(columnName, typeInfo);
     }
 
     private Column parseTimeType(String columnName) {
@@ -6886,20 +6881,15 @@ public class Parser {
             read(CLOSE_PAREN);
         }
         int type = Value.TIME;
-        String original;
         if (readIf(WITH)) {
             read("TIME");
             read("ZONE");
             type = Value.TIME_TZ;
-            original = scale >= 0 ? "TIME(" + scale + ") WITH TIME ZONE" : "TIME WITH TIME ZONE";
         } else if (readIf("WITHOUT")) {
             read("TIME");
             read("ZONE");
-            original = scale >= 0 ? "TIME(" + scale + ") WITHOUT TIME ZONE" : "TIME WITHOUT TIME ZONE";
-        } else {
-            original = scale >= 0 ? "TIME(" + scale + ')' : "TIME";
         }
-        return new Column(columnName, TypeInfo.getTypeInfo(type, -1L, scale, null), original);
+        return new Column(columnName, TypeInfo.getTypeInfo(type, -1L, scale, null));
     }
 
     private Column parseTimestampType(String columnName) {
@@ -6917,23 +6907,18 @@ public class Parser {
             read(CLOSE_PAREN);
         }
         int type = Value.TIMESTAMP;
-        String original;
         if (readIf(WITH)) {
             read("TIME");
             read("ZONE");
             type = Value.TIMESTAMP_TZ;
-            original = scale >= 0 ? "TIMESTAMP(" + scale + ") WITH TIME ZONE" : "TIMESTAMP WITH TIME ZONE";
         } else if (readIf("WITHOUT")) {
             read("TIME");
             read("ZONE");
-            original = scale >= 0 ? "TIMESTAMP(" + scale + ") WITHOUT TIME ZONE" : "TIMESTAMP WITHOUT TIME ZONE";
-        } else {
-            original = scale >= 0 ? "TIMESTAMP(" + scale + ')' : "TIMESTAMP";
         }
-        return new Column(columnName, TypeInfo.getTypeInfo(type, -1L, scale, null), original);
+        return new Column(columnName, TypeInfo.getTypeInfo(type, -1L, scale, null));
     }
 
-    private Column parseDateTimeType(String columnName, String original, boolean smallDateTime) {
+    private Column parseDateTimeType(String columnName, boolean smallDateTime) {
         int scale;
         if (smallDateTime) {
             scale = 0;
@@ -6946,13 +6931,12 @@ public class Parser {
                             /* folds to a constant */ "" + ValueTimestamp.MAXIMUM_SCALE);
                 }
                 read(CLOSE_PAREN);
-                original = original + '(' + scale + ')';
             }
         }
-        return new Column(columnName, TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, scale, null), original);
+        return new Column(columnName, TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, scale, null));
     }
 
-    private Object readIntervalQualifier(String columnName, boolean asColumn) {
+    private TypeInfo readIntervalQualifier() {
         IntervalQualifier qualifier;
         int precision = -1;
         int scale = Integer.MIN_VALUE;
@@ -7065,9 +7049,6 @@ public class Parser {
             qualifier = IntervalQualifier.SECOND;
             break;
         default:
-            if (asColumn) {
-                throw intervalQualifierError();
-            }
             return null;
         }
         if (precision >= 0) {
@@ -7082,8 +7063,7 @@ public class Parser {
                         /* Folds to a constant */ "" + ValueInterval.MAXIMUM_SCALE);
             }
         }
-        TypeInfo typeInfo = TypeInfo.getTypeInfo(qualifier.ordinal() + Value.INTERVAL_YEAR, precision, scale, null);
-        return asColumn ? new Column(columnName, typeInfo, qualifier.getTypeName(precision, scale)) : typeInfo;
+        return TypeInfo.getTypeInfo(qualifier.ordinal() + Value.INTERVAL_YEAR, precision, scale, null);
     }
 
     private DbException intervalQualifierError() {
@@ -7115,7 +7095,7 @@ public class Parser {
             read(CLOSE_BRACKET);
         }
         TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ARRAY, precision, -1, componentType);
-        return new Column(columnName, typeInfo, typeInfo.toString());
+        return new Column(columnName, typeInfo);
     }
 
     private Column parseEnumType(String columnName) {
@@ -7126,7 +7106,7 @@ public class Parser {
         } while (readIfMore());
         TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ENUM, -1L, -1,
                 new ExtTypeInfoEnum(enumeratorList.toArray(new String[0])));
-        return new Column(columnName, typeInfo, typeInfo.toString());
+        return new Column(columnName, typeInfo);
     }
 
     private Column parseGeometryType(String columnName) {
@@ -7158,7 +7138,7 @@ public class Parser {
             extTypeInfo = null;
         }
         TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.GEOMETRY, -1L, -1, extTypeInfo);
-        return new Column(columnName, typeInfo, typeInfo.toString());
+        return new Column(columnName, typeInfo);
     }
 
     private Column parseRowType(String columnName) {
@@ -7171,7 +7151,7 @@ public class Parser {
             }
         } while (readIfMore());
         TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ROW, -1L, -1, new ExtTypeInfoRow(fields));
-        return new Column(columnName, typeInfo, typeInfo.toString());
+        return new Column(columnName, typeInfo);
     }
 
     private long readPrecision(int valueType) {
@@ -9739,15 +9719,20 @@ public class Parser {
         }
         Column column = parseColumnForTable(columnName, true);
         if (column.isAutoIncrement() && column.isPrimaryKey()) {
-            column.setPrimaryKey(false);
-            AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema,
-                    CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY, false);
-            pk.setTableName(tableName);
-            pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
-            command.addConstraintCommand(pk);
+            command.addConstraintCommand(newPrimaryKeyConstraintCommand(session, schema, tableName, column));
         }
         command.addColumn(column);
         readColumnConstraints(command, schema, tableName, column);
+    }
+
+    public static AlterTableAddConstraint newPrimaryKeyConstraintCommand(Session session, Schema schema,
+            String tableName, Column column) {
+        column.setPrimaryKey(false);
+        AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema,
+                CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY, false);
+        pk.setTableName(tableName);
+        pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
+        return pk;
     }
 
     private void readColumnConstraints(CommandWithColumns command, Schema schema, String tableName, Column column) {

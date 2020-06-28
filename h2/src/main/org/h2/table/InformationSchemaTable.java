@@ -1070,10 +1070,6 @@ public final class InformationSchemaTable extends MetaTable {
             Table table, String tableName, int ordinalPosition, Column c) {
         TypeInfo typeInfo = c.getType();
         DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
-        String fullTypeName = c.getOriginalSQL();
-        if (fullTypeName == null) {
-            fullTypeName = typeInfo.getSQL(new StringBuilder(), HasSQL.DEFAULT_SQL_FLAGS).toString();
-        }
         String characterSetCatalog, characterSetSchema, characterSetName, collationName;
         if (dt.hasCharsetAndCollation) {
             characterSetCatalog = catalog;
@@ -1169,7 +1165,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // REMARKS
                 c.getComment(),
                 // COLUMN_TYPE
-                fullTypeName,
+                (domain != null ? domain : typeInfo).getSQL(HasSQL.DEFAULT_SQL_FLAGS),
                 // COLUMN_ON_UPDATE
                 c.getOnUpdateSQL(),
                 // IS_VISIBLE

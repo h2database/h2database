@@ -47,7 +47,7 @@ public class AlterDomain extends SchemaCommand {
         for (Schema schema : db.getAllSchemasNoMeta()) {
             for (Domain targetDomain : schema.getAllDomains()) {
                 if (targetDomain.getColumn().getDomain() == domain) {
-                    if (domainProcessor.test(domain, targetDomain)) {
+                    if (domainProcessor == null || domainProcessor.test(domain, targetDomain)) {
                         if (recompileExpressions) {
                             domain.getColumn().prepareExpression(session);
                         }
@@ -60,7 +60,7 @@ public class AlterDomain extends SchemaCommand {
             boolean modified = false;
             for (Column targetColumn : t.getColumns()) {
                 if (targetColumn.getDomain() == domain) {
-                    boolean m = columnProcessor.test(domain, targetColumn);
+                    boolean m = columnProcessor == null || columnProcessor.test(domain, targetColumn);
                     if (m) {
                         if (recompileExpressions) {
                             targetColumn.prepareExpression(session);

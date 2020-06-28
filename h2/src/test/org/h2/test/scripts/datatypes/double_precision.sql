@@ -14,7 +14,7 @@ SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMER
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
 > COLUMN_NAME DATA_TYPE        NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE COLUMN_TYPE
 > ----------- ---------------- ----------------- ----------------------- ------------- ------------------ -------------------------- ---------------------- ----------------
-> D1          DOUBLE PRECISION 53                2                       null          DOUBLE PRECISION   null                       null                   DOUBLE
+> D1          DOUBLE PRECISION 53                2                       null          DOUBLE PRECISION   null                       null                   DOUBLE PRECISION
 > D2          DOUBLE PRECISION 53                2                       null          DOUBLE PRECISION   null                       null                   DOUBLE PRECISION
 > D3          DOUBLE PRECISION 53                2                       null          FLOAT              null                       null                   FLOAT
 > D4          DOUBLE PRECISION 53                2                       null          FLOAT              25                         null                   FLOAT(25)
@@ -23,9 +23,9 @@ SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMER
 
 SCRIPT NODATA NOPASSWORDS NOSETTINGS TABLE TEST;
 > SCRIPT
-> ----------------------------------------------------------------------------------------------------------------------
+> --------------------------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "D1" DOUBLE, "D2" DOUBLE PRECISION, "D3" FLOAT, "D4" FLOAT(25), "D5" FLOAT(53) );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "D1" DOUBLE PRECISION, "D2" DOUBLE PRECISION, "D3" FLOAT, "D4" FLOAT(25), "D5" FLOAT(53) );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 3
 

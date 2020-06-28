@@ -22,9 +22,9 @@ EXECUTE IMMEDIATE 'ALTER TABLE TEST DROP CONSTRAINT ' ||
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> -------------------------------------------------
+> ----------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INTEGER );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > INSERT INTO "PUBLIC"."TEST" VALUES (1);
 > rows: 4

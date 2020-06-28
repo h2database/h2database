@@ -103,9 +103,9 @@ CREATE MEMORY TABLE TEST(B BINARY);
 
 SCRIPT NODATA NOPASSWORDS NOSETTINGS TABLE TEST;
 > SCRIPT
-> -----------------------------------------------------
+> ----------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "B" VARBINARY );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "B" BINARY VARYING );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 3
 

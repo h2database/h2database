@@ -15,12 +15,12 @@ SELECT T1, T2, T1 = T2 FROM TEST;
 > 10:00:00 10:00:00 TRUE
 > rows: 1
 
-SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE COLUMN_TYPE
-> ----------- --------- ----------------------
-> T1          TIME      TIME
-> T2          TIME      TIME WITHOUT TIME ZONE
+> COLUMN_NAME DATA_TYPE
+> ----------- ---------
+> T1          TIME
+> T2          TIME
 > rows (ordered): 2
 
 ALTER TABLE TEST ADD (T3 TIME(0), T4 TIME(9) WITHOUT TIME ZONE);
@@ -28,12 +28,12 @@ ALTER TABLE TEST ADD (T3 TIME(0), T4 TIME(9) WITHOUT TIME ZONE);
 
 SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE COLUMN_TYPE               DATETIME_PRECISION
-> ----------- --------- ------------------------- ------------------
-> T1          TIME      TIME                      0
-> T2          TIME      TIME WITHOUT TIME ZONE    0
-> T3          TIME      TIME(0)                   0
-> T4          TIME      TIME(9) WITHOUT TIME ZONE 9
+> COLUMN_NAME DATA_TYPE COLUMN_TYPE DATETIME_PRECISION
+> ----------- --------- ----------- ------------------
+> T1          TIME      TIME        0
+> T2          TIME      TIME        0
+> T3          TIME      TIME(0)     0
+> T4          TIME      TIME(9)     9
 > rows (ordered): 4
 
 ALTER TABLE TEST ADD T5 TIME(10);

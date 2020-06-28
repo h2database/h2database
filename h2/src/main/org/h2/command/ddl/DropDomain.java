@@ -100,7 +100,6 @@ public class DropDomain extends SchemaCommand {
     }
 
     private static boolean copyExpressions(Session session, Column domainColumn, Column targetColumn) {
-        targetColumn.setOriginalSQL(domainColumn.getOriginalSQL());
         targetColumn.setDomain(domainColumn.getDomain());
         Expression e = domainColumn.getDefaultExpression();
         boolean modified = false;

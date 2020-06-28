@@ -122,7 +122,7 @@ SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, MAXIMUM_CARDINALITY
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
 > COLUMN_NAME DATA_TYPE COLUMN_TYPE      MAXIMUM_CARDINALITY
 > ----------- --------- ---------------- -------------------
-> ID          INTEGER   INT              null
+> ID          INTEGER   INTEGER          null
 > A1          ARRAY     INTEGER ARRAY    2147483647
 > A2          ARRAY     INTEGER ARRAY[2] 2
 > rows (ordered): 3

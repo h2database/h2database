@@ -269,6 +269,7 @@ public class SingleFileStore extends RandomAccessStore {
         if (fc == null) {
             fc = getFile();
         }
+        this.sync();
         return new FileChannelInputStream(fc, false);
     }
 

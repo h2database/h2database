@@ -10,7 +10,6 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 
 import org.h2.message.DbException;
-import org.h2.util.MathUtils;
 
 /**
  * Implementation of the NUMERIC data type.
@@ -70,10 +69,7 @@ public final class ValueNumeric extends ValueBigDecimalBase {
     public TypeInfo getType() {
         TypeInfo type = this.type;
         if (type == null) {
-            long precision = value.precision();
-            this.type = type = new TypeInfo(NUMERIC, precision, value.scale(),
-                    // add 2 characters for '-' and '.'
-                    MathUtils.convertLongToInt(precision + 2), null);
+            this.type = type = new TypeInfo(NUMERIC, value.precision(), value.scale(), null);
         }
         return type;
     }

@@ -103,7 +103,7 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
                     p = l;
                 }
             }
-            this.type = type = new TypeInfo(Value.ENUM, p, 0, p, this);
+            this.type = type = new TypeInfo(Value.ENUM, p, 0, this);
         }
         return type;
     }

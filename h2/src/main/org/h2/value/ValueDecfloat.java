@@ -7,8 +7,6 @@ package org.h2.value;
 
 import java.math.BigDecimal;
 
-import org.h2.util.MathUtils;
-
 /**
  * Implementation of the DECFLOAT data type.
  */
@@ -47,10 +45,7 @@ public final class ValueDecfloat extends ValueBigDecimalBase {
     public TypeInfo getType() {
         TypeInfo type = this.type;
         if (type == null) {
-            long precision = value.precision();
-            this.type = type = new TypeInfo(DECFLOAT, precision, 0,
-                    // -1.1E+100000
-                    MathUtils.convertLongToInt(precision + 12), null);
+            this.type = type = new TypeInfo(DECFLOAT, value.precision(), 0, null);
         }
         return type;
     }

@@ -3202,7 +3202,7 @@ public final class InformationSchemaTable extends MetaTable {
                     datetimePrecision = null, intervalPrecision = null, maximumCardinality = null;
             String intervalType = null;
             boolean hasCharsetAndCollation = false;
-            String declaredDataType = dataType;
+            String declaredDataType = null;
             ValueInteger declaredNumericPrecision = null, declaredNumericScale = null;
             String geometryType = null;
             ValueInteger geometrySrid = null;
@@ -3227,6 +3227,7 @@ public final class InformationSchemaTable extends MetaTable {
                 numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
                 numericScale = ValueInteger.get(0);
                 numericPrecisionRadix = ValueInteger.get(2);
+                declaredDataType = dataType;
                 break;
             case Value.NUMERIC: {
                 numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
@@ -3251,12 +3252,15 @@ public final class InformationSchemaTable extends MetaTable {
                     if (declaredPrecision > 0) {
                         declaredNumericPrecision = ValueInteger.get((int) declaredPrecision);
                     }
+                } else {
+                    declaredDataType = dataType;
                 }
                 break;
             }
             case Value.DECFLOAT:
                 numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
                 numericPrecisionRadix = ValueInteger.get(10);
+                declaredDataType = dataType;
                 if (typeInfo.getDeclaredPrecision() >= 0L) {
                     declaredNumericPrecision = numericPrecision;
                 }

@@ -18,12 +18,12 @@ CREATE DOMAIN S2.D2 AS TIMESTAMP WITH TIME ZONE ON UPDATE CURRENT_TIMESTAMP;
 CREATE TABLE TEST(C1 S1.D1, C2 S2.D2);
 > ok
 
-SELECT COLUMN_NAME, DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, COLUMN_DEFAULT, COLUMN_TYPE, COLUMN_ON_UPDATE
+SELECT COLUMN_NAME, DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, COLUMN_DEFAULT, COLUMN_ON_UPDATE
     FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME COLUMN_DEFAULT COLUMN_TYPE COLUMN_ON_UPDATE
-> ----------- -------------- ------------- ----------- -------------- ----------- ----------------
-> C1          SCRIPT         S1            D1          null           "S1"."D1"   null
-> C2          SCRIPT         S2            D2          null           "S2"."D2"   null
+> COLUMN_NAME DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME COLUMN_DEFAULT COLUMN_ON_UPDATE
+> ----------- -------------- ------------- ----------- -------------- ----------------
+> C1          SCRIPT         S1            D1          null           null
+> C2          SCRIPT         S2            D2          null           null
 > rows (ordered): 2
 
 SELECT DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, DOMAIN_DEFAULT, DOMAIN_ON_UPDATE, DATA_TYPE FROM INFORMATION_SCHEMA.DOMAINS;

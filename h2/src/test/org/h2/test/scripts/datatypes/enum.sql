@@ -60,9 +60,6 @@ select suit, count(rank) from card group by suit order by suit, count(rank);
 select rank from card where suit = 'diamonds';
 >> 8
 
-select column_type from information_schema.columns where COLUMN_NAME = 'SUIT';
->> ENUM('''none''', 'hearts', 'clubs', 'spades', 'diamonds')
-
 alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds');
 > ok
 
@@ -261,16 +258,26 @@ CREATE VIEW V3 AS SELECT -E AS E FROM TEST;
 SELECT * FROM V3;
 >> -2
 
-SELECT TABLE_NAME, DATA_TYPE, COLUMN_TYPE
+SELECT TABLE_NAME, DATA_TYPE
     FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'E' ORDER BY TABLE_NAME;
-> TABLE_NAME DATA_TYPE COLUMN_TYPE
-> ---------- --------- --------------
-> TEST       ENUM      ENUM('A', 'B')
-> V          ENUM      ENUM('A', 'B')
-> V1         INTEGER   INTEGER
-> V2         INTEGER   INTEGER
-> V3         INTEGER   INTEGER
+> TABLE_NAME DATA_TYPE
+> ---------- ---------
+> TEST       ENUM
+> V          ENUM
+> V1         INTEGER
+> V2         INTEGER
+> V3         INTEGER
 > rows (ordered): 5
+
+SELECT OBJECT_NAME, OBJECT_TYPE, ENUM_IDENTIFIER, VALUE_NAME, VALUE_ORDINAL FROM INFORMATION_SCHEMA.ENUM_VALUES
+    WHERE OBJECT_SCHEMA = 'PUBLIC';
+> OBJECT_NAME OBJECT_TYPE ENUM_IDENTIFIER VALUE_NAME VALUE_ORDINAL
+> ----------- ----------- --------------- ---------- -------------
+> TEST        TABLE       1               A          1
+> TEST        TABLE       1               B          2
+> V           TABLE       1               A          1
+> V           TABLE       1               B          2
+> rows: 4
 
 DROP VIEW V;
 > ok

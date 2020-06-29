@@ -140,7 +140,7 @@ public class LobStorageBackend implements LobStorageInterface {
                     rs = prep.executeQuery();
                     if (rs.next()) {
                         create = false;
-                        prep = initConn.prepareStatement("SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE "
+                        prep = initConn.prepareStatement("SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE "
                                 + "TABLE_SCHEMA=? AND TABLE_NAME=? AND COLUMN_NAME=?");
                         prep.setString(1, "INFORMATION_SCHEMA");
                         prep.setString(2, "LOB_DATA");

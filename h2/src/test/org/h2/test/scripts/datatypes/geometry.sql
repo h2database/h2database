@@ -19,27 +19,27 @@ INSERT INTO TEST VALUES ('POINT EMPTY', 'SRID=1;POINT EMPTY', 'POINT EMPTY', 'SR
     'GEOMETRYCOLLECTION EMPTY');
 > update count: 1
 
-SELECT COLUMN_NAME, DATA_TYPE, GEOMETRY_TYPE, GEOMETRY_SRID, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+SELECT COLUMN_NAME, DATA_TYPE, GEOMETRY_TYPE, GEOMETRY_SRID FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE GEOMETRY_TYPE      GEOMETRY_SRID COLUMN_TYPE
-> ----------- --------- ------------------ ------------- ----------------------------
-> G           GEOMETRY  null               null          GEOMETRY
-> G_S         GEOMETRY  null               1             GEOMETRY(GEOMETRY, 1)
-> P           GEOMETRY  POINT              null          GEOMETRY(POINT)
-> P_S         GEOMETRY  POINT              1             GEOMETRY(POINT, 1)
-> PZ1         GEOMETRY  POINT Z            null          GEOMETRY(POINT Z)
-> PZ2         GEOMETRY  POINT Z            null          GEOMETRY(POINT Z)
-> PZ1_S       GEOMETRY  POINT Z            1             GEOMETRY(POINT Z, 1)
-> PZ2_S       GEOMETRY  POINT Z            1             GEOMETRY(POINT Z, 1)
-> PM          GEOMETRY  POINT M            null          GEOMETRY(POINT M)
-> PZM         GEOMETRY  POINT ZM           null          GEOMETRY(POINT ZM)
-> PZM_S       GEOMETRY  POINT ZM           -100          GEOMETRY(POINT ZM, -100)
-> LS          GEOMETRY  LINESTRING         null          GEOMETRY(LINESTRING)
-> PG          GEOMETRY  POLYGON            null          GEOMETRY(POLYGON)
-> MP          GEOMETRY  MULTIPOINT         null          GEOMETRY(MULTIPOINT)
-> MLS         GEOMETRY  MULTILINESTRING    null          GEOMETRY(MULTILINESTRING)
-> MPG         GEOMETRY  MULTIPOLYGON       null          GEOMETRY(MULTIPOLYGON)
-> GC          GEOMETRY  GEOMETRYCOLLECTION null          GEOMETRY(GEOMETRYCOLLECTION)
+> COLUMN_NAME DATA_TYPE GEOMETRY_TYPE      GEOMETRY_SRID
+> ----------- --------- ------------------ -------------
+> G           GEOMETRY  null               null
+> G_S         GEOMETRY  null               1
+> P           GEOMETRY  POINT              null
+> P_S         GEOMETRY  POINT              1
+> PZ1         GEOMETRY  POINT Z            null
+> PZ2         GEOMETRY  POINT Z            null
+> PZ1_S       GEOMETRY  POINT Z            1
+> PZ2_S       GEOMETRY  POINT Z            1
+> PM          GEOMETRY  POINT M            null
+> PZM         GEOMETRY  POINT ZM           null
+> PZM_S       GEOMETRY  POINT ZM           -100
+> LS          GEOMETRY  LINESTRING         null
+> PG          GEOMETRY  POLYGON            null
+> MP          GEOMETRY  MULTIPOINT         null
+> MLS         GEOMETRY  MULTILINESTRING    null
+> MPG         GEOMETRY  MULTIPOLYGON       null
+> GC          GEOMETRY  GEOMETRYCOLLECTION null
 > rows (ordered): 17
 
 UPDATE TEST SET G = 'SRID=10;LINESTRING EMPTY';

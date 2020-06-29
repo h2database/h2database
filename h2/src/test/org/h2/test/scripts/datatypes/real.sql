@@ -13,14 +13,14 @@ ALTER TABLE TEST ADD COLUMN D5 FLOAT(-1);
 > exception INVALID_VALUE_2
 
 SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE,
-    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE COLUMN_TYPE
-> ----------- --------- ----------------- ----------------------- ------------- ------------------ -------------------------- ---------------------- -----------
-> D1          REAL      24                2                       null          REAL               null                       null                   REAL
-> D2          REAL      24                2                       null          REAL               null                       null                   REAL
-> D3          REAL      24                2                       null          FLOAT              1                          null                   FLOAT(1)
-> D4          REAL      24                2                       null          FLOAT              24                         null                   FLOAT(24)
+> COLUMN_NAME DATA_TYPE NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE
+> ----------- --------- ----------------- ----------------------- ------------- ------------------ -------------------------- ----------------------
+> D1          REAL      24                2                       null          REAL               null                       null
+> D2          REAL      24                2                       null          REAL               null                       null
+> D3          REAL      24                2                       null          FLOAT              1                          null
+> D4          REAL      24                2                       null          FLOAT              24                         null
 > rows (ordered): 4
 
 SCRIPT NODATA NOPASSWORDS NOSETTINGS TABLE TEST;

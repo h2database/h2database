@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Locale;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 
 /**
@@ -131,35 +132,46 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
     /**
      * Get ValueEnum instance for an ordinal.
      * @param ordinal ordinal value of an enum
+     * @param provider the cast information provider
      * @return ValueEnum instance
      */
-    public ValueEnum getValue(int ordinal) {
-        if (ordinal < 0 || ordinal >= enumerators.length) {
-            throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED, enumerators.toString(),
-                    Integer.toString(ordinal));
+    public ValueEnum getValue(int ordinal, CastDataProvider provider) {
+        String label;
+        if (provider == null || !provider.zeroBasedEnums()) {
+            if (ordinal < 1 || ordinal > enumerators.length) {
+                throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED, getTraceSQL(), Integer.toString(ordinal));
+            }
+            label = enumerators[ordinal - 1];
+        } else {
+            if (ordinal < 0 || ordinal >= enumerators.length) {
+                throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED, getTraceSQL(), Integer.toString(ordinal));
+            }
+            label = enumerators[ordinal];
         }
-        return new ValueEnum(this, enumerators[ordinal], ordinal);
+        return new ValueEnum(this, label, ordinal);
     }
 
     /**
      * Get ValueEnum instance for a label string.
      * @param label label string
+     * @param provider the cast information provider
      * @return ValueEnum instance
      */
-    public ValueEnum getValue(String label) {
-        ValueEnum value = getValueOrNull(label);
+    public ValueEnum getValue(String label, CastDataProvider provider) {
+        ValueEnum value = getValueOrNull(label, provider);
         if (value == null) {
             throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED, toString(), label);
         }
         return value;
     }
 
-    private ValueEnum getValueOrNull(String label) {
+    private ValueEnum getValueOrNull(String label, CastDataProvider provider) {
         String l = sanitize(label);
         if (l != null) {
-            for (int ordinal = 0; ordinal < cleaned.length; ordinal++) {
-                if (l.equals(cleaned[ordinal])) {
-                    return new ValueEnum(this, enumerators[ordinal], ordinal);
+            for (int i = 0, ordinal = provider == null || !provider.zeroBasedEnums() ? 1
+                    : 0; i < cleaned.length; i++, ordinal++) {
+                if (l.equals(cleaned[i])) {
+                    return new ValueEnum(this, enumerators[i], ordinal);
                 }
             }
         }

@@ -66,6 +66,11 @@ public class TestDate extends TestBase {
             return null;
         }
 
+        @Override
+        public boolean zeroBasedEnums() {
+            return false;
+        }
+
     }
 
     /**

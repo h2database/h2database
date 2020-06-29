@@ -976,4 +976,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                 : new DatabaseMetaLegacy(this);
     }
 
+    @Override
+    public boolean zeroBasedEnums() {
+        return false;
+    }
+
 }

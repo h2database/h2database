@@ -2986,4 +2986,9 @@ public class Database implements DataHandler, CastDataProvider {
         this.createBuild = createBuild;
     }
 
+    @Override
+    public boolean zeroBasedEnums() {
+        return dbSettings.zeroBasedEnums;
+    }
+
 }

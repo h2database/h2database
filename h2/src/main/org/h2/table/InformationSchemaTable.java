@@ -2424,7 +2424,7 @@ public final class InformationSchemaTable extends MetaTable {
         if (ext == null) {
             return;
         }
-        for (int i = 0, l = ext.getCount(); i < l; i++) {
+        for (int i = 0, ordinal = session.zeroBasedEnums() ? 0 : 1, l = ext.getCount(); i < l; i++, ordinal++) {
             add(session, rows,
                     // OBJECT_CATALOG
                     catalog,
@@ -2439,7 +2439,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // VALUE_NAME
                     ext.getEnumerator(i),
                     // VALUE_ORDINAL
-                    ValueInteger.get(i)
+                    ValueInteger.get(ordinal)
             );
         }
     }

@@ -74,14 +74,14 @@ insert into card (rank, suit) values (11, 'long_enum_value_of_128_chars_00000000
 
 --- ENUM integer-based operations
 
-select rank from card where suit = 1;
+select rank from card where suit = 2;
 > RANK
 > ----
 > 0
 > 10
 > rows: 2
 
-insert into card (rank, suit) values(5, 2);
+insert into card (rank, suit) values(5, 3);
 > update count: 1
 
 select * from card where rank = 5;
@@ -247,19 +247,19 @@ CREATE VIEW V1 AS SELECT E + 2 AS E FROM TEST;
 > ok
 
 SELECT * FROM V1;
->> 3
+>> 4
 
 CREATE VIEW V2 AS SELECT E + E AS E FROM TEST;
 > ok
 
 SELECT * FROM V2;
->> 2
+>> 4
 
 CREATE VIEW V3 AS SELECT -E AS E FROM TEST;
 > ok
 
 SELECT * FROM V3;
->> -1
+>> -2
 
 SELECT TABLE_NAME, DATA_TYPE, COLUMN_TYPE
     FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'E' ORDER BY TABLE_NAME;
@@ -288,7 +288,7 @@ DROP TABLE TEST;
 > ok
 
 SELECT CAST (2 AS ENUM('a', 'b', 'c', 'd'));
->> c
+>> b
 
 CREATE TABLE TEST(E ENUM('a', 'b'));
 > ok
@@ -343,12 +343,12 @@ SELECT ROW_IDENTIFIER, FIELD_NAME, DATA_TYPE, DTD_IDENTIFIER FROM INFORMATION_SC
 SELECT * FROM INFORMATION_SCHEMA.ENUM_VALUES WHERE OBJECT_NAME = 'TEST';
 > OBJECT_CATALOG OBJECT_SCHEMA OBJECT_NAME OBJECT_TYPE ENUM_IDENTIFIER VALUE_NAME VALUE_ORDINAL
 > -------------- ------------- ----------- ----------- --------------- ---------- -------------
-> SCRIPT         PUBLIC        TEST        TABLE       1               a          0
-> SCRIPT         PUBLIC        TEST        TABLE       1               b          1
-> SCRIPT         PUBLIC        TEST        TABLE       2_              c          1
-> SCRIPT         PUBLIC        TEST        TABLE       2_              e          0
-> SCRIPT         PUBLIC        TEST        TABLE       3_1             x          0
-> SCRIPT         PUBLIC        TEST        TABLE       3_1             y          1
+> SCRIPT         PUBLIC        TEST        TABLE       1               a          1
+> SCRIPT         PUBLIC        TEST        TABLE       1               b          2
+> SCRIPT         PUBLIC        TEST        TABLE       2_              c          2
+> SCRIPT         PUBLIC        TEST        TABLE       2_              e          1
+> SCRIPT         PUBLIC        TEST        TABLE       3_1             x          1
+> SCRIPT         PUBLIC        TEST        TABLE       3_1             y          2
 > rows: 6
 
 DROP TABLE TEST;

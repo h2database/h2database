@@ -1112,7 +1112,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case JAVA_OBJECT:
             return convertToJavaObject(targetType, conversionMode, column);
         case ENUM:
-            return convertToEnum((ExtTypeInfoEnum) targetType.getExtTypeInfo());
+            return convertToEnum((ExtTypeInfoEnum) targetType.getExtTypeInfo(), provider);
         case GEOMETRY:
             return convertToGeometry((ExtTypeInfoGeometry) targetType.getExtTypeInfo());
         case JSON:
@@ -2150,16 +2150,18 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      *
      * @param extTypeInfo
      *            the extended data type information
+     * @param provider
+     *            the cast information provider
      * @return the ENUM value
      */
-    public final ValueEnum convertToEnum(ExtTypeInfoEnum extTypeInfo) {
+    public final ValueEnum convertToEnum(ExtTypeInfoEnum extTypeInfo, CastDataProvider provider) {
         switch (getValueType()) {
         case ENUM: {
             ValueEnum v = (ValueEnum) this;
             if (extTypeInfo.equals(v.getEnumerators())) {
                 return v;
             }
-            return extTypeInfo.getValue(v.getString());
+            return extTypeInfo.getValue(v.getString(), provider);
         }
         case TINYINT:
         case SMALLINT:
@@ -2167,11 +2169,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case BIGINT:
         case NUMERIC:
         case DECFLOAT:
-            return extTypeInfo.getValue(getInt());
+            return extTypeInfo.getValue(getInt(), provider);
         case VARCHAR:
         case VARCHAR_IGNORECASE:
         case CHAR:
-            return extTypeInfo.getValue(getString());
+            return extTypeInfo.getValue(getString(), provider);
         default:
             throw getDataConversionError(ENUM);
         case NULL:
@@ -2756,8 +2758,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             int dataType = getHigherOrder(leftType, rightType);
             if (dataType == ENUM) {
                 ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, v);
-                l = l.convertToEnum(enumerators);
-                v = v.convertToEnum(enumerators);
+                l = l.convertToEnum(enumerators, provider);
+                v = v.convertToEnum(enumerators, provider);
             } else {
                 if (dataType <= BLOB) {
                     if (dataType <= CLOB) {

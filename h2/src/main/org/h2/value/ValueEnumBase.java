@@ -54,7 +54,7 @@ public class ValueEnumBase extends Value {
      * @param ordinal the ordinal
      * @return the value
      */
-    public static ValueEnumBase get(final String label, final int ordinal) {
+    public static ValueEnumBase get(String label, int ordinal) {
         return new ValueEnumBase(label, ordinal);
     }
 

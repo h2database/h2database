@@ -1963,7 +1963,7 @@ public class TestResultSet extends TestDb {
         prep.setObject(2, "B");
         prep.executeUpdate();
         prep.setInt(1, 3);
-        prep.setInt(2, 2);
+        prep.setInt(2, 3);
         prep.executeUpdate();
         prep.setInt(1, 4);
         prep.setObject(2, "D", Types.VARCHAR);
@@ -1972,20 +1972,20 @@ public class TestResultSet extends TestDb {
         prep.setObject(2, "E", Types.OTHER);
         prep.executeUpdate();
         prep.setInt(1, 6);
-        prep.setObject(2, 5, Types.OTHER);
+        prep.setObject(2, 6, Types.OTHER);
         prep.executeUpdate();
         prep.setInt(1, 7);
-        prep.setObject(2, 6, Types.INTEGER);
+        prep.setObject(2, 7, Types.INTEGER);
         prep.executeUpdate();
 
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
-        testEnumResult(rs, 1, "A", 0);
-        testEnumResult(rs, 2, "B", 1);
-        testEnumResult(rs, 3, "C", 2);
-        testEnumResult(rs, 4, "D", 3);
-        testEnumResult(rs, 5, "E", 4);
-        testEnumResult(rs, 6, "F", 5);
-        testEnumResult(rs, 7, "G", 6);
+        testEnumResult(rs, 1, "A", 1);
+        testEnumResult(rs, 2, "B", 2);
+        testEnumResult(rs, 3, "C", 3);
+        testEnumResult(rs, 4, "D", 4);
+        testEnumResult(rs, 5, "E", 5);
+        testEnumResult(rs, 6, "F", 6);
+        testEnumResult(rs, 7, "G", 7);
         assertFalse(rs.next());
 
         stat.execute("DROP TABLE TEST");

@@ -14,38 +14,38 @@ CREATE TABLE TEST(ID INT PRIMARY KEY,
     J12 INTERVAL HOUR(5) TO SECOND(9), J13 INTERVAL MINUTE(5) TO SECOND(9));
 > ok
 
-SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, DATETIME_PRECISION, INTERVAL_TYPE, INTERVAL_PRECISION
+SELECT COLUMN_NAME, DATA_TYPE, DATETIME_PRECISION, INTERVAL_TYPE, INTERVAL_PRECISION
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE COLUMN_TYPE                     DATETIME_PRECISION INTERVAL_TYPE    INTERVAL_PRECISION
-> ----------- --------- ------------------------------- ------------------ ---------------- ------------------
-> ID          INTEGER   INTEGER                         null               null             null
-> I01         INTERVAL  INTERVAL YEAR                   0                  YEAR             2
-> I02         INTERVAL  INTERVAL MONTH                  0                  MONTH            2
-> I03         INTERVAL  INTERVAL DAY                    0                  DAY              2
-> I04         INTERVAL  INTERVAL HOUR                   0                  HOUR             2
-> I05         INTERVAL  INTERVAL MINUTE                 0                  MINUTE           2
-> I06         INTERVAL  INTERVAL SECOND                 6                  SECOND           2
-> I07         INTERVAL  INTERVAL YEAR TO MONTH          0                  YEAR TO MONTH    2
-> I08         INTERVAL  INTERVAL DAY TO HOUR            0                  DAY TO HOUR      2
-> I09         INTERVAL  INTERVAL DAY TO MINUTE          0                  DAY TO MINUTE    2
-> I10         INTERVAL  INTERVAL DAY TO SECOND          6                  DAY TO SECOND    2
-> I11         INTERVAL  INTERVAL HOUR TO MINUTE         0                  HOUR TO MINUTE   2
-> I12         INTERVAL  INTERVAL HOUR TO SECOND         6                  HOUR TO SECOND   2
-> I13         INTERVAL  INTERVAL MINUTE TO SECOND       6                  MINUTE TO SECOND 2
-> J01         INTERVAL  INTERVAL YEAR(5)                0                  YEAR             5
-> J02         INTERVAL  INTERVAL MONTH(5)               0                  MONTH            5
-> J03         INTERVAL  INTERVAL DAY(5)                 0                  DAY              5
-> J04         INTERVAL  INTERVAL HOUR(5)                0                  HOUR             5
-> J05         INTERVAL  INTERVAL MINUTE(5)              0                  MINUTE           5
-> J06         INTERVAL  INTERVAL SECOND(5, 9)           9                  SECOND           5
-> J07         INTERVAL  INTERVAL YEAR(5) TO MONTH       0                  YEAR TO MONTH    5
-> J08         INTERVAL  INTERVAL DAY(5) TO HOUR         0                  DAY TO HOUR      5
-> J09         INTERVAL  INTERVAL DAY(5) TO MINUTE       0                  DAY TO MINUTE    5
-> J10         INTERVAL  INTERVAL DAY(5) TO SECOND(9)    9                  DAY TO SECOND    5
-> J11         INTERVAL  INTERVAL HOUR(5) TO MINUTE      0                  HOUR TO MINUTE   5
-> J12         INTERVAL  INTERVAL HOUR(5) TO SECOND(9)   9                  HOUR TO SECOND   5
-> J13         INTERVAL  INTERVAL MINUTE(5) TO SECOND(9) 9                  MINUTE TO SECOND 5
+> COLUMN_NAME DATA_TYPE DATETIME_PRECISION INTERVAL_TYPE    INTERVAL_PRECISION
+> ----------- --------- ------------------ ---------------- ------------------
+> ID          INTEGER   null               null             null
+> I01         INTERVAL  0                  YEAR             2
+> I02         INTERVAL  0                  MONTH            2
+> I03         INTERVAL  0                  DAY              2
+> I04         INTERVAL  0                  HOUR             2
+> I05         INTERVAL  0                  MINUTE           2
+> I06         INTERVAL  6                  SECOND           2
+> I07         INTERVAL  0                  YEAR TO MONTH    2
+> I08         INTERVAL  0                  DAY TO HOUR      2
+> I09         INTERVAL  0                  DAY TO MINUTE    2
+> I10         INTERVAL  6                  DAY TO SECOND    2
+> I11         INTERVAL  0                  HOUR TO MINUTE   2
+> I12         INTERVAL  6                  HOUR TO SECOND   2
+> I13         INTERVAL  6                  MINUTE TO SECOND 2
+> J01         INTERVAL  0                  YEAR             5
+> J02         INTERVAL  0                  MONTH            5
+> J03         INTERVAL  0                  DAY              5
+> J04         INTERVAL  0                  HOUR             5
+> J05         INTERVAL  0                  MINUTE           5
+> J06         INTERVAL  9                  SECOND           5
+> J07         INTERVAL  0                  YEAR TO MONTH    5
+> J08         INTERVAL  0                  DAY TO HOUR      5
+> J09         INTERVAL  0                  DAY TO MINUTE    5
+> J10         INTERVAL  9                  DAY TO SECOND    5
+> J11         INTERVAL  0                  HOUR TO MINUTE   5
+> J12         INTERVAL  9                  HOUR TO SECOND   5
+> J13         INTERVAL  9                  MINUTE TO SECOND 5
 > rows (ordered): 27
 
 INSERT INTO TEST VALUES (

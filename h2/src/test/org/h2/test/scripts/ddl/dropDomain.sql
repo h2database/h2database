@@ -12,13 +12,13 @@ CREATE TABLE TEST(I INT PRIMARY KEY, E1 E, E2 E NOT NULL);
 INSERT INTO TEST VALUES (1, 'A', 'B');
 > update count: 1
 
-SELECT COLUMN_NAME, DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, IS_NULLABLE, COLUMN_TYPE
+SELECT COLUMN_NAME, DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, IS_NULLABLE, DATA_TYPE
     FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME IS_NULLABLE COLUMN_TYPE
-> ----------- -------------- ------------- ----------- ----------- ------------
+> COLUMN_NAME DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME IS_NULLABLE DATA_TYPE
+> ----------- -------------- ------------- ----------- ----------- ---------
 > I           null           null          null        NO          INTEGER
-> E1          SCRIPT         PUBLIC        E           YES         "PUBLIC"."E"
-> E2          SCRIPT         PUBLIC        E           NO          "PUBLIC"."E"
+> E1          SCRIPT         PUBLIC        E           YES         ENUM
+> E2          SCRIPT         PUBLIC        E           NO          ENUM
 > rows (ordered): 3
 
 DROP DOMAIN E RESTRICT;
@@ -27,13 +27,13 @@ DROP DOMAIN E RESTRICT;
 DROP DOMAIN E CASCADE;
 > ok
 
-SELECT COLUMN_NAME, DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, IS_NULLABLE, COLUMN_TYPE
+SELECT COLUMN_NAME, DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, IS_NULLABLE, DATA_TYPE
     FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME IS_NULLABLE COLUMN_TYPE
-> ----------- -------------- ------------- ----------- ----------- --------------
+> COLUMN_NAME DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME IS_NULLABLE DATA_TYPE
+> ----------- -------------- ------------- ----------- ----------- ---------
 > I           null           null          null        NO          INTEGER
-> E1          null           null          null        YES         ENUM('A', 'B')
-> E2          null           null          null        NO          ENUM('A', 'B')
+> E1          null           null          null        YES         ENUM
+> E2          null           null          null        NO          ENUM
 > rows (ordered): 3
 
 DROP TABLE TEST;

@@ -43,4 +43,11 @@ public interface CastDataProvider {
      */
     JavaObjectSerializer getJavaObjectSerializer();
 
+    /**
+     * Returns are ENUM values 0-based.
+     *
+     * @return are ENUM values 0-based
+     */
+    boolean zeroBasedEnums();
+
 }

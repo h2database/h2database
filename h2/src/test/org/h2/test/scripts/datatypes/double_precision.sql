@@ -10,15 +10,15 @@ ALTER TABLE TEST ADD COLUMN D6 FLOAT(54);
 > exception INVALID_VALUE_PRECISION
 
 SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE,
-    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE        NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE COLUMN_TYPE
-> ----------- ---------------- ----------------- ----------------------- ------------- ------------------ -------------------------- ---------------------- ----------------
-> D1          DOUBLE PRECISION 53                2                       null          DOUBLE PRECISION   null                       null                   DOUBLE PRECISION
-> D2          DOUBLE PRECISION 53                2                       null          DOUBLE PRECISION   null                       null                   DOUBLE PRECISION
-> D3          DOUBLE PRECISION 53                2                       null          FLOAT              null                       null                   FLOAT
-> D4          DOUBLE PRECISION 53                2                       null          FLOAT              25                         null                   FLOAT(25)
-> D5          DOUBLE PRECISION 53                2                       null          FLOAT              53                         null                   FLOAT(53)
+> COLUMN_NAME DATA_TYPE        NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE
+> ----------- ---------------- ----------------- ----------------------- ------------- ------------------ -------------------------- ----------------------
+> D1          DOUBLE PRECISION 53                2                       null          DOUBLE PRECISION   null                       null
+> D2          DOUBLE PRECISION 53                2                       null          DOUBLE PRECISION   null                       null
+> D3          DOUBLE PRECISION 53                2                       null          FLOAT              null                       null
+> D4          DOUBLE PRECISION 53                2                       null          FLOAT              25                         null
+> D5          DOUBLE PRECISION 53                2                       null          FLOAT              53                         null
 > rows (ordered): 5
 
 SCRIPT NODATA NOPASSWORDS NOSETTINGS TABLE TEST;

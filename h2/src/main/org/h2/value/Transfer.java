@@ -1075,9 +1075,8 @@ public class Transfer {
         case REAL:
             return ValueReal.get(readFloat());
         case ENUM: {
-            final int ordinal = readInt();
-            final String label = readString();
-            return ValueEnumBase.get(label, ordinal);
+            int ordinal = readInt();
+            return ValueEnumBase.get(readString(), ordinal);
         }
         case INTEGER:
             return ValueInteger.get(readInt());

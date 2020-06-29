@@ -10,22 +10,22 @@ CREATE MEMORY TABLE TEST(
 > ok
 
 SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE,
-    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE COLUMN_TYPE
-> ----------- --------- ----------------- ----------------------- ------------- ------------------ -------------------------- ---------------------- ---------------
-> N1          NUMERIC   65535             10                      0             NUMERIC            null                       null                   NUMERIC
-> N2          NUMERIC   10                10                      0             NUMERIC            10                         null                   NUMERIC(10)
-> N3          NUMERIC   10                10                      0             NUMERIC            10                         0                      NUMERIC(10, 0)
-> N4          NUMERIC   10                10                      2             NUMERIC            10                         2                      NUMERIC(10, 2)
-> N5          NUMERIC   10                10                      -2            NUMERIC            10                         -2                     NUMERIC(10, -2)
-> D1          NUMERIC   65535             10                      0             DECIMAL            null                       null                   DECIMAL
-> D2          NUMERIC   10                10                      0             DECIMAL            10                         null                   DECIMAL(10)
-> D3          NUMERIC   10                10                      0             DECIMAL            10                         0                      DECIMAL(10, 0)
-> D4          NUMERIC   10                10                      2             DECIMAL            10                         2                      DECIMAL(10, 2)
-> D5          NUMERIC   10                10                      -2            DECIMAL            10                         -2                     DECIMAL(10, -2)
-> D6          NUMERIC   65535             10                      0             DECIMAL            null                       null                   DECIMAL
-> X1          NUMERIC   65535             10                      0             NUMERIC            null                       null                   NUMERIC
+> COLUMN_NAME DATA_TYPE NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE
+> ----------- --------- ----------------- ----------------------- ------------- ------------------ -------------------------- ----------------------
+> N1          NUMERIC   65535             10                      0             NUMERIC            null                       null
+> N2          NUMERIC   10                10                      0             NUMERIC            10                         null
+> N3          NUMERIC   10                10                      0             NUMERIC            10                         0
+> N4          NUMERIC   10                10                      2             NUMERIC            10                         2
+> N5          NUMERIC   10                10                      -2            NUMERIC            10                         -2
+> D1          NUMERIC   65535             10                      0             DECIMAL            null                       null
+> D2          NUMERIC   10                10                      0             DECIMAL            10                         null
+> D3          NUMERIC   10                10                      0             DECIMAL            10                         0
+> D4          NUMERIC   10                10                      2             DECIMAL            10                         2
+> D5          NUMERIC   10                10                      -2            DECIMAL            10                         -2
+> D6          NUMERIC   65535             10                      0             DECIMAL            null                       null
+> X1          NUMERIC   65535             10                      0             NUMERIC            null                       null
 > rows (ordered): 12
 
 DROP TABLE TEST;

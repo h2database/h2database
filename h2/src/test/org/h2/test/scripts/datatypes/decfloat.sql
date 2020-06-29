@@ -16,13 +16,13 @@ TABLE TEST;
 > rows: 1
 
 SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE,
-    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE COLUMN_TYPE
-> ----------- --------- ----------------- ----------------------- ------------- ------------------ -------------------------- ---------------------- ------------
-> D1          DECFLOAT  65535             10                      null          DECFLOAT           null                       null                   DECFLOAT
-> D2          DECFLOAT  5                 10                      null          DECFLOAT           5                          null                   DECFLOAT(5)
-> D3          DECFLOAT  10                10                      null          DECFLOAT           10                         null                   DECFLOAT(10)
+> COLUMN_NAME DATA_TYPE NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE
+> ----------- --------- ----------------- ----------------------- ------------- ------------------ -------------------------- ----------------------
+> D1          DECFLOAT  65535             10                      null          DECFLOAT           null                       null
+> D2          DECFLOAT  5                 10                      null          DECFLOAT           5                          null
+> D3          DECFLOAT  10                10                      null          DECFLOAT           10                         null
 > rows (ordered): 3
 
 SELECT D2 + D3 A, D2 - D3 S, D2 * D3 M, D2 / D3 D FROM TEST;
@@ -41,14 +41,14 @@ TABLE RESULT;
 > rows: 1
 
 SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE,
-    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'RESULT' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE COLUMN_TYPE
-> ----------- --------- ----------------- ----------------------- ------------- ------------------ -------------------------- ---------------------- ------------
-> A           DECFLOAT  11                10                      null          DECFLOAT           11                         null                   DECFLOAT(11)
-> S           DECFLOAT  11                10                      null          DECFLOAT           11                         null                   DECFLOAT(11)
-> M           DECFLOAT  15                10                      null          DECFLOAT           15                         null                   DECFLOAT(15)
-> D           DECFLOAT  11                10                      null          DECFLOAT           11                         null                   DECFLOAT(11)
+> COLUMN_NAME DATA_TYPE NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE
+> ----------- --------- ----------------- ----------------------- ------------- ------------------ -------------------------- ----------------------
+> A           DECFLOAT  11                10                      null          DECFLOAT           11                         null
+> S           DECFLOAT  11                10                      null          DECFLOAT           11                         null
+> M           DECFLOAT  15                10                      null          DECFLOAT           15                         null
+> D           DECFLOAT  11                10                      null          DECFLOAT           11                         null
 > rows (ordered): 4
 
 DROP TABLE TEST, RESULT;

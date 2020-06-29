@@ -1949,4 +1949,13 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         return session.getJavaObjectSerializer();
     }
 
+    @Override
+    public boolean zeroBasedEnums() {
+        SessionInterface session = this.session;
+        if (session == null) {
+            throw DbException.get(ErrorCode.OBJECT_CLOSED);
+        }
+        return session.zeroBasedEnums();
+    }
+
 }

@@ -61,6 +61,7 @@ import org.h2.util.Utils;
 import org.h2.util.geometry.EWKTUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.ExtTypeInfoGeometry;
 import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
@@ -131,7 +132,9 @@ public final class InformationSchemaTable extends MetaTable {
 
     private static final int CONSTANTS = VIEWS + 1;
 
-    private static final int INDEXES = CONSTANTS + 1;
+    private static final int ENUM_VALUES = CONSTANTS + 1;
+
+    private static final int INDEXES = ENUM_VALUES + 1;
 
     private static final int IN_DOUBT = INDEXES + 1;
 
@@ -688,6 +691,19 @@ public final class InformationSchemaTable extends MetaTable {
             );
             indexColumnName = "CONSTANT_NAME";
             break;
+        case ENUM_VALUES:
+            setMetaTableName("ENUM_VALUES");
+            isView = false;
+            cols = createColumns(
+                    "OBJECT_CATALOG",
+                    "OBJECT_SCHEMA",
+                    "OBJECT_NAME",
+                    "OBJECT_TYPE",
+                    "ENUM_IDENTIFIER",
+                    "VALUE_NAME",
+                    "VALUE_ORDINAL"
+            );
+            break;
         case INDEXES:
             setMetaTableName("INDEXES");
             isView = false;
@@ -883,10 +899,10 @@ public final class InformationSchemaTable extends MetaTable {
             domainConstraints(session, indexFrom, indexTo, rows, catalog);
             break;
         case ELEMENT_TYPES:
-            elementTypes(session, rows, catalog);
+            elementTypesFields(session, rows, catalog, ELEMENT_TYPES);
             break;
         case FIELDS:
-            fields(session, rows, catalog);
+            elementTypesFields(session, rows, catalog, FIELDS);
             break;
         case KEY_COLUMN_USAGE:
             keyColumnUsage(session, indexFrom, indexTo, rows, catalog);
@@ -924,6 +940,9 @@ public final class InformationSchemaTable extends MetaTable {
         // Extensions
         case CONSTANTS:
             constants(session, indexFrom, indexTo, rows, catalog);
+            break;
+        case ENUM_VALUES:
+            elementTypesFields(session, rows, catalog, ENUM_VALUES);
             break;
         case INDEXES:
             indexes(session, indexFrom, indexTo, rows, catalog);
@@ -1390,25 +1409,17 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void elementTypes(Session session, ArrayList<Row> rows, String catalog) {
-        elementTypesFields(session, rows, catalog, false);
-    }
-
-    private void fields(Session session, ArrayList<Row> rows, String catalog) {
-        elementTypesFields(session, rows, catalog, true);
-    }
-
-    private void elementTypesFields(Session session, ArrayList<Row> rows, String catalog, boolean fields) {
+    private void elementTypesFields(Session session, ArrayList<Row> rows, String catalog, int type) {
         String mainSchemaName = database.getMainSchema().getName();
         String collation = database.getCompareMode().getName();
         for (Schema schema : database.getAllSchemas()) {
             String schemaName = schema.getName();
             for (Table table : schema.getAllTablesAndViews()) {
-                elementTypesFieldsForTable(session, rows, catalog, fields, mainSchemaName, collation, schemaName,
+                elementTypesFieldsForTable(session, rows, catalog, type, mainSchemaName, collation, schemaName,
                         table);
             }
             for (Domain domain : schema.getAllDomains()) {
-                elementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, schemaName,
+                elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation, schemaName,
                         domain.getName(), "DOMAIN", "TYPE", domain.getColumn().getType());
             }
             for (FunctionAlias alias : schema.getAllFunctionAliases()) {
@@ -1424,30 +1435,30 @@ public final class InformationSchemaTable extends MetaTable {
                     TypeInfo typeInfo = method.getDataType();
                     String specificName = name + '_' + (i + 1);
                     if (typeInfo.getValueType() != Value.NULL) {
-                        elementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation,
+                        elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation,
                                 schemaName, specificName, "ROUTINE", "RESULT", typeInfo);
                     }
                     Class<?>[] columnList = method.getColumnClasses();
                     for (int o = 1, p = method.hasConnectionParam() ? 1 : 0, n = columnList.length; p < n; o++, p++) {
-                        elementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation,
+                        elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation,
                                 schemaName, specificName, "ROUTINE", Integer.toString(o),
                                 ValueToObjectConverter2.classToType(columnList[p]));
                     }
                 }
             }
             for (Constant constant : schema.getAllConstants()) {
-                elementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, schemaName,
+                elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation, schemaName,
                         constant.getName(), "CONSTANT", "TYPE", constant.getValue().getType());
             }
         }
         for (Table table : session.getLocalTempTables()) {
-            elementTypesFieldsForTable(session, rows, catalog, fields, mainSchemaName, collation,
+            elementTypesFieldsForTable(session, rows, catalog, type, mainSchemaName, collation,
                     table.getSchema().getName(),
                     table);
         }
     }
 
-    private void elementTypesFieldsForTable(Session session, ArrayList<Row> rows, String catalog, boolean fields,
+    private void elementTypesFieldsForTable(Session session, ArrayList<Row> rows, String catalog, int type,
             String mainSchemaName, String collation, String schemaName, Table table) {
         if (hideTable(table, session)) {
             return;
@@ -1455,23 +1466,28 @@ public final class InformationSchemaTable extends MetaTable {
         String tableName = table.getName();
         Column[] cols = table.getColumns();
         for (int i = 0; i < cols.length; i++) {
-            elementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, schemaName,
+            elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation, schemaName,
                     tableName, "TABLE", Integer.toString(i + 1), cols[i].getType());
         }
     }
 
-    private void elementTypesFieldsRow(Session session, ArrayList<Row> rows, String catalog, boolean fields,
+    private void elementTypesFieldsRow(Session session, ArrayList<Row> rows, String catalog, int type,
             String mainSchemaName, String collation, String objectSchema, String objectName, String objectType,
             String identifier, TypeInfo typeInfo) {
         switch (typeInfo.getValueType()) {
+        case Value.ENUM:
+            if (type == ENUM_VALUES) {
+                enumValues(session, rows, catalog, objectSchema, objectName, objectType, identifier, typeInfo);
+            }
+            break;
         case Value.ARRAY: {
             typeInfo = (TypeInfo) typeInfo.getExtTypeInfo();
             String dtdIdentifier = identifier + '_';
-            if (!fields) {
+            if (type == ELEMENT_TYPES) {
                 elementTypes(session, rows, catalog, mainSchemaName, collation, objectSchema, objectName,
                         objectType, identifier, dtdIdentifier, typeInfo);
             }
-            elementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, objectSchema,
+            elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation, objectSchema,
                     objectName, objectType, dtdIdentifier, typeInfo);
             break;
         }
@@ -1482,11 +1498,11 @@ public final class InformationSchemaTable extends MetaTable {
                 typeInfo = entry.getValue();
                 String fieldName = entry.getKey();
                 String dtdIdentifier = identifier + '_' + ++ordinalPosition;
-                if (fields) {
+                if (type == FIELDS) {
                     fields(session, rows, catalog, mainSchemaName, collation, objectSchema, objectName,
                             objectType, identifier, fieldName, ordinalPosition, dtdIdentifier, typeInfo);
                 }
-                elementTypesFieldsRow(session, rows, catalog, fields, mainSchemaName, collation, objectSchema,
+                elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation, objectSchema,
                         objectName, objectType, dtdIdentifier, typeInfo);
             }
         }
@@ -2402,6 +2418,32 @@ public final class InformationSchemaTable extends MetaTable {
             );
     }
 
+    private void enumValues(Session session, ArrayList<Row> rows, String catalog, String objectSchema,
+            String objectName, String objectType, String enumIdentifier, TypeInfo typeInfo) {
+        ExtTypeInfoEnum ext = (ExtTypeInfoEnum) typeInfo.getExtTypeInfo();
+        if (ext == null) {
+            return;
+        }
+        for (int i = 0, ordinal = session.zeroBasedEnums() ? 0 : 1, l = ext.getCount(); i < l; i++, ordinal++) {
+            add(session, rows,
+                    // OBJECT_CATALOG
+                    catalog,
+                    // OBJECT_SCHEMA
+                    objectSchema,
+                    // OBJECT_NAME
+                    objectName,
+                    // OBJECT_TYPE
+                    objectType,
+                    // ENUM_IDENTIFIER
+                    enumIdentifier,
+                    // VALUE_NAME
+                    ext.getEnumerator(i),
+                    // VALUE_ORDINAL
+                    ValueInteger.get(ordinal)
+            );
+        }
+    }
+
     private void indexes(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         // reduce the number of tables to scan - makes some metadata queries
         // 10x faster
@@ -3160,7 +3202,7 @@ public final class InformationSchemaTable extends MetaTable {
                     datetimePrecision = null, intervalPrecision = null, maximumCardinality = null;
             String intervalType = null;
             boolean hasCharsetAndCollation = false;
-            String declaredDataType = dataType;
+            String declaredDataType = null;
             ValueInteger declaredNumericPrecision = null, declaredNumericScale = null;
             String geometryType = null;
             ValueInteger geometrySrid = null;
@@ -3185,6 +3227,7 @@ public final class InformationSchemaTable extends MetaTable {
                 numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
                 numericScale = ValueInteger.get(0);
                 numericPrecisionRadix = ValueInteger.get(2);
+                declaredDataType = dataType;
                 break;
             case Value.NUMERIC: {
                 numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
@@ -3209,12 +3252,15 @@ public final class InformationSchemaTable extends MetaTable {
                     if (declaredPrecision > 0) {
                         declaredNumericPrecision = ValueInteger.get((int) declaredPrecision);
                     }
+                } else {
+                    declaredDataType = dataType;
                 }
                 break;
             }
             case Value.DECFLOAT:
                 numericPrecision = ValueInteger.get(MathUtils.convertLongToInt(typeInfo.getPrecision()));
                 numericPrecisionRadix = ValueInteger.get(10);
+                declaredDataType = dataType;
                 if (typeInfo.getDeclaredPrecision() >= 0L) {
                     declaredNumericPrecision = numericPrecision;
                 }

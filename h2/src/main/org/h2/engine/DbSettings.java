@@ -321,6 +321,13 @@ public class DbSettings extends SettingsBase {
      */
     public final boolean oldInformationSchema = get("OLD_INFORMATION_SCHEMA", false);
 
+    /**
+     * Database setting <code>ZERO_BASED_ENUMS</code>
+     * (default: false).<br />
+     * If set, ENUM ordinal values are 0-based.
+     */
+    public final boolean zeroBasedEnums = get("ZERO_BASED_ENUMS", false);
+
     private DbSettings(HashMap<String, String> s) {
         super(s);
         boolean lower = get("DATABASE_TO_LOWER", false);

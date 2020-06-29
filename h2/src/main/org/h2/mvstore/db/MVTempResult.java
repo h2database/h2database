@@ -88,6 +88,8 @@ public abstract class MVTempResult implements ResultExternal {
                 : new MVPlainTempResult(database, expressions, visibleColumnCount, resultColumnCount);
     }
 
+    private final Database database;
+
     /**
      * MVStore.
      */
@@ -153,6 +155,7 @@ public abstract class MVTempResult implements ResultExternal {
      */
     MVTempResult(MVTempResult parent) {
         this.parent = parent;
+        this.database = parent.database;
         this.store = parent.store;
         this.expressions = parent.expressions;
         this.visibleColumnCount = parent.visibleColumnCount;
@@ -176,6 +179,7 @@ public abstract class MVTempResult implements ResultExternal {
      *            total count of columns
      */
     MVTempResult(Database database, Expression[] expressions, int visibleColumnCount, int resultColumnCount) {
+        this.database = database;
         try {
             String fileName = FileUtils.createTempFile("h2tmp", Constants.SUFFIX_TEMP_FILE, true);
             Builder builder = new MVStore.Builder().fileName(fileName).cacheSize(0).autoCommitDisabled();
@@ -248,7 +252,7 @@ public abstract class MVTempResult implements ResultExternal {
             if (row[i] != ValueNull.INSTANCE) {
                 TypeInfo type = expressions[i].getType();
                 if (type.getValueType() == Value.ENUM) {
-                    row[i] = row[i].convertToEnum((ExtTypeInfoEnum) type.getExtTypeInfo());
+                    row[i] = row[i].convertToEnum((ExtTypeInfoEnum) type.getExtTypeInfo(), database);
                 }
             }
         }

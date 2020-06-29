@@ -497,7 +497,7 @@ public class TestPreparedStatement extends TestDb {
                 rs.next();
             }
             assertEquals(goodSizes[i], rs.getString(1));
-            assertEquals(i, rs.getInt(1));
+            assertEquals(i + 1, rs.getInt(1));
             Object o = rs.getObject(1);
             assertEquals(String.class, o.getClass());
         }

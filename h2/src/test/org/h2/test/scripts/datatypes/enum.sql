@@ -60,9 +60,6 @@ select suit, count(rank) from card group by suit order by suit, count(rank);
 select rank from card where suit = 'diamonds';
 >> 8
 
-select column_type from information_schema.columns where COLUMN_NAME = 'SUIT';
->> ENUM('''none''', 'hearts', 'clubs', 'spades', 'diamonds')
-
 alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds');
 > ok
 
@@ -74,14 +71,14 @@ insert into card (rank, suit) values (11, 'long_enum_value_of_128_chars_00000000
 
 --- ENUM integer-based operations
 
-select rank from card where suit = 1;
+select rank from card where suit = 2;
 > RANK
 > ----
 > 0
 > 10
 > rows: 2
 
-insert into card (rank, suit) values(5, 2);
+insert into card (rank, suit) values(5, 3);
 > update count: 1
 
 select * from card where rank = 5;
@@ -247,30 +244,40 @@ CREATE VIEW V1 AS SELECT E + 2 AS E FROM TEST;
 > ok
 
 SELECT * FROM V1;
->> 3
+>> 4
 
 CREATE VIEW V2 AS SELECT E + E AS E FROM TEST;
 > ok
 
 SELECT * FROM V2;
->> 2
+>> 4
 
 CREATE VIEW V3 AS SELECT -E AS E FROM TEST;
 > ok
 
 SELECT * FROM V3;
->> -1
+>> -2
 
-SELECT TABLE_NAME, DATA_TYPE, COLUMN_TYPE
+SELECT TABLE_NAME, DATA_TYPE
     FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'E' ORDER BY TABLE_NAME;
-> TABLE_NAME DATA_TYPE COLUMN_TYPE
-> ---------- --------- --------------
-> TEST       ENUM      ENUM('A', 'B')
-> V          ENUM      ENUM('A', 'B')
-> V1         INTEGER   INTEGER
-> V2         INTEGER   INTEGER
-> V3         INTEGER   INTEGER
+> TABLE_NAME DATA_TYPE
+> ---------- ---------
+> TEST       ENUM
+> V          ENUM
+> V1         INTEGER
+> V2         INTEGER
+> V3         INTEGER
 > rows (ordered): 5
+
+SELECT OBJECT_NAME, OBJECT_TYPE, ENUM_IDENTIFIER, VALUE_NAME, VALUE_ORDINAL FROM INFORMATION_SCHEMA.ENUM_VALUES
+    WHERE OBJECT_SCHEMA = 'PUBLIC';
+> OBJECT_NAME OBJECT_TYPE ENUM_IDENTIFIER VALUE_NAME VALUE_ORDINAL
+> ----------- ----------- --------------- ---------- -------------
+> TEST        TABLE       1               A          1
+> TEST        TABLE       1               B          2
+> V           TABLE       1               A          1
+> V           TABLE       1               B          2
+> rows: 4
 
 DROP VIEW V;
 > ok
@@ -288,7 +295,7 @@ DROP TABLE TEST;
 > ok
 
 SELECT CAST (2 AS ENUM('a', 'b', 'c', 'd'));
->> c
+>> b
 
 CREATE TABLE TEST(E ENUM('a', 'b'));
 > ok
@@ -316,3 +323,40 @@ DROP TABLE TEST;
 
 EXPLAIN VALUES CAST('A' AS ENUM('A', 'B'));
 >> VALUES (CAST('A' AS ENUM('A', 'B')))
+
+CREATE TABLE TEST(E1 ENUM('a', 'b'), E2 ENUM('e', 'c') ARRAY, E3 ROW(E ENUM('x', 'y')));
+> ok
+
+SELECT COLUMN_NAME, DATA_TYPE, DTD_IDENTIFIER FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
+> COLUMN_NAME DATA_TYPE DTD_IDENTIFIER
+> ----------- --------- --------------
+> E1          ENUM      1
+> E2          ARRAY     2
+> E3          ROW       3
+> rows: 3
+
+SELECT COLLECTION_TYPE_IDENTIFIER, DATA_TYPE, DTD_IDENTIFIER FROM INFORMATION_SCHEMA.ELEMENT_TYPES WHERE OBJECT_NAME = 'TEST';
+> COLLECTION_TYPE_IDENTIFIER DATA_TYPE DTD_IDENTIFIER
+> -------------------------- --------- --------------
+> 2                          ENUM      2_
+> rows: 1
+
+SELECT ROW_IDENTIFIER, FIELD_NAME, DATA_TYPE, DTD_IDENTIFIER FROM INFORMATION_SCHEMA.FIELDS WHERE OBJECT_NAME = 'TEST';
+> ROW_IDENTIFIER FIELD_NAME DATA_TYPE DTD_IDENTIFIER
+> -------------- ---------- --------- --------------
+> 3              E          ENUM      3_1
+> rows: 1
+
+SELECT * FROM INFORMATION_SCHEMA.ENUM_VALUES WHERE OBJECT_NAME = 'TEST';
+> OBJECT_CATALOG OBJECT_SCHEMA OBJECT_NAME OBJECT_TYPE ENUM_IDENTIFIER VALUE_NAME VALUE_ORDINAL
+> -------------- ------------- ----------- ----------- --------------- ---------- -------------
+> SCRIPT         PUBLIC        TEST        TABLE       1               a          1
+> SCRIPT         PUBLIC        TEST        TABLE       1               b          2
+> SCRIPT         PUBLIC        TEST        TABLE       2_              c          2
+> SCRIPT         PUBLIC        TEST        TABLE       2_              e          1
+> SCRIPT         PUBLIC        TEST        TABLE       3_1             x          1
+> SCRIPT         PUBLIC        TEST        TABLE       3_1             y          2
+> rows: 6
+
+DROP TABLE TEST;
+> ok

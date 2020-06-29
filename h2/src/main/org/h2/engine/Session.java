@@ -2263,4 +2263,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         return new DatabaseMetaLocal(this);
     }
 
+    @Override
+    public boolean zeroBasedEnums() {
+        return database.zeroBasedEnums();
+    }
+
 }

@@ -602,10 +602,10 @@ public class TestMVStoreConcurrent extends TestMVStore {
                         long len = s.getFileStore().size();
                         if (len > 1024 * 1024) {
                             // slow down writing a lot
-                            Thread.sleep(200);
+                            Thread.sleep(20);
                         } else if (len > 20 * 1024) {
                             // slow down writing
-                            Thread.sleep(20);
+                            Thread.sleep(2);
                         }
                     }
                 }
@@ -636,7 +636,7 @@ public class TestMVStoreConcurrent extends TestMVStore {
                             test.get(k);
                         }
                     }
-                    FileUtils.delete(archiveName);
+//                    FileUtils.delete(archiveName);
                     // let it compact
                     Thread.sleep(10);
                 }

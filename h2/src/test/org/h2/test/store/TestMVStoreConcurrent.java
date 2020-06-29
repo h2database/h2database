@@ -614,13 +614,14 @@ public class TestMVStoreConcurrent extends TestMVStore {
             try {
                 for (int i = 0; i < 10; i++) {
                     // System.out.println("test " + i);
-                    try (OutputStream out = FileUtils.newOutputStream(fileNameRestore+".zip", false)) {
+                    String archiveName = fileNameRestore + ".zip";
+                    try (OutputStream out = FileUtils.newOutputStream(archiveName, false)) {
                         try (ZipOutputStream zip = new ZipOutputStream(out)) {
                             s.getFileStore().backup(zip);
                         }
                     }
 
-                    ZipFile zipFile = new ZipFile(fileNameRestore + ".zip");
+                    ZipFile zipFile = new ZipFile(archiveName);
                     String name = FilePath.get(s.getFileStore().getFileName()).getName();
                     ZipEntry zipEntry = zipFile.getEntry(name);
                     try (InputStream inputStream = zipFile.getInputStream(zipEntry)) {
@@ -629,12 +630,13 @@ public class TestMVStoreConcurrent extends TestMVStore {
                         }
                     }
 
-                    MVStore s2 = openStore(fileNameRestore);
-                    MVMap<Integer, byte[]> test = s2.openMap("test");
-                    for (Integer k : test.keySet()) {
-                        test.get(k);
+                    try (MVStore s2 = openStore(fileNameRestore)) {
+                        MVMap<Integer, byte[]> test = s2.openMap("test");
+                        for (Integer k : test.keySet()) {
+                            test.get(k);
+                        }
                     }
-                    s2.close();
+                    FileUtils.delete(archiveName);
                     // let it compact
                     Thread.sleep(10);
                 }

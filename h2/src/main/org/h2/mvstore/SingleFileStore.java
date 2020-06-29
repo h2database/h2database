@@ -264,18 +264,21 @@ public class SingleFileStore extends RandomAccessStore {
         return freeSpace.getAfterLastBlock();
     }
 
-    public InputStream getInputStream() {
+    public InputStream getInputStream() throws IOException {
         FileChannel fc = getEncryptedFile();
         if (fc == null) {
             fc = getFile();
         }
-        this.sync();
+        writeCleanShutdown();
         return new FileChannelInputStream(fc, false);
     }
 
     public void backup(ZipOutputStream out) throws IOException {
-        InputStream in = getInputStream();
-        backupFile(out, getFileName(), in);
+        getMvStore().executeFilestoreOperation(() -> {
+            InputStream in = getInputStream();
+            backupFile(out, getFileName(), in);
+            return true;
+        });
     }
 
     private static void backupFile(ZipOutputStream out, String fileName, InputStream in) throws IOException {

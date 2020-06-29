@@ -1287,6 +1287,10 @@ public abstract class FileStore
 
     protected abstract long getAfterLastBlock_();
 
+    protected final MVStore getMvStore() {
+        return mvStore;
+    }
+
     /**
      * Mark the space as in use.
      *

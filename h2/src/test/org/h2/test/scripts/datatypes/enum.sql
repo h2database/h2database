@@ -316,3 +316,40 @@ DROP TABLE TEST;
 
 EXPLAIN VALUES CAST('A' AS ENUM('A', 'B'));
 >> VALUES (CAST('A' AS ENUM('A', 'B')))
+
+CREATE TABLE TEST(E1 ENUM('a', 'b'), E2 ENUM('e', 'c') ARRAY, E3 ROW(E ENUM('x', 'y')));
+> ok
+
+SELECT COLUMN_NAME, DATA_TYPE, DTD_IDENTIFIER FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
+> COLUMN_NAME DATA_TYPE DTD_IDENTIFIER
+> ----------- --------- --------------
+> E1          ENUM      1
+> E2          ARRAY     2
+> E3          ROW       3
+> rows: 3
+
+SELECT COLLECTION_TYPE_IDENTIFIER, DATA_TYPE, DTD_IDENTIFIER FROM INFORMATION_SCHEMA.ELEMENT_TYPES WHERE OBJECT_NAME = 'TEST';
+> COLLECTION_TYPE_IDENTIFIER DATA_TYPE DTD_IDENTIFIER
+> -------------------------- --------- --------------
+> 2                          ENUM      2_
+> rows: 1
+
+SELECT ROW_IDENTIFIER, FIELD_NAME, DATA_TYPE, DTD_IDENTIFIER FROM INFORMATION_SCHEMA.FIELDS WHERE OBJECT_NAME = 'TEST';
+> ROW_IDENTIFIER FIELD_NAME DATA_TYPE DTD_IDENTIFIER
+> -------------- ---------- --------- --------------
+> 3              E          ENUM      3_1
+> rows: 1
+
+SELECT * FROM INFORMATION_SCHEMA.ENUM_VALUES WHERE OBJECT_NAME = 'TEST';
+> OBJECT_CATALOG OBJECT_SCHEMA OBJECT_NAME OBJECT_TYPE ENUM_IDENTIFIER VALUE_NAME VALUE_ORDINAL
+> -------------- ------------- ----------- ----------- --------------- ---------- -------------
+> SCRIPT         PUBLIC        TEST        TABLE       1               a          0
+> SCRIPT         PUBLIC        TEST        TABLE       1               b          1
+> SCRIPT         PUBLIC        TEST        TABLE       2_              c          1
+> SCRIPT         PUBLIC        TEST        TABLE       2_              e          0
+> SCRIPT         PUBLIC        TEST        TABLE       3_1             x          0
+> SCRIPT         PUBLIC        TEST        TABLE       3_1             y          1
+> rows: 6
+
+DROP TABLE TEST;
+> ok

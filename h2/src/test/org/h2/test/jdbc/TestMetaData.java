@@ -1205,7 +1205,7 @@ public class TestMetaData extends TestDb {
         assertFalse(rs.next());
 
         rs = meta.getTables(null, "INFORMATION_SCHEMA", null, new String[] { "BASE TABLE", "VIEW" });
-        for (String name : new String[] { "CONSTANTS",
+        for (String name : new String[] { "CONSTANTS", "ENUM_VALUES",
                 "INDEXES", "INFORMATION_SCHEMA_CATALOG_NAME", "IN_DOUBT", "LOCKS",
                 "QUERY_STATISTICS", "RIGHTS", "ROLES", "SESSIONS", "SESSION_STATE", "SETTINGS", "SYNONYMS",
                 "USERS", "CHECK_CONSTRAINTS", "COLLATIONS", "COLUMNS", "COLUMN_PRIVILEGES",

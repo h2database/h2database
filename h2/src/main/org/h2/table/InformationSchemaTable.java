@@ -457,8 +457,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "PARAMETER_DEFAULT",
                     // extensions
                     "GEOMETRY_TYPE",
-                    "GEOMETRY_SRID INT",
-                    "REMARKS"
+                    "GEOMETRY_SRID INT"
             );
             break;
         case REFERENTIAL_CONSTRAINTS:
@@ -1827,9 +1826,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // GEOMETRY_TYPE
                 dt.geometryType,
                 // GEOMETRY_SRID INT
-                dt.geometrySrid,
-                // REMARKS
-                ""
+                dt.geometrySrid
         );
     }
 

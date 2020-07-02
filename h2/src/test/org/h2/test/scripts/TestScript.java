@@ -194,7 +194,7 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "array-cat", "array-contains", "array-get",
                 "array-slice", "autocommit", "cancel-session", "casewhen",
                 "cardinality", "cast", "coalesce", "convert", "csvread", "csvwrite", "current_catalog",
-                "current_schema", "current_user", "currval",
+                "current_schema", "current_user", "currval", "data_type_sql",
                 "database-path", "decode", "disk-space-used",
                 "file-read", "file-write", "greatest", "h2version", "identity",
                 "ifnull", "last-insert-id", "least", "link-schema", "lock-mode", "lock-timeout",

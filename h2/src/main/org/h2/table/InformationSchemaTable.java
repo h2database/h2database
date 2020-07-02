@@ -52,7 +52,6 @@ import org.h2.schema.TriggerObject;
 import org.h2.schema.UserAggregate;
 import org.h2.store.InDoubtTransaction;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.HasSQL;
 import org.h2.util.MathUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.StringUtils;
@@ -248,7 +247,6 @@ public final class InformationSchemaTable extends MetaTable {
                     "SELECTIVITY INT",
                     "SEQUENCE_NAME",
                     "REMARKS",
-                    "COLUMN_TYPE",
                     "COLUMN_ON_UPDATE",
                     "IS_VISIBLE"
             );
@@ -1182,8 +1180,6 @@ public final class InformationSchemaTable extends MetaTable {
                 sequence == null ? null : sequence.getName(),
                 // REMARKS
                 c.getComment(),
-                // COLUMN_TYPE
-                (domain != null ? domain : typeInfo).getSQL(HasSQL.DEFAULT_SQL_FLAGS),
                 // COLUMN_ON_UPDATE
                 c.getOnUpdateSQL(),
                 // IS_VISIBLE

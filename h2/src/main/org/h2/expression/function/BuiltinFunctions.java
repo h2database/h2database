@@ -49,6 +49,8 @@ public final class BuiltinFunctions {
                 "COALESCE", "GREATEST", "LEAST",
                 // NullIfFunction
                 "NULLIF",
+                // DataTypeSQLFunction
+                "DATA_TYPE_SQL",
                 // CompatibilityIdentityFunction
                 "IDENTITY", "SCOPE_IDENTITY",
                 // CompatibilitySequenceValueFunction

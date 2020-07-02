@@ -5,10 +5,12 @@
  */
 package org.h2.bnf.context;
 
+import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLSyntaxErrorException;
 import java.util.ArrayList;
 
 import org.h2.engine.SysProperties;
@@ -20,6 +22,13 @@ import org.h2.util.Utils;
  * This class is used by the H2 Console.
  */
 public class DbSchema {
+
+    private static final String COLUMNS_QUERY_H2_197 = "SELECT COLUMN_NAME, ORDINAL_POSITION, COLUMN_TYPE "
+            + "FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ?1 AND TABLE_NAME = ?2";
+
+    private static final String COLUMNS_QUERY_H2_201 = "SELECT COLUMN_NAME, ORDINAL_POSITION, "
+            + "DATA_TYPE_SQL(?1, ?2, 'TABLE', ORDINAL_POSITION) COLUMN_TYPE "
+            + "FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ?1 AND TABLE_NAME = ?2";
 
     /**
      * The schema name.
@@ -120,10 +129,7 @@ public class DbSchema {
         rs.close();
         tables = list.toArray(new DbTableOrView[0]);
         if (tables.length < SysProperties.CONSOLE_MAX_TABLES_LIST_COLUMNS) {
-            try (PreparedStatement ps = contents.isH2() ? meta.getConnection().prepareStatement(
-                    "SELECT COLUMN_NAME, ORDINAL_POSITION, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS"
-                            + " WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?")
-                    : null) {
+            try (PreparedStatement ps = contents.isH2() ? prepareColumnsQueryH2(meta.getConnection()) : null) {
                 for (DbTableOrView tab : tables) {
                     try {
                         tab.readColumns(meta, ps);
@@ -136,6 +142,14 @@ public class DbSchema {
                     }
                 }
             }
+        }
+    }
+
+    private static PreparedStatement prepareColumnsQueryH2(Connection connection) throws SQLException {
+        try {
+            return connection.prepareStatement(COLUMNS_QUERY_H2_201);
+        } catch (SQLSyntaxErrorException ex) {
+            return connection.prepareStatement(COLUMNS_QUERY_H2_197);
         }
     }
 

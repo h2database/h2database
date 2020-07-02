@@ -275,6 +275,7 @@ import org.h2.expression.function.CompatibilitySequenceValueFunction;
 import org.h2.expression.function.CryptFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.CurrentGeneralValueSpecification;
+import org.h2.expression.function.DataTypeSQLFunction;
 import org.h2.expression.function.DateTimeFormatFunction;
 import org.h2.expression.function.DateTimeFunction;
 import org.h2.expression.function.DayMonthNameFunction;
@@ -1640,8 +1641,11 @@ public class Parser {
             if (readIf(FROM)) {
                 schemaName = readUniqueIdentifier();
             }
-            buff.append("C.COLUMN_NAME FIELD, "
-                    + "C.COLUMN_TYPE TYPE, "
+            buff.append("C.COLUMN_NAME FIELD, ");
+            buff.append(database.getSettings().oldInformationSchema
+                    ? "C.COLUMN_TYPE"
+                    : "DATA_TYPE_SQL(?2, ?1, 'TABLE', C.DTD_IDENTIFIER)");
+            buff.append(" TYPE, "
                     + "C.IS_NULLABLE \"NULL\", "
                     + "CASE (SELECT MAX(I.INDEX_TYPE_NAME) FROM "
                     + "INFORMATION_SCHEMA.INDEXES I "
@@ -1652,7 +1656,7 @@ public class Parser {
                     + "WHEN 'UNIQUE INDEX' THEN 'UNI' ELSE '' END `KEY`, "
                     + "COALESCE(COLUMN_DEFAULT, 'NULL') DEFAULT "
                     + "FROM INFORMATION_SCHEMA.COLUMNS C "
-                    + "WHERE C.TABLE_NAME=? AND C.TABLE_SCHEMA=? "
+                    + "WHERE C.TABLE_NAME=?1 AND C.TABLE_SCHEMA=?2 "
                     + "ORDER BY C.ORDINAL_POSITION");
             paramValues.add(ValueVarchar.get(schemaName));
         } else if (readIf("DATABASES") || readIf("SCHEMAS")) {
@@ -4358,6 +4362,9 @@ public class Parser {
             return readCoalesceFunction(CoalesceFunction.LEAST);
         case "NULLIF":
             return new NullIfFunction(readExpression(), readLastArgument());
+        case "DATA_TYPE_SQL":
+            return new DataTypeSQLFunction(readExpression(), readNextArgument(), readNextArgument(),
+                    readLastArgument());
         case "ZERO":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueInteger.get(0));

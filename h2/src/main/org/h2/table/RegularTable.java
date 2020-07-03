@@ -10,11 +10,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Session;
 import org.h2.index.Index;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.value.DataType;
@@ -247,6 +249,18 @@ public abstract class RegularTable extends TableBase {
     @Override
     public String toString() {
         return getTraceSQL();
+    }
+
+    protected static void setPrimaryKey(IndexColumn[] cols) {
+        for (IndexColumn c : cols) {
+            Column column = c.column;
+            if (column.isNullable()) {
+                throw DbException.get(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
+            }
+        }
+        for (IndexColumn c : cols) {
+            c.column.setPrimaryKey(true);
+        }
     }
 
 }

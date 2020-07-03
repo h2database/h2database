@@ -1504,10 +1504,10 @@ public class Parser {
         return command;
     }
 
-    private IndexColumn[] parseIndexColumnList() {
+    private IndexColumn[] parseIndexColumnList(boolean addExplicitNullOrdering) {
         ArrayList<IndexColumn> columns = Utils.newSmallArrayList();
         do {
-            columns.add(new IndexColumn(readColumnIdentifier(), parseSortType(true)));
+            columns.add(new IndexColumn(readColumnIdentifier(), parseSortType(addExplicitNullOrdering)));
         } while (readIfMore());
         return columns.toArray(new IndexColumn[0]);
     }
@@ -7367,7 +7367,7 @@ public class Parser {
                 columns = new IndexColumn[] { new IndexColumn(readColumnIdentifier()) };
                 read(CLOSE_PAREN);
             } else {
-                columns = parseIndexColumnList();
+                columns = parseIndexColumnList(!primaryKey);
             }
             command.setIndexColumns(columns);
             return command;
@@ -9499,7 +9499,7 @@ public class Parser {
                 command.setPrimaryKeyHash(true);
             }
             read(OPEN_PAREN);
-            command.setIndexColumns(parseIndexColumnList());
+            command.setIndexColumns(parseIndexColumnList(false));
             if (readIf("INDEX")) {
                 String indexName = readIdentifierWithSchema();
                 command.setIndex(getSchema().findIndex(session, indexName));
@@ -9520,7 +9520,7 @@ public class Parser {
             read(OPEN_PAREN);
             command = new AlterTableAddConstraint(session, schema, CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE,
                     ifNotExists);
-            command.setIndexColumns(parseIndexColumnList());
+            command.setIndexColumns(parseIndexColumnList(true));
             if (readIf("INDEX")) {
                 String indexName = readIdentifierWithSchema();
                 command.setIndex(getSchema().findIndex(session, indexName));
@@ -9535,7 +9535,7 @@ public class Parser {
                     CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL, ifNotExists);
             read(KEY);
             read(OPEN_PAREN);
-            command.setIndexColumns(parseIndexColumnList());
+            command.setIndexColumns(parseIndexColumnList(true));
             if (readIf("INDEX")) {
                 String indexName = readIdentifierWithSchema();
                 command.setIndex(schema.findIndex(session, indexName));
@@ -9566,7 +9566,7 @@ public class Parser {
                                 createIndex.setIndexName(readUniqueIdentifier());
                                 read(OPEN_PAREN);
                             }
-                            createIndex.setIndexColumns(parseIndexColumnList());
+                            createIndex.setIndexColumns(parseIndexColumnList(true));
                             // MySQL compatibility
                             if (readIf(USING)) {
                                 read("BTREE");
@@ -9605,12 +9605,12 @@ public class Parser {
             Schema schema, String tableName) {
         if (readIf(OPEN_PAREN)) {
             command.setRefTableName(schema, tableName);
-            command.setRefIndexColumns(parseIndexColumnList());
+            command.setRefIndexColumns(parseIndexColumnList(true));
         } else {
             String refTableName = readIdentifierWithSchema(schema.getName());
             command.setRefTableName(getSchema(), refTableName);
             if (readIf(OPEN_PAREN)) {
-                command.setRefIndexColumns(parseIndexColumnList());
+                command.setRefIndexColumns(parseIndexColumnList(true));
             }
         }
         if (readIf("INDEX")) {
@@ -9768,8 +9768,7 @@ public class Parser {
         AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema,
                 CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY, false);
         pk.setTableName(tableName);
-        pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName(),
-                session.getDatabase().getDefaultNullOrdering().getDefault()) });
+        pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
         return pk;
     }
 
@@ -9797,8 +9796,7 @@ public class Parser {
                 pk.setConstraintName(constraintName);
                 pk.setPrimaryKeyHash(hash);
                 pk.setTableName(tableName);
-                pk.setIndexColumns(new IndexColumn[] {
-                        new IndexColumn(column.getName(), database.getDefaultNullOrdering().getDefault()) });
+                pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
                 command.addConstraintCommand(pk);
                 if (readIf("AUTO_INCREMENT")) {
                     parseAutoIncrement(column);

@@ -156,11 +156,11 @@ public class TestIndex extends TestDb {
         stat.execute("create table test(id int primary key, name varchar)");
         testErrorMessage("PRIMARY", "KEY", " ON PUBLIC.TEST(ID)");
         stat.execute("create table test(id int, name varchar primary key)");
-        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(NAME NULLS FIRST)");
+        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(NAME)");
         stat.execute("create table test(id int, name varchar, primary key(id, name))");
-        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(ID NULLS FIRST, NAME NULLS FIRST)");
+        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(ID, NAME)");
         stat.execute("create table test(id int, name varchar, primary key(name, id))");
-        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(NAME NULLS FIRST, ID NULLS FIRST)");
+        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(NAME, ID)");
         stat.execute("create table test(id int, name int primary key)");
         testErrorMessage("PRIMARY", "KEY", " ON PUBLIC.TEST(NAME)");
         stat.execute("create table test(id int, name int, unique(name))");

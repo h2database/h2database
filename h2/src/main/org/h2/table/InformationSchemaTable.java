@@ -2795,6 +2795,7 @@ public final class InformationSchemaTable extends MetaTable {
                 add(session, rows, "property." + s, Utils.getProperty(s, ""));
             }
         }
+        add(session, rows, "DEFAULT_NULL_ORDERING", database.getDefaultNullOrdering().name());
         add(session, rows, "EXCLUSIVE", database.getExclusiveSession() == null ? "FALSE" : "TRUE");
         add(session, rows, "MODE", database.getMode().getName());
         add(session, rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));

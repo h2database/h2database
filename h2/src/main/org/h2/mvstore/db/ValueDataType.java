@@ -19,6 +19,7 @@ import org.h2.engine.CastDataProvider;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
+import org.h2.mode.DefaultNullOrdering;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.rtree.SpatialDataType;
@@ -247,7 +248,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         }
         boolean aNull = a == ValueNull.INSTANCE;
         if (aNull || b == ValueNull.INSTANCE) {
-            return SortOrder.compareNull(aNull, sortType);
+            return DefaultNullOrdering.LOW.compareNull(aNull, sortType);
         }
 
         int comp = a.compareTo(b, provider, compareMode);

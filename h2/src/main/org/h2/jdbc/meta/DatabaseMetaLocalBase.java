@@ -6,7 +6,6 @@
 package org.h2.jdbc.meta;
 
 import org.h2.engine.Constants;
-import org.h2.engine.SysProperties;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.value.TypeInfo;
@@ -15,11 +14,6 @@ import org.h2.value.TypeInfo;
  * Base implementation of database meta information.
  */
 abstract class DatabaseMetaLocalBase extends DatabaseMeta {
-
-    @Override
-    public final boolean nullsAreSortedHigh() {
-        return SysProperties.SORT_NULLS_HIGH;
-    }
 
     @Override
     public final String getDatabaseProductVersion() {

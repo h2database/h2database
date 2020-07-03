@@ -54,13 +54,7 @@ public class ConstraintUnique extends Constraint {
             StringUtils.quoteStringSQL(builder, comment);
         }
         builder.append(' ').append(getConstraintType().getSqlName()).append('(');
-        for (int i = 0, l = columns.length; i < l; i++) {
-            if (i > 0) {
-                builder.append(", ");
-            }
-            columns[i].column.getSQL(builder, DEFAULT_SQL_FLAGS);
-        }
-        builder.append(')');
+        IndexColumn.writeColumns(builder, columns, IndexColumn.SQL_NO_ORDER).append(')');
         if (internalIndex && indexOwner && forTable == this.table) {
             builder.append(" INDEX ");
             index.getSQL(builder, DEFAULT_SQL_FLAGS);

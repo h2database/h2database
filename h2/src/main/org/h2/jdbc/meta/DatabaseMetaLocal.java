@@ -32,6 +32,7 @@ import org.h2.expression.condition.CompareLike;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
+import org.h2.mode.DefaultNullOrdering;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.result.SortOrder;
@@ -125,6 +126,11 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     public DatabaseMetaLocal(Session session) {
         this.session = session;
+    }
+
+    @Override
+    public final DefaultNullOrdering defaultNullOrdering() {
+        return session.getDatabase().getDefaultNullOrdering();
     }
 
     @Override

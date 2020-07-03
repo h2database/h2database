@@ -16,6 +16,7 @@ import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
+import org.h2.mode.DefaultNullOrdering;
 import org.h2.result.ResultInterface;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -42,6 +43,11 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
 
     public DatabaseMetaLegacy(SessionInterface session) {
         this.session = session;
+    }
+
+    @Override
+    public final DefaultNullOrdering defaultNullOrdering() {
+        return DefaultNullOrdering.LOW;
     }
 
     @Override

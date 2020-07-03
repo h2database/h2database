@@ -39,7 +39,7 @@ import static org.h2.jdbc.meta.DatabaseMetaRemote.GET_TIME_DATE_FUNCTIONS;
 import static org.h2.jdbc.meta.DatabaseMetaRemote.GET_TYPE_INFO;
 import static org.h2.jdbc.meta.DatabaseMetaRemote.GET_UDTS_4;
 import static org.h2.jdbc.meta.DatabaseMetaRemote.GET_VERSION_COLUMNS_3;
-import static org.h2.jdbc.meta.DatabaseMetaRemote.NULLS_ARE_SORTED_HIGH;
+import static org.h2.jdbc.meta.DatabaseMetaRemote.DEFAULT_NULL_ORDERING;
 
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -47,7 +47,6 @@ import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
-import org.h2.value.ValueBoolean;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueVarchar;
@@ -60,8 +59,8 @@ public final class DatabaseMetaServer {
     public static ResultInterface process(Session session, int code, Value[] args) {
         DatabaseMeta meta = session.getDatabaseMeta();
         switch (code) {
-        case NULLS_ARE_SORTED_HIGH:
-            return result(session, meta.nullsAreSortedHigh());
+        case DEFAULT_NULL_ORDERING:
+            return result(session, meta.defaultNullOrdering().ordinal());
         case GET_DATABASE_PRODUCT_VERSION:
             return result(session, meta.getDatabaseProductVersion());
         case GET_SQL_KEYWORDS:
@@ -168,10 +167,6 @@ public final class DatabaseMetaServer {
             result[i] = list[i].getInt();
         }
         return result;
-    }
-
-    private static ResultInterface result(Session session, boolean value) {
-        return result(session, ValueBoolean.get(value));
     }
 
     private static ResultInterface result(Session session, int value) {

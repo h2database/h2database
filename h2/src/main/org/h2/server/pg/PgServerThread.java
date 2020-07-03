@@ -233,6 +233,7 @@ public class PgServerThread implements Runnable {
                 Properties info = new Properties();
                 info.put("MODE", "PostgreSQL");
                 info.put("DATABASE_TO_LOWER", "TRUE");
+                info.put("DEFAULT_NULL_ORDERING", "HIGH");
                 info.put("USER", userName);
                 info.put("PASSWORD", password);
                 String url = "jdbc:h2:" + databaseName;

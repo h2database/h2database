@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionRemote;
 import org.h2.message.DbException;
+import org.h2.mode.DefaultNullOrdering;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultRemote;
 import org.h2.value.Transfer;
@@ -27,7 +28,7 @@ import org.h2.value.ValueVarchar;
  */
 public class DatabaseMetaRemote extends DatabaseMeta {
 
-    static final int NULLS_ARE_SORTED_HIGH = 0;
+    static final int DEFAULT_NULL_ORDERING = 0;
 
     static final int GET_DATABASE_PRODUCT_VERSION = 1;
 
@@ -107,10 +108,10 @@ public class DatabaseMetaRemote extends DatabaseMeta {
     }
 
     @Override
-    public boolean nullsAreSortedHigh() {
-        ResultInterface result = executeQuery(NULLS_ARE_SORTED_HIGH);
+    public DefaultNullOrdering defaultNullOrdering() {
+        ResultInterface result = executeQuery(DEFAULT_NULL_ORDERING);
         result.next();
-        return result.currentRow()[0].getBoolean();
+        return DefaultNullOrdering.valueOf(result.currentRow()[0].getInt());
     }
 
     @Override

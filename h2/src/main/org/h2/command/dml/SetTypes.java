@@ -258,11 +258,16 @@ public class SetTypes {
     public static final int TIME_ZONE = NON_KEYWORDS + 1;
 
     /**
-     * The type of a SET VARIABLE_BINARY statement.
+     * The type of a SET DEFAULT_NULL_ORDERING statement.
      */
     public static final int VARIABLE_BINARY = TIME_ZONE + 1;
 
-    private static final int COUNT = VARIABLE_BINARY + 1;
+    /**
+     * The type of a SET VARIABLE_BINARY statement.
+     */
+    public static final int DEFAULT_NULL_ORDERING = VARIABLE_BINARY + 1;
+
+    private static final int COUNT = DEFAULT_NULL_ORDERING + 1;
 
     private static final ArrayList<String> TYPES;
 
@@ -322,6 +327,7 @@ public class SetTypes {
         list.add("NON_KEYWORDS");
         list.add("TIME ZONE");
         list.add("VARIABLE_BINARY");
+        list.add("DEFAULT_NULL_ORDERING");
         TYPES = list;
     }
 

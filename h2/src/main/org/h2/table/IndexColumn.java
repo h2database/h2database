@@ -15,6 +15,11 @@ import org.h2.util.HasSQL;
 public class IndexColumn {
 
     /**
+     * Do not append ordering.
+     */
+    public static final int SQL_NO_ORDER = 0x8000_0000;
+
+    /**
      * The column name.
      */
     public final String columnName;
@@ -88,6 +93,19 @@ public class IndexColumn {
     }
 
     /**
+     * Creates a new instance with the specified name.
+     *
+     * @param columnName
+     *            the column name
+     * @param sortType
+     *            the sort type
+     */
+    public IndexColumn(String columnName, int sortType) {
+        this.columnName = columnName;
+        this.sortType = sortType;
+    }
+
+    /**
      * Creates a new instance with the specified column.
      *
      * @param column
@@ -108,7 +126,10 @@ public class IndexColumn {
      * @return the specified string builder
      */
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        SortOrder.typeToString(column.getSQL(builder, sqlFlags), sortType);
+        column.getSQL(builder, sqlFlags);
+        if ((sqlFlags & SQL_NO_ORDER) == 0) {
+            SortOrder.typeToString(builder, sortType);
+        }
         return builder;
     }
 

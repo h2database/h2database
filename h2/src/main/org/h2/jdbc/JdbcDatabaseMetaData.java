@@ -20,6 +20,7 @@ import org.h2.jdbc.meta.DatabaseMetaLegacy;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
+import org.h2.mode.DefaultNullOrdering;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.value.TypeInfo;
@@ -370,58 +371,67 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     }
 
     /**
-     * Checks if NULL is sorted high (bigger than anything that is not null).
+     * Checks if NULL values are sorted high (bigger than anything that is not
+     * null).
      *
-     * @return false by default; true if the system property h2.sortNullsHigh is
-     *         set to true
+     * @return if NULL values are sorted high
      */
     @Override
     public boolean nullsAreSortedHigh() throws SQLException {
         try {
             debugCodeCall("nullsAreSortedHigh");
-            return meta.nullsAreSortedHigh();
+            return meta.defaultNullOrdering() == DefaultNullOrdering.HIGH;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
 
     /**
-     * Checks if NULL is sorted low (smaller than anything that is not null).
+     * Checks if NULL values are sorted low (smaller than anything that is not
+     * null).
      *
-     * @return true by default; false if the system property h2.sortNullsHigh is
-     *         set to true
+     * @return if NULL values are sorted low
      */
     @Override
     public boolean nullsAreSortedLow() throws SQLException {
         try {
             debugCodeCall("nullsAreSortedLow");
-            return !meta.nullsAreSortedHigh();
+            return meta.defaultNullOrdering() == DefaultNullOrdering.LOW;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
 
     /**
-     * Checks if NULL is sorted at the beginning (no matter if ASC or DESC is
-     * used).
+     * Checks if NULL values are sorted at the beginning (no matter if ASC or
+     * DESC is used).
      *
-     * @return false
+     * @return if NULL values are sorted at the beginning
      */
     @Override
-    public boolean nullsAreSortedAtStart() {
-        debugCodeCall("nullsAreSortedAtStart");
-        return false;
+    public boolean nullsAreSortedAtStart() throws SQLException {
+        try {
+            debugCodeCall("nullsAreSortedAtStart");
+            return meta.defaultNullOrdering() == DefaultNullOrdering.FIRST;
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
-     * Checks if NULL is sorted at the end (no matter if ASC or DESC is used).
+     * Checks if NULL values are sorted at the end (no matter if ASC or DESC is
+     * used).
      *
-     * @return false
+     * @return if NULL values are sorted at the end
      */
     @Override
-    public boolean nullsAreSortedAtEnd() {
-        debugCodeCall("nullsAreSortedAtEnd");
-        return false;
+    public boolean nullsAreSortedAtEnd() throws SQLException {
+        try {
+            debugCodeCall("nullsAreSortedAtEnd");
+            return meta.defaultNullOrdering() == DefaultNullOrdering.LAST;
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**

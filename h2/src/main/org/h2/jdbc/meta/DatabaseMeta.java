@@ -5,6 +5,7 @@
  */
 package org.h2.jdbc.meta;
 
+import org.h2.mode.DefaultNullOrdering;
 import org.h2.result.ResultInterface;
 
 /**
@@ -16,8 +17,11 @@ public abstract class DatabaseMeta {
      * INTERNAL
      *
      * @see java.sql.DatabaseMetaData#nullsAreSortedHigh()
+     * @see java.sql.DatabaseMetaData#nullsAreSortedLow()
+     * @see java.sql.DatabaseMetaData#nullsAreSortedAtStart()
+     * @see java.sql.DatabaseMetaData#nullsAreSortedAtEnd()
      */
-    public abstract boolean nullsAreSortedHigh();
+    public abstract DefaultNullOrdering defaultNullOrdering();
 
     /**
      * INTERNAL

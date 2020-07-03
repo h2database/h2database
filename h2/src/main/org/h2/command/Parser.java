@@ -1507,14 +1507,12 @@ public class Parser {
     private IndexColumn[] parseIndexColumnList() {
         ArrayList<IndexColumn> columns = Utils.newSmallArrayList();
         do {
-            IndexColumn column = new IndexColumn(readColumnIdentifier());
-            column.sortType = parseSortType();
-            columns.add(column);
+            columns.add(new IndexColumn(readColumnIdentifier(), parseSortType(true)));
         } while (readIfMore());
         return columns.toArray(new IndexColumn[0]);
     }
 
-    private int parseSortType() {
+    private int parseSortType(boolean addExplicitNullOrdering) {
         int sortType = !readIf("ASC") && readIf("DESC") ? SortOrder.DESCENDING : SortOrder.ASCENDING;
         if (readIf("NULLS")) {
             if (readIf("FIRST")) {
@@ -1523,6 +1521,8 @@ public class Parser {
                 read("LAST");
                 sortType |= SortOrder.NULLS_LAST;
             }
+        } else if (addExplicitNullOrdering) {
+            sortType = database.getDefaultNullOrdering().addExplicitNullOrdering(sortType);
         }
         return sortType;
     }
@@ -2823,7 +2823,7 @@ public class Parser {
                 } else {
                     order.expression = expr;
                 }
-                order.sortType = parseSortType();
+                order.sortType = parseSortType(false);
                 orderList.add(order);
             } while (readIf(COMMA));
             command.setOrder(orderList);
@@ -3753,7 +3753,7 @@ public class Parser {
         QueryOrderBy order = new QueryOrderBy();
         order.expression = expr;
         if (parseSortType) {
-            order.sortType = parseSortType();
+            order.sortType = parseSortType(false);
         }
         orderList.add(order);
         r.setOrderByList(orderList);
@@ -3778,7 +3778,7 @@ public class Parser {
     private QueryOrderBy parseSortSpecification() {
         QueryOrderBy order = new QueryOrderBy();
         order.expression = readExpression();
-        order.sortType = parseSortType();
+        order.sortType = parseSortType(false);
         return order;
     }
 
@@ -7349,7 +7349,14 @@ public class Parser {
             command.setSpatial(spatial);
             command.setIndexName(indexName);
             command.setComment(comment);
-            command.setIndexColumns(parseIndexColumnList());
+            IndexColumn[] columns;
+            if (spatial) {
+                columns = new IndexColumn[] { new IndexColumn(readColumnIdentifier()) };
+                read(CLOSE_PAREN);
+            } else {
+                columns = parseIndexColumnList();
+            }
+            command.setIndexColumns(columns);
             return command;
         }
     }
@@ -8522,6 +8529,11 @@ public class Parser {
                 } while (readIf(COMMA));
             }
             command.setStringArray(list.toArray(new String[0]));
+            return command;
+        } else if (readIf("DEFAULT_NULL_ORDERING")) {
+            readIfEqualOrTo();
+            Set command = new Set(session, SetTypes.DEFAULT_NULL_ORDERING);
+            command.setString(readAliasIdentifier());
             return command;
         } else {
             ModeEnum modeEnum = database.getMode().getEnum();
@@ -9743,7 +9755,8 @@ public class Parser {
         AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema,
                 CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY, false);
         pk.setTableName(tableName);
-        pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
+        pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName(),
+                session.getDatabase().getDefaultNullOrdering().getDefault()) });
         return pk;
     }
 
@@ -9771,7 +9784,8 @@ public class Parser {
                 pk.setConstraintName(constraintName);
                 pk.setPrimaryKeyHash(hash);
                 pk.setTableName(tableName);
-                pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
+                pk.setIndexColumns(new IndexColumn[] {
+                        new IndexColumn(column.getName(), database.getDefaultNullOrdering().getDefault()) });
                 command.addConstraintCommand(pk);
                 if (readIf("AUTO_INCREMENT")) {
                     parseAutoIncrement(column);
@@ -9789,7 +9803,8 @@ public class Parser {
                 AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema,
                         CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE, false);
                 unique.setConstraintName(constraintName);
-                unique.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
+                unique.setIndexColumns(new IndexColumn[] {
+                        new IndexColumn(column.getName(), database.getDefaultNullOrdering().getDefault()) });
                 unique.setTableName(tableName);
                 command.addConstraintCommand(unique);
             } else if (!hasNotNull
@@ -9811,8 +9826,8 @@ public class Parser {
                 AlterTableAddConstraint ref = new AlterTableAddConstraint(session, schema,
                         CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL, false);
                 ref.setConstraintName(constraintName);
-                IndexColumn[] cols = { new IndexColumn(column.getName()) };
-                ref.setIndexColumns(cols);
+                ref.setIndexColumns(new IndexColumn[] {
+                        new IndexColumn(column.getName(), database.getDefaultNullOrdering().getDefault()) });
                 ref.setTableName(tableName);
                 parseReferences(ref, schema, tableName);
                 command.addConstraintCommand(ref);

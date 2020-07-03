@@ -1011,12 +1011,13 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 return index != null;
             case PERCENTILE_CONT:
             case PERCENTILE_DISC:
-                return args[0].isConstant() && Percentile.getColumnIndex(orderByList.get(0).expression) != null;
+                return args[0].isConstant() && Percentile.getColumnIndex(select.getSession().getDatabase(),
+                        orderByList.get(0).expression) != null;
             case MEDIAN:
                 if (distinct) {
                     return false;
                 }
-                return Percentile.getColumnIndex(args[0]) != null;
+                return Percentile.getColumnIndex(select.getSession().getDatabase(), args[0]) != null;
             case ENVELOPE:
                 return AggregateDataEnvelope.getGeometryColumnIndex(args[0]) != null;
             default:

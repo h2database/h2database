@@ -884,7 +884,7 @@ Here is the list of currently supported modes and the differences to the regular
 
 <h3>DB2 Compatibility Mode</h3>
 <p>
-To use the IBM DB2 mode, use the database URL <code>jdbc:h2:~/test;MODE=DB2</code>
+To use the IBM DB2 mode, use the database URL <code>jdbc:h2:~/test;MODE=DB2;DEFAULT_NULL_ORDERING=HIGH</code>
 or the SQL statement <code>SET MODE DB2</code>.
 </p>
 <ul><li>For aliased columns, <code>ResultSetMetaData.getColumnName()</code>
@@ -898,7 +898,7 @@ or the SQL statement <code>SET MODE DB2</code>.
 
 <h3>Derby Compatibility Mode</h3>
 <p>
-To use the Apache Derby mode, use the database URL <code>jdbc:h2:~/test;MODE=Derby</code>
+To use the Apache Derby mode, use the database URL <code>jdbc:h2:~/test;MODE=Derby;DEFAULT_NULL_ORDERING=HIGH</code>
 or the SQL statement <code>SET MODE Derby</code>.
 </p>
 <ul><li>For aliased columns, <code>ResultSetMetaData.getColumnName()</code>
@@ -912,7 +912,7 @@ or the SQL statement <code>SET MODE Derby</code>.
 
 <h3>HSQLDB Compatibility Mode</h3>
 <p>
-To use the HSQLDB mode, use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code>
+To use the HSQLDB mode, use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB;DEFAULT_NULL_ORDERING=FIRST</code>
 or the SQL statement <code>SET MODE HSQLDB</code>.
 </p>
 <ul><li>Text can be concatenated using '+'.
@@ -978,7 +978,7 @@ This affects comparison using <code>=, LIKE, REGEXP</code>.
 
 <h3>Oracle Compatibility Mode</h3>
 <p>
-To use the Oracle mode, use the database URL <code>jdbc:h2:~/test;MODE=Oracle</code>
+To use the Oracle mode, use the database URL <code>jdbc:h2:~/test;MODE=Oracle;DEFAULT_NULL_ORDERING=HIGH</code>
 or the SQL statement <code>SET MODE Oracle</code>.
 </p>
 <ul><li>For aliased columns, <code>ResultSetMetaData.getColumnName()</code>
@@ -1001,7 +1001,8 @@ or the SQL statement <code>SET MODE Oracle</code>.
 
 <h3>PostgreSQL Compatibility Mode</h3>
 <p>
-To use the PostgreSQL mode, use the database URL <code>jdbc:h2:~/test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE</code>.
+To use the PostgreSQL mode, use the database URL
+<code>jdbc:h2:~/test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH</code>.
 Do not change value of DATABASE_TO_LOWER after creation of database.
 </p>
 <ul><li>For aliased columns, <code>ResultSetMetaData.getColumnName()</code>

@@ -89,7 +89,7 @@ public class ConstraintReferential extends Constraint {
         IndexColumn[] cols = columns;
         IndexColumn[] refCols = refColumns;
         builder.append(" FOREIGN KEY(");
-        IndexColumn.writeColumns(builder, cols, DEFAULT_SQL_FLAGS);
+        IndexColumn.writeColumns(builder, cols, IndexColumn.SQL_NO_ORDER);
         builder.append(')');
         if (internalIndex && indexOwner && forTable == this.table) {
             builder.append(" INDEX ");
@@ -103,7 +103,7 @@ public class ConstraintReferential extends Constraint {
             forRefTable.getSQL(builder, DEFAULT_SQL_FLAGS);
         }
         builder.append('(');
-        IndexColumn.writeColumns(builder, refCols, DEFAULT_SQL_FLAGS);
+        IndexColumn.writeColumns(builder, refCols, IndexColumn.SQL_NO_ORDER);
         builder.append(')');
         if (deleteAction != ConstraintActionType.RESTRICT) {
             builder.append(" ON DELETE ").append(deleteAction.getSqlName());
@@ -597,10 +597,10 @@ public class ConstraintReferential extends Constraint {
             return;
         }
         StringBuilder builder = new StringBuilder("SELECT 1 FROM (SELECT ");
-        IndexColumn.writeColumns(builder, columns, DEFAULT_SQL_FLAGS);
+        IndexColumn.writeColumns(builder, columns, IndexColumn.SQL_NO_ORDER);
         builder.append(" FROM ");
         table.getSQL(builder, DEFAULT_SQL_FLAGS).append(" WHERE ");
-        IndexColumn.writeColumns(builder, columns, " AND ", " IS NOT NULL ", DEFAULT_SQL_FLAGS);
+        IndexColumn.writeColumns(builder, columns, " AND ", " IS NOT NULL ", IndexColumn.SQL_NO_ORDER);
         builder.append(" ORDER BY ");
         IndexColumn.writeColumns(builder, columns, DEFAULT_SQL_FLAGS);
         builder.append(") C WHERE NOT EXISTS(SELECT 1 FROM ");
@@ -610,8 +610,8 @@ public class ConstraintReferential extends Constraint {
                 builder.append(" AND ");
             }
             builder.append("C.");
-            columns[i].getSQL(builder, DEFAULT_SQL_FLAGS).append('=').append("P.");
-            refColumns[i].getSQL(builder, DEFAULT_SQL_FLAGS);
+            columns[i].column.getSQL(builder, DEFAULT_SQL_FLAGS).append('=').append("P.");
+            refColumns[i].column.getSQL(builder, DEFAULT_SQL_FLAGS);
         }
         builder.append(')');
 

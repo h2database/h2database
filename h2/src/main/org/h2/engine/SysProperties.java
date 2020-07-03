@@ -392,15 +392,6 @@ public class SysProperties {
             Utils.getProperty("h2.sortUuidUnsigned", PREVIEW);
 
     /**
-     * System property <code>h2.sortNullsHigh</code> (default: false).<br />
-     * Invert the default sorting behavior for NULL, such that NULL
-     * is at the end of a result set in an ascending sort and at
-     * the beginning of a result set in a descending sort.
-     */
-    public static final boolean SORT_NULLS_HIGH =
-            Utils.getProperty("h2.sortNullsHigh", false);
-
-    /**
      * System property <code>h2.splitFileSizeShift</code> (default: 30).<br />
      * The maximum file size of a split file is 1L &lt;&lt; x.
      */

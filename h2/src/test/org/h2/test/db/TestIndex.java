@@ -156,18 +156,18 @@ public class TestIndex extends TestDb {
         stat.execute("create table test(id int primary key, name varchar)");
         testErrorMessage("PRIMARY", "KEY", " ON PUBLIC.TEST(ID)");
         stat.execute("create table test(id int, name varchar primary key)");
-        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(NAME)");
+        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(NAME NULLS FIRST)");
         stat.execute("create table test(id int, name varchar, primary key(id, name))");
-        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(ID, NAME)");
+        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(ID NULLS FIRST, NAME NULLS FIRST)");
         stat.execute("create table test(id int, name varchar, primary key(name, id))");
-        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(NAME, ID)");
+        testErrorMessage("PRIMARY_KEY_2 ON PUBLIC.TEST(NAME NULLS FIRST, ID NULLS FIRST)");
         stat.execute("create table test(id int, name int primary key)");
         testErrorMessage("PRIMARY", "KEY", " ON PUBLIC.TEST(NAME)");
         stat.execute("create table test(id int, name int, unique(name))");
-        testErrorMessage("CONSTRAINT_INDEX_2 ON PUBLIC.TEST(NAME)");
+        testErrorMessage("CONSTRAINT_INDEX_2 ON PUBLIC.TEST(NAME NULLS FIRST)");
         stat.execute("create table test(id int, name int, " +
                 "constraint abc unique(name, id))");
-        testErrorMessage("ABC_INDEX_2 ON PUBLIC.TEST(NAME, ID)");
+        testErrorMessage("ABC_INDEX_2 ON PUBLIC.TEST(NAME NULLS FIRST, ID NULLS FIRST)");
     }
 
     private void testErrorMessage(String... expected) throws SQLException {
@@ -200,7 +200,7 @@ public class TestIndex extends TestDb {
             // The format of the VALUES clause varies a little depending on the
             // type of the index, so just test that we're getting useful info
             // back.
-            assertContains(m, "IDX_TEST_NAME ON PUBLIC.TEST(NAME)");
+            assertContains(m, "IDX_TEST_NAME ON PUBLIC.TEST(NAME NULLS FIRST)");
             assertContains(m, "'Hello'");
         }
         stat.execute("drop table test");

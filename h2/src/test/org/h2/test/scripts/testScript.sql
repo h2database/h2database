@@ -473,11 +473,12 @@ drop table test;
 create table test(id int, constraint pk primary key(id), constraint x unique(id));
 > ok
 
-select constraint_name from information_schema.indexes where table_name = 'TEST';
+SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_NAME = 'TEST';
 > CONSTRAINT_NAME
 > ---------------
 > PK
-> rows: 1
+> X
+> rows: 2
 
 drop table test;
 > ok
@@ -488,7 +489,7 @@ create table parent(id int primary key);
 create table child(id int, parent_id int, constraint child_parent foreign key (parent_id) references parent(id));
 > ok
 
-select constraint_name from information_schema.indexes where table_name = 'CHILD';
+SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_NAME = 'CHILD';
 > CONSTRAINT_NAME
 > ---------------
 > CHILD_PARENT
@@ -2692,12 +2693,20 @@ alter table test add constraint nu unique(parent);
 alter table test add constraint fk foreign key(parent) references(id);
 > ok
 
-select TABLE_NAME, INDEX_NAME, ORDINAL_POSITION, COLUMN_NAME, INDEX_TYPE_NAME from INFORMATION_SCHEMA.INDEXES;
-> TABLE_NAME INDEX_NAME    ORDINAL_POSITION COLUMN_NAME INDEX_TYPE_NAME
-> ---------- ------------- ---------------- ----------- ---------------
-> TEST       NI            1                PARENT      INDEX
-> TEST       NU_INDEX_2    1                PARENT      UNIQUE INDEX
-> TEST       PRIMARY_KEY_2 1                ID          PRIMARY KEY
+SELECT TABLE_NAME, INDEX_NAME, INDEX_TYPE_NAME FROM INFORMATION_SCHEMA.INDEXES;
+> TABLE_NAME INDEX_NAME    INDEX_TYPE_NAME
+> ---------- ------------- ---------------
+> TEST       NI            INDEX
+> TEST       NU_INDEX_2    UNIQUE INDEX
+> TEST       PRIMARY_KEY_2 PRIMARY KEY
+> rows: 3
+
+SELECT TABLE_NAME, INDEX_NAME, ORDINAL_POSITION, COLUMN_NAME FROM INFORMATION_SCHEMA.INDEX_COLUMNS;
+> TABLE_NAME INDEX_NAME    ORDINAL_POSITION COLUMN_NAME
+> ---------- ------------- ---------------- -----------
+> TEST       NI            1                PARENT
+> TEST       NU_INDEX_2    1                PARENT
+> TEST       PRIMARY_KEY_2 1                ID
 > rows: 3
 
 select SEQUENCE_NAME, CURRENT_VALUE, INCREMENT, IS_GENERATED, REMARKS from INFORMATION_SCHEMA.SEQUENCES;

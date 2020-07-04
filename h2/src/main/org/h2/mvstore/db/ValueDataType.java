@@ -248,6 +248,10 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         }
         boolean aNull = a == ValueNull.INSTANCE;
         if (aNull || b == ValueNull.INSTANCE) {
+            /*
+             * Indexes with nullable values should have explicit null ordering,
+             * so default should not matter.
+             */
             return DefaultNullOrdering.LOW.compareNull(aNull, sortType);
         }
 

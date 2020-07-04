@@ -1565,6 +1565,8 @@ SET DEFAULT_LOCK_TIMEOUT 5000
 Changes the default ordering of NULL values.
 This setting affects new indexes without explicit NULLS FIRST or NULLS LAST columns,
 and ordering clauses of other commands without explicit null ordering.
+This setting doesn't affect ordering of NULL values inside ARRAY or ROW values
+(""ARRAY[NULL]"" is always considered as smaller than ""ARRAY[1]"" during sorting).
 
 LOW is the default one, NULL values are considered as smaller than other values during sorting.
 

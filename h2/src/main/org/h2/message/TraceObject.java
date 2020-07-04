@@ -182,8 +182,8 @@ public class TraceObject {
     protected void debugCodeAssign(String className, int newType, int newId,
             String value) {
         if (trace.isDebugEnabled()) {
-            trace.debugCode(className + " " + PREFIX[newType] +
-                    newId + " = " + getTraceObjectName() + "." + value + ";");
+            trace.debugCode(className + ' ' + PREFIX[newType] + newId + " = " + getTraceObjectName() + '.' + value
+                    + ';');
         }
     }
 
@@ -195,7 +195,7 @@ public class TraceObject {
      */
     protected void debugCodeCall(String methodName) {
         if (trace.isDebugEnabled()) {
-            trace.debugCode(getTraceObjectName() + "." + methodName + "();");
+            trace.debugCode(getTraceObjectName() + '.' + methodName + "();");
         }
     }
 
@@ -209,8 +209,7 @@ public class TraceObject {
      */
     protected void debugCodeCall(String methodName, long param) {
         if (trace.isDebugEnabled()) {
-            trace.debugCode(getTraceObjectName() + "." +
-                    methodName + "(" + param + ");");
+            trace.debugCode(getTraceObjectName() + '.' + methodName + '(' + param + ");");
         }
     }
 
@@ -224,8 +223,7 @@ public class TraceObject {
      */
     protected void debugCodeCall(String methodName, String param) {
         if (trace.isDebugEnabled()) {
-            trace.debugCode(getTraceObjectName() + "." +
-                    methodName + "(" + quote(param) + ");");
+            trace.debugCode(getTraceObjectName() + '.' + methodName + '(' + quote(param) + ");");
         }
     }
 
@@ -236,7 +234,7 @@ public class TraceObject {
      */
     protected void debugCode(String text) {
         if (trace.isDebugEnabled()) {
-            trace.debugCode(getTraceObjectName() + "." + text);
+            trace.debugCode(getTraceObjectName() + '.' + text);
         }
     }
 

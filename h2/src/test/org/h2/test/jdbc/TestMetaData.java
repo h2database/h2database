@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.mode.DefaultNullOrdering;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.value.DataType;
@@ -55,6 +56,7 @@ public class TestMetaData extends TestDb {
         testTypeInfo();
         testUDTs();
         testStatic();
+        testNullsAreSortedAt();
         testGeneral();
         testAllowLiteralsNone();
         testClientInfo();
@@ -610,10 +612,6 @@ public class TestMetaData extends TestDb {
         assertTrue(meta.isCatalogAtStart());
         assertFalse(meta.isReadOnly());
         assertTrue(meta.nullPlusNonNullIsNull());
-        assertFalse(meta.nullsAreSortedAtEnd());
-        assertFalse(meta.nullsAreSortedAtStart());
-        assertFalse(meta.nullsAreSortedHigh());
-        assertTrue(meta.nullsAreSortedLow());
         assertFalse(meta.othersDeletesAreVisible(
                 ResultSet.TYPE_FORWARD_ONLY));
         assertFalse(meta.othersDeletesAreVisible(
@@ -756,6 +754,30 @@ public class TestMetaData extends TestDb {
         assertFalse(meta.usesLocalFilePerTable());
         assertTrue(meta.usesLocalFiles());
         conn.close();
+    }
+
+    private void testNullsAreSortedAt() throws SQLException {
+        Connection conn = getConnection("metaData");
+        Statement stat = conn.createStatement();
+        DatabaseMetaData meta = conn.getMetaData();
+        testNullsAreSortedAt(meta, DefaultNullOrdering.LOW);
+        stat.execute("SET DEFAULT_NULL_ORDERING LOW");
+        testNullsAreSortedAt(meta, DefaultNullOrdering.LOW);
+        stat.execute("SET DEFAULT_NULL_ORDERING HIGH");
+        testNullsAreSortedAt(meta, DefaultNullOrdering.HIGH);
+        stat.execute("SET DEFAULT_NULL_ORDERING FIRST");
+        testNullsAreSortedAt(meta, DefaultNullOrdering.FIRST);
+        stat.execute("SET DEFAULT_NULL_ORDERING LAST");
+        testNullsAreSortedAt(meta, DefaultNullOrdering.LAST);
+        stat.execute("SET DEFAULT_NULL_ORDERING LOW");
+        conn.close();
+    }
+
+    private void testNullsAreSortedAt(DatabaseMetaData meta, DefaultNullOrdering ordering) throws SQLException {
+        assertEquals(ordering == DefaultNullOrdering.HIGH, meta.nullsAreSortedHigh());
+        assertEquals(ordering == DefaultNullOrdering.LOW, meta.nullsAreSortedLow());
+        assertEquals(ordering == DefaultNullOrdering.FIRST, meta.nullsAreSortedAtStart());
+        assertEquals(ordering == DefaultNullOrdering.LAST, meta.nullsAreSortedAtEnd());
     }
 
     private void testMore() throws SQLException {

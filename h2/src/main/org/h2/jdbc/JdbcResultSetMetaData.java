@@ -283,10 +283,10 @@ public class JdbcResultSetMetaData extends TraceObject implements
 
     /**
      * Checks if this column is signed.
-     * It always returns true.
+     * Returns true for numeric columns.
      *
      * @param column the column index (1,2,...)
-     * @return true
+     * @return true for numeric columns
      * @throws SQLException if the result set is closed or invalid
      */
     @Override
@@ -294,7 +294,7 @@ public class JdbcResultSetMetaData extends TraceObject implements
         try {
             debugCodeCall("isSigned", column);
             checkColumnIndex(column);
-            return true;
+            return DataType.isNumericType(result.getColumnType(--column).getValueType());
         } catch (Exception e) {
             throw logAndConvert(e);
         }

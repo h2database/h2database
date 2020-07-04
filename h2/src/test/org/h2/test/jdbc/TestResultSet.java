@@ -1591,6 +1591,8 @@ public class TestResultSet extends TestDb {
         assertEquals("INTERVAL YEAR", metaData.getColumnTypeName(1));
         assertEquals(Interval.class.getName(), metaData.getColumnClassName(1));
         assertEquals("INTERVAL '-111222333444555666' YEAR".length(), metaData.getColumnDisplaySize(1));
+        // Intervals are not numbers
+        assertFalse(metaData.isSigned(1));
     }
 
     private void testInterval8() throws SQLException {

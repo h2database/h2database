@@ -89,7 +89,7 @@ public class ConstraintReferential extends Constraint {
         IndexColumn[] cols = columns;
         IndexColumn[] refCols = refColumns;
         builder.append(" FOREIGN KEY(");
-        IndexColumn.writeColumns(builder, cols, IndexColumn.SQL_NO_ORDER);
+        IndexColumn.writeColumns(builder, cols, DEFAULT_SQL_FLAGS);
         builder.append(')');
         if (internalIndex && indexOwner && forTable == this.table) {
             builder.append(" INDEX ");
@@ -103,7 +103,7 @@ public class ConstraintReferential extends Constraint {
             forRefTable.getSQL(builder, DEFAULT_SQL_FLAGS);
         }
         builder.append('(');
-        IndexColumn.writeColumns(builder, refCols, IndexColumn.SQL_NO_ORDER);
+        IndexColumn.writeColumns(builder, refCols, DEFAULT_SQL_FLAGS);
         builder.append(')');
         if (deleteAction != ConstraintActionType.RESTRICT) {
             builder.append(" ON DELETE ").append(deleteAction.getSqlName());
@@ -548,22 +548,12 @@ public class ConstraintReferential extends Constraint {
     private void appendUpdate(StringBuilder builder) {
         builder.append("UPDATE ");
         table.getSQL(builder, DEFAULT_SQL_FLAGS).append(" SET ");
-        for (int i = 0, l = columns.length; i < l; i++) {
-            if (i > 0) {
-                builder.append(", ");
-            }
-            columns[i].column.getSQL(builder, DEFAULT_SQL_FLAGS).append("=?");
-        }
+        IndexColumn.writeColumns(builder, columns, ", ", "=?", IndexColumn.SQL_NO_ORDER);
     }
 
     private void appendWhere(StringBuilder builder) {
         builder.append(" WHERE ");
-        for (int i = 0, l = columns.length; i < l; i++) {
-            if (i > 0) {
-                builder.append(" AND ");
-            }
-            columns[i].column.getSQL(builder, DEFAULT_SQL_FLAGS).append("=?");
-        }
+        IndexColumn.writeColumns(builder, columns, " AND ", "=?", IndexColumn.SQL_NO_ORDER);
     }
 
     @Override

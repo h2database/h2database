@@ -99,13 +99,4 @@ public enum DefaultNullOrdering {
         }
     }
 
-    /**
-     * Return default sort type.
-     *
-     * @return default sort type
-     */
-    public int getDefault() {
-        return defaultAscNulls;
-    }
-
 }

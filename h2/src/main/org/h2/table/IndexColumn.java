@@ -7,6 +7,7 @@ package org.h2.table;
 
 import org.h2.result.SortOrder;
 import org.h2.util.HasSQL;
+import org.h2.util.ParserUtil;
 
 /**
  * This represents a column item of an index. This is required because some
@@ -126,7 +127,11 @@ public class IndexColumn {
      * @return the specified string builder
      */
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        column.getSQL(builder, sqlFlags);
+        if (column != null) {
+            column.getSQL(builder, sqlFlags);
+        } else {
+            ParserUtil.quoteIdentifier(builder, columnName, sqlFlags);
+        }
         if ((sqlFlags & SQL_NO_ORDER) == 0) {
             SortOrder.typeToString(builder, sortType);
         }

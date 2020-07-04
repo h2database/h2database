@@ -313,9 +313,7 @@ public class MVTable extends RegularTable {
     @Override
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             boolean create, String indexComment) {
-        if (indexType.isPrimaryKey()) {
-            setPrimaryKey(cols);
-        }
+        cols = prepareColumns(database, cols, indexType);
         boolean isSessionTemporary = isTemporary() && !isGlobalTemporary();
         if (!isSessionTemporary) {
             database.lockMeta(session);

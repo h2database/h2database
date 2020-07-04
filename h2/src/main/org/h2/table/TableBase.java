@@ -47,7 +47,7 @@ public abstract class TableBase extends Table {
             return SearchRow.ROWID_INDEX;
         }
         IndexColumn first = cols[0];
-        if (first.sortType != SortOrder.ASCENDING) {
+        if ((first.sortType & SortOrder.DESCENDING) != 0) {
             return SearchRow.ROWID_INDEX;
         }
         switch (first.column.getType().getValueType()) {

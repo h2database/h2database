@@ -44,6 +44,7 @@ import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.pagestore.PageStore;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
@@ -70,7 +71,6 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueSmallint;
 import org.h2.value.ValueToObjectConverter2;
 import org.h2.value.ValueVarchar;
 
@@ -135,7 +135,9 @@ public final class InformationSchemaTable extends MetaTable {
 
     private static final int INDEXES = ENUM_VALUES + 1;
 
-    private static final int IN_DOUBT = INDEXES + 1;
+    private static final int INDEX_COLUMNS = INDEXES + 1;
+
+    private static final int IN_DOUBT = INDEX_COLUMNS + 1;
 
     private static final int LOCKS = IN_DOUBT + 1;
 
@@ -705,20 +707,35 @@ public final class InformationSchemaTable extends MetaTable {
             setMetaTableName("INDEXES");
             isView = false;
             cols = createColumns(
+                    "INDEX_CATALOG",
+                    "INDEX_SCHEMA",
+                    "INDEX_NAME",
                     "TABLE_CATALOG",
                     "TABLE_SCHEMA",
                     "TABLE_NAME",
-                    "INDEX_NAME",
-                    "ORDINAL_POSITION SMALLINT",
-                    "COLUMN_NAME",
                     "INDEX_TYPE_NAME",
-                    "IS_GENERATED BIT",
+                    "IS_GENERATED BOOLEAN",
                     "REMARKS",
                     "SQL",
                     "ID INT",
-                    "SORT_TYPE INT",
-                    "CONSTRAINT_NAME",
                     "INDEX_CLASS"
+            );
+            indexColumnName = "TABLE_NAME";
+            break;
+        case INDEX_COLUMNS:
+            setMetaTableName("INDEX_COLUMNS");
+            isView = false;
+            cols = createColumns(
+                    "INDEX_CATALOG",
+                    "INDEX_SCHEMA",
+                    "INDEX_NAME",
+                    "TABLE_CATALOG",
+                    "TABLE_SCHEMA",
+                    "TABLE_NAME",
+                    "COLUMN_NAME",
+                    "ORDINAL_POSITION INT",
+                    "ORDERING_SPECIFICATION",
+                    "NULL_ORDERING"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -942,7 +959,10 @@ public final class InformationSchemaTable extends MetaTable {
             elementTypesFields(session, rows, catalog, ENUM_VALUES);
             break;
         case INDEXES:
-            indexes(session, indexFrom, indexTo, rows, catalog);
+            indexes(session, indexFrom, indexTo, rows, catalog, false);
+            break;
+        case INDEX_COLUMNS:
+            indexes(session, indexFrom, indexTo, rows, catalog, true);
             break;
         case IN_DOUBT:
             inDoubt(session, rows);
@@ -2437,84 +2457,116 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void indexes(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
-        // reduce the number of tables to scan - makes some metadata queries
-        // 10x faster
-        final ArrayList<Table> tablesToList;
+    private void indexes(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog,
+            boolean columns) {
         if (indexFrom != null && indexFrom.equals(indexTo)) {
             String tableName = indexFrom.getString();
             if (tableName == null) {
                 return;
             }
-            tablesToList = getTablesByName(session, tableName);
+            for (Table table : database.getTableOrViewByName(tableName)) {
+                indexes(session, indexFrom, indexTo, rows, catalog, columns, table);
+            }
+            Table temp = session.findLocalTempTable(tableName);
+            if (temp != null) {
+                indexes(session, indexFrom, indexTo, rows, catalog, columns, temp);
+            }
         } else {
-            tablesToList = getAllTables(session);
+            for (Schema schema : database.getAllSchemas()) {
+                for (Table table : schema.getAllTablesAndViews()) {
+                    indexes(session, indexFrom, indexTo, rows, catalog, columns, table);
+                }
+            }
+            for (Table table : session.getLocalTempTables()) {
+                indexes(session, indexFrom, indexTo, rows, catalog, columns, table);
+            }
         }
-        for (Table table : tablesToList) {
-            String tableName = table.getName();
-            if (!checkIndex(session, tableName, indexFrom, indexTo)) {
+    }
+
+    private void indexes(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog,
+            boolean columns, Table table) {
+        String tableName = table.getName();
+        if (!checkIndex(session, tableName, indexFrom, indexTo)) {
+            return;
+        }
+        if (hideTable(table, session)) {
+            return;
+        }
+        ArrayList<Index> indexes = table.getIndexes();
+        if (indexes == null) {
+            return;
+        }
+        for (Index index : indexes) {
+            if (index.getCreateSQL() == null) {
                 continue;
             }
-            if (hideTable(table, session)) {
-                continue;
+            if (columns) {
+                indexColumns(session, rows, catalog, table, tableName, index);
+            } else {
+                indexes(session, rows, catalog, table, tableName, index);
             }
-            ArrayList<Index> indexes = table.getIndexes();
-            ArrayList<Constraint> constraints = table.getConstraints();
-            for (int j = 0; indexes != null && j < indexes.size(); j++) {
-                Index index = indexes.get(j);
-                if (index.getCreateSQL() == null) {
-                    continue;
-                }
-                String constraintName = null;
-                for (int k = 0; constraints != null && k < constraints.size(); k++) {
-                    Constraint constraint = constraints.get(k);
-                    if (constraint.usesIndex(index)) {
-                        if (index.getIndexType().isPrimaryKey()) {
-                            if (constraint.getConstraintType() == Constraint.Type.PRIMARY_KEY) {
-                                constraintName = constraint.getName();
-                            }
-                        } else {
-                            constraintName = constraint.getName();
-                        }
-                    }
-                }
-                IndexColumn[] cols = index.getIndexColumns();
-                String indexClass = index.getClass().getName();
-                for (int k = 0; k < cols.length; k++) {
-                    IndexColumn idxCol = cols[k];
-                    Column column = idxCol.column;
-                    add(session, rows,
-                            // TABLE_CATALOG
-                            catalog,
-                            // TABLE_SCHEMA
-                            table.getSchema().getName(),
-                            // TABLE_NAME
-                            tableName,
-                            // INDEX_NAME
-                            index.getName(),
-                            // ORDINAL_POSITION
-                            ValueSmallint.get((short) (k + 1)),
-                            // COLUMN_NAME
-                            column.getName(),
-                            // INDEX_TYPE_NAME
-                            index.getIndexType().getSQL(),
-                            // IS_GENERATED
-                            ValueBoolean.get(index.getIndexType().getBelongsToConstraint()),
-                            // REMARKS
-                            index.getComment(),
-                            // SQL
-                            index.getCreateSQL(),
-                            // ID
-                            ValueInteger.get(index.getId()),
-                            // SORT_TYPE
-                            ValueInteger.get(idxCol.sortType),
-                            // CONSTRAINT_NAME
-                            constraintName,
-                            // INDEX_CLASS
-                            indexClass
-                        );
-                }
-            }
+        }
+    }
+
+    private void indexes(Session session, ArrayList<Row> rows, String catalog, Table table, String tableName,
+            Index index) {
+        add(session, rows,
+                // INDEX_CATALOG
+                catalog,
+                // INDEX_SCHEMA
+                index.getSchema().getName(),
+                // INDEX_NAME
+                index.getName(),
+                // TABLE_CATALOG
+                catalog,
+                // TABLE_SCHEMA
+                table.getSchema().getName(),
+                // TABLE_NAME
+                tableName,
+                // INDEX_TYPE_NAME
+                index.getIndexType().getSQL(),
+                // IS_GENERATED
+                ValueBoolean.get(index.getIndexType().getBelongsToConstraint()),
+                // REMARKS
+                index.getComment(),
+                // SQL
+                index.getCreateSQL(),
+                // ID
+                ValueInteger.get(index.getId()),
+                // INDEX_CLASS
+                index.getClass().getName()
+            );
+    }
+
+    private void indexColumns(Session session, ArrayList<Row> rows, String catalog, Table table,
+            String tableName, Index index) {
+        IndexColumn[] cols = index.getIndexColumns();
+        for (int i = 0, l = cols.length; i < l;) {
+            IndexColumn idxCol = cols[i];
+            int sortType = idxCol.sortType;
+            add(session, rows,
+                    // INDEX_CATALOG
+                    catalog,
+                    // INDEX_SCHEMA
+                    index.getSchema().getName(),
+                    // INDEX_NAME
+                    index.getName(),
+                    // TABLE_CATALOG
+                    catalog,
+                    // TABLE_SCHEMA
+                    table.getSchema().getName(),
+                    // TABLE_NAME
+                    tableName,
+                    // COLUMN_NAME
+                    idxCol.column.getName(),
+                    // ORDINAL_POSITION
+                    ValueInteger.get(++i),
+                    // ORDERING_SPECIFICATION
+                    (sortType & SortOrder.DESCENDING) == 0 ? "ASC" : "DESC",
+                    // NULL_ORDERING
+                    (sortType & SortOrder.NULLS_FIRST) != 0 ? "FIRST"
+                            : (sortType & SortOrder.NULLS_LAST) != 0 ? "LAST" : null
+                );
         }
     }
 
@@ -2795,6 +2847,7 @@ public final class InformationSchemaTable extends MetaTable {
                 add(session, rows, "property." + s, Utils.getProperty(s, ""));
             }
         }
+        add(session, rows, "DEFAULT_NULL_ORDERING", database.getDefaultNullOrdering().name());
         add(session, rows, "EXCLUSIVE", database.getExclusiveSession() == null ? "FALSE" : "TRUE");
         add(session, rows, "MODE", database.getMode().getName());
         add(session, rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));

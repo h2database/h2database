@@ -22,6 +22,7 @@ import org.h2.expression.TimeZoneOperation;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.mode.DefaultNullOrdering;
 import org.h2.result.ResultInterface;
 import org.h2.schema.Schema;
 import org.h2.security.auth.AuthenticatorFactory;
@@ -633,6 +634,19 @@ public class Set extends Prepared {
         case SetTypes.VARIABLE_BINARY:
             session.setVariableBinary(expression.getBooleanValue(session));
             break;
+        case SetTypes.DEFAULT_NULL_ORDERING: {
+            DefaultNullOrdering defaultNullOrdering;
+            try {
+                defaultNullOrdering = DefaultNullOrdering.valueOf(StringUtils.toUpperEnglish(stringValue));
+            } catch (RuntimeException e) {
+                throw DbException.getInvalidValueException("DEFAULT_NULL_ORDERING", stringValue);
+            }
+            if (database.getDefaultNullOrdering() != defaultNullOrdering) {
+                session.getUser().checkAdmin();
+                database.setDefaultNullOrdering(defaultNullOrdering);
+            }
+            break;
+        }
         default:
             DbException.throwInternalError("type="+type);
         }

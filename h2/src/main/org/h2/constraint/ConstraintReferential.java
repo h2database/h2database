@@ -548,22 +548,12 @@ public class ConstraintReferential extends Constraint {
     private void appendUpdate(StringBuilder builder) {
         builder.append("UPDATE ");
         table.getSQL(builder, DEFAULT_SQL_FLAGS).append(" SET ");
-        for (int i = 0, l = columns.length; i < l; i++) {
-            if (i > 0) {
-                builder.append(", ");
-            }
-            columns[i].column.getSQL(builder, DEFAULT_SQL_FLAGS).append("=?");
-        }
+        IndexColumn.writeColumns(builder, columns, ", ", "=?", IndexColumn.SQL_NO_ORDER);
     }
 
     private void appendWhere(StringBuilder builder) {
         builder.append(" WHERE ");
-        for (int i = 0, l = columns.length; i < l; i++) {
-            if (i > 0) {
-                builder.append(" AND ");
-            }
-            columns[i].column.getSQL(builder, DEFAULT_SQL_FLAGS).append("=?");
-        }
+        IndexColumn.writeColumns(builder, columns, " AND ", "=?", IndexColumn.SQL_NO_ORDER);
     }
 
     @Override
@@ -597,10 +587,10 @@ public class ConstraintReferential extends Constraint {
             return;
         }
         StringBuilder builder = new StringBuilder("SELECT 1 FROM (SELECT ");
-        IndexColumn.writeColumns(builder, columns, DEFAULT_SQL_FLAGS);
+        IndexColumn.writeColumns(builder, columns, IndexColumn.SQL_NO_ORDER);
         builder.append(" FROM ");
         table.getSQL(builder, DEFAULT_SQL_FLAGS).append(" WHERE ");
-        IndexColumn.writeColumns(builder, columns, " AND ", " IS NOT NULL ", DEFAULT_SQL_FLAGS);
+        IndexColumn.writeColumns(builder, columns, " AND ", " IS NOT NULL ", IndexColumn.SQL_NO_ORDER);
         builder.append(" ORDER BY ");
         IndexColumn.writeColumns(builder, columns, DEFAULT_SQL_FLAGS);
         builder.append(") C WHERE NOT EXISTS(SELECT 1 FROM ");
@@ -610,8 +600,8 @@ public class ConstraintReferential extends Constraint {
                 builder.append(" AND ");
             }
             builder.append("C.");
-            columns[i].getSQL(builder, DEFAULT_SQL_FLAGS).append('=').append("P.");
-            refColumns[i].getSQL(builder, DEFAULT_SQL_FLAGS);
+            columns[i].column.getSQL(builder, DEFAULT_SQL_FLAGS).append('=').append("P.");
+            refColumns[i].column.getSQL(builder, DEFAULT_SQL_FLAGS);
         }
         builder.append(')');
 

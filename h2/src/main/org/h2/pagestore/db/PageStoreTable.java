@@ -20,7 +20,6 @@ import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
-import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.util.MathUtils;
@@ -141,19 +140,9 @@ public class PageStoreTable extends RegularTable {
     }
 
     @Override
-    public Index addIndex(Session session, String indexName, int indexId,
-            IndexColumn[] cols, IndexType indexType, boolean create,
-            String indexComment) {
-        if (indexType.isPrimaryKey()) {
-            for (IndexColumn c : cols) {
-                Column column = c.column;
-                if (column.isNullable()) {
-                    throw DbException.get(
-                            ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
-                }
-                column.setPrimaryKey(true);
-            }
-        }
+    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
+            boolean create, String indexComment) {
+        cols = prepareColumns(database, cols, indexType);
         boolean isSessionTemporary = isTemporary() && !isGlobalTemporary();
         if (!isSessionTemporary) {
             database.lockMeta(session);

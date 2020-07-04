@@ -37,9 +37,9 @@ import org.h2.expression.condition.ConditionLocalAndGlobal;
 import org.h2.expression.function.CoalesceFunction;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
-import org.h2.index.IndexType;
 import org.h2.index.ViewIndex;
 import org.h2.message.DbException;
+import org.h2.mode.DefaultNullOrdering;
 import org.h2.result.LazyResult;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
@@ -620,8 +620,9 @@ public class Select extends Query {
         }
         ArrayList<Index> list = topTableFilter.getTable().getIndexes();
         if (list != null) {
-            int[] sortTypes = sort.getSortTypesWithNullPosition();
-            for (Index index : list) {
+            int[] sortTypes = sort.getSortTypesWithNullOrdering();
+            DefaultNullOrdering defaultNullOrdering = session.getDatabase().getDefaultNullOrdering();
+            loop: for (Index index : list) {
                 if (index.getCreateSQL() == null) {
                     // can't use the scan index
                     continue;
@@ -633,24 +634,21 @@ public class Select extends Query {
                 if (indexCols.length < sortCols.length) {
                     continue;
                 }
-                boolean ok = true;
                 for (int j = 0; j < sortCols.length; j++) {
                     // the index and the sort order must start
                     // with the exact same columns
                     IndexColumn idxCol = indexCols[j];
                     Column sortCol = sortCols[j];
                     if (idxCol.column != sortCol) {
-                        ok = false;
-                        break;
+                        continue loop;
                     }
-                    if (SortOrder.addExplicitNullPosition(idxCol.sortType) != sortTypes[j]) {
-                        ok = false;
-                        break;
+                    if (sortCol.isNullable()
+                            ? defaultNullOrdering.addExplicitNullOrdering(idxCol.sortType) != sortTypes[j]
+                            : (idxCol.sortType & SortOrder.DESCENDING) != (sortTypes[j] & SortOrder.DESCENDING)) {
+                        continue loop;
                     }
                 }
-                if (ok) {
-                    return index;
-                }
+                return index;
             }
         }
         if (sortCols.length == 1 && sortCols[0].getColumnId() == -1) {
@@ -1210,23 +1208,11 @@ public class Select extends Query {
                 if (columnIndex != null &&
                         selectivity != Constants.SELECTIVITY_DEFAULT &&
                         selectivity < 20) {
-                    // the first column must be ascending
-                    boolean ascending = columnIndex.
-                            getIndexColumns()[0].sortType == SortOrder.ASCENDING;
                     Index current = topTableFilter.getIndex();
                     // if another index is faster
-                    if (columnIndex.canFindNext() && ascending &&
-                            (current == null ||
-                            current.getIndexType().isScan() ||
-                            columnIndex == current)) {
-                        IndexType type = columnIndex.getIndexType();
-                        // hash indexes don't work, and unique single column
-                        // indexes don't work
-                        if (!type.isHash() && (!type.isUnique() ||
-                                columnIndex.getColumns().length > 1)) {
-                            topTableFilter.setIndex(columnIndex);
-                            isDistinctQuery = true;
-                        }
+                    if (current == null || current.getIndexType().isScan() || columnIndex == current) {
+                        topTableFilter.setIndex(columnIndex);
+                        isDistinctQuery = true;
                     }
                 }
             }

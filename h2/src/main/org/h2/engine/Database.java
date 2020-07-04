@@ -41,6 +41,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
+import org.h2.mode.DefaultNullOrdering;
 import org.h2.mode.PgCatalogTable;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
@@ -203,6 +204,7 @@ public class Database implements DataHandler, CastDataProvider {
     private final String accessModeData;
     private boolean referentialIntegrity = true;
     private Mode mode = Mode.getRegular();
+    private DefaultNullOrdering defaultNullOrdering = DefaultNullOrdering.LOW;
     private int maxOperationMemory =
             Constants.DEFAULT_MAX_OPERATION_MEMORY;
     private SmallLRUCache<String, String[]> lobFileListCache;
@@ -280,11 +282,19 @@ public class Database implements DataHandler, CastDataProvider {
             s = StringUtils.trim(s, true, true, "'");
             setEventListenerClass(s);
         }
-        String modeName = ci.removeProperty("MODE", null);
-        if (modeName != null) {
-            mode = Mode.getInstance(modeName);
+        s = ci.removeProperty("MODE", null);
+        if (s != null) {
+            mode = Mode.getInstance(s);
             if (mode == null) {
-                throw DbException.get(ErrorCode.UNKNOWN_MODE_1, modeName);
+                throw DbException.get(ErrorCode.UNKNOWN_MODE_1, s);
+            }
+        }
+        s = ci.removeProperty("DEFAULT_NULL_ORDERING", null);
+        if (s != null) {
+            try {
+                defaultNullOrdering = DefaultNullOrdering.valueOf(StringUtils.toUpperEnglish(s));
+            } catch (RuntimeException e) {
+                throw DbException.getInvalidValueException("DEFAULT_NULL_ORDERING", s);
             }
         }
         this.logMode =
@@ -2531,6 +2541,14 @@ public class Database implements DataHandler, CastDataProvider {
     @Override
     public Mode getMode() {
         return mode;
+    }
+
+    public void setDefaultNullOrdering(DefaultNullOrdering defaultNullOrdering) {
+        this.defaultNullOrdering = defaultNullOrdering;
+    }
+
+    public DefaultNullOrdering getDefaultNullOrdering() {
+        return defaultNullOrdering;
     }
 
     public void setMaxOperationMemory(int maxOperationMemory) {

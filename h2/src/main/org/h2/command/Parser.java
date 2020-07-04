@@ -1507,9 +1507,7 @@ public class Parser {
     private IndexColumn[] parseIndexColumnList() {
         ArrayList<IndexColumn> columns = Utils.newSmallArrayList();
         do {
-            IndexColumn column = new IndexColumn(readColumnIdentifier());
-            column.sortType = parseSortType();
-            columns.add(column);
+            columns.add(new IndexColumn(readColumnIdentifier(), parseSortType()));
         } while (readIfMore());
         return columns.toArray(new IndexColumn[0]);
     }
@@ -1642,16 +1640,29 @@ public class Parser {
                 schemaName = readUniqueIdentifier();
             }
             buff.append("C.COLUMN_NAME FIELD, ");
-            buff.append(database.getSettings().oldInformationSchema
+            boolean oldInformationSchema = database.getSettings().oldInformationSchema;
+            buff.append(oldInformationSchema
                     ? "C.COLUMN_TYPE"
                     : "DATA_TYPE_SQL(?2, ?1, 'TABLE', C.DTD_IDENTIFIER)");
             buff.append(" TYPE, "
                     + "C.IS_NULLABLE \"NULL\", "
                     + "CASE (SELECT MAX(I.INDEX_TYPE_NAME) FROM "
-                    + "INFORMATION_SCHEMA.INDEXES I "
-                    + "WHERE I.TABLE_SCHEMA=C.TABLE_SCHEMA "
-                    + "AND I.TABLE_NAME=C.TABLE_NAME "
-                    + "AND I.COLUMN_NAME=C.COLUMN_NAME)"
+                    + "INFORMATION_SCHEMA.INDEXES I ");
+            if (!oldInformationSchema) {
+                buff.append("JOIN INFORMATION_SCHEMA.INDEX_COLUMNS IC ");
+            }
+            buff.append("WHERE I.TABLE_SCHEMA=C.TABLE_SCHEMA "
+                    + "AND I.TABLE_NAME=C.TABLE_NAME ");
+            if (oldInformationSchema) {
+                buff.append("AND I.COLUMN_NAME=C.COLUMN_NAME");
+            } else {
+                buff.append("AND IC.TABLE_SCHEMA=C.TABLE_SCHEMA "
+                        + "AND IC.TABLE_NAME=C.TABLE_NAME "
+                        + "AND IC.INDEX_SCHEMA=I.INDEX_SCHEMA "
+                        + "AND IC.INDEX_NAME=I.INDEX_NAME "
+                        + "AND IC.COLUMN_NAME=C.COLUMN_NAME");
+            }
+            buff.append(')'
                     + "WHEN 'PRIMARY KEY' THEN 'PRI' "
                     + "WHEN 'UNIQUE INDEX' THEN 'UNI' ELSE '' END `KEY`, "
                     + "COALESCE(COLUMN_DEFAULT, 'NULL') DEFAULT "
@@ -7349,7 +7360,14 @@ public class Parser {
             command.setSpatial(spatial);
             command.setIndexName(indexName);
             command.setComment(comment);
-            command.setIndexColumns(parseIndexColumnList());
+            IndexColumn[] columns;
+            if (spatial) {
+                columns = new IndexColumn[] { new IndexColumn(readColumnIdentifier()) };
+                read(CLOSE_PAREN);
+            } else {
+                columns = parseIndexColumnList();
+            }
+            command.setIndexColumns(columns);
             return command;
         }
     }
@@ -8522,6 +8540,11 @@ public class Parser {
                 } while (readIf(COMMA));
             }
             command.setStringArray(list.toArray(new String[0]));
+            return command;
+        } else if (readIf("DEFAULT_NULL_ORDERING")) {
+            readIfEqualOrTo();
+            Set command = new Set(session, SetTypes.DEFAULT_NULL_ORDERING);
+            command.setString(readAliasIdentifier());
             return command;
         } else {
             ModeEnum modeEnum = database.getMode().getEnum();
@@ -9811,8 +9834,7 @@ public class Parser {
                 AlterTableAddConstraint ref = new AlterTableAddConstraint(session, schema,
                         CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL, false);
                 ref.setConstraintName(constraintName);
-                IndexColumn[] cols = { new IndexColumn(column.getName()) };
-                ref.setIndexColumns(cols);
+                ref.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
                 ref.setTableName(tableName);
                 parseReferences(ref, schema, tableName);
                 command.addConstraintCommand(ref);

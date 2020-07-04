@@ -164,10 +164,10 @@ public class TestIndex extends TestDb {
         stat.execute("create table test(id int, name int primary key)");
         testErrorMessage("PRIMARY", "KEY", " ON PUBLIC.TEST(NAME)");
         stat.execute("create table test(id int, name int, unique(name))");
-        testErrorMessage("CONSTRAINT_INDEX_2 ON PUBLIC.TEST(NAME)");
+        testErrorMessage("CONSTRAINT_INDEX_2 ON PUBLIC.TEST(NAME NULLS FIRST)");
         stat.execute("create table test(id int, name int, " +
                 "constraint abc unique(name, id))");
-        testErrorMessage("ABC_INDEX_2 ON PUBLIC.TEST(NAME, ID)");
+        testErrorMessage("ABC_INDEX_2 ON PUBLIC.TEST(NAME NULLS FIRST, ID NULLS FIRST)");
     }
 
     private void testErrorMessage(String... expected) throws SQLException {
@@ -200,7 +200,7 @@ public class TestIndex extends TestDb {
             // The format of the VALUES clause varies a little depending on the
             // type of the index, so just test that we're getting useful info
             // back.
-            assertContains(m, "IDX_TEST_NAME ON PUBLIC.TEST(NAME)");
+            assertContains(m, "IDX_TEST_NAME ON PUBLIC.TEST(NAME NULLS FIRST)");
             assertContains(m, "'Hello'");
         }
         stat.execute("drop table test");

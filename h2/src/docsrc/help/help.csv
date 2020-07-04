@@ -1559,6 +1559,34 @@ This setting is persistent.
 SET DEFAULT_LOCK_TIMEOUT 5000
 "
 
+"Commands (Other)","SET DEFAULT_NULL_ORDERING","
+@h2@ SET DEFAULT_NULL_ORDERING { LOW | HIGH | FIRST | LAST }
+","
+Changes the default ordering of NULL values.
+This setting affects new indexes without explicit NULLS FIRST or NULLS LAST columns,
+and ordering clauses of other commands without explicit null ordering.
+This setting doesn't affect ordering of NULL values inside ARRAY or ROW values
+(""ARRAY[NULL]"" is always considered as smaller than ""ARRAY[1]"" during sorting).
+
+LOW is the default one, NULL values are considered as smaller than other values during sorting.
+
+With HIGH default ordering NULL values are considered as larger than other values during sorting.
+
+With FIRST default ordering NULL values are sorted before other values,
+no matter if ascending or descending order is used.
+
+WITH LAST default ordering NULL values are sorted after other values,
+no matter if ascending or descending order is used.
+
+This setting is not persistent, but indexes are persisted with explicit NULLS FIRST or NULLS LAST ordering
+and aren't affected by changes in this setting.
+Admin rights are required to execute this command, as it affects all connections.
+This command commits an open transaction in this connection.
+This setting can be appended to the database URL: ""jdbc:h2:./test;DEFAULT_NULL_ORDERING=HIGH""
+","
+SET DEFAULT_NULL_ORDERING HIGH
+"
+
 "Commands (Other)","SET DEFAULT_TABLE_TYPE","
 @h2@ SET DEFAULT_TABLE_TYPE { MEMORY | CACHED }
 ","

@@ -173,7 +173,7 @@ class MVSortedTempResult extends MVTempResult {
             indexes = null;
         }
         this.indexes = indexes;
-        ValueDataType keyType = new ValueDataType(database, sortTypes);
+        ValueDataType keyType = new ValueDataType(database, SortOrder.addNullOrdering(database, sortTypes));
         Builder<ValueRow, Long> builder = new MVMap.Builder<ValueRow, Long>().keyType(keyType);
         map = store.openMap("tmp", builder);
         if (distinct && resultColumnCount != visibleColumnCount || distinctIndexes != null) {

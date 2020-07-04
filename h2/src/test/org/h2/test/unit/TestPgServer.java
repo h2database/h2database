@@ -327,8 +327,8 @@ public class TestPgServer extends TestDb {
 
         rs = stat.executeQuery("select pg_get_indexdef("+indexId+", 0, false)");
         rs.next();
-        assertEquals(
-                "CREATE INDEX \"public\".\"idx_test_name\" ON \"public\".\"test\"(\"name\", \"id\")",
+        assertEquals("CREATE INDEX \"public\".\"idx_test_name\" ON \"public\".\"test\""
+                + "(\"name\" NULLS LAST, \"id\" NULLS LAST)",
                 rs.getString(1));
         rs = stat.executeQuery("select pg_get_indexdef("+indexId+", null, false)");
         rs.next();
@@ -589,8 +589,6 @@ public class TestPgServer extends TestDb {
             return;
         }
 
-        Connection conn0 = DriverManager.getConnection(
-                "jdbc:h2:mem:pgserver;mode=postgresql;database_to_lower=true", "sa", "sa");
         Server server = createPgServer(
                 "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         try (
@@ -758,7 +756,6 @@ public class TestPgServer extends TestDb {
             }
         } finally {
             server.stop();
-            conn0.close();
         }
     }
 

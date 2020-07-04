@@ -213,7 +213,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         if (sortOrder != null && !isScanIndex) {
             boolean sortOrderMatches = true;
             int coveringCount = 0;
-            int[] sortTypes = sortOrder.getSortTypes();
+            int[] sortTypes = sortOrder.getSortTypesWithNullOrdering();
             TableFilter tableFilter = filters == null ? null : filters[filter];
             for (int i = 0, len = sortTypes.length; i < len; i++) {
                 if (i >= indexColumns.length) {
@@ -363,9 +363,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
             return 0;
         }
         boolean aNull = a == ValueNull.INSTANCE;
-        boolean bNull = b == ValueNull.INSTANCE;
-        if (aNull || bNull) {
-            return SortOrder.compareNull(aNull, sortType);
+        if (aNull || b == ValueNull.INSTANCE) {
+            return table.getDatabase().getDefaultNullOrdering().compareNull(aNull, sortType);
         }
         int comp = table.compareValues(database, a, b);
         if ((sortType & SortOrder.DESCENDING) != 0) {

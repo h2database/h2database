@@ -7,12 +7,18 @@ package org.h2.table;
 
 import org.h2.result.SortOrder;
 import org.h2.util.HasSQL;
+import org.h2.util.ParserUtil;
 
 /**
  * This represents a column item of an index. This is required because some
  * indexes support descending sorted columns.
  */
 public class IndexColumn {
+
+    /**
+     * Do not append ordering.
+     */
+    public static final int SQL_NO_ORDER = 0x8000_0000;
 
     /**
      * The column name.
@@ -88,6 +94,19 @@ public class IndexColumn {
     }
 
     /**
+     * Creates a new instance with the specified name.
+     *
+     * @param columnName
+     *            the column name
+     * @param sortType
+     *            the sort type
+     */
+    public IndexColumn(String columnName, int sortType) {
+        this.columnName = columnName;
+        this.sortType = sortType;
+    }
+
+    /**
      * Creates a new instance with the specified column.
      *
      * @param column
@@ -108,7 +127,14 @@ public class IndexColumn {
      * @return the specified string builder
      */
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        SortOrder.typeToString(column.getSQL(builder, sqlFlags), sortType);
+        if (column != null) {
+            column.getSQL(builder, sqlFlags);
+        } else {
+            ParserUtil.quoteIdentifier(builder, columnName, sqlFlags);
+        }
+        if ((sqlFlags & SQL_NO_ORDER) == 0) {
+            SortOrder.typeToString(builder, sortType);
+        }
         return builder;
     }
 

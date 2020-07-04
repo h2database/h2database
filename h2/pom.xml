@@ -39,14 +39,14 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <asm.version>7.2</asm.version>
-    <jts.version>1.16.1</jts.version>
-    <junit.version>5.5.2</junit.version>
-    <lucene.version>8.2.0</lucene.version>
+    <asm.version>8.0.1</asm.version>
+    <jts.version>1.17.0</jts.version>
+    <junit.version>5.6.2</junit.version>
+    <lucene.version>8.5.2</lucene.version>
     <osgi.version>5.0.0</osgi.version>
-    <pgjdbc.version>42.2.8</pgjdbc.version>
+    <pgjdbc.version>42.2.14</pgjdbc.version>
     <servlet.version>4.0.1</servlet.version>
-    <slf4j.version>1.7.28</slf4j.version>
+    <slf4j.version>1.7.30</slf4j.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 

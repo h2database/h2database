@@ -33,33 +33,33 @@ import org.h2.build.doc.XMLParser;
  */
 public class Build extends BuildBase {
 
-    private static final String ASM_VERSION = "7.2";
+    private static final String ASM_VERSION = "8.0.1";
 
     private static final String ARGS4J_VERSION = "2.33";
 
-    private static final String DERBY_VERSION = "10.15.1.3";
+    private static final String DERBY_VERSION = "10.15.2.0";
 
-    private static final String HSQLDB_VERSION = "2.5.0";
+    private static final String HSQLDB_VERSION = "2.5.1";
 
     private static final String JACOCO_VERSION = "0.8.5";
 
-    private static final String JTS_VERSION = "1.16.1";
+    private static final String JTS_VERSION = "1.17.0";
 
-    private static final String JUNIT_VERSION = "5.5.2";
+    private static final String JUNIT_VERSION = "5.6.2";
 
-    private static final String LUCENE_VERSION = "8.2.0";
+    private static final String LUCENE_VERSION = "8.5.2";
 
-    private static final String MYSQL_CONNECTOR_VERSION = "8.0.18";
+    private static final String MYSQL_CONNECTOR_VERSION = "8.0.20";
 
     private static final String OSGI_VERSION = "5.0.0";
 
-    private static final String PGJDBC_VERSION = "42.2.8";
+    private static final String PGJDBC_VERSION = "42.2.14";
 
-    private static final String PGJDBC_HASH = "6f394c7df5600d11b221f356ff020440d2ece44f";
+    private static final String PGJDBC_HASH = "45fa6eef266aa80024ef2ab3688d9faa38c642e5";
 
     private static final String SERVLET_VERSION = "4.0.1";
 
-    private static final String SLF4J_VERSION = "1.7.28";
+    private static final String SLF4J_VERSION = "1.7.30";
 
     private boolean filesMissing;
 
@@ -79,24 +79,24 @@ public class Build extends BuildBase {
     public void benchmark() {
         downloadUsingMaven("ext/hsqldb-" + HSQLDB_VERSION + ".jar",
                 "org.hsqldb", "hsqldb", HSQLDB_VERSION,
-                "59298fcd77faf01e02b405def2f80cccbf582508");
+                "b1f720a63a8756867895cc22dd74b51fb70e90ac");
         downloadUsingMaven("ext/derby-" + DERBY_VERSION,
                 "org.apache.derby", "derby", DERBY_VERSION,
-                "79505f952a4f8d6be761413d7b10a64d6405e57a");
+                "b64da6681994f33ba5783ffae55cdb44885b9e70");
         downloadUsingMaven("ext/derbyclient-" + DERBY_VERSION + ".jar",
                 "org.apache.derby", "derbyclient", DERBY_VERSION,
-                "9a08ac1b0b547ca436c85799926b2459d48b2402");
+                "60ad423e9d7acba99a13b8684927206e94c31e03");
         downloadUsingMaven("ext/derbynet-" + DERBY_VERSION + ".jar",
                 "org.apache.derby", "derbynet", DERBY_VERSION,
-                "6e15859b3bb1e654f417f1a498fc2a6e76fa8e80");
+                "072c8fb0870227477b64edb2d7a5eccdac5de2af");
         downloadUsingMaven("ext/derbyshared-" + DERBY_VERSION + ".jar",
                 "org.apache.derby", "derbyshared", DERBY_VERSION,
-                "c7fb80babe6a671f0a5e4d0c9ad96dfb723df49d");
+                "ff2dfb3e2a92d593cf111baad242d156947abbc1");
         downloadUsingMaven("ext/postgresql-" + PGJDBC_VERSION + ".jar",
                 "org.postgresql", "postgresql", PGJDBC_VERSION, PGJDBC_HASH);
         downloadUsingMaven("ext/mysql-connector-java-" + MYSQL_CONNECTOR_VERSION + ".jar",
                 "mysql", "mysql-connector-java", MYSQL_CONNECTOR_VERSION,
-                "e088efaa4b568bc7d9f7274b9c5ea1a00da1a45c");
+                "d8d388e71c823570662a45dd33f4284141921280");
         compile();
 
         String cp = "temp" +
@@ -182,10 +182,10 @@ public class Build extends BuildBase {
                 "421e4aab2aaa809d1e66a96feb11f61ea698da19");
         downloadUsingMaven("ext/asm-commons-" + ASM_VERSION + ".jar",
                 "org.ow2.asm", "asm-commons", ASM_VERSION,
-                "ca2954e8d92a05bacc28ff465b25c70e0f512497");
+                "019c7ba355f0737815205518e332a8dc08b417c6");
         downloadUsingMaven("ext/asm-tree-" + ASM_VERSION + ".jar",
                 "org.ow2.asm", "asm-tree", ASM_VERSION,
-                "3a23cc36edaf8fc5a89cb100182758ccb5991487");
+                "dfcad5abbcff36f8bdad5647fe6f4972e958ad59");
         downloadUsingMaven("ext/args4j-" + ARGS4J_VERSION + ".jar",
                 "args4j", "args4j", ARGS4J_VERSION,
                 "bd87a75374a6d6523de82fef51fc3cfe9baf9fc9");
@@ -381,16 +381,16 @@ public class Build extends BuildBase {
                 "a27082684a2ff0bf397666c3943496c44541d1ca", offline);
         downloadOrVerify("ext/lucene-core-" + LUCENE_VERSION + ".jar",
                 "org/apache/lucene", "lucene-core", LUCENE_VERSION,
-                "f6da40436d3633de272810fae1e339c237adfcf6", offline);
+                "b275ca5f39b6dd45d5a7ecb49da65205ad2732ca", offline);
         downloadOrVerify("ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar",
                 "org/apache/lucene", "lucene-analyzers-common", LUCENE_VERSION,
-                "8e8abc90572ed74b110c75b546c675153aecc570", offline);
+                "2c4a7e8583e2061aa35db85705393b8b6e67a679", offline);
         downloadOrVerify("ext/lucene-queryparser-" + LUCENE_VERSION + ".jar",
                 "org/apache/lucene", "lucene-queryparser", LUCENE_VERSION,
-                "8925df7b104e78e308e236ff0740a064dd93cadd", offline);
+                "96a104be314d0adaac163635610da8dfc5e4166e", offline);
         downloadOrVerify("ext/slf4j-api-" + SLF4J_VERSION + ".jar",
                 "org/slf4j", "slf4j-api", SLF4J_VERSION,
-                "2cd9b264f76e3d087ee21bfc99305928e1bdb443", offline);
+                "b5a4b6d16ab13e34a88fae84c35cd5d68cac922c", offline);
         downloadOrVerify("ext/org.osgi.core-" + OSGI_VERSION + ".jar",
                 "org/osgi", "org.osgi.core", OSGI_VERSION,
                 "6e5e8cd3c9059c08e1085540442a490b59a7783c", offline);
@@ -399,13 +399,13 @@ public class Build extends BuildBase {
                 "4f6e081c38b951204e2b6a60d33ab0a90bfa1ad3", offline);
         downloadOrVerify("ext/jts-core-" + JTS_VERSION + ".jar",
                 "org/locationtech/jts", "jts-core", JTS_VERSION,
-                "c4922e3566568f49a9219b9f9ece9049ee994c50", offline);
+                "7e1973b5babdd98734b1ab903fc1155714402eec", offline);
         downloadOrVerify("ext/junit-jupiter-api-" + JUNIT_VERSION + ".jar",
                 "org.junit.jupiter", "junit-jupiter-api", JUNIT_VERSION,
-                "6393db7e4c0265152d8fc4ff146633d1a7d36c47", offline);
+                "c9ba885abfe975cda123bf6f8f0a69a1b46956d0", offline);
         downloadUsingMaven("ext/asm-" + ASM_VERSION + ".jar",
                 "org.ow2.asm", "asm", ASM_VERSION,
-                "fa637eb67eb7628c915d73762b681ae7ff0b9731");
+                "3f5199523fb95304b44563f5d56d9f5a07270669");
     }
 
     private void downloadOrVerify(String target, String group, String artifact,
@@ -433,7 +433,7 @@ public class Build extends BuildBase {
         // for TestTraceSystem
         downloadUsingMaven("ext/slf4j-nop-" + SLF4J_VERSION + ".jar",
                 "org/slf4j", "slf4j-nop", SLF4J_VERSION,
-                "e427e2f69d0a8508994e0a754a44d5212fa38b56");
+                "55d4c73dd343efebd236abfeb367c9ef41d55063");
     }
 
     private static String getVersion() {

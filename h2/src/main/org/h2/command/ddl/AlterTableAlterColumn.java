@@ -259,20 +259,20 @@ public class AlterTableAlterColumn extends CommandWithColumns {
     private void checkClustering(Column c) {
         if (!Constants.CLUSTERING_DISABLED
                 .equals(session.getDatabase().getCluster())
-                && c.isAutoIncrement()) {
+                && c.hasIdentityOptions()) {
             throw DbException.getUnsupportedException(
-                    "CLUSTERING && auto-increment columns");
+                    "CLUSTERING && identity columns");
         }
     }
 
     private void convertAutoIncrementColumn(Table table, Column c) {
-        if (c.isAutoIncrement()) {
+        if (c.hasIdentityOptions()) {
             if (c.isPrimaryKey()) {
                 addConstraintCommand(
                         Parser.newPrimaryKeyConstraintCommand(session, table.getSchema(), table.getName(), c));
             }
             int objId = getObjectId();
-            c.convertAutoIncrementToSequence(session, getSchema(), objId, table.isTemporary());
+            c.initializeSequence(session, getSchema(), objId, table.isTemporary());
         }
     }
 

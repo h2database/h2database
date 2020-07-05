@@ -1184,7 +1184,7 @@ This command is faster than DELETE without where clause.
 Only regular data tables without foreign key constraints can be truncated
 (except if referential integrity is disabled for this database or for this table).
 Linked tables can't be truncated.
-If RESTART IDENTITY is specified next values for auto-incremented columns are restarted.
+If RESTART IDENTITY is specified next values for identity columns are restarted.
 
 This command commits an open transaction in this connection.
 ","

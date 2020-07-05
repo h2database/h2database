@@ -98,11 +98,11 @@ public abstract class CommandWithColumns extends SchemaCommand {
         ArrayList<Sequence> sequences = new ArrayList<>(columns == null ? 0 : columns.size());
         if (columns != null) {
             for (Column c : columns) {
-                if (c.isAutoIncrement()) {
+                if (c.hasIdentityOptions()) {
                     int objId = session.getDatabase().allocateObjectId();
-                    c.convertAutoIncrementToSequence(session, getSchema(), objId, temporary);
+                    c.initializeSequence(session, getSchema(), objId, temporary);
                     if (!Constants.CLUSTERING_DISABLED.equals(session.getDatabase().getCluster())) {
-                        throw DbException.getUnsupportedException("CLUSTERING && auto-increment columns");
+                        throw DbException.getUnsupportedException("CLUSTERING && identity columns");
                     }
                 }
                 Sequence seq = c.getSequence();

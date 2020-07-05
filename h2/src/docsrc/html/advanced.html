@@ -447,7 +447,7 @@ MEMORY_FREE(), MEMORY_USED(), CSVREAD(), CSVWRITE(), RAND()</code> [when not usi
 Those functions should not be used directly in modifying statements
 (for example <code>INSERT, UPDATE, MERGE</code>). However, they can be used
 in read-only statements and the result can then be used for modifying statements.
-Using auto-increment and identity columns is currently not supported.
+Identity columns aren't supported.
 Instead, sequence values need to be manually requested and then used to insert data (using two statements).
 </p>
 <p>

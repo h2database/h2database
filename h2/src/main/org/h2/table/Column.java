@@ -68,7 +68,7 @@ public class Column implements HasSQL, Typed {
     private boolean nullable = true;
     private Expression defaultExpression;
     private Expression onUpdateExpression;
-    private SequenceOptions autoIncrementOptions;
+    private SequenceOptions identityOptions;
     private boolean convertNullToDefault;
     private Sequence sequence;
     private boolean isGenerated;
@@ -424,8 +424,7 @@ public class Column implements HasSQL, Typed {
     }
 
     /**
-     * Convert the auto-increment flag to a sequence that is linked with this
-     * table.
+     * Initialize the sequence for this column.
      *
      * @param session the session
      * @param schema the schema where the sequence should be generated
@@ -433,23 +432,21 @@ public class Column implements HasSQL, Typed {
      * @param temporary true if the sequence is temporary and does not need to
      *            be stored
      */
-    public void convertAutoIncrementToSequence(Session session, Schema schema,
-            int id, boolean temporary) {
-        if (autoIncrementOptions == null) {
+    public void initializeSequence(Session session, Schema schema, int id, boolean temporary) {
+        if (identityOptions == null) {
             DbException.throwInternalError();
         }
         String sequenceName;
         do {
-            ValueUuid uuid = ValueUuid.getNewRandom();
-            String s = uuid.getString();
-            s = StringUtils.toUpperEnglish(s.replace('-', '_'));
-            sequenceName = "SYSTEM_SEQUENCE_" + s;
+            sequenceName = "SYSTEM_SEQUENCE_"
+                    + StringUtils.toUpperEnglish(ValueUuid.getNewRandom().getString().replace('-', '_'));
         } while (schema.findSequence(sequenceName) != null);
-        autoIncrementOptions.setDataType(type);
-        Sequence seq = new Sequence(session, schema, id, sequenceName, autoIncrementOptions, true);
+        identityOptions.setDataType(type);
+        Sequence seq = new Sequence(session, schema, id, sequenceName, identityOptions, true);
         seq.setTemporary(temporary);
         session.getDatabase().addSchemaObject(session, seq);
-        setAutoIncrementOptions(null);
+        // This method also ensures NOT NULL
+        setIdentityOptions(null);
         SequenceValue seqValue = new SequenceValue(seq, null);
         setDefaultExpression(session, seqValue);
         setSequence(seq);
@@ -562,31 +559,30 @@ public class Column implements HasSQL, Typed {
                 : domain != null ? domain.getColumn().getEffectiveOnUpdateExpression() : null;
     }
 
-    public boolean isAutoIncrement() {
-        return autoIncrementOptions != null;
+    public boolean hasIdentityOptions() {
+        return identityOptions != null;
     }
 
     /**
-     * Set the autoincrement flag and related options of this column.
+     * Set the identity options of this column.
      *
-     * @param sequenceOptions
-     *            sequence options, or {@code null} to reset the flag
+     * @param identityOptions
+     *            identity column options
      */
-    public void setAutoIncrementOptions(SequenceOptions sequenceOptions) {
-        this.autoIncrementOptions = sequenceOptions;
-        this.nullable = false;
-        if (sequenceOptions != null) {
-            convertNullToDefault = true;
-        }
+    public void setIdentityOptions(SequenceOptions identityOptions) {
+        this.identityOptions = identityOptions;
+        nullable = false;
+        convertNullToDefault = true;
     }
 
     /**
-     * Returns autoincrement options, or {@code null}.
+     * Returns identity column options, or {@code null} if sequence was already
+     * created or this column is not an identity column.
      *
-     * @return autoincrement options, or {@code null}
+     * @return identity column options, or {@code null}
      */
-    public SequenceOptions getAutoIncrementOptions() {
-        return autoIncrementOptions;
+    public SequenceOptions getIdentityOptions() {
+        return identityOptions;
     }
 
     public void setConvertNullToDefault(boolean convert) {
@@ -719,7 +715,7 @@ public class Column implements HasSQL, Typed {
         if (primaryKey != newColumn.primaryKey) {
             return false;
         }
-        if (autoIncrementOptions != null || newColumn.autoIncrementOptions != null) {
+        if (identityOptions != null || newColumn.identityOptions != null) {
             return false;
         }
         if (domain != newColumn.domain) {
@@ -754,7 +750,7 @@ public class Column implements HasSQL, Typed {
         nullable = source.nullable;
         defaultExpression = source.defaultExpression;
         onUpdateExpression = source.onUpdateExpression;
-        // autoIncrement, start, increment is not set
+        // identityOptions field is not set
         convertNullToDefault = source.convertNullToDefault;
         sequence = source.sequence;
         comment = source.comment;

@@ -6546,7 +6546,7 @@ public class Parser {
                     parseSequenceOptions(options, null, false, false);
                     read(CLOSE_PAREN);
                 }
-                column.setAutoIncrementOptions(options);
+                column.setIdentityOptions(options);
             } else if (!always || isIdentity) {
                 throw getSyntaxError();
             } else {
@@ -6604,7 +6604,7 @@ public class Parser {
             }
             read(CLOSE_PAREN);
         }
-        column.setAutoIncrementOptions(options);
+        column.setIdentityOptions(options);
     }
 
     private String readCommentIf() {
@@ -9149,7 +9149,7 @@ public class Parser {
             command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE);
             command.setOldColumn(column);
             Column newColumn = column.getClone();
-            newColumn.setAutoIncrementOptions(options);
+            newColumn.setIdentityOptions(options);
             command.setNewColumn(newColumn);
             return command;
         }
@@ -9841,7 +9841,7 @@ public class Parser {
             return;
         }
         Column column = parseColumnForTable(columnName, true);
-        if (column.isAutoIncrement() && column.isPrimaryKey()) {
+        if (column.hasIdentityOptions() && column.isPrimaryKey()) {
             command.addConstraintCommand(newPrimaryKeyConstraintCommand(session, schema, tableName, column));
         }
         command.addColumn(column);
@@ -9947,7 +9947,7 @@ public class Parser {
                             String columnName = ic.columnName;
                             for (Column column : command.getColumns()) {
                                 if (database.equalsIdentifiers(column.getName(), columnName)) {
-                                    SequenceOptions options = column.getAutoIncrementOptions();
+                                    SequenceOptions options = column.getIdentityOptions();
                                     if (options != null) {
                                         options.setStartValue(value);
                                         break set;

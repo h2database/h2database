@@ -622,7 +622,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     // SOURCE_DATA_TYPE
                     ValueNull.INSTANCE,
                     // IS_AUTOINCREMENT
-                    c.isAutoIncrement() ? YES : NO,
+                    c.getSequence() != null ? YES : NO,
                     // IS_GENERATEDCOLUMN
                     isGenerated ? YES : NO);
         }

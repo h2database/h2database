@@ -636,7 +636,6 @@ public class TestMVStoreConcurrent extends TestMVStore {
                             test.get(k);
                         }
                     }
-//                    FileUtils.delete(archiveName);
                     // let it compact
                     Thread.sleep(10);
                 }

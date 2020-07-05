@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.IntSupplier;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -142,7 +143,6 @@ public abstract class FileStore
     public FileStore() {
     }
 
-
     public void open(String fileName, boolean readOnly, char[] encryptionKey,
                      MVStore mvStore) {
         open(fileName, readOnly,
@@ -171,11 +171,25 @@ public abstract class FileStore
         scrubLayoutMap();
     }
 
-    public int getMetaMapId() {
+    public void bind(MVStore mvStore) {
+        if(this.mvStore != mvStore) {
+            layout = new MVMap<>(mvStore, 0, StringDataType.INSTANCE, StringDataType.INSTANCE);
+            this.mvStore = mvStore;
+            mvStore.resetLastMapId(lastChunk == null ? 0 : lastChunk.mapId);
+            mvStore.setCurrentVersion(lastChunkVersion());
+        }
+    }
+
+    public void close() {
+        chunks.clear();
+        mvStore = null;
+    }
+
+    public int getMetaMapId(IntSupplier nextIdSupplier) {
         String metaIdStr = layout.get(META_ID_KEY);
         int metaId;
         if (metaIdStr == null) {
-            metaId = mvStore.getNextMapId();
+            metaId = nextIdSupplier.getAsInt();
             layout.put(META_ID_KEY, Integer.toHexString(metaId));
         } else {
             metaId = DataUtils.parseHexInt(metaIdStr);
@@ -326,20 +340,6 @@ public abstract class FileStore
         }
     }
 
-    public void bind(MVStore mvStore) {
-        if(this.mvStore != mvStore) {
-            layout = new MVMap<>(mvStore, 0, StringDataType.INSTANCE, StringDataType.INSTANCE);
-            this.mvStore = mvStore;
-            mvStore.resetLastMapId(lastChunk == null ? 0 : lastChunk.mapId);
-            mvStore.setCurrentVersion(lastChunkVersion());
-        }
-    }
-
-    public void close() {
-        chunks.clear();
-        mvStore = null;
-    }
-
     public boolean hasPersitentData() {
         return lastChunk != null;
     }
@@ -349,7 +349,7 @@ public abstract class FileStore
         return chunk == null ? INITIAL_VERSION + 1 : chunk.version;
     }
 
-    public void setLastChunk(Chunk last) {
+    private void setLastChunk(Chunk last) {
         lastChunk = last;
         long curVersion = lastChunkVersion();
         chunks.clear();
@@ -507,7 +507,7 @@ public abstract class FileStore
         return storeHeader;
     }
 
-    public void initializeStoreHeader(long time) {
+    private void initializeStoreHeader(long time) {
         setLastChunk(null);
         creationTime = time;
         storeHeader.put(FileStore.HDR_H, 2);
@@ -671,11 +671,15 @@ public abstract class FileStore
 
 
     public void readStoreHeader(boolean recoveryMode) {
-        saveChunkLock.lock();
-        try {
-            _readStoreHeader(recoveryMode);
-        } finally {
-            saveChunkLock.unlock();
+        if (size() == 0) {
+            initializeStoreHeader(mvStore.getTimeAbsolute());
+        } else {
+            saveChunkLock.lock();
+            try {
+                _readStoreHeader(recoveryMode);
+            } finally {
+                saveChunkLock.unlock();
+            }
         }
     }
 
@@ -1057,7 +1061,7 @@ public abstract class FileStore
      * @param chunk to verify existence
      * @return true if Chunk exists in the file and is valid, false otherwise
      */
-    public boolean isValidChunk(Chunk chunk) {
+    private boolean isValidChunk(Chunk chunk) {
         return readChunkHeaderAndFooter(chunk.block, chunk.id) != null;
     }
 

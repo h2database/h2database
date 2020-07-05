@@ -238,6 +238,13 @@ public final class InformationSchemaTable extends MetaTable {
                     "DOMAIN_NAME",
                     "MAXIMUM_CARDINALITY INT",
                     "DTD_IDENTIFIER",
+                    "IS_IDENTITY",
+                    "IDENTITY_GENERATION",
+                    "IDENTITY_START BIGINT",
+                    "IDENTITY_INCREMENT BIGINT",
+                    "IDENTITY_MAXIMUM BIGINT",
+                    "IDENTITY_MINIMUM BIGINT",
+                    "IDENTITY_CYCLE",
                     "IS_GENERATED",
                     "GENERATION_EXPRESSION",
                     "DECLARED_DATA_TYPE",
@@ -246,6 +253,8 @@ public final class InformationSchemaTable extends MetaTable {
                     // extensions
                     "GEOMETRY_TYPE",
                     "GEOMETRY_SRID INT",
+                    "IDENTITY_CURRENT BIGINT",
+                    "IDENTITY_CACHE BIGINT",
                     "SELECTIVITY INT",
                     "SEQUENCE_NAME",
                     "REMARKS",
@@ -1122,8 +1131,36 @@ public final class InformationSchemaTable extends MetaTable {
             domainSchema = domain.getSchema().getName();
             domainName = domain.getName();
         }
-        boolean isGenerated = c.getGenerated();
+        String columnDefault, isGenerated, generationExpression;
+        if (c.getGenerated()) {
+            columnDefault = null;
+            isGenerated = "ALWAYS";
+            generationExpression = c.getDefaultSQL();
+        } else {
+            columnDefault = c.getDefaultSQL();
+            isGenerated = "NEVER";
+            generationExpression = null;
+        }
+        String isIdentity, identityGeneration, identityCycle, sequenceName;
+        Value identityStart, identityIncrement, identityMaximum, identityMinimum, identityCurrent, identityCache;
         Sequence sequence = c.getSequence();
+        if (sequence != null) {
+            isIdentity = "YES";
+            identityGeneration = "ALWAYS";
+            identityStart = ValueBigint.get(sequence.getStartValue());
+            identityIncrement = ValueBigint.get(sequence.getIncrement());
+            identityMaximum = ValueBigint.get(sequence.getMaxValue());
+            identityMinimum = ValueBigint.get(sequence.getMinValue());
+            identityCycle = sequence.getCycle() ? "YES" : "NO";
+            identityCurrent = ValueBigint.get(sequence.getCurrentValue());
+            identityCache = ValueBigint.get(sequence.getCacheSize());
+            sequenceName = sequence.getName();
+        } else {
+            isIdentity = "NO";
+            identityGeneration = identityCycle = sequenceName = null;
+            identityStart = identityIncrement = identityMaximum = identityMinimum = identityCurrent = identityCache
+                    = null;
+        }
         add(session, rows,
                 // TABLE_CATALOG
                 catalog,
@@ -1136,7 +1173,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // ORDINAL_POSITION
                 ValueInteger.get(ordinalPosition),
                 // COLUMN_DEFAULT
-                isGenerated ? null : c.getDefaultSQL(),
+                columnDefault,
                 // IS_NULLABLE
                 c.isNullable() ? "YES" : "NO",
                 // DATA_TYPE
@@ -1179,10 +1216,24 @@ public final class InformationSchemaTable extends MetaTable {
                 dt.maximumCardinality,
                 // DTD_IDENTIFIER
                 Integer.toString(ordinalPosition),
+                // IS_IDENTITY
+                isIdentity,
+                // IDENTITY_GENERATION
+                identityGeneration,
+                // IDENTITY_START
+                identityStart,
+                // IDENTITY_INCREMENT
+                identityIncrement,
+                // IDENTITY_MAXIMUM
+                identityMaximum,
+                // IDENTITY_MINIMUM
+                identityMinimum,
+                // IDENTITY_CYCLE
+                identityCycle,
                 // IS_GENERATED
-                isGenerated ? "ALWAYS" : "NEVER",
+                isGenerated,
                 // GENERATION_EXPRESSION
-                isGenerated ? c.getDefaultSQL() : null,
+                generationExpression,
                 // DECLARED_DATA_TYPE
                 dt.declaredDataType,
                 // DECLARED_NUMERIC_PRECISION INT
@@ -1194,10 +1245,14 @@ public final class InformationSchemaTable extends MetaTable {
                 dt.geometryType,
                 // GEOMETRY_SRID INT
                 dt.geometrySrid,
+                // IDENTITY_CURRENT BIGINT
+                identityCurrent,
+                // IDENTITY_CACHE BIGINT
+                identityCache,
                 // SELECTIVITY
                 ValueInteger.get(c.getSelectivity()),
                 // SEQUENCE_NAME
-                sequence == null ? null : sequence.getName(),
+                sequenceName,
                 // REMARKS
                 c.getComment(),
                 // COLUMN_ON_UPDATE

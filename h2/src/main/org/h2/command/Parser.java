@@ -9071,6 +9071,23 @@ public class Parser {
                 command.setDefaultExpression(null);
                 return command;
             }
+            if (readIf("IDENTITY")) {
+                if (column == null || column.getSequence() == null) {
+                    return new NoOperation(session);
+                }
+                AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
+                parseAlterColumnUsingIf(command);
+                command.setTableName(tableName);
+                command.setIfTableExists(ifTableExists);
+                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE);
+                command.setOldColumn(column);
+                Column newColumn = column.getClone();
+                newColumn.setSequence(null);
+                newColumn.setDefaultExpression(session, null);
+                newColumn.setConvertNullToDefault(false);
+                command.setNewColumn(newColumn);
+                return command;
+            }
             read(NOT);
             read(NULL);
             AlterTableAlterColumn command = new AlterTableAlterColumn(

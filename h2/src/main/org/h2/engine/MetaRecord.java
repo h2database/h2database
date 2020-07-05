@@ -54,7 +54,7 @@ public class MetaRecord implements Comparable<MetaRecord> {
         r.setValue(0, ValueInteger.get(obj.getId()));
         r.setValue(1, ValueInteger.get(0));
         r.setValue(2, ValueInteger.get(obj.getType()));
-        r.setValue(3, ValueVarchar.get(obj.getCreateSQL()));
+        r.setValue(3, ValueVarchar.get(obj.getCreateSQLForMeta()));
     }
 
     public MetaRecord(SearchRow r) {

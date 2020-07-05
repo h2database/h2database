@@ -416,7 +416,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         data.session = session;
         Table newTable = getSchema().createTable(data);
         newTable.setComment(table.getComment());
-        String newTableSQL = newTable.getCreateSQL();
+        String newTableSQL = newTable.getCreateSQLForMeta();
         StringBuilder columnList = new StringBuilder();
         for (Column nc : newColumns) {
             if (columnList.length() > 0) {

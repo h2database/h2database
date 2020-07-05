@@ -1130,19 +1130,13 @@ public final class InformationSchemaTable extends MetaTable {
             domainName = domain.getName();
         }
         String columnDefault, isGenerated, generationExpression;
-        if (c.getGenerated()) {
-            columnDefault = null;
-            isGenerated = "ALWAYS";
-            generationExpression = c.getDefaultSQL();
-        } else {
-            columnDefault = c.getDefaultSQL();
-            isGenerated = "NEVER";
-            generationExpression = null;
-        }
         String isIdentity, identityGeneration, identityCycle;
         Value identityStart, identityIncrement, identityMaximum, identityMinimum, identityCurrent, identityCache;
         Sequence sequence = c.getSequence();
         if (sequence != null) {
+            columnDefault = null;
+            isGenerated = "NEVER";
+            generationExpression = null;
             isIdentity = "YES";
             identityGeneration = "ALWAYS";
             identityStart = ValueBigint.get(sequence.getStartValue());
@@ -1153,6 +1147,15 @@ public final class InformationSchemaTable extends MetaTable {
             identityCurrent = ValueBigint.get(sequence.getCurrentValue());
             identityCache = ValueBigint.get(sequence.getCacheSize());
         } else {
+            if (c.getGenerated()) {
+                columnDefault = null;
+                isGenerated = "ALWAYS";
+                generationExpression = c.getDefaultSQL();
+            } else {
+                columnDefault = c.getDefaultSQL();
+                isGenerated = "NEVER";
+                generationExpression = null;
+            }
             isIdentity = "NO";
             identityGeneration = identityCycle = null;
             identityStart = identityIncrement = identityMaximum = identityMinimum = identityCurrent = identityCache

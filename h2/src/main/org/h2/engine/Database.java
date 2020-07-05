@@ -953,7 +953,7 @@ public class Database implements DataHandler, CastDataProvider {
                         MetaRecord rec = new MetaRecord(oldRow);
                         assert rec.getId() == obj.getId();
                         assert rec.getObjectType() == obj.getType();
-                        if (!rec.getSQL().equals(obj.getCreateSQL())) {
+                        if (!rec.getSQL().equals(obj.getCreateSQLForMeta())) {
                             meta.updateRow(session, oldRow, r);
                         }
                     }

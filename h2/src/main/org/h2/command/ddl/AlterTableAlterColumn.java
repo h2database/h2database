@@ -42,11 +42,12 @@ import org.h2.util.Utils;
  * ALTER TABLE ADD,
  * ALTER TABLE ADD IF NOT EXISTS,
  * ALTER TABLE ALTER COLUMN,
- * ALTER TABLE ALTER COLUMN RESTART,
  * ALTER TABLE ALTER COLUMN SELECTIVITY,
  * ALTER TABLE ALTER COLUMN SET DEFAULT,
- * ALTER TABLE ALTER COLUMN SET NOT NULL,
+ * ALTER TABLE ALTER COLUMN DROP DEFAULT,
+ * ALTER TABLE ALTER COLUMN DROP EXPRESSION,
  * ALTER TABLE ALTER COLUMN SET NULL,
+ * ALTER TABLE ALTER COLUMN DROP NULL,
  * ALTER TABLE ALTER COLUMN SET VISIBLE,
  * ALTER TABLE ALTER COLUMN SET INVISIBLE,
  * ALTER TABLE DROP COLUMN
@@ -148,15 +149,23 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             db.updateMeta(session, table);
             break;
         }
-        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT: {
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT:
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_EXPRESSION:  {
             if (oldColumn == null) {
                 break;
             }
-            Sequence sequence = oldColumn.getSequence();
-            checkDefaultReferencesTable(table, defaultExpression);
-            oldColumn.setSequence(null);
-            oldColumn.setDefaultExpression(session, defaultExpression);
-            removeSequence(table, sequence);
+            if (defaultExpression != null) {
+                Sequence sequence = oldColumn.getSequence();
+                checkDefaultReferencesTable(table, defaultExpression);
+                oldColumn.setSequence(null);
+                oldColumn.setDefaultExpression(session, defaultExpression);
+                removeSequence(table, sequence);
+            } else {
+                if (type == CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_EXPRESSION != oldColumn.getGenerated()) {
+                    break;
+                }
+                oldColumn.setDefaultExpression(session, null);
+            }
             db.updateMeta(session, table);
             break;
         }
@@ -164,8 +173,18 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             if (oldColumn == null) {
                 break;
             }
-            checkDefaultReferencesTable(table, defaultExpression);
-            oldColumn.setOnUpdateExpression(session, defaultExpression);
+            if (defaultExpression != null) {
+                if (oldColumn.getSequence() != null || oldColumn.getGenerated()) {
+                    break;
+                }
+                Sequence sequence = oldColumn.getSequence();
+                checkDefaultReferencesTable(table, defaultExpression);
+                oldColumn.setSequence(null);
+                oldColumn.setOnUpdateExpression(session, defaultExpression);
+                removeSequence(table, sequence);
+            } else {
+                oldColumn.setOnUpdateExpression(session, null);
+            }
             db.updateMeta(session, table);
             break;
         }

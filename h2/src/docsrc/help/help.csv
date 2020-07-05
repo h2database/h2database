@@ -498,6 +498,7 @@ ALTER COLUMN @h2@ [ IF EXISTS ] columnName
     | @h2@ { SELECTIVITY int }
     | { SET DEFAULT expression }
     | { DROP DEFAULT }
+    | DROP EXPRESSION
     | @h2@ { SET ON UPDATE expression }
     | @h2@ { DROP ON UPDATE }
     | { SET NOT NULL }
@@ -524,7 +525,10 @@ SET DEFAULT changes the default value of a column.
 
 DROP DEFAULT removes the default value of a column.
 
+DROP EXPRESSION converts generated column into base column.
+
 SET ON UPDATE changes the value that is set on update if value for this column is not specified in update statement.
+This command doesn't affect generated and identity columns.
 
 DROP ON UPDATE removes the value that is set on update of a column.
 

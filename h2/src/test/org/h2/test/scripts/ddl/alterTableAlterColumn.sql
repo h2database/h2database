@@ -557,3 +557,99 @@ TABLE TEST;
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(D INT DEFAULT 8, G INT GENERATED ALWAYS AS (D + 1), S INT GENERATED ALWAYS AS IDENTITY);
+> ok
+
+SELECT COLUMN_NAME, COLUMN_DEFAULT, IS_IDENTITY, IS_GENERATED, GENERATION_EXPRESSION
+    FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
+> COLUMN_NAME COLUMN_DEFAULT IS_IDENTITY IS_GENERATED GENERATION_EXPRESSION
+> ----------- -------------- ----------- ------------ ---------------------
+> D           8              NO          NEVER        null
+> G           null           NO          ALWAYS       "D" + 1
+> S           null           YES         NEVER        null
+> rows: 3
+
+ALTER TABLE TEST ALTER COLUMN D SET ON UPDATE 1;
+> ok
+
+ALTER TABLE TEST ALTER COLUMN G SET ON UPDATE 1;
+> ok
+
+ALTER TABLE TEST ALTER COLUMN S SET ON UPDATE 1;
+> ok
+
+SELECT COLUMN_NAME, COLUMN_DEFAULT, IS_IDENTITY, IS_GENERATED, GENERATION_EXPRESSION, COLUMN_ON_UPDATE
+    FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
+> COLUMN_NAME COLUMN_DEFAULT IS_IDENTITY IS_GENERATED GENERATION_EXPRESSION COLUMN_ON_UPDATE
+> ----------- -------------- ----------- ------------ --------------------- ----------------
+> D           8              NO          NEVER        null                  1
+> G           null           NO          ALWAYS       "D" + 1               null
+> S           null           YES         NEVER        null                  null
+> rows: 3
+
+ALTER TABLE TEST ALTER COLUMN D DROP ON UPDATE;
+> ok
+
+ALTER TABLE TEST ALTER COLUMN G DROP ON UPDATE;
+> ok
+
+ALTER TABLE TEST ALTER COLUMN S DROP ON UPDATE;
+> ok
+
+SELECT COLUMN_NAME, COLUMN_DEFAULT, IS_IDENTITY, IS_GENERATED, GENERATION_EXPRESSION, COLUMN_ON_UPDATE
+    FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
+> COLUMN_NAME COLUMN_DEFAULT IS_IDENTITY IS_GENERATED GENERATION_EXPRESSION COLUMN_ON_UPDATE
+> ----------- -------------- ----------- ------------ --------------------- ----------------
+> D           8              NO          NEVER        null                  null
+> G           null           NO          ALWAYS       "D" + 1               null
+> S           null           YES         NEVER        null                  null
+> rows: 3
+
+ALTER TABLE TEST ALTER COLUMN G DROP DEFAULT;
+> ok
+
+ALTER TABLE TEST ALTER COLUMN S DROP DEFAULT;
+> ok
+
+ALTER TABLE TEST ALTER COLUMN D DROP EXPRESSION;
+> ok
+
+ALTER TABLE TEST ALTER COLUMN S DROP EXPRESSION;
+> ok
+
+ALTER TABLE TEST ALTER COLUMN D DROP IDENTITY;
+> ok
+
+ALTER TABLE TEST ALTER COLUMN G DROP IDENTITY;
+> ok
+
+SELECT COLUMN_NAME, COLUMN_DEFAULT, IS_IDENTITY, IS_GENERATED, GENERATION_EXPRESSION
+    FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
+> COLUMN_NAME COLUMN_DEFAULT IS_IDENTITY IS_GENERATED GENERATION_EXPRESSION
+> ----------- -------------- ----------- ------------ ---------------------
+> D           8              NO          NEVER        null
+> G           null           NO          ALWAYS       "D" + 1
+> S           null           YES         NEVER        null
+> rows: 3
+
+ALTER TABLE TEST ALTER COLUMN D DROP DEFAULT;
+> ok
+
+ALTER TABLE TEST ALTER COLUMN G DROP EXPRESSION;
+> ok
+
+ALTER TABLE TEST ALTER COLUMN S DROP IDENTITY;
+> ok
+
+SELECT COLUMN_NAME, COLUMN_DEFAULT, IS_IDENTITY, IS_GENERATED, GENERATION_EXPRESSION
+    FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
+> COLUMN_NAME COLUMN_DEFAULT IS_IDENTITY IS_GENERATED GENERATION_EXPRESSION
+> ----------- -------------- ----------- ------------ ---------------------
+> D           null           NO          NEVER        null
+> G           null           NO          NEVER        null
+> S           null           NO          NEVER        null
+> rows: 3
+
+DROP TABLE TEST;
+> ok

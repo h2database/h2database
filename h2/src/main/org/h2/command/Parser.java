@@ -9053,13 +9053,11 @@ public class Parser {
             return command;
         } else if (readIf("DROP")) {
             if (readIf("DEFAULT")) {
-                AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
-                command.setTableName(tableName);
-                command.setIfTableExists(ifTableExists);
-                command.setOldColumn(column);
-                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
-                command.setDefaultExpression(null);
-                return command;
+                return getAlterTableAlterColumnDropDefaultExpression(schema, tableName, ifTableExists, column,
+                        CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
+            } else if (readIf("EXPRESSION")) {
+                return getAlterTableAlterColumnDropDefaultExpression(schema, tableName, ifTableExists, column,
+                        CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_EXPRESSION);
             }
             if (readIf(ON)) {
                 read("UPDATE");
@@ -9119,6 +9117,17 @@ public class Parser {
             return parseAlterTableAlterColumnSet(schema, tableName, ifTableExists, ifExists, columnName, column);
         }
         return parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists, ifExists, true);
+    }
+
+    private Prepared getAlterTableAlterColumnDropDefaultExpression(Schema schema, String tableName,
+            boolean ifTableExists, Column column, int type) {
+        AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
+        command.setTableName(tableName);
+        command.setIfTableExists(ifTableExists);
+        command.setOldColumn(column);
+        command.setType(type);
+        command.setDefaultExpression(null);
+        return command;
     }
 
     private Prepared parseAlterTableAlterColumnIdentity(Schema schema, String tableName, boolean ifTableExists,

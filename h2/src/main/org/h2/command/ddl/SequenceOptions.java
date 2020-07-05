@@ -13,6 +13,7 @@ import org.h2.message.DbException;
 import org.h2.schema.Sequence;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueNull;
 
 /**
@@ -38,6 +39,8 @@ public class SequenceOptions {
 
     private long[] bounds;
 
+    private final Sequence oldSequence;
+
     private static Long getLong(Session session, Expression expr) {
         if (expr != null) {
             Value value = expr.optimize(session).getValue(session);
@@ -48,8 +51,58 @@ public class SequenceOptions {
         return null;
     }
 
+    /**
+     * Creates new instance of sequence options.
+     */
+    public SequenceOptions() {
+        oldSequence = null;
+    }
+
+    /**
+     * Creates new instance of sequence options.
+     *
+     * @param oldSequence
+     *            the sequence to copy options from
+     * @param dataType
+     *            the new data type
+     */
+    public SequenceOptions(Sequence oldSequence, TypeInfo dataType) {
+        this.oldSequence = oldSequence;
+        this.dataType = dataType;
+        // Check data type correctness immediately
+        getBounds();
+    }
+
     public TypeInfo getDataType() {
+        if (oldSequence != null) {
+            synchronized (oldSequence) {
+                copyFromOldSequence();
+            }
+        }
         return dataType;
+    }
+
+    private void copyFromOldSequence() {
+        long bounds[] = getBounds();
+        long min = Math.max(oldSequence.getMinValue(), bounds[0]);
+        long max = Math.min(oldSequence.getMaxValue(), bounds[1]);
+        if (max < min) {
+            min = bounds[0];
+            max = bounds[1];
+        }
+        minValue = ValueExpression.get(ValueBigint.get(min));
+        maxValue = ValueExpression.get(ValueBigint.get(max));
+        long v = oldSequence.getStartValue();
+        if (v >= min && v <= max) {
+            start = ValueExpression.get(ValueBigint.get(v));
+        }
+        v = oldSequence.getCurrentValue();
+        if (v >= min && v <= max) {
+            restart = ValueExpression.get(ValueBigint.get(v));
+        }
+        increment = ValueExpression.get(ValueBigint.get(oldSequence.getIncrement()));
+        cycle = oldSequence.getCycle();
+        cacheSize = ValueExpression.get(ValueBigint.get(oldSequence.getCacheSize()));
     }
 
     public void setDataType(TypeInfo dataType) {

@@ -9491,11 +9491,19 @@ public class Parser {
             }
             Expression e = oldColumn.getDefaultExpression();
             if (e != null) {
-                newColumn.setDefaultExpression(session, e);
+                if (oldColumn.getGenerated()) {
+                    newColumn.setGeneratedExpression(e);
+                } else {
+                    newColumn.setDefaultExpression(session, e);
+                }
             }
             e = oldColumn.getOnUpdateExpression();
             if (e != null) {
                 newColumn.setOnUpdateExpression(session, e);
+            }
+            Sequence s = oldColumn.getSequence();
+            if (s != null) {
+                newColumn.setIdentityOptions(new SequenceOptions(s, newColumn.getType()));
             }
             String c = oldColumn.getComment();
             if (c != null) {

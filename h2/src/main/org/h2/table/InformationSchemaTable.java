@@ -1138,7 +1138,7 @@ public final class InformationSchemaTable extends MetaTable {
             isGenerated = "NEVER";
             generationExpression = null;
             isIdentity = "YES";
-            identityGeneration = "ALWAYS";
+            identityGeneration = c.isGeneratedAlways() ? "ALWAYS" : "BY DEFAULT";
             identityStart = ValueBigint.get(sequence.getStartValue());
             identityIncrement = ValueBigint.get(sequence.getIncrement());
             identityMaximum = ValueBigint.get(sequence.getMaxValue());
@@ -1147,7 +1147,7 @@ public final class InformationSchemaTable extends MetaTable {
             identityCurrent = ValueBigint.get(sequence.getCurrentValue());
             identityCache = ValueBigint.get(sequence.getCacheSize());
         } else {
-            if (c.getGenerated()) {
+            if (c.isGenerated()) {
                 columnDefault = null;
                 isGenerated = "ALWAYS";
                 generationExpression = c.getDefaultSQL();

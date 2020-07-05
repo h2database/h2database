@@ -875,7 +875,7 @@ public abstract class Table extends SchemaObjectBase {
         for (int i = 0; i < columns.length; i++) {
             Value value = row.getValue(i);
             Column column = columns[i];
-            if (column.getGenerated() && value != null) {
+            if (column.isGeneratedAlways() && value != null) {
                 throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
                         column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
             }

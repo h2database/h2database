@@ -157,11 +157,11 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             if (defaultExpression != null) {
                 Sequence sequence = oldColumn.getSequence();
                 checkDefaultReferencesTable(table, defaultExpression);
-                oldColumn.setSequence(null);
+                oldColumn.setSequence(null, false);
                 oldColumn.setDefaultExpression(session, defaultExpression);
                 removeSequence(table, sequence);
             } else {
-                if (type == CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_EXPRESSION != oldColumn.getGenerated()) {
+                if (type == CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_EXPRESSION != oldColumn.isGenerated()) {
                     break;
                 }
                 oldColumn.setDefaultExpression(session, null);
@@ -174,12 +174,12 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 break;
             }
             if (defaultExpression != null) {
-                if (oldColumn.getSequence() != null || oldColumn.getGenerated()) {
+                if (oldColumn.getSequence() != null || oldColumn.isGenerated()) {
                     break;
                 }
                 Sequence sequence = oldColumn.getSequence();
                 checkDefaultReferencesTable(table, defaultExpression);
-                oldColumn.setSequence(null);
+                oldColumn.setSequence(null, false);
                 oldColumn.setOnUpdateExpression(session, defaultExpression);
                 removeSequence(table, sequence);
             } else {
@@ -200,7 +200,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 oldColumn.copy(newColumn);
                 db.updateMeta(session, table);
             } else {
-                oldColumn.setSequence(null);
+                oldColumn.setSequence(null, false);
                 oldColumn.setDefaultExpression(session, null);
                 oldColumn.setConvertNullToDefault(false);
                 if (oldColumn.isNullable() && !newColumn.isNullable()) {
@@ -561,7 +561,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             Sequence seq = col.getSequence();
             if (seq != null) {
                 table.removeSequence(seq);
-                col.setSequence(null);
+                col.setSequence(null, false);
             }
         }
         for (String sql : triggers) {

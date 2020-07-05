@@ -6546,7 +6546,7 @@ public class Parser {
                     parseSequenceOptions(options, null, false, false);
                     read(CLOSE_PAREN);
                 }
-                column.setIdentityOptions(options);
+                column.setIdentityOptions(options, always);
             } else if (!always || isIdentity) {
                 throw getSyntaxError();
             } else {
@@ -6572,12 +6572,10 @@ public class Parser {
             column.setConvertNullToDefault(true);
         }
         if (readIf("SEQUENCE")) {
-            Sequence sequence = readSequence();
-            column.setSequence(sequence);
+            column.setSequence(readSequence(), column.isGeneratedAlways());
         }
         if (readIf("SELECTIVITY")) {
-            int value = readNonNegativeInt();
-            column.setSelectivity(value);
+            column.setSelectivity(readNonNegativeInt());
         }
         if (database.getMode().getEnum() == ModeEnum.MySQL) {
             if (readIf("CHARACTER")) {
@@ -6604,7 +6602,7 @@ public class Parser {
             }
             read(CLOSE_PAREN);
         }
-        column.setIdentityOptions(options);
+        column.setIdentityOptions(options, false);
     }
 
     private String readCommentIf() {
@@ -9080,7 +9078,7 @@ public class Parser {
                 command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE);
                 command.setOldColumn(column);
                 Column newColumn = column.getClone();
-                newColumn.setSequence(null);
+                newColumn.setSequence(null, false);
                 newColumn.setDefaultExpression(session, null);
                 newColumn.setConvertNullToDefault(false);
                 command.setNewColumn(newColumn);
@@ -9132,19 +9130,21 @@ public class Parser {
 
     private Prepared parseAlterTableAlterColumnIdentity(Schema schema, String tableName, boolean ifTableExists,
             boolean ifExists, String columnName, Column column) {
-        boolean identity = false;
         int index = lastParseIndex;
+        Boolean always = null;
         if (readIf("SET") && readIf("GENERATED")) {
-            if (!readIf("ALWAYS")) {
+            if (readIf("ALWAYS")) {
+                always = true;
+            } else {
                 read("BY");
                 read("DEFAULT");
+                always = false;
             }
-            identity = true;
         } else {
             reread(index);
         }
         SequenceOptions options = new SequenceOptions();
-        if (!parseSequenceOptions(options, null, false, true) && !identity) {
+        if (!parseSequenceOptions(options, null, false, true) && always == null) {
             return null;
         }
         if (column == null) {
@@ -9158,12 +9158,12 @@ public class Parser {
             command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE);
             command.setOldColumn(column);
             Column newColumn = column.getClone();
-            newColumn.setIdentityOptions(options);
+            newColumn.setIdentityOptions(options, always != null && always);
             command.setNewColumn(newColumn);
             return command;
         }
         AlterSequence command = new AlterSequence(session, schema);
-        command.setColumn(column);
+        command.setColumn(column, always);
         command.setOptions(options);
         return commandIfTableExists(schema, tableName, ifTableExists, command);
     }
@@ -9357,6 +9357,7 @@ public class Parser {
         if (mode.alterTableExtensionsMySQL) {
             if (readIf("AUTO_INCREMENT")) {
                 readIf(EQUAL);
+                Expression restart = readExpression();
                 Table table = tableIfTableExists(schema, tableName, ifTableExists);
                 if (table == null) {
                     return new NoOperation(session);
@@ -9366,7 +9367,12 @@ public class Parser {
                     for (IndexColumn ic : idx.getIndexColumns()) {
                         Column column = ic.column;
                         if (column.getSequence() != null) {
-                            return readAlterColumnRestartWith(schema, column, false);
+                            AlterSequence command = new AlterSequence(session, schema);
+                            command.setColumn(column, null);
+                            SequenceOptions options = new SequenceOptions();
+                            options.setRestartValue(restart);
+                            command.setOptions(options);
+                            return command;
                         }
                     }
                 }
@@ -9426,19 +9432,6 @@ public class Parser {
         throw getSyntaxError();
     }
 
-    private Prepared readAlterColumnRestartWith(Schema schema, Column column, boolean readWith) {
-        Expression restart = !readWith || readIf(WITH) ? readExpression() : ValueExpression.DEFAULT;
-        if (column == null) {
-            return new NoOperation(session);
-        }
-        AlterSequence command = new AlterSequence(session, schema);
-        command.setColumn(column);
-        SequenceOptions options = new SequenceOptions();
-        options.setRestartValue(restart);
-        command.setOptions(options);
-        return command;
-    }
-
     private Table tableIfTableExists(Schema schema, String tableName, boolean ifTableExists) {
         Table table = schema.resolveTableOrView(session, tableName);
         if (table == null && !ifTableExists) {
@@ -9491,7 +9484,7 @@ public class Parser {
             }
             Expression e = oldColumn.getDefaultExpression();
             if (e != null) {
-                if (oldColumn.getGenerated()) {
+                if (oldColumn.isGenerated()) {
                     newColumn.setGeneratedExpression(e);
                 } else {
                     newColumn.setDefaultExpression(session, e);
@@ -9503,7 +9496,8 @@ public class Parser {
             }
             Sequence s = oldColumn.getSequence();
             if (s != null) {
-                newColumn.setIdentityOptions(new SequenceOptions(s, newColumn.getType()));
+                newColumn.setIdentityOptions(new SequenceOptions(s, newColumn.getType()),
+                        oldColumn.isGeneratedAlways());
             }
             String c = oldColumn.getComment();
             if (c != null) {

@@ -212,7 +212,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             for (IndexColumn indexColumn : refIndexColumns) {
                 Column column = indexColumn.column;
-                if (column.getGenerated()) {
+                if (column.isGeneratedAlways()) {
                     switch (deleteAction) {
                     case SET_DEFAULT:
                     case SET_NULL:

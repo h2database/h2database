@@ -159,7 +159,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
             int j = 0;
             for (int i = 0, l = columns.length; i < l; i++) {
                 Column col = columns[i];
-                if (col.getGenerated()) {
+                if (col.isGeneratedAlways()) {
                     if (expressions == null || expressions[i] != ValueExpression.DEFAULT) {
                         throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
                                 col.getSQLWithTable(new StringBuilder(), HasSQL.TRACE_SQL_FLAGS).toString());
@@ -322,7 +322,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
         boolean hasColumn = false;
         for (int i = 0, l = columns.length; i < l; i++) {
             Column column = columns[i];
-            if (!column.getGenerated()) {
+            if (!column.isGeneratedAlways()) {
                 if (hasColumn) {
                     builder.append(", ");
                 }

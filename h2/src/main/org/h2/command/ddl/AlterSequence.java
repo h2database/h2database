@@ -13,7 +13,6 @@ import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
-import org.h2.table.Table;
 
 /**
  * This class represents the statement ALTER SEQUENCE.
@@ -22,7 +21,9 @@ public class AlterSequence extends SchemaCommand {
 
     private boolean ifExists;
 
-    private Table table;
+    private Column column;
+
+    private Boolean always;
 
     private String sequenceName;
 
@@ -51,8 +52,9 @@ public class AlterSequence extends SchemaCommand {
         return true;
     }
 
-    public void setColumn(Column column) {
-        table = column.getTable();
+    public void setColumn(Column column, Boolean always) {
+        this.column  = column;
+        this.always = always;
         sequence = column.getSequence();
         if (sequence == null && !ifExists) {
             throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, column.getTraceSQL());
@@ -70,8 +72,8 @@ public class AlterSequence extends SchemaCommand {
                 return 0;
             }
         }
-        if (table != null) {
-            session.getUser().checkRight(table, Right.ALL);
+        if (column != null) {
+            session.getUser().checkRight(column.getTable(), Right.ALL);
         }
         options.setDataType(sequence.getDataType());
         Boolean cycle = options.getCycle();
@@ -90,6 +92,10 @@ public class AlterSequence extends SchemaCommand {
                     options.getIncrement(session));
         }
         sequence.flush(session);
+        if (column != null && always != null) {
+            column.setSequence(sequence, always);
+            session.getDatabase().updateMeta(session, column.getTable());
+        }
         return 0;
     }
 

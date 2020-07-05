@@ -2709,10 +2709,10 @@ SELECT TABLE_NAME, INDEX_NAME, ORDINAL_POSITION, COLUMN_NAME FROM INFORMATION_SC
 > TEST       PRIMARY_KEY_2 1                ID
 > rows: 3
 
-select SEQUENCE_NAME, CURRENT_VALUE, INCREMENT, IS_GENERATED, REMARKS from INFORMATION_SCHEMA.SEQUENCES;
-> SEQUENCE_NAME CURRENT_VALUE INCREMENT IS_GENERATED REMARKS
-> ------------- ------------- --------- ------------ -------
-> TEST_SEQ      0             1         FALSE        null
+select SEQUENCE_NAME, CURRENT_VALUE, INCREMENT, REMARKS from INFORMATION_SCHEMA.SEQUENCES;
+> SEQUENCE_NAME CURRENT_VALUE INCREMENT REMARKS
+> ------------- ------------- --------- -------
+> TEST_SEQ      0             1         null
 > rows: 1
 
 drop table test;

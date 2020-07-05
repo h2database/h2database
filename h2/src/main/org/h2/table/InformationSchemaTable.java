@@ -256,7 +256,6 @@ public final class InformationSchemaTable extends MetaTable {
                     "IDENTITY_CURRENT BIGINT",
                     "IDENTITY_CACHE BIGINT",
                     "SELECTIVITY INT",
-                    "SEQUENCE_NAME",
                     "REMARKS",
                     "COLUMN_ON_UPDATE",
                     "IS_VISIBLE"
@@ -563,9 +562,8 @@ public final class InformationSchemaTable extends MetaTable {
                     "DECLARED_NUMERIC_SCALE INT",
                     // extensions
                     "CURRENT_VALUE BIGINT",
-                    "IS_GENERATED BIT",
-                    "REMARKS",
                     "CACHE BIGINT",
+                    "REMARKS",
                     "ID INT"
             );
             indexColumnName = "SEQUENCE_NAME";
@@ -1141,7 +1139,7 @@ public final class InformationSchemaTable extends MetaTable {
             isGenerated = "NEVER";
             generationExpression = null;
         }
-        String isIdentity, identityGeneration, identityCycle, sequenceName;
+        String isIdentity, identityGeneration, identityCycle;
         Value identityStart, identityIncrement, identityMaximum, identityMinimum, identityCurrent, identityCache;
         Sequence sequence = c.getSequence();
         if (sequence != null) {
@@ -1154,10 +1152,9 @@ public final class InformationSchemaTable extends MetaTable {
             identityCycle = sequence.getCycle() ? "YES" : "NO";
             identityCurrent = ValueBigint.get(sequence.getCurrentValue());
             identityCache = ValueBigint.get(sequence.getCacheSize());
-            sequenceName = sequence.getName();
         } else {
             isIdentity = "NO";
-            identityGeneration = identityCycle = sequenceName = null;
+            identityGeneration = identityCycle = null;
             identityStart = identityIncrement = identityMaximum = identityMinimum = identityCurrent = identityCache
                     = null;
         }
@@ -1251,8 +1248,6 @@ public final class InformationSchemaTable extends MetaTable {
                 identityCache,
                 // SELECTIVITY
                 ValueInteger.get(c.getSelectivity()),
-                // SEQUENCE_NAME
-                sequenceName,
                 // REMARKS
                 c.getComment(),
                 // COLUMN_ON_UPDATE
@@ -2108,6 +2103,9 @@ public final class InformationSchemaTable extends MetaTable {
     private void sequences(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         for (Schema schema : database.getAllSchemas()) {
             for (Sequence sequence : schema.getAllSequences()) {
+                if (sequence.getBelongsToTable()) {
+                    continue;
+                }
                 String sequenceName = sequence.getName();
                 if (!checkIndex(session, sequenceName, indexFrom, indexTo)) {
                     continue;
@@ -2154,12 +2152,10 @@ public final class InformationSchemaTable extends MetaTable {
                 // extensions
                 // CURRENT_VALUE
                 ValueBigint.get(sequence.getCurrentValue()),
-                // IS_GENERATED
-                ValueBoolean.get(sequence.getBelongsToTable()),
-                // REMARKS
-                sequence.getComment(),
                 // CACHE
                 ValueBigint.get(sequence.getCacheSize()),
+                // REMARKS
+                sequence.getComment(),
                 // ID
                 ValueInteger.get(sequence.getId())
             );

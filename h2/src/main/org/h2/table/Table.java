@@ -872,16 +872,31 @@ public abstract class Table extends SchemaObjectBase {
      * @param row the row
      */
     public void validateConvertUpdateSequence(Session session, Row row) {
-        for (int i = 0; i < columns.length; i++) {
+        int length = columns.length, generated = 0;
+        for (int i = 0; i < length; i++) {
             Value value = row.getValue(i);
             Column column = columns[i];
-            if (column.isGeneratedAlways() && value != null) {
-                throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
-                        column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
+            if (column.isGeneratedAlways()) {
+                if (value != null) {
+                    throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
+                            column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
+                }
+                if (column.getDefaultExpression() != null) {
+                    generated++;
+                    continue;
+                }
             }
             Value v2 = column.validateConvertUpdateSequence(session, value, row);
             if (v2 != value) {
                 row.setValue(i, v2);
+            }
+        }
+        if (generated > 0) {
+            for (int i = 0; i < length; i++) {
+                Value value = row.getValue(i);
+                if (value == null) {
+                    row.setValue(i, columns[i].validateConvertUpdateSequence(session, null, row));
+                }
             }
         }
     }

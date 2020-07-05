@@ -352,7 +352,7 @@ public class Column implements HasSQL, Typed {
      * @param row the row
      * @return the new or converted value
      */
-    public Value validateConvertUpdateSequence(Session session, Value value, Row row) {
+    Value validateConvertUpdateSequence(Session session, Value value, Row row) {
         if (value == null) {
             if (sequence != null) {
                 value = session.getNextValueFor(sequence, null);

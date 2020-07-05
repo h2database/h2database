@@ -575,7 +575,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             }
             TypeInfo type = c.getType();
             ValueInteger precision = ValueInteger.get(MathUtils.convertLongToInt(type.getPrecision()));
-            boolean nullable = c.isNullable(), isGenerated = c.getGenerated();
+            boolean nullable = c.isNullable(), isGenerated = c.isGenerated();
             result.addRow(
                     // TABLE_CAT
                     catalogValue,
@@ -622,7 +622,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     // SOURCE_DATA_TYPE
                     ValueNull.INSTANCE,
                     // IS_AUTOINCREMENT
-                    c.isAutoIncrement() ? YES : NO,
+                    c.getSequence() != null ? YES : NO,
                     // IS_GENERATEDCOLUMN
                     isGenerated ? YES : NO);
         }

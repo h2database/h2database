@@ -6543,10 +6543,10 @@ public class Parser {
             if (readIf("IDENTITY")) {
                 SequenceOptions options = new SequenceOptions();
                 if (readIf(OPEN_PAREN)) {
-                    parseSequenceOptions(options, null, false);
+                    parseSequenceOptions(options, null, false, false);
                     read(CLOSE_PAREN);
                 }
-                column.setAutoIncrementOptions(options);
+                column.setIdentityOptions(options, always);
             } else if (!always || isIdentity) {
                 throw getSyntaxError();
             } else {
@@ -6572,12 +6572,10 @@ public class Parser {
             column.setConvertNullToDefault(true);
         }
         if (readIf("SEQUENCE")) {
-            Sequence sequence = readSequence();
-            column.setSequence(sequence);
+            column.setSequence(readSequence(), column.isGeneratedAlways());
         }
         if (readIf("SELECTIVITY")) {
-            int value = readNonNegativeInt();
-            column.setSelectivity(value);
+            column.setSelectivity(readNonNegativeInt());
         }
         if (database.getMode().getEnum() == ModeEnum.MySQL) {
             if (readIf("CHARACTER")) {
@@ -6604,7 +6602,7 @@ public class Parser {
             }
             read(CLOSE_PAREN);
         }
-        column.setAutoIncrementOptions(options);
+        column.setIdentityOptions(options, false);
     }
 
     private String readCommentIf() {
@@ -7516,7 +7514,7 @@ public class Parser {
         command.setIfNotExists(ifNotExists);
         command.setSequenceName(sequenceName);
         SequenceOptions options = new SequenceOptions();
-        parseSequenceOptions(options, command, true);
+        parseSequenceOptions(options, command, true, false);
         command.setOptions(options);
         return command;
     }
@@ -8211,12 +8209,14 @@ public class Parser {
         command.setSequenceName(sequenceName);
         command.setIfExists(ifExists);
         SequenceOptions options = new SequenceOptions();
-        parseSequenceOptions(options, null, false);
+        parseSequenceOptions(options, null, false, false);
         command.setOptions(options);
         return command;
     }
 
-    private void parseSequenceOptions(SequenceOptions options, CreateSequence command, boolean allowDataType) {
+    private boolean parseSequenceOptions(SequenceOptions options, CreateSequence command, boolean allowDataType,
+            boolean forAlterColumn) {
+        boolean result = false;
         for (;;) {
             if (allowDataType && readIf(AS)) {
                 TypeInfo dataType = parseDataType();
@@ -8230,49 +8230,73 @@ public class Parser {
                 options.setStartValue(readExpression());
             } else if (readIf("RESTART")) {
                 options.setRestartValue(readIf(WITH) ? readExpression() : ValueExpression.DEFAULT);
-            } else if (readIf("INCREMENT")) {
-                readIf("BY");
-                options.setIncrement(readExpression());
-            } else if (readIf("MINVALUE")) {
-                options.setMinValue(readExpression());
-            } else if (readIf("NOMINVALUE")) {
-                options.setMinValue(ValueExpression.NULL);
-            } else if (readIf("MAXVALUE")) {
-                options.setMaxValue(readExpression());
-            } else if (readIf("NOMAXVALUE")) {
-                options.setMaxValue(ValueExpression.NULL);
-            } else if (readIf("CYCLE")) {
-                options.setCycle(true);
-            } else if (readIf("NOCYCLE")) {
-                options.setCycle(false);
-            } else if (readIf("NO")) {
-                if (readIf("MINVALUE")) {
-                    options.setMinValue(ValueExpression.NULL);
-                } else if (readIf("MAXVALUE")) {
-                    options.setMaxValue(ValueExpression.NULL);
-                } else if (readIf("CYCLE")) {
-                    options.setCycle(false);
-                } else if (readIf("CACHE")) {
-                    options.setCacheSize(ValueExpression.get(ValueBigint.get(1)));
-                } else {
-                    throw getSyntaxError();
-                }
-            } else if (readIf("CACHE")) {
-                options.setCacheSize(readExpression());
-            } else if (readIf("NOCACHE")) {
-                options.setCacheSize(ValueExpression.get(ValueBigint.get(1)));
-            } else if (command != null) {
-                if (readIf("BELONGS_TO_TABLE")) {
-                    command.setBelongsToTable(true);
-                } else if (readIf(ORDER)) {
-                    // Oracle compatibility
+            } else if (command != null && parseCreateSequenceOption(command)) {
+                //
+            } else if (forAlterColumn) {
+                int index = lastParseIndex;
+                if (readIf(SET)) {
+                    if (!parseBasicSequenceOption(options)) {
+                        reread(index);
+                        break;
+                    }
                 } else {
                     break;
                 }
-            } else {
+            } else if (!parseBasicSequenceOption(options)) {
                 break;
             }
+            result = true;
         }
+        return result;
+    }
+
+    private boolean parseCreateSequenceOption(CreateSequence command) {
+        if (readIf("BELONGS_TO_TABLE")) {
+            command.setBelongsToTable(true);
+        } else if (readIf(ORDER)) {
+            // Oracle compatibility
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean parseBasicSequenceOption(SequenceOptions options) {
+        if (readIf("INCREMENT")) {
+            readIf("BY");
+            options.setIncrement(readExpression());
+        } else if (readIf("MINVALUE")) {
+            options.setMinValue(readExpression());
+        } else if (readIf("NOMINVALUE")) {
+            options.setMinValue(ValueExpression.NULL);
+        } else if (readIf("MAXVALUE")) {
+            options.setMaxValue(readExpression());
+        } else if (readIf("NOMAXVALUE")) {
+            options.setMaxValue(ValueExpression.NULL);
+        } else if (readIf("CYCLE")) {
+            options.setCycle(true);
+        } else if (readIf("NOCYCLE")) {
+            options.setCycle(false);
+        } else if (readIf("NO")) {
+            if (readIf("MINVALUE")) {
+                options.setMinValue(ValueExpression.NULL);
+            } else if (readIf("MAXVALUE")) {
+                options.setMaxValue(ValueExpression.NULL);
+            } else if (readIf("CYCLE")) {
+                options.setCycle(false);
+            } else if (readIf("CACHE")) {
+                options.setCacheSize(ValueExpression.get(ValueBigint.get(1)));
+            } else {
+                throw getSyntaxError();
+            }
+        } else if (readIf("CACHE")) {
+            options.setCacheSize(readExpression());
+        } else if (readIf("NOCACHE")) {
+            options.setCacheSize(ValueExpression.get(ValueBigint.get(1)));
+        } else {
+            return false;
+        }
+        return true;
     }
 
     private AlterUser parseAlterUser() {
@@ -9027,13 +9051,11 @@ public class Parser {
             return command;
         } else if (readIf("DROP")) {
             if (readIf("DEFAULT")) {
-                AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
-                command.setTableName(tableName);
-                command.setIfTableExists(ifTableExists);
-                command.setOldColumn(column);
-                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
-                command.setDefaultExpression(null);
-                return command;
+                return getAlterTableAlterColumnDropDefaultExpression(schema, tableName, ifTableExists, column,
+                        CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
+            } else if (readIf("EXPRESSION")) {
+                return getAlterTableAlterColumnDropDefaultExpression(schema, tableName, ifTableExists, column,
+                        CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_EXPRESSION);
             }
             if (readIf(ON)) {
                 read("UPDATE");
@@ -9043,6 +9065,23 @@ public class Parser {
                 command.setOldColumn(column);
                 command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_ON_UPDATE);
                 command.setDefaultExpression(null);
+                return command;
+            }
+            if (readIf("IDENTITY")) {
+                if (column == null || column.getSequence() == null) {
+                    return new NoOperation(session);
+                }
+                AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
+                parseAlterColumnUsingIf(command);
+                command.setTableName(tableName);
+                command.setIfTableExists(ifTableExists);
+                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE);
+                command.setOldColumn(column);
+                Column newColumn = column.getClone();
+                newColumn.setSequence(null, false);
+                newColumn.setDefaultExpression(session, null);
+                newColumn.setConvertNullToDefault(false);
+                command.setNewColumn(newColumn);
                 return command;
             }
             read(NOT);
@@ -9057,50 +9096,6 @@ public class Parser {
         } else if (readIf("TYPE")) {
             // PostgreSQL compatibility
             return parseAlterTableAlterColumnDataType(schema, tableName, columnName, ifTableExists, ifExists);
-        } else if (readIf(SET)) {
-            if (readIf("DATA")) {
-                read("TYPE");
-                return parseAlterTableAlterColumnDataType(schema, tableName, columnName, ifTableExists, ifExists);
-            }
-            AlterTableAlterColumn command = new AlterTableAlterColumn(
-                    session, schema);
-            command.setTableName(tableName);
-            command.setIfTableExists(ifTableExists);
-            command.setOldColumn(column);
-            NullConstraintType nullConstraint = parseNotNullConstraint();
-            switch (nullConstraint) {
-            case NULL_IS_ALLOWED:
-                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_NOT_NULL);
-                break;
-            case NULL_IS_NOT_ALLOWED:
-                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL);
-                break;
-            case NO_NULL_CONSTRAINT_FOUND:
-                if (readIf("DEFAULT")) {
-                    Expression defaultExpression = readExpression();
-                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
-                    command.setDefaultExpression(defaultExpression);
-                } else if (readIf(ON)) {
-                    read("UPDATE");
-                    Expression onUpdateExpression = readExpression();
-                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_ON_UPDATE);
-                    command.setDefaultExpression(onUpdateExpression);
-                } else if (readIf("INVISIBLE")) {
-                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
-                    command.setVisible(false);
-                } else if (readIf("VISIBLE")) {
-                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
-                    command.setVisible(true);
-                }
-                break;
-            default:
-                throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
-                        "Internal Error - unhandled case: " + nullConstraint.name());
-            }
-            return command;
-        } else if (readIf("RESTART")) {
-            Prepared command = readAlterColumnRestartWith(schema, column, true);
-            return commandIfTableExists(schema, tableName, ifTableExists, command);
         } else if (readIf("SELECTIVITY")) {
             AlterTableAlterColumn command = new AlterTableAlterColumn(
                     session, schema);
@@ -9110,9 +9105,111 @@ public class Parser {
             command.setOldColumn(column);
             command.setSelectivity(readExpression());
             return command;
-        } else {
-            return parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists, ifExists, true);
         }
+        Prepared command = parseAlterTableAlterColumnIdentity(schema, tableName, ifTableExists, ifExists, columnName,
+                column);
+        if (command != null) {
+            return command;
+        }
+        if (readIf(SET)) {
+            return parseAlterTableAlterColumnSet(schema, tableName, ifTableExists, ifExists, columnName, column);
+        }
+        return parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists, ifExists, true);
+    }
+
+    private Prepared getAlterTableAlterColumnDropDefaultExpression(Schema schema, String tableName,
+            boolean ifTableExists, Column column, int type) {
+        AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
+        command.setTableName(tableName);
+        command.setIfTableExists(ifTableExists);
+        command.setOldColumn(column);
+        command.setType(type);
+        command.setDefaultExpression(null);
+        return command;
+    }
+
+    private Prepared parseAlterTableAlterColumnIdentity(Schema schema, String tableName, boolean ifTableExists,
+            boolean ifExists, String columnName, Column column) {
+        int index = lastParseIndex;
+        Boolean always = null;
+        if (readIf("SET") && readIf("GENERATED")) {
+            if (readIf("ALWAYS")) {
+                always = true;
+            } else {
+                read("BY");
+                read("DEFAULT");
+                always = false;
+            }
+        } else {
+            reread(index);
+        }
+        SequenceOptions options = new SequenceOptions();
+        if (!parseSequenceOptions(options, null, false, true) && always == null) {
+            return null;
+        }
+        if (column == null) {
+            return new NoOperation(session);
+        }
+        if (column.getSequence() == null) {
+            AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
+            parseAlterColumnUsingIf(command);
+            command.setTableName(tableName);
+            command.setIfTableExists(ifTableExists);
+            command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE);
+            command.setOldColumn(column);
+            Column newColumn = column.getClone();
+            newColumn.setIdentityOptions(options, always != null && always);
+            command.setNewColumn(newColumn);
+            return command;
+        }
+        AlterSequence command = new AlterSequence(session, schema);
+        command.setColumn(column, always);
+        command.setOptions(options);
+        return commandIfTableExists(schema, tableName, ifTableExists, command);
+    }
+
+    private Prepared parseAlterTableAlterColumnSet(Schema schema, String tableName, boolean ifTableExists,
+            boolean ifExists, String columnName, Column column) {
+        if (readIf("DATA")) {
+            read("TYPE");
+            return parseAlterTableAlterColumnDataType(schema, tableName, columnName, ifTableExists, ifExists);
+        }
+        AlterTableAlterColumn command = new AlterTableAlterColumn(
+                session, schema);
+        command.setTableName(tableName);
+        command.setIfTableExists(ifTableExists);
+        command.setOldColumn(column);
+        NullConstraintType nullConstraint = parseNotNullConstraint();
+        switch (nullConstraint) {
+        case NULL_IS_ALLOWED:
+            command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_NOT_NULL);
+            break;
+        case NULL_IS_NOT_ALLOWED:
+            command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL);
+            break;
+        case NO_NULL_CONSTRAINT_FOUND:
+            if (readIf("DEFAULT")) {
+                Expression defaultExpression = readExpression();
+                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
+                command.setDefaultExpression(defaultExpression);
+            } else if (readIf(ON)) {
+                read("UPDATE");
+                Expression onUpdateExpression = readExpression();
+                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_ON_UPDATE);
+                command.setDefaultExpression(onUpdateExpression);
+            } else if (readIf("INVISIBLE")) {
+                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
+                command.setVisible(false);
+            } else if (readIf("VISIBLE")) {
+                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
+                command.setVisible(true);
+            }
+            break;
+        default:
+            throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
+                    "Internal Error - unhandled case: " + nullConstraint.name());
+        }
+        return command;
     }
 
     private Prepared parseAlterTableDrop(Schema schema, String tableName, boolean ifTableExists) {
@@ -9260,6 +9357,7 @@ public class Parser {
         if (mode.alterTableExtensionsMySQL) {
             if (readIf("AUTO_INCREMENT")) {
                 readIf(EQUAL);
+                Expression restart = readExpression();
                 Table table = tableIfTableExists(schema, tableName, ifTableExists);
                 if (table == null) {
                     return new NoOperation(session);
@@ -9269,7 +9367,12 @@ public class Parser {
                     for (IndexColumn ic : idx.getIndexColumns()) {
                         Column column = ic.column;
                         if (column.getSequence() != null) {
-                            return readAlterColumnRestartWith(schema, column, false);
+                            AlterSequence command = new AlterSequence(session, schema);
+                            command.setColumn(column, null);
+                            SequenceOptions options = new SequenceOptions();
+                            options.setRestartValue(restart);
+                            command.setOptions(options);
+                            return command;
                         }
                     }
                 }
@@ -9329,19 +9432,6 @@ public class Parser {
         throw getSyntaxError();
     }
 
-    private Prepared readAlterColumnRestartWith(Schema schema, Column column, boolean readWith) {
-        Expression restart = !readWith || readIf(WITH) ? readExpression() : ValueExpression.DEFAULT;
-        if (column == null) {
-            return new NoOperation(session);
-        }
-        AlterSequence command = new AlterSequence(session, schema);
-        command.setColumn(column);
-        SequenceOptions options = new SequenceOptions();
-        options.setRestartValue(restart);
-        command.setOptions(options);
-        return command;
-    }
-
     private Table tableIfTableExists(Schema schema, String tableName, boolean ifTableExists) {
         Table table = schema.resolveTableOrView(session, tableName);
         if (table == null && !ifTableExists) {
@@ -9394,11 +9484,20 @@ public class Parser {
             }
             Expression e = oldColumn.getDefaultExpression();
             if (e != null) {
-                newColumn.setDefaultExpression(session, e);
+                if (oldColumn.isGenerated()) {
+                    newColumn.setGeneratedExpression(e);
+                } else {
+                    newColumn.setDefaultExpression(session, e);
+                }
             }
             e = oldColumn.getOnUpdateExpression();
             if (e != null) {
                 newColumn.setOnUpdateExpression(session, e);
+            }
+            Sequence s = oldColumn.getSequence();
+            if (s != null) {
+                newColumn.setIdentityOptions(new SequenceOptions(s, newColumn.getType()),
+                        oldColumn.isGeneratedAlways());
             }
             String c = oldColumn.getComment();
             if (c != null) {
@@ -9753,7 +9852,7 @@ public class Parser {
             return;
         }
         Column column = parseColumnForTable(columnName, true);
-        if (column.isAutoIncrement() && column.isPrimaryKey()) {
+        if (column.hasIdentityOptions() && column.isPrimaryKey()) {
             command.addConstraintCommand(newPrimaryKeyConstraintCommand(session, schema, tableName, column));
         }
         command.addColumn(column);
@@ -9859,7 +9958,7 @@ public class Parser {
                             String columnName = ic.columnName;
                             for (Column column : command.getColumns()) {
                                 if (database.equalsIdentifiers(column.getName(), columnName)) {
-                                    SequenceOptions options = column.getAutoIncrementOptions();
+                                    SequenceOptions options = column.getIdentityOptions();
                                     if (options != null) {
                                         options.setStartValue(value);
                                         break set;

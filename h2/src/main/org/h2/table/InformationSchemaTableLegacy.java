@@ -838,7 +838,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     default:
                         hasDateTimePrecision = false;
                     }
-                    boolean isGenerated = c.getGenerated();
+                    boolean isGenerated = c.isGenerated();
                     boolean isInterval = DataType.isIntervalType(type);
                     String createSQLWithoutName = c.getCreateSQLWithoutName();
                     add(session,

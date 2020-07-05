@@ -57,14 +57,14 @@ class GeneratedColumnResolver implements ColumnResolver {
         Column[] allColumns = table.getColumns();
         int totalCount = allColumns.length, baseCount = totalCount;
         for (int i = 0; i < totalCount; i++) {
-            if (allColumns[i].getGenerated()) {
+            if (allColumns[i].isGenerated()) {
                 baseCount--;
             }
         }
         Column[] baseColumns = new Column[baseCount];
         for (int i = 0, j = 0; i < totalCount; i++) {
             Column c = allColumns[i];
-            if (!c.getGenerated()) {
+            if (!c.isGenerated()) {
                 baseColumns[j++] = c;
             }
         }

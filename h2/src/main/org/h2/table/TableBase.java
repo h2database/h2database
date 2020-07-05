@@ -83,7 +83,16 @@ public abstract class TableBase extends Table {
     }
 
     @Override
+    public String getCreateSQLForMeta() {
+        return getCreateSQL(true);
+    }
+
+    @Override
     public String getCreateSQL() {
+        return getCreateSQL(false);
+    }
+
+    private String getCreateSQL(boolean forMeta) {
         Database db = getDatabase();
         if (db == null) {
             // closed
@@ -116,7 +125,7 @@ public abstract class TableBase extends Table {
             if (i > 0) {
                 buff.append(",\n    ");
             }
-            buff.append(columns[i].getCreateSQL());
+            buff.append(columns[i].getCreateSQL(forMeta));
         }
         buff.append("\n)");
         if (tableEngine != null) {

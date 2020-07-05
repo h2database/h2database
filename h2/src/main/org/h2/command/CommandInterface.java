@@ -521,6 +521,11 @@ public interface CommandInterface extends AutoCloseable {
     int HELP = 97;
 
     /**
+     * The type of an ALTER TABLE ALTER COLUMN DROP EXPRESSION statement.
+     */
+    int ALTER_TABLE_ALTER_COLUMN_DROP_EXPRESSION = 98;
+
+    /**
      * Get command type.
      *
      * @return one of the constants above

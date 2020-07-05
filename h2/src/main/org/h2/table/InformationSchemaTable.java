@@ -238,6 +238,13 @@ public final class InformationSchemaTable extends MetaTable {
                     "DOMAIN_NAME",
                     "MAXIMUM_CARDINALITY INT",
                     "DTD_IDENTIFIER",
+                    "IS_IDENTITY",
+                    "IDENTITY_GENERATION",
+                    "IDENTITY_START BIGINT",
+                    "IDENTITY_INCREMENT BIGINT",
+                    "IDENTITY_MAXIMUM BIGINT",
+                    "IDENTITY_MINIMUM BIGINT",
+                    "IDENTITY_CYCLE",
                     "IS_GENERATED",
                     "GENERATION_EXPRESSION",
                     "DECLARED_DATA_TYPE",
@@ -246,8 +253,9 @@ public final class InformationSchemaTable extends MetaTable {
                     // extensions
                     "GEOMETRY_TYPE",
                     "GEOMETRY_SRID INT",
+                    "IDENTITY_CURRENT BIGINT",
+                    "IDENTITY_CACHE BIGINT",
                     "SELECTIVITY INT",
-                    "SEQUENCE_NAME",
                     "REMARKS",
                     "COLUMN_ON_UPDATE",
                     "IS_VISIBLE"
@@ -554,9 +562,8 @@ public final class InformationSchemaTable extends MetaTable {
                     "DECLARED_NUMERIC_SCALE INT",
                     // extensions
                     "CURRENT_VALUE BIGINT",
-                    "IS_GENERATED BIT",
-                    "REMARKS",
                     "CACHE BIGINT",
+                    "REMARKS",
                     "ID INT"
             );
             indexColumnName = "SEQUENCE_NAME";
@@ -1122,8 +1129,38 @@ public final class InformationSchemaTable extends MetaTable {
             domainSchema = domain.getSchema().getName();
             domainName = domain.getName();
         }
-        boolean isGenerated = c.getGenerated();
+        String columnDefault, isGenerated, generationExpression;
+        String isIdentity, identityGeneration, identityCycle;
+        Value identityStart, identityIncrement, identityMaximum, identityMinimum, identityCurrent, identityCache;
         Sequence sequence = c.getSequence();
+        if (sequence != null) {
+            columnDefault = null;
+            isGenerated = "NEVER";
+            generationExpression = null;
+            isIdentity = "YES";
+            identityGeneration = c.isGeneratedAlways() ? "ALWAYS" : "BY DEFAULT";
+            identityStart = ValueBigint.get(sequence.getStartValue());
+            identityIncrement = ValueBigint.get(sequence.getIncrement());
+            identityMaximum = ValueBigint.get(sequence.getMaxValue());
+            identityMinimum = ValueBigint.get(sequence.getMinValue());
+            identityCycle = sequence.getCycle() ? "YES" : "NO";
+            identityCurrent = ValueBigint.get(sequence.getCurrentValue());
+            identityCache = ValueBigint.get(sequence.getCacheSize());
+        } else {
+            if (c.isGenerated()) {
+                columnDefault = null;
+                isGenerated = "ALWAYS";
+                generationExpression = c.getDefaultSQL();
+            } else {
+                columnDefault = c.getDefaultSQL();
+                isGenerated = "NEVER";
+                generationExpression = null;
+            }
+            isIdentity = "NO";
+            identityGeneration = identityCycle = null;
+            identityStart = identityIncrement = identityMaximum = identityMinimum = identityCurrent = identityCache
+                    = null;
+        }
         add(session, rows,
                 // TABLE_CATALOG
                 catalog,
@@ -1136,7 +1173,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // ORDINAL_POSITION
                 ValueInteger.get(ordinalPosition),
                 // COLUMN_DEFAULT
-                isGenerated ? null : c.getDefaultSQL(),
+                columnDefault,
                 // IS_NULLABLE
                 c.isNullable() ? "YES" : "NO",
                 // DATA_TYPE
@@ -1179,10 +1216,24 @@ public final class InformationSchemaTable extends MetaTable {
                 dt.maximumCardinality,
                 // DTD_IDENTIFIER
                 Integer.toString(ordinalPosition),
+                // IS_IDENTITY
+                isIdentity,
+                // IDENTITY_GENERATION
+                identityGeneration,
+                // IDENTITY_START
+                identityStart,
+                // IDENTITY_INCREMENT
+                identityIncrement,
+                // IDENTITY_MAXIMUM
+                identityMaximum,
+                // IDENTITY_MINIMUM
+                identityMinimum,
+                // IDENTITY_CYCLE
+                identityCycle,
                 // IS_GENERATED
-                isGenerated ? "ALWAYS" : "NEVER",
+                isGenerated,
                 // GENERATION_EXPRESSION
-                isGenerated ? c.getDefaultSQL() : null,
+                generationExpression,
                 // DECLARED_DATA_TYPE
                 dt.declaredDataType,
                 // DECLARED_NUMERIC_PRECISION INT
@@ -1194,10 +1245,12 @@ public final class InformationSchemaTable extends MetaTable {
                 dt.geometryType,
                 // GEOMETRY_SRID INT
                 dt.geometrySrid,
+                // IDENTITY_CURRENT BIGINT
+                identityCurrent,
+                // IDENTITY_CACHE BIGINT
+                identityCache,
                 // SELECTIVITY
                 ValueInteger.get(c.getSelectivity()),
-                // SEQUENCE_NAME
-                sequence == null ? null : sequence.getName(),
                 // REMARKS
                 c.getComment(),
                 // COLUMN_ON_UPDATE
@@ -2053,6 +2106,9 @@ public final class InformationSchemaTable extends MetaTable {
     private void sequences(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         for (Schema schema : database.getAllSchemas()) {
             for (Sequence sequence : schema.getAllSequences()) {
+                if (sequence.getBelongsToTable()) {
+                    continue;
+                }
                 String sequenceName = sequence.getName();
                 if (!checkIndex(session, sequenceName, indexFrom, indexTo)) {
                     continue;
@@ -2099,12 +2155,10 @@ public final class InformationSchemaTable extends MetaTable {
                 // extensions
                 // CURRENT_VALUE
                 ValueBigint.get(sequence.getCurrentValue()),
-                // IS_GENERATED
-                ValueBoolean.get(sequence.getBelongsToTable()),
-                // REMARKS
-                sequence.getComment(),
                 // CACHE
                 ValueBigint.get(sequence.getCacheSize()),
+                // REMARKS
+                sequence.getComment(),
                 // ID
                 ValueInteger.get(sequence.getId())
             );

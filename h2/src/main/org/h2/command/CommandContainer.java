@@ -189,8 +189,10 @@ public class CommandContainer extends Command {
             Column[] columns = table.getColumns();
             Index primaryKey = table.findPrimaryKey();
             for (Column column : columns) {
-                Expression e = column.getEffectiveDefaultExpression();
-                if ((e != null && !e.isConstant()) || (primaryKey != null && primaryKey.getColumnIndex(column) >= 0)) {
+                Expression e;
+                if (column.getSequence() != null
+                        || ((e = column.getEffectiveDefaultExpression()) != null && !e.isConstant())
+                        || (primaryKey != null && primaryKey.getColumnIndex(column) >= 0)) {
                     expressionColumns.add(new ExpressionColumn(db, column));
                 }
             }

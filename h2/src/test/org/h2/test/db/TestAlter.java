@@ -10,7 +10,13 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
+
 import org.h2.api.ErrorCode;
+import org.h2.engine.Session;
+import org.h2.engine.SessionInterface;
+import org.h2.jdbc.JdbcConnection;
+import org.h2.schema.Sequence;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -123,16 +129,19 @@ public class TestAlter extends TestDb {
     }
 
     private void testAlterTableDropIdentityColumn() throws SQLException {
+        SessionInterface iface = ((JdbcConnection) stat.getConnection()).getSession();
+        if (!(iface instanceof Session)) {
+            return;
+        }
+        Collection<Sequence> allSequences = ((Session) iface).getDatabase().getMainSchema().getAllSequences();
         stat.execute("create table test(id int auto_increment, name varchar)");
         stat.execute("alter table test drop column id");
-        ResultSet rs = stat.executeQuery("select * from INFORMATION_SCHEMA.SEQUENCES");
-        assertFalse(rs.next());
+        assertEquals(0, allSequences.size());
         stat.execute("drop table test");
 
         stat.execute("create table test(id int auto_increment, name varchar)");
         stat.execute("alter table test drop column name");
-        rs = stat.executeQuery("select * from INFORMATION_SCHEMA.SEQUENCES");
-        assertTrue(rs.next());
+        assertEquals(1, allSequences.size());
         stat.execute("drop table test");
     }
 

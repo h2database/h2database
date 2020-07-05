@@ -247,6 +247,9 @@ public class ScriptCommand extends ScriptBase {
             }
             for (Schema schema : schemas) {
                 for (Sequence sequence : schema.getAllSequences()) {
+                    if (sequence.getBelongsToTable()) {
+                        continue;
+                    }
                     if (drop) {
                         add(sequence.getDropSQL(), false);
                     }

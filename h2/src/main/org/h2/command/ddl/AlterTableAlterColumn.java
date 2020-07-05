@@ -42,11 +42,12 @@ import org.h2.util.Utils;
  * ALTER TABLE ADD,
  * ALTER TABLE ADD IF NOT EXISTS,
  * ALTER TABLE ALTER COLUMN,
- * ALTER TABLE ALTER COLUMN RESTART,
  * ALTER TABLE ALTER COLUMN SELECTIVITY,
  * ALTER TABLE ALTER COLUMN SET DEFAULT,
- * ALTER TABLE ALTER COLUMN SET NOT NULL,
+ * ALTER TABLE ALTER COLUMN DROP DEFAULT,
+ * ALTER TABLE ALTER COLUMN DROP EXPRESSION,
  * ALTER TABLE ALTER COLUMN SET NULL,
+ * ALTER TABLE ALTER COLUMN DROP NULL,
  * ALTER TABLE ALTER COLUMN SET VISIBLE,
  * ALTER TABLE ALTER COLUMN SET INVISIBLE,
  * ALTER TABLE DROP COLUMN
@@ -148,15 +149,23 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             db.updateMeta(session, table);
             break;
         }
-        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT: {
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT:
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_EXPRESSION:  {
             if (oldColumn == null) {
                 break;
             }
-            Sequence sequence = oldColumn.getSequence();
-            checkDefaultReferencesTable(table, defaultExpression);
-            oldColumn.setSequence(null);
-            oldColumn.setDefaultExpression(session, defaultExpression);
-            removeSequence(table, sequence);
+            if (defaultExpression != null) {
+                Sequence sequence = oldColumn.getSequence();
+                checkDefaultReferencesTable(table, defaultExpression);
+                oldColumn.setSequence(null, false);
+                oldColumn.setDefaultExpression(session, defaultExpression);
+                removeSequence(table, sequence);
+            } else {
+                if (type == CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_EXPRESSION != oldColumn.isGenerated()) {
+                    break;
+                }
+                oldColumn.setDefaultExpression(session, null);
+            }
             db.updateMeta(session, table);
             break;
         }
@@ -164,8 +173,18 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             if (oldColumn == null) {
                 break;
             }
-            checkDefaultReferencesTable(table, defaultExpression);
-            oldColumn.setOnUpdateExpression(session, defaultExpression);
+            if (defaultExpression != null) {
+                if (oldColumn.getSequence() != null || oldColumn.isGenerated()) {
+                    break;
+                }
+                Sequence sequence = oldColumn.getSequence();
+                checkDefaultReferencesTable(table, defaultExpression);
+                oldColumn.setSequence(null, false);
+                oldColumn.setOnUpdateExpression(session, defaultExpression);
+                removeSequence(table, sequence);
+            } else {
+                oldColumn.setOnUpdateExpression(session, null);
+            }
             db.updateMeta(session, table);
             break;
         }
@@ -181,7 +200,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 oldColumn.copy(newColumn);
                 db.updateMeta(session, table);
             } else {
-                oldColumn.setSequence(null);
+                oldColumn.setSequence(null, false);
                 oldColumn.setDefaultExpression(session, null);
                 oldColumn.setConvertNullToDefault(false);
                 if (oldColumn.isNullable() && !newColumn.isNullable()) {
@@ -259,20 +278,20 @@ public class AlterTableAlterColumn extends CommandWithColumns {
     private void checkClustering(Column c) {
         if (!Constants.CLUSTERING_DISABLED
                 .equals(session.getDatabase().getCluster())
-                && c.isAutoIncrement()) {
+                && c.hasIdentityOptions()) {
             throw DbException.getUnsupportedException(
-                    "CLUSTERING && auto-increment columns");
+                    "CLUSTERING && identity columns");
         }
     }
 
     private void convertAutoIncrementColumn(Table table, Column c) {
-        if (c.isAutoIncrement()) {
+        if (c.hasIdentityOptions()) {
             if (c.isPrimaryKey()) {
                 addConstraintCommand(
                         Parser.newPrimaryKeyConstraintCommand(session, table.getSchema(), table.getName(), c));
             }
             int objId = getObjectId();
-            c.convertAutoIncrementToSequence(session, getSchema(), objId, table.isTemporary());
+            c.initializeSequence(session, getSchema(), objId, table.isTemporary());
         }
     }
 
@@ -416,7 +435,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         data.session = session;
         Table newTable = getSchema().createTable(data);
         newTable.setComment(table.getComment());
-        String newTableSQL = newTable.getCreateSQL();
+        String newTableSQL = newTable.getCreateSQLForMeta();
         StringBuilder columnList = new StringBuilder();
         for (Column nc : newColumns) {
             if (columnList.length() > 0) {
@@ -542,7 +561,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             Sequence seq = col.getSequence();
             if (seq != null) {
                 table.removeSequence(seq);
-                col.setSequence(null);
+                col.setSequence(null, false);
             }
         }
         for (String sql : triggers) {

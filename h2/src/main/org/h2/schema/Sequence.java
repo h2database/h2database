@@ -290,18 +290,31 @@ public class Sequence extends SchemaObjectBase {
         if (dataType.getValueType() != Value.BIGINT) {
             dataType.getSQL(builder.append(" AS "), DEFAULT_SQL_FLAGS);
         }
+        getSequenceOptionsSQL(builder, forExport, v, startValue);
+        if (belongsToTable) {
+            builder.append(" BELONGS_TO_TABLE");
+        }
+        return builder.toString();
+    }
+
+    public synchronized StringBuilder getSequenceOptionsSQL(StringBuilder builder) {
+        return getSequenceOptionsSQL(builder, false, value, startValue);
+    }
+
+    private StringBuilder getSequenceOptionsSQL(StringBuilder builder, boolean forExport, long value, //
+            long startValue) {
         builder.append(" START WITH ").append(startValue);
-        if (!forExport && v != startValue) {
-            builder.append(" RESTART WITH ").append(v);
+        if (!forExport && value != startValue) {
+            builder.append(" RESTART WITH ").append(value);
         }
         if (increment != 1) {
             builder.append(" INCREMENT BY ").append(increment);
         }
         long[] bounds = SequenceOptions.getBounds(dataType);
-        if (minValue != getDefaultMinValue(v, increment, bounds)) {
+        if (minValue != getDefaultMinValue(value, increment, bounds)) {
             builder.append(" MINVALUE ").append(minValue);
         }
-        if (maxValue != getDefaultMaxValue(v, increment, bounds)) {
+        if (maxValue != getDefaultMaxValue(value, increment, bounds)) {
             builder.append(" MAXVALUE ").append(maxValue);
         }
         if (cycle) {
@@ -314,10 +327,7 @@ public class Sequence extends SchemaObjectBase {
                 builder.append(" CACHE ").append(cacheSize);
             }
         }
-        if (belongsToTable) {
-            builder.append(" BELONGS_TO_TABLE");
-        }
-        return builder.toString();
+        return builder;
     }
 
     /**

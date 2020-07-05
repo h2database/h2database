@@ -249,7 +249,7 @@ public final class SetClauseList implements HasSQL {
             Column column = columns[i];
             Value newValue;
             if (action == null || action == UpdateAction.ON_UPDATE) {
-                newValue = column.getGenerated() ? null : oldRow.getValue(i);
+                newValue = column.isGeneratedAlways() ? null : oldRow.getValue(i);
             } else if (action == UpdateAction.SET_DEFAULT) {
                 newValue = null;
             } else {

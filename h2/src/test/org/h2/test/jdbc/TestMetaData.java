@@ -678,7 +678,7 @@ public class TestMetaData extends TestDb {
         assertFalse(meta.supportsFullOuterJoins());
 
         assertTrue(meta.supportsGetGeneratedKeys());
-        assertTrue(meta.supportsMultipleOpenResults());
+        assertFalse(meta.supportsMultipleOpenResults());
         assertFalse(meta.supportsNamedParameters());
 
         assertTrue(meta.supportsGroupBy());
@@ -699,8 +699,8 @@ public class TestMetaData extends TestDb {
         assertTrue(meta.supportsOpenStatementsAcrossRollback());
         assertTrue(meta.supportsOrderByUnrelated());
         assertTrue(meta.supportsOuterJoins());
-        assertTrue(meta.supportsPositionedDelete());
-        assertTrue(meta.supportsPositionedUpdate());
+        assertFalse(meta.supportsPositionedDelete());
+        assertFalse(meta.supportsPositionedUpdate());
         assertTrue(meta.supportsResultSetConcurrency(
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY));
         assertTrue(meta.supportsResultSetConcurrency(

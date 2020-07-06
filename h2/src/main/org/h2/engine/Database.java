@@ -904,10 +904,13 @@ public class Database implements DataHandler, CastDataProvider {
         TableView.clearIndexCaches(session.getDatabase());
     }
 
-    private void initMetaTables() {
-        if (metaTablesInitialized) {
-            return;
+    private void checkMetaTables() {
+        if (!metaTablesInitialized) {
+            initMetaTables();
         }
+    }
+
+    private void initMetaTables() {
         synchronized (infoSchema) {
             if (!metaTablesInitialized) {
                 if (dbSettings.oldInformationSchema) {
@@ -1658,7 +1661,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @return all objects of all types
      */
     public ArrayList<SchemaObject> getAllSchemaObjects() {
-        initMetaTables();
+        checkMetaTables();
         ArrayList<SchemaObject> list = new ArrayList<>();
         for (Schema schema : schemas.values()) {
             schema.getAll(list);
@@ -1676,7 +1679,7 @@ public class Database implements DataHandler, CastDataProvider {
      */
     public ArrayList<Table> getAllTablesAndViews(boolean includeMeta) {
         if (includeMeta) {
-            initMetaTables();
+            checkMetaTables();
         }
         ArrayList<Table> list = new ArrayList<>();
         for (Schema schema : schemas.values()) {
@@ -1717,7 +1720,7 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     public Collection<Schema> getAllSchemas() {
-        initMetaTables();
+        checkMetaTables();
         return schemas.values();
     }
 

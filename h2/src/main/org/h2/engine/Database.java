@@ -889,13 +889,15 @@ public class Database implements DataHandler, CastDataProvider {
         boolean atLeastOneRecompiledSuccessfully;
         do {
             atLeastOneRecompiledSuccessfully = false;
-            for (Table obj : getAllTablesAndViews(false)) {
-                if (obj instanceof TableView) {
-                    TableView view = (TableView) obj;
-                    if (view.isInvalid()) {
-                        view.recompile(session, true, false);
-                        if (!view.isInvalid()) {
-                            atLeastOneRecompiledSuccessfully = true;
+            for (Schema schema : schemas.values()) {
+                for (Table obj : schema.getAllTablesAndViews()) {
+                    if (obj instanceof TableView) {
+                        TableView view = (TableView) obj;
+                        if (view.isInvalid()) {
+                            view.recompile(session, true, false);
+                            if (!view.isInvalid()) {
+                                atLeastOneRecompiledSuccessfully = true;
+                            }
                         }
                     }
                 }
@@ -1430,20 +1432,22 @@ public class Database implements DataHandler, CastDataProvider {
             try {
                 if (systemSession != null) {
                     if (powerOffCount != -1) {
-                        for (Table table : getAllTablesAndViews(false)) {
-                            if (table.isGlobalTemporary()) {
-                                table.removeChildrenAndResources(systemSession);
-                            } else {
-                                table.close(systemSession);
+                        for (Schema schema : schemas.values()) {
+                            for (Table table : schema.getAllTablesAndViews()) {
+                                if (table.isGlobalTemporary()) {
+                                    table.removeChildrenAndResources(systemSession);
+                                } else {
+                                    table.close(systemSession);
+                                }
                             }
                         }
-                        for (Schema schema : getAllSchemasNoMeta()) {
+                        for (Schema schema : schemas.values()) {
                             for (Sequence sequence : schema.getAllSequences()) {
                                 sequence.close();
                             }
                         }
                     }
-                    for (Schema schema : getAllSchemasNoMeta()) {
+                    for (Schema schema : schemas.values()) {
                         for (TriggerObject trigger : schema.getAllTriggers()) {
                             try {
                                 trigger.close();
@@ -1959,16 +1963,16 @@ public class Database implements DataHandler, CastDataProvider {
         default:
         }
         HashSet<DbObject> set = new HashSet<>();
-        for (Table t : getAllTablesAndViews(false)) {
-            if (except == t) {
-                continue;
-            } else if (TableType.VIEW == t.getTableType()) {
-                continue;
-            }
-            set.clear();
-            t.addDependencies(set);
-            if (set.contains(obj)) {
-                return t;
+        for (Schema schema : schemas.values()) {
+            for (Table t : schema.getAllTablesAndViews()) {
+                if (except == t || TableType.VIEW == t.getTableType()) {
+                    continue;
+                }
+                set.clear();
+                t.addDependencies(set);
+                if (set.contains(obj)) {
+                    return t;
+                }
             }
         }
         return null;
@@ -2681,14 +2685,13 @@ public class Database implements DataHandler, CastDataProvider {
      * @return the table or null if no table is defined
      */
     public Table getFirstUserTable() {
-        for (Table table : getAllTablesAndViews(false)) {
-            if (table.getCreateSQL() != null) {
-                if (table.isHidden()) {
-                    // LOB tables
+        for (Schema schema : schemas.values()) {
+            for (Table table : schema.getAllTablesAndViews()) {
+                if (table.getCreateSQL() == null || table.isHidden()) {
                     continue;
                 }
                 // exclude the LOB_MAP that the Recover tool creates
-                if (table.getSchema().getId() == Constants.INFORMATION_SCHEMA_ID
+                if (schema.getId() == Constants.INFORMATION_SCHEMA_ID
                         && table.getName().equalsIgnoreCase("LOB_BLOCKS")) {
                     continue;
                 }

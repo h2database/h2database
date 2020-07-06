@@ -1842,9 +1842,11 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 case SNAPSHOT:
                 case SERIALIZABLE:
                     if (!transaction.hasStatementDependencies()) {
-                        for (Table table : database.getAllTablesAndViews(false)) {
-                            if (table instanceof MVTable) {
-                                addTableToDependencies((MVTable)table, maps);
+                        for (Schema schema : database.getAllSchemasNoMeta()) {
+                            for (Table table : schema.getAllTablesAndViews()) {
+                                if (table instanceof MVTable) {
+                                    addTableToDependencies((MVTable)table, maps);
+                                }
                             }
                         }
                         break;

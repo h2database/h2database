@@ -5,8 +5,6 @@
  */
 package org.h2.mode;
 
-import java.util.ArrayList;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -14,6 +12,7 @@ import org.h2.expression.Operation1;
 import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.message.DbException;
+import org.h2.schema.Schema;
 import org.h2.table.Table;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -43,25 +42,14 @@ public class Regclass extends Operation1 {
             return ValueInteger.get((int) value.getLong());
         }
         String name = value.getString();
-        ArrayList<Table> tables = session.getDatabase().getAllTablesAndViews(true);
-        tables.addAll(session.getLocalTempTables());
-        for (Table table : tables) {
-            if (table.isHidden()) {
-                continue;
-            }
-            if (table.getName().equals(name)) {
+        for (Schema schema : session.getDatabase().getAllSchemas()) {
+            Table table = schema.findTableOrView(session, name);
+            if (table != null && !table.isHidden()) {
                 return ValueInteger.get(table.getId());
             }
-            ArrayList<Index> indexes = table.getIndexes();
-            if (indexes != null) {
-                for (Index index : indexes) {
-                    if (index.getCreateSQL() == null) {
-                        continue;
-                    }
-                    if (index.getName().equals(name)) {
-                        return ValueInteger.get(index.getId());
-                    }
-                }
+            Index index = schema.findIndex(session, name);
+            if (index != null && index.getCreateSQL() != null) {
+                return ValueInteger.get(index.getId());
             }
         }
         throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, name);

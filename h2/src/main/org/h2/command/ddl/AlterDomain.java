@@ -55,24 +55,32 @@ public class AlterDomain extends SchemaCommand {
                     }
                 }
             }
-        }
-        for (Table t : db.getAllTablesAndViews(false)) {
-            boolean modified = false;
-            for (Column targetColumn : t.getColumns()) {
-                if (targetColumn.getDomain() == domain) {
-                    boolean m = columnProcessor == null || columnProcessor.test(domain, targetColumn);
-                    if (m) {
-                        if (recompileExpressions) {
-                            targetColumn.prepareExpression(session);
-                        }
-                        modified = true;
-                    }
+            for (Table t : schema.getAllTablesAndViews()) {
+                if (forTable(session, domain, columnProcessor, recompileExpressions, t)) {
+                    db.updateMeta(session, t);
                 }
             }
-            if (modified) {
-                db.updateMeta(session, t);
+        }
+        for (Table t : session.getLocalTempTables()) {
+            forTable(session, domain, columnProcessor, recompileExpressions, t);
+        }
+    }
+
+    private static boolean forTable(Session session, Domain domain, BiPredicate<Domain, Column> columnProcessor,
+            boolean recompileExpressions, Table t) {
+        boolean modified = false;
+        for (Column targetColumn : t.getColumns()) {
+            if (targetColumn.getDomain() == domain) {
+                boolean m = columnProcessor == null || columnProcessor.test(domain, targetColumn);
+                if (m) {
+                    if (recompileExpressions) {
+                        targetColumn.prepareExpression(session);
+                    }
+                    modified = true;
+                }
             }
         }
+        return modified;
     }
 
     private final int type;

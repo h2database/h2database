@@ -12,6 +12,7 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.index.Cursor;
 import org.h2.result.Row;
+import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableType;
@@ -86,8 +87,10 @@ public class Analyze extends DefineCommand {
         if (table != null) {
             analyzeTable(session, table, sampleRows, true);
         } else {
-            for (Table table : db.getAllTablesAndViews(false)) {
-                analyzeTable(session, table, sampleRows, true);
+            for (Schema schema : db.getAllSchemasNoMeta()) {
+                for (Table table : schema.getAllTablesAndViews()) {
+                    analyzeTable(session, table, sampleRows, true);
+                }
             }
         }
         return 0;

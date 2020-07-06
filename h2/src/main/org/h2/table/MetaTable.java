@@ -132,19 +132,6 @@ public abstract class MetaTable extends Table {
         return s;
     }
 
-    /**
-     * Get all tables of this database, including local temporary tables for the
-     * session.
-     *
-     * @param session the session
-     * @return the array of tables
-     */
-    protected final ArrayList<Table> getAllTables(Session session) {
-        ArrayList<Table> tables = database.getAllTablesAndViews(true);
-        tables.addAll(session.getLocalTempTables());
-        return tables;
-    }
-
     protected final boolean checkIndex(Session session, String value, Value indexFrom, Value indexTo) {
         if (value == null || (indexFrom == null && indexTo == null)) {
             return true;

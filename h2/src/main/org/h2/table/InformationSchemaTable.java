@@ -1097,7 +1097,15 @@ public final class InformationSchemaTable extends MetaTable {
                 columns(session, rows, catalog, mainSchemaName, collation, table, table.getName());
             }
         } else {
-            for (Table table : getAllTables(session)) {
+            for (Schema schema : database.getAllSchemas()) {
+                for (Table table : schema.getAllTablesAndViews()) {
+                    String tableName = table.getName();
+                    if (checkIndex(session, tableName, indexFrom, indexTo)) {
+                        columns(session, rows, catalog, mainSchemaName, collation, table, tableName);
+                    }
+                }
+            }
+            for (Table table : session.getLocalTempTables()) {
                 String tableName = table.getName();
                 if (checkIndex(session, tableName, indexFrom, indexTo)) {
                     columns(session, rows, catalog, mainSchemaName, collation, table, tableName);
@@ -2174,67 +2182,79 @@ public final class InformationSchemaTable extends MetaTable {
 
     private void tables(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         boolean admin = session.getUser().isAdmin();
-        for (Table table : getAllTables(session)) {
-            String tableName = table.getName();
-            if (!checkIndex(session, tableName, indexFrom, indexTo)) {
-                continue;
-            }
-            if (hideTable(table, session)) {
-                continue;
-            }
-            String commitAction, storageType;
-            if (table.isTemporary()) {
-                commitAction = table.getOnCommitTruncate() ? "DELETE" : table.getOnCommitDrop() ? "DROP" : "PRESERVE";
-                storageType = table.isGlobalTemporary() ? "GLOBAL TEMPORARY" : "LOCAL TEMPORARY";
-            } else {
-                commitAction = null;
-                switch (table.getTableType()) {
-                case TABLE_LINK:
-                    storageType = "TABLE LINK";
-                    break;
-                case EXTERNAL_TABLE_ENGINE:
-                    storageType = "EXTERNAL";
-                    break;
-                default:
-                    storageType = table.isPersistIndexes() ? "CACHED" : "MEMORY";
-                    break;
+        for (Schema schema : database.getAllSchemas()) {
+            for (Table table : schema.getAllTablesAndViews()) {
+                String tableName = table.getName();
+                if (checkIndex(session, tableName, indexFrom, indexTo)) {
+                    tables(session, rows, catalog, admin, table, tableName);
                 }
             }
-            String sql = table.getCreateSQL();
-            if (!admin) {
-                if (sql != null && sql.contains(DbException.HIDE_SQL)) {
-                    // hide the password of linked tables
-                    sql = "-";
-                }
-            }
-            add(session, rows,
-                    // TABLE_CATALOG
-                    catalog,
-                    // TABLE_SCHEMA
-                    table.getSchema().getName(),
-                    // TABLE_NAME
-                    tableName,
-                    // TABLE_TYPE
-                    table.getSQLTableType(),
-                    // COMMIT_ACTION
-                    commitAction,
-                    // extensions
-                    // STORAGE_TYPE
-                    storageType,
-                    // SQL
-                    sql,
-                    // REMARKS
-                    table.getComment(),
-                    // LAST_MODIFICATION
-                    ValueBigint.get(table.getMaxDataModificationId()),
-                    // ID
-                    ValueInteger.get(table.getId()),
-                    // TABLE_CLASS
-                    table.getClass().getName(),
-                    // ROW_COUNT_ESTIMATE
-                    ValueBigint.get(table.getRowCountApproximation(session))
-            );
         }
+        for (Table table : session.getLocalTempTables()) {
+            String tableName = table.getName();
+            if (checkIndex(session, tableName, indexFrom, indexTo)) {
+                tables(session, rows, catalog, admin, table, tableName);
+            }
+        }
+    }
+
+    private void tables(Session session, ArrayList<Row> rows, String catalog, boolean admin, Table table,
+            String tableName) {
+        if (hideTable(table, session)) {
+            return;
+        }
+        String commitAction, storageType;
+        if (table.isTemporary()) {
+            commitAction = table.getOnCommitTruncate() ? "DELETE" : table.getOnCommitDrop() ? "DROP" : "PRESERVE";
+            storageType = table.isGlobalTemporary() ? "GLOBAL TEMPORARY" : "LOCAL TEMPORARY";
+        } else {
+            commitAction = null;
+            switch (table.getTableType()) {
+            case TABLE_LINK:
+                storageType = "TABLE LINK";
+                break;
+            case EXTERNAL_TABLE_ENGINE:
+                storageType = "EXTERNAL";
+                break;
+            default:
+                storageType = table.isPersistIndexes() ? "CACHED" : "MEMORY";
+                break;
+            }
+        }
+        String sql = table.getCreateSQL();
+        if (!admin) {
+            if (sql != null && sql.contains(DbException.HIDE_SQL)) {
+                // hide the password of linked tables
+                sql = "-";
+            }
+        }
+        add(session, rows,
+                // TABLE_CATALOG
+                catalog,
+                // TABLE_SCHEMA
+                table.getSchema().getName(),
+                // TABLE_NAME
+                tableName,
+                // TABLE_TYPE
+                table.getSQLTableType(),
+                // COMMIT_ACTION
+                commitAction,
+                // extensions
+                // STORAGE_TYPE
+                storageType,
+                // SQL
+                sql,
+                // REMARKS
+                table.getComment(),
+                // LAST_MODIFICATION
+                ValueBigint.get(table.getMaxDataModificationId()),
+                // ID
+                ValueInteger.get(table.getId()),
+                // TABLE_CLASS
+                table.getClass().getName(),
+                // ROW_COUNT_ESTIMATE
+                ValueBigint.get(table.getRowCountApproximation(session))
+        );
     }
 
     private void tableConstraints(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
@@ -2373,36 +2393,48 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     private void views(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
-        for (Table table : getAllTables(session)) {
-            if (!table.isView()) {
-                continue;
+        for (Schema schema : database.getAllSchemas()) {
+            for (Table table : schema.getAllTablesAndViews()) {
+                if (table.isView()) {
+                    String tableName = table.getName();
+                    if (checkIndex(session, tableName, indexFrom, indexTo)) {
+                        views(session, rows, catalog, table, tableName);
+                    }
+                }
             }
-            String tableName = table.getName();
-            if (!checkIndex(session, tableName, indexFrom, indexTo)) {
-                continue;
-            }
-            add(session, rows,
-                    // TABLE_CATALOG
-                    catalog,
-                    // TABLE_SCHEMA
-                    table.getSchema().getName(),
-                    // TABLE_NAME
-                    tableName,
-                    // VIEW_DEFINITION
-                    table.getCreateSQL(),
-                    // CHECK_OPTION
-                    "NONE",
-                    // IS_UPDATABLE
-                    "NO",
-                    // extensions
-                    // STATUS
-                    table instanceof TableView && ((TableView) table).isInvalid() ? "INVALID" : "VALID",
-                    // REMARKS
-                    table.getComment(),
-                    // ID
-                    ValueInteger.get(table.getId())
-            );
         }
+        for (Table table : session.getLocalTempTables()) {
+            if (table.isView()) {
+                String tableName = table.getName();
+                if (checkIndex(session, tableName, indexFrom, indexTo)) {
+                    views(session, rows, catalog, table, tableName);
+                }
+            }
+        }
+    }
+
+    private void views(Session session, ArrayList<Row> rows, String catalog, Table table, String tableName) {
+        add(session, rows,
+                // TABLE_CATALOG
+                catalog,
+                // TABLE_SCHEMA
+                table.getSchema().getName(),
+                // TABLE_NAME
+                tableName,
+                // VIEW_DEFINITION
+                table.getCreateSQL(),
+                // CHECK_OPTION
+                "NONE",
+                // IS_UPDATABLE
+                "NO",
+                // extensions
+                // STATUS
+                table instanceof TableView && ((TableView) table).isInvalid() ? "INVALID" : "VALID",
+                // REMARKS
+                table.getComment(),
+                // ID
+                ValueInteger.get(table.getId())
+        );
     }
 
     private void constants(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {

@@ -2439,6 +2439,19 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         return list;
     }
 
+    /**
+     * Get all tables of this database, including local temporary tables for the
+     * session.
+     *
+     * @param session the session
+     * @return the array of tables
+     */
+    private ArrayList<Table> getAllTables(Session session) {
+        ArrayList<Table> tables = database.getAllTablesAndViews(true);
+        tables.addAll(session.getLocalTempTables());
+        return tables;
+    }
+
     private ArrayList<Table> getTablesByName(Session session, String tableName) {
         // we expect that at most one table matches, at least in most cases
         ArrayList<Table> tables = new ArrayList<>(1);

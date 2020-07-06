@@ -1701,24 +1701,6 @@ public class Database implements DataHandler, CastDataProvider {
         return list;
     }
 
-    /**
-     * Get the tables with the given name, if any.
-     *
-     * @param name the table name
-     * @return the list
-     */
-    public ArrayList<Table> getTableOrViewByName(String name) {
-        // we expect that at most one table matches, at least in most cases
-        ArrayList<Table> list = new ArrayList<>(1);
-        for (Schema schema : schemas.values()) {
-            Table table = schema.getTableOrViewByName(name);
-            if (table != null) {
-                list.add(table);
-            }
-        }
-        return list;
-    }
-
     public Collection<Schema> getAllSchemas() {
         checkMetaTables();
         return schemas.values();

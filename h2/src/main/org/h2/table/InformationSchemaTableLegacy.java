@@ -2439,6 +2439,22 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         return list;
     }
 
+    private ArrayList<Table> getTablesByName(Session session, String tableName) {
+        // we expect that at most one table matches, at least in most cases
+        ArrayList<Table> tables = new ArrayList<>(1);
+        for (Schema schema : database.getAllSchemas()) {
+            Table table = schema.getTableOrViewByName(tableName);
+            if (table != null) {
+                tables.add(table);
+            }
+        }
+        Table table = session.findLocalTempTable(tableName);
+        if (table != null) {
+            tables.add(table);
+        }
+        return tables;
+    }
+
     @Override
     public long getMaxDataModificationId() {
         switch (type) {

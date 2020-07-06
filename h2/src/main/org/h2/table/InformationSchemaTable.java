@@ -1079,38 +1079,46 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     private void columns(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
-        // reduce the number of tables to scan - makes some metadata queries
-        // 10x faster
-        final ArrayList<Table> tablesToList;
+        String mainSchemaName = database.getMainSchema().getName();
+        String collation = database.getCompareMode().getName();
         if (indexFrom != null && indexFrom.equals(indexTo)) {
             String tableName = indexFrom.getString();
             if (tableName == null) {
                 return;
             }
-            tablesToList = getTablesByName(session, tableName);
+            for (Schema schema : database.getAllSchemas()) {
+                Table table = schema.getTableOrViewByName(tableName);
+                if (table != null) {
+                    columns(session, rows, catalog, mainSchemaName, collation, table, table.getName());
+                }
+            }
+            Table table = session.findLocalTempTable(tableName);
+            if (table != null) {
+                columns(session, rows, catalog, mainSchemaName, collation, table, table.getName());
+            }
         } else {
-            tablesToList = getAllTables(session);
-        }
-        String mainSchemaName = database.getMainSchema().getName();
-        String collation = database.getCompareMode().getName();
-        for (Table table : tablesToList) {
-            String tableName = table.getName();
-            if (!checkIndex(session, tableName, indexFrom, indexTo)) {
-                continue;
-            }
-            if (hideTable(table, session)) {
-                continue;
-            }
-            Column[] cols = table.getColumns();
-            for (int j = 0; j < cols.length; j++) {
-                Column c = cols[j];
-                columns(session, rows, catalog, mainSchemaName, collation, table, tableName, j + 1, c);
+            for (Table table : getAllTables(session)) {
+                String tableName = table.getName();
+                if (checkIndex(session, tableName, indexFrom, indexTo)) {
+                    columns(session, rows, catalog, mainSchemaName, collation, table, tableName);
+                }
             }
         }
     }
 
+    private void columns(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+            String collation, Table table, String tableName) {
+        if (hideTable(table, session)) {
+            return;
+        }
+        Column[] cols = table.getColumns();
+        for (int i = 0, l = cols.length; i < l;) {
+            columns(session, rows, catalog, mainSchemaName, collation, table, tableName, cols[i], ++i);
+        }
+    }
+
     private void columns(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName, String collation,
-            Table table, String tableName, int ordinalPosition, Column c) {
+            Table table, String tableName, Column c, int ordinalPosition) {
         TypeInfo typeInfo = c.getType();
         DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
         String characterSetCatalog, characterSetSchema, characterSetName, collationName;
@@ -2518,8 +2526,11 @@ public final class InformationSchemaTable extends MetaTable {
             if (tableName == null) {
                 return;
             }
-            for (Table table : database.getTableOrViewByName(tableName)) {
-                indexes(session, rows, catalog, columns, table, table.getName());
+            for (Schema schema : database.getAllSchemas()) {
+                Table table = schema.getTableOrViewByName(tableName);
+                if (table != null) {
+                    indexes(session, rows, catalog, columns, table, table.getName());
+                }
             }
             Table table = session.findLocalTempTable(tableName);
             if (table != null) {

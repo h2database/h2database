@@ -145,15 +145,6 @@ public abstract class MetaTable extends Table {
         return tables;
     }
 
-    protected final ArrayList<Table> getTablesByName(Session session, String tableName) {
-        ArrayList<Table> tables = database.getTableOrViewByName(tableName);
-        Table temp = session.findLocalTempTable(tableName);
-        if (temp != null) {
-            tables.add(temp);
-        }
-        return tables;
-    }
-
     protected final boolean checkIndex(Session session, String value, Value indexFrom, Value indexTo) {
         if (value == null || (indexFrom == null && indexTo == null)) {
             return true;

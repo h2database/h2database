@@ -151,7 +151,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private WeakHashMap<Sequence, Value> currentValueFor;
     private Value lastIdentity = ValueBigint.get(0);
     private Value lastScopeIdentity = ValueBigint.get(0);
-    private Value lastTriggerIdentity;
 
     private int firstUncommittedLog = Session.LOG_WRITTEN;
     private int firstUncommittedPos = Session.LOG_WRITTEN;
@@ -1177,14 +1176,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public Value getLastScopeIdentity() {
         return lastScopeIdentity;
-    }
-
-    public void setLastTriggerIdentity(Value last) {
-        this.lastTriggerIdentity = last;
-    }
-
-    public Value getLastTriggerIdentity() {
-        return lastTriggerIdentity;
     }
 
     /**

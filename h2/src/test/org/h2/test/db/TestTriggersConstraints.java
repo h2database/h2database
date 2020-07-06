@@ -15,8 +15,6 @@ import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
-import org.h2.engine.Session;
-import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.TriggerAdapter;
@@ -232,12 +230,12 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
 
         PreparedStatement pstat;
         pstat = conn.prepareStatement(
-                "insert into test_view values()", Statement.RETURN_GENERATED_KEYS);
+                "insert into test_view values()", new int[] { 1 });
         int count = pstat.executeUpdate();
         assertEquals(1, count);
 
         ResultSet gkRs;
-        gkRs = stat.executeQuery("select scope_identity()");
+        gkRs = pstat.getGeneratedKeys();
 
         assertTrue(gkRs.next());
         assertEquals(1, gkRs.getInt(1));
@@ -348,9 +346,7 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
                 prepInsert.execute();
                 ResultSet rs = prepInsert.getGeneratedKeys();
                 if (rs.next()) {
-                    JdbcConnection jconn = (JdbcConnection) conn;
-                    Session session = (Session) jconn.getSession();
-                    session.setLastTriggerIdentity(ValueBigint.get(rs.getLong(1)));
+                    newRow[0] = ValueBigint.get(rs.getLong(1));
                 }
             }
         }

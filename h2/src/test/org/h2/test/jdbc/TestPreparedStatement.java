@@ -43,7 +43,6 @@ import org.h2.api.ErrorCode;
 import org.h2.api.H2Type;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
-import org.h2.api.Trigger;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.Task;
@@ -79,7 +78,6 @@ public class TestPreparedStatement extends TestDb {
         testEnum(conn);
         testUUID(conn);
         testUUIDAsJavaObject(conn);
-        testScopedGeneratedKey(conn);
         testLobTempFiles(conn);
         testExecuteErrorTwice(conn);
         testTempView(conn);
@@ -562,49 +560,6 @@ public class TestPreparedStatement extends TestDb {
         assertTrue(selectedUUID.toString().equals(uuidStr));
         assertTrue(selectedUUID.equals(origUUID));
         stat.execute("drop table test_uuid");
-    }
-
-    /**
-     * A trigger that creates a sequence value.
-     */
-    public static class SequenceTrigger implements Trigger {
-
-        @Override
-        public void fire(Connection conn, Object[] oldRow, Object[] newRow)
-                throws SQLException {
-            conn.setAutoCommit(false);
-            conn.createStatement().execute("call next value for seq");
-        }
-
-        @Override
-        public void init(Connection conn, String schemaName,
-                String triggerName, String tableName, boolean before, int type) {
-            // ignore
-        }
-
-    }
-
-    private void testScopedGeneratedKey(Connection conn) throws SQLException {
-        Statement stat = conn.createStatement();
-        stat.execute("create table test(id identity)");
-        stat.execute("create sequence seq start with 1000");
-        stat.execute("create trigger test_ins after insert on test call \"" +
-                SequenceTrigger.class.getName() + "\"");
-        stat.execute("insert into test values(null)", Statement.RETURN_GENERATED_KEYS);
-        ResultSet rs = stat.getGeneratedKeys();
-        rs.next();
-        // Generated key
-        assertEquals(1, rs.getLong(1));
-        stat.execute("insert into test values(100)");
-        rs = stat.getGeneratedKeys();
-        // No generated keys
-        assertFalse(rs.next());
-        // Value from sequence from trigger
-        rs = stat.executeQuery("select scope_identity()");
-        rs.next();
-        assertEquals(100, rs.getLong(1));
-        stat.execute("drop sequence seq");
-        stat.execute("drop table test");
     }
 
     private void testSetObject(Connection conn) throws SQLException {

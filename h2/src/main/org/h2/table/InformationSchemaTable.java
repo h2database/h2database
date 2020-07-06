@@ -2519,30 +2519,32 @@ public final class InformationSchemaTable extends MetaTable {
                 return;
             }
             for (Table table : database.getTableOrViewByName(tableName)) {
-                indexes(session, indexFrom, indexTo, rows, catalog, columns, table);
+                indexes(session, rows, catalog, columns, table, table.getName());
             }
-            Table temp = session.findLocalTempTable(tableName);
-            if (temp != null) {
-                indexes(session, indexFrom, indexTo, rows, catalog, columns, temp);
+            Table table = session.findLocalTempTable(tableName);
+            if (table != null) {
+                indexes(session, rows, catalog, columns, table, table.getName());
             }
         } else {
             for (Schema schema : database.getAllSchemas()) {
                 for (Table table : schema.getAllTablesAndViews()) {
-                    indexes(session, indexFrom, indexTo, rows, catalog, columns, table);
+                    String tableName = table.getName();
+                    if (checkIndex(session, tableName, indexFrom, indexTo)) {
+                        indexes(session, rows, catalog, columns, table, tableName);
+                    }
                 }
             }
             for (Table table : session.getLocalTempTables()) {
-                indexes(session, indexFrom, indexTo, rows, catalog, columns, table);
+                String tableName = table.getName();
+                if (checkIndex(session, tableName, indexFrom, indexTo)) {
+                    indexes(session, rows, catalog, columns, table, tableName);
+                }
             }
         }
     }
 
-    private void indexes(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog,
-            boolean columns, Table table) {
-        String tableName = table.getName();
-        if (!checkIndex(session, tableName, indexFrom, indexTo)) {
-            return;
-        }
+    private void indexes(Session session, ArrayList<Row> rows, String catalog, boolean columns, Table table,
+            String tableName) {
         if (hideTable(table, session)) {
             return;
         }

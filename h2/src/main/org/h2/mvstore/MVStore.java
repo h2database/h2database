@@ -1249,7 +1249,7 @@ public class MVStore implements AutoCloseable {
      * @param allowedCompactionTime the allowed time for compaction (in
      *            milliseconds)
      */
-    public void close(long allowedCompactionTime) {
+    public void close(int allowedCompactionTime) {
         closeStore(true, allowedCompactionTime);
     }
 
@@ -1266,7 +1266,7 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    private void closeStore(boolean normalShutdown, long allowedCompactionTime) {
+    private void closeStore(boolean normalShutdown, int allowedCompactionTime) {
         // If any other thead have already initiated closure procedure,
         // isClosed() would wait until closure is done and then  we jump out of the loop.
         // This is a subtle difference between !isClosed() and isOpen().
@@ -2238,14 +2238,13 @@ public class MVStore implements AutoCloseable {
      *
      * @param maxCompactTime the maximum time in milliseconds to compact
      */
-    public void compactFile(long maxCompactTime) {
+    public void compactFile(int maxCompactTime) {
         setRetentionTime(0);
-        long start = System.nanoTime();
+        long stopAt = System.nanoTime() + maxCompactTime * 1_000_000L;
         while (compact(95, 16 * 1024 * 1024)) {
             sync();
             compactMoveChunks(95, 16 * 1024 * 1024);
-            long time = System.nanoTime() - start;
-            if (time > TimeUnit.MILLISECONDS.toNanos(maxCompactTime)) {
+            if (System.nanoTime() - stopAt > 0L) {
                 break;
             }
         }

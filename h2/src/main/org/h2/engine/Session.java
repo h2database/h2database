@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.h2.api.ErrorCode;
@@ -158,8 +157,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private HashMap<String, Table> localTempTables;
     private HashMap<String, Index> localTempTableIndexes;
     private HashMap<String, Constraint> localTempTableConstraints;
-    private long throttleNs;
-    private long lastThrottle;
+    private int throttleMs;
+    private long lastThrottleNs;
     private Command currentCommand;
     private boolean allowLiterals;
     private String currentSchemaName;
@@ -751,7 +750,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {
-        assert this != getDatabase().getLobSession() || Thread.holdsLock(this) || Thread.holdsLock(getDatabase());
+        assert this != database.getLobSession() || Thread.holdsLock(this) || Thread.holdsLock(database);
         if (temporaryLobs != null) {
             for (ValueLob v : temporaryLobs) {
                 if (!v.isLinkedToTable()) {
@@ -761,11 +760,10 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             temporaryLobs.clear();
         }
         if (temporaryResultLobs != null && !temporaryResultLobs.isEmpty()) {
-            long keepYoungerThan = System.nanoTime() -
-                    TimeUnit.MILLISECONDS.toNanos(database.getSettings().lobTimeout);
+            long keepYoungerThan = System.nanoTime() - database.getSettings().lobTimeout * 1_000_000L;
             while (!temporaryResultLobs.isEmpty()) {
                 TimeoutValue tv = temporaryResultLobs.getFirst();
-                if (onTimeout && tv.created >= keepYoungerThan) {
+                if (onTimeout && tv.created - keepYoungerThan >= 0) {
                     break;
                 }
                 ValueLob v = temporaryResultLobs.removeFirst().value;
@@ -906,7 +904,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public void cancel() {
-        cancelAtNs = System.nanoTime();
+        cancelAtNs = Utils.currentNanoTime();
     }
 
     /**
@@ -1320,7 +1318,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     public void setThrottle(int throttle) {
-        this.throttleNs = TimeUnit.MILLISECONDS.toNanos(throttle);
+        this.throttleMs = throttle;
     }
 
     /**
@@ -1330,17 +1328,17 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (commandStartOrEnd == null) {
             commandStartOrEnd = DateTimeUtils.currentTimestamp(timeZone);
         }
-        if (throttleNs == 0) {
+        if (throttleMs == 0) {
             return;
         }
         long time = System.nanoTime();
-        if (lastThrottle + TimeUnit.MILLISECONDS.toNanos(Constants.THROTTLE_DELAY) > time) {
+        if (lastThrottleNs != 0L && time - lastThrottleNs < Constants.THROTTLE_DELAY * 1_000_000L) {
             return;
         }
-        lastThrottle = time + throttleNs;
+        lastThrottleNs = Utils.nanoTimePlusMillis(time, throttleMs);
         State prevState = transitionToState(State.THROTTLED, false);
         try {
-            Thread.sleep(TimeUnit.NANOSECONDS.toMillis(throttleNs));
+            Thread.sleep(throttleMs);
         } catch (InterruptedException ignore) {
         } finally {
             transitionToState(prevState, false);
@@ -1361,8 +1359,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             commandStartOrEnd = DateTimeUtils.currentTimestamp(timeZone);
             if (command != null) {
                 if (queryTimeout > 0) {
-                    long now = System.nanoTime();
-                    cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
+                    cancelAtNs = Utils.currentNanoTimePlusMillis(queryTimeout);
                 }
             } else if (nextValueFor != null) {
                 nextValueFor.clear();
@@ -1394,12 +1391,12 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public void checkCanceled() {
         throttle();
-        if (cancelAtNs == 0) {
+        long cancel = cancelAtNs;
+        if (cancel == 0L) {
             return;
         }
-        long time = System.nanoTime();
-        if (time >= cancelAtNs) {
-            cancelAtNs = 0;
+        if (System.nanoTime() - cancel >= 0L) {
+            cancelAtNs = 0L;
             throw DbException.get(ErrorCode.STATEMENT_WAS_CANCELED);
         }
     }
@@ -1729,7 +1726,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         this.queryTimeout = queryTimeout;
         // must reset the cancel at here,
         // otherwise it is still used
-        this.cancelAtNs = 0;
+        cancelAtNs = 0L;
     }
 
     public int getQueryTimeout() {

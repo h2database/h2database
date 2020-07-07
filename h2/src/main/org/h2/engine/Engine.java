@@ -17,6 +17,7 @@ import org.h2.security.auth.AuthenticationException;
 import org.h2.security.auth.AuthenticationInfo;
 import org.h2.security.auth.Authenticator;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.ParserUtil;
 import org.h2.util.ThreadDeadlockDetector;
@@ -226,8 +227,7 @@ public class Engine implements SessionFactory {
             }
             // we found a database that is currently closing
             // wait a bit to avoid a busy loop (the method is synchronized)
-            if (System.nanoTime() - start > 60_000_000_000L) {
-                // retry at most 1 minute
+            if (System.nanoTime() - start > DateTimeUtils.NANOS_PER_MINUTE) {
                 throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1,
                         "Waited for database closing longer than 1 minute");
             }

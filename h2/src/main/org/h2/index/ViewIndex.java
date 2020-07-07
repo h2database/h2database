@@ -100,11 +100,15 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         if (!recursive) {
             query = getQuery(session, masks, filters, filter, sortOrder);
         }
-        // we don't need eviction for recursive views since we can't calculate
-        // their cost if it is a sub-query we don't need eviction as well
-        // because the whole ViewIndex cache is getting dropped in
-        // Session.prepareLocal
-        evaluatedAt = recursive || view.getTopQuery() != null ? Long.MAX_VALUE : System.nanoTime();
+        if (recursive || view.getTopQuery() != null) {
+            evaluatedAt = Long.MAX_VALUE;
+        } else {
+            long time = System.nanoTime();
+            if (time == Long.MAX_VALUE) {
+                time++;
+            }
+            evaluatedAt = time;
+        }
     }
 
     public Session getSession() {

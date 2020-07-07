@@ -322,7 +322,7 @@ public final class Store {
      * @param maxCompactTime the maximum time in milliseconds to compact
      */
     @SuppressWarnings("unused")
-    public void compactFile(long maxCompactTime) {
+    public void compactFile(int maxCompactTime) {
         mvStore.compactFile(maxCompactTime);
     }
 
@@ -338,7 +338,7 @@ public final class Store {
      *                              compaction activity, 0 means no compaction,
      *                              -1 means unlimited time (full compaction)
      */
-    public void close(long allowedCompactionTime) {
+    public void close(int allowedCompactionTime) {
         try {
             FileStore fileStore = mvStore.getFileStore();
             if (!mvStore.isClosed() && fileStore != null) {

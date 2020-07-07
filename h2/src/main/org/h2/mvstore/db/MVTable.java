@@ -7,7 +7,6 @@ package org.h2.mvstore.db;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.h2.api.DatabaseEventListener;
@@ -174,7 +173,7 @@ public class MVTable extends RegularTable {
     private void doLock1(Session session, boolean exclusive) {
         traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_REQUESTING_FOR, NO_EXTRA_INFO);
         // don't get the current time unless necessary
-        long max = 0;
+        long max = 0L;
         boolean checkDeadlock = false;
         while (true) {
             // if I'm the next one in the queue
@@ -194,10 +193,10 @@ public class MVTable extends RegularTable {
                 checkDeadlock = true;
             }
             long now = System.nanoTime();
-            if (max == 0) {
+            if (max == 0L) {
                 // try at least one more time
-                max = now + TimeUnit.MILLISECONDS.toNanos(session.getLockTimeout());
-            } else if (now >= max) {
+                max = Utils.nanoTimePlusMillis(now, session.getLockTimeout());
+            } else if (now - max >= 0L) {
                 traceLock(session, exclusive,
                         TraceLockEvent.TRACE_LOCK_TIMEOUT_AFTER, NO_EXTRA_INFO+session.getLockTimeout());
                 throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, getName());
@@ -205,8 +204,7 @@ public class MVTable extends RegularTable {
             try {
                 traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_WAITING_FOR, NO_EXTRA_INFO);
                 // don't wait too long so that deadlocks are detected early
-                long sleep = Math.min(Constants.DEADLOCK_CHECK,
-                        TimeUnit.NANOSECONDS.toMillis(max - now));
+                long sleep = Math.min(Constants.DEADLOCK_CHECK, (max - now) / 1_000_000L);
                 if (sleep == 0) {
                     sleep = 1;
                 }

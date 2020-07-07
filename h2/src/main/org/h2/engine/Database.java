@@ -1541,7 +1541,7 @@ public class Database implements DataHandler, CastDataProvider {
             if (store != null) {
                 MVStore mvStore = store.getMvStore();
                 if (mvStore != null && !mvStore.isClosed()) {
-                    long allowedCompactionTime =
+                    int allowedCompactionTime =
                             compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY ? 0 :
                             compactMode == CommandInterface.SHUTDOWN_COMPACT ||
                             compactMode == CommandInterface.SHUTDOWN_DEFRAG ||

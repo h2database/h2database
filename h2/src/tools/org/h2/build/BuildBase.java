@@ -662,7 +662,7 @@ public class BuildBase {
             int len = 0;
             while (true) {
                 long now = System.nanoTime();
-                if (now > last + TimeUnit.SECONDS.toNanos(1)) {
+                if (now - last > 1_000_000_000L) {
                     println("Downloaded " + len + " bytes");
                     last = now;
                 }

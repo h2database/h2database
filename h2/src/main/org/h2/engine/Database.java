@@ -257,16 +257,12 @@ public class Database implements DataHandler, CastDataProvider {
         this.databaseShortName = parseDatabaseShortName();
         this.maxLengthInplaceLob = Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
         this.cipher = cipher;
-        this.accessModeData = StringUtils.toLowerEnglish(
-                ci.getProperty("ACCESS_MODE_DATA", "rw"));
+        this.accessModeData = StringUtils.toLowerEnglish(ci.getProperty("ACCESS_MODE_DATA", "rw"));
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
         this.autoServerPort = ci.getProperty("AUTO_SERVER_PORT", 0);
-        int defaultCacheSize = Utils.scaleForAvailableMemory(
-                Constants.CACHE_SIZE_DEFAULT);
-        this.cacheSize =
-                ci.getProperty("CACHE_SIZE", defaultCacheSize);
-        this.pageSize = ci.getProperty("PAGE_SIZE",
-                Constants.DEFAULT_PAGE_SIZE);
+        int defaultCacheSize = Utils.scaleForAvailableMemory(Constants.CACHE_SIZE_DEFAULT);
+        this.cacheSize = ci.getProperty("CACHE_SIZE", defaultCacheSize);
+        this.pageSize = ci.getProperty("PAGE_SIZE", Constants.DEFAULT_PAGE_SIZE);
         if ("r".equals(accessModeData)) {
             readOnly = true;
         }
@@ -297,33 +293,21 @@ public class Database implements DataHandler, CastDataProvider {
                 throw DbException.getInvalidValueException("DEFAULT_NULL_ORDERING", s);
             }
         }
-        this.logMode =
-                ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
+        this.logMode = ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
         s = ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
         if (s != null) {
             s = StringUtils.trim(s, true, true, "'");
             javaObjectSerializerName = s;
         }
-        this.allowBuiltinAliasOverride =
-                ci.getProperty("BUILTIN_ALIAS_OVERRIDE", false);
-        boolean closeAtVmShutdown =
-                dbSettings.dbCloseOnExit;
-        int traceLevelFile =
-                ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE,
-                TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
-        int traceLevelSystemOut =
-                ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
+        this.allowBuiltinAliasOverride = ci.getProperty("BUILTIN_ALIAS_OVERRIDE", false);
+        boolean closeAtVmShutdown = dbSettings.dbCloseOnExit;
+        int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
+        int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
                 TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
-        this.cacheType = StringUtils.toUpperEnglish(
-                ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
-        this.ignoreCatalogs = ci.getProperty("IGNORE_CATALOGS",
-                dbSettings.ignoreCatalogs);
+        this.cacheType = StringUtils.toUpperEnglish(ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
+        this.ignoreCatalogs = ci.getProperty("IGNORE_CATALOGS", dbSettings.ignoreCatalogs);
         this.lockMode = ci.getProperty("LOCK_MODE", Constants.DEFAULT_LOCK_MODE);
         this.writeDelay = ci.getProperty("WRITE_DELAY", Constants.DEFAULT_WRITE_DELAY);
-        openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown);
-    }
-
-    private void openDatabase(int traceLevelFile, int traceLevelSystemOut, boolean closeAtVmShutdown) {
         try {
             open(traceLevelFile, traceLevelSystemOut);
             if (closeAtVmShutdown) {
@@ -339,7 +323,6 @@ public class Database implements DataHandler, CastDataProvider {
                 if (alreadyOpen) {
                     stopServer();
                 }
-
                 if (traceSystem != null) {
                     if (e instanceof DbException && !alreadyOpen) {
                         // only write if the database is not already in use

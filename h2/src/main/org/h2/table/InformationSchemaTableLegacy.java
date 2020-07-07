@@ -46,7 +46,7 @@ import org.h2.index.MetaIndex;
 import org.h2.message.DbException;
 import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVStore;
-import org.h2.mvstore.db.MVTableEngine.Store;
+import org.h2.mvstore.db.Store;
 import org.h2.pagestore.PageStore;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;

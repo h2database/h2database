@@ -9,9 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Database;
-import org.h2.engine.DbSettings;
 import org.h2.index.IndexType;
-import org.h2.mvstore.db.MVTableEngine;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.util.StringUtils;
@@ -129,11 +127,7 @@ public abstract class TableBase extends Table {
         }
         buff.append("\n)");
         if (tableEngine != null) {
-            DbSettings s = db.getSettings();
-            String d = s.defaultTableEngine;
-            if (d == null && s.mvStore) {
-                d = MVTableEngine.class.getName();
-            }
+            String d = db.getSettings().defaultTableEngine;
             if (d == null || !tableEngine.endsWith(d)) {
                 buff.append("\nENGINE ");
                 StringUtils.quoteIdentifier(buff, tableEngine);

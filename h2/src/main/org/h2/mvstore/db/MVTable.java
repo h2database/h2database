@@ -23,7 +23,6 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVStoreException;
-import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.result.Row;
@@ -103,10 +102,10 @@ public class MVTable extends RegularTable {
     private final AtomicInteger changesUntilAnalyze;
     private int nextAnalyze;
 
-    private final MVTableEngine.Store store;
+    private final Store store;
     private final TransactionStore transactionStore;
 
-    public MVTable(CreateTableData data, MVTableEngine.Store store) {
+    public MVTable(CreateTableData data, Store store) {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
         changesUntilAnalyze = nextAnalyze <= 0 ? null : new AtomicInteger(nextAnalyze);

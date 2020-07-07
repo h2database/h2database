@@ -21,7 +21,6 @@ import org.h2.index.SpatialIndex;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.MVSpatialIndex;
-import org.h2.mvstore.db.MVTableEngine;
 import org.h2.mvstore.rtree.MVRTreeMap;
 import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.result.Row;
@@ -107,8 +106,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
                 throw DbException.getUnsupportedException(
                         "Persistent index with id<0");
             }
-            MVTableEngine.init(session.getDatabase());
-            store = session.getDatabase().getStore().getMvStore();
+            store = session.getDatabase().getOrCreateStore().getMvStore();
             // Called after CREATE SPATIAL INDEX or
             // by PageStore.addMeta
             treeMap =  store.openMap(MAP_PREFIX + getId(),

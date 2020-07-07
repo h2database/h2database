@@ -46,7 +46,7 @@ import org.h2.mode.PgCatalogTable;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.db.LobStorageMap;
-import org.h2.mvstore.db.MVTableEngine;
+import org.h2.mvstore.db.Store;
 import org.h2.pagestore.PageStore;
 import org.h2.pagestore.WriterThread;
 import org.h2.pagestore.db.LobStorageBackend;
@@ -224,7 +224,7 @@ public class Database implements DataHandler, CastDataProvider {
     private int defaultTableType = Table.TYPE_CACHED;
     private final DbSettings dbSettings;
     private int logMode;
-    private MVTableEngine.Store store;
+    private Store store;
     private int retentionTime;
     private boolean allowBuiltinAliasOverride;
     private final AtomicReference<DbException> backgroundException = new AtomicReference<>();
@@ -380,13 +380,16 @@ public class Database implements DataHandler, CastDataProvider {
         powerOffCount = count;
     }
 
-    public MVTableEngine.Store getStore() {
+    public Store getStore() {
         return store;
     }
 
-    public void setStore(MVTableEngine.Store store) {
-        this.store = store;
-        this.retentionTime = store.getMvStore().getRetentionTime();
+    public Store getOrCreateStore() {
+        if (store == null) {
+            store = new Store(this);
+            retentionTime = store.getMvStore().getRetentionTime();
+        }
+        return store;
     }
 
     public long getModificationDataId() {
@@ -575,16 +578,16 @@ public class Database implements DataHandler, CastDataProvider {
             starting = true;
             if (SysProperties.MODIFY_ON_WRITE) {
                 try {
-                    getPageStore();
+                    createMainStore();
                 } catch (DbException e) {
                     if (e.getErrorCode() != ErrorCode.DATABASE_IS_READ_ONLY) {
                         throw e;
                     }
                     pageStore = null;
-                    getPageStore();
+                    createMainStore();
                 }
             } else {
-                getPageStore();
+                createMainStore();
             }
             starting = false;
         } else {
@@ -595,7 +598,7 @@ public class Database implements DataHandler, CastDataProvider {
                         "autoServerMode && inMemory");
             }
             if (dbSettings.mvStore) {
-                getPageStore();
+                getOrCreateStore();
             }
         }
         if (store != null) {
@@ -2654,28 +2657,28 @@ public class Database implements DataHandler, CastDataProvider {
         return tempFileDeleter;
     }
 
-    public PageStore getPageStore() {
+    private void createMainStore() {
         if (dbSettings.mvStore) {
-            if (store == null) {
-                store = MVTableEngine.init(this);
-            }
-            return null;
+            getOrCreateStore();
+        } else {
+            createPageStore();
         }
-        synchronized (this) {
-            if (pageStore == null) {
-                pageStore = new PageStore(this, databaseName +
-                        Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
-                if (pageSize != Constants.DEFAULT_PAGE_SIZE) {
-                    pageStore.setPageSize(pageSize);
-                }
-                if (!readOnly && fileLockMethod == FileLockMethod.FS) {
-                    pageStore.setLockFile(true);
-                }
-                pageStore.setLogMode(logMode);
-                pageStore.open();
-            }
-            return pageStore;
+    }
+
+    private void createPageStore() {
+        pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
+        if (pageSize != Constants.DEFAULT_PAGE_SIZE) {
+            pageStore.setPageSize(pageSize);
         }
+        if (!readOnly && fileLockMethod == FileLockMethod.FS) {
+            pageStore.setLockFile(true);
+        }
+        pageStore.setLogMode(logMode);
+        pageStore.open();
+    }
+
+    public PageStore getPageStore() {
+        return pageStore;
     }
 
     /**

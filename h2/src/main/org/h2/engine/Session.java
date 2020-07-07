@@ -41,7 +41,7 @@ import org.h2.message.TraceSystem;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.db.MVIndex;
 import org.h2.mvstore.db.MVTable;
-import org.h2.mvstore.db.MVTableEngine;
+import org.h2.mvstore.db.Store;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.result.ResultInterface;
@@ -1797,7 +1797,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public Transaction getTransaction() {
         if (transaction == null) {
-            MVTableEngine.Store store = database.getStore();
+            Store store = database.getStore();
             if (store != null) {
                 if (store.getMvStore().isClosed()) {
                     Throwable backgroundException = database.getBackgroundException();
@@ -1966,7 +1966,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                             VersionedValue<Object> restoredValue) {
         // Here we are relying on the fact that map which backs table's primary index
         // has the same name as the table itself
-        MVTableEngine.Store store = database.getStore();
+        Store store = database.getStore();
         if(store != null) {
             MVTable table = store.getTable(map.getName());
             if (table != null) {

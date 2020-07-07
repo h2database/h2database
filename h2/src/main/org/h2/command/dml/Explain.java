@@ -16,7 +16,7 @@ import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
-import org.h2.mvstore.db.MVTableEngine.Store;
+import org.h2.mvstore.db.Store;
 import org.h2.pagestore.PageStore;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;

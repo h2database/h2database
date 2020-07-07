@@ -990,27 +990,29 @@ public class Database implements DataHandler, CastDataProvider {
             return true;
         }
         if (ASSERT) {
-            // If we are locking two different databases in the same stack, just ignore it.
-            // This only happens in TestLinkedTable where we connect to another h2 DB in the
-            // same process.
-            if (META_LOCK_DEBUGGING_DB.get() != null
-                    && META_LOCK_DEBUGGING_DB.get() != this) {
-                final Session prev = META_LOCK_DEBUGGING.get();
-                if (prev == null) {
-                    META_LOCK_DEBUGGING.set(session);
-                    META_LOCK_DEBUGGING_DB.set(this);
-                    META_LOCK_DEBUGGING_STACK.set(new Throwable("Last meta lock granted in this stack trace, "+
-                            "this is debug information for following IllegalStateException"));
-                } else if (prev != session) {
-                    META_LOCK_DEBUGGING_STACK.get().printStackTrace();
-                    throw new IllegalStateException("meta currently locked by "
-                            + prev +", sessionid="+ prev.getId()
-                            + " and trying to be locked by different session, "
-                            + session +", sessionid="+ session.getId() + " on same thread");
-                }
-            }
+            lockMetaAssertion(session);
         }
         return meta.lock(session, true, true);
+    }
+
+    private void lockMetaAssertion(Session session) {
+        // If we are locking two different databases in the same stack, just ignore it.
+        // This only happens in TestLinkedTable where we connect to another h2 DB in the
+        // same process.
+        if (META_LOCK_DEBUGGING_DB.get() != null && META_LOCK_DEBUGGING_DB.get() != this) {
+            final Session prev = META_LOCK_DEBUGGING.get();
+            if (prev == null) {
+                META_LOCK_DEBUGGING.set(session);
+                META_LOCK_DEBUGGING_DB.set(this);
+                META_LOCK_DEBUGGING_STACK.set(new Throwable("Last meta lock granted in this stack trace, "
+                        + "this is debug information for following IllegalStateException"));
+            } else if (prev != session) {
+                META_LOCK_DEBUGGING_STACK.get().printStackTrace();
+                throw new IllegalStateException("meta currently locked by " + prev + ", sessionid=" + prev.getId()
+                        + " and trying to be locked by different session, " + session + ", sessionid=" //
+                        + session.getId() + " on same thread");
+            }
+        }
     }
 
     /**

@@ -1613,23 +1613,23 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     /**
      * Returns whether positioned deletes are supported.
      *
-     * @return true
+     * @return false
      */
     @Override
     public boolean supportsPositionedDelete() {
         debugCodeCall("supportsPositionedDelete");
-        return true;
+        return false;
     }
 
     /**
      * Returns whether positioned updates are supported.
      *
-     * @return true
+     * @return false
      */
     @Override
     public boolean supportsPositionedUpdate() {
         debugCodeCall("supportsPositionedUpdate");
-        return true;
+        return false;
     }
 
     /**
@@ -2363,14 +2363,15 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     }
 
     /**
-     * Does the database support multiple open result sets.
+     * Does the database support multiple open result sets returned from a
+     * <code>CallableStatement</code>.
      *
-     * @return true
+     * @return false
      */
     @Override
     public boolean supportsMultipleOpenResults() {
         debugCodeCall("supportsMultipleOpenResults");
-        return true;
+        return false;
     }
 
     /**

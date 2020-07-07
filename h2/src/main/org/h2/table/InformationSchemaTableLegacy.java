@@ -46,7 +46,7 @@ import org.h2.index.MetaIndex;
 import org.h2.message.DbException;
 import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVStore;
-import org.h2.mvstore.db.MVTableEngine.Store;
+import org.h2.mvstore.db.Store;
 import org.h2.pagestore.PageStore;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -2437,6 +2437,35 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             schema.getAll(type, list);
         }
         return list;
+    }
+
+    /**
+     * Get all tables of this database, including local temporary tables for the
+     * session.
+     *
+     * @param session the session
+     * @return the array of tables
+     */
+    private ArrayList<Table> getAllTables(Session session) {
+        ArrayList<Table> tables = database.getAllTablesAndViews(true);
+        tables.addAll(session.getLocalTempTables());
+        return tables;
+    }
+
+    private ArrayList<Table> getTablesByName(Session session, String tableName) {
+        // we expect that at most one table matches, at least in most cases
+        ArrayList<Table> tables = new ArrayList<>(1);
+        for (Schema schema : database.getAllSchemas()) {
+            Table table = schema.getTableOrViewByName(tableName);
+            if (table != null) {
+                tables.add(table);
+            }
+        }
+        Table table = session.findLocalTempTable(tableName);
+        if (table != null) {
+            tables.add(table);
+        }
+        return tables;
     }
 
     @Override

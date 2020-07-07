@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.h2.api.ErrorCode;
@@ -41,7 +40,7 @@ import org.h2.message.TraceSystem;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.db.MVIndex;
 import org.h2.mvstore.db.MVTable;
-import org.h2.mvstore.db.MVTableEngine;
+import org.h2.mvstore.db.Store;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.result.ResultInterface;
@@ -151,7 +150,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private WeakHashMap<Sequence, Value> currentValueFor;
     private Value lastIdentity = ValueBigint.get(0);
     private Value lastScopeIdentity = ValueBigint.get(0);
-    private Value lastTriggerIdentity;
 
     private int firstUncommittedLog = Session.LOG_WRITTEN;
     private int firstUncommittedPos = Session.LOG_WRITTEN;
@@ -159,8 +157,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private HashMap<String, Table> localTempTables;
     private HashMap<String, Index> localTempTableIndexes;
     private HashMap<String, Constraint> localTempTableConstraints;
-    private long throttleNs;
-    private long lastThrottle;
+    private int throttleMs;
+    private long lastThrottleNs;
     private Command currentCommand;
     private boolean allowLiterals;
     private String currentSchemaName;
@@ -752,7 +750,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {
-        assert this != getDatabase().getLobSession() || Thread.holdsLock(this) || Thread.holdsLock(getDatabase());
+        assert this != database.getLobSession() || Thread.holdsLock(this) || Thread.holdsLock(database);
         if (temporaryLobs != null) {
             for (ValueLob v : temporaryLobs) {
                 if (!v.isLinkedToTable()) {
@@ -762,11 +760,10 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             temporaryLobs.clear();
         }
         if (temporaryResultLobs != null && !temporaryResultLobs.isEmpty()) {
-            long keepYoungerThan = System.nanoTime() -
-                    TimeUnit.MILLISECONDS.toNanos(database.getSettings().lobTimeout);
+            long keepYoungerThan = System.nanoTime() - database.getSettings().lobTimeout * 1_000_000L;
             while (!temporaryResultLobs.isEmpty()) {
                 TimeoutValue tv = temporaryResultLobs.getFirst();
-                if (onTimeout && tv.created >= keepYoungerThan) {
+                if (onTimeout && tv.created - keepYoungerThan >= 0) {
                     break;
                 }
                 ValueLob v = temporaryResultLobs.removeFirst().value;
@@ -907,7 +904,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public void cancel() {
-        cancelAtNs = System.nanoTime();
+        cancelAtNs = Utils.currentNanoTime();
     }
 
     /**
@@ -1179,14 +1176,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         return lastScopeIdentity;
     }
 
-    public void setLastTriggerIdentity(Value last) {
-        this.lastTriggerIdentity = last;
-    }
-
-    public Value getLastTriggerIdentity() {
-        return lastTriggerIdentity;
-    }
-
     /**
      * Called when a log entry for this session is added. The session keeps
      * track of the first entry in the transaction log that is not yet
@@ -1329,7 +1318,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     public void setThrottle(int throttle) {
-        this.throttleNs = TimeUnit.MILLISECONDS.toNanos(throttle);
+        this.throttleMs = throttle;
     }
 
     /**
@@ -1339,17 +1328,17 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (commandStartOrEnd == null) {
             commandStartOrEnd = DateTimeUtils.currentTimestamp(timeZone);
         }
-        if (throttleNs == 0) {
+        if (throttleMs == 0) {
             return;
         }
         long time = System.nanoTime();
-        if (lastThrottle + TimeUnit.MILLISECONDS.toNanos(Constants.THROTTLE_DELAY) > time) {
+        if (lastThrottleNs != 0L && time - lastThrottleNs < Constants.THROTTLE_DELAY * 1_000_000L) {
             return;
         }
-        lastThrottle = time + throttleNs;
+        lastThrottleNs = Utils.nanoTimePlusMillis(time, throttleMs);
         State prevState = transitionToState(State.THROTTLED, false);
         try {
-            Thread.sleep(TimeUnit.NANOSECONDS.toMillis(throttleNs));
+            Thread.sleep(throttleMs);
         } catch (InterruptedException ignore) {
         } finally {
             transitionToState(prevState, false);
@@ -1370,8 +1359,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             commandStartOrEnd = DateTimeUtils.currentTimestamp(timeZone);
             if (command != null) {
                 if (queryTimeout > 0) {
-                    long now = System.nanoTime();
-                    cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
+                    cancelAtNs = Utils.currentNanoTimePlusMillis(queryTimeout);
                 }
             } else if (nextValueFor != null) {
                 nextValueFor.clear();
@@ -1403,12 +1391,12 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public void checkCanceled() {
         throttle();
-        if (cancelAtNs == 0) {
+        long cancel = cancelAtNs;
+        if (cancel == 0L) {
             return;
         }
-        long time = System.nanoTime();
-        if (time >= cancelAtNs) {
-            cancelAtNs = 0;
+        if (System.nanoTime() - cancel >= 0L) {
+            cancelAtNs = 0L;
             throw DbException.get(ErrorCode.STATEMENT_WAS_CANCELED);
         }
     }
@@ -1738,7 +1726,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         this.queryTimeout = queryTimeout;
         // must reset the cancel at here,
         // otherwise it is still used
-        this.cancelAtNs = 0;
+        cancelAtNs = 0L;
     }
 
     public int getQueryTimeout() {
@@ -1806,7 +1794,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public Transaction getTransaction() {
         if (transaction == null) {
-            MVTableEngine.Store store = database.getStore();
+            Store store = database.getStore();
             if (store != null) {
                 if (store.getMvStore().isClosed()) {
                     Throwable backgroundException = database.getBackgroundException();
@@ -1842,9 +1830,11 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 case SNAPSHOT:
                 case SERIALIZABLE:
                     if (!transaction.hasStatementDependencies()) {
-                        for (Table table : database.getAllTablesAndViews(false)) {
-                            if (table instanceof MVTable) {
-                                addTableToDependencies((MVTable)table, maps);
+                        for (Schema schema : database.getAllSchemasNoMeta()) {
+                            for (Table table : schema.getAllTablesAndViews()) {
+                                if (table instanceof MVTable) {
+                                    addTableToDependencies((MVTable)table, maps);
+                                }
                             }
                         }
                         break;
@@ -1973,7 +1963,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                             VersionedValue<Object> restoredValue) {
         // Here we are relying on the fact that map which backs table's primary index
         // has the same name as the table itself
-        MVTableEngine.Store store = database.getStore();
+        Store store = database.getStore();
         if(store != null) {
             MVTable table = store.getTable(map.getName());
             if (table != null) {

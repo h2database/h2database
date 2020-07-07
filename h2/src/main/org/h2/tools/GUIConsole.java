@@ -33,7 +33,6 @@ import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.sql.DriverManager;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 import org.h2.util.Utils;
 
@@ -287,8 +286,8 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
             if (urlText != null) {
                 urlText.setText(url);
             }
-            long now = System.nanoTime();
-            if (lastOpenNs == 0 || lastOpenNs + TimeUnit.MILLISECONDS.toNanos(100) < now) {
+            long now = Utils.currentNanoTime();
+            if (lastOpenNs == 0 || now - lastOpenNs > 100_000_000L) {
                 lastOpenNs = now;
                 openBrowser(url);
             }

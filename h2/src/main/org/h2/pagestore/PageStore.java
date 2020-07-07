@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.CRC32;
 
 import org.h2.api.ErrorCode;
@@ -503,7 +502,6 @@ public class PageStore implements CacheWriter {
         } finally {
             recoveryRunning = false;
         }
-        long start = System.nanoTime();
         boolean isCompactFully = compactMode ==
                 CommandInterface.SHUTDOWN_COMPACT;
         boolean isDefrag = compactMode ==
@@ -520,6 +518,7 @@ public class PageStore implements CacheWriter {
             maxCompactTime = Integer.MAX_VALUE;
             maxMove = Integer.MAX_VALUE;
         }
+        long stopAt = System.nanoTime() + maxCompactTime * 1_000_000L;
         int blockSize = isCompactFully ? COMPACT_BLOCK_SIZE : 1;
         int firstFree = MIN_PAGE_COUNT;
         for (int x = lastUsed, j = 0; x > MIN_PAGE_COUNT &&
@@ -534,8 +533,7 @@ public class PageStore implements CacheWriter {
                         }
                         if (compact(full, firstFree)) {
                             j++;
-                            long now = System.nanoTime();
-                            if (now > start + TimeUnit.MILLISECONDS.toNanos(maxCompactTime)) {
+                            if (System.nanoTime() - stopAt > 0L) {
                                 j = maxMove;
                                 break;
                             }

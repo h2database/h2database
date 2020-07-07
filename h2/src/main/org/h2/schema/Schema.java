@@ -27,7 +27,6 @@ import org.h2.engine.User;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.mvstore.db.MVTableEngine;
 import org.h2.pagestore.db.PageStoreTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
@@ -768,21 +767,23 @@ public class Schema extends DbObjectBase {
                 database.lockMeta(data.session);
             }
             data.schema = this;
-            if (data.tableEngine == null) {
+            String tableEngine = data.tableEngine;
+            if (tableEngine == null) {
                 DbSettings s = database.getSettings();
-                if (s.defaultTableEngine != null) {
-                    data.tableEngine = s.defaultTableEngine;
-                } else if (s.mvStore) {
-                    data.tableEngine = MVTableEngine.class.getName();
+                tableEngine = s.defaultTableEngine;
+                if (tableEngine == null) {
+                    if (s.mvStore) {
+                        return database.getStore().createTable(data);
+                    } else {
+                        return new PageStoreTable(data);
+                    }
                 }
+                data.tableEngine = tableEngine;
             }
-            if (data.tableEngine != null) {
-                if (data.tableEngineParams == null) {
-                    data.tableEngineParams = this.tableEngineParams;
-                }
-                return database.getTableEngine(data.tableEngine).createTable(data);
+            if (data.tableEngineParams == null) {
+                data.tableEngineParams = this.tableEngineParams;
             }
-            return new PageStoreTable(data);
+            return database.getTableEngine(tableEngine).createTable(data);
         }
     }
 

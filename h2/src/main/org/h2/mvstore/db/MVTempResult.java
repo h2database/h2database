@@ -185,7 +185,7 @@ public abstract class MVTempResult implements ResultExternal {
             Builder builder = new MVStore.Builder().fileName(fileName).cacheSize(0).autoCommitDisabled();
             byte[] key = database.getFileEncryptionKey();
             if (key != null) {
-                builder.encryptionKey(MVTableEngine.decodePassword(key));
+                builder.encryptionKey(Store.decodePassword(key));
             }
             store = builder.open();
             this.expressions = expressions;

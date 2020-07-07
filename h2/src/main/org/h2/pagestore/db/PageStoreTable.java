@@ -7,7 +7,6 @@ package org.h2.pagestore.db;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateTableData;
@@ -354,10 +353,10 @@ public class PageStoreTable extends RegularTable {
                 checkDeadlock = true;
             }
             long now = System.nanoTime();
-            if (max == 0) {
+            if (max == 0L) {
                 // try at least one more time
-                max = now + TimeUnit.MILLISECONDS.toNanos(session.getLockTimeout());
-            } else if (now >= max) {
+                max = Utils.nanoTimePlusMillis(now, session.getLockTimeout());
+            } else if (now - max >= 0L) {
                 traceLock(session, exclusive, "timeout after " + session.getLockTimeout());
                 throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, getName());
             }
@@ -374,8 +373,7 @@ public class PageStoreTable extends RegularTable {
                     }
                 }
                 // don't wait too long so that deadlocks are detected early
-                long sleep = Math.min(Constants.DEADLOCK_CHECK,
-                        TimeUnit.NANOSECONDS.toMillis(max - now));
+                long sleep = Math.min(Constants.DEADLOCK_CHECK, (max - now) / 1_000_000);
                 if (sleep == 0) {
                     sleep = 1;
                 }

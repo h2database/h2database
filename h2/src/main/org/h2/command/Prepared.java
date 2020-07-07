@@ -332,15 +332,13 @@ public abstract class Prepared {
         if (session.getTrace().isInfoEnabled() && startTimeNanos > 0) {
             long deltaTimeNanos = System.nanoTime() - startTimeNanos;
             String params = Trace.formatParams(parameters);
-            session.getTrace().infoSQL(sqlStatement, params, rowCount,
-                    deltaTimeNanos / 1000 / 1000);
+            session.getTrace().infoSQL(sqlStatement, params, rowCount, deltaTimeNanos / 1_000_000L);
         }
         // startTime_nanos can be zero for the command that actually turns on
         // statistics
         if (session.getDatabase().getQueryStatistics() && startTimeNanos != 0) {
             long deltaTimeNanos = System.nanoTime() - startTimeNanos;
-            session.getDatabase().getQueryStatisticsData().
-                    update(toString(), deltaTimeNanos, rowCount);
+            session.getDatabase().getQueryStatisticsData().update(toString(), deltaTimeNanos, rowCount);
         }
     }
 

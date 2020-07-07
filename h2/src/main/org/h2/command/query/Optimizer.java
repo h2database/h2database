@@ -7,7 +7,6 @@ package org.h2.command.query;
 
 import java.util.BitSet;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.table.Plan;
@@ -99,8 +98,10 @@ class Optimizer {
 
     private boolean canStop(int x) {
         return (x & 127) == 0
-                && cost >= 0  // don't calculate for simple queries (no rows or so)
-                && 10 * (System.nanoTime() - startNs) > cost * TimeUnit.MILLISECONDS.toNanos(1);
+                // don't calculate for simple queries (no rows or so)
+                && cost >= 0
+                // 100 microseconds * cost
+                && System.nanoTime() - startNs > cost * 100_000L;
     }
 
     private void calculateBruteForceAll() {

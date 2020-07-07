@@ -19,7 +19,6 @@ import org.h2.message.DbException;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.StreamStore;
-import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.store.CountingReaderInputStream;
 import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;

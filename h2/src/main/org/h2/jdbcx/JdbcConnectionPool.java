@@ -24,7 +24,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
@@ -191,7 +190,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener,
      */
     @Override
     public Connection getConnection() throws SQLException {
-        long max = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeout);
+        long max = System.nanoTime() + timeout * 1_000_000_000L;
         int spin = 0;
         do {
             if (activeConnections.incrementAndGet() <= maxConnections) {

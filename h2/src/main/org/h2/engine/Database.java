@@ -46,7 +46,7 @@ import org.h2.mode.PgCatalogTable;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.db.LobStorageMap;
-import org.h2.mvstore.db.MVTableEngine;
+import org.h2.mvstore.db.Store;
 import org.h2.pagestore.PageStore;
 import org.h2.pagestore.WriterThread;
 import org.h2.pagestore.db.LobStorageBackend;
@@ -224,7 +224,7 @@ public class Database implements DataHandler, CastDataProvider {
     private int defaultTableType = Table.TYPE_CACHED;
     private final DbSettings dbSettings;
     private int logMode;
-    private MVTableEngine.Store store;
+    private Store store;
     private int retentionTime;
     private boolean allowBuiltinAliasOverride;
     private final AtomicReference<DbException> backgroundException = new AtomicReference<>();
@@ -257,16 +257,12 @@ public class Database implements DataHandler, CastDataProvider {
         this.databaseShortName = parseDatabaseShortName();
         this.maxLengthInplaceLob = Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
         this.cipher = cipher;
-        this.accessModeData = StringUtils.toLowerEnglish(
-                ci.getProperty("ACCESS_MODE_DATA", "rw"));
+        this.accessModeData = StringUtils.toLowerEnglish(ci.getProperty("ACCESS_MODE_DATA", "rw"));
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
         this.autoServerPort = ci.getProperty("AUTO_SERVER_PORT", 0);
-        int defaultCacheSize = Utils.scaleForAvailableMemory(
-                Constants.CACHE_SIZE_DEFAULT);
-        this.cacheSize =
-                ci.getProperty("CACHE_SIZE", defaultCacheSize);
-        this.pageSize = ci.getProperty("PAGE_SIZE",
-                Constants.DEFAULT_PAGE_SIZE);
+        int defaultCacheSize = Utils.scaleForAvailableMemory(Constants.CACHE_SIZE_DEFAULT);
+        this.cacheSize = ci.getProperty("CACHE_SIZE", defaultCacheSize);
+        this.pageSize = ci.getProperty("PAGE_SIZE", Constants.DEFAULT_PAGE_SIZE);
         if ("r".equals(accessModeData)) {
             readOnly = true;
         }
@@ -297,33 +293,21 @@ public class Database implements DataHandler, CastDataProvider {
                 throw DbException.getInvalidValueException("DEFAULT_NULL_ORDERING", s);
             }
         }
-        this.logMode =
-                ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
+        this.logMode = ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
         s = ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
         if (s != null) {
             s = StringUtils.trim(s, true, true, "'");
             javaObjectSerializerName = s;
         }
-        this.allowBuiltinAliasOverride =
-                ci.getProperty("BUILTIN_ALIAS_OVERRIDE", false);
-        boolean closeAtVmShutdown =
-                dbSettings.dbCloseOnExit;
-        int traceLevelFile =
-                ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE,
-                TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
-        int traceLevelSystemOut =
-                ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
+        this.allowBuiltinAliasOverride = ci.getProperty("BUILTIN_ALIAS_OVERRIDE", false);
+        boolean closeAtVmShutdown = dbSettings.dbCloseOnExit;
+        int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
+        int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
                 TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
-        this.cacheType = StringUtils.toUpperEnglish(
-                ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
-        this.ignoreCatalogs = ci.getProperty("IGNORE_CATALOGS",
-                dbSettings.ignoreCatalogs);
+        this.cacheType = StringUtils.toUpperEnglish(ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
+        this.ignoreCatalogs = ci.getProperty("IGNORE_CATALOGS", dbSettings.ignoreCatalogs);
         this.lockMode = ci.getProperty("LOCK_MODE", Constants.DEFAULT_LOCK_MODE);
         this.writeDelay = ci.getProperty("WRITE_DELAY", Constants.DEFAULT_WRITE_DELAY);
-        openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown);
-    }
-
-    private void openDatabase(int traceLevelFile, int traceLevelSystemOut, boolean closeAtVmShutdown) {
         try {
             open(traceLevelFile, traceLevelSystemOut);
             if (closeAtVmShutdown) {
@@ -339,7 +323,6 @@ public class Database implements DataHandler, CastDataProvider {
                 if (alreadyOpen) {
                     stopServer();
                 }
-
                 if (traceSystem != null) {
                     if (e instanceof DbException && !alreadyOpen) {
                         // only write if the database is not already in use
@@ -380,13 +363,16 @@ public class Database implements DataHandler, CastDataProvider {
         powerOffCount = count;
     }
 
-    public MVTableEngine.Store getStore() {
+    public Store getStore() {
         return store;
     }
 
-    public void setStore(MVTableEngine.Store store) {
-        this.store = store;
-        this.retentionTime = store.getMvStore().getRetentionTime();
+    public Store getOrCreateStore() {
+        if (store == null) {
+            store = new Store(this);
+            retentionTime = store.getMvStore().getRetentionTime();
+        }
+        return store;
     }
 
     public long getModificationDataId() {
@@ -575,16 +561,16 @@ public class Database implements DataHandler, CastDataProvider {
             starting = true;
             if (SysProperties.MODIFY_ON_WRITE) {
                 try {
-                    getPageStore();
+                    createMainStore();
                 } catch (DbException e) {
                     if (e.getErrorCode() != ErrorCode.DATABASE_IS_READ_ONLY) {
                         throw e;
                     }
                     pageStore = null;
-                    getPageStore();
+                    createMainStore();
                 }
             } else {
-                getPageStore();
+                createMainStore();
             }
             starting = false;
         } else {
@@ -595,7 +581,7 @@ public class Database implements DataHandler, CastDataProvider {
                         "autoServerMode && inMemory");
             }
             if (dbSettings.mvStore) {
-                getPageStore();
+                getOrCreateStore();
             }
         }
         if (store != null) {
@@ -889,13 +875,15 @@ public class Database implements DataHandler, CastDataProvider {
         boolean atLeastOneRecompiledSuccessfully;
         do {
             atLeastOneRecompiledSuccessfully = false;
-            for (Table obj : getAllTablesAndViews(false)) {
-                if (obj instanceof TableView) {
-                    TableView view = (TableView) obj;
-                    if (view.isInvalid()) {
-                        view.recompile(session, true, false);
-                        if (!view.isInvalid()) {
-                            atLeastOneRecompiledSuccessfully = true;
+            for (Schema schema : schemas.values()) {
+                for (Table obj : schema.getAllTablesAndViews()) {
+                    if (obj instanceof TableView) {
+                        TableView view = (TableView) obj;
+                        if (view.isInvalid()) {
+                            view.recompile(session, true, false);
+                            if (!view.isInvalid()) {
+                                atLeastOneRecompiledSuccessfully = true;
+                            }
                         }
                     }
                 }
@@ -904,10 +892,13 @@ public class Database implements DataHandler, CastDataProvider {
         TableView.clearIndexCaches(session.getDatabase());
     }
 
-    private void initMetaTables() {
-        if (metaTablesInitialized) {
-            return;
+    private void checkMetaTables() {
+        if (!metaTablesInitialized) {
+            initMetaTables();
         }
+    }
+
+    private void initMetaTables() {
         synchronized (infoSchema) {
             if (!metaTablesInitialized) {
                 if (dbSettings.oldInformationSchema) {
@@ -999,27 +990,29 @@ public class Database implements DataHandler, CastDataProvider {
             return true;
         }
         if (ASSERT) {
-            // If we are locking two different databases in the same stack, just ignore it.
-            // This only happens in TestLinkedTable where we connect to another h2 DB in the
-            // same process.
-            if (META_LOCK_DEBUGGING_DB.get() != null
-                    && META_LOCK_DEBUGGING_DB.get() != this) {
-                final Session prev = META_LOCK_DEBUGGING.get();
-                if (prev == null) {
-                    META_LOCK_DEBUGGING.set(session);
-                    META_LOCK_DEBUGGING_DB.set(this);
-                    META_LOCK_DEBUGGING_STACK.set(new Throwable("Last meta lock granted in this stack trace, "+
-                            "this is debug information for following IllegalStateException"));
-                } else if (prev != session) {
-                    META_LOCK_DEBUGGING_STACK.get().printStackTrace();
-                    throw new IllegalStateException("meta currently locked by "
-                            + prev +", sessionid="+ prev.getId()
-                            + " and trying to be locked by different session, "
-                            + session +", sessionid="+ session.getId() + " on same thread");
-                }
-            }
+            lockMetaAssertion(session);
         }
         return meta.lock(session, true, true);
+    }
+
+    private void lockMetaAssertion(Session session) {
+        // If we are locking two different databases in the same stack, just ignore it.
+        // This only happens in TestLinkedTable where we connect to another h2 DB in the
+        // same process.
+        if (META_LOCK_DEBUGGING_DB.get() != null && META_LOCK_DEBUGGING_DB.get() != this) {
+            final Session prev = META_LOCK_DEBUGGING.get();
+            if (prev == null) {
+                META_LOCK_DEBUGGING.set(session);
+                META_LOCK_DEBUGGING_DB.set(this);
+                META_LOCK_DEBUGGING_STACK.set(new Throwable("Last meta lock granted in this stack trace, "
+                        + "this is debug information for following IllegalStateException"));
+            } else if (prev != session) {
+                META_LOCK_DEBUGGING_STACK.get().printStackTrace();
+                throw new IllegalStateException("meta currently locked by " + prev + ", sessionid=" + prev.getId()
+                        + " and trying to be locked by different session, " + session + ", sessionid=" //
+                        + session.getId() + " on same thread");
+            }
+        }
     }
 
     /**
@@ -1427,20 +1420,22 @@ public class Database implements DataHandler, CastDataProvider {
             try {
                 if (systemSession != null) {
                     if (powerOffCount != -1) {
-                        for (Table table : getAllTablesAndViews(false)) {
-                            if (table.isGlobalTemporary()) {
-                                table.removeChildrenAndResources(systemSession);
-                            } else {
-                                table.close(systemSession);
+                        for (Schema schema : schemas.values()) {
+                            for (Table table : schema.getAllTablesAndViews()) {
+                                if (table.isGlobalTemporary()) {
+                                    table.removeChildrenAndResources(systemSession);
+                                } else {
+                                    table.close(systemSession);
+                                }
                             }
                         }
-                        for (Schema schema : getAllSchemasNoMeta()) {
+                        for (Schema schema : schemas.values()) {
                             for (Sequence sequence : schema.getAllSequences()) {
                                 sequence.close();
                             }
                         }
                     }
-                    for (Schema schema : getAllSchemasNoMeta()) {
+                    for (Schema schema : schemas.values()) {
                         for (TriggerObject trigger : schema.getAllTriggers()) {
                             try {
                                 trigger.close();
@@ -1546,7 +1541,7 @@ public class Database implements DataHandler, CastDataProvider {
             if (store != null) {
                 MVStore mvStore = store.getMvStore();
                 if (mvStore != null && !mvStore.isClosed()) {
-                    long allowedCompactionTime =
+                    int allowedCompactionTime =
                             compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY ? 0 :
                             compactMode == CommandInterface.SHUTDOWN_COMPACT ||
                             compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
@@ -1658,7 +1653,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @return all objects of all types
      */
     public ArrayList<SchemaObject> getAllSchemaObjects() {
-        initMetaTables();
+        checkMetaTables();
         ArrayList<SchemaObject> list = new ArrayList<>();
         for (Schema schema : schemas.values()) {
             schema.getAll(list);
@@ -1676,7 +1671,7 @@ public class Database implements DataHandler, CastDataProvider {
      */
     public ArrayList<Table> getAllTablesAndViews(boolean includeMeta) {
         if (includeMeta) {
-            initMetaTables();
+            checkMetaTables();
         }
         ArrayList<Table> list = new ArrayList<>();
         for (Schema schema : schemas.values()) {
@@ -1698,26 +1693,8 @@ public class Database implements DataHandler, CastDataProvider {
         return list;
     }
 
-    /**
-     * Get the tables with the given name, if any.
-     *
-     * @param name the table name
-     * @return the list
-     */
-    public ArrayList<Table> getTableOrViewByName(String name) {
-        // we expect that at most one table matches, at least in most cases
-        ArrayList<Table> list = new ArrayList<>(1);
-        for (Schema schema : schemas.values()) {
-            Table table = schema.getTableOrViewByName(name);
-            if (table != null) {
-                list.add(table);
-            }
-        }
-        return list;
-    }
-
     public Collection<Schema> getAllSchemas() {
-        initMetaTables();
+        checkMetaTables();
         return schemas.values();
     }
 
@@ -1974,16 +1951,16 @@ public class Database implements DataHandler, CastDataProvider {
         default:
         }
         HashSet<DbObject> set = new HashSet<>();
-        for (Table t : getAllTablesAndViews(false)) {
-            if (except == t) {
-                continue;
-            } else if (TableType.VIEW == t.getTableType()) {
-                continue;
-            }
-            set.clear();
-            t.addDependencies(set);
-            if (set.contains(obj)) {
-                return t;
+        for (Schema schema : schemas.values()) {
+            for (Table t : schema.getAllTablesAndViews()) {
+                if (except == t || TableType.VIEW == t.getTableType()) {
+                    continue;
+                }
+                set.clear();
+                t.addDependencies(set);
+                if (set.contains(obj)) {
+                    return t;
+                }
             }
         }
         return null;
@@ -2665,28 +2642,28 @@ public class Database implements DataHandler, CastDataProvider {
         return tempFileDeleter;
     }
 
-    public PageStore getPageStore() {
+    private void createMainStore() {
         if (dbSettings.mvStore) {
-            if (store == null) {
-                store = MVTableEngine.init(this);
-            }
-            return null;
+            getOrCreateStore();
+        } else {
+            createPageStore();
         }
-        synchronized (this) {
-            if (pageStore == null) {
-                pageStore = new PageStore(this, databaseName +
-                        Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
-                if (pageSize != Constants.DEFAULT_PAGE_SIZE) {
-                    pageStore.setPageSize(pageSize);
-                }
-                if (!readOnly && fileLockMethod == FileLockMethod.FS) {
-                    pageStore.setLockFile(true);
-                }
-                pageStore.setLogMode(logMode);
-                pageStore.open();
-            }
-            return pageStore;
+    }
+
+    private void createPageStore() {
+        pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
+        if (pageSize != Constants.DEFAULT_PAGE_SIZE) {
+            pageStore.setPageSize(pageSize);
         }
+        if (!readOnly && fileLockMethod == FileLockMethod.FS) {
+            pageStore.setLockFile(true);
+        }
+        pageStore.setLogMode(logMode);
+        pageStore.open();
+    }
+
+    public PageStore getPageStore() {
+        return pageStore;
     }
 
     /**
@@ -2696,14 +2673,13 @@ public class Database implements DataHandler, CastDataProvider {
      * @return the table or null if no table is defined
      */
     public Table getFirstUserTable() {
-        for (Table table : getAllTablesAndViews(false)) {
-            if (table.getCreateSQL() != null) {
-                if (table.isHidden()) {
-                    // LOB tables
+        for (Schema schema : schemas.values()) {
+            for (Table table : schema.getAllTablesAndViews()) {
+                if (table.getCreateSQL() == null || table.isHidden()) {
                     continue;
                 }
                 // exclude the LOB_MAP that the Recover tool creates
-                if (table.getSchema().getId() == Constants.INFORMATION_SCHEMA_ID
+                if (schema.getId() == Constants.INFORMATION_SCHEMA_ID
                         && table.getName().equalsIgnoreCase("LOB_BLOCKS")) {
                     continue;
                 }

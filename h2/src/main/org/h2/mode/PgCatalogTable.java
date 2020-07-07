@@ -47,11 +47,11 @@ public class PgCatalogTable extends MetaTable {
 
     private static final int PG_AUTHID = PG_ATTRIBUTE + 1;
 
-    private static final int PG_CONSTRAINT = PG_AUTHID + 1;
+    private static final int PG_CLASS = PG_AUTHID + 1;
 
-    private static final int PG_CLASS = PG_CONSTRAINT + 1;
+    private static final int PG_CONSTRAINT = PG_CLASS + 1;
 
-    private static final int PG_DATABASE = PG_CLASS + 1;
+    private static final int PG_DATABASE = PG_CONSTRAINT + 1;
 
     private static final int PG_DESCRIPTION = PG_DATABASE + 1;
 
@@ -157,17 +157,6 @@ public class PgCatalogTable extends MetaTable {
                     "ROLCONFIG TEXT ARRAY" //
             );
             break;
-        case PG_CONSTRAINT:
-            setMetaTableName("PG_CONSTRAINT");
-            cols = createColumns( //
-                    "OID INTEGER", //
-                    "CONNAME VARCHAR", //
-                    "CONTYPE VARCHAR", //
-                    "CONRELID INTEGER", //
-                    "CONFRELID INTEGER", //
-                    "CONKEY SMALLINT ARRAY" //
-            );
-            break;
         case PG_CLASS:
             setMetaTableName("PG_CLASS");
             cols = createColumns( //
@@ -184,6 +173,17 @@ public class PgCatalogTable extends MetaTable {
                     "RELHASOIDS BOOLEAN", //
                     "RELCHECKS SMALLINT", //
                     "RELTRIGGERS INTEGER" //
+            );
+            break;
+        case PG_CONSTRAINT:
+            setMetaTableName("PG_CONSTRAINT");
+            cols = createColumns( //
+                    "OID INTEGER", //
+                    "CONNAME VARCHAR", //
+                    "CONTYPE VARCHAR", //
+                    "CONRELID INTEGER", //
+                    "CONFRELID INTEGER", //
+                    "CONKEY SMALLINT ARRAY" //
             );
             break;
         case PG_DATABASE:
@@ -351,56 +351,38 @@ public class PgCatalogTable extends MetaTable {
         case PG_ATTRDEF:
             break;
         case PG_ATTRIBUTE:
-            for (Table table : getAllTables(session)) {
-                if (hideTable(table, session)) {
-                    continue;
-                }
-                Column[] cols = table.getColumns();
-                int tableId = table.getId();
-                for (int i = 0; i < cols.length;) {
-                    Column column = cols[i++];
-                    addAttribute(session, rows, tableId * 10_000 + i, tableId, table, column, i);
-                }
-                for (Index index : table.getIndexes()) {
-                    if (index.getCreateSQL() == null) {
-                        continue;
+            for (Schema schema : database.getAllSchemas()) {
+                for (Table table : schema.getAllTablesAndViews()) {
+                    if (!hideTable(table, session)) {
+                        pgAttribute(session, rows, table);
                     }
-                    cols = index.getColumns();
-                    for (int i = 0; i < cols.length;) {
-                        Column column = cols[i++];
-                        int indexId = index.getId();
-                        addAttribute(session, rows, 1_000_000 * indexId + tableId * 10_000 + i, indexId, table, column,
-                                i);
-                    }
+                }
+            }
+            for (Table table: session.getLocalTempTables()) {
+                if (!hideTable(table, session)) {
+                    pgAttribute(session, rows, table);
                 }
             }
             break;
         case PG_AUTHID:
             break;
-        case PG_CONSTRAINT:
-            pgConstraint(session, rows);
-            break;
-        case PG_CLASS: {
-            for (Table table : getAllTables(session)) {
-                if (hideTable(table, session)) {
-                    continue;
-                }
-                ArrayList<TriggerObject> triggers = table.getTriggers();
-                addClass(session, rows, table.getId(), table.getName(), table.getSchema().getId(),
-                        table.isView() ? "v" : "r", false, triggers != null ? triggers.size() : 0);
-                ArrayList<Index> indexes = table.getIndexes();
-                if (indexes != null) {
-                    for (Index index : indexes) {
-                        if (index.getCreateSQL() == null) {
-                            continue;
-                        }
-                        addClass(session, rows, index.getId(), index.getName(), index.getSchema().getId(), "i", true,
-                                0);
+        case PG_CLASS:
+            for (Schema schema : database.getAllSchemas()) {
+                for (Table table : schema.getAllTablesAndViews()) {
+                    if (!hideTable(table, session)) {
+                        pgClass(session, rows, table);
                     }
                 }
             }
+            for (Table table: session.getLocalTempTables()) {
+                if (!hideTable(table, session)) {
+                    pgClass(session, rows, table);
+                }
+            }
             break;
-        }
+        case PG_CONSTRAINT:
+            pgConstraint(session, rows);
+            break;
         case PG_DATABASE: {
             int uid = Integer.MAX_VALUE;
             for (User u : database.getAllUsers()) {
@@ -596,6 +578,43 @@ public class PgCatalogTable extends MetaTable {
         }
         return rows;
 
+    }
+
+    private void pgAttribute(Session session, ArrayList<Row> rows, Table table) {
+        Column[] cols = table.getColumns();
+        int tableId = table.getId();
+        for (int i = 0; i < cols.length;) {
+            Column column = cols[i++];
+            addAttribute(session, rows, tableId * 10_000 + i, tableId, table, column, i);
+        }
+        for (Index index : table.getIndexes()) {
+            if (index.getCreateSQL() == null) {
+                continue;
+            }
+            cols = index.getColumns();
+            for (int i = 0; i < cols.length;) {
+                Column column = cols[i++];
+                int indexId = index.getId();
+                addAttribute(session, rows, 1_000_000 * indexId + tableId * 10_000 + i, indexId, table, column,
+                        i);
+            }
+        }
+    }
+
+    private void pgClass(Session session, ArrayList<Row> rows, Table table) {
+        ArrayList<TriggerObject> triggers = table.getTriggers();
+        addClass(session, rows, table.getId(), table.getName(), table.getSchema().getId(),
+                table.isView() ? "v" : "r", false, triggers != null ? triggers.size() : 0);
+        ArrayList<Index> indexes = table.getIndexes();
+        if (indexes != null) {
+            for (Index index : indexes) {
+                if (index.getCreateSQL() == null) {
+                    continue;
+                }
+                addClass(session, rows, index.getId(), index.getName(), index.getSchema().getId(), "i", true,
+                        0);
+            }
+        }
     }
 
     private void pgConstraint(Session session, ArrayList<Row> rows) {

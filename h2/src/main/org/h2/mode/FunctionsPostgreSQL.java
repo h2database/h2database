@@ -344,10 +344,12 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
         Table t;
         if (tableOidOrName.getValueType() == Value.INTEGER) {
             int tid = tableOidOrName.getInt();
-            for (Table table : session.getDatabase().getAllTablesAndViews(false)) {
-                if (tid == table.getId()) {
-                    t = table;
-                    break;
+            for (Schema schema : session.getDatabase().getAllSchemasNoMeta()) {
+                for (Table table : schema.getAllTablesAndViews()) {
+                    if (tid == table.getId()) {
+                        t = table;
+                        break;
+                    }
                 }
             }
             return ValueNull.INSTANCE;

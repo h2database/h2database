@@ -22,7 +22,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -68,6 +70,9 @@ import org.h2.value.DataType;
  * This class is used by the H2 Console.
  */
 public class WebApp {
+
+    private static final Comparator<DbTableOrView> SYSTEM_SCHEMA_COMPARATOR = Comparator
+            .comparing(DbTableOrView::getName, String.CASE_INSENSITIVE_ORDER);
 
     /**
      * The web server.
@@ -528,25 +533,24 @@ public class WebApp {
         return "query.jsp";
     }
 
-    private static int addColumns(boolean mainSchema, DbTableOrView table,
-            StringBuilder buff, int treeIndex, boolean showColumnTypes,
-            StringBuilder columnsBuffer) {
+    private static int addColumns(boolean mainSchema, DbTableOrView table, StringBuilder builder, int treeIndex,
+            boolean showColumnTypes, StringBuilder columnsBuilder) {
         DbColumn[] columns = table.getColumns();
         for (int i = 0; columns != null && i < columns.length; i++) {
             DbColumn column = columns[i];
-            if (columnsBuffer.length() > 0) {
-                columnsBuffer.append(' ');
+            if (columnsBuilder.length() > 0) {
+                columnsBuilder.append(' ');
             }
-            columnsBuffer.append(column.getName());
+            columnsBuilder.append(column.getName());
             String col = escapeIdentifier(column.getName());
             String level = mainSchema ? ", 1, 1" : ", 2, 2";
-            buff.append("setNode(").append(treeIndex).append(level)
+            builder.append("setNode(").append(treeIndex).append(level)
                     .append(", 'column', '")
                     .append(PageParser.escapeJavaScript(column.getName()))
                     .append("', 'javascript:ins(\\'").append(col).append("\\')');\n");
             treeIndex++;
             if (mainSchema && showColumnTypes) {
-                buff.append("setNode(").append(treeIndex)
+                builder.append("setNode(").append(treeIndex)
                         .append(", 2, 2, 'type', '")
                         .append(PageParser.escapeJavaScript(column.getDataType()))
                         .append("', null);\n");
@@ -648,8 +652,8 @@ public class WebApp {
         return treeIndex;
     }
 
-    private int addTablesAndViews(DbSchema schema, boolean mainSchema,
-            StringBuilder buff, int treeIndex) throws SQLException {
+    private int addTablesAndViews(DbSchema schema, boolean mainSchema, StringBuilder builder, int treeIndex)
+            throws SQLException {
         if (schema == null) {
             return treeIndex;
         }
@@ -663,80 +667,89 @@ public class WebApp {
         if (tables == null) {
             return treeIndex;
         }
-        boolean isOracle = schema.getContents().isOracle();
+        DbContents contents = schema.getContents();
+        boolean isOracle = contents.isOracle();
         boolean notManyTables = tables.length < SysProperties.CONSOLE_MAX_TABLES_LIST_INDEXES;
-        for (DbTableOrView table : tables) {
-            if (table.isView()) {
-                continue;
+        try (PreparedStatement prep = showColumns ? prepareViewDefinitionQuery(conn, contents) : null) {
+            if (prep != null) {
+                prep.setString(1, schema.name);
             }
-            int tableId = treeIndex;
-            String tab = table.getQuotedName();
-            if (!mainSchema) {
-                tab = schema.quotedName + "." + tab;
-            }
-            tab = escapeIdentifier(tab);
-            buff.append("setNode(").append(treeIndex).append(indentation)
-                    .append(" 'table', '")
-                    .append(PageParser.escapeJavaScript(table.getName()))
-                    .append("', 'javascript:ins(\\'").append(tab).append("\\',true)');\n");
-            treeIndex++;
-            if (mainSchema || showColumns) {
-                StringBuilder columnsBuffer = new StringBuilder();
-                treeIndex = addColumns(mainSchema, table, buff, treeIndex,
-                        notManyTables, columnsBuffer);
-                if (!isOracle && notManyTables) {
-                    treeIndex = addIndexes(mainSchema, meta, table.getName(),
-                            schema.name, buff, treeIndex);
+            if (schema.isSystem) {
+                Arrays.sort(tables, SYSTEM_SCHEMA_COMPARATOR);
+                for (DbTableOrView table : tables) {
+                    treeIndex = addTableOrView(schema, mainSchema, builder, treeIndex, meta, false, indentation,
+                            isOracle, notManyTables, table, table.isView(), prep, indentNode);
                 }
-                buff.append("addTable('")
-                        .append(PageParser.escapeJavaScript(table.getName())).append("', '")
-                        .append(PageParser.escapeJavaScript(columnsBuffer.toString())).append("', ")
-                        .append(tableId).append(");\n");
+            } else {
+                for (DbTableOrView table : tables) {
+                    if (table.isView()) {
+                        continue;
+                    }
+                    treeIndex = addTableOrView(schema, mainSchema, builder, treeIndex, meta, showColumns, indentation,
+                            isOracle, notManyTables, table, false, null, indentNode);
+                }
+                for (DbTableOrView table : tables) {
+                    if (!table.isView()) {
+                        continue;
+                    }
+                    treeIndex = addTableOrView(schema, mainSchema, builder, treeIndex, meta, showColumns, indentation,
+                            isOracle, notManyTables, table, true, prep, indentNode);
+                }
             }
         }
-        tables = schema.getTables();
-        for (DbTableOrView view : tables) {
-            if (!view.isView()) {
-                continue;
-            }
-            int tableId = treeIndex;
-            String tab = view.getQuotedName();
-            if (!mainSchema) {
-                tab = view.getSchema().quotedName + "." + tab;
-            }
-            tab = escapeIdentifier(tab);
-            buff.append("setNode(").append(treeIndex).append(indentation)
-                    .append(" 'view', '")
-                    .append(PageParser.escapeJavaScript(view.getName()))
-                    .append("', 'javascript:ins(\\'").append(tab).append("\\',true)');\n");
-            treeIndex++;
-            if (mainSchema) {
-                StringBuilder columnsBuffer = new StringBuilder();
-                treeIndex = addColumns(mainSchema, view, buff,
-                        treeIndex, notManyTables, columnsBuffer);
-                if (schema.getContents().isH2()) {
+        return treeIndex;
+    }
 
-                    try (PreparedStatement prep = conn.prepareStatement("SELECT * FROM " +
-                                "INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=?")) {
-                        prep.setString(1, view.getName());
-                        ResultSet rs = prep.executeQuery();
+    private static PreparedStatement prepareViewDefinitionQuery(Connection conn, DbContents contents) {
+        if (contents.mayHaveStandardViews()) {
+            try {
+                return conn.prepareStatement("SELECT VIEW_DEFINITION FROM INFORMATION_SCHEMA.VIEWS"
+                        + " WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?");
+            } catch (SQLException e) {
+                contents.setMayHaveStandardViews(false);
+            }
+        }
+        return null;
+    }
+
+    private static int addTableOrView(DbSchema schema, boolean mainSchema, StringBuilder builder, int treeIndex,
+            DatabaseMetaData meta, boolean showColumns, String indentation, boolean isOracle, boolean notManyTables,
+            DbTableOrView table, boolean isView, PreparedStatement prep, String indentNode) throws SQLException {
+        int tableId = treeIndex;
+        String tab = table.getQuotedName();
+        if (!mainSchema) {
+            tab = schema.quotedName + '.' + tab;
+        }
+        tab = escapeIdentifier(tab);
+        builder.append("setNode(").append(treeIndex).append(indentation)
+                .append(" '").append(isView ? "view" : "table").append("', '")
+                .append(PageParser.escapeJavaScript(table.getName()))
+                .append("', 'javascript:ins(\\'").append(tab).append("\\',true)');\n");
+        treeIndex++;
+        if (showColumns) {
+            StringBuilder columnsBuilder = new StringBuilder();
+            treeIndex = addColumns(mainSchema, table, builder, treeIndex, notManyTables, columnsBuilder);
+            if (isView) {
+                if (prep != null) {
+                    prep.setString(2, table.getName());
+                    try (ResultSet rs = prep.executeQuery()) {
                         if (rs.next()) {
-                            String sql = rs.getString("SQL");
-                            buff.append("setNode(").append(treeIndex)
-                                    .append(indentNode)
-                                    .append(" 'type', '")
-                                    .append(PageParser.escapeJavaScript(sql))
-                                    .append("', null);\n");
-                            treeIndex++;
+                            String sql = rs.getString(1);
+                            if (sql != null) {
+                                builder.append("setNode(").append(treeIndex).append(indentNode).append(" 'type', '")
+                                        .append(PageParser.escapeJavaScript(sql)).append("', null);\n");
+                                treeIndex++;
+                            }
                         }
-                        rs.close();
                     }
                 }
-                buff.append("addTable('")
-                        .append(PageParser.escapeJavaScript(view.getName())).append("', '")
-                        .append(PageParser.escapeJavaScript(columnsBuffer.toString())).append("', ")
-                        .append(tableId).append(");\n");
+            } else if (!isOracle && notManyTables) {
+                treeIndex = addIndexes(mainSchema, meta, table.getName(), schema.name, builder, treeIndex);
             }
+            builder.append("addTable('")
+                    .append(PageParser.escapeJavaScript(table.getName())).append("', '")
+                    .append(PageParser.escapeJavaScript(columnsBuilder.toString())).append("', ")
+                    .append(tableId).append(");\n");
         }
         return treeIndex;
     }

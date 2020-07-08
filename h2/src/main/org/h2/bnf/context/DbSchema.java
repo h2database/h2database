@@ -73,7 +73,7 @@ public class DbSchema {
         if (name == null) {
             // firebird
             isSystem = true;
-        } else if ("INFORMATION_SCHEMA".equals(name)) {
+        } else if ("INFORMATION_SCHEMA".equalsIgnoreCase(name)) {
             isSystem = true;
         } else if (!contents.isH2() &&
                 StringUtils.toUpperEnglish(name).startsWith("INFO")) {

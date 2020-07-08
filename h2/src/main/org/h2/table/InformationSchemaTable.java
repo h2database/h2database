@@ -2414,6 +2414,16 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     private void views(Session session, ArrayList<Row> rows, String catalog, Table table, String tableName) {
+        String viewDefinition, status = "VALID";
+        if (table instanceof TableView) {
+            TableView view = (TableView) table;
+            viewDefinition = view.getQuery();
+            if (view.isInvalid()) {
+                status = "INVALID";
+            }
+        } else {
+            viewDefinition = null;
+        }
         add(session, rows,
                 // TABLE_CATALOG
                 catalog,
@@ -2422,14 +2432,14 @@ public final class InformationSchemaTable extends MetaTable {
                 // TABLE_NAME
                 tableName,
                 // VIEW_DEFINITION
-                table.getCreateSQL(),
+                viewDefinition,
                 // CHECK_OPTION
                 "NONE",
                 // IS_UPDATABLE
                 "NO",
                 // extensions
                 // STATUS
-                table instanceof TableView && ((TableView) table).isInvalid() ? "INVALID" : "VALID",
+                status,
                 // REMARKS
                 table.getComment(),
                 // ID

@@ -37,6 +37,8 @@ public class DbContents {
 
     private boolean databaseToUpper, databaseToLower;
 
+    private boolean mayHaveStandardViews = true;
+
     /**
      * @return The default schema.
      */
@@ -112,6 +114,22 @@ public class DbContents {
      */
     public DbSchema[] getSchemas() {
         return schemas;
+    }
+
+    /**
+     * @return whether standard INFORMATION_SCHEMA.VIEWS may be supported
+     */
+    public boolean mayHaveStandardViews() {
+        return mayHaveStandardViews;
+    }
+
+    /**
+     * @param mayHaveStandardViews
+     *            whether standard INFORMATION_SCHEMA.VIEWS is detected as
+     *            supported
+     */
+    public void setMayHaveStandardViews(boolean mayHaveStandardViews) {
+        this.mayHaveStandardViews = mayHaveStandardViews;
     }
 
     /**

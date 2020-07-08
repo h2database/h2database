@@ -319,14 +319,6 @@ public final class Store {
         mvStore.setCacheSize(Math.max(1, kb / 1024));
     }
 
-    public InputStream getInputStream() {
-        FileChannel fc = mvStore.getFileStore().getEncryptedFile();
-        if (fc == null) {
-            fc = mvStore.getFileStore().getFile();
-        }
-        return new FileChannelInputStream(fc, false);
-    }
-
     /**
      * Force the changes to disk.
      */

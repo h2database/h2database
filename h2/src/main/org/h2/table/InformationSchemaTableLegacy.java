@@ -1632,7 +1632,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // STATUS
                         view.isInvalid() ? "INVALID" : "VALID",
                         // REMARKS
-                        replaceNullWithEmpty(view.getComment()), // ID
+                        replaceNullWithEmpty(view.getComment()),
+                        // ID
                         ValueInteger.get(view.getId())
                 );
             }

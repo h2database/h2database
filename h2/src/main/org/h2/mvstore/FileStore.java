@@ -97,6 +97,14 @@ public abstract class FileStore
     private String fileName;
 
     /**
+     * How long to retain old, persisted chunks, in milliseconds. For larger or
+     * equal to zero, a chunk is never directly overwritten if unused, but
+     * instead, the unused field is set. If smaller zero, chunks are directly
+     * overwritten if unused.
+     */
+    private int retentionTime = getDefaultRetentionTime();
+
+    /**
      * The file size (cached).
      */
     private long size;
@@ -168,7 +176,7 @@ public abstract class FileStore
         this.fileName = fileName;
         this.readOnly = readOnly;
         bind(mvStore);
-        scrubLayoutMap();
+        scrubLayoutMap(mvStore);
     }
 
     public void bind(MVStore mvStore) {
@@ -306,7 +314,7 @@ public abstract class FileStore
         return layout.hasChangesSince(lastStoredVersion) && lastStoredVersion > INITIAL_VERSION;
     }
 
-    private void scrubLayoutMap() {
+    private void scrubLayoutMap(MVStore mvStore) {
         MVMap<String, String> meta = mvStore.getMetaMap();
         Set<String> keysToRemove = new HashSet<>();
 
@@ -349,23 +357,29 @@ public abstract class FileStore
         return chunk == null ? INITIAL_VERSION + 1 : chunk.version;
     }
 
+    public int lastMapId() {
+        Chunk chunk = lastChunk;
+        return chunk == null ? 0 : chunk.mapId;
+    }
+
     private void setLastChunk(Chunk last) {
         lastChunk = last;
-        long curVersion = lastChunkVersion();
+//        long curVersion = lastChunkVersion();
         chunks.clear();
         lastChunkId = 0;
         long layoutRootPos = 0;
-        int mapId = 0;
+//        int mapId = 0;
         if (last != null) { // there is a valid chunk
             lastChunkId = last.id;
-            curVersion = last.version;
+//            curVersion = last.version;
             layoutRootPos = last.layoutRootPos;
-            mapId = last.mapId;
+//            mapId = last.mapId;
             chunks.put(last.id, last);
         }
-        mvStore.resetLastMapId(mapId);
-        mvStore.setCurrentVersion(curVersion);
-        layout.setRootPos(layoutRootPos, curVersion - 1);
+//        mvStore.resetLastMapId(mapId);
+//        mvStore.setCurrentVersion(curVersion);
+//        layout.setRootPos(layoutRootPos, curVersion - 1);
+        layout.setRootPos(layoutRootPos, lastChunkVersion() - 1);
     }
 
     public void registerDeadChunk(Chunk chunk) {
@@ -415,12 +429,41 @@ public abstract class FileStore
         return count;
     }
 
+    public int getRetentionTime() {
+        return retentionTime;
+    }
+
+    /**
+     * How long to retain old, persisted chunks, in milliseconds. Chunks that
+     * are older may be overwritten once they contain no live data.
+     * <p>
+     * The default value is 45000 (45 seconds) when using the default file
+     * store. It is assumed that a file system and hard disk will flush all
+     * write buffers within this time. Using a lower value might be dangerous,
+     * unless the file system and hard disk flush the buffers earlier. To
+     * manually flush the buffers, use
+     * <code>MVStore.getFile().force(true)</code>, however please note that
+     * according to various tests this does not always work as expected
+     * depending on the operating system and hardware.
+     * <p>
+     * The retention time needs to be long enough to allow reading old chunks
+     * while traversing over the entries of a map.
+     * <p>
+     * This setting is not persisted.
+     *
+     * @param ms how many milliseconds to retain old chunks (0 to overwrite them
+     *            as early as possible)
+     */
+    public void setRetentionTime(int ms) {
+        retentionTime = ms;
+    }
+
     private static boolean canOverwriteChunk(Chunk c, long oldestVersionToKeep) {
         return !c.isLive() && c.unusedAtVersion < oldestVersionToKeep;
     }
 
     private boolean isSeasonedChunk(Chunk chunk, long time) {
-        int retentionTime = mvStore.getRetentionTime();
+        int retentionTime = getRetentionTime();
         return retentionTime < 0 || chunk.time + retentionTime <= time;
     }
 
@@ -540,10 +583,9 @@ public abstract class FileStore
                 break;
             }
             if (!old.isSaved()) {
-                MVStoreException e = DataUtils.newMVStoreException(
+                throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_INTERNAL,
                         "Last block {0} not stored, possibly due to out-of-memory", old);
-                mvStore.panic(e);
             }
         }
         Chunk c = new Chunk(newChunkId);
@@ -681,6 +723,8 @@ public abstract class FileStore
                 saveChunkLock.unlock();
             }
         }
+        mvStore.resetLastMapId(lastMapId());
+        mvStore.setCurrentVersion(lastChunkVersion());
     }
 
     private void _readStoreHeader(boolean recoveryMode) {
@@ -764,7 +808,7 @@ public abstract class FileStore
             // we assume the system doesn't have a real-time clock,
             // and we set the creationTime to the past, so that
             // existing chunks are overwritten
-            creationTime = now - mvStore.getRetentionTime();
+            creationTime = now - getRetentionTime();
         } else if (now < creationTime) {
             // the system time was set to the past:
             // we change the creation time
@@ -859,7 +903,7 @@ public abstract class FileStore
                     validChunksById.put(chunk.id, chunk);
                 }
                 quickRecovery = findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation,
-                        validChunksById, false, mvStore);
+                        validChunksById, false);
             }
 
             if (!quickRecovery) {
@@ -881,7 +925,7 @@ public abstract class FileStore
                     validChunksById.put(chunk.id, chunk);
                 }
                 if (!findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation,
-                        validChunksById, true, mvStore) && hasPersitentData()) {
+                        validChunksById, true) && hasPersitentData()) {
                     throw DataUtils.newMVStoreException(
                             DataUtils.ERROR_FILE_CORRUPT,
                             "File is corrupted - unable to recover a valid set of chunks");
@@ -946,9 +990,9 @@ public abstract class FileStore
     }
 
     private boolean findLastChunkWithCompleteValidChunkSet(Chunk[] lastChunkCandidates,
-            Map<Long, Chunk> validChunksByLocation,
-            Map<Integer, Chunk> validChunksById,
-            boolean afterFullScan, MVStore mvStore) {
+                                                           Map<Long, Chunk> validChunksByLocation,
+                                                           Map<Integer, Chunk> validChunksById,
+                                                           boolean afterFullScan) {
         // Try candidates for "last chunk" in order from newest to oldest
         // until suitable is found. Suitable one should have meta map
         // where all chunk references point to valid locations.

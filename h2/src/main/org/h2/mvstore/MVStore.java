@@ -273,14 +273,6 @@ public class MVStore implements AutoCloseable {
     private final int autoCommitMemory;
     private volatile boolean saveNeeded;
 
-    /**
-     * How long to retain old, persisted chunks, in milliseconds. For larger or
-     * equal to zero, a chunk is never directly overwritten if unused, but
-     * instead, the unused field is set. If smaller zero, chunks are directly
-     * overwritten if unused.
-     */
-    private int retentionTime;
-
     private long lastCommitTime;
 
     /**
@@ -374,7 +366,6 @@ public class MVStore implements AutoCloseable {
         backgroundExceptionHandler =
                 (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
         if (this.fileStore != null) {
-            retentionTime = this.fileStore.getDefaultRetentionTime();
             // 19 KB memory is about 1 KB storage
             int kb = Math.max(1, Math.min(19, Utils.scaleForAvailableMemory(64))) * 1024;
             kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", kb);
@@ -1786,7 +1777,7 @@ public class MVStore implements AutoCloseable {
     }
 
     public int getRetentionTime() {
-        return retentionTime;
+        return fileStore == null ? 0 : fileStore.getRetentionTime();
     }
 
     /**
@@ -1811,7 +1802,9 @@ public class MVStore implements AutoCloseable {
      *            as early as possible)
      */
     public void setRetentionTime(int ms) {
-        this.retentionTime = ms;
+        if (fileStore != null) {
+            fileStore.setRetentionTime(ms);
+        }
     }
 
     /**

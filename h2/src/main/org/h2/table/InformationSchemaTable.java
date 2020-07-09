@@ -2234,6 +2234,7 @@ public final class InformationSchemaTable extends MetaTable {
                 sql = "-";
             }
         }
+        long lastModification = table.getMaxDataModificationId();
         add(session, rows,
                 // TABLE_CATALOG
                 catalog,
@@ -2255,7 +2256,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // REMARKS
                 table.getComment(),
                 // LAST_MODIFICATION
-                ValueBigint.get(table.getMaxDataModificationId()),
+                lastModification != Long.MAX_VALUE ? ValueBigint.get(lastModification) : null,
                 // ID
                 ValueInteger.get(table.getId()),
                 // TABLE_CLASS

@@ -422,6 +422,11 @@ public class TableLink extends Table {
         return linkedIndex;
     }
 
+    @Override
+    public boolean isInsertable() {
+        return !readOnly;
+    }
+
     private void checkReadOnly() {
         if (readOnly) {
             throw DbException.get(ErrorCode.DATABASE_IS_READ_ONLY);

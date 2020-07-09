@@ -126,5 +126,70 @@ INSERT INTO COUNT VALUES(NULL);
 UPDATE COUNT SET X=2 WHERE X=1;
 > exception ERROR_CREATING_TRIGGER_OBJECT_3
 
+DROP TABLE COUNT;
+> ok
+
 SET MODE Regular;
+> ok
+
+CREATE MEMORY TABLE T(ID INT PRIMARY KEY, V INT);
+> ok
+
+CREATE VIEW V1 AS TABLE T;
+> ok
+
+CREATE VIEW V2 AS TABLE T;
+> ok
+
+CREATE VIEW V3 AS TABLE T;
+> ok
+
+CREATE TRIGGER T1 INSTEAD OF INSERT ON V1 FOR EACH ROW AS STRINGDECODE(
+'org.h2.api.Trigger create() {
+    return new org.h2.api.Trigger() {
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
+        }
+    }\u003B
+}');
+> ok
+
+CREATE TRIGGER T2 INSTEAD OF UPDATE ON V2 FOR EACH ROW AS STRINGDECODE(
+'org.h2.api.Trigger create() {
+    return new org.h2.api.Trigger() {
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
+        }
+    }\u003B
+}');
+> ok
+
+CREATE TRIGGER T3 INSTEAD OF DELETE ON V3 FOR EACH ROW AS STRINGDECODE(
+'org.h2.api.Trigger create() {
+    return new org.h2.api.Trigger() {
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
+        }
+    }\u003B
+}');
+> ok
+
+SELECT TABLE_CATALOG, TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE, IS_INSERTABLE_INTO, COMMIT_ACTION
+    FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'PUBLIC';
+> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME TABLE_TYPE IS_INSERTABLE_INTO COMMIT_ACTION
+> ------------- ------------ ---------- ---------- ------------------ -------------
+> SCRIPT        PUBLIC       T          BASE TABLE YES                null
+> SCRIPT        PUBLIC       V1         VIEW       NO                 null
+> SCRIPT        PUBLIC       V2         VIEW       NO                 null
+> SCRIPT        PUBLIC       V3         VIEW       NO                 null
+> rows: 4
+
+SELECT TABLE_CATALOG, TABLE_SCHEMA, TABLE_NAME, VIEW_DEFINITION, CHECK_OPTION, IS_UPDATABLE, INSERTABLE_INTO,
+    IS_TRIGGER_UPDATABLE, IS_TRIGGER_DELETABLE, IS_TRIGGER_INSERTABLE_INTO
+    FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = 'PUBLIC';
+> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME VIEW_DEFINITION    CHECK_OPTION IS_UPDATABLE INSERTABLE_INTO IS_TRIGGER_UPDATABLE IS_TRIGGER_DELETABLE IS_TRIGGER_INSERTABLE_INTO
+> ------------- ------------ ---------- ------------------ ------------ ------------ --------------- -------------------- -------------------- --------------------------
+> SCRIPT        PUBLIC       V1         TABLE "PUBLIC"."T" NONE         NO           NO              NO                   NO                   YES
+> SCRIPT        PUBLIC       V2         TABLE "PUBLIC"."T" NONE         NO           NO              YES                  NO                   NO
+> SCRIPT        PUBLIC       V3         TABLE "PUBLIC"."T" NONE         NO           NO              NO                   YES                  NO
+> rows: 3
+
+DROP TABLE T CASCADE;
 > ok

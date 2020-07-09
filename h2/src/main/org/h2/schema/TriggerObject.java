@@ -292,6 +292,15 @@ public class TriggerObject extends SchemaObjectBase {
     }
 
     /**
+     * Returns the trigger type.
+     *
+     * @return the trigger type
+     */
+    public int getTypeMask() {
+        return typeMask;
+    }
+
+    /**
      * Set the trigger type.
      *
      * @param typeMask the type

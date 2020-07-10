@@ -27,7 +27,6 @@ import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.command.ddl.Analyze;
-import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
 import org.h2.index.Index;
 import org.h2.index.ViewIndex;
@@ -122,11 +121,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     }
 
     /**
-     * This special log position means that the log entry has been written.
-     */
-    public static final int LOG_WRITTEN = -1;
-
-    /**
      * The prefix of generated identifiers. It may not have letters, because
      * they are case sensitive.
      */
@@ -141,7 +135,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     private NetworkConnectionInfo networkConnectionInfo;
 
     private final ArrayList<Table> locks = Utils.newSmallArrayList();
-    private UndoLog undoLog;
+    protected UndoLog undoLog;
     private boolean autoCommit = true;
     private Random random;
     private int lockTimeout;
@@ -151,8 +145,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     private Value lastIdentity = ValueBigint.get(0);
     private Value lastScopeIdentity = ValueBigint.get(0);
 
-    private int firstUncommittedLog = LOG_WRITTEN;
-    private int firstUncommittedPos = LOG_WRITTEN;
     private HashMap<String, Savepoint> savepoints;
     private HashMap<String, Table> localTempTables;
     private HashMap<String, Index> localTempTableIndexes;
@@ -650,7 +642,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      * at the end of the current transaction.
      * @param id to be scheduled
      */
-    void scheduleDatabaseObjectIdForRelease(int id) {
+    protected void scheduleDatabaseObjectIdForRelease(int id) {
         if (idsToRelease == null) {
             idsToRelease = new BitSet();
         }
@@ -1177,43 +1169,12 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     }
 
     /**
-     * Called when a log entry for this session is added. The session keeps
-     * track of the first entry in the transaction log that is not yet
-     * committed.
-     *
-     * @param logId the transaction log id
-     * @param pos the position of the log entry in the transaction log
-     */
-    public void addLogPos(int logId, int pos) {
-        if (firstUncommittedLog == LOG_WRITTEN) {
-            firstUncommittedLog = logId;
-            firstUncommittedPos = pos;
-        }
-    }
-
-    public int getFirstUncommittedLog() {
-        return firstUncommittedLog;
-    }
-
-    /**
-     * This method is called after the transaction log has written the commit
-     * entry for this session.
-     */
-    void setAllCommitted() {
-        firstUncommittedLog = LOG_WRITTEN;
-        firstUncommittedPos = LOG_WRITTEN;
-    }
-
-    /**
      * Whether the session contains any uncommitted changes.
      *
      * @return true if yes
      */
     public boolean containsUncommitted() {
-        if (database.getStore() != null) {
-            return transaction != null && transaction.hasChanges();
-        }
-        return firstUncommittedLog != LOG_WRITTEN;
+        return transaction != null && transaction.hasChanges();
     }
 
     /**
@@ -1758,20 +1719,10 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     }
 
     public Value getTransactionId() {
-        if (database.getStore() != null) {
-            if (transaction == null || !transaction.hasChanges()) {
-                return ValueNull.INSTANCE;
-            }
-            return ValueVarchar.get(Long.toString(getTransaction().getSequenceNum()));
-        }
-        if (!database.isPersistent()) {
+        if (transaction == null || !transaction.hasChanges()) {
             return ValueNull.INSTANCE;
         }
-        if (undoLog == null || undoLog.size() == 0) {
-            return ValueNull.INSTANCE;
-        }
-        return ValueVarchar.get(firstUncommittedLog + "-" + firstUncommittedPos +
-                "-" + id);
+        return ValueVarchar.get(Long.toString(transaction.getSequenceNum()));
     }
 
     /**
@@ -2085,26 +2036,13 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
 
     @Override
     public IsolationLevel getIsolationLevel() {
-        if (database.isMVStore()) {
-            return isolationLevel;
-        } else {
-            return IsolationLevel.fromLockMode(database.getLockMode());
-        }
+        return isolationLevel;
     }
 
     @Override
     public void setIsolationLevel(IsolationLevel isolationLevel) {
         commit(false);
-        if (database.isMVStore()) {
-            this.isolationLevel = isolationLevel;
-        } else {
-            int lockMode = isolationLevel.getLockMode();
-            org.h2.command.dml.Set set = new org.h2.command.dml.Set(this, SetTypes.LOCK_MODE);
-            set.setInt(lockMode);
-            synchronized (database) {
-                set.update();
-            }
-        }
+        this.isolationLevel = isolationLevel;
     }
 
     /**

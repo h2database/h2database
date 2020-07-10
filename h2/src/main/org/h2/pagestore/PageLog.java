@@ -16,6 +16,7 @@ import org.h2.compress.CompressLZF;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.pagestore.db.SessionPageStore;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
@@ -615,7 +616,7 @@ public class PageLog {
      * @param row the row to add
      * @param add true if the row is added, false if it is removed
      */
-    void logAddOrRemoveRow(SessionLocal session, int tableId, Row row, boolean add) {
+    void logAddOrRemoveRow(SessionPageStore session, int tableId, Row row, boolean add) {
         if (trace.isDebugEnabled()) {
             trace.debug("log " + (add ? "+" : "-") +
                     " s: " + session.getId() + " table: " + tableId + " row: " + row);
@@ -664,7 +665,7 @@ public class PageLog {
      * @param session the session
      * @param tableId the table id
      */
-    void logTruncate(SessionLocal session, int tableId) {
+    void logTruncate(SessionPageStore session, int tableId) {
         if (trace.isDebugEnabled()) {
             trace.debug("log truncate s: " + session.getId() + " table: " + tableId);
         }

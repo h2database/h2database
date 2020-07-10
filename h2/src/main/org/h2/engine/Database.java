@@ -50,6 +50,7 @@ import org.h2.mvstore.db.Store;
 import org.h2.pagestore.PageStore;
 import org.h2.pagestore.WriterThread;
 import org.h2.pagestore.db.LobStorageBackend;
+import org.h2.pagestore.db.SessionPageStore;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
@@ -609,8 +610,8 @@ public class Database implements DataHandler, CastDataProvider {
         publicRole = new Role(this, 0, sysIdentifier(Constants.PUBLIC_ROLE_NAME), true);
         roles.put(publicRole.getName(), publicRole);
         systemUser.setAdmin(true);
-        systemSession = new SessionLocal(this, systemUser, ++nextSessionId);
-        lobSession = new SessionLocal(this, systemUser, ++nextSessionId);
+        systemSession = createSession(systemUser);
+        lobSession = createSession(systemUser);
         CreateTableData data = new CreateTableData();
         ArrayList<Column> cols = data.columns;
         Column columnId = new Column("ID", TypeInfo.TYPE_INTEGER);
@@ -1073,19 +1074,11 @@ public class Database implements DataHandler, CastDataProvider {
                     unlockMeta(session);
                 }
             }
-            if (isMVStore()) {
-                // release of the object id has to be postponed until the end of the transaction,
-                // otherwise it might be re-used prematurely, and it would make
-                // rollback impossible or lead to MVMaps name collision,
-                // so until then ids are accumulated within session
-                session.scheduleDatabaseObjectIdForRelease(id);
-            } else {
-                // but PageStore, on the other hand, for reasons unknown to me,
-                // requires immediate id release
-                synchronized (this) {
-                    objectIds.clear(id);
-                }
-            }
+            // release of the object id has to be postponed until the end of the transaction,
+            // otherwise it might be re-used prematurely, and it would make
+            // rollback impossible or lead to MVMaps name collision,
+            // so until then ids are accumulated within session
+            session.scheduleDatabaseObjectIdForRelease(id);
         }
     }
 
@@ -1093,7 +1086,7 @@ public class Database implements DataHandler, CastDataProvider {
      * Mark some database ids as unused.
      * @param idsToRelease the ids to release
      */
-    void releaseDatabaseObjectIds(BitSet idsToRelease) {
+    public void releaseDatabaseObjectIds(BitSet idsToRelease) {
         synchronized (objectIds) {
             objectIds.andNot(idsToRelease);
         }
@@ -1265,7 +1258,7 @@ public class Database implements DataHandler, CastDataProvider {
         if (exclusiveSession.get() != null) {
             throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
         }
-        SessionLocal session = new SessionLocal(this, user, ++nextSessionId);
+        SessionLocal session = createSession(user);
         session.setNetworkConnectionInfo(networkConnectionInfo);
         userSessions.add(session);
         trace.info("connecting session #{0} to {1}", session.getId(), databaseName);
@@ -1276,13 +1269,9 @@ public class Database implements DataHandler, CastDataProvider {
         return session;
     }
 
-    /**
-     * Creates a temporary system session.
-     *
-     * @return the session
-     */
-    public synchronized SessionLocal createTempSystemSession() {
-        return new SessionLocal(this, systemUser, ++nextSessionId);
+    private SessionLocal createSession(User user) {
+        int id = ++nextSessionId;
+        return dbSettings.mvStore ? new SessionLocal(this, user, id) : new SessionPageStore(this, user, id);
     }
 
     /**
@@ -2175,8 +2164,8 @@ public class Database implements DataHandler, CastDataProvider {
         }
         if (pageStore != null) {
             pageStore.commit(session);
+            ((SessionPageStore) session).setAllCommitted();
         }
-        session.setAllCommitted();
     }
 
     /**

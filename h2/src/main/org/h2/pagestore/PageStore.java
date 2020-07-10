@@ -35,6 +35,7 @@ import org.h2.pagestore.db.PageDataOverflow;
 import org.h2.pagestore.db.PageDelegateIndex;
 import org.h2.pagestore.db.PageIndex;
 import org.h2.pagestore.db.PageStoreTable;
+import org.h2.pagestore.db.SessionPageStore;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
@@ -176,7 +177,7 @@ public class PageStore implements CacheWriter {
     private HashMap<Integer, Integer> reservedPages;
     private boolean isNew;
     private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE;
-    private final SessionLocal pageStoreSession;
+    private final SessionPageStore pageStoreSession;
 
     /**
      * Each free page is marked with a set bit.
@@ -223,7 +224,7 @@ public class PageStore implements CacheWriter {
         // trace.setLevel(TraceSystem.DEBUG);
         String cacheType = database.getCacheType();
         this.cache = CacheLRU.getCache(this, cacheType, cacheSizeDefault);
-        pageStoreSession = new SessionLocal(database, null, 0);
+        pageStoreSession = new SessionPageStore(database, null, 0);
     }
 
     /**
@@ -856,9 +857,10 @@ public class PageStore implements CacheWriter {
         trace.debug("getFirstUncommittedSection");
         SessionLocal[] sessions = database.getSessions(true);
         int firstUncommittedSection = log.getLogSectionId();
-        for (SessionLocal session : sessions) {
+        for (SessionLocal s : sessions) {
+            SessionPageStore session = (SessionPageStore) s;
             int firstUncommitted = session.getFirstUncommittedLog();
-            if (firstUncommitted != SessionLocal.LOG_WRITTEN) {
+            if (firstUncommitted != SessionPageStore.LOG_WRITTEN) {
                 if (firstUncommitted < firstUncommittedSection) {
                     firstUncommittedSection = firstUncommitted;
                 }
@@ -1452,7 +1454,7 @@ public class PageStore implements CacheWriter {
             Row row, boolean add) {
         if (logMode != LOG_MODE_OFF) {
             if (!recoveryRunning) {
-                log.logAddOrRemoveRow(session, tableId, row, add);
+                log.logAddOrRemoveRow((SessionPageStore) session, tableId, row, add);
             }
         }
     }
@@ -1927,7 +1929,7 @@ public class PageStore implements CacheWriter {
     public synchronized void logTruncate(SessionLocal session, int tableId) {
         if (!recoveryRunning) {
             openForWriting();
-            log.logTruncate(session, tableId);
+            log.logTruncate((SessionPageStore) session, tableId);
         }
     }
 

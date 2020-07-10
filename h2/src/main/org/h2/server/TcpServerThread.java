@@ -163,7 +163,7 @@ public class TcpServerThread implements Runnable {
                                 .append(':').append(socket.getLocalPort()).toString(), //
                         socket.getInetAddress().getAddress(), socket.getPort(),
                         new StringBuilder().append('P').append(clientVersion).toString()));
-                session = Engine.getInstance().createSession(ci);
+                session = Engine.createSession(ci);
                 transfer.setSession(session);
                 server.addConnection(threadId, originalURL, ci.getUserName());
                 trace("Connected");

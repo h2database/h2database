@@ -445,7 +445,7 @@ public class Database implements DataHandler, CastDataProvider {
                 DbException.traceThrowable(e);
             }
         }
-        Engine.getInstance().close(databaseName);
+        Engine.close(databaseName);
         throw DbException.get(ErrorCode.DATABASE_IS_CLOSED);
     }
 
@@ -1472,7 +1472,7 @@ public class Database implements DataHandler, CastDataProvider {
                 }
             }
         } finally {
-            Engine.getInstance().close(databaseName);
+            Engine.close(databaseName);
         }
     }
 

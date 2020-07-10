@@ -28,27 +28,21 @@ import org.h2.util.Utils;
  * It is also responsible for opening and creating new databases.
  * This is a singleton class.
  */
-public class Engine implements SessionFactory {
+public final class Engine {
 
-    private static final Engine INSTANCE = new Engine();
     private static final Map<String, Database> DATABASES = new HashMap<>();
 
-    private volatile long wrongPasswordDelay =
-            SysProperties.DELAY_WRONG_PASSWORD_MIN;
-    private boolean jmx;
+    private static volatile long WRONG_PASSWORD_DELAY = SysProperties.DELAY_WRONG_PASSWORD_MIN;
 
-    private Engine() {
-        // use getInstance()
+    private static boolean JMX;
+
+    static {
         if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
             ThreadDeadlockDetector.init();
         }
     }
 
-    public static Engine getInstance() {
-        return INSTANCE;
-    }
-
-    private Session openSession(ConnectionInfo ci, boolean ifExists, boolean forbidCreation, String cipher) {
+    private static Session openSession(ConnectionInfo ci, boolean ifExists, boolean forbidCreation, String cipher) {
         String name = ci.getName();
         Database database;
         ci.removeProperty("NO_UPGRADE", false);
@@ -173,7 +167,7 @@ public class Engine implements SessionFactory {
                 database.removeSession(session);
                 throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, e, "JMX");
             }
-            jmx = true;
+            JMX = true;
         }
         return session;
     }
@@ -193,12 +187,7 @@ public class Engine implements SessionFactory {
      * @param ci the connection information
      * @return the session
      */
-    @Override
-    public Session createSession(ConnectionInfo ci) {
-        return INSTANCE.createSessionAndValidate(ci);
-    }
-
-    private Session createSessionAndValidate(ConnectionInfo ci) {
+    public static Session createSession(ConnectionInfo ci) {
         try {
             Session session = openSession(ci);
             validateUserAndPassword(true);
@@ -211,7 +200,7 @@ public class Engine implements SessionFactory {
         }
     }
 
-    private synchronized Session openSession(ConnectionInfo ci) {
+    private static synchronized Session openSession(ConnectionInfo ci) {
         boolean ifExists = ci.removeProperty("IFEXISTS", false);
         boolean forbidCreation = ci.removeProperty("FORBID_CREATION", false);
         boolean ignoreUnknownSetting = ci.removeProperty(
@@ -314,8 +303,8 @@ public class Engine implements SessionFactory {
      *
      * @param name the database name
      */
-    void close(String name) {
-        if (jmx) {
+    static void close(String name) {
+        if (JMX) {
             try {
                 Utils.callStaticMethod("org.h2.jmx.DatabaseInfo.unregisterMBean", name);
             } catch (Exception e) {
@@ -344,14 +333,14 @@ public class Engine implements SessionFactory {
      * @param correct if the user name or the password was correct
      * @throws DbException the exception 'wrong user or password'
      */
-    private void validateUserAndPassword(boolean correct) {
+    private static void validateUserAndPassword(boolean correct) {
         int min = SysProperties.DELAY_WRONG_PASSWORD_MIN;
         if (correct) {
-            long delay = wrongPasswordDelay;
+            long delay = WRONG_PASSWORD_DELAY;
             if (delay > min && delay > 0) {
                 // the first correct password must be blocked,
                 // otherwise parallel attacks are possible
-                synchronized (INSTANCE) {
+                synchronized (Engine.class) {
                     // delay up to the last delay
                     // an attacker can't know how long it will be
                     delay = MathUtils.secureRandomInt((int) delay);
@@ -360,21 +349,21 @@ public class Engine implements SessionFactory {
                     } catch (InterruptedException e) {
                         // ignore
                     }
-                    wrongPasswordDelay = min;
+                    WRONG_PASSWORD_DELAY = min;
                 }
             }
         } else {
             // this method is not synchronized on the Engine, so that
             // regular successful attempts are not blocked
-            synchronized (INSTANCE) {
-                long delay = wrongPasswordDelay;
+            synchronized (Engine.class) {
+                long delay = WRONG_PASSWORD_DELAY;
                 int max = SysProperties.DELAY_WRONG_PASSWORD_MAX;
                 if (max <= 0) {
                     max = Integer.MAX_VALUE;
                 }
-                wrongPasswordDelay += wrongPasswordDelay;
-                if (wrongPasswordDelay > max || wrongPasswordDelay < 0) {
-                    wrongPasswordDelay = max;
+                WRONG_PASSWORD_DELAY += WRONG_PASSWORD_DELAY;
+                if (WRONG_PASSWORD_DELAY > max || WRONG_PASSWORD_DELAY < 0) {
+                    WRONG_PASSWORD_DELAY = max;
                 }
                 if (min > 0) {
                     // a bit more to protect against timing attacks
@@ -388,6 +377,9 @@ public class Engine implements SessionFactory {
                 throw DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
             }
         }
+    }
+
+    private Engine() {
     }
 
 }

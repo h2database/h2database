@@ -79,8 +79,6 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public static final int STATUS_CLOSED = 2;
     public static final int STATUS_OK_STATE_CHANGED = 3;
 
-    private static SessionFactory sessionFactory;
-
     private TraceSystem traceSystem;
     private Trace trace;
     private ArrayList<Transfer> transferList = Utils.newSmallArrayList();
@@ -326,8 +324,6 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             connectServer(ci);
             return this;
         }
-        // create the session using reflection,
-        // so that the JDBC layer can be compiled without it
         boolean autoServerMode = ci.getProperty("AUTO_SERVER", false);
         ConnectionInfo backup = null;
         try {
@@ -338,11 +334,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             if (openNew) {
                 ci.setProperty("OPEN_NEW", "true");
             }
-            if (sessionFactory == null) {
-                sessionFactory = (SessionFactory) Class.forName(
-                        "org.h2.engine.Engine").getMethod("getInstance").invoke(null);
-            }
-            return sessionFactory.createSession(ci);
+            return Engine.createSession(ci);
         } catch (Exception re) {
             DbException e = DbException.convert(re);
             if (e.getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1) {

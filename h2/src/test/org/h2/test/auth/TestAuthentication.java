@@ -129,7 +129,7 @@ public class TestAuthentication extends TestBase {
             Properties properties = new Properties();
             properties.setProperty("USER", "dba");
             ConnectionInfo connectionInfo = new ConnectionInfo(getDatabaseURL(), properties);
-            session = Engine.getInstance().createSession(connectionInfo);
+            session = Engine.createSession(connectionInfo);
             database = session.getDatabase();
             configureAuthentication(database);
             try {

@@ -13,7 +13,7 @@ rmdir /s /q temp 2>nul
 
 call java16 >nul 2>nul
 call build -quiet compile
-call build -quiet spellcheck javadocImpl jarClient
+call build -quiet spellcheck javadocImpl
 call build -quiet clean compile installer mavenDeployCentral
 
 rem call build -quiet compile benchmark

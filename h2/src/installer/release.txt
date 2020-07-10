@@ -21,27 +21,6 @@ Ensure lines are not overly long:
 
     ./build.sh clean compile docs
 
-## JDBC Client Jar File Size Verification
-
-The JDBC client is supposed to not have dependencies to the database engine.
-To verify, run
-
-    ./build.sh clean jarClient
-
-If this fails with eg. "Expected file size 400 - 600 KB, got: 1687", then
-find out where the dependency is, and resolve. As follows:
-start by renaming Database to Database2:
-
-    mv src/main/org/h2/engine/Database.java src/main/org/h2/engine/Database2.java
-    ./build.sh clean jarClient
-
-This will fail, the first error is for example can not compile Session because Database was not found.
-So rename Session to Session2 and try again.
-This will fail again, the first error is different, now for example can not compile ResultInterface
-because Session was not found. Now, ResultInterface should not depend on the Session.
-So this needs to be fixed (the JDBC API shouldn't indirectly depend on it).
-After everything is resolved, rename the classes back.
-
 ## MVStore Jar File Size Verification
 
 To ensure the MVStore jar file is not too large

@@ -175,6 +175,11 @@ public abstract class MetaTable extends Table {
     public abstract ArrayList<Row> generateRows(Session session, SearchRow first, SearchRow last);
 
     @Override
+    public boolean isInsertable() {
+        return false;
+    }
+
+    @Override
     public final void removeRow(Session session, Row row) {
         throw DbException.getUnsupportedException("META");
     }

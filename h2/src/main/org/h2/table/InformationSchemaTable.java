@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.h2.api.IntervalQualifier;
+import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.Parser;
 import org.h2.constraint.Constraint;
@@ -575,6 +576,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "TABLE_SCHEMA",
                     "TABLE_NAME",
                     "TABLE_TYPE",
+                    "IS_INSERTABLE_INTO",
                     "COMMIT_ACTION",
                     // extensions
                     "STORAGE_TYPE",
@@ -654,6 +656,10 @@ public final class InformationSchemaTable extends MetaTable {
                     "VIEW_DEFINITION",
                     "CHECK_OPTION",
                     "IS_UPDATABLE",
+                    "INSERTABLE_INTO",
+                    "IS_TRIGGER_UPDATABLE",
+                    "IS_TRIGGER_DELETABLE",
+                    "IS_TRIGGER_INSERTABLE_INTO",
                     // extensions
                     "STATUS",
                     "REMARKS",
@@ -2228,6 +2234,7 @@ public final class InformationSchemaTable extends MetaTable {
                 sql = "-";
             }
         }
+        long lastModification = table.getMaxDataModificationId();
         add(session, rows,
                 // TABLE_CATALOG
                 catalog,
@@ -2237,6 +2244,8 @@ public final class InformationSchemaTable extends MetaTable {
                 tableName,
                 // TABLE_TYPE
                 table.getSQLTableType(),
+                // IS_INSERTABLE_INTO"
+                table.isInsertable() ? "YES" : "NO",
                 // COMMIT_ACTION
                 commitAction,
                 // extensions
@@ -2247,7 +2256,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // REMARKS
                 table.getComment(),
                 // LAST_MODIFICATION
-                ValueBigint.get(table.getMaxDataModificationId()),
+                lastModification != Long.MAX_VALUE ? ValueBigint.get(lastModification) : null,
                 // ID
                 ValueInteger.get(table.getId()),
                 // TABLE_CLASS
@@ -2424,6 +2433,15 @@ public final class InformationSchemaTable extends MetaTable {
         } else {
             viewDefinition = null;
         }
+        int mask = 0;
+        ArrayList<TriggerObject> triggers = table.getTriggers();
+        if (triggers != null) {
+            for (TriggerObject trigger : triggers) {
+                if (trigger.isInsteadOf()) {
+                    mask |= trigger.getTypeMask();
+                }
+            }
+        }
         add(session, rows,
                 // TABLE_CATALOG
                 catalog,
@@ -2437,6 +2455,14 @@ public final class InformationSchemaTable extends MetaTable {
                 "NONE",
                 // IS_UPDATABLE
                 "NO",
+                // INSERTABLE_INTO
+                "NO",
+                // IS_TRIGGER_UPDATABLE
+                (mask & Trigger.UPDATE) != 0 ? "YES" : "NO",
+                // IS_TRIGGER_DELETABLE
+                (mask & Trigger.DELETE) != 0 ? "YES" : "NO",
+                // IS_TRIGGER_INSERTABLE_INTO
+                (mask & Trigger.INSERT) != 0 ? "YES" : "NO",
                 // extensions
                 // STATUS
                 status,

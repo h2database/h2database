@@ -170,6 +170,15 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
+     * Returns whether this table is insertable.
+     *
+     * @return whether this table is insertable
+     */
+    public boolean isInsertable() {
+        return true;
+    }
+
+    /**
      * Remove a row from the table and all indexes.
      *
      * @param session the session

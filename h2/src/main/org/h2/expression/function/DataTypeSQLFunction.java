@@ -7,7 +7,7 @@ package org.h2.expression.function;
 
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.FunctionAlias.JavaMethod;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.OperationN;
 import org.h2.message.DbException;
@@ -33,7 +33,7 @@ public class DataTypeSQLFunction extends OperationN implements NamedExpression {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Schema schema = session.getDatabase().findSchema(args[0].getValue(session).getString());
         if (schema == null) {
             return ValueNull.INSTANCE;
@@ -140,7 +140,7 @@ public class DataTypeSQLFunction extends OperationN implements NamedExpression {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         optimizeArguments(session, false);
         type = TypeInfo.TYPE_VARCHAR;
         return this;

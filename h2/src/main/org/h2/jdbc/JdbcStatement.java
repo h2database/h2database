@@ -13,7 +13,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.engine.SessionInterface;
+import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
@@ -30,7 +30,7 @@ import org.h2.util.Utils;
 public class JdbcStatement extends TraceObject implements Statement, JdbcStatementBackwardsCompat {
 
     protected JdbcConnection conn;
-    protected SessionInterface session;
+    protected Session session;
     protected JdbcResultSet resultSet;
     protected int maxRows;
     protected int fetchSize = SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
@@ -1353,7 +1353,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      */
     @Override
     public boolean isSimpleIdentifier(String identifier) throws SQLException {
-        SessionInterface.StaticSettings settings;
+        Session.StaticSettings settings;
         try {
             checkClosed();
             settings = conn.getStaticSettings();

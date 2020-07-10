@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Procedure;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Parameter;
 
 /**
@@ -22,7 +22,7 @@ public class PrepareProcedure extends DefineCommand {
     private String procedureName;
     private Prepared prepared;
 
-    public PrepareProcedure(Session session) {
+    public PrepareProcedure(SessionLocal session) {
         super(session);
     }
 

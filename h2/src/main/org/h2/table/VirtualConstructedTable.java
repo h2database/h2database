@@ -5,7 +5,7 @@
  */
 package org.h2.table;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.Index;
 import org.h2.index.VirtualConstructedTableIndex;
 import org.h2.result.ResultInterface;
@@ -27,10 +27,10 @@ public abstract class VirtualConstructedTable extends VirtualTable {
      *            the session
      * @return the result
      */
-    public abstract ResultInterface getResult(Session session);
+    public abstract ResultInterface getResult(SessionLocal session);
 
     @Override
-    public Index getScanIndex(Session session) {
+    public Index getScanIndex(SessionLocal session) {
         return new VirtualConstructedTableIndex(this, IndexColumn.wrap(columns));
     }
 

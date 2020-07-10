@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.h2.command.query.AllColumnsForPlan;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexCondition;
@@ -59,12 +59,12 @@ public class NonUniqueHashIndex extends BaseIndex {
     }
 
     @Override
-    public void truncate(Session session) {
+    public void truncate(SessionLocal session) {
         reset();
     }
 
     @Override
-    public void add(Session session, Row row) {
+    public void add(SessionLocal session, Row row) {
         Value key = row.getValue(indexColumn);
         ArrayList<Long> positions = rows.get(key);
         if (positions == null) {
@@ -76,7 +76,7 @@ public class NonUniqueHashIndex extends BaseIndex {
     }
 
     @Override
-    public void remove(Session session, Row row) {
+    public void remove(SessionLocal session, Row row) {
         if (rowCount == 1) {
             // last row in table
             reset();
@@ -94,7 +94,7 @@ public class NonUniqueHashIndex extends BaseIndex {
     }
 
     @Override
-    public Cursor find(Session session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
         if (first == null || last == null) {
             throw DbException.throwInternalError(first + " " + last);
         }
@@ -116,12 +116,12 @@ public class NonUniqueHashIndex extends BaseIndex {
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         return rowCount;
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return rowCount;
     }
 
@@ -131,17 +131,17 @@ public class NonUniqueHashIndex extends BaseIndex {
     }
 
     @Override
-    public void close(Session session) {
+    public void close(SessionLocal session) {
         // nothing to do
     }
 
     @Override
-    public void remove(Session session) {
+    public void remove(SessionLocal session) {
         // nothing to do
     }
 
     @Override
-    public double getCost(Session session, int[] masks,
+    public double getCost(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
         for (Column column : columns) {

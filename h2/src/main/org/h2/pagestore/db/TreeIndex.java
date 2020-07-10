@@ -6,7 +6,7 @@
 package org.h2.pagestore.db;
 
 import org.h2.command.query.AllColumnsForPlan;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
@@ -39,13 +39,13 @@ public class TreeIndex extends BaseIndex {
     }
 
     @Override
-    public void close(Session session) {
+    public void close(SessionLocal session) {
         root = null;
         closed = true;
     }
 
     @Override
-    public void add(Session session, Row row) {
+    public void add(SessionLocal session, Row row) {
         if (closed) {
             throw DbException.throwInternalError();
         }
@@ -149,7 +149,7 @@ public class TreeIndex extends BaseIndex {
     }
 
     @Override
-    public void remove(Session session, Row row) {
+    public void remove(SessionLocal session, Row row) {
         if (closed) {
             throw DbException.throwInternalError();
         }
@@ -294,7 +294,7 @@ public class TreeIndex extends BaseIndex {
     }
 
     @Override
-    public Cursor find(Session session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
         if (first == null) {
             TreeNode x = root, n;
             while (x != null) {
@@ -311,19 +311,19 @@ public class TreeIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter[] filters, int filter,
+    public double getCost(SessionLocal session, int[] masks, TableFilter[] filters, int filter,
             SortOrder sortOrder, AllColumnsForPlan allColumnsSet) {
         return getCostRangeIndex(masks, tableData.getRowCountApproximation(session),
                 filters, filter, sortOrder, false, allColumnsSet);
     }
 
     @Override
-    public void remove(Session session) {
+    public void remove(SessionLocal session) {
         truncate(session);
     }
 
     @Override
-    public void truncate(Session session) {
+    public void truncate(SessionLocal session) {
         root = null;
         rowCount = 0;
     }
@@ -339,7 +339,7 @@ public class TreeIndex extends BaseIndex {
     }
 
     @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
+    public Cursor findFirstOrLast(SessionLocal session, boolean first) {
         if (closed) {
             throw DbException.throwInternalError(toString());
         }
@@ -382,12 +382,12 @@ public class TreeIndex extends BaseIndex {
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         return rowCount;
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return rowCount;
     }
 

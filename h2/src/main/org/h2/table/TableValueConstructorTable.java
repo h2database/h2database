@@ -8,7 +8,7 @@ package org.h2.table;
 import java.util.ArrayList;
 
 import org.h2.command.query.TableValueConstructor;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
@@ -21,7 +21,7 @@ public class TableValueConstructorTable extends VirtualConstructedTable {
 
     private final ArrayList<ArrayList<Expression>> rows;
 
-    public TableValueConstructorTable(Schema schema, Session session, Column[] columns,
+    public TableValueConstructorTable(Schema schema, SessionLocal session, Column[] columns,
             ArrayList<ArrayList<Expression>> rows) {
         super(schema, 0, "VALUES");
         setColumns(columns);
@@ -29,22 +29,22 @@ public class TableValueConstructorTable extends VirtualConstructedTable {
     }
 
     @Override
-    public boolean canGetRowCount(Session session) {
+    public boolean canGetRowCount(SessionLocal session) {
         return true;
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         return rows.size();
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return rows.size();
     }
 
     @Override
-    public ResultInterface getResult(Session session) {
+    public ResultInterface getResult(SessionLocal session) {
         SimpleResult simple = new SimpleResult();
         int columnCount = columns.length;
         for (int i = 0; i < columnCount; i++) {

@@ -7,7 +7,7 @@ package org.h2.table;
 
 import java.util.ArrayList;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
@@ -24,23 +24,23 @@ public abstract class VirtualTable extends Table {
     }
 
     @Override
-    public boolean lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc) {
+    public boolean lock(SessionLocal session, boolean exclusive, boolean forceLockEvenInMvcc) {
         // Nothing to do
         return false;
     }
 
     @Override
-    public void close(Session session) {
+    public void close(SessionLocal session) {
         // Nothing to do
     }
 
     @Override
-    public void unlock(Session s) {
+    public void unlock(SessionLocal s) {
         // Nothing to do
     }
 
     @Override
-    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
+    public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             boolean create, String indexComment) {
         throw DbException.getUnsupportedException("Virtual table");
     }
@@ -51,18 +51,18 @@ public abstract class VirtualTable extends Table {
     }
 
     @Override
-    public void removeRow(Session session, Row row) {
+    public void removeRow(SessionLocal session, Row row) {
         throw DbException.getUnsupportedException("Virtual table");
 
     }
 
     @Override
-    public void truncate(Session session) {
+    public void truncate(SessionLocal session) {
         throw DbException.getUnsupportedException("Virtual table");
     }
 
     @Override
-    public void addRow(Session session, Row row) {
+    public void addRow(SessionLocal session, Row row) {
         throw DbException.getUnsupportedException("Virtual table");
     }
 

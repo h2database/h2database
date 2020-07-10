@@ -7,7 +7,7 @@ package org.h2.expression;
 
 import static org.h2.util.DateTimeUtils.NANOS_PER_DAY;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.value.TypeInfo;
@@ -65,7 +65,7 @@ public class CompatibilityDatePlusTimeOperation extends Operation2 {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value l = left.getValue(session);
         Value r = right.getValue(session);
         if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
@@ -105,7 +105,7 @@ public class CompatibilityDatePlusTimeOperation extends Operation2 {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         right = right.optimize(session);
         if (left.isConstant() && right.isConstant()) {

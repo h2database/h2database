@@ -5,7 +5,7 @@
  */
 package org.h2.command.ddl;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.schema.Schema;
 
 /**
@@ -21,7 +21,7 @@ public abstract class SchemaCommand extends DefineCommand {
      * @param session the session
      * @param schema the schema
      */
-    public SchemaCommand(Session session, Schema schema) {
+    public SchemaCommand(SessionLocal session, Schema schema) {
         super(session);
         this.schema = schema;
     }

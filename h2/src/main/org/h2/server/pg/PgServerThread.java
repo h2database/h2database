@@ -34,7 +34,7 @@ import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcParameterMetaData;
@@ -861,7 +861,7 @@ public class PgServerThread implements Runnable {
             int[] types = new int[columns];
             int[] precision = new int[columns];
             String[] names = new String[columns];
-            Session session = (Session) conn.getSession();
+            SessionLocal session = (SessionLocal) conn.getSession();
             Database database = session.getDatabase();
             for (int i = 0; i < columns; i++) {
                 String name = meta.getColumnName(i + 1);

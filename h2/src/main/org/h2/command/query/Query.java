@@ -17,7 +17,7 @@ import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Alias;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -149,7 +149,7 @@ public abstract class Query extends Prepared {
 
     boolean isPrepared;
 
-    Query(Session session) {
+    Query(SessionLocal session) {
         super(session);
     }
 
@@ -337,7 +337,7 @@ public abstract class Query extends Prepared {
      * @param s the session
      * @param stage select stage
      */
-    public abstract void updateAggregate(Session s, int stage);
+    public abstract void updateAggregate(SessionLocal s, int stage);
 
     /**
      * Call the before triggers on all tables.
@@ -615,7 +615,7 @@ public abstract class Query extends Prepared {
      * @return whether the specified expression should be allowed in ORDER BY
      *         list of DISTINCT select
      */
-    private static boolean checkOrderOther(Session session, Expression expr, ArrayList<String> expressionSQL) {
+    private static boolean checkOrderOther(SessionLocal session, Expression expr, ArrayList<String> expressionSQL) {
         if (expr == null || expr.isConstant()) {
             // ValueExpression, null expression in CASE, or other
             return true;

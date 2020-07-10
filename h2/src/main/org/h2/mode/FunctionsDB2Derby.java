@@ -7,7 +7,7 @@ package org.h2.mode;
 
 import java.util.HashMap;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.function.CompatibilityIdentityFunction;
 import org.h2.expression.function.Function;
@@ -47,7 +47,7 @@ public final class FunctionsDB2Derby extends FunctionsBase {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         switch (info.type) {
         case IDENTITY_VAL_LOCAL:
             return new CompatibilityIdentityFunction(false).optimize(session);

@@ -13,7 +13,7 @@ import org.h2.command.Prepared;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
@@ -46,7 +46,7 @@ public class Delete extends Prepared implements DataChangeStatement {
 
     private ResultOption deltaChangeCollectionMode;
 
-    public Delete(Session session) {
+    public Delete(SessionLocal session) {
         super(session);
     }
 

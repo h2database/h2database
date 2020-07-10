@@ -9,7 +9,7 @@ import static java.lang.String.format;
 
 import java.util.List;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.TimeZoneProvider;
 import org.h2.value.ValueTimestamp;
@@ -20,7 +20,7 @@ import org.h2.value.ValueTimestampTimeZone;
  * This class holds and handles the input data form the TO_DATE-method
  */
 public class ToDateParser {
-    private final Session session;
+    private final SessionLocal session;
 
     private final String unmodifiedInputStr;
     private final String unmodifiedFormatStr;
@@ -59,7 +59,7 @@ public class ToDateParser {
      * @param input the input date with the date-time info
      * @param format the format of date-time info
      */
-    private ToDateParser(Session session, ConfigParam functionName, String input, String format) {
+    private ToDateParser(SessionLocal session, ConfigParam functionName, String input, String format) {
         this.session = session;
         this.functionName = functionName;
         inputStr = input.trim();
@@ -75,7 +75,8 @@ public class ToDateParser {
         unmodifiedFormatStr = formatStr;
     }
 
-    private static ToDateParser getTimestampParser(Session session, ConfigParam param, String input, String format) {
+    private static ToDateParser getTimestampParser(SessionLocal session, ConfigParam param, String input,
+            String format) {
         ToDateParser result = new ToDateParser(session, param, input, format);
         parse(result);
         return result;
@@ -322,7 +323,7 @@ public class ToDateParser {
      * @param format the format
      * @return the timestamp
      */
-    public static ValueTimestamp toTimestamp(Session session, String input, String format) {
+    public static ValueTimestamp toTimestamp(SessionLocal session, String input, String format) {
         ToDateParser parser = getTimestampParser(session, ConfigParam.TO_TIMESTAMP, input, format);
         return parser.getResultingValue();
     }
@@ -335,7 +336,7 @@ public class ToDateParser {
      * @param format the format
      * @return the timestamp
      */
-    public static ValueTimestampTimeZone toTimestampTz(Session session, String input, String format) {
+    public static ValueTimestampTimeZone toTimestampTz(SessionLocal session, String input, String format) {
         ToDateParser parser = getTimestampParser(session, ConfigParam.TO_TIMESTAMP_TZ, input, format);
         return parser.getResultingValueWithTimeZone();
     }
@@ -348,7 +349,7 @@ public class ToDateParser {
      * @param format the format
      * @return the date as a timestamp
      */
-    public static ValueTimestamp toDate(Session session, String input, String format) {
+    public static ValueTimestamp toDate(SessionLocal session, String input, String format) {
         ToDateParser parser = getTimestampParser(session, ConfigParam.TO_DATE, input, format);
         return parser.getResultingValue();
     }

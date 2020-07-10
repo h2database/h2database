@@ -12,7 +12,7 @@ import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Constants;
-import org.h2.engine.SessionInterface;
+import org.h2.engine.Session;
 import org.h2.engine.SessionRemote;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
@@ -39,9 +39,9 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
 
     private static final Value SCHEMA_MAIN = ValueVarchar.get(Constants.SCHEMA_MAIN);
 
-    private final SessionInterface session;
+    private final Session session;
 
-    public DatabaseMetaLegacy(SessionInterface session) {
+    public DatabaseMetaLegacy(Session session) {
         this.session = session;
     }
 

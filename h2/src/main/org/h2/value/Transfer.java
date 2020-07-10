@@ -21,7 +21,7 @@ import java.util.Set;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Constants;
-import org.h2.engine.SessionInterface;
+import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
@@ -141,7 +141,7 @@ public class Transfer {
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
-    private SessionInterface session;
+    private Session session;
     private boolean ssl;
     private int version;
     private byte[] lobMacSalt;
@@ -152,7 +152,7 @@ public class Transfer {
      * @param session the session
      * @param s the socket
      */
-    public Transfer(SessionInterface session, Socket s) {
+    public Transfer(Session session, Socket s) {
         this.session = session;
         this.socket = s;
     }
@@ -1213,7 +1213,7 @@ public class Transfer {
      *
      * @param session the session
      */
-    public void setSession(SessionInterface session) {
+    public void setSession(Session session) {
         this.session = session;
     }
 

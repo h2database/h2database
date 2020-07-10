@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintDomain;
 import org.h2.engine.DbObject;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Column;
@@ -86,7 +86,7 @@ public class Domain extends SchemaObjectBase {
     }
 
     @Override
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(SessionLocal session) {
         if (constraints != null && !constraints.isEmpty()) {
             for (ConstraintDomain constraint : constraints.toArray(new ConstraintDomain[0])) {
                 database.removeSchemaObject(session, constraint);
@@ -106,7 +106,7 @@ public class Domain extends SchemaObjectBase {
      * @param session the session
      * @param value the value
      */
-    public void checkConstraints(Session session, Value value) {
+    public void checkConstraints(SessionLocal session, Value value) {
         if (constraints != null) {
             for (ConstraintDomain constraint : constraints) {
                 constraint.check(session, value);

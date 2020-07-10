@@ -11,7 +11,7 @@ import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
@@ -29,7 +29,7 @@ public class AlterTableRenameColumn extends SchemaCommand {
     private String oldName;
     private String newName;
 
-    public AlterTableRenameColumn(Session session, Schema schema) {
+    public AlterTableRenameColumn(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 

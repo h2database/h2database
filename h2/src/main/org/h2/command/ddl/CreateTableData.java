@@ -7,7 +7,7 @@ package org.h2.command.ddl;
 
 import java.util.ArrayList;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 
@@ -64,7 +64,7 @@ public class CreateTableData {
     /**
      * The session.
      */
-    public Session session;
+    public SessionLocal session;
 
     /**
      * The table engine to use for creating the table.

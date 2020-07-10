@@ -8,7 +8,7 @@ package org.h2.command.dml;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -21,7 +21,7 @@ public class ExecuteImmediate extends Prepared {
 
     private Expression statement;
 
-    public ExecuteImmediate(Session session, Expression statement) {
+    public ExecuteImmediate(SessionLocal session, Expression statement) {
         super(session);
         this.statement = statement.optimize(session);
     }

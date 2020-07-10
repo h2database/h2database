@@ -6,7 +6,7 @@
 package org.h2.command.ddl;
 
 import org.h2.command.Prepared;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.result.ResultInterface;
 
 /**
@@ -26,7 +26,7 @@ public abstract class DefineCommand extends Prepared {
      *
      * @param session the session
      */
-    DefineCommand(Session session) {
+    DefineCommand(SessionLocal session) {
         super(session);
     }
 

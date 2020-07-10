@@ -22,7 +22,7 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Engine;
 import org.h2.engine.GeneratedKeysMode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
 import org.h2.expression.Parameter;
@@ -50,7 +50,7 @@ public class TcpServerThread implements Runnable {
 
     protected final Transfer transfer;
     private final TcpServer server;
-    private Session session;
+    private SessionLocal session;
     private boolean stop;
     private Thread thread;
     private Command commit;

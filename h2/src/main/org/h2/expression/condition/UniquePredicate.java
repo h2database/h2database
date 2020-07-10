@@ -8,7 +8,7 @@ package org.h2.expression.condition;
 import java.util.Arrays;
 
 import org.h2.command.query.Query;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.result.LocalResult;
@@ -73,7 +73,7 @@ public class UniquePredicate extends PredicateWithSubquery {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         super.optimize(session);
         if (query.isStandardDistinct()) {
             return ValueExpression.TRUE;
@@ -82,7 +82,7 @@ public class UniquePredicate extends PredicateWithSubquery {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         query.setSession(session);
         int columnCount = query.getColumnCount();
         LocalResult result = new LocalResult(session,

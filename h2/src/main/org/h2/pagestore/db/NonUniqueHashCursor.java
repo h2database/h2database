@@ -6,7 +6,7 @@
 package org.h2.pagestore.db;
 
 import java.util.ArrayList;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.Cursor;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -18,13 +18,13 @@ import org.h2.result.SearchRow;
  */
 public class NonUniqueHashCursor implements Cursor {
 
-    private final Session session;
+    private final SessionLocal session;
     private final ArrayList<Long> positions;
     private final PageStoreTable tableData;
 
     private int index = -1;
 
-    public NonUniqueHashCursor(Session session, PageStoreTable tableData,
+    public NonUniqueHashCursor(SessionLocal session, PageStoreTable tableData,
             ArrayList<Long> positions) {
         this.session = session;
         this.tableData = tableData;

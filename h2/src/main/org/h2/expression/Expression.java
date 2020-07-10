@@ -9,7 +9,7 @@ import java.util.List;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.function.NamedExpression;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -111,7 +111,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @param session the session
      * @return the result
      */
-    public abstract Value getValue(Session session);
+    public abstract Value getValue(SessionLocal session);
 
     /**
      * Returns the data type. The data type may be unknown before the
@@ -138,7 +138,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @param session the session
      * @return the optimized expression
      */
-    public abstract Expression optimize(Session session);
+    public abstract Expression optimize(SessionLocal session);
 
     /**
      * Try to optimize or remove the condition.
@@ -146,7 +146,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @param session the session
      * @return the optimized condition, or {@code null}
      */
-    public final Expression optimizeCondition(Session session) {
+    public final Expression optimizeCondition(SessionLocal session) {
         Expression e = optimize(session);
         if (e.isConstant()) {
             return e.getBooleanValue(session) ? null : ValueExpression.FALSE;
@@ -253,7 +253,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @param session the session
      * @param stage select stage
      */
-    public abstract void updateAggregate(Session session, int stage);
+    public abstract void updateAggregate(SessionLocal session, int stage);
 
     /**
      * Check if this expression and all sub-expressions can fulfill a criteria.
@@ -281,7 +281,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @param session the session
      * @return the negated expression, or null
      */
-    public Expression getNotIfPossible(@SuppressWarnings("unused") Session session) {
+    public Expression getNotIfPossible(@SuppressWarnings("unused") SessionLocal session) {
         // by default it is not possible
         return null;
     }
@@ -330,7 +330,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @param session the session
      * @return the result
      */
-    public boolean getBooleanValue(Session session) {
+    public boolean getBooleanValue(SessionLocal session) {
         return getValue(session).getBoolean();
     }
 
@@ -341,7 +341,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @param filter the table filter
      */
     @SuppressWarnings("unused")
-    public void createIndexConditions(Session session, TableFilter filter) {
+    public void createIndexConditions(SessionLocal session, TableFilter filter) {
         // default is do nothing
     }
 
@@ -352,7 +352,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @param columnIndex 0-based column index
      * @return the column name
      */
-    public String getColumnName(Session session, int columnIndex) {
+    public String getColumnName(SessionLocal session, int columnIndex) {
         return getAlias(session, columnIndex);
     }
 
@@ -401,7 +401,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @param columnIndex 0-based column index
      * @return the alias name
      */
-    public String getAlias(Session session, int columnIndex) {
+    public String getAlias(SessionLocal session, int columnIndex) {
         switch (session.getMode().expressionNames) {
         default:
             return getSQL(QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS, WITHOUT_PARENTHESES);
@@ -426,7 +426,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @param columnIndex 0-based column index
      * @return the column name for a view
      */
-    public String getColumnNameForView(Session session, int columnIndex) {
+    public String getColumnNameForView(SessionLocal session, int columnIndex) {
         switch (session.getMode().viewExpressionNames) {
         case AS_IS:
         default:
@@ -481,7 +481,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @return array of expression columns if applicable, null otherwise
      */
     @SuppressWarnings("unused")
-    public Expression[] getExpressionColumns(Session session) {
+    public Expression[] getExpressionColumns(SessionLocal session) {
         return null;
     }
 
@@ -492,7 +492,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @param value the value to extract columns from
      * @return array of expression columns
      */
-    protected static Expression[] getExpressionColumns(Session session, ValueRow value) {
+    protected static Expression[] getExpressionColumns(SessionLocal session, ValueRow value) {
         Value[] list = value.getList();
         ExpressionColumn[] expr = new ExpressionColumn[list.length];
         for (int i = 0, len = list.length; i < len; i++) {
@@ -510,7 +510,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @param result the result
      * @return an array of expression columns
      */
-    public static Expression[] getExpressionColumns(Session session, ResultInterface result) {
+    public static Expression[] getExpressionColumns(SessionLocal session, ResultInterface result) {
         int columnCount = result.getVisibleColumnCount();
         Expression[] expressions = new Expression[columnCount];
         Database db = session == null ? null : session.getDatabase();
@@ -551,7 +551,7 @@ public abstract class Expression implements HasSQL, Typed {
      *            value on the left side
      * @return the result
      */
-    public boolean getWhenValue(Session session, Value left) {
+    public boolean getWhenValue(SessionLocal session, Value left) {
         return session.compareWithNull(left, getValue(session), true) == 0;
     }
 

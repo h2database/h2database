@@ -40,7 +40,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.ExpressionColumn;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileUtils;
@@ -444,7 +444,7 @@ public class FullTextLucene extends FullText {
                     if (data) {
                         int idx = q.indexOf(" WHERE ");
                         JdbcConnection c = (JdbcConnection) conn;
-                        Session session = (Session) c.getSession();
+                        SessionLocal session = (SessionLocal) c.getSession();
                         Parser p = new Parser(session);
                         String tab = q.substring(0, idx);
                         ExpressionColumn expr = (ExpressionColumn) p

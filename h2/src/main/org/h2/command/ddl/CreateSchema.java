@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
@@ -25,7 +25,7 @@ public class CreateSchema extends DefineCommand {
     private boolean ifNotExists;
     private ArrayList<String> tableEngineParams;
 
-    public CreateSchema(Session session) {
+    public CreateSchema(SessionLocal session) {
         super(session);
     }
 

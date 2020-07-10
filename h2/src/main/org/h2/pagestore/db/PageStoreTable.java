@@ -11,7 +11,7 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Constants;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.SysProperties;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -37,7 +37,7 @@ public class PageStoreTable extends RegularTable {
      * The queue of sessions waiting to lock the table. It is a FIFO queue to
      * prevent starvation, since Java's synchronized locking is biased.
      */
-    private final ArrayDeque<Session> waitingSessions = new ArrayDeque<>();
+    private final ArrayDeque<SessionLocal> waitingSessions = new ArrayDeque<>();
     private final Trace traceLock;
     private final ArrayList<Index> indexes = Utils.newSmallArrayList();
     private long lastModificationId;
@@ -64,19 +64,19 @@ public class PageStoreTable extends RegularTable {
     }
 
     @Override
-    public void close(Session session) {
+    public void close(SessionLocal session) {
         for (Index index : indexes) {
             index.close(session);
         }
     }
 
     @Override
-    public Row getRow(Session session, long key) {
+    public Row getRow(SessionLocal session, long key) {
         return scanIndex.getRow(session, key);
     }
 
     @Override
-    public void addRow(Session session, Row row) {
+    public void addRow(SessionLocal session, Row row) {
         lastModificationId = database.getNextModificationDataId();
         int i = 0;
         try {
@@ -105,7 +105,7 @@ public class PageStoreTable extends RegularTable {
         analyzeIfRequired(session);
     }
 
-    private void checkRowCount(Session session, Index index, int offset) {
+    private void checkRowCount(SessionLocal session, Index index, int offset) {
         if (SysProperties.CHECK) {
             if (!(index instanceof PageDelegateIndex)) {
                 long rc = index.getRowCount(session);
@@ -119,7 +119,7 @@ public class PageStoreTable extends RegularTable {
     }
 
     @Override
-    public Index getScanIndex(Session session) {
+    public Index getScanIndex(SessionLocal session) {
         return indexes.get(0);
     }
 
@@ -139,7 +139,7 @@ public class PageStoreTable extends RegularTable {
     }
 
     @Override
-    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
+    public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             boolean create, String indexComment) {
         cols = prepareColumns(database, cols, indexType);
         boolean isSessionTemporary = isTemporary() && !isGlobalTemporary();
@@ -244,12 +244,12 @@ public class PageStoreTable extends RegularTable {
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         return rowCount;
     }
 
     @Override
-    public void removeRow(Session session, Row row) {
+    public void removeRow(SessionLocal session, Row row) {
         lastModificationId = database.getNextModificationDataId();
         int i = indexes.size() - 1;
         try {
@@ -279,7 +279,7 @@ public class PageStoreTable extends RegularTable {
     }
 
     @Override
-    public void truncate(Session session) {
+    public void truncate(SessionLocal session) {
         lastModificationId = database.getNextModificationDataId();
         for (int i = indexes.size() - 1; i >= 0; i--) {
             Index index = indexes.get(i);
@@ -289,7 +289,7 @@ public class PageStoreTable extends RegularTable {
         changesSinceAnalyze = 0;
     }
 
-    private void analyzeIfRequired(Session session) {
+    private void analyzeIfRequired(SessionLocal session) {
         if (nextAnalyze == 0 || nextAnalyze > changesSinceAnalyze++) {
             return;
         }
@@ -302,7 +302,7 @@ public class PageStoreTable extends RegularTable {
     }
 
     @Override
-    public boolean lock(Session session, boolean exclusive,
+    public boolean lock(SessionLocal session, boolean exclusive,
             boolean forceLockEvenInMvcc) {
         int lockMode = database.getLockMode();
         if (lockMode == Constants.LOCK_MODE_OFF) {
@@ -330,7 +330,7 @@ public class PageStoreTable extends RegularTable {
         return false;
     }
 
-    private void doLock1(Session session, int lockMode, boolean exclusive) {
+    private void doLock1(SessionLocal session, int lockMode, boolean exclusive) {
         traceLock(session, exclusive, "requesting for");
         // don't get the current time unless necessary
         long max = 0;
@@ -343,7 +343,7 @@ public class PageStoreTable extends RegularTable {
                 }
             }
             if (checkDeadlock) {
-                ArrayList<Session> sessions = checkDeadlock(session, null, null);
+                ArrayList<SessionLocal> sessions = checkDeadlock(session, null, null);
                 if (sessions != null) {
                     throw DbException.get(ErrorCode.DEADLOCK_1,
                             getDeadlockDetails(sessions, exclusive));
@@ -384,7 +384,7 @@ public class PageStoreTable extends RegularTable {
         }
     }
 
-    private boolean doLock2(Session session, int lockMode, boolean exclusive) {
+    private boolean doLock2(SessionLocal session, int lockMode, boolean exclusive) {
         if (exclusive) {
             if (lockExclusiveSession == null) {
                 if (lockSharedSessions.isEmpty()) {
@@ -416,7 +416,7 @@ public class PageStoreTable extends RegularTable {
         return false;
     }
 
-    private void traceLock(Session session, boolean exclusive, String s) {
+    private void traceLock(SessionLocal session, boolean exclusive, String s) {
         if (traceLock.isDebugEnabled()) {
             traceLock.debug("{0} {1} {2} {3}", session.getId(),
                     exclusive ? "exclusive write lock" : "shared read lock", s, getName());
@@ -424,7 +424,7 @@ public class PageStoreTable extends RegularTable {
     }
 
     @Override
-    public void unlock(Session s) {
+    public void unlock(SessionLocal s) {
         if (database != null) {
             traceLock(s, lockExclusiveSession == s, "unlock");
             if (lockExclusiveSession == s) {
@@ -452,7 +452,7 @@ public class PageStoreTable extends RegularTable {
     }
 
     @Override
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(SessionLocal session) {
         if (containsLargeObject) {
             // unfortunately, the data is gone on rollback
             truncate(session);
@@ -483,7 +483,7 @@ public class PageStoreTable extends RegularTable {
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return scanIndex.getRowCountApproximation(session);
     }
 

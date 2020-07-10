@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.h2.api.ErrorCode;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
@@ -81,12 +81,12 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     }
 
     @Override
-    public void close(Session session) {
+    public void close(SessionLocal session) {
         // ok
     }
 
     @Override
-    public void add(Session session, Row row) {
+    public void add(SessionLocal session, Row row) {
         if (mainIndexColumn == SearchRow.ROWID_INDEX) {
             if (row.getKey() == 0) {
                 row.setKey(lastKey.incrementAndGet());
@@ -136,7 +136,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     }
 
     @Override
-    public void remove(Session session, Row row) {
+    public void remove(SessionLocal session, Row row) {
         if (mvTable.getContainsLargeObject()) {
             for (int i = 0, len = row.getColumnCount(); i < len; i++) {
                 Value v = row.getValue(i);
@@ -159,7 +159,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     }
 
     @Override
-    public void update(Session session, Row oldRow, Row newRow) {
+    public void update(SessionLocal session, Row oldRow, Row newRow) {
         if (mainIndexColumn != SearchRow.ROWID_INDEX) {
             long c = newRow.getValue(mainIndexColumn).getLong();
             newRow.setKey(c);
@@ -213,7 +213,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
      * @param row to lock
      * @return row object if it exists
      */
-    Row lockRow(Session session, Row row) {
+    Row lockRow(SessionLocal session, Row row) {
         TransactionMap<Long,SearchRow> map = getMap(session);
         long key = row.getKey();
         return lockRow(map, key);
@@ -230,7 +230,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     }
 
     @Override
-    public Cursor find(Session session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
         long min = extractPKFromRow(first, Long.MIN_VALUE);
         long max = extractPKFromRow(last, Long.MAX_VALUE);
         return find(session, min, max);
@@ -260,7 +260,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     }
 
     @Override
-    public Row getRow(Session session, long key) {
+    public Row getRow(SessionLocal session, long key) {
         TransactionMap<Long,SearchRow> map = getMap(session);
         Row row = (Row)map.getFromSnapshot(key);
         if (row == null) {
@@ -271,7 +271,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     }
 
     @Override
-    public double getCost(Session session, int[] masks,
+    public double getCost(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
         try {
@@ -294,7 +294,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     }
 
     @Override
-    public void remove(Session session) {
+    public void remove(SessionLocal session) {
         TransactionMap<Long,SearchRow> map = getMap(session);
         if (!map.isClosed()) {
             Transaction t = session.getTransaction();
@@ -303,7 +303,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     }
 
     @Override
-    public void truncate(Session session) {
+    public void truncate(SessionLocal session) {
         if (mvTable.getContainsLargeObject()) {
             database.getLobStorage().removeAllForTable(table.getId());
         }
@@ -316,7 +316,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     }
 
     @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
+    public Cursor findFirstOrLast(SessionLocal session, boolean first) {
         TransactionMap<Long,SearchRow> map = getMap(session);
         Long rowId = first ? map.firstKey() : map.lastKey();
         Row row = null;
@@ -333,7 +333,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         return getMap(session).sizeAsLong();
     }
 
@@ -347,7 +347,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return getRowCountMax();
     }
 
@@ -378,13 +378,13 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
      * @param last the key of the last row
      * @return the cursor
      */
-    Cursor find(Session session, Value first, Value last) {
+    Cursor find(SessionLocal session, Value first, Value last) {
         long from = first == null || first == ValueNull.INSTANCE ? Long.MIN_VALUE : first.getLong();
         long to = last == null || last == ValueNull.INSTANCE ? Long.MAX_VALUE : last.getLong();
         return find(session, from, to);
     }
 
-    private Cursor find(Session session, Long first, Long last) {
+    private Cursor find(SessionLocal session, Long first, Long last) {
         TransactionMap<Long,SearchRow> map = getMap(session);
         if (first != null && last != null && first.longValue() == last.longValue()) {
             Row row = (Row)map.getFromSnapshot(first);
@@ -405,7 +405,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
      * @param session the session
      * @return the map
      */
-    TransactionMap<Long,SearchRow> getMap(Session session) {
+    TransactionMap<Long,SearchRow> getMap(SessionLocal session) {
         if (session == null) {
             return dataMap;
         }

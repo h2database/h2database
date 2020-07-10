@@ -13,7 +13,7 @@ import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionList;
@@ -55,7 +55,7 @@ public class TableValueConstructor extends Query {
      * @param rows
      *            the rows
      */
-    public TableValueConstructor(Session session, ArrayList<ArrayList<Expression>> rows) {
+    public TableValueConstructor(SessionLocal session, ArrayList<ArrayList<Expression>> rows) {
         super(session);
         this.rows = rows;
         visibleColumnCount = rows.get(0).size();
@@ -81,7 +81,7 @@ public class TableValueConstructor extends Query {
      * @param rows
      *            the rows with data
      */
-    public static void getVisibleResult(Session session, ResultTarget result, Column[] columns,
+    public static void getVisibleResult(SessionLocal session, ResultTarget result, Column[] columns,
             ArrayList<ArrayList<Expression>> rows) {
         int count = columns.length;
         for (ArrayList<Expression> row : rows) {
@@ -303,7 +303,7 @@ public class TableValueConstructor extends Query {
     }
 
     @Override
-    public void updateAggregate(Session s, int stage) {
+    public void updateAggregate(SessionLocal s, int stage) {
         int columnCount = visibleColumnCount;
         for (ArrayList<Expression> row : rows) {
             for (int i = 0; i < columnCount; i++) {

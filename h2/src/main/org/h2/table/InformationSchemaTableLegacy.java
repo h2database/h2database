@@ -34,8 +34,8 @@ import org.h2.engine.FunctionAlias.JavaMethod;
 import org.h2.engine.QueryStatisticsData;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
-import org.h2.engine.Session;
-import org.h2.engine.Session.State;
+import org.h2.engine.SessionLocal;
+import org.h2.engine.SessionLocal.State;
 import org.h2.engine.Setting;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
@@ -718,7 +718,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
     }
 
     @Override
-    public ArrayList<Row> generateRows(Session session, SearchRow first, SearchRow last) {
+    public ArrayList<Row> generateRows(SessionLocal session, SearchRow first, SearchRow last) {
         Value indexFrom = null, indexTo = null;
 
         if (indexColumn >= 0) {
@@ -1892,7 +1892,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case SESSIONS: {
-            for (Session s : database.getSessions(false)) {
+            for (SessionLocal s : database.getSessions(false)) {
                 if (admin || s == session) {
                     NetworkConnectionInfo networkConnectionInfo = s.getNetworkConnectionInfo();
                     Command command = s.getCurrentCommand();
@@ -1931,7 +1931,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case LOCKS: {
-            for (Session s : database.getSessions(false)) {
+            for (SessionLocal s : database.getSessions(false)) {
                 if (admin || s == session) {
                     for (Table table : s.getLocks()) {
                         add(session,
@@ -2346,8 +2346,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         }
     }
 
-    private void addConstraintColumnUsage(Session session, ArrayList<Row> rows, String catalog, Constraint constraint,
-            Column column) {
+    private void addConstraintColumnUsage(SessionLocal session, ArrayList<Row> rows, String catalog,
+            Constraint constraint, Column column) {
         Table table = column.getTable();
         add(session,
                 rows,
@@ -2367,7 +2367,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         );
     }
 
-    private void addPrivileges(Session session, ArrayList<Row> rows, DbObject grantee,
+    private void addPrivileges(SessionLocal session, ArrayList<Row> rows, DbObject grantee,
             String catalog, Table table, String column, int rightMask) {
         if ((rightMask & Right.SELECT) != 0) {
             addPrivilege(session, rows, grantee, catalog, table, column, "SELECT");
@@ -2383,7 +2383,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         }
     }
 
-    private void addPrivilege(Session session, ArrayList<Row> rows, DbObject grantee,
+    private void addPrivilege(SessionLocal session, ArrayList<Row> rows, DbObject grantee,
             String catalog, Table table, String column, String right) {
         String isGrantable = "NO";
         if (grantee.getType() == DbObject.USER) {
@@ -2447,13 +2447,13 @@ public final class InformationSchemaTableLegacy extends MetaTable {
      * @param session the session
      * @return the array of tables
      */
-    private ArrayList<Table> getAllTables(Session session) {
+    private ArrayList<Table> getAllTables(SessionLocal session) {
         ArrayList<Table> tables = database.getAllTablesAndViews(true);
         tables.addAll(session.getLocalTempTables());
         return tables;
     }
 
-    private ArrayList<Table> getTablesByName(Session session, String tableName) {
+    private ArrayList<Table> getTablesByName(SessionLocal session, String tableName) {
         // we expect that at most one table matches, at least in most cases
         ArrayList<Table> tables = new ArrayList<>(1);
         for (Schema schema : database.getAllSchemas()) {

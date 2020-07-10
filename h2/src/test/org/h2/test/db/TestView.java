@@ -11,7 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -77,7 +77,7 @@ public class TestView extends TestDb {
                 "name varchar(25) unique, age int unique)");
 
         // check that initial cache size is empty
-        Session s = (Session) ((JdbcConnection) conn).getSession();
+        SessionLocal s = (SessionLocal) ((JdbcConnection) conn).getSession();
         s.clearViewIndexCache();
         assertTrue(s.getViewIndexCache(true).isEmpty());
         assertTrue(s.getViewIndexCache(false).isEmpty());

@@ -5,7 +5,7 @@
  */
 package org.h2.expression.function;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.OperationN;
 import org.h2.expression.TypedValueExpression;
@@ -50,7 +50,7 @@ public class CoalesceFunction extends OperationN implements NamedExpression {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value v = ValueNull.INSTANCE;
         switch (function) {
         case COALESCE: {
@@ -92,7 +92,7 @@ public class CoalesceFunction extends OperationN implements NamedExpression {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         boolean allConst = optimizeArguments(session, true);
         type = TypeInfo.getHigherType(args);
         if (type.getValueType() <= Value.NULL) {

@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.PartitionData;
@@ -64,7 +64,7 @@ public abstract class SelectGroups {
          */
         private Iterator<Entry<ValueRow, Object[]>> cursor;
 
-        Grouped(Session session, ArrayList<Expression> expressions, int[] groupIndex) {
+        Grouped(SessionLocal session, ArrayList<Expression> expressions, int[] groupIndex) {
             super(session, expressions);
             this.groupIndex = groupIndex;
         }
@@ -153,7 +153,7 @@ public abstract class SelectGroups {
          */
         private Iterator<Object[]> cursor;
 
-        Plain(Session session, ArrayList<Expression> expressions) {
+        Plain(SessionLocal session, ArrayList<Expression> expressions) {
             super(session, expressions);
         }
 
@@ -197,7 +197,7 @@ public abstract class SelectGroups {
     /**
      * The database session.
      */
-    final Session session;
+    final SessionLocal session;
 
     /**
      * The query's column list, including invisible expressions such as order by expressions.
@@ -243,12 +243,12 @@ public abstract class SelectGroups {
      *            the indexes of group expressions, or null
      * @return new instance of the grouped data.
      */
-    public static SelectGroups getInstance(Session session, ArrayList<Expression> expressions, boolean isGroupQuery,
-            int[] groupIndex) {
+    public static SelectGroups getInstance(SessionLocal session, ArrayList<Expression> expressions,
+            boolean isGroupQuery, int[] groupIndex) {
         return isGroupQuery ? new Grouped(session, expressions, groupIndex) : new Plain(session, expressions);
     }
 
-    SelectGroups(Session session, ArrayList<Expression> expressions) {
+    SelectGroups(SessionLocal session, ArrayList<Expression> expressions) {
         this.session = session;
         this.expressions = expressions;
     }

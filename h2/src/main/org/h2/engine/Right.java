@@ -158,7 +158,7 @@ public class Right extends DbObjectBase {
     }
 
     @Override
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(SessionLocal session) {
         if (grantedRole != null) {
             grantee.revokeRole(grantedRole);
         } else {

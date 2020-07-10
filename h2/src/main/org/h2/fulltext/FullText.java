@@ -26,7 +26,7 @@ import java.util.UUID;
 
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ValueExpression;
@@ -465,7 +465,7 @@ public class FullText {
         ArrayList<String> columns = Utils.newSmallArrayList();
         ArrayList<String> data = Utils.newSmallArrayList();
         JdbcConnection c = (JdbcConnection) conn;
-        Session session = (Session) c.getSession();
+        SessionLocal session = (SessionLocal) c.getSession();
         Parser p = new Parser(session);
         Expression expr = p.parseExpression(key);
         addColumnData(session, columns, data, expr);
@@ -667,7 +667,7 @@ public class FullText {
         return result;
     }
 
-    private static void addColumnData(Session session, ArrayList<String> columns, ArrayList<String> data,
+    private static void addColumnData(SessionLocal session, ArrayList<String> columns, ArrayList<String> data,
             Expression expr) {
         if (expr instanceof ConditionAndOr) {
             ConditionAndOr and = (ConditionAndOr) expr;

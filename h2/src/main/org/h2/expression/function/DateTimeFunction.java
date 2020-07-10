@@ -18,7 +18,7 @@ import java.util.Locale;
 
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Mode.ModeEnum;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.Operation1_2;
 import org.h2.expression.TypedValueExpression;
@@ -346,7 +346,7 @@ public class DateTimeFunction extends Operation1_2 implements NamedExpression {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value v1 = left.getValue(session);
         if (v1 == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
@@ -390,7 +390,7 @@ public class DateTimeFunction extends Operation1_2 implements NamedExpression {
      *            the field type, see {@link Function} for constants
      * @return the value
      */
-    private static int extractInteger(Session session, Value date, int field) {
+    private static int extractInteger(SessionLocal session, Value date, int field) {
         return date instanceof ValueInterval ? extractInterval(date, field) : extractDateTime(session, date, field);
     }
 
@@ -435,7 +435,7 @@ public class DateTimeFunction extends Operation1_2 implements NamedExpression {
         return (int) v;
     }
 
-    public static int extractDateTime(Session session, Value date, int field) {
+    public static int extractDateTime(SessionLocal session, Value date, int field) {
         long[] a = DateTimeUtils.dateAndTimeFromValue(date, session);
         long dateValue = a[0];
         long timeNanos = a[1];
@@ -523,7 +523,7 @@ public class DateTimeFunction extends Operation1_2 implements NamedExpression {
      *            the date-time value
      * @return date the truncated value
      */
-    private static Value truncateDate(Session session, int field, Value value) {
+    private static Value truncateDate(SessionLocal session, int field, Value value) {
         long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(value, session);
         long dateValue = fieldDateAndTime[0];
         long timeNanos = fieldDateAndTime[1];
@@ -658,7 +658,7 @@ public class DateTimeFunction extends Operation1_2 implements NamedExpression {
      *            value to add to
      * @return result
      */
-    public static Value dateadd(Session session, int field, long count, Value v) {
+    public static Value dateadd(SessionLocal session, int field, long count, Value v) {
         if (field != MILLISECOND && field != MICROSECOND && field != NANOSECOND
                 && (count > Integer.MAX_VALUE || count < Integer.MIN_VALUE)) {
             throw DbException.getInvalidValueException("DATEADD count", count);
@@ -786,7 +786,7 @@ public class DateTimeFunction extends Operation1_2 implements NamedExpression {
      *            the second date-time value
      * @return the number of crossed boundaries
      */
-    private static long datediff(Session session, int field, Value v1, Value v2) {
+    private static long datediff(SessionLocal session, int field, Value v1, Value v2) {
         long[] a1 = DateTimeUtils.dateAndTimeFromValue(v1, session);
         long dateValue1 = a1[0];
         long absolute1 = DateTimeUtils.absoluteDayFromDateValue(dateValue1);
@@ -926,7 +926,7 @@ public class DateTimeFunction extends Operation1_2 implements NamedExpression {
         return weekFields;
     }
 
-    private static ValueNumeric extractEpoch(Session session, Value value) {
+    private static ValueNumeric extractEpoch(SessionLocal session, Value value) {
         ValueNumeric result;
         if (value instanceof ValueInterval) {
             ValueInterval interval = (ValueInterval) value;
@@ -971,7 +971,7 @@ public class DateTimeFunction extends Operation1_2 implements NamedExpression {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         if (right != null) {
             right = right.optimize(session);

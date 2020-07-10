@@ -5,10 +5,10 @@
  */
 package org.h2.table;
 
-import org.h2.index.Index;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
+
+import org.h2.index.Index;
 
 /**
  * Contains the hints for which index to use for a specific table. Currently

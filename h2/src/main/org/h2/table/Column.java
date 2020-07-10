@@ -13,7 +13,7 @@ import org.h2.command.Parser;
 import org.h2.command.ddl.SequenceOptions;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
@@ -240,7 +240,7 @@ public class Column implements HasSQL, Typed {
      * @param session the session
      * @param defaultExpression the default expression
      */
-    public void setDefaultExpression(Session session, Expression defaultExpression) {
+    public void setDefaultExpression(SessionLocal session, Expression defaultExpression) {
         // also to test that no column names are used
         if (defaultExpression != null) {
             defaultExpression = defaultExpression.optimize(session);
@@ -259,7 +259,7 @@ public class Column implements HasSQL, Typed {
      * @param session the session
      * @param onUpdateExpression the on update expression
      */
-    public void setOnUpdateExpression(Session session, Expression onUpdateExpression) {
+    public void setOnUpdateExpression(SessionLocal session, Expression onUpdateExpression) {
         // also to test that no column names are used
         if (onUpdateExpression != null) {
             onUpdateExpression = onUpdateExpression.optimize(session);
@@ -352,7 +352,7 @@ public class Column implements HasSQL, Typed {
      * @param row the row
      * @return the new or converted value
      */
-    Value validateConvertUpdateSequence(Session session, Value value, Row row) {
+    Value validateConvertUpdateSequence(SessionLocal session, Value value, Row row) {
         if (value == null) {
             if (sequence != null) {
                 value = session.getNextValueFor(sequence, null);
@@ -388,7 +388,7 @@ public class Column implements HasSQL, Typed {
         return value;
     }
 
-    private Value getDefaultOrGenerated(Session session, Row row) {
+    private Value getDefaultOrGenerated(SessionLocal session, Row row) {
         Value value;
         Expression localDefaultExpression = getEffectiveDefaultExpression();
         if (localDefaultExpression == null) {
@@ -425,7 +425,7 @@ public class Column implements HasSQL, Typed {
         return DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, cause, builder.toString());
     }
 
-    private void updateSequenceIfRequired(Session session, Value value) {
+    private void updateSequenceIfRequired(SessionLocal session, Value value) {
         long current = sequence.getCurrentValue();
         long inc = sequence.getIncrement();
         long now = value.getLong();
@@ -445,7 +445,7 @@ public class Column implements HasSQL, Typed {
      * @param temporary true if the sequence is temporary and does not need to
      *            be stored
      */
-    public void initializeSequence(Session session, Schema schema, int id, boolean temporary) {
+    public void initializeSequence(SessionLocal session, Schema schema, int id, boolean temporary) {
         if (identityOptions == null) {
             DbException.throwInternalError();
         }
@@ -467,7 +467,7 @@ public class Column implements HasSQL, Typed {
      *
      * @param session the session
      */
-    public void prepareExpression(Session session) {
+    public void prepareExpression(SessionLocal session) {
         if (defaultExpression != null) {
             if (isGeneratedAlways) {
                 generatedTableFilter = new GeneratedColumnResolver(table);

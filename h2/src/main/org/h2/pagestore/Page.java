@@ -6,7 +6,7 @@
 package org.h2.pagestore;
 
 import java.lang.reflect.Array;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.util.CacheObject;
 
 /**
@@ -82,7 +82,7 @@ public abstract class Page extends CacheObject {
      * @param session the session
      * @param newPos the new position
      */
-    public abstract void moveTo(Session session, int newPos);
+    public abstract void moveTo(SessionLocal session, int newPos);
 
     /**
      * Write the page.

@@ -51,7 +51,7 @@ import org.h2.value.ValueVarchar;
  * The client side part of a session when using the server mode. This object
  * communicates with a Session on the server side.
  */
-public class SessionRemote extends SessionWithState implements DataHandler {
+public final class SessionRemote extends Session implements DataHandler {
 
     public static final int SESSION_PREPARE = 0;
     public static final int SESSION_CLOSE = 1;
@@ -93,7 +93,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     private int clientVersion;
     private boolean autoReconnect;
     private int lastReconnect;
-    private SessionInterface embedded;
+    private Session embedded;
     private DatabaseEventListener eventListener;
     private LobStorageFrontend lobStorage;
     private boolean cluster;
@@ -318,7 +318,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
      * @param openNew whether to open a new session in any case
      * @return the session
      */
-    public SessionInterface connectEmbeddedOrServer(boolean openNew) {
+    public Session connectEmbeddedOrServer(boolean openNew) {
         ConnectionInfo ci = connectionInfo;
         if (ci.isRemote()) {
             connectServer(ci);

@@ -9,7 +9,7 @@ import org.h2.command.CommandInterface;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.Cursor;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -70,7 +70,7 @@ public class Analyze extends DefineCommand {
      */
     private Table table;
 
-    public Analyze(Session session) {
+    public Analyze(SessionLocal session) {
         super(session);
         sampleRows = session.getDatabase().getSettings().analyzeSample;
     }
@@ -104,7 +104,7 @@ public class Analyze extends DefineCommand {
      * @param sample the number of sample rows
      * @param manual whether the command was called by the user
      */
-    public static void analyzeTable(Session session, Table table, int sample, boolean manual) {
+    public static void analyzeTable(SessionLocal session, Table table, int sample, boolean manual) {
         if (table.getTableType() != TableType.TABLE //
                 || table.isHidden() //
                 || session == null //

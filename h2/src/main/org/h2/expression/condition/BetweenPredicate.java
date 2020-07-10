@@ -5,7 +5,7 @@
  */
 package org.h2.expression.condition;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.TypedValueExpression;
@@ -65,7 +65,7 @@ public final class BetweenPredicate extends Condition {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         a = a.optimize(session);
         b = b.optimize(session);
@@ -97,7 +97,7 @@ public final class BetweenPredicate extends Condition {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value value = left.getValue(session);
         if (value == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
@@ -106,7 +106,7 @@ public final class BetweenPredicate extends Condition {
     }
 
     @Override
-    public boolean getWhenValue(Session session, Value left) {
+    public boolean getWhenValue(SessionLocal session, Value left) {
         if (!whenOperand) {
             return super.getWhenValue(session, left);
         }
@@ -116,7 +116,7 @@ public final class BetweenPredicate extends Condition {
         return getValue(session, left, a.getValue(session), b.getValue(session)).getBoolean();
     }
 
-    private Value getValue(Session session, Value value, Value aValue, Value bValue) {
+    private Value getValue(SessionLocal session, Value value, Value aValue, Value bValue) {
         int cmp1 = session.compareWithNull(aValue, value, false);
         int cmp2 = session.compareWithNull(value, bValue, false);
         if (cmp1 == Integer.MIN_VALUE) {
@@ -130,7 +130,7 @@ public final class BetweenPredicate extends Condition {
     }
 
     @Override
-    public Expression getNotIfPossible(Session session) {
+    public Expression getNotIfPossible(SessionLocal session) {
         if (whenOperand) {
             return null;
         }
@@ -138,7 +138,7 @@ public final class BetweenPredicate extends Condition {
     }
 
     @Override
-    public void createIndexConditions(Session session, TableFilter filter) {
+    public void createIndexConditions(SessionLocal session, TableFilter filter) {
         if (!not && !whenOperand && !symmetric) {
             Comparison.createIndexConditions(filter, a, left, Comparison.SMALLER_EQUAL);
             Comparison.createIndexConditions(filter, left, b, Comparison.SMALLER_EQUAL);
@@ -153,7 +153,7 @@ public final class BetweenPredicate extends Condition {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         left.updateAggregate(session, stage);
         a.updateAggregate(session, stage);
         b.updateAggregate(session, stage);

@@ -6,7 +6,7 @@
 package org.h2.result;
 
 import org.h2.engine.Session;
-import org.h2.engine.SessionInterface;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
@@ -19,7 +19,7 @@ import org.h2.value.Value;
  */
 public abstract class LazyResult implements ResultInterface {
 
-    private final Session session;
+    private final SessionLocal session;
     private final Expression[] expressions;
     private int rowId = -1;
     private Value[] currentRow;
@@ -28,7 +28,7 @@ public abstract class LazyResult implements ResultInterface {
     private boolean afterLast;
     private int limit;
 
-    public LazyResult(Session session, Expression[] expressions) {
+    public LazyResult(SessionLocal session, Expression[] expressions) {
         this.session = session;
         this.expressions = expressions;
     }
@@ -199,7 +199,7 @@ public abstract class LazyResult implements ResultInterface {
     }
 
     @Override
-    public ResultInterface createShallowCopy(SessionInterface targetSession) {
+    public ResultInterface createShallowCopy(Session targetSession) {
         // Copying is impossible with lazy result.
         return null;
     }

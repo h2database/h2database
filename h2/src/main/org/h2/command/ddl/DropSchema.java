@@ -10,7 +10,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.ConstraintActionType;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
@@ -25,7 +25,7 @@ public class DropSchema extends DefineCommand {
     private boolean ifExists;
     private ConstraintActionType dropAction;
 
-    public DropSchema(Session session) {
+    public DropSchema(SessionLocal session) {
         super(session);
         dropAction = session.getDatabase().getSettings().dropRestrict ?
                 ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;

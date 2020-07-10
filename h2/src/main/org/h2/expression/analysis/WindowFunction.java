@@ -11,7 +11,7 @@ import java.util.Iterator;
 
 import org.h2.command.query.Select;
 import org.h2.command.query.SelectGroups;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
@@ -149,12 +149,12 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     @Override
-    protected void updateAggregate(Session session, SelectGroups groupData, int groupRowId) {
+    protected void updateAggregate(SessionLocal session, SelectGroups groupData, int groupRowId) {
         updateOrderedAggregate(session, groupData, groupRowId, over.getOrderBy());
     }
 
     @Override
-    protected void updateGroupAggregates(Session session, int stage) {
+    protected void updateGroupAggregates(SessionLocal session, int stage) {
         super.updateGroupAggregates(session, stage);
         if (args != null) {
             for (Expression expr : args) {
@@ -169,7 +169,7 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     @Override
-    protected void rememberExpressions(Session session, Value[] array) {
+    protected void rememberExpressions(SessionLocal session, Value[] array) {
         if (args != null) {
             for (int i = 0, cnt = args.length; i < cnt; i++) {
                 array[i] = args[i].getValue(session);
@@ -183,8 +183,8 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     @Override
-    protected void getOrderedResultLoop(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
-            int rowIdColumn) {
+    protected void getOrderedResultLoop(SessionLocal session, HashMap<Integer, Value> result,
+            ArrayList<Value[]> ordered, int rowIdColumn) {
         switch (type) {
         case ROW_NUMBER:
             for (int i = 0, size = ordered.size(); i < size;) {
@@ -283,7 +283,7 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     private void getLeadLag(HashMap<Integer, Value> result, ArrayList<Value[]> ordered, int rowIdColumn,
-            Session session) {
+            SessionLocal session) {
         int size = ordered.size();
         int numExpressions = getNumExpressions();
         TypeInfo dataType = args[0].getType();
@@ -347,7 +347,8 @@ public class WindowFunction extends DataAnalysisOperation {
         }
     }
 
-    private void getNth(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered, int rowIdColumn) {
+    private void getNth(SessionLocal session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
+            int rowIdColumn) {
         int size = ordered.size();
         for (int i = 0; i < size; i++) {
             Value[] row = ordered.get(i);
@@ -412,7 +413,7 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     @Override
-    protected Value getAggregatedValue(Session session, Object aggregateData) {
+    protected Value getAggregatedValue(SessionLocal session, Object aggregateData) {
         throw DbException.getUnsupportedException("Window function");
     }
 
@@ -427,7 +428,7 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         if (over.getWindowFrame() != null) {
             switch (type) {
             case FIRST_VALUE:

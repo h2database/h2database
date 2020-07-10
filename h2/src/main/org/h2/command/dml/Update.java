@@ -13,7 +13,7 @@ import org.h2.command.Prepared;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.result.ResultInterface;
@@ -47,7 +47,7 @@ public class Update extends Prepared implements DataChangeStatement {
 
     private Insert onDuplicateKeyInsert;
 
-    public Update(Session session) {
+    public Update(SessionLocal session) {
         super(session);
     }
 
@@ -129,7 +129,7 @@ public class Update extends Prepared implements DataChangeStatement {
         }
     }
 
-    static void doUpdate(Prepared prepared, Session session, Table table, RowList rows) {
+    static void doUpdate(Prepared prepared, SessionLocal session, Table table, RowList rows) {
         // TODO self referencing referential integrity constraints
         // don't work if update is multi-row and 'inversed' the condition!
         // probably need multi-row triggers with 'deleted' and 'inserted'

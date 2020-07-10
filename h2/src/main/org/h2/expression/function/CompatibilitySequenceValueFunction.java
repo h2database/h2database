@@ -7,7 +7,7 @@ package org.h2.expression.function;
 
 import org.h2.command.Parser;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
@@ -41,7 +41,7 @@ public class CompatibilitySequenceValueFunction extends Operation1_2 implements 
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value v0 = left.getValue(session);
         String schemaName, sequenceName;
         if (right == null) {
@@ -79,7 +79,7 @@ public class CompatibilitySequenceValueFunction extends Operation1_2 implements 
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         if (right != null) {
             right = right.optimize(session);

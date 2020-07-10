@@ -8,7 +8,7 @@ package org.h2.command.dml;
 import java.util.ArrayList;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionList;
 import org.h2.expression.ExpressionVisitor;
@@ -40,7 +40,7 @@ public final class SetClauseList implements HasSQL {
         UpdateAction() {
         }
 
-        Value update(Session session) {
+        Value update(SessionLocal session) {
             throw DbException.throwInternalError();
         }
 
@@ -48,7 +48,7 @@ public final class SetClauseList implements HasSQL {
             return true;
         }
 
-        void mapAndOptimize(Session session, ColumnResolver resolver1, ColumnResolver resolver2) {
+        void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
             // Do nothing
         }
 
@@ -67,7 +67,7 @@ public final class SetClauseList implements HasSQL {
         }
 
         @Override
-        Value update(Session session) {
+        Value update(SessionLocal session) {
             return expression.getValue(session);
         }
 
@@ -77,7 +77,7 @@ public final class SetClauseList implements HasSQL {
         }
 
         @Override
-        void mapAndOptimize(Session session, ColumnResolver resolver1, ColumnResolver resolver2) {
+        void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
             expression.mapColumns(resolver1, 0, Expression.MAP_INITIAL);
             if (resolver2 != null) {
                 expression.mapColumns(resolver2, 0, Expression.MAP_INITIAL);
@@ -109,7 +109,7 @@ public final class SetClauseList implements HasSQL {
             return expression.isEverything(visitor);
         }
 
-        void mapAndOptimize(Session session, ColumnResolver resolver1, ColumnResolver resolver2) {
+        void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
             expression.mapColumns(resolver1, 0, Expression.MAP_INITIAL);
             if (resolver2 != null) {
                 expression.mapColumns(resolver2, 0, Expression.MAP_INITIAL);
@@ -136,7 +136,7 @@ public final class SetClauseList implements HasSQL {
         }
 
         @Override
-        Value update(Session session) {
+        Value update(SessionLocal session) {
             Value[] v;
             if (first) {
                 Value value = row.expression.getValue(session);
@@ -162,7 +162,7 @@ public final class SetClauseList implements HasSQL {
         }
 
         @Override
-        void mapAndOptimize(Session session, ColumnResolver resolver1, ColumnResolver resolver2) {
+        void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
             if (first) {
                 row.mapAndOptimize(session, resolver1, resolver2);
             }
@@ -238,7 +238,7 @@ public final class SetClauseList implements HasSQL {
         }
     }
 
-    boolean prepareUpdate(Table table, Session session, ResultTarget deltaChangeCollector,
+    boolean prepareUpdate(Table table, SessionLocal session, ResultTarget deltaChangeCollector,
             ResultOption deltaChangeCollectionMode, RowList rows, Row oldRow,
             boolean updateToCurrentValuesReturnsZero) {
         Column[] columns = table.getColumns();
@@ -320,7 +320,7 @@ public final class SetClauseList implements HasSQL {
      * @param resolver2
      *            the second column resolver, or {@code null}
      */
-    void mapAndOptimize(Session session, ColumnResolver resolver1, ColumnResolver resolver2) {
+    void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
         Column[] columns = table.getColumns();
         boolean onUpdate = false;
         for (int i = 0; i < actions.length; i++) {

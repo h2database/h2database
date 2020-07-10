@@ -13,7 +13,7 @@ import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.mvstore.db.Store;
@@ -35,7 +35,7 @@ public class Explain extends Prepared {
     private LocalResult result;
     private boolean executeCommand;
 
-    public Explain(Session session) {
+    public Explain(SessionLocal session) {
         super(session);
     }
 

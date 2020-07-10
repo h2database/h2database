@@ -11,7 +11,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.ddl.AlterDomain;
 import org.h2.command.query.AllColumnsForPlan;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
@@ -64,7 +64,7 @@ public class ConstraintDomain extends Constraint {
      * @param session the session
      * @param expr the expression
      */
-    public void setExpression(Session session, Expression expr) {
+    public void setExpression(SessionLocal session, Expression expr) {
         expr.mapColumns(resolver, 0, Expression.MAP_INITIAL);
         expr = expr.optimize(session);
         // check if the column is mapped
@@ -100,7 +100,7 @@ public class ConstraintDomain extends Constraint {
     }
 
     @Override
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(SessionLocal session) {
         domain.removeConstraint(this);
         database.removeMeta(session, getId());
         domain = null;
@@ -109,7 +109,7 @@ public class ConstraintDomain extends Constraint {
     }
 
     @Override
-    public void checkRow(Session session, Table t, Row oldRow, Row newRow) {
+    public void checkRow(SessionLocal session, Table t, Row oldRow, Row newRow) {
         DbException.throwInternalError(toString());
     }
 
@@ -121,7 +121,7 @@ public class ConstraintDomain extends Constraint {
      * @param value
      *            the value to check
      */
-    public void check(Session session, Value value) {
+    public void check(SessionLocal session, Value value) {
         Value v;
         synchronized (this) {
             resolver.setValue(value);
@@ -140,7 +140,7 @@ public class ConstraintDomain extends Constraint {
      * @param columnName the column name
      * @return the expression
      */
-    public Expression getCheckConstraint(Session session, String columnName) {
+    public Expression getCheckConstraint(SessionLocal session, String columnName) {
         String sql;
         if (columnName != null) {
             synchronized (this) {
@@ -188,7 +188,7 @@ public class ConstraintDomain extends Constraint {
     }
 
     @Override
-    public void checkExistingData(Session session) {
+    public void checkExistingData(SessionLocal session) {
         if (session.getDatabase().isStarting()) {
             // don't check at startup
             return;
@@ -208,9 +208,9 @@ public class ConstraintDomain extends Constraint {
 
     private class CheckExistingData {
 
-        private final Session session;
+        private final SessionLocal session;
 
-        CheckExistingData(Session session, Domain domain) {
+        CheckExistingData(SessionLocal session, Domain domain) {
             this.session = session;
             checkDomain(null, domain);
         }

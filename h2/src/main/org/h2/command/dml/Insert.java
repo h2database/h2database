@@ -16,7 +16,7 @@ import org.h2.command.CommandInterface;
 import org.h2.command.query.Query;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -68,7 +68,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
 
     private ResultOption deltaChangeCollectionMode;
 
-    public Insert(Session session) {
+    public Insert(SessionLocal session) {
         super(session);
     }
 

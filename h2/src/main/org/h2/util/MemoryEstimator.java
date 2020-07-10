@@ -6,8 +6,10 @@
 package org.h2.util;
 
 import static org.h2.engine.Constants.MEMORY_POINTER;
-import org.h2.mvstore.type.DataType;
+
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.h2.mvstore.type.DataType;
 
 /**
  * Class MemoryEstimator.

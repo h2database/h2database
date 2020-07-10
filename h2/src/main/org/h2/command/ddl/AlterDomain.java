@@ -10,7 +10,7 @@ import java.util.function.BiPredicate;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.schema.Domain;
@@ -41,8 +41,9 @@ public class AlterDomain extends SchemaCommand {
      * @param recompileExpressions
      *            whether processed expressions need to be recompiled
      */
-    public static void forAllDependencies(Session session, Domain domain, BiPredicate<Domain, Column> columnProcessor,
-            BiPredicate<Domain, Domain> domainProcessor, boolean recompileExpressions) {
+    public static void forAllDependencies(SessionLocal session, Domain domain,
+            BiPredicate<Domain, Column> columnProcessor, BiPredicate<Domain, Domain> domainProcessor,
+            boolean recompileExpressions) {
         Database db = session.getDatabase();
         for (Schema schema : db.getAllSchemasNoMeta()) {
             for (Domain targetDomain : schema.getAllDomains()) {
@@ -66,7 +67,7 @@ public class AlterDomain extends SchemaCommand {
         }
     }
 
-    private static boolean forTable(Session session, Domain domain, BiPredicate<Domain, Column> columnProcessor,
+    private static boolean forTable(SessionLocal session, Domain domain, BiPredicate<Domain, Column> columnProcessor,
             boolean recompileExpressions, Table t) {
         boolean modified = false;
         for (Column targetColumn : t.getColumns()) {
@@ -90,7 +91,7 @@ public class AlterDomain extends SchemaCommand {
     private String domainName;
     private boolean ifDomainExists;
 
-    public AlterDomain(Session session, Schema schema, int type) {
+    public AlterDomain(SessionLocal session, Schema schema, int type) {
         super(session, schema);
         this.type = type;
     }
@@ -143,7 +144,7 @@ public class AlterDomain extends SchemaCommand {
         return copyExpressions(session, domain.getColumn(), targetDomain.getColumn());
     }
 
-    private boolean copyExpressions(Session session, Column domainColumn, Column targetColumn) {
+    private boolean copyExpressions(SessionLocal session, Column domainColumn, Column targetColumn) {
         switch (type) {
         case CommandInterface.ALTER_DOMAIN_DEFAULT: {
             Expression e = domainColumn.getDefaultExpression();

@@ -13,7 +13,7 @@ import java.util.HashMap;
 
 import org.h2.api.ErrorCode;
 import org.h2.compress.CompressLZF;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
@@ -578,7 +578,7 @@ public class PageLog {
      * @param session the session
      * @param transaction the name of the transaction
      */
-    void prepareCommit(Session session, String transaction) {
+    void prepareCommit(SessionLocal session, String transaction) {
         if (trace.isDebugEnabled()) {
             trace.debug("log prepare commit s: " + session.getId() + ", " + transaction);
         }
@@ -615,7 +615,7 @@ public class PageLog {
      * @param row the row to add
      * @param add true if the row is added, false if it is removed
      */
-    void logAddOrRemoveRow(Session session, int tableId, Row row, boolean add) {
+    void logAddOrRemoveRow(SessionLocal session, int tableId, Row row, boolean add) {
         if (trace.isDebugEnabled()) {
             trace.debug("log " + (add ? "+" : "-") +
                     " s: " + session.getId() + " table: " + tableId + " row: " + row);
@@ -664,7 +664,7 @@ public class PageLog {
      * @param session the session
      * @param tableId the table id
      */
-    void logTruncate(Session session, int tableId) {
+    void logTruncate(SessionLocal session, int tableId) {
         if (trace.isDebugEnabled()) {
             trace.debug("log truncate s: " + session.getId() + " table: " + tableId);
         }

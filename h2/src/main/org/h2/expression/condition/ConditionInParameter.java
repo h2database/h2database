@@ -7,7 +7,7 @@ package org.h2.expression.condition;
 
 import java.util.AbstractList;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
@@ -76,7 +76,7 @@ public final class ConditionInParameter extends Condition {
      * @param value parameter value.
      * @return Evaluated condition value.
      */
-    static Value getValue(Session session, Value l, boolean not, Value value) {
+    static Value getValue(SessionLocal session, Value l, boolean not, Value value) {
         boolean hasNull = false;
         if (value.containsNull()) {
             hasNull = true;
@@ -124,7 +124,7 @@ public final class ConditionInParameter extends Condition {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value l = left.getValue(session);
         if (l == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
@@ -133,7 +133,7 @@ public final class ConditionInParameter extends Condition {
     }
 
     @Override
-    public boolean getWhenValue(Session session, Value left) {
+    public boolean getWhenValue(SessionLocal session, Value left) {
         if (!whenOperand) {
             return super.getWhenValue(session, left);
         }
@@ -149,7 +149,7 @@ public final class ConditionInParameter extends Condition {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         if (!whenOperand && left.isNullConstant()) {
             return TypedValueExpression.UNKNOWN;
@@ -158,7 +158,7 @@ public final class ConditionInParameter extends Condition {
     }
 
     @Override
-    public Expression getNotIfPossible(Session session) {
+    public Expression getNotIfPossible(SessionLocal session) {
         if (whenOperand) {
             return null;
         }
@@ -166,7 +166,7 @@ public final class ConditionInParameter extends Condition {
     }
 
     @Override
-    public void createIndexConditions(Session session, TableFilter filter) {
+    public void createIndexConditions(SessionLocal session, TableFilter filter) {
         if (not || whenOperand || !(left instanceof ExpressionColumn)) {
             return;
         }
@@ -213,7 +213,7 @@ public final class ConditionInParameter extends Condition {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         left.updateAggregate(session, stage);
     }
 

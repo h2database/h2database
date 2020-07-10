@@ -14,7 +14,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.h2.engine.Constants;
-import org.h2.engine.SessionInterface;
+import org.h2.engine.Session;
 import org.h2.jdbc.meta.DatabaseMeta;
 import org.h2.jdbc.meta.DatabaseMetaLegacy;
 import org.h2.message.DbException;
@@ -40,7 +40,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     JdbcDatabaseMetaData(JdbcConnection conn, Trace trace, int id) {
         setTrace(trace, TraceObject.DATABASE_META_DATA, id);
         this.conn = conn;
-        SessionInterface session = conn.getSession();
+        Session session = conn.getSession();
         meta = session.getStaticSettings().oldInformationSchema ? new DatabaseMetaLegacy(session)
                 : conn.getSession().getDatabaseMeta();
     }
@@ -2031,7 +2031,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean supportsMixedCaseIdentifiers() throws SQLException{
         debugCodeCall("supportsMixedCaseIdentifiers");
-        SessionInterface.StaticSettings settings = conn.getStaticSettings();
+        Session.StaticSettings settings = conn.getStaticSettings();
         return !settings.databaseToUpper && !settings.databaseToLower && !settings.caseInsensitiveIdentifiers;
     }
 
@@ -2068,7 +2068,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesMixedCaseIdentifiers() throws SQLException {
         debugCodeCall("storesMixedCaseIdentifiers");
-        SessionInterface.StaticSettings settings = conn.getStaticSettings();
+        Session.StaticSettings settings = conn.getStaticSettings();
         return !settings.databaseToUpper && !settings.databaseToLower && settings.caseInsensitiveIdentifiers;
     }
 

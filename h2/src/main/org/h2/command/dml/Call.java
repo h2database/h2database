@@ -7,7 +7,7 @@ package org.h2.command.dml;
 
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.result.LocalResult;
@@ -24,7 +24,7 @@ public class Call extends Prepared {
     private Expression expression;
     private Expression[] expressions;
 
-    public Call(Session session) {
+    public Call(SessionLocal session) {
         super(session);
     }
 

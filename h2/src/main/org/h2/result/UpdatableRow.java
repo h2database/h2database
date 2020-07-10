@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.engine.SessionInterface;
+import org.h2.engine.Session;
 import org.h2.engine.SessionRemote;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcResultSet;
@@ -72,7 +72,7 @@ public class UpdatableRow {
             }
         }
         String type = "BASE TABLE";
-        SessionInterface session = conn.getSession();
+        Session session = conn.getSession();
         if (session instanceof SessionRemote
                 && ((SessionRemote) session).getClientVersion() <= Constants.TCP_PROTOCOL_VERSION_19) {
             type = "TABLE";

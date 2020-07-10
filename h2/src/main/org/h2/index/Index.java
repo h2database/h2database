@@ -6,7 +6,7 @@
 package org.h2.index;
 
 import org.h2.command.query.AllColumnsForPlan;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
@@ -37,7 +37,7 @@ public interface Index extends SchemaObject {
      *
      * @param session the session used to write data
      */
-    void close(Session session);
+    void close(SessionLocal session);
 
     /**
      * Add a row to the index.
@@ -45,7 +45,7 @@ public interface Index extends SchemaObject {
      * @param session the session to use
      * @param row the row to add
      */
-    void add(Session session, Row row);
+    void add(SessionLocal session, Row row);
 
     /**
      * Remove a row from the index.
@@ -53,7 +53,7 @@ public interface Index extends SchemaObject {
      * @param session the session
      * @param row the row
      */
-    void remove(Session session, Row row);
+    void remove(SessionLocal session, Row row);
 
     /**
      * Update index after row change.
@@ -62,7 +62,7 @@ public interface Index extends SchemaObject {
      * @param oldRow row before the update
      * @param newRow row after the update
      */
-    default void update(Session session, Row oldRow, Row newRow) {
+    default void update(SessionLocal session, Row oldRow, Row newRow) {
         remove(session, oldRow);
         add(session, newRow);
     }
@@ -87,7 +87,7 @@ public interface Index extends SchemaObject {
      * @param last the last row, or null for no limit
      * @return the cursor to iterate over the results
      */
-    Cursor find(Session session, SearchRow first, SearchRow last);
+    Cursor find(SessionLocal session, SearchRow first, SearchRow last);
 
     /**
      * Estimate the cost to search for rows given the search mask.
@@ -103,7 +103,7 @@ public interface Index extends SchemaObject {
      * @param allColumnsSet the set of all columns
      * @return the estimated cost
      */
-    double getCost(Session session, int[] masks, TableFilter[] filters, int filter,
+    double getCost(SessionLocal session, int[] masks, TableFilter[] filters, int filter,
             SortOrder sortOrder, AllColumnsForPlan allColumnsSet);
 
     /**
@@ -111,14 +111,14 @@ public interface Index extends SchemaObject {
      *
      * @param session the session
      */
-    void remove(Session session);
+    void remove(SessionLocal session);
 
     /**
      * Remove all rows from the index.
      *
      * @param session the session
      */
-    void truncate(Session session);
+    void truncate(SessionLocal session);
 
     /**
      * Check if the index can directly look up the lowest or highest value of a
@@ -148,7 +148,7 @@ public interface Index extends SchemaObject {
      * @param last the last row, or null for no limit
      * @return the cursor
      */
-    default Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
+    default Cursor findNext(SessionLocal session, SearchRow higherThan, SearchRow last) {
         throw DbException.throwInternalError(toString());
     }
 
@@ -161,7 +161,7 @@ public interface Index extends SchemaObject {
      *            value should be returned
      * @return a cursor (never null)
      */
-    default Cursor findFirstOrLast(Session session, boolean first) {
+    default Cursor findFirstOrLast(SessionLocal session, boolean first) {
         throw DbException.throwInternalError(toString());
     }
 
@@ -179,7 +179,7 @@ public interface Index extends SchemaObject {
      * @param session the session
      * @return the row count
      */
-    long getRowCount(Session session);
+    long getRowCount(SessionLocal session);
 
     /**
      * Get the approximated row count for this table.
@@ -187,7 +187,7 @@ public interface Index extends SchemaObject {
      * @param session the session
      * @return the approximated row count
      */
-    long getRowCountApproximation(Session session);
+    long getRowCountApproximation(SessionLocal session);
 
     /**
      * Get the used disk space for this index.
@@ -257,7 +257,7 @@ public interface Index extends SchemaObject {
      * @param key the unique key
      * @return the row
      */
-    default Row getRow(Session session, long key) {
+    default Row getRow(SessionLocal session, long key) {
         throw DbException.getUnsupportedException(toString());
     }
 

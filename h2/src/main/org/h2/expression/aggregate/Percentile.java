@@ -13,7 +13,7 @@ import java.util.Arrays;
 import org.h2.api.IntervalQualifier;
 import org.h2.command.query.QueryOrderBy;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.index.Cursor;
@@ -104,7 +104,7 @@ final class Percentile {
      * @param interpolate whether value should be interpolated
      * @return the result
      */
-    static Value getValue(Session session, Value[] array, int dataType, ArrayList<QueryOrderBy> orderByList,
+    static Value getValue(SessionLocal session, Value[] array, int dataType, ArrayList<QueryOrderBy> orderByList,
             BigDecimal percentile, boolean interpolate) {
         final CompareMode compareMode = session.getDatabase().getCompareMode();
         Arrays.sort(array, compareMode);
@@ -149,7 +149,7 @@ final class Percentile {
      * @param interpolate whether value should be interpolated
      * @return the result
      */
-    static Value getFromIndex(Session session, Expression expression, int dataType,
+    static Value getFromIndex(SessionLocal session, Expression expression, int dataType,
             ArrayList<QueryOrderBy> orderByList, BigDecimal percentile, boolean interpolate) {
         Database db = session.getDatabase();
         Index index = getColumnIndex(db, expression);
@@ -248,7 +248,7 @@ final class Percentile {
         return v;
     }
 
-    private static Value interpolate(Value v0, Value v1, BigDecimal factor, int dataType, Session session,
+    private static Value interpolate(Value v0, Value v1, BigDecimal factor, int dataType, SessionLocal session,
             CompareMode compareMode) {
         if (v0.compareTo(v1, session, compareMode) == 0) {
             return v0;

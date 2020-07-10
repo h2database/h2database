@@ -12,7 +12,7 @@ import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
@@ -27,7 +27,7 @@ public class DropIndex extends SchemaCommand {
     private String indexName;
     private boolean ifExists;
 
-    public DropIndex(Session session, Schema schema) {
+    public DropIndex(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 

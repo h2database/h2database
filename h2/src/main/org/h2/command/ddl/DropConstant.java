@@ -8,7 +8,7 @@ package org.h2.command.ddl;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Constant;
 import org.h2.schema.Schema;
@@ -22,7 +22,7 @@ public class DropConstant extends SchemaCommand {
     private String constantName;
     private boolean ifExists;
 
-    public DropConstant(Session session, Schema schema) {
+    public DropConstant(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 

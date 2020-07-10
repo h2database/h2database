@@ -31,7 +31,7 @@ import org.h2.engine.DbObject;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.Setting;
 import org.h2.engine.SysProperties;
 import org.h2.engine.User;
@@ -89,7 +89,7 @@ public class ScriptCommand extends ScriptBase {
     private int nextLobId;
     private int lobBlockSize = Constants.IO_BUFFER_SIZE;
 
-    public ScriptCommand(Session session) {
+    public ScriptCommand(SessionLocal session) {
         super(session);
     }
 

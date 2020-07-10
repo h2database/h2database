@@ -5,10 +5,9 @@
  */
 package org.h2.mvstore.type;
 
+import java.nio.ByteBuffer;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
-
-import java.nio.ByteBuffer;
 
 /**
  * Class LongDataType.

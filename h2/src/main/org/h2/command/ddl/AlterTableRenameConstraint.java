@@ -9,7 +9,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 
@@ -22,7 +22,7 @@ public class AlterTableRenameConstraint extends SchemaCommand {
     private String constraintName;
     private String newConstraintName;
 
-    public AlterTableRenameConstraint(Session session, Schema schema) {
+    public AlterTableRenameConstraint(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 

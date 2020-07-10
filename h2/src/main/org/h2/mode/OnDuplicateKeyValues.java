@@ -6,7 +6,7 @@
 package org.h2.mode;
 
 import org.h2.command.dml.Update;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Operation0;
 import org.h2.message.DbException;
@@ -29,7 +29,7 @@ public final class OnDuplicateKeyValues extends Operation0 {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value v = update.getOnDuplicateKeyInsert().getOnDuplicateKeyValue(column.getColumnId());
         if (v == null) {
             throw DbException.getUnsupportedException(getTraceSQL());

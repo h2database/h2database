@@ -7,7 +7,7 @@ package org.h2.expression;
 
 import java.util.Arrays;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -87,7 +87,7 @@ public abstract class OperationN extends Expression {
      * @return whether operation is deterministic and all arguments are
      *         constants
      */
-    protected boolean optimizeArguments(Session session, boolean allConst) {
+    protected boolean optimizeArguments(SessionLocal session, boolean allConst) {
         for (int i = 0, l = args.length; i < l; i++) {
             Expression e = args[i].optimize(session);
             args[i] = e;
@@ -106,7 +106,7 @@ public abstract class OperationN extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         for (Expression e : args) {
             e.updateAggregate(session, stage);
         }

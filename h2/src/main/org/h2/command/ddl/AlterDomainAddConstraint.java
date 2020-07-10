@@ -9,7 +9,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.ConstraintDomain;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.schema.Domain;
@@ -28,7 +28,7 @@ public class AlterDomainAddConstraint extends SchemaCommand {
     private boolean ifDomainExists;
     private final boolean ifNotExists;
 
-    public AlterDomainAddConstraint(Session session, Schema schema, boolean ifNotExists) {
+    public AlterDomainAddConstraint(SessionLocal session, Schema schema, boolean ifNotExists) {
         super(session, schema);
         this.ifNotExists = ifNotExists;
     }

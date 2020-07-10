@@ -32,7 +32,7 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import org.h2.api.IntervalQualifier;
-import org.h2.engine.SessionInterface;
+import org.h2.engine.Session;
 import org.h2.jdbc.JdbcResultSet;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
@@ -134,7 +134,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
      *            the data type
      * @return the value
      */
-    public static Value readValue(SessionInterface session, ResultSet rs, int columnIndex, int type) {
+    public static Value readValue(Session session, ResultSet rs, int columnIndex, int type) {
         Value v;
         if (rs instanceof JdbcResultSet) {
             v = ValueToObjectConverter.readValue(session, (JdbcResultSet) rs, columnIndex);
@@ -148,7 +148,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
         return v;
     }
 
-    private static Value readValueOther(SessionInterface session, ResultSet rs, int columnIndex, int type)
+    private static Value readValueOther(Session session, ResultSet rs, int columnIndex, int type)
             throws SQLException {
         Value v;
         switch (type) {

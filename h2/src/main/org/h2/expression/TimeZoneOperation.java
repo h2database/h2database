@@ -5,7 +5,7 @@
  */
 package org.h2.expression;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.TimeZoneProvider;
@@ -39,7 +39,7 @@ public class TimeZoneOperation extends Operation1_2 {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value a = left.getValue(session).convertTo(type, session);
         int valueType = a.getValueType();
         if ((valueType == Value.TIMESTAMP_TZ || valueType == Value.TIME_TZ) && right != null) {
@@ -108,7 +108,7 @@ public class TimeZoneOperation extends Operation1_2 {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         if (right != null) {
             right = right.optimize(session);

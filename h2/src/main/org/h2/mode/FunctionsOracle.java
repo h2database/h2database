@@ -8,7 +8,7 @@ package org.h2.mode;
 import java.util.HashMap;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.function.DateTimeFunction;
@@ -88,7 +88,7 @@ public final class FunctionsOracle extends FunctionsBase {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         boolean allConst = optimizeArguments(session);
         switch (info.type) {
         case SYS_GUID:
@@ -104,7 +104,7 @@ public final class FunctionsOracle extends FunctionsBase {
     }
 
     @Override
-    protected Value getValueWithArgs(Session session, Expression[] args) {
+    protected Value getValueWithArgs(SessionLocal session, Expression[] args) {
         Value[] values = getArgumentsValues(session, args);
         if (values == null) {
             return ValueNull.INSTANCE;

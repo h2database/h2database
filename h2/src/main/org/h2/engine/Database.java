@@ -108,10 +108,10 @@ public class Database implements DataHandler, CastDataProvider {
 
     private static final boolean ASSERT;
 
-    private static final ThreadLocal<Session> META_LOCK_DEBUGGING;
+    private static final ThreadLocal<SessionLocal> META_LOCK_DEBUGGING;
     private static final ThreadLocal<Database> META_LOCK_DEBUGGING_DB;
     private static final ThreadLocal<Throwable> META_LOCK_DEBUGGING_STACK;
-    private static final Session[] EMPTY_SESSION_ARRAY = new Session[0];
+    private static final SessionLocal[] EMPTY_SESSION_ARRAY = new SessionLocal[0];
 
     static {
         boolean a = false;
@@ -152,9 +152,8 @@ public class Database implements DataHandler, CastDataProvider {
 
     private final HashMap<String, TableEngine> tableEngines = new HashMap<>();
 
-    private final Set<Session> userSessions =
-            Collections.synchronizedSet(new HashSet<Session>());
-    private final AtomicReference<Session> exclusiveSession = new AtomicReference<>();
+    private final Set<SessionLocal> userSessions = Collections.synchronizedSet(new HashSet<SessionLocal>());
+    private final AtomicReference<SessionLocal> exclusiveSession = new AtomicReference<>();
     private final BitSet objectIds = new BitSet();
     private final Object lobSyncObject = new Object();
 
@@ -164,8 +163,8 @@ public class Database implements DataHandler, CastDataProvider {
     private int nextSessionId;
     private int nextTempTableId;
     private User systemUser;
-    private Session systemSession;
-    private Session lobSession;
+    private SessionLocal systemSession;
+    private SessionLocal lobSession;
     private Table meta;
     private Index metaIdIndex;
     private FileLock lock;
@@ -610,8 +609,8 @@ public class Database implements DataHandler, CastDataProvider {
         publicRole = new Role(this, 0, sysIdentifier(Constants.PUBLIC_ROLE_NAME), true);
         roles.put(publicRole.getName(), publicRole);
         systemUser.setAdmin(true);
-        systemSession = new Session(this, systemUser, ++nextSessionId);
-        lobSession = new Session(this, systemUser, ++nextSessionId);
+        systemSession = new SessionLocal(this, systemUser, ++nextSessionId);
+        lobSession = new SessionLocal(this, systemUser, ++nextSessionId);
         CreateTableData data = new CreateTableData();
         ArrayList<Column> cols = data.columns;
         Column columnId = new Column("ID", TypeInfo.TYPE_INTEGER);
@@ -871,7 +870,7 @@ public class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private void recompileInvalidViews(Session session) {
+    private void recompileInvalidViews(SessionLocal session) {
         boolean atLeastOneRecompiledSuccessfully;
         do {
             atLeastOneRecompiledSuccessfully = false;
@@ -923,7 +922,7 @@ public class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private void addMeta(Session session, DbObject obj) {
+    private void addMeta(SessionLocal session, DbObject obj) {
         assert Thread.holdsLock(this);
         int id = obj.getId();
         if (id > 0 && !obj.isTemporary()) {
@@ -968,7 +967,7 @@ public class Database implements DataHandler, CastDataProvider {
      *
      * @param session the session
      */
-    public void verifyMetaLocked(Session session) {
+    public void verifyMetaLocked(SessionLocal session) {
         if (lockMode != Constants.LOCK_MODE_OFF &&
                 meta != null && !meta.isLockedExclusivelyBy(session)) {
             throw DbException.throwInternalError();
@@ -981,7 +980,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @param session the session
      * @return whether it was already locked before by this session
      */
-    public boolean lockMeta(Session session) {
+    public boolean lockMeta(SessionLocal session) {
         // this method can not be synchronized on the database object,
         // as unlocking is also synchronized on the database object -
         // so if locking starts just before unlocking, locking could
@@ -995,12 +994,12 @@ public class Database implements DataHandler, CastDataProvider {
         return meta.lock(session, true, true);
     }
 
-    private void lockMetaAssertion(Session session) {
+    private void lockMetaAssertion(SessionLocal session) {
         // If we are locking two different databases in the same stack, just ignore it.
         // This only happens in TestLinkedTable where we connect to another h2 DB in the
         // same process.
         if (META_LOCK_DEBUGGING_DB.get() != null && META_LOCK_DEBUGGING_DB.get() != this) {
-            final Session prev = META_LOCK_DEBUGGING.get();
+            final SessionLocal prev = META_LOCK_DEBUGGING.get();
             if (prev == null) {
                 META_LOCK_DEBUGGING.set(session);
                 META_LOCK_DEBUGGING_DB.set(this);
@@ -1020,7 +1019,7 @@ public class Database implements DataHandler, CastDataProvider {
      *
      * @param session the session
      */
-    public void unlockMeta(Session session) {
+    public void unlockMeta(SessionLocal session) {
         if (meta != null) {
             unlockMetaDebug(session);
             meta.unlock(session);
@@ -1034,7 +1033,7 @@ public class Database implements DataHandler, CastDataProvider {
      *
      * @param session the session
      */
-    public void unlockMetaDebug(Session session) {
+    public void unlockMetaDebug(SessionLocal session) {
         if (ASSERT) {
             if (META_LOCK_DEBUGGING.get() == session) {
                 META_LOCK_DEBUGGING.set(null);
@@ -1050,7 +1049,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @param session the session
      * @param id the id of the object to remove
      */
-    public void removeMeta(Session session, int id) {
+    public void removeMeta(SessionLocal session, int id) {
         if (id > 0 && !starting) {
             SearchRow r = meta.getRowFactory().createRow();
             r.setValue(0, ValueInteger.get(id));
@@ -1134,7 +1133,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @param session the session
      * @param obj the object to add
      */
-    public void addSchemaObject(Session session, SchemaObject obj) {
+    public void addSchemaObject(SessionLocal session, SchemaObject obj) {
         int id = obj.getId();
         if (id > 0 && !starting) {
             checkWritingAllowed();
@@ -1152,7 +1151,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @param session the session
      * @param obj the object to add
      */
-    public synchronized void addDatabaseObject(Session session, DbObject obj) {
+    public synchronized void addDatabaseObject(SessionLocal session, DbObject obj) {
         int id = obj.getId();
         if (id > 0 && !starting) {
             checkWritingAllowed();
@@ -1259,14 +1258,14 @@ public class Database implements DataHandler, CastDataProvider {
      * @return the session, or null if the database is currently closing
      * @throws DbException if the database is in exclusive mode
      */
-    synchronized Session createSession(User user, NetworkConnectionInfo networkConnectionInfo) {
+    synchronized SessionLocal createSession(User user, NetworkConnectionInfo networkConnectionInfo) {
         if (closing) {
             return null;
         }
         if (exclusiveSession.get() != null) {
             throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
         }
-        Session session = new Session(this, user, ++nextSessionId);
+        SessionLocal session = new SessionLocal(this, user, ++nextSessionId);
         session.setNetworkConnectionInfo(networkConnectionInfo);
         userSessions.add(session);
         trace.info("connecting session #{0} to {1}", session.getId(), databaseName);
@@ -1282,8 +1281,8 @@ public class Database implements DataHandler, CastDataProvider {
      *
      * @return the session
      */
-    public synchronized Session createTempSystemSession() {
-        return new Session(this, systemUser, ++nextSessionId);
+    public synchronized SessionLocal createTempSystemSession() {
+        return new SessionLocal(this, systemUser, ++nextSessionId);
     }
 
     /**
@@ -1291,7 +1290,7 @@ public class Database implements DataHandler, CastDataProvider {
      *
      * @param session the session
      */
-    public synchronized void removeSession(Session session) {
+    public synchronized void removeSession(SessionLocal session) {
         if (session != null) {
             exclusiveSession.compareAndSet(session, null);
             if (userSessions.remove(session)) {
@@ -1314,13 +1313,13 @@ public class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private boolean isUserSession(Session session) {
+    private boolean isUserSession(SessionLocal session) {
         return session != systemSession && session != lobSession;
     }
 
-    private synchronized void closeAllSessionsExcept(Session except) {
-        Session[] all = userSessions.toArray(EMPTY_SESSION_ARRAY);
-        for (Session s : all) {
+    private synchronized void closeAllSessionsExcept(SessionLocal except) {
+        SessionLocal[] all = userSessions.toArray(EMPTY_SESSION_ARRAY);
+        for (SessionLocal s : all) {
             if (s != except) {
                 // indicate that session need to be closed ASAP
                 s.suspend();
@@ -1340,7 +1339,7 @@ public class Database implements DataHandler, CastDataProvider {
                 // ignore
             }
             if (System.currentTimeMillis() - start > timeout) {
-                for (Session s : all) {
+                for (SessionLocal s : all) {
                     if (s != except && !s.isClosed()) {
                         try {
                             // this will rollback outstanding transaction
@@ -1353,7 +1352,7 @@ public class Database implements DataHandler, CastDataProvider {
                 break;
             }
             done = true;
-            for (Session s : all) {
+            for (SessionLocal s : all) {
                 if (s != except && !s.isClosed()) {
                     done = false;
                     break;
@@ -1595,7 +1594,7 @@ public class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private void checkMetaFree(Session session, int id) {
+    private void checkMetaFree(SessionLocal session, int id) {
         SearchRow r = meta.getRowFactory().createRow();
         r.setValue(0, ValueInteger.get(id));
         Cursor cursor = metaIdIndex.find(session, r, r);
@@ -1746,23 +1745,23 @@ public class Database implements DataHandler, CastDataProvider {
      *            included
      * @return the list of sessions
      */
-    public Session[] getSessions(boolean includingSystemSession) {
-        ArrayList<Session> list;
+    public SessionLocal[] getSessions(boolean includingSystemSession) {
+        ArrayList<SessionLocal> list;
         // need to synchronized on userSession, otherwise the list
         // may contain null elements
         synchronized (userSessions) {
             list = new ArrayList<>(userSessions);
         }
         // copy, to ensure the reference is stable
-        Session sys = systemSession;
-        Session lob = lobSession;
+        SessionLocal sys = systemSession;
+        SessionLocal lob = lobSession;
         if (includingSystemSession && sys != null) {
             list.add(sys);
         }
         if (includingSystemSession && lob != null) {
             list.add(lob);
         }
-        return list.toArray(new Session[0]);
+        return list.toArray(new SessionLocal[0]);
     }
 
     /**
@@ -1771,7 +1770,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @param session the session
      * @param obj the database object
      */
-    public void updateMeta(Session session, DbObject obj) {
+    public void updateMeta(SessionLocal session, DbObject obj) {
         if (isMVStore()) {
             int id = obj.getId();
             if (id > 0) {
@@ -1812,14 +1811,14 @@ public class Database implements DataHandler, CastDataProvider {
      * @param obj the object
      * @param newName the new name
      */
-    public synchronized void renameSchemaObject(Session session,
+    public synchronized void renameSchemaObject(SessionLocal session,
             SchemaObject obj, String newName) {
         checkWritingAllowed();
         obj.getSchema().rename(obj, newName);
         updateMetaAndFirstLevelChildren(session, obj);
     }
 
-    private synchronized void updateMetaAndFirstLevelChildren(Session session, DbObject obj) {
+    private synchronized void updateMetaAndFirstLevelChildren(SessionLocal session, DbObject obj) {
         ArrayList<DbObject> list = obj.getChildren();
         Comment comment = findComment(obj);
         if (comment != null) {
@@ -1843,7 +1842,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @param obj the object
      * @param newName the new name
      */
-    public synchronized void renameDatabaseObject(Session session,
+    public synchronized void renameDatabaseObject(SessionLocal session,
             DbObject obj, String newName) {
         checkWritingAllowed();
         int type = obj.getType();
@@ -1913,7 +1912,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @param session the session
      * @param obj the object to remove
      */
-    public synchronized void removeDatabaseObject(Session session, DbObject obj) {
+    public synchronized void removeDatabaseObject(SessionLocal session, DbObject obj) {
         checkWritingAllowed();
         String objName = obj.getName();
         int type = obj.getType();
@@ -1972,7 +1971,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @param session the session
      * @param obj the object to be removed
      */
-    public void removeSchemaObject(Session session,
+    public void removeSchemaObject(SessionLocal session,
             SchemaObject obj) {
         int type = obj.getType();
         if (type == DbObject.TABLE_OR_VIEW) {
@@ -2063,7 +2062,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @param session the session
      * @return a unique name
      */
-    public synchronized String getTempTableName(String baseName, Session session) {
+    public synchronized String getTempTableName(String baseName, SessionLocal session) {
         String tempName;
         do {
             tempName = baseName + "_COPY_" + session.getId() +
@@ -2150,7 +2149,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @param session the session
      * @param transaction the name of the transaction
      */
-    synchronized void prepareCommit(Session session, String transaction) {
+    synchronized void prepareCommit(SessionLocal session, String transaction) {
         if (readOnly) {
             return;
         }
@@ -2169,7 +2168,7 @@ public class Database implements DataHandler, CastDataProvider {
      *
      * @param session the session
      */
-    synchronized void commit(Session session) {
+    synchronized void commit(SessionLocal session) {
         throwLastBackgroundException();
         if (readOnly) {
             return;
@@ -2349,7 +2348,7 @@ public class Database implements DataHandler, CastDataProvider {
         this.closeDelay = value;
     }
 
-    public Session getSystemSession() {
+    public SessionLocal getSystemSession() {
         return systemSession;
     }
 
@@ -2536,7 +2535,7 @@ public class Database implements DataHandler, CastDataProvider {
         return maxOperationMemory;
     }
 
-    public Session getExclusiveSession() {
+    public SessionLocal getExclusiveSession() {
         return exclusiveSession.get();
     }
 
@@ -2548,7 +2547,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @return true if success or if database is in exclusive mode
      *         set by this session already, false otherwise
      */
-    public boolean setExclusiveSession(Session session, boolean closeOthers) {
+    public boolean setExclusiveSession(SessionLocal session, boolean closeOthers) {
         if (exclusiveSession.get() != session &&
                 !exclusiveSession.compareAndSet(null, session)) {
             return false;
@@ -2566,7 +2565,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @return true if success or if database is in non-exclusive mode already,
      *         false otherwise
      */
-    public boolean unsetExclusiveSession(Session session) {
+    public boolean unsetExclusiveSession(SessionLocal session) {
         return exclusiveSession.get() == null
             || exclusiveSession.compareAndSet(session, null);
     }
@@ -2595,7 +2594,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @param session the session
      * @return true if it is currently locked
      */
-    public boolean isSysTableLockedBy(Session session) {
+    public boolean isSysTableLockedBy(SessionLocal session) {
         return meta == null || meta.isLockedExclusivelyBy(session);
     }
 
@@ -2754,7 +2753,7 @@ public class Database implements DataHandler, CastDataProvider {
         return conn;
     }
 
-    public Session getLobSession() {
+    public SessionLocal getLobSession() {
         return lobSession;
     }
 

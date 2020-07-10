@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import org.h2.command.query.AllColumnsForPlan;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.Trace;
@@ -100,7 +100,7 @@ public class Plan {
      * @param allColumnsSet calculates all columns on-demand
      * @return the cost
      */
-    public double calculateCost(Session session, AllColumnsForPlan allColumnsSet) {
+    public double calculateCost(SessionLocal session, AllColumnsForPlan allColumnsSet) {
         Trace t = session.getTrace();
         if (t.isDebugEnabled()) {
             t.debug("Plan       : calculate cost for plan {0}", Arrays.toString(allFilters));

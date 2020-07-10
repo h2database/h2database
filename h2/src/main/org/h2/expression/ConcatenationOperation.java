@@ -7,7 +7,7 @@ package org.h2.expression;
 
 import java.util.Arrays;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.function.CastSpecification;
 import org.h2.expression.function.Function;
 import org.h2.value.DataType;
@@ -51,7 +51,7 @@ public final class ConcatenationOperation extends OperationN {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         int l = args.length;
         if (l == 2) {
             Value v1 = args[0].getValue(session);
@@ -69,7 +69,7 @@ public final class ConcatenationOperation extends OperationN {
         return getValue(session, l);
     }
 
-    private Value getValue(Session session, Value l, Value r) {
+    private Value getValue(SessionLocal session, Value l, Value r) {
         int valueType = type.getValueType();
         if (valueType == Value.VARCHAR) {
             String s1 = l.getString(), s2 = r.getString();
@@ -89,7 +89,7 @@ public final class ConcatenationOperation extends OperationN {
         }
     }
 
-    private Value getValue(Session session, int l) {
+    private Value getValue(SessionLocal session, int l) {
         Value[] values = new Value[l];
         for (int i = 0; i < l; i++) {
             Value v = args[i].getValue(session).convertTo(type, session);
@@ -137,7 +137,7 @@ public final class ConcatenationOperation extends OperationN {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         determineType(session);
         inlineArguments();
         if (type.getValueType() == Value.VARCHAR && session.getMode().treatEmptyStringsAsNull) {
@@ -194,7 +194,7 @@ public final class ConcatenationOperation extends OperationN {
         return this;
     }
 
-    private void determineType(Session session) {
+    private void determineType(SessionLocal session) {
         int l = args.length;
         boolean anyArray = false, allBinary = true, allCharacter = true;
         for (int i = 0; i < l; i++) {

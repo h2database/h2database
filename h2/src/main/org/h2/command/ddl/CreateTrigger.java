@@ -9,7 +9,7 @@ import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.TriggerObject;
@@ -36,7 +36,7 @@ public class CreateTrigger extends SchemaCommand {
     private boolean force;
     private boolean onRollback;
 
-    public CreateTrigger(Session session, Schema schema) {
+    public CreateTrigger(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 

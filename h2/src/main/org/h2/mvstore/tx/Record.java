@@ -5,13 +5,13 @@
  */
 package org.h2.mvstore.tx;
 
+import java.nio.ByteBuffer;
 import org.h2.engine.Constants;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.BasicDataType;
 import org.h2.value.VersionedValue;
-import java.nio.ByteBuffer;
 
 /**
  * Class Record is a value for undoLog.

@@ -7,7 +7,6 @@
  */
 package org.h2.util;
 
-import java.io.Closeable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.ref.PhantomReference;
@@ -42,10 +41,10 @@ public class CloseWatcher extends PhantomReference<Object> {
     /**
      * The closeable object.
      */
-    private Closeable closeable;
+    private AutoCloseable closeable;
 
     public CloseWatcher(Object referent, ReferenceQueue<Object> q,
-            Closeable closeable) {
+            AutoCloseable closeable) {
         super(referent, q);
         this.closeable = closeable;
     }
@@ -80,8 +79,7 @@ public class CloseWatcher extends PhantomReference<Object> {
      *            relatively slow)
      * @return the close watcher
      */
-    public static CloseWatcher register(Object o, Closeable closeable,
-            boolean stackTrace) {
+    public static CloseWatcher register(Object o, AutoCloseable closeable, boolean stackTrace) {
         CloseWatcher cw = new CloseWatcher(o, queue, closeable);
         if (stackTrace) {
             Exception e = new Exception("Open Stack Trace");
@@ -112,7 +110,7 @@ public class CloseWatcher extends PhantomReference<Object> {
         return openStackTrace;
     }
 
-    public Closeable getCloseable() {
+    public AutoCloseable getCloseable() {
         return closeable;
     }
 

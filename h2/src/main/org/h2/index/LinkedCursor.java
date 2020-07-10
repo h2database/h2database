@@ -8,7 +8,7 @@ package org.h2.index;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -23,11 +23,11 @@ public class LinkedCursor implements Cursor {
     private final TableLink tableLink;
     private final PreparedStatement prep;
     private final String sql;
-    private final Session session;
+    private final SessionLocal session;
     private final ResultSet rs;
     private Row current;
 
-    LinkedCursor(TableLink tableLink, ResultSet rs, Session session,
+    LinkedCursor(TableLink tableLink, ResultSet rs, SessionLocal session,
             String sql, PreparedStatement prep) {
         this.session = session;
         this.tableLink = tableLink;

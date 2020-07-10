@@ -6,7 +6,7 @@
 package org.h2.command.ddl;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
@@ -41,7 +41,7 @@ public class SequenceOptions {
 
     private final Sequence oldSequence;
 
-    private static Long getLong(Session session, Expression expr) {
+    private static Long getLong(SessionLocal session, Expression expr) {
         if (expr != null) {
             Value value = expr.optimize(session).getValue(session);
             if (value != ValueNull.INSTANCE) {
@@ -115,7 +115,7 @@ public class SequenceOptions {
      * @param session The session to calculate the value.
      * @return start value or {@code null} if value is not defined.
      */
-    public Long getStartValue(Session session) {
+    public Long getStartValue(SessionLocal session) {
         return check(getLong(session, start));
     }
 
@@ -137,7 +137,7 @@ public class SequenceOptions {
      *            the start value to use if restart without value is specified
      * @return restart value or {@code null} if value is not defined.
      */
-    public Long getRestartValue(Session session, long startValue) {
+    public Long getRestartValue(SessionLocal session, long startValue) {
         return check(restart == ValueExpression.DEFAULT ? (Long) startValue : getLong(session, restart));
     }
 
@@ -158,7 +158,7 @@ public class SequenceOptions {
      * @param session The session to calculate the value.
      * @return increment value or {@code null} if value is not defined.
      */
-    public Long getIncrement(Session session) {
+    public Long getIncrement(SessionLocal session) {
         return check(getLong(session, increment));
     }
 
@@ -178,7 +178,7 @@ public class SequenceOptions {
      * @param session The session to calculate the value.
      * @return max value when the MAXVALUE expression is set, otherwise returns default max value.
      */
-    public Long getMaxValue(Sequence sequence, Session session) {
+    public Long getMaxValue(Sequence sequence, SessionLocal session) {
         Long v;
         if (maxValue == ValueExpression.NULL && sequence != null) {
             v = Sequence.getDefaultMaxValue(getCurrentStart(sequence, session),
@@ -205,7 +205,7 @@ public class SequenceOptions {
      * @param session The session to calculate the value.
      * @return min value when the MINVALUE expression is set, otherwise returns default min value.
      */
-    public Long getMinValue(Sequence sequence, Session session) {
+    public Long getMinValue(Sequence sequence, SessionLocal session) {
         Long v;
         if (minValue == ValueExpression.NULL && sequence != null) {
             v = Sequence.getDefaultMinValue(getCurrentStart(sequence, session),
@@ -334,7 +334,7 @@ public class SequenceOptions {
      * @param session The session to calculate the value.
      * @return cache size or {@code null} if value is not defined.
      */
-    public Long getCacheSize(Session session) {
+    public Long getCacheSize(SessionLocal session) {
         return getLong(session, cacheSize);
     }
 
@@ -351,7 +351,7 @@ public class SequenceOptions {
         return restart != null || start != null || minValue != null || maxValue != null || increment != null;
     }
 
-    private long getCurrentStart(Sequence sequence, Session session) {
+    private long getCurrentStart(Sequence sequence, SessionLocal session) {
         return start != null ? getStartValue(session) : sequence.getCurrentValue() + sequence.getIncrement();
     }
 }

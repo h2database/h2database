@@ -17,7 +17,7 @@ import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
@@ -36,7 +36,7 @@ public class BackupCommand extends Prepared {
 
     private Expression fileNameExpr;
 
-    public BackupCommand(Session session) {
+    public BackupCommand(SessionLocal session) {
         super(session);
     }
 

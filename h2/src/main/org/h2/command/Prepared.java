@@ -12,7 +12,7 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
 import org.h2.message.DbException;
@@ -30,7 +30,7 @@ public abstract class Prepared {
     /**
      * The session.
      */
-    protected Session session;
+    protected SessionLocal session;
 
     /**
      * The SQL string.
@@ -75,7 +75,7 @@ public abstract class Prepared {
      *
      * @param session the session
      */
-    public Prepared(Session session) {
+    public Prepared(SessionLocal session) {
         this.session = session;
         modificationMetaId = session.getDatabase().getModificationMetaId();
     }
@@ -317,7 +317,7 @@ public abstract class Prepared {
      *
      * @param currentSession the new session
      */
-    public void setSession(Session currentSession) {
+    public void setSession(SessionLocal currentSession) {
         this.session = currentSession;
     }
 
@@ -448,7 +448,7 @@ public abstract class Prepared {
         this.cteCleanups = cteCleanups;
     }
 
-    public Session getSession() {
+    public SessionLocal getSession() {
         return session;
     }
 

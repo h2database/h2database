@@ -5,7 +5,7 @@
  */
 package org.h2.expression.function;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Operation0;
 import org.h2.value.TypeInfo;
@@ -72,7 +72,7 @@ public final class CurrentDateTimeValueFunction extends Operation0 implements Na
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         return session.currentTimestamp().castTo(type, session);
     }
 

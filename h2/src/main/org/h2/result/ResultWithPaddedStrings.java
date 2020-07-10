@@ -6,7 +6,7 @@
 package org.h2.result;
 
 import java.util.Arrays;
-import org.h2.engine.SessionInterface;
+import org.h2.engine.Session;
 import org.h2.util.MathUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -185,7 +185,7 @@ public class ResultWithPaddedStrings implements ResultInterface {
     }
 
     @Override
-    public ResultInterface createShallowCopy(SessionInterface targetSession) {
+    public ResultInterface createShallowCopy(Session targetSession) {
         ResultInterface copy = source.createShallowCopy(targetSession);
         return copy != null ? new ResultWithPaddedStrings(copy) : null;
     }

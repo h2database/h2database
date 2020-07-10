@@ -7,7 +7,7 @@ package org.h2.expression.function;
 
 import java.io.ByteArrayOutputStream;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.Format;
@@ -66,11 +66,11 @@ public class JsonConstructorFunction extends OperationN implements ExpressionWit
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         return array ? jsonArray(session, args) : jsonObject(session, args);
     }
 
-    private Value jsonObject(Session session, Expression[] args) {
+    private Value jsonObject(SessionLocal session, Expression[] args) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write('{');
         for (int i = 0, l = args.length; i < l;) {
@@ -138,7 +138,7 @@ public class JsonConstructorFunction extends OperationN implements ExpressionWit
         return ValueJson.getInternal(result);
     }
 
-    private Value jsonArray(Session session, Expression[] args) {
+    private Value jsonArray(SessionLocal session, Expression[] args) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write('[');
         int l = args.length;
@@ -197,7 +197,7 @@ public class JsonConstructorFunction extends OperationN implements ExpressionWit
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         boolean allConst = optimizeArguments(session, true);
         type = TypeInfo.TYPE_JSON;
         if (allConst) {

@@ -226,7 +226,7 @@ public class FunctionAlias extends SchemaObjectBase {
     }
 
     @Override
-    public synchronized void removeChildrenAndResources(Session session) {
+    public synchronized void removeChildrenAndResources(SessionLocal session) {
         database.removeMeta(session, getId());
         className = null;
         methodName = null;
@@ -350,7 +350,7 @@ public class FunctionAlias extends SchemaObjectBase {
          *            list
          * @return the value
          */
-        public Value getValue(Session session, Expression[] args,
+        public Value getValue(SessionLocal session, Expression[] args,
                 boolean columnList) {
             Class<?>[] paramClasses = method.getParameterTypes();
             Object[] params = new Object[paramClasses.length];

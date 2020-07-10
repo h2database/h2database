@@ -16,7 +16,7 @@ import org.h2.command.query.AllColumnsForPlan;
 import org.h2.command.query.Select;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
@@ -61,7 +61,7 @@ public class TableFilter implements ColumnResolver {
      */
     protected boolean joinOuterIndirect;
 
-    private Session session;
+    private SessionLocal session;
 
     private final Table table;
     private final Select select;
@@ -152,7 +152,7 @@ public class TableFilter implements ColumnResolver {
      * @param orderInFrom original order number (index) of this table filter in
      * @param indexHints the index hints to be used by the query planner
      */
-    public TableFilter(Session session, Table table, String alias,
+    public TableFilter(SessionLocal session, Table table, String alias,
             boolean rightsChecked, Select select, int orderInFrom, IndexHints indexHints) {
         this.session = session;
         this.table = table;
@@ -197,7 +197,7 @@ public class TableFilter implements ColumnResolver {
      * @param exclusive true if an exclusive lock is required
      * @param forceLockEvenInMvcc lock even in the MVCC mode
      */
-    public void lock(Session s, boolean exclusive, boolean forceLockEvenInMvcc) {
+    public void lock(SessionLocal s, boolean exclusive, boolean forceLockEvenInMvcc) {
         table.lock(s, exclusive, forceLockEvenInMvcc);
         if (join != null) {
             join.lock(s, exclusive, forceLockEvenInMvcc);
@@ -214,7 +214,7 @@ public class TableFilter implements ColumnResolver {
      * @param allColumnsSet the set of all columns
      * @return the best plan item
      */
-    public PlanItem getBestPlanItem(Session s, TableFilter[] filters, int filter,
+    public PlanItem getBestPlanItem(SessionLocal s, TableFilter[] filters, int filter,
             AllColumnsForPlan allColumnsSet) {
         PlanItem item1 = null;
         SortOrder sortOrder = null;
@@ -361,7 +361,7 @@ public class TableFilter implements ColumnResolver {
      *
      * @param s the session
      */
-    public void startQuery(Session s) {
+    public void startQuery(SessionLocal s) {
         this.session = s;
         scanCount = 0;
         if (nestedJoin != null) {
@@ -853,7 +853,7 @@ public class TableFilter implements ColumnResolver {
      *
      * @param session the new session
      */
-    void setSession(Session session) {
+    void setSession(SessionLocal session) {
         this.session = session;
     }
 
@@ -1213,7 +1213,7 @@ public class TableFilter implements ColumnResolver {
         return evaluatable;
     }
 
-    public Session getSession() {
+    public SessionLocal getSession() {
         return session;
     }
 

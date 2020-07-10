@@ -7,7 +7,7 @@ package org.h2.constraint;
 
 import java.util.HashSet;
 import org.h2.engine.DbObject;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
@@ -92,7 +92,7 @@ public abstract class Constraint extends SchemaObjectBase implements
      * @param oldRow the old row
      * @param newRow the new row
      */
-    public abstract void checkRow(Session session, Table t, Row oldRow, Row newRow);
+    public abstract void checkRow(SessionLocal session, Table t, Row oldRow, Row newRow);
 
     /**
      * Check if this constraint needs the specified index.
@@ -146,7 +146,7 @@ public abstract class Constraint extends SchemaObjectBase implements
      *
      * @param session the session
      */
-    public abstract void checkExistingData(Session session);
+    public abstract void checkExistingData(SessionLocal session);
 
     /**
      * This method is called after a related table has changed

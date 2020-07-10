@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.query.Query;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
@@ -47,7 +47,7 @@ public class ArrayConstructorByQuery extends Expression {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         query.setSession(session);
         ArrayList<Value> values = new ArrayList<>();
         try (ResultInterface result = query.query(0)) {
@@ -69,7 +69,7 @@ public class ArrayConstructorByQuery extends Expression {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         query.prepare();
         if (query.getColumnCount() != 1) {
             throw DbException.get(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);
@@ -85,7 +85,7 @@ public class ArrayConstructorByQuery extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         query.updateAggregate(session, stage);
     }
 

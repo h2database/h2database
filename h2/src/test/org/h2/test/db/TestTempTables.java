@@ -13,7 +13,7 @@ import java.sql.Statement;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
-import org.h2.engine.SessionInterface;
+import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -75,17 +75,17 @@ public class TestTempTables extends TestDb {
         Connection conn = getConnection("tempTables");
         Statement stat = conn.createStatement();
         stat.execute("create local temporary table test(id identity)");
-        SessionInterface iface = ((JdbcConnection) conn).getSession();
-        if ((iface instanceof Session)) {
-            assertEquals(1, ((Session) iface).getDatabase().getMainSchema().getAllSequences().size());
+        Session iface = ((JdbcConnection) conn).getSession();
+        if ((iface instanceof SessionLocal)) {
+            assertEquals(1, ((SessionLocal) iface).getDatabase().getMainSchema().getAllSequences().size());
         }
         stat.execute("insert into test values(null)");
         stat.execute("shutdown");
         conn.close();
         conn = getConnection("tempTables");
         iface = ((JdbcConnection) conn).getSession();
-        if ((iface instanceof Session)) {
-            assertEquals(0, ((Session) iface).getDatabase().getMainSchema().getAllSequences().size());
+        if ((iface instanceof SessionLocal)) {
+            assertEquals(0, ((SessionLocal) iface).getDatabase().getMainSchema().getAllSequences().size());
         }
         conn.close();
     }

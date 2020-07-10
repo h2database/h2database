@@ -11,7 +11,7 @@ import org.h2.command.CommandInterface;
 import org.h2.constraint.ConstraintActionType;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
@@ -28,7 +28,7 @@ public class DropView extends SchemaCommand {
     private boolean ifExists;
     private ConstraintActionType dropAction;
 
-    public DropView(Session session, Schema schema) {
+    public DropView(SessionLocal session, Schema schema) {
         super(session, schema);
         dropAction = session.getDatabase().getSettings().dropRestrict ?
                 ConstraintActionType.RESTRICT :

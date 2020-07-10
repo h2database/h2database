@@ -6,7 +6,7 @@
 package org.h2.pagestore.db;
 
 import org.h2.command.query.AllColumnsForPlan;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
@@ -27,7 +27,7 @@ public class PageDelegateIndex extends PageIndex {
 
     public PageDelegateIndex(PageStoreTable table, int id, String name,
             IndexType indexType, PageDataIndex mainIndex, boolean create,
-            Session session) {
+            SessionLocal session) {
         super(table, id, name,
                 IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn()) }),
                 indexType);
@@ -43,7 +43,7 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     @Override
-    public void add(Session session, Row row) {
+    public void add(SessionLocal session, Row row) {
         // nothing to do
     }
 
@@ -53,12 +53,12 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     @Override
-    public void close(Session session) {
+    public void close(SessionLocal session) {
         // nothing to do
     }
 
     @Override
-    public Cursor find(Session session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
         long min = mainIndex.getKey(first, Long.MIN_VALUE, Long.MIN_VALUE);
         // ifNull is MIN_VALUE as well, because the column is never NULL
         // so avoid returning all rows (returning one row is OK)
@@ -67,7 +67,7 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
+    public Cursor findFirstOrLast(SessionLocal session, boolean first) {
         Cursor cursor;
         if (first) {
             cursor = mainIndex.find(session, Long.MIN_VALUE, Long.MAX_VALUE);
@@ -93,7 +93,7 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks,
+    public double getCost(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
         return 10 * getCostRangeIndex(masks, mainIndex.getRowCount(session),
@@ -106,33 +106,33 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     @Override
-    public void remove(Session session, Row row) {
+    public void remove(SessionLocal session, Row row) {
         // nothing to do
     }
 
     @Override
-    public void update(Session session, Row oldRow, Row newRow) {
+    public void update(SessionLocal session, Row oldRow, Row newRow) {
         // nothing to do
     }
 
     @Override
-    public void remove(Session session) {
+    public void remove(SessionLocal session) {
         mainIndex.setMainIndexColumn(-1);
         session.getDatabase().getPageStore().removeMeta(this, session);
     }
 
     @Override
-    public void truncate(Session session) {
+    public void truncate(SessionLocal session) {
         // nothing to do
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         return mainIndex.getRowCount(session);
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return mainIndex.getRowCountApproximation(session);
     }
 

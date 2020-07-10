@@ -6,7 +6,7 @@
 package org.h2.expression;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -29,7 +29,7 @@ public class ArrayElementReference extends Operation2 {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value l = left.getValue(session);
         Value r = right.getValue(session);
         if (l != ValueNull.INSTANCE && r != ValueNull.INSTANCE) {
@@ -45,7 +45,7 @@ public class ArrayElementReference extends Operation2 {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         right = right.optimize(session);
         TypeInfo leftType = left.getType();

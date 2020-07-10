@@ -10,7 +10,7 @@ import org.h2.command.CommandInterface;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
@@ -31,7 +31,7 @@ public class CreateIndex extends SchemaCommand {
     private boolean ifNotExists;
     private String comment;
 
-    public CreateIndex(Session session, Schema schema) {
+    public CreateIndex(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 

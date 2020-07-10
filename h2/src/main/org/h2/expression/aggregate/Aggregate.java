@@ -20,7 +20,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.query.QueryOrderBy;
 import org.h2.command.query.Select;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
@@ -196,13 +196,13 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     }
 
     @Override
-    protected void updateAggregate(Session session, Object aggregateData) {
+    protected void updateAggregate(SessionLocal session, Object aggregateData) {
         AggregateData data = (AggregateData) aggregateData;
         Value v = args.length == 0 ? null : args[0].getValue(session);
         updateData(session, data, v, null);
     }
 
-    private void updateData(Session session, AggregateData data, Value v, Value[] remembered) {
+    private void updateData(SessionLocal session, AggregateData data, Value v, Value[] remembered) {
         switch (aggregateType) {
         case LISTAGG:
             if (v != ValueNull.INSTANCE) {
@@ -272,7 +272,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     }
 
     @Override
-    protected void updateGroupAggregates(Session session, int stage) {
+    protected void updateGroupAggregates(SessionLocal session, int stage) {
         super.updateGroupAggregates(session, stage);
         for (Expression arg : args) {
             arg.updateAggregate(session, stage);
@@ -284,7 +284,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         }
     }
 
-    private Value updateCollecting(Session session, Value v, Value[] remembered) {
+    private Value updateCollecting(SessionLocal session, Value v, Value[] remembered) {
         if (orderByList != null) {
             int size = orderByList.size();
             Value[] row = new Value[1 + size];
@@ -315,7 +315,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     }
 
     @Override
-    protected void rememberExpressions(Session session, Value[] array) {
+    protected void rememberExpressions(SessionLocal session, Value[] array) {
         int offset = 0;
         for (Expression arg : args) {
             array[offset++] = arg.getValue(session);
@@ -331,7 +331,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     }
 
     @Override
-    protected void updateFromExpressions(Session session, Object aggregateData, Value[] array) {
+    protected void updateFromExpressions(SessionLocal session, Object aggregateData, Value[] array) {
         if (filterCondition == null || array[getNumExpressions() - 1].getBoolean()) {
             AggregateData data = (AggregateData) aggregateData;
             Value v = args.length == 0 ? null : array[0];
@@ -345,11 +345,11 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         return select.isQuickAggregateQuery() ? getValueQuick(session) : super.getValue(session);
     }
 
-    private Value getValueQuick(Session session) {
+    private Value getValueQuick(SessionLocal session) {
         switch (aggregateType) {
         case COUNT:
         case COUNT_ALL:
@@ -398,7 +398,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     }
 
     @Override
-    public Value getAggregatedValue(Session session, Object aggregateData) {
+    public Value getAggregatedValue(SessionLocal session, Object aggregateData) {
         AggregateData data = (AggregateData) aggregateData;
         if (data == null) {
             data = (AggregateData) createAggregateData();
@@ -523,7 +523,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         return data.getValue(session);
     }
 
-    private Value getHypotheticalSet(Session session, AggregateData data) {
+    private Value getHypotheticalSet(SessionLocal session, AggregateData data) {
         AggregateDataCollecting collectingData = (AggregateDataCollecting) data;
         Value arg = collectingData.getSharedArgument();
         if (arg == null) {
@@ -593,7 +593,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         throw DbException.throwInternalError();
     }
 
-    private Value getListagg(Session session, AggregateData data) {
+    private Value getListagg(SessionLocal session, AggregateData data) {
         AggregateDataCollecting collectingData = (AggregateDataCollecting) data;
         Value[] array = collectingData.getArray();
         if (array == null) {
@@ -620,7 +620,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         return ValueVarchar.get(builder.toString());
     }
 
-    private static Value getHistogram(Session session, AggregateData data) {
+    private static Value getHistogram(SessionLocal session, AggregateData data) {
         TreeMap<Value, LongDataCounter> distinctValues = ((AggregateDataDistinctWithCounts) data).getValues();
         if (distinctValues == null) {
             return ValueArray.EMPTY;
@@ -638,7 +638,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         return ValueArray.get(values, session);
     }
 
-    private Value getMode(Session session, AggregateData data) {
+    private Value getMode(SessionLocal session, AggregateData data) {
         Value v = ValueNull.INSTANCE;
         TreeMap<Value, LongDataCounter> distinctValues = ((AggregateDataDistinctWithCounts) data).getValues();
         if (distinctValues == null) {
@@ -688,7 +688,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         super.optimize(session);
         if (args.length == 1) {
             type = args[0].getType();

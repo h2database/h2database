@@ -11,7 +11,7 @@ import java.util.Iterator;
 
 import org.h2.command.query.Select;
 import org.h2.command.query.SelectGroups;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.WindowFrame;
@@ -87,7 +87,7 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         for (int i = 0; i < args.length; i++) {
             args[i] = args[i].optimize(session);
         }
@@ -109,8 +109,8 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
     }
 
     @Override
-    protected void getOrderedResultLoop(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
-            int rowIdColumn) {
+    protected void getOrderedResultLoop(SessionLocal session, HashMap<Integer, Value> result,
+            ArrayList<Value[]> ordered, int rowIdColumn) {
         WindowFrame frame = over.getWindowFrame();
         /*
          * With RANGE (default) or GROUPS units and EXCLUDE GROUP or EXCLUDE NO
@@ -184,8 +184,8 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
         return false;
     }
 
-    private void aggregateFastPartition(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
-            int rowIdColumn, boolean grouped) {
+    private void aggregateFastPartition(SessionLocal session, HashMap<Integer, Value> result,
+            ArrayList<Value[]> ordered, int rowIdColumn, boolean grouped) {
         Object aggregateData = createAggregateData();
         int size = ordered.size();
         int lastIncludedRow = -1;
@@ -206,7 +206,7 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
         }
     }
 
-    private void aggregateFastPartitionInReverse(Session session, HashMap<Integer, Value> result,
+    private void aggregateFastPartitionInReverse(SessionLocal session, HashMap<Integer, Value> result,
             ArrayList<Value[]> ordered, int rowIdColumn, boolean grouped) {
         Object aggregateData = createAggregateData();
         int firstIncludedRow = ordered.size();
@@ -231,7 +231,7 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
         }
     }
 
-    private int processGroup(Session session, HashMap<Integer, Value> result, Value r, ArrayList<Value[]> ordered,
+    private int processGroup(SessionLocal session, HashMap<Integer, Value> result, Value r, ArrayList<Value[]> ordered,
             int rowIdColumn, int i, int size, Object aggregateData, boolean grouped) {
         Value[] firstRowInGroup = ordered.get(i), currentRowInGroup = firstRowInGroup;
         do {
@@ -241,8 +241,8 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
         return i;
     }
 
-    private void aggregateWholePartition(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
-            int rowIdColumn) {
+    private void aggregateWholePartition(SessionLocal session, HashMap<Integer, Value> result,
+            ArrayList<Value[]> ordered, int rowIdColumn) {
         // Aggregate values from the whole partition
         Object aggregateData = createAggregateData();
         for (Value[] row : ordered) {
@@ -265,10 +265,10 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
      * @param array
      *            values of expressions
      */
-    protected abstract void updateFromExpressions(Session session, Object aggregateData, Value[] array);
+    protected abstract void updateFromExpressions(SessionLocal session, Object aggregateData, Value[] array);
 
     @Override
-    protected void updateAggregate(Session session, SelectGroups groupData, int groupRowId) {
+    protected void updateAggregate(SessionLocal session, SelectGroups groupData, int groupRowId) {
         if (filterCondition == null || filterCondition.getBooleanValue(session)) {
             if (over != null) {
                 if (over.isOrdered()) {
@@ -292,10 +292,10 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
      * @param aggregateData
      *            aggregate data
      */
-    protected abstract void updateAggregate(Session session, Object aggregateData);
+    protected abstract void updateAggregate(SessionLocal session, Object aggregateData);
 
     @Override
-    protected void updateGroupAggregates(Session session, int stage) {
+    protected void updateGroupAggregates(SessionLocal session, int stage) {
         if (filterCondition != null) {
             filterCondition.updateAggregate(session, stage);
         }

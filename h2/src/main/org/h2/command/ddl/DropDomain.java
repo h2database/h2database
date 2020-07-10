@@ -11,7 +11,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.ConstraintActionType;
 import org.h2.constraint.ConstraintDomain;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.schema.Domain;
@@ -28,7 +28,7 @@ public class DropDomain extends SchemaCommand {
     private boolean ifExists;
     private ConstraintActionType dropAction;
 
-    public DropDomain(Session session, Schema schema) {
+    public DropDomain(SessionLocal session, Schema schema) {
         super(session, schema);
         dropAction = session.getDatabase().getSettings().dropRestrict ? ConstraintActionType.RESTRICT
                 : ConstraintActionType.CASCADE;
@@ -99,7 +99,7 @@ public class DropDomain extends SchemaCommand {
         return true;
     }
 
-    private static boolean copyExpressions(Session session, Column domainColumn, Column targetColumn) {
+    private static boolean copyExpressions(SessionLocal session, Column domainColumn, Column targetColumn) {
         targetColumn.setDomain(domainColumn.getDomain());
         Expression e = domainColumn.getDefaultExpression();
         boolean modified = false;

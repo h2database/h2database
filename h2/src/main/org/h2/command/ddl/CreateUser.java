@@ -8,7 +8,7 @@ package org.h2.command.ddl;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
@@ -29,7 +29,7 @@ public class CreateUser extends DefineCommand {
     private boolean ifNotExists;
     private String comment;
 
-    public CreateUser(Session session) {
+    public CreateUser(SessionLocal session) {
         super(session);
     }
 
@@ -53,11 +53,11 @@ public class CreateUser extends DefineCommand {
      * @param salt the salt
      * @param hash the hash
      */
-    static void setSaltAndHash(User user, Session session, Expression salt, Expression hash) {
+    static void setSaltAndHash(User user, SessionLocal session, Expression salt, Expression hash) {
         user.setSaltAndHash(getByteArray(session, salt), getByteArray(session, hash));
     }
 
-    private static byte[] getByteArray(Session session, Expression e) {
+    private static byte[] getByteArray(SessionLocal session, Expression e) {
         String s = e.optimize(session).getValue(session).getString();
         return s == null ? new byte[0] : StringUtils.convertHexToBytes(s);
     }
@@ -69,7 +69,7 @@ public class CreateUser extends DefineCommand {
      * @param session the session
      * @param password the password
      */
-    static void setPassword(User user, Session session, Expression password) {
+    static void setPassword(User user, SessionLocal session, Expression password) {
         String pwd = password.optimize(session).getValue(session).getString();
         char[] passwordChars = pwd == null ? new char[0] : pwd.toCharArray();
         byte[] userPasswordHash;

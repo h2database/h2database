@@ -10,7 +10,7 @@ import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.Constraint.Type;
 import org.h2.constraint.ConstraintDomain;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
@@ -25,7 +25,7 @@ public class AlterDomainDropConstraint extends SchemaCommand {
     private boolean ifDomainExists;
     private final boolean ifConstraintExists;
 
-    public AlterDomainDropConstraint(Session session, Schema schema, boolean ifConstraintExists) {
+    public AlterDomainDropConstraint(SessionLocal session, Schema schema, boolean ifConstraintExists) {
         super(session, schema);
         this.ifConstraintExists = ifConstraintExists;
     }

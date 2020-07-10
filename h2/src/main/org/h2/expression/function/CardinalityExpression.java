@@ -5,7 +5,7 @@
  */
 package org.h2.expression.function;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.Operation1;
 import org.h2.expression.TypedValueExpression;
@@ -39,7 +39,7 @@ public class CardinalityExpression extends Operation1 implements NamedExpression
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         int result;
         if (max) {
             TypeInfo t = arg.getType();
@@ -62,7 +62,7 @@ public class CardinalityExpression extends Operation1 implements NamedExpression
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         arg = arg.optimize(session);
         type = TypeInfo.TYPE_INTEGER;
         if (arg.isConstant()) {

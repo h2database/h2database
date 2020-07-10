@@ -8,7 +8,7 @@ package org.h2.expression.function;
 import java.text.DateFormatSymbols;
 import java.util.Locale;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.Operation1;
 import org.h2.expression.TypedValueExpression;
@@ -51,7 +51,7 @@ public class DayMonthNameFunction extends Operation1 implements NamedExpression 
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value v = arg.getValue(session);
         if (v == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
@@ -91,7 +91,7 @@ public class DayMonthNameFunction extends Operation1 implements NamedExpression 
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         arg = arg.optimize(session);
         type = TypeInfo.getTypeInfo(Value.VARCHAR, 20, 0, null);
         if (arg.isConstant()) {

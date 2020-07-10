@@ -10,7 +10,7 @@ import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
@@ -68,7 +68,7 @@ public class SelectUnion extends Query {
 
     private boolean isForUpdate;
 
-    public SelectUnion(Session session, UnionType unionType, Query query, Query right) {
+    public SelectUnion(SessionLocal session, UnionType unionType, Query query, Query right) {
         super(session);
         this.unionType = unionType;
         this.left = query;
@@ -365,7 +365,7 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public void updateAggregate(Session s, int stage) {
+    public void updateAggregate(SessionLocal s, int stage) {
         left.updateAggregate(s, stage);
         right.updateAggregate(s, stage);
     }

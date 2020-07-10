@@ -5,7 +5,7 @@
  */
 package org.h2.expression;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.IntervalOperation.IntervalOpType;
 import org.h2.expression.function.DateTimeFunction;
 import org.h2.message.DbException;
@@ -93,7 +93,7 @@ public class BinaryOperation extends Operation2 {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value l = left.getValue(session).convertTo(type, session);
         Value r = right.getValue(session);
         if (convertRight) {
@@ -126,7 +126,7 @@ public class BinaryOperation extends Operation2 {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         right = right.optimize(session);
         TypeInfo leftType = left.getType(), rightType = right.getType();
@@ -236,7 +236,7 @@ public class BinaryOperation extends Operation2 {
         type = TypeInfo.getTypeInfo(Value.DECFLOAT, precision, 0, null);
     }
 
-    private Expression optimizeInterval(Session session, int l, int r) {
+    private Expression optimizeInterval(SessionLocal session, int l, int r) {
         boolean lInterval = false, lNumeric = false, lDateTime = false;
         if (DataType.isIntervalType(l)) {
             lInterval = true;
@@ -309,7 +309,7 @@ public class BinaryOperation extends Operation2 {
         throw getUnsupported(l, r);
     }
 
-    private Expression optimizeDateTime(Session session, int l, int r) {
+    private Expression optimizeDateTime(SessionLocal session, int l, int r) {
         switch (opType) {
         case PLUS: {
             if (DataType.isDateTimeType(l)) {

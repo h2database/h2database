@@ -11,7 +11,7 @@ import java.util.StringJoiner;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.engine.Constants;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
@@ -174,7 +174,7 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         switch (info.type) {
         case CURRENT_DATABASE:
             return new CurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_CATALOG)
@@ -191,7 +191,7 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
     }
 
     @Override
-    protected Value getValueWithArgs(Session session, Expression[] args) {
+    protected Value getValueWithArgs(SessionLocal session, Expression[] args) {
         Value[] values = getArgumentsValues(session, args);
         if (values == null) {
             return ValueNull.INSTANCE;
@@ -294,7 +294,7 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
         }
     }
 
-    private static Value getIndexdef(Session session, int indexId, Value ordinalPosition, Value pretty) {
+    private static Value getIndexdef(SessionLocal session, int indexId, Value ordinalPosition, Value pretty) {
         for (Schema schema : session.getDatabase().getAllSchemasNoMeta()) {
             for (Index index : schema.getAllIndexes()) {
                 if (index.getId() == indexId) {
@@ -315,7 +315,7 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
         return ValueNull.INSTANCE;
     }
 
-    private static String getUserbyid(Session session, int uid) {
+    private static String getUserbyid(SessionLocal session, int uid) {
         User u = session.getUser();
         String name;
         search: {
@@ -340,7 +340,7 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
         return name;
     }
 
-    private static Value relationSize(Session session, Value tableOidOrName) {
+    private static Value relationSize(SessionLocal session, Value tableOidOrName) {
         Table t;
         if (tableOidOrName.getValueType() == Value.INTEGER) {
             int tid = tableOidOrName.getInt();

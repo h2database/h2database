@@ -12,7 +12,7 @@ import java.util.ListIterator;
 import org.h2.api.ErrorCode;
 import org.h2.command.query.QueryOrderBy;
 import org.h2.command.query.Select;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
@@ -149,7 +149,7 @@ public final class Window {
      * @param session
      *            the session
      */
-    public void optimize(Session session) {
+    public void optimize(SessionLocal session) {
         if (partitionBy != null) {
             for (ListIterator<Expression> i = partitionBy.listIterator(); i.hasNext();) {
                 Expression e = i.next().optimize(session);
@@ -253,7 +253,7 @@ public final class Window {
      *            session
      * @return key for the current group, or null
      */
-    public Value getCurrentKey(Session session) {
+    public Value getCurrentKey(SessionLocal session) {
         if (partitionBy == null) {
             return null;
         }
@@ -312,9 +312,9 @@ public final class Window {
      *            the session
      * @param stage
      *            select stage
-     * @see Expression#updateAggregate(Session, int)
+     * @see Expression#updateAggregate(SessionLocal, int)
      */
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         if (partitionBy != null) {
             for (Expression expr : partitionBy) {
                 expr.updateAggregate(session, stage);

@@ -7,7 +7,7 @@ package org.h2.expression.function;
 
 import java.nio.charset.StandardCharsets;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.Operation1_2;
 import org.h2.expression.TypedValueExpression;
@@ -49,7 +49,7 @@ public class SoundexFunction extends Operation1_2 implements NamedExpression {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value v1 = left.getValue(session);
         if (v1 == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
@@ -107,7 +107,7 @@ public class SoundexFunction extends Operation1_2 implements NamedExpression {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         if (right != null) {
             right = right.optimize(session);

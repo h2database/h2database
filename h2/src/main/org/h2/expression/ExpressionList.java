@@ -5,7 +5,7 @@
  */
 package org.h2.expression;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -31,7 +31,7 @@ public class ExpressionList extends Expression {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value[] v = new Value[list.length];
         for (int i = 0; i < list.length; i++) {
             v[i] = list[i].getValue(session);
@@ -52,7 +52,7 @@ public class ExpressionList extends Expression {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         boolean allConst = true;
         int count = list.length;
         for (int i = 0; i < count; i++) {
@@ -85,7 +85,7 @@ public class ExpressionList extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         for (Expression e : list) {
             e.updateAggregate(session, stage);
         }
@@ -111,7 +111,7 @@ public class ExpressionList extends Expression {
     }
 
     @Override
-    public Expression[] getExpressionColumns(Session session) {
+    public Expression[] getExpressionColumns(SessionLocal session) {
         ExpressionColumn[] expr = new ExpressionColumn[list.length];
         for (int i = 0; i < list.length; i++) {
             Expression e = list[i];

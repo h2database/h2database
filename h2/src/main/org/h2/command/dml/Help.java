@@ -14,7 +14,7 @@ import java.sql.ResultSet;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.message.DbException;
@@ -36,7 +36,7 @@ public class Help extends Prepared {
 
     private final Expression[] expressions;
 
-    public Help(Session session, String[] conditions) {
+    public Help(SessionLocal session, String[] conditions) {
         super(session);
         this.conditions = conditions;
         Database db = session.getDatabase();

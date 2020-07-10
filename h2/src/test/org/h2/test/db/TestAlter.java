@@ -14,7 +14,7 @@ import java.util.Collection;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
-import org.h2.engine.SessionInterface;
+import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.schema.Sequence;
 import org.h2.test.TestBase;
@@ -129,11 +129,11 @@ public class TestAlter extends TestDb {
     }
 
     private void testAlterTableDropIdentityColumn() throws SQLException {
-        SessionInterface iface = ((JdbcConnection) stat.getConnection()).getSession();
-        if (!(iface instanceof Session)) {
+        Session iface = ((JdbcConnection) stat.getConnection()).getSession();
+        if (!(iface instanceof SessionLocal)) {
             return;
         }
-        Collection<Sequence> allSequences = ((Session) iface).getDatabase().getMainSchema().getAllSequences();
+        Collection<Sequence> allSequences = ((SessionLocal) iface).getDatabase().getMainSchema().getAllSequences();
         stat.execute("create table test(id int auto_increment, name varchar)");
         stat.execute("alter table test drop column id");
         assertEquals(0, allSequences.size());

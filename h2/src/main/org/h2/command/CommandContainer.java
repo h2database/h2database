@@ -16,7 +16,7 @@ import org.h2.command.dml.DataChangeStatement;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.DbSettings;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
@@ -88,7 +88,7 @@ public class CommandContainer extends Command {
      * @param session the session
      * @param prepared prepared statement
      */
-    static void clearCTE(Session session, Prepared prepared) {
+    static void clearCTE(SessionLocal session, Prepared prepared) {
         List<TableView> cteCleanups = prepared.getCteCleanups();
         if (cteCleanups != null) {
             clearCTE(session, cteCleanups);
@@ -101,7 +101,7 @@ public class CommandContainer extends Command {
      * @param session the session
      * @param views list of view
      */
-    static void clearCTE(Session session, List<TableView> views) {
+    static void clearCTE(SessionLocal session, List<TableView> views) {
         for (TableView view : views) {
             // check if view was previously deleted as their name is set to
             // null
@@ -111,7 +111,7 @@ public class CommandContainer extends Command {
         }
     }
 
-    CommandContainer(Session session, String sql, Prepared prepared) {
+    CommandContainer(SessionLocal session, String sql, Prepared prepared) {
         super(session, sql);
         prepared.setCommand(this);
         this.prepared = prepared;

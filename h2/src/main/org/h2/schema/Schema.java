@@ -21,7 +21,7 @@ import org.h2.engine.DbObjectBase;
 import org.h2.engine.DbSettings;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.SysProperties;
 import org.h2.engine.User;
 import org.h2.index.Index;
@@ -143,7 +143,7 @@ public class Schema extends DbObjectBase {
     }
 
     @Override
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(SessionLocal session) {
         removeChildrenFromMap(session, triggers);
         removeChildrenFromMap(session, constraints);
         // There can be dependencies between tables e.g. using computed columns,
@@ -187,7 +187,7 @@ public class Schema extends DbObjectBase {
         invalidate();
     }
 
-    private void removeChildrenFromMap(Session session, ConcurrentHashMap<String, ? extends SchemaObject> map) {
+    private void removeChildrenFromMap(SessionLocal session, ConcurrentHashMap<String, ? extends SchemaObject> map) {
         if (!map.isEmpty()) {
             for (SchemaObject obj : map.values()) {
                 // Database.removeSchemaObject() removes the object from
@@ -316,7 +316,7 @@ public class Schema extends DbObjectBase {
      * @param name the object name
      * @return the object or null
      */
-    public Table findTableOrView(Session session, String name) {
+    public Table findTableOrView(SessionLocal session, String name) {
         Table table = tablesAndViews.get(name);
         if (table == null && session != null) {
             table = session.findLocalTempTable(name);
@@ -334,7 +334,7 @@ public class Schema extends DbObjectBase {
      * @param name the object name
      * @return the object or null
      */
-    public Table resolveTableOrView(Session session, String name) {
+    public Table resolveTableOrView(SessionLocal session, String name) {
         Table table = findTableOrView(session, name);
         if (table == null) {
             TableSynonym synonym = synonyms.get(name);
@@ -387,7 +387,7 @@ public class Schema extends DbObjectBase {
      * @param name the object name
      * @return the object or null
      */
-    public Index findIndex(Session session, String name) {
+    public Index findIndex(SessionLocal session, String name) {
         Index index = indexes.get(name);
         if (index == null) {
             index = session.findLocalTempTableIndex(name);
@@ -425,7 +425,7 @@ public class Schema extends DbObjectBase {
      * @param name the object name
      * @return the object or null
      */
-    public Constraint findConstraint(Session session, String name) {
+    public Constraint findConstraint(SessionLocal session, String name) {
         Constraint constraint = constraints.get(name);
         if (constraint == null) {
             constraint = session.findLocalTempTableConstraint(name);
@@ -512,7 +512,7 @@ public class Schema extends DbObjectBase {
      * @param table the constraint table
      * @return the unique name
      */
-    public String getUniqueConstraintName(Session session, Table table) {
+    public String getUniqueConstraintName(SessionLocal session, Table table) {
         Map<String, Constraint> tableConstraints;
         if (table.isTemporary() && !table.isGlobalTemporary()) {
             tableConstraints = session.getLocalTempTableConstraints();
@@ -529,7 +529,7 @@ public class Schema extends DbObjectBase {
      * @param domain the constraint domain
      * @return the unique name
      */
-    public String getUniqueDomainConstraintName(Session session, Domain domain) {
+    public String getUniqueDomainConstraintName(SessionLocal session, Domain domain) {
         return getUniqueName(domain, constraints, "CONSTRAINT_");
     }
 
@@ -541,7 +541,7 @@ public class Schema extends DbObjectBase {
      * @param prefix the index name prefix
      * @return the unique name
      */
-    public String getUniqueIndexName(Session session, Table table, String prefix) {
+    public String getUniqueIndexName(SessionLocal session, Table table, String prefix) {
         Map<String, Index> tableIndexes;
         if (table.isTemporary() && !table.isGlobalTemporary()) {
             tableIndexes = session.getLocalTempTableIndexes();
@@ -560,7 +560,7 @@ public class Schema extends DbObjectBase {
      * @return the table or view
      * @throws DbException if no such object exists
      */
-    public Table getTableOrView(Session session, String name) {
+    public Table getTableOrView(SessionLocal session, String name) {
         Table table = tablesAndViews.get(name);
         if (table == null) {
             if (session != null) {

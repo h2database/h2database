@@ -8,7 +8,7 @@ package org.h2.command.ddl;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
@@ -29,7 +29,7 @@ public class AlterUser extends DefineCommand {
     private Expression hash;
     private boolean admin;
 
-    public AlterUser(Session session) {
+    public AlterUser(SessionLocal session) {
         super(session);
     }
 

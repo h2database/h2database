@@ -8,7 +8,7 @@ package org.h2.command.ddl;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -31,7 +31,7 @@ public class AlterSequence extends SchemaCommand {
 
     private SequenceOptions options;
 
-    public AlterSequence(Session session, Schema schema) {
+    public AlterSequence(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 

@@ -42,7 +42,8 @@ public final class Engine {
         }
     }
 
-    private static Session openSession(ConnectionInfo ci, boolean ifExists, boolean forbidCreation, String cipher) {
+    private static SessionLocal openSession(ConnectionInfo ci, boolean ifExists, boolean forbidCreation,
+            String cipher) {
         String name = ci.getName();
         Database database;
         ci.removeProperty("NO_UPGRADE", false);
@@ -154,7 +155,7 @@ public final class Engine {
         //Prevent to set _PASSWORD
         ci.cleanAuthenticationInfo();
         checkClustering(ci, database);
-        Session session = database.createSession(user, ci.getNetworkConnectionInfo());
+        SessionLocal session = database.createSession(user, ci.getNetworkConnectionInfo());
         if (session == null) {
             // concurrently closing
             return null;
@@ -187,9 +188,9 @@ public final class Engine {
      * @param ci the connection information
      * @return the session
      */
-    public static Session createSession(ConnectionInfo ci) {
+    public static SessionLocal createSession(ConnectionInfo ci) {
         try {
-            Session session = openSession(ci);
+            SessionLocal session = openSession(ci);
             validateUserAndPassword(true);
             return session;
         } catch (DbException e) {
@@ -200,14 +201,14 @@ public final class Engine {
         }
     }
 
-    private static synchronized Session openSession(ConnectionInfo ci) {
+    private static synchronized SessionLocal openSession(ConnectionInfo ci) {
         boolean ifExists = ci.removeProperty("IFEXISTS", false);
         boolean forbidCreation = ci.removeProperty("FORBID_CREATION", false);
         boolean ignoreUnknownSetting = ci.removeProperty(
                 "IGNORE_UNKNOWN_SETTINGS", false);
         String cipher = ci.removeProperty("CIPHER", null);
         String init = ci.removeProperty("INIT", null);
-        Session session;
+        SessionLocal session;
         long start = System.nanoTime();
         for (;;) {
             session = openSession(ci, ifExists, forbidCreation, cipher);

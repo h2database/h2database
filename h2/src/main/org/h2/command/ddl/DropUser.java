@@ -8,7 +8,7 @@ package org.h2.command.ddl;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.message.DbException;
 
@@ -21,7 +21,7 @@ public class DropUser extends DefineCommand {
     private boolean ifExists;
     private String userName;
 
-    public DropUser(Session session) {
+    public DropUser(SessionLocal session) {
         super(session);
     }
 

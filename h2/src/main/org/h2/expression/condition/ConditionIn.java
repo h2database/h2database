@@ -6,7 +6,7 @@
 package org.h2.expression.condition;
 
 import java.util.ArrayList;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
@@ -49,19 +49,19 @@ public final class ConditionIn extends Condition {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         return getValue(session, left.getValue(session));
     }
 
     @Override
-    public boolean getWhenValue(Session session, Value left) {
+    public boolean getWhenValue(SessionLocal session, Value left) {
         if (!whenOperand) {
             return super.getWhenValue(session, left);
         }
         return getValue(session, left).getBoolean();
     }
 
-    private Value getValue(Session session, Value left) {
+    private Value getValue(SessionLocal session, Value left) {
         if (left.containsNull()) {
             return ValueNull.INSTANCE;
         }
@@ -98,7 +98,7 @@ public final class ConditionIn extends Condition {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         boolean constant = !whenOperand && left.isConstant();
         if (constant && left.isNullConstant()) {
@@ -154,8 +154,8 @@ public final class ConditionIn extends Condition {
         return optimize2(session, constant, allValuesConstant, allValuesNull, valueList);
     }
 
-    private Expression optimize2(Session session, boolean constant, boolean allValuesConstant, boolean allValuesNull,
-            ArrayList<Expression> values) {
+    private Expression optimize2(SessionLocal session, boolean constant, boolean allValuesConstant,
+            boolean allValuesNull, ArrayList<Expression> values) {
         if (constant && allValuesConstant) {
             return ValueExpression.getBoolean(getValue(session));
         }
@@ -177,7 +177,7 @@ public final class ConditionIn extends Condition {
     }
 
     @Override
-    public Expression getNotIfPossible(Session session) {
+    public Expression getNotIfPossible(SessionLocal session) {
         if (whenOperand) {
             return null;
         }
@@ -185,7 +185,7 @@ public final class ConditionIn extends Condition {
     }
 
     @Override
-    public void createIndexConditions(Session session, TableFilter filter) {
+    public void createIndexConditions(SessionLocal session, TableFilter filter) {
         if (not || whenOperand || !(left instanceof ExpressionColumn)) {
             return;
         }
@@ -231,7 +231,7 @@ public final class ConditionIn extends Condition {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         left.updateAggregate(session, stage);
         for (Expression e : valueList) {
             e.updateAggregate(session, stage);

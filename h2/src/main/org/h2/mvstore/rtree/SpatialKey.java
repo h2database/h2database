@@ -5,11 +5,11 @@
  */
 package org.h2.mvstore.rtree;
 
+import java.util.Arrays;
 import org.h2.engine.CastDataProvider;
 import org.h2.value.CompareMode;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import java.util.Arrays;
 
 /**
  * A unique spatial key.

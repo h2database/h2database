@@ -5,7 +5,7 @@
  */
 package org.h2.pagestore.db;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.Cursor;
 import org.h2.pagestore.Page;
 import org.h2.result.Row;
@@ -134,7 +134,7 @@ abstract class PageData extends Page {
      * @param maxKey the largest key
      * @return the cursor
      */
-    abstract Cursor find(Session session, long minKey, long maxKey);
+    abstract Cursor find(SessionLocal session, long minKey, long maxKey);
 
     /**
      * Get the key at this position.

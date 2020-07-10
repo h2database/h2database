@@ -7,7 +7,7 @@ package org.h2.pagestore.db;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.pagestore.Page;
 import org.h2.pagestore.PageStore;
@@ -213,7 +213,7 @@ public class PageDataOverflow extends Page {
     }
 
     @Override
-    public void moveTo(Session session, int newPos) {
+    public void moveTo(SessionLocal session, int newPos) {
         // load the pages into the cache, to ensure old pages
         // are written
         Page parent = store.getPage(parentPageId);

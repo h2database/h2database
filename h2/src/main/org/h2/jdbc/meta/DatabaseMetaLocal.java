@@ -1393,7 +1393,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     }
 
     private Collection<? extends SchemaObjectBase> getTablesForPattern(Schema schema, String tablePattern) {
-        Collection<Table> tables = schema.getAllTablesAndViews();
+        Collection<Table> tables = schema.getAllTablesAndViews(session);
         Collection<TableSynonym> synonyms = schema.getAllSynonyms();
         if (tablePattern == null) {
             if (tables.isEmpty()) {

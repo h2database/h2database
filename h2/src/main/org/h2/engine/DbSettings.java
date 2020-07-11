@@ -315,13 +315,6 @@ public class DbSettings extends SettingsBase {
     public final boolean ignoreCatalogs = get("IGNORE_CATALOGS", false);
 
     /**
-     * Database setting <code>OLD_INFORMATION_SCHEMA</code>
-     * (default: false).<br />
-     * If set, INFORMATION_SCHEMA contains old-style tables.
-     */
-    public final boolean oldInformationSchema = get("OLD_INFORMATION_SCHEMA", false);
-
-    /**
      * Database setting <code>ZERO_BASED_ENUMS</code>
      * (default: false).<br />
      * If set, ENUM ordinal values are 0-based.

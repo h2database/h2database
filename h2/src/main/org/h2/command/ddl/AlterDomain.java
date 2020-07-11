@@ -56,7 +56,7 @@ public class AlterDomain extends SchemaCommand {
                     }
                 }
             }
-            for (Table t : schema.getAllTablesAndViews()) {
+            for (Table t : schema.getAllTablesAndViews(null)) {
                 if (forTable(session, domain, columnProcessor, recompileExpressions, t)) {
                     db.updateMeta(session, t);
                 }

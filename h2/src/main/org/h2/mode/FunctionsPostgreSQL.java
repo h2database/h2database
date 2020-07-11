@@ -345,7 +345,7 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
         if (tableOidOrName.getValueType() == Value.INTEGER) {
             int tid = tableOidOrName.getInt();
             for (Schema schema : session.getDatabase().getAllSchemasNoMeta()) {
-                for (Table table : schema.getAllTablesAndViews()) {
+                for (Table table : schema.getAllTablesAndViews(session)) {
                     if (tid == table.getId()) {
                         t = table;
                         break;

@@ -1093,7 +1093,7 @@ public final class InformationSchemaTable extends MetaTable {
                 return;
             }
             for (Schema schema : database.getAllSchemas()) {
-                Table table = schema.getTableOrViewByName(tableName);
+                Table table = schema.getTableOrViewByName(session, tableName);
                 if (table != null) {
                     columns(session, rows, catalog, mainSchemaName, collation, table, table.getName());
                 }
@@ -1104,7 +1104,7 @@ public final class InformationSchemaTable extends MetaTable {
             }
         } else {
             for (Schema schema : database.getAllSchemas()) {
-                for (Table table : schema.getAllTablesAndViews()) {
+                for (Table table : schema.getAllTablesAndViews(session)) {
                     String tableName = table.getName();
                     if (checkIndex(session, tableName, indexFrom, indexTo)) {
                         columns(session, rows, catalog, mainSchemaName, collation, table, tableName);
@@ -1504,7 +1504,7 @@ public final class InformationSchemaTable extends MetaTable {
         String collation = database.getCompareMode().getName();
         for (Schema schema : database.getAllSchemas()) {
             String schemaName = schema.getName();
-            for (Table table : schema.getAllTablesAndViews()) {
+            for (Table table : schema.getAllTablesAndViews(session)) {
                 elementTypesFieldsForTable(session, rows, catalog, type, mainSchemaName, collation, schemaName,
                         table);
             }
@@ -2190,7 +2190,7 @@ public final class InformationSchemaTable extends MetaTable {
     private void tables(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         boolean admin = session.getUser().isAdmin();
         for (Schema schema : database.getAllSchemas()) {
-            for (Table table : schema.getAllTablesAndViews()) {
+            for (Table table : schema.getAllTablesAndViews(session)) {
                 String tableName = table.getName();
                 if (checkIndex(session, tableName, indexFrom, indexTo)) {
                     tables(session, rows, catalog, admin, table, tableName);
@@ -2404,7 +2404,7 @@ public final class InformationSchemaTable extends MetaTable {
 
     private void views(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         for (Schema schema : database.getAllSchemas()) {
-            for (Table table : schema.getAllTablesAndViews()) {
+            for (Table table : schema.getAllTablesAndViews(session)) {
                 if (table.isView()) {
                     String tableName = table.getName();
                     if (checkIndex(session, tableName, indexFrom, indexTo)) {
@@ -2596,7 +2596,7 @@ public final class InformationSchemaTable extends MetaTable {
                 return;
             }
             for (Schema schema : database.getAllSchemas()) {
-                Table table = schema.getTableOrViewByName(tableName);
+                Table table = schema.getTableOrViewByName(session, tableName);
                 if (table != null) {
                     indexes(session, rows, catalog, columns, table, table.getName());
                 }
@@ -2607,7 +2607,7 @@ public final class InformationSchemaTable extends MetaTable {
             }
         } else {
             for (Schema schema : database.getAllSchemas()) {
-                for (Table table : schema.getAllTablesAndViews()) {
+                for (Table table : schema.getAllTablesAndViews(session)) {
                     String tableName = table.getName();
                     if (checkIndex(session, tableName, indexFrom, indexTo)) {
                         indexes(session, rows, catalog, columns, table, tableName);
@@ -2989,6 +2989,7 @@ public final class InformationSchemaTable extends MetaTable {
         add(session, rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
         add(session, rows, "TIME ZONE", session.currentTimeZone().getId());
         add(session, rows, "VARIABLE_BINARY", session.isVariableBinary() ? "TRUE" : "FALSE");
+        add(session, rows, "OLD_INFORMATION_SCHEMA", session.isOldInformationSchema() ? "TRUE" : "FALSE");
         BitSet nonKeywords = session.getNonKeywords();
         if (nonKeywords != null) {
             add(session, rows, "NON_KEYWORDS", Parser.formatNonKeywords(nonKeywords));

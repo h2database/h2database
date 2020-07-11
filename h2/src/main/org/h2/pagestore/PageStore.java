@@ -547,7 +547,7 @@ public class PageStore implements CacheWriter {
             log.checkpoint();
             writeBack();
             cache.clear();
-            ArrayList<Table> tables = database.getAllTablesAndViews(false);
+            ArrayList<Table> tables = database.getAllTablesAndViews();
             recordedPagesList = new ArrayList<>();
             recordedPagesIndex = new IntIntHashMap();
             recordPageReads = true;

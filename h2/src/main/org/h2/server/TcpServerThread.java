@@ -163,6 +163,12 @@ public class TcpServerThread implements Runnable {
                                 .append(':').append(socket.getLocalPort()).toString(), //
                         socket.getInetAddress().getAddress(), socket.getPort(),
                         new StringBuilder().append('P').append(clientVersion).toString()));
+                if (clientVersion < Constants.TCP_PROTOCOL_VERSION_20) {
+                    // For DatabaseMetaData
+                    ci.setProperty("OLD_INFORMATION_SCHEMA", "TRUE");
+                    // For H2 Console
+                    ci.setProperty("NON_KEYWORDS", "VALUE");
+                }
                 session = Engine.createSession(ci);
                 transfer.setSession(session);
                 server.addConnection(threadId, originalURL, ci.getUserName());

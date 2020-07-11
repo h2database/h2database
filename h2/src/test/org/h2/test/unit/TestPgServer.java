@@ -5,6 +5,7 @@
  */
 package org.h2.test.unit;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -20,6 +21,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -380,6 +382,19 @@ public class TestPgServer extends TestDb {
     private void testTextualAndBinaryTypes() throws SQLException {
         testTextualAndBinaryTypes(false);
         testTextualAndBinaryTypes(true);
+        Set<Integer> supportedBinaryOids;
+        try {
+            Field supportedBinaryOidsField = Class
+                    .forName("org.postgresql.jdbc.PgConnection")
+                    .getDeclaredField("SUPPORTED_BINARY_OIDS");
+            supportedBinaryOidsField.setAccessible(true);
+            supportedBinaryOids = (Set<Integer>) supportedBinaryOidsField.get(null);
+            supportedBinaryOids.add(16);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+        testTextualAndBinaryTypes(true);
+        supportedBinaryOids.remove(16);
     }
 
     private void testTextualAndBinaryTypes(boolean binary) throws SQLException {

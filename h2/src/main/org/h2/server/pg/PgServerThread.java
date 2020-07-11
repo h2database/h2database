@@ -628,6 +628,10 @@ public class PgServerThread implements Runnable {
         } else {
             // binary
             switch (pgType) {
+            case PgServer.PG_TYPE_BOOL:
+                writeInt(1);
+                dataOut.writeByte(v.getBoolean() ? 't' : 'f');
+                break;
             case PgServer.PG_TYPE_INT2:
                 writeInt(2);
                 writeShort(v.getShort());

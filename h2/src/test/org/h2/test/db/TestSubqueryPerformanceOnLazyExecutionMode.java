@@ -5,15 +5,15 @@
  */
 package org.h2.test.db;
 
-import org.h2.command.dml.SetTypes;
-import org.h2.test.TestBase;
-import org.h2.test.TestDb;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import org.h2.command.dml.SetTypes;
+import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test subquery performance with lazy query execution mode {@link SetTypes#LAZY_QUERY_EXECUTION}.

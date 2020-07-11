@@ -9,7 +9,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
 import org.h2.engine.FunctionAlias;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 
@@ -22,7 +22,7 @@ public class DropFunctionAlias extends SchemaCommand {
     private String aliasName;
     private boolean ifExists;
 
-    public DropFunctionAlias(Session session, Schema schema) {
+    public DropFunctionAlias(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 

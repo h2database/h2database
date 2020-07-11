@@ -8,7 +8,7 @@ package org.h2.command.dml;
 import java.util.ArrayList;
 
 import org.h2.command.Prepared;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.util.Utils;
 
@@ -28,7 +28,7 @@ public abstract class CommandWithValues extends Prepared {
      * @param session
      *            the session
      */
-    protected CommandWithValues(Session session) {
+    protected CommandWithValues(SessionLocal session) {
         super(session);
     }
 

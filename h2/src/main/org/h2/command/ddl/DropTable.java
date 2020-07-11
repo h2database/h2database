@@ -15,7 +15,7 @@ import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintActionType;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
@@ -34,7 +34,7 @@ public class DropTable extends DefineCommand {
 
     private final ArrayList<SchemaAndTable> tables = Utils.newSmallArrayList();
 
-    public DropTable(Session session) {
+    public DropTable(SessionLocal session) {
         super(session);
         dropAction = session.getDatabase().getSettings().dropRestrict ?
                 ConstraintActionType.RESTRICT :

@@ -6,7 +6,7 @@
 package org.h2.pagestore;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.store.Data;
 
@@ -198,7 +198,7 @@ public class PageStreamTrunk extends Page {
     }
 
     @Override
-    public void moveTo(Session session, int newPos) {
+    public void moveTo(SessionLocal session, int newPos) {
         // not required
     }
 

@@ -5,7 +5,7 @@
  */
 package org.h2.expression;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 
@@ -23,7 +23,7 @@ public abstract class Operation0 extends Expression {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         return this;
     }
 
@@ -33,7 +33,7 @@ public abstract class Operation0 extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         // Nothing to do
     }
 

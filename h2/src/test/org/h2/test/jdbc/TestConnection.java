@@ -5,10 +5,6 @@
  */
 package org.h2.test.jdbc;
 
-import org.h2.api.ErrorCode;
-import org.h2.test.TestBase;
-import org.h2.test.TestDb;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,8 +12,11 @@ import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
+import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
+import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests the client info

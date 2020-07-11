@@ -8,7 +8,7 @@ package org.h2.mvstore.db;
 import java.util.List;
 
 import org.h2.command.query.AllColumnsForPlan;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
@@ -63,12 +63,12 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex<Long,SearchRow
     }
 
     @Override
-    public void add(Session session, Row row) {
+    public void add(SessionLocal session, Row row) {
         // nothing to do
     }
 
     @Override
-    public Row getRow(Session session, long key) {
+    public Row getRow(SessionLocal session, long key) {
         return mainIndex.getRow(session, key);
     }
 
@@ -83,17 +83,17 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex<Long,SearchRow
     }
 
     @Override
-    public void close(Session session) {
+    public void close(SessionLocal session) {
         // nothing to do
     }
 
     @Override
-    public Cursor find(Session session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
         return mainIndex.find(session, first, last);
     }
 
     @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
+    public Cursor findFirstOrLast(SessionLocal session, boolean first) {
         return mainIndex.findFirstOrLast(session, first);
     }
 
@@ -111,7 +111,7 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex<Long,SearchRow
     }
 
     @Override
-    public double getCost(Session session, int[] masks,
+    public double getCost(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
         return 10 * getCostRangeIndex(masks, mainIndex.getRowCountApproximation(session),
@@ -124,32 +124,32 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex<Long,SearchRow
     }
 
     @Override
-    public void remove(Session session, Row row) {
+    public void remove(SessionLocal session, Row row) {
         // nothing to do
     }
 
     @Override
-    public void update(Session session, Row oldRow, Row newRow) {
+    public void update(SessionLocal session, Row oldRow, Row newRow) {
         // nothing to do
     }
 
     @Override
-    public void remove(Session session) {
+    public void remove(SessionLocal session) {
         mainIndex.setMainIndexColumn(SearchRow.ROWID_INDEX);
     }
 
     @Override
-    public void truncate(Session session) {
+    public void truncate(SessionLocal session) {
         // nothing to do
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         return mainIndex.getRowCount(session);
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return mainIndex.getRowCountApproximation(session);
     }
 

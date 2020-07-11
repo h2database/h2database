@@ -5,13 +5,13 @@
  */
 package org.h2.test.unit;
 
+import java.nio.ByteBuffer;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.BasicDataType;
 import org.h2.test.TestBase;
 import org.h2.util.MemoryEstimator;
-import java.nio.ByteBuffer;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Class TestMemoryEstimator.

@@ -13,7 +13,7 @@ import static org.h2.util.geometry.GeometryUtils.MIN_Y;
 import java.util.Iterator;
 
 import org.h2.command.query.AllColumnsForPlan;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
@@ -63,7 +63,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
      */
     public SpatialTreeIndex(Table table, int id, String indexName,
             IndexColumn[] columns, IndexType indexType, boolean persistent,
-            boolean create, Session session) {
+            boolean create, SessionLocal session) {
         super(table, id, indexName, columns, indexType);
         if (indexType.isUnique()) {
             throw DbException.getUnsupportedException("not unique");
@@ -118,13 +118,13 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public void close(Session session) {
+    public void close(SessionLocal session) {
         store.close();
         closed = true;
     }
 
     @Override
-    public void add(Session session, Row row) {
+    public void add(SessionLocal session, Row row) {
         if (closed) {
             throw DbException.throwInternalError();
         }
@@ -145,7 +145,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public void remove(Session session, Row row) {
+    public void remove(SessionLocal session, Row row) {
         if (closed) {
             throw DbException.throwInternalError();
         }
@@ -155,12 +155,12 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public Cursor find(Session session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
         return new SpatialCursor(treeMap.keySet().iterator(), table, session);
     }
 
     @Override
-    public Cursor findByGeometry(Session session, SearchRow first, SearchRow last, SearchRow intersection) {
+    public Cursor findByGeometry(SessionLocal session, SearchRow first, SearchRow last, SearchRow intersection) {
         if (intersection == null) {
             return find(session, first, last);
         }
@@ -168,21 +168,21 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks,
+    public double getCost(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
         return MVSpatialIndex.getCostRangeIndex(masks, columns);
     }
 
     @Override
-    public void remove(Session session) {
+    public void remove(SessionLocal session) {
         if (!treeMap.isClosed()) {
             store.removeMap(treeMap);
         }
     }
 
     @Override
-    public void truncate(Session session) {
+    public void truncate(SessionLocal session) {
         treeMap.clear();
     }
 
@@ -192,12 +192,12 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         return treeMap.sizeAsLong();
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return treeMap.sizeAsLong();
     }
 
@@ -215,9 +215,9 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
         private final Iterator<SpatialKey> it;
         private SpatialKey current;
         private final Table table;
-        private final Session session;
+        private final SessionLocal session;
 
-        public SpatialCursor(Iterator<SpatialKey> it, Table table, Session session) {
+        public SpatialCursor(Iterator<SpatialKey> it, Table table, SessionLocal session) {
             this.it = it;
             this.table = table;
             this.session = session;

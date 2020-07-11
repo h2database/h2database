@@ -8,7 +8,7 @@ package org.h2.expression.condition;
 import java.util.ArrayList;
 import java.util.TreeSet;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
@@ -49,7 +49,7 @@ public final class ConditionInConstantSet extends Condition {
      * @param whenOperand whether this is a when operand
      * @param valueList the value list (at least two elements)
      */
-    public ConditionInConstantSet(Session session, Expression left, boolean not, boolean whenOperand,
+    public ConditionInConstantSet(SessionLocal session, Expression left, boolean not, boolean whenOperand,
             ArrayList<Expression> valueList) {
         this.left = left;
         this.not = not;
@@ -71,12 +71,12 @@ public final class ConditionInConstantSet extends Condition {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         return getValue(left.getValue(session));
     }
 
     @Override
-    public boolean getWhenValue(Session session, Value left) {
+    public boolean getWhenValue(SessionLocal session, Value left) {
         if (!whenOperand) {
             return super.getWhenValue(session, left);
         }
@@ -100,13 +100,13 @@ public final class ConditionInConstantSet extends Condition {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         return this;
     }
 
     @Override
-    public Expression getNotIfPossible(Session session) {
+    public Expression getNotIfPossible(SessionLocal session) {
         if (whenOperand) {
             return null;
         }
@@ -114,7 +114,7 @@ public final class ConditionInConstantSet extends Condition {
     }
 
     @Override
-    public void createIndexConditions(Session session, TableFilter filter) {
+    public void createIndexConditions(SessionLocal session, TableFilter filter) {
         if (not || whenOperand || !(left instanceof ExpressionColumn)) {
             return;
         }
@@ -151,7 +151,7 @@ public final class ConditionInConstantSet extends Condition {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         left.updateAggregate(session, stage);
     }
 
@@ -191,7 +191,7 @@ public final class ConditionInConstantSet extends Condition {
      * @param other the second condition
      * @return null if the condition was not added, or the new condition
      */
-    Expression getAdditional(Session session, Comparison other) {
+    Expression getAdditional(SessionLocal session, Comparison other) {
         if (!not) {
             Expression add = other.getIfEquals(left);
             if (add != null) {

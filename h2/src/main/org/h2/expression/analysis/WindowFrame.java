@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.BinaryOperation;
 import org.h2.expression.BinaryOperation.OpType;
 import org.h2.expression.Expression;
@@ -205,7 +205,7 @@ public final class WindowFrame {
      *            whether iterator should iterate in reverse order
      * @return iterator
      */
-    public static Iterator<Value[]> iterator(Window over, Session session, ArrayList<Value[]> orderedRows,
+    public static Iterator<Value[]> iterator(Window over, SessionLocal session, ArrayList<Value[]> orderedRows,
             SortOrder sortOrder, int currentRow, boolean reverse) {
         WindowFrame frame = over.getWindowFrame();
         if (frame != null) {
@@ -236,8 +236,8 @@ public final class WindowFrame {
      *             if over is not null and its exclusion clause is not EXCLUDE
      *             NO OTHERS
      */
-    public static int getEndIndex(Window over, Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder,
-            int currentRow) {
+    public static int getEndIndex(Window over, SessionLocal session, ArrayList<Value[]> orderedRows,
+            SortOrder sortOrder, int currentRow) {
         WindowFrame frame = over.getWindowFrame();
         if (frame != null) {
             return frame.getEndIndex(session, orderedRows, sortOrder, currentRow);
@@ -284,7 +284,7 @@ public final class WindowFrame {
         return offset;
     }
 
-    private static int getIntOffset(WindowFrameBound bound, Value[] values, Session session) {
+    private static int getIntOffset(WindowFrameBound bound, Value[] values, SessionLocal session) {
         Value v = bound.isVariable() ? values[bound.getExpressionIndex()] : bound.getValue().getValue(session);
         int value = v.getInt();
         if (v == ValueNull.INSTANCE || value < 0) {
@@ -312,7 +312,7 @@ public final class WindowFrame {
      * @return row for comparison operations, or null if result is out of range
      *         and should be treated as UNLIMITED
      */
-    private static Value[] getCompareRow(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder,
+    private static Value[] getCompareRow(SessionLocal session, ArrayList<Value[]> orderedRows, SortOrder sortOrder,
             int currentRow, WindowFrameBound bound, boolean add) {
         int sortIndex = sortOrder.getQueryColumnIndexes()[0];
         Value[] row = orderedRows.get(currentRow);
@@ -373,7 +373,7 @@ public final class WindowFrame {
         return newRow;
     }
 
-    private static Value getValueOffset(WindowFrameBound bound, Value[] values, Session session) {
+    private static Value getValueOffset(WindowFrameBound bound, Value[] values, SessionLocal session) {
         Value value = bound.isVariable() ? values[bound.getExpressionIndex()] : bound.getValue().getValue(session);
         if (value == ValueNull.INSTANCE || value.getSignum() < 0) {
             throw DbException.get(ErrorCode.INVALID_PRECEDING_OR_FOLLOWING_1, value.getTraceSQL());
@@ -454,7 +454,7 @@ public final class WindowFrame {
 
     /**
      * Check if bounds of this frame has variable expressions. This method may
-     * be used only after {@link #optimize(Session)} invocation.
+     * be used only after {@link #optimize(SessionLocal)} invocation.
      *
      * @return if bounds of this frame has variable expressions
      */
@@ -491,7 +491,7 @@ public final class WindowFrame {
      * @param session
      *            the session
      */
-    void optimize(Session session) {
+    void optimize(SessionLocal session) {
         starting.optimize(session);
         if (following != null) {
             following.optimize(session);
@@ -505,9 +505,9 @@ public final class WindowFrame {
      *            the session
      * @param stage
      *            select stage
-     * @see Expression#updateAggregate(Session, int)
+     * @see Expression#updateAggregate(SessionLocal, int)
      */
-    void updateAggregate(Session session, int stage) {
+    void updateAggregate(SessionLocal session, int stage) {
         starting.updateAggregate(session, stage);
         if (following != null) {
             following.updateAggregate(session, stage);
@@ -529,7 +529,7 @@ public final class WindowFrame {
      *            whether iterator should iterate in reverse order
      * @return iterator
      */
-    public Iterator<Value[]> iterator(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder,
+    public Iterator<Value[]> iterator(SessionLocal session, ArrayList<Value[]> orderedRows, SortOrder sortOrder,
             int currentRow, boolean reverse) {
         int startIndex = getIndex(session, orderedRows, sortOrder, currentRow, starting, false);
         int endIndex = following != null ? getIndex(session, orderedRows, sortOrder, currentRow, following, true)
@@ -568,7 +568,8 @@ public final class WindowFrame {
      * @throws UnsupportedOperationException
      *             if exclusion clause is not EXCLUDE NO OTHERS
      */
-    public int getStartIndex(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow) {
+    public int getStartIndex(SessionLocal session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, //
+            int currentRow) {
         if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
             throw new UnsupportedOperationException();
         }
@@ -594,7 +595,8 @@ public final class WindowFrame {
      * @throws UnsupportedOperationException
      *             if exclusion clause is not EXCLUDE NO OTHERS
      */
-    private int getEndIndex(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow) {
+    private int getEndIndex(SessionLocal session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, //
+            int currentRow) {
         if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
             throw new UnsupportedOperationException();
         }
@@ -627,7 +629,7 @@ public final class WindowFrame {
      *         or be equal to the number of rows if frame is not limited from
      *         that side
      */
-    private int getIndex(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow,
+    private int getIndex(SessionLocal session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow,
             WindowFrameBound bound, boolean forFollowing) {
         int size = orderedRows.size();
         int last = size - 1;

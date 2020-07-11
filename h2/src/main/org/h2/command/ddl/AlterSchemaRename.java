@@ -5,15 +5,14 @@
  */
 package org.h2.command.ddl;
 
+import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
-
-import java.util.ArrayList;
 
 /**
  * This class represents the statement
@@ -24,7 +23,7 @@ public class AlterSchemaRename extends DefineCommand {
     private Schema oldSchema;
     private String newSchemaName;
 
-    public AlterSchemaRename(Session session) {
+    public AlterSchemaRename(SessionLocal session) {
         super(session);
     }
 

@@ -5,7 +5,7 @@
  */
 package org.h2.expression.condition;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
@@ -77,7 +77,7 @@ public final class IsJsonPredicate extends Condition {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         if (!whenOperand && left.isConstant()) {
             return ValueExpression.getBoolean(getValue(session));
@@ -86,7 +86,7 @@ public final class IsJsonPredicate extends Condition {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value l = left.getValue(session);
         if (l == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
@@ -95,7 +95,7 @@ public final class IsJsonPredicate extends Condition {
     }
 
     @Override
-    public boolean getWhenValue(Session session, Value left) {
+    public boolean getWhenValue(SessionLocal session, Value left) {
         if (!whenOperand) {
             return super.getWhenValue(session, left);
         }
@@ -153,7 +153,7 @@ public final class IsJsonPredicate extends Condition {
     }
 
     @Override
-    public Expression getNotIfPossible(Session session) {
+    public Expression getNotIfPossible(SessionLocal session) {
         if (whenOperand) {
             return null;
         }
@@ -166,7 +166,7 @@ public final class IsJsonPredicate extends Condition {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         left.updateAggregate(session, stage);
     }
 

@@ -40,8 +40,8 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.IsolationLevel;
 import org.h2.engine.Mode;
-import org.h2.engine.SessionInterface;
-import org.h2.engine.SessionInterface.StaticSettings;
+import org.h2.engine.Session;
+import org.h2.engine.Session.StaticSettings;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -82,7 +82,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     // ResultSet.HOLD_CURSORS_OVER_COMMIT
     private int holdability = 1;
 
-    private SessionInterface session;
+    private Session session;
     private CommandInterface commit, rollback;
     private CommandInterface getReadOnly, getGeneratedKeys;
     private CommandInterface setQueryTimeout, getQueryTimeout;
@@ -167,7 +167,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     /**
      * INTERNAL
      */
-    public JdbcConnection(SessionInterface session, String user, String url) {
+    public JdbcConnection(Session session, String user, String url) {
         this.session = session;
         trace = session.getTrace();
         int id = getNextId(TraceObject.CONNECTION);
@@ -328,7 +328,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     /**
      * INTERNAL
      */
-    public SessionInterface getSession() {
+    public Session getSession() {
         return session;
     }
 
@@ -1924,7 +1924,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
 
     @Override
     public ValueTimestampTimeZone currentTimestamp() {
-        SessionInterface session = this.session;
+        Session session = this.session;
         if (session == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
@@ -1933,7 +1933,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
 
     @Override
     public TimeZoneProvider currentTimeZone() {
-        SessionInterface session = this.session;
+        Session session = this.session;
         if (session == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
@@ -1942,7 +1942,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
 
     @Override
     public JavaObjectSerializer getJavaObjectSerializer() {
-        SessionInterface session = this.session;
+        Session session = this.session;
         if (session == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
@@ -1951,7 +1951,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
 
     @Override
     public boolean zeroBasedEnums() {
-        SessionInterface session = this.session;
+        Session session = this.session;
         if (session == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }

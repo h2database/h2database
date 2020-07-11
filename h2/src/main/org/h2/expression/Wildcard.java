@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
@@ -63,7 +63,7 @@ public class Wildcard extends Expression {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         throw DbException.throwInternalError(toString());
     }
 
@@ -82,7 +82,7 @@ public class Wildcard extends Expression {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         throw DbException.get(ErrorCode.SYNTAX_ERROR_1, table);
     }
 
@@ -114,7 +114,7 @@ public class Wildcard extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         DbException.throwInternalError(toString());
     }
 

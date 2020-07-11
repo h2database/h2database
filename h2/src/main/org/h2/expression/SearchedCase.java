@@ -5,7 +5,7 @@
  */
 package org.h2.expression;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -24,7 +24,7 @@ public class SearchedCase extends OperationN {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         int len = args.length - 1;
         for (int i = 0; i < len; i += 2) {
             if (args[i].getBooleanValue(session)) {
@@ -38,7 +38,7 @@ public class SearchedCase extends OperationN {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         TypeInfo typeInfo = TypeInfo.TYPE_UNKNOWN;
         int len = args.length - 1;
         boolean allConst = true;

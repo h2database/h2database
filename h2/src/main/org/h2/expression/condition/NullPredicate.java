@@ -7,7 +7,7 @@ package org.h2.expression.condition;
 
 import java.util.ArrayList;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionList;
@@ -41,7 +41,7 @@ public final class NullPredicate extends SimplePredicate {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         if (optimized) {
             return this;
         }
@@ -79,12 +79,12 @@ public final class NullPredicate extends SimplePredicate {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         return ValueBoolean.get(getValue(left.getValue(session)));
     }
 
     @Override
-    public boolean getWhenValue(Session session, Value left) {
+    public boolean getWhenValue(SessionLocal session, Value left) {
         if (!whenOperand) {
             return super.getWhenValue(session, left);
         }
@@ -104,7 +104,7 @@ public final class NullPredicate extends SimplePredicate {
     }
 
     @Override
-    public Expression getNotIfPossible(Session session) {
+    public Expression getNotIfPossible(SessionLocal session) {
         if (whenOperand) {
             return null;
         }
@@ -121,7 +121,7 @@ public final class NullPredicate extends SimplePredicate {
     }
 
     @Override
-    public void createIndexConditions(Session session, TableFilter filter) {
+    public void createIndexConditions(SessionLocal session, TableFilter filter) {
         if (not || whenOperand || !filter.getTable().isQueryComparable()) {
             return;
         }

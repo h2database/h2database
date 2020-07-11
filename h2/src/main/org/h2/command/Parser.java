@@ -207,7 +207,7 @@ import org.h2.engine.Mode;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.Procedure;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.expression.Alias;
 import org.h2.expression.ArrayConstructorByQuery;
@@ -771,7 +771,7 @@ public class Parser {
     };
 
     private final Database database;
-    private final Session session;
+    private final SessionLocal session;
 
     /**
      * @see org.h2.engine.DbSettings#databaseToLower
@@ -783,7 +783,7 @@ public class Parser {
     private final boolean identifiersToUpper;
 
     /**
-     * @see org.h2.engine.Session#isVariableBinary()
+     * @see org.h2.engine.SessionLocal#isVariableBinary()
      */
     private final boolean variableBinary;
 
@@ -866,7 +866,7 @@ public class Parser {
      *
      * @param session the session
      */
-    public Parser(Session session) {
+    public Parser(SessionLocal session) {
         this.database = session.getDatabase();
         DbSettings settings = database.getSettings();
         this.identifiersToLower = settings.databaseToLower;
@@ -1688,7 +1688,7 @@ public class Parser {
         }
     }
 
-    private static Prepared prepare(Session s, String sql,
+    private static Prepared prepare(SessionLocal s, String sql,
             ArrayList<Value> paramValues) {
         Prepared prep = s.prepare(sql);
         ArrayList<Parameter> params = prep.getParameters();
@@ -9859,7 +9859,7 @@ public class Parser {
         readColumnConstraints(command, schema, tableName, column);
     }
 
-    public static AlterTableAddConstraint newPrimaryKeyConstraintCommand(Session session, Schema schema,
+    public static AlterTableAddConstraint newPrimaryKeyConstraintCommand(SessionLocal session, Schema schema,
             String tableName, Column column) {
         column.setPrimaryKey(false);
         AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema,

@@ -34,7 +34,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Mode.ModeEnum;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ExpressionWithFlags;
@@ -402,11 +402,11 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         return getValueWithArgs(session, args);
     }
 
-    private Value getSimpleValue(Session session, Value v0, Expression[] args,
+    private Value getSimpleValue(SessionLocal session, Value v0, Expression[] args,
             Value[] values) {
         Value result;
         switch (info.type) {
@@ -577,10 +577,10 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return list;
     }
 
-    private static boolean cancelStatement(Session session, int targetSessionId) {
+    private static boolean cancelStatement(SessionLocal session, int targetSessionId) {
         session.getUser().checkAdmin();
-        Session[] sessions = session.getDatabase().getSessions(false);
-        for (Session s : sessions) {
+        SessionLocal[] sessions = session.getDatabase().getSessions(false);
+        for (SessionLocal s : sessions) {
             if (s.getId() == targetSessionId) {
                 Command c = s.getCurrentCommand();
                 if (c == null) {
@@ -593,10 +593,10 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return false;
     }
 
-    private static boolean abortSession(Session session, int targetSessionId) {
+    private static boolean abortSession(SessionLocal session, int targetSessionId) {
         session.getUser().checkAdmin();
-        Session[] sessions = session.getDatabase().getSessions(false);
-        for (Session s : sessions) {
+        SessionLocal[] sessions = session.getDatabase().getSessions(false);
+        for (SessionLocal s : sessions) {
             if (s.getId() == targetSessionId) {
                 Command c = s.getCurrentCommand();
                 if (c != null) {
@@ -609,11 +609,11 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return false;
     }
 
-    private static long getDiskSpaceUsed(Session session, Value tableName) {
+    private static long getDiskSpaceUsed(SessionLocal session, Value tableName) {
         return getTable(session, tableName).getDiskSpaceUsed();
     }
 
-    private static Value getEstimatedEnvelope(Session session, Value tableName, Value columnName) {
+    private static Value getEstimatedEnvelope(SessionLocal session, Value tableName, Value columnName) {
         Table table = getTable(session, tableName);
         Column column = table.getColumn(columnName.getString());
         ArrayList<Index> indexes = table.getIndexes();
@@ -628,7 +628,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return ValueNull.INSTANCE;
     }
 
-    private static Table getTable(Session session, Value tableName) {
+    private static Table getTable(SessionLocal session, Value tableName) {
         return new Parser(session).parseTableName(tableName.getString());
     }
 
@@ -642,7 +642,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
      * @param i index of value of transform
      * @return value or null
      */
-    protected static Value getNullOrValue(Session session, Expression[] args,
+    protected static Value getNullOrValue(SessionLocal session, Expression[] args,
             Value[] values, int i) {
         if (i >= args.length) {
             return null;
@@ -665,7 +665,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
      * @param args argument expressions
      * @return the result
      */
-    protected Value getValueWithArgs(Session session, Expression[] args) {
+    protected Value getValueWithArgs(SessionLocal session, Expression[] args) {
         Value[] values = getArgumentsValues(session, args);
         if (values == null) {
             return ValueNull.INSTANCE;
@@ -1058,7 +1058,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     }
 
     private static Value regexpSubstr(Value inputString, Value regexpArg, Value positionArg,
-            Value occurrenceArg, Value regexpModeArg, Value subexpressionArg, Session session) {
+            Value occurrenceArg, Value regexpModeArg, Value subexpressionArg, SessionLocal session) {
         String regexp = regexpArg.getString();
 
         if (inputString == ValueNull.INSTANCE || regexpArg == ValueNull.INSTANCE || positionArg == ValueNull.INSTANCE
@@ -1104,7 +1104,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
      * @return the values, or {@code null} if function should return NULL due to
      *         NULL argument
      */
-    protected final Value[] getArgumentsValues(Session session, Expression[] args) {
+    protected final Value[] getArgumentsValues(SessionLocal session, Expression[] args) {
         Value[] values = new Value[args.length];
         if (info.nullIfParameterIsNull) {
             for (int i = 0, l = args.length; i < l; i++) {
@@ -1137,7 +1137,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return result;
     }
 
-    private static Value truncate(Session session, Value v0, Value v1) {
+    private static Value truncate(SessionLocal session, Value v0, Value v1) {
         Value result;
         int t = v0.getValueType();
         switch (t) {
@@ -1184,7 +1184,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return result;
     }
 
-    private static Value truncateValue(Session session, Value value, long precision, boolean force) {
+    private static Value truncateValue(SessionLocal session, Value value, long precision, boolean force) {
         if (precision <= 0) {
             throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Long.toString(precision), "1",
                     "" + Integer.MAX_VALUE);
@@ -1281,7 +1281,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return ValueVarbinary.getNoCopy(b);
     }
 
-    private Value substring(Session session, Value stringValue, Value startValue, Value lengthValue) {
+    private Value substring(SessionLocal session, Value stringValue, Value startValue, Value lengthValue) {
         if (type.getValueType() == Value.VARBINARY) {
             byte[] s = stringValue.getBytesNoCopy();
             int sl = s.length;
@@ -1507,7 +1507,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
     }
 
-    private static Value regexpReplace(Session session, String input, String regexp, String replacement,
+    private static Value regexpReplace(SessionLocal session, String input, String regexp, String replacement,
             String regexpMode) {
         Mode mode = session.getMode();
         if (mode.regexpReplaceBackslashReferences) {
@@ -1652,7 +1652,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         boolean allConst = optimizeArguments(session);
         TypeInfo typeInfo;
         Expression p0 = args.length < 1 ? null : args[0];
@@ -1780,11 +1780,11 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
      *            the session
      * @return whether all arguments are constants and function is deterministic
      */
-    protected final boolean optimizeArguments(Session session) {
+    protected final boolean optimizeArguments(SessionLocal session) {
         return optimizeArguments(session, info.deterministic);
     }
 
-    private TypeInfo getRoundNumericType(Session session) {
+    private TypeInfo getRoundNumericType(SessionLocal session) {
         int scale = 0;
         if (args.length > 1) {
             Expression scaleExpr = args[1];
@@ -1844,7 +1844,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     }
 
     @Override
-    public ValueResultSet getValueForColumnList(Session session,
+    public ValueResultSet getValueForColumnList(SessionLocal session,
             Expression[] argList) {
         switch (info.type) {
         case CSVREAD: {

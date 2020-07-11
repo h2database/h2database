@@ -9,7 +9,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.TriggerObject;
@@ -24,7 +24,7 @@ public class DropTrigger extends SchemaCommand {
     private String triggerName;
     private boolean ifExists;
 
-    public DropTrigger(Session session, Schema schema) {
+    public DropTrigger(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 

@@ -22,7 +22,7 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Database;
 import org.h2.engine.Engine;
 import org.h2.engine.Role;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.security.auth.DefaultAuthenticator;
@@ -53,7 +53,7 @@ public class TestAuthentication extends TestBase {
 
     private String externalUserPassword;
     private DefaultAuthenticator defaultAuthenticator;
-    private Session session;
+    private SessionLocal session;
     private Database database;
 
     /**
@@ -129,7 +129,7 @@ public class TestAuthentication extends TestBase {
             Properties properties = new Properties();
             properties.setProperty("USER", "dba");
             ConnectionInfo connectionInfo = new ConnectionInfo(getDatabaseURL(), properties);
-            session = Engine.getInstance().createSession(connectionInfo);
+            session = Engine.createSession(connectionInfo);
             database = session.getDatabase();
             configureAuthentication(database);
             try {

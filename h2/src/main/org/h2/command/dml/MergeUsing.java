@@ -16,7 +16,7 @@ import org.h2.command.Prepared;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
@@ -28,8 +28,8 @@ import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.table.Column;
-import org.h2.table.PlanItem;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
+import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.HasSQL;
@@ -70,7 +70,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
      */
     private final HashSet<Long> targetRowidsRemembered = new HashSet<>();
 
-    public MergeUsing(Session session, TableFilter targetTableFilter) {
+    public MergeUsing(SessionLocal session, TableFilter targetTableFilter) {
         super(session);
         this.targetTableFilter = targetTableFilter;
     }
@@ -347,7 +347,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
          * @param session
          *            the session
          */
-        abstract void merge(Session session);
+        abstract void merge(SessionLocal session);
 
         /**
          * Prepares WHEN command.
@@ -356,7 +356,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
          *            the session
          * @return {@code false} if this clause may be removed
          */
-        boolean prepare(Session session) {
+        boolean prepare(SessionLocal session) {
             if (andCondition != null) {
                 andCondition.mapColumns(mergeUsing.targetTableFilter, 0, Expression.MAP_INITIAL);
                 andCondition.mapColumns(mergeUsing.sourceTableFilter, 0, Expression.MAP_INITIAL);
@@ -417,7 +417,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        void merge(Session session) {
+        void merge(SessionLocal session) {
             TableFilter targetTableFilter = mergeUsing.targetTableFilter;
             Table table = targetTableFilter.getTable();
             Row row = targetTableFilter.get();
@@ -461,7 +461,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        void merge(Session session) {
+        void merge(SessionLocal session) {
             TableFilter targetTableFilter = mergeUsing.targetTableFilter;
             Table table = targetTableFilter.getTable();
             try (RowList rows = new RowList(session, table)) {
@@ -472,7 +472,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        boolean prepare(Session session) {
+        boolean prepare(SessionLocal session) {
             boolean result = super.prepare(session);
             setClauseList.mapAndOptimize(session, mergeUsing.targetTableFilter, mergeUsing.sourceTableFilter);
             return result;
@@ -514,7 +514,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        void merge(Session session) {
+        void merge(SessionLocal session) {
             Table table = mergeUsing.targetTableFilter.getTable();
             ResultTarget deltaChangeCollector = mergeUsing.deltaChangeCollector;
             ResultOption deltaChangeCollectionMode = mergeUsing.deltaChangeCollectionMode;
@@ -550,7 +550,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        boolean prepare(Session session) {
+        boolean prepare(SessionLocal session) {
             boolean result = super.prepare(session);
             TableFilter targetTableFilter = mergeUsing.targetTableFilter,
                     sourceTableFilter = mergeUsing.sourceTableFilter;

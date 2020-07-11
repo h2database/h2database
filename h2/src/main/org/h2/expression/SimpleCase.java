@@ -5,7 +5,7 @@
  */
 package org.h2.expression;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
@@ -65,7 +65,7 @@ public class SimpleCase extends Expression {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value v = operand.getValue(session);
         for (SimpleWhen when = this.when; when != null; when = when.next) {
             for (Expression e : when.operands) {
@@ -81,7 +81,7 @@ public class SimpleCase extends Expression {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         TypeInfo typeInfo = TypeInfo.TYPE_UNKNOWN;
         operand = operand.optimize(session);
         boolean allConst = operand.isConstant();
@@ -188,7 +188,7 @@ public class SimpleCase extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         operand.updateAggregate(session, stage);
         for (SimpleWhen when = this.when; when != null; when = when.next) {
             for (Expression e : when.operands) {

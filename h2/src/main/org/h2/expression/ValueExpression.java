@@ -5,7 +5,7 @@
  */
 package org.h2.expression;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.condition.Comparison;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
@@ -93,7 +93,7 @@ public class ValueExpression extends Operation0 {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         return value;
     }
 
@@ -103,14 +103,14 @@ public class ValueExpression extends Operation0 {
     }
 
     @Override
-    public void createIndexConditions(Session session, TableFilter filter) {
+    public void createIndexConditions(SessionLocal session, TableFilter filter) {
         if (value.getValueType() == Value.BOOLEAN && !value.getBoolean()) {
             filter.addIndexCondition(IndexCondition.get(Comparison.FALSE, null, this));
         }
     }
 
     @Override
-    public Expression getNotIfPossible(Session session) {
+    public Expression getNotIfPossible(SessionLocal session) {
         return new Comparison(Comparison.EQUAL, this, ValueExpression.FALSE, false);
     }
 
@@ -165,7 +165,7 @@ public class ValueExpression extends Operation0 {
     }
 
     @Override
-    public Expression[] getExpressionColumns(Session session) {
+    public Expression[] getExpressionColumns(SessionLocal session) {
         int valueType = getType().getValueType();
         switch (valueType) {
         case Value.ROW:

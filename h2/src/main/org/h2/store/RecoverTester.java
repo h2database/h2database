@@ -16,7 +16,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.Recorder;
@@ -110,7 +110,7 @@ public class RecoverTester implements Recorder {
                     ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0", p);
             Database database = new Database(ci, null);
             // close the database
-            Session sysSession = database.getSystemSession();
+            SessionLocal sysSession = database.getSystemSession();
             sysSession.prepare("script to '" + testDatabase + ".sql'").query(0);
             sysSession.prepare("shutdown immediately").update();
             database.removeSession(null);

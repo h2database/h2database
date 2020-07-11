@@ -11,7 +11,7 @@ import java.util.Comparator;
 
 import org.h2.command.query.QueryOrderBy;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.mode.DefaultNullOrdering;
@@ -49,7 +49,7 @@ public class SortOrder implements Comparator<Value[]> {
      */
     public static final int NULLS_LAST = 4;
 
-    private final Session session;
+    private final SessionLocal session;
 
     /**
      * The column indexes of the order by expressions within the query.
@@ -72,7 +72,7 @@ public class SortOrder implements Comparator<Value[]> {
      * @param session the session
      * @param queryColumnIndexes the column index list
      */
-    public SortOrder(Session session, int[] queryColumnIndexes) {
+    public SortOrder(SessionLocal session, int[] queryColumnIndexes) {
         this (session, queryColumnIndexes, new int[queryColumnIndexes.length], null);
     }
 
@@ -84,7 +84,8 @@ public class SortOrder implements Comparator<Value[]> {
      * @param sortType the sort order bit masks
      * @param orderList the original query order list (if this is a query)
      */
-    public SortOrder(Session session, int[] queryColumnIndexes, int[] sortType, ArrayList<QueryOrderBy> orderList) {
+    public SortOrder(SessionLocal session, int[] queryColumnIndexes, int[] sortType,
+            ArrayList<QueryOrderBy> orderList) {
         this.session = session;
         this.queryColumnIndexes = queryColumnIndexes;
         this.sortTypes = sortType;

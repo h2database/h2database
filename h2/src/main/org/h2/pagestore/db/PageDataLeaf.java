@@ -9,7 +9,7 @@ import java.lang.ref.SoftReference;
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.Cursor;
 import org.h2.message.DbException;
 import org.h2.pagestore.Page;
@@ -299,7 +299,7 @@ public class PageDataLeaf extends PageData {
     }
 
     @Override
-    Cursor find(Session session, long minKey, long maxKey) {
+    Cursor find(SessionLocal session, long minKey, long maxKey) {
         int x = find(minKey);
         return new PageDataCursor(this, x, maxKey);
     }
@@ -519,7 +519,7 @@ public class PageDataLeaf extends PageData {
     }
 
     @Override
-    public void moveTo(Session session, int newPos) {
+    public void moveTo(SessionLocal session, int newPos) {
         PageStore store = index.getPageStore();
         // load the pages into the cache, to ensure old pages
         // are written

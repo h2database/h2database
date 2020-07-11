@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Constants;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -50,7 +50,7 @@ public class LinkedIndex extends BaseIndex {
     }
 
     @Override
-    public void close(Session session) {
+    public void close(SessionLocal session) {
         // nothing to do
     }
 
@@ -59,7 +59,7 @@ public class LinkedIndex extends BaseIndex {
     }
 
     @Override
-    public void add(Session session, Row row) {
+    public void add(SessionLocal session, Row row) {
         ArrayList<Value> params = Utils.newSmallArrayList();
         StringBuilder buff = new StringBuilder("INSERT INTO ");
         buff.append(targetTableName).append(" VALUES(");
@@ -88,7 +88,7 @@ public class LinkedIndex extends BaseIndex {
     }
 
     @Override
-    public Cursor find(Session session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
         ArrayList<Value> params = Utils.newSmallArrayList();
         StringBuilder builder = new StringBuilder("SELECT * FROM ").append(targetTableName).append(" T");
         boolean f = false;
@@ -148,7 +148,7 @@ public class LinkedIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks,
+    public double getCost(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
         return 100 + getCostRangeIndex(masks, rowCount +
@@ -156,12 +156,12 @@ public class LinkedIndex extends BaseIndex {
     }
 
     @Override
-    public void remove(Session session) {
+    public void remove(SessionLocal session) {
         // nothing to do
     }
 
     @Override
-    public void truncate(Session session) {
+    public void truncate(SessionLocal session) {
         // nothing to do
     }
 
@@ -176,7 +176,7 @@ public class LinkedIndex extends BaseIndex {
     }
 
     @Override
-    public void remove(Session session, Row row) {
+    public void remove(SessionLocal session, Row row) {
         ArrayList<Value> params = Utils.newSmallArrayList();
         StringBuilder builder = new StringBuilder("DELETE FROM ").append(targetTableName).append(" WHERE ");
         for (int i = 0; i < row.getColumnCount(); i++) {
@@ -214,7 +214,7 @@ public class LinkedIndex extends BaseIndex {
      * @param newRow the new data
      * @param session the session
      */
-    public void update(Row oldRow, Row newRow, Session session) {
+    public void update(Row oldRow, Row newRow, SessionLocal session) {
         ArrayList<Value> params = Utils.newSmallArrayList();
         StringBuilder builder = new StringBuilder("UPDATE ").append(targetTableName).append(" SET ");
         for (int i = 0; i < newRow.getColumnCount(); i++) {
@@ -255,12 +255,12 @@ public class LinkedIndex extends BaseIndex {
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         return rowCount;
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return rowCount;
     }
 

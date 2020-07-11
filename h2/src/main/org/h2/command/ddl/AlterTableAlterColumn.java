@@ -18,7 +18,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
@@ -73,7 +73,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
     private ArrayList<Column> columnsToRemove;
     private boolean newVisibility;
 
-    public AlterTableAlterColumn(Session session, Schema schema) {
+    public AlterTableAlterColumn(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 

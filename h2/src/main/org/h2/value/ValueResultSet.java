@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 
 import org.h2.engine.CastDataProvider;
-import org.h2.engine.SessionInterface;
+import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
@@ -47,7 +47,7 @@ public final class ValueResultSet extends Value {
      *            meta data)
      * @return the value
      */
-    public static ValueResultSet get(SessionInterface session, ResultSet rs, int maxrows) {
+    public static ValueResultSet get(Session session, ResultSet rs, int maxrows) {
         try {
             ResultSetMetaData meta = rs.getMetaData();
             int columnCount = meta.getColumnCount();

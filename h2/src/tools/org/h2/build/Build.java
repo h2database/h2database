@@ -137,7 +137,65 @@ public class Build extends BuildBase {
      */
     @Description(summary = "Compile all classes.")
     public void compile() {
-        compile(true, false, false);
+        clean();
+        mkdir("temp");
+        download();
+        String classpath = "temp" +
+                File.pathSeparator + "ext/javax.servlet-api-" + SERVLET_VERSION + ".jar" +
+                File.pathSeparator + "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/slf4j-api-" + SLF4J_VERSION + ".jar" +
+                File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
+                File.pathSeparator + "ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar" +
+                File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar" +
+                File.pathSeparator + "ext/asm-" + ASM_VERSION + ".jar" +
+                File.pathSeparator + javaToolsJar;
+        FileList files = files("src/main");
+        StringList args = args("-Xlint:unchecked", "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath);
+        String version = getTargetJavaVersion();
+        if (version != null) {
+            args = args.plus("-target", version, "-source", version);
+        }
+        javac(args, files);
+
+        files = files("src/main/META-INF/services");
+        copy("temp", files, "src/main");
+
+        files = files("src/test");
+        files.addAll(files("src/tools"));
+        // we don't use Junit for this test framework
+        files = files.exclude("src/test/org/h2/test/TestAllJunit.java");
+        args = args("-Xlint:unchecked", "-Xlint:deprecation",
+                "-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
+                "-classpath", classpath);
+        if (version != null) {
+            args = args.plus("-target", version, "-source", version);
+        }
+        javac(args, files);
+
+        files = files("src/test").
+            exclude("*.java").
+            exclude("*/package.html");
+        copy("temp", files, "src/test");
+
+        java("org.h2.build.doc.GenerateHelp", null);
+        javadoc("-sourcepath", "src/main", "org.h2.tools", "org.h2.jmx",
+                "-classpath",
+                "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar",
+                "-docletpath", "bin" + File.pathSeparator + "temp",
+                "-doclet", "org.h2.build.doclet.ResourceDoclet");
+
+        files = files("src/main").
+            exclude("*.MF").
+            exclude("*.java").
+            exclude("*/package.html").
+            exclude("*/java.sql.Driver").
+            exclude("*.DS_Store");
+        zip("temp/org/h2/util/data.zip", files, "src/main", true, false);
     }
 
     private void compileTools() {
@@ -269,71 +327,6 @@ public class Build extends BuildBase {
             args = args.plus("-target", version, "-source", version);
         }
         javac(args, files);
-    }
-
-    private void compile(boolean debugInfo, boolean clientOnly,
-            boolean basicResourcesOnly) {
-        clean();
-        mkdir("temp");
-        download();
-        String classpath = "temp" +
-                File.pathSeparator + "ext/javax.servlet-api-" + SERVLET_VERSION + ".jar" +
-                File.pathSeparator + "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
-                File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
-                File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
-                File.pathSeparator + "ext/slf4j-api-" + SLF4J_VERSION + ".jar" +
-                File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar" +
-                File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar" +
-                File.pathSeparator + "ext/asm-" + ASM_VERSION + ".jar" +
-                File.pathSeparator + javaToolsJar;
-        FileList files;
-        if (clientOnly) {
-            files = files("src/main/org/h2/Driver.java");
-            try {
-                Files.list(Paths.get("src/main/org/h2/jdbc")).forEach(files::add);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            files.addAll(files("src/main/org/h2/jdbcx"));
-        } else {
-            files = files("src/main");
-        }
-        StringList args = args();
-        if (debugInfo) {
-            args = args.plus("-Xlint:unchecked",
-                    "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath);
-        } else {
-            args = args.plus("-Xlint:unchecked", "-g:none",
-                    "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath);
-        }
-        String version = getTargetJavaVersion();
-        if (version != null) {
-            args = args.plus("-target", version, "-source", version);
-        }
-        javac(args, files);
-
-        files = files("src/main/META-INF/services");
-        copy("temp", files, "src/main");
-
-        if (!clientOnly) {
-            files = files("src/test");
-            files.addAll(files("src/tools"));
-            //we don't use Junit for this test framework
-            files = files.exclude("src/test/org/h2/test/TestAllJunit.java");
-            args = args("-Xlint:unchecked", "-Xlint:deprecation",
-                    "-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
-                    "-classpath", classpath);
-            if (version != null) {
-                args = args.plus("-target", version, "-source", version);
-            }
-            javac(args, files);
-            files = files("src/test").
-                exclude("*.java").
-                exclude("*/package.html");
-            copy("temp", files, "src/test");
-        }
-        resources(clientOnly, basicResourcesOnly);
     }
 
     private static void filter(String source, String target, String old,
@@ -565,34 +558,6 @@ public class Build extends BuildBase {
     }
 
     /**
-     * Create the h2client.jar. This only contains the remote JDBC
-     * implementation.
-     */
-    @Description(summary = "Create h2client.jar with only the remote JDBC implementation.")
-    public void jarClient() {
-        compile(true, true, false);
-        addVersions(false);
-        manifest("src/installer/client/MANIFEST.MF");
-        FileList files = files("temp").
-            exclude("temp/org/h2/build/*").
-            exclude("temp/org/h2/dev/*").
-            exclude("temp/org/h2/java/*").
-            exclude("temp/org/h2/jcr/*").
-            exclude("temp/org/h2/mode/*").
-            exclude("temp/org/h2/samples/*").
-            exclude("temp/org/h2/test/*").
-            exclude("*.bat").
-            exclude("*.sh").
-            exclude("*.txt").
-            exclude("*.DS_Store");
-        files = excludeTestMetaInfFiles(files);
-        long kb = jar("bin/h2-client" + getJarSuffix(), files, "temp");
-        if (kb < 400 || kb > 600) {
-            throw new RuntimeException("Expected file size 400 - 600 KB, got: " + kb);
-        }
-    }
-
-    /**
      * Create the file h2mvstore.jar. This only contains the MVStore.
      */
     @Description(summary = "Create h2mvstore.jar containing only the MVStore.")
@@ -604,40 +569,6 @@ public class Build extends BuildBase {
         files.exclude("*.DS_Store");
         files = excludeTestMetaInfFiles(files);
         jar("bin/h2-mvstore" + getJarSuffix(), files, "temp");
-    }
-
-    /**
-     * Create the file h2small.jar. This only contains the embedded database.
-     * Debug information is disabled.
-     */
-    @Description(summary = "Create h2small.jar containing only the embedded database.")
-    public void jarSmall() {
-        compile(false, false, true);
-        addVersions(false);
-        manifest("src/installer/small/MANIFEST.MF");
-        FileList files = files("temp").
-            exclude("temp/org/h2/build/*").
-            exclude("temp/org/h2/dev/*").
-            exclude("temp/org/h2/jcr/*").
-            exclude("temp/org/h2/java/*").
-            exclude("temp/org/h2/jcr/*").
-            exclude("temp/org/h2/samples/*").
-            exclude("temp/org/h2/server/ftp/*").
-            exclude("temp/org/h2/test/*").
-            exclude("temp/org/h2/bnf/*").
-            exclude("temp/org/h2/fulltext/*").
-            exclude("temp/org/h2/jdbcx/*").
-            exclude("temp/org/h2/jmx/*").
-            exclude("temp/org/h2/server/*").
-            exclude("temp/org/h2/tools/*").
-            exclude("*.bat").
-            exclude("*.sh").
-            exclude("*.txt").
-            exclude("*.DS_Store");
-        files = excludeTestMetaInfFiles(files);
-        files.add(Paths.get("temp/org/h2/tools/DeleteDbFiles.class"));
-        files.add(Paths.get("temp/org/h2/tools/CompressTool.class"));
-        jar("bin/h2small" + getJarSuffix(), files, "temp");
     }
 
     /**
@@ -911,36 +842,6 @@ public class Build extends BuildBase {
         } else {
             jar();
         }
-    }
-
-    private void resources(boolean clientOnly, boolean basicOnly) {
-        if (!clientOnly) {
-            java("org.h2.build.doc.GenerateHelp", null);
-            javadoc("-sourcepath", "src/main", "org.h2.tools", "org.h2.jmx",
-                    "-classpath",
-                    "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
-                    File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
-                    File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
-                    File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar",
-                    "-docletpath", "bin" + File.pathSeparator + "temp",
-                    "-doclet", "org.h2.build.doclet.ResourceDoclet");
-        }
-        FileList files = files("src/main").
-            exclude("*.MF").
-            exclude("*.java").
-            exclude("*/package.html").
-            exclude("*/java.sql.Driver").
-            exclude("*.DS_Store");
-        if (basicOnly) {
-            files = files.keep("src/main/org/h2/res/_messages_en.*");
-        }
-        if (clientOnly) {
-            files = files.exclude("src/main/org/h2/res/help.csv");
-            files = files.exclude("src/main/org/h2/res/h2*");
-            files = files.exclude("src/main/org/h2/res/javadoc.properties");
-            files = files.exclude("src/main/org/h2/server/*");
-        }
-        zip("temp/org/h2/util/data.zip", files, "src/main", true, false);
     }
 
     /**

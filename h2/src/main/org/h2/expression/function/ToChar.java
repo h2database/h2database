@@ -16,7 +16,7 @@ import java.util.Currency;
 import java.util.Locale;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
@@ -536,7 +536,7 @@ public class ToChar {
      *            region)
      * @return time zone display name or ID
      */
-    private static String getTimeZone(Session session, Value value, boolean tzd) {
+    private static String getTimeZone(SessionLocal session, Value value, boolean tzd) {
         if (value instanceof ValueTimestampTimeZone) {
             return DateTimeUtils.timeZoneNameFromOffsetSeconds(((ValueTimestampTimeZone) value)
                     .getTimeZoneOffsetSeconds());
@@ -692,7 +692,7 @@ public class ToChar {
      *
      * @return the formatted timestamp
      */
-    public static String toCharDateTime(Session session, Value value, String format,
+    public static String toCharDateTime(SessionLocal session, Value value, String format,
             @SuppressWarnings("unused") String nlsParam) {
         long[] a = DateTimeUtils.dateAndTimeFromValue(value, session);
         long dateValue = a[0];

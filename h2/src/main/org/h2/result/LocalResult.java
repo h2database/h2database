@@ -11,7 +11,7 @@ import java.util.TreeMap;
 
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.engine.SessionInterface;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
@@ -31,7 +31,7 @@ import org.h2.value.ValueRow;
 public class LocalResult implements ResultInterface, ResultTarget {
 
     private int maxMemoryRows;
-    private Session session;
+    private SessionLocal session;
     private int visibleColumnCount;
     private int resultColumnCount;
     private Expression[] expressions;
@@ -74,7 +74,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
      *            the number of columns including visible columns and additional
      *            virtual columns for ORDER BY and DISTINCT ON clauses
      */
-    public LocalResult(Session session, Expression[] expressions, int visibleColumnCount, int resultColumnCount) {
+    public LocalResult(SessionLocal session, Expression[] expressions, int visibleColumnCount, int resultColumnCount) {
         this.session = session;
         if (session == null) {
             this.maxMemoryRows = Integer.MAX_VALUE;
@@ -117,7 +117,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
      * @return the copy if possible, or null if copying is not possible
      */
     @Override
-    public LocalResult createShallowCopy(SessionInterface targetSession) {
+    public LocalResult createShallowCopy(Session targetSession) {
         if (external == null && (rows == null || rows.size() < rowCount)) {
             return null;
         }
@@ -133,7 +133,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         }
         LocalResult copy = new LocalResult();
         copy.maxMemoryRows = this.maxMemoryRows;
-        copy.session = (Session) targetSession;
+        copy.session = (SessionLocal) targetSession;
         copy.visibleColumnCount = this.visibleColumnCount;
         copy.resultColumnCount = this.resultColumnCount;
         copy.expressions = this.expressions;

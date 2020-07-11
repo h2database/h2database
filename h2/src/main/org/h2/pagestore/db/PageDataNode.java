@@ -8,7 +8,7 @@ package org.h2.pagestore.db;
 import java.util.Arrays;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.SysProperties;
 import org.h2.index.Cursor;
 import org.h2.message.DbException;
@@ -161,7 +161,7 @@ public class PageDataNode extends PageData {
     }
 
     @Override
-    Cursor find(Session session, long minKey, long maxKey) {
+    Cursor find(SessionLocal session, long minKey, long maxKey) {
         int x = find(minKey);
         int child = childPageIds[x];
         return index.getPage(child, getPos()).find(session, minKey, maxKey);
@@ -397,7 +397,7 @@ public class PageDataNode extends PageData {
     }
 
     @Override
-    public void moveTo(Session session, int newPos) {
+    public void moveTo(SessionLocal session, int newPos) {
         PageStore store = index.getPageStore();
         // load the pages into the cache, to ensure old pages
         // are written

@@ -9,7 +9,7 @@ import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-import org.h2.engine.SessionInterface;
+import org.h2.engine.Session;
 import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -262,7 +262,7 @@ public class SimpleResult implements ResultInterface, ResultTarget {
     }
 
     @Override
-    public SimpleResult createShallowCopy(SessionInterface targetSession) {
+    public SimpleResult createShallowCopy(Session targetSession) {
         return new SimpleResult(columns, rows);
     }
 

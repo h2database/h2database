@@ -12,7 +12,7 @@ import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Role;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
@@ -29,7 +29,7 @@ public class DropDatabase extends DefineCommand {
     private boolean dropAllObjects;
     private boolean deleteFiles;
 
-    public DropDatabase(Session session) {
+    public DropDatabase(SessionLocal session) {
         super(session);
     }
 

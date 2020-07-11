@@ -11,7 +11,7 @@ import java.util.List;
 
 import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.index.Index;
 import org.h2.message.DbException;
@@ -332,7 +332,7 @@ public class PgCatalogTable extends MetaTable {
     }
 
     @Override
-    public ArrayList<Row> generateRows(Session session, SearchRow first, SearchRow last) {
+    public ArrayList<Row> generateRows(SessionLocal session, SearchRow first, SearchRow last) {
         ArrayList<Row> rows = Utils.newSmallArrayList();
         String catalog = database.getShortName();
         boolean admin = session.getUser().isAdmin();
@@ -580,7 +580,7 @@ public class PgCatalogTable extends MetaTable {
 
     }
 
-    private void pgAttribute(Session session, ArrayList<Row> rows, Table table) {
+    private void pgAttribute(SessionLocal session, ArrayList<Row> rows, Table table) {
         Column[] cols = table.getColumns();
         int tableId = table.getId();
         for (int i = 0; i < cols.length;) {
@@ -601,7 +601,7 @@ public class PgCatalogTable extends MetaTable {
         }
     }
 
-    private void pgClass(Session session, ArrayList<Row> rows, Table table) {
+    private void pgClass(SessionLocal session, ArrayList<Row> rows, Table table) {
         ArrayList<TriggerObject> triggers = table.getTriggers();
         addClass(session, rows, table.getId(), table.getName(), table.getSchema().getId(),
                 table.isView() ? "v" : "r", false, triggers != null ? triggers.size() : 0);
@@ -617,7 +617,7 @@ public class PgCatalogTable extends MetaTable {
         }
     }
 
-    private void pgConstraint(Session session, ArrayList<Row> rows) {
+    private void pgConstraint(SessionLocal session, ArrayList<Row> rows) {
         for (Schema schema : database.getAllSchemasNoMeta()) {
             for (Constraint constraint : schema.getAllConstraints()) {
                 Constraint.Type constraintType = constraint.getConstraintType();
@@ -653,7 +653,7 @@ public class PgCatalogTable extends MetaTable {
         }
     }
 
-    private void addAttribute(Session session, ArrayList<Row> rows, int id, int relId, Table table, Column column,
+    private void addAttribute(SessionLocal session, ArrayList<Row> rows, int id, int relId, Table table, Column column,
             int ordinal) {
         long precision = column.getType().getPrecision();
         add(session, rows,
@@ -679,7 +679,7 @@ public class PgCatalogTable extends MetaTable {
                 ValueBoolean.FALSE);
     }
 
-    private void addClass(Session session, ArrayList<Row> rows, int id, String name, int schema, String kind,
+    private void addClass(SessionLocal session, ArrayList<Row> rows, int id, String name, int schema, String kind,
             boolean index, int triggers) {
         add(session, rows,
                 // OID

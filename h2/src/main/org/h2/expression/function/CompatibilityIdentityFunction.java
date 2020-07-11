@@ -5,7 +5,7 @@
  */
 package org.h2.expression.function;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Operation0;
@@ -26,7 +26,7 @@ public final class CompatibilityIdentityFunction extends Operation0 implements N
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         return (scope ? session.getLastScopeIdentity() : session.getLastIdentity()).convertTo(type);
     }
 
@@ -36,7 +36,7 @@ public final class CompatibilityIdentityFunction extends Operation0 implements N
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         type = session.getMode().decimalSequences ? TypeInfo.TYPE_NUMERIC_BIGINT : TypeInfo.TYPE_BIGINT;
         return this;
     }

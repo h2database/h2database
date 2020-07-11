@@ -6,7 +6,7 @@
 package org.h2.expression.aggregate;
 
 import java.util.TreeMap;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -37,7 +37,7 @@ class AggregateDataDistinctWithCounts extends AggregateData {
     }
 
     @Override
-    void add(Session session, Value v) {
+    void add(SessionLocal session, Value v) {
         if (ignoreNulls && v == ValueNull.INSTANCE) {
             return;
         }
@@ -56,7 +56,7 @@ class AggregateDataDistinctWithCounts extends AggregateData {
     }
 
     @Override
-    Value getValue(Session session) {
+    Value getValue(SessionLocal session) {
         return null;
     }
 

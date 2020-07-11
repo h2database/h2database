@@ -5,13 +5,13 @@
  */
 package org.h2.mvstore.type;
 
-import org.h2.engine.Constants;
-import org.h2.mvstore.DataUtils;
-import org.h2.mvstore.WriteBuffer;
-
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.h2.engine.Constants;
+import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.WriteBuffer;
 
 /**
  * Class DBMetaType is a type for values in the type registry map.

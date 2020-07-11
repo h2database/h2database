@@ -10,7 +10,7 @@ import org.h2.command.query.Select;
 import org.h2.command.query.SelectGroups;
 import org.h2.command.query.SelectListColumnResolver;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.condition.Comparison;
 import org.h2.index.IndexCondition;
@@ -168,7 +168,7 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         if (columnResolver == null) {
             Schema schema = session.getDatabase().findSchema(
                     tableAlias == null ? session.getCurrentSchemaName() : tableAlias);
@@ -202,7 +202,7 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         Select select = columnResolver.getSelect();
         if (select == null) {
             throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getTraceSQL());
@@ -226,7 +226,7 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Select select = columnResolver.getSelect();
         if (select != null) {
             SelectGroups groupData = select.getGroupDataIfCurrent(false);
@@ -282,7 +282,7 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public String getColumnName(Session session, int columnIndex) {
+    public String getColumnName(SessionLocal session, int columnIndex) {
         if (column != null) {
             if (columnResolver != null) {
                 return columnResolver.getColumnName(column);
@@ -305,7 +305,7 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public String getAlias(Session session, int columnIndex) {
+    public String getAlias(SessionLocal session, int columnIndex) {
         if (column != null) {
             if (columnResolver != null) {
                 return columnResolver.getColumnName(column);
@@ -319,7 +319,7 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public String getColumnNameForView(Session session, int columnIndex) {
+    public String getColumnNameForView(SessionLocal session, int columnIndex) {
         return getAlias(session, columnIndex);
     }
 
@@ -387,7 +387,7 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public void createIndexConditions(Session session, TableFilter filter) {
+    public void createIndexConditions(SessionLocal session, TableFilter filter) {
         TableFilter tf = getTableFilter();
         if (filter == tf && column.getType().getValueType() == Value.BOOLEAN) {
             filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL, this, ValueExpression.TRUE));
@@ -395,7 +395,7 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public Expression getNotIfPossible(Session session) {
+    public Expression getNotIfPossible(SessionLocal session) {
         return new Comparison(Comparison.EQUAL, this, ValueExpression.FALSE, false);
     }
 

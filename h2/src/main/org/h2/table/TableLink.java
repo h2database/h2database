@@ -19,7 +19,7 @@ import java.util.Objects;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.UndoLogRecord;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -400,14 +400,14 @@ public class TableLink extends Table {
     }
 
     @Override
-    public Index addIndex(Session session, String indexName, int indexId,
+    public Index addIndex(SessionLocal session, String indexName, int indexId,
             IndexColumn[] cols, IndexType indexType, boolean create,
             String indexComment) {
         throw DbException.getUnsupportedException("LINK");
     }
 
     @Override
-    public boolean lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc) {
+    public boolean lock(SessionLocal session, boolean exclusive, boolean forceLockEvenInMvcc) {
         // nothing to do
         return false;
     }
@@ -418,7 +418,7 @@ public class TableLink extends Table {
     }
 
     @Override
-    public Index getScanIndex(Session session) {
+    public Index getScanIndex(SessionLocal session) {
         return linkedIndex;
     }
 
@@ -434,19 +434,19 @@ public class TableLink extends Table {
     }
 
     @Override
-    public void removeRow(Session session, Row row) {
+    public void removeRow(SessionLocal session, Row row) {
         checkReadOnly();
         getScanIndex(session).remove(session, row);
     }
 
     @Override
-    public void addRow(Session session, Row row) {
+    public void addRow(SessionLocal session, Row row) {
         checkReadOnly();
         getScanIndex(session).add(session, row);
     }
 
     @Override
-    public void close(Session session) {
+    public void close(SessionLocal session) {
         if (conn != null) {
             try {
                 conn.close(false);
@@ -457,7 +457,7 @@ public class TableLink extends Table {
     }
 
     @Override
-    public synchronized long getRowCount(Session session) {
+    public synchronized long getRowCount(SessionLocal session) {
         //The foo alias is used to support the PostgreSQL syntax
         String sql = "SELECT COUNT(*) FROM " + qualifiedTableName + " as foo";
         try {
@@ -500,7 +500,8 @@ public class TableLink extends Table {
      * @param session the session
      * @return the prepared statement, or null if it is re-used
      */
-    public PreparedStatement execute(String sql, ArrayList<Value> params, boolean reusePrepared, Session session) {
+    public PreparedStatement execute(String sql, ArrayList<Value> params, boolean reusePrepared, //
+            SessionLocal session) {
         if (conn == null) {
             throw connectException;
         }
@@ -553,7 +554,7 @@ public class TableLink extends Table {
     }
 
     @Override
-    public void unlock(Session s) {
+    public void unlock(SessionLocal s) {
         // nothing to do
     }
 
@@ -563,12 +564,12 @@ public class TableLink extends Table {
     }
 
     @Override
-    public void truncate(Session session) {
+    public void truncate(SessionLocal session) {
         throw DbException.getUnsupportedException("LINK");
     }
 
     @Override
-    public boolean canGetRowCount(Session session) {
+    public boolean canGetRowCount(SessionLocal session) {
         return true;
     }
 
@@ -583,7 +584,7 @@ public class TableLink extends Table {
     }
 
     @Override
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(SessionLocal session) {
         super.removeChildrenAndResources(session);
         close(session);
         database.removeMeta(session, getId());
@@ -624,7 +625,7 @@ public class TableLink extends Table {
     }
 
     @Override
-    public void updateRows(Prepared prepared, Session session, RowList rows) {
+    public void updateRows(Prepared prepared, SessionLocal session, RowList rows) {
         checkReadOnly();
         if (emitUpdates) {
             for (rows.reset(); rows.hasNext();) {
@@ -649,7 +650,7 @@ public class TableLink extends Table {
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return ROW_COUNT_APPROXIMATION;
     }
 
@@ -692,7 +693,7 @@ public class TableLink extends Table {
      * @param row the row
      */
     @Override
-    public void validateConvertUpdateSequence(Session session, Row row) {
+    public void validateConvertUpdateSequence(SessionLocal session, Row row) {
         for (int i = 0; i < columns.length; i++) {
             Value value = row.getValue(i);
             if (value != null) {

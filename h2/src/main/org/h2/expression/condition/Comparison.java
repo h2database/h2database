@@ -7,7 +7,7 @@ package org.h2.expression.condition;
 
 import java.util.ArrayList;
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
@@ -135,7 +135,7 @@ public final class Comparison extends Condition {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         right = right.optimize(session);
         // TODO check row values too
@@ -198,7 +198,7 @@ public final class Comparison extends Condition {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value l = left.getValue(session);
         // Optimization: do not evaluate right if not necessary
         if (l == ValueNull.INSTANCE && (compareType & ~1) != EQUAL_NULL_SAFE) {
@@ -208,7 +208,7 @@ public final class Comparison extends Condition {
     }
 
     @Override
-    public boolean getWhenValue(Session session, Value left) {
+    public boolean getWhenValue(SessionLocal session, Value left) {
         if (!whenOperand) {
             return super.getWhenValue(session, left);
         }
@@ -228,7 +228,7 @@ public final class Comparison extends Condition {
      * @param compareType the compare type
      * @return result of comparison, either TRUE, FALSE, or NULL
      */
-    static Value compare(Session session, Value l, Value r, int compareType) {
+    static Value compare(SessionLocal session, Value l, Value r, int compareType) {
         Value result;
         switch (compareType) {
         case EQUAL: {
@@ -335,7 +335,7 @@ public final class Comparison extends Condition {
     }
 
     @Override
-    public Expression getNotIfPossible(Session session) {
+    public Expression getNotIfPossible(SessionLocal session) {
         if (compareType == SPATIAL_INTERSECTS || whenOperand) {
             return null;
         }
@@ -367,7 +367,7 @@ public final class Comparison extends Condition {
     }
 
     @Override
-    public void createIndexConditions(Session session, TableFilter filter) {
+    public void createIndexConditions(SessionLocal session, TableFilter filter) {
         if (!whenOperand) {
             createIndexConditions(filter, left, right, compareType);
         }
@@ -460,7 +460,7 @@ public final class Comparison extends Condition {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         left.updateAggregate(session, stage);
         if (right != null) {
             right.updateAggregate(session, stage);
@@ -510,7 +510,7 @@ public final class Comparison extends Condition {
      * @param other the second condition
      * @return null or the third condition for indexes
      */
-    Expression getAdditionalAnd(Session session, Comparison other) {
+    Expression getAdditionalAnd(SessionLocal session, Comparison other) {
         if (compareType == EQUAL && other.compareType == EQUAL && !whenOperand) {
             boolean lc = left.isConstant();
             boolean rc = right.isConstant();
@@ -543,7 +543,7 @@ public final class Comparison extends Condition {
      * @param other the second condition
      * @return null or the joined IN condition
      */
-    Expression optimizeOr(Session session, Comparison other) {
+    Expression optimizeOr(SessionLocal session, Comparison other) {
         if (compareType == EQUAL && other.compareType == EQUAL) {
             boolean lc = left.isConstant();
             boolean rc = right.isConstant();
@@ -567,7 +567,8 @@ public final class Comparison extends Condition {
         return null;
     }
 
-    private static ConditionIn getConditionIn(Session session, Expression left, Expression value1, Expression value2) {
+    private static ConditionIn getConditionIn(SessionLocal session, Expression left, Expression value1,
+            Expression value2) {
         ArrayList<Expression> right = new ArrayList<>(2);
         right.add(value1);
         right.add(value2);

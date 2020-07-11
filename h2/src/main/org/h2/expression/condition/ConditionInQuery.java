@@ -7,7 +7,7 @@ package org.h2.expression.condition;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.query.Query;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
@@ -51,19 +51,19 @@ public final class ConditionInQuery extends PredicateWithSubquery {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         return getValue(session, left.getValue(session));
     }
 
     @Override
-    public boolean getWhenValue(Session session, Value left) {
+    public boolean getWhenValue(SessionLocal session, Value left) {
         if (!whenOperand) {
             return super.getWhenValue(session, left);
         }
         return getValue(session, left).getBoolean();
     }
 
-    private Value getValue(Session session, Value left) {
+    private Value getValue(SessionLocal session, Value left) {
         query.setSession(session);
         // We need a LocalResult
         query.setNeverLazy(true);
@@ -110,7 +110,7 @@ public final class ConditionInQuery extends PredicateWithSubquery {
         return ValueBoolean.get(not);
     }
 
-    private Value getValueSlow(Session session, ResultInterface rows, Value l) {
+    private Value getValueSlow(SessionLocal session, ResultInterface rows, Value l) {
         // this only returns the correct result if the result has at least one
         // row, and if l is not null
         boolean simple = l.getValueType() != Value.ROW && query.getColumnCount() == 1;
@@ -132,7 +132,7 @@ public final class ConditionInQuery extends PredicateWithSubquery {
         return ValueBoolean.get(not ^ all);
     }
 
-    private Value getNullSafeValueSlow(Session session, ResultInterface rows, Value l) {
+    private Value getNullSafeValueSlow(SessionLocal session, ResultInterface rows, Value l) {
         boolean simple = l.getValueType() != Value.ROW && query.getColumnCount() == 1;
         boolean searched = all == (compareType == Comparison.NOT_EQUAL_NULL_SAFE);
         while (rows.next()) {
@@ -145,7 +145,7 @@ public final class ConditionInQuery extends PredicateWithSubquery {
     }
 
     @Override
-    public Expression getNotIfPossible(Session session) {
+    public Expression getNotIfPossible(SessionLocal session) {
         if (whenOperand) {
             return null;
         }
@@ -159,7 +159,7 @@ public final class ConditionInQuery extends PredicateWithSubquery {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         return super.optimize(session);
     }
@@ -205,7 +205,7 @@ public final class ConditionInQuery extends PredicateWithSubquery {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         left.updateAggregate(session, stage);
         super.updateAggregate(session, stage);
     }
@@ -221,7 +221,7 @@ public final class ConditionInQuery extends PredicateWithSubquery {
     }
 
     @Override
-    public void createIndexConditions(Session session, TableFilter filter) {
+    public void createIndexConditions(SessionLocal session, TableFilter filter) {
         if (!session.getDatabase().getSettings().optimizeInList) {
             return;
         }

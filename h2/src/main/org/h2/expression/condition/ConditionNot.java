@@ -5,7 +5,7 @@
  */
 package org.h2.expression.condition;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.TypedValueExpression;
@@ -27,12 +27,12 @@ public class ConditionNot extends Condition {
     }
 
     @Override
-    public Expression getNotIfPossible(Session session) {
+    public Expression getNotIfPossible(SessionLocal session) {
         return castToBoolean(session, condition);
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value v = condition.getValue(session);
         if (v == ValueNull.INSTANCE) {
             return v;
@@ -46,7 +46,7 @@ public class ConditionNot extends Condition {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         Expression e2 = condition.getNotIfPossible(session);
         if (e2 != null) {
             return e2.optimize(session);
@@ -79,7 +79,7 @@ public class ConditionNot extends Condition {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         condition.updateAggregate(session, stage);
     }
 

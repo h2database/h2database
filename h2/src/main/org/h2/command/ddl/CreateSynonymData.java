@@ -5,7 +5,7 @@
  */
 package org.h2.command.ddl;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.schema.Schema;
 
 /**
@@ -39,6 +39,6 @@ public class CreateSynonymData {
     /**
      * The session.
      */
-    public Session session;
+    public SessionLocal session;
 
 }

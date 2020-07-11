@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.util.ScriptReader;
@@ -35,7 +35,7 @@ public class RunScriptCommand extends ScriptBase {
 
     private boolean variableBinary;
 
-    public RunScriptCommand(Session session) {
+    public RunScriptCommand(SessionLocal session) {
         super(session);
     }
 

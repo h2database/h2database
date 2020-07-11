@@ -5,12 +5,12 @@
  */
 package org.h2.mvstore.tx;
 
+import java.util.function.Function;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMap.Decision;
 import org.h2.mvstore.type.DataType;
 import org.h2.value.VersionedValue;
-import java.util.function.Function;
 
 /**
  * Class TxDecisionMaker is a base implementation of MVMap.DecisionMaker

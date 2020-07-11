@@ -13,7 +13,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Mode.CharPadding;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
@@ -30,7 +30,7 @@ public abstract class Command implements CommandInterface {
     /**
      * The session.
      */
-    protected final Session session;
+    protected final SessionLocal session;
 
     /**
      * The last start time.
@@ -51,7 +51,7 @@ public abstract class Command implements CommandInterface {
 
     private boolean canReuse;
 
-    Command(Session session, String sql) {
+    Command(SessionLocal session, String sql) {
         this.session = session;
         this.sql = sql;
         trace = session.getDatabase().getTrace(Trace.COMMAND);
@@ -240,7 +240,7 @@ public abstract class Command implements CommandInterface {
         boolean callStop = true;
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (sync) {
-            Session.Savepoint rollback = session.setSavepoint();
+            SessionLocal.Savepoint rollback = session.setSavepoint();
             session.startStatementWithinTransaction(this);
             DbException ex = null;
             try {

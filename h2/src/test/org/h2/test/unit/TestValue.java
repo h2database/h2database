@@ -25,7 +25,7 @@ import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.api.H2Type;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -452,7 +452,7 @@ public class TestValue extends TestDb {
         assertEquals(1, testLobComparisonImpl(null, Value.BLOB, 512, 512, 210, 200));
         assertEquals(1, testLobComparisonImpl(null, Value.CLOB, 512, 512, 'B', 'A'));
         try (Connection c = DriverManager.getConnection("jdbc:h2:mem:testValue")) {
-            Database dh = ((Session) ((JdbcConnection) c).getSession()).getDatabase();
+            Database dh = ((SessionLocal) ((JdbcConnection) c).getSession()).getDatabase();
             assertEquals(1, testLobComparisonImpl(dh, Value.BLOB, 1_024, 1_024, 210, 200));
             assertEquals(1, testLobComparisonImpl(dh, Value.CLOB, 1_024, 1_024, 'B', 'A'));
             assertEquals(-1, testLobComparisonImpl(dh, Value.BLOB, 10_000, 10_000, 200, 210));

@@ -5,7 +5,7 @@
  */
 package org.h2.expression.function;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.Operation2;
 import org.h2.expression.TypedValueExpression;
@@ -22,7 +22,7 @@ public class NullIfFunction extends Operation2 implements NamedExpression {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value v = left.getValue(session);
         if (session.compareWithNull(v, right.getValue(session), true) == 0) {
             v = ValueNull.INSTANCE;
@@ -31,7 +31,7 @@ public class NullIfFunction extends Operation2 implements NamedExpression {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         right = right.optimize(session);
         type = left.getType();

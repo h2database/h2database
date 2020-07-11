@@ -29,8 +29,8 @@ import org.h2.engine.FunctionAlias.JavaMethod;
 import org.h2.engine.QueryStatisticsData;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
-import org.h2.engine.Session;
-import org.h2.engine.Session.State;
+import org.h2.engine.SessionLocal;
+import org.h2.engine.SessionLocal.State;
 import org.h2.engine.Setting;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
@@ -886,7 +886,7 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     @Override
-    public ArrayList<Row> generateRows(Session session, SearchRow first, SearchRow last) {
+    public ArrayList<Row> generateRows(SessionLocal session, SearchRow first, SearchRow last) {
         Value indexFrom = null, indexTo = null;
         if (indexColumn >= 0) {
             if (first != null) {
@@ -1013,13 +1013,13 @@ public final class InformationSchemaTable extends MetaTable {
         return rows;
     }
 
-    private void informationSchemaCatalogName(Session session, ArrayList<Row> rows, String catalog) {
+    private void informationSchemaCatalogName(SessionLocal session, ArrayList<Row> rows, String catalog) {
         add(session, rows,
                 // CATALOG_NAME
                 catalog);
     }
 
-    private void checkConstraints(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
+    private void checkConstraints(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
             String catalog) {
         for (Schema schema : database.getAllSchemas()) {
             for (Constraint constraint : schema.getAllConstraints()) {
@@ -1042,7 +1042,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void checkConstraints(Session session, ArrayList<Row> rows, String catalog, Constraint constraint,
+    private void checkConstraints(SessionLocal session, ArrayList<Row> rows, String catalog, Constraint constraint,
             String constraintName) {
         add(session, rows,
                 // CONSTRAINT_CATALOG
@@ -1056,7 +1056,7 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void collations(Session session, ArrayList<Row> rows, String catalog) {
+    private void collations(SessionLocal session, ArrayList<Row> rows, String catalog) {
         String mainSchemaName = database.getMainSchema().getName();
         collations(session, rows, catalog, mainSchemaName, "OFF", null);
         for (Locale l : CompareMode.getCollationLocales(false)) {
@@ -1064,8 +1064,8 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void collations(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName, String name,
-            String languageTag) {
+    private void collations(SessionLocal session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+            String name, String languageTag) {
         if ("und".equals(languageTag)) {
             languageTag = null;
         }
@@ -1084,7 +1084,7 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void columns(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
+    private void columns(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         String mainSchemaName = database.getMainSchema().getName();
         String collation = database.getCompareMode().getName();
         if (indexFrom != null && indexFrom.equals(indexTo)) {
@@ -1120,7 +1120,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void columns(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+    private void columns(SessionLocal session, ArrayList<Row> rows, String catalog, String mainSchemaName,
             String collation, Table table, String tableName) {
         if (hideTable(table, session)) {
             return;
@@ -1131,8 +1131,8 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void columns(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName, String collation,
-            Table table, String tableName, Column c, int ordinalPosition) {
+    private void columns(SessionLocal session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+            String collation, Table table, String tableName, Column c, int ordinalPosition) {
         TypeInfo typeInfo = c.getType();
         DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
         String characterSetCatalog, characterSetSchema, characterSetName, collationName;
@@ -1282,7 +1282,7 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void columnPrivileges(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
+    private void columnPrivileges(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
             String catalog) {
         for (Right r : database.getAllRights()) {
             DbObject object = r.getGrantedObject();
@@ -1305,7 +1305,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void constraintColumnUsage(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
+    private void constraintColumnUsage(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
             String catalog) {
         for (Schema schema : database.getAllSchemas()) {
             for (Constraint constraint : schema.getAllConstraints()) {
@@ -1314,7 +1314,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void constraintColumnUsage(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
+    private void constraintColumnUsage(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
             String catalog, Constraint constraint) {
         switch (constraint.getConstraintType()) {
         case CHECK:
@@ -1350,7 +1350,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void domains(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
+    private void domains(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         String mainSchemaName = database.getMainSchema().getName();
         String collation = database.getCompareMode().getName();
         for (Schema schema : database.getAllSchemas()) {
@@ -1364,8 +1364,8 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void domains(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName, String collation,
-            Domain domain, String domainName) {
+    private void domains(SessionLocal session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+            String collation, Domain domain, String domainName) {
         Column col = domain.getColumn();
         Domain parentDomain = col.getDomain();
         TypeInfo typeInfo = col.getType();
@@ -1452,7 +1452,7 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void domainConstraints(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
+    private void domainConstraints(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
             String catalog) {
         for (Schema schema : database.getAllSchemas()) {
             for (Constraint constraint : schema.getAllConstraints()) {
@@ -1470,8 +1470,8 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void domainConstraints(Session session, ArrayList<Row> rows, String catalog, ConstraintDomain constraint,
-            Domain domain, String domainName) {
+    private void domainConstraints(SessionLocal session, ArrayList<Row> rows, String catalog,
+            ConstraintDomain constraint, Domain domain, String domainName) {
         add(session, rows,
                 // CONSTRAINT_CATALOG
                 catalog,
@@ -1499,7 +1499,7 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void elementTypesFields(Session session, ArrayList<Row> rows, String catalog, int type) {
+    private void elementTypesFields(SessionLocal session, ArrayList<Row> rows, String catalog, int type) {
         String mainSchemaName = database.getMainSchema().getName();
         String collation = database.getCompareMode().getName();
         for (Schema schema : database.getAllSchemas()) {
@@ -1548,7 +1548,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void elementTypesFieldsForTable(Session session, ArrayList<Row> rows, String catalog, int type,
+    private void elementTypesFieldsForTable(SessionLocal session, ArrayList<Row> rows, String catalog, int type,
             String mainSchemaName, String collation, String schemaName, Table table) {
         if (hideTable(table, session)) {
             return;
@@ -1561,7 +1561,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void elementTypesFieldsRow(Session session, ArrayList<Row> rows, String catalog, int type,
+    private void elementTypesFieldsRow(SessionLocal session, ArrayList<Row> rows, String catalog, int type,
             String mainSchemaName, String collation, String objectSchema, String objectName, String objectType,
             String identifier, TypeInfo typeInfo) {
         switch (typeInfo.getValueType()) {
@@ -1599,7 +1599,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void elementTypes(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+    private void elementTypes(SessionLocal session, ArrayList<Row> rows, String catalog, String mainSchemaName,
             String collation, String objectSchema, String objectName, String objectType, String collectionIdentifier,
             String dtdIdentifier, TypeInfo typeInfo) {
         DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
@@ -1671,9 +1671,9 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void fields(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName, String collation,
-            String objectSchema, String objectName, String objectType, String rowIdentifier, String fieldName,
-            int ordinalPosition, String dtdIdentifier, TypeInfo typeInfo) {
+    private void fields(SessionLocal session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+            String collation, String objectSchema, String objectName, String objectType, String rowIdentifier,
+            String fieldName, int ordinalPosition, String dtdIdentifier, TypeInfo typeInfo) {
         DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
         String characterSetCatalog, characterSetSchema, characterSetName, collationName;
         if (dt.hasCharsetAndCollation) {
@@ -1747,7 +1747,8 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void keyColumnUsage(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
+    private void keyColumnUsage(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
+            String catalog) {
         for (Schema schema : database.getAllSchemas()) {
             for (Constraint constraint : schema.getAllConstraints()) {
                 Constraint.Type constraintType = constraint.getConstraintType();
@@ -1773,7 +1774,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void keyColumnUsage(Session session, ArrayList<Row> rows, String catalog, Constraint constraint,
+    private void keyColumnUsage(SessionLocal session, ArrayList<Row> rows, String catalog, Constraint constraint,
             Constraint.Type constraintType, IndexColumn[] indexColumns, Table table, String tableName) {
         ConstraintUnique referenced;
         if (constraintType == Constraint.Type.REFERENTIAL) {
@@ -1818,7 +1819,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void parameters(Session session, ArrayList<Row> rows, String catalog) {
+    private void parameters(SessionLocal session, ArrayList<Row> rows, String catalog) {
         String mainSchemaName = database.getMainSchema().getName();
         String collation = database.getCompareMode().getName();
         for (Schema schema : database.getAllSchemas()) {
@@ -1842,7 +1843,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void parameters(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+    private void parameters(SessionLocal session, ArrayList<Row> rows, String catalog, String mainSchemaName,
             String collation, String schema, String specificName, TypeInfo typeInfo, int pos) {
         DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
         String characterSetCatalog, characterSetSchema, characterSetName, collationName;
@@ -1921,7 +1922,7 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void referentialConstraints(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
+    private void referentialConstraints(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
             String catalog) {
         for (Schema schema : database.getAllSchemas()) {
             for (Constraint constraint : schema.getAllConstraints()) {
@@ -1940,7 +1941,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void referentialConstraints(Session session, ArrayList<Row> rows, String catalog,
+    private void referentialConstraints(SessionLocal session, ArrayList<Row> rows, String catalog,
             ConstraintReferential constraint, String constraintName) {
         ConstraintUnique unique = constraint.getReferencedConstraint();
         add(session, rows,
@@ -1965,7 +1966,7 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void routines(Session session, ArrayList<Row> rows, String catalog) {
+    private void routines(SessionLocal session, ArrayList<Row> rows, String catalog) {
         boolean admin = session.getUser().isAdmin();
         String mainSchemaName = database.getMainSchema().getName();
         String collation = database.getCompareMode().getName();
@@ -2004,7 +2005,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void routines(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName, //
+    private void routines(SessionLocal session, ArrayList<Row> rows, String catalog, String mainSchemaName, //
             String collation, String schema, String name, String specificName, String routineType, String definition,
             String externalName, TypeInfo typeInfo, boolean deterministic, String remarks, int id) {
         DataTypeInformation dt = typeInfo != null ? DataTypeInformation.valueOf(typeInfo) : DataTypeInformation.NULL;
@@ -2095,7 +2096,7 @@ public final class InformationSchemaTable extends MetaTable {
                 ValueInteger.get(id));
     }
 
-    private void schemata(Session session, ArrayList<Row> rows, String catalog) {
+    private void schemata(SessionLocal session, ArrayList<Row> rows, String catalog) {
         String mainSchemaName = database.getMainSchema().getName();
         String collation = database.getCompareMode().getName();
         for (Schema schema : database.getAllSchemas()) {
@@ -2125,7 +2126,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void sequences(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
+    private void sequences(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         for (Schema schema : database.getAllSchemas()) {
             for (Sequence sequence : schema.getAllSequences()) {
                 if (sequence.getBelongsToTable()) {
@@ -2140,7 +2141,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void sequences(Session session, ArrayList<Row> rows, String catalog, Sequence sequence,
+    private void sequences(SessionLocal session, ArrayList<Row> rows, String catalog, Sequence sequence,
             String sequenceName) {
         DataTypeInformation dt = DataTypeInformation.valueOf(sequence.getDataType());
         add(session, rows,
@@ -2186,7 +2187,7 @@ public final class InformationSchemaTable extends MetaTable {
             );
     }
 
-    private void tables(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
+    private void tables(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         boolean admin = session.getUser().isAdmin();
         for (Schema schema : database.getAllSchemas()) {
             for (Table table : schema.getAllTablesAndViews()) {
@@ -2204,7 +2205,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void tables(Session session, ArrayList<Row> rows, String catalog, boolean admin, Table table,
+    private void tables(SessionLocal session, ArrayList<Row> rows, String catalog, boolean admin, Table table,
             String tableName) {
         if (hideTable(table, session)) {
             return;
@@ -2266,7 +2267,7 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void tableConstraints(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
+    private void tableConstraints(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows,
             String catalog) {
         for (Schema schema : database.getAllSchemas()) {
             for (Constraint constraint : schema.getAllConstraints()) {
@@ -2287,7 +2288,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void tableConstraints(Session session, ArrayList<Row> rows, String catalog, Constraint constraint,
+    private void tableConstraints(SessionLocal session, ArrayList<Row> rows, String catalog, Constraint constraint,
             Constraint.Type constraintType, Table table, String tableName) {
         Index index = constraint.getIndex();
         boolean enforced;
@@ -2334,7 +2335,7 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void tablePrivileges(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, //
+    private void tablePrivileges(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows, //
             String catalog) {
         for (Right r : database.getAllRights()) {
             DbObject object = r.getGrantedObject();
@@ -2353,7 +2354,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void triggers(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
+    private void triggers(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         for (Schema schema : database.getAllSchemas()) {
             for (TriggerObject trigger : schema.getAllTriggers()) {
                 Table table = trigger.getTable();
@@ -2366,8 +2367,8 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void triggers(Session session, ArrayList<Row> rows, String catalog, TriggerObject trigger, Table table,
-            String tableName) {
+    private void triggers(SessionLocal session, ArrayList<Row> rows, String catalog, TriggerObject trigger, //
+            Table table, String tableName) {
         add(session, rows,
                 // TRIGGER_CATALOG
                 catalog,
@@ -2401,7 +2402,7 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void views(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
+    private void views(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         for (Schema schema : database.getAllSchemas()) {
             for (Table table : schema.getAllTablesAndViews()) {
                 if (table.isView()) {
@@ -2422,7 +2423,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void views(Session session, ArrayList<Row> rows, String catalog, Table table, String tableName) {
+    private void views(SessionLocal session, ArrayList<Row> rows, String catalog, Table table, String tableName) {
         String viewDefinition, status = "VALID";
         if (table instanceof TableView) {
             TableView view = (TableView) table;
@@ -2473,7 +2474,7 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void constants(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
+    private void constants(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
         String mainSchemaName = database.getMainSchema().getName();
         String collation = database.getCompareMode().getName();
         for (Schema schema : database.getAllSchemas()) {
@@ -2487,7 +2488,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void constants(Session session, ArrayList<Row> rows, String catalog, String mainSchemaName,
+    private void constants(SessionLocal session, ArrayList<Row> rows, String catalog, String mainSchemaName,
             String collation, Constant constant, String constantName) {
         ValueExpression expr = constant.getValue();
         TypeInfo typeInfo = expr.getType();
@@ -2561,7 +2562,7 @@ public final class InformationSchemaTable extends MetaTable {
             );
     }
 
-    private void enumValues(Session session, ArrayList<Row> rows, String catalog, String objectSchema,
+    private void enumValues(SessionLocal session, ArrayList<Row> rows, String catalog, String objectSchema,
             String objectName, String objectType, String enumIdentifier, TypeInfo typeInfo) {
         ExtTypeInfoEnum ext = (ExtTypeInfoEnum) typeInfo.getExtTypeInfo();
         if (ext == null) {
@@ -2587,7 +2588,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void indexes(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog,
+    private void indexes(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog,
             boolean columns) {
         if (indexFrom != null && indexFrom.equals(indexTo)) {
             String tableName = indexFrom.getString();
@@ -2622,7 +2623,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void indexes(Session session, ArrayList<Row> rows, String catalog, boolean columns, Table table,
+    private void indexes(SessionLocal session, ArrayList<Row> rows, String catalog, boolean columns, Table table,
             String tableName) {
         if (hideTable(table, session)) {
             return;
@@ -2643,7 +2644,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void indexes(Session session, ArrayList<Row> rows, String catalog, Table table, String tableName,
+    private void indexes(SessionLocal session, ArrayList<Row> rows, String catalog, Table table, String tableName,
             Index index) {
         add(session, rows,
                 // INDEX_CATALOG
@@ -2673,7 +2674,7 @@ public final class InformationSchemaTable extends MetaTable {
             );
     }
 
-    private void indexColumns(Session session, ArrayList<Row> rows, String catalog, Table table,
+    private void indexColumns(SessionLocal session, ArrayList<Row> rows, String catalog, Table table,
             String tableName, Index index) {
         IndexColumn[] cols = index.getIndexColumns();
         for (int i = 0, l = cols.length; i < l;) {
@@ -2705,7 +2706,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void inDoubt(Session session, ArrayList<Row> rows) {
+    private void inDoubt(SessionLocal session, ArrayList<Row> rows) {
         if (session.getUser().isAdmin()) {
             ArrayList<InDoubtTransaction> prepared = database.getInDoubtTransactions();
             if (prepared != null) {
@@ -2721,9 +2722,9 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void locks(Session session, ArrayList<Row> rows) {
+    private void locks(SessionLocal session, ArrayList<Row> rows) {
         if (session.getUser().isAdmin()) {
-            for (Session s : database.getSessions(false)) {
+            for (SessionLocal s : database.getSessions(false)) {
                 locks(session, rows, s);
             }
         } else {
@@ -2731,7 +2732,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void locks(Session session, ArrayList<Row> rows, Session sessionWithLocks) {
+    private void locks(SessionLocal session, ArrayList<Row> rows, SessionLocal sessionWithLocks) {
         for (Table table : sessionWithLocks.getLocks()) {
             add(session, rows,
                     // TABLE_SCHEMA
@@ -2746,7 +2747,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void queryStatistics(Session session, ArrayList<Row> rows) {
+    private void queryStatistics(SessionLocal session, ArrayList<Row> rows) {
         QueryStatisticsData control = database.getQueryStatisticsData();
         if (control != null) {
             for (QueryStatisticsData.QueryEntry entry : control.getQueries()) {
@@ -2780,7 +2781,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void rights(Session session, Value indexFrom, Value indexTo, ArrayList<Row> rows) {
+    private void rights(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows) {
         if (!session.getUser().isAdmin()) {
             return;
         }
@@ -2842,7 +2843,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void roles(Session session, ArrayList<Row> rows) {
+    private void roles(SessionLocal session, ArrayList<Row> rows) {
         boolean admin = session.getUser().isAdmin();
         for (Role r : database.getAllRoles()) {
             if (admin || session.getUser().isRoleGranted(r)) {
@@ -2858,9 +2859,9 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void sessions(Session session, ArrayList<Row> rows) {
+    private void sessions(SessionLocal session, ArrayList<Row> rows) {
         if (session.getUser().isAdmin()) {
-            for (Session s : database.getSessions(false)) {
+            for (SessionLocal s : database.getSessions(false)) {
                 sessions(session, rows, s);
             }
         } else {
@@ -2868,7 +2869,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void sessions(Session session, ArrayList<Row> rows, Session s) {
+    private void sessions(SessionLocal session, ArrayList<Row> rows, SessionLocal s) {
         NetworkConnectionInfo networkConnectionInfo = s.getNetworkConnectionInfo();
         Command command = s.getCurrentCommand();
         int blockingSessionId = s.getBlockingSessionId();
@@ -2902,7 +2903,7 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void sessionState(Session session, ArrayList<Row> rows) {
+    private void sessionState(SessionLocal session, ArrayList<Row> rows) {
         for (String name : session.getVariableNames()) {
             Value v = session.getVariable(name);
             StringBuilder builder = new StringBuilder().append("SET @").append(name).append(' ');
@@ -2959,7 +2960,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void settings(Session session, ArrayList<Row> rows) {
+    private void settings(SessionLocal session, ArrayList<Row> rows) {
         for (Setting s : database.getAllSettings()) {
             String value = s.getStringValue();
             if (value == null) {
@@ -3065,7 +3066,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void synonyms(Session session, ArrayList<Row> rows, String catalog) {
+    private void synonyms(SessionLocal session, ArrayList<Row> rows, String catalog) {
         for (TableSynonym synonym : database.getAllSynonyms()) {
             add(session, rows,
                     // SYNONYM_CATALOG
@@ -3090,7 +3091,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void users(Session session, ArrayList<Row> rows) {
+    private void users(SessionLocal session, ArrayList<Row> rows) {
         User currentUser = session.getUser();
         if (currentUser.isAdmin()) {
             for (User u : database.getAllUsers()) {
@@ -3101,7 +3102,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void users(Session session, ArrayList<Row> rows, User user) {
+    private void users(SessionLocal session, ArrayList<Row> rows, User user) {
         add(session, rows,
                 // NAME
                 identifier(user.getName()),
@@ -3114,8 +3115,8 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void addConstraintColumnUsage(Session session, ArrayList<Row> rows, String catalog, Constraint constraint,
-            Column column) {
+    private void addConstraintColumnUsage(SessionLocal session, ArrayList<Row> rows, String catalog,
+            Constraint constraint, Column column) {
         Table table = column.getTable();
         add(session, rows,
                 // TABLE_CATALOG
@@ -3135,8 +3136,8 @@ public final class InformationSchemaTable extends MetaTable {
         );
     }
 
-    private void addPrivileges(Session session, ArrayList<Row> rows, DbObject grantee, String catalog, Table table,
-            String column, int rightMask) {
+    private void addPrivileges(SessionLocal session, ArrayList<Row> rows, DbObject grantee, String catalog, //
+            Table table, String column, int rightMask) {
         if ((rightMask & Right.SELECT) != 0) {
             addPrivilege(session, rows, grantee, catalog, table, column, "SELECT");
         }
@@ -3151,7 +3152,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
     }
 
-    private void addPrivilege(Session session, ArrayList<Row> rows, DbObject grantee, String catalog, Table table,
+    private void addPrivilege(SessionLocal session, ArrayList<Row> rows, DbObject grantee, String catalog, Table table,
             String column, String right) {
         String isGrantable = "NO";
         if (grantee.getType() == DbObject.USER) {
@@ -3222,16 +3223,16 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         return getRowCount(session, false);
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return getRowCount(session, true);
     }
 
-    private long getRowCount(Session session, boolean approximation) {
+    private long getRowCount(SessionLocal session, boolean approximation) {
         switch (type) {
         case INFORMATION_SCHEMA_CATALOG_NAME:
             return 1L;
@@ -3277,7 +3278,7 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     @Override
-    public boolean canGetRowCount(Session session) {
+    public boolean canGetRowCount(SessionLocal session) {
         switch (type) {
         case INFORMATION_SCHEMA_CATALOG_NAME:
         case COLLATIONS:

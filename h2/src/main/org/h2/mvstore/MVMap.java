@@ -5,6 +5,8 @@
  */
 package org.h2.mvstore;
 
+import static org.h2.engine.Constants.MEMORY_POINTER;
+
 import java.util.AbstractList;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
@@ -16,7 +18,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import static org.h2.engine.Constants.MEMORY_POINTER;
+
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.util.MemoryEstimator;

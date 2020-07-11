@@ -5,7 +5,7 @@
  */
 package org.h2.expression;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.util.ParserUtil;
 import org.h2.value.TypeInfo;
@@ -19,7 +19,7 @@ public class Variable extends Operation0 {
     private final String name;
     private Value lastValue;
 
-    public Variable(Session session, String name) {
+    public Variable(SessionLocal session, String name) {
         this.name = name;
         lastValue = session.getVariable(name);
     }
@@ -40,7 +40,7 @@ public class Variable extends Operation0 {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         lastValue = session.getVariable(name);
         return lastValue;
     }

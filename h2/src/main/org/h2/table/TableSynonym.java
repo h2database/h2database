@@ -6,7 +6,7 @@
 package org.h2.table;
 
 import org.h2.command.ddl.CreateSynonymData;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.schema.Schema;
@@ -61,7 +61,7 @@ public class TableSynonym extends SchemaObjectBase {
     public void rename(String newName) { throw DbException.getUnsupportedException("SYNONYM"); }
 
     @Override
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(SessionLocal session) {
         synonymFor.removeSynonym(this);
         database.removeMeta(session, getId());
     }

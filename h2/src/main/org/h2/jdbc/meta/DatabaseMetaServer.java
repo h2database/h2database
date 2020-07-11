@@ -5,6 +5,7 @@
  */
 package org.h2.jdbc.meta;
 
+import static org.h2.jdbc.meta.DatabaseMetaRemote.DEFAULT_NULL_ORDERING;
 import static org.h2.jdbc.meta.DatabaseMetaRemote.GET_ATTRIBUTES_4;
 import static org.h2.jdbc.meta.DatabaseMetaRemote.GET_BEST_ROW_IDENTIFIER_5;
 import static org.h2.jdbc.meta.DatabaseMetaRemote.GET_CATALOGS;
@@ -39,9 +40,8 @@ import static org.h2.jdbc.meta.DatabaseMetaRemote.GET_TIME_DATE_FUNCTIONS;
 import static org.h2.jdbc.meta.DatabaseMetaRemote.GET_TYPE_INFO;
 import static org.h2.jdbc.meta.DatabaseMetaRemote.GET_UDTS_4;
 import static org.h2.jdbc.meta.DatabaseMetaRemote.GET_VERSION_COLUMNS_3;
-import static org.h2.jdbc.meta.DatabaseMetaRemote.DEFAULT_NULL_ORDERING;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
@@ -56,7 +56,7 @@ import org.h2.value.ValueVarchar;
  */
 public final class DatabaseMetaServer {
 
-    public static ResultInterface process(Session session, int code, Value[] args) {
+    public static ResultInterface process(SessionLocal session, int code, Value[] args) {
         DatabaseMeta meta = session.getDatabaseMeta();
         switch (code) {
         case DEFAULT_NULL_ORDERING:
@@ -169,15 +169,15 @@ public final class DatabaseMetaServer {
         return result;
     }
 
-    private static ResultInterface result(Session session, int value) {
+    private static ResultInterface result(SessionLocal session, int value) {
         return result(session, ValueInteger.get(value));
     }
 
-    private static ResultInterface result(Session session, String value) {
+    private static ResultInterface result(SessionLocal session, String value) {
         return result(session, ValueVarchar.get(value, session));
     }
 
-    private static ResultInterface result(Session session, Value v) {
+    private static ResultInterface result(SessionLocal session, Value v) {
         SimpleResult result = new SimpleResult();
         result.addColumn("RESULT", v.getType());
         result.addRow(v);

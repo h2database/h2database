@@ -15,7 +15,7 @@ import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.Setting;
 import org.h2.expression.Expression;
 import org.h2.expression.TimeZoneOperation;
@@ -48,7 +48,7 @@ public class Set extends Prepared {
     private String stringValue;
     private String[] stringValueList;
 
-    public Set(Session session, int type) {
+    public Set(SessionLocal session, int type) {
         super(session);
         this.type = type;
     }
@@ -126,7 +126,7 @@ public class Set extends Prepared {
                 database.setCluster(value);
                 // use the system session so that the current transaction
                 // (if any) is not committed
-                Session sysSession = database.getSystemSession();
+                SessionLocal sysSession = database.getSystemSession();
                 synchronized (sysSession) {
                     synchronized (database) {
                         addOrUpdateSetting(sysSession, name, value, 0);
@@ -690,7 +690,7 @@ public class Set extends Prepared {
         addOrUpdateSetting(session, name, s, v);
     }
 
-    private void addOrUpdateSetting(Session session, String name, String s, int v) {
+    private void addOrUpdateSetting(SessionLocal session, String name, String s, int v) {
         Database database = session.getDatabase();
         assert Thread.holdsLock(database);
         if (database.isReadOnly()) {

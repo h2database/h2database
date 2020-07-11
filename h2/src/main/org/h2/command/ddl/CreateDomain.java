@@ -8,7 +8,7 @@ package org.h2.command.ddl;
 import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
@@ -31,7 +31,7 @@ public class CreateDomain extends SchemaCommand {
 
     private ArrayList<AlterDomainAddConstraint> constraintCommands;
 
-    public CreateDomain(Session session, Schema schema) {
+    public CreateDomain(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 

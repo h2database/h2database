@@ -7,7 +7,7 @@ package org.h2.expression;
 
 import org.h2.api.ErrorCode;
 import org.h2.constraint.DomainColumnResolver;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.util.ParserUtil;
@@ -25,7 +25,7 @@ public class DomainValueExpression extends Operation0 {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         return columnResolver.getValue(null);
     }
 
@@ -42,7 +42,7 @@ public class DomainValueExpression extends Operation0 {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         if (columnResolver == null) {
             throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, "VALUE");
         }

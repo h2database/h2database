@@ -10,7 +10,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.OperationN;
 import org.h2.expression.TypedValueExpression;
@@ -50,7 +50,7 @@ public class DateTimeFormatFunction extends OperationN implements NamedExpressio
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value v1 = args[0].getValue(session);
         if (v1 == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
@@ -154,7 +154,7 @@ public class DateTimeFormatFunction extends OperationN implements NamedExpressio
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         boolean allConst = optimizeArguments(session, true);
         switch (function) {
         case FORMATDATETIME:

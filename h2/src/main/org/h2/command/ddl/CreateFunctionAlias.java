@@ -9,7 +9,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
 import org.h2.engine.FunctionAlias;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.util.StringUtils;
@@ -27,7 +27,7 @@ public class CreateFunctionAlias extends SchemaCommand {
     private boolean force;
     private String source;
 
-    public CreateFunctionAlias(Session session, Schema schema) {
+    public CreateFunctionAlias(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 

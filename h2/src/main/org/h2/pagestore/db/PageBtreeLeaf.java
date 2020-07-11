@@ -8,7 +8,7 @@ package org.h2.pagestore.db;
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.pagestore.Page;
 import org.h2.pagestore.PageStore;
@@ -346,7 +346,7 @@ public class PageBtreeLeaf extends PageBtree {
     }
 
     @Override
-    public void moveTo(Session session, int newPos) {
+    public void moveTo(SessionLocal session, int newPos) {
         PageStore store = index.getPageStore();
         readAllRows();
         PageBtreeLeaf p2 = PageBtreeLeaf.create(index, newPos, parentPageId);

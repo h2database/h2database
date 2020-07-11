@@ -8,7 +8,7 @@ package org.h2.table;
 import java.util.ArrayList;
 
 import org.h2.engine.Mode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.MetaIndex;
@@ -102,14 +102,14 @@ public abstract class MetaTable extends Table {
     }
 
     @Override
-    public final Index addIndex(Session session, String indexName, int indexId,
+    public final Index addIndex(SessionLocal session, String indexName, int indexId,
             IndexColumn[] cols, IndexType indexType, boolean create,
             String indexComment) {
         throw DbException.getUnsupportedException("META");
     }
 
     @Override
-    public final boolean lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc) {
+    public final boolean lock(SessionLocal session, boolean exclusive, boolean forceLockEvenInMvcc) {
         // nothing to do
         return false;
     }
@@ -132,7 +132,7 @@ public abstract class MetaTable extends Table {
         return s;
     }
 
-    protected final boolean checkIndex(Session session, String value, Value indexFrom, Value indexTo) {
+    protected final boolean checkIndex(SessionLocal session, String value, Value indexFrom, Value indexTo) {
         if (value == null || (indexFrom == null && indexTo == null)) {
             return true;
         }
@@ -159,7 +159,7 @@ public abstract class MetaTable extends Table {
      * @param session the session
      * @return whether the table is hidden
      */
-    protected final boolean hideTable(Table table, Session session) {
+    protected final boolean hideTable(Table table, SessionLocal session) {
         return table.isHidden() && session != database.getSystemSession();
     }
 
@@ -172,7 +172,7 @@ public abstract class MetaTable extends Table {
      * @param last the last row to return
      * @return the generated rows
      */
-    public abstract ArrayList<Row> generateRows(Session session, SearchRow first, SearchRow last);
+    public abstract ArrayList<Row> generateRows(SessionLocal session, SearchRow first, SearchRow last);
 
     @Override
     public boolean isInsertable() {
@@ -180,27 +180,27 @@ public abstract class MetaTable extends Table {
     }
 
     @Override
-    public final void removeRow(Session session, Row row) {
+    public final void removeRow(SessionLocal session, Row row) {
         throw DbException.getUnsupportedException("META");
     }
 
     @Override
-    public final void addRow(Session session, Row row) {
+    public final void addRow(SessionLocal session, Row row) {
         throw DbException.getUnsupportedException("META");
     }
 
     @Override
-    public final void removeChildrenAndResources(Session session) {
+    public final void removeChildrenAndResources(SessionLocal session) {
         throw DbException.getUnsupportedException("META");
     }
 
     @Override
-    public final void close(Session session) {
+    public final void close(SessionLocal session) {
         // nothing to do
     }
 
     @Override
-    public final void unlock(Session s) {
+    public final void unlock(SessionLocal s) {
         // nothing to do
     }
 
@@ -211,7 +211,7 @@ public abstract class MetaTable extends Table {
      * @param rows the original row list
      * @param stringsOrValues the values, or strings
      */
-    protected final void add(Session session, ArrayList<Row> rows, Object... stringsOrValues) {
+    protected final void add(SessionLocal session, ArrayList<Row> rows, Object... stringsOrValues) {
         Value[] values = new Value[stringsOrValues.length];
         for (int i = 0; i < stringsOrValues.length; i++) {
             Object s = stringsOrValues[i];
@@ -232,17 +232,17 @@ public abstract class MetaTable extends Table {
     }
 
     @Override
-    public final void truncate(Session session) {
+    public final void truncate(SessionLocal session) {
         throw DbException.getUnsupportedException("META");
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         throw DbException.throwInternalError(toString());
     }
 
     @Override
-    public boolean canGetRowCount(Session session) {
+    public boolean canGetRowCount(SessionLocal session) {
         return false;
     }
 
@@ -257,7 +257,7 @@ public abstract class MetaTable extends Table {
     }
 
     @Override
-    public final Index getScanIndex(Session session) {
+    public final Index getScanIndex(SessionLocal session) {
         return new MetaIndex(this, IndexColumn.wrap(columns), true);
     }
 
@@ -279,7 +279,7 @@ public abstract class MetaTable extends Table {
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return ROW_COUNT_APPROXIMATION;
     }
 

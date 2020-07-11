@@ -8,7 +8,7 @@ package org.h2.command.ddl;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.UserAggregate;
@@ -24,7 +24,7 @@ public class CreateAggregate extends SchemaCommand {
     private boolean ifNotExists;
     private boolean force;
 
-    public CreateAggregate(Session session, Schema schema) {
+    public CreateAggregate(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 

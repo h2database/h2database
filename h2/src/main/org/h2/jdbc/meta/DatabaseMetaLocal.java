@@ -26,7 +26,7 @@ import org.h2.engine.DbObject;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.FunctionAlias.JavaMethod;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.expression.condition.CompareLike;
 import org.h2.index.Index;
@@ -122,9 +122,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     private static final ValueSmallint TYPE_SEARCHABLE = ValueSmallint.get((short) DatabaseMetaData.typeSearchable);
 
-    private final Session session;
+    private final SessionLocal session;
 
-    public DatabaseMetaLocal(Session session) {
+    public DatabaseMetaLocal(SessionLocal session) {
         this.session = session;
     }
 

@@ -6,7 +6,7 @@
 package org.h2.expression.condition;
 
 import org.h2.command.query.Query;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.table.ColumnResolver;
@@ -33,7 +33,7 @@ abstract class PredicateWithSubquery extends Condition {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         query.prepare();
         return this;
     }
@@ -49,7 +49,7 @@ abstract class PredicateWithSubquery extends Condition {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         query.updateAggregate(session, stage);
     }
 

@@ -5,11 +5,12 @@
  */
 package org.h2.test.db;
 
-import org.h2.test.TestBase;
-import org.h2.test.TestDb;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+
+import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 public class TestAnalyzeTableTx extends TestDb {
     private static final int C = 10_000;

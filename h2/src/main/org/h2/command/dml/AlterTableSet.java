@@ -9,7 +9,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.ddl.SchemaCommand;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
@@ -27,7 +27,7 @@ public class AlterTableSet extends SchemaCommand {
     private final boolean value;
     private boolean checkExisting;
 
-    public AlterTableSet(Session session, Schema schema, int type, boolean value) {
+    public AlterTableSet(SessionLocal session, Schema schema, int type, boolean value) {
         super(session, schema);
         this.type = type;
         this.value = value;

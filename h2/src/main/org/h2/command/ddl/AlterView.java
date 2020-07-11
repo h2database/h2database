@@ -7,7 +7,7 @@ package org.h2.command.ddl;
 
 import org.h2.command.CommandInterface;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.table.TableView;
 
@@ -20,7 +20,7 @@ public class AlterView extends DefineCommand {
     private boolean ifExists;
     private TableView view;
 
-    public AlterView(Session session) {
+    public AlterView(SessionLocal session) {
         super(session);
     }
 

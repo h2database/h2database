@@ -60,7 +60,7 @@ public abstract class DbObjectBase implements DbObject {
      * @param session the session
      */
     @Override
-    public abstract void removeChildrenAndResources(Session session);
+    public abstract void removeChildrenAndResources(SessionLocal session);
 
     /**
      * Tell the object that is was modified.

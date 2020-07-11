@@ -13,7 +13,7 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Constants;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.SysProperties;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -96,7 +96,7 @@ public class MVTable extends RegularTable {
      * The queue of sessions waiting to lock the table. It is a FIFO queue to
      * prevent starvation, since Java's synchronized locking is biased.
      */
-    private final ArrayDeque<Session> waitingSessions = new ArrayDeque<>();
+    private final ArrayDeque<SessionLocal> waitingSessions = new ArrayDeque<>();
     private final Trace traceLock;
     private final AtomicInteger changesUntilAnalyze;
     private int nextAnalyze;
@@ -122,7 +122,7 @@ public class MVTable extends RegularTable {
     }
 
     @Override
-    public boolean lock(Session session, boolean exclusive,
+    public boolean lock(SessionLocal session, boolean exclusive,
             boolean forceLockEvenInMvcc) {
         int lockMode = database.getLockMode();
         if (lockMode == Constants.LOCK_MODE_OFF) {
@@ -170,7 +170,7 @@ public class MVTable extends RegularTable {
         return false;
     }
 
-    private void doLock1(Session session, boolean exclusive) {
+    private void doLock1(SessionLocal session, boolean exclusive) {
         traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_REQUESTING_FOR, NO_EXTRA_INFO);
         // don't get the current time unless necessary
         long max = 0L;
@@ -183,7 +183,7 @@ public class MVTable extends RegularTable {
                 }
             }
             if (checkDeadlock) {
-                ArrayList<Session> sessions = checkDeadlock(session, null, null);
+                ArrayList<SessionLocal> sessions = checkDeadlock(session, null, null);
                 if (sessions != null) {
                     throw DbException.get(ErrorCode.DEADLOCK_1,
                             getDeadlockDetails(sessions, exclusive));
@@ -215,7 +215,7 @@ public class MVTable extends RegularTable {
         }
     }
 
-    private boolean doLock2(Session session, boolean exclusive) {
+    private boolean doLock2(SessionLocal session, boolean exclusive) {
         if (lockExclusiveSession == null) {
             if (exclusive) {
                 if (lockSharedSessions.isEmpty()) {
@@ -260,7 +260,7 @@ public class MVTable extends RegularTable {
         return false;
     }
 
-    private void traceLock(Session session, boolean exclusive, TraceLockEvent eventEnum, String extraInfo) {
+    private void traceLock(SessionLocal session, boolean exclusive, TraceLockEvent eventEnum, String extraInfo) {
         if (traceLock.isDebugEnabled()) {
             traceLock.debug("{0} {1} {2} {3} {4}", session.getId(),
                     exclusive ? "exclusive write lock" : "shared read lock", eventEnum.getEventText(),
@@ -269,7 +269,7 @@ public class MVTable extends RegularTable {
     }
 
     @Override
-    public void unlock(Session s) {
+    public void unlock(SessionLocal s) {
         if (database != null) {
             boolean wasLocked = lockExclusiveSession == s;
             traceLock(s, wasLocked, TraceLockEvent.TRACE_LOCK_UNLOCK, NO_EXTRA_INFO);
@@ -298,17 +298,17 @@ public class MVTable extends RegularTable {
     }
 
     @Override
-    public void close(Session session) {
+    public void close(SessionLocal session) {
         // ignore
     }
 
     @Override
-    public Row getRow(Session session, long key) {
+    public Row getRow(SessionLocal session, long key) {
         return primaryIndex.getRow(session, key);
     }
 
     @Override
-    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
+    public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             boolean create, String indexComment) {
         cols = prepareColumns(database, cols, indexType);
         boolean isSessionTemporary = isTemporary() && !isGlobalTemporary();
@@ -356,7 +356,7 @@ public class MVTable extends RegularTable {
         return index;
     }
 
-    private void rebuildIndex(Session session, MVIndex<?,?> index, String indexName) {
+    private void rebuildIndex(SessionLocal session, MVIndex<?,?> index, String indexName) {
         try {
             if (session.getDatabase().getStore() == null ||
                     index instanceof MVSpatialIndex) {
@@ -380,7 +380,7 @@ public class MVTable extends RegularTable {
         }
     }
 
-    private void rebuildIndexBlockMerge(Session session, MVIndex<?,?> index) {
+    private void rebuildIndexBlockMerge(SessionLocal session, MVIndex<?,?> index) {
         if (index instanceof MVSpatialIndex) {
             // the spatial index doesn't support multi-way merge sort
             rebuildIndexBuffered(session, index);
@@ -434,7 +434,7 @@ public class MVTable extends RegularTable {
         }
     }
 
-    private void rebuildIndexBuffered(Session session, Index index) {
+    private void rebuildIndexBuffered(SessionLocal session, Index index) {
         Index scan = getScanIndex(session);
         long remaining = scan.getRowCount(session);
         long total = remaining;
@@ -462,7 +462,7 @@ public class MVTable extends RegularTable {
     }
 
     @Override
-    public void removeRow(Session session, Row row) {
+    public void removeRow(SessionLocal session, Row row) {
         syncLastModificationIdWithDatabase();
         Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
@@ -483,7 +483,7 @@ public class MVTable extends RegularTable {
     }
 
     @Override
-    public void truncate(Session session) {
+    public void truncate(SessionLocal session) {
         syncLastModificationIdWithDatabase();
         for (int i = indexes.size() - 1; i >= 0; i--) {
             Index index = indexes.get(i);
@@ -495,7 +495,7 @@ public class MVTable extends RegularTable {
     }
 
     @Override
-    public void addRow(Session session, Row row) {
+    public void addRow(SessionLocal session, Row row) {
         syncLastModificationIdWithDatabase();
         Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
@@ -515,7 +515,7 @@ public class MVTable extends RegularTable {
     }
 
     @Override
-    public void updateRow(Session session, Row oldRow, Row newRow) {
+    public void updateRow(SessionLocal session, Row oldRow, Row newRow) {
         newRow.setKey(oldRow.getKey());
         syncLastModificationIdWithDatabase();
         Transaction t = session.getTransaction();
@@ -536,7 +536,7 @@ public class MVTable extends RegularTable {
     }
 
     @Override
-    public Row lockRow(Session session, Row row) {
+    public Row lockRow(SessionLocal session, Row row) {
         Row lockedRow = primaryIndex.lockRow(session, row);
         if (lockedRow == null || !row.hasSharedData(lockedRow)) {
             syncLastModificationIdWithDatabase();
@@ -544,7 +544,7 @@ public class MVTable extends RegularTable {
         return lockedRow;
     }
 
-    private void analyzeIfRequired(Session session) {
+    private void analyzeIfRequired(SessionLocal session) {
         if (changesUntilAnalyze != null) {
             if (changesUntilAnalyze.decrementAndGet() == 0) {
                 if (nextAnalyze <= Integer.MAX_VALUE / 2) {
@@ -557,7 +557,7 @@ public class MVTable extends RegularTable {
     }
 
     @Override
-    public Index getScanIndex(Session session) {
+    public Index getScanIndex(SessionLocal session) {
         return primaryIndex;
     }
 
@@ -577,7 +577,7 @@ public class MVTable extends RegularTable {
     }
 
     @Override
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(SessionLocal session) {
         if (containsLargeObject) {
             // unfortunately, the data is gone on rollback
             truncate(session);
@@ -603,12 +603,12 @@ public class MVTable extends RegularTable {
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         return primaryIndex.getRowCount(session);
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return primaryIndex.getRowCountApproximation(session);
     }
 

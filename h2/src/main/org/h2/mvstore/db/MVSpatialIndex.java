@@ -9,12 +9,13 @@ import static org.h2.util.geometry.GeometryUtils.MAX_X;
 import static org.h2.util.geometry.GeometryUtils.MAX_Y;
 import static org.h2.util.geometry.GeometryUtils.MIN_X;
 import static org.h2.util.geometry.GeometryUtils.MIN_Y;
+
 import java.util.Iterator;
 import java.util.List;
 import org.h2.api.ErrorCode;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexCondition;
@@ -123,12 +124,12 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
     }
 
     @Override
-    public void close(Session session) {
+    public void close(SessionLocal session) {
         // ok
     }
 
     @Override
-    public void add(Session session, Row row) {
+    public void add(SessionLocal session, Row row) {
         TransactionMap<SpatialKey, Value> map = getMap(session);
         SpatialKey key = getKey(row);
 
@@ -174,7 +175,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
     }
 
     @Override
-    public void remove(Session session, Row row) {
+    public void remove(SessionLocal session, Row row) {
         SpatialKey key = getKey(row);
 
         if (key.isNull()) {
@@ -195,7 +196,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
     }
 
     @Override
-    public Cursor find(Session session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
         Iterator<SpatialKey> cursor = spatialMap.keyIterator(null);
         TransactionMap<SpatialKey, Value> map = getMap(session);
         Iterator<SpatialKey> it = new SpatialKeyIterator(map, cursor, false);
@@ -203,7 +204,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
     }
 
     @Override
-    public Cursor findByGeometry(Session session, SearchRow first, SearchRow last, SearchRow intersection) {
+    public Cursor findByGeometry(SessionLocal session, SearchRow first, SearchRow last, SearchRow intersection) {
         if (intersection == null) {
             return find(session, first, last);
         }
@@ -220,7 +221,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
      * @param session the session
      * @return the minimum bounding box that encloses all keys, or null
      */
-    public Value getBounds(Session session) {
+    public Value getBounds(SessionLocal session) {
         FindBoundsCursor cursor = new FindBoundsCursor(spatialMap.getRootPage(), new SpatialKey(0), session,
                 getMap(session), columnIds[0]);
         while (cursor.hasNext()) {
@@ -237,7 +238,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
      * @param session the session
      * @return the estimated minimum bounding box that encloses all keys, or null
      */
-    public Value getEstimatedBounds(Session session) {
+    public Value getEstimatedBounds(SessionLocal session) {
         Page<SpatialKey,VersionedValue<Value>> p = spatialMap.getRootPage();
         int count = p.getKeyCount();
         if (count > 0) {
@@ -281,7 +282,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter[] filters,
+    public double getCost(SessionLocal session, int[] masks, TableFilter[] filters,
             int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
         return getCostRangeIndex(masks, columns);
@@ -309,7 +310,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
     }
 
     @Override
-    public void remove(Session session) {
+    public void remove(SessionLocal session) {
         TransactionMap<SpatialKey, Value> map = getMap(session);
         if (!map.isClosed()) {
             Transaction t = session.getTransaction();
@@ -318,7 +319,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
     }
 
     @Override
-    public void truncate(Session session) {
+    public void truncate(SessionLocal session) {
         TransactionMap<SpatialKey, Value> map = getMap(session);
         map.clear();
     }
@@ -333,13 +334,13 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         TransactionMap<SpatialKey, Value> map = getMap(session);
         return map.sizeAsLong();
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         try {
             return dataMap.sizeAsLongMax();
         } catch (MVStoreException e) {
@@ -359,7 +360,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
      * @param session the session
      * @return the map
      */
-    private TransactionMap<SpatialKey, Value> getMap(Session session) {
+    private TransactionMap<SpatialKey, Value> getMap(SessionLocal session) {
         if (session == null) {
             return dataMap;
         }
@@ -378,14 +379,14 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
      */
     private static class MVStoreCursor implements Cursor {
 
-        private final Session session;
+        private final SessionLocal session;
         private final Iterator<SpatialKey> it;
         private final MVTable mvTable;
         private SpatialKey current;
         private SearchRow searchRow;
         private Row row;
 
-        MVStoreCursor(Session session, Iterator<SpatialKey> it, MVTable mvTable) {
+        MVStoreCursor(SessionLocal session, Iterator<SpatialKey> it, MVTable mvTable) {
             this.session = session;
             this.it = it;
             this.mvTable = mvTable;
@@ -471,7 +472,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
      */
     private final class FindBoundsCursor extends RTreeCursor<VersionedValue<Value>> {
 
-        private final Session session;
+        private final SessionLocal session;
 
         private final TransactionMap<SpatialKey, Value> map;
 
@@ -483,7 +484,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
 
         private double bminxd, bmaxxd, bminyd, bmaxyd;
 
-        FindBoundsCursor(Page<SpatialKey,VersionedValue<Value>> root, SpatialKey filter, Session session,
+        FindBoundsCursor(Page<SpatialKey,VersionedValue<Value>> root, SpatialKey filter, SessionLocal session,
                 TransactionMap<SpatialKey, Value> map, int columnId) {
             super(root, filter);
             this.session = session;

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.message.DbException;
@@ -33,7 +33,7 @@ public class TableFunction extends Function {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         return getTable(session, false);
     }
 
@@ -66,7 +66,7 @@ public class TableFunction extends Function {
     }
 
     @Override
-    public ValueResultSet getValueForColumnList(Session session,
+    public ValueResultSet getValueForColumnList(SessionLocal session,
             Expression[] nullArgs) {
         return getTable(session, true);
     }
@@ -75,7 +75,7 @@ public class TableFunction extends Function {
         this.columns = columns.toArray(new Column[0]);
     }
 
-    private ValueResultSet getTable(Session session, boolean onlyColumnList) {
+    private ValueResultSet getTable(SessionLocal session, boolean onlyColumnList) {
         int totalColumns = columns.length;
         Expression[] header = new Expression[totalColumns];
         Database db = session.getDatabase();
@@ -140,7 +140,7 @@ public class TableFunction extends Function {
     }
 
     @Override
-    public Expression[] getExpressionColumns(Session session) {
+    public Expression[] getExpressionColumns(SessionLocal session) {
         return getExpressionColumns(session, getValueForColumnList(session, null).getResult());
     }
 

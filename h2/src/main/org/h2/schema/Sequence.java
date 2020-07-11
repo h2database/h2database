@@ -8,7 +8,7 @@ package org.h2.schema;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.SequenceOptions;
 import org.h2.engine.DbObject;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
@@ -58,7 +58,7 @@ public class Sequence extends SchemaObjectBase {
      *            whether this sequence belongs to a table (for generated
      *            columns)
      */
-    public Sequence(Session session, Schema schema, int id, String name, SequenceOptions options,
+    public Sequence(SessionLocal session, Schema schema, int id, String name, SequenceOptions options,
             boolean belongsToTable) {
         super(schema, id, name, Trace.SEQUENCE);
         dataType = options.getDataType();
@@ -332,12 +332,12 @@ public class Sequence extends SchemaObjectBase {
 
     /**
      * Get the next value for this sequence. Should not be called directly, use
-     * {@link Session#getNextValueFor(Sequence, org.h2.command.Prepared)} instead.
+     * {@link SessionLocal#getNextValueFor(Sequence, org.h2.command.Prepared)} instead.
      *
      * @param session the session
      * @return the next value
      */
-    public Value getNext(Session session) {
+    public Value getNext(SessionLocal session) {
         boolean needsFlush = false;
         long resultAsLong;
         synchronized (this) {
@@ -378,7 +378,7 @@ public class Sequence extends SchemaObjectBase {
      *
      * @param session the session
      */
-    public void flush(Session session) {
+    public void flush(SessionLocal session) {
         if (isTemporary()) {
             return;
         }
@@ -386,7 +386,7 @@ public class Sequence extends SchemaObjectBase {
             // This session may not lock the sys table (except if it has already
             // locked it) because it must be committed immediately, otherwise
             // other threads can not access the sys table.
-            Session sysSession = database.getSystemSession();
+            SessionLocal sysSession = database.getSystemSession();
             synchronized (database.isMVStore() ? sysSession : database) {
                 flushInternal(sysSession);
                 sysSession.commit(false);
@@ -398,7 +398,7 @@ public class Sequence extends SchemaObjectBase {
         }
     }
 
-    private void flushInternal(Session session) {
+    private void flushInternal(SessionLocal session) {
         final boolean metaWasLocked = database.lockMeta(session);
         // just for this case, use the value with the margin
         try {
@@ -425,7 +425,7 @@ public class Sequence extends SchemaObjectBase {
     }
 
     @Override
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(SessionLocal session) {
         database.removeMeta(session, getId());
         invalidate();
     }

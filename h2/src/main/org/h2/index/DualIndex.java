@@ -6,7 +6,7 @@
 package org.h2.index;
 
 import org.h2.command.query.AllColumnsForPlan;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -25,12 +25,12 @@ public class DualIndex extends VirtualTableIndex {
     }
 
     @Override
-    public Cursor find(Session session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
         return new DualCursor();
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter[] filters, int filter, SortOrder sortOrder,
+    public double getCost(SessionLocal session, int[] masks, TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
         return 1d;
     }
@@ -46,7 +46,7 @@ public class DualIndex extends VirtualTableIndex {
     }
 
     @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
+    public Cursor findFirstOrLast(SessionLocal session, boolean first) {
         return new SingleRowCursor(Row.get(Value.EMPTY_VALUES, 1));
     }
 

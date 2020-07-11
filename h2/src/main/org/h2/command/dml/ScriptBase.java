@@ -14,7 +14,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
@@ -65,7 +65,7 @@ abstract class ScriptBase extends Prepared implements DataHandler {
     private FileStore store;
     private String compressionAlgorithm;
 
-    ScriptBase(Session session) {
+    ScriptBase(SessionLocal session) {
         super(session);
     }
 

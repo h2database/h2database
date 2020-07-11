@@ -5,7 +5,7 @@
  */
 package org.h2.expression;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueJson;
@@ -33,7 +33,7 @@ public class Format extends Operation1 {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         return getValue(arg.getValue(session));
     }
 
@@ -59,7 +59,7 @@ public class Format extends Operation1 {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         arg = arg.optimize(session);
         if (arg.isConstant()) {
             return ValueExpression.get(getValue(session));
@@ -92,7 +92,7 @@ public class Format extends Operation1 {
     }
 
     @Override
-    public String getColumnName(Session session, int columnIndex) {
+    public String getColumnName(SessionLocal session, int columnIndex) {
         return arg.getColumnName(session, columnIndex);
     }
 

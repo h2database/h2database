@@ -14,7 +14,7 @@ import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.RightOwner;
 import org.h2.engine.Role;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
@@ -36,7 +36,7 @@ public class GrantRevoke extends DefineCommand {
     private Schema schema;
     private RightOwner grantee;
 
-    public GrantRevoke(Session session) {
+    public GrantRevoke(SessionLocal session) {
         super(session);
     }
 

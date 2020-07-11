@@ -5,7 +5,7 @@
  */
 package org.h2.test.unit;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.BinaryOperation;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Operation0;
@@ -86,7 +86,7 @@ public class TestBinaryOperation extends TestBase {
         }
 
         @Override
-        public Value getValue(Session session) {
+        public Value getValue(SessionLocal session) {
             throw DbException.getUnsupportedException("");
         }
 

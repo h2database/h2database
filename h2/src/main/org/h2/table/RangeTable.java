@@ -7,7 +7,7 @@ package org.h2.table;
 
 import java.util.ArrayList;
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
 import org.h2.index.RangeIndex;
@@ -69,12 +69,12 @@ public class RangeTable extends VirtualTable {
     }
 
     @Override
-    public boolean canGetRowCount(Session session) {
+    public boolean canGetRowCount(SessionLocal session) {
         return true;
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         long step = getStep(session);
         if (step == 0L) {
             throw DbException.get(ErrorCode.STEP_SIZE_MUST_NOT_BE_ZERO);
@@ -96,7 +96,7 @@ public class RangeTable extends VirtualTable {
     }
 
     @Override
-    public Index getScanIndex(Session session) {
+    public Index getScanIndex(SessionLocal session) {
         if (getStep(session) == 0) {
             throw DbException.get(ErrorCode.STEP_SIZE_MUST_NOT_BE_ZERO);
         }
@@ -119,7 +119,7 @@ public class RangeTable extends VirtualTable {
      * @param session the session
      * @return the start value
      */
-    public long getMin(Session session) {
+    public long getMin(SessionLocal session) {
         optimize(session);
         return min.getValue(session).getLong();
     }
@@ -130,7 +130,7 @@ public class RangeTable extends VirtualTable {
      * @param session the session
      * @return the end value
      */
-    public long getMax(Session session) {
+    public long getMax(SessionLocal session) {
         optimize(session);
         return max.getValue(session).getLong();
     }
@@ -141,7 +141,7 @@ public class RangeTable extends VirtualTable {
      * @param session the session
      * @return the increment (1 by default)
      */
-    public long getStep(Session session) {
+    public long getStep(SessionLocal session) {
         optimize(session);
         if (step == null) {
             return 1;
@@ -149,7 +149,7 @@ public class RangeTable extends VirtualTable {
         return step.getValue(session).getLong();
     }
 
-    private void optimize(Session s) {
+    private void optimize(SessionLocal s) {
         if (!optimized) {
             min = min.optimize(s);
             max = max.optimize(s);
@@ -166,7 +166,7 @@ public class RangeTable extends VirtualTable {
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return 100;
     }
 

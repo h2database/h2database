@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
@@ -90,7 +90,7 @@ public class ConditionAndOrN extends Condition {
     }
 
     @Override
-    public void createIndexConditions(Session session, TableFilter filter) {
+    public void createIndexConditions(SessionLocal session, TableFilter filter) {
         if (andOrType == ConditionAndOr.AND) {
             for (Expression e : expressions) {
                 e.createIndexConditions(session, filter);
@@ -104,7 +104,7 @@ public class ConditionAndOrN extends Condition {
     }
 
     @Override
-    public Expression getNotIfPossible(Session session) {
+    public Expression getNotIfPossible(SessionLocal session) {
         // (NOT (A OR B)): (NOT(A) AND NOT(B))
         // (NOT (A AND B)): (NOT(A) OR NOT(B))
         final ArrayList<Expression> newList = new ArrayList<>(expressions.size());
@@ -120,7 +120,7 @@ public class ConditionAndOrN extends Condition {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         boolean hasNull = false;
         switch (andOrType) {
         case ConditionAndOr.AND: {
@@ -159,7 +159,7 @@ public class ConditionAndOrN extends Condition {
     };
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         // NULL handling: see wikipedia,
         // http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
 
@@ -303,7 +303,7 @@ public class ConditionAndOrN extends Condition {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         for (Expression e : expressions) {
             e.updateAggregate(session, stage);
         }

@@ -6,7 +6,7 @@
 package org.h2.expression.function;
 
 import org.h2.engine.FunctionAlias;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
@@ -34,7 +34,7 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         return javaMethod.getValue(session, args, false);
     }
 
@@ -56,7 +56,7 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         boolean allConst = isDeterministic();
         for (int i = 0, len = args.length; i < len; i++) {
             Expression e = args[i].optimize(session);
@@ -84,7 +84,7 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         for (Expression e : args) {
             if (e != null) {
                 e.updateAggregate(session, stage);
@@ -98,7 +98,7 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public ValueResultSet getValueForColumnList(Session session,
+    public ValueResultSet getValueForColumnList(SessionLocal session,
             Expression[] argList) {
         Value v = javaMethod.getValue(session, argList, true);
         return v == ValueNull.INSTANCE ? null : (ValueResultSet) v;
@@ -146,7 +146,7 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public Expression[] getExpressionColumns(Session session) {
+    public Expression[] getExpressionColumns(SessionLocal session) {
         switch (getValueType()) {
         case Value.RESULT_SET:
             ValueResultSet rs = getValueForColumnList(session, getArgs());

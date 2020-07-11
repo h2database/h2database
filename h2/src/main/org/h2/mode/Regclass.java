@@ -6,7 +6,7 @@
 package org.h2.mode;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.Operation1;
 import org.h2.expression.ValueExpression;
@@ -29,7 +29,7 @@ public class Regclass extends Operation1 {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value value = arg.getValue(session);
         if (value == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
@@ -61,7 +61,7 @@ public class Regclass extends Operation1 {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         arg = arg.optimize(session);
         if (arg.isConstant()) {
             return ValueExpression.get(getValue(session));

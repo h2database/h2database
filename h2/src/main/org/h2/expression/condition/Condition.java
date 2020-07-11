@@ -5,7 +5,7 @@
  */
 package org.h2.expression.condition;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.function.CastSpecification;
 import org.h2.value.TypeInfo;
@@ -23,7 +23,7 @@ abstract class Condition extends Expression {
      * @param expression the expression
      * @return the new expression
      */
-    static Expression castToBoolean(Session session, Expression expression) {
+    static Expression castToBoolean(SessionLocal session, Expression expression) {
         if (expression.getType().getValueType() == Value.BOOLEAN) {
             return expression;
         }

@@ -8,7 +8,7 @@ package org.h2.pagestore.db;
 import org.h2.api.ErrorCode;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Constants;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.SysProperties;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
@@ -43,7 +43,7 @@ public class PageBtreeIndex extends PageIndex {
 
     public PageBtreeIndex(PageStoreTable table, int id, String indexName,
             IndexColumn[] columns,
-            IndexType indexType, boolean create, Session session) {
+            IndexType indexType, boolean create, SessionLocal session) {
         super(table, id, indexName, columns, indexType);
         if (!database.isStarting() && create) {
             checkIndexColumnTypes(columns);
@@ -79,7 +79,7 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     @Override
-    public void add(Session session, Row row) {
+    public void add(SessionLocal session, Row row) {
         if (trace.isDebugEnabled()) {
             trace.debug("{0} add {1}", getName(), row);
         }
@@ -166,16 +166,16 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     @Override
-    public Cursor findNext(Session session, SearchRow first, SearchRow last) {
+    public Cursor findNext(SessionLocal session, SearchRow first, SearchRow last) {
         return find(session, first, true, last);
     }
 
     @Override
-    public Cursor find(Session session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
         return find(session, first, false, last);
     }
 
-    private Cursor find(Session session, SearchRow first, boolean bigger,
+    private Cursor find(SessionLocal session, SearchRow first, boolean bigger,
             SearchRow last) {
         if (store == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
@@ -187,7 +187,7 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
+    public Cursor findFirstOrLast(SessionLocal session, boolean first) {
         if (first) {
             // TODO optimization: this loops through NULL elements
             Cursor cursor = find(session, null, false, null);
@@ -219,7 +219,7 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks,
+    public double getCost(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
         return 10 * getCostRangeIndex(masks, tableData.getRowCount(session),
@@ -232,7 +232,7 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     @Override
-    public void remove(Session session, Row row) {
+    public void remove(SessionLocal session, Row row) {
         if (trace.isDebugEnabled()) {
             trace.debug("{0} remove {1}", getName(), row);
         }
@@ -253,7 +253,7 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     @Override
-    public void remove(Session session) {
+    public void remove(SessionLocal session) {
         if (trace.isDebugEnabled()) {
             trace.debug("remove");
         }
@@ -263,7 +263,7 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     @Override
-    public void truncate(Session session) {
+    public void truncate(SessionLocal session) {
         if (trace.isDebugEnabled()) {
             trace.debug("truncate");
         }
@@ -295,7 +295,7 @@ public class PageBtreeIndex extends PageIndex {
      * @return the row
      */
     @Override
-    public Row getRow(Session session, long key) {
+    public Row getRow(SessionLocal session, long key) {
         return tableData.getRow(session, key);
     }
 
@@ -304,7 +304,7 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return tableData.getRowCountApproximation(session);
     }
 
@@ -314,12 +314,12 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         return rowCount;
     }
 
     @Override
-    public void close(Session session) {
+    public void close(SessionLocal session) {
         if (trace.isDebugEnabled()) {
             trace.debug("close");
         }
@@ -423,7 +423,7 @@ public class PageBtreeIndex extends PageIndex {
      * @param session the session
      * @param newPos the new position
      */
-    void setRootPageId(Session session, int newPos) {
+    void setRootPageId(SessionLocal session, int newPos) {
         store.removeMeta(this, session);
         this.rootPageId = newPos;
         store.addMeta(this, session);

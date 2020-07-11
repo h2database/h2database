@@ -7,7 +7,7 @@ package org.h2.expression.condition;
 
 import java.util.Arrays;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -49,7 +49,7 @@ public final class TypePredicate extends SimplePredicate {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         int count = typeList.length;
         valueTypes = new int[count];
         for (int i = 0; i < count; i++) {
@@ -60,7 +60,7 @@ public final class TypePredicate extends SimplePredicate {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value l = left.getValue(session);
         if (l == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
@@ -69,7 +69,7 @@ public final class TypePredicate extends SimplePredicate {
     }
 
     @Override
-    public boolean getWhenValue(Session session, Value left) {
+    public boolean getWhenValue(SessionLocal session, Value left) {
         if (!whenOperand) {
             return super.getWhenValue(session, left);
         }
@@ -80,7 +80,7 @@ public final class TypePredicate extends SimplePredicate {
     }
 
     @Override
-    public Expression getNotIfPossible(Session session) {
+    public Expression getNotIfPossible(SessionLocal session) {
         if (whenOperand) {
             return null;
         }

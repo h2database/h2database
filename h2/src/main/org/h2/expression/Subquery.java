@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.command.query.Query;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
@@ -33,7 +33,7 @@ public final class Subquery extends Expression {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         query.setSession(session);
         try (ResultInterface result = query.query(2)) {
             Value v;
@@ -56,7 +56,7 @@ public final class Subquery extends Expression {
      *            the session
      * @return values in all rows
      */
-    public ArrayList<Value> getAllRows(Session session) {
+    public ArrayList<Value> getAllRows(SessionLocal session) {
         ArrayList<Value> list = new ArrayList<>();
         query.setSession(session);
         try (ResultInterface result = query.query(Integer.MAX_VALUE)) {
@@ -85,7 +85,7 @@ public final class Subquery extends Expression {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         query.prepare();
         if (query.isConstantQuery()) {
             return ValueExpression.get(getValue(session));
@@ -119,7 +119,7 @@ public final class Subquery extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public void updateAggregate(SessionLocal session, int stage) {
         query.updateAggregate(session, stage);
     }
 
@@ -143,7 +143,7 @@ public final class Subquery extends Expression {
     }
 
     @Override
-    public Expression[] getExpressionColumns(Session session) {
+    public Expression[] getExpressionColumns(SessionLocal session) {
         return expression.getExpressionColumns(session);
     }
 }

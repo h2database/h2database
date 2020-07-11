@@ -21,7 +21,7 @@ import org.h2.api.Trigger;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode.ExpressionNames;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Alias;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -156,7 +156,7 @@ public class Select extends Query {
 
     private HashMap<String, Window> windows;
 
-    public Select(Session session, Select parentSelect) {
+    public Select(SessionLocal session, Select parentSelect) {
         super(session);
         this.parentSelect = parentSelect;
     }
@@ -1642,7 +1642,7 @@ public class Select extends Query {
     }
 
     @Override
-    public void updateAggregate(Session s, int stage) {
+    public void updateAggregate(SessionLocal s, int stage) {
         for (Expression e : expressions) {
             e.updateAggregate(s, stage);
         }

@@ -6,7 +6,6 @@
 package org.h2.jmx;
 
 import java.lang.management.ManagementFactory;
-
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -18,7 +17,7 @@ import org.h2.command.Command;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.pagestore.PageStore;
 import org.h2.table.Table;
 import org.h2.util.NetworkConnectionInfo;
@@ -239,7 +238,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
     @Override
     public String listSessions() {
         StringBuilder buff = new StringBuilder();
-        for (Session session : database.getSessions(false)) {
+        for (SessionLocal session : database.getSessions(false)) {
             buff.append("session id: ").append(session.getId());
             buff.append(" user: ").
                     append(session.getUser().getName()).

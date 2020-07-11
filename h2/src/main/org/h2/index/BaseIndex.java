@@ -10,7 +10,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.RowFactory;
@@ -127,7 +127,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     @Override
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(SessionLocal session) {
         table.removeIndex(this);
         remove(session);
         database.removeMeta(session, getId());

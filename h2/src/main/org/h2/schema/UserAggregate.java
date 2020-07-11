@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.engine.DbObject;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
@@ -81,7 +81,7 @@ public class UserAggregate extends SchemaObjectBase {
     }
 
     @Override
-    public synchronized void removeChildrenAndResources(Session session) {
+    public synchronized void removeChildrenAndResources(SessionLocal session) {
         database.removeMeta(session, getId());
         className = null;
         javaClass = null;

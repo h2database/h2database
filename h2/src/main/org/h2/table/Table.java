@@ -20,7 +20,7 @@ import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
@@ -125,21 +125,21 @@ public abstract class Table extends SchemaObjectBase {
      * @return true if the table was already exclusively locked by this session.
      * @throws DbException if a lock timeout occurred
      */
-    public abstract boolean lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc);
+    public abstract boolean lock(SessionLocal session, boolean exclusive, boolean forceLockEvenInMvcc);
 
     /**
      * Close the table object and flush changes.
      *
      * @param session the session
      */
-    public abstract void close(Session session);
+    public abstract void close(SessionLocal session);
 
     /**
      * Release the lock for this session.
      *
      * @param s the session
      */
-    public abstract void unlock(Session s);
+    public abstract void unlock(SessionLocal s);
 
     /**
      * Create an index for this table
@@ -153,7 +153,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param indexComment the comment
      * @return the index
      */
-    public abstract Index addIndex(Session session, String indexName,
+    public abstract Index addIndex(SessionLocal session, String indexName,
             int indexId, IndexColumn[] cols, IndexType indexType,
             boolean create, String indexComment);
 
@@ -165,7 +165,7 @@ public abstract class Table extends SchemaObjectBase {
      * @return the row
      */
     @SuppressWarnings("unused")
-    public Row getRow(Session session, long key) {
+    public Row getRow(SessionLocal session, long key) {
         return null;
     }
 
@@ -184,7 +184,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @param row the row
      */
-    public abstract void removeRow(Session session, Row row);
+    public abstract void removeRow(SessionLocal session, Row row);
 
     /**
      * Locks row, preventing any updated to it, except from the session specified.
@@ -193,7 +193,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param row to lock
      * @return locked row, or null if row does not exist anymore
      */
-    public Row lockRow(Session session, Row row) {
+    public Row lockRow(SessionLocal session, Row row) {
         throw DbException.getUnsupportedException("lockRow()");
     }
 
@@ -202,7 +202,7 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param session the session
      */
-    public abstract void truncate(Session session);
+    public abstract void truncate(SessionLocal session);
 
     /**
      * Add a row to the table and all indexes.
@@ -211,7 +211,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param row the row
      * @throws DbException if a constraint was violated
      */
-    public abstract void addRow(Session session, Row row);
+    public abstract void addRow(SessionLocal session, Row row);
 
     /**
      * Update a row to the table and all indexes.
@@ -221,7 +221,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param newRow the row with updated values (_rowid_ suppose to be the same)
      * @throws DbException if a constraint was violated
      */
-    public void updateRow(Session session, Row oldRow, Row newRow) {
+    public void updateRow(SessionLocal session, Row oldRow, Row newRow) {
         newRow.setKey(oldRow.getKey());
         removeRow(session, oldRow);
         addRow(session, newRow);
@@ -262,7 +262,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @return the index
      */
-    public abstract Index getScanIndex(Session session);
+    public abstract Index getScanIndex(SessionLocal session);
 
     /**
      * Get the scan index for this table.
@@ -276,7 +276,7 @@ public abstract class Table extends SchemaObjectBase {
      * @return the scan index
      */
     @SuppressWarnings("unused")
-    public Index getScanIndex(Session session, int[] masks,
+    public Index getScanIndex(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
         return getScanIndex(session);
@@ -341,7 +341,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @return true if it can
      */
-    public abstract boolean canGetRowCount(Session session);
+    public abstract boolean canGetRowCount(SessionLocal session);
 
     /**
      * Check if this table can be referenced.
@@ -365,7 +365,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @return the row count
      */
-    public abstract long getRowCount(Session session);
+    public abstract long getRowCount(SessionLocal session);
 
     /**
      * Get the approximated row count for this table.
@@ -373,7 +373,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @return the approximated row count
      */
-    public abstract long getRowCountApproximation(Session session);
+    public abstract long getRowCountApproximation(SessionLocal session);
 
     public abstract long getDiskSpaceUsed();
 
@@ -506,7 +506,7 @@ public abstract class Table extends SchemaObjectBase {
      * @return true if it is
      */
     @SuppressWarnings("unused")
-    public boolean isLockedExclusivelyBy(Session session) {
+    public boolean isLockedExclusivelyBy(SessionLocal session) {
         return false;
     }
 
@@ -518,9 +518,9 @@ public abstract class Table extends SchemaObjectBase {
      * @param rows a list of row pairs of the form old row, new row, old row,
      *            new row,...
      */
-    public void updateRows(Prepared prepared, Session session, RowList rows) {
+    public void updateRows(Prepared prepared, SessionLocal session, RowList rows) {
         // in case we need to undo the update
-        Session.Savepoint rollback = session.setSavepoint();
+        SessionLocal.Savepoint rollback = session.setSavepoint();
         // remove the old rows
         int rowScanCount = 0;
         for (rows.reset(); rows.hasNext();) {
@@ -564,7 +564,7 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     @Override
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(SessionLocal session) {
         while (!dependentViews.isEmpty()) {
             TableView view = dependentViews.get(0);
             dependentViews.remove(0);
@@ -610,7 +610,7 @@ public abstract class Table extends SchemaObjectBase {
      * @throws DbException if the column is referenced by multi-column
      *             constraints or indexes
      */
-    public void dropMultipleColumnsConstraintsAndIndexes(Session session,
+    public void dropMultipleColumnsConstraintsAndIndexes(SessionLocal session,
             ArrayList<Column> columnsToDrop) {
         HashSet<Constraint> constraintsToDrop = new HashSet<>();
         if (constraints != null) {
@@ -801,7 +801,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param allColumnsSet the set of all columns
      * @return the plan item
      */
-    public PlanItem getBestPlanItem(Session session, int[] masks,
+    public PlanItem getBestPlanItem(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
         PlanItem item = new PlanItem();
@@ -880,7 +880,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @param row the row
      */
-    public void validateConvertUpdateSequence(Session session, Row row) {
+    public void validateConvertUpdateSequence(SessionLocal session, Row row) {
         int length = columns.length, generated = 0;
         for (int i = 0; i < length; i++) {
             Value value = row.getValue(i);
@@ -1045,7 +1045,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param type the trigger type
      * @param beforeAction whether 'before' triggers should be called
      */
-    public void fire(Session session, int type, boolean beforeAction) {
+    public void fire(SessionLocal session, int type, boolean beforeAction) {
         if (triggers != null) {
             for (TriggerObject trigger : triggers) {
                 trigger.fire(session, type, beforeAction);
@@ -1088,13 +1088,13 @@ public abstract class Table extends SchemaObjectBase {
      * @param newRow the new data or null for a delete
      * @return true if no further action is required (for 'instead of' triggers)
      */
-    public boolean fireBeforeRow(Session session, Row oldRow, Row newRow) {
+    public boolean fireBeforeRow(SessionLocal session, Row oldRow, Row newRow) {
         boolean done = fireRow(session, oldRow, newRow, true, false);
         fireConstraints(session, oldRow, newRow, true);
         return done;
     }
 
-    private void fireConstraints(Session session, Row oldRow, Row newRow,
+    private void fireConstraints(SessionLocal session, Row oldRow, Row newRow,
             boolean before) {
         if (constraints != null) {
             for (Constraint constraint : constraints) {
@@ -1113,7 +1113,7 @@ public abstract class Table extends SchemaObjectBase {
      *  @param newRow the new data or null for a delete
      *  @param rollback when the operation occurred within a rollback
      */
-    public void fireAfterRow(Session session, Row oldRow, Row newRow,
+    public void fireAfterRow(SessionLocal session, Row oldRow, Row newRow,
             boolean rollback) {
         fireRow(session, oldRow, newRow, false, rollback);
         if (!rollback) {
@@ -1121,7 +1121,7 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    private boolean fireRow(Session session, Row oldRow, Row newRow,
+    private boolean fireRow(SessionLocal session, Row oldRow, Row newRow,
             boolean beforeAction, boolean rollback) {
         if (triggers != null) {
             for (TriggerObject trigger : triggers) {
@@ -1155,7 +1155,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param checkExisting true if existing rows must be checked during this
      *            call
      */
-    public void setCheckForeignKeyConstraints(Session session, boolean enabled,
+    public void setCheckForeignKeyConstraints(SessionLocal session, boolean enabled,
             boolean checkExisting) {
         if (enabled && checkExisting) {
             if (constraints != null) {
@@ -1182,7 +1182,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param needGetFirstOrLast if the returned index must be able
      *          to do {@link Index#canGetFirstOrLast()}
      * @param needFindNext if the returned index must be able to do
-     *          {@link Index#findNext(Session, SearchRow, SearchRow)}
+     *          {@link Index#findNext(SessionLocal, SearchRow, SearchRow)}
      * @return the index or null
      */
     public Index getIndexForColumn(Column column,
@@ -1233,7 +1233,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @param index the index that is no longer required
      */
-    public void removeIndexOrTransferOwnership(Session session, Index index) {
+    public void removeIndexOrTransferOwnership(SessionLocal session, Index index) {
         boolean stillNeeded = false;
         if (constraints != null) {
             for (Constraint cons : constraints) {
@@ -1255,7 +1255,7 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param session the session
      */
-    public void removeColumnExpressionsDependencies(Session session) {
+    public void removeColumnExpressionsDependencies(SessionLocal session) {
         for (Column column : columns) {
             column.setDefaultExpression(session, null);
             column.setOnUpdateExpression(session, null);
@@ -1279,8 +1279,8 @@ public abstract class Table extends SchemaObjectBase {
      *         null
      */
     @SuppressWarnings("unused")
-    public ArrayList<Session> checkDeadlock(Session session, Session clash,
-            Set<Session> visited) {
+    public ArrayList<SessionLocal> checkDeadlock(SessionLocal session, SessionLocal clash,
+            Set<SessionLocal> visited) {
         return null;
     }
 

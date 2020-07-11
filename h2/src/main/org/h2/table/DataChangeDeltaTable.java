@@ -6,7 +6,7 @@
 package org.h2.table;
 
 import org.h2.command.dml.DataChangeStatement;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.result.LocalResult;
@@ -46,7 +46,7 @@ public class DataChangeDeltaTable extends VirtualConstructedTable {
 
     private final Expression[] expressions;
 
-    public DataChangeDeltaTable(Schema schema, Session session, DataChangeStatement statement,
+    public DataChangeDeltaTable(Schema schema, SessionLocal session, DataChangeStatement statement,
             ResultOption resultOption) {
         super(schema, 0, statement.getStatementName());
         this.statement = statement;
@@ -68,22 +68,22 @@ public class DataChangeDeltaTable extends VirtualConstructedTable {
     }
 
     @Override
-    public boolean canGetRowCount(Session session) {
+    public boolean canGetRowCount(SessionLocal session) {
         return false;
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         return Long.MAX_VALUE;
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return Long.MAX_VALUE;
     }
 
     @Override
-    public ResultInterface getResult(Session session) {
+    public ResultInterface getResult(SessionLocal session) {
         statement.prepare();
         int columnCount = expressions.length;
         LocalResult result = new LocalResult(session, expressions, columnCount, columnCount);

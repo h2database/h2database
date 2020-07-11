@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import org.h2.engine.DbObject;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
@@ -26,7 +26,7 @@ class CommandList extends Command {
     private String remaining;
     private Command remainingCommand;
 
-    CommandList(Session session, String sql, CommandContainer command, ArrayList<Prepared> commands,
+    CommandList(SessionLocal session, String sql, CommandContainer command, ArrayList<Prepared> commands,
             ArrayList<Parameter> parameters, String remaining) {
         super(session, sql);
         this.command = command;

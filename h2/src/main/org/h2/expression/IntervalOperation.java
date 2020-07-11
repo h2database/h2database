@@ -19,7 +19,7 @@ import java.math.BigInteger;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.function.DateTimeFunction;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
@@ -104,7 +104,7 @@ public class IntervalOperation extends Operation2 {
 
     private TypeInfo forcedType;
 
-    private static BigInteger nanosFromValue(Session session, Value v) {
+    private static BigInteger nanosFromValue(SessionLocal session, Value v) {
         long[] a = dateAndTimeFromValue(v, session);
         return BigInteger.valueOf(absoluteDayFromDateValue(a[0])).multiply(NANOS_PER_DAY_BI)
                 .add(BigInteger.valueOf(a[1]));
@@ -196,7 +196,7 @@ public class IntervalOperation extends Operation2 {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value l = left.getValue(session);
         Value r = right.getValue(session);
         if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
@@ -273,7 +273,7 @@ public class IntervalOperation extends Operation2 {
         throw DbException.throwInternalError("type=" + opType);
     }
 
-    private Value getDateTimeWithInterval(Session session, Value l, Value r, int lType, int rType) {
+    private Value getDateTimeWithInterval(SessionLocal session, Value l, Value r, int lType, int rType) {
         switch (lType) {
         case Value.TIME:
             if (DataType.isYearMonthIntervalType(rType)) {
@@ -341,7 +341,7 @@ public class IntervalOperation extends Operation2 {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         right = right.optimize(session);
         if (left.isConstant() && right.isConstant()) {

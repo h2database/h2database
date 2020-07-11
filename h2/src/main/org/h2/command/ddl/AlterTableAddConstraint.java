@@ -17,7 +17,7 @@ import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -55,7 +55,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private final ArrayList<Index> createdIndexes = new ArrayList<>();
     private ConstraintUnique createdUniqueConstraint;
 
-    public AlterTableAddConstraint(Session session, Schema schema, int type, boolean ifNotExists) {
+    public AlterTableAddConstraint(SessionLocal session, Schema schema, int type, boolean ifNotExists) {
         super(session, schema);
         this.ifNotExists = ifNotExists;
         this.type = type;

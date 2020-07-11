@@ -8,7 +8,7 @@ package org.h2.command.dml;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 
@@ -21,7 +21,7 @@ public class TransactionCommand extends Prepared {
     private String savepointName;
     private String transactionName;
 
-    public TransactionCommand(Session session, int type) {
+    public TransactionCommand(SessionLocal session, int type) {
         super(session);
         this.type = type;
     }

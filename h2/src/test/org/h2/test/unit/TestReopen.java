@@ -14,7 +14,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.Recorder;
@@ -118,7 +118,7 @@ public class TestReopen extends TestBase implements Recorder {
             ConnectionInfo ci = new ConnectionInfo(url, p);
             Database database = new Database(ci, null);
             // close the database
-            Session session = database.getSystemSession();
+            SessionLocal session = database.getSystemSession();
             session.prepare("script to '" + testDatabase + ".sql'").query(0);
             session.prepare("shutdown immediately").update();
             database.removeSession(null);

@@ -28,7 +28,7 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import org.h2.api.Interval;
-import org.h2.engine.SessionInterface;
+import org.h2.engine.Session;
 import org.h2.jdbc.JdbcArray;
 import org.h2.jdbc.JdbcBlob;
 import org.h2.jdbc.JdbcClob;
@@ -76,7 +76,7 @@ public final class ValueToObjectConverter extends TraceObject {
      *            the suggested value type, or {@code Value#UNKNOWN}
      * @return the value
      */
-    public static Value objectToValue(SessionInterface session, Object x, int type) {
+    public static Value objectToValue(Session session, Object x, int type) {
         if (x == null) {
             return ValueNull.INSTANCE;
         } else if (type == Value.JAVA_OBJECT) {
@@ -146,7 +146,7 @@ public final class ValueToObjectConverter extends TraceObject {
         }
     }
 
-    private static Value otherToValue(SessionInterface session, Object x) {
+    private static Value otherToValue(Session session, Object x) {
         if (x instanceof Array) {
             Array array = (Array) x;
             try {
@@ -198,7 +198,7 @@ public final class ValueToObjectConverter extends TraceObject {
         return session.addTemporaryLob(lob);
     }
 
-    private static Value arrayToValue(SessionInterface session, Object x) {
+    private static Value arrayToValue(Session session, Object x) {
         // (a.getClass().isArray());
         // (a.getClass().getComponentType().isPrimitive());
         Object[] o = (Object[]) x;
@@ -570,7 +570,7 @@ public final class ValueToObjectConverter extends TraceObject {
      *            the column index (1-based)
      * @return the value
      */
-    public static Value readValue(SessionInterface session, JdbcResultSet rs, int columnIndex) {
+    public static Value readValue(Session session, JdbcResultSet rs, int columnIndex) {
         Value value = rs.get(columnIndex);
         switch (value.getValueType()) {
         case Value.CLOB:

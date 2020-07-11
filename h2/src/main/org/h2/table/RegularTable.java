@@ -15,7 +15,7 @@ import org.h2.command.ddl.CreateTableData;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
@@ -43,7 +43,7 @@ public abstract class RegularTable extends TableBase {
      * @param index
      *            the index to append to
      */
-    protected static void addRowsToIndex(Session session, ArrayList<Row> list, Index index) {
+    protected static void addRowsToIndex(SessionLocal session, ArrayList<Row> list, Index index) {
         sortRows(list, index);
         for (Row row : list) {
             index.add(session, row);
@@ -60,11 +60,11 @@ public abstract class RegularTable extends TableBase {
      *            true if waiting for exclusive lock, false otherwise
      * @return formatted details of a deadlock
      */
-    protected static String getDeadlockDetails(ArrayList<Session> sessions, boolean exclusive) {
+    protected static String getDeadlockDetails(ArrayList<SessionLocal> sessions, boolean exclusive) {
         // We add the thread details here to make it easier for customers to
         // match up these error messages with their own logs.
         StringBuilder builder = new StringBuilder();
-        for (Session s : sessions) {
+        for (SessionLocal s : sessions) {
             Table lock = s.getWaitForLock();
             Thread thread = s.getWaitForLockThread();
             builder.append("\nSession ").append(s.toString()).append(" on thread ").append(thread.getName())
@@ -110,14 +110,14 @@ public abstract class RegularTable extends TableBase {
     /**
      * The session (if any) that has exclusively locked this table.
      */
-    protected volatile Session lockExclusiveSession;
+    protected volatile SessionLocal lockExclusiveSession;
 
     /**
      * The set of sessions (if any) that have a shared lock on the table. Here
      * we are using using a ConcurrentHashMap as a set, as there is no
      * ConcurrentHashSet.
      */
-    protected final ConcurrentHashMap<Session, Session> lockSharedSessions = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<SessionLocal, SessionLocal> lockSharedSessions = new ConcurrentHashMap<>();
 
     private Column rowIdColumn;
 
@@ -140,7 +140,7 @@ public abstract class RegularTable extends TableBase {
     }
 
     @Override
-    public boolean canGetRowCount(Session session) {
+    public boolean canGetRowCount(SessionLocal session) {
         return true;
     }
 
@@ -164,7 +164,7 @@ public abstract class RegularTable extends TableBase {
     }
 
     @Override
-    public ArrayList<Session> checkDeadlock(Session session, Session clash, Set<Session> visited) {
+    public ArrayList<SessionLocal> checkDeadlock(SessionLocal session, SessionLocal clash, Set<SessionLocal> visited) {
         // only one deadlock check at any given time
         synchronized (getClass()) {
             if (clash == null) {
@@ -181,8 +181,8 @@ public abstract class RegularTable extends TableBase {
                 return null;
             }
             visited.add(session);
-            ArrayList<Session> error = null;
-            for (Session s : lockSharedSessions.keySet()) {
+            ArrayList<SessionLocal> error = null;
+            for (SessionLocal s : lockSharedSessions.keySet()) {
                 if (s == session) {
                     // it doesn't matter if we have locked the object already
                     continue;
@@ -198,7 +198,7 @@ public abstract class RegularTable extends TableBase {
             }
             // take a local copy so we don't see inconsistent data, since we are
             // not locked while checking the lockExclusiveSession value
-            Session copyOfLockExclusiveSession = lockExclusiveSession;
+            SessionLocal copyOfLockExclusiveSession = lockExclusiveSession;
             if (error == null && copyOfLockExclusiveSession != null) {
                 Table t = copyOfLockExclusiveSession.getWaitForLock();
                 if (t != null) {
@@ -246,7 +246,7 @@ public abstract class RegularTable extends TableBase {
     }
 
     @Override
-    public boolean isLockedExclusivelyBy(Session session) {
+    public boolean isLockedExclusivelyBy(SessionLocal session) {
         return lockExclusiveSession == session;
     }
 

@@ -7,7 +7,7 @@ package org.h2.mode;
 
 import java.util.HashMap;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.TypedValueExpression;
 import org.h2.expression.function.CoalesceFunction;
@@ -65,7 +65,7 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value[] values = getArgumentsValues(session, args);
         if (values == null) {
             return ValueNull.INSTANCE;
@@ -92,7 +92,7 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         switch (info.type) {
         case GETDATE:
             return new CurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIMESTAMP, 3).optimize(session);

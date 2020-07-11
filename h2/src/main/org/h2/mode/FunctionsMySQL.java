@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.function.Function;
@@ -97,7 +97,7 @@ public class FunctionsMySQL extends FunctionsBase {
      * @param value the timestamp
      * @return the timestamp in seconds since EPOCH
      */
-    public static int unixTimestamp(Session session, Value value) {
+    public static int unixTimestamp(SessionLocal session, Value value) {
         long seconds;
         if (value instanceof ValueTimestampTimeZone) {
             ValueTimestampTimeZone t = (ValueTimestampTimeZone) value;
@@ -193,7 +193,7 @@ public class FunctionsMySQL extends FunctionsBase {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         boolean allConst = optimizeArguments(session);
         type = TypeInfo.getTypeInfo(info.returnDataType);
         if (allConst) {
@@ -203,7 +203,7 @@ public class FunctionsMySQL extends FunctionsBase {
     }
 
     @Override
-    protected Value getValueWithArgs(Session session, Expression[] args) {
+    protected Value getValueWithArgs(SessionLocal session, Expression[] args) {
         Value[] values = new Value[args.length];
         Value v0 = getNullOrValue(session, args, values, 0);
         Value v1 = getNullOrValue(session, args, values, 1);

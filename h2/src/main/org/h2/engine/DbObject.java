@@ -171,7 +171,7 @@ public interface DbObject extends HasSQL {
      *
      * @param session the session
      */
-    void removeChildrenAndResources(Session session);
+    void removeChildrenAndResources(SessionLocal session);
 
     /**
      * Check if renaming is allowed. Does nothing when allowed.

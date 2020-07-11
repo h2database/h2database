@@ -76,7 +76,7 @@ public class UndoLogRecord {
      *
      * @param session the session
      */
-    void undo(Session session) {
+    void undo(SessionLocal session) {
         switch (operation) {
         case INSERT:
             if (state == IN_MEMORY_INVALID) {

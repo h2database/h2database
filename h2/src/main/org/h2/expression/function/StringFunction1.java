@@ -11,7 +11,7 @@ import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
 import org.h2.engine.Mode.ModeEnum;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.Operation1;
 import org.h2.expression.TypedValueExpression;
@@ -96,7 +96,7 @@ public class StringFunction1 extends Operation1 implements NamedExpression {
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(SessionLocal session) {
         Value v = arg.getValue(session);
         if (v == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
@@ -145,7 +145,7 @@ public class StringFunction1 extends Operation1 implements NamedExpression {
         return v;
     }
 
-    private static Value hexToRaw(String s, Session session) {
+    private static Value hexToRaw(String s, SessionLocal session) {
         if (session.getMode().getEnum() == ModeEnum.Oracle) {
             return ValueVarbinary.get(StringUtils.convertHexToBytes(s));
         }
@@ -185,7 +185,7 @@ public class StringFunction1 extends Operation1 implements NamedExpression {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(SessionLocal session) {
         arg = arg.optimize(session);
         switch (function) {
         /*

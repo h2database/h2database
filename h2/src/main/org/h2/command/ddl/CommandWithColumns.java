@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Constants;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -23,7 +23,7 @@ public abstract class CommandWithColumns extends SchemaCommand {
 
     private AlterTableAddConstraint primaryKey;
 
-    protected CommandWithColumns(Session session, Schema schema) {
+    protected CommandWithColumns(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 

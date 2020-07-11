@@ -8,7 +8,7 @@ rm -rf bin
 rm -rf temp
 
 ./build.sh -quiet compile
-./build.sh -quiet spellcheck javadocImpl jarClient
+./build.sh -quiet spellcheck javadocImpl
 ./build.sh -quiet clean compile installer mavenDeployCentral
 
 # ./build.sh -quiet compile benchmark

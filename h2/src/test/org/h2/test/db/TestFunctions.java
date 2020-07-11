@@ -51,7 +51,7 @@ import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.function.ToChar;
 import org.h2.expression.function.ToChar.Capitalization;
 import org.h2.jdbc.JdbcConnection;
@@ -95,7 +95,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         deleteDb("functions");
         if (!config.networked) {
             JdbcConnection conn = (JdbcConnection) getConnection("functions");
-            Session session = (Session) conn.getSession();
+            SessionLocal session = (SessionLocal) conn.getSession();
             testToDate(session);
             testToDateException(session);
             conn.close();
@@ -1283,7 +1283,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         return result;
     }
 
-    private void testToDateException(Session session) {
+    private void testToDateException(SessionLocal session) {
         try {
             ToDateParser.toDate(session, "1979-ThisWillFail-12", "YYYY-MM-DD");
         } catch (Exception e) {
@@ -1298,7 +1298,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         }
     }
 
-    private void testToDate(Session session) {
+    private void testToDate(SessionLocal session) {
         GregorianCalendar calendar = new GregorianCalendar();
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH) + 1;

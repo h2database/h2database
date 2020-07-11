@@ -51,7 +51,7 @@ import org.h2.value.ValueVarchar;
  * The client side part of a session when using the server mode. This object
  * communicates with a Session on the server side.
  */
-public class SessionRemote extends SessionWithState implements DataHandler {
+public final class SessionRemote extends Session implements DataHandler {
 
     public static final int SESSION_PREPARE = 0;
     public static final int SESSION_CLOSE = 1;
@@ -79,8 +79,6 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public static final int STATUS_CLOSED = 2;
     public static final int STATUS_OK_STATE_CHANGED = 3;
 
-    private static SessionFactory sessionFactory;
-
     private TraceSystem traceSystem;
     private Trace trace;
     private ArrayList<Transfer> transferList = Utils.newSmallArrayList();
@@ -95,7 +93,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     private int clientVersion;
     private boolean autoReconnect;
     private int lastReconnect;
-    private SessionInterface embedded;
+    private Session embedded;
     private DatabaseEventListener eventListener;
     private LobStorageFrontend lobStorage;
     private boolean cluster;
@@ -320,14 +318,12 @@ public class SessionRemote extends SessionWithState implements DataHandler {
      * @param openNew whether to open a new session in any case
      * @return the session
      */
-    public SessionInterface connectEmbeddedOrServer(boolean openNew) {
+    public Session connectEmbeddedOrServer(boolean openNew) {
         ConnectionInfo ci = connectionInfo;
         if (ci.isRemote()) {
             connectServer(ci);
             return this;
         }
-        // create the session using reflection,
-        // so that the JDBC layer can be compiled without it
         boolean autoServerMode = ci.getProperty("AUTO_SERVER", false);
         ConnectionInfo backup = null;
         try {
@@ -338,11 +334,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             if (openNew) {
                 ci.setProperty("OPEN_NEW", "true");
             }
-            if (sessionFactory == null) {
-                sessionFactory = (SessionFactory) Class.forName(
-                        "org.h2.engine.Engine").getMethod("getInstance").invoke(null);
-            }
-            return sessionFactory.createSession(ci);
+            return Engine.createSession(ci);
         } catch (Exception re) {
             DbException e = DbException.convert(re);
             if (e.getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1) {

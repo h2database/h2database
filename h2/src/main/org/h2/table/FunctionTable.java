@@ -6,7 +6,7 @@
 package org.h2.table;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.function.FunctionCall;
 import org.h2.message.DbException;
@@ -25,7 +25,7 @@ public class FunctionTable extends VirtualConstructedTable {
     private final FunctionCall function;
     private Expression functionExpr;
 
-    public FunctionTable(Schema schema, Session session, Expression functionExpr, FunctionCall function) {
+    public FunctionTable(Schema schema, SessionLocal session, Expression functionExpr, FunctionCall function) {
         super(schema, 0, function.getName());
         this.functionExpr = functionExpr;
         this.function = function;
@@ -55,22 +55,22 @@ public class FunctionTable extends VirtualConstructedTable {
     }
 
     @Override
-    public boolean canGetRowCount(Session session) {
+    public boolean canGetRowCount(SessionLocal session) {
         return false;
     }
 
     @Override
-    public long getRowCount(Session session) {
+    public long getRowCount(SessionLocal session) {
         return Long.MAX_VALUE;
     }
 
     @Override
-    public long getRowCountApproximation(Session session) {
+    public long getRowCountApproximation(SessionLocal session) {
         return Long.MAX_VALUE;
     }
 
     @Override
-    public ResultInterface getResult(Session session) {
+    public ResultInterface getResult(SessionLocal session) {
         functionExpr = functionExpr.optimize(session);
         Value v = functionExpr.getValue(session);
         if (v == ValueNull.INSTANCE) {

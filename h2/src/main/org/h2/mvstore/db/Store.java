@@ -18,7 +18,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.FileStore;
@@ -270,7 +270,7 @@ public final class Store {
      * @param session the session
      * @param transactionName the transaction name (may be null)
      */
-    public void prepareCommit(Session session, String transactionName) {
+    public void prepareCommit(SessionLocal session, String transactionName) {
         Transaction t = session.getTransaction();
         t.setName(transactionName);
         t.prepare();

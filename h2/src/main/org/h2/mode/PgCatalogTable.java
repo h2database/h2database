@@ -352,7 +352,7 @@ public class PgCatalogTable extends MetaTable {
             break;
         case PG_ATTRIBUTE:
             for (Schema schema : database.getAllSchemas()) {
-                for (Table table : schema.getAllTablesAndViews()) {
+                for (Table table : schema.getAllTablesAndViews(session)) {
                     if (!hideTable(table, session)) {
                         pgAttribute(session, rows, table);
                     }
@@ -368,7 +368,7 @@ public class PgCatalogTable extends MetaTable {
             break;
         case PG_CLASS:
             for (Schema schema : database.getAllSchemas()) {
-                for (Table table : schema.getAllTablesAndViews()) {
+                for (Table table : schema.getAllTablesAndViews(session)) {
                     if (!hideTable(table, session)) {
                         pgClass(session, rows, table);
                     }

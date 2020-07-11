@@ -203,7 +203,7 @@ public class ScriptCommand extends ScriptBase {
                 }
             }
 
-            final ArrayList<Table> tables = db.getAllTablesAndViews(false);
+            final ArrayList<Table> tables = db.getAllTablesAndViews();
             // sort by id, so that views are after tables and views on views
             // after the base views
             tables.sort(Comparator.comparingInt(Table::getId));
@@ -664,7 +664,7 @@ public class ScriptCommand extends ScriptBase {
         }
         if (tables != null) {
             // if filtering on specific tables, only include those schemas
-            for (Table table : schema.getAllTablesAndViews()) {
+            for (Table table : schema.getAllTablesAndViews(session)) {
                 if (tables.contains(table)) {
                     return false;
                 }

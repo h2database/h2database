@@ -1094,6 +1094,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             add(session, rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
             add(session, rows, "TIME ZONE", session.currentTimeZone().getId());
             add(session, rows, "VARIABLE_BINARY", session.isVariableBinary() ? "TRUE" : "FALSE");
+            add(session, rows, "OLD_INFORMATION_SCHEMA", session.isOldInformationSchema() ? "TRUE" : "FALSE");
             BitSet nonKeywords = session.getNonKeywords();
             if (nonKeywords != null) {
                 add(session, rows, "NON_KEYWORDS", Parser.formatNonKeywords(nonKeywords));
@@ -2448,7 +2449,10 @@ public final class InformationSchemaTableLegacy extends MetaTable {
      * @return the array of tables
      */
     private ArrayList<Table> getAllTables(SessionLocal session) {
-        ArrayList<Table> tables = database.getAllTablesAndViews(true);
+        ArrayList<Table> tables = new ArrayList<>();
+        for (Schema schema : database.getAllSchemas()) {
+            tables.addAll(schema.getAllTablesAndViews(session));
+        }
         tables.addAll(session.getLocalTempTables());
         return tables;
     }
@@ -2457,7 +2461,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         // we expect that at most one table matches, at least in most cases
         ArrayList<Table> tables = new ArrayList<>(1);
         for (Schema schema : database.getAllSchemas()) {
-            Table table = schema.getTableOrViewByName(tableName);
+            Table table = schema.getTableOrViewByName(session, tableName);
             if (table != null) {
                 tables.add(table);
             }

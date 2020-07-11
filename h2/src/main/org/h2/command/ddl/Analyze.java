@@ -88,7 +88,7 @@ public class Analyze extends DefineCommand {
             analyzeTable(session, table, sampleRows, true);
         } else {
             for (Schema schema : db.getAllSchemasNoMeta()) {
-                for (Table table : schema.getAllTablesAndViews()) {
+                for (Table table : schema.getAllTablesAndViews(null)) {
                     analyzeTable(session, table, sampleRows, true);
                 }
             }

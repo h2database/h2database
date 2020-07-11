@@ -42,7 +42,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.mode.DefaultNullOrdering;
-import org.h2.mode.PgCatalogTable;
+import org.h2.mode.PgCatalogSchema;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.db.LobStorageMap;
@@ -54,6 +54,7 @@ import org.h2.pagestore.db.SessionPageStore;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
+import org.h2.schema.InformationSchema;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
@@ -69,8 +70,6 @@ import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.InformationSchemaTable;
-import org.h2.table.InformationSchemaTableLegacy;
 import org.h2.table.Table;
 import org.h2.table.TableLinkConnection;
 import org.h2.table.TableSynonym;
@@ -217,7 +216,6 @@ public class Database implements DataHandler, CastDataProvider {
     private int cacheSize;
     private int compactMode;
     private SourceCompiler compiler;
-    private volatile boolean metaTablesInitialized;
     private boolean flushOnEachCommit;
     private LobStorageInterface lobStorage;
     private final int pageSize;
@@ -598,13 +596,11 @@ public class Database implements DataHandler, CastDataProvider {
         systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
         mainSchema = new Schema(this, Constants.MAIN_SCHEMA_ID, sysIdentifier(Constants.SCHEMA_MAIN), systemUser,
                 true);
-        infoSchema = new Schema(this, Constants.INFORMATION_SCHEMA_ID, sysIdentifier("INFORMATION_SCHEMA"), systemUser,
-                true);
+        infoSchema = new InformationSchema(this, systemUser);
         schemas.put(mainSchema.getName(), mainSchema);
         schemas.put(infoSchema.getName(), infoSchema);
         if (mode.getEnum() == ModeEnum.PostgreSQL) {
-            pgCatalogSchema = new Schema(this, Constants.PG_CATALOG_SCHEMA_ID,
-                    sysIdentifier(Constants.SCHEMA_PG_CATALOG), systemUser, true);
+            pgCatalogSchema = new PgCatalogSchema(this, systemUser);
             schemas.put(pgCatalogSchema.getName(), pgCatalogSchema);
         }
         publicRole = new Role(this, 0, sysIdentifier(Constants.PUBLIC_ROLE_NAME), true);
@@ -876,7 +872,7 @@ public class Database implements DataHandler, CastDataProvider {
         do {
             atLeastOneRecompiledSuccessfully = false;
             for (Schema schema : schemas.values()) {
-                for (Table obj : schema.getAllTablesAndViews()) {
+                for (Table obj : schema.getAllTablesAndViews(null)) {
                     if (obj instanceof TableView) {
                         TableView view = (TableView) obj;
                         if (view.isInvalid()) {
@@ -890,37 +886,6 @@ public class Database implements DataHandler, CastDataProvider {
             }
         } while (atLeastOneRecompiledSuccessfully);
         TableView.clearIndexCaches(session.getDatabase());
-    }
-
-    private void checkMetaTables() {
-        if (!metaTablesInitialized) {
-            initMetaTables();
-        }
-    }
-
-    private void initMetaTables() {
-        synchronized (infoSchema) {
-            if (!metaTablesInitialized) {
-                if (dbSettings.oldInformationSchema) {
-                    for (int type = 0; type < InformationSchemaTableLegacy.META_TABLE_TYPE_COUNT; type++) {
-                        infoSchema.add(new InformationSchemaTableLegacy(infoSchema,
-                                Constants.INFORMATION_SCHEMA_ID - type, type));
-                    }
-                } else {
-                    for (int type = 0; type < InformationSchemaTable.META_TABLE_TYPE_COUNT; type++) {
-                        infoSchema.add(new InformationSchemaTable(infoSchema, Constants.INFORMATION_SCHEMA_ID - type,
-                                type));
-                    }
-                }
-                if (pgCatalogSchema != null) {
-                    for (int type = 0; type < PgCatalogTable.META_TABLE_TYPE_COUNT; type++) {
-                        pgCatalogSchema.add(new PgCatalogTable(pgCatalogSchema, Constants.PG_CATALOG_SCHEMA_ID - type,
-                                type));
-                    }
-                }
-                metaTablesInitialized = true;
-            }
-        }
     }
 
     private void addMeta(SessionLocal session, DbObject obj) {
@@ -1200,11 +1165,7 @@ public class Database implements DataHandler, CastDataProvider {
         if (schemaName == null) {
             return null;
         }
-        Schema schema = schemas.get(schemaName);
-        if (!metaTablesInitialized && (schema == infoSchema || schema != null && schema == pgCatalogSchema)) {
-            initMetaTables();
-        }
-        return schema;
+        return schemas.get(schemaName);
     }
 
     /**
@@ -1409,7 +1370,7 @@ public class Database implements DataHandler, CastDataProvider {
                 if (systemSession != null) {
                     if (powerOffCount != -1) {
                         for (Schema schema : schemas.values()) {
-                            for (Table table : schema.getAllTablesAndViews()) {
+                            for (Table table : schema.getAllTablesAndViews(null)) {
                                 if (table.isGlobalTemporary()) {
                                     table.removeChildrenAndResources(systemSession);
                                 } else {
@@ -1641,7 +1602,6 @@ public class Database implements DataHandler, CastDataProvider {
      * @return all objects of all types
      */
     public ArrayList<SchemaObject> getAllSchemaObjects() {
-        checkMetaTables();
         ArrayList<SchemaObject> list = new ArrayList<>();
         for (Schema schema : schemas.values()) {
             schema.getAll(list);
@@ -1650,20 +1610,14 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     /**
-     * Get all tables and views.
+     * Get all tables and views. Meta data tables may be excluded.
      *
-     * @param includeMeta whether to force including the meta data tables (if
-     *            true, metadata tables are always included; if false, metadata
-     *            tables are only included if they are already initialized)
      * @return all objects of that type
      */
-    public ArrayList<Table> getAllTablesAndViews(boolean includeMeta) {
-        if (includeMeta) {
-            checkMetaTables();
-        }
+    public ArrayList<Table> getAllTablesAndViews() {
         ArrayList<Table> list = new ArrayList<>();
         for (Schema schema : schemas.values()) {
-            list.addAll(schema.getAllTablesAndViews());
+            list.addAll(schema.getAllTablesAndViews(null));
         }
         return list;
     }
@@ -1682,7 +1636,6 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     public Collection<Schema> getAllSchemas() {
-        checkMetaTables();
         return schemas.values();
     }
 
@@ -1940,7 +1893,7 @@ public class Database implements DataHandler, CastDataProvider {
         }
         HashSet<DbObject> set = new HashSet<>();
         for (Schema schema : schemas.values()) {
-            for (Table t : schema.getAllTablesAndViews()) {
+            for (Table t : schema.getAllTablesAndViews(null)) {
                 if (except == t || TableType.VIEW == t.getTableType()) {
                     continue;
                 }
@@ -2662,7 +2615,7 @@ public class Database implements DataHandler, CastDataProvider {
      */
     public Table getFirstUserTable() {
         for (Schema schema : schemas.values()) {
-            for (Table table : schema.getAllTablesAndViews()) {
+            for (Table table : schema.getAllTablesAndViews(null)) {
                 if (table.getCreateSQL() == null || table.isHidden()) {
                     continue;
                 }

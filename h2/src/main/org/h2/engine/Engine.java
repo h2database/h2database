@@ -160,6 +160,9 @@ public final class Engine {
             // concurrently closing
             return null;
         }
+        if (ci.getProperty("OLD_INFORMATION_SCHEMA", false)) {
+            session.setOldInformationSchema(true);
+        }
         if (ci.getProperty("JMX", false)) {
             try {
                 Utils.callStaticMethod(

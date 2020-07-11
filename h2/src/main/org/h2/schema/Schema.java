@@ -28,6 +28,7 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.pagestore.db.PageStoreTable;
+import org.h2.table.MetaTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
 import org.h2.table.TableSynonym;
@@ -292,7 +293,7 @@ public class Schema extends DbObjectBase {
         int type = obj.getType();
         Map<String, SchemaObject> map = getMap(type);
         if (SysProperties.CHECK) {
-            if (!map.containsKey(obj.getName())) {
+            if (!map.containsKey(obj.getName()) && !(obj instanceof MetaTable)) {
                 DbException.throwInternalError("not found: " + obj.getName());
             }
             if (obj.getName().equals(newName) || map.containsKey(newName)) {
@@ -709,9 +710,10 @@ public class Schema extends DbObjectBase {
     /**
      * Get all tables and views.
      *
+     * @param session the session, {@code null} to exclude meta tables
      * @return a (possible empty) list of all objects
      */
-    public Collection<Table> getAllTablesAndViews() {
+    public Collection<Table> getAllTablesAndViews(SessionLocal session) {
         return tablesAndViews.values();
     }
 
@@ -734,10 +736,11 @@ public class Schema extends DbObjectBase {
     /**
      * Get the table with the given name, if any.
      *
+     * @param session the session
      * @param name the table name
      * @return the table or null if not found
      */
-    public Table getTableOrViewByName(String name) {
+    public Table getTableOrViewByName(SessionLocal session, String name) {
         return tablesAndViews.get(name);
     }
 

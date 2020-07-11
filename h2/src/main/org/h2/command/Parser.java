@@ -1640,7 +1640,7 @@ public class Parser {
                 schemaName = readUniqueIdentifier();
             }
             buff.append("C.COLUMN_NAME FIELD, ");
-            boolean oldInformationSchema = database.getSettings().oldInformationSchema;
+            boolean oldInformationSchema = session.isOldInformationSchema();
             buff.append(oldInformationSchema
                     ? "C.COLUMN_TYPE"
                     : "DATA_TYPE_SQL(?2, ?1, 'TABLE', C.DTD_IDENTIFIER)");
@@ -8570,6 +8570,10 @@ public class Parser {
             Set command = new Set(session, SetTypes.DEFAULT_NULL_ORDERING);
             command.setString(readAliasIdentifier());
             return command;
+        } else if (readIf("OLD_INFORMATION_SCHEMA")) {
+            readIfEqualOrTo();
+            read();
+            return new NoOperation(session);
         } else {
             ModeEnum modeEnum = database.getMode().getEnum();
             if (modeEnum != ModeEnum.REGULAR) {
@@ -8940,7 +8944,7 @@ public class Parser {
     private void findTableNameCandidates(String schemaName, String tableName, java.util.Set<String> candidates) {
         Schema schema = database.getSchema(schemaName);
         String ucTableName = StringUtils.toUpperEnglish(tableName);
-        Collection<Table> allTablesAndViews = schema.getAllTablesAndViews();
+        Collection<Table> allTablesAndViews = schema.getAllTablesAndViews(session);
         for (Table candidate : allTablesAndViews) {
             String candidateName = candidate.getName();
             if (ucTableName.equals(StringUtils.toUpperEnglish(candidateName))) {

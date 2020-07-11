@@ -239,6 +239,11 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      */
     private boolean variableBinary;
 
+    /**
+     * Whether INFORMATION_SCHEMA contains old-style tables.
+     */
+    private boolean oldInformationSchema;
+
     public SessionLocal(Database database, User user, int id) {
         this.database = database;
         this.queryTimeout = database.getSettings().maxQueryTimeout;
@@ -1782,7 +1787,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
                 case SERIALIZABLE:
                     if (!transaction.hasStatementDependencies()) {
                         for (Schema schema : database.getAllSchemasNoMeta()) {
-                            for (Table table : schema.getAllTablesAndViews()) {
+                            for (Table table : schema.getAllTablesAndViews(null)) {
                                 if (table instanceof MVTable) {
                                     addTableToDependencies((MVTable)table, maps);
                                 }
@@ -2069,7 +2074,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         if (settings == null) {
             DbSettings dbSettings = database.getSettings();
             staticSettings = settings = new StaticSettings(dbSettings.databaseToUpper, dbSettings.databaseToLower,
-                    dbSettings.caseInsensitiveIdentifiers, dbSettings.oldInformationSchema);
+                    dbSettings.caseInsensitiveIdentifiers, oldInformationSchema);
         }
         return settings;
     }
@@ -2184,6 +2189,26 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      */
     public boolean isVariableBinary() {
         return variableBinary;
+    }
+
+    /**
+     * Changes INFORMATION_SCHEMA content.
+     *
+     * @param oldInformationSchema
+     *            {@code true} to have old-style tables in INFORMATION_SCHEMA,
+     *            {@code false} to have modern tables
+     */
+    public void setOldInformationSchema(boolean oldInformationSchema) {
+        this.oldInformationSchema = oldInformationSchema;
+    }
+
+    /**
+     * Returns whether INFORMATION_SCHEMA contains old-style tables.
+     *
+     * @return whether INFORMATION_SCHEMA contains old-style tables
+     */
+    public boolean isOldInformationSchema() {
+        return oldInformationSchema;
     }
 
     @Override

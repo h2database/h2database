@@ -654,8 +654,10 @@ public class Database implements DataHandler, CastDataProvider {
                 lockMeta(systemSession);
                 addDatabaseObject(systemSession, setting);
             }
-            setSortSetting(SetTypes.BINARY_COLLATION, SysProperties.SORT_BINARY_UNSIGNED, true);
-            setSortSetting(SetTypes.UUID_COLLATION, SysProperties.SORT_UUID_UNSIGNED, false);
+            if (!SysProperties.SORT_BINARY_UNSIGNED) {
+                setSortSetting(SetTypes.BINARY_COLLATION, SysProperties.SORT_BINARY_UNSIGNED);
+            }
+            setSortSetting(SetTypes.UUID_COLLATION, SysProperties.SORT_UUID_UNSIGNED);
             // mark all ids used in the page store
             if (pageStore != null) {
                 BitSet f = pageStore.getObjectIds();
@@ -775,21 +777,15 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     /**
-     * Preserves a current default value of a sorting setting if it is not the
-     * same as default for older versions of H2 and if it was not modified by
-     * user.
+     * Preserves a current default value of a sorting setting if explicit value
+     * wasn't set.
      *
      * @param type
      *            setting type
      * @param defValue
      *            current default value (may be modified via system properties)
-     * @param oldDefault
-     *            default value for old versions
      */
-    private void setSortSetting(int type, boolean defValue, boolean oldDefault) {
-        if (defValue == oldDefault) {
-            return;
-        }
+    private void setSortSetting(int type, boolean defValue) {
         String name = SetTypes.getTypeName(type);
         if (settings.get(name) == null) {
             Setting setting = new Setting(this, allocateObjectId(), name);
@@ -2932,6 +2928,27 @@ public class Database implements DataHandler, CastDataProvider {
      */
     public void setCreateBuild(int createBuild) {
         this.createBuild = createBuild;
+    }
+
+    /**
+     * Returns whether UUID_COLLATION is persisted in metadata.
+     *
+     * <p>
+     * H2 1.4.197 and older versions don't have UUID_COLLATION setting. Versions
+     * 1.4.198, 1.4.199, and 1.4.200 have this setting, but don't preserve value
+     * of the setting in metadata if it wasn't set explicitly by user.
+     * <p>
+     * <p>
+     * If UUID_COLLATION setting with any value was found in metadata no further
+     * action is required. If this setting wasn't found, indexes with UUID
+     * columns are reconstructed using the default from the current H2. This
+     * default is persisted in metadata after initialization.
+     * </p>
+     *
+     * @returns whether UUID_COLLATION setting is persisted in metadata.
+     */
+    public boolean uuidCollationKnown() {
+        return settings.containsKey(SetTypes.getTypeName(SetTypes.UUID_COLLATION));
     }
 
     @Override

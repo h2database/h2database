@@ -56,6 +56,7 @@ public class PageBtreeIndex extends PageIndex {
         }
         this.store = database.getPageStore();
         store.addIndex(this);
+        boolean needRebuild = false;
         if (create) {
             // new index
             rootPageId = store.allocatePage();
@@ -66,12 +67,24 @@ public class PageBtreeIndex extends PageIndex {
             PageBtreeLeaf root = PageBtreeLeaf.create(this, rootPageId, PageBtree.ROOT);
             store.logUndo(root, null);
             store.update(root);
+            needRebuild = true;
         } else {
             rootPageId = store.getRootPageId(id);
             PageBtree root = getPage(rootPageId);
             rowCount = root.getRowCount();
+            if (rowCount == 0 && store.isRecoveryRunning()) {
+                needRebuild = true;
+            } else if (!database.uuidCollationKnown()) {
+                for (IndexColumn c : columns) {
+                    if (c.column.getType().getValueType() == Value.UUID) {
+                        removeAllRows();
+                        needRebuild = true;
+                        break;
+                    }
+                }
+            }
         }
-        this.needRebuild = create || (rowCount == 0 && store.isRecoveryRunning());
+        this.needRebuild = needRebuild;
         if (trace.isDebugEnabled()) {
             trace.debug("opened {0} rows: {1}", getName() , rowCount);
         }

@@ -60,6 +60,13 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchR
         dataMap.map.setVolatile(!table.isPersistData() || !indexType.isPersistent());
         if (!db.isStarting()) {
             dataMap.clear();
+        } else if (!database.uuidCollationKnown()) {
+            for (IndexColumn c : columns) {
+                if (c.column.getType().getValueType() == Value.UUID) {
+                    dataMap.clear();
+                    break;
+                }
+            }
         }
         t.commit();
         if (!keyType.equals(dataMap.getKeyType())) {

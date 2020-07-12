@@ -1995,10 +1995,8 @@ public class MVStore implements AutoCloseable {
         storeLock.lock();
         try {
             checkOpen();
-            submitOrRun(serializationExecutor, () -> {}, true);
             serializationLock.lock();
             try {
-                submitOrRun(bufferSaveExecutor, () -> {}, true);
                 saveChunkLock.lock();
                 try {
                     if (lastChunk != null && reuseSpace && getFillRate() <= targetFillRate) {

@@ -96,22 +96,34 @@ public class ConnectionInfo implements Cloneable {
     }
 
     static {
-        String[] settings = { //
-                "ACCESS_MODE_DATA", "AUTHREALM", "AUTHZPWD", "AUTOCOMMIT", "AUTO_RECONNECT", "AUTO_SERVER",
-                "AUTO_SERVER_PORT", //
-                "CACHE_TYPE", "CIPHER", "CREATE", //
-                "FILE_LOCK", "FORBID_CREATION", //
-                "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS", "INIT", //
+        String[] commonSettings = { //
+                "ACCESS_MODE_DATA", "AUTO_RECONNECT", "AUTO_SERVER", "AUTO_SERVER_PORT", //
+                "CACHE_TYPE", //
+                "FILE_LOCK", //
                 "JMX", //
-                "NETWORK_TIMEOUT", "NO_UPGRADE", //
+                "NETWORK_TIMEOUT", //
                 "OLD_INFORMATION_SCHEMA", "OPEN_NEW", //
-                "PAGE_SIZE", "PASSWORD", "PASSWORD_HASH", //
-                "RECOVER", "RECOVER_TEST", //
-                "SCOPE_GENERATED_KEYS", //
+                "PAGE_SIZE", //
+                "RECOVER", //
+                "SCOPE_GENERATED_KEYS" //
+        };
+        String[] settings = { //
+                "AUTHREALM", "AUTHZPWD", "AUTOCOMMIT", //
+                "CIPHER", "CREATE", //
+                "FORBID_CREATION", //
+                "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS", "INIT", //
+                "NO_UPGRADE", //
+                "PASSWORD", "PASSWORD_HASH", //
+                "RECOVER_TEST", //
                 "USER" //
         };
         HashSet<String> set = new HashSet<>(128);
         set.addAll(SetTypes.getTypes());
+        for (String setting : commonSettings) {
+            if (!set.add(setting)) {
+                DbException.throwInternalError(setting);
+            }
+        }
         for (String setting : settings) {
             if (!set.add(setting)) {
                 DbException.throwInternalError(setting);
@@ -119,18 +131,14 @@ public class ConnectionInfo implements Cloneable {
         }
         KNOWN_SETTINGS = set;
         settings = new String[] { //
-                "ACCESS_MODE_DATA", "ASSERT", "AUTO_RECONNECT", "AUTO_SERVER", "AUTO_SERVER_PORT", //
-                "CACHE_TYPE", //
+                "ASSERT", //
                 "DB_CLOSE_ON_EXIT", //
-                "FILE_LOCK", //
-                "JMX", //
-                "NETWORK_TIMEOUT", //
-                "OLD_INFORMATION_SCHEMA", "OPEN_NEW", //
-                "PAGE_SIZE", "PAGE_STORE", //
-                "RECOVER", //
-                "SCOPE_GENERATED_KEYS" //
+                "PAGE_STORE" //
         };
         set = new HashSet<>(32);
+        for (String setting : commonSettings) {
+            set.add(setting);
+        }
         for (String setting : settings) {
             set.add(setting);
         }

@@ -175,14 +175,8 @@ public class Set extends Prepared {
         }
         case SetTypes.BINARY_COLLATION: {
             session.getUser().checkAdmin();
-            boolean unsigned;
-            if (stringValue.equals(CompareMode.SIGNED)) {
-                unsigned = false;
-            } else if (stringValue.equals(CompareMode.UNSIGNED)) {
-                unsigned = true;
-            } else {
-                throw DbException.getInvalidValueException("BINARY_COLLATION", stringValue);
-            }
+            stringValue = StringUtils.toUpperEnglish(stringValue);
+            boolean unsigned = isUnsignedCollation("BINARY_COLLATION");
             synchronized (database) {
                 CompareMode currentMode = database.getCompareMode();
                 if (currentMode.isBinaryUnsigned() != unsigned) {
@@ -200,14 +194,8 @@ public class Set extends Prepared {
         }
         case SetTypes.UUID_COLLATION: {
             session.getUser().checkAdmin();
-            boolean unsigned;
-            if (stringValue.equals(CompareMode.SIGNED)) {
-                unsigned = false;
-            } else if (stringValue.equals(CompareMode.UNSIGNED)) {
-                unsigned = true;
-            } else {
-                throw DbException.getInvalidValueException("UUID_COLLATION", stringValue);
-            }
+            stringValue = StringUtils.toUpperEnglish(stringValue);
+            boolean unsigned = isUnsignedCollation("UUID_COLLATION");
             synchronized (database) {
                 CompareMode currentMode = database.getCompareMode();
                 if (currentMode.isUuidUnsigned() != unsigned) {
@@ -656,6 +644,15 @@ public class Set extends Prepared {
         // when changing the compatibility mode
         database.getNextModificationMetaId();
         return 0;
+    }
+
+    private boolean isUnsignedCollation(String param) {
+        if (stringValue.equals(CompareMode.UNSIGNED)) {
+            return true;
+        } else if (stringValue.equals(CompareMode.SIGNED)) {
+            return false;
+        }
+        throw DbException.getInvalidValueException(param, stringValue);
     }
 
     private static TimeZoneProvider parseTimeZone(Value v) {

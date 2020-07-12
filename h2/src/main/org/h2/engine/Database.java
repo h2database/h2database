@@ -2761,6 +2761,19 @@ public class Database implements DataHandler, CastDataProvider {
      * sensitive or case insensitive.
      *
      * @param <V> the value type
+     * @param  initialCapacity the initial capacity
+     * @return the hash map
+     */
+    public <V> HashMap<String, V> newStringMap(int initialCapacity) {
+        return dbSettings.caseInsensitiveIdentifiers ? new CaseInsensitiveMap<>(initialCapacity)
+                : new HashMap<>(initialCapacity);
+    }
+
+    /**
+     * Create a new hash map. Depending on the configuration, the key is case
+     * sensitive or case insensitive.
+     *
+     * @param <V> the value type
      * @return the hash map
      */
     public <V> ConcurrentHashMap<String, V> newConcurrentStringMap() {

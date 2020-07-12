@@ -54,7 +54,7 @@ public final class InformationSchema extends MetaSchema {
     private synchronized HashMap<String, Table> fillMap(boolean old) {
         HashMap<String, Table> map = old ? oldTables : newTables;
         if (map == null) {
-            map = database.newStringMap();
+            map = database.newStringMap(64);
             if (old) {
                 for (int type = 0; type < InformationSchemaTableLegacy.META_TABLE_TYPE_COUNT; type++) {
                     InformationSchemaTableLegacy table = new InformationSchemaTableLegacy(this,

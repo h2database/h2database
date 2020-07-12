@@ -201,12 +201,13 @@ public class TestPgServer extends TestDb {
         prep.setInt(1, 1);
         prep.setString(2, "Hello");
         prep.execute();
-        rs = stat.executeQuery("select * from test");
+        rs = stat.executeQuery("select *, null nul from test");
         rs.next();
 
         ResultSetMetaData rsMeta = rs.getMetaData();
         assertEquals(Types.INTEGER, rsMeta.getColumnType(1));
         assertEquals(Types.VARCHAR, rsMeta.getColumnType(2));
+        assertEquals(Types.VARCHAR, rsMeta.getColumnType(3));
         assertEquals("test", rsMeta.getTableName(1));
 
         prep.close();

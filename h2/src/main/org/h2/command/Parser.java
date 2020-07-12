@@ -197,6 +197,7 @@ import org.h2.command.query.Select;
 import org.h2.command.query.SelectUnion;
 import org.h2.command.query.TableValueConstructor;
 import org.h2.constraint.ConstraintActionType;
+import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -8355,10 +8356,8 @@ public class Parser {
             return command;
         } else if (readIf("AUTOCOMMIT")) {
             readIfEqualOrTo();
-            boolean value = readBooleanSetting();
-            int setting = value ? CommandInterface.SET_AUTOCOMMIT_TRUE
-                    : CommandInterface.SET_AUTOCOMMIT_FALSE;
-            return new TransactionCommand(session, setting);
+            return new TransactionCommand(session, readBooleanSetting() ? CommandInterface.SET_AUTOCOMMIT_TRUE
+                    : CommandInterface.SET_AUTOCOMMIT_FALSE);
         } else if (readIf("EXCLUSIVE")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.EXCLUSIVE);
@@ -8366,9 +8365,8 @@ public class Parser {
             return command;
         } else if (readIf("IGNORECASE")) {
             readIfEqualOrTo();
-            boolean value = readBooleanSetting();
             Set command = new Set(session, SetTypes.IGNORECASE);
-            command.setInt(value ? 1 : 0);
+            command.setInt(readBooleanSetting() ? 1 : 0);
             return command;
         } else if (readIf("PASSWORD")) {
             readIfEqualOrTo();
@@ -8394,11 +8392,7 @@ public class Parser {
         } else if (readIf("COMPRESS_LOB")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.COMPRESS_LOB);
-            if (currentTokenType == LITERAL) {
-                command.setString(readString());
-            } else {
-                command.setString(readUniqueIdentifier());
-            }
+            command.setString(currentTokenType == LITERAL ? readString() : readUniqueIdentifier());
             return command;
         } else if (readIf("DATABASE")) {
             readIfEqualOrTo();
@@ -8426,87 +8420,31 @@ public class Parser {
         } else if (readIf("ALLOW_LITERALS")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.ALLOW_LITERALS);
-            if (readIf("NONE")) {
-                command.setInt(Constants.ALLOW_LITERALS_NONE);
-            } else if (readIf(ALL)) {
-                command.setInt(Constants.ALLOW_LITERALS_ALL);
+            int v;
+            if (readIf(ALL)) {
+                v = Constants.ALLOW_LITERALS_ALL;
+            } else if (readIf("NONE")) {
+                v = Constants.ALLOW_LITERALS_NONE;
             } else if (readIf("NUMBERS")) {
-                command.setInt(Constants.ALLOW_LITERALS_NUMBERS);
+                v = Constants.ALLOW_LITERALS_NUMBERS;
             } else {
-                command.setInt(readNonNegativeInt());
+                v = readNonNegativeInt();
             }
+            command.setInt(v);
             return command;
         } else if (readIf("DEFAULT_TABLE_TYPE")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.DEFAULT_TABLE_TYPE);
+            int v;
             if (readIf("MEMORY")) {
-                command.setInt(Table.TYPE_MEMORY);
+                v = Table.TYPE_MEMORY;
             } else if (readIf("CACHED")) {
-                command.setInt(Table.TYPE_CACHED);
+                v = Table.TYPE_CACHED;
             } else {
-                command.setInt(readNonNegativeInt());
+                v = readNonNegativeInt();
             }
+            command.setInt(v);
             return command;
-        } else if (readIf("PAGE_STORE")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("CACHE_TYPE")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("FILE_LOCK")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("DB_CLOSE_ON_EXIT")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("NETWORK_TIMEOUT")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("AUTO_SERVER")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("AUTO_SERVER_PORT")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("AUTO_RECONNECT")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("ASSERT")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("ACCESS_MODE_DATA")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("OPEN_NEW")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("JMX")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("PAGE_SIZE")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("RECOVER")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("SCOPE_GENERATED_KEYS")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
         } else if (readIf("SCHEMA")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.SCHEMA);
@@ -8528,12 +8466,13 @@ public class Parser {
             return command;
         } else if (readIf("JAVA_OBJECT_SERIALIZER")) {
             readIfEqualOrTo();
-            return parseSetJavaObjectSerializer();
+            Set command = new Set(session, SetTypes.JAVA_OBJECT_SERIALIZER);
+            command.setString(readString());
+            return command;
         } else if (readIf("IGNORE_CATALOGS")) {
             readIfEqualOrTo();
-            boolean value = readBooleanSetting();
             Set command = new Set(session, SetTypes.IGNORE_CATALOGS);
-            command.setInt(value ? 1 : 0);
+            command.setInt(readBooleanSetting() ? 1 : 0);
             return command;
         } else if (readIf("SESSION")) {
             read("CHARACTERISTICS");
@@ -8570,11 +8509,22 @@ public class Parser {
             Set command = new Set(session, SetTypes.DEFAULT_NULL_ORDERING);
             command.setString(readAliasIdentifier());
             return command;
-        } else if (readIf("OLD_INFORMATION_SCHEMA")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
         } else {
+            String upperName = upperName(currentToken);
+            if (ConnectionInfo.isIgnoredByParser(upperName)) {
+                read();
+                readIfEqualOrTo();
+                read();
+                return new NoOperation(session);
+            }
+            int type = SetTypes.getType(upperName);
+            if (type >= 0) {
+                read();
+                readIfEqualOrTo();
+                Set command = new Set(session, type);
+                command.setExpression(readExpression());
+                return command;
+            }
             ModeEnum modeEnum = database.getMode().getEnum();
             if (modeEnum != ModeEnum.REGULAR) {
                 Prepared command = readSetCompatibility(modeEnum);
@@ -8582,15 +8532,7 @@ public class Parser {
                     return command;
                 }
             }
-            int type = SetTypes.getType(upperName(currentToken));
-            if (type < 0) {
-                throw getSyntaxError();
-            }
-            read();
-            readIfEqualOrTo();
-            Set command = new Set(session, type);
-            command.setExpression(readExpression());
-            return command;
+            throw getSyntaxError();
         }
     }
 
@@ -8668,13 +8610,6 @@ public class Parser {
         throw DbException.getInvalidValueException(SetTypes.getTypeName(type), name);
     }
 
-    private Set parseSetJavaObjectSerializer() {
-        Set command = new Set(session, SetTypes.JAVA_OBJECT_SERIALIZER);
-        String name = readString();
-        command.setString(name);
-        return command;
-    }
-
     private Prepared readSetCompatibility(ModeEnum modeEnum) {
         switch (modeEnum) {
         case Derby:
@@ -8686,18 +8621,24 @@ public class Parser {
             }
             break;
         case HSQLDB:
-            if (isToken("LOGSIZE")) {
-                currentToken = SetTypes.getTypeName(SetTypes.MAX_LOG_SIZE);
+            if (readIf("LOGSIZE")) {
+                readIfEqualOrTo();
+                Set command = new Set(session, SetTypes.MAX_LOG_SIZE);
+                command.setExpression(readExpression());
+                return command;
             }
             break;
         case MySQL:
-            if (readIf("NAMES")) {
+            if (readIf("FOREIGN_KEY_CHECKS")) {
+                readIfEqualOrTo();
+                Set command = new Set(session, SetTypes.REFERENTIAL_INTEGRITY);
+                command.setExpression(readExpression());
+                return command;
+            } else if (readIf("NAMES")) {
                 // Quercus PHP MySQL driver compatibility
                 readIfEqualOrTo();
                 read();
                 return new NoOperation(session);
-            } else if (isToken("FOREIGN_KEY_CHECKS")) {
-                currentToken = SetTypes.getTypeName(SetTypes.REFERENTIAL_INTEGRITY);
             }
             break;
         case PostgreSQL:
@@ -8706,16 +8647,7 @@ public class Parser {
                 Set command = new Set(session, SetTypes.QUERY_TIMEOUT);
                 command.setInt(readNonNegativeInt());
                 return command;
-            } else if (readIf("CLIENT_MIN_MESSAGES")) {
-                readIfEqualOrTo();
-                read();
-                return new NoOperation(session);
-            } else if (readIf("CLIENT_ENCODING")) {
-                readIfEqualOrTo();
-                read();
-                return new NoOperation(session);
-            } else if (readIf("JOIN_COLLAPSE_LIMIT")) {
-                // for PostgreSQL compatibility
+            } else if (readIf("CLIENT_ENCODING") || readIf("CLIENT_MIN_MESSAGES") || readIf("JOIN_COLLAPSE_LIMIT")) {
                 readIfEqualOrTo();
                 read();
                 return new NoOperation(session);

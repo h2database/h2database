@@ -27,7 +27,10 @@ import org.h2.util.Utils;
  * Encapsulates the connection settings, including user name and password.
  */
 public class ConnectionInfo implements Cloneable {
+
     private static final HashSet<String> KNOWN_SETTINGS;
+
+    private static final HashSet<String> IGNORED_BY_PARSER;
 
     private Properties prop = new Properties();
     private String originalURL;
@@ -93,24 +96,62 @@ public class ConnectionInfo implements Cloneable {
     }
 
     static {
-        String[] connectionTime = { "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
-                "CREATE", "CACHE_TYPE", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS",
-                "IFEXISTS", "INIT", "FORBID_CREATION", "PASSWORD", "RECOVER", "RECOVER_TEST",
-                "USER", "AUTO_SERVER", "AUTO_SERVER_PORT", "NO_UPGRADE",
-                "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX",
-                "SCOPE_GENERATED_KEYS", "AUTHREALM", "AUTHZPWD", "NETWORK_TIMEOUT", "OLD_INFORMATION_SCHEMA"};
+        String[] settings = { //
+                "ACCESS_MODE_DATA", "AUTHREALM", "AUTHZPWD", "AUTOCOMMIT", "AUTO_RECONNECT", "AUTO_SERVER",
+                "AUTO_SERVER_PORT", //
+                "CACHE_TYPE", "CIPHER", "CREATE", //
+                "FILE_LOCK", "FORBID_CREATION", //
+                "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS", "INIT", //
+                "JMX", //
+                "NETWORK_TIMEOUT", "NO_UPGRADE", //
+                "OLD_INFORMATION_SCHEMA", "OPEN_NEW", //
+                "PAGE_SIZE", "PASSWORD", "PASSWORD_HASH", //
+                "RECOVER", "RECOVER_TEST", //
+                "SCOPE_GENERATED_KEYS", //
+                "USER" //
+        };
         HashSet<String> set = new HashSet<>(128);
         set.addAll(SetTypes.getTypes());
-        for (String key : connectionTime) {
-            if (!set.add(key)) {
-                DbException.throwInternalError(key);
+        for (String setting : settings) {
+            if (!set.add(setting)) {
+                DbException.throwInternalError(setting);
             }
         }
         KNOWN_SETTINGS = set;
+        settings = new String[] { //
+                "ACCESS_MODE_DATA", "ASSERT", "AUTO_RECONNECT", "AUTO_SERVER", "AUTO_SERVER_PORT", //
+                "CACHE_TYPE", //
+                "DB_CLOSE_ON_EXIT", //
+                "FILE_LOCK", //
+                "JMX", //
+                "NETWORK_TIMEOUT", //
+                "OLD_INFORMATION_SCHEMA", "OPEN_NEW", //
+                "PAGE_SIZE", "PAGE_STORE", //
+                "RECOVER", //
+                "SCOPE_GENERATED_KEYS" //
+        };
+        set = new HashSet<>(32);
+        for (String setting : settings) {
+            set.add(setting);
+        }
+        IGNORED_BY_PARSER = set;
     }
 
     private static boolean isKnownSetting(String s) {
         return KNOWN_SETTINGS.contains(s);
+    }
+
+    /**
+     * Returns whether setting with the specified name should be ignored by
+     * parser.
+     *
+     * @param name
+     *            the name of the setting
+     * @return whether setting with the specified name should be ignored by
+     *         parser
+     */
+    public static boolean isIgnoredByParser(String name) {
+        return IGNORED_BY_PARSER.contains(name);
     }
 
     @Override

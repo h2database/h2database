@@ -64,16 +64,6 @@ public class SysProperties {
             Utils.getProperty("user.home", "");
 
     /**
-     * System property {@code h2.preview} (default: false).
-     * <p>
-     * Controls default values of other properties. If {@code true} default
-     * values of other properties are changed to planned defaults for the 1.5.x
-     * versions of H2. Some other functionality may be also enabled or disabled.
-     * </p>
-     */
-    public static final boolean PREVIEW = Utils.getProperty("h2.preview", false);
-
-    /**
      * System property <code>h2.allowedClasses</code> (default: *).<br />
      * Comma separated list of class names or prefixes.
      */
@@ -378,18 +368,16 @@ public class SysProperties {
      * Whether binary data should be sorted in unsigned mode
      * (0xff is larger than 0x00) by default in new databases.
      */
-    public static final boolean SORT_BINARY_UNSIGNED =
-            Utils.getProperty("h2.sortBinaryUnsigned", true);
+    public static final boolean SORT_BINARY_UNSIGNED = Utils.getProperty("h2.sortBinaryUnsigned", true);
 
     /**
-     * System property {@code h2.sortUuidUnsigned}, {@code false} by default
-     * unless {@code h2.preview} is enabled.
+     * System property {@code h2.sortUuidUnsigned}
+     * (default: true).<br />
      * Whether UUID data should be sorted in unsigned mode
      * ('ffffffff-ffff-ffff-ffff-ffffffffffff' is larger than
      * '00000000-0000-0000-0000-000000000000') by default in new databases.
      */
-    public static final boolean SORT_UUID_UNSIGNED =
-            Utils.getProperty("h2.sortUuidUnsigned", PREVIEW);
+    public static final boolean SORT_UUID_UNSIGNED = Utils.getProperty("h2.sortUuidUnsigned", true);
 
     /**
      * System property <code>h2.splitFileSizeShift</code> (default: 30).<br />

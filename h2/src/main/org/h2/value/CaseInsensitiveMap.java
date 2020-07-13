@@ -17,6 +17,22 @@ public class CaseInsensitiveMap<V> extends HashMap<String, V> {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Creates new instance of case-insensitive map.
+     */
+    public CaseInsensitiveMap() {
+    }
+
+    /**
+     * Creates new instance of case-insensitive map with specified initial
+     * capacity.
+     *
+     * @param initialCapacity the initial capacity
+     */
+    public CaseInsensitiveMap(int initialCapacity) {
+        super(initialCapacity);
+    }
+
     @Override
     public V get(Object key) {
         return super.get(StringUtils.toUpperEnglish((String) key));

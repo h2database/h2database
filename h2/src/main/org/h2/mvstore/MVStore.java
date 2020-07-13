@@ -1486,6 +1486,7 @@ public class MVStore implements AutoCloseable {
             long version = ++currentVersion;
             ArrayList<Page<?,?>> changed = collectChangedMapRoots(version);
 
+            assert storeLock.isHeldByCurrentThread();
             submitOrRun(serializationExecutor,
                     () -> serializeAndStore(syncWrite, reservedLow, reservedHighSupplier,
                                             changed, lastCommitTime, version),
@@ -1995,9 +1996,16 @@ public class MVStore implements AutoCloseable {
         storeLock.lock();
         try {
             checkOpen();
+            // because serializationExecutor is a single-threaded one and
+            // all task submissions to it are done under storeLock,
+            // it is guaranteed, that upon this dummy task completion
+            // there are no pending / in-progress task here
             submitOrRun(serializationExecutor, () -> {}, true);
             serializationLock.lock();
             try {
+                // similarly, all task submissions to bufferSaveExecutor
+                // are done under serializationLock, and upon this dummy task completion
+                // it will be no pending / in-progress task here
                 submitOrRun(bufferSaveExecutor, () -> {}, true);
                 saveChunkLock.lock();
                 try {

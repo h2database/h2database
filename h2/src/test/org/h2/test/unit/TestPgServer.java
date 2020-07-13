@@ -380,6 +380,7 @@ public class TestPgServer extends TestDb {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void testTextualAndBinaryTypes() throws SQLException {
         testTextualAndBinaryTypes(false);
         testTextualAndBinaryTypes(true);

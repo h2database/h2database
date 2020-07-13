@@ -625,13 +625,16 @@ public class AlterTableAlterColumn extends CommandWithColumns {
     }
 
     private void checkNullable(Table table) {
+        if (oldColumn.getSequence() != null) {
+            throw DbException.get(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, oldColumn.getName());
+        }
         for (Index index : table.getIndexes()) {
             if (index.getColumnIndex(oldColumn) < 0) {
                 continue;
             }
             IndexType indexType = index.getIndexType();
-            if (indexType.isPrimaryKey() || indexType.isHash()) {
-                throw DbException.get(ErrorCode.COLUMN_IS_PART_OF_INDEX_1, index.getTraceSQL());
+            if (indexType.isPrimaryKey()) {
+                throw DbException.get(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, oldColumn.getName());
             }
         }
     }

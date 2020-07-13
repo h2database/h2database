@@ -6516,58 +6516,65 @@ public class Parser {
             column.setVisible(true);
         }
         NullConstraintType nullConstraint = parseNotNullConstraint();
+        defaultIdentityGeneration: if (!isIdentity) {
+            if (readIf(AS)) {
+                column.setGeneratedExpression(readExpression());
+            } else if (readIf("DEFAULT")) {
+                column.setDefaultExpression(session, readExpression());
+            } else if (readIf("GENERATED")) {
+                boolean always = readIf("ALWAYS");
+                if (!always) {
+                    read("BY");
+                    read("DEFAULT");
+                }
+                read(AS);
+                if (readIf("IDENTITY")) {
+                    isIdentity = true;
+                    SequenceOptions options = new SequenceOptions();
+                    if (readIf(OPEN_PAREN)) {
+                        parseSequenceOptions(options, null, false, false);
+                        read(CLOSE_PAREN);
+                    }
+                    column.setIdentityOptions(options, always);
+                    break defaultIdentityGeneration;
+                } else if (!always) {
+                    throw getSyntaxError();
+                } else {
+                    column.setGeneratedExpression(readExpression());
+                }
+            }
+            if (readIf(ON)) {
+                read("UPDATE");
+                column.setOnUpdateExpression(session, readExpression());
+            }
+            nullConstraint = parseNotNullConstraint(nullConstraint);
+            if (readIf("AUTO_INCREMENT") || readIf("BIGSERIAL") || readIf("SERIAL")) {
+                isIdentity = true;
+                parseAutoIncrement(column);
+                nullConstraint = parseNotNullConstraint(nullConstraint);
+            } else if (readIf("IDENTITY")) {
+                isIdentity = true;
+                parseAutoIncrement(column);
+                column.setPrimaryKey(true);
+                nullConstraint = parseNotNullConstraint(nullConstraint);
+            }
+        }
         switch (nullConstraint) {
         case NULL_IS_ALLOWED:
+            if (isIdentity) {
+                throw DbException.get(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
+            }
             column.setNullable(true);
             break;
         case NULL_IS_NOT_ALLOWED:
             column.setNullable(false);
             break;
         case NO_NULL_CONSTRAINT_FOUND:
-            column.setNullable(defaultNullable);
+            column.setNullable(!isIdentity && defaultNullable);
             break;
         default:
             throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
                     "Internal Error - unhandled case: " + nullConstraint.name());
-        }
-        if (!isIdentity && readIf(AS)) {
-            column.setGeneratedExpression(readExpression());
-        } else if (readIf("DEFAULT")) {
-            column.setDefaultExpression(session, readExpression());
-        } else if (readIf("GENERATED")) {
-            boolean always = readIf("ALWAYS");
-            if (!always) {
-                read("BY");
-                read("DEFAULT");
-            }
-            read(AS);
-            if (readIf("IDENTITY")) {
-                SequenceOptions options = new SequenceOptions();
-                if (readIf(OPEN_PAREN)) {
-                    parseSequenceOptions(options, null, false, false);
-                    read(CLOSE_PAREN);
-                }
-                column.setIdentityOptions(options, always);
-            } else if (!always || isIdentity) {
-                throw getSyntaxError();
-            } else {
-                column.setGeneratedExpression(readExpression());
-            }
-        }
-        if (readIf(ON)) {
-            read("UPDATE");
-            column.setOnUpdateExpression(session, readExpression());
-        }
-        if (NullConstraintType.NULL_IS_NOT_ALLOWED == parseNotNullConstraint()) {
-            column.setNullable(false);
-        }
-        if (readIf("AUTO_INCREMENT") || readIf("BIGSERIAL") || readIf("SERIAL")) {
-            parseAutoIncrement(column);
-            parseNotNullConstraint();
-        } else if (readIf("IDENTITY")) {
-            parseAutoIncrement(column);
-            column.setPrimaryKey(true);
-            parseNotNullConstraint();
         }
         if (readIf("NULL_TO_DEFAULT")) {
             column.setConvertNullToDefault(true);
@@ -9856,6 +9863,9 @@ public class Parser {
                 if (nullType == NullConstraintType.NULL_IS_NOT_ALLOWED) {
                     column.setNullable(false);
                 } else if (nullType == NullConstraintType.NULL_IS_ALLOWED) {
+                    if (column.getSequence() != null || column.getIdentityOptions() != null) {
+                        throw DbException.get(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
+                    }
                     column.setNullable(true);
                 }
             } else if (readIf(CHECK)) {
@@ -9948,6 +9958,13 @@ public class Parser {
      */
     private enum NullConstraintType {
         NULL_IS_ALLOWED, NULL_IS_NOT_ALLOWED, NO_NULL_CONSTRAINT_FOUND
+    }
+
+    private NullConstraintType parseNotNullConstraint(NullConstraintType nullConstraint) {
+        if (nullConstraint == NullConstraintType.NO_NULL_CONSTRAINT_FOUND) {
+            nullConstraint = parseNotNullConstraint();
+        }
+        return nullConstraint;
     }
 
     private NullConstraintType parseNotNullConstraint() {

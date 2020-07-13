@@ -2937,7 +2937,7 @@ public class Database implements DataHandler, CastDataProvider {
      * H2 1.4.197 and older versions don't have UUID_COLLATION setting. Versions
      * 1.4.198, 1.4.199, and 1.4.200 have this setting, but don't preserve value
      * of the setting in metadata if it wasn't set explicitly by user.
-     * <p>
+     * </p>
      * <p>
      * If UUID_COLLATION setting with any value was found in metadata no further
      * action is required. If this setting wasn't found, indexes with UUID
@@ -2945,7 +2945,7 @@ public class Database implements DataHandler, CastDataProvider {
      * default is persisted in metadata after initialization.
      * </p>
      *
-     * @returns whether UUID_COLLATION setting is persisted in metadata.
+     * @return whether UUID_COLLATION setting is persisted in metadata.
      */
     public boolean uuidCollationKnown() {
         return settings.containsKey(SetTypes.getTypeName(SetTypes.UUID_COLLATION));

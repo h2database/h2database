@@ -249,27 +249,33 @@ public final class SetClauseList implements HasSQL {
             Column column = columns[i];
             Value newValue;
             if (action == null || action == UpdateAction.ON_UPDATE) {
-                newValue = column.isGeneratedAlways() ? null : oldRow.getValue(i);
+                newValue = column.isGenerated() ? null : oldRow.getValue(i);
             } else if (action == UpdateAction.SET_DEFAULT) {
-                newValue = null;
+                newValue = column.getSequence() == null ? null : oldRow.getValue(i);
             } else {
+                if (column.isGeneratedAlways()) {
+                    throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
+                            column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
+                }
                 newValue = action.update(session);
             }
             newRow.setValue(i, newValue);
         }
         newRow.setKey(oldRow.getKey());
-        table.validateConvertUpdateSequence(session, newRow);
+        table.validateConvertUpdateSequence(session, newRow, true);
         boolean result = true;
         if (onUpdate) {
             if (!oldRow.hasSameValues(newRow)) {
                 for (int i = 0; i < columnCount; i++) {
                     if (actions[i] == UpdateAction.ON_UPDATE) {
                         newRow.setValue(i, columns[i].getEffectiveOnUpdateExpression().getValue(session));
+                    } else if (columns[i].isGenerated()) {
+                        newRow.setValue(i, null);
                     }
                 }
                 // Convert on update expressions and reevaluate
                 // generated columns
-                table.validateConvertUpdateSequence(session, newRow);
+                table.validateConvertUpdateSequence(session, newRow, true);
             } else if (updateToCurrentValuesReturnsZero) {
                 result = false;
             }

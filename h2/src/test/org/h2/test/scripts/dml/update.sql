@@ -134,3 +134,52 @@ UPDATE TEST SET (D, E) = NULL;
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(ID BIGINT GENERATED ALWAYS AS IDENTITY, ID2 BIGINT GENERATED ALWAYS AS (ID + 1),
+    V INT, U INT ON UPDATE (5));
+> ok
+
+INSERT INTO TEST(V) VALUES 1;
+> update count: 1
+
+TABLE TEST;
+> ID ID2 V U
+> -- --- - ----
+> 1  2   1 null
+> rows: 1
+
+UPDATE TEST SET V = V + 1;
+> update count: 1
+
+UPDATE TEST SET V = V + 1, ID = DEFAULT, ID2 = DEFAULT;
+> update count: 1
+
+TABLE TEST;
+> ID ID2 V U
+> -- --- - -
+> 1  2   3 5
+> rows: 1
+
+MERGE INTO TEST USING (VALUES 1) T(X) ON TRUE WHEN MATCHED THEN UPDATE SET V = V + 1;
+> update count: 1
+
+MERGE INTO TEST USING (VALUES 1) T(X) ON TRUE WHEN MATCHED THEN UPDATE SET V = V + 1, ID = DEFAULT, ID2 = DEFAULT;
+> update count: 1
+
+TABLE TEST;
+> ID ID2 V U
+> -- --- - -
+> 1  2   5 5
+> rows: 1
+
+MERGE INTO TEST KEY(V) VALUES (DEFAULT, DEFAULT, 5, 1);
+> update count: 1
+
+TABLE TEST;
+> ID ID2 V U
+> -- --- - -
+> 1  2   5 1
+> rows: 1
+
+DROP TABLE TEST;
+> ok

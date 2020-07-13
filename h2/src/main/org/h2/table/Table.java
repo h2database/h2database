@@ -879,18 +879,21 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param session the session
      * @param row the row
+     * @param forUpdate {@code false} for INSERT, {@code true} for UPDATE
      */
-    public void validateConvertUpdateSequence(SessionLocal session, Row row) {
+    public void validateConvertUpdateSequence(SessionLocal session, Row row, boolean forUpdate) {
         int length = columns.length, generated = 0;
         for (int i = 0; i < length; i++) {
             Value value = row.getValue(i);
             Column column = columns[i];
             if (column.isGeneratedAlways()) {
+                boolean isGenerated = column.getDefaultExpression() != null;
                 if (value != null) {
-                    throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
-                            column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
-                }
-                if (column.getDefaultExpression() != null) {
+                    if (isGenerated || !forUpdate) {
+                        throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
+                                column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
+                    }
+                } else if (isGenerated) {
                     generated++;
                     continue;
                 }

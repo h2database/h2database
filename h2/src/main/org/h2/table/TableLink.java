@@ -691,9 +691,10 @@ public class TableLink extends Table {
      *
      * @param session the session
      * @param row the row
+     * @param forUpdate {@code false} for INSERT, {@code true} for UPDATE
      */
     @Override
-    public void validateConvertUpdateSequence(SessionLocal session, Row row) {
+    public void validateConvertUpdateSequence(SessionLocal session, Row row, boolean forUpdate) {
         for (int i = 0; i < columns.length; i++) {
             Value value = row.getValue(i);
             if (value != null) {

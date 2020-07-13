@@ -178,7 +178,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
                     }
                 }
                 rowNumber++;
-                table.validateConvertUpdateSequence(session, newRow);
+                table.validateConvertUpdateSequence(session, newRow, false);
                 if (deltaChangeCollectionMode == ResultOption.NEW) {
                     deltaChangeCollector.addRow(newRow.getValueList().clone());
                 }
@@ -241,7 +241,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
         for (int j = 0, len = columns.length; j < len; j++) {
             newRow.setValue(columns[j].getColumnId(), values[j]);
         }
-        table.validateConvertUpdateSequence(session, newRow);
+        table.validateConvertUpdateSequence(session, newRow, false);
         if (deltaChangeCollectionMode == ResultOption.NEW) {
             deltaChangeCollector.addRow(newRow.getValueList().clone());
         }

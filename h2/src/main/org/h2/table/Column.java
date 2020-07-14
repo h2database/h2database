@@ -189,7 +189,16 @@ public class Column implements HasSQL, Typed {
     }
 
     /**
-     * Returns whether this column is a generated column
+     * Returns whether this column is an identity column.
+     *
+     * @return whether this column is an identity column
+     */
+    public boolean isIdentity() {
+        return sequence != null || identityOptions != null;
+    }
+
+    /**
+     * Returns whether this column is a generated column.
      *
      * @return whether this column is a generated column
      */

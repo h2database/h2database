@@ -190,7 +190,7 @@ public class CommandContainer extends Command {
             Index primaryKey = table.findPrimaryKey();
             for (Column column : columns) {
                 Expression e;
-                if (column.getSequence() != null
+                if (column.isIdentity()
                         || ((e = column.getEffectiveDefaultExpression()) != null && !e.isConstant())
                         || (primaryKey != null && primaryKey.getColumnIndex(column) >= 0)) {
                     expressionColumns.add(new ExpressionColumn(db, column));

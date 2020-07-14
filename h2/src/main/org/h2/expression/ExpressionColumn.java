@@ -325,7 +325,7 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public boolean isAutoIncrement() {
-        return column.getSequence() != null;
+        return column.isIdentity();
     }
 
     @Override

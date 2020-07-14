@@ -6516,64 +6516,72 @@ public class Parser {
             column.setVisible(true);
         }
         NullConstraintType nullConstraint = parseNotNullConstraint();
+        defaultIdentityGeneration: if (!column.isIdentity()) {
+            if (readIf(AS)) {
+                column.setGeneratedExpression(readExpression());
+            } else if (readIf("DEFAULT")) {
+                column.setDefaultExpression(session, readExpression());
+            } else if (readIf("GENERATED")) {
+                boolean always = readIf("ALWAYS");
+                if (!always) {
+                    read("BY");
+                    read("DEFAULT");
+                }
+                read(AS);
+                if (readIf("IDENTITY")) {
+                    SequenceOptions options = new SequenceOptions();
+                    if (readIf(OPEN_PAREN)) {
+                        parseSequenceOptions(options, null, false, false);
+                        read(CLOSE_PAREN);
+                    }
+                    column.setIdentityOptions(options, always);
+                    break defaultIdentityGeneration;
+                } else if (!always) {
+                    throw getSyntaxError();
+                } else {
+                    column.setGeneratedExpression(readExpression());
+                }
+            }
+            if (!column.isGenerated() && readIf(ON)) {
+                read("UPDATE");
+                column.setOnUpdateExpression(session, readExpression());
+            }
+            nullConstraint = parseNotNullConstraint(nullConstraint);
+            if (readIf("AUTO_INCREMENT") || readIf("BIGSERIAL") || readIf("SERIAL")) {
+                parseAutoIncrement(column);
+                nullConstraint = parseNotNullConstraint(nullConstraint);
+            } else if (readIf("IDENTITY")) {
+                parseAutoIncrement(column);
+                column.setPrimaryKey(true);
+                nullConstraint = parseNotNullConstraint(nullConstraint);
+            }
+        }
         switch (nullConstraint) {
         case NULL_IS_ALLOWED:
+            if (column.isIdentity()) {
+                throw DbException.get(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
+            }
             column.setNullable(true);
             break;
         case NULL_IS_NOT_ALLOWED:
             column.setNullable(false);
             break;
         case NO_NULL_CONSTRAINT_FOUND:
-            column.setNullable(defaultNullable);
+            if (!column.isIdentity()) {
+                column.setNullable(defaultNullable);
+            }
             break;
         default:
             throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
                     "Internal Error - unhandled case: " + nullConstraint.name());
         }
-        if (!isIdentity && readIf(AS)) {
-            column.setGeneratedExpression(readExpression());
-        } else if (readIf("DEFAULT")) {
-            column.setDefaultExpression(session, readExpression());
-        } else if (readIf("GENERATED")) {
-            boolean always = readIf("ALWAYS");
-            if (!always) {
-                read("BY");
-                read("DEFAULT");
+        if (!column.isGenerated()) {
+            if (readIf("NULL_TO_DEFAULT")) {
+                column.setConvertNullToDefault(true);
             }
-            read(AS);
-            if (readIf("IDENTITY")) {
-                SequenceOptions options = new SequenceOptions();
-                if (readIf(OPEN_PAREN)) {
-                    parseSequenceOptions(options, null, false, false);
-                    read(CLOSE_PAREN);
-                }
-                column.setIdentityOptions(options, always);
-            } else if (!always || isIdentity) {
-                throw getSyntaxError();
-            } else {
-                column.setGeneratedExpression(readExpression());
+            if (readIf("SEQUENCE")) {
+                column.setSequence(readSequence(), column.isGeneratedAlways());
             }
-        }
-        if (readIf(ON)) {
-            read("UPDATE");
-            column.setOnUpdateExpression(session, readExpression());
-        }
-        if (NullConstraintType.NULL_IS_NOT_ALLOWED == parseNotNullConstraint()) {
-            column.setNullable(false);
-        }
-        if (readIf("AUTO_INCREMENT") || readIf("BIGSERIAL") || readIf("SERIAL")) {
-            parseAutoIncrement(column);
-            parseNotNullConstraint();
-        } else if (readIf("IDENTITY")) {
-            parseAutoIncrement(column);
-            column.setPrimaryKey(true);
-            parseNotNullConstraint();
-        }
-        if (readIf("NULL_TO_DEFAULT")) {
-            column.setConvertNullToDefault(true);
-        }
-        if (readIf("SEQUENCE")) {
-            column.setSequence(readSequence(), column.isGeneratedAlways());
         }
         if (readIf("SELECTIVITY")) {
             column.setSelectivity(readNonNegativeInt());
@@ -8992,6 +9000,9 @@ public class Parser {
             } else if (readIf("EXPRESSION")) {
                 return getAlterTableAlterColumnDropDefaultExpression(schema, tableName, ifTableExists, column,
                         CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_EXPRESSION);
+            } else if (readIf("IDENTITY")) {
+                return getAlterTableAlterColumnDropDefaultExpression(schema, tableName, ifTableExists, column,
+                        CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_IDENTITY);
             }
             if (readIf(ON)) {
                 read("UPDATE");
@@ -9001,23 +9012,6 @@ public class Parser {
                 command.setOldColumn(column);
                 command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_ON_UPDATE);
                 command.setDefaultExpression(null);
-                return command;
-            }
-            if (readIf("IDENTITY")) {
-                if (column == null || column.getSequence() == null) {
-                    return new NoOperation(session);
-                }
-                AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
-                parseAlterColumnUsingIf(command);
-                command.setTableName(tableName);
-                command.setIfTableExists(ifTableExists);
-                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE);
-                command.setOldColumn(column);
-                Column newColumn = column.getClone();
-                newColumn.setSequence(null, false);
-                newColumn.setDefaultExpression(session, null);
-                newColumn.setConvertNullToDefault(false);
-                command.setNewColumn(newColumn);
                 return command;
             }
             read(NOT);
@@ -9086,7 +9080,7 @@ public class Parser {
         if (column == null) {
             return new NoOperation(session);
         }
-        if (column.getSequence() == null) {
+        if (!column.isIdentity()) {
             AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
             parseAlterColumnUsingIf(command);
             command.setTableName(tableName);
@@ -9302,7 +9296,7 @@ public class Parser {
                 if (idx != null) {
                     for (IndexColumn ic : idx.getIndexColumns()) {
                         Column column = ic.column;
-                        if (column.getSequence() != null) {
+                        if (column.isIdentity()) {
                             AlterSequence command = new AlterSequence(session, schema);
                             command.setColumn(column, null);
                             SequenceOptions options = new SequenceOptions();
@@ -9856,6 +9850,9 @@ public class Parser {
                 if (nullType == NullConstraintType.NULL_IS_NOT_ALLOWED) {
                     column.setNullable(false);
                 } else if (nullType == NullConstraintType.NULL_IS_ALLOWED) {
+                    if (column.isIdentity()) {
+                        throw DbException.get(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
+                    }
                     column.setNullable(true);
                 }
             } else if (readIf(CHECK)) {
@@ -9948,6 +9945,13 @@ public class Parser {
      */
     private enum NullConstraintType {
         NULL_IS_ALLOWED, NULL_IS_NOT_ALLOWED, NO_NULL_CONSTRAINT_FOUND
+    }
+
+    private NullConstraintType parseNotNullConstraint(NullConstraintType nullConstraint) {
+        if (nullConstraint == NullConstraintType.NO_NULL_CONSTRAINT_FOUND) {
+            nullConstraint = parseNotNullConstraint();
+        }
+        return nullConstraint;
     }
 
     private NullConstraintType parseNotNullConstraint() {

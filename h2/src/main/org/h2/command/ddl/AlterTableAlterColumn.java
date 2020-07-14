@@ -154,12 +154,15 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             if (oldColumn == null) {
                 break;
             }
+            if (oldColumn.isIdentity()) {
+                break;
+            }
             if (defaultExpression != null) {
-                Sequence sequence = oldColumn.getSequence();
+                if (oldColumn.isGenerated()) {
+                    break;
+                }
                 checkDefaultReferencesTable(table, defaultExpression);
-                oldColumn.setSequence(null, false);
                 oldColumn.setDefaultExpression(session, defaultExpression);
-                removeSequence(table, sequence);
             } else {
                 if (type == CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_EXPRESSION != oldColumn.isGenerated()) {
                     break;
@@ -169,19 +172,29 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             db.updateMeta(session, table);
             break;
         }
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_IDENTITY:  {
+            if (oldColumn == null) {
+                break;
+            }
+            Sequence sequence = oldColumn.getSequence();
+            if (sequence == null) {
+                break;
+            }
+            oldColumn.setSequence(null, false);
+            removeSequence(table, sequence);
+            db.updateMeta(session, table);
+            break;
+        }
         case CommandInterface.ALTER_TABLE_ALTER_COLUMN_ON_UPDATE: {
             if (oldColumn == null) {
                 break;
             }
             if (defaultExpression != null) {
-                if (oldColumn.getSequence() != null || oldColumn.isGenerated()) {
+                if (oldColumn.isIdentity() || oldColumn.isGenerated()) {
                     break;
                 }
-                Sequence sequence = oldColumn.getSequence();
                 checkDefaultReferencesTable(table, defaultExpression);
-                oldColumn.setSequence(null, false);
                 oldColumn.setOnUpdateExpression(session, defaultExpression);
-                removeSequence(table, sequence);
             } else {
                 oldColumn.setOnUpdateExpression(session, null);
             }
@@ -625,13 +638,16 @@ public class AlterTableAlterColumn extends CommandWithColumns {
     }
 
     private void checkNullable(Table table) {
+        if (oldColumn.isIdentity()) {
+            throw DbException.get(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, oldColumn.getName());
+        }
         for (Index index : table.getIndexes()) {
             if (index.getColumnIndex(oldColumn) < 0) {
                 continue;
             }
             IndexType indexType = index.getIndexType();
-            if (indexType.isPrimaryKey() || indexType.isHash()) {
-                throw DbException.get(ErrorCode.COLUMN_IS_PART_OF_INDEX_1, index.getTraceSQL());
+            if (indexType.isPrimaryKey()) {
+                throw DbException.get(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, oldColumn.getName());
             }
         }
     }

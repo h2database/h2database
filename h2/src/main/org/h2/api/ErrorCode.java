@@ -780,12 +780,21 @@ public class ErrorCode {
     public static final int FUNCTION_NOT_FOUND_1 = 90022;
 
     /**
-     * The error with code <code>90023</code> is thrown when
-     * trying to set a primary key on a nullable column.
-     * Example:
+     * The error with code <code>90023</code> is thrown when trying to set a
+     * primary key on a nullable column or when trying to drop NOT NULL
+     * constraint on primary key or identity column.
+     * Examples:
      * <pre>
      * CREATE TABLE TEST(ID INT, NAME VARCHAR);
      * ALTER TABLE TEST ADD CONSTRAINT PK PRIMARY KEY(ID);
+     * </pre>
+     * <pre>
+     * CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
+     * ALTER TABLE TEST ALTER COLUMN ID DROP NOT NULL;
+     * </pre>
+     * <pre>
+     * CREATE TABLE TEST(ID INT GENERATED ALWAYS AS IDENTITY, NAME VARCHAR);
+     * ALTER TABLE TEST ALTER COLUMN ID DROP NOT NULL;
      * </pre>
      */
     public static final int COLUMN_MUST_NOT_BE_NULLABLE_1 = 90023;

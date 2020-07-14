@@ -251,7 +251,7 @@ public final class SetClauseList implements HasSQL {
             if (action == null || action == UpdateAction.ON_UPDATE) {
                 newValue = column.isGenerated() ? null : oldRow.getValue(i);
             } else if (action == UpdateAction.SET_DEFAULT) {
-                newValue = column.getSequence() == null ? null : oldRow.getValue(i);
+                newValue = !column.isIdentity() ? null : oldRow.getValue(i);
             } else {
                 if (column.isGeneratedAlways()) {
                     throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,

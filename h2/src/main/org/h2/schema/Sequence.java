@@ -259,38 +259,13 @@ public class Sequence extends SchemaObjectBase {
 
     @Override
     public String getCreateSQL() {
-        return getCreateSQL(false, false);
-    }
-
-    /**
-     * Constructs the CREATE statement(s) for this sequence.
-     *
-     * @param forExport
-     *            if {@code true}, generate the standard-compliant SQL with
-     *            possible two commands, if {@code false} generate an
-     *            H2-specific SQL (always one command)
-     * @param secondCommand
-     *            if {@code false}, generates a {@code CREATE SEQUENCE} command,
-     *            if {@code true} generates an {@code ALTER SEQUENCE} command or
-     *            returns {@code null}. If {@code forExport == false}, has no
-     *            effect.
-     * @return the SQL statement, or {@code null}
-     */
-    public synchronized String getCreateSQL(boolean forExport, boolean secondCommand) {
-        long v = !forExport && writeWithMargin ? valueWithMargin : value;
-        long startValue = this.startValue;
-        if (forExport && secondCommand) {
-            if (v == startValue) {
-                return null;
-            }
-            return getSQL(new StringBuilder("ALTER SEQUENCE "), DEFAULT_SQL_FLAGS).append(" RESTART WITH ").append(v)
-                    .toString();
-        }
         StringBuilder builder = getSQL(new StringBuilder("CREATE SEQUENCE "), DEFAULT_SQL_FLAGS);
         if (dataType.getValueType() != Value.BIGINT) {
             dataType.getSQL(builder.append(" AS "), DEFAULT_SQL_FLAGS);
         }
-        getSequenceOptionsSQL(builder, forExport, v, startValue);
+        synchronized (this) {
+            getSequenceOptionsSQL(builder, writeWithMargin ? valueWithMargin : value, startValue);
+        }
         if (belongsToTable) {
             builder.append(" BELONGS_TO_TABLE");
         }
@@ -298,13 +273,12 @@ public class Sequence extends SchemaObjectBase {
     }
 
     public synchronized StringBuilder getSequenceOptionsSQL(StringBuilder builder) {
-        return getSequenceOptionsSQL(builder, false, value, startValue);
+        return getSequenceOptionsSQL(builder, value, startValue);
     }
 
-    private StringBuilder getSequenceOptionsSQL(StringBuilder builder, boolean forExport, long value, //
-            long startValue) {
+    private StringBuilder getSequenceOptionsSQL(StringBuilder builder, long value, long startValue) {
         builder.append(" START WITH ").append(startValue);
-        if (!forExport && value != startValue) {
+        if (value != startValue) {
             builder.append(" RESTART WITH ").append(value);
         }
         if (increment != 1) {

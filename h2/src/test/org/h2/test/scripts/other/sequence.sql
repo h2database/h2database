@@ -192,13 +192,12 @@ alter sequence s.seq restart with 10;
 
 script NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
-> ------------------------------------------------------------------
-> ALTER SEQUENCE "S"."SEQ" RESTART WITH 10;
+> ----------------------------------------------------------------------------------
 > CREATE SCHEMA IF NOT EXISTS "S" AUTHORIZATION "SA";
-> CREATE SEQUENCE "S"."SEQ" AS NUMERIC(19, 0) START WITH 1 NO CACHE;
+> CREATE SEQUENCE "S"."SEQ" AS NUMERIC(19, 0) START WITH 1 RESTART WITH 10 NO CACHE;
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > DROP SEQUENCE IF EXISTS "S"."SEQ";
-> rows: 5
+> rows: 4
 
 drop schema s cascade;
 > ok

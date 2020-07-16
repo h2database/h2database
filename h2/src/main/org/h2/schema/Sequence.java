@@ -404,6 +404,11 @@ public class Sequence extends SchemaObjectBase {
         invalidate();
     }
 
+    public synchronized long getBaseValue() {
+        // Use synchronized because value is not volatile
+        return value;
+    }
+
     public synchronized long getCurrentValue() {
         return value - increment;
     }

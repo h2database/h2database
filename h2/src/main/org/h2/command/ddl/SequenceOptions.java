@@ -96,7 +96,7 @@ public class SequenceOptions {
         if (v >= min && v <= max) {
             start = ValueExpression.get(ValueBigint.get(v));
         }
-        v = oldSequence.getCurrentValue();
+        v = oldSequence.getBaseValue();
         if (v >= min && v <= max) {
             restart = ValueExpression.get(ValueBigint.get(v));
         }

@@ -49,7 +49,7 @@ public class TruncateTable extends DefineCommand {
             for (Column column : table.getColumns()) {
                 Sequence sequence = column.getSequence();
                 if (sequence != null) {
-                    sequence.modify(null, sequence.getStartValue(), null, null, null);
+                    sequence.modify(sequence.getStartValue(), null, null, null, null, null);
                     session.getDatabase().updateMeta(session, sequence);
                 }
             }

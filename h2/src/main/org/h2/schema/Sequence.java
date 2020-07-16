@@ -77,15 +77,20 @@ public class Sequence extends SchemaObjectBase {
         long startValue = start != null ? start : increment >= 0 ? minValue : maxValue;
         Long restart = options.getRestartValue(session, startValue);
         long value = restart != null ? restart : startValue;
-        if (!isValid(value, startValue, minValue, maxValue, increment)) {
-            throw DbException.get(ErrorCode.SEQUENCE_ATTRIBUTES_INVALID_6, name, Long.toString(value),
-                    Long.toString(startValue), Long.toString(minValue), Long.toString(maxValue),
-                    Long.toString(increment));
+        t = options.getCacheSize(session);
+        long cacheSize;
+        boolean mayAdjustCacheSize;
+        if (t != null) {
+            cacheSize = t;
+            mayAdjustCacheSize = false;
+        } else {
+            cacheSize = DEFAULT_CACHE_SIZE;
+            mayAdjustCacheSize = true;
         }
+        cacheSize = checkOptions(value, startValue, minValue, maxValue, increment, cacheSize, mayAdjustCacheSize);
         this.valueWithMargin = this.value = value;
         this.increment = increment;
-        t = options.getCacheSize(session);
-        this.cacheSize = t != null ? Math.max(1, t) : DEFAULT_CACHE_SIZE;
+        this.cacheSize = cacheSize;
         this.startValue = startValue;
         this.minValue = minValue;
         this.maxValue = maxValue;
@@ -94,57 +99,58 @@ public class Sequence extends SchemaObjectBase {
     }
 
     /**
-     * Allows the start value, increment, min value and max value to be updated
-     * atomically, including atomic validation. Useful because setting these
-     * attributes one after the other could otherwise result in an invalid
-     * sequence state (e.g. min value > max value, start value < min value,
-     * etc).
-     *
+     * Allows the base value, start value, min value, max value, increment and
+     * cache size to be updated atomically, including atomic validation. Useful
+     * because setting these attributes one after the other could otherwise
+     * result in an invalid sequence state (e.g. min value > max value, start
+     * value < min value, etc).
+     * @param baseValue
+     *            the base value ({@code null} if restart is not requested)
      * @param startValue
      *            the new start value ({@code null} if no change)
-     * @param restartValue
-     *            the restart value ({@code null} if restart is not requested)
      * @param minValue
      *            the new min value ({@code null} if no change)
      * @param maxValue
      *            the new max value ({@code null} if no change)
      * @param increment
      *            the new increment ({@code null} if no change)
+     * @param cacheSize
+     *            the new cache size ({@code null} if no change)
      */
-    public synchronized void modify(Long startValue, Long restartValue, Long minValue, Long maxValue, Long increment) {
-        if (startValue == null) {
-            startValue = this.startValue;
+    public synchronized void modify(Long baseValue, Long startValue, Long minValue, Long maxValue, Long increment,
+            Long cacheSize) {
+        long baseValueAsLong = baseValue != null ? baseValue : this.value;
+        long startValueAsLong = startValue != null ? startValue : this.startValue;
+        long minValueAsLong = minValue != null ? minValue : this.minValue;
+        long maxValueAsLong = maxValue != null ? maxValue : this.maxValue;
+        long incrementAsLong = increment != null ? increment : this.increment;
+        long cacheSizeAsLong;
+        boolean mayAdjustCacheSize;
+        if (cacheSize != null) {
+            cacheSizeAsLong = cacheSize;
+            mayAdjustCacheSize = false;
+        } else {
+            cacheSizeAsLong = this.cacheSize;
+            mayAdjustCacheSize = true;
         }
-        if (minValue == null) {
-            minValue = this.minValue;
-        }
-        if (maxValue == null) {
-            maxValue = this.maxValue;
-        }
-        if (increment == null) {
-            increment = this.increment;
-        }
-        long value = restartValue != null ? restartValue : this.value;
-        if (!isValid(value, startValue, minValue, maxValue, increment)) {
-            throw DbException.get(ErrorCode.SEQUENCE_ATTRIBUTES_INVALID_6, getName(), String.valueOf(value),
-                    String.valueOf(startValue), String.valueOf(minValue), String.valueOf(maxValue),
-                    String.valueOf(increment));
-        }
-        this.valueWithMargin = this.value = value;
-        this.startValue = startValue;
-        this.minValue = minValue;
-        this.maxValue = maxValue;
-        this.increment = increment;
+        cacheSizeAsLong = checkOptions(baseValueAsLong, startValueAsLong, minValueAsLong, maxValueAsLong,
+                incrementAsLong, cacheSizeAsLong, mayAdjustCacheSize);
+        this.valueWithMargin = this.value = baseValueAsLong;
+        this.startValue = startValueAsLong;
+        this.minValue = minValueAsLong;
+        this.maxValue = maxValueAsLong;
+        this.increment = incrementAsLong;
+        this.cacheSize = cacheSizeAsLong;
     }
 
     /**
-     * Validates the specified prospective value, start value, min value, max
-     * value and increment relative to each other, since each of their
-     * respective validities are contingent on the values of the other
+     * Validates the specified prospective base value, start value, min value,
+     * max value, increment, and cache size relative to each other, since each
+     * of their respective validities are contingent on the values of the other
      * parameters.
      *
-     * @param value
-     *            the prospective value
+     * @param baseValue
+     *            the prospective base value
      * @param startValue
      *            the prospective start value
      * @param minValue
@@ -153,12 +159,59 @@ public class Sequence extends SchemaObjectBase {
      *            the prospective max value
      * @param increment
      *            the prospective increment
+     * @param cacheSize
+     *            the prospective cache size
+     * @param mayAdjustCacheSize
+     *            whether cache size may be adjusted, cache size 0 is adjusted
+     *            unconditionally to 1
+     * @return the prospective or adjusted cache size
      */
-    private static boolean isValid(long value, long startValue, long minValue, long maxValue, long increment) {
-        return minValue <= value && maxValue >= value //
-                && minValue <= startValue && maxValue >= startValue //
-                && maxValue > minValue && increment != 0 //
-                && Long.compareUnsigned(Math.abs(increment), maxValue - minValue) <= 0;
+    private long checkOptions(long baseValue, long startValue, long minValue, long maxValue, long increment,
+            long cacheSize, boolean mayAdjustCacheSize) {
+        if (minValue <= baseValue && baseValue <= maxValue //
+                && minValue <= startValue && startValue <= maxValue //
+                && minValue < maxValue && increment != 0L) {
+            long range = maxValue - minValue;
+            if (Long.compareUnsigned(Math.abs(increment), range) <= 0 && cacheSize >= 0L) {
+                if (cacheSize <= 1L) {
+                    return 1L;
+                }
+                long maxCacheSize = getMaxCacheSize(range, increment);
+                if (cacheSize <= maxCacheSize) {
+                    return cacheSize;
+                }
+                if (mayAdjustCacheSize) {
+                    return maxCacheSize;
+                }
+            }
+        }
+        throw DbException.get(ErrorCode.SEQUENCE_ATTRIBUTES_INVALID_7, getName(), Long.toString(baseValue),
+                Long.toString(startValue), Long.toString(minValue), Long.toString(maxValue), Long.toString(increment),
+                Long.toString(cacheSize));
+    }
+
+    private static long getMaxCacheSize(long range, long increment) {
+        if (increment > 0L) {
+            if (range < 0) {
+                range = Long.MAX_VALUE;
+            } else {
+                range += increment;
+                if (range < 0) {
+                    range = Long.MAX_VALUE;
+                }
+            }
+        } else {
+            range = -range;
+            if (range > 0) {
+                range = Long.MIN_VALUE;
+            } else {
+                range += increment;
+                if (range >= 0) {
+                    range = Long.MIN_VALUE;
+                }
+            }
+        }
+        return range / increment;
     }
 
     /**

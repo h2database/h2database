@@ -439,7 +439,7 @@ public class Column implements HasSQL, Typed {
         long inc = sequence.getIncrement();
         long now = value.getLong();
         if (inc > 0 && now > current || inc < 0 && now < current) {
-            sequence.modify(null, now + inc, null, null, null);
+            sequence.modify(now + inc, null, null, null, null, null);
             session.setLastIdentity(ValueBigint.get(now));
             sequence.flush(session);
         }

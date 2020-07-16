@@ -3554,7 +3554,7 @@ MINVALUE (incrementing sequences) or MAXVALUE (decrementing sequences) instead o
 
 The CACHE option sets the number of pre-allocated numbers.
 If the system crashes without closing the database, at most this many numbers are lost.
-The default cache size is 32.
+The default cache size is 32 if sequence has enough range of values.
 NO CACHE option or the cache size 1 or lower disable the cache.
 ","
 MAXVALUE 100000

@@ -254,7 +254,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // extensions
                     "GEOMETRY_TYPE",
                     "GEOMETRY_SRID INT",
-                    "IDENTITY_CURRENT BIGINT",
+                    "IDENTITY_BASE BIGINT",
                     "IDENTITY_CACHE BIGINT",
                     "SELECTIVITY INT",
                     "REMARKS",
@@ -562,7 +562,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "DECLARED_NUMERIC_PRECISION INT",
                     "DECLARED_NUMERIC_SCALE INT",
                     // extensions
-                    "CURRENT_VALUE BIGINT",
+                    "BASE_VALUE BIGINT",
                     "CACHE BIGINT",
                     "REMARKS",
                     "ID INT"
@@ -1153,7 +1153,7 @@ public final class InformationSchemaTable extends MetaTable {
         }
         String columnDefault, isGenerated, generationExpression;
         String isIdentity, identityGeneration, identityCycle;
-        Value identityStart, identityIncrement, identityMaximum, identityMinimum, identityCurrent, identityCache;
+        Value identityStart, identityIncrement, identityMaximum, identityMinimum, identityBase, identityCache;
         Sequence sequence = c.getSequence();
         if (sequence != null) {
             columnDefault = null;
@@ -1165,8 +1165,9 @@ public final class InformationSchemaTable extends MetaTable {
             identityIncrement = ValueBigint.get(sequence.getIncrement());
             identityMaximum = ValueBigint.get(sequence.getMaxValue());
             identityMinimum = ValueBigint.get(sequence.getMinValue());
-            identityCycle = sequence.getCycle().isCycle() ? "YES" : "NO";
-            identityCurrent = ValueBigint.get(sequence.getCurrentValue());
+            Sequence.Cycle cycle = sequence.getCycle();
+            identityCycle = cycle.isCycle() ? "YES" : "NO";
+            identityBase = cycle != Sequence.Cycle.EXHAUSTED ? ValueBigint.get(sequence.getBaseValue()) : null;
             identityCache = ValueBigint.get(sequence.getCacheSize());
         } else {
             if (c.isGenerated()) {
@@ -1180,7 +1181,7 @@ public final class InformationSchemaTable extends MetaTable {
             }
             isIdentity = "NO";
             identityGeneration = identityCycle = null;
-            identityStart = identityIncrement = identityMaximum = identityMinimum = identityCurrent = identityCache
+            identityStart = identityIncrement = identityMaximum = identityMinimum = identityBase = identityCache
                     = null;
         }
         add(session, rows,
@@ -1258,18 +1259,18 @@ public final class InformationSchemaTable extends MetaTable {
                 generationExpression,
                 // DECLARED_DATA_TYPE
                 dt.declaredDataType,
-                // DECLARED_NUMERIC_PRECISION INT
+                // DECLARED_NUMERIC_PRECISION
                 dt.declaredNumericPrecision,
-                // DECLARED_NUMERIC_SCALE INT
+                // DECLARED_NUMERIC_SCALE
                 dt.declaredNumericScale,
                 // extensions
                 // GEOMETRY_TYPE
                 dt.geometryType,
-                // GEOMETRY_SRID INT
+                // GEOMETRY_SRID
                 dt.geometrySrid,
-                // IDENTITY_CURRENT BIGINT
-                identityCurrent,
-                // IDENTITY_CACHE BIGINT
+                // IDENTITY_BASE
+                identityBase,
+                // IDENTITY_CACHE
                 identityCache,
                 // SELECTIVITY
                 ValueInteger.get(c.getSelectivity()),
@@ -2144,6 +2145,7 @@ public final class InformationSchemaTable extends MetaTable {
     private void sequences(SessionLocal session, ArrayList<Row> rows, String catalog, Sequence sequence,
             String sequenceName) {
         DataTypeInformation dt = DataTypeInformation.valueOf(sequence.getDataType());
+        Sequence.Cycle cycle = sequence.getCycle();
         add(session, rows,
                 // SEQUENCE_CATALOG
                 catalog,
@@ -2168,7 +2170,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // INCREMENT
                 ValueBigint.get(sequence.getIncrement()),
                 // CYCLE_OPTION
-                sequence.getCycle().isCycle() ? "YES" : "NO",
+                cycle.isCycle() ? "YES" : "NO",
                 // DECLARED_DATA_TYPE
                 dt.declaredDataType,
                 // DECLARED_NUMERIC_PRECISION
@@ -2176,8 +2178,8 @@ public final class InformationSchemaTable extends MetaTable {
                 // DECLARED_NUMERIC_SCALE
                 dt.declaredNumericScale,
                 // extensions
-                // CURRENT_VALUE
-                ValueBigint.get(sequence.getCurrentValue()),
+                // BASE_VALUE
+                cycle != Sequence.Cycle.EXHAUSTED ? ValueBigint.get(sequence.getBaseValue()) : null,
                 // CACHE
                 ValueBigint.get(sequence.getCacheSize()),
                 // REMARKS

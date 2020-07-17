@@ -66,31 +66,31 @@ CREATE SEQUENCE SEQ MAXVALUE 10 START WITH 11 RESTART WITH 1;
 CREATE SEQUENCE SEQ START WITH 0 MINVALUE -10 MAXVALUE 10;
 > ok
 
-SELECT SEQUENCE_NAME, START_VALUE, MINIMUM_VALUE, MAXIMUM_VALUE, INCREMENT, CYCLE_OPTION, CURRENT_VALUE, CACHE
+SELECT SEQUENCE_NAME, START_VALUE, MINIMUM_VALUE, MAXIMUM_VALUE, INCREMENT, CYCLE_OPTION, BASE_VALUE, CACHE
     FROM INFORMATION_SCHEMA.SEQUENCES;
-> SEQUENCE_NAME START_VALUE MINIMUM_VALUE MAXIMUM_VALUE INCREMENT CYCLE_OPTION CURRENT_VALUE CACHE
-> ------------- ----------- ------------- ------------- --------- ------------ ------------- -----
-> SEQ           0           -10           10            1         NO           -1            21
+> SEQUENCE_NAME START_VALUE MINIMUM_VALUE MAXIMUM_VALUE INCREMENT CYCLE_OPTION BASE_VALUE CACHE
+> ------------- ----------- ------------- ------------- --------- ------------ ---------- -----
+> SEQ           0           -10           10            1         NO           0          21
 > rows: 1
 
 ALTER SEQUENCE SEQ NO MINVALUE NO MAXVALUE;
 > ok
 
-SELECT SEQUENCE_NAME, START_VALUE, MINIMUM_VALUE, MAXIMUM_VALUE, INCREMENT, CYCLE_OPTION, CURRENT_VALUE, CACHE
+SELECT SEQUENCE_NAME, START_VALUE, MINIMUM_VALUE, MAXIMUM_VALUE, INCREMENT, CYCLE_OPTION, BASE_VALUE, CACHE
     FROM INFORMATION_SCHEMA.SEQUENCES;
-> SEQUENCE_NAME START_VALUE MINIMUM_VALUE MAXIMUM_VALUE       INCREMENT CYCLE_OPTION CURRENT_VALUE CACHE
-> ------------- ----------- ------------- ------------------- --------- ------------ ------------- -----
-> SEQ           0           0             9223372036854775807 1         NO           -1            21
+> SEQUENCE_NAME START_VALUE MINIMUM_VALUE MAXIMUM_VALUE       INCREMENT CYCLE_OPTION BASE_VALUE CACHE
+> ------------- ----------- ------------- ------------------- --------- ------------ ---------- -----
+> SEQ           0           0             9223372036854775807 1         NO           0          21
 > rows: 1
 
 ALTER SEQUENCE SEQ MINVALUE -100 MAXVALUE 100;
 > ok
 
-SELECT SEQUENCE_NAME, START_VALUE, MINIMUM_VALUE, MAXIMUM_VALUE, INCREMENT, CYCLE_OPTION, CURRENT_VALUE, CACHE
+SELECT SEQUENCE_NAME, START_VALUE, MINIMUM_VALUE, MAXIMUM_VALUE, INCREMENT, CYCLE_OPTION, BASE_VALUE, CACHE
     FROM INFORMATION_SCHEMA.SEQUENCES;
-> SEQUENCE_NAME START_VALUE MINIMUM_VALUE MAXIMUM_VALUE INCREMENT CYCLE_OPTION CURRENT_VALUE CACHE
-> ------------- ----------- ------------- ------------- --------- ------------ ------------- -----
-> SEQ           0           -100          100           1         NO           -1            21
+> SEQUENCE_NAME START_VALUE MINIMUM_VALUE MAXIMUM_VALUE INCREMENT CYCLE_OPTION BASE_VALUE CACHE
+> ------------- ----------- ------------- ------------- --------- ------------ ---------- -----
+> SEQ           0           -100          100           1         NO           0          21
 > rows: 1
 
 VALUES NEXT VALUE FOR SEQ;
@@ -99,11 +99,11 @@ VALUES NEXT VALUE FOR SEQ;
 ALTER SEQUENCE SEQ START WITH 10;
 > ok
 
-SELECT SEQUENCE_NAME, START_VALUE, MINIMUM_VALUE, MAXIMUM_VALUE, INCREMENT, CYCLE_OPTION, CURRENT_VALUE, CACHE
+SELECT SEQUENCE_NAME, START_VALUE, MINIMUM_VALUE, MAXIMUM_VALUE, INCREMENT, CYCLE_OPTION, BASE_VALUE, CACHE
     FROM INFORMATION_SCHEMA.SEQUENCES;
-> SEQUENCE_NAME START_VALUE MINIMUM_VALUE MAXIMUM_VALUE INCREMENT CYCLE_OPTION CURRENT_VALUE CACHE
-> ------------- ----------- ------------- ------------- --------- ------------ ------------- -----
-> SEQ           10          -100          100           1         NO           0             21
+> SEQUENCE_NAME START_VALUE MINIMUM_VALUE MAXIMUM_VALUE INCREMENT CYCLE_OPTION BASE_VALUE CACHE
+> ------------- ----------- ------------- ------------- --------- ------------ ---------- -----
+> SEQ           10          -100          100           1         NO           1          21
 > rows: 1
 
 VALUES NEXT VALUE FOR SEQ;
@@ -123,11 +123,11 @@ VALUES NEXT VALUE FOR SEQ;
 
 @reconnect
 
-SELECT SEQUENCE_NAME, START_VALUE, MINIMUM_VALUE, MAXIMUM_VALUE, INCREMENT, CYCLE_OPTION, CURRENT_VALUE, CACHE
+SELECT SEQUENCE_NAME, START_VALUE, MINIMUM_VALUE, MAXIMUM_VALUE, INCREMENT, CYCLE_OPTION, BASE_VALUE, CACHE
     FROM INFORMATION_SCHEMA.SEQUENCES;
-> SEQUENCE_NAME START_VALUE MINIMUM_VALUE MAXIMUM_VALUE INCREMENT CYCLE_OPTION CURRENT_VALUE CACHE
-> ------------- ----------- ------------- ------------- --------- ------------ ------------- -----
-> SEQ           5           -100          100           1         NO           20            21
+> SEQUENCE_NAME START_VALUE MINIMUM_VALUE MAXIMUM_VALUE INCREMENT CYCLE_OPTION BASE_VALUE CACHE
+> ------------- ----------- ------------- ------------- --------- ------------ ---------- -----
+> SEQ           5           -100          100           1         NO           21         21
 > rows: 1
 
 DROP SEQUENCE SEQ;

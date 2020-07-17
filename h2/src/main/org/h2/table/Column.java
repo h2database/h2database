@@ -435,11 +435,21 @@ public class Column implements HasSQL, Typed {
     }
 
     private void updateSequenceIfRequired(SessionLocal session, Value value) {
+        if (sequence.getCycle() == Sequence.Cycle.EXHAUSTED) {
+            return;
+        }
         long current = sequence.getCurrentValue();
         long inc = sequence.getIncrement();
         long now = value.getLong();
         if (inc > 0 && now > current || inc < 0 && now < current) {
-            sequence.modify(now + inc, null, null, null, null, null, null);
+            try {
+                sequence.modify(now + inc, null, null, null, null, null, null);
+            } catch (DbException ex) {
+                if (ex.getErrorCode() == ErrorCode.SEQUENCE_ATTRIBUTES_INVALID_7) {
+                    return;
+                }
+                throw ex;
+            }
             session.setLastIdentity(ValueBigint.get(now));
             sequence.flush(session);
         }

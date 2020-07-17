@@ -392,7 +392,11 @@ public class Column implements HasSQL, Typed {
             domain.checkConstraints(session, value);
         }
         if (sequence != null) {
-            updateSequenceIfRequired(session, value);
+            ValueBigint identity = value.convertToBigint(this);
+            session.setLastIdentity(identity);
+            if (session.getMode().updateSequenceOnManualIdentityInsertion) {
+                updateSequenceIfRequired(session, identity.getLong());
+            }
         }
         return value;
     }
@@ -434,25 +438,28 @@ public class Column implements HasSQL, Typed {
         return DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, cause, builder.toString());
     }
 
-    private void updateSequenceIfRequired(SessionLocal session, Value value) {
+    private void updateSequenceIfRequired(SessionLocal session, long value) {
         if (sequence.getCycle() == Sequence.Cycle.EXHAUSTED) {
             return;
         }
         long current = sequence.getCurrentValue();
         long inc = sequence.getIncrement();
-        long now = value.getLong();
-        if (inc > 0 && now > current || inc < 0 && now < current) {
-            try {
-                sequence.modify(now + inc, null, null, null, null, null, null);
-            } catch (DbException ex) {
-                if (ex.getErrorCode() == ErrorCode.SEQUENCE_ATTRIBUTES_INVALID_7) {
-                    return;
-                }
-                throw ex;
+        if (inc > 0) {
+            if (value < current) {
+                return;
             }
-            session.setLastIdentity(ValueBigint.get(now));
-            sequence.flush(session);
+        } else if (value > current) {
+            return;
         }
+        try {
+            sequence.modify(value + inc, null, null, null, null, null, null);
+        } catch (DbException ex) {
+            if (ex.getErrorCode() == ErrorCode.SEQUENCE_ATTRIBUTES_INVALID_7) {
+                return;
+            }
+            throw ex;
+        }
+        sequence.flush(session);
     }
 
     /**

@@ -524,14 +524,14 @@ public class TestLob extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("create cached table test(id int not null identity, " +
                 "name clob, counter int)");
-        stat.execute("insert into test(id, name) select x, space(100000) " +
+        stat.execute("insert into test(name) select space(100000) " +
                 "from system_range(1, 100)");
         Deadlock2Task1 task1 = new Deadlock2Task1();
         Deadlock2Task2 task2 = new Deadlock2Task2();
         task1.execute("task1");
         task2.execute("task2");
         for (int i = 0; i < 100; i++) {
-            stat.execute("insert into test values(null, space(10000 + " + i + "), 1)");
+            stat.execute("insert into test(name, counter) values(space(10000 + " + i + "), 1)");
         }
         task1.get();
         task1.conn.close();
@@ -549,11 +549,11 @@ public class TestLob extends TestDb {
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id identity, data clob) " +
-                "as select 1, space(10000)");
-        stat.execute("insert into test(id, data) select null, data from test");
-        stat.execute("insert into test(id, data) select null, data from test");
-        stat.execute("insert into test(id, data) select null, data from test");
-        stat.execute("insert into test(id, data) select null, data from test");
+                "as select null, space(10000)");
+        stat.execute("insert into test(data) select data from test");
+        stat.execute("insert into test(data) select data from test");
+        stat.execute("insert into test(data) select data from test");
+        stat.execute("insert into test(data) select data from test");
         stat.execute("delete from test where id < 10");
         stat.execute("shutdown compact");
         conn.close();

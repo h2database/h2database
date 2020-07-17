@@ -1165,7 +1165,7 @@ public final class InformationSchemaTable extends MetaTable {
             identityIncrement = ValueBigint.get(sequence.getIncrement());
             identityMaximum = ValueBigint.get(sequence.getMaxValue());
             identityMinimum = ValueBigint.get(sequence.getMinValue());
-            identityCycle = sequence.getCycle() ? "YES" : "NO";
+            identityCycle = sequence.getCycle().isCycle() ? "YES" : "NO";
             identityCurrent = ValueBigint.get(sequence.getCurrentValue());
             identityCache = ValueBigint.get(sequence.getCacheSize());
         } else {
@@ -2168,7 +2168,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // INCREMENT
                 ValueBigint.get(sequence.getIncrement()),
                 // CYCLE_OPTION
-                sequence.getCycle() ? "YES" : "NO",
+                sequence.getCycle().isCycle() ? "YES" : "NO",
                 // DECLARED_DATA_TYPE
                 dt.declaredDataType,
                 // DECLARED_NUMERIC_PRECISION

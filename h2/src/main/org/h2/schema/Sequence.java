@@ -23,12 +23,44 @@ import org.h2.value.ValueBigint;
 public class Sequence extends SchemaObjectBase {
 
     /**
+     * CYCLE clause and sequence state.
+     */
+    public enum Cycle {
+
+        /**
+         * Sequence is cycled.
+         */
+        CYCLE,
+
+        /**
+         * Sequence is not cycled and isn't exhausted yet.
+         */
+        NO_CYCLE,
+
+        /**
+         * Sequence is not cycled and was already exhausted.
+         */
+        EXHAUSTED;
+
+        /**
+         * Return whether sequence is cycled.
+         *
+         * @return {@code true} if sequence is cycled, {@code false} if sequence
+         *         is not cycled
+         */
+        public boolean isCycle() {
+            return this == CYCLE;
+        }
+
+    }
+
+    /**
      * The default cache size for sequences.
      */
     public static final int DEFAULT_CACHE_SIZE = 32;
 
-    private long value;
-    private long valueWithMargin;
+    private long baseValue;
+    private long margin;
 
     private TypeInfo dataType;
 
@@ -37,7 +69,7 @@ public class Sequence extends SchemaObjectBase {
     private long startValue;
     private long minValue;
     private long maxValue;
-    private boolean cycle;
+    private Cycle cycle;
     private boolean belongsToTable;
     private boolean writeWithMargin;
 
@@ -76,7 +108,7 @@ public class Sequence extends SchemaObjectBase {
         long maxValue = max != null ? max : getDefaultMaxValue(start, increment, bounds);
         long startValue = start != null ? start : increment >= 0 ? minValue : maxValue;
         Long restart = options.getRestartValue(session, startValue);
-        long value = restart != null ? restart : startValue;
+        long baseValue = restart != null ? restart : startValue;
         t = options.getCacheSize(session);
         long cacheSize;
         boolean mayAdjustCacheSize;
@@ -87,14 +119,20 @@ public class Sequence extends SchemaObjectBase {
             cacheSize = DEFAULT_CACHE_SIZE;
             mayAdjustCacheSize = true;
         }
-        cacheSize = checkOptions(value, startValue, minValue, maxValue, increment, cacheSize, mayAdjustCacheSize);
-        this.valueWithMargin = this.value = value;
+        cacheSize = checkOptions(baseValue, startValue, minValue, maxValue, increment, cacheSize, mayAdjustCacheSize);
+        Cycle cycle = options.getCycle();
+        if (cycle == null) {
+            cycle = Cycle.NO_CYCLE;
+        } else if (cycle == Cycle.EXHAUSTED) {
+            baseValue = startValue;
+        }
+        this.margin = this.baseValue = baseValue;
         this.increment = increment;
         this.cacheSize = cacheSize;
         this.startValue = startValue;
         this.minValue = minValue;
         this.maxValue = maxValue;
-        this.cycle = Boolean.TRUE.equals(options.getCycle());
+        this.cycle = cycle;
         this.belongsToTable = belongsToTable;
     }
 
@@ -114,12 +152,14 @@ public class Sequence extends SchemaObjectBase {
      *            the new max value ({@code null} if no change)
      * @param increment
      *            the new increment ({@code null} if no change)
+     * @param cycle
+     *            the new cycle value, or {@code null} if no change
      * @param cacheSize
      *            the new cache size ({@code null} if no change)
      */
     public synchronized void modify(Long baseValue, Long startValue, Long minValue, Long maxValue, Long increment,
-            Long cacheSize) {
-        long baseValueAsLong = baseValue != null ? baseValue : this.value;
+            Cycle cycle, Long cacheSize) {
+        long baseValueAsLong = baseValue != null ? baseValue : this.baseValue;
         long startValueAsLong = startValue != null ? startValue : this.startValue;
         long minValueAsLong = minValue != null ? minValue : this.minValue;
         long maxValueAsLong = maxValue != null ? maxValue : this.maxValue;
@@ -135,12 +175,21 @@ public class Sequence extends SchemaObjectBase {
         }
         cacheSizeAsLong = checkOptions(baseValueAsLong, startValueAsLong, minValueAsLong, maxValueAsLong,
                 incrementAsLong, cacheSizeAsLong, mayAdjustCacheSize);
-        this.valueWithMargin = this.value = baseValueAsLong;
+        if (cycle == null) {
+            cycle = this.cycle;
+            if (cycle == Cycle.EXHAUSTED && baseValue != null) {
+                cycle = Cycle.NO_CYCLE;
+            }
+        } else if (cycle == Cycle.EXHAUSTED) {
+            baseValueAsLong = startValueAsLong;
+        }
+        this.margin = this.baseValue = baseValueAsLong;
         this.startValue = startValueAsLong;
         this.minValue = minValueAsLong;
         this.maxValue = maxValueAsLong;
         this.increment = incrementAsLong;
         this.cacheSize = cacheSizeAsLong;
+        this.cycle = cycle;
     }
 
     /**
@@ -288,12 +337,8 @@ public class Sequence extends SchemaObjectBase {
         return maxValue;
     }
 
-    public boolean getCycle() {
+    public Cycle getCycle() {
         return cycle;
-    }
-
-    public void setCycle(boolean cycle) {
-        this.cycle = cycle;
     }
 
     @Override
@@ -317,7 +362,7 @@ public class Sequence extends SchemaObjectBase {
             dataType.getSQL(builder.append(" AS "), DEFAULT_SQL_FLAGS);
         }
         synchronized (this) {
-            getSequenceOptionsSQL(builder, writeWithMargin ? valueWithMargin : value, startValue);
+            getSequenceOptionsSQL(builder, writeWithMargin ? margin : baseValue);
         }
         if (belongsToTable) {
             builder.append(" BELONGS_TO_TABLE");
@@ -326,12 +371,12 @@ public class Sequence extends SchemaObjectBase {
     }
 
     public synchronized StringBuilder getSequenceOptionsSQL(StringBuilder builder) {
-        return getSequenceOptionsSQL(builder, value, startValue);
+        return getSequenceOptionsSQL(builder, baseValue);
     }
 
-    private StringBuilder getSequenceOptionsSQL(StringBuilder builder, long value, long startValue) {
+    private StringBuilder getSequenceOptionsSQL(StringBuilder builder, long value) {
         builder.append(" START WITH ").append(startValue);
-        if (value != startValue) {
+        if (value != startValue && cycle != Cycle.EXHAUSTED) {
             builder.append(" RESTART WITH ").append(value);
         }
         if (increment != 1) {
@@ -344,13 +389,16 @@ public class Sequence extends SchemaObjectBase {
         if (maxValue != getDefaultMaxValue(value, increment, bounds)) {
             builder.append(" MAXVALUE ").append(maxValue);
         }
-        if (cycle) {
+        if (cycle == Cycle.CYCLE) {
             builder.append(" CYCLE");
+        } else if (cycle == Cycle.EXHAUSTED) {
+            builder.append(" EXHAUSTED");
         }
         if (cacheSize != DEFAULT_CACHE_SIZE) {
             if (cacheSize == 1) {
                 builder.append(" NO CACHE");
-            } else {
+            } else if (cacheSize > DEFAULT_CACHE_SIZE //
+                    || cacheSize != getMaxCacheSize(maxValue - minValue, increment)) {
                 builder.append(" CACHE ").append(cacheSize);
             }
         }
@@ -365,37 +413,90 @@ public class Sequence extends SchemaObjectBase {
      * @return the next value
      */
     public Value getNext(SessionLocal session) {
-        boolean needsFlush = false;
-        long resultAsLong;
+        long result;
+        boolean needsFlush;
         synchronized (this) {
-            if ((increment > 0 && value >= valueWithMargin) || (increment < 0 && value <= valueWithMargin)) {
-                valueWithMargin += increment * cacheSize;
-                needsFlush = true;
+            if (cycle == Cycle.EXHAUSTED) {
+                throw DbException.get(ErrorCode.SEQUENCE_EXHAUSTED, getName());
             }
-            if ((increment > 0 && value > maxValue) || (increment < 0 && value < minValue)) {
-                if (cycle) {
-                    value = increment > 0 ? minValue : maxValue;
-                    valueWithMargin = value + (increment * cacheSize);
-                    needsFlush = true;
-                } else {
-                    throw DbException.get(ErrorCode.SEQUENCE_EXHAUSTED, getName());
-                }
-            }
-            resultAsLong = value;
-            value += increment;
+            result = baseValue;
+            long newBase = result + increment;
+            needsFlush = increment > 0 ? increment(result, newBase) : decrement(result, newBase);
         }
         if (needsFlush) {
             flush(session);
         }
-        return ValueBigint.get(resultAsLong).castTo(dataType, session);
+        return ValueBigint.get(result).castTo(dataType, session);
+    }
+
+    private boolean increment(long oldBase, long newBase) {
+        boolean needsFlush = false;
+        /*
+         * If old base is not negative and new base is negative there is an
+         * overflow.
+         */
+        if (newBase > maxValue || (~oldBase & newBase) < 0) {
+            newBase = minValue;
+            needsFlush = true;
+            if (cycle == Cycle.CYCLE) {
+                margin = newBase + increment * (cacheSize - 1);
+            } else {
+                margin = newBase;
+                cycle = Cycle.EXHAUSTED;
+            }
+        } else if (newBase > margin) {
+            long newMargin = newBase + increment * (cacheSize - 1);
+            if (newMargin > maxValue || (~newBase & newMargin) < 0) {
+                /*
+                 * Don't cache values near the end of the sequence for
+                 * simplicity.
+                 */
+                newMargin = newBase;
+            }
+            margin = newMargin;
+            needsFlush = true;
+        }
+        baseValue = newBase;
+        return needsFlush;
+    }
+
+    private boolean decrement(long oldBase, long newBase) {
+        boolean needsFlush = false;
+        /*
+         * If old base is negative and new base is not negative there is an
+         * overflow.
+         */
+        if (newBase < minValue || (oldBase & ~newBase) < 0) {
+            newBase = maxValue;
+            needsFlush = true;
+            if (cycle == Cycle.CYCLE) {
+                margin = newBase + increment * (cacheSize - 1);
+            } else {
+                margin = newBase;
+                cycle = Cycle.EXHAUSTED;
+            }
+        } else if (newBase < margin) {
+            long newMargin = newBase + increment * (cacheSize - 1);
+            if (newMargin < minValue || (newBase & ~newMargin) < 0) {
+                /*
+                 * Don't cache values near the end of the sequence for
+                 * simplicity.
+                 */
+                newMargin = newBase;
+            }
+            margin = newMargin;
+            needsFlush = true;
+        }
+        baseValue = newBase;
+        return needsFlush;
     }
 
     /**
      * Flush the current value to disk.
      */
     public void flushWithoutMargin() {
-        if (valueWithMargin != value) {
-            valueWithMargin = value;
+        if (margin != baseValue) {
+            margin = baseValue;
             flush(null);
         }
     }
@@ -458,20 +559,16 @@ public class Sequence extends SchemaObjectBase {
     }
 
     public synchronized long getBaseValue() {
-        // Use synchronized because value is not volatile
-        return value;
+        // Use synchronized because baseValue is not volatile
+        return baseValue;
     }
 
     public synchronized long getCurrentValue() {
-        return value - increment;
+        return baseValue - increment;
     }
 
     public void setBelongsToTable(boolean b) {
         this.belongsToTable = b;
-    }
-
-    public void setCacheSize(long cacheSize) {
-        this.cacheSize = Math.max(1, cacheSize);
     }
 
     public long getCacheSize() {

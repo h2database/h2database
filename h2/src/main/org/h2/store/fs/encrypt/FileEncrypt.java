@@ -127,8 +127,7 @@ public class FileEncrypt extends FileBaseDefault {
         } else if (position < 0) {
             throw new IllegalArgumentException("pos: " + position);
         }
-        if ((position & BLOCK_SIZE_MASK) != 0 ||
-                (len & BLOCK_SIZE_MASK) != 0) {
+        if ((position & BLOCK_SIZE_MASK) != 0 || (len & BLOCK_SIZE_MASK) != 0) {
             // either the position or the len is unaligned:
             // read aligned, and then truncate
             long p = position / BLOCK_SIZE * BLOCK_SIZE;
@@ -136,9 +135,7 @@ public class FileEncrypt extends FileBaseDefault {
             int l = (len + offset + BLOCK_SIZE - 1) / BLOCK_SIZE * BLOCK_SIZE;
             ByteBuffer temp = ByteBuffer.allocate(l);
             readInternal(temp, p, l, xts);
-            temp.flip();
-            temp.limit(offset + len);
-            temp.position(offset);
+            temp.flip().limit(offset + len).position(offset);
             dst.put(temp);
             return len;
         }
@@ -157,8 +154,7 @@ public class FileEncrypt extends FileBaseDefault {
         }
     }
 
-    private static void readFully(FileChannel file, long pos, ByteBuffer dst)
-            throws IOException {
+    private static void readFully(FileChannel file, long pos, ByteBuffer dst) throws IOException {
         do {
             int len = file.read(dst, pos);
             if (len < 0) {
@@ -172,8 +168,7 @@ public class FileEncrypt extends FileBaseDefault {
     public int write(ByteBuffer src, long position) throws IOException {
         XTS xts = init();
         int len = src.remaining();
-        if ((position & BLOCK_SIZE_MASK) != 0 ||
-                (len & BLOCK_SIZE_MASK) != 0) {
+        if ((position & BLOCK_SIZE_MASK) != 0 || (len & BLOCK_SIZE_MASK) != 0) {
             // either the position or the len is unaligned:
             // read aligned, and then truncate
             long p = position / BLOCK_SIZE * BLOCK_SIZE;
@@ -186,11 +181,8 @@ public class FileEncrypt extends FileBaseDefault {
                 readInternal(temp, p, readLen, xts);
                 temp.rewind();
             }
-            temp.limit(offset + len);
-            temp.position(offset);
-            temp.put(src);
-            temp.limit(l);
-            temp.rewind();
+            temp.limit(offset + len).position(offset);
+            temp.put(src).limit(l).rewind();
             writeInternal(temp, p, l, xts);
             long p2 = position + len;
             size = Math.max(size, p2);
@@ -208,8 +200,7 @@ public class FileEncrypt extends FileBaseDefault {
     }
 
     private void writeInternal(ByteBuffer src, long position, int len, XTS xts) throws IOException {
-        ByteBuffer crypt = ByteBuffer.allocate(len);
-        crypt.put(src);
+        ByteBuffer crypt = ByteBuffer.allocate(len).put(src);
         crypt.flip();
         long block = position / BLOCK_SIZE;
         int x = 0, l = len;
@@ -221,12 +212,9 @@ public class FileEncrypt extends FileBaseDefault {
         writeFully(base, position + HEADER_LENGTH, crypt);
     }
 
-    private static void writeFully(FileChannel file, long pos,
-            ByteBuffer src) throws IOException {
-        int off = 0;
+    private static void writeFully(FileChannel file, long pos, ByteBuffer src) throws IOException {
         do {
-            int len = file.write(src, pos + off);
-            off += len;
+            pos += file.write(src, pos);
         } while (src.remaining() > 0);
     }
 
@@ -260,8 +248,7 @@ public class FileEncrypt extends FileBaseDefault {
     }
 
     @Override
-    public FileLock tryLock(long position, long size, boolean shared)
-            throws IOException {
+    public FileLock tryLock(long position, long size, boolean shared) throws IOException {
         return base.tryLock(position, size, shared);
     }
 

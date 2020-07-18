@@ -39,6 +39,8 @@ public class TestEncryptedDb extends TestDb {
     @Override
     public void test() throws SQLException {
         deleteDb("encrypted");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, this).
+                getConnection("encrypted;CIPHER=AES;PAGE_SIZE=2048", "sa", "1234 1234");
         try (Connection conn = getConnection("encrypted;CIPHER=AES", "sa", "123 123")) {
             Statement stat = conn.createStatement();
             stat.execute("CREATE TABLE TEST(ID INT)");

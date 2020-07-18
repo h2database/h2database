@@ -21,6 +21,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.dev.fs.FilePathZip2;
@@ -770,6 +771,8 @@ public class TestFileSystem extends TestBase {
         final FileChannel f = FileUtils.open(s, "rw");
         final int size = getSize(10, 50);
         f.write(ByteBuffer.allocate(size * 64 *  1024));
+        AtomicIntegerArray locks = new AtomicIntegerArray(size);
+        AtomicIntegerArray expected = new AtomicIntegerArray(size);
         Random random = new Random(1);
         System.gc();
         Task task = new Task() {
@@ -779,18 +782,26 @@ public class TestFileSystem extends TestBase {
                 while (!stop) {
                     for (int pos = 0; pos < size; pos++) {
                         byteBuff.clear();
-                        f.read(byteBuff, pos * 64 * 1024);
+                        int e;
+                        while (!locks.compareAndSet(pos, 0, 1)) {
+                        }
+                        try {
+                            e = expected.get(pos);
+                            f.read(byteBuff, pos * 64 * 1024);
+                        } finally {
+                            locks.set(pos, 0);
+                        }
                         byteBuff.position(0);
                         int x = byteBuff.getInt();
                         int y = byteBuff.getInt();
-                        assertEquals(x, y);
+                        assertEquals(e, x);
+                        assertEquals(e, y);
                         Thread.yield();
                     }
                 }
             }
         };
         task.execute();
-        int[] data = new int[size];
         try {
             ByteBuffer byteBuff = ByteBuffer.allocate(16);
             int operations = 10000;
@@ -800,17 +811,31 @@ public class TestFileSystem extends TestBase {
                 byteBuff.putInt(i);
                 byteBuff.flip();
                 int pos = random.nextInt(size);
-                f.write(byteBuff, pos * 64 * 1024);
-                data[pos] = i;
+                while (!locks.compareAndSet(pos, 0, 1)) {
+                }
+                try {
+                    f.write(byteBuff, pos * 64 * 1024);
+                    expected.set(pos, i);
+                } finally {
+                    locks.set(pos, 0);
+                }
                 pos = random.nextInt(size);
                 byteBuff.clear();
-                f.read(byteBuff, pos * 64 * 1024);
+                int e;
+                while (!locks.compareAndSet(pos, 0, 1)) {
+                }
+                try {
+                    e = expected.get(pos);
+                    f.read(byteBuff, pos * 64 * 1024);
+                } finally {
+                    locks.set(pos, 0);
+                }
                 byteBuff.limit(16);
                 byteBuff.position(0);
                 int x = byteBuff.getInt();
                 int y = byteBuff.getInt();
-                assertEquals(x, y);
-                assertEquals(data[pos], x);
+                assertEquals(e, x);
+                assertEquals(e, y);
             }
         } catch (Throwable e) {
             e.printStackTrace();

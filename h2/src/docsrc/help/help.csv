@@ -3539,7 +3539,7 @@ SET NO CACHE
 INCREMENT BY long
     | MINVALUE long | NO MINVALUE | @c@ { NOMINVALUE }
     | MAXVALUE long | NO MAXVALUE | @c@ { NOMAXVALUE }
-    | CYCLE | NO CYCLE | @c@ { NOCYCLE }
+    | CYCLE | NO CYCLE | @h2@ { EXHAUSTED } | @c@ { NOCYCLE }
     | @h2@ { CACHE long } | @h2@ { NO CACHE } | @c@ { NOCACHE }
 ","
 Basic option of a sequence.
@@ -3551,10 +3551,11 @@ MINVALUE and MAXVALUE specify the bounds of the sequence.
 
 Sequences with CYCLE option start the generation again from
 MINVALUE (incrementing sequences) or MAXVALUE (decrementing sequences) instead of exhausting with an error.
+Sequences with EXHAUSTED option can't return values until they will be restarted.
 
 The CACHE option sets the number of pre-allocated numbers.
 If the system crashes without closing the database, at most this many numbers are lost.
-The default cache size is 32.
+The default cache size is 32 if sequence has enough range of values.
 NO CACHE option or the cache size 1 or lower disable the cache.
 ","
 MAXVALUE 100000

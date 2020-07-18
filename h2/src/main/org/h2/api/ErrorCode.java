@@ -617,7 +617,7 @@ public class ErrorCode {
      * trying to create a sequence with an invalid combination
      * of attributes (min value, max value, start value, etc).
      */
-    public static final int SEQUENCE_ATTRIBUTES_INVALID_6 = 90009;
+    public static final int SEQUENCE_ATTRIBUTES_INVALID_7 = 90009;
 
     /**
      * The error with code <code>90010</code> is thrown when

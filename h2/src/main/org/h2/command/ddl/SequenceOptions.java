@@ -33,7 +33,7 @@ public class SequenceOptions {
 
     private Expression minValue;
 
-    private Boolean cycle;
+    private Sequence.Cycle cycle;
 
     private Expression cacheSize;
 
@@ -96,7 +96,7 @@ public class SequenceOptions {
         if (v >= min && v <= max) {
             start = ValueExpression.get(ValueBigint.get(v));
         }
-        v = oldSequence.getCurrentValue();
+        v = oldSequence.getBaseValue();
         if (v >= min && v <= max) {
             restart = ValueExpression.get(ValueBigint.get(v));
         }
@@ -311,20 +311,20 @@ public class SequenceOptions {
     }
 
     /**
-     * Gets cycle flag.
+     * Gets cycle option.
      *
-     * @return cycle flag value or {@code null} if value is not defined.
+     * @return cycle option value or {@code null} if is not defined.
      */
-    public Boolean getCycle() {
+    public Sequence.Cycle getCycle() {
         return cycle;
     }
 
     /**
-     * Sets cycle flag.
+     * Sets cycle option.
      *
-     * @param cycle flag value.
+     * @param cycle option value.
      */
-    public void setCycle(Boolean cycle) {
+    public void setCycle(Sequence.Cycle cycle) {
         this.cycle = cycle;
     }
 
@@ -347,11 +347,7 @@ public class SequenceOptions {
         this.cacheSize = cacheSize;
     }
 
-    boolean isRangeSet() {
-        return restart != null || start != null || minValue != null || maxValue != null || increment != null;
-    }
-
     private long getCurrentStart(Sequence sequence, SessionLocal session) {
-        return start != null ? getStartValue(session) : sequence.getCurrentValue() + sequence.getIncrement();
+        return start != null ? getStartValue(session) : sequence.getBaseValue();
     }
 }

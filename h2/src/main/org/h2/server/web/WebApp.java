@@ -785,17 +785,23 @@ public class WebApp {
             }
             if (isH2) {
                 try (Statement stat = conn.createStatement()) {
-                    ResultSet rs = stat.executeQuery("SELECT * FROM " +
-                            "INFORMATION_SCHEMA.SEQUENCES ORDER BY SEQUENCE_NAME");
+                    ResultSet rs;
+                    try {
+                        rs = stat.executeQuery("SELECT SEQUENCE_NAME, BASE_VALUE, INCREMENT FROM " +
+                                "INFORMATION_SCHEMA.SEQUENCES ORDER BY SEQUENCE_NAME");
+                    } catch (SQLException e) {
+                        rs = stat.executeQuery("SELECT SEQUENCE_NAME, CURRENT_VALUE, INCREMENT FROM " +
+                                "INFORMATION_SCHEMA.SEQUENCES ORDER BY SEQUENCE_NAME");
+                    }
                     for (int i = 0; rs.next(); i++) {
                         if (i == 0) {
                             buff.append("setNode(").append(treeIndex)
                                     .append(", 0, 1, 'sequences', '${text.tree.sequences}', null);\n");
                             treeIndex++;
                         }
-                        String name = rs.getString("SEQUENCE_NAME");
-                        String current = rs.getString("CURRENT_VALUE");
-                        String increment = rs.getString("INCREMENT");
+                        String name = rs.getString(1);
+                        String currentBase = rs.getString(2);
+                        String increment = rs.getString(3);
                         buff.append("setNode(").append(treeIndex)
                                 .append(", 1, 1, 'sequence', '")
                                 .append(PageParser.escapeJavaScript(name))
@@ -803,7 +809,7 @@ public class WebApp {
                         treeIndex++;
                         buff.append("setNode(").append(treeIndex)
                                 .append(", 2, 2, 'type', '${text.tree.current}: ")
-                                .append(PageParser.escapeJavaScript(current))
+                                .append(PageParser.escapeJavaScript(currentBase))
                                 .append("', null);\n");
                         treeIndex++;
                         if (!"1".equals(increment)) {
@@ -815,7 +821,7 @@ public class WebApp {
                         }
                     }
                     rs.close();
-                    rs = stat.executeQuery("SELECT * FROM " +
+                    rs = stat.executeQuery("SELECT NAME, ADMIN FROM " +
                             "INFORMATION_SCHEMA.USERS ORDER BY NAME");
                     for (int i = 0; rs.next(); i++) {
                         if (i == 0) {
@@ -823,8 +829,8 @@ public class WebApp {
                                     .append(", 0, 1, 'users', '${text.tree.users}', null);\n");
                             treeIndex++;
                         }
-                        String name = rs.getString("NAME");
-                        String admin = rs.getString("ADMIN");
+                        String name = rs.getString(1);
+                        String admin = rs.getString(2);
                         buff.append("setNode(").append(treeIndex)
                                 .append(", 1, 1, 'user', '")
                                 .append(PageParser.escapeJavaScript(name))

@@ -1231,7 +1231,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // INCREMENT
                         ValueBigint.get(s.getIncrement()),
                         // CYCLE_OPTION
-                        s.getCycle() ? "YES" : "NO",
+                        s.getCycle().isCycle() ? "YES" : "NO",
                         // DECLARED_DATA_TYPE
                         dataTypeName,
                         // DECLARED_NUMERIC_PRECISION
@@ -1253,7 +1253,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // MAX_VALUE
                         ValueBigint.get(s.getMaxValue()),
                         // IS_CYCLE BIT"
-                        ValueBoolean.get(s.getCycle())
+                        ValueBoolean.get(s.getCycle().isCycle())
                     );
             }
             break;

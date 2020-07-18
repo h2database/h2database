@@ -8276,30 +8276,33 @@ public class Parser {
             options.setIncrement(readExpression());
         } else if (readIf("MINVALUE")) {
             options.setMinValue(readExpression());
-        } else if (readIf("NOMINVALUE")) {
-            options.setMinValue(ValueExpression.NULL);
         } else if (readIf("MAXVALUE")) {
             options.setMaxValue(readExpression());
-        } else if (readIf("NOMAXVALUE")) {
-            options.setMaxValue(ValueExpression.NULL);
         } else if (readIf("CYCLE")) {
-            options.setCycle(true);
-        } else if (readIf("NOCYCLE")) {
-            options.setCycle(false);
+            options.setCycle(Sequence.Cycle.CYCLE);
         } else if (readIf("NO")) {
             if (readIf("MINVALUE")) {
                 options.setMinValue(ValueExpression.NULL);
             } else if (readIf("MAXVALUE")) {
                 options.setMaxValue(ValueExpression.NULL);
             } else if (readIf("CYCLE")) {
-                options.setCycle(false);
+                options.setCycle(Sequence.Cycle.NO_CYCLE);
             } else if (readIf("CACHE")) {
                 options.setCacheSize(ValueExpression.get(ValueBigint.get(1)));
             } else {
                 throw getSyntaxError();
             }
+        } else if (readIf("EXHAUSTED")) {
+            options.setCycle(Sequence.Cycle.EXHAUSTED);
         } else if (readIf("CACHE")) {
             options.setCacheSize(readExpression());
+            // Various compatibility options
+        } else if (readIf("NOMINVALUE")) {
+            options.setMinValue(ValueExpression.NULL);
+        } else if (readIf("NOMAXVALUE")) {
+            options.setMaxValue(ValueExpression.NULL);
+        } else if (readIf("NOCYCLE")) {
+            options.setCycle(Sequence.Cycle.NO_CYCLE);
         } else if (readIf("NOCACHE")) {
             options.setCacheSize(ValueExpression.get(ValueBigint.get(1)));
         } else {

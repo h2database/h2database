@@ -967,6 +967,8 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
 </li><li>TRUNCATE TABLE restarts next values of generated columns.
 </li><li>NEXT VALUE FOR returns different values when invoked multiple times within the same row for compatibility
     with MariaDB.
+</li><li>If value of an identity column was manually specified, its sequence is updated to generate values after
+inserted.
 </li><li>Case specification may end with END CASE.
 </li></ul>
 <p>

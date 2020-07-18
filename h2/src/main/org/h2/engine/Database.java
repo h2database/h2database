@@ -68,6 +68,7 @@ import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
+import org.h2.store.fs.encrypt.FileEncrypt;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
@@ -260,7 +261,10 @@ public class Database implements DataHandler, CastDataProvider {
         this.autoServerPort = ci.getProperty("AUTO_SERVER_PORT", 0);
         int defaultCacheSize = Utils.scaleForAvailableMemory(Constants.CACHE_SIZE_DEFAULT);
         this.cacheSize = ci.getProperty("CACHE_SIZE", defaultCacheSize);
-        this.pageSize = ci.getProperty("PAGE_SIZE", Constants.DEFAULT_PAGE_SIZE);
+        pageSize = ci.getProperty("PAGE_SIZE", Constants.DEFAULT_PAGE_SIZE);
+        if (cipher != null && pageSize % FileEncrypt.BLOCK_SIZE != 0) {
+            throw DbException.getUnsupportedException("CIPHER && PAGE_SIZE=" + pageSize);
+        }
         if ("r".equals(accessModeData)) {
             readOnly = true;
         }

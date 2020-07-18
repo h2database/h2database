@@ -24,7 +24,7 @@ public class FileEncrypt extends FileBaseDefault {
     /**
      * The block size.
      */
-    static final int BLOCK_SIZE = 4096;
+    public static final int BLOCK_SIZE = 4096;
 
     /**
      * The block size bit mask.

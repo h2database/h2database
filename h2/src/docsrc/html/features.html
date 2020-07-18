@@ -1100,10 +1100,11 @@ The port can be set manually using <code>AUTO_SERVER_PORT=9090</code>.
 
 <h2 id="page_size">Page Size</h2>
 <p>
-The page size for new databases is 2 KB (2048), unless the page size is set
+The page size for new databases is 4 KiB (4096 bytes), unless the page size is set
 explicitly in the database URL using <code>PAGE_SIZE=</code> when
 the database is created. The page size of existing databases can not be changed,
 so this property needs to be set when the database is created.
+The page size of encrypted databases must be a multiple of 4096 (4096, 8192, &#8230;).
 </p>
 
 <h2 id="trace_options">Using the Trace Options</h2>

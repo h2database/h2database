@@ -38,6 +38,7 @@ import javax.net.ssl.SSLSocketFactory;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
@@ -260,7 +261,7 @@ public class CipherFactory {
         try {
             store.store(bout, password.toCharArray());
         } catch (Exception e) {
-            throw DbException.convertToIOException(e);
+            throw DataUtils.convertToIOException(e);
         }
         return bout.toByteArray();
     }
@@ -350,7 +351,7 @@ public class CipherFactory {
             // --- generated code end ---
             return store;
         } catch (Exception e) {
-            throw DbException.convertToIOException(e);
+            throw DataUtils.convertToIOException(e);
         }
     }
 
@@ -375,7 +376,7 @@ public class CipherFactory {
                     out.write(data);
                     out.close();
                 } catch (Exception e) {
-                    throw DbException.convertToIOException(e);
+                    throw DataUtils.convertToIOException(e);
                 }
             }
             String absolutePath = FileUtils.toRealPath(fileName);

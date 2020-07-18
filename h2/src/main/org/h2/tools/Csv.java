@@ -27,6 +27,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -242,7 +243,7 @@ public class Csv implements SimpleRowSource {
                         new OutputStreamWriter(out, characterSet) : new OutputStreamWriter(out));
             } catch (Exception e) {
                 close();
-                throw DbException.convertToIOException(e);
+                throw DataUtils.convertToIOException(e);
             }
         }
     }

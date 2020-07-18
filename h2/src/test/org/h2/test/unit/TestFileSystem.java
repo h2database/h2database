@@ -53,7 +53,11 @@ public class TestFileSystem extends TestBase {
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
         // test.config.traceTest = true;
-        test.testFromMain();
+        FilePathEncrypt.register();
+        for (int i = 0; i < 100; i++) {
+            ((TestFileSystem)test).testConcurrent("encrypt:0007:" + test.getBaseDir() + "/fs");
+            test.println("Done pass #" + i);
+        }
     }
 
     @Override

@@ -646,24 +646,6 @@ public class DbException extends RuntimeException {
     }
 
     /**
-     * Convert an exception to an IO exception.
-     *
-     * @param e the root cause
-     * @return the IO exception
-     */
-    public static IOException convertToIOException(Throwable e) {
-        if (e instanceof IOException) {
-            return (IOException) e;
-        }
-        if (e instanceof JdbcException) {
-            if (e.getCause() != null) {
-                e = e.getCause();
-            }
-        }
-        return new IOException(e.toString(), e);
-    }
-
-    /**
      * Builds message for an exception.
      *
      * @param e exception

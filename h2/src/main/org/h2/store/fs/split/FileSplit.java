@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.store.fs.FileBaseDefault;
 import org.h2.store.fs.FilePath;
 
@@ -92,7 +93,7 @@ class FileSplit extends FileBaseDefault {
                 try {
                     filePath.getBase(i).delete();
                 } catch (DbException e) {
-                    throw DbException.convertToIOException(e);
+                    throw DataUtils.convertToIOException(e);
                 }
             }
             System.arraycopy(list, 0, newList, 0, newList.length);

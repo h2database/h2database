@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import org.h2.engine.SessionRemote;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 
 /**
  * An input stream used by the client side of a tcp connection to fetch LOB data
@@ -57,7 +58,7 @@ public class LobStorageRemoteInputStream extends InputStream {
         try {
             length = sessionRemote.readLob(lobId, hmac, pos, buff, off, length);
         } catch (DbException e) {
-            throw DbException.convertToIOException(e);
+            throw DataUtils.convertToIOException(e);
         }
         if (length == 0) {
             return -1;

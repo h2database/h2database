@@ -11,6 +11,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.Arrays;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.h2.security.AES;
 import org.h2.security.SHA256;
 import org.h2.store.fs.FileBaseDefault;
@@ -60,44 +63,41 @@ public class FileEncrypt extends FileBaseDefault {
 
     private final String name;
 
-    private XTS xts;
+    private final XTS xts;
 
-    private byte[] encryptionKey;
+    // The lock that protects read/write/truncate operations
+    private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
 
-    public FileEncrypt(String name, byte[] encryptionKey, FileChannel base) {
+    public FileEncrypt(String name, byte[] encryptionKey, FileChannel base) throws IOException {
         // don't do any read or write operations here, because they could
         // fail if the file is locked, and we want to give the caller a
         // chance to lock the file first
         this.name = name;
         this.base = base;
-        this.encryptionKey = encryptionKey;
+        this.xts = init(encryptionKey);
     }
 
-    private void init() throws IOException {
-        if (xts != null) {
-            return;
-        }
+    private XTS init(byte[] encryptionKey) throws IOException {
         this.size = base.size() - HEADER_LENGTH;
-        boolean newFile = size < 0;
+        boolean newFile = this.size < 0;
         byte[] salt;
         if (newFile) {
             byte[] header = Arrays.copyOf(HEADER, BLOCK_SIZE);
             salt = MathUtils.secureRandomBytes(SALT_LENGTH);
             System.arraycopy(salt, 0, header, SALT_POS, salt.length);
             writeFully(base, 0, ByteBuffer.wrap(header));
-            size = 0;
+            this.size = 0;
         } else {
             salt = new byte[SALT_LENGTH];
             readFully(base, SALT_POS, ByteBuffer.wrap(salt));
-            if ((size & BLOCK_SIZE_MASK) != 0) {
-                size -= BLOCK_SIZE;
+            if ((this.size & BLOCK_SIZE_MASK) != 0) {
+                this.size -= BLOCK_SIZE;
             }
         }
         AES cipher = new AES();
         cipher.setKey(SHA256.getPBKDF2(
                 encryptionKey, salt, HASH_ITERATIONS, 16));
-        encryptionKey = null;
-        xts = new XTS(cipher);
+        return new XTS(cipher);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class FileEncrypt extends FileBaseDefault {
         if (len == 0) {
             return 0;
         }
-        init();
+        long size = this.size;
         len = (int) Math.min(len, size - position);
         if (position >= size) {
             return -1;
@@ -140,7 +140,15 @@ public class FileEncrypt extends FileBaseDefault {
     private void readInternal(ByteBuffer dst, long position, int len)
             throws IOException {
         int x = dst.position();
-        readFully(base, position + HEADER_LENGTH, dst);
+
+        Lock readLock = this.rwLock.readLock();
+        readLock.lock();
+        try {
+            readFully(base, position + HEADER_LENGTH, dst);
+        } finally {
+            readLock.unlock();
+        }
+
         long block = position / BLOCK_SIZE;
         while (len > 0) {
             xts.decrypt(block++, BLOCK_SIZE, dst.array(), dst.arrayOffset() + x);
@@ -162,7 +170,6 @@ public class FileEncrypt extends FileBaseDefault {
 
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
-        init();
         int len = src.remaining();
         if ((position & BLOCK_SIZE_MASK) != 0 ||
                 (len & BLOCK_SIZE_MASK) != 0) {
@@ -211,7 +218,14 @@ public class FileEncrypt extends FileBaseDefault {
             x += BLOCK_SIZE;
             l -= BLOCK_SIZE;
         }
-        writeFully(base, position + HEADER_LENGTH, crypt);
+
+        Lock writeLock = this.rwLock.writeLock();
+        writeLock.lock();
+        try {
+            writeFully(base, position + HEADER_LENGTH, crypt);
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     private static void writeFully(FileChannel file, long pos,
@@ -224,14 +238,12 @@ public class FileEncrypt extends FileBaseDefault {
     }
 
     @Override
-    public long size() throws IOException {
-        init();
+    public long size() {
         return size;
     }
 
     @Override
     protected void implTruncate(long newSize) throws IOException {
-        init();
         if (newSize > size) {
             return;
         }
@@ -239,12 +251,19 @@ public class FileEncrypt extends FileBaseDefault {
             throw new IllegalArgumentException("newSize: " + newSize);
         }
         int offset = (int) (newSize & BLOCK_SIZE_MASK);
-        if (offset > 0) {
-            base.truncate(newSize + HEADER_LENGTH + BLOCK_SIZE);
-        } else {
-            base.truncate(newSize + HEADER_LENGTH);
+
+        Lock writeLock = this.rwLock.writeLock();
+        writeLock.lock();
+        try {
+            if (offset > 0) {
+                base.truncate(newSize + HEADER_LENGTH + BLOCK_SIZE);
+            } else {
+                base.truncate(newSize + HEADER_LENGTH);
+            }
+            this.size = newSize;
+        } finally {
+            writeLock.unlock();
         }
-        this.size = newSize;
     }
 
     @Override

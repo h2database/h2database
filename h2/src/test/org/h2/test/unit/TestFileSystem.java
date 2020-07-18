@@ -37,7 +37,6 @@ import org.h2.test.utils.FilePathDebug;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
-import org.h2.util.Task;
 
 /**
  * Tests various file system.
@@ -395,7 +394,6 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testFileSystem(String fsBase) throws Exception {
-        testConcurrent(fsBase);
         testRootExists(fsBase);
         testPositionedReadWrite(fsBase);
         testSetReadOnly(fsBase);
@@ -758,71 +756,6 @@ public class TestFileSystem extends TestBase {
         in.close();
         out.close();
         FileUtils.delete(s);
-    }
-
-    private void testConcurrent(String fsBase) throws Exception {
-        String s = FileUtils.createTempFile(fsBase + "/tmp", ".tmp", false);
-        File file = new File(TestBase.BASE_TEST_DIR + "/tmp");
-        file.getParentFile().mkdirs();
-        file.delete();
-        RandomAccessFile ra = new RandomAccessFile(file, "rw");
-        FileUtils.delete(s);
-        final FileChannel f = FileUtils.open(s, "rw");
-        final int size = getSize(10, 50);
-        f.write(ByteBuffer.allocate(size * 64 *  1024));
-        Random random = new Random(1);
-        System.gc();
-        Task task = new Task() {
-            @Override
-            public void call() throws Exception {
-                ByteBuffer byteBuff = ByteBuffer.allocate(16);
-                while (!stop) {
-                    for (int pos = 0; pos < size; pos++) {
-                        byteBuff.clear();
-                        f.read(byteBuff, pos * 64 * 1024);
-                        byteBuff.position(0);
-                        int x = byteBuff.getInt();
-                        int y = byteBuff.getInt();
-                        assertEquals(x, y);
-                        Thread.yield();
-                    }
-                }
-            }
-        };
-        task.execute();
-        int[] data = new int[size];
-        try {
-            ByteBuffer byteBuff = ByteBuffer.allocate(16);
-            int operations = 10000;
-            for (int i = 0; i < operations; i++) {
-                byteBuff.position(0);
-                byteBuff.putInt(i);
-                byteBuff.putInt(i);
-                byteBuff.flip();
-                int pos = random.nextInt(size);
-                f.write(byteBuff, pos * 64 * 1024);
-                data[pos] = i;
-                pos = random.nextInt(size);
-                byteBuff.clear();
-                f.read(byteBuff, pos * 64 * 1024);
-                byteBuff.limit(16);
-                byteBuff.position(0);
-                int x = byteBuff.getInt();
-                int y = byteBuff.getInt();
-                assertEquals(x, y);
-                assertEquals(data[pos], x);
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
-            fail("Exception: " + e);
-        } finally {
-            task.get();
-            f.close();
-            ra.close();
-            file.delete();
-            FileUtils.delete(s);
-            System.gc();
-        }
     }
 
 }

@@ -1694,14 +1694,16 @@ public class Database implements DataHandler, CastDataProvider {
         synchronized (userSessions) {
             list = new ArrayList<>(userSessions);
         }
-        // copy, to ensure the reference is stable
-        SessionLocal sys = systemSession;
-        SessionLocal lob = lobSession;
-        if (includingSystemSession && sys != null) {
-            list.add(sys);
-        }
-        if (includingSystemSession && lob != null) {
-            list.add(lob);
+        if (includingSystemSession) {
+            // copy, to ensure the reference is stable
+            SessionLocal s = systemSession;
+            if (s != null) {
+                list.add(s);
+            }
+            s = lobSession;
+            if (s != null) {
+                list.add(s);
+            }
         }
         return list.toArray(new SessionLocal[0]);
     }

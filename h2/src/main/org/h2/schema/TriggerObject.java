@@ -169,13 +169,13 @@ public class TriggerObject extends SchemaObjectBase {
         if (type != Trigger.SELECT) {
             old = session.setCommitOrRollbackDisabled(true);
         }
-        Value identity = session.getLastScopeIdentity();
+        Value identity = session.getLastIdentity();
         try {
             triggerCallback.fire(c2, null, null);
         } catch (Throwable e) {
             throw getErrorExecutingTrigger(e);
         } finally {
-            session.setLastScopeIdentity(identity);
+            session.setLastIdentity(identity);
             if (type != Trigger.SELECT) {
                 session.setCommitOrRollbackDisabled(old);
             }
@@ -250,7 +250,7 @@ public class TriggerObject extends SchemaObjectBase {
         }
         boolean old = session.getAutoCommit();
         boolean oldDisabled = session.setCommitOrRollbackDisabled(true);
-        Value identity = session.getLastScopeIdentity();
+        Value identity = session.getLastIdentity();
         try {
             session.setAutoCommit(false);
             try {
@@ -273,7 +273,7 @@ public class TriggerObject extends SchemaObjectBase {
                 throw DbException.convert(e);
             }
         } finally {
-            session.setLastScopeIdentity(identity);
+            session.setLastIdentity(identity);
             session.setCommitOrRollbackDisabled(oldDisabled);
             session.setAutoCommit(old);
         }

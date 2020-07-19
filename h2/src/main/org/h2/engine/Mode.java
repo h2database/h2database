@@ -350,6 +350,18 @@ public class Mode {
     public boolean updateSequenceOnManualIdentityInsertion;
 
     /**
+     * If {@code true}, last identity of the session is updated on insertion of
+     * a new value into identity column.
+     */
+    public boolean takeInsertedIdentity;
+
+    /**
+     * If {@code true}, last identity of the session is updated on generation of
+     * a new sequence value.
+     */
+    public boolean takeGeneratedSequenceValue;
+
+    /**
      * If {@code true}, case specification may have an optional CASE keyword
      * after END.
      */
@@ -404,6 +416,7 @@ public class Mode {
                         "ClientUser|ClientCorrelationToken");
         mode.allowDB2TimestampFormat = true;
         mode.forBitData = true;
+        mode.takeInsertedIdentity = true;
         mode.expressionNames = ExpressionNames.NUMBER;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         add(mode);
@@ -416,6 +429,7 @@ public class Mode {
         // Derby does not support client info properties as of version 10.12.1.1
         mode.supportedClientInfoPropertiesRegEx = null;
         mode.forBitData = true;
+        mode.takeInsertedIdentity = true;
         mode.expressionNames = ExpressionNames.NUMBER;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         add(mode);
@@ -443,6 +457,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx = null;
         mode.zeroExLiteralsAreBinaryStrings = true;
         mode.truncateTableRestartIdentity = true;
+        mode.takeInsertedIdentity = true;
         DataType dt = DataType.createNumeric(19, 4);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
@@ -479,6 +494,7 @@ public class Mode {
         // Next one is for MariaDB
         mode.nextValueReturnsDifferentValues = true;
         mode.updateSequenceOnManualIdentityInsertion = true;
+        mode.takeInsertedIdentity = true;
         mode.allowEndCase = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
@@ -525,6 +541,7 @@ public class Mode {
                 Pattern.compile("ApplicationName");
         mode.charPadding = CharPadding.IN_RESULT_SETS;
         mode.nextValueReturnsDifferentValues = true;
+        mode.takeGeneratedSequenceValue = true;
         mode.expressionNames = ExpressionNames.POSTGRESQL_STYLE;
         // Enumerate all H2 types NOT supported by PostgreSQL:
         Set<String> disallowedTypes = new java.util.HashSet<>();

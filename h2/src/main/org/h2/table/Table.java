@@ -790,6 +790,20 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
+     * Returns first identity column, or {@code null}.
+     *
+     * @return first identity column, or {@code null}
+     */
+    public Column getIdentityColumn() {
+        for (Column column : columns) {
+            if (column.isIdentity()) {
+                return column;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Get the best plan for the given search mask.
      *
      * @param session the session

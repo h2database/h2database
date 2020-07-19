@@ -59,7 +59,6 @@ import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
-import org.h2.value.ValueBigint;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDatabase;
 import org.h2.value.ValueLobInMemory;
@@ -142,8 +141,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
 
     private HashMap<SequenceAndPrepared, RowNumberAndValue> nextValueFor;
     private WeakHashMap<Sequence, Value> currentValueFor;
-    private Value lastIdentity = ValueBigint.get(0);
-    private Value lastScopeIdentity = ValueBigint.get(0);
+    private Value lastIdentity = ValueNull.INSTANCE;
 
     private HashMap<String, Savepoint> savepoints;
     private HashMap<String, Table> localTempTables;
@@ -1106,7 +1104,8 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      */
     public Value getNextValueFor(Sequence sequence, Prepared prepared) {
         Value value;
-        if (database.getMode().nextValueReturnsDifferentValues || prepared == null) {
+        Mode mode = database.getMode();
+        if (mode.nextValueReturnsDifferentValues || prepared == null) {
             value = sequence.getNext(this);
         } else {
             if (nextValueFor == null) {
@@ -1132,7 +1131,9 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
             this.currentValueFor = currentValueFor = new WeakHashMap<>();
         }
         currentValueFor.put(sequence, value);
-        setLastIdentity(value);
+        if (mode.takeGeneratedSequenceValue) {
+            lastIdentity = value;
+        }
         return value;
     }
 
@@ -1158,19 +1159,10 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
 
     public void setLastIdentity(Value last) {
         this.lastIdentity = last;
-        this.lastScopeIdentity = last;
     }
 
     public Value getLastIdentity() {
         return lastIdentity;
-    }
-
-    public void setLastScopeIdentity(Value last) {
-        this.lastScopeIdentity = last;
-    }
-
-    public Value getLastScopeIdentity() {
-        return lastScopeIdentity;
     }
 
     /**

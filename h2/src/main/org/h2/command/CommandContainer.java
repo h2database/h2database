@@ -34,7 +34,6 @@ import org.h2.table.TableView;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 
 /**
  * Represents a single SQL statements.
@@ -161,7 +160,6 @@ public class CommandContainer extends Command {
         recompileIfRequired();
         setProgress(DatabaseEventListener.STATE_STATEMENT_START);
         start();
-        session.setLastScopeIdentity(ValueNull.INSTANCE);
         prepared.checkParameters();
         ResultWithGeneratedKeys result;
         if (generatedKeysRequest != null && !Boolean.FALSE.equals(generatedKeysRequest)) {

@@ -6177,17 +6177,6 @@ Returns the largest value that is not NULL, or NULL if all values are NULL.
 CALL GREATEST(1, 2, 3);
 "
 
-"Functions (System)","IDENTITY","
-@c@ IDENTITY()
-","
-Returns the last inserted identity value for this session.
-This value changes whenever a new sequence number was generated,
-even within a trigger or Java function. See also SCOPE_IDENTITY.
-This method returns a long.
-","
-CALL IDENTITY();
-"
-
 "Functions (System)","LEAST","
 @h2@ LEAST(aValue, bValue [,...])
 ","
@@ -6309,17 +6298,6 @@ function to get row numbers after grouping or in specified order.
 SELECT ROWNUM(), * FROM TEST;
 SELECT ROWNUM(), * FROM (SELECT * FROM TEST ORDER BY NAME);
 SELECT ID FROM (SELECT T.*, ROWNUM AS R FROM TEST T) WHERE R BETWEEN 2 AND 3;
-"
-
-"Functions (System)","SCOPE_IDENTITY","
-@c@ SCOPE_IDENTITY()
-","
-Returns the last inserted identity value for this session for the current scope
-(the current statement).
-Changes within triggers and Java functions are ignored. See also IDENTITY().
-This method returns a long.
-","
-CALL SCOPE_IDENTITY();
 "
 
 "Functions (System)","SESSION_ID","

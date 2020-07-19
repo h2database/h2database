@@ -28,6 +28,7 @@ import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.table.Column;
+import org.h2.table.DataChangeDeltaTable;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
@@ -539,13 +540,13 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
             }
             if (!table.fireBeforeRow(session, null, newRow)) {
                 table.addRow(session, newRow);
-                if (deltaChangeCollectionMode == ResultOption.FINAL) {
-                    deltaChangeCollector.addRow(newRow.getValueList());
-                }
+                DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,
+                        deltaChangeCollectionMode, newRow);
                 session.log(table, UndoLogRecord.INSERT, newRow);
                 table.fireAfterRow(session, null, newRow, false);
-            } else if (deltaChangeCollectionMode == ResultOption.FINAL) {
-                deltaChangeCollector.addRow(newRow.getValueList());
+            } else {
+                DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,
+                        deltaChangeCollectionMode, newRow);
             }
         }
 

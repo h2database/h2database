@@ -391,12 +391,8 @@ public class Column implements HasSQL, Typed {
         if (domain != null) {
             domain.checkConstraints(session, value);
         }
-        if (sequence != null) {
-            ValueBigint identity = value.convertToBigint(this);
-            session.setLastIdentity(identity);
-            if (session.getMode().updateSequenceOnManualIdentityInsertion) {
-                updateSequenceIfRequired(session, identity.getLong());
-            }
+        if (sequence != null && session.getMode().updateSequenceOnManualIdentityInsertion) {
+            updateSequenceIfRequired(session, value.getLong());
         }
         return value;
     }

@@ -238,13 +238,17 @@ public class FunctionsMySQL extends FunctionsBase {
         case LAST_INSERT_ID:
             if (args.length == 0) {
                 result = session.getLastIdentity();
-            } else {
-                if (v0 == ValueNull.INSTANCE) {
-                    session.setLastIdentity(ValueBigint.get(0));
-                    result = v0;
+                if (result == ValueNull.INSTANCE) {
+                    result = ValueBigint.get(0L);
                 } else {
-                    result = v0.convertToBigint(null);
-                    session.setLastIdentity(result);
+                    result = result.convertToBigint(null);
+                }
+            } else {
+                result = v0;
+                if (result == ValueNull.INSTANCE) {
+                    session.setLastIdentity(ValueNull.INSTANCE);
+                } else {
+                    session.setLastIdentity(result = result.convertToBigint(null));
                 }
             }
             break;

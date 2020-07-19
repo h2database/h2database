@@ -68,18 +68,16 @@ public class TestCallableStatement extends TestDb {
     }
 
     private void testOutParameter(Connection conn) throws SQLException {
-        conn.createStatement().execute(
-                "create table test(id identity) as select null");
+        conn.createStatement().execute("CREATE SEQUENCE SEQ");
         for (int i = 1; i < 20; i++) {
-            CallableStatement cs = conn.prepareCall("{ ? = call IDENTITY()}");
+            CallableStatement cs = conn.prepareCall("{ ? = CALL NEXT VALUE FOR SEQ}");
             cs.registerOutParameter(1, Types.BIGINT);
             cs.execute();
             long id = cs.getLong(1);
-            assertEquals(1, id);
+            assertEquals(i, id);
             cs.close();
         }
-        conn.createStatement().execute(
-                "drop table test");
+        conn.createStatement().execute("DROP SEQUENCE SEQ");
     }
 
     private void testUnsupportedOperations(Connection conn) throws SQLException {

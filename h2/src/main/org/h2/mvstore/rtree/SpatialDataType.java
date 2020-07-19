@@ -32,7 +32,7 @@ public class SpatialDataType extends BasicDataType<Spatial> {
     }
 
     protected Spatial create(long id, float... minMax) {
-        return new BasicSpatialImpl(id, minMax);
+        return new DefaultSpatial(id, minMax);
     }
 
     @Override

@@ -12,7 +12,7 @@ import java.util.Arrays;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public final class BasicSpatialImpl implements Spatial
+final class DefaultSpatial implements Spatial
 {
     private final long id;
     private final float[] minMax;
@@ -23,12 +23,12 @@ public final class BasicSpatialImpl implements Spatial
      * @param id the id
      * @param minMax min x, max x, min y, max y, and so on
      */
-    public BasicSpatialImpl(long id, float... minMax) {
+    public DefaultSpatial(long id, float... minMax) {
         this.id = id;
         this.minMax = minMax;
     }
 
-    private BasicSpatialImpl(long id, BasicSpatialImpl other) {
+    private DefaultSpatial(long id, DefaultSpatial other) {
         this.id = id;
         this.minMax = other.minMax.clone();
     }
@@ -55,7 +55,7 @@ public final class BasicSpatialImpl implements Spatial
 
     @Override
     public Spatial clone(long id) {
-        return new BasicSpatialImpl(id, this);
+        return new DefaultSpatial(id, this);
     }
 
     @Override
@@ -69,6 +69,6 @@ public final class BasicSpatialImpl implements Spatial
     }
 
     public boolean equalsIgnoringId(Spatial o) {
-        return Arrays.equals(minMax, ((BasicSpatialImpl)o).minMax);
+        return Arrays.equals(minMax, ((DefaultSpatial)o).minMax);
     }
 }

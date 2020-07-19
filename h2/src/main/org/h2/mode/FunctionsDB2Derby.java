@@ -9,10 +9,11 @@ import java.util.HashMap;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.function.CompatibilityIdentityFunction;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
 import org.h2.message.DbException;
+import org.h2.value.ExtTypeInfoNumeric;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -24,6 +25,9 @@ public final class FunctionsDB2Derby extends FunctionsBase {
     private static final int IDENTITY_VAL_LOCAL = 5001;
 
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
+
+    private static final TypeInfo IDENTITY_VAL_LOCAL_TYPE = TypeInfo.getTypeInfo(Value.NUMERIC, 31, 0,
+            ExtTypeInfoNumeric.DECIMAL);
 
     static {
         FUNCTIONS.put("IDENTITY_VAL_LOCAL",
@@ -47,13 +51,25 @@ public final class FunctionsDB2Derby extends FunctionsBase {
     }
 
     @Override
-    public Expression optimize(SessionLocal session) {
+    protected Value getValueWithArgs(SessionLocal session, Expression[] args) {
         switch (info.type) {
         case IDENTITY_VAL_LOCAL:
-            return new CompatibilityIdentityFunction(false).optimize(session);
+            return session.getLastIdentity().convertTo(type);
         default:
             throw DbException.throwInternalError("type=" + info.type);
         }
+    }
+
+    @Override
+    public Expression optimize(SessionLocal session) {
+        switch (info.type) {
+        case IDENTITY_VAL_LOCAL:
+            type = IDENTITY_VAL_LOCAL_TYPE;
+            break;
+        default:
+            throw DbException.throwInternalError("type=" + info.type);
+        }
+        return this;
     }
 
 }

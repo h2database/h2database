@@ -51,8 +51,6 @@ public final class BuiltinFunctions {
                 "NULLIF",
                 // DataTypeSQLFunction
                 "DATA_TYPE_SQL",
-                // CompatibilityIdentityFunction
-                "IDENTITY", "SCOPE_IDENTITY",
                 // CompatibilitySequenceValueFunction
                 "CURRVAL", "NEXTVAL",
                 // Constants

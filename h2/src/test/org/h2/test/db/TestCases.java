@@ -1435,8 +1435,8 @@ public class TestCases extends TestDb {
                 "(ID INT PRIMARY KEY, NAME VARCHAR, UNIQUE(NAME))");
         conn.close();
         conn = getConnection("cases");
-        conn.createStatement().execute("INSERT INTO TEST_SEQ(NAME) VALUES('Hi')");
-        ResultSet rs = conn.createStatement().executeQuery("CALL IDENTITY()");
+        ResultSet rs = conn.createStatement().executeQuery(
+                "SELECT ID FROM FINAL TABLE(INSERT INTO TEST_SEQ(NAME) VALUES('Hi'))");
         rs.next();
         assertEquals(1, rs.getInt(1));
         conn.createStatement().execute("SELECT * FROM TEST2");
@@ -1445,9 +1445,8 @@ public class TestCases extends TestDb {
         conn.close();
         conn = getConnection("cases");
         conn.createStatement().execute("SELECT * FROM TEST_B2");
-        conn.createStatement().execute(
-                "INSERT INTO TEST_SEQ(NAME) VALUES('World')");
-        rs = conn.createStatement().executeQuery("CALL IDENTITY()");
+        rs = conn.createStatement().executeQuery(
+                "SELECT ID FROM FINAL TABLE(INSERT INTO TEST_SEQ(NAME) VALUES('World'))");
         rs.next();
         assertEquals(2, rs.getInt(1));
         conn.close();

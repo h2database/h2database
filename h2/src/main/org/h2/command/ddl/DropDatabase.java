@@ -19,6 +19,7 @@ import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.table.Table;
 import org.h2.table.TableType;
+import org.h2.value.ValueNull;
 
 /**
  * This class represents the statement
@@ -146,6 +147,9 @@ public class DropDatabase extends DefineCommand {
             if (sql != null) {
                 db.removeDatabaseObject(session, obj);
             }
+        }
+        for (SessionLocal s : db.getSessions(false)) {
+            s.setLastIdentity(ValueNull.INSTANCE);
         }
     }
 

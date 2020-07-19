@@ -15,7 +15,6 @@ import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
-import org.h2.expression.function.CompatibilityIdentityFunction;
 import org.h2.expression.function.CurrentGeneralValueSpecification;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
@@ -179,13 +178,12 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
         case CURRENT_DATABASE:
             return new CurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_CATALOG)
                     .optimize(session);
-        case LASTVAL:
-            return new CompatibilityIdentityFunction(false).optimize(session);
-        }
-        boolean allConst = optimizeArguments(session);
-        type = TypeInfo.getTypeInfo(info.returnDataType);
-        if (allConst) {
-            return ValueExpression.get(getValue(session));
+        default:
+            boolean allConst = optimizeArguments(session);
+            type = TypeInfo.getTypeInfo(info.returnDataType);
+            if (allConst) {
+                return ValueExpression.get(getValue(session));
+            }
         }
         return this;
     }
@@ -215,6 +213,13 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
         case PG_TABLE_IS_VISIBLE:
             // Not implemented
             result = ValueBoolean.TRUE;
+            break;
+        case LASTVAL:
+            result = session.getLastIdentity();
+            if (result == ValueNull.INSTANCE) {
+                throw DbException.get(ErrorCode.CURRENT_SEQUENCE_VALUE_IS_NOT_DEFINED_IN_SESSION_1, "lastval()");
+            }
+            result = result.convertToBigint(null);
             break;
         case VERSION:
             result = ValueVarchar

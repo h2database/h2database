@@ -11,6 +11,8 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultTarget;
+import org.h2.result.Row;
 import org.h2.schema.Schema;
 
 /**
@@ -38,6 +40,33 @@ public class DataChangeDeltaTable extends VirtualConstructedTable {
          */
         FINAL;
 
+    }
+
+    /**
+     * Collects final row for INSERT operations.
+     *
+     * @param session
+     *            the session
+     * @param table
+     *            the table
+     * @param deltaChangeCollector
+     *            target result
+     * @param deltaChangeCollectionMode
+     *            collection mode
+     * @param newRow
+     *            the inserted row
+     */
+    public static void collectInsertedFinalRow(SessionLocal session, Table table, ResultTarget deltaChangeCollector,
+            ResultOption deltaChangeCollectionMode, Row newRow) {
+        if (session.getMode().takeInsertedIdentity) {
+            Column column = table.getIdentityColumn();
+            if (column != null) {
+                session.setLastIdentity(newRow.getValue(column.getColumnId()));
+            }
+        }
+        if (deltaChangeCollectionMode == ResultOption.FINAL) {
+            deltaChangeCollector.addRow(newRow.getValueList());
+        }
     }
 
     private final DataChangeStatement statement;

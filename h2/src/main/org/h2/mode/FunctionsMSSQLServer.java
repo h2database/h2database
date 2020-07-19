@@ -34,12 +34,18 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
 
     private static final int ISNULL = LEN + 1;
 
+    private static final int SCOPE_IDENTITY = ISNULL + 1;
+
+    private static final TypeInfo SCOPE_IDENTITY_TYPE = TypeInfo.getTypeInfo(Value.NUMERIC, 38, 0, null);
+
     static {
         copyFunction(FUNCTIONS, "LOCATE", "CHARINDEX");
         FUNCTIONS.put("GETDATE", new FunctionInfo("GETDATE", GETDATE, 0, Value.TIMESTAMP, false, true));
         FUNCTIONS.put("LEN", new FunctionInfo("LEN", LEN, 1, Value.INTEGER, true, true));
         FUNCTIONS.put("ISNULL", new FunctionInfo("ISNULL", ISNULL, 2, Value.NULL, false, true));
         copyFunction(FUNCTIONS, "RANDOM_UUID", "NEWID");
+        FUNCTIONS.put("SCOPE_IDENTITY",
+                new FunctionInfo("SCOPE_IDENTITY", SCOPE_IDENTITY, 0, Value.NUMERIC, true, false));
     }
 
     /**
@@ -86,6 +92,8 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
             }
             return ValueBigint.get(len);
         }
+        case SCOPE_IDENTITY:
+            return session.getLastIdentity().convertTo(type);
         default:
             throw DbException.throwInternalError("type=" + info.type);
         }
@@ -98,13 +106,16 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
             return new CurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIMESTAMP, 3).optimize(session);
         case ISNULL:
             return new CoalesceFunction(CoalesceFunction.COALESCE, args).optimize(session);
+        case SCOPE_IDENTITY:
+            type = SCOPE_IDENTITY_TYPE;
+            break;
         default:
             type = TypeInfo.getTypeInfo(info.returnDataType);
             if (optimizeArguments(session)) {
                 return TypedValueExpression.getTypedIfNull(getValue(session), type);
             }
-            return this;
         }
+        return this;
     }
 
 }

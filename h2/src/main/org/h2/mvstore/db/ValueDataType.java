@@ -22,8 +22,8 @@ import org.h2.message.DbException;
 import org.h2.mode.DefaultNullOrdering;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
+import org.h2.mvstore.rtree.Spatial;
 import org.h2.mvstore.rtree.SpatialDataType;
-import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.MetaType;
@@ -159,7 +159,12 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
 
     private SpatialDataType getSpatialDataType() {
         if (spatialType == null) {
-            spatialType = new SpatialDataType(2);
+            spatialType = new SpatialDataType(2) {
+                @Override
+                protected Spatial create(long id, float... minMax) {
+                    return new SpatialKey(id, minMax);
+                }
+            };
         }
         return spatialType;
     }
@@ -853,7 +858,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             return ValueGeometry.get(b);
         }
         case SPATIAL_KEY_2D:
-            return getSpatialDataType().read(buff);
+            return (SpatialKey)getSpatialDataType().read(buff);
         case JSON: {
             int len = readVarInt(buff);
             byte[] b = Utils.newBytes(len);

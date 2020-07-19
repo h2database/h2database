@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.StreamStore;
@@ -215,7 +216,7 @@ public class LobStorageMap implements LobStorageInterface {
         try {
             streamStoreId = streamStore.put(in);
         } catch (Exception e) {
-            throw DbException.convertToIOException(e);
+            throw DataUtils.convertToIOException(e);
         }
         long lobId = generateLobId();
         long length = streamStore.length(streamStoreId);

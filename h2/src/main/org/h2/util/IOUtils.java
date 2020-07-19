@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
-import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.store.fs.FileUtils;
 
 /**
@@ -69,7 +69,7 @@ public class IOUtils {
                 skip -= skipped;
             }
         } catch (Exception e) {
-            throw DbException.convertToIOException(e);
+            throw DataUtils.convertToIOException(e);
         }
     }
 
@@ -92,7 +92,7 @@ public class IOUtils {
                 skip -= skipped;
             }
         } catch (Exception e) {
-            throw DbException.convertToIOException(e);
+            throw DataUtils.convertToIOException(e);
         }
     }
 
@@ -111,7 +111,7 @@ public class IOUtils {
             out.close();
             return len;
         } catch (Exception e) {
-            throw DbException.convertToIOException(e);
+            throw DataUtils.convertToIOException(e);
         } finally {
             closeSilently(out);
         }
@@ -130,7 +130,7 @@ public class IOUtils {
         try {
             return copy(in, out);
         } catch (Exception e) {
-            throw DbException.convertToIOException(e);
+            throw DataUtils.convertToIOException(e);
         } finally {
             closeSilently(in);
         }
@@ -178,7 +178,7 @@ public class IOUtils {
             }
             return copied;
         } catch (Exception e) {
-            throw DbException.convertToIOException(e);
+            throw DataUtils.convertToIOException(e);
         }
     }
 
@@ -211,7 +211,7 @@ public class IOUtils {
             }
             return copied;
         } catch (Exception e) {
-            throw DbException.convertToIOException(e);
+            throw DataUtils.convertToIOException(e);
         } finally {
             in.close();
         }
@@ -236,7 +236,7 @@ public class IOUtils {
             copy(in, out, length);
             return out.toByteArray();
         } catch (Exception e) {
-            throw DbException.convertToIOException(e);
+            throw DataUtils.convertToIOException(e);
         } finally {
             in.close();
         }
@@ -289,7 +289,7 @@ public class IOUtils {
             }
             return result;
         } catch (Exception e) {
-            throw DbException.convertToIOException(e);
+            throw DataUtils.convertToIOException(e);
         }
     }
 
@@ -317,7 +317,7 @@ public class IOUtils {
             }
             return result;
         } catch (Exception e) {
-            throw DbException.convertToIOException(e);
+            throw DataUtils.convertToIOException(e);
         }
     }
 

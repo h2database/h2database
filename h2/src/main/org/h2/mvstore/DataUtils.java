@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.h2.engine.Constants;
+import org.h2.jdbc.JdbcException;
 import org.h2.util.StringUtils;
 
 /**
@@ -1167,4 +1168,21 @@ public final class DataUtils {
         return defaultValue;
     }
 
+    /**
+     * Convert an exception to an IO exception.
+     *
+     * @param e the root cause
+     * @return the IO exception
+     */
+    public static IOException convertToIOException(Throwable e) {
+        if (e instanceof IOException) {
+            return (IOException) e;
+        }
+        if (e instanceof JdbcException) {
+            if (e.getCause() != null) {
+                e = e.getCause();
+            }
+        }
+        return new IOException(e.toString(), e);
+    }
 }

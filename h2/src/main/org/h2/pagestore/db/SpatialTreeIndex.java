@@ -5,6 +5,7 @@
  */
 package org.h2.pagestore.db;
 
+import org.h2.mvstore.rtree.Spatial;
 import static org.h2.util.geometry.GeometryUtils.MAX_X;
 import static org.h2.util.geometry.GeometryUtils.MAX_Y;
 import static org.h2.util.geometry.GeometryUtils.MIN_X;
@@ -22,7 +23,7 @@ import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.MVSpatialIndex;
 import org.h2.mvstore.rtree.MVRTreeMap;
-import org.h2.mvstore.rtree.SpatialKey;
+import org.h2.mvstore.db.SpatialKey;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -212,12 +213,12 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
      */
     private static final class SpatialCursor implements Cursor {
 
-        private final Iterator<SpatialKey> it;
-        private SpatialKey current;
+        private final Iterator<Spatial> it;
+        private Spatial current;
         private final Table table;
         private final SessionLocal session;
 
-        public SpatialCursor(Iterator<SpatialKey> it, Table table, SessionLocal session) {
+        public SpatialCursor(Iterator<Spatial> it, Table table, SessionLocal session) {
             this.it = it;
             this.table = table;
             this.session = session;

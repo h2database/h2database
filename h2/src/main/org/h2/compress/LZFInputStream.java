@@ -7,7 +7,7 @@ package org.h2.compress;
 
 import java.io.IOException;
 import java.io.InputStream;
-import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.util.Utils;
 
 /**
@@ -55,7 +55,7 @@ public class LZFInputStream extends InputStream {
             try {
                 decompress.expand(inBuffer, 0, len, buffer, 0, size);
             } catch (ArrayIndexOutOfBoundsException e) {
-                DbException.convertToIOException(e);
+                throw DataUtils.convertToIOException(e);
             }
             this.bufferLength = size;
         }

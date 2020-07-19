@@ -11,7 +11,7 @@ import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
 import org.h2.api.ErrorCode;
-import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 
 /**
  * This is a wrapper class for the Deflater class.
@@ -47,7 +47,7 @@ public class CompressDeflate implements Compressor {
                 deflater.setStrategy(strategy);
             }
         } catch (Exception e) {
-            throw DbException.get(ErrorCode.UNSUPPORTED_COMPRESSION_OPTIONS_1, options);
+            throw DataUtils.newMVStoreException(ErrorCode.UNSUPPORTED_COMPRESSION_OPTIONS_1, options);
         }
     }
 
@@ -87,7 +87,7 @@ public class CompressDeflate implements Compressor {
                 throw new DataFormatException(len + " " + outLen);
             }
         } catch (DataFormatException e) {
-            throw DbException.get(ErrorCode.COMPRESSION_ERROR, e);
+            throw DataUtils.newMVStoreException(ErrorCode.COMPRESSION_ERROR, e.getMessage(), e);
         }
         decompresser.end();
     }

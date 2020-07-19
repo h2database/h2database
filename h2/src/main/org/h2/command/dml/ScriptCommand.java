@@ -40,6 +40,7 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
@@ -540,7 +541,7 @@ public class ScriptCommand extends ScriptBase {
                         }
                         current = null;
                     } catch (SQLException e) {
-                        throw DbException.convertToIOException(e);
+                        throw DataUtils.convertToIOException(e);
                     }
                 }
             }
@@ -553,7 +554,7 @@ public class ScriptCommand extends ScriptBase {
                 try {
                     rs.close();
                 } catch (SQLException e) {
-                    throw DbException.convertToIOException(e);
+                    throw DataUtils.convertToIOException(e);
                 }
             }
         };
@@ -596,7 +597,7 @@ public class ScriptCommand extends ScriptBase {
                         }
                         current = null;
                     } catch (SQLException e) {
-                        throw DbException.convertToIOException(e);
+                        throw DataUtils.convertToIOException(e);
                     }
                 }
             }
@@ -609,7 +610,7 @@ public class ScriptCommand extends ScriptBase {
                 try {
                     rs.close();
                 } catch (SQLException e) {
-                    throw DbException.convertToIOException(e);
+                    throw DataUtils.convertToIOException(e);
                 }
             }
             @Override

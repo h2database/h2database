@@ -16,6 +16,7 @@ import org.h2.compress.CompressLZF;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.mvstore.DataUtils;
 import org.h2.pagestore.db.SessionPageStore;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -300,7 +301,7 @@ public class PageLog {
                             compress.expand(compressBuffer, 0, size,
                                     data.getBytes(), 0, store.getPageSize());
                         } catch (ArrayIndexOutOfBoundsException e) {
-                            DbException.convertToIOException(e);
+                            DataUtils.convertToIOException(e);
                         }
                     }
                     if (stage == RECOVERY_STAGE_UNDO) {

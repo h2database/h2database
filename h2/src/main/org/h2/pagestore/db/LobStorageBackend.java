@@ -19,6 +19,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.store.CountingReaderInputStream;
 import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
@@ -346,7 +347,7 @@ public class LobStorageBackend implements LobStorageInterface {
                 }
             }
         } catch (SQLException e) {
-            throw DbException.convertToIOException(e);
+            throw DataUtils.convertToIOException(e);
         }
     }
 
@@ -787,7 +788,7 @@ if (lobMapIndex >= lobMapBlocks.length) {
                 lobMapIndex++;
                 bufferPos = 0;
             } catch (SQLException e) {
-                throw DbException.convertToIOException(e);
+                throw DataUtils.convertToIOException(e);
             }
         }
 

@@ -12,7 +12,8 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.rtree.MVRTreeMap;
-import org.h2.mvstore.rtree.SpatialKey;
+import org.h2.mvstore.rtree.Spatial;
+import org.h2.mvstore.db.SpatialKey;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 
@@ -130,7 +131,7 @@ public class TestMVStoreTool extends TestBase {
                 MVRTreeMap<String> mb = b.openMap(
                         mapName, new MVRTreeMap.Builder<String>());
                 assertEquals(ma.sizeAsLong(), mb.sizeAsLong());
-                for (Entry<SpatialKey, String> e : ma.entrySet()) {
+                for (Entry<Spatial, String> e : ma.entrySet()) {
                     Object x = mb.get(e.getKey());
                     assertEquals(e.getValue(), x.toString());
                 }

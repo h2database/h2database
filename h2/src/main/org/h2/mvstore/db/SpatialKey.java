@@ -3,10 +3,11 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.mvstore.rtree;
+package org.h2.mvstore.db;
 
 import java.util.Arrays;
 import org.h2.engine.CastDataProvider;
+import org.h2.mvstore.rtree.Spatial;
 import org.h2.value.CompareMode;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -14,7 +15,7 @@ import org.h2.value.Value;
 /**
  * A unique spatial key.
  */
-public class SpatialKey extends Value {
+public class SpatialKey extends Value implements Spatial {
 
     private final long id;
     private final float[] minMax;
@@ -35,50 +36,37 @@ public class SpatialKey extends Value {
         this.minMax = other.minMax.clone();
     }
 
-    /**
-     * Get the minimum value for the given dimension.
-     *
-     * @param dim the dimension
-     * @return the value
-     */
+    @Override
     public float min(int dim) {
         return minMax[dim + dim];
     }
 
-    /**
-     * Set the minimum value for the given dimension.
-     *
-     * @param dim the dimension
-     * @param x the value
-     */
+    @Override
     public void setMin(int dim, float x) {
         minMax[dim + dim] = x;
     }
 
-    /**
-     * Get the maximum value for the given dimension.
-     *
-     * @param dim the dimension
-     * @return the value
-     */
+    @Override
     public float max(int dim) {
         return minMax[dim + dim + 1];
     }
 
-    /**
-     * Set the maximum value for the given dimension.
-     *
-     * @param dim the dimension
-     * @param x the value
-     */
+    @Override
     public void setMax(int dim, float x) {
         minMax[dim + dim + 1] = x;
     }
 
+    @Override
+    public Spatial clone(long id) {
+        return new SpatialKey(id, this);
+    }
+
+    @Override
     public long getId() {
         return id;
     }
 
+    @Override
     public boolean isNull() {
         return minMax.length == 0;
     }
@@ -119,8 +107,8 @@ public class SpatialKey extends Value {
      * @param o the other key
      * @return true if the contents are the same
      */
-    public boolean equalsIgnoringId(SpatialKey o) {
-        return Arrays.equals(minMax, o.minMax);
+    public boolean equalsIgnoringId(Spatial o) {
+        return Arrays.equals(minMax, ((SpatialKey)o).minMax);
     }
 
 

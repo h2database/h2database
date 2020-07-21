@@ -215,7 +215,6 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             } else {
                 oldColumn.setSequence(null, false);
                 oldColumn.setDefaultExpression(session, null);
-                oldColumn.setConvertNullToDefault(false);
                 if (oldColumn.isNullable() && !newColumn.isNullable()) {
                     checkNoNullValues(table);
                 } else if (!oldColumn.isNullable() && newColumn.isNullable()) {

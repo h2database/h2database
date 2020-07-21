@@ -6511,11 +6511,17 @@ public class Parser {
         } else if (readIf("VISIBLE")) {
             column.setVisible(true);
         }
+        boolean defaultOnNull = false;
         NullConstraintType nullConstraint = parseNotNullConstraint();
         defaultIdentityGeneration: if (!column.isIdentity()) {
             if (readIf(AS)) {
                 column.setGeneratedExpression(readExpression());
             } else if (readIf(DEFAULT)) {
+                if (readIf(ON)) {
+                    read(NULL);
+                    defaultOnNull = true;
+                    break defaultIdentityGeneration;
+                }
                 column.setDefaultExpression(session, readExpression());
             } else if (readIf("GENERATED")) {
                 boolean always = readIf("ALWAYS");
@@ -6571,10 +6577,19 @@ public class Parser {
             throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
                     "Internal Error - unhandled case: " + nullConstraint.name());
         }
-        if (!column.isGenerated()) {
-            if (readIf("NULL_TO_DEFAULT")) {
-                column.setConvertNullToDefault(true);
+        if (!defaultOnNull) {
+            if (readIf(DEFAULT)) {
+                read(ON);
+                read(NULL);
+                defaultOnNull = true;
+            } else if (readIf("NULL_TO_DEFAULT")) {
+                defaultOnNull = true;
             }
+        }
+        if (defaultOnNull) {
+            column.setDefaultOnNull(true);
+        }
+        if (!column.isGenerated()) {
             if (readIf("SEQUENCE")) {
                 column.setSequence(readSequence(), column.isGeneratedAlways());
             }

@@ -67,7 +67,7 @@ public class Column implements HasSQL, Typed {
     private Expression defaultExpression;
     private Expression onUpdateExpression;
     private SequenceOptions identityOptions;
-    private boolean convertNullToDefault;
+    private boolean defaultOnNull;
     private Sequence sequence;
     private boolean isGeneratedAlways;
     private GeneratedColumnResolver generatedTableFilter;
@@ -371,7 +371,7 @@ public class Column implements HasSQL, Typed {
             if (sequence != null) {
                 value = session.getNextValueFor(sequence, null);
             } else {
-                if (convertNullToDefault) {
+                if (defaultOnNull) {
                     value = getEffectiveDefaultExpression().getValue(session);
                 }
                 if (value == ValueNull.INSTANCE && !nullable) {
@@ -551,8 +551,8 @@ public class Column implements HasSQL, Typed {
             builder.append(" ON UPDATE ");
             onUpdateExpression.getUnenclosedSQL(builder, DEFAULT_SQL_FLAGS);
         }
-        if (convertNullToDefault) {
-            builder.append(" NULL_TO_DEFAULT");
+        if (defaultOnNull) {
+            builder.append(" DEFAULT ON NULL");
         }
         if (forMeta && sequence != null) {
             builder.append(" SEQUENCE ");
@@ -612,7 +612,7 @@ public class Column implements HasSQL, Typed {
     }
 
     private void removeNonIdentityProperties() {
-        convertNullToDefault = nullable = false;
+        nullable = false;
         onUpdateExpression = defaultExpression = null;
     }
 
@@ -626,8 +626,12 @@ public class Column implements HasSQL, Typed {
         return identityOptions;
     }
 
-    public void setConvertNullToDefault(boolean convert) {
-        this.convertNullToDefault = convert;
+    public void setDefaultOnNull(boolean defaultOnNull) {
+        this.defaultOnNull = defaultOnNull;
+    }
+
+    public boolean isDefaultOnNull() {
+        return defaultOnNull;
     }
 
     /**
@@ -757,9 +761,6 @@ public class Column implements HasSQL, Typed {
         if (nullable && !newColumn.nullable) {
             return false;
         }
-        if (convertNullToDefault != newColumn.convertNullToDefault) {
-            return false;
-        }
         if (primaryKey != newColumn.primaryKey) {
             return false;
         }
@@ -767,9 +768,6 @@ public class Column implements HasSQL, Typed {
             return false;
         }
         if (domain != newColumn.domain) {
-            return false;
-        }
-        if (convertNullToDefault || newColumn.convertNullToDefault) {
             return false;
         }
         if (defaultExpression != null || newColumn.defaultExpression != null) {
@@ -799,7 +797,7 @@ public class Column implements HasSQL, Typed {
         defaultExpression = source.defaultExpression;
         onUpdateExpression = source.onUpdateExpression;
         // identityOptions field is not set
-        convertNullToDefault = source.convertNullToDefault;
+        defaultOnNull = source.defaultOnNull;
         sequence = source.sequence;
         comment = source.comment;
         generatedTableFilter = source.generatedTableFilter;

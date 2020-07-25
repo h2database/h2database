@@ -894,9 +894,13 @@ public abstract class Table extends SchemaObjectBase {
      * column is updated when required by compatibility mode.
      *
      * @param session the session
+     * @param overridingSystem
+     *            {@link Boolean#TRUE} for {@code OVERRIDING SYSTEM VALUES},
+     *            {@link Boolean#FALSE} for {@code OVERRIDING USER VALUES},
+     *            {@code null} if override clause is not specified
      * @param row the row
      */
-    public void convertInsertRow(SessionLocal session, Row row) {
+    public void convertInsertRow(SessionLocal session, Row row, Boolean overridingSystem) {
         int length = columns.length, generated = 0;
         for (int i = 0; i < length; i++) {
             Value value = row.getValue(i);
@@ -904,14 +908,22 @@ public abstract class Table extends SchemaObjectBase {
             if (value == ValueNull.INSTANCE && column.isDefaultOnNull()) {
                 value = null;
             }
-            if (column.isGeneratedAlways()) {
+            if (column.isIdentity()) {
+                if (overridingSystem != null) {
+                    if (!overridingSystem) {
+                        value = null;
+                    }
+                } else if (value != null && column.isGeneratedAlways()) {
+                    throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
+                            column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
+                }
+            } else if (column.isGeneratedAlways()) {
                 if (value != null) {
                     throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
                             column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
-                } else if (column.getDefaultExpression() != null) {
-                    generated++;
-                    continue;
                 }
+                generated++;
+                continue;
             }
             Value v2 = column.validateConvertUpdateSequence(session, value, row);
             if (v2 != value) {

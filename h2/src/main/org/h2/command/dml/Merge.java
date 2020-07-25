@@ -186,7 +186,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
         // if update fails try an insert
         if (count == 0) {
             try {
-                table.convertInsertRow(session, row);
+                table.convertInsertRow(session, row, null);
                 if (deltaChangeCollectionMode == ResultOption.NEW) {
                     deltaChangeCollector.addRow(row.getValueList().clone());
                 }

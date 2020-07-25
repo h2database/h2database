@@ -1840,6 +1840,7 @@ public class Parser {
         read("THEN");
         read("INSERT");
         Column[] columns = readIf(OPEN_PAREN) ? parseColumnList(command.getTargetTableFilter().getTable()) : null;
+        Boolean overridingSystem = readIfOverriding();
         read(VALUES);
         read(OPEN_PAREN);
         ArrayList<Expression> values = Utils.newSmallArrayList();
@@ -1848,7 +1849,7 @@ public class Parser {
                 values.add(readExpressionOrDefault());
             } while (readIfMore());
         }
-        MergeUsing.WhenNotMatched when = new MergeUsing.WhenNotMatched(command, columns,
+        MergeUsing.WhenNotMatched when = new MergeUsing.WhenNotMatched(command, columns, overridingSystem,
                 values.toArray(new Expression[0]));
         when.setAndCondition(and);
         command.addWhen(when);
@@ -1874,20 +1875,33 @@ public class Parser {
             columns = parseColumnList(table);
             command.setColumns(columns);
         }
+        Boolean overridingSystem = readIfOverriding();
+        command.setOverridingSystem(overridingSystem);
+        boolean requireQuery = false;
         if (readIf("DIRECT")) {
+            requireQuery = true;
             command.setInsertFromSelect(true);
         }
         if (readIf("SORTED")) {
+            requireQuery = true;
             command.setSortedInsertMode(true);
         }
-        if (readIf(DEFAULT)) {
-            read(VALUES);
-            command.addRow(new Expression[0]);
-        } else if (readIf(VALUES)) {
-            parseValuesForCommand(command);
-        } else if (readIf(SET)) {
-            parseInsertSet(command, table, columns);
-        } else {
+        readValues: {
+            if (!requireQuery) {
+                if (overridingSystem == null && readIf(DEFAULT)) {
+                    read(VALUES);
+                    command.addRow(new Expression[0]);
+                    break readValues;
+                }
+                if (readIf(VALUES)) {
+                    parseValuesForCommand(command);
+                    break readValues;
+                }
+                if (readIf(SET)) {
+                    parseInsertSet(command, table, columns);
+                    break readValues;
+                }
+            }
             command.setQuery(parseQuery());
         }
         if (mode.onDuplicateKeyUpdate || mode.insertOnConflict || mode.isolationLevelInSelectOrInsertStatement) {
@@ -1895,6 +1909,20 @@ public class Parser {
         }
         setSQL(command, start);
         return command;
+    }
+
+    private Boolean readIfOverriding() {
+        Boolean overridingSystem = null;
+        if (readIf("OVERRIDING")) {
+            if (readIf(USER)) {
+                overridingSystem = Boolean.FALSE;
+            } else {
+                read("SYSTEM");
+                overridingSystem = Boolean.TRUE;
+            }
+            read(VALUE);
+        }
+        return overridingSystem;
     }
 
     private void parseInsertSet(Insert command, Table table, Column[] columns) {

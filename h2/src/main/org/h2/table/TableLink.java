@@ -686,7 +686,7 @@ public class TableLink extends Table {
     }
 
     @Override
-    public void convertInsertRow(SessionLocal session, Row row) {
+    public void convertInsertRow(SessionLocal session, Row row, Boolean overridingSystem) {
         convertRow(session, row);
     }
 

@@ -534,7 +534,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
                     }
                 }
             }
-            table.validateConvertUpdateSequence(session, newRow, false);
+            table.convertInsertRow(session, newRow);
             if (deltaChangeCollectionMode == ResultOption.NEW) {
                 deltaChangeCollector.addRow(newRow.getValueList().clone());
             }

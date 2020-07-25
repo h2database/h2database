@@ -147,7 +147,7 @@ public class TestAlter extends TestDb {
 
     private void testAlterTableAddColumnIdentity() throws SQLException {
         stat.execute("create table t(x varchar)");
-        stat.execute("alter table t add id bigint identity(5, 5) not null");
+        stat.execute("alter table t add id bigint identity(5, 5) default on null");
         stat.execute("insert into t values (null, null)");
         stat.execute("insert into t values (null, null)");
         ResultSet rs = stat.executeQuery("select id from t order by id");

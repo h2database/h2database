@@ -61,7 +61,7 @@ public class TestTempTables extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("create local temporary table test(id identity)");
         PreparedStatement prep = conn
-                .prepareStatement("insert into test values(null)");
+                .prepareStatement("insert into test default values");
         for (int i = 0; i < 10000; i++) {
             prep.execute();
         }
@@ -79,7 +79,7 @@ public class TestTempTables extends TestDb {
         if ((iface instanceof SessionLocal)) {
             assertEquals(1, ((SessionLocal) iface).getDatabase().getMainSchema().getAllSequences().size());
         }
-        stat.execute("insert into test values(null)");
+        stat.execute("insert into test default values");
         stat.execute("shutdown");
         conn.close();
         conn = getConnection("tempTables");

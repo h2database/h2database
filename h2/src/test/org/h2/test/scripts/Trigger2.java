@@ -9,7 +9,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 
 import org.h2.api.Trigger;
 
@@ -21,16 +20,17 @@ public class Trigger2 implements Trigger {
     @Override
     public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
         if (oldRow == null && newRow != null) {
-            PreparedStatement prep = conn.prepareStatement(
-                    "SELECT * FROM FINAL TABLE (INSERT INTO TEST VALUES (?, ?, ?))");
             Long id = (Long) newRow[0];
-            if (id != null) {
-                prep.setLong(1, id);
+            PreparedStatement prep;
+            int i = 0;
+            if (id == null) {
+                prep = conn.prepareStatement("SELECT * FROM FINAL TABLE (INSERT INTO TEST VALUES (DEFAULT, ?, ?))");
             } else {
-                prep.setNull(1, Types.BIGINT);
+                prep = conn.prepareStatement("SELECT * FROM FINAL TABLE (INSERT INTO TEST VALUES (?, ?, ?))");
+                prep.setLong(++i, id);
             }
-            prep.setInt(2, (int) newRow[1]);
-            prep.setInt(3, (int) newRow[2]);
+            prep.setInt(++i, (int) newRow[1]);
+            prep.setInt(++i, (int) newRow[2]);
             executeAndReadFinalTable(prep, newRow);
         } else if (oldRow != null && newRow != null) {
             PreparedStatement prep = conn.prepareStatement(

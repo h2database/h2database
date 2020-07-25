@@ -685,16 +685,17 @@ public class TableLink extends Table {
         // only the target database can verify this
     }
 
-    /**
-     * Convert the values if required. Default values are not set (kept as
-     * null).
-     *
-     * @param session the session
-     * @param row the row
-     * @param forUpdate {@code false} for INSERT, {@code true} for UPDATE
-     */
     @Override
-    public void validateConvertUpdateSequence(SessionLocal session, Row row, boolean forUpdate) {
+    public void convertInsertRow(SessionLocal session, Row row) {
+        convertRow(session, row);
+    }
+
+    @Override
+    public void convertUpdateRow(SessionLocal session, Row row) {
+        convertRow(session, row);
+    }
+
+    private void convertRow(SessionLocal session, Row row) {
         for (int i = 0; i < columns.length; i++) {
             Value value = row.getValue(i);
             if (value != null) {

@@ -361,22 +361,16 @@ public class Column implements HasSQL, Typed {
      * @return the new or converted value
      */
     Value validateConvertUpdateSequence(SessionLocal session, Value value, Row row) {
-        if (value == null) {
-            if (sequence != null) {
-                value = session.getNextValueFor(sequence, null);
-            } else {
+        check: {
+            if (value == null) {
+                if (sequence != null) {
+                    value = session.getNextValueFor(sequence, null);
+                    break check;
+                }
                 value = getDefaultOrGenerated(session, row);
             }
-        } else if (value == ValueNull.INSTANCE) {
-            if (sequence != null) {
-                value = session.getNextValueFor(sequence, null);
-            } else {
-                if (defaultOnNull) {
-                    value = getEffectiveDefaultExpression().getValue(session);
-                }
-                if (value == ValueNull.INSTANCE && !nullable) {
-                    throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, name);
-                }
+            if (value == ValueNull.INSTANCE && !nullable) {
+                throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, name);
             }
         }
         try {
@@ -400,9 +394,6 @@ public class Column implements HasSQL, Typed {
         Value value;
         Expression localDefaultExpression = getEffectiveDefaultExpression();
         if (localDefaultExpression == null) {
-            if (!nullable) {
-                throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, name);
-            }
             value = ValueNull.INSTANCE;
         } else {
             if (isGeneratedAlways) {
@@ -416,9 +407,6 @@ public class Column implements HasSQL, Typed {
                 }
             } else {
                 value = localDefaultExpression.getValue(session);
-            }
-            if (value == ValueNull.INSTANCE && !nullable) {
-                throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, name);
             }
         }
         return value;

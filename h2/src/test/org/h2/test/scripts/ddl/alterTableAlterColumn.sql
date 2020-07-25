@@ -219,7 +219,7 @@ alter table t alter column x int;
 drop table t;
 > ok
 
-create table t(id identity, x varchar) as select null, 'x';
+create table t(id identity default on null, x varchar) as select null, 'x';
 > ok
 
 alter table t alter column x int;

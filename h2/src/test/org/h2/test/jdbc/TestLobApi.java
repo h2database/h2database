@@ -116,7 +116,7 @@ public class TestLobApi extends TestDb {
         stat = conn.createStatement();
         stat.execute("create table test(id identity, c clob, b blob)");
         PreparedStatement prep = conn.prepareStatement(
-                "insert into test values(null, ?, ?)");
+                "insert into test(c, b) values(?, ?)");
         prep.setString(1, "");
         prep.setBytes(2, new byte[0]);
         prep.execute();
@@ -184,7 +184,7 @@ public class TestLobApi extends TestDb {
         stat = conn.createStatement();
         stat.execute("create table test(id identity, c clob, b blob)");
         PreparedStatement prep = conn.prepareStatement(
-                "insert into test values(null, ?, ?)");
+                "insert into test(c, b) values(?, ?)");
 
         assertThrows(ErrorCode.IO_EXCEPTION_1, prep).
                 setCharacterStream(1, new Reader() {

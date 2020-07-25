@@ -385,12 +385,34 @@ public class ScriptCommand extends ScriptBase {
         Index index = plan.getIndex();
         Cursor cursor = index.find(session, null, null);
         Column[] columns = table.getColumns();
+        boolean withGenerated = false, withGeneratedAlwaysAsIdentity = false;
+        for (Column c : columns) {
+            if (c.isGeneratedAlways()) {
+                if (c.isIdentity()) {
+                    withGeneratedAlwaysAsIdentity = true;
+                } else {
+                    withGenerated = true;
+                }
+            }
+        }
         StringBuilder builder = new StringBuilder("INSERT INTO ");
         table.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
-        if (withColumns) {
+        if (withGenerated || withGeneratedAlwaysAsIdentity || withColumns) {
             builder.append('(');
-            Column.writeColumns(builder, columns, HasSQL.DEFAULT_SQL_FLAGS);
+            boolean needComma = false;
+            for (Column column : columns) {
+                if (!column.isGenerated()) {
+                    if (needComma) {
+                        builder.append(", ");
+                    }
+                    needComma = true;
+                    column.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
+                }
+            }
             builder.append(')');
+            if (withGeneratedAlwaysAsIdentity) {
+                builder.append(" OVERRIDING SYSTEM VALUE");
+            }
         }
         builder.append(" VALUES");
         if (!simple) {
@@ -399,6 +421,7 @@ public class ScriptCommand extends ScriptBase {
         builder.append('(');
         String ins = builder.toString();
         builder = null;
+        int columnCount = columns.length;
         while (cursor.next()) {
             Row row = cursor.get();
             if (builder == null) {
@@ -406,11 +429,16 @@ public class ScriptCommand extends ScriptBase {
             } else {
                 builder.append(",\n(");
             }
-            for (int j = 0; j < row.getColumnCount(); j++) {
-                if (j > 0) {
+            boolean needComma = false;
+            for (int i = 0; i < columnCount; i++) {
+                if (columns[i].isGenerated()) {
+                    continue;
+                }
+                if (needComma) {
                     builder.append(", ");
                 }
-                Value v = row.getValue(j);
+                needComma = true;
+                Value v = row.getValue(i);
                 if (v.getType().getPrecision() > lobBlockSize) {
                     int id;
                     if (v.getValueType() == Value.CLOB) {

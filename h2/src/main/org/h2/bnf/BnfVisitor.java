@@ -52,6 +52,13 @@ public interface BnfVisitor {
     void visitRuleOptional(Rule rule);
 
     /**
+     * Visit an OR list of optional rules.
+     *
+     * @param list the optional rules
+     */
+    void visitRuleOptional(ArrayList<Rule> list);
+
+    /**
      * Visit a rule with non-standard extension.
      *
      * @param rule the rule

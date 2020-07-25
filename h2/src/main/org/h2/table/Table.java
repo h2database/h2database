@@ -887,30 +887,81 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
-     * Validate all values in this row, convert the values if required, and
-     * update the sequence values if required. This call will also set the
-     * default values if required and set the computed column if there are any.
+     * Prepares the specified row for INSERT operation.
+     *
+     * Identity, default, and generated values are evaluated, all values are
+     * converted to target data types and validated. Base value of identity
+     * column is updated when required by compatibility mode.
      *
      * @param session the session
+     * @param overridingSystem
+     *            {@link Boolean#TRUE} for {@code OVERRIDING SYSTEM VALUES},
+     *            {@link Boolean#FALSE} for {@code OVERRIDING USER VALUES},
+     *            {@code null} if override clause is not specified
      * @param row the row
-     * @param forUpdate {@code false} for INSERT, {@code true} for UPDATE
      */
-    public void validateConvertUpdateSequence(SessionLocal session, Row row, boolean forUpdate) {
+    public void convertInsertRow(SessionLocal session, Row row, Boolean overridingSystem) {
         int length = columns.length, generated = 0;
         for (int i = 0; i < length; i++) {
             Value value = row.getValue(i);
             Column column = columns[i];
-            if (column.isGeneratedAlways()) {
-                boolean isGenerated = column.getDefaultExpression() != null;
-                if (value != null) {
-                    if (isGenerated || !forUpdate) {
-                        throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
-                                column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
+            if (value == ValueNull.INSTANCE && column.isDefaultOnNull()) {
+                value = null;
+            }
+            if (column.isIdentity()) {
+                if (overridingSystem != null) {
+                    if (!overridingSystem) {
+                        value = null;
                     }
-                } else if (isGenerated) {
-                    generated++;
-                    continue;
+                } else if (value != null && column.isGeneratedAlways()) {
+                    throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
+                            column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
                 }
+            } else if (column.isGeneratedAlways()) {
+                if (value != null) {
+                    throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
+                            column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
+                }
+                generated++;
+                continue;
+            }
+            Value v2 = column.validateConvertUpdateSequence(session, value, row);
+            if (v2 != value) {
+                row.setValue(i, v2);
+            }
+        }
+        if (generated > 0) {
+            for (int i = 0; i < length; i++) {
+                Value value = row.getValue(i);
+                if (value == null) {
+                    row.setValue(i, columns[i].validateConvertUpdateSequence(session, null, row));
+                }
+            }
+        }
+    }
+
+    /**
+     * Prepares the specified row for UPDATE operation.
+     *
+     * Default and generated values are evaluated, all values are converted to
+     * target data types and validated. Base value of identity column is updated
+     * when required by compatibility mode.
+     *
+     * @param session the session
+     * @param row the row
+     */
+    public void convertUpdateRow(SessionLocal session, Row row) {
+        int length = columns.length, generated = 0;
+        for (int i = 0; i < length; i++) {
+            Value value = row.getValue(i);
+            Column column = columns[i];
+            if (column.isGenerated()) {
+                if (value != null) {
+                    throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
+                            column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
+                }
+                generated++;
+                continue;
             }
             Value v2 = column.validateConvertUpdateSequence(session, value, row);
             if (v2 != value) {

@@ -78,17 +78,17 @@ public class TestPowerOff extends TestDb {
         stat = conn.createStatement();
         stat.execute("set write_delay 0");
         ((JdbcConnection) conn).setPowerOffCount(Integer.MAX_VALUE);
-        stat.execute("insert into test values(null, space(11000))");
+        stat.execute("insert into test(data) values space(11000)");
         int max = Integer.MAX_VALUE - ((JdbcConnection) conn).getPowerOffCount();
         for (int i = 0; i < max + 10; i++) {
             conn.close();
             conn = getConnection(url);
             stat = conn.createStatement();
-            stat.execute("insert into test values(null, space(11000))");
+            stat.execute("insert into test(data) values space(11000)");
             stat.execute("set write_delay 0");
             ((JdbcConnection) conn).setPowerOffCount(i);
             try {
-                stat.execute("insert into test values(null, space(11000))");
+                stat.execute("insert into test(data) values space(11000)");
             } catch (SQLException e) {
                 // ignore
             }

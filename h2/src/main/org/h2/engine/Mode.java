@@ -362,6 +362,11 @@ public class Mode {
     public boolean takeGeneratedSequenceValue;
 
     /**
+     * If {@code true}, identity columns have DEFAULT ON NULL clause.
+     */
+    public boolean identityColumnsHaveDefaultOnNull;
+
+    /**
      * If {@code true}, case specification may have an optional CASE keyword
      * after END.
      */
@@ -436,6 +441,7 @@ public class Mode {
 
         mode = new Mode(ModeEnum.HSQLDB);
         mode.allowPlusForStringConcat = true;
+        mode.identityColumnsHaveDefaultOnNull = true;
         // HSQLDB does not support client info properties. See
         // http://hsqldb.org/doc/apidocs/org/hsqldb/jdbc/JDBCConnection.html#setClientInfo-java.lang.String-java.lang.String-
         mode.supportedClientInfoPropertiesRegEx = null;
@@ -495,6 +501,7 @@ public class Mode {
         mode.nextValueReturnsDifferentValues = true;
         mode.updateSequenceOnManualIdentityInsertion = true;
         mode.takeInsertedIdentity = true;
+        mode.identityColumnsHaveDefaultOnNull = true;
         mode.allowEndCase = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;

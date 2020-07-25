@@ -28,6 +28,7 @@ import static org.h2.util.ParserUtil.CURRENT_TIME;
 import static org.h2.util.ParserUtil.CURRENT_TIMESTAMP;
 import static org.h2.util.ParserUtil.CURRENT_USER;
 import static org.h2.util.ParserUtil.DAY;
+import static org.h2.util.ParserUtil.DEFAULT;
 import static org.h2.util.ParserUtil.DISTINCT;
 import static org.h2.util.ParserUtil.ELSE;
 import static org.h2.util.ParserUtil.END;
@@ -568,6 +569,8 @@ public class Parser {
             "CURRENT_USER",
             // DAY
             "DAY",
+            // DEFAULT
+            "DEFAULT",
             // DISTINCT
             "DISTINCT",
             // ELSE
@@ -1665,7 +1668,7 @@ public class Parser {
             buff.append(')'
                     + "WHEN 'PRIMARY KEY' THEN 'PRI' "
                     + "WHEN 'UNIQUE INDEX' THEN 'UNI' ELSE '' END `KEY`, "
-                    + "COALESCE(COLUMN_DEFAULT, 'NULL') DEFAULT "
+                    + "COALESCE(COLUMN_DEFAULT, 'NULL') `DEFAULT` "
                     + "FROM INFORMATION_SCHEMA.COLUMNS C "
                     + "WHERE C.TABLE_NAME=?1 AND C.TABLE_SCHEMA=?2 "
                     + "ORDER BY C.ORDINAL_POSITION");
@@ -1837,6 +1840,7 @@ public class Parser {
         read("THEN");
         read("INSERT");
         Column[] columns = readIf(OPEN_PAREN) ? parseColumnList(command.getTargetTableFilter().getTable()) : null;
+        Boolean overridingSystem = readIfOverriding();
         read(VALUES);
         read(OPEN_PAREN);
         ArrayList<Expression> values = Utils.newSmallArrayList();
@@ -1845,7 +1849,7 @@ public class Parser {
                 values.add(readExpressionOrDefault());
             } while (readIfMore());
         }
-        MergeUsing.WhenNotMatched when = new MergeUsing.WhenNotMatched(command, columns,
+        MergeUsing.WhenNotMatched when = new MergeUsing.WhenNotMatched(command, columns, overridingSystem,
                 values.toArray(new Expression[0]));
         when.setAndCondition(and);
         command.addWhen(when);
@@ -1871,20 +1875,33 @@ public class Parser {
             columns = parseColumnList(table);
             command.setColumns(columns);
         }
+        Boolean overridingSystem = readIfOverriding();
+        command.setOverridingSystem(overridingSystem);
+        boolean requireQuery = false;
         if (readIf("DIRECT")) {
+            requireQuery = true;
             command.setInsertFromSelect(true);
         }
         if (readIf("SORTED")) {
+            requireQuery = true;
             command.setSortedInsertMode(true);
         }
-        if (readIf("DEFAULT")) {
-            read(VALUES);
-            command.addRow(new Expression[0]);
-        } else if (readIf(VALUES)) {
-            parseValuesForCommand(command);
-        } else if (readIf(SET)) {
-            parseInsertSet(command, table, columns);
-        } else {
+        readValues: {
+            if (!requireQuery) {
+                if (overridingSystem == null && readIf(DEFAULT)) {
+                    read(VALUES);
+                    command.addRow(new Expression[0]);
+                    break readValues;
+                }
+                if (readIf(VALUES)) {
+                    parseValuesForCommand(command);
+                    break readValues;
+                }
+                if (readIf(SET)) {
+                    parseInsertSet(command, table, columns);
+                    break readValues;
+                }
+            }
             command.setQuery(parseQuery());
         }
         if (mode.onDuplicateKeyUpdate || mode.insertOnConflict || mode.isolationLevelInSelectOrInsertStatement) {
@@ -1892,6 +1909,20 @@ public class Parser {
         }
         setSQL(command, start);
         return command;
+    }
+
+    private Boolean readIfOverriding() {
+        Boolean overridingSystem = null;
+        if (readIf("OVERRIDING")) {
+            if (readIf(USER)) {
+                overridingSystem = Boolean.FALSE;
+            } else {
+                read("SYSTEM");
+                overridingSystem = Boolean.TRUE;
+            }
+            read(VALUE);
+        }
+        return overridingSystem;
     }
 
     private void parseInsertSet(Insert command, Table table, Column[] columns) {
@@ -3212,7 +3243,7 @@ public class Parser {
     }
 
     private Expression readExpressionOrDefault() {
-        if (readIf("DEFAULT")) {
+        if (readIf(DEFAULT)) {
             return ValueExpression.DEFAULT;
         }
         return readExpression();
@@ -6508,17 +6539,23 @@ public class Parser {
         } else if (readIf("VISIBLE")) {
             column.setVisible(true);
         }
+        boolean defaultOnNull = false;
         NullConstraintType nullConstraint = parseNotNullConstraint();
         defaultIdentityGeneration: if (!column.isIdentity()) {
             if (readIf(AS)) {
                 column.setGeneratedExpression(readExpression());
-            } else if (readIf("DEFAULT")) {
+            } else if (readIf(DEFAULT)) {
+                if (readIf(ON)) {
+                    read(NULL);
+                    defaultOnNull = true;
+                    break defaultIdentityGeneration;
+                }
                 column.setDefaultExpression(session, readExpression());
             } else if (readIf("GENERATED")) {
                 boolean always = readIf("ALWAYS");
                 if (!always) {
                     read("BY");
-                    read("DEFAULT");
+                    read(DEFAULT);
                 }
                 read(AS);
                 if (readIf("IDENTITY")) {
@@ -6568,10 +6605,19 @@ public class Parser {
             throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
                     "Internal Error - unhandled case: " + nullConstraint.name());
         }
-        if (!column.isGenerated()) {
-            if (readIf("NULL_TO_DEFAULT")) {
-                column.setConvertNullToDefault(true);
+        if (!defaultOnNull) {
+            if (readIf(DEFAULT)) {
+                read(ON);
+                read(NULL);
+                defaultOnNull = true;
+            } else if (readIf("NULL_TO_DEFAULT")) {
+                defaultOnNull = true;
             }
+        }
+        if (defaultOnNull) {
+            column.setDefaultOnNull(true);
+        }
+        if (!column.isGenerated()) {
             if (readIf("SEQUENCE")) {
                 column.setSequence(readSequence(), column.isGeneratedAlways());
             }
@@ -7571,7 +7617,7 @@ public class Parser {
         command.setTypeName(domainName);
         readIf(AS);
         Column column = parseColumnWithType("VALUE");
-        if (readIf("DEFAULT")) {
+        if (readIf(DEFAULT)) {
             column.setDefaultExpression(session, readExpression());
         }
         if (readIf(ON)) {
@@ -8113,7 +8159,7 @@ public class Parser {
                 command.setDomainName(domainName);
                 command.setIfDomainExists(ifDomainExists);
                 return command;
-            } else if (readIf("DEFAULT")) {
+            } else if (readIf(DEFAULT)) {
                 AlterDomain command = new AlterDomain(session, schema, CommandInterface.ALTER_DOMAIN_DEFAULT);
                 command.setDomainName(domainName);
                 command.setIfDomainExists(ifDomainExists);
@@ -8138,7 +8184,7 @@ public class Parser {
             return command;
         } else {
             read(SET);
-            if (readIf("DEFAULT")) {
+            if (readIf(DEFAULT)) {
                 AlterDomain command = new AlterDomain(session, schema, CommandInterface.ALTER_DOMAIN_DEFAULT);
                 command.setDomainName(domainName);
                 command.setIfDomainExists(ifDomainExists);
@@ -8990,7 +9036,17 @@ public class Parser {
             command.setNewColumnName(newName);
             return command;
         } else if (readIf("DROP")) {
-            if (readIf("DEFAULT")) {
+            if (readIf(DEFAULT)) {
+                if (readIf(ON)) {
+                    read(NULL);
+                    AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
+                    command.setTableName(tableName);
+                    command.setIfTableExists(ifTableExists);
+                    command.setOldColumn(column);
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT_ON_NULL);
+                    command.setBooleanFlag(false);
+                    return command;
+                }
                 return getAlterTableAlterColumnDropDefaultExpression(schema, tableName, ifTableExists, column,
                         CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
             } else if (readIf("EXPRESSION")) {
@@ -9063,7 +9119,7 @@ public class Parser {
                 always = true;
             } else {
                 read("BY");
-                read("DEFAULT");
+                read(DEFAULT);
                 always = false;
             }
         } else {
@@ -9114,7 +9170,13 @@ public class Parser {
             command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL);
             break;
         case NO_NULL_CONSTRAINT_FOUND:
-            if (readIf("DEFAULT")) {
+            if (readIf(DEFAULT)) {
+                if (readIf(ON)) {
+                    read(NULL);
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT_ON_NULL);
+                    command.setBooleanFlag(true);
+                    break;
+                }
                 Expression defaultExpression = readExpression();
                 command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
                 command.setDefaultExpression(defaultExpression);
@@ -9125,10 +9187,10 @@ public class Parser {
                 command.setDefaultExpression(onUpdateExpression);
             } else if (readIf("INVISIBLE")) {
                 command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
-                command.setVisible(false);
+                command.setBooleanFlag(false);
             } else if (readIf("VISIBLE")) {
                 command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
-                command.setVisible(true);
+                command.setBooleanFlag(true);
             }
             break;
         default:
@@ -9488,7 +9550,7 @@ public class Parser {
         if (readIf(NULL)) {
             return ConstraintActionType.SET_NULL;
         }
-        read("DEFAULT");
+        read(DEFAULT);
         return ConstraintActionType.SET_DEFAULT;
     }
 
@@ -9898,7 +9960,7 @@ public class Parser {
                     }
                     throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, "AUTO_INCREMENT PRIMARY KEY");
                 }
-            } else if (readIf("DEFAULT")) {
+            } else if (readIf(DEFAULT)) {
                 if (readIf("CHARACTER")) {
                     read(SET);
                 } else {

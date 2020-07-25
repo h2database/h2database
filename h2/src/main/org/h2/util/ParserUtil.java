@@ -120,9 +120,14 @@ public class ParserUtil {
     public static final int DAY = CURRENT_USER + 1;
 
     /**
+     * The token "DEFAULT".
+     */
+    public static final int DEFAULT = DAY + 1;
+
+    /**
      * The token "DISTINCT".
      */
-    public static final int DISTINCT = DAY + 1;
+    public static final int DISTINCT = DEFAULT + 1;
 
     /**
      * The token "ELSE".
@@ -666,6 +671,8 @@ public class ParserUtil {
         case 'D':
             if (eq("DAY", s, ignoreCase, start, length)) {
                 return DAY;
+            } else if (eq("DEFAULT", s, ignoreCase, start, length)) {
+                return DEFAULT;
             } else if (eq("DISTINCT", s, ignoreCase, start, length)) {
                 return DISTINCT;
             }

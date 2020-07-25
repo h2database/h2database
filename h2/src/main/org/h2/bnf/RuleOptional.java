@@ -20,6 +20,13 @@ public class RuleOptional implements Rule {
 
     @Override
     public void accept(BnfVisitor visitor) {
+        if (rule instanceof RuleList) {
+            RuleList ruleList = (RuleList) rule;
+            if (ruleList.or) {
+                visitor.visitRuleOptional(ruleList.list);
+                return;
+            }
+        }
         visitor.visitRuleOptional(rule);
     }
 

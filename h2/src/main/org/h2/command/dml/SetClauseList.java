@@ -253,16 +253,18 @@ public final class SetClauseList implements HasSQL {
             } else if (action == UpdateAction.SET_DEFAULT) {
                 newValue = !column.isIdentity() ? null : oldRow.getValue(i);
             } else {
-                if (column.isGeneratedAlways()) {
+                newValue = action.update(session);
+                if (newValue == ValueNull.INSTANCE && column.isDefaultOnNull()) {
+                    newValue = !column.isIdentity() ? null : oldRow.getValue(i);
+                } else if (column.isGeneratedAlways()) {
                     throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
                             column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
                 }
-                newValue = action.update(session);
             }
             newRow.setValue(i, newValue);
         }
         newRow.setKey(oldRow.getKey());
-        table.validateConvertUpdateSequence(session, newRow, true);
+        table.convertUpdateRow(session, newRow);
         boolean result = true;
         if (onUpdate) {
             if (!oldRow.hasSameValues(newRow)) {
@@ -275,7 +277,7 @@ public final class SetClauseList implements HasSQL {
                 }
                 // Convert on update expressions and reevaluate
                 // generated columns
-                table.validateConvertUpdateSequence(session, newRow, true);
+                table.convertUpdateRow(session, newRow);
             } else if (updateToCurrentValuesReturnsZero) {
                 result = false;
             }

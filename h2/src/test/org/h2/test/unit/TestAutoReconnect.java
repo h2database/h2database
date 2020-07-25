@@ -114,7 +114,7 @@ public class TestAutoReconnect extends TestDb {
         stat.execute("create table test(id identity, name varchar)");
         restart();
         PreparedStatement prep = conn.prepareStatement(
-                "insert into test values(null, ?)");
+                "insert into test(name) values(?)");
         restart();
         prep.setString(1, "Hello");
         restart();

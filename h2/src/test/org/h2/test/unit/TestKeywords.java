@@ -145,6 +145,13 @@ public class TestKeywords extends TestBase {
                             assertEquals(10, rs.getInt(1));
                         }
                         stat.execute("DROP TABLE TEST");
+                        stat.execute("CREATE TABLE TEST(" + s + " INT, _VALUE_ INT DEFAULT 1) AS VALUES (2, 2)");
+                        stat.execute("UPDATE TEST SET _VALUE_ = " + s);
+                        try (ResultSet rs = stat.executeQuery("SELECT _VALUE_ FROM TEST")) {
+                            assertTrue(rs.next());
+                            assertEquals(2, rs.getInt(1));
+                        }
+                        stat.execute("DROP TABLE TEST");
                         try (ResultSet rs = stat.executeQuery("SELECT 1 DAY " + s)) {
                             assertEquals(s, rs.getMetaData().getColumnLabel(1));
                             assertTrue(rs.next());

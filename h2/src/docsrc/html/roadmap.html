@@ -320,7 +320,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>FTP: access to a database (.csv for a table, a directory for a schema, a file for a lob, a script.sql file).
 </li><li>Improve database file locking (maybe use native file locking). The current approach seems to be problematic
     if the file system is on a remote share (see Google Group 'Lock file modification time is in the future').
-</li><li>Document internal features such as BELONGS_TO_TABLE, NULL_TO_DEFAULT, SEQUENCE.
 </li><li>Issue 107: Prefer using the ORDER BY index if LIMIT is used.
 </li><li>An index on (id, name) should be used for a query: select * from t where s=? order by i
 </li><li>Support reading sequences using DatabaseMetaData.getTables(null, null, null, new String[]{"SEQUENCE"}).

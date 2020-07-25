@@ -369,7 +369,7 @@ public class TestIndex extends TestDb {
         Random rand = new Random(1);
         reconnect();
         stat.execute("drop all objects");
-        stat.execute("CREATE TABLE TEST(ID identity)");
+        stat.execute("CREATE TABLE TEST(ID identity default on null)");
         int len = getSize(100, 1000);
         for (int i = 0; i < len; i++) {
             switch (rand.nextInt(4)) {

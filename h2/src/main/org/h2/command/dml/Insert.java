@@ -52,6 +52,8 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
     private int rowNumber;
     private boolean insertFromSelect;
 
+    private Boolean overridingSystem;
+
     /**
      * For MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ....
      */
@@ -106,6 +108,10 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
 
     public void setQuery(Query query) {
         this.query = query;
+    }
+
+    public void setOverridingSystem(Boolean overridingSystem) {
+        this.overridingSystem = overridingSystem;
     }
 
     /**
@@ -179,7 +185,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
                     }
                 }
                 rowNumber++;
-                table.validateConvertUpdateSequence(session, newRow, false);
+                table.convertInsertRow(session, newRow, overridingSystem);
                 if (deltaChangeCollectionMode == ResultOption.NEW) {
                     deltaChangeCollector.addRow(newRow.getValueList().clone());
                 }
@@ -242,7 +248,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
         for (int j = 0, len = columns.length; j < len; j++) {
             newRow.setValue(columns[j].getColumnId(), values[j]);
         }
-        table.validateConvertUpdateSequence(session, newRow, false);
+        table.convertInsertRow(session, newRow, overridingSystem);
         if (deltaChangeCollectionMode == ResultOption.NEW) {
             deltaChangeCollector.addRow(newRow.getValueList().clone());
         }

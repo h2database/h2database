@@ -506,11 +506,14 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
 
         private Column[] columns;
 
-        private Expression[] values;
+        private final Boolean overridingSystem;
 
-        public WhenNotMatched(MergeUsing mergeUsing, Column[] columns, Expression[] values) {
+        private final Expression[] values;
+
+        public WhenNotMatched(MergeUsing mergeUsing, Column[] columns, Boolean overridingSystem, Expression[] values) {
             super(mergeUsing);
             this.columns = columns;
+            this.overridingSystem = overridingSystem;
             this.values = values;
         }
 
@@ -534,7 +537,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
                     }
                 }
             }
-            table.validateConvertUpdateSequence(session, newRow, false);
+            table.convertInsertRow(session, newRow, overridingSystem);
             if (deltaChangeCollectionMode == ResultOption.NEW) {
                 deltaChangeCollector.addRow(newRow.getValueList().clone());
             }

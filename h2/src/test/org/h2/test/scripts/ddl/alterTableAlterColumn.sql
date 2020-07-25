@@ -219,7 +219,7 @@ alter table t alter column x int;
 drop table t;
 > ok
 
-create table t(id identity, x varchar) as select null, 'x';
+create table t(id identity default on null, x varchar) as select null, 'x';
 > ok
 
 alter table t alter column x int;
@@ -772,6 +772,45 @@ SELECT COLUMN_NAME, IS_IDENTITY, IDENTITY_GENERATION, IDENTITY_BASE
 > ----------- ----------- ------------------- -------------
 > ID          YES         BY DEFAULT          3
 > rows: 1
+
+DROP TABLE TEST;
+> ok
+
+CREATE TABLE TEST(A INT DEFAULT 1, B INT DEFAULT 2 DEFAULT ON NULL);
+> ok
+
+SELECT COLUMN_NAME, COLUMN_DEFAULT, DEFAULT_ON_NULL FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
+> COLUMN_NAME COLUMN_DEFAULT DEFAULT_ON_NULL
+> ----------- -------------- ---------------
+> A           1              FALSE
+> B           2              TRUE
+> rows: 2
+
+ALTER TABLE TEST ALTER COLUMN A SET DEFAULT ON NULL;
+> ok
+
+ALTER TABLE TEST ALTER COLUMN B DROP DEFAULT ON NULL;
+> ok
+
+SELECT COLUMN_NAME, COLUMN_DEFAULT, DEFAULT_ON_NULL FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
+> COLUMN_NAME COLUMN_DEFAULT DEFAULT_ON_NULL
+> ----------- -------------- ---------------
+> A           1              TRUE
+> B           2              FALSE
+> rows: 2
+
+ALTER TABLE TEST ALTER COLUMN A SET DEFAULT ON NULL;
+> ok
+
+ALTER TABLE TEST ALTER COLUMN B DROP DEFAULT ON NULL;
+> ok
+
+SELECT COLUMN_NAME, COLUMN_DEFAULT, DEFAULT_ON_NULL FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
+> COLUMN_NAME COLUMN_DEFAULT DEFAULT_ON_NULL
+> ----------- -------------- ---------------
+> A           1              TRUE
+> B           2              FALSE
+> rows: 2
 
 DROP TABLE TEST;
 > ok

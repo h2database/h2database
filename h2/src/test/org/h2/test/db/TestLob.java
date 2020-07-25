@@ -271,7 +271,7 @@ public class TestLob extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id identity, data clob)");
         PreparedStatement prep = conn.prepareStatement(
-                "insert into test values(null, ?)");
+                "insert into test(data) values ?");
         byte[] data = new byte[256];
         Random r = new Random(1);
         for (int i = 0; i < 1000; i++) {
@@ -548,7 +548,7 @@ public class TestLob extends TestDb {
         deleteDb("lob");
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id identity, data clob) " +
+        stat.execute("create table test(id identity default on null, data clob) " +
                 "as select null, space(10000)");
         stat.execute("insert into test(data) select data from test");
         stat.execute("insert into test(data) select data from test");
@@ -1636,7 +1636,7 @@ public class TestLob extends TestDb {
         stat.execute("CREATE TABLE logs" +
                 "(id int primary key auto_increment, message CLOB)");
         PreparedStatement s1 = conn.prepareStatement(
-                "INSERT INTO logs (id, message) VALUES(null, ?)");
+                "INSERT INTO logs (message) VALUES ?");
         final Random rand = new Random(1);
         for (int i = 1; i <= 100; i++) {
             String data = randomUnicodeString(rand);

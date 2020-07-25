@@ -135,15 +135,8 @@ public class BnfRailroad implements BnfVisitor {
         StringBuilder buff = new StringBuilder();
         if (or) {
             buff.append("<table class=\"railroad\">");
-            int i = 0;
-            for (Rule r : list) {
-                String a = i == 0 ? "t" : i == list.size() - 1 ? "l" : "k";
-                i++;
-                buff.append("<tr class=\"railroad\"><td class=\"" +
-                        a + "s\"></td><td class=\"d\">");
-                r.accept(this);
-                buff.append(html);
-                buff.append("</td><td class=\"" + a + "e\"></td></tr>");
+            for (int i = 0, l = list.size() - 1; i <= l; i++) {
+                visitOrItem(buff, list.get(i), i == 0 ? "t" : i == l ? "l" : "k");
             }
             buff.append("</table>");
         } else {
@@ -163,15 +156,37 @@ public class BnfRailroad implements BnfVisitor {
     @Override
     public void visitRuleOptional(Rule rule) {
         StringBuilder buff = new StringBuilder();
-        buff.append("<table class=\"railroad\">");
-        buff.append("<tr class=\"railroad\"><td class=\"ts\"></td>" +
-                "<td class=\"d\">&nbsp;</td><td class=\"te\"></td></tr>");
+        writeOptionalStart(buff);
         buff.append("<tr class=\"railroad\">" +
                 "<td class=\"ls\"></td><td class=\"d\">");
         rule.accept(this);
         buff.append(html);
         buff.append("</td><td class=\"le\"></td></tr></table>");
         html = buff.toString();
+    }
+
+    @Override
+    public void visitRuleOptional(ArrayList<Rule> list) {
+        StringBuilder buff = new StringBuilder();
+        writeOptionalStart(buff);
+        for (int i = 0, l = list.size() - 1; i <= l; i++) {
+            visitOrItem(buff, list.get(i), i == l ? "l" : "k");
+        }
+        buff.append("</table>");
+        html = buff.toString();
+    }
+
+    private static void writeOptionalStart(StringBuilder buff) {
+        buff.append("<table class=\"railroad\">");
+        buff.append("<tr class=\"railroad\"><td class=\"ts\"></td>" +
+                "<td class=\"d\">&nbsp;</td><td class=\"te\"></td></tr>");
+    }
+
+    private void visitOrItem(StringBuilder buff, Rule r, String a) {
+        buff.append("<tr class=\"railroad\"><td class=\"" + a + "s\"></td><td class=\"d\">");
+        r.accept(this);
+        buff.append(html);
+        buff.append("</td><td class=\"" + a + "e\"></td></tr>");
     }
 
     @Override

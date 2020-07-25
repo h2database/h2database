@@ -261,7 +261,7 @@ public class TestMultiThread extends TestDb implements Runnable {
             Statement stmt = conn.createStatement();
             while (!parent.stop) {
                 stmt.execute("SELECT COUNT(*) FROM TEST");
-                stmt.execute("INSERT INTO TEST VALUES(NULL, 'Hi')");
+                stmt.execute("INSERT INTO TEST(NAME) VALUES('Hi')");
                 PreparedStatement prep = conn.prepareStatement(
                         "UPDATE TEST SET NAME='Hello' WHERE ID=?");
                 prep.setInt(1, random.nextInt(10000));

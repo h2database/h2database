@@ -916,6 +916,7 @@ To use the HSQLDB mode, use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB;DE
 or the SQL statement <code>SET MODE HSQLDB</code>.
 </p>
 <ul><li>Text can be concatenated using '+'.
+</li><li>NULL value works like DEFAULT value is assignments to identity columns.
 </li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
@@ -969,6 +970,7 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
     with MariaDB.
 </li><li>If value of an identity column was manually specified, its sequence is updated to generate values after
 inserted.
+</li><li>NULL value works like DEFAULT value is assignments to identity columns.
 </li><li>Case specification may end with END CASE.
 </li></ul>
 <p>

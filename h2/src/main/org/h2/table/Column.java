@@ -638,6 +638,9 @@ public class Column implements HasSQL, Typed {
         this.identityOptions = null;
         if (sequence != null) {
             removeNonIdentityProperties();
+            if (sequence.getDatabase().getMode().identityColumnsHaveDefaultOnNull) {
+                defaultOnNull = true;
+            }
         }
     }
 

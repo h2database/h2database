@@ -501,6 +501,8 @@ ALTER COLUMN @h2@ [ IF EXISTS ] columnName
     | DROP EXPRESSION
     | @h2@ { SET ON UPDATE expression }
     | @h2@ { DROP ON UPDATE }
+    | @h2@ { SET DEFAULT ON NULL }
+    | @h2@ { DROP DEFAULT ON NULL }
     | { SET NOT NULL }
     | { DROP NOT NULL } | @c@ { SET NULL }
     | { SET DATA TYPE dataTypeOrDomain @h2@ [ USING newValueExpression ] }
@@ -532,6 +534,10 @@ SET ON UPDATE changes the value that is set on update if value for this column i
 This command doesn't affect generated and identity columns.
 
 DROP ON UPDATE removes the value that is set on update of a column.
+
+SET DEFAULT ON NULL makes NULL value work as DEFAULT value is assignments to this column.
+
+DROP DEFAULT ON NULL makes NULL value work as NULL value in assignments to this column.
 
 SET NOT NULL sets a column to not allow NULL. Rows may not contain NULL in this column.
 
@@ -2778,6 +2784,7 @@ dataTypeOrDomain @h2@ [ VISIBLE | INVISIBLE ]
     | GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequenceOption [...])]} ]
 @h2@ [ ON UPDATE expression ] @c@ [ [ NOT ] NULL ]
 @c@ [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
+@h2@ [ DEFAULT ON NULL ]
 @h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
 [ columnConstraintDefinition ] [...]
 ","
@@ -2804,6 +2811,8 @@ GENERATED ALWAYS AS IDENTITY clause indicates that column can only be generated 
 its value cannot be set explicitly.
 Identity column has implicit NOT NULL constraint.
 Identity column may not have DEFAULT or ON UPDATE expressions.
+
+DEFAULT ON NULL makes NULL value work as DEFAULT value is assignments to this column.
 
 The invisible column will not be displayed as a result of SELECT * query.
 Otherwise, it works as normal column.

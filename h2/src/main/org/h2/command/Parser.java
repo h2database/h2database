@@ -9009,6 +9009,16 @@ public class Parser {
             return command;
         } else if (readIf("DROP")) {
             if (readIf(DEFAULT)) {
+                if (readIf(ON)) {
+                    read(NULL);
+                    AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
+                    command.setTableName(tableName);
+                    command.setIfTableExists(ifTableExists);
+                    command.setOldColumn(column);
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT_ON_NULL);
+                    command.setBooleanFlag(false);
+                    return command;
+                }
                 return getAlterTableAlterColumnDropDefaultExpression(schema, tableName, ifTableExists, column,
                         CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
             } else if (readIf("EXPRESSION")) {
@@ -9133,6 +9143,12 @@ public class Parser {
             break;
         case NO_NULL_CONSTRAINT_FOUND:
             if (readIf(DEFAULT)) {
+                if (readIf(ON)) {
+                    read(NULL);
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT_ON_NULL);
+                    command.setBooleanFlag(true);
+                    break;
+                }
                 Expression defaultExpression = readExpression();
                 command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
                 command.setDefaultExpression(defaultExpression);
@@ -9143,10 +9159,10 @@ public class Parser {
                 command.setDefaultExpression(onUpdateExpression);
             } else if (readIf("INVISIBLE")) {
                 command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
-                command.setVisible(false);
+                command.setBooleanFlag(false);
             } else if (readIf("VISIBLE")) {
                 command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
-                command.setVisible(true);
+                command.setBooleanFlag(true);
             }
             break;
         default:

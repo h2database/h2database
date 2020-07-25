@@ -531,6 +531,12 @@ public interface CommandInterface extends AutoCloseable {
     int ALTER_TABLE_ALTER_COLUMN_DROP_IDENTITY = 99;
 
     /**
+     * The type of ALTER TABLE ALTER COLUMN SET DEFAULT ON NULL and ALTER TABLE
+     * ALTER COLUMN DROP DEFAULT ON NULL statements.
+     */
+    int ALTER_TABLE_ALTER_COLUMN_DEFAULT_ON_NULL = 100;
+
+    /**
      * Get command type.
      *
      * @return one of the constants above

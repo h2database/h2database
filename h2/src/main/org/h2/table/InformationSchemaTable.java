@@ -256,10 +256,11 @@ public final class InformationSchemaTable extends MetaTable {
                     "GEOMETRY_SRID INT",
                     "IDENTITY_BASE BIGINT",
                     "IDENTITY_CACHE BIGINT",
-                    "SELECTIVITY INT",
-                    "REMARKS",
                     "COLUMN_ON_UPDATE",
-                    "IS_VISIBLE"
+                    "IS_VISIBLE BOOLEAN",
+                    "DEFAULT_ON_NULL BOOLEAN",
+                    "SELECTIVITY INT",
+                    "REMARKS"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -1272,14 +1273,16 @@ public final class InformationSchemaTable extends MetaTable {
                 identityBase,
                 // IDENTITY_CACHE
                 identityCache,
-                // SELECTIVITY
-                ValueInteger.get(c.getSelectivity()),
-                // REMARKS
-                c.getComment(),
                 // COLUMN_ON_UPDATE
                 c.getOnUpdateSQL(),
                 // IS_VISIBLE
-                ValueBoolean.get(c.getVisible())
+                ValueBoolean.get(c.getVisible()),
+                // DEFAULT_ON_NULL
+                ValueBoolean.get(c.isDefaultOnNull()),
+                // SELECTIVITY
+                ValueInteger.get(c.getSelectivity()),
+                // REMARKS
+                c.getComment()
         );
     }
 

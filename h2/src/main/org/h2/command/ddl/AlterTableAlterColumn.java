@@ -71,7 +71,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
     private boolean ifNotExists;
     private ArrayList<Column> columnsToAdd;
     private ArrayList<Column> columnsToRemove;
-    private boolean newVisibility;
+    private boolean booleanFlag;
 
     public AlterTableAlterColumn(SessionLocal session, Schema schema) {
         super(session, schema);
@@ -259,15 +259,26 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             db.updateMeta(session, table);
             break;
         }
-        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY: {
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY:
             if (oldColumn == null) {
                 break;
             }
-            oldColumn.setVisible(newVisibility);
-            table.setModified();
-            db.updateMeta(session, table);
+            if (oldColumn.getVisible() != booleanFlag) {
+                oldColumn.setVisible(booleanFlag);
+                table.setModified();
+                db.updateMeta(session, table);
+            }
             break;
-        }
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT_ON_NULL:
+            if (oldColumn == null) {
+                break;
+            }
+            if (oldColumn.isDefaultOnNull() != booleanFlag) {
+                oldColumn.setDefaultOnNull(booleanFlag);
+                table.setModified();
+                db.updateMeta(session, table);
+            }
+            break;
         default:
             DbException.throwInternalError("type=" + type);
         }
@@ -715,7 +726,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         this.columnsToRemove = columnsToRemove;
     }
 
-    public void setVisible(boolean visible) {
-        this.newVisibility = visible;
+    public void setBooleanFlag(boolean booleanFlag) {
+        this.booleanFlag = booleanFlag;
     }
 }

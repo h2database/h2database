@@ -299,14 +299,15 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
         int id;
         String name;
+        Schema tableSchema = table.getSchema();
         if (forForeignKey) {
             id = session.getDatabase().allocateObjectId();
-            name = getSchema().getUniqueConstraintName(session, table);
+            name = tableSchema.getUniqueConstraintName(session, table);
         } else {
             id = getObjectId();
             name = generateConstraintName(table);
         }
-        ConstraintUnique unique = new ConstraintUnique(getSchema(), id, name, table, false);
+        ConstraintUnique unique = new ConstraintUnique(tableSchema, id, name, table, false);
         unique.setColumns(indexColumns);
         unique.setIndex(index, isOwner);
         return unique;

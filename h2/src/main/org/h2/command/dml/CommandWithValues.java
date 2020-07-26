@@ -7,7 +7,6 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 
-import org.h2.command.Prepared;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.util.Utils;
@@ -15,7 +14,7 @@ import org.h2.util.Utils;
 /**
  * Command that supports VALUES clause.
  */
-public abstract class CommandWithValues extends Prepared {
+public abstract class CommandWithValues extends DataChangeStatement {
 
     /**
      * Expression data for the VALUES clause.

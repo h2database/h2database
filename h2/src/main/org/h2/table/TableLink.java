@@ -407,17 +407,6 @@ public class TableLink extends Table {
     }
 
     @Override
-    public boolean lock(SessionLocal session, boolean exclusive, boolean forceLockEvenInMvcc) {
-        // nothing to do
-        return false;
-    }
-
-    @Override
-    public boolean isLockedExclusively() {
-        return false;
-    }
-
-    @Override
     public Index getScanIndex(SessionLocal session) {
         return linkedIndex;
     }
@@ -554,11 +543,6 @@ public class TableLink extends Table {
     }
 
     @Override
-    public void unlock(SessionLocal s) {
-        // nothing to do
-    }
-
-    @Override
     public void checkSupportAlter() {
         throw DbException.getUnsupportedException("LINK");
     }
@@ -652,11 +636,6 @@ public class TableLink extends Table {
     @Override
     public long getRowCountApproximation(SessionLocal session) {
         return ROW_COUNT_APPROXIMATION;
-    }
-
-    @Override
-    public long getDiskSpaceUsed() {
-        return 0;
     }
 
     /**

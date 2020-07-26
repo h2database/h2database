@@ -101,7 +101,7 @@ SELECT DISTINCT ON(C1) C1, C2 FROM TEST ORDER BY C1;
 
 "Commands (DML)","INSERT","
 INSERT INTO [schemaName.]tableName [ ( columnName [,...] ) ]
-{ [ overrideClause ] { insertValues | @h2@ [ DIRECT ] @h2@ [ SORTED ] query } }
+{ [ overrideClause ] { insertValues | @h2@ [ DIRECT ] @c@ [ SORTED ] query } }
     | DEFAULT VALUES
 ","
 Inserts a new row / new rows into a table.
@@ -109,6 +109,7 @@ Inserts a new row / new rows into a table.
 When using DIRECT, then the results from the query are directly applied in the target table without any intermediate step.
 
 When using SORTED, b-tree pages are split at the insertion point. This can improve performance and reduce disk usage.
+This clause in only supported by legacy PageStore engine.
 ","
 INSERT INTO TEST VALUES(1, 'Hello')
 "

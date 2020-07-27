@@ -549,6 +549,15 @@ public final class Column implements HasSQL, Typed, ColumnTemplate {
 
     @Override
     public Expression getEffectiveDefaultExpression() {
+        /*
+         * Identity columns may not have a default expression and may not use an
+         * expression from domain.
+         *
+         * Generated columns always have an own expression.
+         */
+        if (sequence != null) {
+            return null;
+        }
         return defaultExpression != null ? defaultExpression
                 : domain != null ? domain.getEffectiveDefaultExpression() : null;
     }
@@ -560,6 +569,13 @@ public final class Column implements HasSQL, Typed, ColumnTemplate {
 
     @Override
     public Expression getEffectiveOnUpdateExpression() {
+        /*
+         * Identity and generated columns may not have an on update expression
+         * and may not use an expression from domain.
+         */
+        if (sequence != null || isGeneratedAlways) {
+            return null;
+        }
         return onUpdateExpression != null ? onUpdateExpression
                 : domain != null ? domain.getEffectiveOnUpdateExpression() : null;
     }

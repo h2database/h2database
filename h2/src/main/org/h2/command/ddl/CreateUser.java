@@ -14,6 +14,8 @@ import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.security.SHA256;
 import org.h2.util.StringUtils;
+import org.h2.value.DataType;
+import org.h2.value.Value;
 
 /**
  * This class represents the statement
@@ -58,7 +60,12 @@ public class CreateUser extends DefineCommand {
     }
 
     private static byte[] getByteArray(SessionLocal session, Expression e) {
-        String s = e.optimize(session).getValue(session).getString();
+        Value value = e.optimize(session).getValue(session);
+        if (DataType.isBinaryStringType(value.getValueType())) {
+            byte[] b = value.getBytes();
+            return b == null ? new byte[0] : b;
+        }
+        String s = value.getString();
         return s == null ? new byte[0] : StringUtils.convertHexToBytes(s);
     }
 

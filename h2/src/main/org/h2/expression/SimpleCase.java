@@ -34,7 +34,7 @@ public class SimpleCase extends Expression {
             this.result = result;
         }
 
-        public void addWhen(SimpleWhen next) {
+        public void setWhen(SimpleWhen next) {
             this.next = next;
         }
 

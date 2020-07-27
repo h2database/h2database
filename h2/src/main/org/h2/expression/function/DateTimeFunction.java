@@ -435,7 +435,7 @@ public class DateTimeFunction extends Operation1_2 implements NamedExpression {
         return (int) v;
     }
 
-    public static int extractDateTime(SessionLocal session, Value date, int field) {
+    static int extractDateTime(SessionLocal session, Value date, int field) {
         long[] a = DateTimeUtils.dateAndTimeFromValue(date, session);
         long dateValue = a[0];
         long timeNanos = a[1];

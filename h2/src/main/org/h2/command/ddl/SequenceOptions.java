@@ -246,6 +246,12 @@ public class SequenceOptions {
         return bounds;
     }
 
+    /**
+     * Get the bounds (min, max) of a data type.
+     *
+     * @param dataType the data type
+     * @return the bounds (an array with 2 elements)
+     */
     public static long[] getBounds(TypeInfo dataType) {
         long min, max;
         switch (dataType.getValueType()) {

@@ -474,6 +474,12 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
         return condition;
     }
 
+    /**
+     * Get the value to use for the specified column in case of a duplicate key.
+     *
+     * @param columnIndex the column index
+     * @return the value
+     */
     public Value getOnDuplicateKeyValue(int columnIndex) {
         return onDuplicateKeyRow[columnIndex];
     }

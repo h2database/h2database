@@ -29,7 +29,7 @@ public interface DataType<T> extends Comparator<T> {
     /**
      * Perform binary search for the key within the storage
      * @param key to search for
-     * @param storage to search within
+     * @param storage to search within (an array of type T)
      * @param size number of data items in the storage
      * @param initialGuess for key position
      * @return index of the key , if found, - index of the insertion point, if not

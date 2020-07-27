@@ -85,6 +85,12 @@ public abstract class BasicDataType<T> implements DataType<T> {
         return obj != null && getClass().equals(obj.getClass());
     }
 
+    /**
+     * Cast the storage object to an array of type T.
+     *
+     * @param storage the storage object
+     * @return the array
+     */
     @SuppressWarnings("unchecked")
     protected final T[] cast(Object storage) {
         return (T[])storage;

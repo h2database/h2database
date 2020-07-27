@@ -613,7 +613,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         }
     }
 
-    public void writeRow(WriteBuffer buff, SearchRow row, int[] indexes) {
+    void writeRow(WriteBuffer buff, SearchRow row, int[] indexes) {
         buff.put(ARRAY);
         if (indexes == null) {
             int columnCount = row.getColumnCount();

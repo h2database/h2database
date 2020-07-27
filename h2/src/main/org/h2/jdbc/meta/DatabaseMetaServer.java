@@ -56,6 +56,14 @@ import org.h2.value.ValueVarchar;
  */
 public final class DatabaseMetaServer {
 
+    /**
+     * Process a database meta data request.
+     *
+     * @param session the session
+     * @param code the operation code
+     * @param args the arguments
+     * @return the result
+     */
     public static ResultInterface process(SessionLocal session, int code, Value[] args) {
         DatabaseMeta meta = session.getDatabaseMeta();
         switch (code) {

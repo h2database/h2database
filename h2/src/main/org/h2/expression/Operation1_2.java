@@ -15,8 +15,19 @@ import org.h2.value.TypeInfo;
  */
 public abstract class Operation1_2 extends Expression {
 
-    protected Expression left, right;
+    /**
+     * The left part of the operation (the first argument).
+     */
+    protected Expression left;
 
+    /**
+     * The right part of the operation (the second argument).
+     */
+    protected Expression right;
+
+    /**
+     * The type of the result.
+     */
     protected TypeInfo type;
 
     protected Operation1_2(Expression left, Expression right) {

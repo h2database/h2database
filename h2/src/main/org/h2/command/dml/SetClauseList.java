@@ -31,145 +31,6 @@ import org.h2.value.ValueNull;
  */
 public final class SetClauseList implements HasSQL {
 
-    private static class UpdateAction {
-
-        static UpdateAction ON_UPDATE = new UpdateAction();
-
-        static UpdateAction SET_DEFAULT = new UpdateAction();
-
-        UpdateAction() {
-        }
-
-        Value update(SessionLocal session) {
-            throw DbException.throwInternalError();
-        }
-
-        boolean isEverything(ExpressionVisitor visitor) {
-            return true;
-        }
-
-        void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
-            // Do nothing
-        }
-
-        void getSQL(StringBuilder builder, int sqlFlags, Column column) {
-            throw DbException.throwInternalError();
-        }
-
-    }
-
-    private static final class SetSimple extends UpdateAction {
-
-        private Expression expression;
-
-        SetSimple(Expression expression) {
-            this.expression = expression;
-        }
-
-        @Override
-        Value update(SessionLocal session) {
-            return expression.getValue(session);
-        }
-
-        @Override
-        boolean isEverything(ExpressionVisitor visitor) {
-            return expression.isEverything(visitor);
-        }
-
-        @Override
-        void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
-            expression.mapColumns(resolver1, 0, Expression.MAP_INITIAL);
-            if (resolver2 != null) {
-                expression.mapColumns(resolver2, 0, Expression.MAP_INITIAL);
-            }
-            expression = expression.optimize(session);
-        }
-
-        @Override
-        void getSQL(StringBuilder builder, int sqlFlags, Column column) {
-            expression.getUnenclosedSQL(column.getSQL(builder, sqlFlags).append(" = "), sqlFlags);
-        }
-
-    }
-
-    private static final class RowExpression {
-
-        Expression expression;
-
-        final int[] columns;
-
-        Value[] values;
-
-        RowExpression(Expression expression, int[] columns) {
-            this.expression = expression;
-            this.columns = columns;
-        }
-
-        boolean isEverything(ExpressionVisitor visitor) {
-            return expression.isEverything(visitor);
-        }
-
-        void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
-            expression.mapColumns(resolver1, 0, Expression.MAP_INITIAL);
-            if (resolver2 != null) {
-                expression.mapColumns(resolver2, 0, Expression.MAP_INITIAL);
-            }
-            expression = expression.optimize(session);
-        }
-    }
-
-    private static final class SetMultiple extends UpdateAction {
-
-        final RowExpression row;
-
-        private final int position;
-
-        boolean first;
-
-        private boolean last;
-
-        SetMultiple(RowExpression row, int position, boolean first, boolean last) {
-            this.row = row;
-            this.position = position;
-            this.first = first;
-            this.last = last;
-        }
-
-        @Override
-        Value update(SessionLocal session) {
-            Value[] v;
-            if (first) {
-                Value value = row.expression.getValue(session);
-                if (value == ValueNull.INSTANCE) {
-                    throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "NULL to assigned row value");
-                }
-                row.values = v = value.convertToAnyRow().getList();
-                if (v.length != row.columns.length) {
-                    throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
-                }
-            } else {
-                v = row.values;
-                if (last) {
-                    row.values = null;
-                }
-            }
-            return v[position];
-        }
-
-        @Override
-        boolean isEverything(ExpressionVisitor visitor) {
-            return !first || row.isEverything(visitor);
-        }
-
-        @Override
-        void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
-            if (first) {
-                row.mapAndOptimize(session, resolver1, resolver2);
-            }
-        }
-
-    }
-
     private final Table table;
 
     private final UpdateAction[] actions;
@@ -181,6 +42,12 @@ public final class SetClauseList implements HasSQL {
         actions = new UpdateAction[table.getColumns().length];
     }
 
+    /**
+     * Add a single column.
+     *
+     * @param column the column
+     * @param expression the expression
+     */
     public void addSingle(Column column, Expression expression) {
         int id = column.getColumnId();
         if (actions[id] != null) {
@@ -196,6 +63,12 @@ public final class SetClauseList implements HasSQL {
         }
     }
 
+    /**
+     * Add multiple columns.
+     *
+     * @param columns the columns
+     * @param expression the expression (e.g. an expression list)
+     */
     public void addMultiple(ArrayList<Column> columns, Expression expression) {
         int columnCount = columns.size();
         if (expression instanceof ExpressionList) {
@@ -387,6 +260,145 @@ public final class SetClauseList implements HasSQL {
             }
         }
         return builder;
+    }
+
+    private static class UpdateAction {
+
+        static UpdateAction ON_UPDATE = new UpdateAction();
+
+        static UpdateAction SET_DEFAULT = new UpdateAction();
+
+        UpdateAction() {
+        }
+
+        Value update(SessionLocal session) {
+            throw DbException.throwInternalError();
+        }
+
+        boolean isEverything(ExpressionVisitor visitor) {
+            return true;
+        }
+
+        void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
+            // Do nothing
+        }
+
+        void getSQL(StringBuilder builder, int sqlFlags, Column column) {
+            throw DbException.throwInternalError();
+        }
+
+    }
+
+    private static final class SetSimple extends UpdateAction {
+
+        private Expression expression;
+
+        SetSimple(Expression expression) {
+            this.expression = expression;
+        }
+
+        @Override
+        Value update(SessionLocal session) {
+            return expression.getValue(session);
+        }
+
+        @Override
+        boolean isEverything(ExpressionVisitor visitor) {
+            return expression.isEverything(visitor);
+        }
+
+        @Override
+        void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
+            expression.mapColumns(resolver1, 0, Expression.MAP_INITIAL);
+            if (resolver2 != null) {
+                expression.mapColumns(resolver2, 0, Expression.MAP_INITIAL);
+            }
+            expression = expression.optimize(session);
+        }
+
+        @Override
+        void getSQL(StringBuilder builder, int sqlFlags, Column column) {
+            expression.getUnenclosedSQL(column.getSQL(builder, sqlFlags).append(" = "), sqlFlags);
+        }
+
+    }
+
+    private static final class RowExpression {
+
+        Expression expression;
+
+        final int[] columns;
+
+        Value[] values;
+
+        RowExpression(Expression expression, int[] columns) {
+            this.expression = expression;
+            this.columns = columns;
+        }
+
+        boolean isEverything(ExpressionVisitor visitor) {
+            return expression.isEverything(visitor);
+        }
+
+        void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
+            expression.mapColumns(resolver1, 0, Expression.MAP_INITIAL);
+            if (resolver2 != null) {
+                expression.mapColumns(resolver2, 0, Expression.MAP_INITIAL);
+            }
+            expression = expression.optimize(session);
+        }
+    }
+
+    private static final class SetMultiple extends UpdateAction {
+
+        final RowExpression row;
+
+        private final int position;
+
+        boolean first;
+
+        private boolean last;
+
+        SetMultiple(RowExpression row, int position, boolean first, boolean last) {
+            this.row = row;
+            this.position = position;
+            this.first = first;
+            this.last = last;
+        }
+
+        @Override
+        Value update(SessionLocal session) {
+            Value[] v;
+            if (first) {
+                Value value = row.expression.getValue(session);
+                if (value == ValueNull.INSTANCE) {
+                    throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "NULL to assigned row value");
+                }
+                row.values = v = value.convertToAnyRow().getList();
+                if (v.length != row.columns.length) {
+                    throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                }
+            } else {
+                v = row.values;
+                if (last) {
+                    row.values = null;
+                }
+            }
+            return v[position];
+        }
+
+        @Override
+        boolean isEverything(ExpressionVisitor visitor) {
+            return !first || row.isEverything(visitor);
+        }
+
+        @Override
+        void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
+            if (first) {
+                row.mapAndOptimize(session, resolver1, resolver2);
+            }
+        }
+
     }
 
 }

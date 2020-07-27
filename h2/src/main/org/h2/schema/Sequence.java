@@ -370,6 +370,12 @@ public class Sequence extends SchemaObjectBase {
         return builder.toString();
     }
 
+    /**
+     * Append the options part of the SQL statement to create the sequence.
+     *
+     * @param builder the builder
+     * @return the builder
+     */
     public synchronized StringBuilder getSequenceOptionsSQL(StringBuilder builder) {
         return getSequenceOptionsSQL(builder, baseValue);
     }

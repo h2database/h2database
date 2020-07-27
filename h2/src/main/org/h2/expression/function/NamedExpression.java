@@ -11,7 +11,9 @@ package org.h2.expression.function;
 public interface NamedExpression {
 
     /**
-     * Returns the upper case name.
+     * Get the name.
+     *
+     * @return the name in uppercase
      */
     String getName();
 

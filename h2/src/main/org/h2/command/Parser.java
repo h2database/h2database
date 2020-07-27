@@ -4078,7 +4078,7 @@ public class Parser {
                 if (readIf(COMMA)) {
                     b = readExpression();
                     SimpleCase.SimpleWhen next = decodeToWhen(caseOperand, canOptimize, a, b);
-                    current.addWhen(next);
+                    current.setWhen(next);
                     current = next;
                 } else {
                     elseResult = a;
@@ -5600,7 +5600,7 @@ public class Parser {
             SimpleCase.SimpleWhen when = readSimpleWhenClause(caseOperand), current = when;
             while (readIf(WHEN)) {
                 SimpleCase.SimpleWhen next = readSimpleWhenClause(caseOperand);
-                current.addWhen(next);
+                current.setWhen(next);
                 current = next;
             }
             c = new SimpleCase(caseOperand, when, readIf(ELSE) ? readExpression() : null);
@@ -9847,6 +9847,15 @@ public class Parser {
         readColumnConstraints(command, schema, tableName, column);
     }
 
+    /**
+     * Create a new alter table command.
+     *
+     * @param session the session
+     * @param schema the schema
+     * @param tableName the table
+     * @param column the column
+     * @return the command
+     */
     public static AlterTableAddConstraint newPrimaryKeyConstraintCommand(SessionLocal session, Schema schema,
             String tableName, Column column) {
         column.setPrimaryKey(false);

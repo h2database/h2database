@@ -1229,6 +1229,12 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return value;
     }
 
+    /**
+     * Get the length (precision) of the value.
+     *
+     * @param v the value
+     * @return the length
+     */
     public static long length(Value v) {
         switch (v.getValueType()) {
         case Value.BLOB:

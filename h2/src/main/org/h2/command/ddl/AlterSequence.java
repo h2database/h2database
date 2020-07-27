@@ -52,6 +52,13 @@ public class AlterSequence extends SchemaCommand {
         return true;
     }
 
+    /**
+     * Set the column
+     *
+     * @param column the column
+     * @param always whether value should be always generated, or null if "set
+     *            generated is not specified
+     */
     public void setColumn(Column column, Boolean always) {
         this.column = column;
         this.always = always;
@@ -77,9 +84,9 @@ public class AlterSequence extends SchemaCommand {
         }
         options.setDataType(sequence.getDataType());
         Long startValue = options.getStartValue(session);
-        sequence.modify( //
+        sequence.modify(
                 options.getRestartValue(session, startValue != null ? startValue : sequence.getStartValue()),
-                startValue, //
+                startValue,
                 options.getMinValue(sequence, session), options.getMaxValue(sequence, session),
                 options.getIncrement(session), options.getCycle(), options.getCacheSize(session));
         sequence.flush(session);

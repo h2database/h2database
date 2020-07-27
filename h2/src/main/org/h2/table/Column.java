@@ -500,6 +500,12 @@ public class Column implements HasSQL, Typed {
         return getCreateSQL(false);
     }
 
+    /**
+     * Get this columns part of CREATE TABLE SQL statement.
+     *
+     * @param forMeta whether this is for the metadata table
+     * @return the SQL statement
+     */
     public String getCreateSQL(boolean forMeta) {
         StringBuilder builder = new StringBuilder();
         if (name != null) {
@@ -581,6 +587,11 @@ public class Column implements HasSQL, Typed {
                 : domain != null ? domain.getColumn().getEffectiveOnUpdateExpression() : null;
     }
 
+    /**
+     * Whether the column has any identity options.
+     *
+     * @return true if yes
+     */
     public boolean hasIdentityOptions() {
         return identityOptions != null;
     }
@@ -632,6 +643,12 @@ public class Column implements HasSQL, Typed {
         this.name = newName;
     }
 
+    /**
+     * Set the sequence to generate the value.
+     *
+     * @param sequence the sequence
+     * @param generatedAlways whether the value of the sequence is always used
+     */
     public void setSequence(Sequence sequence, boolean generatedAlways) {
         this.sequence = sequence;
         this.isGeneratedAlways = generatedAlways;

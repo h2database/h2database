@@ -28,6 +28,11 @@ public interface StatefulDataType<D> {
 
     Factory<D> getFactory();
 
+    /**
+     * A factory for data types.
+     *
+     * @param <D> the database type
+     */
     interface Factory<D> {
         DataType<?> create(ByteBuffer buff, MetaType<D> metaDataType, D database);
     }

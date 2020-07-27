@@ -40,83 +40,84 @@ public class DbContents {
     private boolean mayHaveStandardViews = true;
 
     /**
-     * @return The default schema.
+     * @return the default schema.
      */
     public DbSchema getDefaultSchema() {
         return defaultSchema;
     }
 
     /**
-     * @return True if this is an Apache Derby database.
+     * @return true if this is an Apache Derby database.
      */
     public boolean isDerby() {
         return isDerby;
     }
 
     /**
-     * @return True if this is a Firebird database.
+     * @return true if this is a Firebird database.
      */
     public boolean isFirebird() {
         return isFirebird;
     }
 
     /**
-     * @return True if this is a H2 database.
+     * @return true if this is a H2 database.
      */
     public boolean isH2() {
         return isH2;
     }
 
     /**
-     * @return True if this is a MS SQL Server database.
+     * @return true if this is a MS SQL Server database.
      */
     public boolean isMSSQLServer() {
         return isMSSQLServer;
     }
 
     /**
-     * @return True if this is a MySQL database.
+     * @return true if this is a MySQL database.
      */
     public boolean isMySQL() {
         return isMySQL;
     }
 
     /**
-     * @return True if this is an Oracle database.
+     * @return true if this is an Oracle database.
      */
     public boolean isOracle() {
         return isOracle;
     }
 
     /**
-     * @return True if this is a PostgreSQL database.
+     * @return true if this is a PostgreSQL database.
      */
     public boolean isPostgreSQL() {
         return isPostgreSQL;
     }
 
     /**
-     * @return True if this is an SQLite database.
+     * @return true if this is an SQLite database.
      */
     public boolean isSQLite() {
         return isSQLite;
     }
 
     /**
-     * @return True if this is an IBM DB2 database.
+     * @return true if this is an IBM DB2 database.
      */
     public boolean isDB2() {
         return isDB2;
     }
 
     /**
-     * @return The list of schemas.
+     * @return the list of schemas.
      */
     public DbSchema[] getSchemas() {
         return schemas;
     }
 
     /**
+     *
      * @return whether standard INFORMATION_SCHEMA.VIEWS may be supported
      */
     public boolean mayHaveStandardViews() {

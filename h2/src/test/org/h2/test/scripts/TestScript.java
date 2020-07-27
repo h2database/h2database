@@ -195,7 +195,7 @@ public class TestScript extends TestDb {
                 "array-slice", "autocommit", "cancel-session", "casewhen",
                 "cardinality", "cast", "coalesce", "convert", "csvread", "csvwrite", "current_catalog",
                 "current_schema", "current_user", "currval", "data_type_sql",
-                "database-path", "decode", "disk-space-used",
+                "database-path", "db_object", "decode", "disk-space-used",
                 "file-read", "file-write", "greatest", "h2version", "identity",
                 "ifnull", "last-insert-id", "least", "link-schema", "lock-mode", "lock-timeout",
                 "memory-free", "memory-used", "nextval", "nullif", "nvl2",

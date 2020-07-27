@@ -6116,6 +6116,38 @@ COALESCE(
     DATA_TYPE_SQL(TABLE_SCHEMA, TABLE_NAME, 'TABLE', DTD_IDENTIFIER))
 "
 
+"Functions (System)","DB_OBJECT_ID","
+@h2@ DB_OBJECT_ID({{'ROLE'|'SETTING'|'SCHEMA'|'USER'}, objectNameString
+    | {'CONSTANT'|'CONSTRAINT'|'DOMAIN'|'INDEX'|'ROUTINE'|'SEQUENCE'
+        |'SYNONYM'|'TABLE'|'TRIGGER'}, schemaNameString, objectNameString })
+","
+Returns internal identifier of the specified database object as integer value or NULL if object doesn't exist.
+
+Admin rights are required to execute this function.
+","
+CALL DB_OBJECT_ID('ROLE', 'MANAGER');
+CALL DB_OBJECT_ID('TABLE', 'PUBLIC', 'MY_TABLE');
+"
+
+"Functions (System)","DB_OBJECT_SQL","
+@h2@ DB_OBJECT_SQL({{'ROLE'|'SETTING'|'SCHEMA'|'USER'}, objectNameString
+    | {'CONSTANT'|'CONSTRAINT'|'DOMAIN'|'INDEX'|'ROUTINE'|'SEQUENCE'
+        |'SYNONYM'|'TABLE'|'TRIGGER'}, schemaNameString, objectNameString })
+","
+Returns internal SQL definition of the specified database object or NULL if object doesn't exist
+or it is a system object without SQL definition.
+
+This function should not be used to analyze structure of the object by machine code.
+Internal SQL representation may contain undocumented non-standard clauses
+and may be different in different versions of H2.
+Objects are described in the ""INFORMATION_SCHEMA"" in machine-readable way.
+
+Admin rights are required to execute this function.
+","
+CALL DB_OBJECT_SQL('ROLE', 'MANAGER');
+CALL DB_OBJECT_SQL('TABLE', 'PUBLIC', 'MY_TABLE');
+"
+
 "Functions (System)","DECODE","
 @c@ DECODE(value, whenValue, thenValue [,...])
 ","

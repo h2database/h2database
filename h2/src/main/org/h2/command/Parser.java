@@ -276,6 +276,7 @@ import org.h2.expression.function.CompatibilitySequenceValueFunction;
 import org.h2.expression.function.CryptFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.CurrentGeneralValueSpecification;
+import org.h2.expression.function.DBObjectFunction;
 import org.h2.expression.function.DataTypeSQLFunction;
 import org.h2.expression.function.DateTimeFormatFunction;
 import org.h2.expression.function.DateTimeFunction;
@@ -4401,6 +4402,10 @@ public class Parser {
         case "DATA_TYPE_SQL":
             return new DataTypeSQLFunction(readExpression(), readNextArgument(), readNextArgument(),
                     readLastArgument());
+        case "DB_OBJECT_ID":
+            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_ID);
+        case "DB_OBJECT_SQL":
+            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_SQL);
         case "ZERO":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueInteger.get(0));
@@ -4426,6 +4431,13 @@ public class Parser {
         read(CLOSE_PAREN);
         f.doneWithParameters();
         return f;
+    }
+
+    private Expression readDbObjectFunction(int function) {
+        Expression objectTypeExpression = readExpression(), arg1 = readNextArgument(),
+                arg2 = readIf(COMMA) ? readExpression() : null;
+        read(CLOSE_PAREN);
+        return new DBObjectFunction(objectTypeExpression, arg1, arg2, function);
     }
 
     private Expression readSingleArgument() {

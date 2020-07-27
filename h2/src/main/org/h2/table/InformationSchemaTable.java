@@ -1348,9 +1348,8 @@ public final class InformationSchemaTable extends MetaTable {
 
     private void domains(SessionLocal session, ArrayList<Row> rows, String catalog, String mainSchemaName,
             String collation, Domain domain, String domainName) {
-        Column col = domain.getColumn();
-        Domain parentDomain = col.getDomain();
-        TypeInfo typeInfo = col.getType();
+        Domain parentDomain = domain.getDomain();
+        TypeInfo typeInfo = domain.getDataType();
         DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
         String characterSetCatalog, characterSetSchema, characterSetName, collationName;
         if (dt.hasCharsetAndCollation) {
@@ -1399,7 +1398,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // INTERVAL_PRECISION
                 dt.intervalPrecision,
                 // DOMAIN_DEFAULT
-                col.getDefaultSQL(),
+                domain.getDefaultSQL(),
                 // MAXIMUM_CARDINALITY
                 dt.maximumCardinality,
                 // DTD_IDENTIFIER
@@ -1416,7 +1415,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // GEOMETRY_SRID INT
                 dt.geometrySrid,
                 // DOMAIN_ON_UPDATE
-                col.getOnUpdateSQL(),
+                domain.getOnUpdateSQL(),
                 // PARENT_DOMAIN_CATALOG
                 parentDomain != null ? catalog : null,
                 // PARENT_DOMAIN_SCHEMA
@@ -1482,7 +1481,7 @@ public final class InformationSchemaTable extends MetaTable {
             }
             for (Domain domain : schema.getAllDomains()) {
                 elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation, schemaName,
-                        domain.getName(), "DOMAIN", "TYPE", domain.getColumn().getType());
+                        domain.getName(), "DOMAIN", "TYPE", domain.getDataType());
             }
             for (FunctionAlias alias : schema.getAllFunctionAliases()) {
                 String name = alias.getName();

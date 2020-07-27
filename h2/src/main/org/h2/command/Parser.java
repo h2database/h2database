@@ -6674,30 +6674,34 @@ public class Parser {
     }
 
     private Column parseColumnWithType(String columnName) {
-        TypeInfo typeInfo = parseDataType1();
+        TypeInfo typeInfo = readIfDataType();
         if (typeInfo == null) {
             String domainName = readIdentifierWithSchema();
             return getColumnWithDomain(columnName, getSchema().getDomain(domainName));
-        }
-        while (readIf(ARRAY)) {
-            typeInfo = parseArrayType(typeInfo);
         }
         return new Column(columnName, typeInfo);
     }
 
     private TypeInfo parseDataType() {
-        TypeInfo typeInfo = parseDataType1();
+        TypeInfo typeInfo = readIfDataType();
         if (typeInfo == null) {
             addExpected("data type");
             throw getSyntaxError();
         }
-        while (readIf(ARRAY)) {
-            typeInfo = parseArrayType(typeInfo);
+        return typeInfo;
+    }
+
+    private TypeInfo readIfDataType() {
+        TypeInfo typeInfo = readIfDataType1();
+        if (typeInfo != null) {
+            while (readIf(ARRAY)) {
+                typeInfo = parseArrayType(typeInfo);
+            }
         }
         return typeInfo;
     }
 
-    private TypeInfo parseDataType1() {
+    private TypeInfo readIfDataType1() {
         switch (currentTokenType) {
         case IDENTIFIER:
             if (currentTokenQuoted) {
@@ -6897,9 +6901,8 @@ public class Parser {
     }
 
     private static Column getColumnWithDomain(String columnName, Domain domain) {
-        Column templateColumn = domain.getColumn();
-        Column column = new Column(columnName, templateColumn.getType());
-        column.setComment(templateColumn.getComment());
+        Column column = new Column(columnName, domain.getDataType());
+        column.setComment(domain.getComment());
         column.setDomain(domain);
         return column;
     }
@@ -7626,15 +7629,22 @@ public class Parser {
         String domainName = readIdentifierWithSchema();
         Schema schema = getSchema();
         CreateDomain command = new CreateDomain(session, schema);
+        command.setIfNotExists(ifNotExists);
         command.setTypeName(domainName);
         readIf(AS);
-        Column column = parseColumnWithType("VALUE");
+        TypeInfo dataType = readIfDataType();
+        if (dataType != null) {
+            command.setDataType(dataType);
+        } else {
+            String parentDomainName = readIdentifierWithSchema();
+            command.setParentDomain(getSchema().getDomain(parentDomainName));
+        }
         if (readIf(DEFAULT)) {
-            column.setDefaultExpression(session, readExpression());
+            command.setDefaultExpression(readExpression());
         }
         if (readIf(ON)) {
             read("UPDATE");
-            column.setOnUpdateExpression(session, readExpression());
+            command.setOnUpdateExpression(readExpression());
         }
         // Compatibility with 1.4.200 and older versions
         if (readIf("SELECTIVITY")) {
@@ -7642,7 +7652,7 @@ public class Parser {
         }
         String comment = readCommentIf();
         if (comment != null) {
-            column.setComment(comment);
+            command.setComment(comment);
         }
         for (;;) {
             String constraintName;
@@ -7665,9 +7675,6 @@ public class Parser {
             }
             command.addConstraintCommand(constraint);
         }
-        column.rename(null);
-        command.setColumn(column);
-        command.setIfNotExists(ifNotExists);
         return command;
     }
 

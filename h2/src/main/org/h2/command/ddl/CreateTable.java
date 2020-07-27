@@ -124,7 +124,7 @@ public class CreateTable extends CommandWithColumns {
         }
         try {
             for (Column c : data.columns) {
-                c.prepareExpression(session);
+                c.prepareExpressions(session);
             }
             for (Sequence sequence : sequences) {
                 table.addSequence(sequence);

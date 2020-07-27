@@ -16,6 +16,7 @@ import org.h2.message.DbException;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
+import org.h2.table.ColumnTemplate;
 import org.h2.table.Table;
 
 /**
@@ -47,10 +48,10 @@ public class AlterDomain extends SchemaCommand {
         Database db = session.getDatabase();
         for (Schema schema : db.getAllSchemasNoMeta()) {
             for (Domain targetDomain : schema.getAllDomains()) {
-                if (targetDomain.getColumn().getDomain() == domain) {
+                if (targetDomain.getDomain() == domain) {
                     if (domainProcessor == null || domainProcessor.test(domain, targetDomain)) {
                         if (recompileExpressions) {
-                            domain.getColumn().prepareExpression(session);
+                            domain.prepareExpressions(session);
                         }
                         db.updateMeta(session, targetDomain);
                     }
@@ -75,7 +76,7 @@ public class AlterDomain extends SchemaCommand {
                 boolean m = columnProcessor == null || columnProcessor.test(domain, targetColumn);
                 if (m) {
                     if (recompileExpressions) {
-                        targetColumn.prepareExpression(session);
+                        targetColumn.prepareExpressions(session);
                     }
                     modified = true;
                 }
@@ -121,10 +122,10 @@ public class AlterDomain extends SchemaCommand {
         }
         switch (type) {
         case CommandInterface.ALTER_DOMAIN_DEFAULT:
-            domain.getColumn().setDefaultExpression(session, expression);
+            domain.setDefaultExpression(session, expression);
             break;
         case CommandInterface.ALTER_DOMAIN_ON_UPDATE:
-            domain.getColumn().setOnUpdateExpression(session, expression);
+            domain.setOnUpdateExpression(session, expression);
             break;
         default:
             DbException.throwInternalError("type=" + type);
@@ -137,17 +138,17 @@ public class AlterDomain extends SchemaCommand {
     }
 
     private boolean copyColumn(Domain domain, Column targetColumn) {
-        return copyExpressions(session, domain.getColumn(), targetColumn);
+        return copyExpressions(session, domain, targetColumn);
     }
 
     private boolean copyDomain(Domain domain, Domain targetDomain) {
-        return copyExpressions(session, domain.getColumn(), targetDomain.getColumn());
+        return copyExpressions(session, domain, targetDomain);
     }
 
-    private boolean copyExpressions(SessionLocal session, Column domainColumn, Column targetColumn) {
+    private boolean copyExpressions(SessionLocal session, Domain domain, ColumnTemplate targetColumn) {
         switch (type) {
         case CommandInterface.ALTER_DOMAIN_DEFAULT: {
-            Expression e = domainColumn.getDefaultExpression();
+            Expression e = domain.getDefaultExpression();
             if (e != null && targetColumn.getDefaultExpression() == null) {
                 targetColumn.setDefaultExpression(session, e);
                 return true;
@@ -155,7 +156,7 @@ public class AlterDomain extends SchemaCommand {
             break;
         }
         case CommandInterface.ALTER_DOMAIN_ON_UPDATE: {
-            Expression e = domainColumn.getOnUpdateExpression();
+            Expression e = domain.getOnUpdateExpression();
             if (e != null && targetColumn.getOnUpdateExpression() == null) {
                 targetColumn.setOnUpdateExpression(session, e);
                 return true;

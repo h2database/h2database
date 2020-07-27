@@ -65,7 +65,7 @@ public class DataTypeSQLFunction extends OperationN implements NamedExpression {
             if (domain == null || !typeIdentifier.equals("TYPE")) {
                 return ValueNull.INSTANCE;
             }
-            t = domain.getColumn().getType();
+            t = domain.getDataType();
             break;
         }
         case "ROUTINE": {

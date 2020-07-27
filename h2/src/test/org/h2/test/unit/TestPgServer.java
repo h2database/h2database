@@ -175,6 +175,16 @@ public class TestPgServer extends TestDb {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("create index idx_test_name on test(name, id)");
         stat.execute("grant all on test to test");
+        int userId;
+        try (ResultSet rs = stat.executeQuery("call db_object_id('USER', 'test')")) {
+            rs.next();
+            userId = rs.getInt(1);
+        }
+        int indexId;
+        try (ResultSet rs = stat.executeQuery("call db_object_id('INDEX', 'public', 'idx_test_name')")) {
+            rs.next();
+            indexId = rs.getInt(1);
+        }
         stat.close();
         conn.close();
 
@@ -267,11 +277,9 @@ public class TestPgServer extends TestDb {
         assertEquals("Hallo", rs.getString(2));
         assertFalse(rs.next());
 
-        rs = stat.executeQuery("select id, name, pg_get_userbyid(id) " +
-                "from information_schema.users order by id");
+        rs = stat.executeQuery("select pg_get_userbyid(" + userId + ')');
         rs.next();
-        assertEquals(rs.getString(2), rs.getString(3));
-        assertFalse(rs.next());
+        assertEquals("test", rs.getString(1));
         rs.close();
 
         rs = stat.executeQuery("select currTid2('x', 1)");
@@ -322,11 +330,6 @@ public class TestPgServer extends TestDb {
         rs = stat.executeQuery("select pg_get_indexdef(0, 0, false)");
         rs.next();
         assertNull(rs.getString(1));
-
-        rs = stat.executeQuery("select id from information_schema.indexes " +
-                "where index_name='idx_test_name'");
-        rs.next();
-        int indexId = rs.getInt(1);
 
         rs = stat.executeQuery("select pg_get_indexdef("+indexId+", 0, false)");
         rs.next();

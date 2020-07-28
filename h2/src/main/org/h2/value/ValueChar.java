@@ -42,7 +42,6 @@ public final class ValueChar extends ValueStringBase {
 
     /**
      * Get or create a CHAR value for the given string.
-     * Spaces at the end of the string will be removed.
      *
      * @param s the string
      * @return the value

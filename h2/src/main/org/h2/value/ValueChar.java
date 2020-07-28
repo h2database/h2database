@@ -14,8 +14,6 @@ import org.h2.util.StringUtils;
  */
 public final class ValueChar extends ValueStringBase {
 
-    private static final ValueChar EMPTY = new ValueChar("");
-
     private ValueChar(String value) {
         super(value);
     }
@@ -47,12 +45,8 @@ public final class ValueChar extends ValueStringBase {
      * @return the value
      */
     public static ValueChar get(String s) {
-        int length = s.length();
-        if (length == 0) {
-            return EMPTY;
-        }
         ValueChar obj = new ValueChar(StringUtils.cache(s));
-        if (length > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
+        if (s.length() > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }
         return (ValueChar) Value.cache(obj);

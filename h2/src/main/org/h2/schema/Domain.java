@@ -10,19 +10,31 @@ import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintDomain;
 import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
+import org.h2.expression.Expression;
+import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.table.Column;
+import org.h2.table.ColumnTemplate;
 import org.h2.table.Table;
 import org.h2.util.Utils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
  * Represents a domain.
  */
-public class Domain extends SchemaObjectBase {
+public final class Domain extends SchemaObjectBase implements ColumnTemplate {
 
-    private Column column;
+    private TypeInfo type;
+
+    /**
+     * Parent domain.
+     */
+    private Domain domain;
+
+    private Expression defaultExpression;
+
+    private Expression onUpdateExpression;
 
     private ArrayList<ConstraintDomain> constraints;
 
@@ -43,12 +55,108 @@ public class Domain extends SchemaObjectBase {
 
     @Override
     public String getCreateSQL() {
-        return getSQL(new StringBuilder("CREATE DOMAIN "), DEFAULT_SQL_FLAGS).append(" AS ")
-                .append(column.getCreateSQL()).toString();
+        StringBuilder builder = getSQL(new StringBuilder("CREATE DOMAIN "), DEFAULT_SQL_FLAGS).append(" AS ");
+        if (domain != null) {
+            domain.getSQL(builder, DEFAULT_SQL_FLAGS);
+        } else {
+            type.getSQL(builder, DEFAULT_SQL_FLAGS);
+        }
+        if (defaultExpression != null) {
+            defaultExpression.getUnenclosedSQL(builder.append(" DEFAULT "), DEFAULT_SQL_FLAGS);
+        }
+        if (onUpdateExpression != null) {
+            onUpdateExpression.getUnenclosedSQL(builder.append(" ON UPDATE "), DEFAULT_SQL_FLAGS);
+        }
+        return builder.toString();
     }
 
-    public Column getColumn() {
-        return column;
+    public void setDataType(TypeInfo type) {
+        this.type = type;
+    }
+
+    public TypeInfo getDataType() {
+        return type;
+    }
+
+    @Override
+    public void setDomain(Domain domain) {
+        this.domain = domain;
+    }
+
+    @Override
+    public Domain getDomain() {
+        return domain;
+    }
+
+    @Override
+    public void setDefaultExpression(SessionLocal session, Expression defaultExpression) {
+        // also to test that no column names are used
+        if (defaultExpression != null) {
+            defaultExpression = defaultExpression.optimize(session);
+            if (defaultExpression.isConstant()) {
+                defaultExpression = ValueExpression.get(defaultExpression.getValue(session));
+            }
+        }
+        this.defaultExpression = defaultExpression;
+    }
+
+    @Override
+    public Expression getDefaultExpression() {
+        return defaultExpression;
+    }
+
+    @Override
+    public Expression getEffectiveDefaultExpression() {
+        return defaultExpression != null ? defaultExpression
+                : domain != null ? domain.getEffectiveDefaultExpression() : null;
+    }
+
+    @Override
+    public String getDefaultSQL() {
+        return defaultExpression == null ? null
+                : defaultExpression.getUnenclosedSQL(new StringBuilder(), DEFAULT_SQL_FLAGS).toString();
+    }
+
+    @Override
+    public void setOnUpdateExpression(SessionLocal session, Expression onUpdateExpression) {
+        // also to test that no column names are used
+        if (onUpdateExpression != null) {
+            onUpdateExpression = onUpdateExpression.optimize(session);
+            if (onUpdateExpression.isConstant()) {
+                onUpdateExpression = ValueExpression.get(onUpdateExpression.getValue(session));
+            }
+        }
+        this.onUpdateExpression = onUpdateExpression;
+    }
+
+    @Override
+    public Expression getOnUpdateExpression() {
+        return onUpdateExpression;
+    }
+
+    @Override
+    public Expression getEffectiveOnUpdateExpression() {
+        return onUpdateExpression != null ? onUpdateExpression
+                : domain != null ? domain.getEffectiveOnUpdateExpression() : null;
+    }
+
+    @Override
+    public String getOnUpdateSQL() {
+        return onUpdateExpression == null ? null
+                : onUpdateExpression.getUnenclosedSQL(new StringBuilder(), DEFAULT_SQL_FLAGS).toString();
+    }
+
+    @Override
+    public void prepareExpressions(SessionLocal session) {
+        if (defaultExpression != null) {
+            defaultExpression = defaultExpression.optimize(session);
+        }
+        if (onUpdateExpression != null) {
+            onUpdateExpression = onUpdateExpression.optimize(session);
+        }
+        if (domain != null) {
+            domain.prepareExpressions(session);
+        }
     }
 
     /**
@@ -96,10 +204,6 @@ public class Domain extends SchemaObjectBase {
         database.removeMeta(session, getId());
     }
 
-    public void setColumn(Column column) {
-        this.column = column;
-    }
-
     /**
      * Check the specified value.
      *
@@ -112,9 +216,8 @@ public class Domain extends SchemaObjectBase {
                 constraint.check(session, value);
             }
         }
-        Domain next = column.getDomain();
-        if (next != null) {
-            next.checkConstraints(session, value);
+        if (domain != null) {
+            domain.checkConstraints(session, value);
         }
     }
 

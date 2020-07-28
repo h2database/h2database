@@ -17,6 +17,7 @@ import org.h2.message.DbException;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
+import org.h2.table.ColumnTemplate;
 import org.h2.table.Table;
 
 /**
@@ -76,7 +77,7 @@ public class DropDomain extends SchemaCommand {
                 check.update();
             }
         }
-        copyExpressions(session, domain.getColumn(), targetColumn);
+        copyExpressions(session, domain, targetColumn);
         return true;
     }
 
@@ -95,19 +96,19 @@ public class DropDomain extends SchemaCommand {
                 check.update();
             }
         }
-        copyExpressions(session, domain.getColumn(), targetDomain.getColumn());
+        copyExpressions(session, domain, targetDomain);
         return true;
     }
 
-    private static boolean copyExpressions(SessionLocal session, Column domainColumn, Column targetColumn) {
-        targetColumn.setDomain(domainColumn.getDomain());
-        Expression e = domainColumn.getDefaultExpression();
+    private static boolean copyExpressions(SessionLocal session, Domain domain, ColumnTemplate targetColumn) {
+        targetColumn.setDomain(domain.getDomain());
+        Expression e = domain.getDefaultExpression();
         boolean modified = false;
         if (e != null && targetColumn.getDefaultExpression() == null) {
             targetColumn.setDefaultExpression(session, e);
             modified = true;
         }
-        e = domainColumn.getOnUpdateExpression();
+        e = domain.getOnUpdateExpression();
         if (e != null && targetColumn.getOnUpdateExpression() == null) {
             targetColumn.setOnUpdateExpression(session, e);
             modified = true;

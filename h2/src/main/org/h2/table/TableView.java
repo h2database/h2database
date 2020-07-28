@@ -327,24 +327,8 @@ public class TableView extends Table {
     }
 
     @Override
-    public boolean lock(SessionLocal session, boolean exclusive, boolean forceLockEvenInMvcc) {
-        // exclusive lock means: the view will be dropped
-        return false;
-    }
-
-    @Override
     public void close(SessionLocal session) {
         // nothing to do
-    }
-
-    @Override
-    public void unlock(SessionLocal s) {
-        // nothing to do
-    }
-
-    @Override
-    public boolean isLockedExclusively() {
-        return false;
     }
 
     @Override
@@ -544,11 +528,6 @@ public class TableView extends Table {
     @Override
     public long getRowCountApproximation(SessionLocal session) {
         return ROW_COUNT_APPROXIMATION;
-    }
-
-    @Override
-    public long getDiskSpaceUsed() {
-        return 0;
     }
 
     /**

@@ -43,7 +43,7 @@ import org.h2.value.Value;
  * This class represents the statement
  * INSERT
  */
-public class Insert extends CommandWithValues implements ResultTarget, DataChangeStatement {
+public final class Insert extends CommandWithValues implements ResultTarget {
 
     private Table table;
     private Column[] columns;
@@ -131,29 +131,27 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
     }
 
     @Override
-    public void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public int update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+        Index index = null;
         this.deltaChangeCollector = deltaChangeCollector;
         this.deltaChangeCollectionMode = deltaChangeCollectionMode;
-    }
-
-    @Override
-    public int update() {
-        Index index = null;
-        if (sortedInsertMode) {
-            if (!session.getDatabase().isMVStore()) {
-                /*
-                 * Take exclusive lock, otherwise two different inserts running at
-                 * the same time, the second might accidentally get
-                 * sorted-insert-mode.
-                 */
-                table.lock(session, /* exclusive */true, /* forceLockEvenInMvcc */true);
-            }
-            index = table.getScanIndex(session);
-            index.setSortedInsertMode(true);
-        }
         try {
+            if (sortedInsertMode) {
+                if (!session.getDatabase().isMVStore()) {
+                    /*
+                     * Take exclusive lock, otherwise two different inserts running at
+                     * the same time, the second might accidentally get
+                     * sorted-insert-mode.
+                     */
+                    table.lock(session, /* exclusive */true, /* forceLockEvenInMvcc */true);
+                    index = table.getScanIndex(session);
+                    index.setSortedInsertMode(true);
+                }
+            }
             return insertRows();
         } finally {
+            this.deltaChangeCollector = null;
+            this.deltaChangeCollectionMode = null;
             if (index != null) {
                 index.setSortedInsertMode(false);
             }

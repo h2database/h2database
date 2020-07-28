@@ -108,17 +108,6 @@ public abstract class MetaTable extends Table {
         throw DbException.getUnsupportedException("META");
     }
 
-    @Override
-    public final boolean lock(SessionLocal session, boolean exclusive, boolean forceLockEvenInMvcc) {
-        // nothing to do
-        return false;
-    }
-
-    @Override
-    public final boolean isLockedExclusively() {
-        return false;
-    }
-
     /**
      * If needed, convert the identifier to lower case.
      *
@@ -199,11 +188,6 @@ public abstract class MetaTable extends Table {
         // nothing to do
     }
 
-    @Override
-    public final void unlock(SessionLocal s) {
-        // nothing to do
-    }
-
     /**
      * Add a row to a list.
      *
@@ -281,11 +265,6 @@ public abstract class MetaTable extends Table {
     @Override
     public long getRowCountApproximation(SessionLocal session) {
         return ROW_COUNT_APPROXIMATION;
-    }
-
-    @Override
-    public final long getDiskSpaceUsed() {
-        return 0L;
     }
 
     @Override

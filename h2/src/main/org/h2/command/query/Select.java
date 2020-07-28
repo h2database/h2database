@@ -1414,8 +1414,7 @@ public class Select extends Query {
                 getPlanFromFilter(builder.append("\nFROM "), sqlFlags, filter, false);
             }
             if (condition != null) {
-                builder.append("\nWHERE ");
-                condition.getUnenclosedSQL(builder, sqlFlags);
+                getFilterSQL(builder, "\nWHERE ", condition, sqlFlags);
             }
             if (groupIndex != null) {
                 builder.append("\nGROUP BY ");
@@ -1441,8 +1440,8 @@ public class Select extends Query {
                 }
                 builder.append("\nGROUP BY ()");
             }
-            getFilterSQL(builder, "\nHAVING ", exprList, having, havingIndex);
-            getFilterSQL(builder, "\nQUALIFY ", exprList, qualify, qualifyIndex);
+            getFilterSQL(builder, "\nHAVING ", exprList, having, havingIndex, sqlFlags);
+            getFilterSQL(builder, "\nQUALIFY ", exprList, qualify, qualifyIndex, sqlFlags);
         }
         appendEndOfQueryToSQL(builder, sqlFlags, exprList);
         if (isForUpdate) {
@@ -1480,14 +1479,16 @@ public class Select extends Query {
     }
 
     private static void getFilterSQL(StringBuilder builder, String sql, Expression[] exprList, Expression condition,
-            int conditionIndex) {
+            int conditionIndex, int sqlFlags) {
         if (condition != null) {
-            builder.append(sql);
-            condition.getUnenclosedSQL(builder, DEFAULT_SQL_FLAGS);
+            getFilterSQL(builder, sql, condition, sqlFlags);
         } else if (conditionIndex >= 0) {
-            builder.append(sql);
-            exprList[conditionIndex].getUnenclosedSQL(builder, DEFAULT_SQL_FLAGS);
+            getFilterSQL(builder, sql, exprList[conditionIndex], sqlFlags);
         }
+    }
+
+    private static void getFilterSQL(StringBuilder builder, String sql, Expression condition, int sqlFlags) {
+        condition.getUnenclosedSQL(builder.append(sql), sqlFlags);
     }
 
     private static boolean containsAggregate(Expression expression) {

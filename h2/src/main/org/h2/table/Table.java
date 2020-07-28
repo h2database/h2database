@@ -125,7 +125,9 @@ public abstract class Table extends SchemaObjectBase {
      * @return true if the table was already exclusively locked by this session.
      * @throws DbException if a lock timeout occurred
      */
-    public abstract boolean lock(SessionLocal session, boolean exclusive, boolean forceLockEvenInMvcc);
+    public boolean lock(SessionLocal session, boolean exclusive, boolean forceLockEvenInMvcc) {
+        return false;
+    }
 
     /**
      * Close the table object and flush changes.
@@ -139,7 +141,8 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param s the session
      */
-    public abstract void unlock(SessionLocal s);
+    public void unlock(SessionLocal s) {
+    }
 
     /**
      * Create an index for this table
@@ -319,7 +322,9 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @return true if it is.
      */
-    public abstract boolean isLockedExclusively();
+    public boolean isLockedExclusively() {
+        return false;
+    }
 
     /**
      * Get the last data modification id.
@@ -375,7 +380,9 @@ public abstract class Table extends SchemaObjectBase {
      */
     public abstract long getRowCountApproximation(SessionLocal session);
 
-    public abstract long getDiskSpaceUsed();
+    public long getDiskSpaceUsed() {
+        return 0L;
+    }
 
     /**
      * Get the row id column if this table has one.

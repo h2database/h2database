@@ -68,6 +68,7 @@ final class DefaultSpatial implements Spatial
         return minMax.length == 0;
     }
 
+    @Override
     public boolean equalsIgnoringId(Spatial o) {
         return Arrays.equals(minMax, ((DefaultSpatial)o).minMax);
     }

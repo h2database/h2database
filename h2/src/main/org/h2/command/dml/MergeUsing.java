@@ -12,7 +12,6 @@ import java.util.Iterator;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
-import org.h2.command.Prepared;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
@@ -42,7 +41,7 @@ import org.h2.util.Utils;
  *
  * It does not replace the MERGE INTO... KEYS... form.
  */
-public class MergeUsing extends Prepared implements DataChangeStatement {
+public final class MergeUsing extends DataChangeStatement {
 
     /**
      * Target table filter.
@@ -61,10 +60,6 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
 
     private ArrayList<When> when = Utils.newSmallArrayList();
 
-    ResultTarget deltaChangeCollector;
-
-    ResultOption deltaChangeCollectionMode;
-
     /**
      * Contains _ROWID_ of processed rows. Row
      * identities are remembered to prevent duplicate updates of the same row.
@@ -77,13 +72,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
     }
 
     @Override
-    public void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
-        this.deltaChangeCollector = deltaChangeCollector;
-        this.deltaChangeCollectionMode = deltaChangeCollectionMode;
-    }
-
-    @Override
-    public int update() {
+    public int update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         int countUpdatedRows = 0;
         targetRowidsRemembered.clear();
         checkRights();
@@ -104,7 +93,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
                     Row backupTarget = targetTableFilter.get();
                     sourceTableFilter.set(missedSource);
                     targetTableFilter.set(table.getNullRow());
-                    countUpdatedRows += merge(true);
+                    countUpdatedRows += merge(true, deltaChangeCollector, deltaChangeCollectionMode);
                     sourceTableFilter.set(source);
                     targetTableFilter.set(backupTarget);
                     count++;
@@ -145,26 +134,26 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
                     }
                 }
             }
-            countUpdatedRows += merge(nullRow);
+            countUpdatedRows += merge(nullRow, deltaChangeCollector, deltaChangeCollectionMode);
             count++;
             previousSource = source;
         }
         if (missedSource != null) {
             sourceTableFilter.set(missedSource);
             targetTableFilter.set(table.getNullRow());
-            countUpdatedRows += merge(true);
+            countUpdatedRows += merge(true, deltaChangeCollector, deltaChangeCollectionMode);
         }
         targetRowidsRemembered.clear();
         table.fire(session, evaluateTriggerMasks(), false);
         return countUpdatedRows;
     }
 
-    private int merge(boolean nullRow) {
+    private int merge(boolean nullRow, ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         for (When w : when) {
             if (w.getClass() == WhenNotMatched.class == nullRow) {
                 Expression condition = w.andCondition;
                 if (condition == null || condition.getBooleanValue(session)) {
-                    w.merge(session);
+                    w.merge(session, deltaChangeCollector, deltaChangeCollectionMode);
                     return 1;
                 }
             }
@@ -347,8 +336,13 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
          *
          * @param session
          *            the session
+         * @param deltaChangeCollector
+         *            target result
+         * @param deltaChangeCollectionMode
+         *            collection mode
          */
-        abstract void merge(SessionLocal session);
+        abstract void merge(SessionLocal session, ResultTarget deltaChangeCollector,
+                ResultOption deltaChangeCollectionMode);
 
         /**
          * Prepares WHEN command.
@@ -418,12 +412,12 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        void merge(SessionLocal session) {
+        void merge(SessionLocal session, ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
             TableFilter targetTableFilter = mergeUsing.targetTableFilter;
             Table table = targetTableFilter.getTable();
             Row row = targetTableFilter.get();
-            if (mergeUsing.deltaChangeCollectionMode == ResultOption.OLD) {
-                mergeUsing.deltaChangeCollector.addRow(row.getValueList());
+            if (deltaChangeCollectionMode == ResultOption.OLD) {
+                deltaChangeCollector.addRow(row.getValueList());
             }
             if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
                 table.removeRow(session, row);
@@ -462,12 +456,12 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        void merge(SessionLocal session) {
+        void merge(SessionLocal session, ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
             TableFilter targetTableFilter = mergeUsing.targetTableFilter;
             Table table = targetTableFilter.getTable();
             try (RowList rows = new RowList(session, table)) {
-                setClauseList.prepareUpdate(table, session, mergeUsing.deltaChangeCollector,
-                        mergeUsing.deltaChangeCollectionMode, rows, targetTableFilter.get(), false);
+                setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode, rows,
+                        targetTableFilter.get(), false);
                 Update.doUpdate(mergeUsing, session, table, rows);
             }
         }
@@ -518,10 +512,8 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        void merge(SessionLocal session) {
+        void merge(SessionLocal session, ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
             Table table = mergeUsing.targetTableFilter.getTable();
-            ResultTarget deltaChangeCollector = mergeUsing.deltaChangeCollector;
-            ResultOption deltaChangeCollectionMode = mergeUsing.deltaChangeCollectionMode;
             Row newRow = table.getTemplateRow();
             Expression[] expr = values;
             for (int i = 0, len = columns.length; i < len; i++) {

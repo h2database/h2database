@@ -24,18 +24,7 @@ public abstract class VirtualTable extends Table {
     }
 
     @Override
-    public boolean lock(SessionLocal session, boolean exclusive, boolean forceLockEvenInMvcc) {
-        // Nothing to do
-        return false;
-    }
-
-    @Override
     public void close(SessionLocal session) {
-        // Nothing to do
-    }
-
-    @Override
-    public void unlock(SessionLocal s) {
         // Nothing to do
     }
 
@@ -87,11 +76,6 @@ public abstract class VirtualTable extends Table {
     }
 
     @Override
-    public boolean isLockedExclusively() {
-        return false;
-    }
-
-    @Override
     public boolean canReference() {
         return false;
     }
@@ -99,11 +83,6 @@ public abstract class VirtualTable extends Table {
     @Override
     public boolean canDrop() {
         throw DbException.throwInternalError(toString());
-    }
-
-    @Override
-    public long getDiskSpaceUsed() {
-        return 0;
     }
 
     @Override

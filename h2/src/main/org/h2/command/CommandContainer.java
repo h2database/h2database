@@ -242,15 +242,8 @@ public class CommandContainer extends Command {
             indexes[i] = expressions[i].getColumn().getColumnId();
         }
         LocalResult result = new LocalResult(session, expressions, columnCount, columnCount);
-        ResultTarget collector = new GeneratedKeysCollector(indexes, result);
-        int updateCount;
-        try {
-            statement.setDeltaChangeCollector(collector, ResultOption.FINAL);
-            updateCount = statement.update();
-        } finally {
-            statement.setDeltaChangeCollector(null, null);
-        }
-        return new ResultWithGeneratedKeys.WithKeys(updateCount, result);
+        return new ResultWithGeneratedKeys.WithKeys(
+                statement.update(new GeneratedKeysCollector(indexes, result), ResultOption.FINAL), result);
     }
 
     @Override

@@ -9,7 +9,6 @@ import java.util.HashSet;
 
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
-import org.h2.command.Prepared;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
@@ -32,7 +31,7 @@ import org.h2.value.ValueNull;
  * This class represents the statement
  * DELETE
  */
-public class Delete extends Prepared implements DataChangeStatement {
+public final class Delete extends DataChangeStatement {
 
     private Expression condition;
     private TableFilter targetTableFilter;
@@ -41,10 +40,6 @@ public class Delete extends Prepared implements DataChangeStatement {
      * The limit expression as specified in the LIMIT or TOP clause.
      */
     private Expression limitExpr;
-
-    private ResultTarget deltaChangeCollector;
-
-    private ResultOption deltaChangeCollectionMode;
 
     public Delete(SessionLocal session) {
         super(session);
@@ -68,13 +63,7 @@ public class Delete extends Prepared implements DataChangeStatement {
     }
 
     @Override
-    public void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
-        this.deltaChangeCollector = deltaChangeCollector;
-        this.deltaChangeCollectionMode = deltaChangeCollectionMode;
-    }
-
-    @Override
-    public int update() {
+    public int update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         targetTableFilter.startQuery(session);
         targetTableFilter.reset();
         Table table = targetTableFilter.getTable();

@@ -39,7 +39,7 @@ import org.h2.value.ValueNull;
  * or the MySQL compatibility statement
  * REPLACE
  */
-public class Merge extends CommandWithValues implements DataChangeStatement {
+public final class Merge extends CommandWithValues {
 
     private boolean isReplace;
 
@@ -48,10 +48,6 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
     private Column[] keys;
     private Query query;
     private Update update;
-
-    private ResultTarget deltaChangeCollector;
-
-    private ResultOption deltaChangeCollectionMode;
 
     public Merge(SessionLocal session, boolean isReplace) {
         super(session);
@@ -88,14 +84,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
     }
 
     @Override
-    public void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
-        this.deltaChangeCollector = deltaChangeCollector;
-        this.deltaChangeCollectionMode = deltaChangeCollectionMode;
-        update.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
-    }
-
-    @Override
-    public int update() {
+    public int update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         int count = 0;
         session.getUser().checkRight(table, Right.INSERT);
         session.getUser().checkRight(table, Right.UPDATE);
@@ -118,7 +107,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                         }
                     }
                 }
-                count += merge(newRow, expr);
+                count += merge(newRow, expr, deltaChangeCollector, deltaChangeCollectionMode);
             }
         } else {
             // process select data for list
@@ -133,7 +122,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                 for (int j = 0; j < columns.length; j++) {
                     newRow.setValue(columns[j].getColumnId(), r[j]);
                 }
-                count += merge(newRow, null);
+                count += merge(newRow, null, deltaChangeCollector, deltaChangeCollectionMode);
             }
             rows.close();
             table.fire(session, Trigger.UPDATE | Trigger.INSERT, false);
@@ -146,10 +135,13 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
      *
      * @param row row to replace
      * @param expressions source expressions, or null
+     * @param deltaChangeCollector target result
+     * @param deltaChangeCollectionMode collection mode
      * @return 1 if row was inserted, 1 if row was updated by a MERGE statement,
      *         and 2 if row was updated by a REPLACE statement
      */
-    private int merge(Row row, Expression[] expressions) {
+    private int merge(Row row, Expression[] expressions, ResultTarget deltaChangeCollector,
+            ResultOption deltaChangeCollectionMode) {
         int count;
         if (update == null) {
             // if there is no valid primary key,
@@ -181,7 +173,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                 }
                 k.get(j++).setValue(v);
             }
-            count = update.update();
+            count = update.update(deltaChangeCollector, deltaChangeCollectionMode);
         }
         // if update fails try an insert
         if (count == 0) {

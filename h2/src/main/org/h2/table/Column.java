@@ -34,7 +34,7 @@ import org.h2.value.ValueUuid;
 /**
  * This class represents a column in a table.
  */
-public class Column implements HasSQL, Typed {
+public final class Column implements HasSQL, Typed, ColumnTemplate {
 
     /**
      * The name of the rowid pseudo column.
@@ -242,12 +242,7 @@ public class Column implements HasSQL, Typed {
         return table;
     }
 
-    /**
-     * Set the default expression.
-     *
-     * @param session the session
-     * @param defaultExpression the default expression
-     */
+    @Override
     public void setDefaultExpression(SessionLocal session, Expression defaultExpression) {
         // also to test that no column names are used
         if (defaultExpression != null) {
@@ -261,12 +256,7 @@ public class Column implements HasSQL, Typed {
         this.isGeneratedAlways = false;
     }
 
-    /**
-     * Set the on update expression.
-     *
-     * @param session the session
-     * @param onUpdateExpression the on update expression
-     */
+    @Override
     public void setOnUpdateExpression(SessionLocal session, Expression onUpdateExpression) {
         // also to test that no column names are used
         if (onUpdateExpression != null) {
@@ -324,10 +314,12 @@ public class Column implements HasSQL, Typed {
         visible = b;
     }
 
+    @Override
     public Domain getDomain() {
         return domain;
     }
 
+    @Override
     public void setDomain(Domain domain) {
         this.domain = domain;
     }
@@ -471,12 +463,8 @@ public class Column implements HasSQL, Typed {
         setSequence(seq, isGeneratedAlways);
     }
 
-    /**
-     * Prepare all expressions of this column.
-     *
-     * @param session the session
-     */
-    public void prepareExpression(SessionLocal session) {
+    @Override
+    public void prepareExpressions(SessionLocal session) {
         if (defaultExpression != null) {
             if (isGeneratedAlways) {
                 generatedTableFilter = new GeneratedColumnResolver(table);
@@ -488,7 +476,7 @@ public class Column implements HasSQL, Typed {
             onUpdateExpression = onUpdateExpression.optimize(session);
         }
         if (domain != null) {
-            domain.getColumn().prepareExpression(session);
+            domain.prepareExpressions(session);
         }
     }
 
@@ -520,44 +508,35 @@ public class Column implements HasSQL, Typed {
         } else {
             type.getSQL(builder, DEFAULT_SQL_FLAGS);
         }
-
         if (!visible) {
             builder.append(" INVISIBLE ");
         }
-
         if (sequence != null) {
-            builder.append(" GENERATED ");
-            builder.append(isGeneratedAlways ? "ALWAYS" : "BY DEFAULT");
-            builder.append(" AS IDENTITY");
+            builder.append(" GENERATED ").append(isGeneratedAlways ? "ALWAYS" : "BY DEFAULT").append(" AS IDENTITY");
             if (!forMeta) {
                 sequence.getSequenceOptionsSQL(builder.append('(')).append(')');
             }
         } else if (defaultExpression != null) {
             if (isGeneratedAlways) {
-                builder.append(" GENERATED ALWAYS AS ");
-                defaultExpression.getEnclosedSQL(builder, DEFAULT_SQL_FLAGS);
+                defaultExpression.getEnclosedSQL(builder.append(" GENERATED ALWAYS AS "), DEFAULT_SQL_FLAGS);
             } else {
-                builder.append(" DEFAULT ");
-                defaultExpression.getUnenclosedSQL(builder, DEFAULT_SQL_FLAGS);
+                defaultExpression.getUnenclosedSQL(builder.append(" DEFAULT "), DEFAULT_SQL_FLAGS);
             }
         }
         if (onUpdateExpression != null) {
-            builder.append(" ON UPDATE ");
-            onUpdateExpression.getUnenclosedSQL(builder, DEFAULT_SQL_FLAGS);
+            onUpdateExpression.getUnenclosedSQL(builder.append(" ON UPDATE "), DEFAULT_SQL_FLAGS);
         }
         if (defaultOnNull) {
             builder.append(" DEFAULT ON NULL");
         }
         if (forMeta && sequence != null) {
-            builder.append(" SEQUENCE ");
-            sequence.getSQL(builder, DEFAULT_SQL_FLAGS);
+            sequence.getSQL(builder.append(" SEQUENCE "), DEFAULT_SQL_FLAGS);
         }
         if (selectivity != 0) {
             builder.append(" SELECTIVITY ").append(selectivity);
         }
         if (comment != null) {
-            builder.append(" COMMENT ");
-            StringUtils.quoteStringSQL(builder, comment);
+            StringUtils.quoteStringSQL(builder.append(" COMMENT "), comment);
         }
         if (!nullable) {
             builder.append(" NOT NULL");
@@ -569,22 +548,42 @@ public class Column implements HasSQL, Typed {
         return nullable;
     }
 
+    @Override
     public Expression getDefaultExpression() {
         return defaultExpression;
     }
 
+    @Override
     public Expression getEffectiveDefaultExpression() {
+        /*
+         * Identity columns may not have a default expression and may not use an
+         * expression from domain.
+         *
+         * Generated columns always have an own expression.
+         */
+        if (sequence != null) {
+            return null;
+        }
         return defaultExpression != null ? defaultExpression
-                : domain != null ? domain.getColumn().getEffectiveDefaultExpression() : null;
+                : domain != null ? domain.getEffectiveDefaultExpression() : null;
     }
 
+    @Override
     public Expression getOnUpdateExpression() {
         return onUpdateExpression;
     }
 
+    @Override
     public Expression getEffectiveOnUpdateExpression() {
+        /*
+         * Identity and generated columns may not have an on update expression
+         * and may not use an expression from domain.
+         */
+        if (sequence != null || isGeneratedAlways) {
+            return null;
+        }
         return onUpdateExpression != null ? onUpdateExpression
-                : domain != null ? domain.getColumn().getEffectiveOnUpdateExpression() : null;
+                : domain != null ? domain.getEffectiveOnUpdateExpression() : null;
     }
 
     /**
@@ -685,12 +684,14 @@ public class Column implements HasSQL, Typed {
         this.selectivity = selectivity;
     }
 
+    @Override
     public String getDefaultSQL() {
         return defaultExpression == null ? null
                 : defaultExpression.getUnenclosedSQL(new StringBuilder(), DEFAULT_SQL_FLAGS).toString();
     }
 
-    String getOnUpdateSQL() {
+    @Override
+    public String getOnUpdateSQL() {
         return onUpdateExpression == null ? null
                 : onUpdateExpression.getUnenclosedSQL(new StringBuilder(), DEFAULT_SQL_FLAGS).toString();
     }

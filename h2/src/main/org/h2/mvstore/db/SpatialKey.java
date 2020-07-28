@@ -107,10 +107,10 @@ public class SpatialKey extends Value implements Spatial {
      * @param o the other key
      * @return true if the contents are the same
      */
+    @Override
     public boolean equalsIgnoringId(Spatial o) {
         return Arrays.equals(minMax, ((SpatialKey)o).minMax);
     }
-
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {

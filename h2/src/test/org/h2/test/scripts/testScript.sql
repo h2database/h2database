@@ -2158,15 +2158,15 @@ select * from test;
 >   x <empty>
 > rows: 1
 
-select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, SELECTIVITY, REMARKS, SQL from information_schema.domains;
-> DOMAIN_NAME DOMAIN_DEFAULT DATA_TYPE         CHARACTER_MAXIMUM_LENGTH SELECTIVITY REMARKS SQL
-> ----------- -------------- ----------------- ------------------------ ----------- ------- -----------------------------------------------------------------------
-> EMAIL       null           CHARACTER VARYING 200                      50          null    CREATE DOMAIN "PUBLIC"."EMAIL" AS CHARACTER VARYING(200)
-> GMAIL       '@gmail.com'   CHARACTER VARYING 200                      50          null    CREATE DOMAIN "PUBLIC"."GMAIL" AS "PUBLIC"."EMAIL" DEFAULT '@gmail.com'
-> STRING      ''             CHARACTER VARYING 255                      50          null    CREATE DOMAIN "PUBLIC"."STRING" AS CHARACTER VARYING(255) DEFAULT ''
-> STRING1     null           CHARACTER VARYING 2147483647               50          null    CREATE DOMAIN "PUBLIC"."STRING1" AS CHARACTER VARYING
-> STRING2     '<empty>'      CHARACTER VARYING 2147483647               50          null    CREATE DOMAIN "PUBLIC"."STRING2" AS CHARACTER VARYING DEFAULT '<empty>'
-> STRING_X    null           CHARACTER VARYING 2147483647               50          null    CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2"
+select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, PARENT_DOMAIN_NAME, REMARKS from information_schema.domains;
+> DOMAIN_NAME DOMAIN_DEFAULT DATA_TYPE         CHARACTER_MAXIMUM_LENGTH PARENT_DOMAIN_NAME REMARKS
+> ----------- -------------- ----------------- ------------------------ ------------------ -------
+> EMAIL       null           CHARACTER VARYING 200                      null               null
+> GMAIL       '@gmail.com'   CHARACTER VARYING 200                      EMAIL              null
+> STRING      ''             CHARACTER VARYING 255                      null               null
+> STRING1     null           CHARACTER VARYING 2147483647               null               null
+> STRING2     '<empty>'      CHARACTER VARYING 2147483647               null               null
+> STRING_X    null           CHARACTER VARYING 2147483647               STRING2            null
 > rows: 6
 
 script nodata nopasswords nosettings;
@@ -4050,10 +4050,10 @@ SELECT DISTINCT TABLE_SCHEMA, TABLE_CATALOG FROM INFORMATION_SCHEMA.TABLES ORDER
 > rows (ordered): 1
 
 SELECT * FROM INFORMATION_SCHEMA.SCHEMATA;
-> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_CATALOG DEFAULT_CHARACTER_SET_SCHEMA DEFAULT_CHARACTER_SET_NAME SQL_PATH DEFAULT_COLLATION_NAME REMARKS ID
-> ------------ ------------------ ------------ ----------------------------- ---------------------------- -------------------------- -------- ---------------------- ------- --
-> SCRIPT       INFORMATION_SCHEMA SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null    -1
-> SCRIPT       PUBLIC             SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null    0
+> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_CATALOG DEFAULT_CHARACTER_SET_SCHEMA DEFAULT_CHARACTER_SET_NAME SQL_PATH DEFAULT_COLLATION_NAME REMARKS
+> ------------ ------------------ ------------ ----------------------------- ---------------------------- -------------------------- -------- ---------------------- -------
+> SCRIPT       INFORMATION_SCHEMA SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null
+> SCRIPT       PUBLIC             SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null
 > rows: 2
 
 SELECT * FROM INFORMATION_SCHEMA.INFORMATION_SCHEMA_CATALOG_NAME;
@@ -4070,10 +4070,10 @@ SELECT INFORMATION_SCHEMA.SCHEMATA.SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA;
 > rows: 2
 
 SELECT INFORMATION_SCHEMA.SCHEMATA.* FROM INFORMATION_SCHEMA.SCHEMATA;
-> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_CATALOG DEFAULT_CHARACTER_SET_SCHEMA DEFAULT_CHARACTER_SET_NAME SQL_PATH DEFAULT_COLLATION_NAME REMARKS ID
-> ------------ ------------------ ------------ ----------------------------- ---------------------------- -------------------------- -------- ---------------------- ------- --
-> SCRIPT       INFORMATION_SCHEMA SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null    -1
-> SCRIPT       PUBLIC             SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null    0
+> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_CATALOG DEFAULT_CHARACTER_SET_SCHEMA DEFAULT_CHARACTER_SET_NAME SQL_PATH DEFAULT_COLLATION_NAME REMARKS
+> ------------ ------------------ ------------ ----------------------------- ---------------------------- -------------------------- -------- ---------------------- -------
+> SCRIPT       INFORMATION_SCHEMA SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null
+> SCRIPT       PUBLIC             SA           SCRIPT                        PUBLIC                       Unicode                    null     OFF                    null
 > rows: 2
 
 CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA;
@@ -4587,14 +4587,14 @@ DROP ROLE TEST_ROLE;
 > ok
 
 SELECT * FROM INFORMATION_SCHEMA.ROLES;
-> NAME   REMARKS ID
-> ------ ------- --
-> PUBLIC null    0
+> NAME   REMARKS
+> ------ -------
+> PUBLIC null
 > rows: 1
 
 SELECT * FROM INFORMATION_SCHEMA.RIGHTS;
-> GRANTEE GRANTEETYPE GRANTEDROLE RIGHTS TABLE_SCHEMA TABLE_NAME ID
-> ------- ----------- ----------- ------ ------------ ---------- --
+> GRANTEE GRANTEETYPE GRANTEDROLE RIGHTS TABLE_SCHEMA TABLE_NAME
+> ------- ----------- ----------- ------ ------------ ----------
 > rows: 0
 
 --- plan ----------------------------------------------------------------------------------------------
@@ -4997,11 +4997,11 @@ SELECT * FROM TEST_ALL WHERE AID>=2;
 CREATE VIEW TEST_A_SUB AS SELECT * FROM TEST_A WHERE ID < 2;
 > ok
 
-SELECT TABLE_NAME, SQL FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_TYPE = 'VIEW';
-> TABLE_NAME SQL
-> ---------- -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> TEST_ALL   CREATE FORCE VIEW "PUBLIC"."TEST_ALL"("AID", "A_NAME", "BID", "B_NAME") AS SELECT "A"."ID" AS "AID", "A"."NAME" AS "A_NAME", "B"."ID" AS "BID", "B"."NAME" AS "B_NAME" FROM "PUBLIC"."TEST_A" "A" INNER JOIN "PUBLIC"."TEST_B" "B" ON 1=1 WHERE "A"."ID" = "B"."ID"
-> TEST_A_SUB CREATE FORCE VIEW "PUBLIC"."TEST_A_SUB"("ID", "NAME") AS SELECT "PUBLIC"."TEST_A"."ID", "PUBLIC"."TEST_A"."NAME" FROM "PUBLIC"."TEST_A" WHERE "ID" < 2
+SELECT TABLE_NAME, VIEW_DEFINITION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = 'PUBLIC';
+> TABLE_NAME VIEW_DEFINITION
+> ---------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> TEST_ALL   SELECT "A"."ID" AS "AID", "A"."NAME" AS "A_NAME", "B"."ID" AS "BID", "B"."NAME" AS "B_NAME" FROM "PUBLIC"."TEST_A" "A" INNER JOIN "PUBLIC"."TEST_B" "B" ON 1=1 WHERE "A"."ID" = "B"."ID"
+> TEST_A_SUB SELECT "PUBLIC"."TEST_A"."ID", "PUBLIC"."TEST_A"."NAME" FROM "PUBLIC"."TEST_A" WHERE "ID" < 2
 > rows: 2
 
 SELECT * FROM TEST_A_SUB WHERE NAME IS NOT NULL;
@@ -6787,10 +6787,10 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 SELECT NAME, ADMIN FROM INFORMATION_SCHEMA.USERS;
 > NAME       ADMIN
 > ---------- -----
-> SA         true
-> TEST       false
-> TEST2      false
-> TEST_ADMIN true
+> SA         TRUE
+> TEST       FALSE
+> TEST2      FALSE
+> TEST_ADMIN TRUE
 > rows: 4
 
 DROP TABLE TEST2;

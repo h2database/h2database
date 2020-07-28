@@ -325,10 +325,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "PARENT_DOMAIN_CATALOG",
                     "PARENT_DOMAIN_SCHEMA",
                     "PARENT_DOMAIN_NAME",
-                    "SELECTIVITY INT",
-                    "REMARKS",
-                    "SQL",
-                    "ID INT"
+                    "REMARKS"
             );
             indexColumnName = "DOMAIN_NAME";
             break;
@@ -344,9 +341,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "IS_DEFERRABLE",
                     "INITIALLY_DEFERRED",
                     // extensions
-                    "REMARKS",
-                    "SQL",
-                    "ID INT"
+                    "REMARKS"
             );
             indexColumnName = "DOMAIN_NAME";
             break;
@@ -524,8 +519,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // extensions
                     "GEOMETRY_TYPE",
                     "GEOMETRY_SRID INT",
-                    "REMARKS",
-                    "ID INT"
+                    "REMARKS"
             );
             break;
         case SCHEMATA:
@@ -540,8 +534,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "SQL_PATH",
                     // extensions
                     "DEFAULT_COLLATION_NAME", // MySQL
-                    "REMARKS",
-                    "ID INT"
+                    "REMARKS"
             );
             break;
         case SEQUENCES:
@@ -565,8 +558,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // extensions
                     "BASE_VALUE BIGINT",
                     "CACHE BIGINT",
-                    "REMARKS",
-                    "ID INT"
+                    "REMARKS"
             );
             indexColumnName = "SEQUENCE_NAME";
             break;
@@ -581,10 +573,8 @@ public final class InformationSchemaTable extends MetaTable {
                     "COMMIT_ACTION",
                     // extensions
                     "STORAGE_TYPE",
-                    "SQL",
                     "REMARKS",
                     "LAST_MODIFICATION BIGINT",
-                    "ID INT",
                     "TABLE_CLASS",
                     "ROW_COUNT_ESTIMATE BIGINT"
             );
@@ -607,9 +597,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "INDEX_CATALOG",
                     "INDEX_SCHEMA",
                     "INDEX_NAME",
-                    "REMARKS",
-                    "SQL",
-                    "ID INT"
+                    "REMARKS"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -642,9 +630,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "JAVA_CLASS",
                     "QUEUE_SIZE INT",
                     "NO_WAIT BIT",
-                    "REMARKS",
-                    "SQL",
-                    "ID INT"
+                    "REMARKS"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -663,8 +649,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "IS_TRIGGER_INSERTABLE_INTO",
                     // extensions
                     "STATUS",
-                    "REMARKS",
-                    "ID INT"
+                    "REMARKS"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -676,6 +661,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "CONSTANT_CATALOG",
                     "CONSTANT_SCHEMA",
                     "CONSTANT_NAME",
+                    "VALUE_DEFINITION",
                     "DATA_TYPE",
                     "CHARACTER_MAXIMUM_LENGTH BIGINT",
                     "CHARACTER_OCTET_LENGTH BIGINT",
@@ -698,9 +684,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "DECLARED_NUMERIC_SCALE INT",
                     "GEOMETRY_TYPE",
                     "GEOMETRY_SRID INT",
-                    "REMARKS",
-                    "SQL",
-                    "ID INT"
+                    "REMARKS"
             );
             indexColumnName = "CONSTANT_NAME";
             break;
@@ -730,8 +714,6 @@ public final class InformationSchemaTable extends MetaTable {
                     "INDEX_TYPE_NAME",
                     "IS_GENERATED BOOLEAN",
                     "REMARKS",
-                    "SQL",
-                    "ID INT",
                     "INDEX_CLASS"
             );
             indexColumnName = "TABLE_NAME";
@@ -798,8 +780,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "GRANTEDROLE",
                     "RIGHTS",
                     "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "ID INT"
+                    "TABLE_NAME"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -808,8 +789,7 @@ public final class InformationSchemaTable extends MetaTable {
             isView = false;
             cols = createColumns(
                     "NAME",
-                    "REMARKS",
-                    "ID INT"
+                    "REMARKS"
             );
             break;
         case SESSIONS:
@@ -855,8 +835,7 @@ public final class InformationSchemaTable extends MetaTable {
                     "SYNONYM_FOR_SCHEMA",
                     "TYPE_NAME",
                     "STATUS",
-                    "REMARKS",
-                    "ID INT"
+                    "REMARKS"
             );
             indexColumnName = "SYNONYM_NAME";
             break;
@@ -865,9 +844,8 @@ public final class InformationSchemaTable extends MetaTable {
             isView = false;
             cols = createColumns(
                     "NAME",
-                    "ADMIN",
-                    "REMARKS",
-                    "ID INT"
+                    "ADMIN BOOLEAN",
+                    "REMARKS"
             );
             break;
         default:
@@ -1370,9 +1348,8 @@ public final class InformationSchemaTable extends MetaTable {
 
     private void domains(SessionLocal session, ArrayList<Row> rows, String catalog, String mainSchemaName,
             String collation, Domain domain, String domainName) {
-        Column col = domain.getColumn();
-        Domain parentDomain = col.getDomain();
-        TypeInfo typeInfo = col.getType();
+        Domain parentDomain = domain.getDomain();
+        TypeInfo typeInfo = domain.getDataType();
         DataTypeInformation dt = DataTypeInformation.valueOf(typeInfo);
         String characterSetCatalog, characterSetSchema, characterSetName, collationName;
         if (dt.hasCharsetAndCollation) {
@@ -1421,7 +1398,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // INTERVAL_PRECISION
                 dt.intervalPrecision,
                 // DOMAIN_DEFAULT
-                col.getDefaultSQL(),
+                domain.getDefaultSQL(),
                 // MAXIMUM_CARDINALITY
                 dt.maximumCardinality,
                 // DTD_IDENTIFIER
@@ -1438,21 +1415,15 @@ public final class InformationSchemaTable extends MetaTable {
                 // GEOMETRY_SRID INT
                 dt.geometrySrid,
                 // DOMAIN_ON_UPDATE
-                col.getOnUpdateSQL(),
+                domain.getOnUpdateSQL(),
                 // PARENT_DOMAIN_CATALOG
                 parentDomain != null ? catalog : null,
                 // PARENT_DOMAIN_SCHEMA
                 parentDomain != null ? parentDomain.getSchema().getName() : null,
                 // PARENT_DOMAIN_NAME
                 parentDomain != null ? parentDomain.getName() : null,
-                // SELECTIVITY INT
-                ValueInteger.get(col.getSelectivity()),
                 // REMARKS
-                domain.getComment(),
-                // SQL
-                domain.getCreateSQL(),
-                // ID
-                ValueInteger.get(domain.getId())
+                domain.getComment()
         );
     }
 
@@ -1495,11 +1466,7 @@ public final class InformationSchemaTable extends MetaTable {
                 "NO",
                 // extensions
                 // REMARKS
-                constraint.getComment(),
-                // SQL
-                constraint.getCreateSQL(),
-                // ID
-                ValueInteger.get(constraint.getId())
+                constraint.getComment()
         );
     }
 
@@ -1514,7 +1481,7 @@ public final class InformationSchemaTable extends MetaTable {
             }
             for (Domain domain : schema.getAllDomains()) {
                 elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation, schemaName,
-                        domain.getName(), "DOMAIN", "TYPE", domain.getColumn().getType());
+                        domain.getName(), "DOMAIN", "TYPE", domain.getDataType());
             }
             for (FunctionAlias alias : schema.getAllFunctionAliases()) {
                 String name = alias.getName();
@@ -1997,21 +1964,20 @@ public final class InformationSchemaTable extends MetaTable {
                     routines(session, rows, catalog, mainSchemaName, collation, schemaName, name,
                             name + '_' + (i + 1), routineType, admin ? alias.getSource() : null,
                             alias.getJavaClassName() + '.' + alias.getJavaMethodName(), typeInfo,
-                            alias.isDeterministic(), alias.getComment(), alias.getId());
+                            alias.isDeterministic(), alias.getComment());
                 }
             }
             for (UserAggregate agg : schema.getAllAggregates()) {
                 String name = agg.getName();
                 routines(session, rows, catalog, mainSchemaName, collation, schemaName, name, name,
-                        "AGGREGATE", null, agg.getJavaClassName(), TypeInfo.TYPE_NULL, false, agg.getComment(),
-                        agg.getId());
+                        "AGGREGATE", null, agg.getJavaClassName(), TypeInfo.TYPE_NULL, false, agg.getComment());
             }
         }
     }
 
     private void routines(SessionLocal session, ArrayList<Row> rows, String catalog, String mainSchemaName, //
             String collation, String schema, String name, String specificName, String routineType, String definition,
-            String externalName, TypeInfo typeInfo, boolean deterministic, String remarks, int id) {
+            String externalName, TypeInfo typeInfo, boolean deterministic, String remarks) {
         DataTypeInformation dt = typeInfo != null ? DataTypeInformation.valueOf(typeInfo) : DataTypeInformation.NULL;
         String characterSetCatalog, characterSetSchema, characterSetName, collationName;
         if (dt.hasCharsetAndCollation) {
@@ -2095,9 +2061,8 @@ public final class InformationSchemaTable extends MetaTable {
                 // GEOMETRY_SRID INT
                 dt.geometrySrid,
                 // REMARKS
-                remarks,
-                // ID
-                ValueInteger.get(id));
+                remarks
+        );
     }
 
     private void schemata(SessionLocal session, ArrayList<Row> rows, String catalog) {
@@ -2123,9 +2088,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // DEFAULT_COLLATION_NAME
                     collation,
                     // REMARKS
-                    schema.getComment(),
-                    // ID
-                    ValueInteger.get(schema.getId())
+                    schema.getComment()
             );
         }
     }
@@ -2186,9 +2149,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // CACHE
                 ValueBigint.get(sequence.getCacheSize()),
                 // REMARKS
-                sequence.getComment(),
-                // ID
-                ValueInteger.get(sequence.getId())
+                sequence.getComment()
             );
     }
 
@@ -2233,13 +2194,6 @@ public final class InformationSchemaTable extends MetaTable {
                 break;
             }
         }
-        String sql = table.getCreateSQL();
-        if (!admin) {
-            if (sql != null && sql.contains(DbException.HIDE_SQL)) {
-                // hide the password of linked tables
-                sql = "-";
-            }
-        }
         long lastModification = table.getMaxDataModificationId();
         add(session, rows,
                 // TABLE_CATALOG
@@ -2257,14 +2211,10 @@ public final class InformationSchemaTable extends MetaTable {
                 // extensions
                 // STORAGE_TYPE
                 storageType,
-                // SQL
-                sql,
                 // REMARKS
                 table.getComment(),
                 // LAST_MODIFICATION
                 lastModification != Long.MAX_VALUE ? ValueBigint.get(lastModification) : null,
-                // ID
-                ValueInteger.get(table.getId()),
                 // TABLE_CLASS
                 table.getClass().getName(),
                 // ROW_COUNT_ESTIMATE
@@ -2332,11 +2282,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // INDEX_NAME
                 index != null ? index.getName() : null,
                 // REMARKS
-                constraint.getComment(),
-                // SQL
-                constraint.getCreateSQL(),
-                // ID
-                ValueInteger.get(constraint.getId())
+                constraint.getComment()
         );
     }
 
@@ -2399,11 +2345,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // NO_WAIT
                 ValueBoolean.get(trigger.isNoWait()),
                 // REMARKS
-                trigger.getComment(),
-                // SQL
-                trigger.getCreateSQL(),
-                // ID
-                ValueInteger.get(trigger.getId())
+                trigger.getComment()
         );
     }
 
@@ -2473,9 +2415,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // STATUS
                 status,
                 // REMARKS
-                table.getComment(),
-                // ID
-                ValueInteger.get(table.getId())
+                table.getComment()
         );
     }
 
@@ -2514,6 +2454,8 @@ public final class InformationSchemaTable extends MetaTable {
                 constant.getSchema().getName(),
                 // CONSTANT_NAME
                 constantName,
+                // VALUE_DEFINITION
+                expr.getSQL(DEFAULT_SQL_FLAGS),
                 // DATA_TYPE
                 dt.dataType,
                 // CHARACTER_MAXIMUM_LENGTH
@@ -2559,11 +2501,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // GEOMETRY_SRID INT
                 dt.geometrySrid,
                 // REMARKS
-                constant.getComment(),
-                // SQL
-                expr.getSQL(DEFAULT_SQL_FLAGS),
-                // ID
-                ValueInteger.get(constant.getId())
+                constant.getComment()
             );
     }
 
@@ -2670,10 +2608,6 @@ public final class InformationSchemaTable extends MetaTable {
                 ValueBoolean.get(index.getIndexType().getBelongsToConstraint()),
                 // REMARKS
                 index.getComment(),
-                // SQL
-                index.getCreateSQL(),
-                // ID
-                ValueInteger.get(index.getId()),
                 // INDEX_CLASS
                 index.getClass().getName()
             );
@@ -2823,9 +2757,7 @@ public final class InformationSchemaTable extends MetaTable {
                         // TABLE_SCHEMA
                         schemaName,
                         // TABLE_NAME
-                        tableName,
-                        // ID
-                        ValueInteger.get(r.getId())
+                        tableName
                 );
             } else {
                 add(session, rows,
@@ -2840,9 +2772,7 @@ public final class InformationSchemaTable extends MetaTable {
                         // TABLE_SCHEMA
                         "",
                         // TABLE_NAME
-                        "",
-                        // ID
-                        ValueInteger.get(r.getId())
+                        ""
                 );
             }
         }
@@ -2856,9 +2786,7 @@ public final class InformationSchemaTable extends MetaTable {
                         // NAME
                         identifier(r.getName()),
                         // REMARKS
-                        r.getComment(),
-                        // ID
-                        ValueInteger.get(r.getId())
+                        r.getComment()
                 );
             }
         }
@@ -3090,9 +3018,7 @@ public final class InformationSchemaTable extends MetaTable {
                     // STATUS
                     "VALID",
                     // REMARKS
-                    synonym.getComment(),
-                    // ID
-                    ValueInteger.get(synonym.getId())
+                    synonym.getComment()
             );
         }
     }
@@ -3113,11 +3039,9 @@ public final class InformationSchemaTable extends MetaTable {
                 // NAME
                 identifier(user.getName()),
                 // ADMIN
-                String.valueOf(user.isAdmin()),
+                ValueBoolean.get(user.isAdmin()),
                 // REMARKS
-                user.getComment(),
-                // ID
-                ValueInteger.get(user.getId())
+                user.getComment()
         );
     }
 

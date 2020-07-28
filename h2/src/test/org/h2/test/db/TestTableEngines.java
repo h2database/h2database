@@ -652,11 +652,6 @@ public class TestTableEngines extends TestDb {
             }
 
             @Override
-            public long getDiskSpaceUsed() {
-                return 0;
-            }
-
-            @Override
             public Index getScanIndex(SessionLocal session) {
                 return scanIndex;
             }
@@ -677,17 +672,6 @@ public class TestTableEngines extends TestDb {
             }
 
             @Override
-            public boolean isLockedExclusively() {
-                return false;
-            }
-
-            @Override
-            public boolean lock(SessionLocal session, boolean exclusive, boolean force) {
-                // do nothing
-                return false;
-            }
-
-            @Override
             public void removeRow(SessionLocal session, Row r) {
                 this.row = null;
             }
@@ -695,11 +679,6 @@ public class TestTableEngines extends TestDb {
             @Override
             public void truncate(SessionLocal session) {
                 row = null;
-            }
-
-            @Override
-            public void unlock(SessionLocal s) {
-                // do nothing
             }
 
         }
@@ -804,11 +783,6 @@ public class TestTableEngines extends TestDb {
         }
 
         @Override
-        public void unlock(SessionLocal s) {
-            // No-op.
-        }
-
-        @Override
         public void truncate(SessionLocal session) {
             if (indexes != null) {
                 for (Index index : indexes) {
@@ -863,16 +837,6 @@ public class TestTableEngines extends TestDb {
         }
 
         @Override
-        public boolean lock(SessionLocal session, boolean exclusive, boolean forceLockEvenInMvcc) {
-            return true;
-        }
-
-        @Override
-        public boolean isLockedExclusively() {
-            return false;
-        }
-
-        @Override
         public boolean isDeterministic() {
             return false;
         }
@@ -910,11 +874,6 @@ public class TestTableEngines extends TestDb {
         @Override
         public ArrayList<Index> getIndexes() {
             return indexes;
-        }
-
-        @Override
-        public long getDiskSpaceUsed() {
-            return 0;
         }
 
         @Override

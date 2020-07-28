@@ -9,14 +9,15 @@ import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.SessionLocal;
+import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
-import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.HasSQL;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -26,8 +27,17 @@ import org.h2.value.Value;
 public class CreateDomain extends SchemaCommand {
 
     private String typeName;
-    private Column column;
     private boolean ifNotExists;
+
+    private TypeInfo dataType;
+
+    private Domain parentDomain;
+
+    private Expression defaultExpression;
+
+    private Expression onUpdateExpression;
+
+    private String comment;
 
     private ArrayList<AlterDomainAddConstraint> constraintCommands;
 
@@ -39,12 +49,28 @@ public class CreateDomain extends SchemaCommand {
         this.typeName = name;
     }
 
-    public void setColumn(Column column) {
-        this.column = column;
-    }
-
     public void setIfNotExists(boolean ifNotExists) {
         this.ifNotExists = ifNotExists;
+    }
+
+    public void setDataType(TypeInfo dataType) {
+        this.dataType = dataType;
+    }
+
+    public void setParentDomain(Domain parentDomain) {
+        this.parentDomain = parentDomain;
+    }
+
+    public void setDefaultExpression(Expression defaultExpression) {
+        this.defaultExpression = defaultExpression;
+    }
+
+    public void setOnUpdateExpression(Expression onUpdateExpression) {
+        this.onUpdateExpression = onUpdateExpression;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     @Override
@@ -75,7 +101,11 @@ public class CreateDomain extends SchemaCommand {
         }
         int id = getObjectId();
         Domain domain = new Domain(schema, id, typeName);
-        domain.setColumn(column);
+        domain.setDataType(dataType != null ? dataType : parentDomain.getDataType());
+        domain.setDomain(parentDomain);
+        domain.setDefaultExpression(session, defaultExpression);
+        domain.setOnUpdateExpression(session, onUpdateExpression);
+        domain.setComment(comment);
         schema.getDatabase().addSchemaObject(session, domain);
         if (constraintCommands != null) {
             for (AlterDomainAddConstraint command : constraintCommands) {

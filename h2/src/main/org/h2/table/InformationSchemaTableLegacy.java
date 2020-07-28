@@ -1806,9 +1806,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         case DOMAINS: {
             for (SchemaObject obj : getAllSchemaObjects(DbObject.DOMAIN)) {
                 Domain domain = (Domain) obj;
-                Column col = domain.getColumn();
-                Domain parentDomain = col.getDomain();
-                TypeInfo typeInfo = col.getType();
+                Domain parentDomain = domain.getDomain();
+                TypeInfo typeInfo = domain.getDataType();
                 add(session,
                         rows,
                         // DOMAIN_CATALOG
@@ -1818,9 +1817,9 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // DOMAIN_NAME
                         domain.getName(),
                         // DOMAIN_DEFAULT
-                        col.getDefaultSQL(),
+                        domain.getDefaultSQL(),
                         // DOMAIN_ON_UPDATE
-                        col.getOnUpdateSQL(),
+                        domain.getOnUpdateSQL(),
                         // DATA_TYPE
                         ValueInteger.get(DataType.convertTypeToSQLType(typeInfo)),
                         // PRECISION
@@ -1836,7 +1835,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // PARENT_DOMAIN_NAME
                         parentDomain != null ? parentDomain.getName() : null,
                         // SELECTIVITY INT
-                        ValueInteger.get(col.getSelectivity()),
+                        ValueInteger.get(Constants.SELECTIVITY_DEFAULT),
                         // REMARKS
                         replaceNullWithEmpty(domain.getComment()),
                         // SQL
@@ -1844,7 +1843,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // ID
                         ValueInteger.get(domain.getId()),
                         // COLUMN_DEFAULT
-                        col.getDefaultSQL(),
+                        domain.getDefaultSQL(),
                         // IS_NULLABLE
                         "YES",
                         // CHECK_CONSTRAINT

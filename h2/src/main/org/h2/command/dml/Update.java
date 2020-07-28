@@ -20,10 +20,10 @@ import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.result.RowList;
-import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -31,7 +31,7 @@ import org.h2.value.ValueNull;
  * This class represents the statement
  * UPDATE
  */
-public class Update extends Prepared implements DataChangeStatement {
+public final class Update extends DataChangeStatement {
 
     private Expression condition;
     private TableFilter targetTableFilter;// target of update
@@ -40,10 +40,6 @@ public class Update extends Prepared implements DataChangeStatement {
     private Expression limitExpr;
 
     private SetClauseList setClauseList;
-
-    private ResultTarget deltaChangeCollector;
-
-    private ResultOption deltaChangeCollectionMode;
 
     private Insert onDuplicateKeyInsert;
 
@@ -73,13 +69,7 @@ public class Update extends Prepared implements DataChangeStatement {
     }
 
     @Override
-    public void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
-        this.deltaChangeCollector = deltaChangeCollector;
-        this.deltaChangeCollectionMode = deltaChangeCollectionMode;
-    }
-
-    @Override
-    public int update() {
+    public int update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         targetTableFilter.startQuery(session);
         targetTableFilter.reset();
         Table table = targetTableFilter.getTable();

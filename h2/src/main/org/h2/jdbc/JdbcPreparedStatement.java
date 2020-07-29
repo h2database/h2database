@@ -65,11 +65,10 @@ public class JdbcPreparedStatement extends JdbcStatement implements
     private HashMap<String, Integer> cachedColumnLabelMap;
     private final Object generatedKeysRequest;
 
-    JdbcPreparedStatement(JdbcConnection conn, String sql, int id,
-            int resultSetType, int resultSetConcurrency,
+    JdbcPreparedStatement(JdbcConnection conn, String sql, int id, int resultSetType, int resultSetConcurrency,
             Object generatedKeysRequest) {
         super(conn, id, resultSetType, resultSetConcurrency);
-        this.generatedKeysRequest = conn.scopeGeneratedKeys() ? false : generatedKeysRequest;
+        this.generatedKeysRequest = generatedKeysRequest;
         setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
         command = conn.prepareCommand(sql, fetchSize);
     }

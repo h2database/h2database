@@ -2850,7 +2850,7 @@ CHECK (VALUE > 0)
 "
 
 "Other Grammar","Comment","
-bracketedComment | -- anythingUntilEndOfLine | @h2@ // anythingUntilEndOfLine
+bracketedComment | -- anythingUntilEndOfLine | @c@ // anythingUntilEndOfLine
 ","
 Comments can be used anywhere in a command and are ignored by the database.
 Line comments ""--"" and ""//"" end with a newline.

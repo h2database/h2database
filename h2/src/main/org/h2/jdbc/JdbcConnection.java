@@ -94,7 +94,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     private int queryTimeoutCache = -1;
 
     private Map<String, String> clientInfo;
-    private final boolean scopeGeneratedKeys;
 
     /**
      * INTERNAL
@@ -133,7 +132,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                         + ", \"\");");
             }
             this.url = ci.getURL();
-            scopeGeneratedKeys = ci.getProperty("SCOPE_GENERATED_KEYS", false);
             closeOld();
             watcher = CloseWatcher.register(this, session, keepOpenStackTrace);
         } catch (Exception e) {
@@ -157,7 +155,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         this.getQueryTimeout = clone.getQueryTimeout;
         this.getReadOnly = clone.getReadOnly;
         this.rollback = clone.rollback;
-        this.scopeGeneratedKeys = clone.scopeGeneratedKeys;
         this.watcher = null;
         if (clone.clientInfo != null) {
             this.clientInfo = new HashMap<>(clone.clientInfo);
@@ -174,7 +171,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         setTrace(trace, TraceObject.CONNECTION, id);
         this.user = user;
         this.url = url;
-        this.scopeGeneratedKeys = false;
         this.watcher = null;
     }
 
@@ -1447,13 +1443,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      */
     public void setExecutingStatement(Statement stat) {
         executingStatement = stat;
-    }
-
-    /**
-     * INTERNAL
-     */
-    boolean scopeGeneratedKeys() {
-        return scopeGeneratedKeys;
     }
 
     /**

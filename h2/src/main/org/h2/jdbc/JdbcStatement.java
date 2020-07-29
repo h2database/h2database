@@ -161,8 +161,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         synchronized (session) {
             setExecutingStatement(command);
             try {
-                ResultWithGeneratedKeys result = command.executeUpdate(
-                        conn.scopeGeneratedKeys() ? null : generatedKeysRequest);
+                ResultWithGeneratedKeys result = command.executeUpdate(generatedKeysRequest);
                 updateCount = result.getUpdateCount();
                 ResultInterface gk = result.getGeneratedKeys();
                 if (gk != null) {
@@ -219,8 +218,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                     resultSet = new JdbcResultSet(conn, this, command, result, id, scrollable, updatable);
                 } else {
                     returnsResultSet = false;
-                    ResultWithGeneratedKeys result = command.executeUpdate(
-                            conn.scopeGeneratedKeys() ? null : generatedKeysRequest);
+                    ResultWithGeneratedKeys result = command.executeUpdate(generatedKeysRequest);
                     updateCount = result.getUpdateCount();
                     ResultInterface gk = result.getGeneratedKeys();
                     if (gk != null) {
@@ -839,10 +837,10 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             }
             checkClosed();
             if (generatedKeys == null) {
-                if (!conn.scopeGeneratedKeys() && session.isSupportsGeneratedKeys()) {
+                if (session.isSupportsGeneratedKeys()) {
                     generatedKeys = new JdbcResultSet(conn, this, null, new SimpleResult(), id, true, false);
                 } else {
-                    // Compatibility mode or an old server, so use SCOPE_IDENTITY()
+                    // Old server, use SCOPE_IDENTITY()
                     generatedKeys = conn.getGeneratedKeys(this, id);
                 }
             }

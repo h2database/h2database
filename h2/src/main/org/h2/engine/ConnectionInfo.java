@@ -105,7 +105,6 @@ public class ConnectionInfo implements Cloneable {
                 "OLD_INFORMATION_SCHEMA", "OPEN_NEW", //
                 "PAGE_SIZE", //
                 "RECOVER", //
-                "SCOPE_GENERATED_KEYS" //
         };
         String[] settings = { //
                 "AUTHREALM", "AUTHZPWD", "AUTOCOMMIT", //

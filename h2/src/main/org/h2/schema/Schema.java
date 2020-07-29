@@ -32,7 +32,6 @@ import org.h2.table.MetaTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
 import org.h2.table.TableSynonym;
-import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -480,30 +479,26 @@ public class Schema extends DbObjectBase {
         }
     }
 
-    private String getUniqueName(DbObject obj,
-            Map<String, ? extends SchemaObject> map, String prefix) {
-        String hash = StringUtils.toUpperEnglish(Integer.toHexString(obj.getName().hashCode()));
-        String name = null;
+    private String getUniqueName(DbObject obj, Map<String, ? extends SchemaObject> map, String prefix) {
+        StringBuilder nameBuilder = new StringBuilder(prefix);
+        String hash = Integer.toHexString(obj.getName().hashCode());
         synchronized (temporaryUniqueNames) {
-            for (int i = 1, len = hash.length(); i < len; i++) {
-                name = prefix + hash.substring(0, i);
-                if (!map.containsKey(name) && !temporaryUniqueNames.contains(name)) {
-                    break;
-                }
-                name = null;
-            }
-            if (name == null) {
-                prefix = prefix + hash + "_";
-                for (int i = 0;; i++) {
-                    name = prefix + i;
-                    if (!map.containsKey(name) && !temporaryUniqueNames.contains(name)) {
-                        break;
-                    }
+            for (int i = 0, len = hash.length(); i < len; i++) {
+                char c = hash.charAt(i);
+                String name = nameBuilder.append(c >= 'a' ? (char) (c - 0x20) : c).toString();
+                if (!map.containsKey(name) && temporaryUniqueNames.add(name)) {
+                    return name;
                 }
             }
-            temporaryUniqueNames.add(name);
+            int nameLength = nameBuilder.append('_').length();
+            for (int i = 0;; i++) {
+                String name = nameBuilder.append(i).toString();
+                if (!map.containsKey(name) && temporaryUniqueNames.add(name)) {
+                    return name;
+                }
+                nameBuilder.setLength(nameLength);
+            }
         }
-        return name;
     }
 
     /**

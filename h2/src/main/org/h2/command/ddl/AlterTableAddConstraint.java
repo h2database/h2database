@@ -210,7 +210,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             if (refIndexColumns.length != columnCount) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
-            for (IndexColumn indexColumn : refIndexColumns) {
+            for (IndexColumn indexColumn : indexColumns) {
                 Column column = indexColumn.column;
                 if (column.isGeneratedAlways()) {
                     switch (deleteAction) {

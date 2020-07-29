@@ -378,7 +378,7 @@ public class WebServer implements Service {
         try {
             StringBuilder builder = new StringBuilder(ssl ? "https" : "http").append("://")
                     .append(NetUtils.getLocalAddress()).append(':').append(port);
-            if (key != null) {
+            if (key != null && serverSocket != null) {
                 builder.append("?key=").append(key);
             }
             url = builder.toString();

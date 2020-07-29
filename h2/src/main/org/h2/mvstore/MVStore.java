@@ -3940,7 +3940,7 @@ public class MVStore implements AutoCloseable {
         /**
          * Set the number of keys per page.
          *
-         * @param keyCount the numbr of keys
+         * @param keyCount the number of keys
          * @return this
          */
         public Builder keysPerPage(int keyCount) {

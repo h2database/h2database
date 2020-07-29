@@ -1,7 +1,7 @@
 .translator=Thomas Mueller
 a.help=Help
 a.language=English
-a.lynxNotSupported=Sorry, Lynx not supported yet
+a.lynxNotSupported=Sorry, Lynx is not supported yet
 a.password=Password
 a.remoteConnectionsDisabled=Sorry, remote connections ('webAllowOthers') are disabled on this server.
 a.title=H2 Console

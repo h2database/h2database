@@ -1660,7 +1660,9 @@ H2 supports the geometry data type and spatial indexes.
 Here is an example SQL script to create a table with a spatial column and index:
 </p>
 <pre>
-CREATE TABLE GEO_TABLE(GID SERIAL, THE_GEOM GEOMETRY);
+CREATE TABLE GEO_TABLE(
+    GID BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    THE_GEOM GEOMETRY);
 INSERT INTO GEO_TABLE(THE_GEOM) VALUES
     ('POINT(500 505)'),
     ('LINESTRING(550 551, 525 512, 565 566)'),
@@ -1686,14 +1688,13 @@ EXPLAIN SELECT * FROM GEO_TABLE
     'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
 -- Result
 SELECT
-    "GEO_TABLE"."GID",
-    "GEO_TABLE"."THE_GEOM"
+    "PUBLIC"."GEO_TABLE"."GID",
+    "PUBLIC"."GEO_TABLE"."THE_GEOM"
 FROM "PUBLIC"."GEO_TABLE"
-    /* PUBLIC.GEO_TABLE_SPATIAL_INDEX:
-    THE_GEOM &amp;&amp;
-    'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))'::Geometry */
-WHERE INTERSECTS("THE_GEOM",
-    'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))'::Geometry)
+    /* PUBLIC.GEO_TABLE_SPATIAL_INDEX: THE_GEOM &amp;&amp;
+    CAST('POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))' AS GEOMETRY) */
+WHERE "THE_GEOM" &amp;&amp;
+    CAST('POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))' AS GEOMETRY)
 </pre>
 <p>
 For persistent databases, the spatial index is stored on disk;

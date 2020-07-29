@@ -539,8 +539,7 @@ public final class EWKTUtils {
      */
     public static String ewkb2ewkt(byte[] ewkb, int dimensionSystem) {
         StringBuilder output = new StringBuilder();
-        EWKTTarget target = new EWKTTarget(output, dimensionSystem);
-        EWKBUtils.parseEWKB(ewkb, target);
+        EWKBUtils.parseEWKB(ewkb, new EWKTTarget(output, dimensionSystem));
         return output.toString();
     }
 

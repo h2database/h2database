@@ -19,6 +19,7 @@ import org.h2.util.geometry.GeometryUtils;
 import org.h2.util.geometry.GeometryUtils.EnvelopeAndDimensionSystemTarget;
 import org.h2.util.geometry.GeometryUtils.EnvelopeTarget;
 import org.h2.util.geometry.JTSUtils;
+import org.h2.util.geometry.EWKTUtils.EWKTTarget;
 import org.locationtech.jts.geom.Geometry;
 
 /**
@@ -260,10 +261,20 @@ public final class ValueGeometry extends ValueBytesBase {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        if ((sqlFlags & NO_CASTS) == 0) {
-            return super.getSQL(builder.append("CAST("), DEFAULT_SQL_FLAGS).append(" AS GEOMETRY)");
+        boolean addCast = (sqlFlags & NO_CASTS) == 0;
+        if (addCast) {
+            builder.append("CAST(");
         }
-        return super.getSQL(builder, DEFAULT_SQL_FLAGS);
+        if ((sqlFlags & ADD_PLAN_INFORMATION) != 0) {
+            EWKBUtils.parseEWKB(value, new EWKTTarget(builder.append('\''), getDimensionSystem()));
+            builder.append('\'');
+        } else {
+            super.getSQL(builder, DEFAULT_SQL_FLAGS);
+        }
+        if (addCast) {
+            builder.append(" AS GEOMETRY)");
+        }
+        return builder;
     }
 
     @Override

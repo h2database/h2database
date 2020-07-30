@@ -203,7 +203,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("XMLCDATA", XMLCDATA, 1, Value.VARCHAR);
         addFunction("XMLSTARTDOC", XMLSTARTDOC, 0, Value.VARCHAR);
         addFunction("XMLTEXT", XMLTEXT, VAR_ARGS, Value.VARCHAR);
-        addFunction("REGEXP_REPLACE", REGEXP_REPLACE, VAR_ARGS, Value.VARCHAR);
+        addFunctionWithNull("REGEXP_REPLACE", REGEXP_REPLACE, VAR_ARGS, Value.VARCHAR);
         addFunction("RPAD", RPAD, VAR_ARGS, Value.VARCHAR);
         addFunction("LPAD", LPAD, VAR_ARGS, Value.VARCHAR);
         addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.VARCHAR);
@@ -774,10 +774,30 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
         case REGEXP_REPLACE: {
             String input = v0.getString();
-            String regexp = v1.getString();
-            String replacement = v2.getString();
-            String regexpMode = v3 != null ? v3.getString() : null;
-            result = regexpReplace(session, input, regexp, replacement, regexpMode);
+            if (ModeEnum.Oracle == session.getMode().getEnum()) {
+                if (input == null) {
+                    result = ValueNull.INSTANCE;
+                } else {
+                    String regexp = v1.getString() != null ? v1.getString() : "";
+                    String replacement = v2.getString() != null ? v2.getString() : "";
+                    int position = v3 != null ? v3.getInt() : 1;
+                    int occurrence = v4 != null ? v4.getInt() : 0;
+                    String regexpMode = v5 != null ? v5.getString() : null;
+                    result = regexpReplace(session, input, regexp, replacement, position, occurrence, regexpMode);
+                }
+            } else {
+                if (v4 != null) {
+                    throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "3..4");
+                }
+                if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE || v3 == ValueNull.INSTANCE) {
+                    result = ValueNull.INSTANCE;
+                } else {
+                    String regexp = v1.getString();
+                    String replacement = v2.getString();
+                    String regexpMode = v3 != null ? v3.getString() : null;
+                    result = regexpReplace(session, input, regexp, replacement, 1, 0, regexpMode);
+                }
+            }
             break;
         }
         case RPAD:
@@ -1513,8 +1533,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
     }
 
-    private static Value regexpReplace(SessionLocal session, String input, String regexp, String replacement,
-            String regexpMode) {
+    private static Value regexpReplace(SessionLocal session, String input, String regexp,
+            String replacement, int position, int occurrence, String regexpMode) {
         Mode mode = session.getMode();
         if (mode.regexpReplaceBackslashReferences) {
             if ((replacement.indexOf('\\') >= 0) || (replacement.indexOf('$') >= 0)) {
@@ -1534,11 +1554,26 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         }
         boolean isInPostgreSqlMode = Mode.ModeEnum.PostgreSQL.equals(mode.getEnum());
         int flags = makeRegexpFlags(regexpMode, isInPostgreSqlMode);
+        if (isInPostgreSqlMode && ( regexpMode == null || regexpMode.isEmpty() || !regexpMode.contains("g"))) {
+            occurrence = 1;
+        }
         try {
-            Matcher matcher = Pattern.compile(regexp, flags).matcher(input);
-            return ValueVarchar.get(isInPostgreSqlMode && (regexpMode == null || regexpMode.indexOf('g') < 0) ?
-                    matcher.replaceFirst(replacement) : matcher.replaceAll(replacement),
-                    session);
+            Matcher matcher = Pattern.compile(regexp, flags).matcher(input).region(position - 1, input.length());
+            if (occurrence == 0) {
+                return ValueVarchar.get(matcher.replaceAll(replacement), session);
+            } else {
+                StringBuffer sb = new StringBuffer();
+                int index = 1;
+                while (matcher.find()) {
+                    if (index == occurrence) {
+                        matcher.appendReplacement(sb, replacement);
+                        break;
+                    }
+                    index++;
+                }
+                matcher.appendTail(sb);
+                return ValueVarchar.get(sb.toString(), session);
+            }
         } catch (PatternSyntaxException e) {
             throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
         } catch (StringIndexOutOfBoundsException | IllegalArgumentException e) {
@@ -1636,7 +1671,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             break;
         case REGEXP_REPLACE:
             min = 3;
-            max = 4;
+            max = 6;
             break;
         default:
             DbException.throwInternalError("type=" + info.type);

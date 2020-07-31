@@ -26,7 +26,6 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.Command;
 import org.h2.command.Parser;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
@@ -103,11 +102,10 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     public static final int
             CSVREAD = 210, CSVWRITE = 211,
             LINK_SCHEMA = 218,
-            CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
+            SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
             ARRAY_CONTAINS = 230, FILE_WRITE = 232,
-            UNNEST = 233, TRIM_ARRAY = 235, ARRAY_SLICE = 236,
-            ABORT_SESSION = 237;
+            UNNEST = 233, TRIM_ARRAY = 235, ARRAY_SLICE = 236;
 
     public static final int REGEXP_LIKE = 240;
     public static final int REGEXP_SUBSTR = 241;
@@ -179,10 +177,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INTEGER, false, false);
         addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
                 6, Value.RESULT_SET);
-        addFunctionNotDeterministic("CANCEL_SESSION", CANCEL_SESSION,
-                1, Value.BOOLEAN);
-        addFunctionNotDeterministic("ABORT_SESSION", ABORT_SESSION,
-                1, Value.BOOLEAN);
         addFunction("SET", SET, 2, Value.NULL, false, false);
         addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false);
         addFunction("FILE_WRITE", FILE_WRITE, 2, Value.BIGINT, false, false);
@@ -397,14 +391,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case CANCEL_SESSION: {
-            result = ValueBoolean.get(cancelStatement(session, v0.getInt()));
-            break;
-        }
-        case ABORT_SESSION: {
-            result = ValueBoolean.get(abortSession(session, v0.getInt()));
-            break;
-        }
         case TRANSACTION_ID: {
             result = session.getTransactionId();
             break;
@@ -424,38 +410,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             list = null;
         }
         return list;
-    }
-
-    private static boolean cancelStatement(SessionLocal session, int targetSessionId) {
-        session.getUser().checkAdmin();
-        SessionLocal[] sessions = session.getDatabase().getSessions(false);
-        for (SessionLocal s : sessions) {
-            if (s.getId() == targetSessionId) {
-                Command c = s.getCurrentCommand();
-                if (c == null) {
-                    return false;
-                }
-                c.cancel();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean abortSession(SessionLocal session, int targetSessionId) {
-        session.getUser().checkAdmin();
-        SessionLocal[] sessions = session.getDatabase().getSessions(false);
-        for (SessionLocal s : sessions) {
-            if (s.getId() == targetSessionId) {
-                Command c = s.getCurrentCommand();
-                if (c != null) {
-                    c.cancel();
-                }
-                s.close();
-                return true;
-            }
-        }
-        return false;
     }
 
     private static long getDiskSpaceUsed(SessionLocal session, Value tableName) {

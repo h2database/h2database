@@ -294,6 +294,7 @@ import org.h2.expression.function.MathFunction1;
 import org.h2.expression.function.MathFunction2;
 import org.h2.expression.function.NullIfFunction;
 import org.h2.expression.function.RandFunction;
+import org.h2.expression.function.SessionControlFunction;
 import org.h2.expression.function.SoundexFunction;
 import org.h2.expression.function.StringFunction1;
 import org.h2.expression.function.SysInfoFunction;
@@ -4441,6 +4442,10 @@ public class Parser {
         case "UUID":
             read(CLOSE_PAREN);
             return new RandFunction(null, RandFunction.RANDOM_UUID);
+        case "ABORT_SESSION":
+            return new SessionControlFunction(readIfSingleArgument(), SessionControlFunction.ABORT_SESSION);
+        case "CANCEL_SESSION":
+            return new SessionControlFunction(readIfSingleArgument(), SessionControlFunction.CANCEL_SESSION);
         case "AUTOCOMMIT":
             read(CLOSE_PAREN);
             return new SysInfoFunction(SysInfoFunction.AUTOCOMMIT);

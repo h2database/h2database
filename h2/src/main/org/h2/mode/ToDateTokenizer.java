@@ -21,7 +21,7 @@ import org.h2.util.TimeZoneProvider;
  * Emulates Oracle's TO_DATE function. This class knows all about the
  * TO_DATE-format conventions and how to parse the corresponding data.
  */
-class ToDateTokenizer {
+final class ToDateTokenizer {
 
     /**
      * The pattern for a number.
@@ -709,6 +709,9 @@ class ToDateTokenizer {
             }
             return foundToken;
         }
+    }
+
+    private ToDateTokenizer() {
     }
 
 }

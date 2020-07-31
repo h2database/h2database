@@ -18,7 +18,7 @@ import org.h2.value.ValueNull;
 /**
  * A math function with two arguments and DOUBLE PRECISION result.
  */
-public class MathFunction2 extends Operation2 implements NamedExpression {
+public final class MathFunction2 extends Operation2 implements NamedExpression {
 
     /**
      * ATAN2() (non-standard).

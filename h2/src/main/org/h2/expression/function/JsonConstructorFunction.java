@@ -27,7 +27,7 @@ import org.h2.value.ValueNull;
 /**
  * JSON constructor function.
  */
-public class JsonConstructorFunction extends OperationN implements ExpressionWithFlags, NamedExpression {
+public final class JsonConstructorFunction extends OperationN implements ExpressionWithFlags, NamedExpression {
 
     /**
      * The ABSENT ON NULL flag.

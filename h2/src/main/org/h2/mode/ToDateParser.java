@@ -19,7 +19,8 @@ import org.h2.value.ValueTimestampTimeZone;
  * Emulates Oracle's TO_DATE function.<br>
  * This class holds and handles the input data form the TO_DATE-method
  */
-public class ToDateParser {
+public final class ToDateParser {
+
     private final SessionLocal session;
 
     private final String unmodifiedInputStr;

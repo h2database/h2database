@@ -27,7 +27,7 @@ import org.h2.value.ValueVarchar;
 /**
  * A string function with one argument.
  */
-public class StringFunction1 extends Operation1 implements NamedExpression {
+public final class StringFunction1 extends Operation1 implements NamedExpression {
 
     // Fold functions
 

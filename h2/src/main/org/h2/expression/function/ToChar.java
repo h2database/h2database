@@ -30,7 +30,7 @@ import org.h2.value.ValueTimestampTimeZone;
 /**
  * Emulates Oracle's TO_CHAR function.
  */
-public class ToChar {
+public final class ToChar {
 
     /**
      * The beginning of the Julian calendar.

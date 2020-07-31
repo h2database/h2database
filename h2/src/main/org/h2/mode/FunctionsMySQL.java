@@ -34,7 +34,7 @@ import org.h2.value.ValueVarchar;
  * @author Jason Brittain
  * @author Thomas Mueller
  */
-public class FunctionsMySQL extends FunctionsBase {
+public final class FunctionsMySQL extends FunctionsBase {
 
     private static final int UNIX_TIMESTAMP = 1001, FROM_UNIXTIME = 1002, DATE = 1003, LAST_INSERT_ID = 1004;
 

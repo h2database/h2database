@@ -19,7 +19,7 @@ import org.h2.value.ValueNull;
 /**
  * A bitwise function.
  */
-public class BitFunction extends Operation1_2 implements NamedExpression {
+public final class BitFunction extends Operation1_2 implements NamedExpression {
 
     /**
      * BITAND() (non-standard).

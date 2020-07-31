@@ -25,7 +25,7 @@ import org.h2.value.ValueReal;
 /**
  * A math function.
  */
-public class MathFunction extends Operation1_2 implements NamedExpression {
+public final class MathFunction extends Operation1_2 implements NamedExpression {
 
     /**
      * ABS().

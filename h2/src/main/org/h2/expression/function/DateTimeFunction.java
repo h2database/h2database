@@ -44,7 +44,7 @@ import org.h2.value.ValueTimestampTimeZone;
 /**
  * A date-time function.
  */
-public class DateTimeFunction extends Operation1_2 implements NamedExpression {
+public final class DateTimeFunction extends Operation1_2 implements NamedExpression {
 
     /**
      * EXTRACT().

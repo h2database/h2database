@@ -22,7 +22,7 @@ import org.h2.value.ValueNull;
 /**
  * A ::regclass expression.
  */
-public class Regclass extends Operation1 {
+public final class Regclass extends Operation1 {
 
     public Regclass(Expression arg) {
         super(arg);

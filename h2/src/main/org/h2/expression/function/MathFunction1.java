@@ -19,7 +19,7 @@ import org.h2.value.ValueNull;
 /**
  * A math function with one argument and DOUBLE PRECISION result.
  */
-public class MathFunction1 extends Operation1 implements NamedExpression {
+public final class MathFunction1 extends Operation1 implements NamedExpression {
 
     // Trigonometric functions
 

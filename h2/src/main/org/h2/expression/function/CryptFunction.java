@@ -23,7 +23,7 @@ import org.h2.value.ValueVarbinary;
 /**
  * An ENCRYPT or DECRYPT function.
  */
-public class CryptFunction extends OperationN implements NamedExpression {
+public final class CryptFunction extends OperationN implements NamedExpression {
 
     /**
      * ENCRYPT() (non-standard).

@@ -37,7 +37,7 @@ import org.h2.value.ValueSmallint;
 /**
  * This class is responsible to build the pg_catalog tables.
  */
-public class PgCatalogTable extends MetaTable {
+public final class PgCatalogTable extends MetaTable {
 
     private static final int PG_AM = 0;
 

@@ -19,7 +19,7 @@ public final class BuiltinFunctions {
     static {
         String[] names = { //
                 // MathFunction
-                "ABS", "MOD", "FLOOR", "CEIL", "SIGN",
+                "ABS", "MOD", "FLOOR", "CEIL", "ROUND", "ROUNDMAGIC", "SIGN", "TRUNC", "TRUNCATE",
                 // MathFunction1
                 "SIN", "COS", "TAN", "COT", "SINH", "COSH", "TANH", "ASIN", "ACOS", "ATAN", //
                 "LOG10", "LN", "EXP", "SQRT", "DEGREES", "RADIANS",

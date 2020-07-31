@@ -8,6 +8,7 @@ package org.h2.expression.function;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.Operation1_2;
@@ -16,12 +17,15 @@ import org.h2.message.DbException;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueDate;
 import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
+import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * A math function.
@@ -49,12 +53,27 @@ public final class MathFunction extends Operation1_2 implements NamedExpression 
     public static final int CEIL = FLOOR + 1;
 
     /**
+     * ROUND() (non-standard)
+     */
+    public static final int ROUND = CEIL + 1;
+
+    /**
+     * ROUNDMAGIC() (non-standard)
+     */
+    public static final int ROUNDMAGIC = ROUND + 1;
+
+    /**
      * SIGN() (non-standard)
      */
-    public static final int SIGN = CEIL + 1;
+    public static final int SIGN = ROUNDMAGIC + 1;
+
+    /**
+     * TRUNC() (non-standard)
+     */
+    public static final int TRUNC = SIGN + 1;
 
     private static final String[] NAMES = { //
-            "ABS", "MOD", "FLOOR", "CEIL", "SIGN" //
+            "ABS", "MOD", "FLOOR", "CEIL", "ROUND", "ROUNDMAGIC", "SIGN", "TRUNC" //
     };
 
     private final int function;
@@ -101,8 +120,17 @@ public final class MathFunction extends Operation1_2 implements NamedExpression 
                 break;
             }
             break;
+        case ROUND:
+            v1 = round(session, v1);
+            break;
+        case ROUNDMAGIC:
+            v1 = ValueDouble.get(roundMagic(v1.getDouble()));
+            break;
         case SIGN:
             v1 = ValueInteger.get(v1.getSignum());
+            break;
+        case TRUNC:
+            v1 = trunc(session, v1);
             break;
         default:
             Value v2 = right.getValue(session);
@@ -116,6 +144,124 @@ public final class MathFunction extends Operation1_2 implements NamedExpression 
                 break;
             default:
                 throw DbException.throwInternalError("function=" + function);
+            }
+            break;
+        }
+        return v1;
+    }
+
+    private Value round(SessionLocal session, Value v1) {
+        int scale;
+        if (right != null) {
+            Value v2 = right.getValue(session);
+            if (v2 == ValueNull.INSTANCE) {
+                return ValueNull.INSTANCE;
+            }
+            scale = v2.getInt();
+        } else {
+            scale = 0;
+        }
+        BigDecimal bd = v1.getBigDecimal().setScale(scale, RoundingMode.HALF_UP);
+        switch (type.getValueType()) {
+        case Value.DOUBLE:
+            v1 = ValueDouble.get(bd.doubleValue());
+            break;
+        case Value.REAL:
+            v1 = ValueReal.get(bd.floatValue());
+            break;
+        case Value.DECFLOAT:
+            v1 = ValueDecfloat.get(bd);
+            break;
+        default:
+            v1 = ValueNumeric.get(bd);
+        }
+        return v1;
+    }
+
+    private static double roundMagic(double d) {
+        if ((d < 0.000_000_000_000_1) && (d > -0.000_000_000_000_1)) {
+            return 0.0;
+        }
+        if ((d > 1_000_000_000_000d) || (d < -1_000_000_000_000d)) {
+            return d;
+        }
+        StringBuilder s = new StringBuilder();
+        s.append(d);
+        if (s.toString().indexOf('E') >= 0) {
+            return d;
+        }
+        int len = s.length();
+        if (len < 16) {
+            return d;
+        }
+        if (s.toString().indexOf('.') > len - 3) {
+            return d;
+        }
+        s.delete(len - 2, len);
+        len -= 2;
+        char c1 = s.charAt(len - 2);
+        char c2 = s.charAt(len - 3);
+        char c3 = s.charAt(len - 4);
+        if ((c1 == '0') && (c2 == '0') && (c3 == '0')) {
+            s.setCharAt(len - 1, '0');
+        } else if ((c1 == '9') && (c2 == '9') && (c3 == '9')) {
+            s.setCharAt(len - 1, '9');
+            s.append('9');
+            s.append('9');
+            s.append('9');
+        }
+        return Double.parseDouble(s.toString());
+    }
+
+    private Value trunc(SessionLocal session, Value v1) {
+        int scale;
+        if (right != null) {
+            Value v2 = right.getValue(session);
+            if (v2 == ValueNull.INSTANCE) {
+                return ValueNull.INSTANCE;
+            }
+            scale = v2.getInt();
+        } else {
+            scale = 0;
+        }
+        int t = v1.getValueType();
+        switch (t) {
+        case Value.TIMESTAMP:
+            v1 = ValueTimestamp.fromDateValueAndNanos(((ValueTimestamp) v1).getDateValue(), 0);
+            break;
+        case Value.DATE:
+            v1 = ValueTimestamp.fromDateValueAndNanos(((ValueDate) v1).getDateValue(), 0);
+            break;
+        case Value.TIMESTAMP_TZ: {
+            ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v1;
+            v1 = ValueTimestampTimeZone.fromDateValueAndNanos(ts.getDateValue(), 0,
+                    ts.getTimeZoneOffsetSeconds());
+            break;
+        }
+        case Value.VARCHAR:
+            v1 = ValueTimestamp.fromDateValueAndNanos(
+                    ValueTimestamp.parse(v1.getString(), session).getDateValue(), 0);
+            break;
+        default:
+            switch (t) {
+            case Value.DOUBLE:
+            case Value.REAL:
+                double d = v1.getDouble();
+                if (scale == 0) {
+                    d = d < 0 ? Math.ceil(d) : Math.floor(d);
+                } else {
+                    double f = Math.pow(10, scale);
+                    d *= f;
+                    d = (d < 0 ? Math.ceil(d) : Math.floor(d)) / f;
+                }
+                v1 = t == Value.DOUBLE ? ValueDouble.get(d) : ValueReal.get((float) d);
+                break;
+            case Value.DECFLOAT:
+                v1 = ValueDecfloat.get(v1.getBigDecimal().setScale(scale, RoundingMode.DOWN));
+                break;
+            default:
+                v1 = ValueNumeric.get(v1.getBigDecimal().setScale(scale, RoundingMode.DOWN));
+                break;
             }
             break;
         }
@@ -173,8 +319,47 @@ public final class MathFunction extends Operation1_2 implements NamedExpression 
             }
             type = DataType.isNumericType(divisorType.getValueType()) ? divisorType : commonType;
             break;
+        case ROUND:
+            switch (left.getType().getValueType()) {
+            case Value.DOUBLE:
+            case Value.REAL:
+            case Value.DECFLOAT:
+                type = left.getType();
+                break;
+            default:
+                type = getRoundNumericType(session);
+            }
+            break;
+        case ROUNDMAGIC:
+            type = TypeInfo.TYPE_DOUBLE;
+            break;
         case SIGN:
             type = TypeInfo.TYPE_INTEGER;
+            break;
+        case TRUNC:
+            switch (left.getType().getValueType()) {
+            case Value.DOUBLE:
+            case Value.REAL:
+            case Value.DECFLOAT:
+                type = left.getType();
+                break;
+            case Value.VARCHAR:
+            case Value.DATE:
+            case Value.TIMESTAMP:
+                if (right != null) {
+                    throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, "TRUNC", "1");
+                }
+                type = TypeInfo.getTypeInfo(Value.TIMESTAMP, -1, 0, null);
+                break;
+            case Value.TIMESTAMP_TZ:
+                if (right != null) {
+                    throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, "TRUNC", "1");
+                }
+                type = TypeInfo.getTypeInfo(Value.TIMESTAMP_TZ, -1, 0, null);
+                break;
+            default:
+                type = getRoundNumericType(session);
+            }
             break;
         default:
             type = TypeInfo.TYPE_DOUBLE;
@@ -184,6 +369,21 @@ public final class MathFunction extends Operation1_2 implements NamedExpression 
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
+    }
+
+    private TypeInfo getRoundNumericType(SessionLocal session) {
+        int scale = 0;
+        if (right != null) {
+            if (right.isConstant()) {
+                Value scaleValue = right.getValue(session);
+                if (scaleValue != ValueNull.INSTANCE) {
+                    scale = scaleValue.getInt();
+                }
+            } else {
+                scale = Integer.MAX_VALUE;
+            }
+        }
+        return TypeInfo.getTypeInfo(Value.NUMERIC, Integer.MAX_VALUE, scale, null);
     }
 
     @Override

@@ -12,7 +12,6 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -61,17 +60,12 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueCollectionBase;
-import org.h2.value.ValueDate;
 import org.h2.value.ValueDecfloat;
-import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
-import org.h2.value.ValueReal;
 import org.h2.value.ValueResultSet;
-import org.h2.value.ValueTimestamp;
-import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 
@@ -79,10 +73,6 @@ import org.h2.value.ValueVarchar;
  * This class implements most built-in functions of this database.
  */
 public class Function extends OperationN implements FunctionCall, ExpressionWithFlags {
-    public static final int
-            ROUND = 21,
-            ROUNDMAGIC = 22,
-            TRUNCATE = 27;
 
     public static final int ASCII = 50, CHAR = 52,
             INSERT = 57, INSTR = 58, LEFT = 60,
@@ -131,11 +121,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     private int flags;
 
     static {
-        addFunction("ROUND", ROUND, VAR_ARGS, Value.NULL);
-        addFunction("ROUNDMAGIC", ROUNDMAGIC, 1, Value.DOUBLE);
-        addFunction("TRUNCATE", TRUNCATE, VAR_ARGS, Value.NULL);
-        // same as TRUNCATE
-        addFunction("TRUNC", TRUNCATE, VAR_ARGS, Value.NULL);
         // string
         addFunction("ASCII", ASCII, 1, Value.INTEGER);
         addFunction("CHAR", CHAR, 1, Value.VARCHAR);
@@ -345,9 +330,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             Value[] values) {
         Value result;
         switch (info.type) {
-        case ROUNDMAGIC:
-            result = ValueDouble.get(roundMagic(v0.getDouble()));
-            break;
         case ASCII: {
             String s = v0.getString();
             if (s.isEmpty()) {
@@ -485,12 +467,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         Value v5 = getNullOrValue(session, args, values, 5);
         Value result;
         switch (info.type) {
-        case ROUND:
-            result = round(v0, v1);
-            break;
-        case TRUNCATE:
-            result = truncate(session, v0, v1);
-            break;
         case INSERT: {
             if (v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE) {
                 result = v1;
@@ -920,72 +896,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return values;
     }
 
-    private Value round(Value v0, Value v1) {
-        BigDecimal bd = v0.getBigDecimal().setScale(v1 == null ? 0 : v1.getInt(), RoundingMode.HALF_UP);
-        Value result;
-        switch (type.getValueType()) {
-        case Value.DOUBLE:
-            result = ValueDouble.get(bd.doubleValue());
-            break;
-        case Value.REAL:
-            result = ValueReal.get(bd.floatValue());
-            break;
-        case Value.DECFLOAT:
-            result = ValueDecfloat.get(bd);
-            break;
-        default:
-            result = ValueNumeric.get(bd);
-        }
-        return result;
-    }
-
-    private static Value truncate(SessionLocal session, Value v0, Value v1) {
-        Value result;
-        int t = v0.getValueType();
-        switch (t) {
-        case Value.TIMESTAMP:
-            result = ValueTimestamp.fromDateValueAndNanos(((ValueTimestamp) v0).getDateValue(), 0);
-            break;
-        case Value.DATE:
-            result = ValueTimestamp.fromDateValueAndNanos(((ValueDate) v0).getDateValue(), 0);
-            break;
-        case Value.TIMESTAMP_TZ: {
-            ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v0;
-            result = ValueTimestampTimeZone.fromDateValueAndNanos(ts.getDateValue(), 0,
-                    ts.getTimeZoneOffsetSeconds());
-            break;
-        }
-        case Value.VARCHAR:
-            result = ValueTimestamp.fromDateValueAndNanos(
-                    ValueTimestamp.parse(v0.getString(), session).getDateValue(), 0);
-            break;
-        default:
-            int scale = v1 == null ? 0 : v1.getInt();
-            switch (t) {
-            case Value.DOUBLE:
-            case Value.REAL:
-                double d = v0.getDouble();
-                if (scale == 0) {
-                    d = d < 0 ? Math.ceil(d) : Math.floor(d);
-                } else {
-                    double f = Math.pow(10, scale);
-                    d *= f;
-                    d = (d < 0 ? Math.ceil(d) : Math.floor(d)) / f;
-                }
-                result = t == Value.DOUBLE ? ValueDouble.get(d) : ValueReal.get((float) d);
-                break;
-            case Value.DECFLOAT:
-                result = ValueDecfloat.get(v0.getBigDecimal().setScale(scale, RoundingMode.DOWN));
-                break;
-            default:
-                result = ValueNumeric.get(v0.getBigDecimal().setScale(scale, RoundingMode.DOWN));
-                break;
-            }
-            break;
-        }
-        return result;
-    }
-
     private static Value truncateValue(SessionLocal session, Value value, long precision, boolean force) {
         if (precision <= 0) {
             throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Long.toString(precision), "1",
@@ -1165,41 +1075,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return buff == null ? original : buff.toString();
     }
 
-    private static double roundMagic(double d) {
-        if ((d < 0.000_000_000_000_1) && (d > -0.000_000_000_000_1)) {
-            return 0.0;
-        }
-        if ((d > 1_000_000_000_000d) || (d < -1_000_000_000_000d)) {
-            return d;
-        }
-        StringBuilder s = new StringBuilder();
-        s.append(d);
-        if (s.toString().indexOf('E') >= 0) {
-            return d;
-        }
-        int len = s.length();
-        if (len < 16) {
-            return d;
-        }
-        if (s.toString().indexOf('.') > len - 3) {
-            return d;
-        }
-        s.delete(len - 2, len);
-        len -= 2;
-        char c1 = s.charAt(len - 2);
-        char c2 = s.charAt(len - 3);
-        char c3 = s.charAt(len - 4);
-        if ((c1 == '0') && (c2 == '0') && (c3 == '0')) {
-            s.setCharAt(len - 1, '0');
-        } else if ((c1 == '9') && (c2 == '9') && (c3 == '9')) {
-            s.setCharAt(len - 1, '9');
-            s.append('9');
-            s.append('9');
-            s.append('9');
-        }
-        return Double.parseDouble(s.toString());
-    }
-
     private static Value regexpReplace(SessionLocal session, String input, String regexp,
             String replacement, int position, int occurrence, String regexpMode) {
         Mode mode = session.getMode();
@@ -1297,9 +1172,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             break;
         case TRIM:
         case FILE_READ:
-        case ROUND:
         case XMLTEXT:
-        case TRUNCATE:
             min = 1;
             max = 2;
             break;
@@ -1363,42 +1236,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 typeInfo = type;
             } else {
                 typeInfo = TypeInfo.TYPE_UNKNOWN;
-            }
-            break;
-        case ROUND:
-            switch (p0.getType().getValueType()) {
-            case Value.DOUBLE:
-            case Value.REAL:
-            case Value.DECFLOAT:
-                typeInfo = p0.getType();
-                break;
-            default:
-                typeInfo = getRoundNumericType(session);
-            }
-            break;
-        case TRUNCATE:
-            switch (p0.getType().getValueType()) {
-            case Value.DOUBLE:
-            case Value.REAL:
-            case Value.DECFLOAT:
-                typeInfo = p0.getType();
-                break;
-            case Value.VARCHAR:
-            case Value.DATE:
-            case Value.TIMESTAMP:
-                if (args.length > 1) {
-                    throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "1");
-                }
-                typeInfo = TypeInfo.getTypeInfo(Value.TIMESTAMP, -1, 0, null);
-                break;
-            case Value.TIMESTAMP_TZ:
-                if (args.length > 1) {
-                    throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "1");
-                }
-                typeInfo = TypeInfo.getTypeInfo(Value.TIMESTAMP_TZ, -1, 0, null);
-                break;
-            default:
-                typeInfo = getRoundNumericType(session);
             }
             break;
         case SET:
@@ -1467,22 +1304,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
      */
     protected final boolean optimizeArguments(SessionLocal session) {
         return optimizeArguments(session, info.deterministic);
-    }
-
-    private TypeInfo getRoundNumericType(SessionLocal session) {
-        int scale = 0;
-        if (args.length > 1) {
-            Expression scaleExpr = args[1];
-            if (scaleExpr.isConstant()) {
-                Value scaleValue = scaleExpr.getValue(session);
-                if (scaleValue != ValueNull.INSTANCE) {
-                    scale = scaleValue.getInt();
-                }
-            } else {
-                scale = Integer.MAX_VALUE;
-            }
-        }
-        return TypeInfo.getTypeInfo(Value.NUMERIC, Integer.MAX_VALUE, scale, null);
     }
 
     @Override

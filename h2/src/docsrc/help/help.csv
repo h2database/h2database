@@ -4988,7 +4988,7 @@ CALL HASH('SHA-256', 'Text', 1000)
 CALL HASH('SHA3-256', X'0102')
 "
 
-"Functions (Numeric)","TRUNCATE","
+"Functions (Numeric)","TRUNC","
 @h2@ { TRUNC | TRUNCATE } ( { {numeric [, digitsInt] }
     | @c@ { timestamp | timestampWithTimeZone | date | timestampString } } )
 ","

@@ -4290,8 +4290,15 @@ public class Parser {
         case "CEIL":
         case "CEILING":
             return new MathFunction(readSingleArgument(), null, MathFunction.CEIL);
+        case "ROUND":
+            return new MathFunction(readExpression(), readIfArgument(), MathFunction.ROUND);
+        case "ROUNDMAGIC":
+            return new MathFunction(readSingleArgument(), null, MathFunction.ROUNDMAGIC);
         case "SIGN":
             return new MathFunction(readSingleArgument(), null, MathFunction.SIGN);
+        case "TRUNC":
+        case "TRUNCATE":
+            return new MathFunction(readExpression(), readIfArgument(), MathFunction.TRUNC);
         case "DEGREES":
             return new MathFunction1(readSingleArgument(), MathFunction1.DEGREES);
         case "RADIANS":

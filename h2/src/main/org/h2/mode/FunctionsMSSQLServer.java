@@ -14,6 +14,7 @@ import org.h2.expression.function.CoalesceFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
+import org.h2.expression.function.RandFunction;
 import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -30,11 +31,13 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
 
     private static final int GETDATE = 4001;
 
-    private static final int LEN = GETDATE + 1;
+    private static final int ISNULL = GETDATE + 1;
 
-    private static final int ISNULL = LEN + 1;
+    private static final int LEN = ISNULL + 1;
 
-    private static final int SCOPE_IDENTITY = ISNULL + 1;
+    private static final int NEWID = LEN + 1;
+
+    private static final int SCOPE_IDENTITY = NEWID + 1;
 
     private static final TypeInfo SCOPE_IDENTITY_TYPE = TypeInfo.getTypeInfo(Value.NUMERIC, 38, 0, null);
 
@@ -42,8 +45,8 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
         copyFunction(FUNCTIONS, "LOCATE", "CHARINDEX");
         FUNCTIONS.put("GETDATE", new FunctionInfo("GETDATE", GETDATE, 0, Value.TIMESTAMP, false, true));
         FUNCTIONS.put("LEN", new FunctionInfo("LEN", LEN, 1, Value.INTEGER, true, true));
+        FUNCTIONS.put("NEWID", new FunctionInfo("NEWID", NEWID, 0, Value.UUID, true, false));
         FUNCTIONS.put("ISNULL", new FunctionInfo("ISNULL", ISNULL, 2, Value.NULL, false, true));
-        copyFunction(FUNCTIONS, "RANDOM_UUID", "NEWID");
         FUNCTIONS.put("SCOPE_IDENTITY",
                 new FunctionInfo("SCOPE_IDENTITY", SCOPE_IDENTITY, 0, Value.NUMERIC, true, false));
     }
@@ -106,6 +109,8 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
             return new CurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIMESTAMP, 3).optimize(session);
         case ISNULL:
             return new CoalesceFunction(CoalesceFunction.COALESCE, args).optimize(session);
+        case NEWID:
+            return new RandFunction(null, RandFunction.RANDOM_UUID).optimize(session);
         case SCOPE_IDENTITY:
             type = SCOPE_IDENTITY_TYPE;
             break;

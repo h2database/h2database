@@ -79,7 +79,6 @@ import org.h2.value.ValueReal;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
-import org.h2.value.ValueUuid;
 import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 
@@ -88,10 +87,9 @@ import org.h2.value.ValueVarchar;
  */
 public class Function extends OperationN implements FunctionCall, ExpressionWithFlags {
     public static final int
-            RAND = 20, ROUND = 21,
+            ROUND = 21,
             ROUNDMAGIC = 22, SIGN = 23,
-            TRUNCATE = 27, SECURE_RAND = 28, HASH = 29,
-            RANDOM_UUID = 35,
+            TRUNCATE = 27, HASH = 29,
             ORA_HASH = 41;
 
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
@@ -153,10 +151,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     private int flags;
 
     static {
-        // RAND without argument: get the next value
-        // RAND with one argument: seed the random generator
-        addFunctionNotDeterministic("RAND", RAND, VAR_ARGS, Value.DOUBLE);
-        addFunctionNotDeterministic("RANDOM", RAND, VAR_ARGS, Value.DOUBLE);
         addFunction("ROUND", ROUND, VAR_ARGS, Value.NULL);
         addFunction("ROUNDMAGIC", ROUNDMAGIC, 1, Value.DOUBLE);
         addFunction("SIGN", SIGN, 1, Value.INTEGER);
@@ -164,9 +158,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         // same as TRUNCATE
         addFunction("TRUNC", TRUNCATE, VAR_ARGS, Value.NULL);
         addFunction("HASH", HASH, VAR_ARGS, Value.VARBINARY);
-        addFunctionNotDeterministic("SECURE_RAND", SECURE_RAND, 1, Value.VARBINARY);
-        addFunctionNotDeterministic("RANDOM_UUID", RANDOM_UUID, 0, Value.UUID);
-        addFunctionNotDeterministic("UUID", RANDOM_UUID, 0, Value.UUID);
         addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.BIGINT);
         // string
         addFunction("ASCII", ASCII, 1, Value.INTEGER);
@@ -406,27 +397,12 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             Value[] values) {
         Value result;
         switch (info.type) {
-        case RAND: {
-            if (v0 != null) {
-                session.getRandom().setSeed(v0.getInt());
-            }
-            result = ValueDouble.get(session.getRandom().nextDouble());
-            break;
-        }
         case ROUNDMAGIC:
             result = ValueDouble.get(roundMagic(v0.getDouble()));
             break;
         case SIGN:
             result = ValueInteger.get(v0.getSignum());
             break;
-        case SECURE_RAND:
-            result = ValueVarbinary.getNoCopy(
-                    MathUtils.secureRandomBytes(v0.getInt()));
-            break;
-        case RANDOM_UUID:
-            result = ValueUuid.getNewRandom();
-            break;
-            // string
         case ASCII: {
             String s = v0.getString();
             if (s.isEmpty()) {
@@ -1610,9 +1586,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         switch (info.type) {
         case CSVREAD:
             min = 1;
-            break;
-        case RAND:
-            max = 1;
             break;
         case TRIM:
         case FILE_READ:

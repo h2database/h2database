@@ -51,6 +51,8 @@ public final class BuiltinFunctions {
                 "COALESCE", "GREATEST", "LEAST",
                 // NullIfFunction
                 "NULLIF",
+                // RandFunction
+                "RAND", "RANDOM", "SECURE_RAND", "RANDOM_UUID", "UUID",
                 // DataTypeSQLFunction
                 "DATA_TYPE_SQL",
                 // DBObjectFunction

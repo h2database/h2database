@@ -290,6 +290,7 @@ import org.h2.expression.function.MathFunction;
 import org.h2.expression.function.MathFunction1;
 import org.h2.expression.function.MathFunction2;
 import org.h2.expression.function.NullIfFunction;
+import org.h2.expression.function.RandFunction;
 import org.h2.expression.function.SoundexFunction;
 import org.h2.expression.function.StringFunction1;
 import org.h2.expression.function.TableFunction;
@@ -4404,6 +4405,15 @@ public class Parser {
             return readCoalesceFunction(CoalesceFunction.LEAST);
         case "NULLIF":
             return new NullIfFunction(readExpression(), readLastArgument());
+        case "RAND":
+        case "RANDOM":
+            return new RandFunction(readIfSingleArgument(), RandFunction.RAND);
+        case "SECURE_RAND":
+            return new RandFunction(readSingleArgument(), RandFunction.SECURE_RAND);
+        case "RANDOM_UUID":
+        case "UUID":
+            read(CLOSE_PAREN);
+            return new RandFunction(null, RandFunction.RANDOM_UUID);
         case "DATA_TYPE_SQL":
             return new DataTypeSQLFunction(readExpression(), readNextArgument(), readNextArgument(),
                     readLastArgument());
@@ -4455,6 +4465,17 @@ public class Parser {
         read(COMMA);
         Expression arg = readExpression();
         read(CLOSE_PAREN);
+        return arg;
+    }
+
+    private Expression readIfSingleArgument() {
+        Expression arg;
+        if (readIf(CLOSE_PAREN)) {
+            arg = null;
+        } else {
+            arg = readExpression();
+            read(CLOSE_PAREN);
+        }
         return arg;
     }
 

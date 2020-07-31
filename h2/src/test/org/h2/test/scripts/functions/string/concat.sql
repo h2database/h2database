@@ -4,9 +4,9 @@
 --
 
 select concat(null, null) en, concat(null, 'a') ea, concat('b', null) eb, concat('ab', 'c') abc;
-> EN   EA EB ABC
-> ---- -- -- ---
-> null a  b  abc
+> EN EA EB ABC
+> -- -- -- ---
+>    a  b  abc
 > rows: 1
 
 SELECT CONCAT('a', 'b', 'c', 'd');

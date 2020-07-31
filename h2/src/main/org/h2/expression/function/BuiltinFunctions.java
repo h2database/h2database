@@ -53,6 +53,8 @@ public final class BuiltinFunctions {
                 "COALESCE", "GREATEST", "LEAST",
                 // NullIfFunction
                 "NULLIF",
+                // ConcatFunction
+                "CONCAT", "CONCAT_WS",
                 // HashFunction
                 "HASH", "ORA_HASH",
                 // RandFunction

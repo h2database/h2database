@@ -88,7 +88,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             TRUNCATE = 27;
 
     public static final int ASCII = 50, CHAR = 52,
-            CONCAT = 54,
             INSERT = 57, INSTR = 58, LEFT = 60,
             LOCATE = 62,
             REPEAT = 66, REPLACE = 67, RIGHT = 68,
@@ -96,7 +95,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             POSITION = 77, TRIM = 78,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
-            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94;
+            LPAD = 91, TO_CHAR = 93, TRANSLATE = 94;
 
     public static final int
             AUTOCOMMIT = 155,
@@ -155,8 +154,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("ASCII", ASCII, 1, Value.INTEGER);
         addFunction("CHAR", CHAR, 1, Value.VARCHAR);
         addFunction("CHR", CHAR, 1, Value.VARCHAR);
-        addFunctionWithNull("CONCAT", CONCAT, VAR_ARGS, Value.VARCHAR);
-        addFunctionWithNull("CONCAT_WS", CONCAT_WS, VAR_ARGS, Value.VARCHAR);
         addFunctionWithNull("INSERT", INSERT, 4, Value.VARCHAR);
         addFunction("LEFT", LEFT, 2, Value.VARCHAR);
         // 2 or 3 arguments
@@ -398,38 +395,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case CHAR:
             result = ValueVarchar.get(String.valueOf((char) v0.getInt()), session);
             break;
-        case CONCAT_WS:
-        case CONCAT: {
-            result = ValueNull.INSTANCE;
-            int start = 0;
-            String separator = "";
-            if (info.type == CONCAT_WS) {
-                start = 1;
-                separator = getNullOrValue(session, args, values, 0).getString();
-            }
-            for (int i = start; i < args.length; i++) {
-                Value v = getNullOrValue(session, args, values, i);
-                if (v == ValueNull.INSTANCE) {
-                    continue;
-                }
-                if (result == ValueNull.INSTANCE) {
-                    result = v;
-                } else {
-                    String tmp = v.getString();
-                    if (!StringUtils.isNullOrEmpty(separator)
-                            && !StringUtils.isNullOrEmpty(tmp)) {
-                        tmp = separator + tmp;
-                    }
-                    result = ValueVarchar.get(result.getString() + tmp, session);
-                }
-            }
-            if (info.type == CONCAT_WS) {
-                if (separator != null && result == ValueNull.INSTANCE) {
-                    result = ValueVarchar.get("", session);
-                }
-            }
-            break;
-        }
         case XMLCOMMENT:
             result = ValueVarchar.get(StringUtils.xmlComment(v0.getString()), session);
             break;
@@ -1463,8 +1428,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             min = 2;
             max = 6;
             break;
-        case CONCAT:
-        case CONCAT_WS:
         case CSVWRITE:
             min = 2;
             break;
@@ -1579,18 +1542,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case CHAR:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 1, 0, null);
             break;
-        case CONCAT: {
-            long p = 0;
-            for (Expression e : args) {
-                TypeInfo type = e.getType();
-                p += type.getPrecision();
-                if (p < 0) {
-                    p = Long.MAX_VALUE;
-                }
-            }
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p, 0, null);
-            break;
-        }
         case RIGHT:
         case TRIM:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p0.getType().getPrecision(), 0, null);

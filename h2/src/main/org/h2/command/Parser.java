@@ -274,6 +274,7 @@ import org.h2.expression.function.CastSpecification;
 import org.h2.expression.function.CoalesceFunction;
 import org.h2.expression.function.CompatibilitySequenceValueFunction;
 import org.h2.expression.function.CompressFunction;
+import org.h2.expression.function.ConcatFunction;
 import org.h2.expression.function.CryptFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.CurrentGeneralValueSpecification;
@@ -4417,6 +4418,10 @@ public class Parser {
             return readCoalesceFunction(CoalesceFunction.LEAST);
         case "NULLIF":
             return new NullIfFunction(readExpression(), readLastArgument());
+        case "CONCAT":
+            return readConcatFunction(ConcatFunction.CONCAT);
+        case "CONCAT_WS":
+            return readConcatFunction(ConcatFunction.CONCAT_WS);
         case "HASH":
             return new HashFunction(readExpression(), readNextArgument(), readIfArgument(), HashFunction.HASH);
         case "ORA_HASH": {
@@ -4509,6 +4514,20 @@ public class Parser {
     private Expression readCoalesceFunction(int function) {
         CoalesceFunction f = new CoalesceFunction(function);
         f.addParameter(readExpression());
+        while (readIfMore()) {
+            f.addParameter(readExpression());
+        }
+        f.doneWithParameters();
+        return f;
+    }
+
+    private Expression readConcatFunction(int function) {
+        ConcatFunction f = new ConcatFunction(function);
+        f.addParameter(readExpression());
+        f.addParameter(readNextArgument());
+        if (function == ConcatFunction.CONCAT_WS) {
+            f.addParameter(readNextArgument());
+        }
         while (readIfMore()) {
             f.addParameter(readExpression());
         }

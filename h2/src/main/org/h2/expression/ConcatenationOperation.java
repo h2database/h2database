@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.function.CastSpecification;
-import org.h2.expression.function.Function;
+import org.h2.expression.function.ConcatFunction;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -141,7 +141,7 @@ public final class ConcatenationOperation extends OperationN {
         determineType(session);
         inlineArguments();
         if (type.getValueType() == Value.VARCHAR && session.getMode().treatEmptyStringsAsNull) {
-            return Function.getFunctionWithArgs(Function.CONCAT, args).optimize(session);
+            return new ConcatFunction(ConcatFunction.CONCAT, args).optimize(session);
         }
         int l = args.length;
         boolean allConst = true, anyConst = false;

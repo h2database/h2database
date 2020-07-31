@@ -5084,6 +5084,7 @@ CHAR(65)
 Combines strings.
 Unlike with the operator ""||"", NULL parameters are ignored,
 and do not cause the result to become NULL.
+If all parameters are NULL the result is an empty string.
 This method returns a string.
 ","
 CONCAT(NAME, '!')
@@ -5093,8 +5094,10 @@ CONCAT(NAME, '!')
 @h2@ CONCAT_WS(separatorString, string, string [,...])
 ","
 Combines strings with separator.
-Unlike with the operator ""||"", NULL parameters are ignored,
-and do not cause the result to become NULL.
+If separator is NULL it is treated like an empty string.
+Other NULL parameters are ignored.
+Remaining non-NULL parameters, if any, are concatenated with the specified separator.
+If there are no remaining parameters the result is an empty string.
 This method returns a string.
 ","
 CONCAT_WS(',', NAME, '!')

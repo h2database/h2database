@@ -64,6 +64,8 @@ public final class BuiltinFunctions {
                 // SysInfoFunction
                 "AUTOCOMMIT", "DATABASE_PATH", "H2VERSION", "LOCK_MODE", "LOCK_TIMEOUT", "MEMORY_FREE", "MEMORY_USED",
                 "READONLY", "SESSION_ID",
+                // TableInfoFunction
+                "DISK_SPACE_USED", "ESTIMATED_ENVELOPE",
                 // DataTypeSQLFunction
                 "DATA_TYPE_SQL",
                 // DBObjectFunction

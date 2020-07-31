@@ -17,7 +17,6 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.regex.Matcher;
@@ -25,7 +24,6 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.Parser;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Mode.ModeEnum;
@@ -36,18 +34,14 @@ import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.OperationN;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
-import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsDB2Derby;
 import org.h2.mode.FunctionsMSSQLServer;
 import org.h2.mode.FunctionsMySQL;
 import org.h2.mode.FunctionsOracle;
 import org.h2.mode.FunctionsPostgreSQL;
-import org.h2.mvstore.db.MVSpatialIndex;
 import org.h2.store.fs.FileUtils;
-import org.h2.table.Column;
 import org.h2.table.LinkSchema;
-import org.h2.table.Table;
 import org.h2.tools.Csv;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -85,7 +79,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             LPAD = 91, TO_CHAR = 93, TRANSLATE = 94;
 
     public static final int
-            DISK_SPACE_USED = 159, SIGNAL = 160, ESTIMATED_ENVELOPE = 161;
+            SIGNAL = 160;
 
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
@@ -167,10 +161,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("FILE_WRITE", FILE_WRITE, 2, Value.BIGINT, false, false);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID,
                 0, Value.VARCHAR);
-        addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED,
-                1, Value.BIGINT);
         addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
-        addFunctionNotDeterministic("ESTIMATED_ENVELOPE", ESTIMATED_ENVELOPE, 2, Value.BIGINT);
 
         // TableFunction
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
@@ -351,12 +342,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case XMLSTARTDOC:
             result = ValueVarchar.get(StringUtils.xmlStartDoc(), session);
             break;
-        case DISK_SPACE_USED:
-            result = ValueBigint.get(getDiskSpaceUsed(session, v0));
-            break;
-        case ESTIMATED_ENVELOPE:
-            result = getEstimatedEnvelope(session, v0, values[1]);
-            break;
         case ARRAY_CONTAINS: {
             result = ValueBoolean.FALSE;
             Value[] list = getArray(v0);
@@ -392,29 +377,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             list = null;
         }
         return list;
-    }
-
-    private static long getDiskSpaceUsed(SessionLocal session, Value tableName) {
-        return getTable(session, tableName).getDiskSpaceUsed();
-    }
-
-    private static Value getEstimatedEnvelope(SessionLocal session, Value tableName, Value columnName) {
-        Table table = getTable(session, tableName);
-        Column column = table.getColumn(columnName.getString());
-        ArrayList<Index> indexes = table.getIndexes();
-        if (indexes != null) {
-            for (int i = 1, size = indexes.size(); i < size; i++) {
-                Index index = indexes.get(i);
-                if (index instanceof MVSpatialIndex && index.isFirstColumn(column)) {
-                    return ((MVSpatialIndex) index).getEstimatedBounds(session);
-                }
-            }
-        }
-        return ValueNull.INSTANCE;
-    }
-
-    private static Table getTable(SessionLocal session, Value tableName) {
-        return new Parser(session).parseTableName(tableName.getString());
     }
 
     /**

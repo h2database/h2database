@@ -299,6 +299,7 @@ import org.h2.expression.function.SoundexFunction;
 import org.h2.expression.function.StringFunction1;
 import org.h2.expression.function.SysInfoFunction;
 import org.h2.expression.function.TableFunction;
+import org.h2.expression.function.TableInfoFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsPostgreSQL;
@@ -4480,6 +4481,10 @@ public class Parser {
         case "SESSION_ID":
             read(CLOSE_PAREN);
             return new SysInfoFunction(SysInfoFunction.SESSION_ID);
+        case "DISK_SPACE_USED":
+            return new TableInfoFunction(readIfSingleArgument(), null, TableInfoFunction.DISK_SPACE_USED);
+        case "ESTIMATED_ENVELOPE":
+            return new TableInfoFunction(readExpression(), readLastArgument(), TableInfoFunction.ESTIMATED_ENVELOPE);
         case "DATA_TYPE_SQL":
             return new DataTypeSQLFunction(readExpression(), readNextArgument(), readNextArgument(),
                     readLastArgument());

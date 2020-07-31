@@ -284,6 +284,7 @@ import org.h2.expression.function.DateTimeFunction;
 import org.h2.expression.function.DayMonthNameFunction;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
+import org.h2.expression.function.HashFunction;
 import org.h2.expression.function.JavaFunction;
 import org.h2.expression.function.JsonConstructorFunction;
 import org.h2.expression.function.LengthFunction;
@@ -4416,6 +4417,15 @@ public class Parser {
             return readCoalesceFunction(CoalesceFunction.LEAST);
         case "NULLIF":
             return new NullIfFunction(readExpression(), readLastArgument());
+        case "HASH":
+            return new HashFunction(readExpression(), readNextArgument(), readIfArgument(), HashFunction.HASH);
+        case "ORA_HASH": {
+            Expression arg1 = readExpression();
+            if (readIfMore()) {
+                return new HashFunction(arg1, readExpression(), readIfArgument(), HashFunction.ORA_HASH);
+            }
+            return new HashFunction(arg1, HashFunction.ORA_HASH);
+        }
         case "RAND":
         case "RANDOM":
             return new RandFunction(readIfSingleArgument(), RandFunction.RAND);

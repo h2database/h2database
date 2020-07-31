@@ -53,6 +53,8 @@ public final class BuiltinFunctions {
                 "COALESCE", "GREATEST", "LEAST",
                 // NullIfFunction
                 "NULLIF",
+                // HashFunction
+                "HASH", "ORA_HASH",
                 // RandFunction
                 "RAND", "RANDOM", "SECURE_RAND", "RANDOM_UUID", "UUID",
                 // DataTypeSQLFunction

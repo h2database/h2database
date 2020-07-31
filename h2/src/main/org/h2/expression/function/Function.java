@@ -13,10 +13,8 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -49,13 +47,11 @@ import org.h2.mode.FunctionsMySQL;
 import org.h2.mode.FunctionsOracle;
 import org.h2.mode.FunctionsPostgreSQL;
 import org.h2.mvstore.db.MVSpatialIndex;
-import org.h2.security.SHA3;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.LinkSchema;
 import org.h2.table.Table;
 import org.h2.tools.Csv;
-import org.h2.util.Bits;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -89,8 +85,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     public static final int
             ROUND = 21,
             ROUNDMAGIC = 22,
-            TRUNCATE = 27, HASH = 29,
-            ORA_HASH = 41;
+            TRUNCATE = 27;
 
     public static final int ASCII = 50, CHAR = 52,
             CONCAT = 54,
@@ -156,8 +151,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("TRUNCATE", TRUNCATE, VAR_ARGS, Value.NULL);
         // same as TRUNCATE
         addFunction("TRUNC", TRUNCATE, VAR_ARGS, Value.NULL);
-        addFunction("HASH", HASH, VAR_ARGS, Value.VARBINARY);
-        addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.BIGINT);
         // string
         addFunction("ASCII", ASCII, 1, Value.INTEGER);
         addFunction("CHAR", CHAR, 1, Value.VARCHAR);
@@ -635,14 +628,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             break;
         case TRUNCATE:
             result = truncate(session, v0, v1);
-            break;
-        case HASH:
-            result = getHash(v0.getString(), v1, v2 == null ? 1 : v2.getInt());
-            break;
-        case ORA_HASH:
-            result = oraHash(v0,
-                    v1 == null ? 0xffff_ffffL : v1.getLong(),
-                    v2 == null ? 0L : v2.getLong());
             break;
         case INSERT: {
             if (v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE) {
@@ -1188,44 +1173,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return value;
     }
 
-    private static Value getHash(String algorithm, Value value, int iterations) {
-        if (iterations <= 0) {
-            throw DbException.getInvalidValueException("iterations", iterations);
-        }
-        MessageDigest md;
-        switch (StringUtils.toUpperEnglish(algorithm)) {
-        case "MD5":
-        case "SHA-1":
-        case "SHA-224":
-        case "SHA-256":
-        case "SHA-384":
-        case "SHA-512":
-            md = hashImpl(value, algorithm);
-            break;
-        case "SHA256":
-            md = hashImpl(value, "SHA-256");
-            break;
-        case "SHA3-224":
-            md = hashImpl(value, SHA3.getSha3_224());
-            break;
-        case "SHA3-256":
-            md = hashImpl(value, SHA3.getSha3_256());
-            break;
-        case "SHA3-384":
-            md = hashImpl(value, SHA3.getSha3_384());
-            break;
-        case "SHA3-512":
-            md = hashImpl(value, SHA3.getSha3_512());
-            break;
-        default:
-            throw DbException.getInvalidValueException("algorithm", algorithm);
-        }
-        byte[] b = md.digest();
-        for (int i = 1; i < iterations; i++) {
-            b = md.digest(b);
-        }
-        return ValueVarbinary.getNoCopy(b);
-    }
 
     private Value substring(SessionLocal session, Value stringValue, Value startValue, Value lengthValue) {
         if (type.getValueType() == Value.VARBINARY) {
@@ -1395,64 +1342,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return Double.parseDouble(s.toString());
     }
 
-    private static Value oraHash(Value value, long bucket, long seed) {
-        if ((bucket & 0xffff_ffff_0000_0000L) != 0L) {
-            throw DbException.getInvalidValueException("bucket", bucket);
-        }
-        if ((seed & 0xffff_ffff_0000_0000L) != 0L) {
-            throw DbException.getInvalidValueException("seed", seed);
-        }
-        MessageDigest md = hashImpl(value, "SHA-1");
-        if (md == null) {
-            return ValueNull.INSTANCE;
-        }
-        if (seed != 0L) {
-            byte[] b = new byte[4];
-            Bits.writeInt(b, 0, (int) seed);
-            md.update(b);
-        }
-        long hc = Bits.readLong(md.digest(), 0);
-        // Strip sign and use modulo operation to get value from 0 to bucket inclusive
-        return ValueBigint.get((hc & Long.MAX_VALUE) % (bucket + 1));
-    }
-
-    private static MessageDigest hashImpl(Value value, String algorithm) {
-        MessageDigest md;
-        try {
-            md = MessageDigest.getInstance(algorithm);
-        } catch (Exception ex) {
-            throw DbException.convert(ex);
-        }
-        return hashImpl(value, md);
-    }
-
-    private static MessageDigest hashImpl(Value value, MessageDigest md) {
-        try {
-            switch (value.getValueType()) {
-            case Value.VARCHAR:
-            case Value.CHAR:
-            case Value.VARCHAR_IGNORECASE:
-                md.update(value.getString().getBytes(StandardCharsets.UTF_8));
-                break;
-            case Value.BLOB:
-            case Value.CLOB: {
-                byte[] buf = new byte[4096];
-                try (InputStream is = value.getInputStream()) {
-                    for (int r; (r = is.read(buf)) > 0; ) {
-                        md.update(buf, 0, r);
-                    }
-                }
-                break;
-            }
-            default:
-                md.update(value.getBytesNoCopy());
-            }
-            return md;
-        } catch (Exception ex) {
-            throw DbException.convert(ex);
-        }
-    }
-
     private static Value regexpReplace(SessionLocal session, String input, String regexp,
             String replacement, int position, int occurrence, String regexpMode) {
         Mode mode = session.getMode();
@@ -1557,11 +1446,9 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             max = 2;
             break;
         case TO_CHAR:
-        case ORA_HASH:
             min = 1;
             max = 3;
             break;
-        case HASH:
         case REPLACE:
         case LOCATE:
         case INSTR:

@@ -17,15 +17,12 @@ import org.h2.message.DbException;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueDate;
 import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
-import org.h2.value.ValueTimestamp;
-import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * A math function.
@@ -226,43 +223,23 @@ public final class MathFunction extends Operation1_2 implements NamedExpression 
         }
         int t = v1.getValueType();
         switch (t) {
-        case Value.TIMESTAMP:
-            v1 = ValueTimestamp.fromDateValueAndNanos(((ValueTimestamp) v1).getDateValue(), 0);
+        case Value.DOUBLE:
+        case Value.REAL:
+            double d = v1.getDouble();
+            if (scale == 0) {
+                d = d < 0 ? Math.ceil(d) : Math.floor(d);
+            } else {
+                double f = Math.pow(10, scale);
+                d *= f;
+                d = (d < 0 ? Math.ceil(d) : Math.floor(d)) / f;
+            }
+            v1 = t == Value.DOUBLE ? ValueDouble.get(d) : ValueReal.get((float) d);
             break;
-        case Value.DATE:
-            v1 = ValueTimestamp.fromDateValueAndNanos(((ValueDate) v1).getDateValue(), 0);
-            break;
-        case Value.TIMESTAMP_TZ: {
-            ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v1;
-            v1 = ValueTimestampTimeZone.fromDateValueAndNanos(ts.getDateValue(), 0,
-                    ts.getTimeZoneOffsetSeconds());
-            break;
-        }
-        case Value.VARCHAR:
-            v1 = ValueTimestamp.fromDateValueAndNanos(
-                    ValueTimestamp.parse(v1.getString(), session).getDateValue(), 0);
+        case Value.DECFLOAT:
+            v1 = ValueDecfloat.get(v1.getBigDecimal().setScale(scale, RoundingMode.DOWN));
             break;
         default:
-            switch (t) {
-            case Value.DOUBLE:
-            case Value.REAL:
-                double d = v1.getDouble();
-                if (scale == 0) {
-                    d = d < 0 ? Math.ceil(d) : Math.floor(d);
-                } else {
-                    double f = Math.pow(10, scale);
-                    d *= f;
-                    d = (d < 0 ? Math.ceil(d) : Math.floor(d)) / f;
-                }
-                v1 = t == Value.DOUBLE ? ValueDouble.get(d) : ValueReal.get((float) d);
-                break;
-            case Value.DECFLOAT:
-                v1 = ValueDecfloat.get(v1.getBigDecimal().setScale(scale, RoundingMode.DOWN));
-                break;
-            default:
-                v1 = ValueNumeric.get(v1.getBigDecimal().setScale(scale, RoundingMode.DOWN));
-                break;
-            }
+            v1 = ValueNumeric.get(v1.getBigDecimal().setScale(scale, RoundingMode.DOWN));
             break;
         }
         return v1;
@@ -344,26 +321,28 @@ public final class MathFunction extends Operation1_2 implements NamedExpression 
                 type = left.getType();
                 break;
             case Value.VARCHAR:
-            case Value.DATE:
+                left = new CastSpecification(left, TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, 0, null))
+                        .optimize(session);
+                //$FALL-THROUGH$
             case Value.TIMESTAMP:
-                if (right != null) {
-                    throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, "TRUNC", "1");
-                }
-                type = TypeInfo.getTypeInfo(Value.TIMESTAMP, -1, 0, null);
-                break;
             case Value.TIMESTAMP_TZ:
                 if (right != null) {
                     throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, "TRUNC", "1");
                 }
-                type = TypeInfo.getTypeInfo(Value.TIMESTAMP_TZ, -1, 0, null);
-                break;
+                return new DateTimeFunction(DateTimeFunction.DATE_TRUNC, DateTimeFunction.DAY, left, null)
+                        .optimize(session);
+            case Value.DATE:
+                if (right != null) {
+                    throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, "TRUNC", "1");
+                }
+                return new CastSpecification(left, TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, 0, null))
+                        .optimize(session);
             default:
                 type = getRoundNumericType(session);
             }
             break;
         default:
-            type = TypeInfo.TYPE_DOUBLE;
-            break;
+            throw DbException.throwInternalError("function=" + function);
         }
         if (left.isConstant() && (right == null || right.isConstant())) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);

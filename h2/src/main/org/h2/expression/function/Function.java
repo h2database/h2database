@@ -5,15 +5,8 @@
  */
 package org.h2.expression.function;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,10 +33,8 @@ import org.h2.mode.FunctionsMSSQLServer;
 import org.h2.mode.FunctionsMySQL;
 import org.h2.mode.FunctionsOracle;
 import org.h2.mode.FunctionsPostgreSQL;
-import org.h2.store.fs.FileUtils;
 import org.h2.table.LinkSchema;
 import org.h2.tools.Csv;
-import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
@@ -51,12 +42,10 @@ import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
-import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueInteger;
-import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueResultSet;
@@ -87,8 +76,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             CSVREAD = 210, CSVWRITE = 211,
             LINK_SCHEMA = 218,
             SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
-            FILE_READ = 225, TRUNCATE_VALUE = 227,
-            ARRAY_CONTAINS = 230, FILE_WRITE = 232,
+            TRUNCATE_VALUE = 227,
+            ARRAY_CONTAINS = 230,
             UNNEST = 233, TRIM_ARRAY = 235, ARRAY_SLICE = 236;
 
     public static final int REGEXP_LIKE = 240;
@@ -154,8 +143,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
                 6, Value.RESULT_SET);
         addFunction("SET", SET, 2, Value.NULL, false, false);
-        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false);
-        addFunction("FILE_WRITE", FILE_WRITE, 2, Value.BIGINT, false, false);
         addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
 
         // TableFunction
@@ -691,51 +678,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = v1;
             break;
         }
-        case FILE_READ: {
-            session.getUser().checkAdmin();
-            String fileName = v0.getString();
-            boolean blob = args.length == 1;
-            ValueLob lob;
-            try {
-                long fileLength = FileUtils.size(fileName);
-                final InputStream in = FileUtils.newInputStream(fileName);
-                Database database = session.getDatabase();
-                try {
-                    if (blob) {
-                        lob = database.getLobStorage().createBlob(in, fileLength);
-                    } else {
-                        Reader reader;
-                        if (v1 == ValueNull.INSTANCE) {
-                            reader = new InputStreamReader(in);
-                        } else {
-                            reader = new InputStreamReader(in, v1.getString());
-                        }
-                        lob = database.getLobStorage().createClob(reader, fileLength);
-                    }
-                } finally {
-                    IOUtils.closeSilently(in);
-                }
-                result = session.addTemporaryLob(lob);
-            } catch (IOException e) {
-                throw DbException.convertIOException(e, fileName);
-            }
-            break;
-        }
-        case FILE_WRITE: {
-            session.getUser().checkAdmin();
-            result = ValueNull.INSTANCE;
-            String fileName = v1.getString();
-            try {
-                OutputStream fileOutputStream = Files.newOutputStream(Paths.get(fileName));
-                try (InputStream in = v0.getInputStream()) {
-                    result = ValueBigint.get(IOUtils.copyAndClose(in,
-                            fileOutputStream));
-                }
-            } catch (IOException e) {
-                throw DbException.convertIOException(e, fileName);
-            }
-            break;
-        }
         case TRUNCATE_VALUE:
             result = truncateValue(session, v0, v1.getLong(), v2.getBoolean());
             break;
@@ -1112,7 +1054,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             min = 1;
             break;
         case TRIM:
-        case FILE_READ:
         case XMLTEXT:
             min = 1;
             max = 2;
@@ -1185,14 +1126,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 throw DbException.get(ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getTraceSQL());
             }
             break;
-        case FILE_READ: {
-            if (args.length == 1) {
-                typeInfo = TypeInfo.getTypeInfo(Value.BLOB, Integer.MAX_VALUE, 0, null);
-            } else {
-                typeInfo = TypeInfo.getTypeInfo(Value.CLOB, Integer.MAX_VALUE, 0, null);
-            }
-            break;
-        }
         case SUBSTRING: {
             TypeInfo argType = p0.getType();
             long p = argType.getPrecision();

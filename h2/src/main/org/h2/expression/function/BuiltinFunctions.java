@@ -66,6 +66,8 @@ public final class BuiltinFunctions {
                 "READONLY", "SESSION_ID", "TRANSACTION_ID",
                 // TableInfoFunction
                 "DISK_SPACE_USED", "ESTIMATED_ENVELOPE",
+                // FileFunction
+                "FILE_READ", "FILE_WRITE",
                 // DataTypeSQLFunction
                 "DATA_TYPE_SQL",
                 // DBObjectFunction

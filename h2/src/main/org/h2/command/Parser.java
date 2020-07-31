@@ -283,6 +283,7 @@ import org.h2.expression.function.DataTypeSQLFunction;
 import org.h2.expression.function.DateTimeFormatFunction;
 import org.h2.expression.function.DateTimeFunction;
 import org.h2.expression.function.DayMonthNameFunction;
+import org.h2.expression.function.FileFunction;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.HashFunction;
@@ -4493,6 +4494,10 @@ public class Parser {
             return new TableInfoFunction(readIfSingleArgument(), null, TableInfoFunction.DISK_SPACE_USED);
         case "ESTIMATED_ENVELOPE":
             return new TableInfoFunction(readExpression(), readLastArgument(), TableInfoFunction.ESTIMATED_ENVELOPE);
+        case "FILE_READ":
+            return new FileFunction(readExpression(), readIfArgument(), FileFunction.FILE_READ);
+        case "FILE_WRITE":
+            return new FileFunction(readExpression(), readLastArgument(), FileFunction.FILE_WRITE);
         case "DATA_TYPE_SQL":
             return new DataTypeSQLFunction(readExpression(), readNextArgument(), readNextArgument(),
                     readLastArgument());

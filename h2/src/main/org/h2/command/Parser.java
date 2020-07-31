@@ -273,6 +273,7 @@ import org.h2.expression.function.CardinalityExpression;
 import org.h2.expression.function.CastSpecification;
 import org.h2.expression.function.CoalesceFunction;
 import org.h2.expression.function.CompatibilitySequenceValueFunction;
+import org.h2.expression.function.CompressFunction;
 import org.h2.expression.function.CryptFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.CurrentGeneralValueSpecification;
@@ -4351,6 +4352,10 @@ public class Parser {
             return new StringFunction1(readSingleArgument(), StringFunction1.SPACE);
         case "QUOTE_IDENT":
             return new StringFunction1(readSingleArgument(), StringFunction1.QUOTE_IDENT);
+        case "COMPRESS":
+            return new CompressFunction(readExpression(), readIfArgument(), CompressFunction.COMPRESS);
+        case "EXPAND":
+            return new CompressFunction(readSingleArgument(), null, CompressFunction.EXPAND);
         case "SOUNDEX":
             return new SoundexFunction(readSingleArgument(), null, SoundexFunction.SOUNDEX);
         case "DIFFERENCE":
@@ -4403,9 +4408,11 @@ public class Parser {
             return new DataTypeSQLFunction(readExpression(), readNextArgument(), readNextArgument(),
                     readLastArgument());
         case "DB_OBJECT_ID":
-            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_ID);
+            return new DBObjectFunction(readExpression(), readNextArgument(), readIfArgument(),
+                    DBObjectFunction.DB_OBJECT_ID);
         case "DB_OBJECT_SQL":
-            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_SQL);
+            return new DBObjectFunction(readExpression(), readNextArgument(), readIfArgument(),
+                    DBObjectFunction.DB_OBJECT_SQL);
         case "ZERO":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueInteger.get(0));
@@ -4433,13 +4440,6 @@ public class Parser {
         return f;
     }
 
-    private Expression readDbObjectFunction(int function) {
-        Expression objectTypeExpression = readExpression(), arg1 = readNextArgument(),
-                arg2 = readIf(COMMA) ? readExpression() : null;
-        read(CLOSE_PAREN);
-        return new DBObjectFunction(objectTypeExpression, arg1, arg2, function);
-    }
-
     private Expression readSingleArgument() {
         Expression arg = readExpression();
         read(CLOSE_PAREN);
@@ -4454,6 +4454,12 @@ public class Parser {
     private Expression readLastArgument() {
         read(COMMA);
         Expression arg = readExpression();
+        read(CLOSE_PAREN);
+        return arg;
+    }
+
+    private Expression readIfArgument() {
+        Expression arg = readIf(COMMA) ? readExpression() : null;
         read(CLOSE_PAREN);
         return arg;
     }

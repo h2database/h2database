@@ -54,7 +54,6 @@ import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.LinkSchema;
 import org.h2.table.Table;
-import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.Bits;
 import org.h2.util.IOUtils;
@@ -92,7 +91,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             RAND = 20, ROUND = 21,
             ROUNDMAGIC = 22, SIGN = 23,
             TRUNCATE = 27, SECURE_RAND = 28, HASH = 29,
-            COMPRESS = 32, EXPAND = 33,
             RANDOM_UUID = 35,
             ORA_HASH = 41;
 
@@ -167,8 +165,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("TRUNC", TRUNCATE, VAR_ARGS, Value.NULL);
         addFunction("HASH", HASH, VAR_ARGS, Value.VARBINARY);
         addFunctionNotDeterministic("SECURE_RAND", SECURE_RAND, 1, Value.VARBINARY);
-        addFunction("COMPRESS", COMPRESS, VAR_ARGS, Value.VARBINARY);
-        addFunction("EXPAND", EXPAND, 1, Value.VARBINARY);
         addFunctionNotDeterministic("RANDOM_UUID", RANDOM_UUID, 0, Value.UUID);
         addFunctionNotDeterministic("UUID", RANDOM_UUID, 0, Value.UUID);
         addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.BIGINT);
@@ -426,10 +422,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case SECURE_RAND:
             result = ValueVarbinary.getNoCopy(
                     MathUtils.secureRandomBytes(v0.getInt()));
-            break;
-        case EXPAND:
-            result = ValueVarbinary.getNoCopy(
-                    CompressTool.getInstance().expand(v0.getBytesNoCopy()));
             break;
         case RANDOM_UUID:
             result = ValueUuid.getNewRandom();
@@ -691,15 +683,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case HASH:
             result = getHash(v0.getString(), v1, v2 == null ? 1 : v2.getInt());
             break;
-        case COMPRESS: {
-            String algorithm = null;
-            if (v1 != null) {
-                algorithm = v1.getString();
-            }
-            result = ValueVarbinary.getNoCopy(CompressTool.getInstance().
-                    compress(v0.getBytesNoCopy(), algorithm));
-            break;
-        }
         case ORA_HASH:
             result = oraHash(v0,
                     v1 == null ? 0xffff_ffffL : v1.getLong(),
@@ -1631,7 +1614,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case RAND:
             max = 1;
             break;
-        case COMPRESS:
         case TRIM:
         case FILE_READ:
         case ROUND:
@@ -1773,9 +1755,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                     ? Value.VARBINARY : Value.VARCHAR, p, 0, null);
             break;
         }
-        case COMPRESS:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p0.getType().getPrecision(), 0, null);
-            break;
         case CHAR:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 1, 0, null);
             break;

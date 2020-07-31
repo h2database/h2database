@@ -4486,6 +4486,9 @@ public class Parser {
         case "SESSION_ID":
             read(CLOSE_PAREN);
             return new SysInfoFunction(SysInfoFunction.SESSION_ID);
+        case "TRANSACTION_ID":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.TRANSACTION_ID);
         case "DISK_SPACE_USED":
             return new TableInfoFunction(readIfSingleArgument(), null, TableInfoFunction.DISK_SPACE_USED);
         case "ESTIMATED_ENVELOPE":

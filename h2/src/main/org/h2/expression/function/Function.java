@@ -87,7 +87,7 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             CSVREAD = 210, CSVWRITE = 211,
             LINK_SCHEMA = 218,
             SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
-            FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
+            FILE_READ = 225, TRUNCATE_VALUE = 227,
             ARRAY_CONTAINS = 230, FILE_WRITE = 232,
             UNNEST = 233, TRIM_ARRAY = 235, ARRAY_SLICE = 236;
 
@@ -156,8 +156,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("SET", SET, 2, Value.NULL, false, false);
         addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false);
         addFunction("FILE_WRITE", FILE_WRITE, 2, Value.BIGINT, false, false);
-        addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID,
-                0, Value.VARCHAR);
         addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
 
         // TableFunction
@@ -341,10 +339,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             } else {
                 result = ValueNull.INSTANCE;
             }
-            break;
-        }
-        case TRANSACTION_ID: {
-            result = session.getTransactionId();
             break;
         }
         default:

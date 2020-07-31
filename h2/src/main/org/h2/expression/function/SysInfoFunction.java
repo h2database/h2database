@@ -68,11 +68,16 @@ public final class SysInfoFunction extends Operation0 implements NamedExpression
      */
     public static final int SESSION_ID = READONLY + 1;
 
+    /**
+     * TRANSACTION_ID().
+     */
+    public static final int TRANSACTION_ID = SESSION_ID + 1;
+
     private static final int[] TYPES = { Value.BOOLEAN, Value.VARCHAR, Value.VARCHAR, Value.INTEGER, Value.INTEGER,
-            Value.INTEGER, Value.INTEGER, Value.BOOLEAN, Value.INTEGER };
+            Value.INTEGER, Value.INTEGER, Value.BOOLEAN, Value.INTEGER, Value.VARCHAR };
 
     private static final String[] NAMES = { "AUTOCOMMIT", "DATABASE_PATH", "H2VERSION", "LOCK_MODE", "LOCK_TIMEOUT",
-            "MEMORY_FREE", "MEMORY_USED", "READONLY", "SESSION_ID" };
+            "MEMORY_FREE", "MEMORY_USED", "READONLY", "SESSION_ID", "TRANSACTION_ID" };
 
     /**
      * Get the name for this function id.
@@ -128,6 +133,9 @@ public final class SysInfoFunction extends Operation0 implements NamedExpression
             break;
         case SESSION_ID:
             result = ValueInteger.get(session.getId());
+            break;
+        case TRANSACTION_ID:
+            result = session.getTransactionId();
             break;
         default:
             throw DbException.throwInternalError("function=" + function);

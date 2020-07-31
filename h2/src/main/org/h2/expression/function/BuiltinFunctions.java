@@ -63,7 +63,7 @@ public final class BuiltinFunctions {
                 "ABORT_SESSION", "CANCEL_SESSION",
                 // SysInfoFunction
                 "AUTOCOMMIT", "DATABASE_PATH", "H2VERSION", "LOCK_MODE", "LOCK_TIMEOUT", "MEMORY_FREE", "MEMORY_USED",
-                "READONLY", "SESSION_ID",
+                "READONLY", "SESSION_ID", "TRANSACTION_ID",
                 // TableInfoFunction
                 "DISK_SPACE_USED", "ESTIMATED_ENVELOPE",
                 // DataTypeSQLFunction

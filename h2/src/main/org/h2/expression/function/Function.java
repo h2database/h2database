@@ -92,10 +92,10 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             TRUNCATE = 27, HASH = 29,
             ORA_HASH = 41;
 
-    public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
-            CHAR_LENGTH = 53, CONCAT = 54,
-            INSERT = 57, INSTR = 58, LEFT = 60, LENGTH = 61,
-            LOCATE = 62, OCTET_LENGTH = 64,
+    public static final int ASCII = 50, CHAR = 52,
+            CONCAT = 54,
+            INSERT = 57, INSTR = 58, LEFT = 60,
+            LOCATE = 62,
             REPEAT = 66, REPLACE = 67, RIGHT = 68,
             SUBSTRING = 73,
             POSITION = 77, TRIM = 78,
@@ -161,23 +161,17 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.BIGINT);
         // string
         addFunction("ASCII", ASCII, 1, Value.INTEGER);
-        addFunction("BIT_LENGTH", BIT_LENGTH, 1, Value.BIGINT);
         addFunction("CHAR", CHAR, 1, Value.VARCHAR);
         addFunction("CHR", CHAR, 1, Value.VARCHAR);
-        addFunction("CHAR_LENGTH", CHAR_LENGTH, 1, Value.BIGINT);
-        // same as CHAR_LENGTH
-        addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.BIGINT);
         addFunctionWithNull("CONCAT", CONCAT, VAR_ARGS, Value.VARCHAR);
         addFunctionWithNull("CONCAT_WS", CONCAT_WS, VAR_ARGS, Value.VARCHAR);
         addFunctionWithNull("INSERT", INSERT, 4, Value.VARCHAR);
         addFunction("LEFT", LEFT, 2, Value.VARCHAR);
-        addFunction("LENGTH", LENGTH, 1, Value.BIGINT);
         // 2 or 3 arguments
         addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INTEGER);
         // same as LOCATE with 2 arguments
         addFunction("POSITION", LOCATE, 2, Value.INTEGER);
         addFunction("INSTR", INSTR, VAR_ARGS, Value.INTEGER);
-        addFunction("OCTET_LENGTH", OCTET_LENGTH, 1, Value.BIGINT);
         addFunction("REPEAT", REPEAT, 2, Value.VARCHAR);
         addFunctionWithNull("REPLACE", REPLACE, VAR_ARGS, Value.VARCHAR);
         addFunction("RIGHT", RIGHT, 2, Value.VARCHAR);
@@ -412,18 +406,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case BIT_LENGTH:
-            result = ValueBigint.get(16 * length(v0));
-            break;
         case CHAR:
             result = ValueVarchar.get(String.valueOf((char) v0.getInt()), session);
-            break;
-        case CHAR_LENGTH:
-        case LENGTH:
-            result = ValueBigint.get(length(v0));
-            break;
-        case OCTET_LENGTH:
-            result = ValueBigint.get(2 * length(v0));
             break;
         case CONCAT_WS:
         case CONCAT: {
@@ -1206,25 +1190,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             return ValueNumeric.get(bd).convertTo(valueType);
         }
         return value;
-    }
-
-    /**
-     * Get the length (precision) of the value.
-     *
-     * @param v the value
-     * @return the length
-     */
-    public static long length(Value v) {
-        switch (v.getValueType()) {
-        case Value.BLOB:
-        case Value.CLOB:
-        case Value.VARBINARY:
-        case Value.BINARY:
-        case Value.JAVA_OBJECT:
-            return v.getType().getPrecision();
-        default:
-            return v.getString().length();
-        }
     }
 
     private static Value getHash(String algorithm, Value value, int iterations) {

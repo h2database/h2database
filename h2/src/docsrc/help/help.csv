@@ -5043,11 +5043,10 @@ This method returns an int.
 ASCII('Hi')
 "
 "Functions (String)","BIT_LENGTH","
-@h2@ BIT_LENGTH(string)
+@h2@ BIT_LENGTH(bytes)
 ","
-Returns the number of bits in a string.
+Returns the number of bits in a binary string.
 This method returns a long.
-For BLOB, CLOB, BYTES and JAVA_OBJECT, the precision is used. Each character needs 16 bits.
 ","
 BIT_LENGTH(NAME)
 "
@@ -5055,20 +5054,17 @@ BIT_LENGTH(NAME)
 "Functions (String)","CHAR_LENGTH","
 { CHAR_LENGTH | CHARACTER_LENGTH | @c@ { LENGTH } } ( string )
 ","
-Returns the number of characters in a string.
+Returns the number of characters in a character string.
 This method returns a long.
-For BLOB, CLOB, BYTES and JAVA_OBJECT, the precision is used.
 ","
 CHAR_LENGTH(NAME)
 "
 
 "Functions (String)","OCTET_LENGTH","
-OCTET_LENGTH(string)
+OCTET_LENGTH(bytes)
 ","
-Returns the number of bytes in a string.
+Returns the number of bytes in a binary string.
 This method returns a long.
-For BLOB, CLOB, BYTES and JAVA_OBJECT, the precision is used.
-Each character needs 2 bytes.
 ","
 OCTET_LENGTH(NAME)
 "

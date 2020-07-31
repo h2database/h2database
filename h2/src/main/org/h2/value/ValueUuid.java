@@ -227,4 +227,14 @@ public final class ValueUuid extends Value {
         return low;
     }
 
+    @Override
+    public long charLength() {
+        return DISPLAY_SIZE;
+    }
+
+    @Override
+    public long octetLength() {
+        return PRECISION;
+    }
+
 }

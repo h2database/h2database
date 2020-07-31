@@ -286,6 +286,7 @@ import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.JavaFunction;
 import org.h2.expression.function.JsonConstructorFunction;
+import org.h2.expression.function.LengthFunction;
 import org.h2.expression.function.MathFunction;
 import org.h2.expression.function.MathFunction1;
 import org.h2.expression.function.MathFunction2;
@@ -4353,6 +4354,14 @@ public class Parser {
             return new StringFunction1(readSingleArgument(), StringFunction1.SPACE);
         case "QUOTE_IDENT":
             return new StringFunction1(readSingleArgument(), StringFunction1.QUOTE_IDENT);
+        case "CHAR_LENGTH":
+        case "CHARACTER_LENGTH":
+        case "LENGTH":
+            return new LengthFunction(readIfSingleArgument(), LengthFunction.CHAR_LENGTH);
+        case "OCTET_LENGTH":
+            return new LengthFunction(readIfSingleArgument(), LengthFunction.OCTET_LENGTH);
+        case "BIT_LENGTH":
+            return new LengthFunction(readIfSingleArgument(), LengthFunction.BIT_LENGTH);
         case "COMPRESS":
             return new CompressFunction(readExpression(), readIfArgument(), CompressFunction.COMPRESS);
         case "EXPAND":

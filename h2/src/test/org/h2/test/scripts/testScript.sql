@@ -1613,17 +1613,17 @@ insert into test set id = 3, c = 'abcde      ', v = 'abcde';
 > update count: 1
 
 select distinct length(c) from test order by length(c);
-> LENGTH(C)
-> ---------
+> CHAR_LENGTH(C)
+> --------------
 > 5
 > rows (ordered): 1
 
 select id, c, v, length(c), length(v) from test order by id;
-> ID C     V     LENGTH(C) LENGTH(V)
-> -- ----- ----- --------- ---------
-> 1  a     a     5         1
-> 2  a     a     5         2
-> 3  abcde abcde 5         5
+> ID C     V     CHAR_LENGTH(C) CHAR_LENGTH(V)
+> -- ----- ----- -------------- --------------
+> 1  a     a     5              1
+> 2  a     a     5              2
+> 3  abcde abcde 5              5
 > rows (ordered): 3
 
 select id from test where c='a' order by id;
@@ -6521,10 +6521,10 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > ALTER TABLE "PUBLIC"."A_TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_7" PRIMARY KEY("A_INT");
 > ALTER TABLE "PUBLIC"."A_TEST" ADD CONSTRAINT "PUBLIC"."DATE_UNIQUE" UNIQUE("A_DATE");
 > ALTER TABLE "PUBLIC"."A_TEST" ADD CONSTRAINT "PUBLIC"."DATE_UNIQUE_2" UNIQUE("A_DATE");
-> ALTER TABLE "PUBLIC"."A_TEST" ADD CONSTRAINT "PUBLIC"."MIN_LENGTH" CHECK(LENGTH("A_VARCHAR") > 1) NOCHECK;
+> ALTER TABLE "PUBLIC"."A_TEST" ADD CONSTRAINT "PUBLIC"."MIN_LENGTH" CHECK(CHAR_LENGTH("A_VARCHAR") > 1) NOCHECK;
 > ALTER TABLE "PUBLIC"."B_TEST" ADD CONSTRAINT "PUBLIC"."B_UNIQUE" UNIQUE("B_INT");
 > ALTER TABLE "PUBLIC"."B_TEST" ADD CONSTRAINT "PUBLIC"."C3" FOREIGN KEY("B_INT") REFERENCES "PUBLIC"."A_TEST"("A_INT") ON DELETE SET DEFAULT ON UPDATE SET DEFAULT NOCHECK;
-> ALTER TABLE "PUBLIC"."B_TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_76" CHECK(LENGTH("B_VARCHAR") > 1) NOCHECK;
+> ALTER TABLE "PUBLIC"."B_TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_76" CHECK(CHAR_LENGTH("B_VARCHAR") > 1) NOCHECK;
 > ALTER TABLE "PUBLIC"."B_TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_760" PRIMARY KEY("B_INT");
 > CREATE MEMORY TABLE "PUBLIC"."A_TEST"( "A_INT" INTEGER NOT NULL, "A_VARCHAR" CHARACTER VARYING(255) DEFAULT 'x', "A_DATE" DATE, "A_DECIMAL" DECIMAL(10, 2) );
 > CREATE MEMORY TABLE "PUBLIC"."B_TEST"( "B_INT" INTEGER DEFAULT -1 NOT NULL, "B_VARCHAR" CHARACTER VARYING(255) DEFAULT NULL );

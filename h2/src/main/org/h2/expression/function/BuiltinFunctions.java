@@ -39,6 +39,8 @@ public final class BuiltinFunctions {
                 // StringFunction1
                 "UPPER", "LOWER", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8", "UTF8TOSTRING", //
                 "HEXTORAW", "RAWTOHEX", "SPACE", "QUOTE_IDENT",
+                // LengthFunction
+                "CHAR_LENGTH", "CHARACTER_LENGTH", "LENGTH", "OCTET_LENGTH", "BIT_LENGTH", //
                 // CompressFunction
                 "COMPRESS", "EXPAND",
                 // SoundexFunction

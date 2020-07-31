@@ -2889,4 +2889,24 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         return rs;
     }
 
+    /**
+     * Returns length of this value in characters.
+     *
+     * @return length of this value in characters
+     * @throws NullPointerException if this value is {@code NULL}
+     */
+    public long charLength() {
+        return getString().length();
+    }
+
+    /**
+     * Returns length of this value in bytes.
+     *
+     * @return length of this value in bytes
+     * @throws NullPointerException if this value is {@code NULL}
+     */
+    public long octetLength() {
+        return getBytesNoCopy().length;
+    }
+
 }

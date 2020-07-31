@@ -6,7 +6,7 @@
 select bit_length(null) en, bit_length('') e0, bit_length('ab') e32;
 > EN   E0 E32
 > ---- -- ---
-> null 0  32
+> null 0  16
 > rows: 1
 
 select length(null) en, length('') e0, length('ab') e2;
@@ -30,5 +30,5 @@ select character_length(null) en, character_length('') e0, character_length('ab'
 select octet_length(null) en, octet_length('') e0, octet_length('ab') e4;
 > EN   E0 E4
 > ---- -- --
-> null 0  4
+> null 0  2
 > rows: 1

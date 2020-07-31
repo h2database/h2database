@@ -91,7 +91,7 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
                 }
                 len = l;
             } else {
-                len = Function.length(v0);
+                len = v0.charLength();
             }
             return ValueBigint.get(len);
         }

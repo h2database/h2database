@@ -13,9 +13,9 @@ SELECT TRIM(BOTH '_' FROM A), '|' || TRIM(LEADING FROM B) || '|', TRIM(TRAILING 
 > rows: 1
 
 SELECT LENGTH(TRIM(B)), LENGTH(TRIM(FROM B)) FROM TEST;
-> LENGTH(TRIM(B)) LENGTH(TRIM(B))
-> --------------- ---------------
-> 1               1
+> CHAR_LENGTH(TRIM(B)) CHAR_LENGTH(TRIM(B))
+> -------------------- --------------------
+> 1                    1
 > rows: 1
 
 SELECT TRIM(BOTH B) FROM TEST;

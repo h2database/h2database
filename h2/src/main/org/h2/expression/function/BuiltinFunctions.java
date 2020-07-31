@@ -37,8 +37,8 @@ public final class BuiltinFunctions {
                 // CardinalityExpression
                 "CARDINALITY", "ARRAY_MAX_CARDINALITY",
                 // StringFunction1
-                "UPPER", "LOWER", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8", "UTF8TOSTRING", //
-                "HEXTORAW", "RAWTOHEX", "SPACE", "QUOTE_IDENT",
+                "UPPER", "LOWER", "ASCII", "CHAR", "CHR", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8",
+                "UTF8TOSTRING", "HEXTORAW", "RAWTOHEX", "SPACE", "QUOTE_IDENT",
                 // LengthFunction
                 "CHAR_LENGTH", "CHARACTER_LENGTH", "LENGTH", "OCTET_LENGTH", "BIT_LENGTH", //
                 // CompressFunction

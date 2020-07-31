@@ -68,7 +68,7 @@ import org.h2.value.ValueVarchar;
  */
 public class Function extends OperationN implements FunctionCall, ExpressionWithFlags {
 
-    public static final int ASCII = 50, CHAR = 52,
+    public static final int
             INSERT = 57, INSTR = 58, LEFT = 60,
             LOCATE = 62,
             REPEAT = 66, REPLACE = 67, RIGHT = 68,
@@ -116,9 +116,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
     static {
         // string
-        addFunction("ASCII", ASCII, 1, Value.INTEGER);
-        addFunction("CHAR", CHAR, 1, Value.VARCHAR);
-        addFunction("CHR", CHAR, 1, Value.VARCHAR);
         addFunctionWithNull("INSERT", INSERT, 4, Value.VARCHAR);
         addFunction("LEFT", LEFT, 2, Value.VARCHAR);
         // 2 or 3 arguments
@@ -321,18 +318,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             Value[] values) {
         Value result;
         switch (info.type) {
-        case ASCII: {
-            String s = v0.getString();
-            if (s.isEmpty()) {
-                result = ValueNull.INSTANCE;
-            } else {
-                result = ValueInteger.get(s.charAt(0));
-            }
-            break;
-        }
-        case CHAR:
-            result = ValueVarchar.get(String.valueOf((char) v0.getInt()), session);
-            break;
         case XMLCOMMENT:
             result = ValueVarchar.get(StringUtils.xmlComment(v0.getString()), session);
             break;
@@ -1231,9 +1216,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                     ? Value.VARBINARY : Value.VARCHAR, p, 0, null);
             break;
         }
-        case CHAR:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 1, 0, null);
-            break;
         case RIGHT:
         case TRIM:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p0.getType().getPrecision(), 0, null);

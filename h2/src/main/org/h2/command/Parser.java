@@ -4352,6 +4352,11 @@ public class Parser {
             return new StringFunction1(readSingleArgument(), StringFunction1.UPPER);
         case "LOWER":
             return new StringFunction1(readSingleArgument(), StringFunction1.LOWER);
+        case "ASCII":
+            return new StringFunction1(readSingleArgument(), StringFunction1.ASCII);
+        case "CHAR":
+        case "CHR":
+            return new StringFunction1(readSingleArgument(), StringFunction1.CHAR);
         case "STRINGENCODE":
             return new StringFunction1(readSingleArgument(), StringFunction1.STRINGENCODE);
         case "STRINGDECODE":

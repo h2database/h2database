@@ -296,6 +296,7 @@ import org.h2.expression.function.NullIfFunction;
 import org.h2.expression.function.RandFunction;
 import org.h2.expression.function.SoundexFunction;
 import org.h2.expression.function.StringFunction1;
+import org.h2.expression.function.SysInfoFunction;
 import org.h2.expression.function.TableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
@@ -4440,6 +4441,33 @@ public class Parser {
         case "UUID":
             read(CLOSE_PAREN);
             return new RandFunction(null, RandFunction.RANDOM_UUID);
+        case "AUTOCOMMIT":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.AUTOCOMMIT);
+        case "DATABASE_PATH":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.DATABASE_PATH);
+        case "H2VERSION":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.H2VERSION);
+        case "LOCK_MODE":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.LOCK_MODE);
+        case "LOCK_TIMEOUT":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.LOCK_TIMEOUT);
+        case "MEMORY_FREE":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.MEMORY_FREE);
+        case "MEMORY_USED":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.MEMORY_USED);
+        case "READONLY":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.READONLY);
+        case "SESSION_ID":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.SESSION_ID);
         case "DATA_TYPE_SQL":
             return new DataTypeSQLFunction(readExpression(), readNextArgument(), readNextArgument(),
                     readLastArgument());

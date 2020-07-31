@@ -59,6 +59,9 @@ public final class BuiltinFunctions {
                 "HASH", "ORA_HASH",
                 // RandFunction
                 "RAND", "RANDOM", "SECURE_RAND", "RANDOM_UUID", "UUID",
+                // SysInfoFunction
+                "AUTOCOMMIT", "DATABASE_PATH", "H2VERSION", "LOCK_MODE", "LOCK_TIMEOUT", "MEMORY_FREE", "MEMORY_USED",
+                "READONLY", "SESSION_ID",
                 // DataTypeSQLFunction
                 "DATA_TYPE_SQL",
                 // DBObjectFunction

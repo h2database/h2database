@@ -28,7 +28,6 @@ import java.util.regex.PatternSyntaxException;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Mode.ModeEnum;
@@ -56,7 +55,6 @@ import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -98,16 +96,12 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             LPAD = 91, TO_CHAR = 93, TRANSLATE = 94;
 
     public static final int
-            AUTOCOMMIT = 155,
-            READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
             DISK_SPACE_USED = 159, SIGNAL = 160, ESTIMATED_ENVELOPE = 161;
 
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
     public static final int
             CSVREAD = 210, CSVWRITE = 211,
-            MEMORY_FREE = 212, MEMORY_USED = 213,
-            LOCK_MODE = 214, SESSION_ID = 216,
             LINK_SCHEMA = 218,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
@@ -117,12 +111,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
     public static final int REGEXP_LIKE = 240;
     public static final int REGEXP_SUBSTR = 241;
-
-    /**
-     * This is called H2VERSION() and not VERSION(), because we return a fake
-     * value for VERSION() when running under the PostgreSQL ODBC driver.
-     */
-    public static final int H2VERSION = 231;
 
     private static final int COUNT = REGEXP_SUBSTR + 1;
 
@@ -182,14 +170,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("REGEXP_SUBSTR", REGEXP_SUBSTR, VAR_ARGS, Value.VARCHAR);
 
         // system
-        addFunctionNotDeterministic("AUTOCOMMIT", AUTOCOMMIT,
-                0, Value.BOOLEAN);
-        addFunctionNotDeterministic("READONLY", READONLY,
-                0, Value.BOOLEAN);
-        addFunction("DATABASE_PATH", DATABASE_PATH,
-                0, Value.VARCHAR);
-        addFunctionNotDeterministic("LOCK_TIMEOUT", LOCK_TIMEOUT,
-                0, Value.INTEGER);
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
                 3, Value.NULL);
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
@@ -197,14 +177,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
         addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false);
         addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INTEGER, false, false);
-        addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE,
-                0, Value.INTEGER);
-        addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED,
-                0, Value.INTEGER);
-        addFunctionNotDeterministic("LOCK_MODE", LOCK_MODE,
-                0, Value.INTEGER);
-        addFunctionNotDeterministic("SESSION_ID", SESSION_ID,
-                0, Value.INTEGER);
         addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
                 6, Value.RESULT_SET);
         addFunctionNotDeterministic("CANCEL_SESSION", CANCEL_SESSION,
@@ -220,7 +192,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 1, Value.BIGINT);
         addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
         addFunctionNotDeterministic("ESTIMATED_ENVELOPE", ESTIMATED_ENVELOPE, 2, Value.BIGINT);
-        addFunctionNotDeterministic("H2VERSION", H2VERSION, 0, Value.VARCHAR);
 
         // TableFunction
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
@@ -404,39 +375,11 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case XMLSTARTDOC:
             result = ValueVarchar.get(StringUtils.xmlStartDoc(), session);
             break;
-        case AUTOCOMMIT:
-            result = ValueBoolean.get(session.getAutoCommit());
-            break;
-        case READONLY:
-            result = ValueBoolean.get(session.getDatabase().isReadOnly());
-            break;
-        case DATABASE_PATH: {
-            String path = session.getDatabase().getDatabasePath();
-            result = path == null ? (Value) ValueNull.INSTANCE : ValueVarchar.get(path, session);
-            break;
-        }
-        case LOCK_TIMEOUT:
-            result = ValueInteger.get(session.getLockTimeout());
-            break;
         case DISK_SPACE_USED:
             result = ValueBigint.get(getDiskSpaceUsed(session, v0));
             break;
         case ESTIMATED_ENVELOPE:
             result = getEstimatedEnvelope(session, v0, values[1]);
-            break;
-        case MEMORY_FREE:
-            session.getUser().checkAdmin();
-            result = ValueInteger.get(Utils.getMemoryFree());
-            break;
-        case MEMORY_USED:
-            session.getUser().checkAdmin();
-            result = ValueInteger.get(Utils.getMemoryUsed());
-            break;
-        case LOCK_MODE:
-            result = ValueInteger.get(session.getDatabase().getLockMode());
-            break;
-        case SESSION_ID:
-            result = ValueInteger.get(session.getId());
             break;
         case ARRAY_CONTAINS: {
             result = ValueBoolean.FALSE;
@@ -738,10 +681,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = ValueVarchar.get(translate(v0.getString(), matching, replacement), session);
             break;
         }
-        case H2VERSION:
-            result = ValueVarchar.get(Constants.VERSION, session);
-            break;
-            // system
         case CSVREAD: {
             String fileName = v0.getString();
             String columnList = v1 == null ? null : v1.getString();

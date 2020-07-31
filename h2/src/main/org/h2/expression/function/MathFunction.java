@@ -18,6 +18,7 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
@@ -47,8 +48,13 @@ public final class MathFunction extends Operation1_2 implements NamedExpression 
      */
     public static final int CEIL = FLOOR + 1;
 
+    /**
+     * SIGN() (non-standard)
+     */
+    public static final int SIGN = CEIL + 1;
+
     private static final String[] NAMES = { //
-            "ABS", "MOD", "FLOOR", "CEIL" //
+            "ABS", "MOD", "FLOOR", "CEIL", "SIGN" //
     };
 
     private final int function;
@@ -94,6 +100,9 @@ public final class MathFunction extends Operation1_2 implements NamedExpression 
                 v1 = t == Value.DOUBLE ? ValueDouble.get(v) : ValueReal.get((float) v);
                 break;
             }
+            break;
+        case SIGN:
+            v1 = ValueInteger.get(v1.getSignum());
             break;
         default:
             Value v2 = right.getValue(session);
@@ -163,6 +172,9 @@ public final class MathFunction extends Operation1_2 implements NamedExpression 
                 throw DbException.getInvalidValueException("numeric", commonType.getTraceSQL());
             }
             type = DataType.isNumericType(divisorType.getValueType()) ? divisorType : commonType;
+            break;
+        case SIGN:
+            type = TypeInfo.TYPE_INTEGER;
             break;
         default:
             type = TypeInfo.TYPE_DOUBLE;

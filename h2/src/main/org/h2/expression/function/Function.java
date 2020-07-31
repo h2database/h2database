@@ -88,7 +88,7 @@ import org.h2.value.ValueVarchar;
 public class Function extends OperationN implements FunctionCall, ExpressionWithFlags {
     public static final int
             ROUND = 21,
-            ROUNDMAGIC = 22, SIGN = 23,
+            ROUNDMAGIC = 22,
             TRUNCATE = 27, HASH = 29,
             ORA_HASH = 41;
 
@@ -153,7 +153,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     static {
         addFunction("ROUND", ROUND, VAR_ARGS, Value.NULL);
         addFunction("ROUNDMAGIC", ROUNDMAGIC, 1, Value.DOUBLE);
-        addFunction("SIGN", SIGN, 1, Value.INTEGER);
         addFunction("TRUNCATE", TRUNCATE, VAR_ARGS, Value.NULL);
         // same as TRUNCATE
         addFunction("TRUNC", TRUNCATE, VAR_ARGS, Value.NULL);
@@ -393,9 +392,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         switch (info.type) {
         case ROUNDMAGIC:
             result = ValueDouble.get(roundMagic(v0.getDouble()));
-            break;
-        case SIGN:
-            result = ValueInteger.get(v0.getSignum());
             break;
         case ASCII: {
             String s = v0.getString();

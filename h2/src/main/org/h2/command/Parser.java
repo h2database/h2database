@@ -4286,6 +4286,8 @@ public class Parser {
         case "CEIL":
         case "CEILING":
             return new MathFunction(readSingleArgument(), null, MathFunction.CEIL);
+        case "SIGN":
+            return new MathFunction(readSingleArgument(), null, MathFunction.SIGN);
         case "DEGREES":
             return new MathFunction1(readSingleArgument(), MathFunction1.DEGREES);
         case "RADIANS":

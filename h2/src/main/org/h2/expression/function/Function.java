@@ -479,7 +479,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 if (v4 != null) {
                     throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "3..4");
                 }
-                if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE || v3 == ValueNull.INSTANCE) {
+                if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE
+                        || v3 == ValueNull.INSTANCE) {
                     result = ValueNull.INSTANCE;
                 } else {
                     String regexp = v1.getString();

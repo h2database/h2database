@@ -9,6 +9,7 @@ import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.OperationN;
 import org.h2.expression.TypedValueExpression;
+import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -72,11 +73,42 @@ public final class ConcatFunction extends OperationN implements NamedExpression 
     @Override
     public Expression optimize(SessionLocal session) {
         boolean allConst = optimizeArguments(session, true);
-        type = TypeInfo.TYPE_VARCHAR;
+        int i = 0;
+        long extra = 0L;
+        if (function == CONCAT_WS) {
+            i = 1;
+            extra = getPrecision(0);
+        }
+        long precision = 0L;
+        int l = args.length;
+        boolean f = false;
+        for (; i < l; i++) {
+            if (args[i].isNullConstant()) {
+                continue;
+            }
+            precision = DataType.addPrecision(precision, getPrecision(i));
+            if (extra != 0L && f) {
+                precision = DataType.addPrecision(precision, extra);
+            }
+            f = true;
+        }
+        type = TypeInfo.getTypeInfo(Value.VARCHAR, precision, 0, null);
         if (allConst) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
+    }
+
+    private long getPrecision(int i) {
+        TypeInfo t = args[i].getType();
+        int valueType = t.getValueType();
+        if (valueType == Value.NULL) {
+            return 0L;
+        } else if (DataType.isCharacterStringType(valueType)) {
+            return t.getPrecision();
+        } else {
+            return Long.MAX_VALUE;
+        }
     }
 
     @Override

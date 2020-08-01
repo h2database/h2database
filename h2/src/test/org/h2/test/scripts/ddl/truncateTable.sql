@@ -28,7 +28,7 @@ INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World');
 > update count: 2
 
 TRUNCATE TABLE TEST;
-> ok
+> update count: 2
 
 SELECT * FROM TEST;
 > ID NAME
@@ -80,7 +80,7 @@ SELECT * FROM TEST ORDER BY "VALUE";
 > rows (ordered): 2
 
 TRUNCATE TABLE TEST;
-> ok
+> update count: 2
 
 INSERT INTO TEST("VALUE") VALUES (1), (2);
 > update count: 2
@@ -93,7 +93,7 @@ SELECT * FROM TEST ORDER BY "VALUE";
 > rows (ordered): 2
 
 TRUNCATE TABLE TEST CONTINUE IDENTITY;
-> ok
+> update count: 2
 
 INSERT INTO TEST("VALUE") VALUES (1), (2);
 > update count: 2
@@ -106,7 +106,7 @@ SELECT * FROM TEST ORDER BY "VALUE";
 > rows (ordered): 2
 
 TRUNCATE TABLE TEST RESTART IDENTITY;
-> ok
+> update count: 2
 
 INSERT INTO TEST("VALUE") VALUES (1), (2);
 > update count: 2
@@ -122,7 +122,7 @@ SET MODE MSSQLServer;
 > ok
 
 TRUNCATE TABLE TEST;
-> ok
+> update count: 2
 
 INSERT INTO TEST("VALUE") VALUES (1), (2);
 > update count: 2
@@ -138,7 +138,7 @@ SET MODE MySQL;
 > ok
 
 TRUNCATE TABLE TEST;
-> ok
+> update count: 2
 
 INSERT INTO TEST("VALUE") VALUES (1), (2);
 > update count: 2
@@ -173,7 +173,7 @@ TABLE TEST;
 > rows: 2
 
 TRUNCATE TABLE TEST RESTART IDENTITY;
-> ok
+> update count: 2
 
 INSERT INTO TEST(V) VALUES 1, 2;
 > update count: 2

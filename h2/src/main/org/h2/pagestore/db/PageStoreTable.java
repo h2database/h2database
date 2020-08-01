@@ -279,14 +279,16 @@ public class PageStoreTable extends RegularTable {
     }
 
     @Override
-    public void truncate(SessionLocal session) {
+    public long truncate(SessionLocal session) {
         lastModificationId = database.getNextModificationDataId();
+        long result = rowCount;
         for (int i = indexes.size() - 1; i >= 0; i--) {
             Index index = indexes.get(i);
             index.truncate(session);
         }
         rowCount = 0;
         changesSinceAnalyze = 0;
+        return result;
     }
 
     private void analyzeIfRequired(SessionLocal session) {

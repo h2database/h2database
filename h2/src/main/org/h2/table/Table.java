@@ -204,8 +204,9 @@ public abstract class Table extends SchemaObjectBase {
      * Remove all rows from the table and indexes.
      *
      * @param session the session
+     * @return number of removed rows, possibly including uncommitted rows
      */
-    public abstract void truncate(SessionLocal session);
+    public abstract long truncate(SessionLocal session);
 
     /**
      * Add a row to the table and all indexes.

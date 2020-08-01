@@ -359,7 +359,7 @@ public class TableView extends Table {
     }
 
     @Override
-    public void truncate(SessionLocal session) {
+    public long truncate(SessionLocal session) {
         throw DbException.getUnsupportedException("VIEW");
     }
 

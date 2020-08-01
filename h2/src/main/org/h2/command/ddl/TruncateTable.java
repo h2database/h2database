@@ -44,7 +44,7 @@ public class TruncateTable extends DefineCommand {
         }
         session.getUser().checkRight(table, Right.DELETE);
         table.lock(session, true, true);
-        table.truncate(session);
+        long result = table.truncate(session);
         if (restart) {
             for (Column column : table.getColumns()) {
                 Sequence sequence = column.getSequence();
@@ -54,7 +54,7 @@ public class TruncateTable extends DefineCommand {
                 }
             }
         }
-        return 0;
+        return result;
     }
 
     @Override

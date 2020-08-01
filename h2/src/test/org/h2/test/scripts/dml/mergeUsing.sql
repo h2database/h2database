@@ -450,7 +450,7 @@ TABLE T;
 > rows: 2
 
 TRUNCATE TABLE T;
-> ok
+> update count: 2
 
 INSERT INTO T VALUES (1, 1);
 > update count: 1

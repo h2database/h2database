@@ -1233,7 +1233,7 @@ select count(*) from test1 where a='abccccc';
 >> 0
 
 truncate table test1;
-> ok
+> update count: 8
 
 insert into test1 values ('abcaaaa');
 > update count: 1

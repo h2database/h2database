@@ -548,7 +548,7 @@ public class TableLink extends Table {
     }
 
     @Override
-    public void truncate(SessionLocal session) {
+    public long truncate(SessionLocal session) {
         throw DbException.getUnsupportedException("LINK");
     }
 

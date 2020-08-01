@@ -73,7 +73,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         try {
             return tryUpdate();
         } catch (DbException e) {

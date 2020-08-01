@@ -264,7 +264,7 @@ public class Trace {
      * @param count the update count
      * @param time the time it took to run the statement in ms
      */
-    public void infoSQL(String sql, String params, int count, long time) {
+    public void infoSQL(String sql, String params, long count, long time) {
         if (!isEnabled(TraceSystem.INFO)) {
             return;
         }

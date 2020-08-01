@@ -61,7 +61,7 @@ public class ExecuteProcedure extends Prepared {
     }
 
     @Override
-    public int update() {
+    public long update() {
         setParameters();
         Prepared prepared = procedure.getPrepared();
         return prepared.update();

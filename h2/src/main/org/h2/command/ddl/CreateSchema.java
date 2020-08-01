@@ -34,7 +34,7 @@ public class CreateSchema extends DefineCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         session.getUser().checkSchemaAdmin();
         session.commit(true);
         Database db = session.getDatabase();

@@ -43,7 +43,7 @@ public class CreateSequence extends SchemaCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         session.commit(true);
         Database db = session.getDatabase();
         if (getSchema().findSequence(sequenceName) != null) {

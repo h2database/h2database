@@ -69,7 +69,7 @@ public class AlterSequence extends SchemaCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         if (sequence == null) {
             sequence = getSchema().findSequence(sequenceName);
             if (sequence == null) {

@@ -33,7 +33,7 @@ public class SetComment extends DefineCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         session.commit(true);
         Database db = session.getDatabase();
         session.getUser().checkAdmin();

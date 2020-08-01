@@ -43,7 +43,7 @@ public class Call extends Prepared {
     }
 
     @Override
-    public int update() {
+    public long update() {
         Value v = expression.getValue(session);
         int type = v.getValueType();
         switch (type) {

@@ -41,7 +41,7 @@ public abstract class DataChangeStatement extends Prepared {
     public abstract Table getTable();
 
     @Override
-    public final int update() {
+    public final long update() {
         return update(null, null);
     }
 
@@ -54,6 +54,6 @@ public abstract class DataChangeStatement extends Prepared {
      *            collection mode
      * @return the update count
      */
-    public abstract int update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode);
+    public abstract long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode);
 
 }

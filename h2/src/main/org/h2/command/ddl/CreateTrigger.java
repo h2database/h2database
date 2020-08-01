@@ -85,7 +85,7 @@ public class CreateTrigger extends SchemaCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         session.commit(true);
         Database db = session.getDatabase();
         if (getSchema().findTrigger(triggerName) != null) {

@@ -203,7 +203,7 @@ public class CommandRemote implements CommandInterface {
         boolean readGeneratedKeys = supportsGeneratedKeys && generatedKeysMode != GeneratedKeysMode.NONE;
         int objectId = readGeneratedKeys ? session.getNextId() : 0;
         synchronized (session) {
-            int updateCount = 0;
+            long updateCount = 0L;
             ResultRemote generatedKeys = null;
             boolean autoCommit = false;
             for (int i = 0, count = 0; i < transferList.size(); i++) {
@@ -235,7 +235,8 @@ public class CommandRemote implements CommandInterface {
                         }
                     }
                     session.done(transfer);
-                    updateCount = transfer.readInt();
+                    updateCount = transfer.getVersion() >= Constants.TCP_PROTOCOL_VERSION_20 ? transfer.readLong()
+                            : transfer.readInt();
                     autoCommit = transfer.readBoolean();
                     if (readGeneratedKeys) {
                         int columnCount = transfer.readInt();

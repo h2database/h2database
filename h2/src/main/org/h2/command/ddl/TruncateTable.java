@@ -37,7 +37,7 @@ public class TruncateTable extends DefineCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         session.commit(true);
         if (!table.canTruncate()) {
             throw DbException.get(ErrorCode.CANNOT_TRUNCATE_1, table.getTraceSQL());

@@ -56,7 +56,7 @@ public class CreateIndex extends SchemaCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         if (!transactional) {
             session.commit(true);
         }

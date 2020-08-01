@@ -31,7 +31,7 @@ public class TransactionCommand extends Prepared {
     }
 
     @Override
-    public int update() {
+    public long update() {
         switch (type) {
         case CommandInterface.SET_AUTOCOMMIT_TRUE:
             session.setAutoCommit(true);

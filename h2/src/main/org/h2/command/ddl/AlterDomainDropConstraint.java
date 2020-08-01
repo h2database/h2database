@@ -43,7 +43,7 @@ public class AlterDomainDropConstraint extends SchemaCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         session.commit(true);
         Domain domain = getSchema().findDomain(domainName);
         if (domain == null) {

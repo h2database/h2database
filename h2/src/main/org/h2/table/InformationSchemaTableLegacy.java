@@ -579,8 +579,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     "CUMULATIVE_EXECUTION_TIME DOUBLE",
                     "AVERAGE_EXECUTION_TIME DOUBLE",
                     "STD_DEV_EXECUTION_TIME DOUBLE",
-                    "MIN_ROW_COUNT INT",
-                    "MAX_ROW_COUNT INT",
+                    "MIN_ROW_COUNT BIGINT",
+                    "MAX_ROW_COUNT BIGINT",
                     "CUMULATIVE_ROW_COUNT LONG",
                     "AVERAGE_ROW_COUNT DOUBLE",
                     "STD_DEV_ROW_COUNT DOUBLE"
@@ -2026,9 +2026,9 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                             // STD_DEV_EXECUTION_TIME
                             ValueDouble.get(entry.getExecutionTimeStandardDeviation() / 1_000_000d),
                             // MIN_ROW_COUNT
-                            ValueInteger.get(entry.rowCountMin),
+                            ValueBigint.get(entry.rowCountMin),
                             // MAX_ROW_COUNT
-                            ValueInteger.get(entry.rowCountMax),
+                            ValueBigint.get(entry.rowCountMax),
                             // CUMULATIVE_ROW_COUNT
                             ValueBigint.get(entry.rowCountCumulative),
                             // AVERAGE_ROW_COUNT

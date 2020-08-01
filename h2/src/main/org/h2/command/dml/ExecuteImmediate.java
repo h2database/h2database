@@ -27,7 +27,7 @@ public class ExecuteImmediate extends Prepared {
     }
 
     @Override
-    public int update() {
+    public long update() {
         String sql = statement.getValue(session).getString();
         if (sql == null) {
             throw DbException.getInvalidValueException("SQL command", null);

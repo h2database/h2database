@@ -34,7 +34,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     protected JdbcResultSet resultSet;
     protected int maxRows;
     protected int fetchSize = SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
-    protected int updateCount;
+    protected long updateCount;
     protected JdbcResultSet generatedKeys;
     protected final int resultSetType;
     protected final int resultSetConcurrency;
@@ -120,7 +120,8 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     public final int executeUpdate(String sql) throws SQLException {
         try {
             debugCodeCall("executeUpdate", sql);
-            return executeUpdateInternal(sql, null);
+            long updateCount = executeUpdateInternal(sql, null);
+            return updateCount < Integer.MAX_VALUE ? (int) updateCount : Integer.MAX_VALUE;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -155,7 +156,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         }
     }
 
-    private int executeUpdateInternal(String sql, Object generatedKeysRequest) {
+    private long executeUpdateInternal(String sql, Object generatedKeysRequest) {
         if (getClass() != JdbcStatement.class) {
             throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
         }
@@ -281,7 +282,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         try {
             debugCodeCall("getUpdateCount");
             checkClosed();
-            return updateCount;
+            return updateCount < Integer.MAX_VALUE ? (int) updateCount : Integer.MAX_VALUE;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -755,31 +756,19 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             debugCodeCall("executeBatch");
             checkClosed();
             if (batchCommands == null) {
-                // TODO batch: check what other database do if no commands
-                // are set
-                batchCommands = Utils.newSmallArrayList();
+                batchCommands = new ArrayList<>();
             }
             int size = batchCommands.size();
             int[] result = new int[size];
-            SQLException first = null;
-            SQLException last = null;
+            SQLException exception = new SQLException();
             for (int i = 0; i < size; i++) {
-                String sql = batchCommands.get(i);
-                try {
-                    result[i] = executeUpdateInternal(sql, null);
-                } catch (Exception re) {
-                    SQLException e = logAndConvert(re);
-                    if (last == null) {
-                        first = last = e;
-                    } else {
-                        last.setNextException(e);
-                    }
-                    result[i] = Statement.EXECUTE_FAILED;
-                }
+                long updateCount = executeBatchElement(batchCommands.get(i), exception);
+                result[i] = updateCount < Integer.MAX_VALUE ? (int) updateCount : Integer.MAX_VALUE;
             }
             batchCommands = null;
-            if (first != null) {
-                throw new JdbcBatchUpdateException(first, result);
+            exception = exception.getNextException();
+            if (exception != null) {
+                throw new JdbcBatchUpdateException(exception, result);
             }
             return result;
         } catch (Exception e) {
@@ -795,13 +784,38 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      */
     @Override
     public long[] executeLargeBatch() throws SQLException {
-        int[] intResult = executeBatch();
-        int count = intResult.length;
-        long[] longResult = new long[count];
-        for (int i = 0; i < count; i++) {
-            longResult[i] = intResult[i];
+        try {
+            debugCodeCall("executeLargeBatch");
+            checkClosed();
+            if (batchCommands == null) {
+                batchCommands = new ArrayList<>();
+            }
+            int size = batchCommands.size();
+            long[] result = new long[size];
+            SQLException exception = new SQLException();
+            for (int i = 0; i < size; i++) {
+                result[i] = executeBatchElement(batchCommands.get(i), exception);
+            }
+            batchCommands = null;
+            exception = exception.getNextException();
+            if (exception != null) {
+                throw new JdbcBatchUpdateException(exception, result);
+            }
+            return result;
+        } catch (Exception e) {
+            throw logAndConvert(e);
         }
-        return longResult;
+    }
+
+    private long executeBatchElement(String sql, SQLException exception) {
+        long updateCount;
+        try {
+            updateCount = executeUpdateInternal(sql, null);
+        } catch (Exception e) {
+            exception.setNextException(logAndConvert(e));
+            updateCount = Statement.EXECUTE_FAILED;
+        }
+        return updateCount;
     }
 
     /**
@@ -934,7 +948,8 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             if (isDebugEnabled()) {
                 debugCode("executeUpdate("+quote(sql)+", "+autoGeneratedKeys+");");
             }
-            return executeUpdateInternal(sql, autoGeneratedKeys == RETURN_GENERATED_KEYS);
+            long updateCount = executeUpdateInternal(sql, autoGeneratedKeys == RETURN_GENERATED_KEYS);
+            return updateCount < Integer.MAX_VALUE ? (int) updateCount : Integer.MAX_VALUE;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -987,7 +1002,8 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             if (isDebugEnabled()) {
                 debugCode("executeUpdate("+quote(sql)+", "+quoteIntArray(columnIndexes)+");");
             }
-            return executeUpdateInternal(sql, columnIndexes);
+            long updateCount = executeUpdateInternal(sql, columnIndexes);
+            return updateCount < Integer.MAX_VALUE ? (int) updateCount : Integer.MAX_VALUE;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1039,7 +1055,8 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             if (isDebugEnabled()) {
                 debugCode("executeUpdate("+quote(sql)+", "+quoteArray(columnNames)+");");
             }
-            return executeUpdateInternal(sql, columnNames);
+            long updateCount = executeUpdateInternal(sql, columnNames);
+            return updateCount < Integer.MAX_VALUE ? (int) updateCount : Integer.MAX_VALUE;
         } catch (Exception e) {
             throw logAndConvert(e);
         }

@@ -146,7 +146,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             debugCodeCall("executeUpdate");
             checkClosed();
             batchIdentities = null;
-            return executeUpdateInternal();
+            long updateCount = executeUpdateInternal();
+            return updateCount < Integer.MAX_VALUE ? (int) updateCount : Integer.MAX_VALUE;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -180,7 +181,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
         }
     }
 
-    private int executeUpdateInternal() {
+    private long executeUpdateInternal() {
         closeOldResultSet();
         synchronized (session) {
             try {
@@ -1200,46 +1201,77 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             debugCodeCall("executeBatch");
             if (batchParameters == null) {
                 // Empty batch is allowed, see JDK-4639504 and other issues
-                batchParameters = Utils.newSmallArrayList();
+                batchParameters = new ArrayList<>();
             }
             batchIdentities = new MergedResult();
             int size = batchParameters.size();
             int[] result = new int[size];
-            SQLException first = null;
-            SQLException last = null;
+            SQLException exception = new SQLException();
             checkClosed();
             for (int i = 0; i < size; i++) {
-                Value[] set = batchParameters.get(i);
-                ArrayList<? extends ParameterInterface> parameters =
-                        command.getParameters();
-                for (int j = 0; j < set.length; j++) {
-                    Value value = set[j];
-                    ParameterInterface param = parameters.get(j);
-                    param.setValue(value, false);
-                }
-                try {
-                    result[i] = executeUpdateInternal();
-                    // Cannot use own implementation, it returns batch identities
-                    ResultSet rs = super.getGeneratedKeys();
-                    batchIdentities.add(((JdbcResultSet) rs).result);
-                } catch (Exception re) {
-                    SQLException e = logAndConvert(re);
-                    if (last == null) {
-                        first = last = e;
-                    } else {
-                        last.setNextException(e);
-                    }
-                    result[i] = Statement.EXECUTE_FAILED;
-                }
+                long updateCount = executeBatchElement(batchParameters.get(i), exception);
+                result[i] = updateCount < Integer.MAX_VALUE ? (int) updateCount : Integer.MAX_VALUE;
             }
             batchParameters = null;
-            if (first != null) {
-                throw new JdbcBatchUpdateException(first, result);
+            exception = exception.getNextException();
+            if (exception != null) {
+                throw new JdbcBatchUpdateException(exception, result);
             }
             return result;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    /**
+     * Executes the batch.
+     * If one of the batched statements fails, this database will continue.
+     *
+     * @return the array of update counts
+     */
+    @Override
+    public long[] executeLargeBatch() throws SQLException {
+        try {
+            debugCodeCall("executeLargeBatch");
+            if (batchParameters == null) {
+                // Empty batch is allowed, see JDK-4639504 and other issues
+                batchParameters = new ArrayList<>();
+            }
+            batchIdentities = new MergedResult();
+            int size = batchParameters.size();
+            long[] result = new long[size];
+            SQLException exception = new SQLException();
+            checkClosed();
+            for (int i = 0; i < size; i++) {
+                result[i] = executeBatchElement(batchParameters.get(i), exception);
+            }
+            batchParameters = null;
+            exception = exception.getNextException();
+            if (exception != null) {
+                throw new JdbcBatchUpdateException(exception, result);
+            }
+            return result;
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    private long executeBatchElement(Value[] set, SQLException exception) {
+        ArrayList<? extends ParameterInterface> parameters = command.getParameters();
+        for (int i = 0, l = set.length; i < l; i++) {
+            parameters.get(i).setValue(set[i], false);
+        }
+        long updateCount;
+        try {
+            updateCount = executeUpdateInternal();
+            // Cannot use own implementation, it returns batch identities
+            ResultSet rs = super.getGeneratedKeys();
+            batchIdentities.add(((JdbcResultSet) rs).result);
+        } catch (Exception e) {
+            exception.setNextException(logAndConvert(e));
+            updateCount = Statement.EXECUTE_FAILED;
+        }
+        return updateCount;
     }
 
     @Override

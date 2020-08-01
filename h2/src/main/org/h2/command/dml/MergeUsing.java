@@ -72,8 +72,8 @@ public final class MergeUsing extends DataChangeStatement {
     }
 
     @Override
-    public int update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
-        int countUpdatedRows = 0;
+    public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+        long countUpdatedRows = 0;
         targetRowidsRemembered.clear();
         checkRights();
         setCurrentRowNumber(0);
@@ -83,7 +83,7 @@ public final class MergeUsing extends DataChangeStatement {
         table.fire(session, evaluateTriggerMasks(), true);
         table.lock(session, true, false);
         setCurrentRowNumber(0);
-        int count = 0;
+        long count = 0;
         Row previousSource = null, missedSource = null;
         boolean hasRowId = table.getRowIdColumn() != null;
         while (sourceTableFilter.next()) {

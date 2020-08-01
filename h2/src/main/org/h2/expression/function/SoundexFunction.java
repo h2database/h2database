@@ -21,7 +21,7 @@ import org.h2.value.ValueVarchar;
 /**
  * A SOUNDEX or DIFFERENCE function.
  */
-public class SoundexFunction extends Operation1_2 implements NamedExpression {
+public final class SoundexFunction extends Operation1_2 implements NamedExpression {
 
     /**
      * SOUNDEX() (non-standard).

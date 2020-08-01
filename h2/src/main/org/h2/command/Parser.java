@@ -273,6 +273,8 @@ import org.h2.expression.function.CardinalityExpression;
 import org.h2.expression.function.CastSpecification;
 import org.h2.expression.function.CoalesceFunction;
 import org.h2.expression.function.CompatibilitySequenceValueFunction;
+import org.h2.expression.function.CompressFunction;
+import org.h2.expression.function.ConcatFunction;
 import org.h2.expression.function.CryptFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.CurrentGeneralValueSpecification;
@@ -281,17 +283,24 @@ import org.h2.expression.function.DataTypeSQLFunction;
 import org.h2.expression.function.DateTimeFormatFunction;
 import org.h2.expression.function.DateTimeFunction;
 import org.h2.expression.function.DayMonthNameFunction;
+import org.h2.expression.function.FileFunction;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
+import org.h2.expression.function.HashFunction;
 import org.h2.expression.function.JavaFunction;
 import org.h2.expression.function.JsonConstructorFunction;
+import org.h2.expression.function.LengthFunction;
 import org.h2.expression.function.MathFunction;
 import org.h2.expression.function.MathFunction1;
 import org.h2.expression.function.MathFunction2;
 import org.h2.expression.function.NullIfFunction;
+import org.h2.expression.function.RandFunction;
+import org.h2.expression.function.SessionControlFunction;
 import org.h2.expression.function.SoundexFunction;
 import org.h2.expression.function.StringFunction1;
+import org.h2.expression.function.SysInfoFunction;
 import org.h2.expression.function.TableFunction;
+import org.h2.expression.function.TableInfoFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsPostgreSQL;
@@ -4283,6 +4292,15 @@ public class Parser {
         case "CEIL":
         case "CEILING":
             return new MathFunction(readSingleArgument(), null, MathFunction.CEIL);
+        case "ROUND":
+            return new MathFunction(readExpression(), readIfArgument(), MathFunction.ROUND);
+        case "ROUNDMAGIC":
+            return new MathFunction(readSingleArgument(), null, MathFunction.ROUNDMAGIC);
+        case "SIGN":
+            return new MathFunction(readSingleArgument(), null, MathFunction.SIGN);
+        case "TRUNC":
+        case "TRUNCATE":
+            return new MathFunction(readExpression(), readIfArgument(), MathFunction.TRUNC);
         case "DEGREES":
             return new MathFunction1(readSingleArgument(), MathFunction1.DEGREES);
         case "RADIANS":
@@ -4335,6 +4353,11 @@ public class Parser {
             return new StringFunction1(readSingleArgument(), StringFunction1.UPPER);
         case "LOWER":
             return new StringFunction1(readSingleArgument(), StringFunction1.LOWER);
+        case "ASCII":
+            return new StringFunction1(readSingleArgument(), StringFunction1.ASCII);
+        case "CHAR":
+        case "CHR":
+            return new StringFunction1(readSingleArgument(), StringFunction1.CHAR);
         case "STRINGENCODE":
             return new StringFunction1(readSingleArgument(), StringFunction1.STRINGENCODE);
         case "STRINGDECODE":
@@ -4351,6 +4374,18 @@ public class Parser {
             return new StringFunction1(readSingleArgument(), StringFunction1.SPACE);
         case "QUOTE_IDENT":
             return new StringFunction1(readSingleArgument(), StringFunction1.QUOTE_IDENT);
+        case "CHAR_LENGTH":
+        case "CHARACTER_LENGTH":
+        case "LENGTH":
+            return new LengthFunction(readIfSingleArgument(), LengthFunction.CHAR_LENGTH);
+        case "OCTET_LENGTH":
+            return new LengthFunction(readIfSingleArgument(), LengthFunction.OCTET_LENGTH);
+        case "BIT_LENGTH":
+            return new LengthFunction(readIfSingleArgument(), LengthFunction.BIT_LENGTH);
+        case "COMPRESS":
+            return new CompressFunction(readExpression(), readIfArgument(), CompressFunction.COMPRESS);
+        case "EXPAND":
+            return new CompressFunction(readSingleArgument(), null, CompressFunction.EXPAND);
         case "SOUNDEX":
             return new SoundexFunction(readSingleArgument(), null, SoundexFunction.SOUNDEX);
         case "DIFFERENCE":
@@ -4399,13 +4434,79 @@ public class Parser {
             return readCoalesceFunction(CoalesceFunction.LEAST);
         case "NULLIF":
             return new NullIfFunction(readExpression(), readLastArgument());
+        case "CONCAT":
+            return readConcatFunction(ConcatFunction.CONCAT);
+        case "CONCAT_WS":
+            return readConcatFunction(ConcatFunction.CONCAT_WS);
+        case "HASH":
+            return new HashFunction(readExpression(), readNextArgument(), readIfArgument(), HashFunction.HASH);
+        case "ORA_HASH": {
+            Expression arg1 = readExpression();
+            if (readIfMore()) {
+                return new HashFunction(arg1, readExpression(), readIfArgument(), HashFunction.ORA_HASH);
+            }
+            return new HashFunction(arg1, HashFunction.ORA_HASH);
+        }
+        case "RAND":
+        case "RANDOM":
+            return new RandFunction(readIfSingleArgument(), RandFunction.RAND);
+        case "SECURE_RAND":
+            return new RandFunction(readSingleArgument(), RandFunction.SECURE_RAND);
+        case "RANDOM_UUID":
+        case "UUID":
+            read(CLOSE_PAREN);
+            return new RandFunction(null, RandFunction.RANDOM_UUID);
+        case "ABORT_SESSION":
+            return new SessionControlFunction(readIfSingleArgument(), SessionControlFunction.ABORT_SESSION);
+        case "CANCEL_SESSION":
+            return new SessionControlFunction(readIfSingleArgument(), SessionControlFunction.CANCEL_SESSION);
+        case "AUTOCOMMIT":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.AUTOCOMMIT);
+        case "DATABASE_PATH":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.DATABASE_PATH);
+        case "H2VERSION":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.H2VERSION);
+        case "LOCK_MODE":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.LOCK_MODE);
+        case "LOCK_TIMEOUT":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.LOCK_TIMEOUT);
+        case "MEMORY_FREE":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.MEMORY_FREE);
+        case "MEMORY_USED":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.MEMORY_USED);
+        case "READONLY":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.READONLY);
+        case "SESSION_ID":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.SESSION_ID);
+        case "TRANSACTION_ID":
+            read(CLOSE_PAREN);
+            return new SysInfoFunction(SysInfoFunction.TRANSACTION_ID);
+        case "DISK_SPACE_USED":
+            return new TableInfoFunction(readIfSingleArgument(), null, TableInfoFunction.DISK_SPACE_USED);
+        case "ESTIMATED_ENVELOPE":
+            return new TableInfoFunction(readExpression(), readLastArgument(), TableInfoFunction.ESTIMATED_ENVELOPE);
+        case "FILE_READ":
+            return new FileFunction(readExpression(), readIfArgument(), FileFunction.FILE_READ);
+        case "FILE_WRITE":
+            return new FileFunction(readExpression(), readLastArgument(), FileFunction.FILE_WRITE);
         case "DATA_TYPE_SQL":
             return new DataTypeSQLFunction(readExpression(), readNextArgument(), readNextArgument(),
                     readLastArgument());
         case "DB_OBJECT_ID":
-            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_ID);
+            return new DBObjectFunction(readExpression(), readNextArgument(), readIfArgument(),
+                    DBObjectFunction.DB_OBJECT_ID);
         case "DB_OBJECT_SQL":
-            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_SQL);
+            return new DBObjectFunction(readExpression(), readNextArgument(), readIfArgument(),
+                    DBObjectFunction.DB_OBJECT_SQL);
         case "ZERO":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueInteger.get(0));
@@ -4433,13 +4534,6 @@ public class Parser {
         return f;
     }
 
-    private Expression readDbObjectFunction(int function) {
-        Expression objectTypeExpression = readExpression(), arg1 = readNextArgument(),
-                arg2 = readIf(COMMA) ? readExpression() : null;
-        read(CLOSE_PAREN);
-        return new DBObjectFunction(objectTypeExpression, arg1, arg2, function);
-    }
-
     private Expression readSingleArgument() {
         Expression arg = readExpression();
         read(CLOSE_PAREN);
@@ -4458,9 +4552,40 @@ public class Parser {
         return arg;
     }
 
+    private Expression readIfSingleArgument() {
+        Expression arg;
+        if (readIf(CLOSE_PAREN)) {
+            arg = null;
+        } else {
+            arg = readExpression();
+            read(CLOSE_PAREN);
+        }
+        return arg;
+    }
+
+    private Expression readIfArgument() {
+        Expression arg = readIf(COMMA) ? readExpression() : null;
+        read(CLOSE_PAREN);
+        return arg;
+    }
+
     private Expression readCoalesceFunction(int function) {
         CoalesceFunction f = new CoalesceFunction(function);
         f.addParameter(readExpression());
+        while (readIfMore()) {
+            f.addParameter(readExpression());
+        }
+        f.doneWithParameters();
+        return f;
+    }
+
+    private Expression readConcatFunction(int function) {
+        ConcatFunction f = new ConcatFunction(function);
+        f.addParameter(readExpression());
+        f.addParameter(readNextArgument());
+        if (function == ConcatFunction.CONCAT_WS) {
+            f.addParameter(readNextArgument());
+        }
         while (readIfMore()) {
             f.addParameter(readExpression());
         }

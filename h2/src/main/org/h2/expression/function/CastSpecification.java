@@ -19,7 +19,7 @@ import org.h2.value.ValueNull;
 /**
  * A cast specification.
  */
-public class CastSpecification extends Operation1 {
+public final class CastSpecification extends Operation1 {
 
     private Domain domain;
 

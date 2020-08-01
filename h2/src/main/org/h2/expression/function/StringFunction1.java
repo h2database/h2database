@@ -20,6 +20,7 @@ import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
@@ -27,7 +28,7 @@ import org.h2.value.ValueVarchar;
 /**
  * A string function with one argument.
  */
-public class StringFunction1 extends Operation1 implements NamedExpression {
+public final class StringFunction1 extends Operation1 implements NamedExpression {
 
     // Fold functions
 
@@ -44,9 +45,19 @@ public class StringFunction1 extends Operation1 implements NamedExpression {
     // Various non-standard functions
 
     /**
+     * ASCII() (non-standard).
+     */
+    public static final int ASCII = LOWER + 1;
+
+    /**
+     * CHAR() (non-standard).
+     */
+    public static final int CHAR = ASCII + 1;
+
+    /**
      * STRINGENCODE() (non-standard).
      */
-    public static final int STRINGENCODE = LOWER + 1;
+    public static final int STRINGENCODE = CHAR + 1;
 
     /**
      * STRINGDECODE() (non-standard).
@@ -84,8 +95,8 @@ public class StringFunction1 extends Operation1 implements NamedExpression {
     public static final int QUOTE_IDENT = SPACE + 1;
 
     private static final String[] NAMES = { //
-            "UPPER", "LOWER", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8", "UTF8TOSTRING", "HEXTORAW", "RAWTOHEX",
-            "SPACE", "QUOTE_IDENT" //
+            "UPPER", "LOWER", "ASCII", "CHAR", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8", "UTF8TOSTRING",
+            "HEXTORAW", "RAWTOHEX", "SPACE", "QUOTE_IDENT" //
     };
 
     private final int function;
@@ -111,6 +122,14 @@ public class StringFunction1 extends Operation1 implements NamedExpression {
             // TODO this is locale specific, need to document or provide a way
             // to set the locale
             v = ValueVarchar.get(v.getString().toLowerCase(), session);
+            break;
+        case ASCII: {
+            String s = v.getString();
+            v = s.isEmpty() ? ValueNull.INSTANCE : ValueInteger.get(s.charAt(0));
+            break;
+        }
+        case CHAR:
+            v = ValueVarchar.get(String.valueOf((char) v.getInt()), session);
             break;
         case STRINGENCODE:
             v = ValueVarchar.get(StringUtils.javaEncode(v.getString()), session);
@@ -198,6 +217,12 @@ public class StringFunction1 extends Operation1 implements NamedExpression {
         case SPACE:
         case QUOTE_IDENT:
             type = TypeInfo.TYPE_VARCHAR;
+            break;
+        case ASCII:
+            type = TypeInfo.TYPE_INTEGER;
+            break;
+        case CHAR:
+            type = TypeInfo.getTypeInfo(Value.VARCHAR, 1L, 0, null);
             break;
         case STRINGDECODE: {
             TypeInfo t = arg.getType();

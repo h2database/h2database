@@ -103,6 +103,9 @@ public class CompressTool {
      * @return the uncompressed data
      */
     public byte[] expand(byte[] in) {
+        if (in.length == 0) {
+            throw DbException.get(ErrorCode.COMPRESSION_ERROR);
+        }
         int algorithm = in[0];
         Compressor compress = getCompressor(algorithm);
         try {

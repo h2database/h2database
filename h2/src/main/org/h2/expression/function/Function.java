@@ -5,22 +5,11 @@
  */
 package org.h2.expression.function;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.math.RoundingMode;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.regex.Matcher;
@@ -28,9 +17,6 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.Command;
-import org.h2.command.Parser;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Mode.ModeEnum;
@@ -41,46 +27,28 @@ import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.OperationN;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
-import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsDB2Derby;
 import org.h2.mode.FunctionsMSSQLServer;
 import org.h2.mode.FunctionsMySQL;
 import org.h2.mode.FunctionsOracle;
 import org.h2.mode.FunctionsPostgreSQL;
-import org.h2.mvstore.db.MVSpatialIndex;
-import org.h2.security.SHA3;
-import org.h2.store.fs.FileUtils;
-import org.h2.table.Column;
 import org.h2.table.LinkSchema;
-import org.h2.table.Table;
-import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
-import org.h2.util.Bits;
-import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
-import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueCollectionBase;
-import org.h2.value.ValueDate;
 import org.h2.value.ValueDecfloat;
-import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
-import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
-import org.h2.value.ValueReal;
 import org.h2.value.ValueResultSet;
-import org.h2.value.ValueTimestamp;
-import org.h2.value.ValueTimestampTimeZone;
-import org.h2.value.ValueUuid;
 import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 
@@ -88,51 +56,32 @@ import org.h2.value.ValueVarchar;
  * This class implements most built-in functions of this database.
  */
 public class Function extends OperationN implements FunctionCall, ExpressionWithFlags {
-    public static final int
-            RAND = 20, ROUND = 21,
-            ROUNDMAGIC = 22, SIGN = 23,
-            TRUNCATE = 27, SECURE_RAND = 28, HASH = 29,
-            COMPRESS = 32, EXPAND = 33,
-            RANDOM_UUID = 35,
-            ORA_HASH = 41;
 
-    public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
-            CHAR_LENGTH = 53, CONCAT = 54,
-            INSERT = 57, INSTR = 58, LEFT = 60, LENGTH = 61,
-            LOCATE = 62, OCTET_LENGTH = 64,
+    public static final int
+            INSERT = 57, INSTR = 58, LEFT = 60,
+            LOCATE = 62,
             REPEAT = 66, REPLACE = 67, RIGHT = 68,
             SUBSTRING = 73,
             POSITION = 77, TRIM = 78,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
-            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94;
+            LPAD = 91, TO_CHAR = 93, TRANSLATE = 94;
 
     public static final int
-            AUTOCOMMIT = 155,
-            READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
-            DISK_SPACE_USED = 159, SIGNAL = 160, ESTIMATED_ENVELOPE = 161;
+            SIGNAL = 160;
 
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
     public static final int
             CSVREAD = 210, CSVWRITE = 211,
-            MEMORY_FREE = 212, MEMORY_USED = 213,
-            LOCK_MODE = 214, SESSION_ID = 216,
             LINK_SCHEMA = 218,
-            CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
-            FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
-            ARRAY_CONTAINS = 230, FILE_WRITE = 232,
-            UNNEST = 233, TRIM_ARRAY = 235, ARRAY_SLICE = 236,
-            ABORT_SESSION = 237;
+            SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
+            TRUNCATE_VALUE = 227,
+            ARRAY_CONTAINS = 230,
+            UNNEST = 233, TRIM_ARRAY = 235, ARRAY_SLICE = 236;
 
     public static final int REGEXP_LIKE = 240;
     public static final int REGEXP_SUBSTR = 241;
-
-    /**
-     * This is called H2VERSION() and not VERSION(), because we return a fake
-     * value for VERSION() when running under the PostgreSQL ODBC driver.
-     */
-    public static final int H2VERSION = 231;
 
     private static final int COUNT = REGEXP_SUBSTR + 1;
 
@@ -155,42 +104,14 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     private int flags;
 
     static {
-        // RAND without argument: get the next value
-        // RAND with one argument: seed the random generator
-        addFunctionNotDeterministic("RAND", RAND, VAR_ARGS, Value.DOUBLE);
-        addFunctionNotDeterministic("RANDOM", RAND, VAR_ARGS, Value.DOUBLE);
-        addFunction("ROUND", ROUND, VAR_ARGS, Value.NULL);
-        addFunction("ROUNDMAGIC", ROUNDMAGIC, 1, Value.DOUBLE);
-        addFunction("SIGN", SIGN, 1, Value.INTEGER);
-        addFunction("TRUNCATE", TRUNCATE, VAR_ARGS, Value.NULL);
-        // same as TRUNCATE
-        addFunction("TRUNC", TRUNCATE, VAR_ARGS, Value.NULL);
-        addFunction("HASH", HASH, VAR_ARGS, Value.VARBINARY);
-        addFunctionNotDeterministic("SECURE_RAND", SECURE_RAND, 1, Value.VARBINARY);
-        addFunction("COMPRESS", COMPRESS, VAR_ARGS, Value.VARBINARY);
-        addFunction("EXPAND", EXPAND, 1, Value.VARBINARY);
-        addFunctionNotDeterministic("RANDOM_UUID", RANDOM_UUID, 0, Value.UUID);
-        addFunctionNotDeterministic("UUID", RANDOM_UUID, 0, Value.UUID);
-        addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.BIGINT);
         // string
-        addFunction("ASCII", ASCII, 1, Value.INTEGER);
-        addFunction("BIT_LENGTH", BIT_LENGTH, 1, Value.BIGINT);
-        addFunction("CHAR", CHAR, 1, Value.VARCHAR);
-        addFunction("CHR", CHAR, 1, Value.VARCHAR);
-        addFunction("CHAR_LENGTH", CHAR_LENGTH, 1, Value.BIGINT);
-        // same as CHAR_LENGTH
-        addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.BIGINT);
-        addFunctionWithNull("CONCAT", CONCAT, VAR_ARGS, Value.VARCHAR);
-        addFunctionWithNull("CONCAT_WS", CONCAT_WS, VAR_ARGS, Value.VARCHAR);
         addFunctionWithNull("INSERT", INSERT, 4, Value.VARCHAR);
         addFunction("LEFT", LEFT, 2, Value.VARCHAR);
-        addFunction("LENGTH", LENGTH, 1, Value.BIGINT);
         // 2 or 3 arguments
         addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INTEGER);
         // same as LOCATE with 2 arguments
         addFunction("POSITION", LOCATE, 2, Value.INTEGER);
         addFunction("INSTR", INSTR, VAR_ARGS, Value.INTEGER);
-        addFunction("OCTET_LENGTH", OCTET_LENGTH, 1, Value.BIGINT);
         addFunction("REPEAT", REPEAT, 2, Value.VARCHAR);
         addFunctionWithNull("REPLACE", REPLACE, VAR_ARGS, Value.VARCHAR);
         addFunction("RIGHT", RIGHT, 2, Value.VARCHAR);
@@ -212,14 +133,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunctionWithNull("REGEXP_SUBSTR", REGEXP_SUBSTR, VAR_ARGS, Value.VARCHAR);
 
         // system
-        addFunctionNotDeterministic("AUTOCOMMIT", AUTOCOMMIT,
-                0, Value.BOOLEAN);
-        addFunctionNotDeterministic("READONLY", READONLY,
-                0, Value.BOOLEAN);
-        addFunction("DATABASE_PATH", DATABASE_PATH,
-                0, Value.VARCHAR);
-        addFunctionNotDeterministic("LOCK_TIMEOUT", LOCK_TIMEOUT,
-                0, Value.INTEGER);
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
                 3, Value.NULL);
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
@@ -227,30 +140,10 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
         addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false);
         addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INTEGER, false, false);
-        addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE,
-                0, Value.INTEGER);
-        addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED,
-                0, Value.INTEGER);
-        addFunctionNotDeterministic("LOCK_MODE", LOCK_MODE,
-                0, Value.INTEGER);
-        addFunctionNotDeterministic("SESSION_ID", SESSION_ID,
-                0, Value.INTEGER);
         addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
                 6, Value.RESULT_SET);
-        addFunctionNotDeterministic("CANCEL_SESSION", CANCEL_SESSION,
-                1, Value.BOOLEAN);
-        addFunctionNotDeterministic("ABORT_SESSION", ABORT_SESSION,
-                1, Value.BOOLEAN);
         addFunction("SET", SET, 2, Value.NULL, false, false);
-        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false);
-        addFunction("FILE_WRITE", FILE_WRITE, 2, Value.BIGINT, false, false);
-        addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID,
-                0, Value.VARCHAR);
-        addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED,
-                1, Value.BIGINT);
         addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
-        addFunctionNotDeterministic("ESTIMATED_ENVELOPE", ESTIMATED_ENVELOPE, 2, Value.BIGINT);
-        addFunctionNotDeterministic("H2VERSION", H2VERSION, 0, Value.VARCHAR);
 
         // TableFunction
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
@@ -410,85 +303,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             Value[] values) {
         Value result;
         switch (info.type) {
-        case RAND: {
-            if (v0 != null) {
-                session.getRandom().setSeed(v0.getInt());
-            }
-            result = ValueDouble.get(session.getRandom().nextDouble());
-            break;
-        }
-        case ROUNDMAGIC:
-            result = ValueDouble.get(roundMagic(v0.getDouble()));
-            break;
-        case SIGN:
-            result = ValueInteger.get(v0.getSignum());
-            break;
-        case SECURE_RAND:
-            result = ValueVarbinary.getNoCopy(
-                    MathUtils.secureRandomBytes(v0.getInt()));
-            break;
-        case EXPAND:
-            result = ValueVarbinary.getNoCopy(
-                    CompressTool.getInstance().expand(v0.getBytesNoCopy()));
-            break;
-        case RANDOM_UUID:
-            result = ValueUuid.getNewRandom();
-            break;
-            // string
-        case ASCII: {
-            String s = v0.getString();
-            if (s.isEmpty()) {
-                result = ValueNull.INSTANCE;
-            } else {
-                result = ValueInteger.get(s.charAt(0));
-            }
-            break;
-        }
-        case BIT_LENGTH:
-            result = ValueBigint.get(16 * length(v0));
-            break;
-        case CHAR:
-            result = ValueVarchar.get(String.valueOf((char) v0.getInt()), session);
-            break;
-        case CHAR_LENGTH:
-        case LENGTH:
-            result = ValueBigint.get(length(v0));
-            break;
-        case OCTET_LENGTH:
-            result = ValueBigint.get(2 * length(v0));
-            break;
-        case CONCAT_WS:
-        case CONCAT: {
-            result = ValueNull.INSTANCE;
-            int start = 0;
-            String separator = "";
-            if (info.type == CONCAT_WS) {
-                start = 1;
-                separator = getNullOrValue(session, args, values, 0).getString();
-            }
-            for (int i = start; i < args.length; i++) {
-                Value v = getNullOrValue(session, args, values, i);
-                if (v == ValueNull.INSTANCE) {
-                    continue;
-                }
-                if (result == ValueNull.INSTANCE) {
-                    result = v;
-                } else {
-                    String tmp = v.getString();
-                    if (!StringUtils.isNullOrEmpty(separator)
-                            && !StringUtils.isNullOrEmpty(tmp)) {
-                        tmp = separator + tmp;
-                    }
-                    result = ValueVarchar.get(result.getString() + tmp, session);
-                }
-            }
-            if (info.type == CONCAT_WS) {
-                if (separator != null && result == ValueNull.INSTANCE) {
-                    result = ValueVarchar.get("", session);
-                }
-            }
-            break;
-        }
         case XMLCOMMENT:
             result = ValueVarchar.get(StringUtils.xmlComment(v0.getString()), session);
             break;
@@ -497,40 +311,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             break;
         case XMLSTARTDOC:
             result = ValueVarchar.get(StringUtils.xmlStartDoc(), session);
-            break;
-        case AUTOCOMMIT:
-            result = ValueBoolean.get(session.getAutoCommit());
-            break;
-        case READONLY:
-            result = ValueBoolean.get(session.getDatabase().isReadOnly());
-            break;
-        case DATABASE_PATH: {
-            String path = session.getDatabase().getDatabasePath();
-            result = path == null ? (Value) ValueNull.INSTANCE : ValueVarchar.get(path, session);
-            break;
-        }
-        case LOCK_TIMEOUT:
-            result = ValueInteger.get(session.getLockTimeout());
-            break;
-        case DISK_SPACE_USED:
-            result = ValueBigint.get(getDiskSpaceUsed(session, v0));
-            break;
-        case ESTIMATED_ENVELOPE:
-            result = getEstimatedEnvelope(session, v0, values[1]);
-            break;
-        case MEMORY_FREE:
-            session.getUser().checkAdmin();
-            result = ValueInteger.get(Utils.getMemoryFree());
-            break;
-        case MEMORY_USED:
-            session.getUser().checkAdmin();
-            result = ValueInteger.get(Utils.getMemoryUsed());
-            break;
-        case LOCK_MODE:
-            result = ValueInteger.get(session.getDatabase().getLockMode());
-            break;
-        case SESSION_ID:
-            result = ValueInteger.get(session.getId());
             break;
         case ARRAY_CONTAINS: {
             result = ValueBoolean.FALSE;
@@ -548,18 +328,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case CANCEL_SESSION: {
-            result = ValueBoolean.get(cancelStatement(session, v0.getInt()));
-            break;
-        }
-        case ABORT_SESSION: {
-            result = ValueBoolean.get(abortSession(session, v0.getInt()));
-            break;
-        }
-        case TRANSACTION_ID: {
-            result = session.getTransactionId();
-            break;
-        }
         default:
             result = null;
         }
@@ -575,61 +343,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             list = null;
         }
         return list;
-    }
-
-    private static boolean cancelStatement(SessionLocal session, int targetSessionId) {
-        session.getUser().checkAdmin();
-        SessionLocal[] sessions = session.getDatabase().getSessions(false);
-        for (SessionLocal s : sessions) {
-            if (s.getId() == targetSessionId) {
-                Command c = s.getCurrentCommand();
-                if (c == null) {
-                    return false;
-                }
-                c.cancel();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean abortSession(SessionLocal session, int targetSessionId) {
-        session.getUser().checkAdmin();
-        SessionLocal[] sessions = session.getDatabase().getSessions(false);
-        for (SessionLocal s : sessions) {
-            if (s.getId() == targetSessionId) {
-                Command c = s.getCurrentCommand();
-                if (c != null) {
-                    c.cancel();
-                }
-                s.close();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static long getDiskSpaceUsed(SessionLocal session, Value tableName) {
-        return getTable(session, tableName).getDiskSpaceUsed();
-    }
-
-    private static Value getEstimatedEnvelope(SessionLocal session, Value tableName, Value columnName) {
-        Table table = getTable(session, tableName);
-        Column column = table.getColumn(columnName.getString());
-        ArrayList<Index> indexes = table.getIndexes();
-        if (indexes != null) {
-            for (int i = 1, size = indexes.size(); i < size; i++) {
-                Index index = indexes.get(i);
-                if (index instanceof MVSpatialIndex && index.isFirstColumn(column)) {
-                    return ((MVSpatialIndex) index).getEstimatedBounds(session);
-                }
-            }
-        }
-        return ValueNull.INSTANCE;
-    }
-
-    private static Table getTable(SessionLocal session, Value tableName) {
-        return new Parser(session).parseTableName(tableName.getString());
     }
 
     /**
@@ -682,29 +395,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         Value v5 = getNullOrValue(session, args, values, 5);
         Value result;
         switch (info.type) {
-        case ROUND:
-            result = round(v0, v1);
-            break;
-        case TRUNCATE:
-            result = truncate(session, v0, v1);
-            break;
-        case HASH:
-            result = getHash(v0.getString(), v1, v2 == null ? 1 : v2.getInt());
-            break;
-        case COMPRESS: {
-            String algorithm = null;
-            if (v1 != null) {
-                algorithm = v1.getString();
-            }
-            result = ValueVarbinary.getNoCopy(CompressTool.getInstance().
-                    compress(v0.getBytesNoCopy(), algorithm));
-            break;
-        }
-        case ORA_HASH:
-            result = oraHash(v0,
-                    v1 == null ? 0xffff_ffffL : v1.getLong(),
-                    v2 == null ? 0L : v2.getLong());
-            break;
         case INSERT: {
             if (v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE) {
                 result = v1;
@@ -789,7 +479,8 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 if (v4 != null) {
                     throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "3..4");
                 }
-                if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE || v3 == ValueNull.INSTANCE) {
+                if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE
+                        || v3 == ValueNull.INSTANCE) {
                     result = ValueNull.INSTANCE;
                 } else {
                     String regexp = v1.getString();
@@ -849,10 +540,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = ValueVarchar.get(translate(v0.getString(), matching, replacement), session);
             break;
         }
-        case H2VERSION:
-            result = ValueVarchar.get(Constants.VERSION, session);
-            break;
-            // system
         case CSVREAD: {
             String fileName = v0.getString();
             String columnList = v1 == null ? null : v1.getString();
@@ -992,51 +679,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             result = v1;
             break;
         }
-        case FILE_READ: {
-            session.getUser().checkAdmin();
-            String fileName = v0.getString();
-            boolean blob = args.length == 1;
-            ValueLob lob;
-            try {
-                long fileLength = FileUtils.size(fileName);
-                final InputStream in = FileUtils.newInputStream(fileName);
-                Database database = session.getDatabase();
-                try {
-                    if (blob) {
-                        lob = database.getLobStorage().createBlob(in, fileLength);
-                    } else {
-                        Reader reader;
-                        if (v1 == ValueNull.INSTANCE) {
-                            reader = new InputStreamReader(in);
-                        } else {
-                            reader = new InputStreamReader(in, v1.getString());
-                        }
-                        lob = database.getLobStorage().createClob(reader, fileLength);
-                    }
-                } finally {
-                    IOUtils.closeSilently(in);
-                }
-                result = session.addTemporaryLob(lob);
-            } catch (IOException e) {
-                throw DbException.convertIOException(e, fileName);
-            }
-            break;
-        }
-        case FILE_WRITE: {
-            session.getUser().checkAdmin();
-            result = ValueNull.INSTANCE;
-            String fileName = v1.getString();
-            try {
-                OutputStream fileOutputStream = Files.newOutputStream(Paths.get(fileName));
-                try (InputStream in = v0.getInputStream()) {
-                    result = ValueBigint.get(IOUtils.copyAndClose(in,
-                            fileOutputStream));
-                }
-            } catch (IOException e) {
-                throw DbException.convertIOException(e, fileName);
-            }
-            break;
-        }
         case TRUNCATE_VALUE:
             result = truncateValue(session, v0, v1.getLong(), v2.getBoolean());
             break;
@@ -1138,72 +780,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return values;
     }
 
-    private Value round(Value v0, Value v1) {
-        BigDecimal bd = v0.getBigDecimal().setScale(v1 == null ? 0 : v1.getInt(), RoundingMode.HALF_UP);
-        Value result;
-        switch (type.getValueType()) {
-        case Value.DOUBLE:
-            result = ValueDouble.get(bd.doubleValue());
-            break;
-        case Value.REAL:
-            result = ValueReal.get(bd.floatValue());
-            break;
-        case Value.DECFLOAT:
-            result = ValueDecfloat.get(bd);
-            break;
-        default:
-            result = ValueNumeric.get(bd);
-        }
-        return result;
-    }
-
-    private static Value truncate(SessionLocal session, Value v0, Value v1) {
-        Value result;
-        int t = v0.getValueType();
-        switch (t) {
-        case Value.TIMESTAMP:
-            result = ValueTimestamp.fromDateValueAndNanos(((ValueTimestamp) v0).getDateValue(), 0);
-            break;
-        case Value.DATE:
-            result = ValueTimestamp.fromDateValueAndNanos(((ValueDate) v0).getDateValue(), 0);
-            break;
-        case Value.TIMESTAMP_TZ: {
-            ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v0;
-            result = ValueTimestampTimeZone.fromDateValueAndNanos(ts.getDateValue(), 0,
-                    ts.getTimeZoneOffsetSeconds());
-            break;
-        }
-        case Value.VARCHAR:
-            result = ValueTimestamp.fromDateValueAndNanos(
-                    ValueTimestamp.parse(v0.getString(), session).getDateValue(), 0);
-            break;
-        default:
-            int scale = v1 == null ? 0 : v1.getInt();
-            switch (t) {
-            case Value.DOUBLE:
-            case Value.REAL:
-                double d = v0.getDouble();
-                if (scale == 0) {
-                    d = d < 0 ? Math.ceil(d) : Math.floor(d);
-                } else {
-                    double f = Math.pow(10, scale);
-                    d *= f;
-                    d = (d < 0 ? Math.ceil(d) : Math.floor(d)) / f;
-                }
-                result = t == Value.DOUBLE ? ValueDouble.get(d) : ValueReal.get((float) d);
-                break;
-            case Value.DECFLOAT:
-                result = ValueDecfloat.get(v0.getBigDecimal().setScale(scale, RoundingMode.DOWN));
-                break;
-            default:
-                result = ValueNumeric.get(v0.getBigDecimal().setScale(scale, RoundingMode.DOWN));
-                break;
-            }
-            break;
-        }
-        return result;
-    }
-
     private static Value truncateValue(SessionLocal session, Value value, long precision, boolean force) {
         if (precision <= 0) {
             throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Long.toString(precision), "1",
@@ -1249,63 +825,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return value;
     }
 
-    /**
-     * Get the length (precision) of the value.
-     *
-     * @param v the value
-     * @return the length
-     */
-    public static long length(Value v) {
-        switch (v.getValueType()) {
-        case Value.BLOB:
-        case Value.CLOB:
-        case Value.VARBINARY:
-        case Value.BINARY:
-        case Value.JAVA_OBJECT:
-            return v.getType().getPrecision();
-        default:
-            return v.getString().length();
-        }
-    }
-
-    private static Value getHash(String algorithm, Value value, int iterations) {
-        if (iterations <= 0) {
-            throw DbException.getInvalidValueException("iterations", iterations);
-        }
-        MessageDigest md;
-        switch (StringUtils.toUpperEnglish(algorithm)) {
-        case "MD5":
-        case "SHA-1":
-        case "SHA-224":
-        case "SHA-256":
-        case "SHA-384":
-        case "SHA-512":
-            md = hashImpl(value, algorithm);
-            break;
-        case "SHA256":
-            md = hashImpl(value, "SHA-256");
-            break;
-        case "SHA3-224":
-            md = hashImpl(value, SHA3.getSha3_224());
-            break;
-        case "SHA3-256":
-            md = hashImpl(value, SHA3.getSha3_256());
-            break;
-        case "SHA3-384":
-            md = hashImpl(value, SHA3.getSha3_384());
-            break;
-        case "SHA3-512":
-            md = hashImpl(value, SHA3.getSha3_512());
-            break;
-        default:
-            throw DbException.getInvalidValueException("algorithm", algorithm);
-        }
-        byte[] b = md.digest();
-        for (int i = 1; i < iterations; i++) {
-            b = md.digest(b);
-        }
-        return ValueVarbinary.getNoCopy(b);
-    }
 
     private Value substring(SessionLocal session, Value stringValue, Value startValue, Value lengthValue) {
         if (type.getValueType() == Value.VARBINARY) {
@@ -1440,99 +959,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         return buff == null ? original : buff.toString();
     }
 
-    private static double roundMagic(double d) {
-        if ((d < 0.000_000_000_000_1) && (d > -0.000_000_000_000_1)) {
-            return 0.0;
-        }
-        if ((d > 1_000_000_000_000d) || (d < -1_000_000_000_000d)) {
-            return d;
-        }
-        StringBuilder s = new StringBuilder();
-        s.append(d);
-        if (s.toString().indexOf('E') >= 0) {
-            return d;
-        }
-        int len = s.length();
-        if (len < 16) {
-            return d;
-        }
-        if (s.toString().indexOf('.') > len - 3) {
-            return d;
-        }
-        s.delete(len - 2, len);
-        len -= 2;
-        char c1 = s.charAt(len - 2);
-        char c2 = s.charAt(len - 3);
-        char c3 = s.charAt(len - 4);
-        if ((c1 == '0') && (c2 == '0') && (c3 == '0')) {
-            s.setCharAt(len - 1, '0');
-        } else if ((c1 == '9') && (c2 == '9') && (c3 == '9')) {
-            s.setCharAt(len - 1, '9');
-            s.append('9');
-            s.append('9');
-            s.append('9');
-        }
-        return Double.parseDouble(s.toString());
-    }
-
-    private static Value oraHash(Value value, long bucket, long seed) {
-        if ((bucket & 0xffff_ffff_0000_0000L) != 0L) {
-            throw DbException.getInvalidValueException("bucket", bucket);
-        }
-        if ((seed & 0xffff_ffff_0000_0000L) != 0L) {
-            throw DbException.getInvalidValueException("seed", seed);
-        }
-        MessageDigest md = hashImpl(value, "SHA-1");
-        if (md == null) {
-            return ValueNull.INSTANCE;
-        }
-        if (seed != 0L) {
-            byte[] b = new byte[4];
-            Bits.writeInt(b, 0, (int) seed);
-            md.update(b);
-        }
-        long hc = Bits.readLong(md.digest(), 0);
-        // Strip sign and use modulo operation to get value from 0 to bucket inclusive
-        return ValueBigint.get((hc & Long.MAX_VALUE) % (bucket + 1));
-    }
-
-    private static MessageDigest hashImpl(Value value, String algorithm) {
-        MessageDigest md;
-        try {
-            md = MessageDigest.getInstance(algorithm);
-        } catch (Exception ex) {
-            throw DbException.convert(ex);
-        }
-        return hashImpl(value, md);
-    }
-
-    private static MessageDigest hashImpl(Value value, MessageDigest md) {
-        try {
-            switch (value.getValueType()) {
-            case Value.VARCHAR:
-            case Value.CHAR:
-            case Value.VARCHAR_IGNORECASE:
-                md.update(value.getString().getBytes(StandardCharsets.UTF_8));
-                break;
-            case Value.BLOB:
-            case Value.CLOB: {
-                byte[] buf = new byte[4096];
-                try (InputStream is = value.getInputStream()) {
-                    for (int r; (r = is.read(buf)) > 0; ) {
-                        md.update(buf, 0, r);
-                    }
-                }
-                break;
-            }
-            default:
-                md.update(value.getBytesNoCopy());
-            }
-            return md;
-        } catch (Exception ex) {
-            throw DbException.convert(ex);
-        }
-    }
-
     private static Value regexpReplace(SessionLocal session, String input, String regexp,
             String replacement, int position, int occurrence, String regexpMode) {
         Mode mode = session.getMode();
@@ -1628,24 +1054,15 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case CSVREAD:
             min = 1;
             break;
-        case RAND:
-            max = 1;
-            break;
-        case COMPRESS:
         case TRIM:
-        case FILE_READ:
-        case ROUND:
         case XMLTEXT:
-        case TRUNCATE:
             min = 1;
             max = 2;
             break;
         case TO_CHAR:
-        case ORA_HASH:
             min = 1;
             max = 3;
             break;
-        case HASH:
         case REPLACE:
         case LOCATE:
         case INSTR:
@@ -1660,8 +1077,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             min = 2;
             max = 6;
             break;
-        case CONCAT:
-        case CONCAT_WS:
         case CSVWRITE:
             min = 2;
             break;
@@ -1706,56 +1121,12 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 typeInfo = TypeInfo.TYPE_UNKNOWN;
             }
             break;
-        case ROUND:
-            switch (p0.getType().getValueType()) {
-            case Value.DOUBLE:
-            case Value.REAL:
-            case Value.DECFLOAT:
-                typeInfo = p0.getType();
-                break;
-            default:
-                typeInfo = getRoundNumericType(session);
-            }
-            break;
-        case TRUNCATE:
-            switch (p0.getType().getValueType()) {
-            case Value.DOUBLE:
-            case Value.REAL:
-            case Value.DECFLOAT:
-                typeInfo = p0.getType();
-                break;
-            case Value.VARCHAR:
-            case Value.DATE:
-            case Value.TIMESTAMP:
-                if (args.length > 1) {
-                    throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "1");
-                }
-                typeInfo = TypeInfo.getTypeInfo(Value.TIMESTAMP, -1, 0, null);
-                break;
-            case Value.TIMESTAMP_TZ:
-                if (args.length > 1) {
-                    throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "1");
-                }
-                typeInfo = TypeInfo.getTypeInfo(Value.TIMESTAMP_TZ, -1, 0, null);
-                break;
-            default:
-                typeInfo = getRoundNumericType(session);
-            }
-            break;
         case SET:
             typeInfo = args[1].getType();
             if (!(p0 instanceof Variable)) {
                 throw DbException.get(ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getTraceSQL());
             }
             break;
-        case FILE_READ: {
-            if (args.length == 1) {
-                typeInfo = TypeInfo.getTypeInfo(Value.BLOB, Integer.MAX_VALUE, 0, null);
-            } else {
-                typeInfo = TypeInfo.getTypeInfo(Value.CLOB, Integer.MAX_VALUE, 0, null);
-            }
-            break;
-        }
         case SUBSTRING: {
             TypeInfo argType = p0.getType();
             long p = argType.getPrecision();
@@ -1771,24 +1142,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             p = Math.max(0, p);
             typeInfo = TypeInfo.getTypeInfo(DataType.isBinaryStringType(argType.getValueType())
                     ? Value.VARBINARY : Value.VARCHAR, p, 0, null);
-            break;
-        }
-        case COMPRESS:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p0.getType().getPrecision(), 0, null);
-            break;
-        case CHAR:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 1, 0, null);
-            break;
-        case CONCAT: {
-            long p = 0;
-            for (Expression e : args) {
-                TypeInfo type = e.getType();
-                p += type.getPrecision();
-                if (p < 0) {
-                    p = Long.MAX_VALUE;
-                }
-            }
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p, 0, null);
             break;
         }
         case RIGHT:
@@ -1823,22 +1176,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
      */
     protected final boolean optimizeArguments(SessionLocal session) {
         return optimizeArguments(session, info.deterministic);
-    }
-
-    private TypeInfo getRoundNumericType(SessionLocal session) {
-        int scale = 0;
-        if (args.length > 1) {
-            Expression scaleExpr = args[1];
-            if (scaleExpr.isConstant()) {
-                Value scaleValue = scaleExpr.getValue(session);
-                if (scaleValue != ValueNull.INSTANCE) {
-                    scale = scaleValue.getInt();
-                }
-            } else {
-                scale = Integer.MAX_VALUE;
-            }
-        }
-        return TypeInfo.getTypeInfo(Value.NUMERIC, Integer.MAX_VALUE, scale, null);
     }
 
     @Override

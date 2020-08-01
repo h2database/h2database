@@ -2,3 +2,15 @@
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
+
+SELECT CONCAT_WS(NULL, NULL, 'a', NULL, 'b', NULL);
+>> ab
+
+SELECT CONCAT_WS('*', NULL, 'a', NULL, 'b', NULL);
+>> a*b
+
+SELECT CONCAT_WS('*', '', 'a', NULL, 'b', NULL);
+>> *a*b
+
+SELECT '[' || CONCAT_WS('a', NULL, NULL) || ']';
+>> []

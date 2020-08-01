@@ -2,3 +2,12 @@
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
+
+SELECT SECURE_RAND(NULL);
+>> null
+
+SELECT OCTET_LENGTH(SECURE_RAND(0));
+>> 1
+
+SELECT OCTET_LENGTH(SECURE_RAND(2));
+>> 2

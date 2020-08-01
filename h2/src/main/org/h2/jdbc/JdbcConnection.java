@@ -347,7 +347,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                 if (executingStatement != null) {
                     try {
                         executingStatement.cancel();
-                    } catch (NullPointerException e) {
+                    } catch (NullPointerException | SQLException e) {
                         // ignore
                     }
                 }

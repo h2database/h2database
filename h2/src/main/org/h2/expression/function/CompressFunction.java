@@ -10,59 +10,34 @@ import org.h2.expression.Expression;
 import org.h2.expression.Operation1_2;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
+import org.h2.tools.CompressTool;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueBigint;
-import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueVarbinary;
 
 /**
- * A bitwise function.
+ * A COMPRESS or EXPAND function.
  */
-public final class BitFunction extends Operation1_2 implements NamedExpression {
+public final class CompressFunction extends Operation1_2 implements NamedExpression {
 
     /**
-     * BITAND() (non-standard).
+     * COMPRESS() (non-standard).
      */
-    public static final int BITAND = 0;
+    public static final int COMPRESS = 0;
 
     /**
-     * BITOR() (non-standard).
+     * EXPAND() (non-standard).
      */
-    public static final int BITOR = BITAND + 1;
-
-    /**
-     * BITXOR() (non-standard).
-     */
-    public static final int BITXOR = BITOR + 1;
-
-    /**
-     * BITNOT() (non-standard).
-     */
-    public static final int BITNOT = BITXOR + 1;
-
-    /**
-     * BITGET() (non-standard).
-     */
-    public static final int BITGET = BITNOT + 1;
-
-    /**
-     * LSHIFT() (non-standard).
-     */
-    public static final int LSHIFT = BITGET + 1;
-
-    /**
-     * RSHIFT() (non-standard).
-     */
-    public static final int RSHIFT = LSHIFT + 1;
+    public static final int EXPAND = COMPRESS + 1;
 
     private static final String[] NAMES = { //
-            "BITAND", "BITOR", "BITXOR", "BITNOT", "BITGET", "LSHIFT", "RSHIFT" //
+            "COMPRESS", "EXPAND" //
     };
 
     private final int function;
 
-    public BitFunction(Expression arg1, Expression arg2, int function) {
+    public CompressFunction(Expression arg1, Expression arg2, int function) {
         super(arg1, arg2);
         this.function = function;
     }
@@ -73,36 +48,26 @@ public final class BitFunction extends Operation1_2 implements NamedExpression {
         if (v1 == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
         }
-        if (function == BITNOT) {
-            return ValueBigint.get(~v1.getLong());
-        }
-        Value v2 = right.getValue(session);
-        if (v2 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        long l1 = v1.getLong();
         switch (function) {
-        case BITAND:
-            l1 &= v2.getLong();
+        case COMPRESS: {
+            String algorithm = null;
+            if (right != null) {
+                Value v2 = right.getValue(session);
+                if (v2 == ValueNull.INSTANCE) {
+                    return ValueNull.INSTANCE;
+                }
+                algorithm = v2.getString();
+            }
+            v1 = ValueVarbinary.getNoCopy(CompressTool.getInstance().compress(v1.getBytesNoCopy(), algorithm));
             break;
-        case BITOR:
-            l1 |= v2.getLong();
-            break;
-        case BITXOR:
-            l1 ^= v2.getLong();
-            break;
-        case BITGET:
-            return ValueBoolean.get((l1 & (1L << v2.getInt())) != 0);
-        case LSHIFT:
-            l1 <<= v2.getInt();
-            break;
-        case RSHIFT:
-            l1 >>= v2.getInt();
+        }
+        case EXPAND:
+            v1 = ValueVarbinary.getNoCopy(CompressTool.getInstance().expand(v1.getBytesNoCopy()));
             break;
         default:
             throw DbException.throwInternalError("function=" + function);
         }
-        return ValueBigint.get(l1);
+        return v1;
     }
 
     @Override
@@ -111,7 +76,7 @@ public final class BitFunction extends Operation1_2 implements NamedExpression {
         if (right != null) {
             right = right.optimize(session);
         }
-        type = function == BITGET ? TypeInfo.TYPE_BOOLEAN : TypeInfo.TYPE_BIGINT;
+        type = TypeInfo.TYPE_VARBINARY;
         if (left.isConstant() && (right == null || right.isConstant())) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }

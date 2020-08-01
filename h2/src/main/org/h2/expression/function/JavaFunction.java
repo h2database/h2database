@@ -21,7 +21,7 @@ import org.h2.value.ValueRow;
 /**
  * This class wraps a user-defined function.
  */
-public class JavaFunction extends Expression implements FunctionCall {
+public final class JavaFunction extends Expression implements FunctionCall {
 
     private final FunctionAlias functionAlias;
     private final FunctionAlias.JavaMethod javaMethod;

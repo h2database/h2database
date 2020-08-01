@@ -22,7 +22,7 @@ import org.h2.value.Value;
 /**
  * NEXTVAL() and CURRVAL() compatibility functions.
  */
-public class CompatibilitySequenceValueFunction extends Operation1_2 implements NamedExpression {
+public final class CompatibilitySequenceValueFunction extends Operation1_2 implements NamedExpression {
 
     private final boolean current;
 

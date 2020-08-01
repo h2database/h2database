@@ -184,4 +184,15 @@ public final class ValueLobInMemory extends ValueLob {
     public static ValueLobInMemory createSmallLob(int type, byte[] small, long precision) {
         return new ValueLobInMemory(type, small, precision);
     }
+
+    @Override
+    public long charLength() {
+        return getString().length();
+    }
+
+    @Override
+    public long octetLength() {
+        return small.length;
+    }
+
 }

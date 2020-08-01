@@ -26,7 +26,7 @@ import org.h2.value.ValueVarchar;
 /**
  * A date-time format function.
  */
-public class DateTimeFormatFunction extends OperationN implements NamedExpression {
+public final class DateTimeFormatFunction extends OperationN implements NamedExpression {
 
     /**
      * FORMATDATETIME() (non-standard).

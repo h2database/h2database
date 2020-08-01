@@ -25,7 +25,8 @@ import org.h2.value.ValueResultSet;
  * Implementation of the functions TABLE(..), TABLE_DISTINCT(..), and
  * UNNEST(..).
  */
-public class TableFunction extends Function {
+public final class TableFunction extends Function {
+
     private Column[] columns;
 
     TableFunction(FunctionInfo info) {

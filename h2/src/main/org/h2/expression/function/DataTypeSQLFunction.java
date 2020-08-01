@@ -25,7 +25,7 @@ import org.h2.value.ValueVarchar;
 /**
  * DATA_TYPE_SQL() function.
  */
-public class DataTypeSQLFunction extends OperationN implements NamedExpression {
+public final class DataTypeSQLFunction extends OperationN implements NamedExpression {
 
     public DataTypeSQLFunction(Expression objectSchema, Expression objectName, Expression objectType,
             Expression typeIdentifier) {

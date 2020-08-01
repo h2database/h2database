@@ -160,11 +160,19 @@ public class ValueLob extends Value {
     protected final int valueType;
 
     private TypeInfo type;
+
     /**
-     * For a BLOB, precision is length in bytes. For a CLOB, precision is length
-     * in chars.
+     * Length in characters for character large objects or length in bytes for
+     * binary large objects.
      */
     protected long precision;
+
+    /**
+     * Length in characters for binary large objects or length in bytes for
+     * character large objects.
+     */
+    private volatile long otherPrecision = -1L;
+
     /**
      * Cache the hashCode because it can be expensive to compute.
      */
@@ -373,5 +381,52 @@ public class ValueLob extends Value {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public long charLength() {
+        if (valueType == CLOB) {
+            return precision;
+        }
+        long p = otherPrecision;
+        if (p < 0L) {
+            try (Reader r = getReader()) {
+                p = 0L;
+                for (;;) {
+                    p += r.skip(Long.MAX_VALUE);
+                    if (r.read() < 0) {
+                        break;
+                    }
+                    p++;
+                }
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, null);
+            }
+            otherPrecision = p;
+        }
+        return p;
+    }
+
+    @Override
+    public long octetLength() {
+        if (valueType == BLOB) {
+            return precision;
+        }
+        long p = otherPrecision;
+        if (p < 0L) {
+            try (InputStream is = getInputStream()) {
+                p = 0L;
+                for (;;) {
+                    p += is.skip(Long.MAX_VALUE);
+                    if (is.read() < 0) {
+                        break;
+                    }
+                    p++;
+                }
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, null);
+            }
+            otherPrecision = p;
+        }
+        return p;
+    }
 
 }

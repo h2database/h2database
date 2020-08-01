@@ -23,7 +23,7 @@ import org.h2.value.ValueVarbinary;
 /**
  * An ENCRYPT or DECRYPT function.
  */
-public class CryptFunction extends OperationN implements NamedExpression {
+public final class CryptFunction extends OperationN implements NamedExpression {
 
     /**
      * ENCRYPT() (non-standard).
@@ -64,10 +64,9 @@ public class CryptFunction extends OperationN implements NamedExpression {
         cipher.setKey(getPaddedArrayCopy(v2.getBytesNoCopy(), cipher.getKeyLength()));
         byte[] newData = getPaddedArrayCopy(v3.getBytesNoCopy(), BlockCipher.ALIGN);
         switch (function) {
-        case ENCRYPT: {
+        case ENCRYPT:
             cipher.encrypt(newData, 0, newData.length);
             break;
-        }
         case DECRYPT:
             cipher.decrypt(newData, 0, newData.length);
             break;

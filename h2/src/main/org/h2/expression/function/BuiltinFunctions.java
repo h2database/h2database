@@ -19,7 +19,7 @@ public final class BuiltinFunctions {
     static {
         String[] names = { //
                 // MathFunction
-                "ABS", "MOD", "FLOOR", "CEIL",
+                "ABS", "MOD", "FLOOR", "CEIL", "ROUND", "ROUNDMAGIC", "SIGN", "TRUNC", "TRUNCATE",
                 // MathFunction1
                 "SIN", "COS", "TAN", "COT", "SINH", "COSH", "TANH", "ASIN", "ACOS", "ATAN", //
                 "LOG10", "LN", "EXP", "SQRT", "DEGREES", "RADIANS",
@@ -37,8 +37,12 @@ public final class BuiltinFunctions {
                 // CardinalityExpression
                 "CARDINALITY", "ARRAY_MAX_CARDINALITY",
                 // StringFunction1
-                "UPPER", "LOWER", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8", "UTF8TOSTRING", //
-                "HEXTORAW", "RAWTOHEX", "SPACE", "QUOTE_IDENT",
+                "UPPER", "LOWER", "ASCII", "CHAR", "CHR", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8",
+                "UTF8TOSTRING", "HEXTORAW", "RAWTOHEX", "SPACE", "QUOTE_IDENT",
+                // LengthFunction
+                "CHAR_LENGTH", "CHARACTER_LENGTH", "LENGTH", "OCTET_LENGTH", "BIT_LENGTH", //
+                // CompressFunction
+                "COMPRESS", "EXPAND",
                 // SoundexFunction
                 "SOUNDEX", "DIFFERENCE",
                 // JsonConstructorFunction
@@ -49,6 +53,21 @@ public final class BuiltinFunctions {
                 "COALESCE", "GREATEST", "LEAST",
                 // NullIfFunction
                 "NULLIF",
+                // ConcatFunction
+                "CONCAT", "CONCAT_WS",
+                // HashFunction
+                "HASH", "ORA_HASH",
+                // RandFunction
+                "RAND", "RANDOM", "SECURE_RAND", "RANDOM_UUID", "UUID",
+                // SessionControlFunction
+                "ABORT_SESSION", "CANCEL_SESSION",
+                // SysInfoFunction
+                "AUTOCOMMIT", "DATABASE_PATH", "H2VERSION", "LOCK_MODE", "LOCK_TIMEOUT", "MEMORY_FREE", "MEMORY_USED",
+                "READONLY", "SESSION_ID", "TRANSACTION_ID",
+                // TableInfoFunction
+                "DISK_SPACE_USED", "ESTIMATED_ENVELOPE",
+                // FileFunction
+                "FILE_READ", "FILE_WRITE",
                 // DataTypeSQLFunction
                 "DATA_TYPE_SQL",
                 // DBObjectFunction

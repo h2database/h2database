@@ -22,7 +22,7 @@ import org.h2.value.ValueVarchar;
 /**
  * A DAYNAME() or MONTHNAME() function.
  */
-public class DayMonthNameFunction extends Operation1 implements NamedExpression {
+public final class DayMonthNameFunction extends Operation1 implements NamedExpression {
 
     /**
      * DAYNAME() (non-standard).

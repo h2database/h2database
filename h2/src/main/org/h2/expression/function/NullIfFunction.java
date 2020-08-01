@@ -15,7 +15,7 @@ import org.h2.value.ValueNull;
 /**
  * A NULLIF function.
  */
-public class NullIfFunction extends Operation2 implements NamedExpression {
+public final class NullIfFunction extends Operation2 implements NamedExpression {
 
     public NullIfFunction(Expression arg1, Expression arg2) {
         super(arg1, arg2);

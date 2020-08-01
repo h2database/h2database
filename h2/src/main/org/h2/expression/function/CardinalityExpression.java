@@ -20,7 +20,7 @@ import org.h2.value.ValueNull;
 /**
  * Cardinality expression.
  */
-public class CardinalityExpression extends Operation1 implements NamedExpression {
+public final class CardinalityExpression extends Operation1 implements NamedExpression {
 
     private final boolean max;
 

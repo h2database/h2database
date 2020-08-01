@@ -1342,8 +1342,13 @@ public class WebApp {
                     rs = stat.getGeneratedKeys();
                 } else {
                     if (!isResultSet) {
-                        buff.append("${text.result.updateCount}: ")
-                                .append(stat.getUpdateCount());
+                        long updateCount;
+                        try {
+                            updateCount = stat.getLargeUpdateCount();
+                        } catch (UnsupportedOperationException e) {
+                            updateCount = stat.getUpdateCount();
+                        }
+                        buff.append("${text.result.updateCount}: ").append(updateCount);
                         time = System.currentTimeMillis() - time;
                         buff.append("<br />(").append(time).append(" ms)");
                         stat.close();

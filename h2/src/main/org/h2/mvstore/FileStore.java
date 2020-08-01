@@ -1220,8 +1220,6 @@ public abstract class FileStore
 
     public abstract int getProjectedFillRate(int vacatedBlocks);
 
-    abstract long getFirstFree();
-
     abstract long getFileLengthInUse();
 
     /**
@@ -1353,7 +1351,7 @@ public abstract class FileStore
      * @param pos the position in bytes
      * @param length the number of bytes
      */
-    public abstract void free(long pos, int length);
+    abstract void free(long pos, int length);
 
     abstract boolean isFragmented();
 

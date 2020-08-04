@@ -56,8 +56,7 @@ import org.h2.value.ValueVarchar;
 /**
  * Represents a prepared statement.
  */
-public class JdbcPreparedStatement extends JdbcStatement implements
-        PreparedStatement, JdbcPreparedStatementBackwardsCompat {
+public class JdbcPreparedStatement extends JdbcStatement implements PreparedStatement {
 
     protected CommandInterface command;
     private ArrayList<Value[]> batchParameters;

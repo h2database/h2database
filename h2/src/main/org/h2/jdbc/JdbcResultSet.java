@@ -71,7 +71,7 @@ import org.h2.value.ValueVarchar;
  * changes are visible, but not own inserts and deletes.
  * </p>
  */
-public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultSetBackwardsCompat {
+public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     private final boolean scrollable;
     private final boolean updatable;

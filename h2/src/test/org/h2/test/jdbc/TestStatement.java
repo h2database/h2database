@@ -48,6 +48,7 @@ public class TestStatement extends TestDb {
         testConnectionRollback();
         testStatement();
         testPreparedStatement();
+        testCloseOnCompletion();
         testIdentityMerge();
         conn.close();
         deleteDb("statement");
@@ -329,6 +330,30 @@ public class TestStatement extends TestDb {
         assertTrue(conn == stat.getConnection());
 
         stat.close();
+    }
+
+    private void testCloseOnCompletion() throws SQLException {
+        Statement stat = conn.createStatement();
+        assertFalse(stat.isCloseOnCompletion());
+        ResultSet rs = stat.executeQuery("VALUES 1");
+        assertFalse(stat.isCloseOnCompletion());
+        stat.closeOnCompletion();
+        assertTrue(stat.isCloseOnCompletion());
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertFalse(rs.next());
+        rs.close();
+        assertTrue(stat.isClosed());
+        assertThrows(ErrorCode.OBJECT_CLOSED, stat).isCloseOnCompletion();
+        assertThrows(ErrorCode.OBJECT_CLOSED, stat).closeOnCompletion();
+        stat = conn.createStatement();
+        stat.closeOnCompletion();
+        rs = stat.executeQuery("VALUES 1");
+        ResultSet rs2 = stat.executeQuery("VALUES 2");
+        rs.close();
+        assertFalse(stat.isClosed());
+        rs2.close();
+        assertTrue(stat.isClosed());
     }
 
     private void testIdentityMerge() throws SQLException {

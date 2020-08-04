@@ -43,6 +43,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     private ArrayList<String> batchCommands;
     private boolean escapeProcessing = true;
     private volatile boolean cancelled;
+    private boolean closeOnCompletion;
 
     JdbcStatement(JdbcConnection conn, int id, int resultSetType, int resultSetConcurrency) {
         this.conn = conn;
@@ -323,14 +324,18 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     public void close() throws SQLException {
         try {
             debugCodeCall("close");
-            synchronized (session) {
-                closeOldResultSet();
-                if (conn != null) {
-                    conn = null;
-                }
-            }
+            closeInternal();
         } catch (Exception e) {
             throw logAndConvert(e);
+        }
+    }
+
+    private void closeInternal() {
+        synchronized (session) {
+            closeOldResultSet();
+            if (conn != null) {
+                conn = null;
+            }
         }
     }
 
@@ -1195,19 +1200,52 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     }
 
     /**
-     * [Not supported]
+     * Specifies that this statement will be closed when its dependent result
+     * set is closed.
+     *
+     * @throws SQLException
+     *             if this statement is closed
      */
     @Override
-    public void closeOnCompletion() {
-        // not supported
+    public void closeOnCompletion() throws SQLException {
+        try {
+            debugCodeCall("closeOnCompletion");
+            checkClosed();
+            closeOnCompletion = true;
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
-     * [Not supported]
+     * Returns whether this statement will be closed when its dependent result
+     * set is closed.
+     *
+     * @return {@code true} if this statement will be closed when its dependent
+     *         result set is closed
+     * @throws SQLException
+     *             if this statement is closed
      */
     @Override
-    public boolean isCloseOnCompletion() {
-        return true;
+    public boolean isCloseOnCompletion() throws SQLException {
+        try {
+            debugCodeCall("isCloseOnCompletion");
+            checkClosed();
+            return closeOnCompletion;
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    void closeIfCloseOnCompletion() {
+        if (closeOnCompletion) {
+            try {
+                closeInternal();
+            } catch (Exception e) {
+                // Don't re-throw
+                logAndConvert(e);
+            }
+        }
     }
 
     // =============================================================
@@ -1231,10 +1269,10 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     protected void closeOldResultSet() {
         try {
             if (resultSet != null) {
-                resultSet.closeInternal();
+                resultSet.closeInternal(true);
             }
             if (generatedKeys != null) {
-                generatedKeys.closeInternal();
+                generatedKeys.closeInternal(true);
             }
         } finally {
             cancelled = false;

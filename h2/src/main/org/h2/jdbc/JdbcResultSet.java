@@ -186,7 +186,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public void close() throws SQLException {
         try {
             debugCodeCall("close");
-            closeInternal();
+            closeInternal(false);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -195,7 +195,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Close the result set. This method also closes the statement if required.
      */
-    void closeInternal() {
+    void closeInternal(boolean fromStatement) {
         if (result != null) {
             try {
                 if (result.isLazy()) {
@@ -203,12 +203,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
                 }
                 result.close();
             } finally {
+                JdbcStatement s = stat;
                 columnCount = 0;
                 result = null;
                 stat = null;
                 conn = null;
                 insertRow = null;
                 updateRow = null;
+                if (!fromStatement && s != null) {
+                    s.closeIfCloseOnCompletion();
+                }
             }
         }
     }

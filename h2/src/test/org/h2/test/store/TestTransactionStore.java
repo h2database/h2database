@@ -24,6 +24,7 @@ import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.tx.TransactionStore.Change;
 import org.h2.mvstore.type.LongDataType;
+import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -935,4 +936,26 @@ public class TestTransactionStore extends TestBase {
         ts.close();
     }
 
+    private void testCommitAfterMapRemoval() {
+        try (MVStore s = MVStore.open(null)) {
+            TransactionStore ts = new TransactionStore(s);
+            ts.init();
+            Transaction t = ts.begin();
+            TransactionMap<Long,String> map = t.openMap("test", LongDataType.INSTANCE, StringDataType.INSTANCE);
+            map.put(1L, "A");
+            s.removeMap("test");
+            try {
+                t.commit();
+            } finally {
+                // commit should not fail, but even if it does
+                // transaction should be cleanly removed and store remains operational
+                assertTrue(ts.getOpenTransactions().isEmpty());
+                assertFalse(ts.hasMap("test"));
+                t = ts.begin();
+                map = t.openMap("test", LongDataType.INSTANCE, StringDataType.INSTANCE);
+                assertTrue(map.isEmpty());
+                map.put(2L, "B");
+            }
+        }
+    }
 }

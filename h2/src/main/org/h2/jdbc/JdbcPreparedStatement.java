@@ -135,10 +135,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements
      * throw an exception, the current transaction (if any) is committed after
      * executing the statement.
      *
-     * @return the update count (number of row affected by an insert, update or
-     *         delete, or 0 if no rows or the statement was a create, drop,
-     *         commit or rollback)
+     * @return the update count (number of affected rows by a DML statement or
+     *         other statement able to return number of rows, or 0 if no rows
+     *         were affected or the statement returns nothing, or
+     *         {@link #SUCCESS_NO_INFO} if number of rows is too large for
+     *         {@code int} data type)
      * @throws SQLException if this object is closed or invalid
+     * @see #executeLargeUpdate()
      */
     @Override
     public int executeUpdate() throws SQLException {
@@ -147,7 +150,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             checkClosed();
             batchIdentities = null;
             long updateCount = executeUpdateInternal();
-            return updateCount < Integer.MAX_VALUE ? (int) updateCount : Integer.MAX_VALUE;
+            return updateCount <= Integer.MAX_VALUE ? (int) updateCount : SUCCESS_NO_INFO;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -164,9 +167,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements
      * throw an exception, the current transaction (if any) is committed after
      * executing the statement.
      *
-     * @return the update count (number of row affected by an insert, update or
-     *         delete, or 0 if no rows or the statement was a create, drop,
-     *         commit or rollback)
+     * @return the update count (number of affected rows by a DML statement or
+     *         other statement able to return number of rows, or 0 if no rows
+     *         were affected or the statement returns nothing)
      * @throws SQLException if this object is closed or invalid
      */
     @Override
@@ -1194,6 +1197,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
      * If one of the batched statements fails, this database will continue.
      *
      * @return the array of update counts
+     * @see #executeLargeBatch()
      */
     @Override
     public int[] executeBatch() throws SQLException {
@@ -1210,7 +1214,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             checkClosed();
             for (int i = 0; i < size; i++) {
                 long updateCount = executeBatchElement(batchParameters.get(i), exception);
-                result[i] = updateCount < Integer.MAX_VALUE ? (int) updateCount : Integer.MAX_VALUE;
+                result[i] = updateCount <= Integer.MAX_VALUE ? (int) updateCount : SUCCESS_NO_INFO;
             }
             batchParameters = null;
             exception = exception.getNextException();

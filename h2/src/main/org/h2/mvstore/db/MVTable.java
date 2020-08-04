@@ -483,8 +483,9 @@ public class MVTable extends RegularTable {
     }
 
     @Override
-    public void truncate(SessionLocal session) {
+    public long truncate(SessionLocal session) {
         syncLastModificationIdWithDatabase();
+        long result = getRowCountApproximation(session);
         for (int i = indexes.size() - 1; i >= 0; i--) {
             Index index = indexes.get(i);
             index.truncate(session);
@@ -492,6 +493,7 @@ public class MVTable extends RegularTable {
         if (changesUntilAnalyze != null) {
             changesUntilAnalyze.set(nextAnalyze);
         }
+        return result;
     }
 
     @Override

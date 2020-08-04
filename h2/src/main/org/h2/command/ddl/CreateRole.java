@@ -34,7 +34,7 @@ public class CreateRole extends DefineCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();

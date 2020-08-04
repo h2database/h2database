@@ -47,7 +47,7 @@ public class CreateSynonym extends SchemaCommand {
     public void setOrReplace(boolean orReplace) { this.orReplace = orReplace; }
 
     @Override
-    public int update() {
+    public long update() {
         if (!transactional) {
             session.commit(true);
         }

@@ -478,7 +478,12 @@ public class Shell extends Tool implements Runnable {
                     println("(" + rowCount + (rowCount == 1 ?
                             " row, " : " rows, ") + TimeUnit.NANOSECONDS.toMillis(time) + " ms)");
                 } else {
-                    int updateCount = stat.getUpdateCount();
+                    long updateCount;
+                    try {
+                        updateCount = stat.getLargeUpdateCount();
+                    } catch (UnsupportedOperationException e) {
+                        updateCount = stat.getUpdateCount();
+                    }
                     time = System.nanoTime() - time;
                     println("(Update count: " + updateCount + ", " +
                             TimeUnit.NANOSECONDS.toMillis(time) + " ms)");

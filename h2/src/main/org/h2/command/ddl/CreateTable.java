@@ -69,7 +69,7 @@ public class CreateTable extends CommandWithColumns {
     }
 
     @Override
-    public int update() {
+    public long update() {
         if (!transactional) {
             session.commit(true);
         }

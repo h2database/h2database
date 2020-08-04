@@ -40,7 +40,7 @@ public class RunScriptCommand extends ScriptBase {
     }
 
     @Override
-    public int update() {
+    public long update() {
         session.getUser().checkAdmin();
         int count = 0;
         boolean oldVariableBinary = session.isVariableBinary();

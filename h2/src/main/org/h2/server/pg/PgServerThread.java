@@ -414,7 +414,7 @@ public class PgServerThread implements Runnable {
                         sendErrorResponse(e);
                     }
                 } else {
-                    sendCommandComplete(prep, prep.getUpdateCount());
+                    sendCommandComplete(prep, prep.getLargeUpdateCount());
                 }
             } catch (Exception e) {
                 if (prep.isCancelled()) {
@@ -461,7 +461,7 @@ public class PgServerThread implements Runnable {
                             break;
                         }
                     } else {
-                        sendCommandComplete(stat, stat.getUpdateCount());
+                        sendCommandComplete(stat, stat.getLargeUpdateCount());
                     }
                 } catch (SQLException e) {
                     if (stat != null && stat.isCancelled()) {
@@ -503,21 +503,21 @@ public class PgServerThread implements Runnable {
         return s;
     }
 
-    private void sendCommandComplete(JdbcStatement stat, int updateCount)
+    private void sendCommandComplete(JdbcStatement stat, long updateCount)
             throws IOException {
         startMessage('C');
         switch (stat.getLastExecutedCommandType()) {
         case CommandInterface.INSERT:
             writeStringPart("INSERT 0 ");
-            writeString(Integer.toString(updateCount));
+            writeString(Long.toString(updateCount));
             break;
         case CommandInterface.UPDATE:
             writeStringPart("UPDATE ");
-            writeString(Integer.toString(updateCount));
+            writeString(Long.toString(updateCount));
             break;
         case CommandInterface.DELETE:
             writeStringPart("DELETE ");
-            writeString(Integer.toString(updateCount));
+            writeString(Long.toString(updateCount));
             break;
         case CommandInterface.SELECT:
         case CommandInterface.CALL:
@@ -529,7 +529,7 @@ public class PgServerThread implements Runnable {
         default:
             server.trace("check CommandComplete tag for command " + stat);
             writeStringPart("UPDATE ");
-            writeString(Integer.toString(updateCount));
+            writeString(Long.toString(updateCount));
         }
         sendMessage();
     }

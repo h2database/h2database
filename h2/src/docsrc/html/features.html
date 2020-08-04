@@ -1369,18 +1369,20 @@ For a complete sample application, see <code>src/test/org/h2/samples/Function.ja
 <h3>Declaring Functions as Source Code</h3>
 <p>
 When defining a function alias with source code, the database tries to compile
-the source code using the Sun Java compiler (the class <code>com.sun.tools.javac.Main</code>)
-if the <code>tools.jar</code> is in the classpath. If not, <code>javac</code> is run as a separate process.
+the source code using the Java compiler (the class <code>javax.tool.ToolProvider.getSystemJavaCompiler()</code>)
+if it is in the classpath. If not, <code>javac</code> is run as a separate process.
 Only the source code is stored in the database; the class is compiled each time the database is re-opened.
-Source code is usually passed as dollar quoted text to avoid escaping problems, however single quotes can be used as well.
+Source code can be passed as dollar quoted text (<code>$$source code$$</code>) to avoid escaping problems.
+If you use some third-party script processing tool, use standard single quotes instead and don't forget to repeat
+each single quotation mark twice within the source code.
 Example:
 </p>
 <pre>
-CREATE ALIAS NEXT_PRIME AS $$
+CREATE ALIAS NEXT_PRIME AS '
 String nextPrime(String value) {
     return new BigInteger(value).nextProbablePrime().toString();
 }
-$$;
+';
 </pre>
 <p>
 By default, the three packages <code>java.util, java.math, java.sql</code> are imported.
@@ -1390,13 +1392,13 @@ If different import statements are required, they must be declared at the beginn
 and separated with the tag <code>@CODE</code>:
 </p>
 <pre>
-CREATE ALIAS IP_ADDRESS AS $$
+CREATE ALIAS IP_ADDRESS AS '
 import java.net.*;
 @CODE
 String ipAddress(String host) throws Exception {
     return InetAddress.getByName(host).getHostAddress();
 }
-$$;
+';
 </pre>
 <p>
 The following template is used to create a complete Java class:

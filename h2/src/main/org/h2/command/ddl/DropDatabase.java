@@ -35,7 +35,7 @@ public class DropDatabase extends DefineCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         if (dropAllObjects) {
             dropAllObjects();
         }

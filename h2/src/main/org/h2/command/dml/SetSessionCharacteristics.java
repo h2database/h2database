@@ -29,7 +29,7 @@ public class SetSessionCharacteristics extends Prepared {
     }
 
     @Override
-    public int update() {
+    public long update() {
         session.setIsolationLevel(isolationLevel);
         return 0;
     }

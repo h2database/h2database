@@ -31,7 +31,6 @@ import java.util.Calendar;
 import java.util.Map;
 import java.util.UUID;
 import org.h2.api.ErrorCode;
-import org.h2.jdbc.JdbcResultSetBackwardsCompat;
 import org.h2.message.DbException;
 import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
@@ -60,8 +59,7 @@ import org.h2.value.ValueToObjectConverter;
  * </pre>
  *
  */
-public class SimpleResultSet implements ResultSet, ResultSetMetaData,
-        JdbcResultSetBackwardsCompat {
+public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 
     private ArrayList<Object[]> rows;
     private Object[] currentRow;

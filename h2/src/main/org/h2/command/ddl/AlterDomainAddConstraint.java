@@ -45,7 +45,7 @@ public class AlterDomainAddConstraint extends SchemaCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         try {
             return tryUpdate();
         } finally {

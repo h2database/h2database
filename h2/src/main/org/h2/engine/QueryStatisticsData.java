@@ -50,8 +50,7 @@ public class QueryStatisticsData {
      *            to execute
      * @param rowCount the query or update row count
      */
-    public synchronized void update(String sqlStatement, long executionTimeNanos,
-            int rowCount) {
+    public synchronized void update(String sqlStatement, long executionTimeNanos, long rowCount) {
         QueryEntry entry = map.get(sqlStatement);
         if (entry == null) {
             entry = new QueryEntry(sqlStatement);
@@ -119,12 +118,12 @@ public class QueryStatisticsData {
         /**
          * The minimum number of rows.
          */
-        public int rowCountMin;
+        public long rowCountMin;
 
         /**
          * The maximum number of rows.
          */
-        public int rowCountMax;
+        public long rowCountMax;
 
         /**
          * The total number of rows.
@@ -158,7 +157,7 @@ public class QueryStatisticsData {
          * @param timeNanos the execution time in nanos
          * @param rows the number of rows
          */
-        void update(long timeNanos, int rows) {
+        void update(long timeNanos, long rows) {
             count++;
             executionTimeMinNanos = Math.min(timeNanos, executionTimeMinNanos);
             executionTimeMaxNanos = Math.max(timeNanos, executionTimeMaxNanos);

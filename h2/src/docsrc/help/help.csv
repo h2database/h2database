@@ -760,13 +760,13 @@ CREATE ALIAS MY_SQRT FOR ""java.lang.Math.sqrt"";
 CREATE ALIAS GET_SYSTEM_PROPERTY FOR ""java.lang.System.getProperty"";
 CALL GET_SYSTEM_PROPERTY('java.class.path');
 CALL GET_SYSTEM_PROPERTY('com.acme.test', 'true');
-CREATE ALIAS REVERSE AS $$ String reverse(String s) { return new StringBuilder(s).reverse().toString(); } $$;
+CREATE ALIAS REVERSE AS 'String reverse(String s) { return new StringBuilder(s).reverse().toString(); }';
 CALL REVERSE('Test');
-CREATE ALIAS tr AS $$@groovy.transform.CompileStatic
+CREATE ALIAS tr AS '@groovy.transform.CompileStatic
     static String tr(String str, String sourceSet, String replacementSet){
         return str.tr(sourceSet, replacementSet);
     }
-$$
+'
 "
 
 "Commands (DDL)","CREATE CONSTANT","
@@ -1010,9 +1010,12 @@ The schema name does not need to be specified when creating the trigger.
 This command commits an open transaction in this connection.
 ","
 CREATE TRIGGER TRIG_INS BEFORE INSERT ON TEST FOR EACH ROW CALL ""MyTrigger"";
-CREATE TRIGGER TRIG_SRC BEFORE INSERT ON TEST AS $$org.h2.api.Trigger create() { return new MyTrigger(""constructorParam""); } $$;
-CREATE TRIGGER TRIG_JS BEFORE INSERT ON TEST AS $$//javascript\nreturn new Packages.MyTrigger(""constructorParam""); $$;
-CREATE TRIGGER TRIG_RUBY BEFORE INSERT ON TEST AS $$#ruby\nJava::MyPackage::MyTrigger.new(""constructorParam"") $$;
+CREATE TRIGGER TRIG_SRC BEFORE INSERT ON TEST AS
+    'org.h2.api.Trigger create() { return new MyTrigger(""constructorParam""); }';
+CREATE TRIGGER TRIG_JS BEFORE INSERT ON TEST AS '//javascript
+return new Packages.MyTrigger(""constructorParam"");';
+CREATE TRIGGER TRIG_RUBY BEFORE INSERT ON TEST AS '#ruby
+Java::MyPackage::MyTrigger.new(""constructorParam"")';
 "
 "Commands (DDL)","CREATE USER","
 @h2@ CREATE USER [ IF NOT EXISTS ] newUserName

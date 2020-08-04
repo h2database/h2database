@@ -69,7 +69,7 @@ public final class Update extends DataChangeStatement {
     }
 
     @Override
-    public int update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         targetTableFilter.startQuery(session);
         targetTableFilter.reset();
         Table table = targetTableFilter.getTable();
@@ -79,7 +79,7 @@ public final class Update extends DataChangeStatement {
             table.lock(session, true, false);
             // get the old rows, compute the new rows
             setCurrentRowNumber(0);
-            int count = 0;
+            long count = 0;
             int limitRows = -1;
             if (limitExpr != null) {
                 Value v = limitExpr.getValue(session);

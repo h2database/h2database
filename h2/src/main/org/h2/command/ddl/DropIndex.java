@@ -40,7 +40,7 @@ public class DropIndex extends SchemaCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         session.commit(true);
         Database db = session.getDatabase();
         Index index = getSchema().findIndex(session, indexName);

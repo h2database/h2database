@@ -110,7 +110,7 @@ public class AlterDomain extends SchemaCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         session.getUser().checkAdmin();
         session.commit(true);
         Domain domain = getSchema().findDomain(domainName);

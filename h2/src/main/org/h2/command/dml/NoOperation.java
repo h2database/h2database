@@ -20,7 +20,7 @@ public class NoOperation extends Prepared {
     }
 
     @Override
-    public int update() {
+    public long update() {
         return 0;
     }
 

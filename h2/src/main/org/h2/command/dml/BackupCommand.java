@@ -45,7 +45,7 @@ public class BackupCommand extends Prepared {
     }
 
     @Override
-    public int update() {
+    public long update() {
         String name = fileNameExpr.getValue(session).getString();
         session.getUser().checkAdmin();
         backupTo(name);

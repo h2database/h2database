@@ -84,8 +84,8 @@ public final class Merge extends CommandWithValues {
     }
 
     @Override
-    public int update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
-        int count = 0;
+    public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+        long count = 0;
         session.getUser().checkRight(table, Right.INSERT);
         session.getUser().checkRight(table, Right.UPDATE);
         setCurrentRowNumber(0);
@@ -142,7 +142,7 @@ public final class Merge extends CommandWithValues {
      */
     private int merge(Row row, Expression[] expressions, ResultTarget deltaChangeCollector,
             ResultOption deltaChangeCollectionMode) {
-        int count;
+        long count;
         if (update == null) {
             // if there is no valid primary key,
             // the REPLACE statement degenerates to an INSERT

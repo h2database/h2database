@@ -36,6 +36,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.store.LobStorageInterface;
 import org.h2.util.IOUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SmallLRUCache;
@@ -417,8 +418,14 @@ public class TcpServerThread implements Runnable {
             } else {
                 status = getState(old);
             }
-            transfer.writeInt(status).writeInt(result.getUpdateCount()).
-                    writeBoolean(session.getAutoCommit());
+            transfer.writeInt(status);
+            long updateCount = result.getUpdateCount();
+            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_20) {
+                transfer.writeLong(updateCount);
+            } else {
+                transfer.writeInt(updateCount < Integer.MAX_VALUE ? (int) updateCount : Integer.MAX_VALUE);
+            }
+            transfer.writeBoolean(session.getAutoCommit());
             if (writeGeneratedKeys) {
                 ResultInterface generatedKeys = result.getGeneratedKeys();
                 int columnCount = generatedKeys.getVisibleColumnCount();

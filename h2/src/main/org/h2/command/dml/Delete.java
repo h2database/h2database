@@ -63,7 +63,7 @@ public final class Delete extends DataChangeStatement {
     }
 
     @Override
-    public int update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         targetTableFilter.startQuery(session);
         targetTableFilter.reset();
         Table table = targetTableFilter.getTable();
@@ -79,7 +79,7 @@ public final class Delete extends DataChangeStatement {
         }
         try (RowList rows = new RowList(session, table)) {
             setCurrentRowNumber(0);
-            int count = 0;
+            long count = 0;
             while (limitRows != 0 && targetTableFilter.next()) {
                 setCurrentRowNumber(rows.size() + 1);
                 if (condition == null || condition.getBooleanValue(session)) {

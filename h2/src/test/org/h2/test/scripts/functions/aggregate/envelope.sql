@@ -56,7 +56,7 @@ SELECT ENVELOPE(V) FROM TEST;
 >> POLYGON ((-1.0000000001 1, -1.0000000001 2, 3 2, 3 1, -1.0000000001 1))
 
 TRUNCATE TABLE TEST;
-> ok
+> update count: 5
 
 -- Without index
 SELECT ENVELOPE(N) FROM (SELECT V AS N FROM TEST);
@@ -92,7 +92,7 @@ SELECT ESTIMATED_ENVELOPE('TEST', 'V');
 #-mvStore#>> null
 
 TRUNCATE TABLE TEST;
-> ok
+> update count: 1000
 
 @reconnect off
 

@@ -32,7 +32,7 @@ public class PrepareProcedure extends DefineCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         Procedure proc = new Procedure(procedureName, prepared);
         prepared.setParameterList(parameters);
         prepared.setPrepareAlways(prepareAlways);

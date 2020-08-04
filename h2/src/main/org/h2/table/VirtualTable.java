@@ -46,7 +46,7 @@ public abstract class VirtualTable extends Table {
     }
 
     @Override
-    public void truncate(SessionLocal session) {
+    public long truncate(SessionLocal session) {
         throw DbException.getUnsupportedException("Virtual table");
     }
 

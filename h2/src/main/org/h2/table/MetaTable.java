@@ -216,7 +216,7 @@ public abstract class MetaTable extends Table {
     }
 
     @Override
-    public final void truncate(SessionLocal session) {
+    public final long truncate(SessionLocal session) {
         throw DbException.getUnsupportedException("META");
     }
 

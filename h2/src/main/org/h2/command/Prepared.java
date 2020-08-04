@@ -215,7 +215,7 @@ public abstract class Prepared {
      * @return the update count
      * @throws DbException if it is a query
      */
-    public int update() {
+    public long update() {
         throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
     }
 
@@ -328,7 +328,7 @@ public abstract class Prepared {
      * @param startTimeNanos when the statement was started
      * @param rowCount the query or update row count
      */
-    void trace(long startTimeNanos, int rowCount) {
+    void trace(long startTimeNanos, long rowCount) {
         if (session.getTrace().isInfoEnabled() && startTimeNanos > 0) {
             long deltaTimeNanos = System.nanoTime() - startTimeNanos;
             String params = Trace.formatParams(parameters);
@@ -415,7 +415,7 @@ public abstract class Prepared {
      * @param values the values of the row
      * @return the exception
      */
-    protected DbException setRow(DbException e, int rowId, String values) {
+    protected DbException setRow(DbException e, long rowId, String values) {
         StringBuilder buff = new StringBuilder();
         if (sqlStatement != null) {
             buff.append(sqlStatement);

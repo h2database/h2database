@@ -677,8 +677,10 @@ public class TestTableEngines extends TestDb {
             }
 
             @Override
-            public void truncate(SessionLocal session) {
+            public long truncate(SessionLocal session) {
+                long result = row != null ? 1L : 0L;
                 row = null;
+                return result;
             }
 
         }
@@ -783,7 +785,8 @@ public class TestTableEngines extends TestDb {
         }
 
         @Override
-        public void truncate(SessionLocal session) {
+        public long truncate(SessionLocal session) {
+            long result = getRowCountApproximation(session);
             if (indexes != null) {
                 for (Index index : indexes) {
                     index.truncate(session);
@@ -792,6 +795,7 @@ public class TestTableEngines extends TestDb {
                 scan.truncate(session);
             }
             dataModificationId++;
+            return result;
         }
 
         @Override

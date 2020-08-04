@@ -82,7 +82,7 @@ public class Set extends Prepared {
     }
 
     @Override
-    public int update() {
+    public long update() {
         Database database = session.getDatabase();
         String name = SetTypes.getTypeName(type);
         switch (type) {

@@ -49,7 +49,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
     private Column[] columns;
     private Query query;
     private boolean sortedInsertMode;
-    private int rowNumber;
+    private long rowNumber;
     private boolean insertFromSelect;
 
     private Boolean overridingSystem;
@@ -131,7 +131,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
     }
 
     @Override
-    public int update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         Index index = null;
         this.deltaChangeCollector = deltaChangeCollector;
         this.deltaChangeCollectionMode = deltaChangeCollectionMode;
@@ -158,7 +158,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
         }
     }
 
-    private int insertRows() {
+    private long insertRows() {
         session.getUser().checkRight(table, Right.INSERT);
         setCurrentRowNumber(0);
         table.fire(session, Trigger.INSERT, true);
@@ -264,7 +264,8 @@ public final class Insert extends CommandWithValues implements ResultTarget {
 
     @Override
     public int getRowCount() {
-        return rowNumber;
+        // This method is not used in this class
+        return (int) rowNumber;
     }
 
     @Override

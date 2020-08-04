@@ -44,7 +44,7 @@ public class DropDomain extends SchemaCommand {
     }
 
     @Override
-    public int update() {
+    public long update() {
         session.getUser().checkAdmin();
         session.commit(true);
         Schema schema = getSchema();

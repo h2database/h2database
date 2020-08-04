@@ -40,7 +40,7 @@ import org.h2.util.Utils;
  * The transfer class is used to send and receive Value objects.
  * It is used on both the client side, and on the server side.
  */
-public class Transfer {
+public final class Transfer {
 
     private static final int BUFFER_SIZE = 64 * 1024;
     private static final int LOB_MAGIC = 0x1234;

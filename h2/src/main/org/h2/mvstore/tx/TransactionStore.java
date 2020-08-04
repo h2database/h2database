@@ -501,7 +501,7 @@ public class TransactionStore {
                     Record<?,?> op = cursor.getValue();
                     int mapId = op.mapId;
                     MVMap<Object, VersionedValue<Object>> map = openMap(mapId);
-                    if (map != null) { // might be null if map was removed later
+                    if (map != null && !map.isClosed()) { // might be null if map was removed later
                         Object key = op.key;
                         commitDecisionMaker.setUndoKey(undoKey);
                         // second parameter (value) is not really
@@ -509,9 +509,12 @@ public class TransactionStore {
                         map.operate(key, null, commitDecisionMaker);
                     }
                 }
-                undoLog.clear();
             } finally {
-                flipCommittingTransactionsBit(transactionId, false);
+                try {
+                    undoLog.clear();
+                } finally {
+                    flipCommittingTransactionsBit(transactionId, false);
+                }
             }
         }
     }

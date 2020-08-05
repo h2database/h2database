@@ -13,7 +13,7 @@ import org.h2.util.StringUtils;
 /**
  * Represents a database object comment.
  */
-public class Comment extends DbObjectBase {
+public final class Comment extends DbObject {
 
     private final int objectType;
     private final String quotedObjectName;

@@ -5,12 +5,12 @@
  */
 package org.h2.schema;
 
-import org.h2.engine.DbObjectBase;
+import org.h2.engine.DbObject;
 
 /**
  * Any database object that is stored in a schema.
  */
-public abstract class SchemaObject extends DbObjectBase {
+public abstract class SchemaObject extends DbObject {
 
     private final Schema schema;
 

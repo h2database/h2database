@@ -16,7 +16,7 @@ import org.h2.util.StringUtils;
 /**
  * A right owner (sometimes called principal).
  */
-public abstract class RightOwner extends DbObjectBase {
+public abstract class RightOwner extends DbObject {
 
     /**
      * The map of granted roles.

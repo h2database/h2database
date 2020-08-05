@@ -26,7 +26,7 @@ import org.h2.util.Utils;
 /**
  * Represents a user object.
  */
-public class User extends RightOwner {
+public final class User extends RightOwner {
 
     private final boolean systemUser;
     private byte[] salt;

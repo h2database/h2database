@@ -37,7 +37,6 @@ import org.h2.engine.Mode.ModeEnum;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
@@ -1569,6 +1568,15 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     /**
+     * Returns system user.
+     *
+     * @return system user
+     */
+    public User getSystemUser() {
+        return systemUser;
+    }
+
+    /**
      * Returns main schema (usually PUBLIC).
      *
      * @return main schema (usually PUBLIC)
@@ -2679,22 +2687,6 @@ public class Database implements DataHandler, CastDataProvider {
             }
         }
         return lobStorage;
-    }
-
-    public JdbcConnection getLobConnectionForInit() {
-        String url = Constants.CONN_URL_INTERNAL;
-        JdbcConnection conn = new JdbcConnection(
-                systemSession, systemUser.getName(), url);
-        conn.setTraceLevel(TraceSystem.OFF);
-        return conn;
-    }
-
-    public JdbcConnection getLobConnectionForRegularUse() {
-        String url = Constants.CONN_URL_INTERNAL;
-        JdbcConnection conn = new JdbcConnection(
-                lobSession, systemUser.getName(), url);
-        conn.setTraceLevel(TraceSystem.OFF);
-        return conn;
     }
 
     public SessionLocal getLobSession() {

@@ -1867,13 +1867,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         return session.getDataHandler().getCompareMode();
     }
 
-    /**
-     * INTERNAL
-     */
-    public void setTraceLevel(int level) {
-        trace.setLevel(level);
-    }
-
     @Override
     public Mode getMode() {
         return session.getMode();

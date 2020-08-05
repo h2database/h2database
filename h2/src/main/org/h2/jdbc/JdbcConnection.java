@@ -110,8 +110,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      * CloseWatcher.
      */
     @SuppressWarnings("resource")
-    public JdbcConnection(ConnectionInfo ci, boolean useBaseDir)
-            throws SQLException {
+    public JdbcConnection(ConnectionInfo ci, boolean useBaseDir) throws SQLException {
         try {
             if (useBaseDir) {
                 String baseDir = SysProperties.getBaseDir();
@@ -121,9 +120,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             }
             // this will return an embedded or server connection
             session = new SessionRemote(ci).connectEmbeddedOrServer(false);
-            trace = session.getTrace();
-            int id = getNextId(TraceObject.CONNECTION);
-            setTrace(trace, TraceObject.CONNECTION, id);
+            setTrace(session.getTrace(), TraceObject.CONNECTION, getNextId(TraceObject.CONNECTION));
             this.user = ci.getUserName();
             if (isInfoEnabled()) {
                 trace.infoCode("Connection " + getTraceObjectName()
@@ -144,9 +141,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      */
     public JdbcConnection(JdbcConnection clone) {
         this.session = clone.session;
-        trace = session.getTrace();
-        int id = getNextId(TraceObject.CONNECTION);
-        setTrace(trace, TraceObject.CONNECTION, id);
+        setTrace(session.getTrace(), TraceObject.CONNECTION, getNextId(TraceObject.CONNECTION));
         this.user = clone.user;
         this.url = clone.url;
         this.catalog = clone.catalog;
@@ -166,9 +161,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      */
     public JdbcConnection(Session session, String user, String url) {
         this.session = session;
-        trace = session.getTrace();
-        int id = getNextId(TraceObject.CONNECTION);
-        setTrace(trace, TraceObject.CONNECTION, id);
+        setTrace(session.getTrace(), TraceObject.CONNECTION, getNextId(TraceObject.CONNECTION));
         this.user = user;
         this.url = url;
         this.watcher = null;

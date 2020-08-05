@@ -15,8 +15,8 @@ import java.util.Iterator;
 
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.SessionLocal;
-import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
+import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.SpatialIndex;
 import org.h2.message.DbException;
@@ -40,7 +40,7 @@ import org.h2.value.ValueNull;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
+public class SpatialTreeIndex extends Index implements SpatialIndex {
 
     private static final String MAP_PREFIX  = "RTREE_";
 

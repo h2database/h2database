@@ -121,7 +121,7 @@ public abstract class PageBtree extends Page {
                     }
                 }
                 if (compareKeys) {
-                    comp = index.compareKeys(row, compare);
+                    comp = TreeIndex.compareKeys(row, compare);
                     if (comp == 0) {
                         return i;
                     }

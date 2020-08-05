@@ -23,7 +23,6 @@ import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.SessionLocal;
-import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -515,7 +514,7 @@ public class TestTableEngines extends TestDb {
             /**
              * A scan index for one row.
              */
-            public class Scan extends BaseIndex {
+            public class Scan extends Index {
 
                 Scan(Table table) {
                     super(table, table.getId(), table.getName() + "_SCAN",
@@ -904,7 +903,7 @@ public class TestTableEngines extends TestDb {
     /**
      * An index that internally uses a tree set.
      */
-    private static class TreeSetIndex extends BaseIndex implements Comparator<SearchRow> {
+    private static class TreeSetIndex extends Index implements Comparator<SearchRow> {
 
         final TreeSet<SearchRow> set = new TreeSet<>(this);
 
@@ -1021,10 +1020,6 @@ public class TestTableEngines extends TestDb {
             return getRowCount(null);
         }
 
-        @Override
-        public long getDiskSpaceUsed() {
-            return 0;
-        }
     }
 
     /**

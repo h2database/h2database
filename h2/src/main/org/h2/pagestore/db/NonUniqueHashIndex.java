@@ -12,8 +12,8 @@ import java.util.TreeMap;
 
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.SessionLocal;
-import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
+import org.h2.index.Index;
 import org.h2.index.IndexCondition;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
@@ -32,7 +32,7 @@ import org.h2.value.Value;
  *
  * @author Sergi Vladykin
  */
-public class NonUniqueHashIndex extends BaseIndex {
+public class NonUniqueHashIndex extends Index {
 
     /**
      * The index of the indexed column.
@@ -99,7 +99,7 @@ public class NonUniqueHashIndex extends BaseIndex {
             throw DbException.throwInternalError(first + " " + last);
         }
         if (first != last) {
-            if (compareKeys(first, last) != 0) {
+            if (TreeIndex.compareKeys(first, last) != 0) {
                 throw DbException.throwInternalError();
             }
         }
@@ -123,11 +123,6 @@ public class NonUniqueHashIndex extends BaseIndex {
     @Override
     public long getRowCountApproximation(SessionLocal session) {
         return rowCount;
-    }
-
-    @Override
-    public long getDiskSpaceUsed() {
-        return 0;
     }
 
     @Override

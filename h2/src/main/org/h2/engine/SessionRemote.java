@@ -302,16 +302,6 @@ public final class SessionRemote extends Session implements DataHandler {
         return buff.toString();
     }
 
-    @Override
-    public int getPowerOffCount() {
-        return 0;
-    }
-
-    @Override
-    public void setPowerOffCount(int count) {
-        throw DbException.getUnsupportedException("remote");
-    }
-
     /**
      * Open a new (remote or embedded) session.
      *

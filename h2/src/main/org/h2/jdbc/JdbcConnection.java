@@ -1424,23 +1424,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     /**
      * INTERNAL
      */
-    public int getPowerOffCount() {
-        return (session == null || session.isClosed()) ? 0
-                : session.getPowerOffCount();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void setPowerOffCount(int count) {
-        if (session != null) {
-            session.setPowerOffCount(count);
-        }
-    }
-
-    /**
-     * INTERNAL
-     */
     public void setExecutingStatement(Statement stat) {
         executingStatement = stat;
     }

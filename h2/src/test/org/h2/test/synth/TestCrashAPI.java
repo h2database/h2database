@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.h2.api.ErrorCode;
-import org.h2.jdbc.JdbcConnection;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -336,7 +335,7 @@ public class TestCrashAPI extends TestDb implements Runnable {
                 continue;
             }
             if (random.getInt(2000) == 0 && conn != null) {
-                ((JdbcConnection) conn).setPowerOffCount(random.getInt(50));
+                setPowerOffCount(conn, random.getInt(50));
             }
             Object o = objects.get(objectId);
             if (o == null) {

@@ -18,7 +18,7 @@ import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.schema.SchemaObjectBase;
+import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
@@ -31,7 +31,7 @@ import org.h2.value.ValueNull;
 /**
  * An index. Indexes are used to speed up searching data.
  */
-public abstract class Index extends SchemaObjectBase {
+public abstract class Index extends SchemaObject {
 
     /**
      * Check that the index columns are not CLOB or BLOB.

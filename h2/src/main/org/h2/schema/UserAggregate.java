@@ -23,7 +23,7 @@ import org.h2.value.TypeInfo;
 /**
  * Represents a user-defined aggregate function.
  */
-public class UserAggregate extends SchemaObjectBase {
+public class UserAggregate extends SchemaObject {
 
     private String className;
     private Class<?> javaClass;

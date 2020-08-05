@@ -35,7 +35,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SimpleRowValue;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObjectBase;
+import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.util.Utils;
@@ -47,7 +47,7 @@ import org.h2.value.ValueNull;
  * This is the base class for most tables.
  * A table contains a list of columns and a list of rows.
  */
-public abstract class Table extends SchemaObjectBase {
+public abstract class Table extends SchemaObject {
 
     /**
      * The table type that means this table is a regular persistent table.

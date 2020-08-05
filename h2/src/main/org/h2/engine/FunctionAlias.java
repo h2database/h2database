@@ -20,7 +20,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObjectBase;
+import org.h2.schema.SchemaObject;
 import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ParserUtil;
@@ -40,7 +40,7 @@ import org.h2.value.ValueToObjectConverter2;
  * @author Thomas Mueller
  * @author Gary Tong
  */
-public class FunctionAlias extends SchemaObjectBase {
+public class FunctionAlias extends SchemaObject {
 
     private String className;
     private String methodName;

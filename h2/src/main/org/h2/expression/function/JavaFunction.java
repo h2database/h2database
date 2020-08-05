@@ -5,11 +5,11 @@
  */
 package org.h2.expression.function;
 
-import org.h2.engine.FunctionAlias;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
+import org.h2.schema.FunctionAlias;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;

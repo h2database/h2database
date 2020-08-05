@@ -19,7 +19,6 @@ import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.DbObjectBase;
 import org.h2.engine.DbSettings;
-import org.h2.engine.FunctionAlias;
 import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.SysProperties;

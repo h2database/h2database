@@ -20,7 +20,7 @@ import org.h2.value.ValueBigint;
  * A sequence is created using the statement
  * CREATE SEQUENCE
  */
-public class Sequence extends SchemaObject {
+public final class Sequence extends SchemaObject {
 
     /**
      * CYCLE clause and sequence state.

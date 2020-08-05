@@ -17,7 +17,7 @@ import org.h2.value.Value;
  * A user-defined constant as created by the SQL statement
  * CREATE CONSTANT
  */
-public class Constant extends SchemaObject {
+public final class Constant extends SchemaObject {
 
     private Value value;
     private ValueExpression expression;

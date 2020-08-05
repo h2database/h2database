@@ -1424,7 +1424,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     /**
      * INTERNAL
      */
-    public void setExecutingStatement(Statement stat) {
+    void setExecutingStatement(Statement stat) {
         executingStatement = stat;
     }
 
@@ -1756,7 +1756,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      *            end of file is read)
      * @return the value
      */
-    public Value createClob(Reader x, long length) {
+    Value createClob(Reader x, long length) {
         if (x == null) {
             return ValueNull.INSTANCE;
         }
@@ -1774,7 +1774,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      *            end of file is read)
      * @return the value
      */
-    public Value createBlob(InputStream x, long length) {
+    Value createBlob(InputStream x, long length) {
         if (x == null) {
             return ValueNull.INSTANCE;
         }

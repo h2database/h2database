@@ -882,8 +882,7 @@ public class TestPageStore extends TestDb {
     /**
      * A database event listener used in this test.
      */
-    public static final class MyDatabaseEventListener implements
-            DatabaseEventListener {
+    public static final class MyDatabaseEventListener implements DatabaseEventListener {
 
         @Override
         public void closingDatabase() {
@@ -906,7 +905,7 @@ public class TestPageStore extends TestDb {
         }
 
         @Override
-        public void setProgress(int state, String name, int x, int max) {
+        public void setProgress(int state, String name, long x, long max) {
             if (name.startsWith("SYS:SYS_ID")) {
                 // ignore
                 return;

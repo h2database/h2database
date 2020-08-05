@@ -187,32 +187,6 @@ public class TestAutoReconnect extends TestDb {
     /**
      * A database event listener used in this test.
      */
-    public static final class MyDatabaseEventListener implements
-            DatabaseEventListener {
-
-        @Override
-        public void closingDatabase() {
-            // ignore
-        }
-
-        @Override
-        public void exceptionThrown(SQLException e, String sql) {
-            // ignore
-        }
-
-        @Override
-        public void init(String u) {
-            // ignore
-        }
-
-        @Override
-        public void opened() {
-            // ignore
-        }
-
-        @Override
-        public void setProgress(int state, String name, int x, int max) {
-            // ignore
-        }
+    public static final class MyDatabaseEventListener implements DatabaseEventListener {
     }
 }

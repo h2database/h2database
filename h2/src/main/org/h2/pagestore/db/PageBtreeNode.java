@@ -382,9 +382,7 @@ public class PageBtreeNode extends PageBtree {
                 int child = childPageIds[i];
                 PageBtree page = index.getPage(child);
                 count += page.getRowCount();
-                index.getDatabase().setProgress(
-                        DatabaseEventListener.STATE_SCAN_FILE,
-                        index.getName(), count, Integer.MAX_VALUE);
+                index.getDatabase().setProgress(DatabaseEventListener.STATE_SCAN_FILE, index.getName(), count, 0);
             }
             rowCount = count;
         }

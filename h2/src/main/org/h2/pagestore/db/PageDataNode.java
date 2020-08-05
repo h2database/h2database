@@ -292,7 +292,7 @@ public class PageDataNode extends PageData {
                 }
                 count += page.getRowCount();
                 index.getDatabase().setProgress(DatabaseEventListener.STATE_SCAN_FILE,
-                        index.getTable() + "." + index.getName(), count, Integer.MAX_VALUE);
+                        index.getTable() + "." + index.getName(), count, 0);
             }
             rowCount = count;
         }
@@ -310,8 +310,7 @@ public class PageDataNode extends PageData {
             }
             count += page.getDiskSpaceUsed();
             index.getDatabase().setProgress(DatabaseEventListener.STATE_SCAN_FILE,
-                    index.getTable() + "." + index.getName(),
-                    (int) (count >> 16), Integer.MAX_VALUE);
+                    index.getTable() + "." + index.getName(), count, 0);
         }
         return count;
     }

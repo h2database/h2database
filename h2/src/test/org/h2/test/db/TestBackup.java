@@ -115,27 +115,7 @@ public class TestBackup extends TestDb {
     public static class BackupListener implements DatabaseEventListener {
 
         @Override
-        public void closingDatabase() {
-            // ignore
-        }
-
-        @Override
-        public void exceptionThrown(SQLException e, String sql) {
-            // ignore
-        }
-
-        @Override
-        public void init(String url) {
-            // ignore
-        }
-
-        @Override
-        public void opened() {
-            // ignore
-        }
-
-        @Override
-        public void setProgress(int state, String name, int x, int max) {
+        public void setProgress(int state, String name, long x, long max) {
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {

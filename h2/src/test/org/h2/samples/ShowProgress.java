@@ -113,7 +113,7 @@ public class ShowProgress implements DatabaseEventListener {
      * @param max the 100% mark
      */
     @Override
-    public void setProgress(int state, String name, int current, int max) {
+    public void setProgress(int state, String name, long current, long max) {
         long time = System.nanoTime();
         if (time < lastNs + TimeUnit.SECONDS.toNanos(5)) {
             return;

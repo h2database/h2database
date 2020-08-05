@@ -21,7 +21,6 @@ import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
-import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 
@@ -199,10 +198,8 @@ public class PageStoreTable extends RegularTable {
                 int bufferSize = (int) Math.min(rowCount, database.getMaxMemoryRows());
                 ArrayList<Row> buffer = new ArrayList<>(bufferSize);
                 String n = getName() + ":" + index.getName();
-                int t = MathUtils.convertLongToInt(total);
                 while (cursor.next()) {
-                    database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, n,
-                            MathUtils.convertLongToInt(i++), t);
+                    database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, n, i++, total);
                     Row row = cursor.get();
                     buffer.add(row);
                     if (buffer.size() >= bufferSize) {

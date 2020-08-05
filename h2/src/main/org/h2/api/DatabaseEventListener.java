@@ -66,13 +66,15 @@ public interface DatabaseEventListener extends EventListener {
      *
      * @param url - the database URL
      */
-    void init(String url);
+    default void init(String url) {
+    }
 
     /**
      * This method is called after the database has been opened. It is save to
      * connect to the database and execute statements at this point.
      */
-    void opened();
+    default void opened() {
+    }
 
     /**
      * This method is called if an exception occurred.
@@ -80,7 +82,8 @@ public interface DatabaseEventListener extends EventListener {
      * @param e the exception
      * @param sql the SQL statement
      */
-    void exceptionThrown(SQLException e, String sql);
+    default void exceptionThrown(SQLException e, String sql) {
+    }
 
     /**
      * This method is called for long running events, such as recovering,
@@ -93,15 +96,17 @@ public interface DatabaseEventListener extends EventListener {
      * @param state the state
      * @param name the object name
      * @param x the current position
-     * @param max the highest possible value (might be 0)
+     * @param max the highest possible value or 0 if unknown
      */
-    void setProgress(int state, String name, int x, int max);
+    default void setProgress(int state, String name, long x, long max) {
+    }
 
     /**
      * This method is called before the database is closed normally. It is save
      * to connect to the database and execute statements at this point, however
      * the connection must be closed before the method returns.
      */
-    void closingDatabase();
+    default void closingDatabase() {
+    }
 
 }

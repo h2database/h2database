@@ -78,21 +78,6 @@ public class TestDatabaseEventListener extends TestDb {
             }
         }
 
-        @Override
-        public void closingDatabase() {
-            // nothing to do
-        }
-
-        @Override
-        public void exceptionThrown(SQLException e, String sql) {
-            // nothing to do
-        }
-
-        @Override
-        public void setProgress(int state, String name, int x, int max) {
-            // nothing to do
-        }
-
     }
 
     private void testInit() throws SQLException {
@@ -244,22 +229,11 @@ public class TestDatabaseEventListener extends TestDb {
     /**
      * The database event listener for this test.
      */
-    public static final class MyDatabaseEventListener implements
-            DatabaseEventListener {
+    public static final class MyDatabaseEventListener implements DatabaseEventListener {
 
         @Override
         public void closingDatabase() {
             calledClosingDatabase = true;
-        }
-
-        @Override
-        public void exceptionThrown(SQLException e, String sql) {
-            // nothing to do
-        }
-
-        @Override
-        public void init(String url) {
-            // nothing to do
         }
 
         @Override
@@ -268,7 +242,7 @@ public class TestDatabaseEventListener extends TestDb {
         }
 
         @Override
-        public void setProgress(int state, String name, int x, int max) {
+        public void setProgress(int state, String name, long x, long max) {
             if (state == DatabaseEventListener.STATE_SCAN_FILE) {
                 calledScan = true;
             }

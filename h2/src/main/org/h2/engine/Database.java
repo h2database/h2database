@@ -2214,9 +2214,9 @@ public class Database implements DataHandler, CastDataProvider {
      * @param state the {@link DatabaseEventListener} state
      * @param name the object name
      * @param x the current position
-     * @param max the highest value
+     * @param max the highest value or 0 if unknown
      */
-    public void setProgress(int state, String name, int x, int max) {
+    public void setProgress(int state, String name, long x, long max) {
         if (eventListener != null) {
             try {
                 eventListener.setProgress(state, name, x, max);

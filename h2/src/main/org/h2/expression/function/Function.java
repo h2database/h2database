@@ -21,7 +21,6 @@ import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.OperationN;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
 import org.h2.message.DbException;
@@ -46,19 +45,17 @@ import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueResultSet;
-import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 
 /**
  * This class implements most built-in functions of this database.
  */
-public class Function extends OperationN implements FunctionCall {
+public class Function extends FunctionN implements FunctionCall {
 
     public static final int
             INSERT = 57, INSTR = 58,
             LOCATE = 62,
             REPLACE = 67,
-            SUBSTRING = 73,
             POSITION = 77,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, RPAD = 90,
@@ -91,10 +88,8 @@ public class Function extends OperationN implements FunctionCall {
         addFunctionWithNull("INSERT", INSERT, 4, Value.VARCHAR);
         // 2 or 3 arguments
         addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INTEGER);
-        // same as LOCATE with 2 arguments
         addFunction("INSTR", INSTR, VAR_ARGS, Value.INTEGER);
         addFunctionWithNull("REPLACE", REPLACE, VAR_ARGS, Value.VARCHAR);
-        addFunction("SUBSTRING", SUBSTRING, VAR_ARGS, Value.NULL);
         addFunction("POSITION", POSITION, 2, Value.INTEGER);
         addFunction("XMLATTR", XMLATTR, 2, Value.VARCHAR);
         addFunctionWithNull("XMLNODE", XMLNODE, VAR_ARGS, Value.VARCHAR);
@@ -391,9 +386,6 @@ public class Function extends OperationN implements FunctionCall {
                 }
                 result = ValueVarchar.get(StringUtils.replaceAll(s0, s1, s2), session);
             }
-            break;
-        case SUBSTRING:
-            result = substring(session, v0, v1, v2);
             break;
         case POSITION:
             result = ValueInteger.get(locate(v0.getString(), v1.getString(), 0));
@@ -693,54 +685,6 @@ public class Function extends OperationN implements FunctionCall {
         return value;
     }
 
-
-    private Value substring(SessionLocal session, Value stringValue, Value startValue, Value lengthValue) {
-        if (type.getValueType() == Value.VARBINARY) {
-            byte[] s = stringValue.getBytesNoCopy();
-            int sl = s.length;
-            int start = startValue.getInt();
-            // These compatibility conditions violate the Standard
-            if (start == 0) {
-                start = 1;
-            } else if (start < 0) {
-                start = sl + start + 1;
-            }
-            int end = lengthValue == null ? Math.max(sl + 1, start) : start + lengthValue.getInt();
-            // SQL Standard requires "data exception - substring error" when
-            // end < start but H2 does not throw it for compatibility
-            start = Math.max(start, 1);
-            end = Math.min(end, sl + 1);
-            if (start > sl || end <= start) {
-                return ValueVarbinary.EMPTY;
-            }
-            start--;
-            end--;
-            if (start == 0 && end == s.length) {
-                return stringValue.convertTo(TypeInfo.TYPE_VARBINARY);
-            }
-            return ValueVarbinary.getNoCopy(Arrays.copyOfRange(s, start, end));
-        } else {
-            String s = stringValue.getString();
-            int sl = s.length();
-            int start = startValue.getInt();
-            // These compatibility conditions violate the Standard
-            if (start == 0) {
-                start = 1;
-            } else if (start < 0) {
-                start = sl + start + 1;
-            }
-            int end = lengthValue == null ? Math.max(sl + 1, start) : start + lengthValue.getInt();
-            // SQL Standard requires "data exception - substring error" when
-            // end < start but H2 does not throw it for compatibility
-            start = Math.max(start, 1);
-            end = Math.min(end, sl + 1);
-            if (start > sl || end <= start) {
-                return session.getMode().treatEmptyStringsAsNull ? ValueNull.INSTANCE : ValueVarchar.EMPTY;
-            }
-            return ValueVarchar.get(s.substring(start - 1, end - 1), null);
-        }
-    }
-
     private static int locate(String search, String s, int start) {
         if (start < 0) {
             int i = s.length() + start;
@@ -829,7 +773,6 @@ public class Function extends OperationN implements FunctionCall {
         case REPLACE:
         case LOCATE:
         case INSTR:
-        case SUBSTRING:
         case LPAD:
         case RPAD:
             min = 2;
@@ -881,23 +824,6 @@ public class Function extends OperationN implements FunctionCall {
                 throw DbException.get(ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getTraceSQL());
             }
             break;
-        case SUBSTRING: {
-            TypeInfo argType = p0.getType();
-            long p = argType.getPrecision();
-            if (args[1].isConstant()) {
-                // if only two arguments are used,
-                // subtract offset from first argument length
-                p -= args[1].getValue(session).getLong() - 1;
-            }
-            if (args.length == 3 && args[2].isConstant()) {
-                // if the third argument is constant it is at most this value
-                p = Math.min(p, args[2].getValue(session).getLong());
-            }
-            p = Math.max(0, p);
-            typeInfo = TypeInfo.getTypeInfo(DataType.isBinaryStringType(argType.getValueType())
-                    ? Value.VARBINARY : Value.VARCHAR, p, 0, null);
-            break;
-        }
         case TRIM_ARRAY:
         case ARRAY_SLICE: {
             typeInfo = p0.getType();
@@ -926,25 +852,6 @@ public class Function extends OperationN implements FunctionCall {
      */
     protected final boolean optimizeArguments(SessionLocal session) {
         return optimizeArguments(session, info.deterministic);
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        builder.append(info.name).append('(');
-        switch (info.type) {
-        case SUBSTRING: {
-            args[0].getUnenclosedSQL(builder, sqlFlags).append(" FROM ");
-            args[1].getUnenclosedSQL(builder, sqlFlags);
-            if (args.length > 2) {
-                builder.append(" FOR ");
-                args[2].getUnenclosedSQL(builder, sqlFlags);
-            }
-            break;
-        }
-        default:
-            writeExpressions(builder, args, sqlFlags);
-        }
-        return builder.append(')');
     }
 
     public int getFunctionType() {

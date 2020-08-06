@@ -300,6 +300,7 @@ import org.h2.expression.function.SessionControlFunction;
 import org.h2.expression.function.SoundexFunction;
 import org.h2.expression.function.StringFunction1;
 import org.h2.expression.function.StringFunction2;
+import org.h2.expression.function.SubstringFunction;
 import org.h2.expression.function.SysInfoFunction;
 import org.h2.expression.function.TableFunction;
 import org.h2.expression.function.TableInfoFunction;
@@ -4068,7 +4069,6 @@ public class Parser {
     }
 
     private Expression readCompatibilityFunction(String name) {
-        Function function;
         switch (name) {
         // ||
         case "ARRAY_APPEND":
@@ -4194,8 +4194,7 @@ public class Parser {
             return new StringFunction1(readSingleArgument(), StringFunction1.LOWER);
         // SUBSTRING
         case "SUBSTR":
-            function = Function.getFunction(Function.SUBSTRING);
-            break;
+            return readSubstringFunction();
         // TRIM
         case "LTRIM":
             return new TrimFunction(readSingleArgument(), null, TrimFunction.LEADING);
@@ -4212,7 +4211,6 @@ public class Parser {
         default:
             return null;
         }
-        return readParameters(function);
     }
 
     private OperationN readParameters(OperationN function) {
@@ -4378,6 +4376,8 @@ public class Parser {
             return new StringFunction1(readSingleArgument(), StringFunction1.SPACE);
         case "QUOTE_IDENT":
             return new StringFunction1(readSingleArgument(), StringFunction1.QUOTE_IDENT);
+        case "SUBSTRING":
+            return readSubstringFunction();
         case "REPEAT":
             return new StringFunction2(readExpression(), readLastArgument(), StringFunction2.REPEAT);
         case "CHAR_LENGTH":
@@ -4646,32 +4646,6 @@ public class Parser {
 
     private Function readFunctionParameters(Function function) {
         switch (function.getFunctionType()) {
-        case Function.SUBSTRING:
-            // Standard variants are:
-            // SUBSTRING(X FROM 1)
-            // SUBSTRING(X FROM 1 FOR 1)
-            // Different non-standard variants include:
-            // SUBSTRING(X,1)
-            // SUBSTRING(X,1,1)
-            // SUBSTRING(X FOR 1) -- Postgres
-            function.addParameter(readExpression());
-            if (readIf(FROM)) {
-                function.addParameter(readExpression());
-                if (readIf(FOR)) {
-                    function.addParameter(readExpression());
-                }
-            } else if (readIf(FOR)) {
-                function.addParameter(ValueExpression.get(ValueInteger.get(1)));
-                function.addParameter(readExpression());
-            } else {
-                read(COMMA);
-                function.addParameter(readExpression());
-                if (readIf(COMMA)) {
-                    function.addParameter(readExpression());
-                }
-            }
-            read(CLOSE_PAREN);
-            break;
         case Function.POSITION:
             // can't read expression because IN would be read too early
             function.addParameter(readConcat());
@@ -4728,6 +4702,36 @@ public class Parser {
                 } while (readIfMore());
             }
         }
+        function.doneWithParameters();
+        return function;
+    }
+
+    private Expression readSubstringFunction() {
+        // Standard variants are:
+        // SUBSTRING(X FROM 1)
+        // SUBSTRING(X FROM 1 FOR 1)
+        // Different non-standard variants include:
+        // SUBSTRING(X,1)
+        // SUBSTRING(X,1,1)
+        // SUBSTRING(X FOR 1) -- Postgres
+        SubstringFunction function = new SubstringFunction();
+        function.addParameter(readExpression());
+        if (readIf(FROM)) {
+            function.addParameter(readExpression());
+            if (readIf(FOR)) {
+                function.addParameter(readExpression());
+            }
+        } else if (readIf(FOR)) {
+            function.addParameter(ValueExpression.get(ValueInteger.get(1)));
+            function.addParameter(readExpression());
+        } else {
+            read(COMMA);
+            function.addParameter(readExpression());
+            if (readIf(COMMA)) {
+                function.addParameter(readExpression());
+            }
+        }
+        read(CLOSE_PAREN);
         function.doneWithParameters();
         return function;
     }

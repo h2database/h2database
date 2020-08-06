@@ -33,7 +33,7 @@ public final class DateTimeFormatFunction extends FunctionN {
     public static final int FORMATDATETIME = 0;
 
     /**
-     * PARSEDATETIME() (non-standard.
+     * PARSEDATETIME() (non-standard).
      */
     public static final int PARSEDATETIME = FORMATDATETIME + 1;
 

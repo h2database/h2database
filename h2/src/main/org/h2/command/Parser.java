@@ -224,6 +224,7 @@ import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.FieldReference;
 import org.h2.expression.Format;
 import org.h2.expression.Format.FormatEnum;
+import org.h2.expression.OperationN;
 import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
 import org.h2.expression.SearchedCase;
@@ -294,6 +295,7 @@ import org.h2.expression.function.MathFunction1;
 import org.h2.expression.function.MathFunction2;
 import org.h2.expression.function.NullIfFunction;
 import org.h2.expression.function.RandFunction;
+import org.h2.expression.function.RegexpFunction;
 import org.h2.expression.function.SessionControlFunction;
 import org.h2.expression.function.SoundexFunction;
 import org.h2.expression.function.StringFunction1;
@@ -4210,6 +4212,10 @@ public class Parser {
         default:
             return null;
         }
+        return readParameters(function);
+    }
+
+    private OperationN readParameters(OperationN function) {
         if (!readIf(CLOSE_PAREN)) {
             do {
                 function.addParameter(readExpression());
@@ -4384,6 +4390,12 @@ public class Parser {
             return new LengthFunction(readIfSingleArgument(), LengthFunction.BIT_LENGTH);
         case "TRIM":
             return readTrimFunction();
+        case "REGEXP_LIKE":
+            return readParameters(new RegexpFunction(RegexpFunction.REGEXP_LIKE));
+        case "REGEXP_REPLACE":
+            return readParameters(new RegexpFunction(RegexpFunction.REGEXP_REPLACE));
+        case "REGEXP_SUBSTR":
+            return readParameters(new RegexpFunction(RegexpFunction.REGEXP_SUBSTR));
         case "COMPRESS":
             return new CompressFunction(readExpression(), readIfArgument(), CompressFunction.COMPRESS);
         case "EXPAND":

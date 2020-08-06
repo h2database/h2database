@@ -45,6 +45,8 @@ public final class BuiltinFunctions {
                 "CHAR_LENGTH", "CHARACTER_LENGTH", "LENGTH", "OCTET_LENGTH", "BIT_LENGTH", //
                 // TrimFunction
                 "TRIM",
+                // RegexpFuction
+                "REGEXP_LIKE", "REGEXP_REPLACE", "REGEXP_SUBSTR",
                 // CompressFunction
                 "COMPRESS", "EXPAND",
                 // SoundexFunction

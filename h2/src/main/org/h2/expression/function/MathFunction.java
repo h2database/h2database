@@ -11,7 +11,6 @@ import java.math.RoundingMode;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.Operation1_2;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.value.DataType;
@@ -27,7 +26,7 @@ import org.h2.value.ValueReal;
 /**
  * A math function.
  */
-public final class MathFunction extends Operation1_2 implements NamedExpression {
+public final class MathFunction extends Function1_2 {
 
     /**
      * ABS().
@@ -363,15 +362,6 @@ public final class MathFunction extends Operation1_2 implements NamedExpression 
             }
         }
         return TypeInfo.getTypeInfo(Value.NUMERIC, Integer.MAX_VALUE, scale, null);
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        left.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags);
-        if (right != null) {
-            right.getUnenclosedSQL(builder.append(", "), sqlFlags);
-        }
-        return builder.append(')');
     }
 
     @Override

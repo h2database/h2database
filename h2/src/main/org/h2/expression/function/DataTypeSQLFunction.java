@@ -7,7 +7,6 @@ package org.h2.expression.function;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.OperationN;
 import org.h2.message.DbException;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
@@ -25,7 +24,7 @@ import org.h2.value.ValueVarchar;
 /**
  * DATA_TYPE_SQL() function.
  */
-public final class DataTypeSQLFunction extends OperationN implements NamedExpression {
+public final class DataTypeSQLFunction extends FunctionN {
 
     public DataTypeSQLFunction(Expression objectSchema, Expression objectName, Expression objectType,
             Expression typeIdentifier) {
@@ -144,11 +143,6 @@ public final class DataTypeSQLFunction extends OperationN implements NamedExpres
         optimizeArguments(session, false);
         type = TypeInfo.TYPE_VARCHAR;
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return writeExpressions(builder.append(getName()).append('('), args, sqlFlags).append(')');
     }
 
     @Override

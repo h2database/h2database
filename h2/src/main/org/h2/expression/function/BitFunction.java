@@ -7,7 +7,6 @@ package org.h2.expression.function;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.Operation1_2;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
@@ -19,7 +18,7 @@ import org.h2.value.ValueNull;
 /**
  * A bitwise function.
  */
-public final class BitFunction extends Operation1_2 implements NamedExpression {
+public final class BitFunction extends Function1_2 {
 
     /**
      * BITAND() (non-standard).
@@ -116,15 +115,6 @@ public final class BitFunction extends Operation1_2 implements NamedExpression {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        left.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags);
-        if (right != null) {
-            right.getUnenclosedSQL(builder.append(", "), sqlFlags);
-        }
-        return builder.append(')');
     }
 
     @Override

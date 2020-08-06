@@ -7,7 +7,6 @@ package org.h2.expression.function;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.Operation1_2;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.tools.CompressTool;
@@ -19,7 +18,7 @@ import org.h2.value.ValueVarbinary;
 /**
  * A COMPRESS or EXPAND function.
  */
-public final class CompressFunction extends Operation1_2 implements NamedExpression {
+public final class CompressFunction extends Function1_2 {
 
     /**
      * COMPRESS() (non-standard).
@@ -81,15 +80,6 @@ public final class CompressFunction extends Operation1_2 implements NamedExpress
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        left.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags);
-        if (right != null) {
-            right.getUnenclosedSQL(builder.append(", "), sqlFlags);
-        }
-        return builder.append(')');
     }
 
     @Override

@@ -11,7 +11,6 @@ import java.security.MessageDigest;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.OperationN;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.security.SHA3;
@@ -26,7 +25,7 @@ import org.h2.value.ValueVarbinary;
 /**
  * A HASH or ORA_HASH function.
  */
-public final class HashFunction extends OperationN implements NamedExpression {
+public final class HashFunction extends FunctionN {
 
     /**
      * HASH() (non-standard).
@@ -202,11 +201,6 @@ public final class HashFunction extends OperationN implements NamedExpression {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return writeExpressions(builder.append(getName()).append('('), args, sqlFlags).append(')');
     }
 
     @Override

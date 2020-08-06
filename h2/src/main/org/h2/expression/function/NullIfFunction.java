@@ -7,7 +7,6 @@ package org.h2.expression.function;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.Operation2;
 import org.h2.expression.TypedValueExpression;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -15,7 +14,7 @@ import org.h2.value.ValueNull;
 /**
  * A NULLIF function.
  */
-public final class NullIfFunction extends Operation2 implements NamedExpression {
+public final class NullIfFunction extends Function2 {
 
     public NullIfFunction(Expression arg1, Expression arg2) {
         super(arg1, arg2);
@@ -39,12 +38,6 @@ public final class NullIfFunction extends Operation2 implements NamedExpression 
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        left.getUnenclosedSQL(builder.append("NULLIF").append('('), sqlFlags).append(", ");
-        return right.getUnenclosedSQL(builder, sqlFlags).append(')');
     }
 
     @Override

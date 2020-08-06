@@ -12,7 +12,6 @@ import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.OperationN;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
@@ -26,7 +25,7 @@ import org.h2.value.ValueVarchar;
 /**
  * A date-time format function.
  */
-public final class DateTimeFormatFunction extends OperationN implements NamedExpression {
+public final class DateTimeFormatFunction extends FunctionN {
 
     /**
      * FORMATDATETIME() (non-standard).
@@ -170,11 +169,6 @@ public final class DateTimeFormatFunction extends OperationN implements NamedExp
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return writeExpressions(builder.append(getName()).append('('), args, sqlFlags).append(')');
     }
 
     @Override

@@ -10,7 +10,6 @@ import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.OperationN;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.value.TypeInfo;
@@ -22,7 +21,7 @@ import org.h2.value.ValueVarchar;
 /**
  * DB_OBJECT_ID() and DB_OBJECT_SQL() functions.
  */
-public final class DBObjectFunction extends OperationN implements NamedExpression {
+public final class DBObjectFunction extends FunctionN {
 
     /**
      * DB_OBJECT_ID() (non-standard).
@@ -138,11 +137,6 @@ public final class DBObjectFunction extends OperationN implements NamedExpressio
         optimizeArguments(session, false);
         type = function == DB_OBJECT_ID ? TypeInfo.TYPE_INTEGER : TypeInfo.TYPE_VARCHAR;
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return writeExpressions(builder.append(getName()).append('('), args, sqlFlags).append(')');
     }
 
     @Override

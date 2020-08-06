@@ -11,7 +11,6 @@ import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.Operation1_2;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -22,22 +21,13 @@ import org.h2.value.Value;
 /**
  * NEXTVAL() and CURRVAL() compatibility functions.
  */
-public final class CompatibilitySequenceValueFunction extends Operation1_2 implements NamedExpression {
+public final class CompatibilitySequenceValueFunction extends Function1_2 {
 
     private final boolean current;
 
     public CompatibilitySequenceValueFunction(Expression left, Expression right, boolean current) {
         super(left, right);
         this.current = current;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        left.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags);
-        if (right != null) {
-            right.getUnenclosedSQL(builder.append(", "), sqlFlags);
-        }
-        return builder.append(')');
     }
 
     @Override

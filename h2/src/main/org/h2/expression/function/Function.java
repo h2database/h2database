@@ -23,7 +23,6 @@ import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.OperationN;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
@@ -55,14 +54,14 @@ import org.h2.value.ValueVarchar;
 /**
  * This class implements most built-in functions of this database.
  */
-public class Function extends OperationN implements FunctionCall, ExpressionWithFlags {
+public class Function extends OperationN implements FunctionCall {
 
     public static final int
             INSERT = 57, INSTR = 58, LEFT = 60,
             LOCATE = 62,
             REPEAT = 66, REPLACE = 67, RIGHT = 68,
             SUBSTRING = 73,
-            POSITION = 77, TRIM = 78,
+            POSITION = 77,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
             LPAD = 91, TO_CHAR = 93, TRANSLATE = 94;
@@ -85,23 +84,12 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
 
     private static final int COUNT = REGEXP_SUBSTR + 1;
 
-    /**
-     * The flag for TRIM(LEADING ...) function.
-     */
-    public static final int TRIM_LEADING = 1;
-
-    /**
-     * The flag for TRIM(TRAILING ...) function.
-     */
-    public static final int TRIM_TRAILING = 2;
-
     protected static final int VAR_ARGS = -1;
 
     private static final FunctionInfo[] FUNCTIONS_BY_ID = new FunctionInfo[COUNT];
     private static final HashMap<String, FunctionInfo> FUNCTIONS_BY_NAME = new HashMap<>(128);
 
     protected final FunctionInfo info;
-    private int flags;
 
     static {
         // string
@@ -117,7 +105,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         addFunction("RIGHT", RIGHT, 2, Value.VARCHAR);
         addFunction("SUBSTRING", SUBSTRING, VAR_ARGS, Value.NULL);
         addFunction("POSITION", POSITION, 2, Value.INTEGER);
-        addFunction("TRIM", TRIM, VAR_ARGS, Value.VARCHAR);
         addFunction("XMLATTR", XMLATTR, 2, Value.VARCHAR);
         addFunctionWithNull("XMLNODE", XMLNODE, VAR_ARGS, Value.VARCHAR);
         addFunction("XMLCOMMENT", XMLCOMMENT, 1, Value.VARCHAR);
@@ -285,16 +272,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
     }
 
     @Override
-    public void setFlags(int flags) {
-        this.flags = flags;
-    }
-
-    @Override
-    public int getFlags() {
-        return flags;
-    }
-
-    @Override
     public Value getValue(SessionLocal session) {
         return getValueWithArgs(session, args);
     }
@@ -437,11 +414,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             break;
         case RIGHT:
             result = ValueVarchar.get(right(v0.getString(), v1.getInt()), session);
-            break;
-        case TRIM:
-            result = ValueVarchar.get(StringUtils.trim(v0.getString(),
-                    (flags & TRIM_LEADING) != 0, (flags & TRIM_TRAILING) != 0, v1 == null ? " " : v1.getString()),
-                    session);
             break;
         case SUBSTRING:
             result = substring(session, v0, v1, v2);
@@ -1054,7 +1026,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
         case CSVREAD:
             min = 1;
             break;
-        case TRIM:
         case XMLTEXT:
             min = 1;
             max = 2;
@@ -1145,7 +1116,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
             break;
         }
         case RIGHT:
-        case TRIM:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p0.getType().getPrecision(), 0, null);
             break;
         case TRIM_ARRAY:
@@ -1189,21 +1159,6 @@ public class Function extends OperationN implements FunctionCall, ExpressionWith
                 builder.append(" FOR ");
                 args[2].getUnenclosedSQL(builder, sqlFlags);
             }
-            break;
-        }
-        case TRIM: {
-            switch (flags) {
-            case TRIM_LEADING:
-                builder.append("LEADING ");
-                break;
-            case TRIM_TRAILING:
-                builder.append("TRAILING ");
-                break;
-            }
-            if (args.length > 1) {
-                args[1].getUnenclosedSQL(builder, sqlFlags).append(" FROM ");
-            }
-            args[0].getUnenclosedSQL(builder, sqlFlags);
             break;
         }
         default:

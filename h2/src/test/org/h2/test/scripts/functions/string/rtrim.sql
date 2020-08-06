@@ -10,4 +10,4 @@ select rtrim(null) en, '>' || rtrim('a') || '<' ea, '>' || rtrim(' a ') || '<' e
 > rows: 1
 
 select rtrim() from dual;
-> exception INVALID_PARAMETER_COUNT_2
+> exception SYNTAX_ERROR_2

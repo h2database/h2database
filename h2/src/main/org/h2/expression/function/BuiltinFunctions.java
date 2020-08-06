@@ -41,6 +41,8 @@ public final class BuiltinFunctions {
                 "UTF8TOSTRING", "HEXTORAW", "RAWTOHEX", "SPACE", "QUOTE_IDENT",
                 // LengthFunction
                 "CHAR_LENGTH", "CHARACTER_LENGTH", "LENGTH", "OCTET_LENGTH", "BIT_LENGTH", //
+                // TrimFunction
+                "TRIM",
                 // CompressFunction
                 "COMPRESS", "EXPAND",
                 // SoundexFunction

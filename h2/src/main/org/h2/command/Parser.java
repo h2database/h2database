@@ -300,6 +300,7 @@ import org.h2.expression.function.StringFunction1;
 import org.h2.expression.function.SysInfoFunction;
 import org.h2.expression.function.TableFunction;
 import org.h2.expression.function.TableInfoFunction;
+import org.h2.expression.function.TrimFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsPostgreSQL;
@@ -4194,13 +4195,9 @@ public class Parser {
             break;
         // TRIM
         case "LTRIM":
-            function = Function.getFunction(Function.TRIM);
-            function.setFlags(Function.TRIM_LEADING);
-            break;
+            return new TrimFunction(readSingleArgument(), null, TrimFunction.LEADING);
         case "RTRIM":
-            function = Function.getFunction(Function.TRIM);
-            function.setFlags(Function.TRIM_TRAILING);
-            break;
+            return new TrimFunction(readSingleArgument(), null, TrimFunction.TRAILING);
         // UPPER
         case "UCASE":
             return new StringFunction1(readSingleArgument(), StringFunction1.UPPER);
@@ -4382,6 +4379,8 @@ public class Parser {
             return new LengthFunction(readIfSingleArgument(), LengthFunction.OCTET_LENGTH);
         case "BIT_LENGTH":
             return new LengthFunction(readIfSingleArgument(), LengthFunction.BIT_LENGTH);
+        case "TRIM":
+            return readTrimFunction();
         case "COMPRESS":
             return new CompressFunction(readExpression(), readIfArgument(), CompressFunction.COMPRESS);
         case "EXPAND":
@@ -4534,6 +4533,43 @@ public class Parser {
         return f;
     }
 
+    private Expression readTrimFunction() {
+        int flags;
+        boolean needFrom = false;
+        if (readIf("LEADING")) {
+            flags = TrimFunction.LEADING;
+            needFrom = true;
+        } else if (readIf("TRAILING")) {
+            flags = TrimFunction.TRAILING;
+            needFrom = true;
+        } else {
+            needFrom = readIf("BOTH");
+            flags = TrimFunction.LEADING | TrimFunction.TRAILING;
+        }
+        Expression from, space = null;
+        if (needFrom) {
+            if (!readIf(FROM)) {
+                space = readExpression();
+                read(FROM);
+            }
+            from = readExpression();
+        } else {
+            if (readIf(FROM)) {
+                from = readExpression();
+            } else {
+                from = readExpression();
+                if (readIf(FROM)) {
+                    space = from;
+                    from = readExpression();
+                } else if (readIf(COMMA)) {
+                    space = readExpression();
+                }
+            }
+        }
+        read(CLOSE_PAREN);
+        return new TrimFunction(from, space, flags);
+    }
+
     private Expression readSingleArgument() {
         Expression arg = readExpression();
         read(CLOSE_PAREN);
@@ -4630,48 +4666,6 @@ public class Parser {
             function.addParameter(readExpression());
             read(CLOSE_PAREN);
             break;
-        case Function.TRIM: {
-            int flags;
-            boolean needFrom = false;
-            if (readIf("LEADING")) {
-                flags = Function.TRIM_LEADING;
-                needFrom = true;
-            } else if (readIf("TRAILING")) {
-                flags = Function.TRIM_TRAILING;
-                needFrom = true;
-            } else {
-                needFrom = readIf("BOTH");
-                flags = Function.TRIM_LEADING | Function.TRIM_TRAILING;
-            }
-            Expression p0, space = null;
-            function.setFlags(flags);
-            if (needFrom) {
-                if (!readIf(FROM)) {
-                    space = readExpression();
-                    read(FROM);
-                }
-                p0 = readExpression();
-            } else {
-                if (readIf(FROM)) {
-                    p0 = readExpression();
-                } else {
-                    p0 = readExpression();
-                    if (readIf(FROM)) {
-                        space = p0;
-                        p0 = readExpression();
-                    }
-                }
-            }
-            if (!needFrom && space == null && readIf(COMMA)) {
-                space = readExpression();
-            }
-            function.addParameter(p0);
-            if (space != null) {
-                function.addParameter(space);
-            }
-            read(CLOSE_PAREN);
-            break;
-        }
         case Function.TABLE:
         case Function.TABLE_DISTINCT: {
             ArrayList<Column> columns = Utils.newSmallArrayList();

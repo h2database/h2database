@@ -14,7 +14,7 @@ import org.h2.table.Table;
  * An access right. Rights are regular database objects, but have generated
  * names.
  */
-public class Right extends DbObjectBase {
+public final class Right extends DbObject {
 
     /**
      * The right bit mask that means: selecting from a table is allowed.

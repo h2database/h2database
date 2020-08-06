@@ -14,15 +14,14 @@ import org.h2.index.Index;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObjectBase;
+import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
 import org.h2.table.Table;
 
 /**
  * The base class for constraint checking.
  */
-public abstract class Constraint extends SchemaObjectBase implements
-        Comparable<Constraint> {
+public abstract class Constraint extends SchemaObject implements Comparable<Constraint> {
 
     public enum Type {
         /**

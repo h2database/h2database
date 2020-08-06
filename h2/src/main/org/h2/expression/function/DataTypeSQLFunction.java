@@ -5,15 +5,15 @@
  */
 package org.h2.expression.function;
 
-import org.h2.engine.FunctionAlias;
-import org.h2.engine.FunctionAlias.JavaMethod;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.OperationN;
 import org.h2.message.DbException;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
+import org.h2.schema.FunctionAlias;
 import org.h2.schema.Schema;
+import org.h2.schema.FunctionAlias.JavaMethod;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.value.TypeInfo;

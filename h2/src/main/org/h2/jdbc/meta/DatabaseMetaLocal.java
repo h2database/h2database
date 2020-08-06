@@ -23,8 +23,6 @@ import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
-import org.h2.engine.FunctionAlias;
-import org.h2.engine.FunctionAlias.JavaMethod;
 import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
@@ -36,9 +34,11 @@ import org.h2.mode.DefaultNullOrdering;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.result.SortOrder;
+import org.h2.schema.FunctionAlias;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObjectBase;
+import org.h2.schema.SchemaObject;
 import org.h2.schema.UserAggregate;
+import org.h2.schema.FunctionAlias.JavaMethod;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
@@ -435,7 +435,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         }
         for (Schema schema : getSchemasForPattern(schemaPattern)) {
             Value schemaValue = getString(schema.getName());
-            for (SchemaObjectBase object : getTablesForPattern(schema, tableNamePattern)) {
+            for (SchemaObject object : getTablesForPattern(schema, tableNamePattern)) {
                 Value tableName = getString(object.getName());
                 if (object instanceof Table) {
                     Table t = (Table) object;
@@ -545,7 +545,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         CompareLike columnLike = getLike(columnNamePattern);
         for (Schema schema : getSchemasForPattern(schemaPattern)) {
             Value schemaValue = getString(schema.getName());
-            for (SchemaObjectBase object : getTablesForPattern(schema, tableNamePattern)) {
+            for (SchemaObject object : getTablesForPattern(schema, tableNamePattern)) {
                 Value tableName = getString(object.getName());
                 if (object instanceof Table) {
                     Table t = (Table) object;
@@ -1392,7 +1392,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         }
     }
 
-    private Collection<? extends SchemaObjectBase> getTablesForPattern(Schema schema, String tablePattern) {
+    private Collection<? extends SchemaObject> getTablesForPattern(Schema schema, String tablePattern) {
         Collection<Table> tables = schema.getAllTablesAndViews(session);
         Collection<TableSynonym> synonyms = schema.getAllSynonyms();
         if (tablePattern == null) {
@@ -1401,14 +1401,14 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             } else if (synonyms.isEmpty()) {
                 return tables;
             }
-            ArrayList<SchemaObjectBase> list = new ArrayList<>(tables.size() + synonyms.size());
+            ArrayList<SchemaObject> list = new ArrayList<>(tables.size() + synonyms.size());
             list.addAll(tables);
             list.addAll(synonyms);
             return list;
         } else if (tables.isEmpty() && synonyms.isEmpty()) {
             return Collections.emptySet();
         } else {
-            ArrayList<SchemaObjectBase> list = Utils.newSmallArrayList();
+            ArrayList<SchemaObject> list = Utils.newSmallArrayList();
             CompareLike like = getLike(tablePattern);
             for (Table t : tables) {
                 if (like.test(t.getName())) {

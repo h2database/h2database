@@ -17,9 +17,7 @@ import org.h2.command.ddl.CreateTableData;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
-import org.h2.engine.DbObjectBase;
 import org.h2.engine.DbSettings;
-import org.h2.engine.FunctionAlias;
 import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.SysProperties;
@@ -38,7 +36,7 @@ import org.h2.util.Utils;
  * A schema as created by the SQL statement
  * CREATE SCHEMA
  */
-public class Schema extends DbObjectBase {
+public class Schema extends DbObject {
 
     private User owner;
     private final boolean system;

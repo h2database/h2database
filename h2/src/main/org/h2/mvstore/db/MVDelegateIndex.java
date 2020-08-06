@@ -9,7 +9,6 @@ import java.util.List;
 
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.SessionLocal;
-import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
@@ -26,7 +25,7 @@ import org.h2.value.VersionedValue;
 /**
  * An index that delegates indexing to another index.
  */
-public class MVDelegateIndex extends BaseIndex implements MVIndex<Long,SearchRow> {
+public class MVDelegateIndex extends MVIndex<Long, SearchRow> {
 
     private final MVPrimaryIndex mainIndex;
 
@@ -151,11 +150,6 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex<Long,SearchRow
     @Override
     public long getRowCountApproximation(SessionLocal session) {
         return mainIndex.getRowCountApproximation(session);
-    }
-
-    @Override
-    public long getDiskSpaceUsed() {
-        return 0;
     }
 
 }

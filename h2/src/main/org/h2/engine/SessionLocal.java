@@ -656,16 +656,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         return database;
     }
 
-    @Override
-    public int getPowerOffCount() {
-        return database.getPowerOffCount();
-    }
-
-    @Override
-    public void setPowerOffCount(int count) {
-        database.setPowerOffCount(count);
-    }
-
     /**
      * Commit the current transaction. If the statement was not a data
      * definition statement, and if there are temporary tables that should be

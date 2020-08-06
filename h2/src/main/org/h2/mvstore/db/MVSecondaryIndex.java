@@ -14,7 +14,6 @@ import org.h2.api.ErrorCode;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
-import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.index.SingleRowCursor;
@@ -37,7 +36,7 @@ import org.h2.value.VersionedValue;
 /**
  * An index stored in a MVStore.
  */
-public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchRow,Value> {
+public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
 
     /**
      * The multi-value table.

@@ -12,7 +12,7 @@ import org.h2.table.Table;
 /**
  * A persistent database setting.
  */
-public class Setting extends DbObjectBase {
+public final class Setting extends DbObject {
 
     private int intValue;
     private String stringValue;

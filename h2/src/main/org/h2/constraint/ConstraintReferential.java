@@ -563,7 +563,7 @@ public class ConstraintReferential extends Constraint {
 
     @Override
     public boolean usesIndex(Index idx) {
-        return idx == index || idx == refConstraint;
+        return idx == index;
     }
 
     @Override

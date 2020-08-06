@@ -13,7 +13,6 @@ import org.h2.api.ErrorCode;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
-import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.index.SingleRowCursor;
@@ -36,7 +35,7 @@ import org.h2.value.VersionedValue;
 /**
  * A table stored in a MVStore.
  */
-public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow> {
+public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
 
     private final MVTable mvTable;
     private final String mapName;

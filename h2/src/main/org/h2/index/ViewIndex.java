@@ -34,7 +34,7 @@ import org.h2.value.Value;
  * This object represents a virtual index for a query.
  * Actually it only represents a prepared SELECT statement.
  */
-public class ViewIndex extends BaseIndex implements SpatialIndex {
+public class ViewIndex extends Index implements SpatialIndex {
 
     private static final long MAX_AGE_NANOS =
             TimeUnit.MILLISECONDS.toNanos(Constants.VIEW_COST_CACHE_MAX_AGE);
@@ -405,11 +405,6 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     @Override
     public long getRowCountApproximation(SessionLocal session) {
-        return 0;
-    }
-
-    @Override
-    public long getDiskSpaceUsed() {
         return 0;
     }
 

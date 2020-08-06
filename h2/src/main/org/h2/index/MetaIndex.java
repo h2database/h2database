@@ -21,7 +21,7 @@ import org.h2.table.TableFilter;
 /**
  * The index implementation for meta data tables.
  */
-public class MetaIndex extends BaseIndex {
+public class MetaIndex extends Index {
 
     private final MetaTable meta;
     private final boolean scan;

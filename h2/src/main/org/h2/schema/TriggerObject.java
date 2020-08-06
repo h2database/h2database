@@ -31,7 +31,7 @@ import org.h2.value.ValueToObjectConverter;
  *A trigger is created using the statement
  * CREATE TRIGGER
  */
-public class TriggerObject extends SchemaObjectBase {
+public final class TriggerObject extends SchemaObject {
 
     /**
      * The default queue size.

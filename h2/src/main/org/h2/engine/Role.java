@@ -12,7 +12,7 @@ import org.h2.table.Table;
 /**
  * Represents a role. Roles can be granted to users, and to other roles.
  */
-public class Role extends RightOwner {
+public final class Role extends RightOwner {
 
     private final boolean system;
 

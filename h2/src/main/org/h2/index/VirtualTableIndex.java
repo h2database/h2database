@@ -14,7 +14,7 @@ import org.h2.table.VirtualTable;
 /**
  * An base class for indexes of virtual tables.
  */
-public abstract class VirtualTableIndex extends BaseIndex {
+public abstract class VirtualTableIndex extends Index {
 
     protected VirtualTableIndex(VirtualTable table, String name, IndexColumn[] columns) {
         super(table, 0, name, columns, IndexType.createNonUnique(true));
@@ -63,11 +63,6 @@ public abstract class VirtualTableIndex extends BaseIndex {
     @Override
     public long getRowCountApproximation(SessionLocal session) {
         return table.getRowCountApproximation(session);
-    }
-
-    @Override
-    public long getDiskSpaceUsed() {
-        return 0;
     }
 
 }

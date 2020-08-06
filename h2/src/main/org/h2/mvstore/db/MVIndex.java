@@ -8,14 +8,21 @@ package org.h2.mvstore.db;
 import java.util.List;
 
 import org.h2.index.Index;
+import org.h2.index.IndexType;
 import org.h2.mvstore.MVMap;
 import org.h2.result.Row;
+import org.h2.table.IndexColumn;
+import org.h2.table.Table;
 import org.h2.value.VersionedValue;
 
 /**
  * An index that stores the data in an MVStore.
  */
-public interface MVIndex<K,V> extends Index {
+public abstract class MVIndex<K,V> extends Index {
+
+    protected MVIndex(Table newTable, int id, String name, IndexColumn[] newIndexColumns, IndexType newIndexType) {
+        super(newTable, id, name, newIndexColumns, newIndexType);
+    }
 
     /**
      * Add the rows to a temporary storage (not to the index yet). The rows are
@@ -24,7 +31,7 @@ public interface MVIndex<K,V> extends Index {
      * @param rows the rows
      * @param bufferName the name of the temporary storage
      */
-    void addRowsToBuffer(List<Row> rows, String bufferName);
+    public abstract void addRowsToBuffer(List<Row> rows, String bufferName);
 
     /**
      * Add all the index data from the buffers to the index. The index will
@@ -32,7 +39,8 @@ public interface MVIndex<K,V> extends Index {
      *
      * @param bufferNames the names of the temporary storage
      */
-    void addBufferedRows(List<String> bufferNames);
+    public abstract void addBufferedRows(List<String> bufferNames);
 
-    MVMap<K,VersionedValue<V>> getMVMap();
+    public abstract MVMap<K,VersionedValue<V>> getMVMap();
+
 }

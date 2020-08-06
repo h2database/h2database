@@ -148,22 +148,6 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
     public abstract boolean isClosed();
 
     /**
-     * Get the number of disk operations before power failure is simulated.
-     * This is used for testing. If not set, 0 is returned
-     *
-     * @return the number of operations, or 0
-     */
-    public abstract int getPowerOffCount();
-
-    /**
-     * Set the number of disk operations before power failure is simulated.
-     * To disable the countdown, use 0.
-     *
-     * @param i the number of operations
-     */
-    public abstract void setPowerOffCount(int i);
-
-    /**
      * Get the data handler object.
      *
      * @return the data handler

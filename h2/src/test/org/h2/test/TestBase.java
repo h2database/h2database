@@ -37,6 +37,7 @@ import java.util.Objects;
 import java.util.SimpleTimeZone;
 import java.util.concurrent.TimeUnit;
 
+import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
@@ -1211,7 +1212,7 @@ public abstract class TestBase {
      * @param conn the database connection
      */
     protected void crash(Connection conn) {
-        ((JdbcConnection) conn).setPowerOffCount(1);
+        setPowerOffCount(conn, 1);
         try {
             conn.createStatement().execute("SET WRITE_DELAY 0");
             conn.createStatement().execute("CREATE TABLE TEST_A(ID INT)");
@@ -1224,6 +1225,25 @@ public abstract class TestBase {
         } catch (SQLException e) {
             // ignore
         }
+    }
+
+    /**
+     * Set the number of disk operations before power failure is simulated.
+     * To disable the countdown, use 0.
+     *
+     * @param conn the connection
+     * @param i the number of operations
+     */
+    public static void setPowerOffCount(Connection conn, int i) {
+        SessionLocal session = (SessionLocal) ((JdbcConnection) conn).getSession();
+        if (session != null) {
+            session.getDatabase().setPowerOffCount(i);
+        }
+    }
+
+    protected static int getPowerOffCount(Connection conn) {
+        SessionLocal session = (SessionLocal) ((JdbcConnection) conn).getSession();
+        return session != null && !session.isClosed() ? session.getDatabase().getPowerOffCount() : 0;
     }
 
     /**

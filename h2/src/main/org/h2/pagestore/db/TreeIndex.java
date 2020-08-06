@@ -7,8 +7,8 @@ package org.h2.pagestore.db;
 
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.SessionLocal;
-import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
+import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.result.Row;
@@ -22,7 +22,24 @@ import org.h2.value.ValueNull;
 /**
  * The tree index is an in-memory index based on a binary AVL trees.
  */
-public class TreeIndex extends BaseIndex {
+public class TreeIndex extends Index {
+
+    /**
+     * Compare the positions of two rows.
+     *
+     * @param rowData the first row
+     * @param compare the second row
+     * @return 0 if both rows are equal, -1 if the first row is smaller,
+     *         otherwise 1
+     */
+    public static int compareKeys(SearchRow rowData, SearchRow compare) {
+        long k1 = rowData.getKey();
+        long k2 = compare.getKey();
+        if (k1 == k2) {
+            return 0;
+        }
+        return k1 > k2 ? 1 : -1;
+    }
 
     private TreeNode root;
     private final PageStoreTable tableData;
@@ -389,11 +406,6 @@ public class TreeIndex extends BaseIndex {
     @Override
     public long getRowCountApproximation(SessionLocal session) {
         return rowCount;
-    }
-
-    @Override
-    public long getDiskSpaceUsed() {
-        return 0;
     }
 
 }

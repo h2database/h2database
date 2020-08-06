@@ -10,14 +10,14 @@ import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObjectBase;
+import org.h2.schema.SchemaObject;
 import org.h2.util.ParserUtil;
 
 /**
  * Synonym for an existing table or view. All DML requests are forwarded to the backing table.
  * Adding indices to a synonym or altering the table is not supported.
  */
-public class TableSynonym extends SchemaObjectBase {
+public class TableSynonym extends SchemaObject {
 
     private CreateSynonymData data;
 

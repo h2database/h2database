@@ -29,7 +29,7 @@ import org.h2.value.ValueNull;
  * A linked index is a index for a linked (remote) table.
  * It is backed by an index on the remote table which is accessed over JDBC.
  */
-public class LinkedIndex extends BaseIndex {
+public class LinkedIndex extends Index {
 
     private final TableLink link;
     private final String targetTableName;
@@ -264,8 +264,4 @@ public class LinkedIndex extends BaseIndex {
         return rowCount;
     }
 
-    @Override
-    public long getDiskSpaceUsed() {
-        return 0;
-    }
 }

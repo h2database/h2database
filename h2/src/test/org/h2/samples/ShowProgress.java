@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.DatabaseEventListener;
+import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
 
 /**
@@ -67,7 +68,7 @@ public class ShowProgress implements DatabaseEventListener {
         }
         boolean abnormalTermination = true;
         if (abnormalTermination) {
-            ((JdbcConnection) conn).setPowerOffCount(1);
+            ((SessionLocal) ((JdbcConnection) conn).getSession()).getDatabase().setPowerOffCount(1);
             try {
                 stat.execute("INSERT INTO TEST VALUES(-1, 'Test' || SPACE(100))");
             } catch (SQLException e) {
@@ -112,7 +113,7 @@ public class ShowProgress implements DatabaseEventListener {
      * @param max the 100% mark
      */
     @Override
-    public void setProgress(int state, String name, int current, int max) {
+    public void setProgress(int state, String name, long current, long max) {
         long time = System.nanoTime();
         if (time < lastNs + TimeUnit.SECONDS.toNanos(5)) {
             return;

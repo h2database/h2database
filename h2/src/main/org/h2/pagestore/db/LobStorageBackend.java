@@ -16,9 +16,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.engine.Database;
+import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.message.TraceSystem;
 import org.h2.mvstore.DataUtils;
 import org.h2.store.CountingReaderInputStream;
 import org.h2.store.LobStorageFrontend;
@@ -117,8 +120,13 @@ public class LobStorageBackend implements LobStorageInterface {
                 return;
             }
             init = true;
-            conn = database.getLobConnectionForRegularUse();
-            JdbcConnection initConn = database.getLobConnectionForInit();
+            String systemUserName = database.getSystemUser().getName();
+            SessionLocal session = database.getLobSession();
+            session.getTrace().setLevel(TraceSystem.OFF);
+            conn = new JdbcConnection(session, systemUserName, Constants.CONN_URL_INTERNAL);
+            session = database.getSystemSession();
+            session.getTrace().setLevel(TraceSystem.OFF);
+            JdbcConnection initConn = new JdbcConnection(session, systemUserName, Constants.CONN_URL_INTERNAL);
             try {
                 Statement stat = initConn.createStatement();
                 // stat.execute("SET UNDO_LOG 0");

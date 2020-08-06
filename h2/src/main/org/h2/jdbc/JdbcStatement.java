@@ -1288,7 +1288,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      *
      * @param c the command
      */
-    protected void setExecutingStatement(CommandInterface c) {
+    void setExecutingStatement(CommandInterface c) {
         if (c == null) {
             conn.setExecutingStatement(null);
         } else {

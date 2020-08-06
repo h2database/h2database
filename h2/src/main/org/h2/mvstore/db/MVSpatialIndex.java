@@ -17,7 +17,6 @@ import org.h2.api.ErrorCode;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
-import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexCondition;
 import org.h2.index.IndexType;
@@ -50,7 +49,7 @@ import org.h2.value.VersionedValue;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<Spatial, Value> {
+public class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIndex {
 
     /**
      * The multi-value table.

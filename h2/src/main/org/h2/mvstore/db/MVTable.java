@@ -29,7 +29,6 @@ import org.h2.result.SearchRow;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.util.DebuggingThreadLocal;
-import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 
 /**
@@ -402,13 +401,11 @@ public class MVTable extends RegularTable {
         int bufferSize = database.getMaxMemoryRows() / 2;
         ArrayList<Row> buffer = new ArrayList<>(bufferSize);
         String n = getName() + ":" + index.getName();
-        int t = MathUtils.convertLongToInt(total);
         ArrayList<String> bufferNames = Utils.newSmallArrayList();
         while (cursor.next()) {
             Row row = cursor.get();
             buffer.add(row);
-            database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, n,
-                    MathUtils.convertLongToInt(i++), t);
+            database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, n, i++, total);
             if (buffer.size() >= bufferSize) {
                 sortRows(buffer, index);
                 String mapName = store.nextTemporaryMapName();
@@ -443,12 +440,10 @@ public class MVTable extends RegularTable {
         int bufferSize = (int) Math.min(total, database.getMaxMemoryRows());
         ArrayList<Row> buffer = new ArrayList<>(bufferSize);
         String n = getName() + ":" + index.getName();
-        int t = MathUtils.convertLongToInt(total);
         while (cursor.next()) {
             Row row = cursor.get();
             buffer.add(row);
-            database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, n,
-                    MathUtils.convertLongToInt(i++), t);
+            database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, n, i++, total);
             if (buffer.size() >= bufferSize) {
                 addRowsToIndex(session, buffer, index);
             }

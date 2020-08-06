@@ -199,16 +199,10 @@ public class TestMultiConn extends TestDb {
     /**
      * A database event listener used in this test.
      */
-    public static final class MyDatabaseEventListener implements
-            DatabaseEventListener {
+    public static final class MyDatabaseEventListener implements DatabaseEventListener {
 
         @Override
-        public void exceptionThrown(SQLException e, String sql) {
-            // do nothing
-        }
-
-        @Override
-        public void setProgress(int state, String name, int x, int max) {
+        public void setProgress(int state, String name, long x, long max) {
             if (wait > 0) {
                 try {
                     Thread.sleep(wait);
@@ -218,20 +212,6 @@ public class TestMultiConn extends TestDb {
             }
         }
 
-        @Override
-        public void closingDatabase() {
-            // do nothing
-        }
-
-        @Override
-        public void init(String url) {
-            // do nothing
-        }
-
-        @Override
-        public void opened() {
-            // do nothing
-        }
     }
 
 }

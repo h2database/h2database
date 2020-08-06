@@ -23,7 +23,7 @@ import org.h2.value.Value;
 /**
  * Represents a domain.
  */
-public final class Domain extends SchemaObjectBase implements ColumnTemplate {
+public final class Domain extends SchemaObject implements ColumnTemplate {
 
     private TypeInfo type;
 

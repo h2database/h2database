@@ -14,7 +14,6 @@ import java.util.Random;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
-import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.JdbcUtils;
@@ -77,16 +76,16 @@ public class TestPowerOff extends TestDb {
         conn = getConnection(url);
         stat = conn.createStatement();
         stat.execute("set write_delay 0");
-        ((JdbcConnection) conn).setPowerOffCount(Integer.MAX_VALUE);
+        setPowerOffCount(conn, Integer.MAX_VALUE);
         stat.execute("insert into test(data) values space(11000)");
-        int max = Integer.MAX_VALUE - ((JdbcConnection) conn).getPowerOffCount();
+        int max = Integer.MAX_VALUE - getPowerOffCount(conn);
         for (int i = 0; i < max + 10; i++) {
             conn.close();
             conn = getConnection(url);
             stat = conn.createStatement();
             stat.execute("insert into test(data) values space(11000)");
             stat.execute("set write_delay 0");
-            ((JdbcConnection) conn).setPowerOffCount(i);
+            setPowerOffCount(conn, i);
             try {
                 stat.execute("insert into test(data) values space(11000)");
             } catch (SQLException e) {
@@ -156,7 +155,7 @@ public class TestPowerOff extends TestDb {
             conn = getConnection(url);
             Statement stat = conn.createStatement();
             stat.execute("SET WRITE_DELAY 0");
-            ((JdbcConnection) conn).setPowerOffCount(random.nextInt(100));
+            setPowerOffCount(conn, random.nextInt(100));
             try {
                 stat.execute("DROP TABLE IF EXISTS TEST");
                 stat.execute("CREATE TABLE TEST" +
@@ -214,7 +213,7 @@ public class TestPowerOff extends TestDb {
                 "(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         stat.execute("CHECKPOINT");
-        ((JdbcConnection) conn).setPowerOffCount(1);
+        setPowerOffCount(conn, 1);
         try {
             stat.execute("INSERT INTO TEST VALUES(2, 'Hello')");
             stat.execute("INSERT INTO TEST VALUES(3, 'Hello')");
@@ -224,7 +223,7 @@ public class TestPowerOff extends TestDb {
             assertKnownException(e);
         }
 
-        ((JdbcConnection) conn).setPowerOffCount(0);
+        setPowerOffCount(conn, 0);
         try {
             conn.close();
         } catch (SQLException e) {
@@ -304,8 +303,7 @@ public class TestPowerOff extends TestDb {
             stat.execute("DROP TABLE TEST");
             state = 0;
             if (init) {
-                maxPowerOffCount = Integer.MAX_VALUE -
-                        ((JdbcConnection) conn).getPowerOffCount();
+                maxPowerOffCount = Integer.MAX_VALUE - getPowerOffCount(conn);
             }
             conn.close();
         } catch (SQLException e) {
@@ -323,7 +321,7 @@ public class TestPowerOff extends TestDb {
         int state;
         Database.setInitialPowerOffCount(0);
         Connection conn = getConnection(url);
-        assertEquals(0, ((JdbcConnection) conn).getPowerOffCount());
+        assertEquals(0, getPowerOffCount(conn));
         Statement stat = conn.createStatement();
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs = meta.getTables(null, null, "TEST", null);

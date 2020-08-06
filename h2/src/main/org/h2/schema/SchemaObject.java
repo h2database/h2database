@@ -10,14 +10,42 @@ import org.h2.engine.DbObject;
 /**
  * Any database object that is stored in a schema.
  */
-public interface SchemaObject extends DbObject {
+public abstract class SchemaObject extends DbObject {
+
+    private final Schema schema;
+
+    /**
+     * Initialize some attributes of this object.
+     *
+     * @param newSchema the schema
+     * @param id the object id
+     * @param name the name
+     * @param traceModuleId the trace module id
+     */
+    protected SchemaObject(Schema newSchema, int id, String name, int traceModuleId) {
+        super(newSchema.getDatabase(), id, name, traceModuleId);
+        this.schema = newSchema;
+    }
 
     /**
      * Get the schema in which this object is defined
      *
      * @return the schema
      */
-    Schema getSchema();
+    public final Schema getSchema() {
+        return schema;
+    }
+
+    @Override
+    public String getSQL(int sqlFlags) {
+        return getSQL(new StringBuilder(), sqlFlags).toString();
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        schema.getSQL(builder, sqlFlags).append('.');
+        return super.getSQL(builder, sqlFlags);
+    }
 
     /**
      * Check whether this is a hidden object that doesn't appear in the meta
@@ -25,6 +53,8 @@ public interface SchemaObject extends DbObject {
      *
      * @return true if it is hidden
      */
-    boolean isHidden();
+    public boolean isHidden() {
+        return false;
+    }
 
 }

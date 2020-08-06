@@ -20,7 +20,6 @@ import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.table.TableView;
 import org.h2.util.HasSQL;
-import org.h2.util.MathUtils;
 
 /**
  * A prepared statement.
@@ -379,11 +378,8 @@ public abstract class Prepared {
      */
     private void setProgress() {
         if ((currentRowNumber & 127) == 0) {
-            session.getDatabase().setProgress(
-                    DatabaseEventListener.STATE_STATEMENT_PROGRESS,
-                    sqlStatement,
-                    // TODO update interface
-                    MathUtils.convertLongToInt(currentRowNumber), 0);
+            session.getDatabase().setProgress(DatabaseEventListener.STATE_STATEMENT_PROGRESS, sqlStatement,
+                    currentRowNumber, 0L);
         }
     }
 

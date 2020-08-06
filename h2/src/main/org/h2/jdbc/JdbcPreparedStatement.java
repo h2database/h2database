@@ -220,7 +220,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             }
             checkClosed();
             boolean returnsResultSet;
-            synchronized (conn.getSession()) {
+            synchronized (session) {
                 closeOldResultSet();
                 boolean lazy = false;
                 try {

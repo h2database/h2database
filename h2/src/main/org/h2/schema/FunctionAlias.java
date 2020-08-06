@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.engine;
+package org.h2.schema;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
@@ -15,12 +15,13 @@ import java.util.Arrays;
 
 import org.h2.Driver;
 import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
+import org.h2.engine.DbObject;
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.schema.Schema;
-import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ParserUtil;
@@ -40,7 +41,7 @@ import org.h2.value.ValueToObjectConverter2;
  * @author Thomas Mueller
  * @author Gary Tong
  */
-public class FunctionAlias extends SchemaObjectBase {
+public final class FunctionAlias extends SchemaObject {
 
     private String className;
     private String methodName;

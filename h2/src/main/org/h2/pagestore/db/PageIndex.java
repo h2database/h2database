@@ -5,7 +5,7 @@
  */
 package org.h2.pagestore.db;
 
-import org.h2.index.BaseIndex;
+import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
@@ -13,7 +13,7 @@ import org.h2.table.Table;
 /**
  * A page store index.
  */
-public abstract class PageIndex extends BaseIndex {
+public abstract class PageIndex extends Index {
 
     /**
      * The root page of this index.

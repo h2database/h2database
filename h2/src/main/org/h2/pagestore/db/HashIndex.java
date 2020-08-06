@@ -13,8 +13,8 @@ import java.util.TreeMap;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Mode.UniqueIndexNullsHandling;
 import org.h2.engine.SessionLocal;
-import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
+import org.h2.index.Index;
 import org.h2.index.IndexCondition;
 import org.h2.index.IndexType;
 import org.h2.index.SingleRowCursor;
@@ -32,7 +32,7 @@ import org.h2.value.ValueNull;
 /**
  * A unique index based on an in-memory hash map.
  */
-public class HashIndex extends BaseIndex {
+public class HashIndex extends Index {
 
     /**
      * The index of the indexed column.
@@ -124,11 +124,6 @@ public class HashIndex extends BaseIndex {
     @Override
     public long getRowCountApproximation(SessionLocal session) {
         return rows.size() + nullRows.size();
-    }
-
-    @Override
-    public long getDiskSpaceUsed() {
-        return 0;
     }
 
     @Override

@@ -139,10 +139,8 @@ public abstract class TriggerAdapter implements Trigger {
      * @throws SQLException if the operation must be undone
      */
     @Override
-    public void fire(Connection conn, Object[] oldRow, Object[] newRow)
-            throws SQLException {
-        fire(conn, wrap(oldResultSet, oldSource, oldRow),
-                wrap(newResultSet, newSource, newRow));
+    public synchronized void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+        fire(conn, wrap(oldResultSet, oldSource, oldRow), wrap(newResultSet, newSource, newRow));
     }
 
     /**

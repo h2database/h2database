@@ -39,6 +39,8 @@ public final class BuiltinFunctions {
                 // StringFunction1
                 "UPPER", "LOWER", "ASCII", "CHAR", "CHR", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8",
                 "UTF8TOSTRING", "HEXTORAW", "RAWTOHEX", "SPACE", "QUOTE_IDENT",
+                // StringFunction2
+                /* LEFT and RIGHT are keywords */ "REPEAT",
                 // LengthFunction
                 "CHAR_LENGTH", "CHARACTER_LENGTH", "LENGTH", "OCTET_LENGTH", "BIT_LENGTH", //
                 // TrimFunction

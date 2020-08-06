@@ -297,6 +297,7 @@ import org.h2.expression.function.RandFunction;
 import org.h2.expression.function.SessionControlFunction;
 import org.h2.expression.function.SoundexFunction;
 import org.h2.expression.function.StringFunction1;
+import org.h2.expression.function.StringFunction2;
 import org.h2.expression.function.SysInfoFunction;
 import org.h2.expression.function.TableFunction;
 import org.h2.expression.function.TableInfoFunction;
@@ -4371,6 +4372,8 @@ public class Parser {
             return new StringFunction1(readSingleArgument(), StringFunction1.SPACE);
         case "QUOTE_IDENT":
             return new StringFunction1(readSingleArgument(), StringFunction1.QUOTE_IDENT);
+        case "REPEAT":
+            return new StringFunction2(readExpression(), readLastArgument(), StringFunction2.REPEAT);
         case "CHAR_LENGTH":
         case "CHARACTER_LENGTH":
         case "LENGTH":
@@ -4877,35 +4880,6 @@ public class Parser {
         return result;
     }
 
-    private Expression readKeywordFunctionOrColumn(int functionType) {
-        boolean nonKeyword = nonKeywords != null && nonKeywords.get(currentTokenType);
-        String name = currentToken;
-        read();
-        if (isToken(OPEN_PAREN)) {
-            return readKeywordFunction(functionType);
-        } else if (nonKeyword) {
-            return readIf(DOT) ? readTermObjectDot(name) : new ExpressionColumn(database, null, null, name);
-        }
-        throw getSyntaxError();
-    }
-
-    private Expression readKeywordFunction(int id) {
-        Function function = Function.getFunction(id);
-        if (readIf(OPEN_PAREN)) {
-            readFunctionParameters(function);
-        } else {
-            function.doneWithParameters();
-        }
-        if (database.isAllowBuiltinAliasOverride()) {
-            FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(
-                    function.getName());
-            if (functionAlias != null) {
-                return new JavaFunction(functionAlias, function.getArgs());
-            }
-        }
-        return function;
-    }
-
     private Expression readKeywordCompatibilityFunctionOrColumn() {
         boolean nonKeyword = nonKeywords != null && nonKeywords.get(currentTokenType);
         String name = currentToken;
@@ -5314,7 +5288,10 @@ public class Parser {
             r = readKeywordCompatibilityFunctionOrColumn();
             break;
         case LEFT:
-            r = readKeywordFunctionOrColumn(Function.LEFT);
+            r = readColumnIfNotFunction();
+            if (r == null) {
+                r = new StringFunction2(readExpression(), readLastArgument(), StringFunction2.LEFT);
+            }
             break;
         case LOCALTIME:
             read();
@@ -5326,10 +5303,16 @@ public class Parser {
                     null);
             break;
         case RIGHT:
-            r = readKeywordFunctionOrColumn(Function.RIGHT);
+            r = readColumnIfNotFunction();
+            if (r == null) {
+                r = new StringFunction2(readExpression(), readLastArgument(), StringFunction2.RIGHT);
+            }
             break;
         case SET:
-            r = readKeywordFunctionOrColumn(Function.SET);
+            r = readColumnIfNotFunction();
+            if (r == null) {
+                r = readSetFunction();
+            }
             break;
         case VALUE:
             if (parseDomainConstraint) {
@@ -5412,6 +5395,30 @@ public class Parser {
             read(CLOSE_PAREN);
         }
         return new CurrentGeneralValueSpecification(specification);
+    }
+
+    private Expression readColumnIfNotFunction() {
+        boolean nonKeyword = nonKeywords != null && nonKeywords.get(currentTokenType);
+        String name = currentToken;
+        read();
+        if (readIf(OPEN_PAREN)) {
+            return null;
+        } else if (nonKeyword) {
+            return readIf(DOT) ? readTermObjectDot(name) : new ExpressionColumn(database, null, null, name);
+        }
+        throw getSyntaxError();
+    }
+
+    private Expression readSetFunction() {
+        Function function = readFunctionParameters(Function.getFunction(Function.SET));
+        if (database.isAllowBuiltinAliasOverride()) {
+            FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(
+                    function.getName());
+            if (functionAlias != null) {
+                return new JavaFunction(functionAlias, function.getArgs());
+            }
+        }
+        return function;
     }
 
     private Expression readOnDuplicateKeyValues(Table table, Update update) {

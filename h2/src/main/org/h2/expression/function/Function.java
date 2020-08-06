@@ -57,9 +57,9 @@ import org.h2.value.ValueVarchar;
 public class Function extends OperationN implements FunctionCall {
 
     public static final int
-            INSERT = 57, INSTR = 58, LEFT = 60,
+            INSERT = 57, INSTR = 58,
             LOCATE = 62,
-            REPEAT = 66, REPLACE = 67, RIGHT = 68,
+            REPLACE = 67,
             SUBSTRING = 73,
             POSITION = 77,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
@@ -94,15 +94,11 @@ public class Function extends OperationN implements FunctionCall {
     static {
         // string
         addFunctionWithNull("INSERT", INSERT, 4, Value.VARCHAR);
-        addFunction("LEFT", LEFT, 2, Value.VARCHAR);
         // 2 or 3 arguments
         addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INTEGER);
         // same as LOCATE with 2 arguments
-        addFunction("POSITION", LOCATE, 2, Value.INTEGER);
         addFunction("INSTR", INSTR, VAR_ARGS, Value.INTEGER);
-        addFunction("REPEAT", REPEAT, 2, Value.VARCHAR);
         addFunctionWithNull("REPLACE", REPLACE, VAR_ARGS, Value.VARCHAR);
-        addFunction("RIGHT", RIGHT, 2, Value.VARCHAR);
         addFunction("SUBSTRING", SUBSTRING, VAR_ARGS, Value.NULL);
         addFunction("POSITION", POSITION, 2, Value.INTEGER);
         addFunction("XMLATTR", XMLATTR, 2, Value.VARCHAR);
@@ -380,9 +376,6 @@ public class Function extends OperationN implements FunctionCall {
             }
             break;
         }
-        case LEFT:
-            result = ValueVarchar.get(left(v0.getString(), v1.getInt()), session);
-            break;
         case LOCATE: {
             int start = v2 == null ? 0 : v2.getInt();
             result = ValueInteger.get(locate(v0.getString(), v1.getString(), start));
@@ -391,11 +384,6 @@ public class Function extends OperationN implements FunctionCall {
         case INSTR: {
             int start = v2 == null ? 0 : v2.getInt();
             result = ValueInteger.get(locate(v1.getString(), v0.getString(), start));
-            break;
-        }
-        case REPEAT: {
-            int count = Math.max(0, v1.getInt());
-            result = ValueVarchar.get(repeat(v0.getString(), count), session);
             break;
         }
         case REPLACE:
@@ -411,9 +399,6 @@ public class Function extends OperationN implements FunctionCall {
                 }
                 result = ValueVarchar.get(StringUtils.replaceAll(s0, s1, s2), session);
             }
-            break;
-        case RIGHT:
-            result = ValueVarchar.get(right(v0.getString(), v1.getInt()), session);
             break;
         case SUBSTRING:
             result = substring(session, v0, v1, v2);
@@ -845,14 +830,6 @@ public class Function extends OperationN implements FunctionCall {
         }
     }
 
-    private static String repeat(String s, int count) {
-        StringBuilder buff = new StringBuilder(s.length() * count);
-        while (count-- > 0) {
-            buff.append(s);
-        }
-        return buff.toString();
-    }
-
     private static int locate(String search, String s, int start) {
         if (start < 0) {
             int i = s.length() + start;
@@ -860,24 +837,6 @@ public class Function extends OperationN implements FunctionCall {
         }
         int i = (start == 0) ? 0 : start - 1;
         return s.indexOf(search, i) + 1;
-    }
-
-    private static String right(String s, int count) {
-        if (count < 0) {
-            count = 0;
-        } else if (count > s.length()) {
-            count = s.length();
-        }
-        return s.substring(s.length() - count);
-    }
-
-    private static String left(String s, int count) {
-        if (count < 0) {
-            count = 0;
-        } else if (count > s.length()) {
-            count = s.length();
-        }
-        return s.substring(0, count);
     }
 
     private static String insert(String s1, int start, int length, String s2) {
@@ -1115,9 +1074,6 @@ public class Function extends OperationN implements FunctionCall {
                     ? Value.VARBINARY : Value.VARCHAR, p, 0, null);
             break;
         }
-        case RIGHT:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p0.getType().getPrecision(), 0, null);
-            break;
         case TRIM_ARRAY:
         case ARRAY_SLICE: {
             typeInfo = p0.getType();

@@ -5,8 +5,12 @@
  */
 package org.h2.expression.function;
 
+import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.Operation2;
+import org.h2.message.DbException;
+import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * Function with two arguments.
@@ -15,6 +19,23 @@ public abstract class Function2 extends Operation2 implements NamedExpression {
 
     protected Function2(Expression left, Expression right) {
         super(left, right);
+    }
+
+    @Override
+    public Value getValue(SessionLocal session) {
+        Value v1 = left.getValue(session);
+        if (v1 == ValueNull.INSTANCE) {
+            return ValueNull.INSTANCE;
+        }
+        Value v2 = right.getValue(session);
+        if (v2 == ValueNull.INSTANCE) {
+            return ValueNull.INSTANCE;
+        }
+        return getValue(session, v1, v2);
+    }
+
+    protected Value getValue(SessionLocal session, Value v1, Value v2) {
+        throw DbException.throwInternalError();
     }
 
     @Override

@@ -45,22 +45,16 @@ public final class DBObjectFunction extends FunctionN {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
+    public Value getValue(SessionLocal session, Value v1, Value v2, Value v3) {
         session.getUser().checkAdmin();
-        String objectType = args[0].getValue(session).getString();
-        if (objectType == null) {
-            return ValueNull.INSTANCE;
-        }
+        String objectType = v1.getString();
         DbObject object;
-        if (args.length == 3) {
-            Schema schema = session.getDatabase().findSchema(args[1].getValue(session).getString());
+        if (v3 != null) {
+            Schema schema = session.getDatabase().findSchema(v2.getString());
             if (schema == null) {
                 return ValueNull.INSTANCE;
             }
-            String objectName = args[2].getValue(session).getString();
-            if (objectName == null) {
-                return ValueNull.INSTANCE;
-            }
+            String objectName = v3.getString();
             switch (objectType) {
             case "CONSTANT":
                 object = schema.findConstant(objectName);
@@ -96,10 +90,7 @@ public final class DBObjectFunction extends FunctionN {
                 return ValueNull.INSTANCE;
             }
         } else {
-            String objectName = args[1].getValue(session).getString();
-            if (objectName == null) {
-                return ValueNull.INSTANCE;
-            }
+            String objectName = v2.getString();
             Database database = session.getDatabase();
             switch (objectType) {
             case "ROLE":

@@ -14,7 +14,6 @@ import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueInteger;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueVarchar;
 
 /**
@@ -48,19 +47,13 @@ public final class SoundexFunction extends Function1_2 {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = left.getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2) {
         switch (function) {
         case SOUNDEX:
             v1 = ValueVarchar.get(new String(getSoundex(v1.getString()), StandardCharsets.ISO_8859_1), session);
             break;
         case DIFFERENCE: {
-            Value v2 = right.getValue(session);
-            v1 = v2 == ValueNull.INSTANCE ? ValueNull.INSTANCE
-                    : ValueInteger.get(getDifference(v1.getString(), v2.getString()));
+            v1 = ValueInteger.get(getDifference(v1.getString(), v2.getString()));
             break;
         }
         default:

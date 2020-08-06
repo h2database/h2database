@@ -16,7 +16,6 @@ import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueVarbinary;
 
 /**
@@ -46,19 +45,7 @@ public final class CryptFunction extends FunctionN {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = args[0].getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        Value v2 = args[1].getValue(session);
-        if (v2 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        Value v3 = args[2].getValue(session);
-        if (v3 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2, Value v3) {
         BlockCipher cipher = CipherFactory.getBlockCipher(v1.getString());
         cipher.setKey(getPaddedArrayCopy(v2.getBytesNoCopy(), cipher.getKeyLength()));
         byte[] newData = getPaddedArrayCopy(v3.getBytesNoCopy(), BlockCipher.ALIGN);

@@ -11,7 +11,6 @@ import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueVarchar;
 
 /**
@@ -46,15 +45,7 @@ public final class StringFunction2 extends Function2 {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = left.getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        Value v2 = right.getValue(session);
-        if (v2 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2) {
         String s = v1.getString();
         int count = v2.getInt();
         if (count <= 0) {

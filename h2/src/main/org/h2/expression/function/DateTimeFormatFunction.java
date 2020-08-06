@@ -18,7 +18,6 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.LegacyDateTimeUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueVarchar;
 
@@ -49,20 +48,11 @@ public final class DateTimeFormatFunction extends FunctionN {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = args[0].getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        Value v2 = args[1].getValue(session);
-        if (v2 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2, Value v3) {
         String format = v2.getString(), locale, tz;
-        int l = args.length;
-        if (l > 2) {
-            locale = args[2].getValue(session).getString();
-            tz = (l > 3) ? args[3].getValue(session).getString() : null;
+        if (v3 != null) {
+            locale = v3.getString();
+            tz = args.length > 3 ? args[3].getValue(session).getString() : null;
         } else {
             tz = locale = null;
         }

@@ -13,7 +13,6 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
-import org.h2.value.ValueNull;
 
 /**
  * A bitwise function.
@@ -67,18 +66,7 @@ public final class BitFunction extends Function1_2 {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = left.getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        if (function == BITNOT) {
-            return ValueBigint.get(~v1.getLong());
-        }
-        Value v2 = right.getValue(session);
-        if (v2 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2) {
         long l1 = v1.getLong();
         switch (function) {
         case BITAND:
@@ -90,6 +78,8 @@ public final class BitFunction extends Function1_2 {
         case BITXOR:
             l1 ^= v2.getLong();
             break;
+        case BITNOT:
+            return ValueBigint.get(~v1.getLong());
         case BITGET:
             return ValueBoolean.get((l1 & (1L << v2.getInt())) != 0);
         case LSHIFT:

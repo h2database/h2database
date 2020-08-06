@@ -7,18 +7,16 @@ package org.h2.expression.function;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.Operation1_2;
 import org.h2.expression.TypedValueExpression;
 import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueVarchar;
 
 /**
  * A TRIM function.
  */
-public final class TrimFunction extends Operation1_2 implements NamedExpression {
+public final class TrimFunction extends Function1_2 {
 
     /**
      * The LEADING flag.
@@ -38,23 +36,9 @@ public final class TrimFunction extends Operation1_2 implements NamedExpression 
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = left.getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        String space;
-        if (right != null) {
-            Value v2 = right.getValue(session);
-            if (v2 == ValueNull.INSTANCE) {
-                return ValueNull.INSTANCE;
-            }
-            space = v2.getString();
-        } else {
-            space = " ";
-        }
-        return ValueVarchar.get(StringUtils.trim(v1.getString(), (flags & LEADING) != 0, (flags & TRAILING) != 0, //
-                space), session);
+    public Value getValue(SessionLocal session, Value v1, Value v2) {
+        return ValueVarchar.get(StringUtils.trim(v1.getString(), (flags & LEADING) != 0, (flags & TRAILING) != 0,
+                v2 != null ? v2.getString() : " "), session);
     }
 
     @Override

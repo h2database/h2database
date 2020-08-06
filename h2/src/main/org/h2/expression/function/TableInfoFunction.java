@@ -48,20 +48,7 @@ public final class TableInfoFunction extends Function1_2 {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = left.getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        Value v2;
-        if (right != null) {
-            v2 = right.getValue(session);
-            if (v2 == ValueNull.INSTANCE) {
-                return ValueNull.INSTANCE;
-            }
-        } else {
-            v2 = null;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2) {
         Table table = new Parser(session).parseTableName(v1.getString());
         l: switch (function) {
         case DISK_SPACE_USED:

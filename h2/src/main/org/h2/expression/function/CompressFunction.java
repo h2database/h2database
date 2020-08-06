@@ -12,7 +12,6 @@ import org.h2.message.DbException;
 import org.h2.tools.CompressTool;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueVarbinary;
 
 /**
@@ -42,24 +41,12 @@ public final class CompressFunction extends Function1_2 {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = left.getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2) {
         switch (function) {
-        case COMPRESS: {
-            String algorithm = null;
-            if (right != null) {
-                Value v2 = right.getValue(session);
-                if (v2 == ValueNull.INSTANCE) {
-                    return ValueNull.INSTANCE;
-                }
-                algorithm = v2.getString();
-            }
-            v1 = ValueVarbinary.getNoCopy(CompressTool.getInstance().compress(v1.getBytesNoCopy(), algorithm));
+        case COMPRESS:
+            v1 = ValueVarbinary.getNoCopy(
+                    CompressTool.getInstance().compress(v1.getBytesNoCopy(), v2 != null ? v2.getString() : null));
             break;
-        }
         case EXPAND:
             v1 = ValueVarbinary.getNoCopy(CompressTool.getInstance().expand(v1.getBytesNoCopy()));
             break;

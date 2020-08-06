@@ -32,19 +32,13 @@ public final class DataTypeSQLFunction extends FunctionN {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Schema schema = session.getDatabase().findSchema(args[0].getValue(session).getString());
+    public Value getValue(SessionLocal session, Value v1, Value v2, Value v3) {
+        Schema schema = session.getDatabase().findSchema(v1.getString());
         if (schema == null) {
             return ValueNull.INSTANCE;
         }
-        String objectName = args[1].getValue(session).getString();
-        if (objectName == null) {
-            return ValueNull.INSTANCE;
-        }
-        String objectType = args[2].getValue(session).getString();
-        if (objectType == null) {
-            return ValueNull.INSTANCE;
-        }
+        String objectName = v2.getString();
+        String objectType = v3.getString();
         String typeIdentifier = args[3].getValue(session).getString();
         if (typeIdentifier == null) {
             return ValueNull.INSTANCE;

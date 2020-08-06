@@ -54,25 +54,7 @@ public final class HashFunction extends FunctionN {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = args[0].getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        Value v2 = null, v3 = null;
-        int count = args.length;
-        if (count >= 2) {
-            v2 = args[1].getValue(session);
-            if (v2 == ValueNull.INSTANCE) {
-                return ValueNull.INSTANCE;
-            }
-            if (count >= 3) {
-                v3 = args[2].getValue(session);
-                if (v3 == ValueNull.INSTANCE) {
-                    return ValueNull.INSTANCE;
-                }
-            }
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2, Value v3) {
         switch (function) {
         case HASH:
             v1 = getHash(v1.getString(), v2, v3 == null ? 1 : v3.getInt());

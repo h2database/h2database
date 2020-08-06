@@ -29,35 +29,18 @@ public final class SubstringFunction extends FunctionN {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value stringValue = args[0].getValue(session);
-        if (stringValue == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        Value startValue = args[1].getValue(session);
-        if (startValue == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        Value lengthValue;
-        if (args.length >= 3) {
-            lengthValue = args[2].getValue(session);
-            if (lengthValue == ValueNull.INSTANCE) {
-                return ValueNull.INSTANCE;
-            }
-        } else {
-            lengthValue = null;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2, Value v3) {
         if (type.getValueType() == Value.VARBINARY) {
-            byte[] s = stringValue.getBytesNoCopy();
+            byte[] s = v1.getBytesNoCopy();
             int sl = s.length;
-            int start = startValue.getInt();
+            int start = v2.getInt();
             // These compatibility conditions violate the Standard
             if (start == 0) {
                 start = 1;
             } else if (start < 0) {
                 start = sl + start + 1;
             }
-            int end = lengthValue == null ? Math.max(sl + 1, start) : start + lengthValue.getInt();
+            int end = v3 == null ? Math.max(sl + 1, start) : start + v3.getInt();
             // SQL Standard requires "data exception - substring error" when
             // end < start but H2 does not throw it for compatibility
             start = Math.max(start, 1);
@@ -68,20 +51,20 @@ public final class SubstringFunction extends FunctionN {
             start--;
             end--;
             if (start == 0 && end == s.length) {
-                return stringValue.convertTo(TypeInfo.TYPE_VARBINARY);
+                return v1.convertTo(TypeInfo.TYPE_VARBINARY);
             }
             return ValueVarbinary.getNoCopy(Arrays.copyOfRange(s, start, end));
         } else {
-            String s = stringValue.getString();
+            String s = v1.getString();
             int sl = s.length();
-            int start = startValue.getInt();
+            int start = v2.getInt();
             // These compatibility conditions violate the Standard
             if (start == 0) {
                 start = 1;
             } else if (start < 0) {
                 start = sl + start + 1;
             }
-            int end = lengthValue == null ? Math.max(sl + 1, start) : start + lengthValue.getInt();
+            int end = v3 == null ? Math.max(sl + 1, start) : start + v3.getInt();
             // SQL Standard requires "data exception - substring error" when
             // end < start but H2 does not throw it for compatibility
             start = Math.max(start, 1);

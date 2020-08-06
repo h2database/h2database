@@ -12,7 +12,6 @@ import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueNull;
 
 /**
  * A math function with two arguments and DOUBLE PRECISION result.
@@ -46,15 +45,7 @@ public final class MathFunction2 extends Function2 {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = left.getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        Value v2 = right.getValue(session);
-        if (v2 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2) {
         double d1 = v1.getDouble(), d2 = v2.getDouble();
         switch (function) {
         case ATAN2:

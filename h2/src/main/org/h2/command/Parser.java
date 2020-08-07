@@ -304,11 +304,11 @@ import org.h2.expression.function.StringFunction1;
 import org.h2.expression.function.StringFunction2;
 import org.h2.expression.function.SubstringFunction;
 import org.h2.expression.function.SysInfoFunction;
-import org.h2.expression.function.TableFunction;
 import org.h2.expression.function.TableInfoFunction;
 import org.h2.expression.function.ToCharFunction;
 import org.h2.expression.function.TrimFunction;
 import org.h2.expression.function.XMLFunction;
+import org.h2.expression.function.table.TableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsPostgreSQL;
@@ -2079,7 +2079,7 @@ public class Parser {
             table = query.toTable(alias, null, parameters, createView != null, currentSelect);
         } else if (readIf(TABLE)) {
             read(OPEN_PAREN);
-            Function function = readFunctionParameters(Function.getFunction(Function.TABLE));
+            TableFunction function = readTableFunction(TableFunction.TABLE);
             table = new FunctionTable(database.getMainSchema(), session, function, function);
         } else {
             boolean quoted = currentTokenQuoted;
@@ -4058,7 +4058,7 @@ public class Parser {
                 && schema.getName().equals(database.sysIdentifier("PG_CATALOG"))) {
             Function function = FunctionsPostgreSQL.getFunction(database, upperName);
             if (function != null) {
-                return readFunctionParameters(function);
+                return readParameters(function);
             }
         }
         Expression function = readJavaFunction(schema, name);
@@ -4585,9 +4585,13 @@ public class Parser {
         case "PI":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueDouble.get(Math.PI));
+        case "UNNEST":
+            return readUnnestFunction();
+        case "TABLE_DISTINCT":
+            return readTableFunction(TableFunction.TABLE_DISTINCT);
         }
         Function function = Function.getFunction(database, upperName);
-        return function != null ? readFunctionParameters(function) : null;
+        return function != null ? readParameters(function) : null;
     }
 
     private Expression readDateTimeFormatFunction(int function) {
@@ -4641,6 +4645,49 @@ public class Parser {
         }
         read(CLOSE_PAREN);
         return new TrimFunction(from, space, flags);
+    }
+
+    private TableFunction readUnnestFunction() {
+        TableFunction f = new TableFunction(TableFunction.UNNEST);
+        ArrayList<Column> columns = Utils.newSmallArrayList();
+        if (!readIf(CLOSE_PAREN)) {
+            int i = 0;
+            do {
+                Expression expr = readExpression();
+                TypeInfo columnType = TypeInfo.TYPE_NULL;
+                if (expr.isConstant()) {
+                    expr = expr.optimize(session);
+                    TypeInfo exprType = expr.getType();
+                    if (exprType.getValueType() == Value.ARRAY) {
+                        columnType = (TypeInfo) exprType.getExtTypeInfo();
+                    }
+                }
+                f.addParameter(expr);
+                columns.add(new Column("C" + ++i, columnType));
+            } while (readIfMore());
+        }
+        if (readIf(WITH)) {
+            read("ORDINALITY");
+            columns.add(new Column("NORD", TypeInfo.TYPE_INTEGER));
+        }
+        f.setColumns(columns);
+        f.doneWithParameters();
+        return f;
+    }
+
+    private TableFunction readTableFunction(int functionType) {
+        TableFunction f = new TableFunction(functionType);
+        ArrayList<Column> columns = Utils.newSmallArrayList();
+        do {
+            String columnName = readAliasIdentifier();
+            Column column = parseColumnWithType(columnName);
+            columns.add(column);
+            read(EQUAL);
+            f.addParameter(readExpression());
+        } while (readIfMore());
+        f.setColumns(columns);
+        f.doneWithParameters();
+        return f;
     }
 
     private Expression readSingleArgument() {
@@ -4700,59 +4747,6 @@ public class Parser {
         }
         f.doneWithParameters();
         return f;
-    }
-
-    private Function readFunctionParameters(Function function) {
-        switch (function.getFunctionType()) {
-        case Function.TABLE:
-        case Function.TABLE_DISTINCT: {
-            ArrayList<Column> columns = Utils.newSmallArrayList();
-            do {
-                String columnName = readAliasIdentifier();
-                Column column = parseColumnWithType(columnName);
-                columns.add(column);
-                read(EQUAL);
-                function.addParameter(readExpression());
-            } while (readIfMore());
-            TableFunction tf = (TableFunction) function;
-            tf.setColumns(columns);
-            break;
-        }
-        case Function.UNNEST: {
-            ArrayList<Column> columns = Utils.newSmallArrayList();
-            if (!readIf(CLOSE_PAREN)) {
-                int i = 0;
-                do {
-                    Expression expr = readExpression();
-                    TypeInfo columnType = TypeInfo.TYPE_NULL;
-                    if (expr.isConstant()) {
-                        expr = expr.optimize(session);
-                        TypeInfo exprType = expr.getType();
-                        if (exprType.getValueType() == Value.ARRAY) {
-                            columnType = (TypeInfo) exprType.getExtTypeInfo();
-                        }
-                    }
-                    function.addParameter(expr);
-                    columns.add(new Column("C" + ++i, columnType));
-                } while (readIfMore());
-            }
-            if (readIf(WITH)) {
-                read("ORDINALITY");
-                columns.add(new Column("NORD", TypeInfo.TYPE_INTEGER));
-            }
-            TableFunction tf = (TableFunction) function;
-            tf.setColumns(columns);
-            break;
-        }
-        default:
-            if (!readIf(CLOSE_PAREN)) {
-                do {
-                    function.addParameter(readExpression());
-                } while (readIfMore());
-            }
-        }
-        function.doneWithParameters();
-        return function;
     }
 
     private Expression readSubstringFunction() {
@@ -5155,7 +5149,7 @@ public class Parser {
             int index = lastParseIndex;
             read();
             if (readIf(OPEN_PAREN)) {
-                r = readFunctionParameters(Function.getFunction(Function.TABLE));
+                r = readTableFunction(TableFunction.TABLE);
             } else {
                 reread(index);
                 r = new Subquery(parseQuery());
@@ -5475,7 +5469,7 @@ public class Parser {
     }
 
     private Expression readSetFunction() {
-        Function function = readFunctionParameters(Function.getFunction(Function.SET));
+        Function function = (Function) readParameters(Function.getFunction(Function.SET));
         if (database.isAllowBuiltinAliasOverride()) {
             FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(
                     function.getName());

@@ -54,11 +54,10 @@ public class Function extends FunctionN implements FunctionCall {
     public static final int
             CSVREAD = 210, CSVWRITE = 211,
             LINK_SCHEMA = 218,
-            SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
-            TRUNCATE_VALUE = 227,
-            UNNEST = 233;
+            SET = 222,
+            TRUNCATE_VALUE = 227;
 
-    private static final int COUNT = UNNEST + 1;
+    private static final int COUNT = TRUNCATE_VALUE + 1;
 
     protected static final int VAR_ARGS = -1;
 
@@ -77,11 +76,6 @@ public class Function extends FunctionN implements FunctionCall {
                 6, Value.RESULT_SET);
         addFunction("SET", SET, 2, Value.NULL, false, false);
         addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
-
-        // TableFunction
-        addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
-        addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT, VAR_ARGS, Value.RESULT_SET);
-        addFunctionWithNull("UNNEST", UNNEST, VAR_ARGS, Value.RESULT_SET);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
@@ -111,7 +105,7 @@ public class Function extends FunctionN implements FunctionCall {
      * @return the function object
      */
     public static Function getFunction(int id) {
-        return createFunction(FUNCTIONS_BY_ID[id], null);
+        return new Function(FUNCTIONS_BY_ID[id]);
     }
 
     /**
@@ -122,7 +116,7 @@ public class Function extends FunctionN implements FunctionCall {
      * @return the function object
      */
     public static Function getFunctionWithArgs(int id, Expression... arguments) {
-        return createFunction(FUNCTIONS_BY_ID[id], arguments);
+        return new Function(FUNCTIONS_BY_ID[id], arguments);
     }
 
     /**
@@ -142,7 +136,7 @@ public class Function extends FunctionN implements FunctionCall {
             }
             return null;
         }
-        return createFunction(info, null);
+        return new Function(info);
     }
 
     private static Function getCompatibilityModeFunction(String name, ModeEnum modeEnum) {
@@ -160,18 +154,6 @@ public class Function extends FunctionN implements FunctionCall {
             return FunctionsPostgreSQL.getFunction(name);
         default:
             return null;
-        }
-    }
-
-    private static Function createFunction(FunctionInfo info, Expression[] arguments) {
-        switch (info.type) {
-        case TABLE:
-        case TABLE_DISTINCT:
-        case UNNEST:
-            assert arguments == null;
-            return new TableFunction(info);
-        default:
-            return arguments != null ? new Function(info, arguments) : new Function(info);
         }
     }
 

@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.expression.function;
+package org.h2.expression.function.table;
 
 import java.util.ArrayList;
 
@@ -12,9 +12,13 @@ import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
+import org.h2.expression.TypedValueExpression;
+import org.h2.expression.function.FunctionCall;
+import org.h2.expression.function.FunctionN;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.table.Column;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueInteger;
@@ -22,15 +26,36 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 
 /**
- * Implementation of the functions TABLE(..), TABLE_DISTINCT(..), and
- * UNNEST(..).
+ * A table value function.
  */
-public final class TableFunction extends Function {
+public final class TableFunction extends FunctionN implements FunctionCall {
+
+    /**
+     * UNNEST().
+     */
+    public static final int UNNEST = 0;
+
+    /**
+     * TABLE() (non-standard).
+     */
+    public static final int TABLE = UNNEST + 1;
+
+    /**
+     * TABLE_DISTINCT() (non-standard).
+     */
+    public static final int TABLE_DISTINCT = TABLE + 1;
 
     private Column[] columns;
 
-    TableFunction(FunctionInfo info) {
-        super(info);
+    private static final String[] NAMES = { //
+            "UNNEST", "TABLE", "TABLE_DISTINCT" //
+    };
+
+    private final int function;
+
+    public TableFunction(int function) {
+        super(new Expression[1]);
+        this.function = function;
     }
 
     @Override
@@ -39,15 +64,21 @@ public final class TableFunction extends Function {
     }
 
     @Override
-    protected void checkParameterCount(int len) {
-        if (len < 1) {
+    public Expression optimize(SessionLocal session) {
+        boolean allConst = optimizeArguments(session, true);
+        if (args.length < 1) {
             throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, getName(), ">0");
         }
+        type = TypeInfo.TYPE_RESULT_SET;
+        if (allConst) {
+            return TypedValueExpression.getTypedIfNull(getValue(session), type);
+        }
+        return this;
     }
 
     @Override
     public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        if (info.type == UNNEST) {
+        if (function == UNNEST) {
             super.getUnenclosedSQL(builder, sqlFlags);
             if (args.length < columns.length) {
                 builder.append(" WITH ORDINALITY");
@@ -67,8 +98,7 @@ public final class TableFunction extends Function {
     }
 
     @Override
-    public ValueResultSet getValueForColumnList(SessionLocal session,
-            Expression[] nullArgs) {
+    public ValueResultSet getValueForColumnList(SessionLocal session, Expression[] nullArgs) {
         return getTable(session, true);
     }
 
@@ -86,12 +116,12 @@ public final class TableFunction extends Function {
             header[i] = col;
         }
         LocalResult result = new LocalResult(session, header, totalColumns, totalColumns);
-        if (!onlyColumnList && info.type == TABLE_DISTINCT) {
+        if (!onlyColumnList && function == TABLE_DISTINCT) {
             result.setDistinct();
         }
         if (!onlyColumnList) {
             int len = totalColumns;
-            boolean unnest = info.type == UNNEST, addNumber = false;
+            boolean unnest = function == UNNEST, addNumber = false;
             if (unnest) {
                 len = args.length;
                 if (len < totalColumns) {
@@ -153,6 +183,30 @@ public final class TableFunction extends Function {
             }
         }
         return true;
+    }
+
+    @Override
+    public String getName() {
+        return NAMES[function];
+    }
+
+    @Override
+    public Expression[] getArgs() {
+        return args;
+    }
+
+    @Override
+    public int getValueType() {
+        return Value.RESULT_SET;
+    }
+
+    @Override
+    public boolean isDeterministic() {
+        return true;
+    }
+
+    public int getFunctionType() {
+        return function;
     }
 
 }

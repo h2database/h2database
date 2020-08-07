@@ -92,6 +92,8 @@ public final class BuiltinFunctions {
                 "CURRVAL", "NEXTVAL",
                 // Constants
                 "ZERO", "PI",
+                // TableFunction
+                "UNNEST", /* TABLE is a keyword */ "TABLE_DISTINCT",
                 //
         };
         HashSet<String> set = new HashSet<>(128);

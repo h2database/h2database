@@ -310,6 +310,7 @@ import org.h2.expression.function.ToCharFunction;
 import org.h2.expression.function.TrimFunction;
 import org.h2.expression.function.XMLFunction;
 import org.h2.expression.function.table.CSVReadFunction;
+import org.h2.expression.function.table.LinkSchemaFunction;
 import org.h2.expression.function.table.TableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
@@ -4595,6 +4596,8 @@ public class Parser {
             return readTableFunction(TableFunction.TABLE_DISTINCT);
         case "CSVREAD":
             return readParameters(new CSVReadFunction());
+        case "LINK_SCHEMA":
+            return readParameters(new LinkSchemaFunction());
         }
         Function function = Function.getFunction(database, upperName);
         return function != null ? readParameters(function) : null;

@@ -98,6 +98,8 @@ public final class BuiltinFunctions {
                 "UNNEST", /* TABLE is a keyword */ "TABLE_DISTINCT",
                 // CSVReadFunction
                 "CSVREAD",
+                // LinkSchemaFunction
+                "LINK_SCHEMA",
                 //
         };
         HashSet<String> set = new HashSet<>(128);

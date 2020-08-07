@@ -7,8 +7,6 @@ package org.h2.expression.function;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.sql.Connection;
-import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
@@ -26,7 +24,6 @@ import org.h2.mode.FunctionsMSSQLServer;
 import org.h2.mode.FunctionsMySQL;
 import org.h2.mode.FunctionsOracle;
 import org.h2.mode.FunctionsPostgreSQL;
-import org.h2.table.LinkSchema;
 import org.h2.util.MathUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
@@ -47,7 +44,6 @@ public class Function extends FunctionN implements FunctionCall {
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
     public static final int
-            LINK_SCHEMA = 218,
             SET = 222,
             TRUNCATE_VALUE = 227;
 
@@ -64,8 +60,6 @@ public class Function extends FunctionN implements FunctionCall {
         // system
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
                 3, Value.NULL);
-        addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
-                6, Value.RESULT_SET);
         addFunction("SET", SET, 2, Value.NULL, false, false);
         addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
     }
@@ -78,11 +72,6 @@ public class Function extends FunctionN implements FunctionCall {
             FUNCTIONS_BY_ID[type] = info;
         }
         FUNCTIONS_BY_NAME.put(name, info);
-    }
-
-    private static void addFunctionNotDeterministic(String name, int type,
-            int parameterCount, int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, true, false);
     }
 
     private static void addFunctionWithNull(String name, int type,
@@ -232,20 +221,8 @@ public class Function extends FunctionN implements FunctionCall {
         Value v0 = getNullOrValue(session, args, values, 0);
         Value v1 = getNullOrValue(session, args, values, 1);
         Value v2 = getNullOrValue(session, args, values, 2);
-        Value v3 = getNullOrValue(session, args, values, 3);
-        Value v4 = getNullOrValue(session, args, values, 4);
-        Value v5 = getNullOrValue(session, args, values, 5);
         Value result;
         switch (info.type) {
-        case LINK_SCHEMA: {
-            session.getUser().checkAdmin();
-            Connection conn = session.createConnection(false);
-            ResultSet rs = LinkSchema.linkSchema(conn, v0.getString(),
-                    v1.getString(), v2.getString(), v3.getString(),
-                    v4.getString(), v5.getString());
-            result = ValueResultSet.get(session, rs, Integer.MAX_VALUE);
-            break;
-        }
         case SET: {
             Variable var = (Variable) args[0];
             session.setVariable(var.getName(), v1);

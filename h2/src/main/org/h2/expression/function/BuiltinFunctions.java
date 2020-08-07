@@ -49,6 +49,8 @@ public final class BuiltinFunctions {
                 "TRIM",
                 // RegexpFuction
                 "REGEXP_LIKE", "REGEXP_REPLACE", "REGEXP_SUBSTR",
+                // ArrayFunction
+                "TRIM_ARRAY", "ARRAY_CONTAINS", "ARRAY_SLICE",
                 // CompressFunction
                 "COMPRESS", "EXPAND",
                 // SoundexFunction

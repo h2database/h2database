@@ -10,7 +10,6 @@ import java.math.MathContext;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
@@ -37,9 +36,6 @@ import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
-import org.h2.value.ValueBoolean;
-import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
@@ -71,10 +67,9 @@ public class Function extends FunctionN implements FunctionCall {
             LINK_SCHEMA = 218,
             SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             TRUNCATE_VALUE = 227,
-            ARRAY_CONTAINS = 230,
-            UNNEST = 233, TRIM_ARRAY = 235, ARRAY_SLICE = 236;
+            UNNEST = 233;
 
-    private static final int COUNT = ARRAY_SLICE + 1;
+    private static final int COUNT = UNNEST + 1;
 
     protected static final int VAR_ARGS = -1;
 
@@ -105,9 +100,6 @@ public class Function extends FunctionN implements FunctionCall {
         // system
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
                 3, Value.NULL);
-        addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
-        addFunctionWithNull("TRIM_ARRAY", TRIM_ARRAY, 2, Value.ARRAY);
-        addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
         addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false);
         addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INTEGER, false, false);
         addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
@@ -272,37 +264,10 @@ public class Function extends FunctionN implements FunctionCall {
         case XMLSTARTDOC:
             result = ValueVarchar.get(StringUtils.xmlStartDoc(), session);
             break;
-        case ARRAY_CONTAINS: {
-            result = ValueBoolean.FALSE;
-            Value[] list = getArray(v0);
-            if (list != null) {
-                Value v1 = getNullOrValue(session, args, values, 1);
-                for (Value v : list) {
-                    if (session.areEqual(v, v1)) {
-                        result = ValueBoolean.TRUE;
-                        break;
-                    }
-                }
-            } else {
-                result = ValueNull.INSTANCE;
-            }
-            break;
-        }
         default:
             result = null;
         }
         return result;
-    }
-
-    private static Value[] getArray(Value v0) {
-        int t = v0.getValueType();
-        Value[] list;
-        if (t == Value.ARRAY || t == Value.ROW) {
-            list = ((ValueCollectionBase) v0).getList();
-        } else {
-            list = null;
-        }
-        return list;
     }
 
     /**
@@ -479,68 +444,6 @@ public class Function extends FunctionN implements FunctionCall {
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
-            break;
-        }
-        case TRIM_ARRAY: {
-            if (v1 == ValueNull.INSTANCE) {
-                result = ValueNull.INSTANCE;
-                break;
-            }
-            int trim = v1.getInt();
-            if (trim < 0) {
-                // This exception should be thrown even when array is null
-                throw DbException.get(ErrorCode.ARRAY_ELEMENT_ERROR_2, Integer.toString(trim),
-                        "0..CARDINALITY(array)");
-            }
-            if (v0 == ValueNull.INSTANCE) {
-                result = ValueNull.INSTANCE;
-                break;
-            }
-            final ValueArray array = v0.convertToAnyArray(session);
-            Value[] elements = array.getList();
-            int length = elements.length;
-            if (trim > length) {
-                throw DbException.get(ErrorCode.ARRAY_ELEMENT_ERROR_2, Integer.toString(trim), "0.." + length);
-            }
-            if (trim == 0) {
-                result = array;
-            } else {
-                result = ValueArray.get(array.getComponentType(), Arrays.copyOf(elements, length - trim), session);
-            }
-            break;
-        }
-        case ARRAY_SLICE: {
-            result = null;
-            final ValueArray array = v0.convertToAnyArray(session);
-            // SQL is 1-based
-            int index1 = v1.getInt() - 1;
-            // 1-based and inclusive as postgreSQL (-1+1)
-            int index2 = v2.getInt();
-            // https://www.postgresql.org/docs/current/arrays.html#ARRAYS-ACCESSING
-            // For historical reasons postgreSQL ignore invalid indexes
-            final boolean isPG = session.getMode().getEnum() == ModeEnum.PostgreSQL;
-            if (index1 > index2) {
-                if (isPG)
-                    result = ValueArray.get(array.getComponentType(), Value.EMPTY_VALUES, session);
-                else
-                    result = ValueNull.INSTANCE;
-            } else {
-                if (index1 < 0) {
-                    if (isPG)
-                        index1 = 0;
-                    else
-                        result = ValueNull.INSTANCE;
-                }
-                if (index2 > array.getList().length) {
-                    if (isPG)
-                        index2 = array.getList().length;
-                    else
-                        result = ValueNull.INSTANCE;
-                }
-            }
-            if (result == null)
-                result = ValueArray.get(array.getComponentType(), Arrays.copyOfRange(array.getList(), index1, index2),
-                        session);
             break;
         }
         case LINK_SCHEMA: {
@@ -824,15 +727,6 @@ public class Function extends FunctionN implements FunctionCall {
                 throw DbException.get(ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getTraceSQL());
             }
             break;
-        case TRIM_ARRAY:
-        case ARRAY_SLICE: {
-            typeInfo = p0.getType();
-            int t = typeInfo.getValueType();
-            if (t != Value.ARRAY && t != Value.NULL) {
-                throw DbException.getInvalidValueException(getName() + " array argument", typeInfo.getTraceSQL());
-            }
-            break;
-        }
         default:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, -1, -1, null);
         }

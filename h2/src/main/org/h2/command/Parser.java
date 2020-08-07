@@ -267,6 +267,7 @@ import org.h2.expression.condition.IsJsonPredicate;
 import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
+import org.h2.expression.function.ArrayFunction;
 import org.h2.expression.function.BitFunction;
 import org.h2.expression.function.BuiltinFunctions;
 import org.h2.expression.function.CardinalityExpression;
@@ -4396,6 +4397,13 @@ public class Parser {
             return readParameters(new RegexpFunction(RegexpFunction.REGEXP_REPLACE));
         case "REGEXP_SUBSTR":
             return readParameters(new RegexpFunction(RegexpFunction.REGEXP_SUBSTR));
+        case "TRIM_ARRAY":
+            return new ArrayFunction(readExpression(), readLastArgument(), null, ArrayFunction.TRIM_ARRAY);
+        case "ARRAY_CONTAINS":
+            return new ArrayFunction(readExpression(), readLastArgument(), null, ArrayFunction.ARRAY_CONTAINS);
+        case "ARRAY_SLICE":
+            return new ArrayFunction(readExpression(), readNextArgument(), readLastArgument(),
+                    ArrayFunction.ARRAY_SLICE);
         case "COMPRESS":
             return new CompressFunction(readExpression(), readIfArgument(), CompressFunction.COMPRESS);
         case "EXPAND":

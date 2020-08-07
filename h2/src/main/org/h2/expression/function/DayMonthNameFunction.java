@@ -10,7 +10,6 @@ import java.util.Locale;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.Operation1;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
@@ -22,7 +21,7 @@ import org.h2.value.ValueVarchar;
 /**
  * A DAYNAME() or MONTHNAME() function.
  */
-public final class DayMonthNameFunction extends Operation1 implements NamedExpression {
+public final class DayMonthNameFunction extends Function1 {
 
     /**
      * DAYNAME() (non-standard).
@@ -98,11 +97,6 @@ public final class DayMonthNameFunction extends Operation1 implements NamedExpre
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return arg.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags).append(')');
     }
 
     @Override

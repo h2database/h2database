@@ -11,7 +11,6 @@ import org.h2.command.Parser;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.Operation1_2;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.MVSpatialIndex;
@@ -25,7 +24,7 @@ import org.h2.value.ValueNull;
 /**
  * A table information function.
  */
-public final class TableInfoFunction extends Operation1_2 implements NamedExpression {
+public final class TableInfoFunction extends Function1_2 {
 
     /**
      * DISK_SPACE_USED() (non-standard).
@@ -49,20 +48,7 @@ public final class TableInfoFunction extends Operation1_2 implements NamedExpres
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = left.getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        Value v2;
-        if (right != null) {
-            v2 = right.getValue(session);
-            if (v2 == ValueNull.INSTANCE) {
-                return ValueNull.INSTANCE;
-            }
-        } else {
-            v2 = null;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2) {
         Table table = new Parser(session).parseTableName(v1.getString());
         l: switch (function) {
         case DISK_SPACE_USED:
@@ -106,15 +92,6 @@ public final class TableInfoFunction extends Operation1_2 implements NamedExpres
             throw DbException.throwInternalError("function=" + function);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        left.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags);
-        if (right != null) {
-            right.getUnenclosedSQL(builder.append(", "), sqlFlags);
-        }
-        return builder.append(')');
     }
 
     @Override

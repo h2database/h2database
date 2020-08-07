@@ -7,7 +7,6 @@ package org.h2.expression.function;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.Operation1;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.util.MathUtils;
@@ -20,7 +19,7 @@ import org.h2.value.ValueNull;
 /**
  * Cardinality expression.
  */
-public final class CardinalityExpression extends Operation1 implements NamedExpression {
+public final class CardinalityExpression extends Function1 {
 
     private final boolean max;
 
@@ -69,11 +68,6 @@ public final class CardinalityExpression extends Operation1 implements NamedExpr
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return arg.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags).append(')');
     }
 
     @Override

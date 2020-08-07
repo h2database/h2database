@@ -11,7 +11,6 @@ import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.Operation1_2;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -22,7 +21,7 @@ import org.h2.value.Value;
 /**
  * NEXTVAL() and CURRVAL() compatibility functions.
  */
-public final class CompatibilitySequenceValueFunction extends Operation1_2 implements NamedExpression {
+public final class CompatibilitySequenceValueFunction extends Function1_2 {
 
     private final boolean current;
 
@@ -32,21 +31,11 @@ public final class CompatibilitySequenceValueFunction extends Operation1_2 imple
     }
 
     @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        left.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags);
-        if (right != null) {
-            right.getUnenclosedSQL(builder.append(", "), sqlFlags);
-        }
-        return builder.append(')');
-    }
-
-    @Override
-    public Value getValue(SessionLocal session) {
-        Value v0 = left.getValue(session);
+    public Value getValue(SessionLocal session, Value v1, Value v2) {
         String schemaName, sequenceName;
-        if (right == null) {
+        if (v2 == null) {
             Parser p = new Parser(session);
-            String sql = v0.getString();
+            String sql = v1.getString();
             Expression expr = p.parseExpression(sql);
             if (expr instanceof ExpressionColumn) {
                 ExpressionColumn seq = (ExpressionColumn) expr;
@@ -61,8 +50,8 @@ public final class CompatibilitySequenceValueFunction extends Operation1_2 imple
                 throw DbException.getSyntaxError(sql, 1);
             }
         } else {
-            schemaName = v0.getString();
-            sequenceName = right.getValue(session).getString();
+            schemaName = v1.getString();
+            sequenceName = v2.getString();
         }
         Database database = session.getDatabase();
         Schema s = database.findSchema(schemaName);

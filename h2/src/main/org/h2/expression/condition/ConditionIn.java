@@ -13,8 +13,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
-import org.h2.expression.function.Function;
-import org.h2.expression.function.TableFunction;
+import org.h2.expression.function.table.TableFunction;
 import org.h2.index.IndexCondition;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
@@ -109,7 +108,7 @@ public final class ConditionIn extends Condition {
             Expression right = valueList.get(0);
             if (right instanceof TableFunction) {
                 TableFunction tf = (TableFunction) right;
-                if (tf.getFunctionType() == Function.UNNEST) {
+                if (tf.getFunctionType() == TableFunction.UNNEST) {
                     Expression[] args = tf.getArgs();
                     if (args.length == 1) {
                         Expression arg = args[0];

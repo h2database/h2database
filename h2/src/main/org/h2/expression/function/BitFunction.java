@@ -7,19 +7,17 @@ package org.h2.expression.function;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.Operation1_2;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
-import org.h2.value.ValueNull;
 
 /**
  * A bitwise function.
  */
-public final class BitFunction extends Operation1_2 implements NamedExpression {
+public final class BitFunction extends Function1_2 {
 
     /**
      * BITAND() (non-standard).
@@ -68,18 +66,7 @@ public final class BitFunction extends Operation1_2 implements NamedExpression {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = left.getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        if (function == BITNOT) {
-            return ValueBigint.get(~v1.getLong());
-        }
-        Value v2 = right.getValue(session);
-        if (v2 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2) {
         long l1 = v1.getLong();
         switch (function) {
         case BITAND:
@@ -91,6 +78,8 @@ public final class BitFunction extends Operation1_2 implements NamedExpression {
         case BITXOR:
             l1 ^= v2.getLong();
             break;
+        case BITNOT:
+            return ValueBigint.get(~v1.getLong());
         case BITGET:
             return ValueBoolean.get((l1 & (1L << v2.getInt())) != 0);
         case LSHIFT:
@@ -116,15 +105,6 @@ public final class BitFunction extends Operation1_2 implements NamedExpression {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        left.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags);
-        if (right != null) {
-            right.getUnenclosedSQL(builder.append(", "), sqlFlags);
-        }
-        return builder.append(')');
     }
 
     @Override

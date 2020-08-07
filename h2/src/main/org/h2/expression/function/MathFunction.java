@@ -11,7 +11,6 @@ import java.math.RoundingMode;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.Operation1_2;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.value.DataType;
@@ -27,7 +26,7 @@ import org.h2.value.ValueReal;
 /**
  * A math function.
  */
-public final class MathFunction extends Operation1_2 implements NamedExpression {
+public final class MathFunction extends Function1_2 {
 
     /**
      * ABS().
@@ -83,16 +82,15 @@ public final class MathFunction extends Operation1_2 implements NamedExpression 
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = left.getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2) {
         switch (function) {
         case ABS:
             if (v1.getSignum() < 0) {
                 v1 = v1.negate();
             }
+            break;
+        case MOD:
+            v1 = v1.convertTo(commonType, session).modulus(v2.convertTo(commonType, session)).convertTo(type, session);
             break;
         case FLOOR:
         case CEIL:
@@ -130,19 +128,7 @@ public final class MathFunction extends Operation1_2 implements NamedExpression 
             v1 = trunc(session, v1);
             break;
         default:
-            Value v2 = right.getValue(session);
-            if (v2 == ValueNull.INSTANCE) {
-                return ValueNull.INSTANCE;
-            }
-            switch (function) {
-            case MOD:
-                v1 = v1.convertTo(commonType, session).modulus(v2.convertTo(commonType, session)).convertTo(type,
-                        session);
-                break;
-            default:
-                throw DbException.throwInternalError("function=" + function);
-            }
-            break;
+            throw DbException.throwInternalError("function=" + function);
         }
         return v1;
     }
@@ -363,15 +349,6 @@ public final class MathFunction extends Operation1_2 implements NamedExpression 
             }
         }
         return TypeInfo.getTypeInfo(Value.NUMERIC, Integer.MAX_VALUE, scale, null);
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        left.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags);
-        if (right != null) {
-            right.getUnenclosedSQL(builder.append(", "), sqlFlags);
-        }
-        return builder.append(')');
     }
 
     @Override

@@ -10,7 +10,6 @@ import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.OperationN;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.value.TypeInfo;
@@ -22,7 +21,7 @@ import org.h2.value.ValueVarchar;
 /**
  * DB_OBJECT_ID() and DB_OBJECT_SQL() functions.
  */
-public final class DBObjectFunction extends OperationN implements NamedExpression {
+public final class DBObjectFunction extends FunctionN {
 
     /**
      * DB_OBJECT_ID() (non-standard).
@@ -46,22 +45,16 @@ public final class DBObjectFunction extends OperationN implements NamedExpressio
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
+    public Value getValue(SessionLocal session, Value v1, Value v2, Value v3) {
         session.getUser().checkAdmin();
-        String objectType = args[0].getValue(session).getString();
-        if (objectType == null) {
-            return ValueNull.INSTANCE;
-        }
+        String objectType = v1.getString();
         DbObject object;
-        if (args.length == 3) {
-            Schema schema = session.getDatabase().findSchema(args[1].getValue(session).getString());
+        if (v3 != null) {
+            Schema schema = session.getDatabase().findSchema(v2.getString());
             if (schema == null) {
                 return ValueNull.INSTANCE;
             }
-            String objectName = args[2].getValue(session).getString();
-            if (objectName == null) {
-                return ValueNull.INSTANCE;
-            }
+            String objectName = v3.getString();
             switch (objectType) {
             case "CONSTANT":
                 object = schema.findConstant(objectName);
@@ -97,10 +90,7 @@ public final class DBObjectFunction extends OperationN implements NamedExpressio
                 return ValueNull.INSTANCE;
             }
         } else {
-            String objectName = args[1].getValue(session).getString();
-            if (objectName == null) {
-                return ValueNull.INSTANCE;
-            }
+            String objectName = v2.getString();
             Database database = session.getDatabase();
             switch (objectType) {
             case "ROLE":
@@ -138,11 +128,6 @@ public final class DBObjectFunction extends OperationN implements NamedExpressio
         optimizeArguments(session, false);
         type = function == DB_OBJECT_ID ? TypeInfo.TYPE_INTEGER : TypeInfo.TYPE_VARCHAR;
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return writeExpressions(builder.append(getName()).append('('), args, sqlFlags).append(')');
     }
 
     @Override

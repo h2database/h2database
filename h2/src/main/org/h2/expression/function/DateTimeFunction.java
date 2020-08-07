@@ -20,7 +20,6 @@ import org.h2.api.IntervalQualifier;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.Operation1_2;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
@@ -34,7 +33,6 @@ import org.h2.value.ValueBigint;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimeTimeZone;
@@ -44,7 +42,7 @@ import org.h2.value.ValueTimestampTimeZone;
 /**
  * A date-time function.
  */
-public final class DateTimeFunction extends Operation1_2 implements NamedExpression {
+public final class DateTimeFunction extends Function1_2 {
 
     /**
      * EXTRACT().
@@ -346,11 +344,7 @@ public final class DateTimeFunction extends Operation1_2 implements NamedExpress
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = left.getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2) {
         switch (function) {
         case EXTRACT:
             v1 = field == EPOCH ? extractEpoch(session, v1) : ValueInteger.get(extractInteger(session, v1, field));
@@ -358,22 +352,14 @@ public final class DateTimeFunction extends Operation1_2 implements NamedExpress
         case DATE_TRUNC:
             v1 = truncateDate(session, field, v1);
             break;
-        default: {
-            Value v2 = right.getValue(session);
-            if (v2 == ValueNull.INSTANCE) {
-                return ValueNull.INSTANCE;
-            }
-            switch (function) {
-            case DATEADD:
-                v1 = dateadd(session, field, v1.getLong(), v2);
-                break;
-            case DATEDIFF:
-                v1 = ValueBigint.get(datediff(session, field, v1, v2));
-                break;
-            default:
-                throw DbException.throwInternalError("function=" + function);
-            }
-        }
+        case DATEADD:
+            v1 = dateadd(session, field, v1.getLong(), v2);
+            break;
+        case DATEDIFF:
+            v1 = ValueBigint.get(datediff(session, field, v1, v2));
+            break;
+        default:
+            throw DbException.throwInternalError("function=" + function);
         }
         return v1;
     }

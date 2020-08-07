@@ -13,7 +13,6 @@ import org.h2.engine.Mode;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.Operation1;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
@@ -28,7 +27,7 @@ import org.h2.value.ValueVarchar;
 /**
  * A string function with one argument.
  */
-public final class StringFunction1 extends Operation1 implements NamedExpression {
+public final class StringFunction1 extends Function1 {
 
     // Fold functions
 
@@ -274,11 +273,6 @@ public final class StringFunction1 extends Operation1 implements NamedExpression
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return arg.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags).append(')');
     }
 
     @Override

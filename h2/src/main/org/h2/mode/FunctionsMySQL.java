@@ -14,8 +14,6 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
-import org.h2.expression.function.Function;
-import org.h2.expression.function.FunctionInfo;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
@@ -34,7 +32,7 @@ import org.h2.value.ValueVarchar;
  * @author Jason Brittain
  * @author Thomas Mueller
  */
-public final class FunctionsMySQL extends FunctionsBase {
+public final class FunctionsMySQL extends ModeFunction {
 
     private static final int UNIX_TIMESTAMP = 1001, FROM_UNIXTIME = 1002, DATE = 1003, LAST_INSERT_ID = 1004;
 
@@ -154,7 +152,7 @@ public final class FunctionsMySQL extends FunctionsBase {
      *            the upper-case name of a function
      * @return the function with specified name or {@code null}
      */
-    public static Function getFunction(String upperName) {
+    public static FunctionsMySQL getFunction(String upperName) {
         FunctionInfo info = FUNCTIONS.get(upperName);
         return info != null ? new FunctionsMySQL(info) : null;
     }
@@ -203,7 +201,7 @@ public final class FunctionsMySQL extends FunctionsBase {
     }
 
     @Override
-    protected Value getValueWithArgs(SessionLocal session, Expression[] args) {
+    public Value getValue(SessionLocal session) {
         Value[] values = new Value[args.length];
         Value v0 = getNullOrValue(session, args, values, 0);
         Value v1 = getNullOrValue(session, args, values, 1);

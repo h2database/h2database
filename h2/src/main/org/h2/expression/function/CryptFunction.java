@@ -7,7 +7,6 @@ package org.h2.expression.function;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.OperationN;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.security.BlockCipher;
@@ -17,13 +16,12 @@ import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueVarbinary;
 
 /**
  * An ENCRYPT or DECRYPT function.
  */
-public final class CryptFunction extends OperationN implements NamedExpression {
+public final class CryptFunction extends FunctionN {
 
     /**
      * ENCRYPT() (non-standard).
@@ -47,19 +45,7 @@ public final class CryptFunction extends OperationN implements NamedExpression {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = args[0].getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        Value v2 = args[1].getValue(session);
-        if (v2 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        Value v3 = args[2].getValue(session);
-        if (v3 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2, Value v3) {
         BlockCipher cipher = CipherFactory.getBlockCipher(v1.getString());
         cipher.setKey(getPaddedArrayCopy(v2.getBytesNoCopy(), cipher.getKeyLength()));
         byte[] newData = getPaddedArrayCopy(v3.getBytesNoCopy(), BlockCipher.ALIGN);
@@ -91,11 +77,6 @@ public final class CryptFunction extends OperationN implements NamedExpression {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return writeExpressions(builder.append(getName()).append('('), args, sqlFlags).append(')');
     }
 
     @Override

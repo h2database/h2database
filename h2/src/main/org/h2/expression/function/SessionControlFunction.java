@@ -9,7 +9,6 @@ import org.h2.command.Command;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.Operation1;
 import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -19,7 +18,7 @@ import org.h2.value.ValueNull;
 /**
  * An ABORT_SESSION() or CANCEL_SESSION() function.
  */
-public final class SessionControlFunction extends Operation1 implements NamedExpression {
+public final class SessionControlFunction extends Function1 {
 
     /**
      * ABORT_SESSION().
@@ -79,11 +78,6 @@ public final class SessionControlFunction extends Operation1 implements NamedExp
         arg = arg.optimize(session);
         type = TypeInfo.TYPE_BOOLEAN;
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return arg.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags).append(')');
     }
 
     @Override

@@ -12,8 +12,6 @@ import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.function.DateTimeFunction;
-import org.h2.expression.function.Function;
-import org.h2.expression.function.FunctionInfo;
 import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -23,7 +21,7 @@ import org.h2.value.ValueUuid;
 /**
  * Functions for {@link org.h2.engine.Mode.ModeEnum#Oracle} compatibility mode.
  */
-public final class FunctionsOracle extends FunctionsBase {
+public final class FunctionsOracle extends ModeFunction {
 
     private static final int ADD_MONTHS = 2001;
 
@@ -57,7 +55,7 @@ public final class FunctionsOracle extends FunctionsBase {
      *            the upper-case name of a function
      * @return the function with specified name or {@code null}
      */
-    public static Function getFunction(String upperName) {
+    public static FunctionsOracle getFunction(String upperName) {
         FunctionInfo info = FUNCTIONS.get(upperName);
         return info != null ? new FunctionsOracle(info) : null;
     }
@@ -104,7 +102,7 @@ public final class FunctionsOracle extends FunctionsBase {
     }
 
     @Override
-    protected Value getValueWithArgs(SessionLocal session, Expression[] args) {
+    public Value getValue(SessionLocal session) {
         Value[] values = getArgumentsValues(session, args);
         if (values == null) {
             return ValueNull.INSTANCE;

@@ -9,8 +9,6 @@ import java.util.HashMap;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.function.Function;
-import org.h2.expression.function.FunctionInfo;
 import org.h2.message.DbException;
 import org.h2.value.ExtTypeInfoNumeric;
 import org.h2.value.TypeInfo;
@@ -20,7 +18,7 @@ import org.h2.value.Value;
  * Functions for {@link org.h2.engine.Mode.ModeEnum#DB2} and
  * {@link org.h2.engine.Mode.ModeEnum#Derby} compatibility modes.
  */
-public final class FunctionsDB2Derby extends FunctionsBase {
+public final class FunctionsDB2Derby extends ModeFunction {
 
     private static final int IDENTITY_VAL_LOCAL = 5001;
 
@@ -41,7 +39,7 @@ public final class FunctionsDB2Derby extends FunctionsBase {
      *            the upper-case name of a function
      * @return the function with specified name or {@code null}
      */
-    public static Function getFunction(String upperName) {
+    public static FunctionsDB2Derby getFunction(String upperName) {
         FunctionInfo info = FUNCTIONS.get(upperName);
         return info != null ? new FunctionsDB2Derby(info) : null;
     }
@@ -51,7 +49,7 @@ public final class FunctionsDB2Derby extends FunctionsBase {
     }
 
     @Override
-    protected Value getValueWithArgs(SessionLocal session, Expression[] args) {
+    public Value getValue(SessionLocal session) {
         switch (info.type) {
         case IDENTITY_VAL_LOCAL:
             return session.getLastIdentity().convertTo(type);

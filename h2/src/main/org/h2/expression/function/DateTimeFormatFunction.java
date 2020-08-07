@@ -12,21 +12,19 @@ import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.OperationN;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.LegacyDateTimeUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueVarchar;
 
 /**
  * A date-time format function.
  */
-public final class DateTimeFormatFunction extends OperationN implements NamedExpression {
+public final class DateTimeFormatFunction extends FunctionN {
 
     /**
      * FORMATDATETIME() (non-standard).
@@ -34,7 +32,7 @@ public final class DateTimeFormatFunction extends OperationN implements NamedExp
     public static final int FORMATDATETIME = 0;
 
     /**
-     * PARSEDATETIME() (non-standard.
+     * PARSEDATETIME() (non-standard).
      */
     public static final int PARSEDATETIME = FORMATDATETIME + 1;
 
@@ -50,20 +48,11 @@ public final class DateTimeFormatFunction extends OperationN implements NamedExp
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = args[0].getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        Value v2 = args[1].getValue(session);
-        if (v2 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2, Value v3) {
         String format = v2.getString(), locale, tz;
-        int l = args.length;
-        if (l > 2) {
-            locale = args[2].getValue(session).getString();
-            tz = (l > 3) ? args[3].getValue(session).getString() : null;
+        if (v3 != null) {
+            locale = v3.getString();
+            tz = args.length > 3 ? args[3].getValue(session).getString() : null;
         } else {
             tz = locale = null;
         }
@@ -170,11 +159,6 @@ public final class DateTimeFormatFunction extends OperationN implements NamedExp
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return writeExpressions(builder.append(getName()).append('('), args, sqlFlags).append(')');
     }
 
     @Override

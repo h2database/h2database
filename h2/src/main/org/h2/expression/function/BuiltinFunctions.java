@@ -8,6 +8,7 @@ package org.h2.expression.function;
 import java.util.HashSet;
 
 import org.h2.engine.Database;
+import org.h2.mode.ModeFunction;
 
 /**
  * Maintains the list of built-in functions.
@@ -36,11 +37,27 @@ public final class BuiltinFunctions {
                 "DAYNAME", "MONTHNAME",
                 // CardinalityExpression
                 "CARDINALITY", "ARRAY_MAX_CARDINALITY",
+                // StringFunction
+                "INSTR", "LOCATE", "POSITION", "INSERT", "REPLACE", "LPAD", "RPAD", "TRANSLATE",
                 // StringFunction1
                 "UPPER", "LOWER", "ASCII", "CHAR", "CHR", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8",
                 "UTF8TOSTRING", "HEXTORAW", "RAWTOHEX", "SPACE", "QUOTE_IDENT",
+                // StringFunction2
+                /* LEFT and RIGHT are keywords */ "REPEAT",
+                // SubstringFunction
+                "SUBSTRING",
+                // ToCharFunction
+                "TO_CHAR",
                 // LengthFunction
-                "CHAR_LENGTH", "CHARACTER_LENGTH", "LENGTH", "OCTET_LENGTH", "BIT_LENGTH", //
+                "CHAR_LENGTH", "CHARACTER_LENGTH", "LENGTH", "OCTET_LENGTH", "BIT_LENGTH",
+                // TrimFunction
+                "TRIM",
+                // RegexpFunction
+                "REGEXP_LIKE", "REGEXP_REPLACE", "REGEXP_SUBSTR",
+                // XMLFunction
+                "XMLATTR", "XMLCDATA", "XMLCOMMENT", "XMLNODE", "XMLSTARTDOC", "XMLTEXT",
+                // ArrayFunction
+                "TRIM_ARRAY", "ARRAY_CONTAINS", "ARRAY_SLICE",
                 // CompressFunction
                 "COMPRESS", "EXPAND",
                 // SoundexFunction
@@ -72,10 +89,24 @@ public final class BuiltinFunctions {
                 "DATA_TYPE_SQL",
                 // DBObjectFunction
                 "DB_OBJECT_ID", "DB_OBJECT_SQL",
+                // CSVWriteFunction
+                "CSVWRITE",
+                // SetFunction
+                /* SET is keyword */
+                // SignalFunction
+                "SIGNAL",
+                // TruncateValueFunction
+                "TRUNCATE_VALUE",
                 // CompatibilitySequenceValueFunction
                 "CURRVAL", "NEXTVAL",
                 // Constants
                 "ZERO", "PI",
+                // TableFunction
+                "UNNEST", /* TABLE is a keyword */ "TABLE_DISTINCT",
+                // CSVReadFunction
+                "CSVREAD",
+                // LinkSchemaFunction
+                "LINK_SCHEMA",
                 //
         };
         HashSet<String> set = new HashSet<>(128);
@@ -95,7 +126,7 @@ public final class BuiltinFunctions {
      * @return {@code true} if it is
      */
     public static boolean isBuiltinFunction(Database database, String upperName) {
-        return FUNCTIONS.contains(upperName) || Function.getFunction(database, upperName) != null;
+        return FUNCTIONS.contains(upperName) || ModeFunction.getFunction(database, upperName) != null;
     }
 
     private BuiltinFunctions() {

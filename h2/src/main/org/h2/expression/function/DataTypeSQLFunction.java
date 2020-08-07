@@ -7,7 +7,7 @@ package org.h2.expression.function;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.OperationN;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
@@ -25,7 +25,7 @@ import org.h2.value.ValueVarchar;
 /**
  * DATA_TYPE_SQL() function.
  */
-public final class DataTypeSQLFunction extends OperationN implements NamedExpression {
+public final class DataTypeSQLFunction extends FunctionN {
 
     public DataTypeSQLFunction(Expression objectSchema, Expression objectName, Expression objectType,
             Expression typeIdentifier) {
@@ -33,19 +33,13 @@ public final class DataTypeSQLFunction extends OperationN implements NamedExpres
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Schema schema = session.getDatabase().findSchema(args[0].getValue(session).getString());
+    public Value getValue(SessionLocal session, Value v1, Value v2, Value v3) {
+        Schema schema = session.getDatabase().findSchema(v1.getString());
         if (schema == null) {
             return ValueNull.INSTANCE;
         }
-        String objectName = args[1].getValue(session).getString();
-        if (objectName == null) {
-            return ValueNull.INSTANCE;
-        }
-        String objectType = args[2].getValue(session).getString();
-        if (objectType == null) {
-            return ValueNull.INSTANCE;
-        }
+        String objectName = v2.getString();
+        String objectType = v3.getString();
         String typeIdentifier = args[3].getValue(session).getString();
         if (typeIdentifier == null) {
             return ValueNull.INSTANCE;
@@ -147,13 +141,13 @@ public final class DataTypeSQLFunction extends OperationN implements NamedExpres
     }
 
     @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return writeExpressions(builder.append(getName()).append('('), args, sqlFlags).append(')');
+    public String getName() {
+        return "DATA_TYPE_SQL";
     }
 
     @Override
-    public String getName() {
-        return "DATA_TYPE_SQL";
+    public boolean isEverything(ExpressionVisitor visitor) {
+        return isEverythingNonDeterministic(visitor);
     }
 
 }

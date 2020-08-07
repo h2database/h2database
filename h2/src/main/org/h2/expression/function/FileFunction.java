@@ -17,7 +17,6 @@ import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.Operation1_2;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
@@ -30,7 +29,7 @@ import org.h2.value.ValueNull;
 /**
  * A FILE_READ or FILE_WRITE function.
  */
-public final class FileFunction extends Operation1_2 implements NamedExpression {
+public final class FileFunction extends Function1_2 {
 
     /**
      * FILE_READ() (non-standard).
@@ -122,15 +121,6 @@ public final class FileFunction extends Operation1_2 implements NamedExpression 
             throw DbException.throwInternalError("function=" + function);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        left.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags);
-        if (right != null) {
-            right.getUnenclosedSQL(builder.append(", "), sqlFlags);
-        }
-        return builder.append(')');
     }
 
     @Override

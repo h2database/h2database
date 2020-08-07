@@ -7,7 +7,6 @@ package org.h2.expression.function;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.Operation1;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
@@ -18,7 +17,7 @@ import org.h2.value.ValueNull;
 /**
  * CHAR_LENGTH(), or OCTET_LENGTH() function.
  */
-public final class LengthFunction extends Operation1 implements NamedExpression {
+public final class LengthFunction extends Function1 {
 
     /**
      * CHAR_LENGTH().
@@ -77,11 +76,6 @@ public final class LengthFunction extends Operation1 implements NamedExpression 
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return arg.getUnenclosedSQL(builder.append(getName()).append('('), sqlFlags).append(')');
     }
 
     @Override

@@ -224,6 +224,7 @@ import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.FieldReference;
 import org.h2.expression.Format;
 import org.h2.expression.Format.FormatEnum;
+import org.h2.expression.OperationN;
 import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
 import org.h2.expression.SearchedCase;
@@ -266,8 +267,10 @@ import org.h2.expression.condition.IsJsonPredicate;
 import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.condition.UniquePredicate;
+import org.h2.expression.function.ArrayFunction;
 import org.h2.expression.function.BitFunction;
 import org.h2.expression.function.BuiltinFunctions;
+import org.h2.expression.function.CSVWriteFunction;
 import org.h2.expression.function.CardinalityExpression;
 import org.h2.expression.function.CastSpecification;
 import org.h2.expression.function.CoalesceFunction;
@@ -283,7 +286,6 @@ import org.h2.expression.function.DateTimeFormatFunction;
 import org.h2.expression.function.DateTimeFunction;
 import org.h2.expression.function.DayMonthNameFunction;
 import org.h2.expression.function.FileFunction;
-import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.HashFunction;
 import org.h2.expression.function.JavaFunction;
@@ -294,15 +296,28 @@ import org.h2.expression.function.MathFunction1;
 import org.h2.expression.function.MathFunction2;
 import org.h2.expression.function.NullIfFunction;
 import org.h2.expression.function.RandFunction;
+import org.h2.expression.function.RegexpFunction;
 import org.h2.expression.function.SessionControlFunction;
+import org.h2.expression.function.SetFunction;
+import org.h2.expression.function.SignalFunction;
 import org.h2.expression.function.SoundexFunction;
+import org.h2.expression.function.StringFunction;
 import org.h2.expression.function.StringFunction1;
+import org.h2.expression.function.StringFunction2;
+import org.h2.expression.function.SubstringFunction;
 import org.h2.expression.function.SysInfoFunction;
-import org.h2.expression.function.TableFunction;
 import org.h2.expression.function.TableInfoFunction;
+import org.h2.expression.function.ToCharFunction;
+import org.h2.expression.function.TrimFunction;
+import org.h2.expression.function.TruncateValueFunction;
+import org.h2.expression.function.XMLFunction;
+import org.h2.expression.function.table.CSVReadFunction;
+import org.h2.expression.function.table.LinkSchemaFunction;
+import org.h2.expression.function.table.TableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsPostgreSQL;
+import org.h2.mode.ModeFunction;
 import org.h2.mode.OnDuplicateKeyValues;
 import org.h2.mode.Regclass;
 import org.h2.result.SortOrder;
@@ -2070,7 +2085,7 @@ public class Parser {
             table = query.toTable(alias, null, parameters, createView != null, currentSelect);
         } else if (readIf(TABLE)) {
             read(OPEN_PAREN);
-            Function function = readFunctionParameters(Function.getFunction(Function.TABLE));
+            TableFunction function = readTableFunction(TableFunction.TABLE);
             table = new FunctionTable(database.getMainSchema(), session, function, function);
         } else {
             boolean quoted = currentTokenQuoted;
@@ -4047,9 +4062,9 @@ public class Parser {
     private Expression readFunctionWithSchema(Schema schema, String name, String upperName) {
         if (database.getMode().getEnum() == ModeEnum.PostgreSQL
                 && schema.getName().equals(database.sysIdentifier("PG_CATALOG"))) {
-            Function function = FunctionsPostgreSQL.getFunction(database, upperName);
+            FunctionsPostgreSQL function = FunctionsPostgreSQL.getFunction(upperName);
             if (function != null) {
-                return readFunctionParameters(function);
+                return readParameters(function);
             }
         }
         Expression function = readJavaFunction(schema, name);
@@ -4064,7 +4079,6 @@ public class Parser {
     }
 
     private Expression readCompatibilityFunction(String name) {
-        Function function;
         switch (name) {
         // ||
         case "ARRAY_APPEND":
@@ -4190,17 +4204,12 @@ public class Parser {
             return new StringFunction1(readSingleArgument(), StringFunction1.LOWER);
         // SUBSTRING
         case "SUBSTR":
-            function = Function.getFunction(Function.SUBSTRING);
-            break;
+            return readSubstringFunction();
         // TRIM
         case "LTRIM":
-            function = Function.getFunction(Function.TRIM);
-            function.setFlags(Function.TRIM_LEADING);
-            break;
+            return new TrimFunction(readSingleArgument(), null, TrimFunction.LEADING);
         case "RTRIM":
-            function = Function.getFunction(Function.TRIM);
-            function.setFlags(Function.TRIM_TRAILING);
-            break;
+            return new TrimFunction(readSingleArgument(), null, TrimFunction.TRAILING);
         // UPPER
         case "UCASE":
             return new StringFunction1(readSingleArgument(), StringFunction1.UPPER);
@@ -4212,6 +4221,9 @@ public class Parser {
         default:
             return null;
         }
+    }
+
+    private OperationN readParameters(OperationN function) {
         if (!readIf(CLOSE_PAREN)) {
             do {
                 function.addParameter(readExpression());
@@ -4349,6 +4361,30 @@ public class Parser {
             return new CardinalityExpression(readSingleArgument(), false);
         case "ARRAY_MAX_CARDINALITY":
             return new CardinalityExpression(readSingleArgument(), true);
+        case "INSTR":
+            return new StringFunction(readExpression(), readNextArgument(), readIfArgument(), StringFunction.INSTR);
+        case "LOCATE":
+            return new StringFunction(readExpression(), readNextArgument(), readIfArgument(), StringFunction.LOCATE);
+        case "POSITION": {
+            // can't read expression because IN would be read too early
+            Expression arg1 = readConcat();
+            if (!readIf(COMMA)) {
+                read(IN);
+            }
+            return new StringFunction(arg1, readSingleArgument(), null, StringFunction.POSITION);
+        }
+        case "INSERT":
+            return new StringFunction(readExpression(), readNextArgument(), readNextArgument(), readLastArgument(),
+                    StringFunction.INSERT);
+        case "REPLACE":
+            return new StringFunction(readExpression(), readNextArgument(), readIfArgument(), StringFunction.REPLACE);
+        case "LPAD":
+            return new StringFunction(readExpression(), readNextArgument(), readIfArgument(), StringFunction.LPAD);
+        case "RPAD":
+            return new StringFunction(readExpression(), readNextArgument(), readIfArgument(), StringFunction.RPAD);
+        case "TRANSLATE":
+            return new StringFunction(readExpression(), readNextArgument(), readLastArgument(),
+                    StringFunction.TRANSLATE);
         case "UPPER":
             return new StringFunction1(readSingleArgument(), StringFunction1.UPPER);
         case "LOWER":
@@ -4374,6 +4410,21 @@ public class Parser {
             return new StringFunction1(readSingleArgument(), StringFunction1.SPACE);
         case "QUOTE_IDENT":
             return new StringFunction1(readSingleArgument(), StringFunction1.QUOTE_IDENT);
+        case "SUBSTRING":
+            return readSubstringFunction();
+        case "TO_CHAR": {
+            Expression arg1 = readExpression(), arg2, arg3;
+            if (readIf(COMMA)) {
+                arg2 = readExpression();
+                arg3 = readIf(COMMA) ? readExpression() : null;
+            } else {
+                arg3 = arg2 = null;
+            }
+            read(CLOSE_PAREN);
+            return new ToCharFunction(arg1, arg2, arg3);
+        }
+        case "REPEAT":
+            return new StringFunction2(readExpression(), readLastArgument(), StringFunction2.REPEAT);
         case "CHAR_LENGTH":
         case "CHARACTER_LENGTH":
         case "LENGTH":
@@ -4382,6 +4433,33 @@ public class Parser {
             return new LengthFunction(readIfSingleArgument(), LengthFunction.OCTET_LENGTH);
         case "BIT_LENGTH":
             return new LengthFunction(readIfSingleArgument(), LengthFunction.BIT_LENGTH);
+        case "TRIM":
+            return readTrimFunction();
+        case "REGEXP_LIKE":
+            return readParameters(new RegexpFunction(RegexpFunction.REGEXP_LIKE));
+        case "REGEXP_REPLACE":
+            return readParameters(new RegexpFunction(RegexpFunction.REGEXP_REPLACE));
+        case "REGEXP_SUBSTR":
+            return readParameters(new RegexpFunction(RegexpFunction.REGEXP_SUBSTR));
+        case "XMLATTR":
+            return readParameters(new XMLFunction(XMLFunction.XMLATTR));
+        case "XMLCDATA":
+            return readParameters(new XMLFunction(XMLFunction.XMLCDATA));
+        case "XMLCOMMENT":
+            return readParameters(new XMLFunction(XMLFunction.XMLCOMMENT));
+        case "XMLNODE":
+            return readParameters(new XMLFunction(XMLFunction.XMLNODE));
+        case "XMLSTARTDOC":
+            return readParameters(new XMLFunction(XMLFunction.XMLSTARTDOC));
+        case "XMLTEXT":
+            return readParameters(new XMLFunction(XMLFunction.XMLTEXT));
+        case "TRIM_ARRAY":
+            return new ArrayFunction(readExpression(), readLastArgument(), null, ArrayFunction.TRIM_ARRAY);
+        case "ARRAY_CONTAINS":
+            return new ArrayFunction(readExpression(), readLastArgument(), null, ArrayFunction.ARRAY_CONTAINS);
+        case "ARRAY_SLICE":
+            return new ArrayFunction(readExpression(), readNextArgument(), readLastArgument(),
+                    ArrayFunction.ARRAY_SLICE);
         case "COMPRESS":
             return new CompressFunction(readExpression(), readIfArgument(), CompressFunction.COMPRESS);
         case "EXPAND":
@@ -4507,15 +4585,29 @@ public class Parser {
         case "DB_OBJECT_SQL":
             return new DBObjectFunction(readExpression(), readNextArgument(), readIfArgument(),
                     DBObjectFunction.DB_OBJECT_SQL);
+        case "CSVWRITE":
+            return readParameters(new CSVWriteFunction());
+        case "SIGNAL":
+            return new SignalFunction(readExpression(), readLastArgument());
+        case "TRUNCATE_VALUE":
+            return new TruncateValueFunction(readExpression(), readNextArgument(), readLastArgument());
         case "ZERO":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueInteger.get(0));
         case "PI":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueDouble.get(Math.PI));
+        case "UNNEST":
+            return readUnnestFunction();
+        case "TABLE_DISTINCT":
+            return readTableFunction(TableFunction.TABLE_DISTINCT);
+        case "CSVREAD":
+            return readParameters(new CSVReadFunction());
+        case "LINK_SCHEMA":
+            return readParameters(new LinkSchemaFunction());
         }
-        Function function = Function.getFunction(database, upperName);
-        return function != null ? readFunctionParameters(function) : null;
+        ModeFunction function = ModeFunction.getFunction(database, upperName);
+        return function != null ? readParameters(function) : null;
     }
 
     private Expression readDateTimeFormatFunction(int function) {
@@ -4530,6 +4622,86 @@ public class Parser {
             }
         }
         read(CLOSE_PAREN);
+        f.doneWithParameters();
+        return f;
+    }
+
+    private Expression readTrimFunction() {
+        int flags;
+        boolean needFrom = false;
+        if (readIf("LEADING")) {
+            flags = TrimFunction.LEADING;
+            needFrom = true;
+        } else if (readIf("TRAILING")) {
+            flags = TrimFunction.TRAILING;
+            needFrom = true;
+        } else {
+            needFrom = readIf("BOTH");
+            flags = TrimFunction.LEADING | TrimFunction.TRAILING;
+        }
+        Expression from, space = null;
+        if (needFrom) {
+            if (!readIf(FROM)) {
+                space = readExpression();
+                read(FROM);
+            }
+            from = readExpression();
+        } else {
+            if (readIf(FROM)) {
+                from = readExpression();
+            } else {
+                from = readExpression();
+                if (readIf(FROM)) {
+                    space = from;
+                    from = readExpression();
+                } else if (readIf(COMMA)) {
+                    space = readExpression();
+                }
+            }
+        }
+        read(CLOSE_PAREN);
+        return new TrimFunction(from, space, flags);
+    }
+
+    private TableFunction readUnnestFunction() {
+        TableFunction f = new TableFunction(TableFunction.UNNEST);
+        ArrayList<Column> columns = Utils.newSmallArrayList();
+        if (!readIf(CLOSE_PAREN)) {
+            int i = 0;
+            do {
+                Expression expr = readExpression();
+                TypeInfo columnType = TypeInfo.TYPE_NULL;
+                if (expr.isConstant()) {
+                    expr = expr.optimize(session);
+                    TypeInfo exprType = expr.getType();
+                    if (exprType.getValueType() == Value.ARRAY) {
+                        columnType = (TypeInfo) exprType.getExtTypeInfo();
+                    }
+                }
+                f.addParameter(expr);
+                columns.add(new Column("C" + ++i, columnType));
+            } while (readIfMore());
+        }
+        if (readIf(WITH)) {
+            read("ORDINALITY");
+            columns.add(new Column("NORD", TypeInfo.TYPE_INTEGER));
+        }
+        f.setColumns(columns);
+        f.doneWithParameters();
+        return f;
+    }
+
+    private TableFunction readTableFunction(int functionType) {
+        TableFunction f = new TableFunction(functionType);
+        ArrayList<Column> columns = Utils.newSmallArrayList();
+        do {
+            String columnName = readAliasIdentifier();
+            Column column = parseColumnWithType(columnName);
+            columns.add(column);
+            read(EQUAL);
+            f.addParameter(readExpression());
+        } while (readIfMore());
+        f.setColumns(columns);
         f.doneWithParameters();
         return f;
     }
@@ -4593,132 +4765,32 @@ public class Parser {
         return f;
     }
 
-    private Function readFunctionParameters(Function function) {
-        switch (function.getFunctionType()) {
-        case Function.SUBSTRING:
-            // Standard variants are:
-            // SUBSTRING(X FROM 1)
-            // SUBSTRING(X FROM 1 FOR 1)
-            // Different non-standard variants include:
-            // SUBSTRING(X,1)
-            // SUBSTRING(X,1,1)
-            // SUBSTRING(X FOR 1) -- Postgres
+    private Expression readSubstringFunction() {
+        // Standard variants are:
+        // SUBSTRING(X FROM 1)
+        // SUBSTRING(X FROM 1 FOR 1)
+        // Different non-standard variants include:
+        // SUBSTRING(X,1)
+        // SUBSTRING(X,1,1)
+        // SUBSTRING(X FOR 1) -- Postgres
+        SubstringFunction function = new SubstringFunction();
+        function.addParameter(readExpression());
+        if (readIf(FROM)) {
             function.addParameter(readExpression());
-            if (readIf(FROM)) {
+            if (readIf(FOR)) {
                 function.addParameter(readExpression());
-                if (readIf(FOR)) {
-                    function.addParameter(readExpression());
-                }
-            } else if (readIf(FOR)) {
-                function.addParameter(ValueExpression.get(ValueInteger.get(1)));
-                function.addParameter(readExpression());
-            } else {
-                read(COMMA);
-                function.addParameter(readExpression());
-                if (readIf(COMMA)) {
-                    function.addParameter(readExpression());
-                }
             }
-            read(CLOSE_PAREN);
-            break;
-        case Function.POSITION:
-            // can't read expression because IN would be read too early
-            function.addParameter(readConcat());
-            if (!readIf(COMMA)) {
-                read(IN);
-            }
+        } else if (readIf(FOR)) {
+            function.addParameter(ValueExpression.get(ValueInteger.get(1)));
             function.addParameter(readExpression());
-            read(CLOSE_PAREN);
-            break;
-        case Function.TRIM: {
-            int flags;
-            boolean needFrom = false;
-            if (readIf("LEADING")) {
-                flags = Function.TRIM_LEADING;
-                needFrom = true;
-            } else if (readIf("TRAILING")) {
-                flags = Function.TRIM_TRAILING;
-                needFrom = true;
-            } else {
-                needFrom = readIf("BOTH");
-                flags = Function.TRIM_LEADING | Function.TRIM_TRAILING;
-            }
-            Expression p0, space = null;
-            function.setFlags(flags);
-            if (needFrom) {
-                if (!readIf(FROM)) {
-                    space = readExpression();
-                    read(FROM);
-                }
-                p0 = readExpression();
-            } else {
-                if (readIf(FROM)) {
-                    p0 = readExpression();
-                } else {
-                    p0 = readExpression();
-                    if (readIf(FROM)) {
-                        space = p0;
-                        p0 = readExpression();
-                    }
-                }
-            }
-            if (!needFrom && space == null && readIf(COMMA)) {
-                space = readExpression();
-            }
-            function.addParameter(p0);
-            if (space != null) {
-                function.addParameter(space);
-            }
-            read(CLOSE_PAREN);
-            break;
-        }
-        case Function.TABLE:
-        case Function.TABLE_DISTINCT: {
-            ArrayList<Column> columns = Utils.newSmallArrayList();
-            do {
-                String columnName = readAliasIdentifier();
-                Column column = parseColumnWithType(columnName);
-                columns.add(column);
-                read(EQUAL);
+        } else {
+            read(COMMA);
+            function.addParameter(readExpression());
+            if (readIf(COMMA)) {
                 function.addParameter(readExpression());
-            } while (readIfMore());
-            TableFunction tf = (TableFunction) function;
-            tf.setColumns(columns);
-            break;
-        }
-        case Function.UNNEST: {
-            ArrayList<Column> columns = Utils.newSmallArrayList();
-            if (!readIf(CLOSE_PAREN)) {
-                int i = 0;
-                do {
-                    Expression expr = readExpression();
-                    TypeInfo columnType = TypeInfo.TYPE_NULL;
-                    if (expr.isConstant()) {
-                        expr = expr.optimize(session);
-                        TypeInfo exprType = expr.getType();
-                        if (exprType.getValueType() == Value.ARRAY) {
-                            columnType = (TypeInfo) exprType.getExtTypeInfo();
-                        }
-                    }
-                    function.addParameter(expr);
-                    columns.add(new Column("C" + ++i, columnType));
-                } while (readIfMore());
-            }
-            if (readIf(WITH)) {
-                read("ORDINALITY");
-                columns.add(new Column("NORD", TypeInfo.TYPE_INTEGER));
-            }
-            TableFunction tf = (TableFunction) function;
-            tf.setColumns(columns);
-            break;
-        }
-        default:
-            if (!readIf(CLOSE_PAREN)) {
-                do {
-                    function.addParameter(readExpression());
-                } while (readIfMore());
             }
         }
+        read(CLOSE_PAREN);
         function.doneWithParameters();
         return function;
     }
@@ -4881,35 +4953,6 @@ public class Parser {
             function.setFlags(flags);
         }
         return result;
-    }
-
-    private Expression readKeywordFunctionOrColumn(int functionType) {
-        boolean nonKeyword = nonKeywords != null && nonKeywords.get(currentTokenType);
-        String name = currentToken;
-        read();
-        if (isToken(OPEN_PAREN)) {
-            return readKeywordFunction(functionType);
-        } else if (nonKeyword) {
-            return readIf(DOT) ? readTermObjectDot(name) : new ExpressionColumn(database, null, null, name);
-        }
-        throw getSyntaxError();
-    }
-
-    private Expression readKeywordFunction(int id) {
-        Function function = Function.getFunction(id);
-        if (readIf(OPEN_PAREN)) {
-            readFunctionParameters(function);
-        } else {
-            function.doneWithParameters();
-        }
-        if (database.isAllowBuiltinAliasOverride()) {
-            FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(
-                    function.getName());
-            if (functionAlias != null) {
-                return new JavaFunction(functionAlias, function.getArgs());
-            }
-        }
-        return function;
     }
 
     private Expression readKeywordCompatibilityFunctionOrColumn() {
@@ -5106,9 +5149,7 @@ public class Parser {
             read();
             r = new Variable(session, readAliasIdentifier());
             if (readIf(COLON_EQ)) {
-                Expression value = readExpression();
-                Function function = Function.getFunctionWithArgs(Function.SET, r, value);
-                r = function;
+                r = new SetFunction(r, readExpression());
             }
             break;
         case PARAMETER:
@@ -5122,7 +5163,7 @@ public class Parser {
             int index = lastParseIndex;
             read();
             if (readIf(OPEN_PAREN)) {
-                r = readFunctionParameters(Function.getFunction(Function.TABLE));
+                r = readTableFunction(TableFunction.TABLE);
             } else {
                 reread(index);
                 r = new Subquery(parseQuery());
@@ -5320,7 +5361,10 @@ public class Parser {
             r = readKeywordCompatibilityFunctionOrColumn();
             break;
         case LEFT:
-            r = readKeywordFunctionOrColumn(Function.LEFT);
+            r = readColumnIfNotFunction();
+            if (r == null) {
+                r = new StringFunction2(readExpression(), readLastArgument(), StringFunction2.LEFT);
+            }
             break;
         case LOCALTIME:
             read();
@@ -5332,10 +5376,16 @@ public class Parser {
                     null);
             break;
         case RIGHT:
-            r = readKeywordFunctionOrColumn(Function.RIGHT);
+            r = readColumnIfNotFunction();
+            if (r == null) {
+                r = new StringFunction2(readExpression(), readLastArgument(), StringFunction2.RIGHT);
+            }
             break;
         case SET:
-            r = readKeywordFunctionOrColumn(Function.SET);
+            r = readColumnIfNotFunction();
+            if (r == null) {
+                r = readSetFunction();
+            }
             break;
         case VALUE:
             if (parseDomainConstraint) {
@@ -5418,6 +5468,31 @@ public class Parser {
             read(CLOSE_PAREN);
         }
         return new CurrentGeneralValueSpecification(specification);
+    }
+
+    private Expression readColumnIfNotFunction() {
+        boolean nonKeyword = nonKeywords != null && nonKeywords.get(currentTokenType);
+        String name = currentToken;
+        read();
+        if (readIf(OPEN_PAREN)) {
+            return null;
+        } else if (nonKeyword) {
+            return readIf(DOT) ? readTermObjectDot(name) : new ExpressionColumn(database, null, null, name);
+        }
+        throw getSyntaxError();
+    }
+
+    private Expression readSetFunction() {
+        SetFunction function = new SetFunction(readExpression(), readLastArgument());
+        if (database.isAllowBuiltinAliasOverride()) {
+            FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(
+                    function.getName());
+            if (functionAlias != null) {
+                return new JavaFunction(functionAlias,
+                        new Expression[] { function.getSubexpression(0), function.getSubexpression(1) });
+            }
+        }
+        return function;
     }
 
     private Expression readOnDuplicateKeyValues(Table table, Update update) {

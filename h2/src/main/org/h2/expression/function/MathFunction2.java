@@ -7,18 +7,16 @@ package org.h2.expression.function;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.Operation2;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueNull;
 
 /**
  * A math function with two arguments and DOUBLE PRECISION result.
  */
-public final class MathFunction2 extends Operation2 implements NamedExpression {
+public final class MathFunction2 extends Function2 {
 
     /**
      * ATAN2() (non-standard).
@@ -47,15 +45,7 @@ public final class MathFunction2 extends Operation2 implements NamedExpression {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        Value v1 = left.getValue(session);
-        if (v1 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
-        Value v2 = right.getValue(session);
-        if (v2 == ValueNull.INSTANCE) {
-            return ValueNull.INSTANCE;
-        }
+    public Value getValue(SessionLocal session, Value v1, Value v2) {
         double d1 = v1.getDouble(), d2 = v2.getDouble();
         switch (function) {
         case ATAN2:
@@ -100,13 +90,6 @@ public final class MathFunction2 extends Operation2 implements NamedExpression {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        builder.append(getName()).append('(');
-        left.getUnenclosedSQL(builder, sqlFlags).append(", ");
-        return right.getUnenclosedSQL(builder, sqlFlags).append(')');
     }
 
     @Override

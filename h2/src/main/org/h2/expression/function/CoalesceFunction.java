@@ -7,7 +7,6 @@ package org.h2.expression.function;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.OperationN;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
@@ -17,7 +16,7 @@ import org.h2.value.ValueNull;
 /**
  * A COALESCE, GREATEST, or LEAST function.
  */
-public final class CoalesceFunction extends OperationN implements NamedExpression {
+public final class CoalesceFunction extends FunctionN {
 
     /**
      * COALESCE().
@@ -102,11 +101,6 @@ public final class CoalesceFunction extends OperationN implements NamedExpressio
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return writeExpressions(builder.append(getName()).append('('), args, sqlFlags).append(')');
     }
 
     @Override

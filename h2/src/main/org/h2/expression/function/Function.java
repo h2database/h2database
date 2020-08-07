@@ -40,16 +40,11 @@ import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueResultSet;
-import org.h2.value.ValueVarchar;
 
 /**
  * This class implements most built-in functions of this database.
  */
 public class Function extends FunctionN implements FunctionCall {
-
-    public static final int
-            XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
-            XMLSTARTDOC = 87, XMLTEXT = 88;
 
     public static final int
             SIGNAL = 160;
@@ -73,13 +68,6 @@ public class Function extends FunctionN implements FunctionCall {
     protected final FunctionInfo info;
 
     static {
-        addFunction("XMLATTR", XMLATTR, 2, Value.VARCHAR);
-        addFunctionWithNull("XMLNODE", XMLNODE, VAR_ARGS, Value.VARCHAR);
-        addFunction("XMLCOMMENT", XMLCOMMENT, 1, Value.VARCHAR);
-        addFunction("XMLCDATA", XMLCDATA, 1, Value.VARCHAR);
-        addFunction("XMLSTARTDOC", XMLSTARTDOC, 0, Value.VARCHAR);
-        addFunction("XMLTEXT", XMLTEXT, VAR_ARGS, Value.VARCHAR);
-
         // system
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
                 3, Value.NULL);
@@ -109,11 +97,6 @@ public class Function extends FunctionN implements FunctionCall {
     private static void addFunctionNotDeterministic(String name, int type,
             int parameterCount, int returnDataType) {
         addFunction(name, type, parameterCount, returnDataType, true, false);
-    }
-
-    private static void addFunction(String name, int type, int parameterCount,
-            int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, true, true);
     }
 
     private static void addFunctionWithNull(String name, int type,
@@ -234,25 +217,6 @@ public class Function extends FunctionN implements FunctionCall {
         return getValueWithArgs(session, args);
     }
 
-    private Value getSimpleValue(SessionLocal session, Value v0, Expression[] args,
-            Value[] values) {
-        Value result;
-        switch (info.type) {
-        case XMLCOMMENT:
-            result = ValueVarchar.get(StringUtils.xmlComment(v0.getString()), session);
-            break;
-        case XMLCDATA:
-            result = ValueVarchar.get(StringUtils.xmlCData(v0.getString()), session);
-            break;
-        case XMLSTARTDOC:
-            result = ValueVarchar.get(StringUtils.xmlStartDoc(), session);
-            break;
-        default:
-            result = null;
-        }
-        return result;
-    }
-
     /**
      * Get value transformed by expression, or null if i is out of range or
      * the input value is null.
@@ -292,10 +256,6 @@ public class Function extends FunctionN implements FunctionCall {
             return ValueNull.INSTANCE;
         }
         Value v0 = getNullOrValue(session, args, values, 0);
-        Value resultSimple = getSimpleValue(session, v0, args, values);
-        if (resultSimple != null) {
-            return resultSimple;
-        }
         Value v1 = getNullOrValue(session, args, values, 1);
         Value v2 = getNullOrValue(session, args, values, 2);
         Value v3 = getNullOrValue(session, args, values, 3);
@@ -303,19 +263,6 @@ public class Function extends FunctionN implements FunctionCall {
         Value v5 = getNullOrValue(session, args, values, 5);
         Value result;
         switch (info.type) {
-        case XMLATTR:
-            result = ValueVarchar.get(StringUtils.xmlAttr(v0.getString(), v1.getString()), session);
-            break;
-        case XMLNODE: {
-            String attr = v1 == null ?
-                    null : v1 == ValueNull.INSTANCE ? null : v1.getString();
-            String content = v2 == null ?
-                    null : v2 == ValueNull.INSTANCE ? null : v2.getString();
-            boolean indent = v3 == null ?
-                    true : v3.getBoolean();
-            result = ValueVarchar.get(StringUtils.xmlNode(v0.getString(), attr, content, indent), session);
-            break;
-        }
         case CSVREAD: {
             String fileName = v0.getString();
             String columnList = v1 == null ? null : v1.getString();
@@ -395,13 +342,6 @@ public class Function extends FunctionN implements FunctionCall {
         }
         case TRUNCATE_VALUE:
             result = truncateValue(session, v0, v1.getLong(), v2.getBoolean());
-            break;
-        case XMLTEXT:
-            if (v1 == null) {
-                result = ValueVarchar.get(StringUtils.xmlText(v0.getString()), session);
-            } else {
-                result = ValueVarchar.get(StringUtils.xmlText(v0.getString(), v1.getBoolean()), session);
-            }
             break;
         case SIGNAL: {
             String sqlState = v0.getString();
@@ -504,16 +444,8 @@ public class Function extends FunctionN implements FunctionCall {
         case CSVREAD:
             min = 1;
             break;
-        case XMLTEXT:
-            min = 1;
-            max = 2;
-            break;
         case CSVWRITE:
             min = 2;
-            break;
-        case XMLNODE:
-            min = 1;
-            max = 4;
             break;
         default:
             DbException.throwInternalError("type=" + info.type);

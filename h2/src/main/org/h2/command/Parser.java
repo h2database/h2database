@@ -308,6 +308,7 @@ import org.h2.expression.function.TableFunction;
 import org.h2.expression.function.TableInfoFunction;
 import org.h2.expression.function.ToCharFunction;
 import org.h2.expression.function.TrimFunction;
+import org.h2.expression.function.XMLFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsPostgreSQL;
@@ -4434,6 +4435,18 @@ public class Parser {
             return readParameters(new RegexpFunction(RegexpFunction.REGEXP_REPLACE));
         case "REGEXP_SUBSTR":
             return readParameters(new RegexpFunction(RegexpFunction.REGEXP_SUBSTR));
+        case "XMLATTR":
+            return readParameters(new XMLFunction(XMLFunction.XMLATTR));
+        case "XMLCDATA":
+            return readParameters(new XMLFunction(XMLFunction.XMLCDATA));
+        case "XMLCOMMENT":
+            return readParameters(new XMLFunction(XMLFunction.XMLCOMMENT));
+        case "XMLNODE":
+            return readParameters(new XMLFunction(XMLFunction.XMLNODE));
+        case "XMLSTARTDOC":
+            return readParameters(new XMLFunction(XMLFunction.XMLSTARTDOC));
+        case "XMLTEXT":
+            return readParameters(new XMLFunction(XMLFunction.XMLTEXT));
         case "TRIM_ARRAY":
             return new ArrayFunction(readExpression(), readLastArgument(), null, ArrayFunction.TRIM_ARRAY);
         case "ARRAY_CONTAINS":

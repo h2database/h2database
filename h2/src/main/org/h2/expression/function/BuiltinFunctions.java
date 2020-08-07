@@ -48,11 +48,13 @@ public final class BuiltinFunctions {
                 // ToCharFunction
                 "TO_CHAR",
                 // LengthFunction
-                "CHAR_LENGTH", "CHARACTER_LENGTH", "LENGTH", "OCTET_LENGTH", "BIT_LENGTH", //
+                "CHAR_LENGTH", "CHARACTER_LENGTH", "LENGTH", "OCTET_LENGTH", "BIT_LENGTH",
                 // TrimFunction
                 "TRIM",
                 // RegexpFuction
                 "REGEXP_LIKE", "REGEXP_REPLACE", "REGEXP_SUBSTR",
+                // XMLFunction
+                "XMLATTR", "XMLCDATA", "XMLCOMMENT", "XMLNODE", "XMLSTARTDOC", "XMLTEXT",
                 // ArrayFunction
                 "TRIM_ARRAY", "ARRAY_CONTAINS", "ARRAY_SLICE",
                 // CompressFunction

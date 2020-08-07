@@ -13,8 +13,6 @@ import org.h2.expression.Expression;
 import org.h2.expression.TypedValueExpression;
 import org.h2.expression.function.CoalesceFunction;
 import org.h2.expression.function.CurrentDateTimeValueFunction;
-import org.h2.expression.function.Function;
-import org.h2.expression.function.FunctionInfo;
 import org.h2.expression.function.RandFunction;
 import org.h2.expression.function.StringFunction;
 import org.h2.message.DbException;
@@ -27,7 +25,7 @@ import org.h2.value.ValueNull;
  * Functions for {@link org.h2.engine.Mode.ModeEnum#MSSQLServer} compatibility
  * mode.
  */
-public final class FunctionsMSSQLServer extends FunctionsBase {
+public final class FunctionsMSSQLServer extends ModeFunction {
 
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
 
@@ -62,13 +60,10 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
      *            the upper-case name of a function
      * @return the function with specified name or {@code null}
      */
-    public static Function getFunction(String upperName) {
+    public static FunctionsMSSQLServer getFunction(String upperName) {
         FunctionInfo info = FUNCTIONS.get(upperName);
         if (info != null) {
-            if (info.type > 4000) {
-                return new FunctionsMSSQLServer(info);
-            }
-            return new Function(info);
+            return new FunctionsMSSQLServer(info);
         }
         return null;
     }

@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.expression.function;
+package org.h2.mode;
 
 /**
  * This class contains information about a built-in function.

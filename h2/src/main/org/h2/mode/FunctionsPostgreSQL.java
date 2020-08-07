@@ -16,8 +16,6 @@ import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.function.CurrentGeneralValueSpecification;
-import org.h2.expression.function.Function;
-import org.h2.expression.function.FunctionInfo;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
@@ -38,7 +36,7 @@ import org.h2.value.ValueVarchar;
  * Functions for {@link org.h2.engine.Mode.ModeEnum#PostgreSQL} compatibility
  * mode.
  */
-public final class FunctionsPostgreSQL extends FunctionsBase {
+public final class FunctionsPostgreSQL extends ModeFunction {
 
     private static final int CURRENT_DATABASE = 3001;
 
@@ -124,13 +122,10 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
      *            the upper-case name of a function
      * @return the function with specified name or {@code null}
      */
-    public static Function getFunction(String upperName) {
+    public static FunctionsPostgreSQL getFunction(String upperName) {
         FunctionInfo info = FUNCTIONS.get(upperName);
         if (info != null) {
-            if (info.type > 3000) {
-                return new FunctionsPostgreSQL(info);
-            }
-            return new Function(info);
+            return new FunctionsPostgreSQL(info);
         }
         return null;
     }
@@ -189,7 +184,7 @@ public final class FunctionsPostgreSQL extends FunctionsBase {
     }
 
     @Override
-    protected Value getValueWithArgs(SessionLocal session, Expression[] args) {
+    public Value getValue(SessionLocal session) {
         Value[] values = getArgumentsValues(session, args);
         if (values == null) {
             return ValueNull.INSTANCE;

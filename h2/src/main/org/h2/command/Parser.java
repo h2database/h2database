@@ -286,7 +286,6 @@ import org.h2.expression.function.DateTimeFormatFunction;
 import org.h2.expression.function.DateTimeFunction;
 import org.h2.expression.function.DayMonthNameFunction;
 import org.h2.expression.function.FileFunction;
-import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.HashFunction;
 import org.h2.expression.function.JavaFunction;
@@ -299,6 +298,8 @@ import org.h2.expression.function.NullIfFunction;
 import org.h2.expression.function.RandFunction;
 import org.h2.expression.function.RegexpFunction;
 import org.h2.expression.function.SessionControlFunction;
+import org.h2.expression.function.SetFunction;
+import org.h2.expression.function.SignalFunction;
 import org.h2.expression.function.SoundexFunction;
 import org.h2.expression.function.StringFunction;
 import org.h2.expression.function.StringFunction1;
@@ -308,6 +309,7 @@ import org.h2.expression.function.SysInfoFunction;
 import org.h2.expression.function.TableInfoFunction;
 import org.h2.expression.function.ToCharFunction;
 import org.h2.expression.function.TrimFunction;
+import org.h2.expression.function.TruncateValueFunction;
 import org.h2.expression.function.XMLFunction;
 import org.h2.expression.function.table.CSVReadFunction;
 import org.h2.expression.function.table.LinkSchemaFunction;
@@ -315,6 +317,7 @@ import org.h2.expression.function.table.TableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsPostgreSQL;
+import org.h2.mode.ModeFunction;
 import org.h2.mode.OnDuplicateKeyValues;
 import org.h2.mode.Regclass;
 import org.h2.result.SortOrder;
@@ -4059,7 +4062,7 @@ public class Parser {
     private Expression readFunctionWithSchema(Schema schema, String name, String upperName) {
         if (database.getMode().getEnum() == ModeEnum.PostgreSQL
                 && schema.getName().equals(database.sysIdentifier("PG_CATALOG"))) {
-            Function function = FunctionsPostgreSQL.getFunction(database, upperName);
+            FunctionsPostgreSQL function = FunctionsPostgreSQL.getFunction(upperName);
             if (function != null) {
                 return readParameters(function);
             }
@@ -4584,6 +4587,10 @@ public class Parser {
                     DBObjectFunction.DB_OBJECT_SQL);
         case "CSVWRITE":
             return readParameters(new CSVWriteFunction());
+        case "SIGNAL":
+            return new SignalFunction(readExpression(), readLastArgument());
+        case "TRUNCATE_VALUE":
+            return new TruncateValueFunction(readExpression(), readNextArgument(), readLastArgument());
         case "ZERO":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueInteger.get(0));
@@ -4599,7 +4606,7 @@ public class Parser {
         case "LINK_SCHEMA":
             return readParameters(new LinkSchemaFunction());
         }
-        Function function = Function.getFunction(database, upperName);
+        ModeFunction function = ModeFunction.getFunction(database, upperName);
         return function != null ? readParameters(function) : null;
     }
 
@@ -5142,9 +5149,7 @@ public class Parser {
             read();
             r = new Variable(session, readAliasIdentifier());
             if (readIf(COLON_EQ)) {
-                Expression value = readExpression();
-                Function function = Function.getFunctionWithArgs(Function.SET, r, value);
-                r = function;
+                r = new SetFunction(r, readExpression());
             }
             break;
         case PARAMETER:
@@ -5478,12 +5483,13 @@ public class Parser {
     }
 
     private Expression readSetFunction() {
-        Function function = (Function) readParameters(Function.getFunction(Function.SET));
+        SetFunction function = new SetFunction(readExpression(), readLastArgument());
         if (database.isAllowBuiltinAliasOverride()) {
             FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(
                     function.getName());
             if (functionAlias != null) {
-                return new JavaFunction(functionAlias, function.getArgs());
+                return new JavaFunction(functionAlias,
+                        new Expression[] { function.getSubexpression(0), function.getSubexpression(1) });
             }
         }
         return function;

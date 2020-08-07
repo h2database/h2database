@@ -8,6 +8,7 @@ package org.h2.expression.function;
 import java.util.HashSet;
 
 import org.h2.engine.Database;
+import org.h2.mode.ModeFunction;
 
 /**
  * Maintains the list of built-in functions.
@@ -90,6 +91,12 @@ public final class BuiltinFunctions {
                 "DB_OBJECT_ID", "DB_OBJECT_SQL",
                 // CSVWriteFunction
                 "CSVWRITE",
+                // SetFunction
+                /* SET is keyword */
+                // SignalFunction
+                "SIGNAL",
+                // TruncateValueFunction
+                "TRUNCATE_VALUE",
                 // CompatibilitySequenceValueFunction
                 "CURRVAL", "NEXTVAL",
                 // Constants
@@ -119,7 +126,7 @@ public final class BuiltinFunctions {
      * @return {@code true} if it is
      */
     public static boolean isBuiltinFunction(Database database, String upperName) {
-        return FUNCTIONS.contains(upperName) || Function.getFunction(database, upperName) != null;
+        return FUNCTIONS.contains(upperName) || ModeFunction.getFunction(database, upperName) != null;
     }
 
     private BuiltinFunctions() {

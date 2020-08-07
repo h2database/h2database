@@ -270,6 +270,7 @@ import org.h2.expression.condition.UniquePredicate;
 import org.h2.expression.function.ArrayFunction;
 import org.h2.expression.function.BitFunction;
 import org.h2.expression.function.BuiltinFunctions;
+import org.h2.expression.function.CSVWriteFunction;
 import org.h2.expression.function.CardinalityExpression;
 import org.h2.expression.function.CastSpecification;
 import org.h2.expression.function.CoalesceFunction;
@@ -308,6 +309,7 @@ import org.h2.expression.function.TableInfoFunction;
 import org.h2.expression.function.ToCharFunction;
 import org.h2.expression.function.TrimFunction;
 import org.h2.expression.function.XMLFunction;
+import org.h2.expression.function.table.CSVReadFunction;
 import org.h2.expression.function.table.TableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
@@ -4579,6 +4581,8 @@ public class Parser {
         case "DB_OBJECT_SQL":
             return new DBObjectFunction(readExpression(), readNextArgument(), readIfArgument(),
                     DBObjectFunction.DB_OBJECT_SQL);
+        case "CSVWRITE":
+            return readParameters(new CSVWriteFunction());
         case "ZERO":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueInteger.get(0));
@@ -4589,6 +4593,8 @@ public class Parser {
             return readUnnestFunction();
         case "TABLE_DISTINCT":
             return readTableFunction(TableFunction.TABLE_DISTINCT);
+        case "CSVREAD":
+            return readParameters(new CSVReadFunction());
         }
         Function function = Function.getFunction(database, upperName);
         return function != null ? readParameters(function) : null;

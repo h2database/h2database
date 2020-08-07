@@ -88,12 +88,16 @@ public final class BuiltinFunctions {
                 "DATA_TYPE_SQL",
                 // DBObjectFunction
                 "DB_OBJECT_ID", "DB_OBJECT_SQL",
+                // CSVWriteFunction
+                "CSVWRITE",
                 // CompatibilitySequenceValueFunction
                 "CURRVAL", "NEXTVAL",
                 // Constants
                 "ZERO", "PI",
                 // TableFunction
                 "UNNEST", /* TABLE is a keyword */ "TABLE_DISTINCT",
+                // CSVReadFunction
+                "CSVREAD",
                 //
         };
         HashSet<String> set = new HashSet<>(128);

@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
@@ -28,15 +27,11 @@ import org.h2.mode.FunctionsMySQL;
 import org.h2.mode.FunctionsOracle;
 import org.h2.mode.FunctionsPostgreSQL;
 import org.h2.table.LinkSchema;
-import org.h2.tools.Csv;
-import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDecfloat;
-import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueResultSet;
@@ -52,7 +47,6 @@ public class Function extends FunctionN implements FunctionCall {
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
     public static final int
-            CSVREAD = 210, CSVWRITE = 211,
             LINK_SCHEMA = 218,
             SET = 222,
             TRUNCATE_VALUE = 227;
@@ -70,8 +64,6 @@ public class Function extends FunctionN implements FunctionCall {
         // system
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
                 3, Value.NULL);
-        addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false);
-        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INTEGER, false, false);
         addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
                 6, Value.RESULT_SET);
         addFunction("SET", SET, 2, Value.NULL, false, false);
@@ -245,35 +237,6 @@ public class Function extends FunctionN implements FunctionCall {
         Value v5 = getNullOrValue(session, args, values, 5);
         Value result;
         switch (info.type) {
-        case CSVREAD: {
-            String fileName = v0.getString();
-            String columnList = v1 == null ? null : v1.getString();
-            Csv csv = new Csv();
-            String options = v2 == null ? null : v2.getString();
-            String charset = null;
-            if (options != null && options.indexOf('=') >= 0) {
-                charset = csv.setOptions(options);
-            } else {
-                charset = options;
-                String fieldSeparatorRead = v3 == null ? null : v3.getString();
-                String fieldDelimiter = v4 == null ? null : v4.getString();
-                String escapeCharacter = v5 == null ? null : v5.getString();
-                Value v6 = getNullOrValue(session, args, values, 6);
-                String nullString = v6 == null ? null : v6.getString();
-                setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter,
-                        escapeCharacter);
-                csv.setNullString(nullString);
-            }
-            char fieldSeparator = csv.getFieldSeparatorRead();
-            String[] columns = StringUtils.arraySplit(columnList,
-                    fieldSeparator, true);
-            try {
-                result = ValueResultSet.get(session, csv.read(fileName, columns, charset), Integer.MAX_VALUE);
-            } catch (SQLException e) {
-                throw DbException.convert(e);
-            }
-            break;
-        }
         case LINK_SCHEMA: {
             session.getUser().checkAdmin();
             Connection conn = session.createConnection(false);
@@ -281,39 +244,6 @@ public class Function extends FunctionN implements FunctionCall {
                     v1.getString(), v2.getString(), v3.getString(),
                     v4.getString(), v5.getString());
             result = ValueResultSet.get(session, rs, Integer.MAX_VALUE);
-            break;
-        }
-        case CSVWRITE: {
-            session.getUser().checkAdmin();
-            Connection conn = session.createConnection(false);
-            Csv csv = new Csv();
-            String options = v2 == null ? null : v2.getString();
-            String charset = null;
-            if (options != null && options.indexOf('=') >= 0) {
-                charset = csv.setOptions(options);
-            } else {
-                charset = options;
-                String fieldSeparatorWrite = v3 == null ? null : v3.getString();
-                String fieldDelimiter = v4 == null ? null : v4.getString();
-                String escapeCharacter = v5 == null ? null : v5.getString();
-                Value v6 = getNullOrValue(session, args, values, 6);
-                String nullString = v6 == null ? null : v6.getString();
-                Value v7 = getNullOrValue(session, args, values, 7);
-                String lineSeparator = v7 == null ? null : v7.getString();
-                setCsvDelimiterEscape(csv, fieldSeparatorWrite, fieldDelimiter,
-                        escapeCharacter);
-                csv.setNullString(nullString);
-                if (lineSeparator != null) {
-                    csv.setLineSeparator(lineSeparator);
-                }
-            }
-            try {
-                int rows = csv.write(conn, v0.getString(), v1.getString(),
-                        charset);
-                result = ValueInteger.get(rows);
-            } catch (SQLException e) {
-                throw DbException.convert(e);
-            }
             break;
         }
         case SET: {
@@ -421,20 +351,7 @@ public class Function extends FunctionN implements FunctionCall {
      * @throws DbException if the parameter count is incorrect
      */
     protected void checkParameterCount(int len) {
-        int min = 0, max = Integer.MAX_VALUE;
-        switch (info.type) {
-        case CSVREAD:
-            min = 1;
-            break;
-        case CSVWRITE:
-            min = 2;
-            break;
-        default:
-            DbException.throwInternalError("type=" + info.type);
-        }
-        if (len < min || len > max) {
-            throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, min + ".." + max);
-        }
+        DbException.throwInternalError("type=" + info.type);
     }
 
     @Override
@@ -499,71 +416,8 @@ public class Function extends FunctionN implements FunctionCall {
     }
 
     @Override
-    public ValueResultSet getValueForColumnList(SessionLocal session,
-            Expression[] argList) {
-        switch (info.type) {
-        case CSVREAD: {
-            String fileName = argList[0].getValue(session).getString();
-            if (fileName == null) {
-                throw DbException.get(ErrorCode.PARAMETER_NOT_SET_1, "fileName");
-            }
-            String columnList = argList.length < 2 ?
-                    null : argList[1].getValue(session).getString();
-            Csv csv = new Csv();
-            String options = argList.length < 3 ?
-                    null : argList[2].getValue(session).getString();
-            String charset = null;
-            if (options != null && options.indexOf('=') >= 0) {
-                charset = csv.setOptions(options);
-            } else {
-                charset = options;
-                String fieldSeparatorRead = argList.length < 4 ?
-                        null : argList[3].getValue(session).getString();
-                String fieldDelimiter = argList.length < 5 ?
-                        null : argList[4].getValue(session).getString();
-                String escapeCharacter = argList.length < 6 ?
-                        null : argList[5].getValue(session).getString();
-                setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter,
-                        escapeCharacter);
-            }
-            char fieldSeparator = csv.getFieldSeparatorRead();
-            String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
-            ResultSet rs = null;
-            ValueResultSet x;
-            try {
-                rs = csv.read(fileName, columns, charset);
-                x = ValueResultSet.get(session, rs, 0);
-            } catch (SQLException e) {
-                throw DbException.convert(e);
-            } finally {
-                csv.close();
-                JdbcUtils.closeSilently(rs);
-            }
-            return x;
-        }
-        default:
-            break;
-        }
+    public ValueResultSet getValueForColumnList(SessionLocal session, Expression[] argList) {
         return (ValueResultSet) getValueWithArgs(session, argList);
-    }
-
-    private static void setCsvDelimiterEscape(Csv csv, String fieldSeparator,
-            String fieldDelimiter, String escapeCharacter) {
-        if (fieldSeparator != null) {
-            csv.setFieldSeparatorWrite(fieldSeparator);
-            if (!fieldSeparator.isEmpty()) {
-                char fs = fieldSeparator.charAt(0);
-                csv.setFieldSeparatorRead(fs);
-            }
-        }
-        if (fieldDelimiter != null) {
-            char fd = fieldDelimiter.isEmpty() ? 0 : fieldDelimiter.charAt(0);
-            csv.setFieldDelimiter(fd);
-        }
-        if (escapeCharacter != null) {
-            char ec = escapeCharacter.isEmpty() ? 0 : escapeCharacter.charAt(0);
-            csv.setEscapeCharacter(ec);
-        }
     }
 
     @Override

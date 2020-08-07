@@ -7,6 +7,7 @@ package org.h2.expression.function;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
@@ -142,6 +143,11 @@ public final class DataTypeSQLFunction extends FunctionN {
     @Override
     public String getName() {
         return "DATA_TYPE_SQL";
+    }
+
+    @Override
+    public boolean isEverything(ExpressionVisitor visitor) {
+        return isEverythingNonDeterministic(visitor);
     }
 
 }

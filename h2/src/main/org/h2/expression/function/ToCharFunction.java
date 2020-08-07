@@ -17,6 +17,8 @@ import java.util.Locale;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
+import org.h2.expression.Expression;
+import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
@@ -26,11 +28,12 @@ import org.h2.value.Value;
 import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueVarchar;
 
 /**
  * Emulates Oracle's TO_CHAR function.
  */
-public final class ToChar {
+public final class ToCharFunction extends FunctionN {
 
     /**
      * The beginning of the Julian calendar.
@@ -69,10 +72,6 @@ public final class ToChar {
     static final int AM_PM = 4;
 
     private static volatile String[][] NAMES;
-
-    private ToChar() {
-        // utility class
-    }
 
     /**
      * Emulates Oracle's TO_CHAR(number) function.
@@ -1072,4 +1071,50 @@ public final class ToChar {
             }
         }
     }
+
+    public ToCharFunction(Expression arg1, Expression arg2, Expression arg3) {
+        super(arg2 == null ? new Expression[] { arg1 }
+                : arg3 == null ? new Expression[] { arg1, arg2 } : new Expression[] { arg1, arg2, arg3 });
+    }
+
+    @Override
+    public Value getValue(SessionLocal session, Value v1, Value v2, Value v3) {
+        switch (v1.getValueType()) {
+        case Value.TIME:
+        case Value.DATE:
+        case Value.TIMESTAMP:
+        case Value.TIMESTAMP_TZ:
+            v1 = ValueVarchar.get(toCharDateTime(session, v1, v2 == null ? null : v2.getString(),
+                    v3 == null ? null : v3.getString()), session);
+            break;
+        case Value.SMALLINT:
+        case Value.INTEGER:
+        case Value.BIGINT:
+        case Value.NUMERIC:
+        case Value.DOUBLE:
+        case Value.REAL:
+            v1 = ValueVarchar.get(toChar(v1.getBigDecimal(), v2 == null ? null : v2.getString(),
+                    v3 == null ? null : v3.getString()), session);
+            break;
+        default:
+            v1 = ValueVarchar.get(v1.getString(), session);
+        }
+        return v1;
+    }
+
+    @Override
+    public Expression optimize(SessionLocal session) {
+        boolean allConst = optimizeArguments(session, true);
+        type = TypeInfo.TYPE_VARCHAR;
+        if (allConst) {
+            return TypedValueExpression.getTypedIfNull(getValue(session), type);
+        }
+        return this;
+    }
+
+    @Override
+    public String getName() {
+        return "TO_CHAR";
+    }
+
 }

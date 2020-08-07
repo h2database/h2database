@@ -299,12 +299,14 @@ import org.h2.expression.function.RandFunction;
 import org.h2.expression.function.RegexpFunction;
 import org.h2.expression.function.SessionControlFunction;
 import org.h2.expression.function.SoundexFunction;
+import org.h2.expression.function.StringFunction;
 import org.h2.expression.function.StringFunction1;
 import org.h2.expression.function.StringFunction2;
 import org.h2.expression.function.SubstringFunction;
 import org.h2.expression.function.SysInfoFunction;
 import org.h2.expression.function.TableFunction;
 import org.h2.expression.function.TableInfoFunction;
+import org.h2.expression.function.ToCharFunction;
 import org.h2.expression.function.TrimFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
@@ -4352,6 +4354,30 @@ public class Parser {
             return new CardinalityExpression(readSingleArgument(), false);
         case "ARRAY_MAX_CARDINALITY":
             return new CardinalityExpression(readSingleArgument(), true);
+        case "INSTR":
+            return new StringFunction(readExpression(), readNextArgument(), readIfArgument(), StringFunction.INSTR);
+        case "LOCATE":
+            return new StringFunction(readExpression(), readNextArgument(), readIfArgument(), StringFunction.LOCATE);
+        case "POSITION": {
+            // can't read expression because IN would be read too early
+            Expression arg1 = readConcat();
+            if (!readIf(COMMA)) {
+                read(IN);
+            }
+            return new StringFunction(arg1, readSingleArgument(), null, StringFunction.POSITION);
+        }
+        case "INSERT":
+            return new StringFunction(readExpression(), readNextArgument(), readNextArgument(), readLastArgument(),
+                    StringFunction.INSERT);
+        case "REPLACE":
+            return new StringFunction(readExpression(), readNextArgument(), readIfArgument(), StringFunction.REPLACE);
+        case "LPAD":
+            return new StringFunction(readExpression(), readNextArgument(), readIfArgument(), StringFunction.LPAD);
+        case "RPAD":
+            return new StringFunction(readExpression(), readNextArgument(), readIfArgument(), StringFunction.RPAD);
+        case "TRANSLATE":
+            return new StringFunction(readExpression(), readNextArgument(), readLastArgument(),
+                    StringFunction.TRANSLATE);
         case "UPPER":
             return new StringFunction1(readSingleArgument(), StringFunction1.UPPER);
         case "LOWER":
@@ -4379,6 +4405,17 @@ public class Parser {
             return new StringFunction1(readSingleArgument(), StringFunction1.QUOTE_IDENT);
         case "SUBSTRING":
             return readSubstringFunction();
+        case "TO_CHAR": {
+            Expression arg1 = readExpression(), arg2, arg3;
+            if (readIf(COMMA)) {
+                arg2 = readExpression();
+                arg3 = readIf(COMMA) ? readExpression() : null;
+            } else {
+                arg3 = arg2 = null;
+            }
+            read(CLOSE_PAREN);
+            return new ToCharFunction(arg1, arg2, arg3);
+        }
         case "REPEAT":
             return new StringFunction2(readExpression(), readLastArgument(), StringFunction2.REPEAT);
         case "CHAR_LENGTH":
@@ -4654,15 +4691,6 @@ public class Parser {
 
     private Function readFunctionParameters(Function function) {
         switch (function.getFunctionType()) {
-        case Function.POSITION:
-            // can't read expression because IN would be read too early
-            function.addParameter(readConcat());
-            if (!readIf(COMMA)) {
-                read(IN);
-            }
-            function.addParameter(readExpression());
-            read(CLOSE_PAREN);
-            break;
         case Function.TABLE:
         case Function.TABLE_DISTINCT: {
             ArrayList<Column> columns = Utils.newSmallArrayList();

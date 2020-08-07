@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
-import org.h2.engine.Mode;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
@@ -49,13 +48,8 @@ import org.h2.value.ValueVarchar;
 public class Function extends FunctionN implements FunctionCall {
 
     public static final int
-            INSERT = 57, INSTR = 58,
-            LOCATE = 62,
-            REPLACE = 67,
-            POSITION = 77,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
-            XMLSTARTDOC = 87, XMLTEXT = 88, RPAD = 90,
-            LPAD = 91, TO_CHAR = 93, TRANSLATE = 94;
+            XMLSTARTDOC = 87, XMLTEXT = 88;
 
     public static final int
             SIGNAL = 160;
@@ -79,23 +73,12 @@ public class Function extends FunctionN implements FunctionCall {
     protected final FunctionInfo info;
 
     static {
-        // string
-        addFunctionWithNull("INSERT", INSERT, 4, Value.VARCHAR);
-        // 2 or 3 arguments
-        addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INTEGER);
-        addFunction("INSTR", INSTR, VAR_ARGS, Value.INTEGER);
-        addFunctionWithNull("REPLACE", REPLACE, VAR_ARGS, Value.VARCHAR);
-        addFunction("POSITION", POSITION, 2, Value.INTEGER);
         addFunction("XMLATTR", XMLATTR, 2, Value.VARCHAR);
         addFunctionWithNull("XMLNODE", XMLNODE, VAR_ARGS, Value.VARCHAR);
         addFunction("XMLCOMMENT", XMLCOMMENT, 1, Value.VARCHAR);
         addFunction("XMLCDATA", XMLCDATA, 1, Value.VARCHAR);
         addFunction("XMLSTARTDOC", XMLSTARTDOC, 0, Value.VARCHAR);
         addFunction("XMLTEXT", XMLTEXT, VAR_ARGS, Value.VARCHAR);
-        addFunction("RPAD", RPAD, VAR_ARGS, Value.VARCHAR);
-        addFunction("LPAD", LPAD, VAR_ARGS, Value.VARCHAR);
-        addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.VARCHAR);
-        addFunction("TRANSLATE", TRANSLATE, 3, Value.VARCHAR);
 
         // system
         addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
@@ -320,41 +303,6 @@ public class Function extends FunctionN implements FunctionCall {
         Value v5 = getNullOrValue(session, args, values, 5);
         Value result;
         switch (info.type) {
-        case INSERT: {
-            if (v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE) {
-                result = v1;
-            } else {
-                result = ValueVarchar.get(insert(v0.getString(), v1.getInt(), v2.getInt(), v3.getString()), session);
-            }
-            break;
-        }
-        case LOCATE: {
-            int start = v2 == null ? 0 : v2.getInt();
-            result = ValueInteger.get(locate(v0.getString(), v1.getString(), start));
-            break;
-        }
-        case INSTR: {
-            int start = v2 == null ? 0 : v2.getInt();
-            result = ValueInteger.get(locate(v1.getString(), v0.getString(), start));
-            break;
-        }
-        case REPLACE:
-            if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE
-                    || v2 == ValueNull.INSTANCE && session.getMode().getEnum() != Mode.ModeEnum.Oracle) {
-                result = ValueNull.INSTANCE;
-            } else {
-                String s0 = v0.getString();
-                String s1 = v1.getString();
-                String s2 = (v2 == null) ? "" : v2.getString();
-                if (s2 == null) {
-                    s2 = "";
-                }
-                result = ValueVarchar.get(StringUtils.replaceAll(s0, s1, s2), session);
-            }
-            break;
-        case POSITION:
-            result = ValueInteger.get(locate(v0.getString(), v1.getString(), 0));
-            break;
         case XMLATTR:
             result = ValueVarchar.get(StringUtils.xmlAttr(v0.getString(), v1.getString()), session);
             break;
@@ -366,55 +314,6 @@ public class Function extends FunctionN implements FunctionCall {
             boolean indent = v3 == null ?
                     true : v3.getBoolean();
             result = ValueVarchar.get(StringUtils.xmlNode(v0.getString(), attr, content, indent), session);
-            break;
-        }
-        case RPAD:
-            result = ValueVarchar.get(
-                    StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), true),
-                    session);
-            break;
-        case LPAD:
-            result = ValueVarchar.get(
-                    StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), false),
-                    session);
-            break;
-        case TO_CHAR:
-            switch (v0.getValueType()){
-            case Value.TIME:
-            case Value.DATE:
-            case Value.TIMESTAMP:
-            case Value.TIMESTAMP_TZ:
-                result = ValueVarchar.get(
-                        ToChar.toCharDateTime(session,
-                        v0,
-                        v1 == null ? null : v1.getString(),
-                        v2 == null ? null : v2.getString()),
-                        session);
-                break;
-            case Value.SMALLINT:
-            case Value.INTEGER:
-            case Value.BIGINT:
-            case Value.NUMERIC:
-            case Value.DOUBLE:
-            case Value.REAL:
-                result = ValueVarchar.get(ToChar.toChar(v0.getBigDecimal(),
-                        v1 == null ? null : v1.getString(),
-                        v2 == null ? null : v2.getString()),
-                        session);
-                break;
-            default:
-                result = ValueVarchar.get(v0.getString(), session);
-            }
-            break;
-        case TRANSLATE: {
-            String matching = v1.getString();
-            String replacement = v2.getString();
-            if (session.getMode().getEnum() == ModeEnum.DB2) {
-                String t = matching;
-                matching = replacement;
-                replacement = t;
-            }
-            result = ValueVarchar.get(translate(v0.getString(), matching, replacement), session);
             break;
         }
         case CSVREAD: {
@@ -588,66 +487,6 @@ public class Function extends FunctionN implements FunctionCall {
         return value;
     }
 
-    private static int locate(String search, String s, int start) {
-        if (start < 0) {
-            int i = s.length() + start;
-            return s.lastIndexOf(search, i) + 1;
-        }
-        int i = (start == 0) ? 0 : start - 1;
-        return s.indexOf(search, i) + 1;
-    }
-
-    private static String insert(String s1, int start, int length, String s2) {
-        if (s1 == null) {
-            return s2;
-        }
-        if (s2 == null) {
-            return s1;
-        }
-        int len1 = s1.length();
-        int len2 = s2.length();
-        start--;
-        if (start < 0 || length <= 0 || len2 == 0 || start > len1) {
-            return s1;
-        }
-        if (start + length > len1) {
-            length = len1 - start;
-        }
-        return s1.substring(0, start) + s2 + s1.substring(start + length);
-    }
-
-    private static String translate(String original, String findChars,
-            String replaceChars) {
-        if (StringUtils.isNullOrEmpty(original) ||
-                StringUtils.isNullOrEmpty(findChars)) {
-            return original;
-        }
-        // if it stays null, then no replacements have been made
-        StringBuilder buff = null;
-        // if shorter than findChars, then characters are removed
-        // (if null, we don't access replaceChars at all)
-        int replaceSize = replaceChars == null ? 0 : replaceChars.length();
-        for (int i = 0, size = original.length(); i < size; i++) {
-            char ch = original.charAt(i);
-            int index = findChars.indexOf(ch);
-            if (index >= 0) {
-                if (buff == null) {
-                    buff = new StringBuilder(size);
-                    if (i > 0) {
-                        buff.append(original, 0, i);
-                    }
-                }
-                if (index < replaceSize) {
-                    ch = replaceChars.charAt(index);
-                }
-            }
-            if (buff != null) {
-                buff.append(ch);
-            }
-        }
-        return buff == null ? original : buff.toString();
-    }
-
     @Override
     public int getValueType() {
         return type.getValueType();
@@ -668,18 +507,6 @@ public class Function extends FunctionN implements FunctionCall {
         case XMLTEXT:
             min = 1;
             max = 2;
-            break;
-        case TO_CHAR:
-            min = 1;
-            max = 3;
-            break;
-        case REPLACE:
-        case LOCATE:
-        case INSTR:
-        case LPAD:
-        case RPAD:
-            min = 2;
-            max = 3;
             break;
         case CSVWRITE:
             min = 2;

@@ -7,6 +7,7 @@ package org.h2.mode;
 
 import java.util.HashMap;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.TypedValueExpression;
@@ -15,6 +16,7 @@ import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
 import org.h2.expression.function.RandFunction;
+import org.h2.expression.function.StringFunction;
 import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -29,7 +31,9 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
 
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
 
-    private static final int GETDATE = 4001;
+    private static final int CHARINDEX = 4001;
+
+    private static final int GETDATE = CHARINDEX + 1;
 
     private static final int ISNULL = GETDATE + 1;
 
@@ -42,7 +46,7 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
     private static final TypeInfo SCOPE_IDENTITY_TYPE = TypeInfo.getTypeInfo(Value.NUMERIC, 38, 0, null);
 
     static {
-        copyFunction(FUNCTIONS, "LOCATE", "CHARINDEX");
+        FUNCTIONS.put("CHARINDEX", new FunctionInfo("CHARINDEX", CHARINDEX, VAR_ARGS, Value.INTEGER, true, true));
         FUNCTIONS.put("GETDATE", new FunctionInfo("GETDATE", GETDATE, 0, Value.TIMESTAMP, false, true));
         FUNCTIONS.put("LEN", new FunctionInfo("LEN", LEN, 1, Value.INTEGER, true, true));
         FUNCTIONS.put("NEWID", new FunctionInfo("NEWID", NEWID, 0, Value.UUID, true, false));
@@ -71,6 +75,22 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
 
     private FunctionsMSSQLServer(FunctionInfo info) {
         super(info);
+    }
+
+    @Override
+    protected void checkParameterCount(int len) {
+        int min, max;
+        switch (info.type) {
+        case CHARINDEX:
+            min = 2;
+            max = 3;
+            break;
+        default:
+            throw DbException.throwInternalError("type=" + info.type);
+        }
+        if (len < min || len > max) {
+            throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, min + ".." + max);
+        }
     }
 
     @Override
@@ -105,6 +125,8 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
     @Override
     public Expression optimize(SessionLocal session) {
         switch (info.type) {
+        case CHARINDEX:
+            return new StringFunction(args, StringFunction.LOCATE).optimize(session);
         case GETDATE:
             return new CurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIMESTAMP, 3).optimize(session);
         case ISNULL:

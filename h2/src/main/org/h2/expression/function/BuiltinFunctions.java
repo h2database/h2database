@@ -36,6 +36,8 @@ public final class BuiltinFunctions {
                 "DAYNAME", "MONTHNAME",
                 // CardinalityExpression
                 "CARDINALITY", "ARRAY_MAX_CARDINALITY",
+                // StringFunction
+                "INSTR", "LOCATE", "POSITION", "INSERT", "REPLACE", "LPAD", "RPAD", "TRANSLATE",
                 // StringFunction1
                 "UPPER", "LOWER", "ASCII", "CHAR", "CHR", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8",
                 "UTF8TOSTRING", "HEXTORAW", "RAWTOHEX", "SPACE", "QUOTE_IDENT",
@@ -43,6 +45,8 @@ public final class BuiltinFunctions {
                 /* LEFT and RIGHT are keywords */ "REPEAT",
                 // SubstringFunction
                 "SUBSTRING",
+                // ToCharFunction
+                "TO_CHAR",
                 // LengthFunction
                 "CHAR_LENGTH", "CHARACTER_LENGTH", "LENGTH", "OCTET_LENGTH", "BIT_LENGTH", //
                 // TrimFunction

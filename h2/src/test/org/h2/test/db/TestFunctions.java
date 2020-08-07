@@ -1933,12 +1933,12 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
 
-        assertThrows(ErrorCode.INVALID_VALUE_2, stat).execute("select signal('00145', 'success class is invalid')");
-        assertThrows(ErrorCode.INVALID_VALUE_2, stat).execute("select signal('foo', 'SQLSTATE has 5 chars')");
+        assertThrows(ErrorCode.INVALID_VALUE_2, stat).execute("call signal('00145', 'success class is invalid')");
+        assertThrows(ErrorCode.INVALID_VALUE_2, stat).execute("call signal('foo', 'SQLSTATE has 5 chars')");
         assertThrows(ErrorCode.INVALID_VALUE_2, stat)
-                .execute("select signal('Ab123', 'SQLSTATE has only digits or upper-case letters')");
+                .execute("call signal('Ab123', 'SQLSTATE has only digits or upper-case letters')");
         try {
-            stat.execute("select signal('AB123', 'some custom error')");
+            stat.execute("call signal('AB123', 'some custom error')");
             fail("Should have thrown");
         } catch (SQLException e) {
             assertEquals("AB123", e.getSQLState());

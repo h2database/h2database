@@ -6662,37 +6662,70 @@ Aggregates are only allowed in select statements.
 VAR_SAMP(X)
 "
 
-"Aggregate Functions (General)","BIT_AND","
-@h2@ BIT_AND(expression)
+"Aggregate Functions (General)","BIT_AND_AGG","
+{@h2@{BIT_AND_AGG}|@c@{BIT_AND}}@h2@(expression)
 @h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 The bitwise AND of all non-null values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
-BIT_AND(ID)
+BIT_AND_AGG(X)
 "
 
-"Aggregate Functions (General)","BIT_OR","
-@h2@ BIT_OR(expression)
+"Aggregate Functions (General)","BIT_OR_AGG","
+{@h2@{BIT_OR_AGG}|@c@{BIT_OR}}@h2@(expression)
 @h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 The bitwise OR of all non-null values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
-BIT_OR(ID)
+BIT_OR_AGG(X)
 "
 
-"Aggregate Functions (General)","BIT_XOR","
-@h2@ BIT_XOR( [ DISTINCT|ALL ] expression)
+"Aggregate Functions (General)","BIT_XOR_AGG","
+@h2@ BIT_XOR_AGG( [ DISTINCT|ALL ] expression)
 @h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 The bitwise XOR of all non-null values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
-BIT_XOR(ID)
+BIT_XOR_AGG(X)
+"
+
+"Aggregate Functions (General)","BIT_NAND_AGG","
+@h2@ BIT_NAND_AGG(expression)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
+","
+The bitwise NAND of all non-null values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+BIT_NAND_AGG(X)
+"
+
+"Aggregate Functions (General)","BIT_NOR_AGG","
+@h2@ BIT_NOR_AGG(expression)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
+","
+The bitwise NOR of all non-null values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+BIT_NOR_AGG(X)
+"
+
+"Aggregate Functions (General)","BIT_XNOR_AGG","
+@h2@ BIT_XNOR_AGG( [ DISTINCT|ALL ] expression)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
+","
+The bitwise XNOR of all non-null values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+BIT_XNOR_AGG(X)
 "
 
 "Aggregate Functions (General)","ENVELOPE","

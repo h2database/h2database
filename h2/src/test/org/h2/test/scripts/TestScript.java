@@ -160,11 +160,11 @@ public class TestScript extends TestDb {
                 "merge", "mergeUsing", "replace", "script", "show", "update", "with" }) {
             testScript("dml/" + s + ".sql");
         }
-        for (String s : new String[] { "any", "array-agg", "avg", "bit-and", "bit-or", "bit-xor", "count", "envelope",
-                "every", "histogram",
+        for (String s : new String[] { "any", "array_agg", "avg", "bit_and_agg", "bit_or_agg", "bit_xor_agg", "count",
+                "envelope", "every", "histogram",
                 "json_arrayagg", "json_objectagg",
                 "listagg", "max", "min", "mode", "percentile", "rank",
-                "stddev-pop", "stddev-samp", "sum", "var-pop", "var-samp" }) {
+                "stddev_pop", "stddev_samp", "sum", "var_pop", "var_samp" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }
         for (String s : new String[] { "json_array", "json_object" }) {

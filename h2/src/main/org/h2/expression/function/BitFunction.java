@@ -10,6 +10,8 @@ import java.util.Arrays;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.TypedValueExpression;
+import org.h2.expression.aggregate.Aggregate;
+import org.h2.expression.aggregate.AggregateType;
 import org.h2.message.DbException;
 import org.h2.util.Bits;
 import org.h2.value.DataType;
@@ -464,6 +466,33 @@ public final class BitFunction extends Function1_2 {
                 return this;
             }
             return new BitFunction(l.left, l.right, f).optimize(session);
+        } else if (left instanceof Aggregate) {
+            Aggregate l = (Aggregate) left;
+            AggregateType t;
+            switch (l.getAggregateType()) {
+            case BIT_AND_AGG:
+                t = AggregateType.BIT_NAND_AGG;
+                break;
+            case BIT_OR_AGG:
+                t = AggregateType.BIT_NOR_AGG;
+                break;
+            case BIT_XOR_AGG:
+                t = AggregateType.BIT_XNOR_AGG;
+                break;
+            case BIT_NAND_AGG:
+                t = AggregateType.BIT_AND_AGG;
+                break;
+            case BIT_NOR_AGG:
+                t = AggregateType.BIT_OR_AGG;
+                break;
+            case BIT_XNOR_AGG:
+                t = AggregateType.BIT_XOR_AGG;
+                break;
+            default:
+                return this;
+            }
+            return new Aggregate(t, new Expression[] { l.getSubexpression(0) }, l.getSelect(), l.isDistinct())
+                    .optimize(session);
         }
         return this;
     }

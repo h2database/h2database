@@ -4,13 +4,13 @@
 --
 
 explain select * from system_range(1, 2) where x=x+1 and x=1;
->> SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 2) /* range index: X = 1 */ WHERE ("X" = 1) AND ("X" = ("X" + 1))
+>> SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 2) /* range index: X = CAST(1 AS BIGINT) */ WHERE ("X" = CAST(1 AS BIGINT)) AND ("X" = ("X" + 1))
 
 explain select * from system_range(1, 2) where not (x = 1 and x*2 = 2);
->> SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 2) /* range index */ WHERE ("X" <> 1) OR (("X" * 2) <> 2)
+>> SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 2) /* range index */ WHERE ("X" <> CAST(1 AS BIGINT)) OR (("X" * 2) <> 2)
 
 explain select * from system_range(1, 10) where (NOT x >= 5);
->> SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 10) /* range index: X < 5 */ WHERE "X" < 5
+>> SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 10) /* range index: X < CAST(5 AS BIGINT) */ WHERE "X" < CAST(5 AS BIGINT)
 
 select (select t1.x from system_range(1,1) t2) from system_range(1,1) t1;
 > (SELECT T1.X FROM SYSTEM_RANGE(1, 1) T2)

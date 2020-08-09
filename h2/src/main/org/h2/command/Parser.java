@@ -4323,13 +4323,18 @@ public class Parser {
             return new BitFunction(readExpression(), readLastArgument(), BitFunction.BITOR);
         case "BITXOR":
             return new BitFunction(readExpression(), readLastArgument(), BitFunction.BITXOR);
-        case "BITNOT": {
-            Expression arg = readExpression();
-            read(CLOSE_PAREN);
-            return new BitFunction(arg, null, BitFunction.BITNOT);
-        }
+        case "BITNOT":
+            return new BitFunction(readSingleArgument(), null, BitFunction.BITNOT);
+        case "BITNAND":
+            return new BitFunction(readExpression(), readLastArgument(), BitFunction.BITNAND);
+        case "BITNOR":
+            return new BitFunction(readExpression(), readLastArgument(), BitFunction.BITNOR);
+        case "BITXNOR":
+            return new BitFunction(readExpression(), readLastArgument(), BitFunction.BITXNOR);
         case "BITGET":
             return new BitFunction(readExpression(), readLastArgument(), BitFunction.BITGET);
+        case "BITCOUNT":
+            return new BitFunction(readSingleArgument(), null, BitFunction.BITCOUNT);
         case "LSHIFT":
             return new BitFunction(readExpression(), readLastArgument(), BitFunction.LSHIFT);
         case "RSHIFT":

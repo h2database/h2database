@@ -4679,74 +4679,116 @@ ATAN2(X, Y)
 "
 
 "Functions (Numeric)","BITAND","
-@h2@ BITAND(long, long)
+@h2@ BITAND(expression, expression)
 ","
 The bitwise AND operation.
-This method returns a long.
-See also Java operator &.
+Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
 ","
 BITAND(A, B)
 "
 
-"Functions (Numeric)","BITGET","
-@h2@ BITGET(long, int)
-","
-Returns true if and only if the first parameter has a bit set in the
-position specified by the second parameter.
-This method returns a boolean.
-The second parameter is zero-indexed; the least significant bit has position 0.
-","
-BITGET(A, 1)
-"
-
-"Functions (Numeric)","BITNOT","
-@h2@ BITNOT(long)
-","
-The bitwise NOT operation.
-This method returns a long.
-See also Java operator ~.
-","
-BITNOT(A)
-"
-
 "Functions (Numeric)","BITOR","
-@h2@ BITOR(long, long)
+@h2@ BITOR(expression, expression)
 ","
 The bitwise OR operation.
-This method returns a long.
-See also Java operator |.
+Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
 ","
 BITOR(A, B)
 "
 
 "Functions (Numeric)","BITXOR","
-@h2@ BITXOR(long, long)
+@h2@ BITXOR(expression, expression)
+","
+Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
 ","
 The bitwise XOR operation.
-This method returns a long.
-See also Java operator ^.
 ","
 BITXOR(A, B)
 "
 
+"Functions (Numeric)","BITNOT","
+@h2@ BITNOT(expression)
+","
+The bitwise NOT operation.
+Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+","
+BITNOT(A)
+"
+
+"Functions (Numeric)","BITNAND","
+@h2@ BITNAND(expression, expression)
+","
+The bitwise NAND operation equivalent to ""BITNOT(BITAND(expression, expression))"".
+Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+","
+BITNAND(A, B)
+"
+
+"Functions (Numeric)","BITNOR","
+@h2@ BITNOR(expression, expression)
+","
+The bitwise NOR operation equivalent to ""BITNOT(BITOR(expression, expression))"".
+Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+","
+BITNOR(A, B)
+"
+
+"Functions (Numeric)","BITXNOR","
+@h2@ BITXNOR(expression, expression)
+","
+The bitwise XNOR operation equivalent to ""BITNOT(BITXOR(expression, expression))"".
+Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+","
+BITXNOR(A, B)
+"
+
+"Functions (Numeric)","BITGET","
+@h2@ BITGET(expression, long)
+","
+Returns true if and only if the first argument has a bit set in the
+position specified by the second parameter.
+The first argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This method returns a boolean.
+The second argument is zero-indexed; the least significant bit has position 0.
+","
+BITGET(A, 1)
+"
+
+"Functions (Numeric)","BITCOUNT","
+@h2@ BITCOUNT(expression)
+","
+Returns count of set bits in the specified value.
+Value should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This method returns a long.
+","
+BITCOUNT(A)
+"
+
 "Functions (Numeric)","LSHIFT","
-@h2@ LSHIFT(long, int)
+@h2@ LSHIFT(expression, long)
 ","
 The bitwise left shift operation.
 Shifts the first argument by the number of bits given by the second argument.
-This method returns a long.
-See also Java operator <<.
+Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
 ","
 LSHIFT(A, B)
 "
 
 "Functions (Numeric)","RSHIFT","
-@h2@ RSHIFT(long, int)
+@h2@ RSHIFT(expression, long)
 ","
 The bitwise right shift operation.
 Shifts the first argument by the number of bits given by the second argument.
-This method returns a long.
-See also Java operator >>.
+Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
 ","
 RSHIFT(A, B)
 "

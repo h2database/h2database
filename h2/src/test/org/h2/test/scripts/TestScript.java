@@ -171,7 +171,7 @@ public class TestScript extends TestDb {
             testScript("functions/json/" + s + ".sql");
         }
         for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",
-                "bitand", "bitget", "bitnot", "bitor", "bitxor", "ceil", "compress",
+                "bitand", "bitcount", "bitget", "bitnot", "bitor", "bitxor", "ceil", "compress",
                 "cos", "cosh", "cot", "decrypt", "degrees", "encrypt", "exp",
                 "expand", "floor", "hash", "length", "log", "lshift", "mod", "ora-hash", "pi",
                 "power", "radians", "rand", "random-uuid", "round",

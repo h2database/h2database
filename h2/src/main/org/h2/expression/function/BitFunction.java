@@ -232,12 +232,16 @@ public final class BitFunction extends Function1_2 {
         }
         case Value.TINYINT: {
             byte v;
-            if (offset > -8 && offset < 8) {
+            if (offset < 8) {
                 v = v1.getByte();
-                if (offset > 0) {
-                    v <<= (int) offset;
+                if (offset > -8) {
+                    if (offset > 0) {
+                        v <<= (int) offset;
+                    } else {
+                        v >>= (int) -offset;
+                    }
                 } else {
-                    v >>= (int) -offset;
+                    v >>= 7;
                 }
             } else {
                 v = 0;
@@ -246,12 +250,16 @@ public final class BitFunction extends Function1_2 {
         }
         case Value.SMALLINT: {
             short v;
-            if (offset > -16 && offset < 16) {
+            if (offset < 16) {
                 v = v1.getShort();
-                if (offset > 0) {
-                    v <<= (int) offset;
+                if (offset > -16) {
+                    if (offset > 0) {
+                        v <<= (int) offset;
+                    } else {
+                        v >>= (int) -offset;
+                    }
                 } else {
-                    v >>= (int) -offset;
+                    v >>= 15;
                 }
             } else {
                 v = 0;
@@ -260,12 +268,16 @@ public final class BitFunction extends Function1_2 {
         }
         case Value.INTEGER: {
             int v;
-            if (offset > -32 && offset < 32) {
+            if (offset < 32) {
                 v = v1.getInt();
-                if (offset > 0) {
-                    v <<= (int) offset;
+                if (offset > -32) {
+                    if (offset > 0) {
+                        v <<= (int) offset;
+                    } else {
+                        v >>= (int) -offset;
+                    }
                 } else {
-                    v >>= (int) -offset;
+                    v >>= 31;
                 }
             } else {
                 v = 0;
@@ -274,12 +286,16 @@ public final class BitFunction extends Function1_2 {
         }
         case Value.BIGINT: {
             long v;
-            if (offset > -64 && offset < 64) {
+            if (offset < 64) {
                 v = v1.getLong();
-                if (offset > 0) {
-                    v <<= offset;
+                if (offset > -64) {
+                    if (offset > 0) {
+                        v <<= offset;
+                    } else {
+                        v >>= -offset;
+                    }
                 } else {
-                    v >>= -offset;
+                    v >>= 63;
                 }
             } else {
                 v = 0;

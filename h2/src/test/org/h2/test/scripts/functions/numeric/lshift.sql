@@ -10,48 +10,64 @@ select lshift(null, 1) vn, lshift(1, null) vn1, lshift(null, null) vn2, lshift(3
 > rows: 1
 
 SELECT I, LSHIFT(CAST(-128 AS TINYINT), I), LSHIFT(CAST(1 AS TINYINT), I) FROM
-    (VALUES -111, -1, 0, 1, 111) T(I) ORDER BY I;
+    (VALUES -111, -8, -7, -1, 0, 1, 7, 8, 111) T(I) ORDER BY I;
 > I    LSHIFT(-128, I) LSHIFT(1, I)
 > ---- --------------- ------------
-> -111 0               0
+> -111 -1              0
+> -8   -1              0
+> -7   -1              0
 > -1   -64             0
 > 0    -128            1
 > 1    0               2
+> 7    0               -128
+> 8    0               0
 > 111  0               0
-> rows (ordered): 5
+> rows (ordered): 9
 
 SELECT I, LSHIFT(CAST(-32768 AS SMALLINT), I), LSHIFT(CAST(1 AS SMALLINT), I) FROM
-    (VALUES -111, -1, 0, 1, 111) T(I) ORDER BY I;
+    (VALUES -111, -16, -15, -1, 0, 1, 15, 16, 111) T(I) ORDER BY I;
 > I    LSHIFT(-32768, I) LSHIFT(1, I)
 > ---- ----------------- ------------
-> -111 0                 0
+> -111 -1                0
+> -16  -1                0
+> -15  -1                0
 > -1   -16384            0
 > 0    -32768            1
 > 1    0                 2
+> 15   0                 -32768
+> 16   0                 0
 > 111  0                 0
-> rows (ordered): 5
+> rows (ordered): 9
 
 SELECT I, LSHIFT(CAST(-2147483648 AS INTEGER), I), LSHIFT(CAST(1 AS INTEGER), I) FROM
-    (VALUES -111, -1, 0, 1, 111) T(I) ORDER BY I;
+    (VALUES -111, -32, -31, -1, 0, 1, 31, 32, 111) T(I) ORDER BY I;
 > I    LSHIFT(-2147483648, I) LSHIFT(1, I)
 > ---- ---------------------- ------------
-> -111 0                      0
+> -111 -1                     0
+> -32  -1                     0
+> -31  -1                     0
 > -1   -1073741824            0
 > 0    -2147483648            1
 > 1    0                      2
+> 31   0                      -2147483648
+> 32   0                      0
 > 111  0                      0
-> rows (ordered): 5
+> rows (ordered): 9
 
 SELECT I, LSHIFT(CAST(-9223372036854775808 AS BIGINT), I), LSHIFT(CAST(1 AS BIGINT), I) FROM
-    (VALUES -111, -1, 0, 1, 111) T(I) ORDER BY I;
+    (VALUES -111, -64, -63, -1, 0, 1, 63, 64, 111) T(I) ORDER BY I;
 > I    LSHIFT(-9223372036854775808, I) LSHIFT(1, I)
-> ---- ------------------------------- ------------
-> -111 0                               0
+> ---- ------------------------------- --------------------
+> -111 -1                              0
+> -64  -1                              0
+> -63  -1                              0
 > -1   -4611686018427387904            0
 > 0    -9223372036854775808            1
 > 1    0                               2
+> 63   0                               -9223372036854775808
+> 64   0                               0
 > 111  0                               0
-> rows (ordered): 5
+> rows (ordered): 9
 
 SELECT LSHIFT(X'', 1);
 >> X''

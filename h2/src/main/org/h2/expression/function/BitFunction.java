@@ -116,8 +116,10 @@ public final class BitFunction extends Function1_2 {
             return bitCount(session, v1);
         case LSHIFT:
             return shift(session, v1, v2.getLong(), false);
-        case RSHIFT:
-            return shift(session, v1, -v2.getLong(), false);
+        case RSHIFT: {
+            long offset = v2.getLong();
+            return shift(session, v1, offset != Long.MIN_VALUE ? -offset : Long.MAX_VALUE, false);
+        }
         case ULSHIFT:
             return shift(session, v1, v2.getLong(), true);
         case URSHIFT:

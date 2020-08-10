@@ -4679,76 +4679,192 @@ ATAN2(X, Y)
 "
 
 "Functions (Numeric)","BITAND","
-@h2@ BITAND(long, long)
+@h2@ BITAND(expression, expression)
 ","
 The bitwise AND operation.
-This method returns a long.
-See also Java operator &.
+Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+
+For aggregate function see [BIT_AND_AGG](https://h2database.com/html/functions-aggregate.html#bit_and_agg).
 ","
 BITAND(A, B)
 "
 
-"Functions (Numeric)","BITGET","
-@h2@ BITGET(long, int)
-","
-Returns true if and only if the first parameter has a bit set in the
-position specified by the second parameter.
-This method returns a boolean.
-The second parameter is zero-indexed; the least significant bit has position 0.
-","
-BITGET(A, 1)
-"
-
-"Functions (Numeric)","BITNOT","
-@h2@ BITNOT(long)
-","
-The bitwise NOT operation.
-This method returns a long.
-See also Java operator ~.
-","
-BITNOT(A)
-"
-
 "Functions (Numeric)","BITOR","
-@h2@ BITOR(long, long)
+@h2@ BITOR(expression, expression)
 ","
 The bitwise OR operation.
-This method returns a long.
-See also Java operator |.
+Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+
+For aggregate function see [BIT_OR_AGG](https://h2database.com/html/functions-aggregate.html#bit_or_agg).
 ","
 BITOR(A, B)
 "
 
 "Functions (Numeric)","BITXOR","
-@h2@ BITXOR(long, long)
+@h2@ BITXOR(expression, expression)
+","
+Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+
+For aggregate function see [BIT_XOR_AGG](https://h2database.com/html/functions-aggregate.html#bit_xor_agg).
 ","
 The bitwise XOR operation.
-This method returns a long.
-See also Java operator ^.
 ","
 BITXOR(A, B)
 "
 
-"Functions (Numeric)","LSHIFT","
-@h2@ LSHIFT(long, int)
+"Functions (Numeric)","BITNOT","
+@h2@ BITNOT(expression)
 ","
-The bitwise left shift operation.
-Shifts the first argument by the number of bits given by the second argument.
+The bitwise NOT operation.
+Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+","
+BITNOT(A)
+"
+
+"Functions (Numeric)","BITNAND","
+@h2@ BITNAND(expression, expression)
+","
+The bitwise NAND operation equivalent to ""BITNOT(BITAND(expression, expression))"".
+Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+
+For aggregate function see [BIT_NAND_AGG](https://h2database.com/html/functions-aggregate.html#bit_nand_agg).
+","
+BITNAND(A, B)
+"
+
+"Functions (Numeric)","BITNOR","
+@h2@ BITNOR(expression, expression)
+","
+The bitwise NOR operation equivalent to ""BITNOT(BITOR(expression, expression))"".
+Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+
+For aggregate function see [BIT_NOR_AGG](https://h2database.com/html/functions-aggregate.html#bit_nor_agg).
+","
+BITNOR(A, B)
+"
+
+"Functions (Numeric)","BITXNOR","
+@h2@ BITXNOR(expression, expression)
+","
+The bitwise XNOR operation equivalent to ""BITNOT(BITXOR(expression, expression))"".
+Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+
+For aggregate function see [BIT_XNOR_AGG](https://h2database.com/html/functions-aggregate.html#bit_xnor_agg).
+","
+BITXNOR(A, B)
+"
+
+"Functions (Numeric)","BITGET","
+@h2@ BITGET(expression, long)
+","
+Returns true if and only if the first argument has a bit set in the
+position specified by the second parameter.
+The first argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This method returns a boolean.
+The second argument is zero-indexed; the least significant bit has position 0.
+","
+BITGET(A, 1)
+"
+
+"Functions (Numeric)","BITCOUNT","
+@h2@ BITCOUNT(expression)
+","
+Returns count of set bits in the specified value.
+Value should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
 This method returns a long.
-See also Java operator <<.
+","
+BITCOUNT(A)
+"
+
+"Functions (Numeric)","LSHIFT","
+@h2@ LSHIFT(expression, long)
+","
+The bitwise signed left shift operation.
+Shifts the first argument by the number of bits given by the second argument.
+Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+
+If number of bits is negative, a signed right shift is performed instead.
+For numeric values a sign bit is used for left-padding (with negative offset).
+If number of bits is equal to or larger than number of bits in value all bits are pushed out from the value.
+For binary string arguments signed and unsigned shifts return the same results.
 ","
 LSHIFT(A, B)
 "
 
 "Functions (Numeric)","RSHIFT","
-@h2@ RSHIFT(long, int)
+@h2@ RSHIFT(expression, long)
 ","
-The bitwise right shift operation.
+The bitwise signed right shift operation.
 Shifts the first argument by the number of bits given by the second argument.
-This method returns a long.
-See also Java operator >>.
+Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+
+If number of bits is negative, a signed left shift is performed instead.
+For numeric values a sign bit is used for left-padding (with positive offset).
+If number of bits is equal to or larger than number of bits in value all bits are pushed out from the value.
+For binary string arguments signed and unsigned shifts return the same results.
 ","
 RSHIFT(A, B)
+"
+
+"Functions (Numeric)","ULSHIFT","
+@h2@ ULSHIFT(expression, long)
+","
+The bitwise unsigned left shift operation.
+Shifts the first argument by the number of bits given by the second argument.
+Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+
+If number of bits is negative, an unsigned right shift is performed instead.
+If number of bits is equal to or larger than number of bits in value all bits are pushed out from the value.
+For binary string arguments signed and unsigned shifts return the same results.
+","
+ULSHIFT(A, B)
+"
+
+"Functions (Numeric)","URSHIFT","
+@h2@ URSHIFT(expression, long)
+","
+The bitwise unsigned right shift operation.
+Shifts the first argument by the number of bits given by the second argument.
+Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+
+If number of bits is negative, an unsigned left shift is performed instead.
+If number of bits is equal to or larger than number of bits in value all bits are pushed out from the value.
+For binary string arguments signed and unsigned shifts return the same results.
+","
+URSHIFT(A, B)
+"
+
+"Functions (Numeric)","ROTATELEFT","
+@h2@ ROTATELEFT(expression, long)
+","
+The bitwise left rotation operation.
+Rotates the first argument by the number of bits given by the second argument.
+Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+","
+ROTATELEFT(A, B)
+"
+
+"Functions (Numeric)","ROTATERIGHT","
+@h2@ ROTATERIGHT(expression, long)
+","
+The bitwise right rotation operation.
+Rotates the first argument by the number of bits given by the second argument.
+Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+","
+ROTATERIGHT(A, B)
 "
 
 "Functions (Numeric)","MOD","
@@ -6620,37 +6736,82 @@ Aggregates are only allowed in select statements.
 VAR_SAMP(X)
 "
 
-"Aggregate Functions (General)","BIT_AND","
-@h2@ BIT_AND(expression)
+"Aggregate Functions (General)","BIT_AND_AGG","
+{@h2@{BIT_AND_AGG}|@c@{BIT_AND}}@h2@(expression)
 @h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 The bitwise AND of all non-null values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
+
+For non-aggregate function see [BITAND](https://h2database.com/html/functions.html#bitand).
 ","
-BIT_AND(ID)
+BIT_AND_AGG(X)
 "
 
-"Aggregate Functions (General)","BIT_OR","
-@h2@ BIT_OR(expression)
+"Aggregate Functions (General)","BIT_OR_AGG","
+{@h2@{BIT_OR_AGG}|@c@{BIT_OR}}@h2@(expression)
 @h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 The bitwise OR of all non-null values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
+
+For non-aggregate function see [BITOR](https://h2database.com/html/functions.html#bitor).
 ","
-BIT_OR(ID)
+BIT_OR_AGG(X)
 "
 
-"Aggregate Functions (General)","BIT_XOR","
-@h2@ BIT_XOR( [ DISTINCT|ALL ] expression)
+"Aggregate Functions (General)","BIT_XOR_AGG","
+@h2@ BIT_XOR_AGG( [ DISTINCT|ALL ] expression)
 @h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 The bitwise XOR of all non-null values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
+
+For non-aggregate function see [BITXOR](https://h2database.com/html/functions.html#bitxor).
 ","
-BIT_XOR(ID)
+BIT_XOR_AGG(X)
+"
+
+"Aggregate Functions (General)","BIT_NAND_AGG","
+@h2@ BIT_NAND_AGG(expression)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
+","
+The bitwise NAND of all non-null values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+
+For non-aggregate function see [BITNAND](https://h2database.com/html/functions.html#bitnand).
+","
+BIT_NAND_AGG(X)
+"
+
+"Aggregate Functions (General)","BIT_NOR_AGG","
+@h2@ BIT_NOR_AGG(expression)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
+","
+The bitwise NOR of all non-null values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+
+For non-aggregate function see [BITNOR](https://h2database.com/html/functions.html#bitnor).
+","
+BIT_NOR_AGG(X)
+"
+
+"Aggregate Functions (General)","BIT_XNOR_AGG","
+@h2@ BIT_XNOR_AGG( [ DISTINCT|ALL ] expression)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
+","
+The bitwise XNOR of all non-null values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+
+For non-aggregate function see [BITXNOR](https://h2database.com/html/functions.html#bitxnor).
+","
+BIT_XNOR_AGG(X)
 "
 
 "Aggregate Functions (General)","ENVELOPE","

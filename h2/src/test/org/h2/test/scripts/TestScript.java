@@ -160,21 +160,21 @@ public class TestScript extends TestDb {
                 "merge", "mergeUsing", "replace", "script", "show", "update", "with" }) {
             testScript("dml/" + s + ".sql");
         }
-        for (String s : new String[] { "any", "array-agg", "avg", "bit-and", "bit-or", "bit-xor", "count", "envelope",
-                "every", "histogram",
+        for (String s : new String[] { "any", "array_agg", "avg", "bit_and_agg", "bit_or_agg", "bit_xor_agg", "count",
+                "envelope", "every", "histogram",
                 "json_arrayagg", "json_objectagg",
                 "listagg", "max", "min", "mode", "percentile", "rank",
-                "stddev-pop", "stddev-samp", "sum", "var-pop", "var-samp" }) {
+                "stddev_pop", "stddev_samp", "sum", "var_pop", "var_samp" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }
         for (String s : new String[] { "json_array", "json_object" }) {
             testScript("functions/json/" + s + ".sql");
         }
         for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",
-                "bitand", "bitget", "bitnot", "bitor", "bitxor", "ceil", "compress",
+                "bitand", "bitcount", "bitget", "bitnot", "bitor", "bitxor", "ceil", "compress",
                 "cos", "cosh", "cot", "decrypt", "degrees", "encrypt", "exp",
                 "expand", "floor", "hash", "length", "log", "lshift", "mod", "ora-hash", "pi",
-                "power", "radians", "rand", "random-uuid", "round",
+                "power", "radians", "rand", "random-uuid", "rotate", "round",
                 "roundmagic", "rshift", "secure-rand", "sign", "sin", "sinh", "sqrt",
                 "tan", "tanh", "truncate", "zero" }) {
             testScript("functions/numeric/" + s + ".sql");

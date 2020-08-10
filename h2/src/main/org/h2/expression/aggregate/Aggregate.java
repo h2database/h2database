@@ -27,6 +27,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.analysis.Window;
+import org.h2.expression.function.BitFunction;
 import org.h2.expression.function.JsonConstructorFunction;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -118,9 +119,14 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         // PostgreSQL compatibility
         addAggregate("BOOL_AND", AggregateType.EVERY);
         addAggregate("HISTOGRAM", AggregateType.HISTOGRAM);
-        addAggregate("BIT_OR", AggregateType.BIT_OR);
-        addAggregate("BIT_AND", AggregateType.BIT_AND);
-        addAggregate("BIT_XOR", AggregateType.BIT_XOR);
+        addAggregate("BIT_AND_AGG", AggregateType.BIT_AND_AGG);
+        addAggregate("BIT_AND", AggregateType.BIT_AND_AGG);
+        addAggregate("BIT_OR_AGG", AggregateType.BIT_OR_AGG);
+        addAggregate("BIT_OR", AggregateType.BIT_OR_AGG);
+        addAggregate("BIT_XOR_AGG", AggregateType.BIT_XOR_AGG);
+        addAggregate("BIT_NAND_AGG", AggregateType.BIT_NAND_AGG);
+        addAggregate("BIT_NOR_AGG", AggregateType.BIT_NOR_AGG);
+        addAggregate("BIT_XNOR_AGG", AggregateType.BIT_XNOR_AGG);
 
         addAggregate("RANK", AggregateType.RANK);
         addAggregate("DENSE_RANK", AggregateType.DENSE_RANK);
@@ -341,7 +347,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     @Override
     protected Object createAggregateData() {
-        return AggregateData.create(aggregateType, distinct, type.getValueType(), orderByList != null);
+        return AggregateData.create(aggregateType, distinct, type, orderByList != null);
     }
 
     @Override
@@ -415,13 +421,14 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case STDDEV_SAMP:
         case VAR_POP:
         case VAR_SAMP:
-        case BIT_XOR:
+        case BIT_XOR_AGG:
+        case BIT_XNOR_AGG:
             if (distinct) {
                 AggregateDataCollecting c = ((AggregateDataCollecting) data);
                 if (c.getCount() == 0) {
                     return ValueNull.INSTANCE;
                 }
-                AggregateDataDefault d = new AggregateDataDefault(aggregateType, type.getValueType());
+                AggregateDataDefault d = new AggregateDataDefault(aggregateType, type);
                 for (Value v : c) {
                     d.add(session, v);
                 }
@@ -807,12 +814,13 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case ANY:
             type = TypeInfo.TYPE_BOOLEAN;
             break;
-        case BIT_AND:
-        case BIT_OR:
-        case BIT_XOR:
-            if (!DataType.supportsAdd(type.getValueType())) {
-                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getTraceSQL());
-            }
+        case BIT_AND_AGG:
+        case BIT_OR_AGG:
+        case BIT_XOR_AGG:
+        case BIT_NAND_AGG:
+        case BIT_NOR_AGG:
+        case BIT_XNOR_AGG:
+            BitFunction.checkArgType(args[0]);
             break;
         case ARRAY_AGG:
             type = TypeInfo.getTypeInfo(Value.ARRAY, -1, 0, args[0].getType());
@@ -882,14 +890,23 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case ANY:
             text = "ANY";
             break;
-        case BIT_AND:
-            text = "BIT_AND";
+        case BIT_AND_AGG:
+            text = "BIT_AND_AGG";
             break;
-        case BIT_OR:
-            text = "BIT_OR";
+        case BIT_OR_AGG:
+            text = "BIT_OR_AGG";
             break;
-        case BIT_XOR:
-            text = "BIT_XOR";
+        case BIT_XOR_AGG:
+            text = "BIT_XOR_AGG";
+            break;
+        case BIT_NAND_AGG:
+            text = "BIT_NAND_AGG";
+            break;
+        case BIT_NOR_AGG:
+            text = "BIT_NOR_AGG";
+            break;
+        case BIT_XNOR_AGG:
+            text = "BIT_XNOR_AGG";
             break;
         case RANK:
             text = "RANK";
@@ -1054,6 +1071,23 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             cost += filterCondition.getCost();
         }
         return cost;
+    }
+
+    /**
+     * Returns the select statement.
+     * @return the select statement
+     */
+    public Select getSelect() {
+        return select;
+    }
+
+    /**
+     * Returns if distinct is used.
+     *
+     * @return if distinct is used
+     */
+    public boolean isDistinct() {
+        return distinct;
     }
 
 }

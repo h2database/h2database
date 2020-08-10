@@ -311,4 +311,14 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
         return super.appendTailConditions(builder, sqlFlags, forceOrderBy);
     }
 
+    @Override
+    public int getSubexpressionCount() {
+        return args.length;
+    }
+
+    @Override
+    public Expression getSubexpression(int index) {
+        return args[index];
+    }
+
 }

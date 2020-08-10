@@ -8,6 +8,7 @@ package org.h2.expression.aggregate;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -25,7 +26,7 @@ abstract class AggregateData {
      *            if aggregate is an ordered aggregate with ORDER BY clause
      * @return the aggregate data object of the specified type
      */
-    static AggregateData create(AggregateType aggregateType, boolean distinct, int dataType,
+    static AggregateData create(AggregateType aggregateType, boolean distinct, TypeInfo dataType,
             boolean orderedWithOrder) {
         switch (aggregateType) {
         case COUNT_ALL:
@@ -47,8 +48,10 @@ abstract class AggregateData {
             break;
         case MIN:
         case MAX:
-        case BIT_OR:
-        case BIT_AND:
+        case BIT_AND_AGG:
+        case BIT_OR_AGG:
+        case BIT_NAND_AGG:
+        case BIT_NOR_AGG:
         case ANY:
         case EVERY:
             return new AggregateDataDefault(aggregateType, dataType);
@@ -58,7 +61,8 @@ abstract class AggregateData {
         case STDDEV_SAMP:
         case VAR_POP:
         case VAR_SAMP:
-        case BIT_XOR:
+        case BIT_XOR_AGG:
+        case BIT_XNOR_AGG:
             if (!distinct) {
                 return new AggregateDataDefault(aggregateType, dataType);
             }

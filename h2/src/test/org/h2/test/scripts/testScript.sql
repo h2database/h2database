@@ -1161,7 +1161,7 @@ where cnt < 1000 order by dir_num asc;
 explain select * from (select dir_num, count(*) as cnt from multi_pages  t, b_holding bh
 where t.bh_id=bh.id and bh.site='Hello' group by dir_num) as x
 where cnt < 1000 order by dir_num asc;
->> SELECT "X"."DIR_NUM", "X"."CNT" FROM ( SELECT "DIR_NUM", COUNT(*) AS "CNT" FROM "PUBLIC"."MULTI_PAGES" "T" INNER JOIN "PUBLIC"."B_HOLDING" "BH" ON 1=1 WHERE ("BH"."SITE" = 'Hello') AND ("T"."BH_ID" = "BH"."ID") GROUP BY "DIR_NUM" ) "X" /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /* PUBLIC.MULTI_PAGES.tableScan */ INNER JOIN PUBLIC.B_HOLDING BH /* PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID */ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= ?1: CNT < 1000 */ WHERE "CNT" < 1000 ORDER BY 1
+>> SELECT "X"."DIR_NUM", "X"."CNT" FROM ( SELECT "DIR_NUM", COUNT(*) AS "CNT" FROM "PUBLIC"."MULTI_PAGES" "T" INNER JOIN "PUBLIC"."B_HOLDING" "BH" ON 1=1 WHERE ("BH"."SITE" = 'Hello') AND ("T"."BH_ID" = "BH"."ID") GROUP BY "DIR_NUM" ) "X" /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /* PUBLIC.MULTI_PAGES.tableScan */ INNER JOIN PUBLIC.B_HOLDING BH /* PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID */ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= ?1: CNT < CAST(1000 AS BIGINT) */ WHERE "CNT" < CAST(1000 AS BIGINT) ORDER BY 1
 
 select dir_num, count(*) as cnt from multi_pages  t, b_holding bh
 where t.bh_id=bh.id and bh.site='Hello' group by dir_num

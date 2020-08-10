@@ -71,19 +71,34 @@ public enum AggregateType {
     EVERY,
 
     /**
-     * The aggregate type for BOOL_OR(expression).
+     * The aggregate type for BIT_AND_AGG(expression).
      */
-    BIT_OR,
+    BIT_AND_AGG,
 
     /**
-     * The aggregate type for BOOL_AND(expression).
+     * The aggregate type for BIT_OR_AGG(expression).
      */
-    BIT_AND,
+    BIT_OR_AGG,
 
     /**
-     * The aggregate type for BOOL_XOR(expression).
+     * The aggregate type for BIT_XOR_AGG(expression).
      */
-    BIT_XOR,
+    BIT_XOR_AGG,
+
+    /**
+     * The aggregate type for BIT_NAND_AGG(expression).
+     */
+    BIT_NAND_AGG,
+
+    /**
+     * The aggregate type for BIT_NOR_AGG(expression).
+     */
+    BIT_NOR_AGG,
+
+    /**
+     * The aggregate type for BIT_XNOR_AGG(expression).
+     */
+    BIT_XNOR_AGG,
 
     /**
      * The aggregate type for HISTOGRAM(expression).

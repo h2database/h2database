@@ -27,7 +27,8 @@ public final class BuiltinFunctions {
                 // MathFunction2
                 "ATAN2", "LOG", "POWER",
                 // BitFunction
-                "BITAND", "BITOR", "BITXOR", "BITNOT", "BITGET", "LSHIFT", "RSHIFT",
+                "BITAND", "BITOR", "BITXOR", "BITNOT", "BITNAND", "BITNOR", "BITXNOR", "BITGET", "BITCOUNT", "LSHIFT",
+                "RSHIFT", "ULSHIFT", "URSHIFT", "ROTATELEFT", "ROTATERIGHT",
                 // DateTimeFunction
                 "EXTRACT", "DATE_TRUNC", "DATEADD", "DATEDIFF", //
                 "TIMESTAMPADD", "TIMESTAMPDIFF",

@@ -174,7 +174,7 @@ public class TestScript extends TestDb {
                 "bitand", "bitcount", "bitget", "bitnot", "bitor", "bitxor", "ceil", "compress",
                 "cos", "cosh", "cot", "decrypt", "degrees", "encrypt", "exp",
                 "expand", "floor", "hash", "length", "log", "lshift", "mod", "ora-hash", "pi",
-                "power", "radians", "rand", "random-uuid", "round",
+                "power", "radians", "rand", "random-uuid", "rotate", "round",
                 "roundmagic", "rshift", "secure-rand", "sign", "sin", "sinh", "sqrt",
                 "tan", "tanh", "truncate", "zero" }) {
             testScript("functions/numeric/" + s + ".sql");

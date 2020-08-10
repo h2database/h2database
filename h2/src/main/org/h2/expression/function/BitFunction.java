@@ -95,9 +95,19 @@ public final class BitFunction extends Function1_2 {
      */
     public static final int URSHIFT = ULSHIFT + 1;
 
+    /**
+     * ROTATELEFT() (non-standard).
+     */
+    public static final int ROTATELEFT = URSHIFT + 1;
+
+    /**
+     * ROTATERIGHT() (non-standard).
+     */
+    public static final int ROTATERIGHT = ROTATELEFT + 1;
+
     private static final String[] NAMES = { //
             "BITAND", "BITOR", "BITXOR", "BITNOT", "BITNAND", "BITNOR", "BITXNOR", "BITGET", "BITCOUNT", "LSHIFT",
-            "RSHIFT", "ULSHIFT", "URSHIFT" //
+            "RSHIFT", "ULSHIFT", "URSHIFT", "ROTATELEFT", "ROTATERIGHT" //
     };
 
     private final int function;
@@ -124,6 +134,10 @@ public final class BitFunction extends Function1_2 {
             return shift(session, v1, v2.getLong(), true);
         case URSHIFT:
             return shift(session, v1, -v2.getLong(), true);
+        case ROTATELEFT:
+            return rotate(session, v1, v2.getLong(), false);
+        case ROTATERIGHT:
+            return rotate(session, v1, v2.getLong(), true);
         }
         return getBitwise(function, type, v1, v2);
     }
@@ -339,6 +353,88 @@ public final class BitFunction extends Function1_2 {
         }
     }
 
+    private static Value rotate(SessionLocal session, Value v1, long offset, boolean right) {
+        int vt = v1.getValueType();
+        switch (vt) {
+        case Value.BINARY:
+        case Value.VARBINARY: {
+            byte[] bytes = v1.getBytesNoCopy();
+            int length = bytes.length;
+            if (length == 0) {
+                return v1;
+            }
+            long bitLength = length << 3L;
+            offset %= bitLength;
+            if (right) {
+                offset = -offset;
+            }
+            if (offset == 0L) {
+                return v1;
+            } else if (offset < 0) {
+                offset += bitLength;
+            }
+            byte[] newBytes = new byte[length];
+            int nBytes = (int) (offset >> 3);
+            int nBits = ((int) offset) & 0x7;
+            if (nBits == 0) {
+                System.arraycopy(bytes, nBytes, newBytes, 0, length - nBytes);
+                System.arraycopy(bytes, 0, newBytes, length - nBytes, nBytes);
+            } else {
+                int nBits2 = 8 - nBits;
+                for (int dstIndex = 0, srcIndex = nBytes; dstIndex < length;) {
+                    newBytes[dstIndex++] = (byte) (bytes[srcIndex] << nBits
+                            | (bytes[srcIndex = (srcIndex + 1) % length] & 0xFF) >>> nBits2);
+                }
+            }
+            return vt == Value.BINARY ? ValueBinary.getNoCopy(newBytes) : ValueVarbinary.getNoCopy(newBytes);
+        }
+        case Value.TINYINT: {
+            int o = (int) offset;
+            if (right) {
+                o = -o;
+            }
+            if ((o &= 0x7) == 0) {
+                return v1;
+            }
+            int v = v1.getByte() & 0xFF;
+            return ValueTinyint.get((byte) ((v << o) | (v >>> 8 - o)));
+        }
+        case Value.SMALLINT: {
+            int o = (int) offset;
+            if (right) {
+                o = -o;
+            }
+            if ((o &= 0xF) == 0) {
+                return v1;
+            }
+            int v = v1.getShort() & 0xFFFF;
+            return ValueSmallint.get((short) ((v << o) | (v >>> 16 - o)));
+        }
+        case Value.INTEGER: {
+            int o = (int) offset;
+            if (right) {
+                o = -o;
+            }
+            if ((o &= 0x1F) == 0) {
+                return v1;
+            }
+            return ValueInteger.get(Integer.rotateLeft(v1.getInt(), o));
+        }
+        case Value.BIGINT: {
+            int o = (int) offset;
+            if (right) {
+                o = -o;
+            }
+            if ((o &= 0x3F) == 0) {
+                return v1;
+            }
+            return ValueBigint.get(Long.rotateLeft(v1.getLong(), o));
+        }
+        default:
+            throw DbException.getInvalidValueException("bit function parameter", v1.getTraceSQL());
+        }
+    }
+
     public static Value getBitwise(int function, TypeInfo type, Value v1, Value v2) {
         return type.getValueType() < Value.TINYINT ? getBinaryString(function, type, v1, v2)
                 : getNumeric(function, type, v1, v2);
@@ -480,6 +576,8 @@ public final class BitFunction extends Function1_2 {
         case RSHIFT:
         case ULSHIFT:
         case URSHIFT:
+        case ROTATELEFT:
+        case ROTATERIGHT:
             type = checkArgType(left);
             break;
         default:

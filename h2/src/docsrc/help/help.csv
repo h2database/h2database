@@ -4823,6 +4823,28 @@ For binary string arguments signed and unsigned shifts return the same results.
 URSHIFT(A, B)
 "
 
+"Functions (Numeric)","ROTATELEFT","
+@h2@ ROTATELEFT(expression, long)
+","
+The bitwise left rotation operation.
+Rotates the first argument by the number of bits given by the second argument.
+Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+","
+ROTATELEFT(A, B)
+"
+
+"Functions (Numeric)","ROTATERIGHT","
+@h2@ ROTATERIGHT(expression, long)
+","
+The bitwise right rotation operation.
+Rotates the first argument by the number of bits given by the second argument.
+Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+","
+ROTATERIGHT(A, B)
+"
+
 "Functions (Numeric)","MOD","
 MOD(dividendNumeric, divisorNumeric)
 ","

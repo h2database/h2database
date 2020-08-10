@@ -4684,6 +4684,8 @@ ATAN2(X, Y)
 The bitwise AND operation.
 Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
 This function returns result of the same data type.
+
+For aggregate function see [BIT_AND_AGG](https://h2database.com/html/functions-aggregate.html#bit_and_agg).
 ","
 BITAND(A, B)
 "
@@ -4694,6 +4696,8 @@ BITAND(A, B)
 The bitwise OR operation.
 Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
 This function returns result of the same data type.
+
+For aggregate function see [BIT_OR_AGG](https://h2database.com/html/functions-aggregate.html#bit_or_agg).
 ","
 BITOR(A, B)
 "
@@ -4703,6 +4707,8 @@ BITOR(A, B)
 ","
 Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
 This function returns result of the same data type.
+
+For aggregate function see [BIT_XOR_AGG](https://h2database.com/html/functions-aggregate.html#bit_xor_agg).
 ","
 The bitwise XOR operation.
 ","
@@ -4725,6 +4731,8 @@ BITNOT(A)
 The bitwise NAND operation equivalent to ""BITNOT(BITAND(expression, expression))"".
 Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
 This function returns result of the same data type.
+
+For aggregate function see [BIT_NAND_AGG](https://h2database.com/html/functions-aggregate.html#bit_nand_agg).
 ","
 BITNAND(A, B)
 "
@@ -4735,6 +4743,8 @@ BITNAND(A, B)
 The bitwise NOR operation equivalent to ""BITNOT(BITOR(expression, expression))"".
 Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
 This function returns result of the same data type.
+
+For aggregate function see [BIT_NOR_AGG](https://h2database.com/html/functions-aggregate.html#bit_nor_agg).
 ","
 BITNOR(A, B)
 "
@@ -4745,6 +4755,8 @@ BITNOR(A, B)
 The bitwise XNOR operation equivalent to ""BITNOT(BITXOR(expression, expression))"".
 Arguments should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
 This function returns result of the same data type.
+
+For aggregate function see [BIT_XNOR_AGG](https://h2database.com/html/functions-aggregate.html#bit_xnor_agg).
 ","
 BITXNOR(A, B)
 "
@@ -4779,6 +4791,9 @@ Shifts the first argument by the number of bits given by the second argument.
 Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
 This function returns result of the same data type.
 
+If number of bits is negative, a signed right shift is performed instead.
+For numeric values a sign bit is used for left-padding (with negative offset).
+If number of bits is equal to or larger than number of bits in value all bits are pushed out from the value.
 For binary string arguments signed and unsigned shifts return the same results.
 ","
 LSHIFT(A, B)
@@ -4792,6 +4807,9 @@ Shifts the first argument by the number of bits given by the second argument.
 Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
 This function returns result of the same data type.
 
+If number of bits is negative, a signed left shift is performed instead.
+For numeric values a sign bit is used for left-padding (with positive offset).
+If number of bits is equal to or larger than number of bits in value all bits are pushed out from the value.
 For binary string arguments signed and unsigned shifts return the same results.
 ","
 RSHIFT(A, B)
@@ -4805,6 +4823,8 @@ Shifts the first argument by the number of bits given by the second argument.
 Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
 This function returns result of the same data type.
 
+If number of bits is negative, an unsigned right shift is performed instead.
+If number of bits is equal to or larger than number of bits in value all bits are pushed out from the value.
 For binary string arguments signed and unsigned shifts return the same results.
 ","
 ULSHIFT(A, B)
@@ -4818,6 +4838,8 @@ Shifts the first argument by the number of bits given by the second argument.
 Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
 This function returns result of the same data type.
 
+If number of bits is negative, an unsigned left shift is performed instead.
+If number of bits is equal to or larger than number of bits in value all bits are pushed out from the value.
 For binary string arguments signed and unsigned shifts return the same results.
 ","
 URSHIFT(A, B)
@@ -6721,6 +6743,8 @@ VAR_SAMP(X)
 The bitwise AND of all non-null values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
+
+For non-aggregate function see [BITAND](https://h2database.com/html/functions.html#bitand).
 ","
 BIT_AND_AGG(X)
 "
@@ -6732,6 +6756,8 @@ BIT_AND_AGG(X)
 The bitwise OR of all non-null values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
+
+For non-aggregate function see [BITOR](https://h2database.com/html/functions.html#bitor).
 ","
 BIT_OR_AGG(X)
 "
@@ -6743,6 +6769,8 @@ BIT_OR_AGG(X)
 The bitwise XOR of all non-null values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
+
+For non-aggregate function see [BITXOR](https://h2database.com/html/functions.html#bitxor).
 ","
 BIT_XOR_AGG(X)
 "
@@ -6754,6 +6782,8 @@ BIT_XOR_AGG(X)
 The bitwise NAND of all non-null values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
+
+For non-aggregate function see [BITNAND](https://h2database.com/html/functions.html#bitnand).
 ","
 BIT_NAND_AGG(X)
 "
@@ -6765,6 +6795,8 @@ BIT_NAND_AGG(X)
 The bitwise NOR of all non-null values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
+
+For non-aggregate function see [BITNOR](https://h2database.com/html/functions.html#bitnor).
 ","
 BIT_NOR_AGG(X)
 "
@@ -6776,6 +6808,8 @@ BIT_NOR_AGG(X)
 The bitwise XNOR of all non-null values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
+
+For non-aggregate function see [BITXNOR](https://h2database.com/html/functions.html#bitxnor).
 ","
 BIT_XNOR_AGG(X)
 "

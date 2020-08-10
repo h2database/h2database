@@ -4774,10 +4774,12 @@ BITCOUNT(A)
 "Functions (Numeric)","LSHIFT","
 @h2@ LSHIFT(expression, long)
 ","
-The bitwise left shift operation.
+The bitwise signed left shift operation.
 Shifts the first argument by the number of bits given by the second argument.
 Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
 This function returns result of the same data type.
+
+For binary string arguments signed and unsigned shifts return the same results.
 ","
 LSHIFT(A, B)
 "
@@ -4785,12 +4787,40 @@ LSHIFT(A, B)
 "Functions (Numeric)","RSHIFT","
 @h2@ RSHIFT(expression, long)
 ","
-The bitwise right shift operation.
+The bitwise signed right shift operation.
 Shifts the first argument by the number of bits given by the second argument.
 Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
 This function returns result of the same data type.
+
+For binary string arguments signed and unsigned shifts return the same results.
 ","
 RSHIFT(A, B)
+"
+
+"Functions (Numeric)","ULSHIFT","
+@h2@ ULSHIFT(expression, long)
+","
+The bitwise unsigned left shift operation.
+Shifts the first argument by the number of bits given by the second argument.
+Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+
+For binary string arguments signed and unsigned shifts return the same results.
+","
+ULSHIFT(A, B)
+"
+
+"Functions (Numeric)","URSHIFT","
+@h2@ URSHIFT(expression, long)
+","
+The bitwise unsigned right shift operation.
+Shifts the first argument by the number of bits given by the second argument.
+Argument should have TINYINT, SMALLINT, INTEGER, BIGINT, BINARY, or BINARY VARYING data type.
+This function returns result of the same data type.
+
+For binary string arguments signed and unsigned shifts return the same results.
+","
+URSHIFT(A, B)
 "
 
 "Functions (Numeric)","MOD","

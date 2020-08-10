@@ -85,9 +85,19 @@ public final class BitFunction extends Function1_2 {
      */
     public static final int RSHIFT = LSHIFT + 1;
 
+    /**
+     * ULSHIFT() (non-standard).
+     */
+    public static final int ULSHIFT = RSHIFT + 1;
+
+    /**
+     * URSHIFT() (non-standard).
+     */
+    public static final int URSHIFT = ULSHIFT + 1;
+
     private static final String[] NAMES = { //
             "BITAND", "BITOR", "BITXOR", "BITNOT", "BITNAND", "BITNOR", "BITXNOR", "BITGET", "BITCOUNT", "LSHIFT",
-            "RSHIFT" //
+            "RSHIFT", "ULSHIFT", "URSHIFT" //
     };
 
     private final int function;
@@ -105,9 +115,13 @@ public final class BitFunction extends Function1_2 {
         case BITCOUNT:
             return bitCount(session, v1);
         case LSHIFT:
-            return shift(session, v1, v2.getLong());
+            return shift(session, v1, v2.getLong(), false);
         case RSHIFT:
-            return shift(session, v1, -v2.getLong());
+            return shift(session, v1, -v2.getLong(), false);
+        case ULSHIFT:
+            return shift(session, v1, v2.getLong(), true);
+        case URSHIFT:
+            return shift(session, v1, -v2.getLong(), true);
         }
         return getBitwise(function, type, v1, v2);
     }
@@ -181,7 +195,7 @@ public final class BitFunction extends Function1_2 {
         return ValueBigint.get(c);
     }
 
-    private static Value shift(SessionLocal session, Value v1, long offset) {
+    private static Value shift(SessionLocal session, Value v1, long offset, boolean unsigned) {
         if (offset == 0L) {
             return v1;
         }
@@ -237,9 +251,13 @@ public final class BitFunction extends Function1_2 {
                 if (offset > -8) {
                     if (offset > 0) {
                         v <<= (int) offset;
+                    } else if (unsigned) {
+                        v = (byte) ((v & 0xFF) >>> (int) -offset);
                     } else {
                         v >>= (int) -offset;
                     }
+                } else if (unsigned) {
+                    v = 0;
                 } else {
                     v >>= 7;
                 }
@@ -255,9 +273,13 @@ public final class BitFunction extends Function1_2 {
                 if (offset > -16) {
                     if (offset > 0) {
                         v <<= (int) offset;
+                    } else if (unsigned) {
+                        v = (short) ((v & 0xFFFF) >>> (int) -offset);
                     } else {
                         v >>= (int) -offset;
                     }
+                } else if (unsigned) {
+                    v = 0;
                 } else {
                     v >>= 15;
                 }
@@ -273,9 +295,13 @@ public final class BitFunction extends Function1_2 {
                 if (offset > -32) {
                     if (offset > 0) {
                         v <<= (int) offset;
+                    } else if (unsigned) {
+                        v >>>= (int) -offset;
                     } else {
                         v >>= (int) -offset;
                     }
+                } else if (unsigned) {
+                    v = 0;
                 } else {
                     v >>= 31;
                 }
@@ -291,9 +317,13 @@ public final class BitFunction extends Function1_2 {
                 if (offset > -64) {
                     if (offset > 0) {
                         v <<= offset;
+                    } else if (unsigned) {
+                        v >>>= -offset;
                     } else {
                         v >>= -offset;
                     }
+                } else if (unsigned) {
+                    v = 0;
                 } else {
                     v >>= 63;
                 }
@@ -446,6 +476,8 @@ public final class BitFunction extends Function1_2 {
             break;
         case LSHIFT:
         case RSHIFT:
+        case ULSHIFT:
+        case URSHIFT:
             type = checkArgType(left);
             break;
         default:

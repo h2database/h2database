@@ -4339,6 +4339,10 @@ public class Parser {
             return new BitFunction(readExpression(), readLastArgument(), BitFunction.LSHIFT);
         case "RSHIFT":
             return new BitFunction(readExpression(), readLastArgument(), BitFunction.RSHIFT);
+        case "ULSHIFT":
+            return new BitFunction(readExpression(), readLastArgument(), BitFunction.ULSHIFT);
+        case "URSHIFT":
+            return new BitFunction(readExpression(), readLastArgument(), BitFunction.URSHIFT);
         case "EXTRACT": {
             int field = readDateTimeField();
             read(FROM);

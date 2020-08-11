@@ -205,7 +205,7 @@ public abstract class DbObject implements HasSQL {
      * Set the main attributes to null to make sure the object is no longer
      * used.
      */
-    protected final void invalidate() {
+    protected void invalidate() {
         if (id == -1) {
             throw DbException.throwInternalError();
         }

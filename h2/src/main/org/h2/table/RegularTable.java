@@ -251,6 +251,19 @@ public abstract class RegularTable extends TableBase {
     }
 
     @Override
+    protected void invalidate() {
+        super.invalidate();
+        /*
+         * Query cache of a some sleeping session can have references to
+         * invalidated tables. When this table was dropped by another session,
+         * the field below still points to it and prevents its garbage
+         * collection, so this field needs to be cleared to prevent a memory
+         * leak.
+         */
+        lockExclusiveSession = null;
+    }
+
+    @Override
     public String toString() {
         return getTraceSQL();
     }

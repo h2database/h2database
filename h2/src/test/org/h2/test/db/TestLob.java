@@ -1729,13 +1729,10 @@ public class TestLob extends TestDb {
         JdbcConnection conn = (JdbcConnection) getConnection("lob");
         Statement stat = conn.createStatement();
         stat.execute("CREATE ALIAS VRS FOR \"" + getClass().getName() + ".testLobInValueResultSetGet\"");
-        ResultSet rs = stat.executeQuery("SELECT VRS()");
+        ResultSet rs = stat.executeQuery("SELECT * FROM VRS()");
         assertTrue(rs.next());
-        ResultSet rs2 = (ResultSet) rs.getObject(1);
+        Clob clob = rs.getClob(1);
         assertFalse(rs.next());
-        assertTrue(rs2.next());
-        Clob clob = rs2.getClob(1);
-        assertFalse(rs2.next());
         assertEquals(MORE_THAN_128_CHARS, clob.getSubString(1, Integer.MAX_VALUE));
         conn.close();
     }

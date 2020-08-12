@@ -63,7 +63,6 @@ public final class ValueRow extends ValueCollectionBase {
         return builder.append(')').toString();
     }
 
-    @Override
     public SimpleResult getResult() {
         SimpleResult result = new SimpleResult();
         for (int i = 0, l = values.length; i < l;) {

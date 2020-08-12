@@ -24,8 +24,6 @@ import org.h2.engine.CastDataProvider;
 import org.h2.engine.Mode.CharPadding;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
-import org.h2.result.ResultInterface;
-import org.h2.result.SimpleResult;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.HasSQL;
@@ -261,14 +259,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     public static final int ROW = ARRAY + 1;
 
     /**
-     * The value type for RESULT_SET values.
-     */
-    public static final int RESULT_SET = ROW + 1;
-
-    /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = RESULT_SET + 1;
+    public static final int TYPE_COUNT = ROW + 1;
 
     /**
      * Group for untyped NULL data type.
@@ -348,7 +341,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             // JAVA_OBJECT, ENUM, GEOMETRY, JSON, UUID
             GROUP_OTHER, GROUP_OTHER, GROUP_OTHER, GROUP_OTHER, GROUP_OTHER,
             // ARRAY, ROW, RESULT_SET
-            GROUP_COLLECTION, GROUP_COLLECTION, GROUP_COLLECTION,
+            GROUP_COLLECTION, GROUP_COLLECTION,
             //
     };
 
@@ -1123,8 +1116,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             return convertToArray(targetType, provider, conversionMode, column);
         case ROW:
             return convertToRow(targetType, provider, conversionMode, column);
-        case RESULT_SET:
-            return convertToResultSet();
         default:
             throw getDataConversionError(targetValueType);
         }
@@ -2569,7 +2560,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
                 a = new Value[] { ValueVarbinary.get(getBytesNoCopy()) };
                 break;
             case CLOB:
-            case RESULT_SET:
                 a = new Value[] { ValueVarchar.get(getString()) };
                 break;
             default:
@@ -2613,24 +2603,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     private Value convertToRow(TypeInfo targetType, CastDataProvider provider, int conversionMode,
             Object column) {
         ValueRow v;
-        switch (getValueType()) {
-        case ROW:
+        if (getValueType() == ROW) {
             v = (ValueRow) this;
-            break;
-        case RESULT_SET:
-            ResultInterface result = getResult();
-            if (result.hasNext()) {
-                v = ValueRow.get(result.currentRow());
-                if (result.hasNext()) {
-                    throw DbException.get(ErrorCode.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW);
-                }
-            } else {
-                return ValueNull.INSTANCE;
-            }
-            break;
-        default:
+        } else {
             v = ValueRow.get(new Value[] { this });
-            break;
         }
         ExtTypeInfoRow ext = (ExtTypeInfoRow) targetType.getExtTypeInfo();
         if (ext != null) {
@@ -2658,26 +2634,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             }
         }
         return v;
-    }
-
-    /**
-     * Converts this value to a RESULT_SET value. May not be called on a NULL
-     * value.
-     *
-     * @return the RESULT_SET value
-     */
-    public final ValueResultSet convertToResultSet() {
-        SimpleResult result;
-        switch (getValueType()) {
-        case RESULT_SET:
-            return (ValueResultSet) this;
-        default:
-            result = getResult();
-            break;
-        case NULL:
-            throw DbException.throwInternalError();
-        }
-        return ValueResultSet.get(result);
     }
 
     /**
@@ -2874,19 +2830,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      */
     protected final DbException getUnsupportedExceptionForOperation(String op) {
         return DbException.getUnsupportedException(getTypeName(getValueType()) + ' ' + op);
-    }
-
-    /**
-     * Returns result for result set value, or single-row result with this value
-     * in column X for other values.
-     *
-     * @return result
-     */
-    public SimpleResult getResult() {
-        SimpleResult rs = new SimpleResult();
-        rs.addColumn("X", getType());
-        rs.addRow(this);
-        return rs;
     }
 
     /**

@@ -221,10 +221,10 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionList;
 import org.h2.expression.ExpressionWithFlags;
+import org.h2.expression.ExpressionWithVariableParameters;
 import org.h2.expression.FieldReference;
 import org.h2.expression.Format;
 import org.h2.expression.Format.FormatEnum;
-import org.h2.expression.OperationN;
 import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
 import org.h2.expression.SearchedCase;
@@ -286,7 +286,6 @@ import org.h2.expression.function.DateTimeFormatFunction;
 import org.h2.expression.function.DateTimeFunction;
 import org.h2.expression.function.DayMonthNameFunction;
 import org.h2.expression.function.FileFunction;
-import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.HashFunction;
 import org.h2.expression.function.JavaFunction;
 import org.h2.expression.function.JsonConstructorFunction;
@@ -312,8 +311,10 @@ import org.h2.expression.function.TrimFunction;
 import org.h2.expression.function.TruncateValueFunction;
 import org.h2.expression.function.XMLFunction;
 import org.h2.expression.function.table.CSVReadFunction;
+import org.h2.expression.function.table.JavaTableFunction;
 import org.h2.expression.function.table.LinkSchemaFunction;
 import org.h2.expression.function.table.TableFunction;
+import org.h2.expression.function.table.ArrayTableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsPostgreSQL;
@@ -2085,8 +2086,8 @@ public class Parser {
             table = query.toTable(alias, null, parameters, createView != null, currentSelect);
         } else if (readIf(TABLE)) {
             read(OPEN_PAREN);
-            TableFunction function = readTableFunction(TableFunction.TABLE);
-            table = new FunctionTable(database.getMainSchema(), session, function, function);
+            ArrayTableFunction function = readTableFunction(ArrayTableFunction.TABLE);
+            table = new FunctionTable(database.getMainSchema(), session, function);
         } else {
             boolean quoted = currentTokenQuoted;
             String tableName = readColumnIdentifier();
@@ -2111,15 +2112,15 @@ public class Parser {
                     throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
                 }
             }
-            boolean foundLeftBracket = readIf(OPEN_PAREN);
-            if (foundLeftBracket && readIf("INDEX")) {
+            boolean foundLeftParen = readIf(OPEN_PAREN);
+            if (foundLeftParen && readIf("INDEX")) {
                 // Sybase compatibility with
                 // "select * from test (index table1_index)"
                 readIdentifierWithSchema(null);
                 read(CLOSE_PAREN);
-                foundLeftBracket = false;
+                foundLeftParen = false;
             }
-            if (foundLeftBracket) {
+            if (foundLeftParen) {
                 Schema mainSchema = database.getMainSchema();
                 if (equalsToken(tableName, RangeTable.NAME)
                         || equalsToken(tableName, RangeTable.ALIAS)) {
@@ -2135,7 +2136,7 @@ public class Parser {
                         table = new RangeTable(mainSchema, min, max);
                     }
                 } else {
-                    table = readTableFunction(tableName, schema, mainSchema);
+                    table = new FunctionTable(mainSchema, session, readTableFunction(tableName, schema));
                 }
             } else {
                 table = readTableOrView(tableName);
@@ -2255,16 +2256,35 @@ public class Parser {
         return new DataChangeDeltaTable(getSchemaWithDefault(), session, statement, resultOption);
     }
 
-    private Table readTableFunction(String tableName, Schema schema, Schema mainSchema) {
-        Expression expr = readFunction(schema, tableName);
-        if (!(expr instanceof FunctionCall)) {
-            throw getSyntaxError();
+    private TableFunction readTableFunction(String name, Schema schema) {
+        if (schema == null) {
+            switch (upperName(name)) {
+            case "UNNEST":
+                return readUnnestFunction();
+            case "TABLE_DISTINCT":
+                return readTableFunction(ArrayTableFunction.TABLE_DISTINCT);
+            case "CSVREAD":
+                recompileAlways = true;
+                return readParameters(new CSVReadFunction());
+            case "LINK_SCHEMA":
+                recompileAlways = true;
+                return readParameters(new LinkSchemaFunction());
+            }
         }
-        FunctionCall call = (FunctionCall) expr;
-        if (!call.isDeterministic()) {
+        FunctionAlias functionAlias = findSchemaObjectWithinPath(schema, name, DbObject.FUNCTION_ALIAS);
+        if (functionAlias == null) {
+            throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, name);
+        }
+        if (!functionAlias.isDeterministic()) {
             recompileAlways = true;
         }
-        return new FunctionTable(mainSchema, session, expr, call);
+        ArrayList<Expression> argList = Utils.newSmallArrayList();
+        if (!readIf(CLOSE_PAREN)) {
+            do {
+                argList.add(readExpression());
+            } while (readIfMore());
+        }
+        return new JavaTableFunction(functionAlias, argList.toArray(new Expression[0]));
     }
 
     private boolean readIfUseIndex() {
@@ -4223,14 +4243,14 @@ public class Parser {
         }
     }
 
-    private OperationN readParameters(OperationN function) {
+    private <T extends ExpressionWithVariableParameters> T readParameters(T expression) {
         if (!readIf(CLOSE_PAREN)) {
             do {
-                function.addParameter(readExpression());
+                expression.addParameter(readExpression());
             } while (readIfMore());
         }
-        function.doneWithParameters();
-        return function;
+        expression.doneWithParameters();
+        return expression;
     }
 
     private SimpleCase.SimpleWhen decodeToWhen(Expression caseOperand, boolean canOptimize, Expression whenOperand,
@@ -4610,14 +4630,6 @@ public class Parser {
         case "PI":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueDouble.get(Math.PI));
-        case "UNNEST":
-            return readUnnestFunction();
-        case "TABLE_DISTINCT":
-            return readTableFunction(TableFunction.TABLE_DISTINCT);
-        case "CSVREAD":
-            return readParameters(new CSVReadFunction());
-        case "LINK_SCHEMA":
-            return readParameters(new LinkSchemaFunction());
         }
         ModeFunction function = ModeFunction.getFunction(database, upperName);
         return function != null ? readParameters(function) : null;
@@ -4676,8 +4688,8 @@ public class Parser {
         return new TrimFunction(from, space, flags);
     }
 
-    private TableFunction readUnnestFunction() {
-        TableFunction f = new TableFunction(TableFunction.UNNEST);
+    private ArrayTableFunction readUnnestFunction() {
+        ArrayTableFunction f = new ArrayTableFunction(ArrayTableFunction.UNNEST);
         ArrayList<Column> columns = Utils.newSmallArrayList();
         if (!readIf(CLOSE_PAREN)) {
             int i = 0;
@@ -4704,8 +4716,8 @@ public class Parser {
         return f;
     }
 
-    private TableFunction readTableFunction(int functionType) {
-        TableFunction f = new TableFunction(functionType);
+    private ArrayTableFunction readTableFunction(int functionType) {
+        ArrayTableFunction f = new ArrayTableFunction(functionType);
         ArrayList<Column> columns = Utils.newSmallArrayList();
         do {
             String columnName = readAliasIdentifier();
@@ -5168,19 +5180,10 @@ public class Parser {
         case PARAMETER:
             r = readParameter();
             break;
+        case TABLE:
         case SELECT:
         case WITH:
             r = new Subquery(parseQuery());
-            break;
-        case TABLE:
-            int index = lastParseIndex;
-            read();
-            if (readIf(OPEN_PAREN)) {
-                r = readTableFunction(TableFunction.TABLE);
-            } else {
-                reread(index);
-                r = new Subquery(parseQuery());
-            }
             break;
         case MINUS_SIGN:
             read();
@@ -7749,7 +7752,42 @@ public class Parser {
     private Call parseCall() {
         Call command = new Call(session);
         currentPrepared = command;
-        command.setExpression(readExpression());
+        int index = lastParseIndex;
+        boolean canBeFunction;
+        switch (currentTokenType) {
+        case IDENTIFIER:
+            canBeFunction = true;
+            break;
+        case TABLE:
+            read();
+            read(OPEN_PAREN);
+            command.setTableFunction(readTableFunction(ArrayTableFunction.TABLE));
+            return command;
+        default:
+            canBeFunction = false;
+        }
+        try {
+            command.setExpression(readExpression());
+        } catch (DbException e) {
+            if (canBeFunction && e.getErrorCode() == ErrorCode.FUNCTION_NOT_FOUND_1) {
+                reread(index);
+                String schemaName = null, name = readAliasIdentifier();
+                if (readIf(DOT)) {
+                    schemaName = name;
+                    name = readAliasIdentifier();
+                    if (readIf(DOT)) {
+                        checkDatabaseName(schemaName);
+                        schemaName = name;
+                        name = readAliasIdentifier();
+                    }
+                }
+                read(OPEN_PAREN);
+                Schema schema = schemaName != null ? database.getSchema(schemaName) : null;
+                command.setTableFunction(readTableFunction(name, schema));
+                return command;
+            }
+            throw e;
+        }
         return command;
     }
 

@@ -5,208 +5,104 @@
  */
 package org.h2.expression.function.table;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 
-import org.h2.api.ErrorCode;
-import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.ExpressionColumn;
-import org.h2.expression.TypedValueExpression;
-import org.h2.expression.function.FunctionCall;
-import org.h2.expression.function.FunctionN;
+import org.h2.expression.ExpressionWithVariableParameters;
+import org.h2.expression.function.NamedExpression;
 import org.h2.message.DbException;
-import org.h2.result.LocalResult;
-import org.h2.table.Column;
-import org.h2.value.TypeInfo;
-import org.h2.value.Value;
-import org.h2.value.ValueCollectionBase;
-import org.h2.value.ValueInteger;
-import org.h2.value.ValueNull;
-import org.h2.value.ValueResultSet;
+import org.h2.result.ResultInterface;
+import org.h2.table.ColumnResolver;
+import org.h2.util.HasSQL;
 
 /**
  * A table value function.
  */
-public final class TableFunction extends FunctionN implements FunctionCall {
+public abstract class TableFunction implements HasSQL, NamedExpression, ExpressionWithVariableParameters {
+
+    protected Expression[] args;
+
+    private int argsCount;
+
+    protected TableFunction(Expression[] args) {
+        this.args = args;
+    }
+
+    @Override
+    public void addParameter(Expression param) {
+        int capacity = args.length;
+        if (argsCount >= capacity) {
+            args = Arrays.copyOf(args, capacity * 2);
+        }
+        args[argsCount++] = param;
+    }
+
+    @Override
+    public void doneWithParameters() throws DbException {
+        if (args.length != argsCount) {
+            args = Arrays.copyOf(args, argsCount);
+        }
+    }
 
     /**
-     * UNNEST().
+     * Get a result with.
+     *
+     * @param session
+     *            the session
+     * @return the result
      */
-    public static final int UNNEST = 0;
+    public abstract ResultInterface getValue(SessionLocal session);
 
     /**
-     * TABLE() (non-standard).
+     * Get an empty result with the column names set.
+     *
+     * @param session
+     *            the session
+     * @return the empty result
      */
-    public static final int TABLE = UNNEST + 1;
+    public abstract ResultInterface getValueTemplate(SessionLocal session);
 
     /**
-     * TABLE_DISTINCT() (non-standard).
+     * Map the columns of the resolver to expression columns.
+     *
+     * @param resolver
+     *            the column resolver
+     * @param level
+     *            the subquery nesting level
+     * @param state
+     *            current state for nesting checks, initial value is
+     *            {@link Expression#MAP_INITIAL}
      */
-    public static final int TABLE_DISTINCT = TABLE + 1;
-
-    private Column[] columns;
-
-    private static final String[] NAMES = { //
-            "UNNEST", "TABLE", "TABLE_DISTINCT" //
-    };
-
-    private final int function;
-
-    public TableFunction(int function) {
-        super(new Expression[1]);
-        this.function = function;
-    }
-
-    @Override
-    public Value getValue(SessionLocal session) {
-        return getTable(session, false);
-    }
-
-    @Override
-    public Expression optimize(SessionLocal session) {
-        boolean allConst = optimizeArguments(session, true);
-        if (args.length < 1) {
-            throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, getName(), ">0");
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
+        for (Expression arg : args) {
+            arg.mapColumns(resolver, level, state);
         }
-        type = TypeInfo.TYPE_RESULT_SET;
-        if (allConst) {
-            return TypedValueExpression.getTypedIfNull(getValue(session), type);
+    }
+
+    /**
+     * Try to optimize this table function
+     *
+     * @param session
+     *            the session
+     */
+    public void optimize(SessionLocal session) {
+        for (int i = 0, l = args.length; i < l; i++) {
+            args[i] = args[i].optimize(session);
         }
-        return this;
     }
+
+    /**
+     * Whether the function always returns the same result for the same
+     * parameters.
+     *
+     * @return true if it does
+     */
+    public abstract boolean isDeterministic();
 
     @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        if (function == UNNEST) {
-            super.getUnenclosedSQL(builder, sqlFlags);
-            if (args.length < columns.length) {
-                builder.append(" WITH ORDINALITY");
-            }
-        } else {
-            builder.append(getName()).append('(');
-            for (int i = 0; i < args.length; i++) {
-                if (i > 0) {
-                    builder.append(", ");
-                }
-                builder.append(columns[i].getCreateSQL()).append('=');
-                args[i].getUnenclosedSQL(builder, sqlFlags);
-            }
-            builder.append(')');
-        }
-        return builder;
-    }
-
-    @Override
-    public ValueResultSet getValueForColumnList(SessionLocal session, Expression[] nullArgs) {
-        return getTable(session, true);
-    }
-
-    public void setColumns(ArrayList<Column> columns) {
-        this.columns = columns.toArray(new Column[0]);
-    }
-
-    private ValueResultSet getTable(SessionLocal session, boolean onlyColumnList) {
-        int totalColumns = columns.length;
-        Expression[] header = new Expression[totalColumns];
-        Database db = session.getDatabase();
-        for (int i = 0; i < totalColumns; i++) {
-            Column c = columns[i];
-            ExpressionColumn col = new ExpressionColumn(db, c);
-            header[i] = col;
-        }
-        LocalResult result = new LocalResult(session, header, totalColumns, totalColumns);
-        if (!onlyColumnList && function == TABLE_DISTINCT) {
-            result.setDistinct();
-        }
-        if (!onlyColumnList) {
-            int len = totalColumns;
-            boolean unnest = function == UNNEST, addNumber = false;
-            if (unnest) {
-                len = args.length;
-                if (len < totalColumns) {
-                    addNumber = true;
-                }
-            }
-            Value[][] list = new Value[len][];
-            int rows = 0;
-            for (int i = 0; i < len; i++) {
-                Value v = args[i].getValue(session);
-                if (v == ValueNull.INSTANCE) {
-                    list[i] = Value.EMPTY_VALUES;
-                } else {
-                    int type = v.getValueType();
-                    if (type != Value.ARRAY && type != Value.ROW) {
-                        v = v.convertToAnyArray(session);
-                    }
-                    Value[] l = ((ValueCollectionBase) v).getList();
-                    list[i] = l;
-                    rows = Math.max(rows, l.length);
-                }
-            }
-            for (int row = 0; row < rows; row++) {
-                Value[] r = new Value[totalColumns];
-                for (int j = 0; j < len; j++) {
-                    Value[] l = list[j];
-                    Value v;
-                    if (l.length <= row) {
-                        v = ValueNull.INSTANCE;
-                    } else {
-                        Column c = columns[j];
-                        v = l[row];
-                        if (!unnest) {
-                            v = v.convertForAssignTo(c.getType(), session, c);
-                        }
-                    }
-                    r[j] = v;
-                }
-                if (addNumber) {
-                    r[len] = ValueInteger.get(row + 1);
-                }
-                result.addRow(r);
-            }
-        }
-        result.done();
-        return ValueResultSet.get(result, Integer.MAX_VALUE);
-    }
-
-    @Override
-    public Expression[] getExpressionColumns(SessionLocal session) {
-        return getExpressionColumns(session, getValueForColumnList(session, null).getResult());
-    }
-
-    @Override
-    public boolean isConstant() {
-        for (Expression e : args) {
-            if (!e.isConstant()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public String getName() {
-        return NAMES[function];
-    }
-
-    @Override
-    public Expression[] getArgs() {
-        return args;
-    }
-
-    @Override
-    public int getValueType() {
-        return Value.RESULT_SET;
-    }
-
-    @Override
-    public boolean isDeterministic() {
-        return true;
-    }
-
-    public int getFunctionType() {
-        return function;
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return Expression.writeExpressions(builder.append(getName()).append('('), args, sqlFlags).append(')');
     }
 
 }

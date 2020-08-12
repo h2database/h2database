@@ -13,29 +13,25 @@ import java.sql.Statement;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.function.FunctionCall;
-import org.h2.expression.function.FunctionN;
 import org.h2.message.DbException;
+import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
-import org.h2.value.Value;
-import org.h2.value.ValueResultSet;
 import org.h2.value.ValueVarchar;
 
 /**
  * A LINK_SCHEMA function.
  */
-public final class LinkSchemaFunction extends FunctionN implements FunctionCall {
+public final class LinkSchemaFunction extends TableFunction {
 
     public LinkSchemaFunction() {
         super(new Expression[6]);
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
+    public ResultInterface getValue(SessionLocal session) {
         session.getUser().checkAdmin();
         String targetSchema = getValue(session, 0);
         String driver = getValue(session, 1);
@@ -45,7 +41,7 @@ public final class LinkSchemaFunction extends FunctionN implements FunctionCall 
         String sourceSchema = getValue(session, 5);
         if (targetSchema == null || driver == null || url == null || user == null || password == null
                 || sourceSchema == null) {
-            return getValueForColumnList(session, null);
+            return getValueTemplate(session);
         }
         Connection conn = session.createConnection(false);
         Connection c2 = null;
@@ -93,7 +89,7 @@ public final class LinkSchemaFunction extends FunctionN implements FunctionCall 
             JdbcUtils.closeSilently(c2);
             JdbcUtils.closeSilently(stat);
         }
-        return ValueResultSet.get(result);
+        return result;
     }
 
     private String getValue(SessionLocal session, int index) {
@@ -101,26 +97,19 @@ public final class LinkSchemaFunction extends FunctionN implements FunctionCall 
     }
 
     @Override
-    public Expression optimize(SessionLocal session) {
-        optimizeArguments(session, false);
+    public void optimize(SessionLocal session) {
+        super.optimize(session);
         int len = args.length;
         if (len != 6) {
             throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, getName(), "6");
         }
-        type = TypeInfo.TYPE_RESULT_SET;
-        return this;
     }
 
     @Override
-    public ValueResultSet getValueForColumnList(SessionLocal session, Expression[] nullArgs) {
+    public ResultInterface getValueTemplate(SessionLocal session) {
         SimpleResult result = new SimpleResult();
         result.addColumn("TABLE_NAME", TypeInfo.TYPE_VARCHAR);
-        return ValueResultSet.get(result);
-    }
-
-    @Override
-    public Expression[] getExpressionColumns(SessionLocal session) {
-        return getExpressionColumns(session, getValueForColumnList(session, null).getResult());
+        return result;
     }
 
     @Override
@@ -129,23 +118,8 @@ public final class LinkSchemaFunction extends FunctionN implements FunctionCall 
     }
 
     @Override
-    public Expression[] getArgs() {
-        return args;
-    }
-
-    @Override
-    public int getValueType() {
-        return Value.RESULT_SET;
-    }
-
-    @Override
     public boolean isDeterministic() {
         return false;
-    }
-
-    @Override
-    public boolean isEverything(ExpressionVisitor visitor) {
-        return isEverythingNonDeterministic(visitor);
     }
 
 }

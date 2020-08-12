@@ -15,7 +15,6 @@ import org.h2.expression.Parameter;
 import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.index.IndexCondition;
-import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -80,16 +79,6 @@ public final class ConditionInParameter extends Condition {
         boolean hasNull = false;
         if (value.containsNull()) {
             hasNull = true;
-        } else if (value.getValueType() == Value.RESULT_SET) {
-            for (ResultInterface ri = value.getResult(); ri.next();) {
-                Value r = ri.currentRow()[0];
-                Value cmp = Comparison.compare(session, l, r, Comparison.EQUAL);
-                if (cmp == ValueNull.INSTANCE) {
-                    hasNull = true;
-                } else if (cmp == ValueBoolean.TRUE) {
-                    return ValueBoolean.get(!not);
-                }
-            }
         } else {
             for (Value r : value.convertToAnyArray(session).getList()) {
                 Value cmp = Comparison.compare(session, l, r, Comparison.EQUAL);

@@ -13,9 +13,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
-import org.h2.expression.function.table.TableFunction;
 import org.h2.index.IndexCondition;
-import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -64,16 +62,8 @@ public final class ConditionIn extends Condition {
         if (left.containsNull()) {
             return ValueNull.INSTANCE;
         }
-        int size = valueList.size();
-        if (size == 1) {
-            Expression e = valueList.get(0);
-            if (e instanceof TableFunction) {
-                return ConditionInParameter.getValue(session, left, not, e.getValue(session));
-            }
-        }
         boolean hasNull = false;
-        for (int i = 0; i < size; i++) {
-            Expression e = valueList.get(i);
+        for (Expression e : valueList) {
             Value r = e.getValue(session);
             Value cmp = Comparison.compare(session, left, r, Comparison.EQUAL);
             if (cmp == ValueNull.INSTANCE) {
@@ -103,39 +93,9 @@ public final class ConditionIn extends Condition {
         if (constant && left.isNullConstant()) {
             return TypedValueExpression.UNKNOWN;
         }
-        int size = valueList.size();
-        if (size == 1) {
-            Expression right = valueList.get(0);
-            if (right instanceof TableFunction) {
-                TableFunction tf = (TableFunction) right;
-                if (tf.getFunctionType() == TableFunction.UNNEST) {
-                    Expression[] args = tf.getArgs();
-                    if (args.length == 1) {
-                        Expression arg = args[0];
-                        if (arg instanceof Parameter) {
-                            return new ConditionInParameter(left, not, whenOperand, (Parameter) arg);
-                        }
-                    }
-                }
-                if (tf.isConstant()) {
-                    boolean allValuesNull = true;
-                    ResultInterface ri = right.getValue(session).getResult();
-                    ArrayList<Expression> list = new ArrayList<>(ri.getRowCount());
-                    while (ri.next()) {
-                        Value v = ri.currentRow()[0];
-                        if (!v.containsNull()) {
-                            allValuesNull = false;
-                        }
-                        list.add(ValueExpression.get(v));
-                    }
-                    return optimize2(session, constant, true, allValuesNull, list);
-                }
-                return this;
-            }
-        }
         boolean allValuesConstant = true;
         boolean allValuesNull = true;
-        for (int i = 0; i < size; i++) {
+        for (int i = 0, l = valueList.size(); i < l; i++) {
             Expression e = valueList.get(i);
             e = e.optimize(session);
             if (e.isConstant() && !e.getValue(session).containsNull()) {

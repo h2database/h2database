@@ -6109,50 +6109,6 @@ This method returns a long.
 CURRVAL('TEST_SEQ')
 "
 
-"Functions (System)","CSVREAD","
-@h2@ CSVREAD(fileNameString [, columnsString [, csvOptions ] ] )
-","
-Returns the result set of reading the CSV (comma separated values) file.
-For each parameter, NULL means the default value should be used.
-
-If the column names are specified (a list of column names separated with the
-fieldSeparator), those are used, otherwise (or if they are set to NULL) the first line of
-the file is interpreted as the column names.
-In that case, column names that contain no special characters (only letters, '_',
-and digits; similar to the rule for Java identifiers) are processed is the same way as unquoted identifiers
-and therefore case of characters may be changed.
-Other column names are processed as quoted identifiers and case of characters is preserved.
-To preserve the case of column names unconditionally use
-[caseSensitiveColumnNames](https://h2database.com/html/grammar.html#csv_options) option.
-
-The default charset is the default value for this system, and the default field separator
-is a comma. Missing unquoted values as well as data that matches nullString is
-parsed as NULL. All columns are of type VARCHAR.
-
-The BOM (the byte-order-mark) character 0xfeff at the beginning of the file is ignored.
-
-This function can be used like a table: ""SELECT * FROM CSVREAD(...)"".
-
-Instead of a file, a URL may be used, for example
-""jar:file:///c:/temp/example.zip!/org/example/nested.csv"".
-To read a stream from the classpath, use the prefix ""classpath:"".
-To read from HTTP, use the prefix ""http:"" (as in a browser).
-
-For performance reason, CSVREAD should not be used inside a join.
-Instead, import the data first (possibly into a temporary table) and then use the table.
-
-Admin rights are required to execute this command.
-","
-CALL CSVREAD('test.csv');
--- Read a file containing the columns ID, NAME with
-CALL CSVREAD('test2.csv', 'ID|NAME', 'charset=UTF-8 fieldSeparator=|');
-SELECT * FROM CSVREAD('data/test.csv', null, 'rowSeparator=;');
--- Read a tab-separated file
-SELECT * FROM CSVREAD('data/test.tsv', null, 'rowSeparator=' || CHAR(9));
-SELECT ""Last Name"" FROM CSVREAD('address.csv');
-SELECT ""Last Name"" FROM CSVREAD('classpath:/org/acme/data/address.csv');
-"
-
 "Functions (System)","CSVWRITE","
 @h2@ CSVWRITE ( fileNameString, queryString [, csvOptions [, lineSepString] ] )
 ","
@@ -6372,20 +6328,6 @@ Returns the lock timeout of the current session (in milliseconds).
 LOCK_TIMEOUT()
 "
 
-"Functions (System)","LINK_SCHEMA","
-@h2@ LINK_SCHEMA(targetSchemaString, driverString, urlString,
-    userString, passwordString, sourceSchemaString)
-","
-Creates table links for all tables in a schema.
-If tables with the same name already exist, they are dropped first.
-The target schema is created automatically if it does not yet exist.
-The driver name may be empty if the driver is already loaded.
-The list of tables linked is returned in the form of a result set.
-Admin rights are required to execute this command.
-","
-CALL LINK_SCHEMA('TEST2', '', 'jdbc:h2:./test2', 'sa', 'sa', 'PUBLIC');
-"
-
 "Functions (System)","MEMORY_FREE","
 @h2@ MEMORY_FREE()
 ","
@@ -6493,16 +6435,6 @@ This can be used to implement running totals / cumulative sums.
 SELECT X, SET(@I, COALESCE(@I, 0)+X) RUNNING_TOTAL FROM SYSTEM_RANGE(1, 10)
 "
 
-"Functions (System)","TABLE","
-@h2@ { TABLE | TABLE_DISTINCT }
-@h2@ ( { name dataTypeOrDomain = {array|rowValueExpression} } [,...] )
-","
-Returns the result set. TABLE_DISTINCT removes duplicate rows.
-","
-SELECT * FROM TABLE(VALUE INT = ARRAY[1, 2]);
-SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'));
-"
-
 "Functions (System)","TRANSACTION_ID","
 @h2@ TRANSACTION_ID()
 ","
@@ -6524,18 +6456,6 @@ If force flag is set to ""FALSE"" fixed precision values are not truncated.
 The method returns a value with the same data type as the first parameter.
 ","
 CALL TRUNCATE_VALUE(X, 10, TRUE);
-"
-
-"Functions (System)","UNNEST","
-UNNEST(array, [,...]) [WITH ORDINALITY]
-","
-Returns the result set.
-Number of columns is equal to number of arguments,
-plus one additional column with row number if WITH ORDINALITY is specified.
-Number of rows is equal to length of longest specified array.
-If multiple arguments are specified and they have different length, cells with missing values will contain null values.
-","
-SELECT * FROM UNNEST(ARRAY['a', 'b', 'c']);
 "
 
 "Functions (System)","CURRENT_PATH","
@@ -6598,6 +6518,86 @@ If NULL ON NULL is specified NULL values are included in the array.
 JSON_ARRAY(10, 15, 20);
 JSON_ARRAY(JSON_DATA_A FORMAT JSON, JSON_DATA_B FORMAT JSON);
 JSON_ARRAY((SELECT J FROM PROPS) FORMAT JSON);
+"
+
+"Functions (Table)","CSVREAD","
+@h2@ CSVREAD(fileNameString [, columnsString [, csvOptions ] ] )
+","
+Returns the result set of reading the CSV (comma separated values) file.
+For each parameter, NULL means the default value should be used.
+
+If the column names are specified (a list of column names separated with the
+fieldSeparator), those are used, otherwise (or if they are set to NULL) the first line of
+the file is interpreted as the column names.
+In that case, column names that contain no special characters (only letters, '_',
+and digits; similar to the rule for Java identifiers) are processed is the same way as unquoted identifiers
+and therefore case of characters may be changed.
+Other column names are processed as quoted identifiers and case of characters is preserved.
+To preserve the case of column names unconditionally use
+[caseSensitiveColumnNames](https://h2database.com/html/grammar.html#csv_options) option.
+
+The default charset is the default value for this system, and the default field separator
+is a comma. Missing unquoted values as well as data that matches nullString is
+parsed as NULL. All columns are of type VARCHAR.
+
+The BOM (the byte-order-mark) character 0xfeff at the beginning of the file is ignored.
+
+This function can be used like a table: ""SELECT * FROM CSVREAD(...)"".
+
+Instead of a file, a URL may be used, for example
+""jar:file:///c:/temp/example.zip!/org/example/nested.csv"".
+To read a stream from the classpath, use the prefix ""classpath:"".
+To read from HTTP, use the prefix ""http:"" (as in a browser).
+
+For performance reason, CSVREAD should not be used inside a join.
+Instead, import the data first (possibly into a temporary table) and then use the table.
+
+Admin rights are required to execute this command.
+","
+SELECT * FROM CSVREAD('test.csv');
+-- Read a file containing the columns ID, NAME with
+SELECT * FROM CSVREAD('test2.csv', 'ID|NAME', 'charset=UTF-8 fieldSeparator=|');
+SELECT * FROM CSVREAD('data/test.csv', null, 'rowSeparator=;');
+-- Read a tab-separated file
+SELECT * FROM CSVREAD('data/test.tsv', null, 'rowSeparator=' || CHAR(9));
+SELECT ""Last Name"" FROM CSVREAD('address.csv');
+SELECT ""Last Name"" FROM CSVREAD('classpath:/org/acme/data/address.csv');
+"
+
+"Functions (Table)","LINK_SCHEMA","
+@h2@ LINK_SCHEMA(targetSchemaString, driverString, urlString,
+    userString, passwordString, sourceSchemaString)
+","
+Creates table links for all tables in a schema.
+If tables with the same name already exist, they are dropped first.
+The target schema is created automatically if it does not yet exist.
+The driver name may be empty if the driver is already loaded.
+The list of tables linked is returned in the form of a result set.
+Admin rights are required to execute this command.
+","
+SELECT * FROM LINK_SCHEMA('TEST2', '', 'jdbc:h2:./test2', 'sa', 'sa', 'PUBLIC');
+"
+
+"Functions (Table)","TABLE","
+@h2@ { TABLE | TABLE_DISTINCT }
+@h2@ ( { name dataTypeOrDomain = {array|rowValueExpression} } [,...] )
+","
+Returns the result set. TABLE_DISTINCT removes duplicate rows.
+","
+SELECT * FROM TABLE(VALUE INT = ARRAY[1, 2]);
+SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'));
+"
+
+"Functions (Table)","UNNEST","
+UNNEST(array, [,...]) [WITH ORDINALITY]
+","
+Returns the result set.
+Number of columns is equal to number of arguments,
+plus one additional column with row number if WITH ORDINALITY is specified.
+Number of rows is equal to length of longest specified array.
+If multiple arguments are specified and they have different length, cells with missing values will contain null values.
+","
+SELECT * FROM UNNEST(ARRAY['a', 'b', 'c']);
 "
 
 "Aggregate Functions (General)","AVG","

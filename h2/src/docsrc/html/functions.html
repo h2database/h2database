@@ -159,6 +159,34 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
+<h3>Table Functions</h3>
+<!-- syntax-start
+<p class="notranslate">
+<c:forEach var="item" items="functionsTable">
+    <a href="#${item.link}" >${item.topic}</a><br />
+</c:forEach>
+</p>
+syntax-end -->
+<!-- railroad-start -->
+<table class="notranslate index">
+    <tr>
+        <td class="index">
+            <c:forEach var="item" items="functionsTable-0">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="functionsTable-1">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="functionsTable-2">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td>
+    </tr>
+</table>
+<!-- railroad-end -->
+
 <h2>Details</h2>
 <!-- railroad-start -->
 <p>Click on the header of the function to switch between railroad diagram and BNF.</p>
@@ -252,6 +280,27 @@ syntax-end -->
 
 <h2>JSON Functions</h2>
 <c:forEach var="item" items="functionsJson">
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
+<!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
+${item.railroad}
+</div>
+<!-- railroad-end -->
+<!-- syntax-start
+<pre>
+${item.syntax}
+</pre>
+syntax-end -->
+<p>${item.text}</p>
+<p>Example:</p>
+<p class="notranslate">${item.example}</p>
+</c:forEach>
+
+<h2>Table Functions</h2>
+<c:forEach var="item" items="functionsTable">
 <h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
 <!-- railroad-start -->
 <pre name="bnf" style="display: none">

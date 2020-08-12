@@ -240,7 +240,7 @@ public class TestCallableStatement extends TestDb {
         assertFalse(rs.next());
         stat.execute("CREATE ALIAS testCall FOR \"" +
                     getClass().getName() + ".testCall\"");
-        call = conn.prepareCall("{CALL testCall(?, ?, ?, ?)}");
+        call = conn.prepareCall("{SELECT * FROM testCall(?, ?, ?, ?)}");
         call.setInt("A", 50);
         call.setString("B", "abc");
         long t = System.currentTimeMillis();

@@ -14,6 +14,7 @@ import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLXML;
 import java.time.Duration;
@@ -25,8 +26,12 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.Period;
 import java.time.ZonedDateTime;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 import java.util.UUID;
 
+import org.h2.api.ErrorCode;
 import org.h2.api.Interval;
 import org.h2.engine.Session;
 import org.h2.jdbc.JdbcArray;
@@ -155,7 +160,7 @@ public final class ValueToObjectConverter extends TraceObject {
                 throw DbException.convert(e);
             }
         } else if (x instanceof ResultSet) {
-            return ValueResultSet.get(session, (ResultSet) x, Integer.MAX_VALUE);
+            return resultSetToValue(session, (ResultSet) x);
         }
         ValueLob lob;
         if (x instanceof Reader) {
@@ -208,6 +213,54 @@ public final class ValueToObjectConverter extends TraceObject {
             v[i] = objectToValue(session, o[i], Value.UNKNOWN);
         }
         return ValueArray.get(v, session);
+    }
+
+    static Value resultSetToValue(Session session, ResultSet rs) {
+        try {
+            ResultSetMetaData meta = rs.getMetaData();
+            int columnCount = meta.getColumnCount();
+            LinkedHashMap<String, TypeInfo> columns = readResultSetMeta(session, meta, columnCount);
+            if (!rs.next()) {
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "Empty ResultSet to ROW value");
+            }
+            Value[] list = new Value[columnCount];
+            Iterator<Entry<String, TypeInfo>> iterator = columns.entrySet().iterator();
+            for (int j = 0; j < columnCount; j++) {
+                list[j] = ValueToObjectConverter.objectToValue(session, rs.getObject(j + 1),
+                        iterator.next().getValue().getValueType());
+            }
+            if (rs.next()) {
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "Multi-row ResultSet to ROW value");
+            }
+            // TODO use column types
+            return ValueRow.get(list);
+        } catch (SQLException e) {
+            throw DbException.convert(e);
+        }
+    }
+
+    private static LinkedHashMap<String, TypeInfo> readResultSetMeta(Session session, ResultSetMetaData meta,
+            int columnCount) throws SQLException {
+        LinkedHashMap<String, TypeInfo> columns = new LinkedHashMap<>();
+        for (int i = 0; i < columnCount; i++) {
+            String alias = meta.getColumnLabel(i + 1);
+            String columnTypeName = meta.getColumnTypeName(i + 1);
+            int columnType = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1), columnTypeName);
+            int precision = meta.getPrecision(i + 1);
+            int scale = meta.getScale(i + 1);
+            TypeInfo typeInfo;
+            if (columnType == Value.ARRAY && columnTypeName.endsWith(" ARRAY")) {
+                typeInfo = TypeInfo
+                        .getTypeInfo(Value.ARRAY, -1L, 0,
+                                TypeInfo.getTypeInfo(DataType.getTypeByName(
+                                        columnTypeName.substring(0, columnTypeName.length() - 6),
+                                        session.getMode()).type));
+            } else {
+                typeInfo = TypeInfo.getTypeInfo(columnType, precision, scale, null);
+            }
+            columns.put(alias, typeInfo);
+        }
+        return columns;
     }
 
     /**
@@ -317,7 +370,7 @@ public final class ValueToObjectConverter extends TraceObject {
         } else if (type == SQLXML.class) {
             return new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, getNextId(TraceObject.SQLXML));
         } else if (type == ResultSet.class) {
-            return new JdbcResultSet(conn, null, null, value.convertToResultSet().getResult(),
+            return new JdbcResultSet(conn, null, null, value.convertToAnyRow().getResult(),
                     getNextId(TraceObject.RESULT_SET), true, false);
         } else {
             Object obj = LegacyDateTimeUtils.valueToLegacyType(type, value, conn);
@@ -426,8 +479,6 @@ public final class ValueToObjectConverter extends TraceObject {
                 return ResultSet.class;
             }
             return Object[].class;
-        case Value.RESULT_SET:
-            return ResultSet.class;
         default:
             throw DbException.getUnsupportedException("data type " + type);
         }
@@ -524,13 +575,10 @@ public final class ValueToObjectConverter extends TraceObject {
             return valueToDefaultArray(value, conn, forJdbc);
         case Value.ROW:
             if (forJdbc) {
-                return new JdbcResultSet(conn, null, null, value.getResult(), getNextId(TraceObject.RESULT_SET), true,
-                        false);
+                return new JdbcResultSet(conn, null, null, ((ValueRow) value).getResult(),
+                        getNextId(TraceObject.RESULT_SET), true, false);
             }
             return valueToDefaultArray(value, conn, forJdbc);
-        case Value.RESULT_SET:
-            return new JdbcResultSet(conn, null, null, value.getResult(), getNextId(TraceObject.RESULT_SET), true,
-                    false);
         default:
             throw DbException.getUnsupportedException("data type " + value.getValueType());
         }

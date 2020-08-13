@@ -25,7 +25,16 @@ import org.h2.util.ParserUtil;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueBigint;
+import org.h2.value.ValueBoolean;
+import org.h2.value.ValueDecfloat;
+import org.h2.value.ValueDouble;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueNumeric;
+import org.h2.value.ValueReal;
+import org.h2.value.ValueSmallint;
+import org.h2.value.ValueTinyint;
 
 /**
  * A column reference expression that represents a column of a table or view.
@@ -396,7 +405,44 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public Expression getNotIfPossible(SessionLocal session) {
-        return new Comparison(Comparison.EQUAL, this, ValueExpression.FALSE, false);
+        Value v;
+        switch (column.getType().getValueType()) {
+        case Value.BOOLEAN:
+            v = ValueBoolean.FALSE;
+            break;
+        case Value.TINYINT:
+            v = ValueTinyint.get((byte) 0);
+            break;
+        case Value.SMALLINT:
+            v = ValueSmallint.get((short) 0);
+            break;
+        case Value.INTEGER:
+            v = ValueInteger.get(0);
+            break;
+        case Value.BIGINT:
+            v = ValueBigint.get(0L);
+            break;
+        case Value.NUMERIC:
+            v = ValueNumeric.ZERO;
+            break;
+        case Value.REAL:
+            v = ValueReal.ZERO;
+            break;
+        case Value.DOUBLE:
+            v = ValueDouble.ZERO;
+            break;
+        case Value.DECFLOAT:
+            v = ValueDecfloat.ZERO;
+            break;
+        default:
+            /*
+             * Can be replaced with CAST(column AS BOOLEN) = FALSE, but this
+             * replacement can't be optimized further, so it's better to leave
+             * NOT (column) as is.
+             */
+            return null;
+        }
+        return new Comparison(Comparison.EQUAL, this, ValueExpression.get(v), false);
     }
 
 }

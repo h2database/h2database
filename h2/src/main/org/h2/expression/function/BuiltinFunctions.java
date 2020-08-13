@@ -102,7 +102,7 @@ public final class BuiltinFunctions {
                 "CURRVAL", "NEXTVAL",
                 // Constants
                 "ZERO", "PI",
-                // TableFunction
+                // ArrayTableFunction
                 "UNNEST", /* TABLE is a keyword */ "TABLE_DISTINCT",
                 // CSVReadFunction
                 "CSVREAD",

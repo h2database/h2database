@@ -28,16 +28,13 @@ import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.MetaType;
 import org.h2.mvstore.type.StatefulDataType;
-import org.h2.result.ResultInterface;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
-import org.h2.result.SimpleResult;
 import org.h2.result.SortOrder;
 import org.h2.store.DataHandler;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
-import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
@@ -59,7 +56,6 @@ import org.h2.value.ValueLobInMemory;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
-import org.h2.value.ValueResultSet;
 import org.h2.value.ValueRow;
 import org.h2.value.ValueSmallint;
 import org.h2.value.ValueTime;
@@ -94,7 +90,6 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     private static final byte BLOB = 15;
     private static final byte CLOB = 16;
     private static final byte ARRAY = 17;
-    private static final byte RESULT_SET = 18;
     private static final byte JAVA_OBJECT = 19;
     private static final byte UUID = 20;
     private static final byte CHAR = 21;
@@ -538,29 +533,6 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             }
             break;
         }
-        case Value.RESULT_SET: {
-            buff.put(RESULT_SET);
-            ResultInterface result = v.getResult();
-            int columnCount = result.getVisibleColumnCount();
-            buff.putVarInt(columnCount);
-            for (int i = 0; i < columnCount; i++) {
-                writeString(buff, result.getAlias(i));
-                writeString(buff, result.getColumnName(i));
-                TypeInfo columnType = result.getColumnType(i);
-                buff.putVarInt(columnType.getValueType()).
-                    putVarLong(columnType.getPrecision()).
-                    putVarInt(columnType.getScale());
-            }
-            while (result.next()) {
-                buff.put((byte) 1);
-                Value[] row = result.currentRow();
-                for (int i = 0; i < columnCount; i++) {
-                    writeValue(buff, row[i], false);
-                }
-            }
-            buff.put((byte) 0);
-            break;
-        }
         case Value.GEOMETRY: {
             byte[] b = v.getBytes();
             int len = b.length;
@@ -834,22 +806,6 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 list[i] = readValue(buff, false);
             }
             return type == ARRAY && !rowAsRow ? ValueArray.get(list, provider) : ValueRow.get(list);
-        }
-        case RESULT_SET: {
-            SimpleResult rs = new SimpleResult();
-            int columns = readVarInt(buff);
-            for (int i = 0; i < columns; i++) {
-                rs.addColumn(readString(buff), readString(buff), readVarInt(buff), readVarLong(buff),
-                        readVarInt(buff));
-            }
-            while (buff.get() != 0) {
-                Value[] o = new Value[columns];
-                for (int i = 0; i < columns; i++) {
-                    o[i] = readValue(buff, false);
-                }
-                rs.addRow(o);
-            }
-            return ValueResultSet.get(rs);
         }
         case GEOMETRY: {
             int len = readVarInt(buff);

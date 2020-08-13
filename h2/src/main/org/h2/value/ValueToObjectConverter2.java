@@ -111,7 +111,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
         } else if (Array.class.isAssignableFrom(clazz)) {
             return TypeInfo.TYPE_ARRAY_UNKNOWN;
         } else if (ResultSet.class.isAssignableFrom(clazz)) {
-            return TypeInfo.TYPE_RESULT_SET;
+            return TypeInfo.TYPE_ROW_EMPTY;
         } else {
             TypeInfo t = LegacyDateTimeUtils.legacyClassToType(clazz);
             if (t != null) {
@@ -410,7 +410,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
             if (o == null) {
                 v = ValueNull.INSTANCE;
             } else if (o instanceof ResultSet) {
-                v = ValueResultSet.get(session, (ResultSet) o, Integer.MAX_VALUE);
+                v = ValueToObjectConverter.resultSetToValue(session, (ResultSet) o);
             } else {
                 Object[] list = (Object[]) o;
                 int len = list.length;
@@ -420,11 +420,6 @@ public final class ValueToObjectConverter2 extends TraceObject {
                 }
                 v = ValueRow.get(values);
             }
-            break;
-        }
-        case Value.RESULT_SET: {
-            ResultSet x = (ResultSet) rs.getObject(columnIndex);
-            v = x == null ? ValueNull.INSTANCE : ValueResultSet.get(session, x, Integer.MAX_VALUE);
             break;
         }
         default:

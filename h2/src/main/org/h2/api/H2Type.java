@@ -248,13 +248,6 @@ public final class H2Type implements SQLType {
 
     // Use row() for ROW
 
-    // Result set for table functions
-
-    /**
-     * The RESULT_SET data type.
-     */
-    public static final H2Type RESULT_SET = new H2Type(TypeInfo.TYPE_RESULT_SET, "RESULT_SET");
-
     /**
      * Returns ARRAY data type with the specified component type.
      *

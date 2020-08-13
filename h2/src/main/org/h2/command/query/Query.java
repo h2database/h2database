@@ -24,7 +24,6 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
-import org.h2.expression.function.FunctionCall;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
@@ -627,10 +626,8 @@ public abstract class Query extends Prepared {
             }
         }
         int count = expr.getSubexpressionCount();
-        if (expr instanceof FunctionCall) {
-            if (!((FunctionCall) expr).isDeterministic()) {
-                return false;
-            }
+        if (!expr.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
+            return false;
         } else if (count <= 0) {
             // Expression is an ExpressionColumn, Parameter, SequenceValue or
             // has other unsupported type without subexpressions

@@ -114,7 +114,6 @@ public class TestPreparedStatement extends TestDb {
         testParameterMetaData(conn);
         testColumnMetaDataWithEquals(conn);
         testColumnMetaDataWithIn(conn);
-        testValueResultSet(conn);
         testMultipleStatements(conn);
         testAfterRollback(conn);
         conn.close();
@@ -189,7 +188,7 @@ public class TestPreparedStatement extends TestDb {
     }
 
     private static void testCallTablePrepared(Connection conn) throws SQLException {
-        PreparedStatement prep = conn.prepareStatement("call table(x int = (1))");
+        PreparedStatement prep = conn.prepareStatement("select * from table(x int = (1))");
         prep.executeQuery();
         prep.executeQuery();
     }
@@ -454,7 +453,7 @@ public class TestPreparedStatement extends TestDb {
         meta = prep.getMetaData();
         assertEquals(1, meta.getColumnCount());
         assertEquals("INTEGER", meta.getColumnTypeName(1));
-        prep = conn.prepareStatement("CALL UNNEST(ARRAY[1, 2])");
+        prep = conn.prepareStatement("SELECT * FROM UNNEST(ARRAY[1, 2])");
         meta = prep.getMetaData();
         assertEquals(1, meta.getColumnCount());
         assertEquals("INTEGER", meta.getColumnTypeName(1));
@@ -1595,12 +1594,6 @@ public class TestPreparedStatement extends TestDb {
         anyParameterCheck(ps, values, expected);
         ps = conn.prepareStatement("SELECT ID FROM TEST INNER JOIN TABLE(X INT=?) T ON TEST.V = T.X");
         anyParameterCheck(ps, values, expected);
-        // Test expression IN(UNNEST(?))
-        ps = conn.prepareStatement("SELECT ID FROM TEST WHERE V IN(UNNEST(?))");
-        assertThrows(ErrorCode.PARAMETER_NOT_SET_1, ps).executeQuery();
-        anyParameterCheck(ps, values, expected);
-        anyParameterCheck(ps, 300, new int[] {30});
-        anyParameterCheck(ps, -5, new int[0]);
         // Test expression = ANY(?)
         ps = conn.prepareStatement("SELECT ID FROM TEST WHERE V = ANY(?)");
         assertThrows(ErrorCode.PARAMETER_NOT_SET_1, ps).executeQuery();
@@ -1677,19 +1670,6 @@ public class TestPreparedStatement extends TestDb {
         assertEquals(Types.INTEGER,
                 ps.getParameterMetaData().getParameterType(1));
         stmt.execute("DROP TABLE TEST");
-    }
-
-    private void testValueResultSet(Connection conn) throws SQLException {
-        for (int i = 0; i < 2; i++) {
-            try (PreparedStatement stmt = conn.prepareStatement("SELECT TABLE(X INT = (1))")) {
-                ResultSet rs = stmt.executeQuery();
-                while (rs.next()) {
-                    try (ResultSet rs2 = (ResultSet) rs.getObject(1)) {
-                        assertEquals(1, rs2.getMetaData().getColumnCount());
-                    }
-                }
-            }
-        }
     }
 
     private void testMultipleStatements(Connection conn) throws SQLException {

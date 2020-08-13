@@ -22,14 +22,11 @@ import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
-import org.h2.result.ResultInterface;
-import org.h2.result.SimpleResult;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
-import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
@@ -51,7 +48,6 @@ import org.h2.value.ValueLobInMemory;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
-import org.h2.value.ValueResultSet;
 import org.h2.value.ValueRow;
 import org.h2.value.ValueSmallint;
 import org.h2.value.ValueTime;
@@ -100,7 +96,6 @@ public class Data {
     private static final byte BLOB = 15;
     private static final byte CLOB = 16;
     private static final byte ARRAY = 17;
-    private static final byte RESULT_SET = 18;
     private static final byte JAVA_OBJECT = 19;
     private static final byte UUID = 20;
     private static final byte CHAR = 21;
@@ -721,30 +716,6 @@ public class Data {
             }
             break;
         }
-        case Value.RESULT_SET: {
-            writeByte(RESULT_SET);
-            ResultInterface result = ((ValueResultSet) v).getResult();
-            result.reset();
-            int columnCount = result.getVisibleColumnCount();
-            writeVarInt(columnCount);
-            for (int i = 0; i < columnCount; i++) {
-                writeString(result.getAlias(i));
-                writeString(result.getColumnName(i));
-                TypeInfo columnType = result.getColumnType(i);
-                writeVarInt(columnType.getValueType());
-                writeVarLong(columnType.getPrecision());
-                writeVarInt(columnType.getScale());
-            }
-            while (result.next()) {
-                writeByte((byte) 1);
-                Value[] row = result.currentRow();
-                for (int i = 0; i < columnCount; i++) {
-                    writeValue(row[i]);
-                }
-            }
-            writeByte((byte) 0);
-            break;
-        }
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
         case Value.INTERVAL_DAY:
@@ -951,21 +922,6 @@ public class Data {
                 list[i] = readValue();
             }
             return type == ARRAY ? ValueArray.get(list, null) : ValueRow.get(list);
-        }
-        case RESULT_SET: {
-            SimpleResult rs = new SimpleResult();
-            int columns = readVarInt();
-            for (int i = 0; i < columns; i++) {
-                rs.addColumn(readString(), readString(), readVarInt(), readVarLong(), readVarInt());
-            }
-            while (readByte() != 0) {
-                Value[] o = new Value[columns];
-                for (int i = 0; i < columns; i++) {
-                    o[i] = readValue();
-                }
-                rs.addRow(o);
-            }
-            return ValueResultSet.get(rs);
         }
         case INTERVAL: {
             int ordinal = readByte();
@@ -1204,30 +1160,6 @@ public class Data {
             for (Value x : list) {
                 len += getValueLen(x, storeLocalTime);
             }
-            return len;
-        }
-        case Value.RESULT_SET: {
-            int len = 1;
-            ResultInterface result = ((ValueResultSet) v).getResult();
-            int columnCount = result.getVisibleColumnCount();
-            len += getVarIntLen(columnCount);
-            for (int i = 0; i < columnCount; i++) {
-                len += getStringLen(result.getAlias(i));
-                len += getStringLen(result.getColumnName(i));
-                TypeInfo columnType = result.getColumnType(i);
-                len += getVarIntLen(columnType.getValueType());
-                len += getVarLongLen(columnType.getPrecision());
-                len += getVarIntLen(columnType.getScale());
-            }
-            while (result.next()) {
-                len++;
-                Value[] row = result.currentRow();
-                for (int i = 0; i < columnCount; i++) {
-                    Value val = row[i];
-                    len += getValueLen(val, storeLocalTime);
-                }
-            }
-            len++;
             return len;
         }
         case Value.INTERVAL_YEAR:

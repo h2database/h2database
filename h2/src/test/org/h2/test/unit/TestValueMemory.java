@@ -17,7 +17,6 @@ import java.util.IdentityHashMap;
 import java.util.Random;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Constants;
-import org.h2.result.SimpleResult;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.LobStorageInterface;
@@ -47,7 +46,6 @@ import org.h2.value.ValueLobFile;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
-import org.h2.value.ValueResultSet;
 import org.h2.value.ValueRow;
 import org.h2.value.ValueSmallint;
 import org.h2.value.ValueTime;
@@ -223,8 +221,6 @@ public class TestValueMemory extends TestBase implements DataHandler {
             return ValueArray.get(createArray(), null);
         case Value.ROW:
             return ValueRow.get(createArray());
-        case Value.RESULT_SET:
-            return ValueResultSet.get(new SimpleResult());
         case Value.JAVA_OBJECT:
             return ValueJavaObject.getNoCopy(randomBytes(random.nextInt(100)));
         case Value.UUID:

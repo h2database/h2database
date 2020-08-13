@@ -490,7 +490,7 @@ public class TestCsv extends TestDb {
         assertTrue(rs.next());
         assertEquals("Hello", rs.getString(1));
         assertFalse(rs.next());
-        rs = stat.executeQuery("call csvread('" + getBaseDir() + "/test.csv')");
+        rs = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.csv')");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         assertEquals("Hello", rs.getString(2));

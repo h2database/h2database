@@ -1253,7 +1253,7 @@ public class TestMVTableEngine extends TestDb {
         stat.execute("drop table test");
 
         stat.execute("create table test(id int, obj object, " +
-                "rs result_set, arr1 int array, arr2 numeric(1000) array, ig varchar_ignorecase)");
+                "rs row(a int), arr1 int array, arr2 numeric(1000) array, ig varchar_ignorecase)");
         PreparedStatement prep = conn.prepareStatement(
                 "insert into test values(?, ?, ?, ?, ?, ?)");
         prep.setInt(1, 1);

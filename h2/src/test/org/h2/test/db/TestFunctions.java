@@ -837,7 +837,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
 
         stat.execute("CREATE ALIAS SELECT_F FOR \"" +
                 getClass().getName() + ".select\"");
-        rs = stat.executeQuery("CALL SELECT_F('SELECT * " +
+        rs = stat.executeQuery("SELECT * FROM SELECT_F('SELECT * " +
                 "FROM TEST ORDER BY ID')");
         assertEquals(2, rs.getMetaData().getColumnCount());
         rs.next();
@@ -857,26 +857,11 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals("Hello", rs.getString(1));
         assertFalse(rs.next());
 
-        rs = stat.executeQuery("SELECT SELECT_F('SELECT * " +
-                "FROM TEST WHERE ID=' || ID) FROM TEST ORDER BY ID");
-        assertEquals(1, rs.getMetaData().getColumnCount());
-        rs.next();
-        assertEquals("((1, Hello))", rs.getString(1));
-        rs.next();
-        assertEquals("((2, World))", rs.getString(1));
-        assertFalse(rs.next());
-
-        rs = stat.executeQuery("SELECT SELECT_F('SELECT * " +
-                "FROM TEST ORDER BY ID') FROM DUAL");
-        assertEquals(1, rs.getMetaData().getColumnCount());
-        rs.next();
-        assertEquals("((1, Hello), (2, World))", rs.getString(1));
-        assertFalse(rs.next());
         assertThrows(ErrorCode.SYNTAX_ERROR_2, stat).
-                executeQuery("CALL SELECT_F('ERROR')");
+                executeQuery("SELECT * FROM SELECT_F('ERROR')");
         stat.execute("CREATE ALIAS SIMPLE FOR \"" +
                 getClass().getName() + ".simpleResultSet\"");
-        rs = stat.executeQuery("CALL SIMPLE(2, 1, 1, 1, 1, 1, 1, 1)");
+        rs = stat.executeQuery("SELECT * FROM SIMPLE(2, 1, 1, 1, 1, 1, 1, 1)");
         assertEquals(2, rs.getMetaData().getColumnCount());
         rs.next();
         assertEquals(0, rs.getInt(1));
@@ -965,10 +950,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
 
         stat.execute("CREATE ALIAS MAX_ID FOR \"" +
                 getClass().getName() + ".selectMaxId\"");
-        rs = stat.executeQuery("CALL MAX_ID()");
-        rs.next();
-        assertEquals(2, rs.getInt(1));
-        assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT * FROM MAX_ID()");
         rs.next();
@@ -1005,13 +986,11 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertTrue(rs.next());
         assertEquals("Hi", new String(rs.getBytes(1)));
 
-        rs = stat.executeQuery("select sql('select 1 a, ''Hello'' b')");
-        assertTrue(rs.next());
-        rs2 = (ResultSet) rs.getObject(1);
-        rs2.next();
-        assertEquals(1, rs2.getInt(1));
-        assertEquals("Hello", rs2.getString(2));
-        ResultSetMetaData meta2 = rs2.getMetaData();
+        rs = stat.executeQuery("select * from sql('select 1 a, ''Hello'' b')");
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
+        ResultSetMetaData meta2 = rs.getMetaData();
         assertEquals(Types.INTEGER, meta2.getColumnType(1));
         assertEquals("INTEGER", meta2.getColumnTypeName(1));
         assertEquals("java.lang.Integer", meta2.getColumnClassName(1));
@@ -1035,43 +1014,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         while (rs.next()) {
             // ignore
         }
-
-        stat.execute("CREATE ALIAS NULL_RESULT FOR \"" +
-                getClass().getName() + ".nullResultSet\"");
-        rs = stat.executeQuery("CALL NULL_RESULT()");
-        assertEquals(1, rs.getMetaData().getColumnCount());
-        rs.next();
-        assertEquals(null, rs.getString(1));
-        assertFalse(rs.next());
-
-        rs = meta.getProcedures(null, null, "NULL_RESULT");
-        rs.next();
-        assertEquals("FUNCTIONS", rs.getString("PROCEDURE_CAT"));
-        assertEquals("PUBLIC", rs.getString("PROCEDURE_SCHEM"));
-        assertEquals("NULL_RESULT", rs.getString("PROCEDURE_NAME"));
-        assertEquals(0, rs.getInt(4));
-        assertTrue(rs.wasNull());
-        assertEquals(0, rs.getInt(5));
-        assertTrue(rs.wasNull());
-        assertEquals(0, rs.getInt(6));
-        assertTrue(rs.wasNull());
-        assertNull(rs.getString("REMARKS"));
-        assertEquals(DatabaseMetaData.procedureReturnsResult,
-                rs.getInt("PROCEDURE_TYPE"));
-        assertEquals("NULL_RESULT_1", rs.getString("SPECIFIC_NAME"));
-
-        rs = meta.getProcedureColumns(null, null, "NULL_RESULT", null);
-        assertTrue(rs.next());
-        assertEquals("RESULT", rs.getString("COLUMN_NAME"));
-        assertFalse(rs.next());
-
-        stat.execute("CREATE ALIAS RESULT_WITH_NULL FOR \"" +
-        getClass().getName() + ".resultSetWithNull\"");
-        rs = stat.executeQuery("CALL RESULT_WITH_NULL()");
-        assertEquals(1, rs.getMetaData().getColumnCount());
-        rs.next();
-        assertEquals(null, rs.getString(1));
-        assertFalse(rs.next());
 
         conn.close();
     }
@@ -2186,16 +2128,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         PreparedStatement statement = conn.prepareStatement(
                 "select null from system_range(1,1)");
         return statement.executeQuery();
-    }
-
-    /**
-     * This method is called via reflection from the database.
-     *
-     * @param conn the connection
-     * @return the result set
-     */
-    public static ResultSet nullResultSet(@SuppressWarnings("unused") Connection conn) {
-        return null;
     }
 
     /**

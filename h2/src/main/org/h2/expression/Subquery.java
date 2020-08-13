@@ -142,8 +142,4 @@ public final class Subquery extends Expression {
         return query.isConstantQuery();
     }
 
-    @Override
-    public Expression[] getExpressionColumns(SessionLocal session) {
-        return expression.getExpressionColumns(session);
-    }
 }

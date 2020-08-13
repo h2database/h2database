@@ -96,6 +96,8 @@ public class GenerateDoc {
                 help + "= 'Functions (System)' ORDER BY ID", true, false);
         map("functionsJson",
                 help + "= 'Functions (JSON)' ORDER BY ID", true, false);
+        map("functionsTable",
+                help + "= 'Functions (Table)' ORDER BY ID", true, false);
 
         map("aggregateFunctionsGeneral",
                 help + "= 'Aggregate Functions (General)' ORDER BY ID", true, false);

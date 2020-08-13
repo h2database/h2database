@@ -475,17 +475,6 @@ public abstract class Expression implements HasSQL, Typed {
     }
 
     /**
-     * If this expression consists of column expressions it should return them.
-     *
-     * @param session the session
-     * @return array of expression columns if applicable, null otherwise
-     */
-    @SuppressWarnings("unused")
-    public Expression[] getExpressionColumns(SessionLocal session) {
-        return null;
-    }
-
-    /**
      * Extracts expression columns from ValueArray
      *
      * @param session the current session

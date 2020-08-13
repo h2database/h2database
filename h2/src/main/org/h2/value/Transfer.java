@@ -23,8 +23,6 @@ import org.h2.api.IntervalQualifier;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.result.ResultInterface;
-import org.h2.result.SimpleResult;
 import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataReader;
@@ -64,7 +62,6 @@ public final class Transfer {
     private static final int BLOB = 15;
     private static final int CLOB = 16;
     private static final int ARRAY = 17;
-    private static final int RESULT_SET = 18;
     private static final int JAVA_OBJECT = 19;
     private static final int UUID = 20;
     private static final int CHAR = 21;
@@ -106,7 +103,6 @@ public final class Transfer {
         addType(BLOB, Value.BLOB);
         addType(CLOB, Value.CLOB);
         addType(ARRAY, Value.ARRAY);
-        addType(RESULT_SET, Value.RESULT_SET);
         addType(JAVA_OBJECT, Value.JAVA_OBJECT);
         addType(UUID, Value.UUID);
         addType(CHAR, Value.CHAR);
@@ -455,7 +451,6 @@ public final class Transfer {
         case Value.BIGINT:
         case Value.DATE:
         case Value.UUID:
-        case Value.RESULT_SET:
             break;
         case Value.CHAR:
         case Value.VARCHAR:
@@ -617,7 +612,6 @@ public final class Transfer {
         case Value.BIGINT:
         case Value.DATE:
         case Value.UUID:
-        case Value.RESULT_SET:
             break;
         case Value.CHAR:
         case Value.VARCHAR:
@@ -948,34 +942,6 @@ public final class Transfer {
             writeString(v.getString());
             break;
         }
-        case Value.RESULT_SET: {
-            writeInt(RESULT_SET);
-            ResultInterface result = ((ValueResultSet) v).getResult();
-            int columnCount = result.getVisibleColumnCount();
-            writeInt(columnCount);
-            for (int i = 0; i < columnCount; i++) {
-                TypeInfo columnType = result.getColumnType(i);
-                if (version >= Constants.TCP_PROTOCOL_VERSION_18) {
-                    writeString(result.getAlias(i));
-                    writeString(result.getColumnName(i));
-                    writeTypeInfo(columnType);
-                } else {
-                    writeString(result.getColumnName(i));
-                    writeInt(DataType.convertTypeToSQLType(columnType));
-                    writeInt(MathUtils.convertLongToInt(columnType.getPrecision()));
-                    writeInt(columnType.getScale());
-                }
-            }
-            while (result.next()) {
-                writeBoolean(true);
-                Value[] row = result.currentRow();
-                for (int i = 0; i < columnCount; i++) {
-                    writeValue(row[i]);
-                }
-            }
-            writeBoolean(false);
-            break;
-        }
         case Value.GEOMETRY:
             writeInt(GEOMETRY);
             writeBytes(v.getBytesNoCopy());
@@ -1157,26 +1123,6 @@ public final class Transfer {
                 list[i] = readValue();
             }
             return ValueRow.get(list);
-        }
-        case RESULT_SET: {
-            SimpleResult rs = new SimpleResult();
-            int columns = readInt();
-            for (int i = 0; i < columns; i++) {
-                if (version >= Constants.TCP_PROTOCOL_VERSION_18) {
-                    rs.addColumn(readString(), readString(), readTypeInfo());
-                } else {
-                    String name = readString();
-                    rs.addColumn(name, name, DataType.convertSQLTypeToValueType(readInt()), readInt(), readInt());
-                }
-            }
-            while (readBoolean()) {
-                Value[] o = new Value[columns];
-                for (int i = 0; i < columns; i++) {
-                    o[i] = readValue();
-                }
-                rs.addRow(o);
-            }
-            return ValueResultSet.get(rs);
         }
         case GEOMETRY:
             return ValueGeometry.get(readBytes());

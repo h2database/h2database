@@ -5,23 +5,22 @@
  */
 package org.h2.expression.function;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
+import org.h2.message.DbException;
 import org.h2.schema.FunctionAlias;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
-import org.h2.value.ValueResultSet;
-import org.h2.value.ValueRow;
 
 /**
  * This class wraps a user-defined function.
  */
-public final class JavaFunction extends Expression implements FunctionCall {
+public final class JavaFunction extends Expression implements NamedExpression {
 
     private final FunctionAlias functionAlias;
     private final FunctionAlias.JavaMethod javaMethod;
@@ -30,6 +29,9 @@ public final class JavaFunction extends Expression implements FunctionCall {
     public JavaFunction(FunctionAlias functionAlias, Expression[] args) {
         this.functionAlias = functionAlias;
         this.javaMethod = functionAlias.findJavaMethod(args);
+        if (javaMethod.getDataType() == null) {
+            throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, getName());
+        }
         this.args = args;
     }
 
@@ -44,11 +46,6 @@ public final class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public int getValueType() {
-        return javaMethod.getDataType().getValueType();
-    }
-
-    @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         for (Expression e : args) {
             e.mapColumns(resolver, level, state);
@@ -57,7 +54,7 @@ public final class JavaFunction extends Expression implements FunctionCall {
 
     @Override
     public Expression optimize(SessionLocal session) {
-        boolean allConst = isDeterministic();
+        boolean allConst = functionAlias.isDeterministic();
         for (int i = 0, len = args.length; i < len; i++) {
             Expression e = args[i].optimize(session);
             args[i] = e;
@@ -98,22 +95,10 @@ public final class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public ValueResultSet getValueForColumnList(SessionLocal session,
-            Expression[] argList) {
-        Value v = javaMethod.getValue(session, argList, true);
-        return v == ValueNull.INSTANCE ? null : (ValueResultSet) v;
-    }
-
-    @Override
-    public Expression[] getArgs() {
-        return args;
-    }
-
-    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
-            if (!isDeterministic()) {
+            if (!functionAlias.isDeterministic()) {
                 return false;
             }
             // only if all parameters are deterministic as well
@@ -138,23 +123,6 @@ public final class JavaFunction extends Expression implements FunctionCall {
             cost += e.getCost();
         }
         return cost;
-    }
-
-    @Override
-    public boolean isDeterministic() {
-        return functionAlias.isDeterministic();
-    }
-
-    @Override
-    public Expression[] getExpressionColumns(SessionLocal session) {
-        switch (getValueType()) {
-        case Value.RESULT_SET:
-            ValueResultSet rs = getValueForColumnList(session, getArgs());
-            return getExpressionColumns(session, rs.getResult());
-        case Value.ROW:
-            return getExpressionColumns(session, (ValueRow) getValue(session));
-        }
-        return super.getExpressionColumns(session);
     }
 
     @Override

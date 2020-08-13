@@ -138,12 +138,12 @@ public class TestResultSet extends TestDb {
     }
 
     private void testReuseSimpleResult() throws SQLException {
-        ResultSet rs = stat.executeQuery("select table(x int array=((1)))");
+        ResultSet rs = stat.executeQuery("select * from table(x int array=((1)))");
         while (rs.next()) {
             rs.getString(1);
         }
         rs.close();
-        rs = stat.executeQuery("select table(x int array=((1)))");
+        rs = stat.executeQuery("select * from table(x int array=((1)))");
         while (rs.next()) {
             rs.getString(1);
         }

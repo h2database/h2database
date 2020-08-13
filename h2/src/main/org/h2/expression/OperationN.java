@@ -16,7 +16,7 @@ import org.h2.value.TypeInfo;
 /**
  * Operation with many arguments.
  */
-public abstract class OperationN extends Expression {
+public abstract class OperationN extends Expression implements ExpressionWithVariableParameters {
 
     /**
      * The array of arguments.
@@ -37,12 +37,7 @@ public abstract class OperationN extends Expression {
         this.args = args;
     }
 
-    /**
-     * Adds the parameter expression.
-     *
-     * @param param
-     *            the expression
-     */
+    @Override
     public void addParameter(Expression param) {
         int capacity = args.length;
         if (argsCount >= capacity) {
@@ -51,14 +46,7 @@ public abstract class OperationN extends Expression {
         args[argsCount++] = param;
     }
 
-    /**
-     * This method must be called after all the parameters have been set. It
-     * checks if the parameter count is correct when required by the
-     * implementation.
-     *
-     * @throws DbException
-     *             if the parameter count is incorrect.
-     */
+    @Override
     public void doneWithParameters() throws DbException {
         if (args.length != argsCount) {
             args = Arrays.copyOf(args, argsCount);

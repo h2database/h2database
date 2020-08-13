@@ -10,6 +10,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -18,10 +21,15 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
+import org.h2.expression.Alias;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
+import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ParserUtil;
@@ -325,7 +333,8 @@ public final class FunctionAlias extends SchemaObject {
                 }
             }
             Class<?> returnClass = method.getReturnType();
-            dataType = ValueToObjectConverter2.classToType(returnClass);
+            dataType = ResultSet.class.isAssignableFrom(returnClass) ? null
+                    : ValueToObjectConverter2.classToType(returnClass);
         }
 
         @Override
@@ -351,8 +360,89 @@ public final class FunctionAlias extends SchemaObject {
          *            list
          * @return the value
          */
-        public Value getValue(SessionLocal session, Expression[] args,
-                boolean columnList) {
+        public Value getValue(SessionLocal session, Expression[] args, boolean columnList) {
+            Object returnValue = execute(session, args, columnList);
+            if (Value.class.isAssignableFrom(method.getReturnType())) {
+                return (Value) returnValue;
+            }
+            return ValueToObjectConverter.objectToValue(session, returnValue, dataType.getValueType())
+                    .convertTo(dataType, session);
+        }
+
+        /**
+         * Call the table user-defined function and return the value.
+         *
+         * @param session the session
+         * @param args the argument list
+         * @param columnList true if the function should only return the column
+         *            list
+         * @return the value
+         */
+        public ResultInterface getTableValue(SessionLocal session, Expression[] args, boolean columnList) {
+            Object o = execute(session, args, columnList);
+            if (o == null) {
+                throw DbException.get(ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, method.getName());
+            }
+            if (ResultInterface.class.isAssignableFrom(method.getReturnType())) {
+                return (ResultInterface) o;
+            }
+            return resultSetToResult(session, (ResultSet) o, columnList ? 0 : Integer.MAX_VALUE);
+        }
+
+        /**
+         * Create a result for the given result set.
+         *
+         * @param session the session
+         * @param rs the result set
+         * @param maxrows the maximum number of rows to read (0 to just read the
+         *            meta data)
+         * @return the value
+         */
+        public static ResultInterface resultSetToResult(SessionLocal session, ResultSet rs, int maxrows) {
+            try {
+                ResultSetMetaData meta = rs.getMetaData();
+                int columnCount = meta.getColumnCount();
+                Expression[] columns = new Expression[columnCount];
+                for (int i = 0; i < columnCount; i++) {
+                    String alias = meta.getColumnLabel(i + 1);
+                    String name = meta.getColumnName(i + 1);
+                    String columnTypeName = meta.getColumnTypeName(i + 1);
+                    int columnType = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1), columnTypeName);
+                    int precision = meta.getPrecision(i + 1);
+                    int scale = meta.getScale(i + 1);
+                    TypeInfo typeInfo;
+                    if (columnType == Value.ARRAY && columnTypeName.endsWith(" ARRAY")) {
+                        typeInfo = TypeInfo
+                                .getTypeInfo(Value.ARRAY, -1L, 0,
+                                        TypeInfo.getTypeInfo(DataType.getTypeByName(
+                                                columnTypeName.substring(0, columnTypeName.length() - 6),
+                                                session.getMode()).type));
+                    } else {
+                        typeInfo = TypeInfo.getTypeInfo(columnType, precision, scale, null);
+                    }
+                    Expression e = new ExpressionColumn(session.getDatabase(), new Column(name, typeInfo));
+                    if (!alias.equals(name)) {
+                        e = new Alias(e, alias, false);
+                    }
+                    columns[i] = e;
+                }
+                LocalResult result = new LocalResult(session, columns, columnCount, columnCount);
+                for (int i = 0; i < maxrows && rs.next(); i++) {
+                    Value[] list = new Value[columnCount];
+                    for (int j = 0; j < columnCount; j++) {
+                        list[j] = ValueToObjectConverter.objectToValue(session, rs.getObject(j + 1),
+                                columns[j].getType().getValueType());
+                    }
+                    result.addRow(list);
+                }
+                result.done();
+                return result;
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
+        }
+
+        private Object execute(SessionLocal session, Expression[] args, boolean columnList) {
             Class<?>[] paramClasses = method.getParameterTypes();
             Object[] params = new Object[paramClasses.length];
             int p = 0;
@@ -394,7 +484,7 @@ public final class FunctionAlias extends SchemaObject {
                                 o = DataType.getDefaultForPrimitiveType(paramClass);
                             } else {
                                 // NULL for a java primitive: return NULL
-                                return ValueNull.INSTANCE;
+                                return null;
                             }
                         } else {
                             o = null;
@@ -419,12 +509,11 @@ public final class FunctionAlias extends SchemaObject {
                 Object returnValue;
                 try {
                     if (defaultConnection) {
-                        Driver.setDefaultConnection(
-                                session.createConnection(columnList));
+                        Driver.setDefaultConnection(session.createConnection(columnList));
                     }
                     returnValue = method.invoke(null, params);
                     if (returnValue == null) {
-                        return ValueNull.INSTANCE;
+                        return null;
                     }
                 } catch (InvocationTargetException e) {
                     StringBuilder builder = new StringBuilder(method.getName()).append('(');
@@ -439,11 +528,7 @@ public final class FunctionAlias extends SchemaObject {
                 } catch (Exception e) {
                     throw DbException.convert(e);
                 }
-                if (Value.class.isAssignableFrom(method.getReturnType())) {
-                    return (Value) returnValue;
-                }
-                Value ret = ValueToObjectConverter.objectToValue(session, returnValue, dataType.getValueType());
-                return ret.convertTo(dataType, session);
+                return returnValue;
             } finally {
                 session.setLastIdentity(identity);
                 session.setAutoCommit(old);
@@ -457,6 +542,13 @@ public final class FunctionAlias extends SchemaObject {
             return method.getParameterTypes();
         }
 
+        /**
+         * Returns data type information for regular functions or {@code null}
+         * for table value functions.
+         *
+         * @return data type information for regular functions or {@code null}
+         *         for table value functions
+         */
         public TypeInfo getDataType() {
             return dataType;
         }

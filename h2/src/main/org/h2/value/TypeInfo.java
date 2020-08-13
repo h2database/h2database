@@ -200,11 +200,6 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
      */
     public static final TypeInfo TYPE_ROW_EMPTY;
 
-    /**
-     * RESULT_SET type with parameters.
-     */
-    public static final TypeInfo TYPE_RESULT_SET;
-
     private static final TypeInfo[] TYPE_INFOS_BY_VALUE_TYPE;
 
     private final int valueType;
@@ -272,7 +267,6 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         infos[Value.ARRAY] = TYPE_ARRAY_UNKNOWN = new TypeInfo(Value.ARRAY);
         infos[Value.ROW] = TYPE_ROW_EMPTY = new TypeInfo(Value.ROW, -1L, -1, //
                 new ExtTypeInfoRow(new LinkedHashMap<>()));
-        infos[Value.RESULT_SET] = TYPE_RESULT_SET = new TypeInfo(Value.RESULT_SET);
         TYPE_INFOS_BY_VALUE_TYPE = infos;
     }
 
@@ -321,7 +315,6 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.BIGINT:
         case Value.DATE:
         case Value.UUID:
-        case Value.RESULT_SET:
             return TYPE_INFOS_BY_VALUE_TYPE[type];
         case Value.UNKNOWN:
             return TYPE_UNKNOWN;
@@ -840,7 +833,6 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
             return precision >= 0L ? precision : Integer.MAX_VALUE;
         case Value.GEOMETRY:
         case Value.ROW:
-        case Value.RESULT_SET:
             return Integer.MAX_VALUE;
         case Value.UUID:
             return ValueUuid.PRECISION;
@@ -902,7 +894,6 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.UUID:
         case Value.ARRAY:
         case Value.ROW:
-        case Value.RESULT_SET:
             return 0;
         case Value.NUMERIC:
             return scale != Integer.MIN_VALUE ? scale : 0;
@@ -1016,7 +1007,6 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.GEOMETRY:
         case Value.ARRAY:
         case Value.ROW:
-        case Value.RESULT_SET:
             return Integer.MAX_VALUE;
         case Value.ENUM:
             return extTypeInfo != null ? (int) precision : Integer.MAX_VALUE;

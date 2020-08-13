@@ -6,7 +6,6 @@
 package org.h2.expression;
 
 import org.h2.engine.SessionLocal;
-import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.ExtTypeInfoRow;
@@ -108,17 +107,6 @@ public class ExpressionList extends Expression {
             cost += e.getCost();
         }
         return cost;
-    }
-
-    @Override
-    public Expression[] getExpressionColumns(SessionLocal session) {
-        ExpressionColumn[] expr = new ExpressionColumn[list.length];
-        for (int i = 0; i < list.length; i++) {
-            Expression e = list[i];
-            Column col = new Column("C" + (i + 1), e.getType());
-            expr[i] = new ExpressionColumn(session.getDatabase(), col);
-        }
-        return expr;
     }
 
     @Override

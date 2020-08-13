@@ -27,13 +27,6 @@ import org.h2.util.StringUtils;
 public class DataType {
 
     /**
-     * This constant is used to represent the type of a ResultSet. There is no
-     * equivalent java.sql.Types value, but Oracle uses it to represent a
-     * ResultSet (OracleTypes.CURSOR = -10).
-     */
-    public static final int TYPE_RESULT_SET = -10;
-
-    /**
      * The map of types.
      */
     private static final HashMap<String, DataType> TYPES_BY_NAME = new HashMap<>(128);
@@ -212,9 +205,6 @@ public class DataType {
         dataType.suffix = ")";
         dataType.params = "NAME DATA_TYPE [,...]";
         add(Value.ROW, Types.OTHER, dataType, "ROW");
-        dataType = new DataType();
-        dataType.maxPrecision = dataType.defaultPrecision = Integer.MAX_VALUE;
-        add(Value.RESULT_SET, DataType.TYPE_RESULT_SET, dataType, "RESULT_SET");
     }
 
     private static void addInterval(int type) {
@@ -513,8 +503,6 @@ public class DataType {
             return Value.NULL;
         case Types.ARRAY:
             return Value.ARRAY;
-        case DataType.TYPE_RESULT_SET:
-            return Value.RESULT_SET;
         default:
             throw DbException.get(
                     ErrorCode.UNKNOWN_DATA_TYPE_1, Integer.toString(sqlType));
@@ -573,7 +561,6 @@ public class DataType {
         case Value.NULL:
         case Value.BLOB:
         case Value.CLOB:
-        case Value.RESULT_SET:
             return false;
         case Value.ARRAY:
             return isIndexable((TypeInfo) type.getExtTypeInfo());
@@ -609,7 +596,6 @@ public class DataType {
         case Value.NULL:
         case Value.BLOB:
         case Value.CLOB:
-        case Value.RESULT_SET:
         case Value.ROW:
             return false;
         case Value.DATE:
@@ -632,7 +618,6 @@ public class DataType {
             case Value.NULL:
             case Value.BLOB:
             case Value.CLOB:
-            case Value.RESULT_SET:
             case Value.ROW:
                 return false;
             default:

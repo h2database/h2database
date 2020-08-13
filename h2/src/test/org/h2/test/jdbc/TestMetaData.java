@@ -8,20 +8,17 @@ package org.h2.test.jdbc;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-import java.util.UUID;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.mode.DefaultNullOrdering;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
-import org.h2.value.DataType;
 
 /**
  * Test for the DatabaseMetaData implementation.
@@ -45,7 +42,6 @@ public class TestMetaData extends TestDb {
         testUnwrap();
         testUnsupportedOperations();
         testTempTable();
-        testColumnResultSetMeta();
         testColumnLobMeta();
         testColumnMetaData();
         testColumnPrecision();
@@ -107,46 +103,6 @@ public class TestMetaData extends TestDb {
         assertThrows(ErrorCode.INVALID_VALUE_2, meta).getPrecision(0);
         assertThrows(ErrorCode.INVALID_VALUE_2, meta).getScale(0);
         assertThrows(ErrorCode.INVALID_VALUE_2, meta).getColumnDisplaySize(0);
-        conn.close();
-    }
-
-    private void testColumnResultSetMeta() throws SQLException {
-        Connection conn = getConnection("metaData");
-        Statement stat = conn.createStatement();
-        stat.executeUpdate("create table test(data result_set)");
-        stat.execute("create alias x as 'ResultSet x(Connection conn, String sql) " +
-                "throws SQLException { return conn.createStatement(" +
-                "ResultSet.TYPE_SCROLL_INSENSITIVE, " +
-                "ResultSet.CONCUR_READ_ONLY).executeQuery(sql); }'");
-        stat.execute("insert into test values(" +
-                "select x('select x from system_range(1, 2)'))");
-        ResultSet rs = stat.executeQuery("select * from test");
-        ResultSetMetaData rsMeta = rs.getMetaData();
-        assertTrue(rsMeta.toString().endsWith(": columns=1"));
-        assertEquals("java.sql.ResultSet", rsMeta.getColumnClassName(1));
-        assertEquals(DataType.TYPE_RESULT_SET, rsMeta.getColumnType(1));
-        rs.next();
-        assertTrue(rs.getObject(1) instanceof java.sql.ResultSet);
-        stat.executeUpdate("drop alias x");
-
-        rs = stat.executeQuery("select 1 from dual");
-        rs.next();
-        rsMeta = rs.getMetaData();
-        assertNotNull(rsMeta.getCatalogName(1));
-        assertEquals("1", rsMeta.getColumnLabel(1));
-        assertEquals("1", rsMeta.getColumnName(1));
-        assertEquals("", rsMeta.getSchemaName(1));
-        assertEquals("", rsMeta.getTableName(1));
-        assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, conn.getHoldability());
-        assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, rs.getHoldability());
-        stat.executeUpdate("drop table test");
-
-        PreparedStatement prep = conn.prepareStatement("SELECT X FROM TABLE (X UUID = ?)");
-        prep.setObject(1, UUID.randomUUID());
-        rs = prep.executeQuery();
-        rsMeta = rs.getMetaData();
-        assertEquals("UUID", rsMeta.getColumnTypeName(1));
-
         conn.close();
     }
 
@@ -318,8 +274,6 @@ public class TestMetaData extends TestDb {
                         Types.SMALLINT, Types.BOOLEAN, Types.SMALLINT, Types.BOOLEAN, Types.BOOLEAN, Types.BOOLEAN,
                         Types.VARCHAR, Types.SMALLINT, Types.SMALLINT, Types.INTEGER, Types.INTEGER, Types.INTEGER },
                 null, null);
-        testTypeInfo(rs, "RESULT_SET", DataType.TYPE_RESULT_SET, Integer.MAX_VALUE, null, null, null, false, false,
-                (short) 0, (short) 0, 0);
         testTypeInfo(rs, "TINYINT", Types.TINYINT, 8, null, null, null, false, false, (short) 0, (short) 0, 2);
         testTypeInfo(rs, "BIGINT", Types.BIGINT, 64, null, null, null, false, false, (short) 0, (short) 0, 2);
         testTypeInfo(rs, "BINARY VARYING", Types.VARBINARY, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false,

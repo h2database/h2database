@@ -287,9 +287,9 @@ public class TestLinkedTable extends TestDb {
         sa.execute("CREATE TABLE GOOD (X NUMBER)");
         sa.execute("CREATE SCHEMA S");
         sa.execute("CREATE TABLE S.BAD (X NUMBER)");
-        sb.execute("CALL LINK_SCHEMA('G', '', " +
+        sb.execute("SELECT * FROM LINK_SCHEMA('G', '', " +
                 "'jdbc:h2:mem:one', 'sa', 'sa', 'PUBLIC'); ");
-        sb.execute("CALL LINK_SCHEMA('B', '', " +
+        sb.execute("SELECT * FROM LINK_SCHEMA('B', '', " +
                 "'jdbc:h2:mem:one', 'sa', 'sa', 'S'); ");
         // OK
         sb.executeQuery("SELECT * FROM G.GOOD");
@@ -427,7 +427,7 @@ public class TestLinkedTable extends TestDb {
 
         Connection conn2 = DriverManager.getConnection(url2, "sa2", "def def");
         Statement stat2 = conn2.createStatement();
-        String link = "CALL LINK_SCHEMA('LINKED', '', '" + url1 +
+        String link = "SELECT * FROM LINK_SCHEMA('LINKED', '', '" + url1 +
                 "', 'sa1', 'abc abc', 'PUBLIC')";
         stat2.execute(link);
         stat2.executeQuery("SELECT * FROM LINKED.TEST1");

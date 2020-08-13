@@ -31,6 +31,13 @@ SELECT * FROM (SELECT * FROM TEST) x ORDER BY id;
 drop table test;
 > ok
 
+select * from table(id int = (1));
+> ID
+> --
+> 1
+> rows: 1
+
+-- compatibility syntax
 call table(id int = (1));
 > ID
 > --

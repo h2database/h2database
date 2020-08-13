@@ -14,8 +14,6 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueResultSet;
-import org.h2.value.ValueRow;
 
 /**
  * An expression representing a constant value.
@@ -164,15 +162,4 @@ public class ValueExpression extends Operation0 {
         return 0;
     }
 
-    @Override
-    public Expression[] getExpressionColumns(SessionLocal session) {
-        int valueType = getType().getValueType();
-        switch (valueType) {
-        case Value.ROW:
-            return getExpressionColumns(session, (ValueRow) getValue(session));
-        case Value.RESULT_SET:
-            return getExpressionColumns(session, ((ValueResultSet) getValue(session)).getResult());
-        }
-        return super.getExpressionColumns(session);
-    }
 }

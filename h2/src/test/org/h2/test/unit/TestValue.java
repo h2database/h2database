@@ -17,7 +17,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -28,31 +27,23 @@ import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.result.ResultInterface;
-import org.h2.result.SimpleResult;
 import org.h2.store.DataHandler;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.test.utils.AssertThrows;
-import org.h2.tools.SimpleResultSet;
 import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LegacyDateTimeUtils;
-import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLobInMemory;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
-import org.h2.value.ValueResultSet;
 import org.h2.value.ValueTimestamp;
-import org.h2.value.ValueToObjectConverter;
 import org.h2.value.ValueToObjectConverter2;
 import org.h2.value.ValueUuid;
 import org.h2.value.ValueVarbinary;
@@ -74,10 +65,8 @@ public class TestValue extends TestDb {
 
     @Override
     public void test() throws SQLException {
-        testResultSetOperations();
         testBinaryAndUuid();
         testCastTrim();
-        testValueResultSet();
         testDataType();
         testArray();
         testUUID();
@@ -91,57 +80,6 @@ public class TestValue extends TestDb {
         testTypeInfo();
         testH2Type();
         testHigherType();
-    }
-
-    private void testResultSetOperations() throws SQLException {
-        SimpleResultSet rs = new SimpleResultSet();
-        rs.setAutoClose(false);
-        rs.addColumn("X", Types.INTEGER, 10, 0);
-        rs.addRow(new Object[]{null});
-        rs.next();
-        for (int type = Value.NULL; type < Value.TYPE_COUNT; type++) {
-            Value v = ValueToObjectConverter2.readValue(null, rs, 1, type);
-            assertTrue(v == ValueNull.INSTANCE);
-        }
-        testResultSetOperation(new byte[0]);
-        testResultSetOperation(1);
-        testResultSetOperation(Boolean.TRUE);
-        testResultSetOperation((byte) 1);
-        testResultSetOperation((short) 2);
-        testResultSetOperation((long) 3);
-        testResultSetOperation(4.0f);
-        testResultSetOperation(5.0d);
-        testResultSetOperation(new Date(6));
-        testResultSetOperation(new Time(7));
-        testResultSetOperation(new Timestamp(8));
-        testResultSetOperation(new BigDecimal("9"));
-        testResultSetOperation(UUID.randomUUID());
-
-        SimpleResultSet rs2 = new SimpleResultSet();
-        rs2.setAutoClose(false);
-        rs2.addColumn("X", Types.INTEGER, 10, 0);
-        rs2.addRow(new Object[]{1});
-        rs2.next();
-        testResultSetOperation(rs2);
-
-    }
-
-    private void testResultSetOperation(Object obj) throws SQLException {
-        SimpleResultSet rs = new SimpleResultSet();
-        rs.setAutoClose(false);
-        TypeInfo typeInfo = ValueToObjectConverter2.classToType(obj.getClass());
-        int valueType = typeInfo.getValueType();
-        int sqlType = DataType.convertTypeToSQLType(typeInfo);
-        rs.addColumn("X", sqlType, 10, 0);
-        rs.addRow(new Object[]{obj});
-        rs.next();
-        Value v = ValueToObjectConverter2.readValue(null, rs, 1, valueType);
-        Value v2 = ValueToObjectConverter.objectToValue(null, obj, valueType);
-        if (v.getValueType() == Value.RESULT_SET) {
-            assertEquals(v.toString(), v2.toString());
-        } else {
-            assertTrue(v.equals(v2));
-        }
     }
 
     private void testBinaryAndUuid() throws SQLException {
@@ -217,65 +155,6 @@ public class TestValue extends TestDb {
 
     }
 
-    private void testValueResultSet() throws SQLException {
-        SimpleResultSet rs = new SimpleResultSet();
-        rs.setAutoClose(false);
-        rs.addColumn("ID", Types.INTEGER, 0, 0);
-        rs.addColumn("NAME", Types.VARCHAR, 255, 0);
-        rs.addRow(1, "Hello");
-        rs.addRow(2, "World");
-        rs.addRow(3, "Peace");
-
-        testValueResultSetTest(ValueResultSet.get(null, rs, Integer.MAX_VALUE), Integer.MAX_VALUE, true);
-        rs.beforeFirst();
-        testValueResultSetTest(ValueResultSet.get(null, rs, 2), 2, true);
-
-        SimpleResult result = new SimpleResult();
-        result.addColumn("ID", "ID", Value.INTEGER, 0, 0);
-        result.addColumn("NAME", "NAME", Value.VARCHAR, 255, 0);
-        result.addRow(ValueInteger.get(1), ValueVarchar.get("Hello"));
-        result.addRow(ValueInteger.get(2), ValueVarchar.get("World"));
-        result.addRow(ValueInteger.get(3), ValueVarchar.get("Peace"));
-
-        ValueResultSet v = ValueResultSet.get(result);
-        testValueResultSetTest(v, Integer.MAX_VALUE, false);
-
-        testValueResultSetTest(ValueResultSet.get(v.getResult(), Integer.MAX_VALUE), Integer.MAX_VALUE, false);
-        testValueResultSetTest(ValueResultSet.get(v.getResult(), 2), 2, false);
-    }
-
-    private void testValueResultSetTest(ValueResultSet v, int count, boolean fromSimple) {
-        ResultInterface res = v.getResult();
-        assertEquals(2, res.getVisibleColumnCount());
-        assertEquals("ID", res.getAlias(0));
-        assertEquals("ID", res.getColumnName(0));
-        TypeInfo type = res.getColumnType(0);
-        assertEquals(Value.INTEGER, type.getValueType());
-        assertEquals(ValueInteger.PRECISION, type.getPrecision());
-        assertEquals(0, type.getScale());
-        assertEquals(ValueInteger.DISPLAY_SIZE, type.getDisplaySize());
-        assertEquals("NAME", res.getAlias(1));
-        assertEquals("NAME", res.getColumnName(1));
-        type = res.getColumnType(1);
-        assertEquals(Value.VARCHAR, type.getValueType());
-        assertEquals(255, type.getPrecision());
-        assertEquals(0, type.getScale());
-        assertEquals(255, type.getDisplaySize());
-        if (count >= 1) {
-            assertTrue(res.next());
-            assertEquals(new Value[] {ValueInteger.get(1), ValueVarchar.get("Hello")}, res.currentRow());
-            if (count >= 2) {
-                assertTrue(res.next());
-                assertEquals(new Value[] {ValueInteger.get(2), ValueVarchar.get("World")}, res.currentRow());
-                if (count >= 3) {
-                    assertTrue(res.next());
-                    assertEquals(new Value[] {ValueInteger.get(3), ValueVarchar.get("Peace")}, res.currentRow());
-                }
-            }
-        }
-        assertFalse(res.next());
-    }
-
     private void testDataType() {
         testDataType(TypeInfo.TYPE_NULL, null);
         testDataType(TypeInfo.TYPE_NULL, Void.class);
@@ -293,7 +172,6 @@ public class TestValue extends TestDb {
         testDataType(TypeInfo.TYPE_UUID, UUID.class);
         testDataType(TypeInfo.TYPE_NULL, Void.class);
         testDataType(TypeInfo.TYPE_NUMERIC, BigDecimal.class);
-        testDataType(TypeInfo.TYPE_RESULT_SET, ResultSet.class);
         testDataType(TypeInfo.TYPE_DATE, Date.class);
         testDataType(TypeInfo.TYPE_TIME, Time.class);
         testDataType(TypeInfo.TYPE_TIMESTAMP, Timestamp.class);
@@ -549,8 +427,6 @@ public class TestValue extends TestDb {
 
         testTypeInfoCheck(Value.ARRAY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_ARRAY_UNKNOWN,
                 TypeInfo.getTypeInfo(Value.ARRAY));
-        testTypeInfoCheck(Value.RESULT_SET, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_RESULT_SET,
-                TypeInfo.getTypeInfo(Value.RESULT_SET));
         testTypeInfoCheck(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_ROW_EMPTY,
                 TypeInfo.getTypeInfo(Value.ROW));
 
@@ -653,7 +529,6 @@ public class TestValue extends TestDb {
         assertEquals(Value.UUID, (int) H2Type.UUID.getVendorTypeNumber());
         assertEquals(Value.ARRAY, (int) H2Type.array(H2Type.VARCHAR).getVendorTypeNumber());
         assertEquals(Value.ROW, (int) H2Type.row(H2Type.VARCHAR).getVendorTypeNumber());
-        assertEquals(Value.RESULT_SET, (int) H2Type.RESULT_SET.getVendorTypeNumber());
     }
 
     private void testHigherType() {

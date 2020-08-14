@@ -6,7 +6,6 @@
 package org.h2.expression.condition;
 
 import java.util.ArrayList;
-import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -138,10 +137,7 @@ public final class Comparison extends Condition {
     public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         right = right.optimize(session);
-        // TODO check row values too
-        if (right.getType().getValueType() == Value.ARRAY && left.getType().getValueType() != Value.ARRAY) {
-            throw DbException.get(ErrorCode.COMPARING_ARRAY_TO_SCALAR);
-        }
+        TypeInfo.checkComparable(left.getType(), right.getType());
         if (whenOperand) {
             return this;
         }
@@ -311,6 +307,11 @@ public final class Comparison extends Condition {
             throw DbException.throwInternalError("type=" + compareType);
         }
         return result;
+    }
+
+    @Override
+    public boolean isWhenConditionOperand() {
+        return whenOperand;
     }
 
     private static int getReversedCompareType(int type) {
@@ -545,23 +546,25 @@ public final class Comparison extends Condition {
      */
     Expression optimizeOr(SessionLocal session, Comparison other) {
         if (compareType == EQUAL && other.compareType == EQUAL) {
+            Expression left2 = other.left;
+            Expression right2 = other.right;
             boolean lc = left.isConstant();
             boolean rc = right.isConstant();
-            boolean l2c = other.left.isConstant();
-            boolean r2c = other.right.isConstant();
+            boolean l2c = left2.isConstant();
+            boolean r2c = right2.isConstant();
             String l = left.getSQL(DEFAULT_SQL_FLAGS);
-            String l2 = other.left.getSQL(DEFAULT_SQL_FLAGS);
+            String l2 = left2.getSQL(DEFAULT_SQL_FLAGS);
             String r = right.getSQL(DEFAULT_SQL_FLAGS);
-            String r2 = other.right.getSQL(DEFAULT_SQL_FLAGS);
+            String r2 = right2.getSQL(DEFAULT_SQL_FLAGS);
             // a=b OR a=c
             if (rc && r2c && l.equals(l2)) {
-                return getConditionIn(session, left, right, other.right);
+                return getConditionIn(session, left, right, right2);
             } else if (rc && l2c && l.equals(r2)) {
-                return getConditionIn(session, left, right, other.left);
+                return getConditionIn(session, left, right, left2);
             } else if (lc && r2c && r.equals(l2)) {
-                return getConditionIn(session, right, left, other.right);
+                return getConditionIn(session, right, left, right2);
             } else if (lc && l2c && r.equals(r2)) {
-                return getConditionIn(session, right, left, other.left);
+                return getConditionIn(session, right, left, left2);
             }
         }
         return null;

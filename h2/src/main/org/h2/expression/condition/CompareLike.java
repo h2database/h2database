@@ -412,6 +412,11 @@ public final class CompareLike extends Condition {
                         si, ignoreCase));
     }
 
+    @Override
+    public boolean isWhenConditionOperand() {
+        return whenOperand;
+    }
+
     /**
      * Test if the value matches the pattern.
      *

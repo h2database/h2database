@@ -35,6 +35,8 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.Utils;
+import org.h2.value.ExtTypeInfoRow;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
@@ -275,6 +277,18 @@ public abstract class Query extends Prepared {
      */
     public int getColumnCount() {
         return visibleColumnCount;
+    }
+
+    /**
+     * Returns data type of rows.
+     *
+     * @return data type of rows
+     */
+    public TypeInfo getRowDataType() {
+        if (visibleColumnCount == 1) {
+            return expressionArray[0].getType();
+        }
+        return TypeInfo.getTypeInfo(Value.ROW, -1L, -1, new ExtTypeInfoRow(expressionArray, visibleColumnCount));
     }
 
     /**

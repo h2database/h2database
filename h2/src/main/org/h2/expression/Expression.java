@@ -557,4 +557,14 @@ public abstract class Expression implements HasSQL, Typed {
         return getUnenclosedSQL(builder.append(' '), sqlFlags);
     }
 
+    /**
+     * Returns whether this expression is a right side of condition in a when
+     * operand.
+     *
+     * @return {@code true} if it is, {@code false} otherwise
+     */
+    public boolean isWhenConditionOperand() {
+        return false;
+    }
+
 }

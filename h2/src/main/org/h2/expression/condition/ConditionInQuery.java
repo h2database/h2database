@@ -5,14 +5,12 @@
  */
 package org.h2.expression.condition;
 
-import org.h2.api.ErrorCode;
 import org.h2.command.query.Query;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.IndexCondition;
-import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
@@ -93,11 +91,7 @@ public final class ConditionInQuery extends PredicateWithSubquery {
                 return ValueNull.INSTANCE;
             }
             if (left.getValueType() == Value.ROW) {
-                Value[] leftList = ((ValueRow) left).getList();
-                if (leftList.length != 1) {
-                    throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
-                }
-                left = leftList[0];
+                left = ((ValueRow) left).getList()[0];
             }
             left = left.convertTo(colType, session);
             if (rows.containsDistinct(new Value[] { left })) {
@@ -145,6 +139,11 @@ public final class ConditionInQuery extends PredicateWithSubquery {
     }
 
     @Override
+    public boolean isWhenConditionOperand() {
+        return whenOperand;
+    }
+
+    @Override
     public Expression getNotIfPossible(SessionLocal session) {
         if (whenOperand) {
             return null;
@@ -160,8 +159,10 @@ public final class ConditionInQuery extends PredicateWithSubquery {
 
     @Override
     public Expression optimize(SessionLocal session) {
+        super.optimize(session);
         left = left.optimize(session);
-        return super.optimize(session);
+        TypeInfo.checkComparable(left.getType(), query.getRowDataType());
+        return this;
     }
 
     @Override

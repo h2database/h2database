@@ -47,9 +47,11 @@ public final class ConditionInConstantSet extends Condition {
      *            for {@link ExpressionColumn}.
      * @param not whether the result should be negated
      * @param whenOperand whether this is a when operand
-     * @param valueList the value list (at least two elements)
+     * @param valueList
+     *            the value list (at least two elements); all values must be
+     *            comparable with left value
      */
-    public ConditionInConstantSet(SessionLocal session, Expression left, boolean not, boolean whenOperand,
+    ConditionInConstantSet(SessionLocal session, Expression left, boolean not, boolean whenOperand,
             ArrayList<Expression> valueList) {
         this.left = left;
         this.not = not;
@@ -92,6 +94,11 @@ public final class ConditionInConstantSet extends Condition {
             return ValueNull.INSTANCE;
         }
         return ValueBoolean.get(not ^ result);
+    }
+
+    @Override
+    public boolean isWhenConditionOperand() {
+        return whenOperand;
     }
 
     @Override

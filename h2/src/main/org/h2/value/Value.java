@@ -266,54 +266,54 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     /**
      * Group for untyped NULL data type.
      */
-    private static final int GROUP_NULL = 0;
+    static final int GROUP_NULL = 0;
 
     /**
      * Group for character string data types.
      */
-    private static final int GROUP_CHARACTER_STRING = GROUP_NULL + 1;
+    static final int GROUP_CHARACTER_STRING = GROUP_NULL + 1;
 
     /**
      * Group for binary string data types.
      */
-    private static final int GROUP_BINARY_STRING = GROUP_CHARACTER_STRING + 1;
+    static final int GROUP_BINARY_STRING = GROUP_CHARACTER_STRING + 1;
 
     /**
      * Group for BINARY data type.
      */
-    private static final int GROUP_BOOLEAN = GROUP_BINARY_STRING + 1;
+    static final int GROUP_BOOLEAN = GROUP_BINARY_STRING + 1;
 
     /**
      * Group for numeric data types.
      */
-    private static final int GROUP_NUMERIC = GROUP_BOOLEAN + 1;
+    static final int GROUP_NUMERIC = GROUP_BOOLEAN + 1;
 
     /**
      * Group for datetime data types.
      */
-    private static final int GROUP_DATETIME = GROUP_NUMERIC + 1;
+    static final int GROUP_DATETIME = GROUP_NUMERIC + 1;
 
     /**
      * Group for year-month interval data types.
      */
-    private static final int GROUP_INTERVAL_YM = GROUP_DATETIME + 1;
+    static final int GROUP_INTERVAL_YM = GROUP_DATETIME + 1;
 
     /**
      * Group for day-time interval data types.
      */
-    private static final int GROUP_INTERVAL_DT = GROUP_INTERVAL_YM + 1;
+    static final int GROUP_INTERVAL_DT = GROUP_INTERVAL_YM + 1;
 
     /**
      * Group for other data types (JAVA_OBJECT, UUID, GEOMETRY, ENUM, JSON).
      */
-    private static final int GROUP_OTHER = GROUP_INTERVAL_DT + 1;
+    static final int GROUP_OTHER = GROUP_INTERVAL_DT + 1;
 
     /**
      * Group for collection data types (ARRAY, ROW).
      */
-    private static final int GROUP_COLLECTION = GROUP_OTHER + 1;
+    static final int GROUP_COLLECTION = GROUP_OTHER + 1;
 
-    private static final byte GROUPS[] = {
+    static final byte GROUPS[] = {
             // NULL
             GROUP_NULL,
             // CHAR, VARCHAR, CLOB, VARCHAR_IGNORECASE

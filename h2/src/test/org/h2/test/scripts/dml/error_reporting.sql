@@ -25,13 +25,13 @@ CREATE TABLE test (id INT NOT NULL, name VARCHAR);
 > ok
 
 select * from test where id = ARRAY [1, 2];
-> exception COMPARING_ARRAY_TO_SCALAR
+> exception TYPES_ARE_NOT_COMPARABLE_2
 
 insert into test values (1, 't');
 > update count: 1
 
 select * from test where id = (1, 2);
-> exception COLUMN_COUNT_DOES_NOT_MATCH
+> exception TYPES_ARE_NOT_COMPARABLE_2
 
 drop table test;
 > ok

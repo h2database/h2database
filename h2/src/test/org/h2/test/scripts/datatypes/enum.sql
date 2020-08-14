@@ -72,6 +72,9 @@ insert into card (rank, suit) values (11, 'long_enum_value_of_128_chars_00000000
 --- ENUM integer-based operations
 
 select rank from card where suit = 2;
+> exception TYPES_ARE_NOT_COMPARABLE_2
+
+select rank from card where cast(suit as integer) = 2;
 > RANK
 > ----
 > 0
@@ -81,7 +84,7 @@ select rank from card where suit = 2;
 insert into card (rank, suit) values(5, 3);
 > update count: 1
 
-select * from card where rank = 5;
+select * from card where cast(rank as integer) = 5;
 > RANK SUIT
 > ---- ------
 > 5    spades

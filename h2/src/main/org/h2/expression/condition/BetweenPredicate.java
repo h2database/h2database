@@ -12,6 +12,7 @@ import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -69,6 +70,9 @@ public final class BetweenPredicate extends Condition {
         left = left.optimize(session);
         a = a.optimize(session);
         b = b.optimize(session);
+        TypeInfo leftType = left.getType();
+        TypeInfo.checkComparable(leftType, a.getType());
+        TypeInfo.checkComparable(leftType, b.getType());
         if (whenOperand) {
             return this;
         }
@@ -127,6 +131,11 @@ public final class BetweenPredicate extends Condition {
             return ValueBoolean.get(not ^ //
                     (symmetric ? cmp1 <= 0 && cmp2 <= 0 || cmp1 >= 0 && cmp2 >= 0 : cmp1 <= 0 && cmp2 <= 0));
         }
+    }
+
+    @Override
+    public boolean isWhenConditionOperand() {
+        return whenOperand;
     }
 
     @Override

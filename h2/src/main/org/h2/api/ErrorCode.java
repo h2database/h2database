@@ -1697,14 +1697,14 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90110</code> is thrown when
-     * trying to compare an array value against a non-array value.
+     * trying to compare values of incomparable data types.
      * Example:
      * <pre>
      * CREATE TABLE test (id INT NOT NULL, name VARCHAR);
      * select * from test where id = (1, 2);
      * </pre>
      */
-    public static final int COMPARING_ARRAY_TO_SCALAR = 90110;
+    public static final int TYPES_ARE_NOT_COMPARABLE_2 = 90110;
 
     /**
      * The error with code <code>90111</code> is thrown when

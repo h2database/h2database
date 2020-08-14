@@ -134,3 +134,18 @@ SELECT C AND C, NOT(C AND C) FROM (VALUES 'F') T(C);
 > ------- ------------------
 > FALSE   TRUE
 > rows: 1
+
+SELECT C != 2 AND C, NOT (C != 2 AND C) FROM (VALUES TRUE) T(C);
+> exception TYPES_ARE_NOT_COMPARABLE_2
+
+SELECT ROW(1) = ROW(ROW(1));
+>> TRUE
+
+SELECT ROW(1) = ROW(ROW(2));
+>> FALSE
+
+SELECT ROW(1) = ROW(ROW(1, 2));
+> exception TYPES_ARE_NOT_COMPARABLE_2
+
+SELECT ROW(1) = ROW(ROW(TIME '00:00:00'));
+> exception TYPES_ARE_NOT_COMPARABLE_2

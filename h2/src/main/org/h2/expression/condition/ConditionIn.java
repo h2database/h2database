@@ -16,6 +16,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.index.IndexCondition;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -79,6 +80,11 @@ public final class ConditionIn extends Condition {
     }
 
     @Override
+    public boolean isWhenConditionOperand() {
+        return whenOperand;
+    }
+
+    @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         left.mapColumns(resolver, level, state);
         for (Expression e : valueList) {
@@ -95,9 +101,11 @@ public final class ConditionIn extends Condition {
         }
         boolean allValuesConstant = true;
         boolean allValuesNull = true;
+        TypeInfo leftType = left.getType();
         for (int i = 0, l = valueList.size(); i < l; i++) {
             Expression e = valueList.get(i);
             e = e.optimize(session);
+            TypeInfo.checkComparable(leftType, e.getType());
             if (e.isConstant() && !e.getValue(session).containsNull()) {
                 allValuesNull = false;
             }
@@ -105,8 +113,7 @@ public final class ConditionIn extends Condition {
                 allValuesConstant = false;
             }
             if (left instanceof ExpressionColumn && e instanceof Parameter) {
-                ((Parameter) e)
-                        .setColumn(((ExpressionColumn) left).getColumn());
+                ((Parameter) e).setColumn(((ExpressionColumn) left).getColumn());
             }
             valueList.set(i, e);
         }

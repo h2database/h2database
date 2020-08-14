@@ -436,7 +436,7 @@ public class ExpressionColumn extends Expression {
             break;
         default:
             /*
-             * Can be replaced with CAST(column AS BOOLEN) = FALSE, but this
+             * Can be replaced with CAST(column AS BOOLEAN) = FALSE, but this
              * replacement can't be optimized further, so it's better to leave
              * NOT (column) as is.
              */

@@ -89,10 +89,14 @@ public class SimpleCase extends Expression {
         if (allConst) {
             v = operand.getValue(session);
         }
+        TypeInfo operandType = operand.getType();
         for (SimpleWhen when = this.when; when != null; when = when.next) {
             Expression[] operands = when.operands;
             for (int i = 0; i < operands.length; i++) {
                 Expression e = operands[i].optimize(session);
+                if (!e.isWhenConditionOperand()) {
+                    TypeInfo.checkComparable(operandType, e.getType());
+                }
                 if (allConst) {
                     if (e.isConstant()) {
                         if (e.getWhenValue(session, v)) {

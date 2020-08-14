@@ -2755,10 +2755,10 @@ select count(*) from test where id = ((select id from test));
 > exception SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW
 
 select count(*) from test where id = ARRAY [(select id from test), 1];
-> exception COMPARING_ARRAY_TO_SCALAR
+> exception TYPES_ARE_NOT_COMPARABLE_2
 
 select count(*) from test where id = ((select id from test fetch first row only), 1);
-> exception COLUMN_COUNT_DOES_NOT_MATCH
+> exception TYPES_ARE_NOT_COMPARABLE_2
 
 select (select id from test where 1=0) from test;
 > (SELECT ID FROM PUBLIC.TEST WHERE FALSE)

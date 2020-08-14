@@ -133,6 +133,11 @@ public final class ConditionInParameter extends Condition {
     }
 
     @Override
+    public boolean isWhenConditionOperand() {
+        return whenOperand;
+    }
+
+    @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         left.mapColumns(resolver, level, state);
     }

@@ -23,9 +23,10 @@ public class Constants {
     public static final String BUILD_DATE_STABLE = "2019-03-13";
 
     /**
-     * The build id is incremented for each public release.
+     * Sequential version number. Even numbers are used for official releases,
+     * odd numbers are used for development builds.
      */
-    public static final int BUILD_ID = 200;
+    public static final int BUILD_ID = 201;
 
     /**
      * The build id of the last stable release.
@@ -83,7 +84,7 @@ public class Constants {
 
     /**
      * The TCP protocol version number 20.
-     * @since 1.4.201 (TODO)
+     * @since 2.0.202 (TODO)
      */
     public static final int TCP_PROTOCOL_VERSION_20 = 20;
 
@@ -100,12 +101,12 @@ public class Constants {
     /**
      * The major version of this database.
      */
-    public static final int VERSION_MAJOR = 1;
+    public static final int VERSION_MAJOR = 2;
 
     /**
      * The minor version of this database.
      */
-    public static final int VERSION_MINOR = 4;
+    public static final int VERSION_MINOR = 0;
 
     /**
      * The lock mode that means no locking is used at all.

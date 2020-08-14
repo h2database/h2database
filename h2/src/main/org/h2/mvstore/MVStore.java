@@ -165,8 +165,8 @@ public class MVStore implements AutoCloseable {
      */
     static final int BLOCK_SIZE = 4 * 1024;
 
-    private static final int FORMAT_WRITE = 1;
-    private static final int FORMAT_READ = 1;
+    private static final int FORMAT_WRITE = 2;
+    private static final int FORMAT_READ = 2;
 
     /**
      * Store is open.

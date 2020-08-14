@@ -1,9 +1,5 @@
 # Checklist for a release
 
-## Switch to Java 1.8
-
-    . setjava.sh 1.8
-
 ## Formatting, Spellchecking, Javadocs
 
     git pull

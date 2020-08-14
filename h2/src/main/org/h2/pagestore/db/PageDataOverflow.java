@@ -27,6 +27,11 @@ import org.h2.store.Data;
 public class PageDataOverflow extends Page {
 
     /**
+     * The memory needed by an object of class PageDataOverflow.
+     */
+    private static final int MEMORY_PAGE_DATA_OVERFLOW = 96 + Constants.MEMORY_DATA;
+
+    /**
      * The start of the data in the last overflow page.
      */
     static final int START_LAST = 9;
@@ -204,7 +209,7 @@ public class PageDataOverflow extends Page {
      */
     @Override
     public int getMemory() {
-        return (Constants.MEMORY_PAGE_DATA_OVERFLOW + store.getPageSize()) >> 2;
+        return (MEMORY_PAGE_DATA_OVERFLOW + store.getPageSize()) >> 2;
     }
 
     void setParentPageId(int parent) {

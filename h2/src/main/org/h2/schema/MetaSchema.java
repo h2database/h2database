@@ -81,6 +81,12 @@ public abstract class MetaSchema extends Schema {
         return super.getTableOrViewByName(session, name);
     }
 
+    /**
+     * Returns map of tables in this schema.
+     *
+     * @param session the session
+     * @return map of tables in this schema
+     */
     protected abstract Map<String, Table> getMap(SessionLocal session);
 
     @Override

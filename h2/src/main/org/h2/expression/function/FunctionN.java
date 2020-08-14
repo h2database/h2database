@@ -53,6 +53,19 @@ public abstract class FunctionN extends OperationN implements NamedExpression {
         return getValue(session, v1, v2, v3);
     }
 
+    /**
+     * Returns the value of this function.
+     *
+     * @param session
+     *            the session
+     * @param v1
+     *            the value of first argument, or {@code null}
+     * @param v2
+     *            the value of second argument, or {@code null}
+     * @param v3
+     *            the value of third argument, or {@code null}
+     * @return the resulting value
+     */
     protected Value getValue(SessionLocal session, Value v1, Value v2, Value v3) {
         throw DbException.throwInternalError();
     }
@@ -62,6 +75,16 @@ public abstract class FunctionN extends OperationN implements NamedExpression {
         return writeExpressions(builder.append(getName()).append('('), args, sqlFlags).append(')');
     }
 
+    /**
+     * Check if this expression and all sub-expressions can fulfill a criteria.
+     * If any part returns false, the result is false. This method contains a
+     * default implementation for non-deterministic functions.
+     *
+     * @param visitor
+     *            the visitor
+     * @return if the criteria can be fulfilled
+     * @see #isEverything(ExpressionVisitor)
+     */
     protected final boolean isEverythingNonDeterministic(ExpressionVisitor visitor) {
         if (!super.isEverything(visitor)) {
             return false;

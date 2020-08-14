@@ -88,7 +88,7 @@ public class PageBtreeIndex extends PageIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("opened {0} rows: {1}", getName() , rowCount);
         }
-        memoryPerPage = (Constants.MEMORY_PAGE_BTREE + store.getPageSize()) >> 2;
+        memoryPerPage = (PageBtree.MEMORY_PAGE_BTREE + store.getPageSize()) >> 2;
     }
 
     @Override

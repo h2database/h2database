@@ -66,6 +66,14 @@ public abstract class MetaTable extends Table {
         setObjectName(database.sysIdentifier(upperName));
     }
 
+    /**
+     * Creates columns.
+     *
+     * @param names
+     *            the names of columns with optional space-separated data types
+     *            (VARCHAR by default).
+     * @return the columns
+     */
     protected final Column[] createColumns(String... names) {
         Column[] cols = new Column[names.length];
         TypeInfo defaultType = database.getSettings().caseInsensitiveIdentifiers ? TypeInfo.TYPE_VARCHAR_IGNORECASE
@@ -121,6 +129,15 @@ public abstract class MetaTable extends Table {
         return s;
     }
 
+    /**
+     * Checks index conditions.
+     *
+     * @param session the session
+     * @param value the value
+     * @param indexFrom the lower bound of value, or {@code null}
+     * @param indexTo the higher bound of value, or {@code null}
+     * @return whether row should be included into result
+     */
     protected final boolean checkIndex(SessionLocal session, String value, Value indexFrom, Value indexTo) {
         if (value == null || (indexFrom == null && indexTo == null)) {
             return true;

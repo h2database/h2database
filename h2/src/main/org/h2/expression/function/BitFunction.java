@@ -435,6 +435,21 @@ public final class BitFunction extends Function1_2 {
         }
     }
 
+    /**
+     * Computes the value of bitwise function.
+     *
+     * @param function
+     *            one of {@link #BITAND}, {@link #BITOR}, {@link #BITXOR},
+     *            {@link #BITNOT}, {@link #BITNAND}, {@link #BITNOR},
+     *            {@link #BITXNOR}
+     * @param type
+     *            the type of result
+     * @param v1
+     *            the value of first argument
+     * @param v2
+     *            the value of second argument, or {@code null}
+     * @return the resulting value
+     */
     public static Value getBitwise(int function, TypeInfo type, Value v1, Value v2) {
         return type.getValueType() < Value.TINYINT ? getBinaryString(function, type, v1, v2)
                 : getNumeric(function, type, v1, v2);
@@ -675,6 +690,17 @@ public final class BitFunction extends Function1_2 {
         return TypeInfo.getTypeInfo(Math.max(vt1, vt2));
     }
 
+    /**
+     * Checks the type of an argument of bitwise function (one of
+     * {@link #BITAND}, {@link #BITOR}, {@link #BITXOR}, {@link #BITNOT},
+     * {@link #BITNAND}, {@link #BITNOR}, {@link #BITXNOR}).
+     *
+     * @param arg
+     *            the argument
+     * @return the type of the specified argument
+     * @throws DbException
+     *             if argument type is not supported by bitwise functions
+     */
     public static TypeInfo checkArgType(Expression arg) {
         TypeInfo t = arg.getType();
         switch (t.getValueType()) {

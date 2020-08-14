@@ -117,6 +117,7 @@ public class DbContents {
     }
 
     /**
+     * Returns whether standard INFORMATION_SCHEMA.VIEWS may be supported.
      *
      * @return whether standard INFORMATION_SCHEMA.VIEWS may be supported
      */

@@ -61,6 +61,18 @@ public final class CSVWriteFunction extends FunctionN {
         return index < args.length ? args[index].getValue(session).getString() : null;
     }
 
+    /**
+     * Sets delimiter options.
+     *
+     * @param csv
+     *            the CSV utility instance
+     * @param fieldSeparator
+     *            the field separator
+     * @param fieldDelimiter
+     *            the field delimiter
+     * @param escapeCharacter
+     *            the escape character
+     */
     public static void setCsvDelimiterEscape(Csv csv, String fieldSeparator, String fieldDelimiter,
             String escapeCharacter) {
         if (fieldSeparator != null) {

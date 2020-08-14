@@ -32,20 +32,18 @@ The file size should be about 300 KB:
 ## Changing Version Numbers
 
 Update org.h2.engine.Constants.java:
-    if the last build was stable (the normal case):
-        set BUILD_DATE_STABLE to current BUILD_DATE
-        set BUILD_ID_STABLE to current BUILD_ID
     change the version and build number:
         set BUILD_DATE to today
-        increment BUILD_ID
+        increment BUILD_ID, the value must be even (for example, 202)
+        set VERSION_MAJOR / VERSION_MINOR to the new version number
     if the last TCP_PROTOCOL_VERSION_##
         doesn't have a release date set it to current BUILD_DATE
-
-Update h2/pom.xml.
-    set ...-SNAPSHOT to the next version
+    set BUILD_DATE_STABLE to BUILD_DATE of the latest stable release
+    set BUILD_ID_STABLE to BUILD_ID of the latest stable release
+    check prefix in VERSION_STABLE and update if necessary
 
 Update README.md.
-    set version to the next version
+    set version to the new version
 
 Update changelog.html:
     * create a new "Next Version (unreleased)" with an empty list
@@ -54,7 +52,7 @@ Update changelog.html:
 
 Update newsfeed.sql:
     * add new version, for example:
-    * (146, '1.4.197', '2017-06-10'),
+    * (150, '1.4.200', '2019-10-14'),
     * remove oldest entry in that list
 
 Update download-archive.html:
@@ -101,7 +99,7 @@ Github: create a release.
 
 Newsletter: send (always to BCC!), the following:
 
-    h2-database-jp@googlegroups.com; h2-database@googlegroups.com; h2database-news@googlegroups.com; ...
+    h2-database@googlegroups.com; h2database-news@googlegroups.com; ...
 
 Create tweet at http://twitter.com
 
@@ -138,4 +136,10 @@ In Build.java, comment "-Xdoclint:none", but don't commit that change.
 
 Update statistics.
 
-Change version in pom.xml, commit.
+Change version in pom.xml, commit, add version-*.*.*** tag.
+
+Update org.h2.engine.Constants.java:
+    increment BUILD_ID again, the value must be odd (for example, 203)
+Update h2/pom.xml.
+    set ...-SNAPSHOT to the next version (with this odd third number)
+Commit.

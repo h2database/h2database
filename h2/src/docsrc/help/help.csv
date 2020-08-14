@@ -2150,7 +2150,7 @@ SHUTDOWN COMPACT
 
 "Literals","Value","
 string | @h2@ { dollarQuotedString } | numeric | dateAndTime | boolean | bytes
-    | interval | array | @h2@ { json } | null
+    | interval | array | @h2@ { geometry | json | uuid } | null
 ","
 A literal value of any data type, or null.
 ","
@@ -2245,6 +2245,24 @@ The maximum integer number is 2147483647, the minimum is -2147483648.
 10
 "
 
+"Literals","GEOMETRY","
+@h2@ GEOMETRY { bytes | string }
+","
+A binary string or character string with GEOMETRY object.
+
+A binary string should contain Well-known Binary Representation (WKB) from OGC 06-103r4.
+Dimension system marks may be specified either in both OGC WKB or in PostGIS EWKB formats.
+Optional SRID from EWKB may be specified.
+POINT EMPTY stored with NaN values as specified in OGC 12-128r15 is supported.
+
+A character string should contain Well-known Text Representation (WKT) from OGC 06-103r4
+with optional SRID from PostGIS EWKT extension.
+
+","
+GEOMETRY 'GEOMETRYCOLLECTION (POINT (1 2))'
+GEOMETRY X'00000000013ff00000000000003ff0000000000000'
+"
+
 "Literals","JSON","
 @h2@ JSON { bytes | string }
 ","
@@ -2303,6 +2321,15 @@ create a single quote inside a string.
 ","
 'John''s car'
 'A' 'B' 'C'
+"
+
+"Literals","UUID","
+@h2@ UUID '{ digit | a-f | A-F | - } [...]'
+","
+A UUID literal.
+Must contain 32 hexadecimal digits. Digits may be separated with - signs.
+","
+UUID '12345678-1234-1234-1234-123456789ABC'
 "
 
 "Literals","Time","

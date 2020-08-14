@@ -261,18 +261,12 @@ public final class ValueGeometry extends ValueBytesBase {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        boolean addCast = (sqlFlags & NO_CASTS) == 0;
-        if (addCast) {
-            builder.append("CAST(");
-        }
+        builder.append("GEOMETRY ");
         if ((sqlFlags & ADD_PLAN_INFORMATION) != 0) {
             EWKBUtils.parseEWKB(value, new EWKTTarget(builder.append('\''), getDimensionSystem()));
             builder.append('\'');
         } else {
             super.getSQL(builder, DEFAULT_SQL_FLAGS);
-        }
-        if (addCast) {
-            builder.append(" AS GEOMETRY)");
         }
         return builder;
     }

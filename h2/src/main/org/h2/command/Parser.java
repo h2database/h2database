@@ -358,6 +358,7 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
+import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJson;
@@ -368,6 +369,7 @@ import org.h2.value.ValueTime;
 import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueUuid;
 import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 
@@ -5560,6 +5562,22 @@ public class Parser {
                 return ValueExpression.get(ValueVarchar.get(text));
             }
             break;
+        case 'G':
+            if (currentTokenType == LITERAL ) {
+                if (currentValue.getValueType() == Value.VARCHAR && equalsToken("GEOMETRY", name)) {
+                    return ValueExpression.get(ValueGeometry.get(readCharacterStringLiteral().getString()));
+                }
+            } else if (currentTokenType == IDENTIFIER && equalsToken("GEOMETRY", name)
+                    && equalsToken("X", currentToken)) {
+                int index = lastParseIndex;
+                read();
+                if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
+                    return ValueExpression.get(ValueGeometry.get(readBinaryLiteral()));
+                } else {
+                    reread(index);
+                }
+            }
+            break;
         case 'J':
             if (currentTokenType == LITERAL ) {
                 if (currentValue.getValueType() == Value.VARCHAR && equalsToken("JSON", name)) {
@@ -5659,6 +5677,14 @@ public class Parser {
                     read();
                     return ValueExpression.get(ValueTimestamp.parse(timestamp, session));
                 }
+            }
+            break;
+        case 'U':
+            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR
+                    && (equalsToken("UUID", name))) {
+                String uuid = currentValue.getString();
+                read();
+                return ValueExpression.get(ValueUuid.get(uuid));
             }
             break;
         case 'X':

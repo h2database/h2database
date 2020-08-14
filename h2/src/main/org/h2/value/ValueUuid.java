@@ -129,10 +129,7 @@ public final class ValueUuid extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        if ((sqlFlags & NO_CASTS) == 0) {
-            return addString(builder.append("CAST('")).append("' AS UUID)");
-        }
-        return addString(builder.append('\'')).append('\'');
+        return addString(builder.append("UUID '")).append('\'');
     }
 
     @Override

@@ -126,8 +126,8 @@ public class PageStore implements CacheWriter {
     private static final int MIN_PAGE_COUNT = 5;
     private static final int INCREMENT_KB = 1024;
     private static final int INCREMENT_PERCENT_MIN = 35;
-    private static final int READ_VERSION = 3;
-    private static final int WRITE_VERSION = 3;
+    private static final int READ_VERSION = 4;
+    private static final int WRITE_VERSION = 4;
     private static final int META_TYPE_DATA_INDEX = 0;
     private static final int META_TYPE_BTREE_INDEX = 1;
     private static final int META_TABLE_ID = -1;

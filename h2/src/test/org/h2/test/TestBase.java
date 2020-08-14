@@ -1240,7 +1240,7 @@ public abstract class TestBase {
             session.getDatabase().setPowerOffCount(i);
         }
     }
-    
+
     /**
      * Get the number of disk operations before power failure is simulated.
      */

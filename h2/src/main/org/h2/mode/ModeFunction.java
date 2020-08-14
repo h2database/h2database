@@ -22,7 +22,7 @@ import org.h2.value.ValueNull;
 public abstract class ModeFunction extends FunctionN {
 
     /**
-     * Magic value for {@link FunctionInfo#parameterCount} to indicate variable number of args. 
+     * Magic value for {@link FunctionInfo#parameterCount} to indicate variable number of args.
      */
     protected static final int VAR_ARGS = -1;
 

@@ -488,8 +488,6 @@ documentation: rolling review at main.html
 
 -------------
 
-remove old TODO, move to roadmap
-
 kill a test:
 kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 

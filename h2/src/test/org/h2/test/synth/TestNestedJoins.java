@@ -289,7 +289,6 @@ public class TestNestedJoins extends TestDb {
         assertContains(sql, "(");
         stat.execute("drop table a, b, c");
 
-        // see roadmap, tag: swapInnerJoinTables
         /*
         create table test(id int primary key, x int)
         as select x, x from system_range(1, 10);

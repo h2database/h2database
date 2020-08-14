@@ -40,9 +40,6 @@ $$A new version of H2 is available for
 <br />
 For details, see the
 <a href="https://h2database.com/html/changelog.html">change log</a>.
-<br />
-For future plans, see the
-<a href="https://h2database.com/html/roadmap.html">roadmap</a>.
 $$ AS DESC FROM VERSION;
 
 SELECT 'newsfeed-rss.xml' FILE,

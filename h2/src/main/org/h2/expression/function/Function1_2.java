@@ -39,6 +39,17 @@ public abstract class Function1_2 extends Operation1_2 implements NamedExpressio
         return getValue(session, v1, v2);
     }
 
+    /**
+     * Returns the value of this function.
+     *
+     * @param session
+     *            the session
+     * @param v1
+     *            the value of first argument
+     * @param v2
+     *            the value of second argument, or {@code null}
+     * @return the resulting value
+     */
     protected Value getValue(SessionLocal session, Value v1, Value v2) {
         throw DbException.throwInternalError();
     }

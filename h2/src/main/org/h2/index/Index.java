@@ -46,14 +46,29 @@ public abstract class Index extends SchemaObject {
         }
     }
 
+    /**
+     * Columns of this index.
+     */
     protected IndexColumn[] indexColumns;
 
+    /**
+     * Table columns used in this index.
+     */
     protected Column[] columns;
 
+    /**
+     * Identities of table columns.
+     */
     protected int[] columnIds;
 
+    /**
+     * The table.
+     */
     protected final Table table;
 
+    /**
+     * The index type.
+     */
     protected final IndexType indexType;
 
     private final RowFactory rowFactory;

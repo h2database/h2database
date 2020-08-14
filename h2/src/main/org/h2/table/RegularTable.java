@@ -268,6 +268,14 @@ public abstract class RegularTable extends TableBase {
         return getTraceSQL();
     }
 
+    /**
+     * Prepares columns of an index.
+     *
+     * @param database the database
+     * @param cols the index columns
+     * @param indexType the type of an index
+     * @return the prepared columns with flags set
+     */
     protected static IndexColumn[] prepareColumns(Database database, IndexColumn[] cols, IndexType indexType) {
         if (indexType.isPrimaryKey()) {
             for (IndexColumn c : cols) {

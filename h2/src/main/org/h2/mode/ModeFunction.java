@@ -21,8 +21,14 @@ import org.h2.value.ValueNull;
  */
 public abstract class ModeFunction extends FunctionN {
 
+    /**
+     * Constant for variable number of arguments.
+     */
     protected static final int VAR_ARGS = -1;
 
+    /**
+     * The information about this function.
+     */
     protected final FunctionInfo info;
 
     /**

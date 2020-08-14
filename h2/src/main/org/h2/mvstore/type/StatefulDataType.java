@@ -34,6 +34,14 @@ public interface StatefulDataType<D> {
      * @param <D> the database type
      */
     interface Factory<D> {
+        /**
+         * Reads the data type.
+         *
+         * @param buff the buffer the source buffer
+         * @param metaDataType the type
+         * @param database the database
+         * @return the data type
+         */
         DataType<?> create(ByteBuffer buff, MetaType<D> metaDataType, D database);
     }
 }

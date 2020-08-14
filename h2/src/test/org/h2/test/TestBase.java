@@ -1241,6 +1241,12 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Returns the number of disk operations before power failure is simulated.
+     *
+     * @param conn the connection
+     * @return the number of disk operations before power failure is simulated
+     */
     protected static int getPowerOffCount(Connection conn) {
         SessionLocal session = (SessionLocal) ((JdbcConnection) conn).getSession();
         return session != null && !session.isClosed() ? session.getDatabase().getPowerOffCount() : 0;

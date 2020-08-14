@@ -31,6 +31,13 @@ public class SpatialDataType extends BasicDataType<Spatial> {
         this.dimensions = dimensions;
     }
 
+    /**
+     * Creates spatial object with specified parameters.
+     *
+     * @param id the ID
+     * @param minMax min x, max x, min y, max y, and so on
+     * @return the spatial object
+     */
     protected Spatial create(long id, float... minMax) {
         return new DefaultSpatial(id, minMax);
     }

@@ -242,6 +242,15 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         }
     }
 
+    /**
+     * Compares the specified values.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @param sortType the sorting type
+     * @return 0 if equal, -1 if first value is smaller for ascending or larger
+     *         for descending sort type, 1 otherwise
+     */
     public int compareValues(Value a, Value b, int sortType) {
         if (a == b) {
             return 0;
@@ -602,6 +611,12 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         writeValue(buff, ValueBigint.get(row.getKey()), false);
     }
 
+    /**
+     * Writes a long.
+     *
+     * @param buff the target buffer
+     * @param x the long value
+     */
     public static void writeLong(WriteBuffer buff, long x) {
         if (x < 0) {
             buff.put(BIGINT_NEG).putVarLong(-x);

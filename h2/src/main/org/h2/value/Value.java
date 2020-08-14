@@ -309,7 +309,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     private static final int GROUP_OTHER = GROUP_INTERVAL_DT + 1;
 
     /**
-     * Group for collection data types (ARRAY, RESULT_SET, ROW).
+     * Group for collection data types (ARRAY, ROW).
      */
     private static final int GROUP_COLLECTION = GROUP_OTHER + 1;
 
@@ -340,7 +340,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             GROUP_INTERVAL_DT,
             // JAVA_OBJECT, ENUM, GEOMETRY, JSON, UUID
             GROUP_OTHER, GROUP_OTHER, GROUP_OTHER, GROUP_OTHER, GROUP_OTHER,
-            // ARRAY, ROW, RESULT_SET
+            // ARRAY, ROW
             GROUP_COLLECTION, GROUP_COLLECTION,
             //
     };
@@ -359,7 +359,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             "INTERVAL DAY TO HOUR", "INTERVAL DAY TO MINUTE", "INTERVAL DAY TO SECOND", //
             "INTERVAL HOUR TO MINUTE", "INTERVAL HOUR TO SECOND", "INTERVAL MINUTE TO SECOND", //
             "JAVA_OBJECT", "ENUM", "GEOMETRY", "JSON", "UUID", //
-            "ARRAY", "ROW", "RESULT_SET" //
+            "ARRAY", "ROW", //
     };
 
     /**

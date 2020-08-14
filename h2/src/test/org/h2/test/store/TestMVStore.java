@@ -129,6 +129,7 @@ public class TestMVStore extends TestBase {
             assertEquals("Hello", map.get("1"));
         }
 
+        FileUtils.createDirectories(getTestDir(""));
         String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         try (MVStore store = new MVStore.Builder().
@@ -433,9 +434,9 @@ public class TestMVStore extends TestBase {
                 open();
         s.setRetentionTime(Integer.MAX_VALUE);
         Map<String, Object> header = s.getStoreHeader();
-        assertEquals("1", header.get("format").toString());
-        header.put("formatRead", "1");
-        header.put("format", "2");
+        assertEquals("2", header.get("format").toString());
+        header.put("formatRead", "2");
+        header.put("format", "3");
         forceWriteStoreHeader(s);
         MVMap<Integer, String> m = s.openMap("data");
         forceWriteStoreHeader(s);
@@ -741,7 +742,7 @@ public class TestMVStore extends TestBase {
             m.put(1, 1);
             Map<String, Object> header = s.getStoreHeader();
             int format = Integer.parseInt(header.get("format").toString());
-            assertEquals(1, format);
+            assertEquals(2, format);
             header.put("format", Integer.toString(format + 1));
             forceWriteStoreHeader(s);
         }
@@ -880,7 +881,7 @@ public class TestMVStore extends TestBase {
             s.setRetentionTime(Integer.MAX_VALUE);
             long time = System.currentTimeMillis();
             Map<String, Object> m = s.getStoreHeader();
-            assertEquals("1", m.get("format").toString());
+            assertEquals("2", m.get("format").toString());
             long creationTime = (Long) m.get("created");
             assertTrue(Math.abs(time - creationTime) < 100);
             m.put("test", "123");

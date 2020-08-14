@@ -85,4 +85,9 @@ public abstract class SimplePredicate extends Condition {
         throw new IndexOutOfBoundsException();
     }
 
+    @Override
+    public final boolean isWhenConditionOperand() {
+        return whenOperand;
+    }
+
 }

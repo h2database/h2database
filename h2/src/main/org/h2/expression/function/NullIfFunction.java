@@ -8,6 +8,7 @@ package org.h2.expression.function;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.TypedValueExpression;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -34,6 +35,7 @@ public final class NullIfFunction extends Function2 {
         left = left.optimize(session);
         right = right.optimize(session);
         type = left.getType();
+        TypeInfo.checkComparable(type, right.getType());
         if (left.isConstant() && right.isConstant()) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }

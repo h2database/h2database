@@ -562,7 +562,7 @@ public class DbException extends RuntimeException {
         case CANNOT_TRUNCATE_1:
         case CANNOT_DROP_2:
         case VIEW_IS_INVALID_2:
-        case COMPARING_ARRAY_TO_SCALAR:
+        case TYPES_ARE_NOT_COMPARABLE_2:
         case CONSTANT_ALREADY_EXISTS_1:
         case CONSTANT_NOT_FOUND_1:
         case LITERALS_ARE_NOT_ALLOWED:

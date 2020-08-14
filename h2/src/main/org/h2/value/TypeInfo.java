@@ -8,6 +8,7 @@ package org.h2.value;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 
@@ -696,6 +697,115 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         }
     }
 
+    /**
+     * Checks whether two specified types are comparable and throws an exception
+     * otherwise.
+     *
+     * @param t1
+     *            first data type
+     * @param t2
+     *            second data type
+     * @throws DbException
+     *             if types aren't comparable
+     */
+    public static void checkComparable(TypeInfo t1, TypeInfo t2) {
+        if (!areComparable(t1, t2)) {
+            throw DbException.get(ErrorCode.TYPES_ARE_NOT_COMPARABLE_2, t1.getTraceSQL(), t2.getTraceSQL());
+        }
+    }
+
+    /**
+     * Determines whether two specified types are comparable.
+     *
+     * @param t1
+     *            first data type
+     * @param t2
+     *            second data type
+     * @return whether types are comparable
+     */
+    private static boolean areComparable(TypeInfo t1, TypeInfo t2) {
+        int vt1 = (t1 = t1.unwrapRow()).getValueType(), vt2 = (t2 = t2.unwrapRow()).getValueType();
+        if (vt1 > vt2) {
+            int vt = vt1;
+            vt1 = vt2;
+            vt2 = vt;
+            TypeInfo t = t1;
+            t1 = t2;
+            t2 = t;
+        }
+        if (vt1 <= Value.NULL) {
+            return true;
+        }
+        if (vt1 == vt2) {
+            switch (vt1) {
+            case Value.ARRAY:
+                return areComparable((TypeInfo) t1.getExtTypeInfo(), (TypeInfo) t2.getExtTypeInfo());
+            case Value.ROW: {
+                Set<Entry<String, TypeInfo>> f1 = ((ExtTypeInfoRow) t1.getExtTypeInfo()).getFields();
+                Set<Entry<String, TypeInfo>> f2 = ((ExtTypeInfoRow) t2.getExtTypeInfo()).getFields();
+                int degree = f1.size();
+                if (f2.size() != degree) {
+                    return false;
+                }
+                Iterator<Entry<String, TypeInfo>> i1 = f1.iterator(), i2 = f2.iterator();
+                while (i1.hasNext()) {
+                    if (!areComparable(i1.next().getValue(), i2.next().getValue())) {
+                        return false;
+                    }
+                }
+            }
+            //$FALL-THROUGH$
+            default:
+                return true;
+            }
+        }
+        byte g1 = Value.GROUPS[vt1], g2 = Value.GROUPS[vt2];
+        if (g1 == g2) {
+            switch (g1) {
+            default:
+                return true;
+            case Value.GROUP_DATETIME:
+                return vt1 != Value.DATE || vt2 != Value.TIME && vt2 != Value.TIME_TZ;
+            case Value.GROUP_OTHER:
+            case Value.GROUP_COLLECTION:
+                return false;
+            }
+        }
+        switch (g1) {
+        case Value.GROUP_CHARACTER_STRING:
+            switch (g2) {
+            case Value.GROUP_NUMERIC:
+            case Value.GROUP_DATETIME:
+            case Value.GROUP_INTERVAL_YM:
+            case Value.GROUP_INTERVAL_DT:
+                return true;
+            case Value.GROUP_OTHER:
+                switch (vt2) {
+                case Value.ENUM:
+                case Value.GEOMETRY:
+                case Value.JSON:
+                case Value.UUID:
+                    return true;
+                default:
+                    return false;
+                }
+            default:
+                return false;
+            }
+        case Value.GROUP_BINARY_STRING:
+            switch (vt2) {
+            case Value.JAVA_OBJECT:
+            case Value.GEOMETRY:
+            case Value.JSON:
+            case Value.UUID:
+                return true;
+            default:
+                return false;
+            }
+        }
+        return false;
+    }
+
     private TypeInfo(int valueType) {
         this.valueType = valueType;
         precision = -1L;
@@ -1220,6 +1330,23 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         default:
             return TYPE_DECFLOAT;
         }
+    }
+
+    /**
+     * Returns unwrapped data type if this data type is a row type with degree 1
+     * or this type otherwise.
+     *
+     * @return unwrapped data type if this data type is a row type with degree 1
+     *         or this type otherwise
+     */
+    public TypeInfo unwrapRow() {
+        if (valueType == Value.ROW) {
+            Set<Entry<String, TypeInfo>> fields = ((ExtTypeInfoRow) extTypeInfo).getFields();
+            if (fields.size() == 1) {
+                return fields.iterator().next().getValue().unwrapRow();
+            }
+        }
+        return this;
     }
 
     /**

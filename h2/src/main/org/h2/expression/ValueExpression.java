@@ -109,7 +109,10 @@ public class ValueExpression extends Operation0 {
 
     @Override
     public Expression getNotIfPossible(SessionLocal session) {
-        return new Comparison(Comparison.EQUAL, this, ValueExpression.FALSE, false);
+        if (value == ValueNull.INSTANCE) {
+            return TypedValueExpression.UNKNOWN;
+        }
+        return getBoolean(!value.getBoolean());
     }
 
     @Override

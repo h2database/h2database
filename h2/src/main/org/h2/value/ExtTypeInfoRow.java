@@ -28,7 +28,18 @@ public final class ExtTypeInfoRow extends ExtTypeInfo {
      *            fields
      */
     public ExtTypeInfoRow(Typed[] fields) {
-        int degree = fields.length;
+        this(fields, fields.length);
+    }
+
+    /**
+     * Creates new instance of extended parameters of ROW data type.
+     *
+     * @param fields
+     *            fields
+     * @param degree
+     *            number of fields to use
+     */
+    public ExtTypeInfoRow(Typed[] fields, int degree) {
         LinkedHashMap<String, TypeInfo> map = new LinkedHashMap<>((int) Math.ceil(degree / .75));
         for (int i = 0; i < degree;) {
             TypeInfo t = fields[i].getType();

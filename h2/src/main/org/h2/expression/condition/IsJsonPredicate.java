@@ -153,6 +153,11 @@ public final class IsJsonPredicate extends Condition {
     }
 
     @Override
+    public boolean isWhenConditionOperand() {
+        return whenOperand;
+    }
+
+    @Override
     public Expression getNotIfPossible(SessionLocal session) {
         if (whenOperand) {
             return null;

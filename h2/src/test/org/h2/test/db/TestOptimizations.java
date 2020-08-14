@@ -437,7 +437,7 @@ public class TestOptimizations extends TestDb {
         stat.execute("create table test(id int primary key, name varchar(255))");
         stat.execute("insert into test values(1, 'Hello'), (2, 'World')");
         assertSingleValue(stat,
-                "select count(*) from test where name in ('Hello', 'World', 1)", 2);
+                "select count(*) from test where name in ('Hello', 'World', '1')", 2);
         assertSingleValue(stat,
                 "select count(*) from test where name in ('Hello', 'World')", 2);
         assertSingleValue(stat,

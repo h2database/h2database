@@ -121,6 +121,9 @@ public abstract class MetaTable extends Table {
         return s;
     }
 
+    /**
+     * Check if value is in the index range.
+     */
     protected final boolean checkIndex(SessionLocal session, String value, Value indexFrom, Value indexTo) {
         if (value == null || (indexFrom == null && indexTo == null)) {
             return true;

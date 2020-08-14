@@ -173,6 +173,8 @@ public abstract class Page<K,V> implements Cloneable {
      * @param totalCount the total number of keys
      * @param memory the memory used in bytes
      * @return the page
+     * @param <K> the key class
+     * @param <V> the value class
      */
     public static <K,V> Page<K,V> createNode(MVMap<K,V> map, K[] keys, PageReference<K,V>[] children,
                                     long totalCount, int memory) {
@@ -940,6 +942,8 @@ public abstract class Page<K,V> implements Cloneable {
      *
      * @param size the number of entries
      * @return the array
+     * @param <K> the key class
+     * @param <V> the value class
      */
     @SuppressWarnings("unchecked")
     public static <K,V> PageReference<K,V>[] createRefStorage(int size) {
@@ -976,6 +980,8 @@ public abstract class Page<K,V> implements Cloneable {
          * Get an empty page reference.
          *
          * @return the page reference
+         * @param <X> the key class
+         * @param <Y> the value class
          */
         @SuppressWarnings("unchecked")
         public static <X,Y> PageReference<X,Y> empty() {

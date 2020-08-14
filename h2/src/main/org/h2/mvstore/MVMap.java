@@ -892,6 +892,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
      * @param attemptUpdateCounter how many attempt (including current)
      *                             were made to update root
      * @return new RootReference or null if update failed
+     * @param <K> the key class
+     * @param <V> the value class
      */
     protected static <K,V> boolean updateRoot(RootReference<K,V> expectedRootReference, Page<K,V> newRootPage,
             int attemptUpdateCounter) {

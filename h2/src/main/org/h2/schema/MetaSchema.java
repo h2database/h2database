@@ -81,6 +81,9 @@ public abstract class MetaSchema extends Schema {
         return super.getTableOrViewByName(session, name);
     }
 
+    /**
+     * Get map of table/view names to tables/views.
+     */
     protected abstract Map<String, Table> getMap(SessionLocal session);
 
     @Override

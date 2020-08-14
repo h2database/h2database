@@ -207,20 +207,20 @@ public class SimpleCase extends Expression {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        if (operand.isEverything(visitor)) {
+        if (!operand.isEverything(visitor)) {
             return false;
         }
         for (SimpleWhen when = this.when; when != null; when = when.next) {
             for (Expression e : when.operands) {
-                if (e.isEverything(visitor)) {
+                if (!e.isEverything(visitor)) {
                     return false;
                 }
             }
-            if (when.result.isEverything(visitor)) {
+            if (!when.result.isEverything(visitor)) {
                 return false;
             }
         }
-        if (elseResult != null && elseResult.isEverything(visitor)) {
+        if (elseResult != null && !elseResult.isEverything(visitor)) {
             return false;
         }
         return true;

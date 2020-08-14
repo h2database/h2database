@@ -241,8 +241,10 @@ public final class ConditionIn extends Condition {
         if (!not && !whenOperand) {
             Expression add = other.getIfEquals(left);
             if (add != null) {
-                valueList.add(add);
-                return this;
+                ArrayList<Expression> list = new ArrayList<>(valueList.size() + 1);
+                list.addAll(valueList);
+                list.add(add);
+                return new ConditionIn(left, false, false, list);
             }
         }
         return null;

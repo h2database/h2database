@@ -58,14 +58,18 @@ public final class ConditionInConstantSet extends Condition {
         this.whenOperand = whenOperand;
         this.valueList = valueList;
         this.valueSet = new TreeSet<>(session.getDatabase().getCompareMode());
-        type = left.getType();
+        TypeInfo type = left.getType();
         for (Expression expression : valueList) {
-            add(expression.getValue(session).convertTo(type, session));
+            type = TypeInfo.getHigherType(type, expression.getType());
+        }
+        this.type = type;
+        for (Expression expression : valueList) {
+            add(expression.getValue(session), session);
         }
     }
 
-    private void add(Value v) {
-        if (v.containsNull()) {
+    private void add(Value v, SessionLocal session) {
+        if ((v = v.convertTo(type, session)).containsNull()) {
             hasNull = true;
         } else {
             valueSet.add(v);
@@ -74,7 +78,7 @@ public final class ConditionInConstantSet extends Condition {
 
     @Override
     public Value getValue(SessionLocal session) {
-        return getValue(left.getValue(session));
+        return getValue(left.getValue(session), session);
     }
 
     @Override
@@ -82,11 +86,11 @@ public final class ConditionInConstantSet extends Condition {
         if (!whenOperand) {
             return super.getWhenValue(session, left);
         }
-        return getValue(left).getBoolean();
+        return getValue(left, session).getBoolean();
     }
 
-    private Value getValue(Value left) {
-        if (left.containsNull()) {
+    private Value getValue(Value left, SessionLocal session) {
+        if ((left = left.convertTo(type, session)).containsNull()) {
             return ValueNull.INSTANCE;
         }
         boolean result = valueSet.contains(left);
@@ -199,13 +203,14 @@ public final class ConditionInConstantSet extends Condition {
      * @return null if the condition was not added, or the new condition
      */
     Expression getAdditional(SessionLocal session, Comparison other) {
-        if (!not) {
+        if (!not && !whenOperand) {
             Expression add = other.getIfEquals(left);
             if (add != null) {
                 if (add.isConstant()) {
-                    valueList.add(add);
-                    add(add.getValue(session).convertTo(type, session));
-                    return this;
+                    ArrayList<Expression> list = new ArrayList<>(valueList.size() + 1);
+                    list.addAll(valueList);
+                    list.add(add);
+                    return new ConditionInConstantSet(session, left, false, false, list);
                 }
             }
         }

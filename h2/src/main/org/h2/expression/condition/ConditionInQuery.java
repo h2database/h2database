@@ -93,7 +93,6 @@ public final class ConditionInQuery extends PredicateWithSubquery {
             if (left.getValueType() == Value.ROW) {
                 left = ((ValueRow) left).getList()[0];
             }
-            left = left.convertTo(colType, session);
             if (rows.containsDistinct(new Value[] { left })) {
                 return ValueBoolean.get(!not);
             }

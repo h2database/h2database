@@ -74,7 +74,7 @@ public class PageDataIndex extends PageIndex {
             trace.debug("{0} opened rows: {1}", this, rowCount);
         }
         table.setRowCount(rowCount);
-        memoryPerPage = (Constants.MEMORY_PAGE_DATA + store.getPageSize()) >> 2;
+        memoryPerPage = (PageData.MEMORY_PAGE_DATA + store.getPageSize()) >> 2;
     }
 
     @Override

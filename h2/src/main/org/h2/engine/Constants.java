@@ -325,23 +325,6 @@ public class Constants {
     public static final int MEMORY_ARRAY = 24;
 
     /**
-     * The memory needed by an object of class PageBtree.
-     */
-    public static final int MEMORY_PAGE_BTREE =
-            112 + MEMORY_DATA + 2 * MEMORY_OBJECT;
-
-    /**
-     * The memory needed by an object of class PageData.
-     */
-    public static final int MEMORY_PAGE_DATA =
-            144 + MEMORY_DATA + 3 * MEMORY_OBJECT;
-
-    /**
-     * The memory needed by an object of class PageDataOverflow.
-     */
-    public static final int MEMORY_PAGE_DATA_OVERFLOW = 96 + MEMORY_DATA;
-
-    /**
      * The memory needed by a pointer.
      */
     // Java 6, 64 bit: 8

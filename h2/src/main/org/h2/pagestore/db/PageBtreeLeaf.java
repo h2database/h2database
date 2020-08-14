@@ -373,7 +373,7 @@ public class PageBtreeLeaf extends PageBtree {
         if (!PageBtreeIndex.isMemoryChangeRequired()) {
             return;
         }
-        int memory = Constants.MEMORY_PAGE_BTREE + index.getPageStore().getPageSize();
+        int memory = PageBtree.MEMORY_PAGE_BTREE + index.getPageStore().getPageSize();
         if (rows != null) {
             memory += getEntryCount() * (4 + Constants.MEMORY_POINTER);
             for (int i = 0; i < entryCount; i++) {

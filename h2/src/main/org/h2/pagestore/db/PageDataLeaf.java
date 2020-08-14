@@ -576,8 +576,7 @@ public class PageDataLeaf extends PageData {
     private void memoryChange(boolean add, Row r) {
         int diff = r == null ? 0 : 4 + 8 + Constants.MEMORY_POINTER + r.getMemory();
         memoryData += add ? diff : -diff;
-        index.memoryChange((Constants.MEMORY_PAGE_DATA +
-                memoryData + index.getPageStore().getPageSize()) >> 2);
+        index.memoryChange((PageData.MEMORY_PAGE_DATA + memoryData + index.getPageStore().getPageSize()) >> 2);
     }
 
     @Override

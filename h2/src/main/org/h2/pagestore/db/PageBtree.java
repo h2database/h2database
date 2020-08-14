@@ -5,6 +5,7 @@
  */
 package org.h2.pagestore.db;
 
+import org.h2.engine.Constants;
 import org.h2.pagestore.Page;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
@@ -13,6 +14,11 @@ import org.h2.store.Data;
  * A page that contains index data.
  */
 public abstract class PageBtree extends Page {
+
+    /**
+     * The memory needed by an object of class PageBtree.
+     */
+    static final int MEMORY_PAGE_BTREE = 112 + Constants.MEMORY_DATA + 2 * Constants.MEMORY_OBJECT;
 
     /**
      * This is a root page.

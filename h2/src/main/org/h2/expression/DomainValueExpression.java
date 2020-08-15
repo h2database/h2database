@@ -17,7 +17,7 @@ import org.h2.value.Value;
 /**
  * An expression representing a value for domain constraint.
  */
-public class DomainValueExpression extends Operation0 {
+public final class DomainValueExpression extends Operation0 {
 
     private DomainColumnResolver columnResolver;
 

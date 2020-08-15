@@ -53,6 +53,11 @@ public abstract class SimplePredicate extends Condition {
     }
 
     @Override
+    public final boolean needParentheses() {
+        return true;
+    }
+
+    @Override
     public void updateAggregate(SessionLocal session, int stage) {
         left.updateAggregate(session, stage);
     }

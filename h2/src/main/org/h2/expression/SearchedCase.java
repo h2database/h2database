@@ -13,7 +13,7 @@ import org.h2.value.ValueNull;
 /**
  * A searched case.
  */
-public class SearchedCase extends OperationN {
+public final class SearchedCase extends OperationN {
 
     public SearchedCase() {
         super(new Expression[4]);

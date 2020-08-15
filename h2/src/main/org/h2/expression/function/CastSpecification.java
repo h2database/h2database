@@ -7,7 +7,6 @@ package org.h2.expression.function;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
-import org.h2.expression.Operation1;
 import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.schema.Domain;
@@ -19,7 +18,7 @@ import org.h2.value.ValueNull;
 /**
  * A cast specification.
  */
-public final class CastSpecification extends Operation1 {
+public final class CastSpecification extends Function1 {
 
     private Domain domain;
 
@@ -106,6 +105,11 @@ public final class CastSpecification extends Operation1 {
         builder.append("CAST(");
         arg.getUnenclosedSQL(builder, arg instanceof ValueExpression ? sqlFlags | NO_CASTS : sqlFlags).append(" AS ");
         return (domain != null ? domain : type).getSQL(builder, sqlFlags).append(')');
+    }
+
+    @Override
+    public String getName() {
+        return "CAST";
     }
 
 }

@@ -16,7 +16,7 @@ import org.h2.value.ValueNull;
 /**
  * Array element reference.
  */
-public class ArrayElementReference extends Operation2 {
+public final class ArrayElementReference extends Operation2 {
 
     public ArrayElementReference(Expression left, Expression right) {
         super(left, right);

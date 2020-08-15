@@ -39,7 +39,7 @@ import org.h2.value.ValueTinyint;
 /**
  * A column reference expression that represents a column of a table or view.
  */
-public class ExpressionColumn extends Expression {
+public final class ExpressionColumn extends Expression {
 
     private final Database database;
     private final String schemaName;

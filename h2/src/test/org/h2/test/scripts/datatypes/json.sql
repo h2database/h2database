@@ -280,3 +280,6 @@ DROP TABLE TEST;
 
 SET MODE Regular;
 > ok
+
+EXPLAIN SELECT A IS JSON AND B IS JSON FROM (VALUES (JSON 'null', 1)) T(A, B);
+>> SELECT ("A" IS JSON) AND ("B" IS JSON) FROM (VALUES (JSON 'null', 1)) "T"("A", "B") /* table scan */

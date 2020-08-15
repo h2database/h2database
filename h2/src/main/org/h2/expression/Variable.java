@@ -14,7 +14,7 @@ import org.h2.value.Value;
 /**
  * A user-defined variable, for example: @ID.
  */
-public class Variable extends Operation0 {
+public final class Variable extends Operation0 {
 
     private final String name;
     private Value lastValue;

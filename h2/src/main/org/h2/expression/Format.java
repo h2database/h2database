@@ -13,7 +13,7 @@ import org.h2.value.ValueJson;
 /**
  * A format clause such as FORMAT JSON.
  */
-public class Format extends Operation1 {
+public final class Format extends Operation1 {
 
     /**
      * Supported formats.

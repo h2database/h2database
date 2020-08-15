@@ -15,7 +15,7 @@ import org.h2.value.Value;
 /**
  * A column alias as in SELECT 'Hello' AS NAME ...
  */
-public class Alias extends Expression {
+public final class Alias extends Expression {
 
     private final String alias;
     private Expression expr;

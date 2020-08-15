@@ -21,7 +21,7 @@ import org.h2.value.ValueTimestampTimeZone;
 /**
  * A time zone specification (AT { TIME ZONE | LOCAL }).
  */
-public class TimeZoneOperation extends Operation1_2 {
+public final class TimeZoneOperation extends Operation1_2 {
 
     public TimeZoneOperation(Expression left, Expression right) {
         super(left, right);

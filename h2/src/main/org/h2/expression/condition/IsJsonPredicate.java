@@ -44,6 +44,11 @@ public final class IsJsonPredicate extends Condition {
     }
 
     @Override
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
     public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         return getWhenSQL(left.getSQL(builder, sqlFlags, AUTO_PARENTHESES), sqlFlags);
     }

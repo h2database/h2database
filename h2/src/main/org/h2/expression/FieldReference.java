@@ -20,7 +20,7 @@ import org.h2.value.ValueRow;
 /**
  * Field reference.
  */
-public class FieldReference extends Operation1 {
+public final class FieldReference extends Operation1 {
 
     private final String fieldName;
 

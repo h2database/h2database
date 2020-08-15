@@ -23,7 +23,8 @@ import org.h2.value.Value;
  * This object is only used temporarily during the parsing phase, and later
  * replaced by column expressions.
  */
-public class Wildcard extends Expression {
+public final class Wildcard extends Expression {
+
     private final String schema;
     private final String table;
 

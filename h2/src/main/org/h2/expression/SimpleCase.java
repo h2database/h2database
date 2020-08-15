@@ -15,7 +15,7 @@ import org.h2.value.ValueNull;
 /**
  * A simple case.
  */
-public class SimpleCase extends Expression {
+public final class SimpleCase extends Expression {
 
     public static final class SimpleWhen {
 

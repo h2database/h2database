@@ -15,7 +15,7 @@ import org.h2.value.ValueBigint;
 /**
  * Represents the ROWNUM function.
  */
-public class Rownum extends Operation0 {
+public final class Rownum extends Operation0 {
 
     private final Prepared prepared;
 

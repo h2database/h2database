@@ -18,7 +18,7 @@ import org.h2.value.ValueVarchar;
 /**
  * A parameter of a prepared statement.
  */
-public class Parameter extends Operation0 implements ParameterInterface {
+public final class Parameter extends Operation0 implements ParameterInterface {
 
     private Value value;
     private Column column;

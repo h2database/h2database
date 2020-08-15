@@ -15,7 +15,7 @@ import org.h2.value.Value;
 /**
  * Wraps a sequence when used in a statement.
  */
-public class SequenceValue extends Operation0 {
+public final class SequenceValue extends Operation0 {
 
     private final Sequence sequence;
 

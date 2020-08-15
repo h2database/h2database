@@ -22,7 +22,7 @@ import org.h2.value.ValueArray;
 /**
  * Array value constructor by query.
  */
-public class ArrayConstructorByQuery extends Expression {
+public final class ArrayConstructorByQuery extends Expression {
 
     /**
      * The subquery.

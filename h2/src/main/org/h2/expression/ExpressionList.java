@@ -18,7 +18,7 @@ import org.h2.value.ValueRow;
  * A list of expressions, as in (ID, NAME).
  * The result of this expression is a row or an array.
  */
-public class ExpressionList extends Expression {
+public final class ExpressionList extends Expression {
 
     private final Expression[] list;
     private final boolean isArray;

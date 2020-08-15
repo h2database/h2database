@@ -188,14 +188,9 @@ public class SetTypes {
     public static final int REDO_LOG_BINARY = QUERY_TIMEOUT + 1;
 
     /**
-     * The type of a SET BINARY_COLLATION statement.
-     */
-    public static final int BINARY_COLLATION = REDO_LOG_BINARY + 1;
-
-    /**
      * The type of a SET JAVA_OBJECT_SERIALIZER statement.
      */
-    public static final int JAVA_OBJECT_SERIALIZER = BINARY_COLLATION + 1;
+    public static final int JAVA_OBJECT_SERIALIZER = REDO_LOG_BINARY + 1;
 
     /**
      * The type of a SET RETENTION_TIME statement.
@@ -233,14 +228,9 @@ public class SetTypes {
     public static final int AUTHENTICATOR = BUILTIN_ALIAS_OVERRIDE + 1;
 
     /**
-     * The type of a SET UUID_COLLATION statement.
-     */
-    public static final int UUID_COLLATION = AUTHENTICATOR + 1;
-
-    /**
      * The type of a SET IGNORE_CATALOGS statement.
      */
-    public static final int IGNORE_CATALOGS = UUID_COLLATION + 1;
+    public static final int IGNORE_CATALOGS = AUTHENTICATOR + 1;
 
     /**
      * The type of a SET CATALOG statement.
@@ -312,7 +302,6 @@ public class SetTypes {
         list.add("@");
         list.add("QUERY_TIMEOUT");
         list.add("REDO_LOG_BINARY");
-        list.add("BINARY_COLLATION");
         list.add("JAVA_OBJECT_SERIALIZER");
         list.add("RETENTION_TIME");
         list.add("QUERY_STATISTICS");
@@ -321,7 +310,6 @@ public class SetTypes {
         list.add("LAZY_QUERY_EXECUTION");
         list.add("BUILTIN_ALIAS_OVERRIDE");
         list.add("AUTHENTICATOR");
-        list.add("UUID_COLLATION");
         list.add("IGNORE_CATALOGS");
         list.add("CATALOG");
         list.add("NON_KEYWORDS");

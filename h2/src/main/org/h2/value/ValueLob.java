@@ -102,7 +102,7 @@ public class ValueLob extends Value {
                             || IOUtils.readFully(is2, buf2, BLOCK_COMPARISON_SIZE) != BLOCK_COMPARISON_SIZE) {
                         throw DbException.getUnsupportedException("Invalid LOB");
                     }
-                    int cmp = Bits.compareNotNullSigned(buf1, buf2);
+                    int cmp = Bits.compareNotNullUnsigned(buf1, buf2);
                     if (cmp != 0) {
                         return cmp;
                     }
@@ -116,7 +116,7 @@ public class ValueLob extends Value {
                         return 1;
                     }
                     if (c1 != c2) {
-                        return Integer.compare(c1, c2);
+                        return (c1 & 0xFF) < (c2 & 0xFF) ? -1 : 1;
                     }
                 }
             } catch (IOException ex) {
@@ -145,7 +145,7 @@ public class ValueLob extends Value {
                         return 1;
                     }
                     if (c1 != c2) {
-                        return Integer.compare(c1, c2);
+                        return c1 < c2 ? -1 : 1;
                     }
                 }
             } catch (IOException ex) {

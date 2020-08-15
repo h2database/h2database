@@ -138,13 +138,10 @@ public class Set extends Prepared {
         }
         case SetTypes.COLLATION: {
             session.getUser().checkAdmin();
-            CompareMode currentMode = database.getCompareMode();
-            final boolean binaryUnsigned = currentMode.isBinaryUnsigned();
-            final boolean uuidUnsigned = currentMode.isUuidUnsigned();
             CompareMode compareMode;
             StringBuilder buff = new StringBuilder(stringValue);
             if (stringValue.equals(CompareMode.OFF)) {
-                compareMode = CompareMode.getInstance(null, 0, binaryUnsigned, uuidUnsigned);
+                compareMode = CompareMode.getInstance(null, 0);
             } else {
                 int strength = getIntValue();
                 buff.append(" STRENGTH ");
@@ -157,7 +154,7 @@ public class Set extends Prepared {
                 } else if (strength == Collator.TERTIARY) {
                     buff.append("TERTIARY");
                 }
-                compareMode = CompareMode.getInstance(stringValue, strength, binaryUnsigned, uuidUnsigned);
+                compareMode = CompareMode.getInstance(stringValue, strength);
             }
             synchronized (database) {
                 CompareMode old = database.getCompareMode();
@@ -170,44 +167,6 @@ public class Set extends Prepared {
                 }
                 addOrUpdateSetting(name, buff.toString(), 0);
                 database.setCompareMode(compareMode);
-            }
-            break;
-        }
-        case SetTypes.BINARY_COLLATION: {
-            session.getUser().checkAdmin();
-            stringValue = StringUtils.toUpperEnglish(stringValue);
-            boolean unsigned = isUnsignedCollation("BINARY_COLLATION");
-            synchronized (database) {
-                CompareMode currentMode = database.getCompareMode();
-                if (currentMode.isBinaryUnsigned() != unsigned) {
-                    Table table = database.getFirstUserTable();
-                    if (table != null) {
-                        throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getTraceSQL());
-                    }
-                }
-                CompareMode newMode = CompareMode.getInstance(currentMode.getName(),
-                        currentMode.getStrength(), unsigned, currentMode.isUuidUnsigned());
-                addOrUpdateSetting(name, stringValue, 0);
-                database.setCompareMode(newMode);
-            }
-            break;
-        }
-        case SetTypes.UUID_COLLATION: {
-            session.getUser().checkAdmin();
-            stringValue = StringUtils.toUpperEnglish(stringValue);
-            boolean unsigned = isUnsignedCollation("UUID_COLLATION");
-            synchronized (database) {
-                CompareMode currentMode = database.getCompareMode();
-                if (currentMode.isUuidUnsigned() != unsigned) {
-                    Table table = database.getFirstUserTable();
-                    if (table != null) {
-                        throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getTraceSQL());
-                    }
-                }
-                CompareMode newMode = CompareMode.getInstance(currentMode.getName(),
-                        currentMode.getStrength(), currentMode.isBinaryUnsigned(), unsigned);
-                addOrUpdateSetting(name, stringValue, 0);
-                database.setCompareMode(newMode);
             }
             break;
         }
@@ -644,15 +603,6 @@ public class Set extends Prepared {
         // when changing the compatibility mode
         database.getNextModificationMetaId();
         return 0;
-    }
-
-    private boolean isUnsignedCollation(String param) {
-        if (stringValue.equals(CompareMode.UNSIGNED)) {
-            return true;
-        } else if (stringValue.equals(CompareMode.SIGNED)) {
-            return false;
-        }
-        throw DbException.getInvalidValueException(param, stringValue);
     }
 
     private static TimeZoneProvider parseTimeZone(Value v) {

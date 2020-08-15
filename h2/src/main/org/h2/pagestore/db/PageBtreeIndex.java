@@ -9,7 +9,6 @@ import org.h2.api.ErrorCode;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionLocal;
-import org.h2.engine.SysProperties;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
@@ -74,9 +73,9 @@ public class PageBtreeIndex extends PageIndex {
             rowCount = root.getRowCount();
             if (rowCount == 0 && store.isRecoveryRunning()) {
                 needRebuild = true;
-            } else if (!database.uuidCollationKnown()) {
+            } else if (database.upgradeTo2_0()) {
                 for (IndexColumn c : columns) {
-                    if (c.column.getType().getValueType() == Value.UUID) {
+                    if (org.h2.value.DataType.rebuildIndexOnUpgradeTo2_0(c.column.getType().getValueType())) {
                         removeAllRows();
                         needRebuild = true;
                         break;
@@ -450,10 +449,6 @@ public class PageBtreeIndex extends PageIndex {
 
     @Override
     public void writeRowCount() {
-        if (SysProperties.MODIFY_ON_WRITE && rootPageId == 0) {
-            // currently creating the index
-            return;
-        }
         PageBtree root = getPage(rootPageId);
         root.setRowCountStored(MathUtils.convertLongToInt(rowCount));
     }

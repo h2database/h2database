@@ -201,7 +201,6 @@ import org.h2.test.unit.TestMVTempResult;
 import org.h2.test.unit.TestMathUtils;
 import org.h2.test.unit.TestMemoryUnmapper;
 import org.h2.test.unit.TestMode;
-import org.h2.test.unit.TestModifyOnWrite;
 import org.h2.test.unit.TestNetUtils;
 import org.h2.test.unit.TestObjectDeserialization;
 import org.h2.test.unit.TestOldVersion;
@@ -883,7 +882,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestExit());
         addTest(new TestFileLock());
         addTest(new TestJmx());
-        addTest(new TestModifyOnWrite());
         addTest(new TestOldVersion());
         addTest(new TestMultiThreadedKernel());
         addTest(new TestPageStore());

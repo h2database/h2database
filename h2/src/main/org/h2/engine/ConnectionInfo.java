@@ -131,8 +131,10 @@ public class ConnectionInfo implements Cloneable {
         KNOWN_SETTINGS = set;
         settings = new String[] { //
                 "ASSERT", //
+                "BINARY_COLLATION", //
                 "DB_CLOSE_ON_EXIT", //
-                "PAGE_STORE" //
+                "PAGE_STORE", //
+                "UUID_COLLATION", //
         };
         set = new HashSet<>(32);
         for (String setting : commonSettings) {

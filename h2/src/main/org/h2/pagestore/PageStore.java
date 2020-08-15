@@ -362,13 +362,11 @@ public class PageStore implements CacheWriter {
         readVariableHeader();
         log = new PageLog(this);
         log.openForReading(logKey, logFirstTrunkPage, logFirstDataPage);
-        boolean isEmpty = recover();
+        recover();
         if (!database.isReadOnly()) {
             readMode = true;
-            if (!isEmpty || !SysProperties.MODIFY_ON_WRITE || tempObjects != null) {
-                openForWriting();
-                removeOldTempIndexes();
-            }
+            openForWriting();
+            removeOldTempIndexes();
         }
     }
 
@@ -476,8 +474,7 @@ public class PageStore implements CacheWriter {
         if (!database.getSettings().pageStoreTrim) {
             return;
         }
-        if (SysProperties.MODIFY_ON_WRITE && readMode && compactMode == 0 ||
-                compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY) {
+        if (compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY) {
             return;
         }
         openForWriting();
@@ -1378,14 +1375,11 @@ public class PageStore implements CacheWriter {
 
     /**
      * Run recovery.
-     *
-     * @return whether the transaction log was empty
      */
-    private boolean recover() {
+    private void recover() {
         trace.debug("log recover");
         recoveryRunning = true;
-        boolean isEmpty = true;
-        isEmpty &= log.recover(PageLog.RECOVERY_STAGE_UNDO);
+        log.recover(PageLog.RECOVERY_STAGE_UNDO);
         if (reservedPages != null) {
             for (int r : reservedPages.keySet()) {
                 if (trace.isDebugEnabled()) {
@@ -1394,10 +1388,10 @@ public class PageStore implements CacheWriter {
                 allocatePage(r);
             }
         }
-        isEmpty &= log.recover(PageLog.RECOVERY_STAGE_ALLOCATE);
+        log.recover(PageLog.RECOVERY_STAGE_ALLOCATE);
         openMetaIndex();
         readMetaData();
-        isEmpty &= log.recover(PageLog.RECOVERY_STAGE_REDO);
+        log.recover(PageLog.RECOVERY_STAGE_REDO);
         boolean setReadOnly = false;
         if (!database.isReadOnly()) {
             if (log.getInDoubtTransactions().isEmpty()) {
@@ -1439,7 +1433,6 @@ public class PageStore implements CacheWriter {
             database.setReadOnly(true);
         }
         trace.debug("log recover done");
-        return isEmpty;
     }
 
     /**
@@ -1686,16 +1679,7 @@ public class PageStore implements CacheWriter {
             data.create = false;
             data.session = session;
             PageStoreTable table = new PageStoreTable(data);
-            boolean binaryUnsigned = SysProperties.SORT_BINARY_UNSIGNED;
-            if (options.length > 3) {
-                binaryUnsigned = Boolean.parseBoolean(options[3]);
-            }
-            boolean uuidUnsigned = SysProperties.SORT_UUID_UNSIGNED;
-            if (options.length > 4) {
-                uuidUnsigned = Boolean.parseBoolean(options[4]);
-            }
-            CompareMode mode = CompareMode.getInstance(
-                    options[0], Integer.parseInt(options[1]), binaryUnsigned, uuidUnsigned);
+            CompareMode mode = CompareMode.getInstance(options[0], Integer.parseInt(options[1]));
             table.setCompareMode(mode);
             meta = table.getScanIndex(session);
         } else {
@@ -1791,7 +1775,6 @@ public class PageStore implements CacheWriter {
             if (index instanceof PageDelegateIndex) {
                 options.append('d');
             }
-            options.append(',').append(mode.isBinaryUnsigned()).append(',').append(mode.isUuidUnsigned());
             Row row = metaTable.getTemplateRow();
             row.setValue(0, ValueInteger.get(index.getId()));
             row.setValue(1, ValueInteger.get(type));

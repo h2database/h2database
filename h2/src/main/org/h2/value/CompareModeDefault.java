@@ -22,8 +22,8 @@ public class CompareModeDefault extends CompareMode {
 
     private volatile CompareModeDefault caseInsensitive;
 
-    protected CompareModeDefault(String name, int strength, boolean binaryUnsigned, boolean uuidUnsigned) {
-        super(name, strength, binaryUnsigned, uuidUnsigned);
+    protected CompareModeDefault(String name, int strength) {
+        super(name, strength);
         collator = CompareMode.getCollator(name);
         if (collator == null) {
             throw DbException.throwInternalError(name);
@@ -42,8 +42,7 @@ public class CompareModeDefault extends CompareMode {
         if (ignoreCase && getStrength() > Collator.SECONDARY) {
             CompareModeDefault i = caseInsensitive;
             if (i == null) {
-                caseInsensitive = i = new CompareModeDefault(getName(), Collator.SECONDARY, isBinaryUnsigned(),
-                        isUuidUnsigned());
+                caseInsensitive = i = new CompareModeDefault(getName(), Collator.SECONDARY);
             }
             return i.compareString(a, b, false);
         }

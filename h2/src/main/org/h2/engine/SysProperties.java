@@ -250,16 +250,6 @@ public class SysProperties {
             Utils.getProperty("h2.maxTraceDataLength", 65535);
 
     /**
-     * System property <code>h2.modifyOnWrite</code> (default: false).<br />
-     * Only modify the database file when recovery is necessary, or when writing
-     * to the database. If disabled, opening the database always writes to the
-     * file (except if the database is read-only). When enabled, the serialized
-     * file lock is faster.
-     */
-    public static final boolean MODIFY_ON_WRITE =
-            Utils.getProperty("h2.modifyOnWrite", false);
-
-    /**
      * System property <code>h2.nioLoadMapped</code> (default: false).<br />
      * If the mapped buffer should be loaded when the file is opened.
      * This can improve performance.
@@ -361,23 +351,6 @@ public class SysProperties {
      */
     public static final int SOCKET_CONNECT_TIMEOUT =
             Utils.getProperty("h2.socketConnectTimeout", 2000);
-
-    /**
-     * System property <code>h2.sortBinaryUnsigned</code>
-     * (default: true).<br />
-     * Whether binary data should be sorted in unsigned mode
-     * (0xff is larger than 0x00) by default in new databases.
-     */
-    public static final boolean SORT_BINARY_UNSIGNED = Utils.getProperty("h2.sortBinaryUnsigned", true);
-
-    /**
-     * System property {@code h2.sortUuidUnsigned}
-     * (default: true).<br />
-     * Whether UUID data should be sorted in unsigned mode
-     * ('ffffffff-ffff-ffff-ffff-ffffffffffff' is larger than
-     * '00000000-0000-0000-0000-000000000000') by default in new databases.
-     */
-    public static final boolean SORT_UUID_UNSIGNED = Utils.getProperty("h2.sortUuidUnsigned", true);
 
     /**
      * System property <code>h2.splitFileSizeShift</code> (default: 30).<br />

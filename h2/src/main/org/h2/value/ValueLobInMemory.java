@@ -86,7 +86,7 @@ public final class ValueLobInMemory extends ValueLob {
         ValueLobInMemory v2 = (ValueLobInMemory) v;
         if (v2 != null) {
             if (valueType == Value.BLOB) {
-                return Bits.compareNotNullSigned(small, v2.small);
+                return Bits.compareNotNullUnsigned(small, v2.small);
             } else {
                 return Integer.signum(getString().compareTo(v2.getString()));
             }

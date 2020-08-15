@@ -2449,7 +2449,7 @@ select * from test2 where name like 'HELLO';
 > rows: 1
 
 explain plan for select * from test2, test where test2.name = test.name;
->> SELECT "PUBLIC"."TEST2"."ID", "PUBLIC"."TEST2"."NAME", "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME" FROM "PUBLIC"."TEST2" /* PUBLIC.TEST2.tableScan */ INNER JOIN "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ ON 1=1 WHERE "TEST2"."NAME" = "TEST"."NAME"
+>> SELECT "PUBLIC"."TEST2"."ID", "PUBLIC"."TEST2"."NAME", "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME" FROM "PUBLIC"."TEST2" /* PUBLIC.TEST2.tableScan */ INNER JOIN "PUBLIC"."TEST" /* PUBLIC.IDX_TEST_NAME */ ON 1=1 WHERE "TEST2"."NAME" = "TEST"."NAME"
 
 select * from test2, test where test2.name = test.name;
 > ID NAME  ID NAME
@@ -2459,7 +2459,7 @@ select * from test2, test where test2.name = test.name;
 > rows: 2
 
 explain plan for select * from test, test2 where test2.name = test.name;
->> SELECT "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME", "PUBLIC"."TEST2"."ID", "PUBLIC"."TEST2"."NAME" FROM "PUBLIC"."TEST2" /* PUBLIC.TEST2.tableScan */ INNER JOIN "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ ON 1=1 WHERE "TEST2"."NAME" = "TEST"."NAME"
+>> SELECT "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME", "PUBLIC"."TEST2"."ID", "PUBLIC"."TEST2"."NAME" FROM "PUBLIC"."TEST2" /* PUBLIC.TEST2.tableScan */ INNER JOIN "PUBLIC"."TEST" /* PUBLIC.IDX_TEST_NAME */ ON 1=1 WHERE "TEST2"."NAME" = "TEST"."NAME"
 
 select * from test, test2 where test2.name = test.name;
 > ID NAME  ID NAME
@@ -2472,7 +2472,7 @@ create index idx_test2_name on test2(name);
 > ok
 
 explain plan for select * from test2, test where test2.name = test.name;
->> SELECT "PUBLIC"."TEST2"."ID", "PUBLIC"."TEST2"."NAME", "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ INNER JOIN "PUBLIC"."TEST2" /* PUBLIC.IDX_TEST2_NAME: NAME = TEST.NAME */ ON 1=1 WHERE "TEST2"."NAME" = "TEST"."NAME"
+>> SELECT "PUBLIC"."TEST2"."ID", "PUBLIC"."TEST2"."NAME", "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.IDX_TEST_NAME */ INNER JOIN "PUBLIC"."TEST2" /* PUBLIC.IDX_TEST2_NAME: NAME = TEST.NAME */ ON 1=1 WHERE "TEST2"."NAME" = "TEST"."NAME"
 
 select * from test2, test where test2.name = test.name;
 > ID NAME  ID NAME
@@ -2482,7 +2482,7 @@ select * from test2, test where test2.name = test.name;
 > rows: 2
 
 explain plan for select * from test, test2 where test2.name = test.name;
->> SELECT "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME", "PUBLIC"."TEST2"."ID", "PUBLIC"."TEST2"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ INNER JOIN "PUBLIC"."TEST2" /* PUBLIC.IDX_TEST2_NAME: NAME = TEST.NAME */ ON 1=1 WHERE "TEST2"."NAME" = "TEST"."NAME"
+>> SELECT "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME", "PUBLIC"."TEST2"."ID", "PUBLIC"."TEST2"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.IDX_TEST_NAME */ INNER JOIN "PUBLIC"."TEST2" /* PUBLIC.IDX_TEST2_NAME: NAME = TEST.NAME */ ON 1=1 WHERE "TEST2"."NAME" = "TEST"."NAME"
 
 select * from test, test2 where test2.name = test.name;
 > ID NAME  ID NAME

@@ -1425,4 +1425,13 @@ public abstract class Table extends SchemaObject {
         return triggers;
     }
 
+    /**
+     * Returns ID of main index column, or {@link SearchRow#ROWID_INDEX}.
+     *
+     * @return ID of main index column, or {@link SearchRow#ROWID_INDEX}
+     */
+    public int getMainIndexColumn() {
+        return SearchRow.ROWID_INDEX;
+    }
+
 }

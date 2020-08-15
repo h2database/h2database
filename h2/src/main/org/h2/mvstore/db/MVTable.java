@@ -673,4 +673,10 @@ public class MVTable extends RegularTable {
         }
         return store.convertMVStoreException(e);
     }
+
+    @Override
+    public int getMainIndexColumn() {
+        return primaryIndex.getMainIndexColumn();
+    }
+
 }

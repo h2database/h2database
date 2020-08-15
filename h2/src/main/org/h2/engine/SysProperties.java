@@ -250,16 +250,6 @@ public class SysProperties {
             Utils.getProperty("h2.maxTraceDataLength", 65535);
 
     /**
-     * System property <code>h2.modifyOnWrite</code> (default: false).<br />
-     * Only modify the database file when recovery is necessary, or when writing
-     * to the database. If disabled, opening the database always writes to the
-     * file (except if the database is read-only). When enabled, the serialized
-     * file lock is faster.
-     */
-    public static final boolean MODIFY_ON_WRITE =
-            Utils.getProperty("h2.modifyOnWrite", false);
-
-    /**
      * System property <code>h2.nioLoadMapped</code> (default: false).<br />
      * If the mapped buffer should be loaded when the file is opened.
      * This can improve performance.

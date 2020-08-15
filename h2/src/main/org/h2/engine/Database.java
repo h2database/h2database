@@ -560,18 +560,10 @@ public class Database implements DataHandler, CastDataProvider {
             }
             deleteOldTempFiles();
             starting = true;
-            if (SysProperties.MODIFY_ON_WRITE) {
-                try {
-                    createMainStore();
-                } catch (DbException e) {
-                    if (e.getErrorCode() != ErrorCode.DATABASE_IS_READ_ONLY) {
-                        throw e;
-                    }
-                    pageStore = null;
-                    createMainStore();
-                }
+            if (dbSettings.mvStore) {
+                getOrCreateStore();
             } else {
-                createMainStore();
+                createPageStore();
             }
             starting = false;
         } else {
@@ -2591,14 +2583,6 @@ public class Database implements DataHandler, CastDataProvider {
     @Override
     public TempFileDeleter getTempFileDeleter() {
         return tempFileDeleter;
-    }
-
-    private void createMainStore() {
-        if (dbSettings.mvStore) {
-            getOrCreateStore();
-        } else {
-            createPageStore();
-        }
     }
 
     private void createPageStore() {

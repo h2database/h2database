@@ -9,7 +9,6 @@ import org.h2.api.ErrorCode;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionLocal;
-import org.h2.engine.SysProperties;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
@@ -450,10 +449,6 @@ public class PageBtreeIndex extends PageIndex {
 
     @Override
     public void writeRowCount() {
-        if (SysProperties.MODIFY_ON_WRITE && rootPageId == 0) {
-            // currently creating the index
-            return;
-        }
         PageBtree root = getPage(rootPageId);
         root.setRowCountStored(MathUtils.convertLongToInt(rowCount));
     }

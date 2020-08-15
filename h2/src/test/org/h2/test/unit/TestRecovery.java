@@ -336,7 +336,6 @@ public class TestRecovery extends TestDb {
         Connection conn = getConnection("recovery");
         Statement stat = conn.createStatement();
         stat.execute("SET COLLATION EN");
-        stat.execute("SET BINARY_COLLATION UNSIGNED");
         stat.execute("CREATE TABLE TEST(A VARCHAR)");
         conn.close();
 

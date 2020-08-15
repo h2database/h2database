@@ -8747,12 +8747,6 @@ public class Parser {
         } else if (readIf("COLLATION")) {
             readIfEqualOrTo();
             return parseSetCollation();
-        } else if (readIf("BINARY_COLLATION")) {
-            readIfEqualOrTo();
-            return parseSetBinaryCollation(SetTypes.BINARY_COLLATION);
-        } else if (readIf("UUID_COLLATION")) {
-            readIfEqualOrTo();
-            return parseSetBinaryCollation(SetTypes.UUID_COLLATION);
         } else if (readIf("CLUSTER")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.CLUSTER);
@@ -8944,16 +8938,6 @@ public class Parser {
             command.setInt(coll.getStrength());
         }
         return command;
-    }
-
-    private Set parseSetBinaryCollation(int type) {
-        String name = readAliasIdentifier();
-        if (equalsToken(name, CompareMode.UNSIGNED) || equalsToken(name, CompareMode.SIGNED)) {
-            Set command = new Set(session, type);
-            command.setString(name);
-            return command;
-        }
-        throw DbException.getInvalidValueException(SetTypes.getTypeName(type), name);
     }
 
     private Prepared readSetCompatibility(ModeEnum modeEnum) {

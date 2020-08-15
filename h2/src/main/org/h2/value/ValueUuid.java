@@ -166,21 +166,8 @@ public final class ValueUuid extends Value {
             return 0;
         }
         ValueUuid v = (ValueUuid) o;
-        long v1 = high, v2 = v.high;
-        if (v1 == v2) {
-            v1 = low;
-            v2 = v.low;
-            if (mode.isUuidUnsigned()) {
-                v1 += Long.MIN_VALUE;
-                v2 += Long.MIN_VALUE;
-            }
-            return Long.compare(v1, v2);
-        }
-        if (mode.isUuidUnsigned()) {
-            v1 += Long.MIN_VALUE;
-            v2 += Long.MIN_VALUE;
-        }
-        return v1 > v2 ? 1 : -1;
+        int cmp = Long.compareUnsigned(high, v.high);
+        return cmp != 0 ? cmp : Long.compareUnsigned(low, v.low);
     }
 
     @Override

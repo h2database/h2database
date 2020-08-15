@@ -23,8 +23,8 @@ public class CompareModeIcu4J extends CompareMode {
 
     private volatile CompareModeIcu4J caseInsensitive;
 
-    protected CompareModeIcu4J(String name, int strength, boolean binaryUnsigned, boolean uuidUnsigned) {
-        super(name, strength, binaryUnsigned, uuidUnsigned);
+    protected CompareModeIcu4J(String name, int strength) {
+        super(name, strength);
         collator = getIcu4jCollator(name, strength);
     }
 
@@ -33,8 +33,7 @@ public class CompareModeIcu4J extends CompareMode {
         if (ignoreCase && getStrength() > Collator.SECONDARY) {
             CompareModeIcu4J i = caseInsensitive;
             if (i == null) {
-                caseInsensitive = i = new CompareModeIcu4J(getName(), Collator.SECONDARY, isBinaryUnsigned(),
-                        isUuidUnsigned());
+                caseInsensitive = i = new CompareModeIcu4J(getName(), Collator.SECONDARY);
             }
             return i.compareString(a, b, false);
         }

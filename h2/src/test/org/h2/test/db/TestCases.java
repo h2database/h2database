@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
-import org.h2.engine.SysProperties;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -112,7 +111,6 @@ public class TestCases extends TestDb {
         testDoubleRecovery();
         testConstraintReconnect();
         testCollation();
-        testBinaryCollation();
         deleteDb("cases");
     }
 
@@ -1177,46 +1175,6 @@ public class TestCases extends TestDb {
         assertEquals("Hello", rs.getString(1));
         rs.next();
         assertEquals("HELLO", rs.getString(1));
-        conn.close();
-    }
-
-    private void testBinaryCollation() throws SQLException {
-        deleteDb("cases");
-        Connection conn = getConnection("cases");
-        Statement stat = conn.createStatement();
-        ResultSet rs;
-
-        // test the SIGNED mode
-        stat.execute("SET BINARY_COLLATION SIGNED");
-        stat.execute("create table bin( x binary(1) );");
-        stat.execute("insert into bin(x) values (x'09'),(x'0a'),(x'99'),(x'aa');");
-        rs = stat.executeQuery("select rawtohex(x) from bin order by x;");
-        rs.next();
-        assertEquals("99", rs.getString(1));
-        rs.next();
-        assertEquals("aa", rs.getString(1));
-        rs.next();
-        assertEquals("09", rs.getString(1));
-        rs.next();
-        assertEquals("0a", rs.getString(1));
-        stat.execute("drop table bin");
-        // test UNSIGNED mode (default)
-        stat.execute("SET BINARY_COLLATION UNSIGNED");
-        stat.execute("create table bin( x binary(1) );");
-        stat.execute("insert into bin(x) values (x'09'),(x'0a'),(x'99'),(x'aa');");
-        rs = stat.executeQuery("select rawtohex(x) from bin order by x;");
-        rs.next();
-        assertEquals("09", rs.getString(1));
-        rs.next();
-        assertEquals("0a", rs.getString(1));
-        rs.next();
-        assertEquals("99", rs.getString(1));
-        rs.next();
-        assertEquals("aa", rs.getString(1));
-        stat.execute("drop table bin");
-        stat.execute("SET BINARY_COLLATION "
-                + (SysProperties.SORT_BINARY_UNSIGNED ? "UNSIGNED" : "SIGNED"));
-
         conn.close();
     }
 

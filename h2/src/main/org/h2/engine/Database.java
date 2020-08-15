@@ -643,16 +643,15 @@ public class Database implements DataHandler, CastDataProvider {
         if (!readOnly) {
             // set CREATE_BUILD in a new database
             String name = SetTypes.getTypeName(SetTypes.CREATE_BUILD);
-            if (settings.get(name) == null) {
-                Setting setting = new Setting(this, allocateObjectId(), name);
+            Setting setting = settings.get(name);
+            if (setting == null) {
+                setting = new Setting(this, allocateObjectId(), name);
                 setting.setIntValue(Constants.BUILD_ID);
                 lockMeta(systemSession);
                 addDatabaseObject(systemSession, setting);
+            } else if (createBuild < 201) {
+                upgradeMetaTo2_0(setting);
             }
-            if (!SysProperties.SORT_BINARY_UNSIGNED) {
-                setSortSetting(SetTypes.BINARY_COLLATION, SysProperties.SORT_BINARY_UNSIGNED);
-            }
-            setSortSetting(SetTypes.UUID_COLLATION, SysProperties.SORT_UUID_UNSIGNED);
             // mark all ids used in the page store
             if (pageStore != null) {
                 BitSet f = pageStore.getObjectIds();
@@ -680,6 +679,40 @@ public class Database implements DataHandler, CastDataProvider {
             } else {
                 setWriteDelay(writeDelay);
             }
+        }
+    }
+
+    /**
+     * Returns whether database was in 1.X format.
+     *
+     * @return {@code true} if database was in 1.X format, {@code false} otherwise
+     */
+    public boolean upgradeTo2_0() {
+        return createBuild < 201;
+    }
+
+    private void upgradeMetaTo2_0(Setting setting) {
+        setting.setIntValue(Constants.BUILD_ID);
+        lockMeta(systemSession);
+        updateMeta(systemSession, setting);
+        int binary = -1, uuid = -1;
+        for (Cursor cursor = metaIdIndex.find(systemSession, null, null); cursor.next();) {
+            MetaRecord rec = new MetaRecord(cursor.get());
+            objectIds.set(rec.getId());
+            if (rec.getObjectType() == DbObject.SETTING) {
+                String sql = rec.getSQL();
+                if (sql.startsWith("SET BINARY_COLLATION ")) {
+                    binary = rec.getId();
+                } else if (sql.startsWith("SET UUID_COLLATION ")) {
+                    uuid = rec.getId();
+                }
+            }
+        }
+        if (binary >= 0) {
+            removeMeta(systemSession, binary);
+        }
+        if (uuid >= 0) {
+            removeMeta(systemSession, uuid);
         }
     }
 
@@ -768,25 +801,6 @@ public class Database implements DataHandler, CastDataProvider {
             for (MetaRecord rec : records) {
                 rec.prepareAndExecute(this, systemSession, eventListener);
             }
-        }
-    }
-
-    /**
-     * Preserves a current default value of a sorting setting if explicit value
-     * wasn't set.
-     *
-     * @param type
-     *            setting type
-     * @param defValue
-     *            current default value (may be modified via system properties)
-     */
-    private void setSortSetting(int type, boolean defValue) {
-        String name = SetTypes.getTypeName(type);
-        if (settings.get(name) == null) {
-            Setting setting = new Setting(this, allocateObjectId(), name);
-            setting.setStringValue(defValue ? CompareMode.UNSIGNED : CompareMode.SIGNED);
-            lockMeta(systemSession);
-            addDatabaseObject(systemSession, setting);
         }
     }
 
@@ -2910,27 +2924,6 @@ public class Database implements DataHandler, CastDataProvider {
      */
     public void setCreateBuild(int createBuild) {
         this.createBuild = createBuild;
-    }
-
-    /**
-     * Returns whether UUID_COLLATION is persisted in metadata.
-     *
-     * <p>
-     * H2 1.4.197 and older versions don't have UUID_COLLATION setting. Versions
-     * 1.4.198, 1.4.199, and 1.4.200 have this setting, but don't preserve value
-     * of the setting in metadata if it wasn't set explicitly by user.
-     * </p>
-     * <p>
-     * If UUID_COLLATION setting with any value was found in metadata no further
-     * action is required. If this setting wasn't found, indexes with UUID
-     * columns are reconstructed using the default from the current H2. This
-     * default is persisted in metadata after initialization.
-     * </p>
-     *
-     * @return whether UUID_COLLATION setting is persisted in metadata.
-     */
-    public boolean uuidCollationKnown() {
-        return settings.containsKey(SetTypes.getTypeName(SetTypes.UUID_COLLATION));
     }
 
     @Override

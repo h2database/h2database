@@ -1679,16 +1679,7 @@ public class PageStore implements CacheWriter {
             data.create = false;
             data.session = session;
             PageStoreTable table = new PageStoreTable(data);
-            boolean binaryUnsigned = SysProperties.SORT_BINARY_UNSIGNED;
-            if (options.length > 3) {
-                binaryUnsigned = Boolean.parseBoolean(options[3]);
-            }
-            boolean uuidUnsigned = SysProperties.SORT_UUID_UNSIGNED;
-            if (options.length > 4) {
-                uuidUnsigned = Boolean.parseBoolean(options[4]);
-            }
-            CompareMode mode = CompareMode.getInstance(
-                    options[0], Integer.parseInt(options[1]), binaryUnsigned, uuidUnsigned);
+            CompareMode mode = CompareMode.getInstance(options[0], Integer.parseInt(options[1]));
             table.setCompareMode(mode);
             meta = table.getScanIndex(session);
         } else {
@@ -1784,7 +1775,6 @@ public class PageStore implements CacheWriter {
             if (index instanceof PageDelegateIndex) {
                 options.append('d');
             }
-            options.append(',').append(mode.isBinaryUnsigned()).append(',').append(mode.isUuidUnsigned());
             Row row = metaTable.getTemplateRow();
             row.setValue(0, ValueInteger.get(index.getId()));
             row.setValue(1, ValueInteger.get(type));

@@ -43,12 +43,7 @@ abstract class ValueBytesBase extends Value {
 
     @Override
     public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
-        byte[] v2 = ((ValueBytesBase) v).value;
-        int valueType = getValueType();
-        if (valueType == GEOMETRY || valueType == JSON || mode.isBinaryUnsigned()) {
-            return Bits.compareNotNullUnsigned(value, v2);
-        }
-        return Bits.compareNotNullSigned(value, v2);
+        return Bits.compareNotNullUnsigned(value, ((ValueBytesBase) v).value);
     }
 
     @Override

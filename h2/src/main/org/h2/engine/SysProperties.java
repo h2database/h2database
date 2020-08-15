@@ -353,23 +353,6 @@ public class SysProperties {
             Utils.getProperty("h2.socketConnectTimeout", 2000);
 
     /**
-     * System property <code>h2.sortBinaryUnsigned</code>
-     * (default: true).<br />
-     * Whether binary data should be sorted in unsigned mode
-     * (0xff is larger than 0x00) by default in new databases.
-     */
-    public static final boolean SORT_BINARY_UNSIGNED = Utils.getProperty("h2.sortBinaryUnsigned", true);
-
-    /**
-     * System property {@code h2.sortUuidUnsigned}
-     * (default: true).<br />
-     * Whether UUID data should be sorted in unsigned mode
-     * ('ffffffff-ffff-ffff-ffff-ffffffffffff' is larger than
-     * '00000000-0000-0000-0000-000000000000') by default in new databases.
-     */
-    public static final boolean SORT_UUID_UNSIGNED = Utils.getProperty("h2.sortUuidUnsigned", true);
-
-    /**
      * System property <code>h2.splitFileSizeShift</code> (default: 30).<br />
      * The maximum file size of a split file is 1L &lt;&lt; x.
      */

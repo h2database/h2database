@@ -262,7 +262,7 @@ EXPLAIN SELECT * FROM TEST WHERE ID IN (10, 20) AND DATA IN (1, 2);
 -->        "PUBLIC"."TEST"."ID",
 -->        "PUBLIC"."TEST"."DATA"
 -->    FROM "PUBLIC"."TEST"
--->        /* PUBLIC.PRIMARY_KEY_2: ID IN(10, 20) */
+-->        /* PUBLIC.TEST_DATA: DATA IN(1, 2) */
 -->    WHERE ("ID" IN(10, 20))
 -->        AND ("DATA" IN(1, 2))
 ;

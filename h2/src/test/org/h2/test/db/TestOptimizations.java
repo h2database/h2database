@@ -1143,8 +1143,9 @@ public class TestOptimizations extends TestDb {
                 "CONSTRAINT TABLE_A_UK UNIQUE (name) )");
         stat.execute("CREATE TABLE TABLE_B(id IDENTITY PRIMARY KEY NOT NULL,  " +
                 "TABLE_a_id BIGINT NOT NULL,  createDate TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, " +
-                "CONSTRAINT TABLE_B_UK UNIQUE (table_a_id, createDate), " +
-                "FOREIGN KEY (table_a_id) REFERENCES TABLE_A(id) )");
+                "CONSTRAINT TABLE_B_UK UNIQUE (table_a_id, createDate))");
+        stat.execute("CREATE INDEX TABLE_B_IDX ON TABLE_B(TABLE_A_ID)");
+        stat.execute("ALTER TABLE TABLE_B ADD FOREIGN KEY (table_a_id) REFERENCES TABLE_A(id)");
         stat.execute("INSERT INTO TABLE_A (name)  SELECT 'package_' || CAST(X as VARCHAR) " +
                 "FROM SYSTEM_RANGE(1, 100)  WHERE X <= 100");
         int count = config.memory ? 30_000 : 50_000;
@@ -1153,7 +1154,6 @@ public class TestOptimizations extends TestDb {
                 "FROM ( SELECT ROUND((RAND() * 100)) AS table_a_id, " +
                 "DATEADD('SECOND', X, CURRENT_TIMESTAMP) as createDate FROM SYSTEM_RANGE(1, " + count + ") " +
                 "WHERE X < " + count + "  )");
-        stat.execute("CREATE INDEX table_b_idx ON table_b(table_a_id, id)");
         stat.execute("ANALYZE");
 
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT MAX(b.id) as id " +

@@ -995,9 +995,9 @@ public class TestPreparedStatement extends TestDb {
 
     private void testLikeIndex(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
-        stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
-        stat.execute("INSERT INTO TEST VALUES(2, 'World')");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V INT, NAME VARCHAR(255))");
+        stat.execute("INSERT INTO TEST VALUES(1, 2, 'Hello')");
+        stat.execute("INSERT INTO TEST VALUES(2, 4, 'World')");
         stat.execute("create index idxname on test(name);");
         PreparedStatement prep, prepExe;
 
@@ -1014,7 +1014,7 @@ public class TestPreparedStatement extends TestDb {
         assertContains(plan, ".tableScan");
         rs = prepExe.executeQuery();
         rs.next();
-        assertEquals("World", rs.getString(2));
+        assertEquals("World", rs.getString(3));
         assertFalse(rs.next());
 
         prep.setString(1, "H%");
@@ -1025,7 +1025,7 @@ public class TestPreparedStatement extends TestDb {
         assertContains(plan1, "IDXNAME");
         rs = prepExe.executeQuery();
         rs.next();
-        assertEquals("Hello", rs.getString(2));
+        assertEquals("Hello", rs.getString(3));
         assertFalse(rs.next());
 
         stat.execute("DROP TABLE IF EXISTS TEST");

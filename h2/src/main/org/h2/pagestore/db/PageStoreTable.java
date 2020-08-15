@@ -495,4 +495,9 @@ public class PageStoreTable extends RegularTable {
         this.compareMode = compareMode;
     }
 
+    @Override
+    public int getMainIndexColumn() {
+        return mainIndex.getMainIndexColumn();
+    }
+
 }

@@ -34,7 +34,10 @@ import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueSmallint;
+import org.h2.value.ValueTinyint;
 
 /**
  * A table filter represents a table that is used in a query. There is one such
@@ -1048,12 +1051,31 @@ public class TableFilter implements ColumnResolver {
             if (v != null) {
                 return v;
             }
+            if (columnId == column.getTable().getMainIndexColumn()) {
+                return getDelegatedValue(column);
+            }
             current = cursor.get();
             if (current == null) {
                 return ValueNull.INSTANCE;
             }
         }
         return current.getValue(columnId);
+    }
+
+    private Value getDelegatedValue(Column column) {
+        long key = currentSearchRow.getKey();
+        switch (column.getType().getValueType()) {
+        case Value.TINYINT:
+            return ValueTinyint.get((byte) key);
+        case Value.SMALLINT:
+            return ValueSmallint.get((short) key);
+        case Value.INTEGER:
+            return ValueInteger.get((int) key);
+        case Value.BIGINT:
+            return ValueBigint.get(key);
+        default:
+            throw DbException.throwInternalError();
+        }
     }
 
     @Override

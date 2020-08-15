@@ -627,28 +627,28 @@ public abstract class Index extends SchemaObject {
         // If we have two indexes with the same cost, and one of the indexes can
         // satisfy the query without needing to read from the primary table
         // (scan index), make that one slightly lower cost.
-        boolean needsToReadFromScanIndex = true;
+        boolean needsToReadFromScanIndex;
         if (!isScanIndex && allColumnsSet != null) {
-            boolean foundAllColumnsWeNeed = true;
+            needsToReadFromScanIndex = false;
             ArrayList<Column> foundCols = allColumnsSet.get(getTable());
             if (foundCols != null) {
-                for (Column c : foundCols) {
-                    boolean found = false;
+                int main = table.getMainIndexColumn();
+                loop: for (Column c : foundCols) {
+                    int id = c.getColumnId();
+                    if (id == SearchRow.ROWID_INDEX || id == main) {
+                        continue;
+                    }
                     for (Column c2 : columns) {
                         if (c == c2) {
-                            found = true;
-                            break;
+                            continue loop;
                         }
                     }
-                    if (!found) {
-                        foundAllColumnsWeNeed = false;
-                        break;
-                    }
+                    needsToReadFromScanIndex = true;
+                    break;
                 }
             }
-            if (foundAllColumnsWeNeed) {
-                needsToReadFromScanIndex = false;
-            }
+        } else {
+            needsToReadFromScanIndex = true;
         }
         long rc;
         if (isScanIndex) {

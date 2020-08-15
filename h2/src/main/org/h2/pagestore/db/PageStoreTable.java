@@ -19,6 +19,7 @@ import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.util.Utils;
@@ -497,7 +498,7 @@ public class PageStoreTable extends RegularTable {
 
     @Override
     public int getMainIndexColumn() {
-        return mainIndex.getMainIndexColumn();
+        return mainIndex != null ? mainIndex.getMainIndexColumn() : SearchRow.ROWID_INDEX;
     }
 
 }

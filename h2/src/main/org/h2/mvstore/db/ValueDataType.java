@@ -651,20 +651,10 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             return ValueNumeric.get(BigDecimal.valueOf(
                     readVarLong(buff), scale));
         }
-        case NUMERIC: {
-            int scale = readVarInt(buff);
-            int len = readVarInt(buff);
-            byte[] buff2 = Utils.newBytes(len);
-            buff.get(buff2, 0, len);
-            return ValueNumeric.get(new BigDecimal(new BigInteger(buff2), scale));
-        }
-        case DECFLOAT: {
-            int scale = readVarInt(buff);
-            int len = readVarInt(buff);
-            byte[] buff2 = Utils.newBytes(len);
-            buff.get(buff2, 0, len);
-            return ValueDecfloat.get(new BigDecimal(new BigInteger(buff2), scale));
-        }
+        case NUMERIC:
+            return ValueNumeric.get(readBigDecimal(buff));
+        case DECFLOAT:
+            return ValueDecfloat.get(readBigDecimal(buff));
         case DATE: {
             return ValueDate.fromDateValue(readVarLong(buff));
         }
@@ -787,6 +777,11 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             }
             throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
         }
+    }
+
+    private static BigDecimal readBigDecimal(ByteBuffer buff) {
+        int scale = readVarInt(buff);
+        return new BigDecimal(new BigInteger(readVarBytes(buff)), scale);
     }
 
     private static byte[] readVarBytes(ByteBuffer buff) {

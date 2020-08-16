@@ -70,8 +70,8 @@ public abstract class FileStore
      * written twice, one copy in each block, to ensure it survives a crash.
      */
     static final int BLOCK_SIZE = 4 * 1024;
-    static final int FORMAT_WRITE = 1;
-    static final int FORMAT_READ = 1;
+    static final int FORMAT_WRITE = 2;
+    static final int FORMAT_READ = 2;
 
     private MVStore mvStore;
 

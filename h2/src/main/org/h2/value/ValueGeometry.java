@@ -110,18 +110,6 @@ public final class ValueGeometry extends ValueBytesBase {
     }
 
     /**
-     * Get or create a geometry value for the given geometry.
-     *
-     * @param s the WKT representation of the geometry
-     * @param srid the srid of the object
-     * @return the value
-     */
-    public static ValueGeometry get(String s, int srid) {
-        // This method is not used in H2, but preserved for H2GIS
-        return get(srid == 0 ? s : "SRID=" + srid + ';' + s);
-    }
-
-    /**
      * Get or create a geometry value for the given internal EWKB representation.
      *
      * @param bytes the WKB representation of the geometry. May not be modified.

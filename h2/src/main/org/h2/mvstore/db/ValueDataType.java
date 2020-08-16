@@ -323,11 +323,9 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             }
             break;
         }
-        case Value.BIGINT: {
-            long x = v.getLong();
-            writeLong(buff, x);
+        case Value.BIGINT:
+            writeLong(buff, v.getLong());
             break;
-        }
         case Value.NUMERIC: {
             BigDecimal x = v.getBigDecimal();
             if (BigDecimal.ZERO.equals(x)) {
@@ -378,11 +376,9 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             writeTimeZone(buff, t.getTimeZoneOffsetSeconds());
             break;
         }
-        case Value.DATE: {
-            long x = ((ValueDate) v).getDateValue();
-            buff.put(DATE).putVarLong(x);
+        case Value.DATE:
+            buff.put(DATE).putVarLong(((ValueDate) v).getDateValue());
             break;
-        }
         case Value.TIMESTAMP: {
             ValueTimestamp ts = (ValueTimestamp) v;
             buff.put(TIMESTAMP).putVarLong(ts.getDateValue());
@@ -403,12 +399,9 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             byte[] b = v.getBytesNoCopy();
             int len = b.length;
             if (len < 32) {
-                buff.put((byte) (VARBINARY_0_31 + len)).
-                    put(b);
+                buff.put((byte) (VARBINARY_0_31 + len)).put(b);
             } else {
-                buff.put(VARBINARY).
-                    putVarInt(len).
-                    put(b);
+                buff.put(VARBINARY).putVarInt(len).put(b);
             }
             break;
         }
@@ -426,21 +419,17 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             String s = v.getString();
             int len = s.length();
             if (len < 32) {
-                buff.put((byte) (VARCHAR_0_31 + len)).
-                    putStringData(s, len);
+                buff.put((byte) (VARCHAR_0_31 + len)).putStringData(s, len);
             } else {
-                buff.put(VARCHAR);
-                writeString(buff, s);
+                writeString(buff.put(VARCHAR), s);
             }
             break;
         }
         case Value.VARCHAR_IGNORECASE:
-            buff.put(VARCHAR_IGNORECASE);
-            writeString(buff, v.getString());
+            writeString(buff.put(VARCHAR_IGNORECASE), v.getString());
             break;
         case Value.CHAR:
-            buff.put(CHAR);
-            writeString(buff, v.getString());
+            writeString(buff.put(CHAR), v.getString());
             break;
         case Value.DOUBLE: {
             double x = v.getDouble();
@@ -644,20 +633,17 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         case NUMERIC_0_1 + 1:
             return ValueNumeric.ONE;
         case NUMERIC_SMALL_0:
-            return ValueNumeric.get(BigDecimal.valueOf(
-                    readVarLong(buff)));
+            return ValueNumeric.get(BigDecimal.valueOf(readVarLong(buff)));
         case NUMERIC_SMALL: {
             int scale = readVarInt(buff);
-            return ValueNumeric.get(BigDecimal.valueOf(
-                    readVarLong(buff), scale));
+            return ValueNumeric.get(BigDecimal.valueOf(readVarLong(buff), scale));
         }
         case NUMERIC:
             return ValueNumeric.get(readBigDecimal(buff));
         case DECFLOAT:
             return ValueDecfloat.get(readBigDecimal(buff));
-        case DATE: {
+        case DATE:
             return ValueDate.fromDateValue(readVarLong(buff));
-        }
         case TIME:
             return ValueTime.fromNanos(readTimestampTime(buff));
         case TIME_TZ:
@@ -720,8 +706,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 return ValueLobDatabase.create(type == BLOB ? Value.BLOB : Value.CLOB,
                         handler, tableId, lobId, precision);
             } else {
-                throw DbException.get(ErrorCode.FILE_CORRUPTED_1,
-                        "lob type: " + smallLen);
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "lob type: " + smallLen);
             }
         }
         case ARRAY:
@@ -759,7 +744,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         case GEOMETRY:
             return ValueGeometry.get(readVarBytes(buff));
         case SPATIAL_KEY_2D:
-            return (SpatialKey)getSpatialDataType().read(buff);
+            return (SpatialKey) getSpatialDataType().read(buff);
         case JSON:
             return ValueJson.getInternal(readVarBytes(buff));
         default:

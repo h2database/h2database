@@ -61,6 +61,7 @@ public class TestTransactionStore extends TestBase {
         testSingleConnection();
         testCompareWithPostgreSQL();
         testStoreMultiThreadedReads();
+        testCommitAfterMapRemoval();
     }
 
     private void testHCLFKey() {

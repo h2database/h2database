@@ -94,7 +94,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     private static final byte UUID = 20;
     private static final byte CHAR = 21;
     private static final byte GEOMETRY = 22;
-    private static final byte TIMESTAMP_TZ = 24;
+    private static final byte TIMESTAMP_TZ_OLD = 24;
     private static final byte ENUM = 25;
     private static final byte INTERVAL = 26;
     private static final byte ROW = 27;
@@ -114,7 +114,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     private static final int SPATIAL_KEY_2D = 132;
     // 133 was used for CUSTOM_DATA_TYPE
     private static final int JSON = 134;
-    private static final int TIMESTAMP_TZ_2 = 135;
+    private static final int TIMESTAMP_TZ = 135;
     private static final int TIME_TZ = 136;
     private static final int BINARY = 137;
     private static final int DECFLOAT = 138;
@@ -408,20 +408,11 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             long nanos = ts.getTimeNanos();
             long millis = nanos / 1_000_000;
             nanos -= millis * 1_000_000;
-            int timeZoneOffset = ts.getTimeZoneOffsetSeconds();
-            if (timeZoneOffset % 60 == 0) {
-                buff.put(TIMESTAMP_TZ).
-                    putVarLong(dateValue).
-                    putVarLong(millis).
-                    putVarInt((int) nanos).
-                    putVarInt(timeZoneOffset / 60);
-            } else {
-                buff.put((byte) TIMESTAMP_TZ_2).
-                    putVarLong(dateValue).
-                    putVarLong(millis).
-                    putVarInt((int) nanos);
-                writeTimeZone(buff, timeZoneOffset);
-            }
+            buff.put((byte) TIMESTAMP_TZ).
+                putVarLong(dateValue).
+                putVarLong(millis).
+                putVarInt((int) nanos);
+            writeTimeZone(buff, ts.getTimeZoneOffsetSeconds());
             break;
         }
         case Value.JAVA_OBJECT: {
@@ -713,13 +704,13 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             long nanos = readVarLong(buff) * 1_000_000 + readVarInt(buff);
             return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
         }
-        case TIMESTAMP_TZ: {
+        case TIMESTAMP_TZ_OLD: {
             long dateValue = readVarLong(buff);
             long nanos = readVarLong(buff) * 1_000_000 + readVarInt(buff);
             int tz = readVarInt(buff) * 60;
             return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tz);
         }
-        case TIMESTAMP_TZ_2: {
+        case TIMESTAMP_TZ: {
             long dateValue = readVarLong(buff);
             long nanos = readVarLong(buff) * 1_000_000 + readVarInt(buff);
             int tz = readTimeZone(buff);

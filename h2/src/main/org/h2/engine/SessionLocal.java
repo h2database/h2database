@@ -157,7 +157,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     private int systemIdentifier;
     private HashMap<String, Procedure> procedures;
     private boolean undoLogEnabled = true;
-    private boolean redoLogBinary = true;
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
     private volatile long cancelAtNs;
@@ -1507,10 +1506,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         this.undoLogEnabled = b;
     }
 
-    public void setRedoLogBinary(boolean b) {
-        this.redoLogBinary = b;
-    }
-
     public boolean isUndoLogEnabled() {
         return undoLogEnabled;
     }
@@ -1708,10 +1703,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      */
     public int nextObjectId() {
         return objectId++;
-    }
-
-    public boolean isRedoLogBinaryEnabled() {
-        return redoLogBinary;
     }
 
     /**

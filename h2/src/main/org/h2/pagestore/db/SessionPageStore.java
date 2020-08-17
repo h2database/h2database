@@ -30,6 +30,8 @@ public final class SessionPageStore extends SessionLocal {
 
     private int firstUncommittedPos = LOG_WRITTEN;
 
+    private boolean redoLogBinary = true;
+
     public SessionPageStore(Database database, User user, int id) {
         super(database, user, id);
     }
@@ -65,6 +67,14 @@ public final class SessionPageStore extends SessionLocal {
     @Override
     public boolean containsUncommitted() {
         return firstUncommittedLog != LOG_WRITTEN;
+    }
+
+    public void setRedoLogBinary(boolean b) {
+        this.redoLogBinary = b;
+    }
+
+    public boolean isRedoLogBinaryEnabled() {
+        return redoLogBinary;
     }
 
     @Override

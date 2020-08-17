@@ -106,13 +106,13 @@ public class TableView extends Table {
         initColumnsAndTables(session, literalsChecked);
     }
 
-    private Query compileViewQuery(SessionLocal session, String sql, boolean literalsChecked, String viewName) {
+    private Query compileViewQuery(SessionLocal session, String sql, boolean literalsChecked) {
         Prepared p;
-        session.setParsingCreateView(true, viewName);
+        session.setParsingCreateView(true);
         try {
             p = session.prepare(sql, false, literalsChecked);
         } finally {
-            session.setParsingCreateView(false, viewName);
+            session.setParsingCreateView(false);
         }
         if (!(p instanceof Query)) {
             throw DbException.getSyntaxError(sql, 0);
@@ -137,7 +137,7 @@ public class TableView extends Table {
     public synchronized DbException recompile(SessionLocal session, boolean force,
             boolean clearIndexCache) {
         try {
-            compileViewQuery(session, querySQL, false, getName());
+            compileViewQuery(session, querySQL, false);
         } catch (DbException e) {
             if (!force) {
                 return e;
@@ -162,7 +162,7 @@ public class TableView extends Table {
         removeCurrentViewFromOtherTables();
         setTableExpression(isTableExpression);
         try {
-            Query compiledQuery = compileViewQuery(session, querySQL, literalsChecked, getName());
+            Query compiledQuery = compileViewQuery(session, querySQL, literalsChecked);
             this.querySQL = compiledQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
             tables = new ArrayList<>(compiledQuery.getTables());
             ArrayList<Expression> expressions = compiledQuery.getExpressions();

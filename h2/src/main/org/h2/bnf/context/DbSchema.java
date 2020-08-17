@@ -26,7 +26,7 @@ public class DbSchema {
     private static final String COLUMNS_QUERY_H2_197 = "SELECT COLUMN_NAME, ORDINAL_POSITION, COLUMN_TYPE "
             + "FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ?1 AND TABLE_NAME = ?2";
 
-    private static final String COLUMNS_QUERY_H2_201 = "SELECT COLUMN_NAME, ORDINAL_POSITION, "
+    private static final String COLUMNS_QUERY_H2_202 = "SELECT COLUMN_NAME, ORDINAL_POSITION, "
             + "DATA_TYPE_SQL(?1, ?2, 'TABLE', ORDINAL_POSITION) COLUMN_TYPE "
             + "FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ?1 AND TABLE_NAME = ?2";
 
@@ -147,7 +147,7 @@ public class DbSchema {
 
     private static PreparedStatement prepareColumnsQueryH2(Connection connection) throws SQLException {
         try {
-            return connection.prepareStatement(COLUMNS_QUERY_H2_201);
+            return connection.prepareStatement(COLUMNS_QUERY_H2_202);
         } catch (SQLSyntaxErrorException ex) {
             return connection.prepareStatement(COLUMNS_QUERY_H2_197);
         }

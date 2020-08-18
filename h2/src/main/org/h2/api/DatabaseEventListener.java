@@ -70,7 +70,7 @@ public interface DatabaseEventListener extends EventListener {
     }
 
     /**
-     * This method is called after the database has been opened. It is save to
+     * This method is called after the database has been opened. It is safe to
      * connect to the database and execute statements at this point.
      */
     default void opened() {
@@ -102,7 +102,7 @@ public interface DatabaseEventListener extends EventListener {
     }
 
     /**
-     * This method is called before the database is closed normally. It is save
+     * This method is called before the database is closed normally. It is safe
      * to connect to the database and execute statements at this point, however
      * the connection must be closed before the method returns.
      */

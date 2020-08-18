@@ -109,6 +109,12 @@ public final class ValueSmallint extends Value {
     }
 
     @Override
+    public byte[] getBytes() {
+        short value = this.value;
+        return new byte[] { (byte) (value >> 8), (byte) value };
+    }
+
+    @Override
     public short getShort() {
         return value;
     }

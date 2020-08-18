@@ -5,6 +5,8 @@
  */
 package org.h2.value;
 
+import java.nio.charset.StandardCharsets;
+
 import org.h2.engine.CastDataProvider;
 
 /**
@@ -72,6 +74,11 @@ abstract class ValueStringBase extends Value {
     @Override
     public String getString() {
         return value;
+    }
+
+    @Override
+    public byte[] getBytes() {
+        return value.getBytes(StandardCharsets.UTF_8);
     }
 
     @Override

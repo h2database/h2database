@@ -24,6 +24,7 @@ import org.h2.engine.CastDataProvider;
 import org.h2.engine.Mode.CharPadding;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
+import org.h2.store.DataHandler;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.HasSQL;
@@ -776,11 +777,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     }
 
     public byte[] getBytes() {
-        return convertTo(TypeInfo.TYPE_VARBINARY).getBytes();
+        throw getDataConversionError(VARBINARY);
     }
 
     public byte[] getBytesNoCopy() {
-        return convertTo(TypeInfo.TYPE_VARBINARY).getBytesNoCopy();
+        return getBytes();
     }
 
     public InputStream getInputStream() {
@@ -1260,48 +1261,17 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
 
     private ValueBinary convertToBinary(TypeInfo targetType, int conversionMode, Object column) {
         ValueBinary v;
-        switch (getValueType()) {
-        case BINARY:
+        if (getValueType() == BINARY) {
             v = (ValueBinary) this;
-            break;
-        case VARBINARY:
-        case JAVA_OBJECT:
-        case BLOB:
-        case GEOMETRY:
-        case JSON:
-            v = ValueBinary.getNoCopy(getBytesNoCopy());
-            break;
-        case UUID:
-            v = ValueBinary.getNoCopy(getBytes());
-            break;
-        case TINYINT:
-            v = ValueBinary.getNoCopy(new byte[] { getByte() });
-            break;
-        case SMALLINT: {
-            int x = getShort();
-            v = ValueBinary.getNoCopy(new byte[] { (byte) (x >> 8), (byte) x });
-            break;
-        }
-        case INTEGER: {
-            byte[] b = new byte[4];
-            Bits.writeInt(b, 0, getInt());
-            v = ValueBinary.getNoCopy(b);
-            break;
-        }
-        case BIGINT: {
-            byte[] b = new byte[8];
-            Bits.writeLong(b, 0, getLong());
-            v = ValueBinary.getNoCopy(b);
-            break;
-        }
-        case CHAR:
-        case VARCHAR:
-        case CLOB:
-        case VARCHAR_IGNORECASE:
-            v = ValueBinary.getNoCopy(getString().getBytes(StandardCharsets.UTF_8));
-            break;
-        default:
-            throw getDataConversionError(VARBINARY);
+        } else {
+            try {
+                v = ValueBinary.getNoCopy(getBytesNoCopy());
+            } catch (DbException e) {
+                if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
+                    throw getDataConversionError(BINARY);
+                }
+                throw e;
+            }
         }
         if (conversionMode != CONVERT_TO) {
             byte[] value = v.getBytesNoCopy();
@@ -1319,48 +1289,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
 
     private ValueVarbinary convertToVarbinary(TypeInfo targetType, int conversionMode, Object column) {
         ValueVarbinary v;
-        switch (getValueType()) {
-        case VARBINARY:
+        if (getValueType() == VARBINARY) {
             v = (ValueVarbinary) this;
-            break;
-        case BINARY:
-        case BLOB:
-        case JAVA_OBJECT:
-        case GEOMETRY:
-        case JSON:
+        } else {
             v = ValueVarbinary.getNoCopy(getBytesNoCopy());
-            break;
-        case UUID:
-            v = ValueVarbinary.getNoCopy(getBytes());
-            break;
-        case TINYINT:
-            v = ValueVarbinary.getNoCopy(new byte[] { getByte() });
-            break;
-        case SMALLINT: {
-            int x = getShort();
-            v = ValueVarbinary.getNoCopy(new byte[] { (byte) (x >> 8), (byte) x });
-            break;
-        }
-        case INTEGER: {
-            byte[] b = new byte[4];
-            Bits.writeInt(b, 0, getInt());
-            v = ValueVarbinary.getNoCopy(b);
-            break;
-        }
-        case BIGINT: {
-            byte[] b = new byte[8];
-            Bits.writeLong(b, 0, getLong());
-            v = ValueVarbinary.getNoCopy(b);
-            break;
-        }
-        case CHAR:
-        case VARCHAR:
-        case CLOB:
-        case VARCHAR_IGNORECASE:
-            v = ValueVarbinary.getNoCopy(getString().getBytes(StandardCharsets.UTF_8));
-            break;
-        default:
-            throw getDataConversionError(VARBINARY);
         }
         if (conversionMode != CONVERT_TO) {
             byte[] value = v.getBytesNoCopy();
@@ -1383,31 +1315,23 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case BLOB:
             v = (ValueLob) this;
             break;
-        case CLOB: {
-            v = (ValueLob) this;
-            if (v instanceof ValueLobInMemory) {
-                v = ValueLobInMemory.createSmallLob(BLOB, v.getBytesNoCopy());
-            } else if (v instanceof ValueLobDatabase) {
-                v = ((ValueLobDatabase) v).getDataHandler().getLobStorage().createBlob(v.getInputStream(), -1);
+        case CLOB:
+            DataHandler handler = ((ValueLob) this).getDataHandler();
+            if (handler != null) {
+                v = handler.getLobStorage().createBlob(getInputStream(), -1);
+                break;
+            }
+            //$FALL-THROUGH$
+        default:
+            try {
+                v = ValueLobInMemory.createSmallLob(BLOB, getBytesNoCopy());
+            } catch (DbException e) {
+                if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
+                    throw getDataConversionError(BLOB);
+                }
+                throw e;
             }
             break;
-        }
-        case BINARY:
-        case VARBINARY:
-        case GEOMETRY:
-        case JSON:
-            v = ValueLobInMemory.createSmallLob(BLOB, getBytesNoCopy());
-            break;
-        case UUID:
-            v = ValueLobInMemory.createSmallLob(BLOB, getBytes());
-            break;
-        case CHAR:
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
-            v = ValueLobInMemory.createSmallLob(BLOB, getString().getBytes(StandardCharsets.UTF_8));
-            break;
-        default:
-            throw getDataConversionError(BLOB);
         }
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {

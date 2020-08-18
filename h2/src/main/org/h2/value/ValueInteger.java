@@ -8,6 +8,7 @@ package org.h2.value;
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
+import org.h2.util.Bits;
 
 /**
  * Implementation of the INTEGER data type.
@@ -136,6 +137,13 @@ public final class ValueInteger extends Value {
     @Override
     public int getValueType() {
         return INTEGER;
+    }
+
+    @Override
+    public byte[] getBytes() {
+        byte[] b = new byte[4];
+        Bits.writeInt(b, 0, getInt());
+        return b;
     }
 
     @Override

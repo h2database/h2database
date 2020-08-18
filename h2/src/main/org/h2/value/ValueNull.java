@@ -78,11 +78,6 @@ public final class ValueNull extends Value {
     }
 
     @Override
-    public byte[] getBytesNoCopy() {
-        return null;
-    }
-
-    @Override
     public InputStream getInputStream() {
         return null;
     }

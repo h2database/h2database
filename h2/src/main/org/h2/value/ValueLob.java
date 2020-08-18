@@ -349,6 +349,15 @@ public abstract class ValueLob extends Value {
     }
 
     /**
+     * Returns the data handler.
+     *
+     * @return the data handler, or {@code null}
+     */
+    public DataHandler getDataHandler() {
+        return null;
+    }
+
+    /**
      * Create an independent copy of this temporary value. The file will not be
      * deleted automatically.
      *

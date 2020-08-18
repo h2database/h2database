@@ -109,6 +109,11 @@ public final class ValueTinyint extends Value {
     }
 
     @Override
+    public byte[] getBytes() {
+        return new byte[] { value };
+    }
+
+    @Override
     public byte getByte() {
         return value;
     }

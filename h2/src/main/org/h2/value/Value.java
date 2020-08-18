@@ -1076,7 +1076,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case DOUBLE:
             return convertToDouble();
         case DECFLOAT:
-            return convertToDecfloat(targetType, conversionMode, column);
+            return convertToDecfloat(targetType, conversionMode);
         case DATE:
             return convertToDate(provider);
         case TIME:
@@ -1900,7 +1900,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         }
     }
 
-    private ValueDecfloat convertToDecfloat(TypeInfo targetType, int conversionMode, Object column) {
+    private ValueDecfloat convertToDecfloat(TypeInfo targetType, int conversionMode) {
         ValueDecfloat v;
         switch (getValueType()) {
         case DECFLOAT:

@@ -3439,6 +3439,9 @@ public class Parser {
                     recompileAlways = true;
                     r = new CompareLike(database, r, not, whenOperand, b, null, LikeType.REGEXP);
                 } else if (not) {
+                    if (whenOperand) {
+                        return null;
+                    }
                     if (expectedList != null) {
                         addMultipleExpected(BETWEEN, IN, LIKE);
                     }

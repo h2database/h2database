@@ -68,12 +68,27 @@ public final class ValueNull extends Value {
     }
 
     @Override
+    public Reader getReader(long oneBasedOffset, long length) {
+        return null;
+    }
+
+    @Override
     public byte[] getBytes() {
         return null;
     }
 
     @Override
+    public byte[] getBytesNoCopy() {
+        return null;
+    }
+
+    @Override
     public InputStream getInputStream() {
+        return null;
+    }
+
+    @Override
+    public InputStream getInputStream(long oneBasedOffset, long length) {
         return null;
     }
 

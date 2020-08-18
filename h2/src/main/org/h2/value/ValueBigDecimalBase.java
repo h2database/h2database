@@ -78,7 +78,7 @@ abstract class ValueBigDecimalBase extends Value {
 
     @Override
     public final Value modulus(Value v) {
-        ValueNumeric dec = (ValueNumeric) v;
+        ValueBigDecimalBase dec = (ValueBigDecimalBase) v;
         if (dec.value.signum() == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }

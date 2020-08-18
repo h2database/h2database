@@ -5,9 +5,12 @@
  */
 package org.h2.value;
 
+import java.math.BigDecimal;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
+import org.h2.util.Bits;
 
 /**
  * Implementation of the INTEGER data type.
@@ -139,12 +142,34 @@ public final class ValueInteger extends Value {
     }
 
     @Override
+    public byte[] getBytes() {
+        byte[] b = new byte[4];
+        Bits.writeInt(b, 0, getInt());
+        return b;
+    }
+
+    @Override
     public int getInt() {
         return value;
     }
 
     @Override
     public long getLong() {
+        return value;
+    }
+
+    @Override
+    public BigDecimal getBigDecimal() {
+        return BigDecimal.valueOf(value);
+    }
+
+    @Override
+    public float getFloat() {
+        return value;
+    }
+
+    @Override
+    public double getDouble() {
         return value;
     }
 

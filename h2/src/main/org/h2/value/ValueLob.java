@@ -24,7 +24,7 @@ import org.h2.util.Utils;
  * types. Small objects are kept in memory and stored in the record. Large
  * objects are either stored in the database, or in temporary files.
  */
-public class ValueLob extends Value {
+public abstract class ValueLob extends Value {
 
     private static final int BLOCK_COMPARISON_SIZE = 512;
 
@@ -236,6 +236,16 @@ public class ValueLob extends Value {
     }
 
     @Override
+    public Reader getReader() {
+        return IOUtils.getBufferedReader(getInputStream());
+    }
+
+    @Override
+    public Reader getReader(long oneBasedOffset, long length) {
+        return rangeReader(getReader(), oneBasedOffset, length, valueType == Value.CLOB ? precision : -1);
+    }
+
+    @Override
     public byte[] getBytes() {
         try {
             return IOUtils.readBytesAndClose(getInputStream(), Integer.MAX_VALUE);
@@ -252,6 +262,12 @@ public class ValueLob extends Value {
             throw DbException.convertIOException(e, toString());
         }
     }
+
+    @Override
+    public abstract InputStream getInputStream();
+
+    @Override
+    public abstract InputStream getInputStream(long oneBasedOffset, long length);
 
     @Override
     public int hashCode() {
@@ -273,26 +289,6 @@ public class ValueLob extends Value {
         }
         ValueLob v2 = (ValueLob) v;
         return compare(this, v2);
-    }
-
-    @Override
-    public Reader getReader() {
-        return IOUtils.getBufferedReader(getInputStream());
-    }
-
-    @Override
-    public Reader getReader(long oneBasedOffset, long length) {
-        return rangeReader(getReader(), oneBasedOffset, length, valueType == Value.CLOB ? precision : -1);
-    }
-
-    @Override
-    public InputStream getInputStream() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public InputStream getInputStream(long oneBasedOffset, long length) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -350,6 +346,15 @@ public class ValueLob extends Value {
     @Override
     public int getMemory() {
         return 140;
+    }
+
+    /**
+     * Returns the data handler.
+     *
+     * @return the data handler, or {@code null}
+     */
+    public DataHandler getDataHandler() {
+        return null;
     }
 
     /**

@@ -5,7 +5,6 @@
  */
 package org.h2.engine;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -158,7 +157,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     private int systemIdentifier;
     private HashMap<String, Procedure> procedures;
     private boolean undoLogEnabled = true;
-    private boolean redoLogBinary = true;
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
     private volatile long cancelAtNs;
@@ -176,7 +174,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     private final int queryCacheSize;
     private SmallLRUCache<String, Command> queryCache;
     private long modificationMetaID = -1;
-    private ArrayDeque<String> viewNameStack;
+    private int createViewLevel;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;
     private boolean forceJoinOrder;
@@ -274,29 +272,19 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     }
 
     /**
-     * Stores name of currently parsed view in a stack so it can be determined
-     * during {@code prepare()}.
+     * This method is called before and after parsing of view definition and may
+     * be called recursively.
      *
      * @param parsingView
-     *            {@code true} to store one more name, {@code false} to remove it
-     *            from stack
-     * @param viewName
-     *            name of the view
+     *            {@code true} if this method is called before parsing of view
+     *            definition, {@code false} if it is called after it.
      */
-    public void setParsingCreateView(boolean parsingView, String viewName) {
-        if (viewNameStack == null) {
-            viewNameStack = new ArrayDeque<>(3);
-        }
-        if (parsingView) {
-            viewNameStack.push(viewName);
-        } else {
-            String name = viewNameStack.pop();
-            assert viewName.equals(name);
-        }
+    public void setParsingCreateView(boolean parsingView) {
+        createViewLevel += parsingView ? 1 : -1;
     }
 
     public boolean isParsingCreateView() {
-        return viewNameStack != null && !viewNameStack.isEmpty();
+        return createViewLevel != 0;
     }
 
     @Override
@@ -1518,10 +1506,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         this.undoLogEnabled = b;
     }
 
-    public void setRedoLogBinary(boolean b) {
-        this.redoLogBinary = b;
-    }
-
     public boolean isUndoLogEnabled() {
         return undoLogEnabled;
     }
@@ -1719,10 +1703,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      */
     public int nextObjectId() {
         return objectId++;
-    }
-
-    public boolean isRedoLogBinaryEnabled() {
-        return redoLogBinary;
     }
 
     /**

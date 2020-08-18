@@ -596,18 +596,10 @@ public class Data {
         }
         case Value.TIMESTAMP_TZ: {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v;
-            int timeZoneOffset = ts.getTimeZoneOffsetSeconds();
-            if (timeZoneOffset % 60 == 0) {
-                writeByte(TIMESTAMP_TZ);
-                writeVarLong(ts.getDateValue());
-                writeVarLong(ts.getTimeNanos());
-                writeVarInt(timeZoneOffset / 60);
-            } else {
-                writeByte((byte) TIMESTAMP_TZ_2);
-                writeVarLong(ts.getDateValue());
-                writeVarLong(ts.getTimeNanos());
-                writeTimeZone(timeZoneOffset);
-            }
+            writeByte((byte) TIMESTAMP_TZ_2);
+            writeVarLong(ts.getDateValue());
+            writeVarLong(ts.getTimeNanos());
+            writeTimeZone(ts.getTimeZoneOffsetSeconds());
             break;
         }
         case Value.GEOMETRY:
@@ -1117,8 +1109,7 @@ public class Data {
             long dateValue = ts.getDateValue();
             long nanos = ts.getTimeNanos();
             int tz = ts.getTimeZoneOffsetSeconds();
-            return 1 + getVarLongLen(dateValue) + getVarLongLen(nanos) +
-                    (tz % 60 == 0 ? getVarIntLen(tz / 60) : getTimeZoneLen(tz));
+            return 1 + getVarLongLen(dateValue) + getVarLongLen(nanos) + getTimeZoneLen(tz);
         }
         case Value.BINARY:
         case Value.GEOMETRY:

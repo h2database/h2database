@@ -357,8 +357,7 @@ public class MVTable extends RegularTable {
 
     private void rebuildIndex(SessionLocal session, MVIndex<?,?> index, String indexName) {
         try {
-            if (session.getDatabase().getStore() == null ||
-                    index instanceof MVSpatialIndex) {
+            if (session.getDatabase().getStore() == null || index instanceof MVSpatialIndex) {
                 // in-memory
                 rebuildIndexBuffered(session, index);
             } else {
@@ -380,10 +379,6 @@ public class MVTable extends RegularTable {
     }
 
     private void rebuildIndexBlockMerge(SessionLocal session, MVIndex<?,?> index) {
-        if (index instanceof MVSpatialIndex) {
-            // the spatial index doesn't support multi-way merge sort
-            rebuildIndexBuffered(session, index);
-        }
         // Read entries in memory, sort them, write to a new map (in sorted
         // order); repeat (using a new map for every block of 1 MB) until all
         // record are read. Merge all maps to the target (using merge sort;

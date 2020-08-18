@@ -139,11 +139,7 @@ public final class ValueLobDatabase extends ValueLob {
         return rangeInputStream(inputStream, oneBasedOffset, length, byteCount);
     }
 
-    /**
-     * Returns the data handler.
-     *
-     * @return the data handler, or {@code null}
-     */
+    @Override
     public DataHandler getDataHandler() {
         return handler;
     }

@@ -405,6 +405,10 @@ public final class ExpressionColumn extends Expression {
 
     @Override
     public Expression getNotIfPossible(SessionLocal session) {
+        Expression o = optimize(session);
+        if (o != this) {
+            return o.getNotIfPossible(session);
+        }
         Value v;
         switch (column.getType().getValueType()) {
         case Value.BOOLEAN:

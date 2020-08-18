@@ -94,7 +94,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     private static final byte UUID = 20;
     private static final byte CHAR = 21;
     private static final byte GEOMETRY = 22;
-    private static final byte TIMESTAMP_TZ = 24;
+    private static final byte TIMESTAMP_TZ_OLD = 24;
     private static final byte ENUM = 25;
     private static final byte INTERVAL = 26;
     private static final byte ROW = 27;
@@ -114,7 +114,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     private static final int SPATIAL_KEY_2D = 132;
     // 133 was used for CUSTOM_DATA_TYPE
     private static final int JSON = 134;
-    private static final int TIMESTAMP_TZ_2 = 135;
+    private static final int TIMESTAMP_TZ = 135;
     private static final int TIME_TZ = 136;
     private static final int BINARY = 137;
     private static final int DECFLOAT = 138;
@@ -323,11 +323,9 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             }
             break;
         }
-        case Value.BIGINT: {
-            long x = v.getLong();
-            writeLong(buff, x);
+        case Value.BIGINT:
+            writeLong(buff, v.getLong());
             break;
-        }
         case Value.NUMERIC: {
             BigDecimal x = v.getBigDecimal();
             if (BigDecimal.ZERO.equals(x)) {
@@ -366,16 +364,9 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 put(bytes);
             break;
         }
-        case Value.TIME: {
-            ValueTime t = (ValueTime) v;
-            long nanos = t.getNanos();
-            long millis = nanos / 1_000_000;
-            nanos -= millis * 1_000_000;
-            buff.put(TIME).
-                putVarLong(millis).
-                putVarInt((int) nanos);
+        case Value.TIME:
+            writeTimestampTime(buff.put(TIME), ((ValueTime) v).getNanos());
             break;
-        }
         case Value.TIME_TZ: {
             ValueTimeTimeZone t = (ValueTimeTimeZone) v;
             long nanosOfDay = t.getNanos();
@@ -385,72 +376,38 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             writeTimeZone(buff, t.getTimeZoneOffsetSeconds());
             break;
         }
-        case Value.DATE: {
-            long x = ((ValueDate) v).getDateValue();
-            buff.put(DATE).putVarLong(x);
+        case Value.DATE:
+            buff.put(DATE).putVarLong(((ValueDate) v).getDateValue());
             break;
-        }
         case Value.TIMESTAMP: {
             ValueTimestamp ts = (ValueTimestamp) v;
-            long dateValue = ts.getDateValue();
-            long nanos = ts.getTimeNanos();
-            long millis = nanos / 1_000_000;
-            nanos -= millis * 1_000_000;
-            buff.put(TIMESTAMP).
-                putVarLong(dateValue).
-                putVarLong(millis).
-                putVarInt((int) nanos);
+            buff.put(TIMESTAMP).putVarLong(ts.getDateValue());
+            writeTimestampTime(buff, ts.getTimeNanos());
             break;
         }
         case Value.TIMESTAMP_TZ: {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v;
-            long dateValue = ts.getDateValue();
-            long nanos = ts.getTimeNanos();
-            long millis = nanos / 1_000_000;
-            nanos -= millis * 1_000_000;
-            int timeZoneOffset = ts.getTimeZoneOffsetSeconds();
-            if (timeZoneOffset % 60 == 0) {
-                buff.put(TIMESTAMP_TZ).
-                    putVarLong(dateValue).
-                    putVarLong(millis).
-                    putVarInt((int) nanos).
-                    putVarInt(timeZoneOffset / 60);
-            } else {
-                buff.put((byte) TIMESTAMP_TZ_2).
-                    putVarLong(dateValue).
-                    putVarLong(millis).
-                    putVarInt((int) nanos);
-                writeTimeZone(buff, timeZoneOffset);
-            }
+            buff.put((byte) TIMESTAMP_TZ).putVarLong(ts.getDateValue());
+            writeTimestampTime(buff, ts.getTimeNanos());
+            writeTimeZone(buff, ts.getTimeZoneOffsetSeconds());
             break;
         }
-        case Value.JAVA_OBJECT: {
-            byte[] b = v.getBytesNoCopy();
-            buff.put(JAVA_OBJECT).
-                putVarInt(b.length).
-                put(b);
+        case Value.JAVA_OBJECT:
+            writeBinary(JAVA_OBJECT, buff, v);
             break;
-        }
         case Value.VARBINARY: {
             byte[] b = v.getBytesNoCopy();
             int len = b.length;
             if (len < 32) {
-                buff.put((byte) (VARBINARY_0_31 + len)).
-                    put(b);
+                buff.put((byte) (VARBINARY_0_31 + len)).put(b);
             } else {
-                buff.put(VARBINARY).
-                    putVarInt(len).
-                    put(b);
+                buff.put(VARBINARY).putVarInt(len).put(b);
             }
             break;
         }
-        case Value.BINARY: {
-            byte[] b = v.getBytesNoCopy();
-            buff.put((byte) BINARY).
-                putVarInt(b.length).
-                put(b);
+        case Value.BINARY:
+            writeBinary((byte) BINARY, buff, v);
             break;
-        }
         case Value.UUID: {
             ValueUuid uuid = (ValueUuid) v;
             buff.put(UUID).
@@ -462,21 +419,17 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             String s = v.getString();
             int len = s.length();
             if (len < 32) {
-                buff.put((byte) (VARCHAR_0_31 + len)).
-                    putStringData(s, len);
+                buff.put((byte) (VARCHAR_0_31 + len)).putStringData(s, len);
             } else {
-                buff.put(VARCHAR);
-                writeString(buff, s);
+                writeString(buff.put(VARCHAR), s);
             }
             break;
         }
         case Value.VARCHAR_IGNORECASE:
-            buff.put(VARCHAR_IGNORECASE);
-            writeString(buff, v.getString());
+            writeString(buff.put(VARCHAR_IGNORECASE), v.getString());
             break;
         case Value.CHAR:
-            buff.put(CHAR);
-            writeString(buff, v.getString());
+            writeString(buff.put(CHAR), v.getString());
             break;
         case Value.DOUBLE: {
             double x = v.getDouble();
@@ -542,14 +495,9 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             }
             break;
         }
-        case Value.GEOMETRY: {
-            byte[] b = v.getBytes();
-            int len = b.length;
-            buff.put(GEOMETRY).
-                putVarInt(len).
-                put(b);
+        case Value.GEOMETRY:
+            writeBinary(GEOMETRY, buff, v);
             break;
-        }
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
         case Value.INTERVAL_DAY:
@@ -584,14 +532,17 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 putVarLong(interval.getRemaining());
             break;
         }
-        case Value.JSON:{
-            byte[] b = v.getBytesNoCopy();
-            buff.put((byte) JSON).putVarInt(b.length).put(b);
+        case Value.JSON:
+            writeBinary((byte) JSON, buff, v);
             break;
-        }
         default:
             throw DbException.throwInternalError("type=" + v.getValueType());
         }
+    }
+
+    private static void writeBinary(byte type, WriteBuffer buff, Value v) {
+        byte[] b = v.getBytesNoCopy();
+        buff.put(type).putVarInt(b.length).put(b);
     }
 
     void writeRow(WriteBuffer buff, SearchRow row, int[] indexes) {
@@ -630,6 +581,11 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     private static void writeString(WriteBuffer buff, String s) {
         int len = s.length();
         buff.putVarInt(len).putStringData(s, len);
+    }
+
+    private static void writeTimestampTime(WriteBuffer buff, long nanos) {
+        long millis = nanos / 1_000_000L;
+        buff.putVarLong(millis).putVarInt((int) (nanos - millis * 1_000_000L));
     }
 
     private static void writeTimeZone(WriteBuffer buff, int timeZoneOffset) {
@@ -677,72 +633,36 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         case NUMERIC_0_1 + 1:
             return ValueNumeric.ONE;
         case NUMERIC_SMALL_0:
-            return ValueNumeric.get(BigDecimal.valueOf(
-                    readVarLong(buff)));
+            return ValueNumeric.get(BigDecimal.valueOf(readVarLong(buff)));
         case NUMERIC_SMALL: {
             int scale = readVarInt(buff);
-            return ValueNumeric.get(BigDecimal.valueOf(
-                    readVarLong(buff), scale));
+            return ValueNumeric.get(BigDecimal.valueOf(readVarLong(buff), scale));
         }
-        case NUMERIC: {
-            int scale = readVarInt(buff);
-            int len = readVarInt(buff);
-            byte[] buff2 = Utils.newBytes(len);
-            buff.get(buff2, 0, len);
-            return ValueNumeric.get(new BigDecimal(new BigInteger(buff2), scale));
-        }
-        case DECFLOAT: {
-            int scale = readVarInt(buff);
-            int len = readVarInt(buff);
-            byte[] buff2 = Utils.newBytes(len);
-            buff.get(buff2, 0, len);
-            return ValueDecfloat.get(new BigDecimal(new BigInteger(buff2), scale));
-        }
-        case DATE: {
+        case NUMERIC:
+            return ValueNumeric.get(readBigDecimal(buff));
+        case DECFLOAT:
+            return ValueDecfloat.get(readBigDecimal(buff));
+        case DATE:
             return ValueDate.fromDateValue(readVarLong(buff));
-        }
-        case TIME: {
-            long nanos = readVarLong(buff) * 1_000_000 + readVarInt(buff);
-            return ValueTime.fromNanos(nanos);
-        }
+        case TIME:
+            return ValueTime.fromNanos(readTimestampTime(buff));
         case TIME_TZ:
             return ValueTimeTimeZone.fromNanos(readVarInt(buff) * DateTimeUtils.NANOS_PER_SECOND + readVarInt(buff),
                     readTimeZone(buff));
-        case TIMESTAMP: {
-            long dateValue = readVarLong(buff);
-            long nanos = readVarLong(buff) * 1_000_000 + readVarInt(buff);
-            return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
-        }
-        case TIMESTAMP_TZ: {
-            long dateValue = readVarLong(buff);
-            long nanos = readVarLong(buff) * 1_000_000 + readVarInt(buff);
-            int tz = readVarInt(buff) * 60;
-            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tz);
-        }
-        case TIMESTAMP_TZ_2: {
-            long dateValue = readVarLong(buff);
-            long nanos = readVarLong(buff) * 1_000_000 + readVarInt(buff);
-            int tz = readTimeZone(buff);
-            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tz);
-        }
-        case VARBINARY: {
-            int len = readVarInt(buff);
-            byte[] b = Utils.newBytes(len);
-            buff.get(b, 0, len);
-            return ValueVarbinary.getNoCopy(b);
-        }
-        case BINARY: {
-            int len = readVarInt(buff);
-            byte[] b = Utils.newBytes(len);
-            buff.get(b, 0, len);
-            return ValueBinary.getNoCopy(b);
-        }
-        case JAVA_OBJECT: {
-            int len = readVarInt(buff);
-            byte[] b = Utils.newBytes(len);
-            buff.get(b, 0, len);
-            return ValueJavaObject.getNoCopy(b);
-        }
+        case TIMESTAMP:
+            return ValueTimestamp.fromDateValueAndNanos(readVarLong(buff), readTimestampTime(buff));
+        case TIMESTAMP_TZ_OLD:
+            return ValueTimestampTimeZone.fromDateValueAndNanos(readVarLong(buff), readTimestampTime(buff),
+                    readVarInt(buff) * 60);
+        case TIMESTAMP_TZ:
+            return ValueTimestampTimeZone.fromDateValueAndNanos(readVarLong(buff), readTimestampTime(buff),
+                    readTimeZone(buff));
+        case VARBINARY:
+            return ValueVarbinary.getNoCopy(readVarBytes(buff));
+        case BINARY:
+            return ValueBinary.getNoCopy(readVarBytes(buff));
+        case JAVA_OBJECT:
+            return ValueJavaObject.getNoCopy(readVarBytes(buff));
         case UUID:
             return ValueUuid.get(buff.getLong(), buff.getLong());
         case VARCHAR:
@@ -786,8 +706,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 return ValueLobDatabase.create(type == BLOB ? Value.BLOB : Value.CLOB,
                         handler, tableId, lobId, precision);
             } else {
-                throw DbException.get(ErrorCode.FILE_CORRUPTED_1,
-                        "lob type: " + smallLen);
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "lob type: " + smallLen);
             }
         }
         case ARRAY:
@@ -822,20 +741,12 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             }
             return type == ARRAY && !rowAsRow ? ValueArray.get(list, provider) : ValueRow.get(list);
         }
-        case GEOMETRY: {
-            int len = readVarInt(buff);
-            byte[] b = Utils.newBytes(len);
-            buff.get(b, 0, len);
-            return ValueGeometry.get(b);
-        }
+        case GEOMETRY:
+            return ValueGeometry.get(readVarBytes(buff));
         case SPATIAL_KEY_2D:
-            return (SpatialKey)getSpatialDataType().read(buff);
-        case JSON: {
-            int len = readVarInt(buff);
-            byte[] b = Utils.newBytes(len);
-            buff.get(b, 0, len);
-            return ValueJson.getInternal(b);
-        }
+            return (SpatialKey) getSpatialDataType().read(buff);
+        case JSON:
+            return ValueJson.getInternal(readVarBytes(buff));
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {
                 return ValueInteger.get(type - INT_0_15);
@@ -851,6 +762,22 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             }
             throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
         }
+    }
+
+    private static BigDecimal readBigDecimal(ByteBuffer buff) {
+        int scale = readVarInt(buff);
+        return new BigDecimal(new BigInteger(readVarBytes(buff)), scale);
+    }
+
+    private static byte[] readVarBytes(ByteBuffer buff) {
+        int len = readVarInt(buff);
+        byte[] b = Utils.newBytes(len);
+        buff.get(b, 0, len);
+        return b;
+    }
+
+    private static long readTimestampTime(ByteBuffer buff) {
+        return readVarLong(buff) * 1_000_000L + readVarInt(buff);
     }
 
     private static int readTimeZone(ByteBuffer buff) {

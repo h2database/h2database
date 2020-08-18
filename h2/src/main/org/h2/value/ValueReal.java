@@ -138,16 +138,6 @@ public final class ValueReal extends Value {
     }
 
     @Override
-    public float getFloat() {
-        return value;
-    }
-
-    @Override
-    public double getDouble() {
-        return value;
-    }
-
-    @Override
     public BigDecimal getBigDecimal() {
         if (Math.abs(value) <= Float.MAX_VALUE) {
             // better rounding behavior than BigDecimal.valueOf(f)
@@ -155,6 +145,16 @@ public final class ValueReal extends Value {
         }
         // Infinite or NaN
         throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, Float.toString(value));
+    }
+
+    @Override
+    public float getFloat() {
+        return value;
+    }
+
+    @Override
+    public double getDouble() {
+        return value;
     }
 
     @Override

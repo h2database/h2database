@@ -76,7 +76,7 @@ public final class Transfer {
     // 1.4.200
     private static final int JSON = 28;
     private static final int TIME_TZ = 29;
-    // 201
+    // 2.0.202
     private static final int BINARY = 30;
     private static final int DECFLOAT = 31;
 

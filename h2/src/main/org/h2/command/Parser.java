@@ -8333,12 +8333,12 @@ public class Parser {
         read(AS);
         try {
             Query query;
-            session.setParsingCreateView(true, viewName);
+            session.setParsingCreateView(true);
             try {
                 query = parseQuery();
                 query.prepare();
             } finally {
-                session.setParsingCreateView(false, viewName);
+                session.setParsingCreateView(false);
             }
             command.setSelect(query);
         } catch (DbException e) {

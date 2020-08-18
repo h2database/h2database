@@ -139,6 +139,11 @@ public final class ValueLobFile extends ValueLob {
     }
 
     @Override
+    public DataHandler getDataHandler() {
+        return handler;
+    }
+
+    @Override
     public String toString() {
         return "lob-file: " + fileName;
     }

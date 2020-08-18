@@ -1048,11 +1048,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case CHAR:
             return convertToChar(targetType, provider, conversionMode, column);
         case VARCHAR:
-            return ValueVarchar.get(convertToVarchar(targetType, conversionMode, column));
+            return convertToVarchar(targetType, provider, conversionMode, column);
         case CLOB:
             return convertToClob(targetType, conversionMode, column);
         case VARCHAR_IGNORECASE:
-            return ValueVarcharIgnoreCase.get(convertToVarchar(targetType, conversionMode, column));
+            return convertToVarcharIgnoreCase(targetType, conversionMode, column);
         case BINARY:
             return convertToBinary(targetType, conversionMode, column);
         case VARBINARY:
@@ -1180,23 +1180,24 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         return ValueChar.get(s);
     }
 
-    private String convertToVarchar(TypeInfo targetType, int conversionMode, Object column) {
-        switch (getValueType()) {
+    private Value convertToVarchar(TypeInfo targetType, CastDataProvider provider, int conversionMode, Object column) {
+        int valueType = getValueType();
+        switch (valueType) {
         case BLOB:
         case JAVA_OBJECT:
             throw getDataConversionError(targetType.getValueType());
         }
-        String s = getString();
         if (conversionMode != CONVERT_TO) {
+            String s = getString();
             int p = MathUtils.convertLongToInt(targetType.getPrecision());
             if (s.length() > p) {
                 if (conversionMode != CAST_TO) {
                     throw getValueTooLongException(targetType, column);
                 }
-                s = s.substring(0, p);
+                return ValueVarchar.get(s.substring(0, p), provider);
             }
         }
-        return s;
+        return valueType == Value.VARCHAR ? this : ValueVarchar.get(getString(), provider);
     }
 
     private ValueLob convertToClob(TypeInfo targetType, int conversionMode, Object column) {
@@ -1235,6 +1236,26 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             }
         }
         return v;
+    }
+
+    private Value convertToVarcharIgnoreCase(TypeInfo targetType, int conversionMode, Object column) {
+        int valueType = getValueType();
+        switch (valueType) {
+        case BLOB:
+        case JAVA_OBJECT:
+            throw getDataConversionError(targetType.getValueType());
+        }
+        if (conversionMode != CONVERT_TO) {
+            String s = getString();
+            int p = MathUtils.convertLongToInt(targetType.getPrecision());
+            if (s.length() > p) {
+                if (conversionMode != CAST_TO) {
+                    throw getValueTooLongException(targetType, column);
+                }
+                return ValueVarcharIgnoreCase.get(s.substring(0, p));
+            }
+        }
+        return valueType == Value.VARCHAR_IGNORECASE ? this : ValueVarcharIgnoreCase.get(getString());
     }
 
     private ValueBinary convertToBinary(TypeInfo targetType, int conversionMode, Object column) {

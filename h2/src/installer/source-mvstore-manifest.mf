@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: H2 MVStore Sources
+Bundle-SymbolicName: com.h2database.mvstore.source
+Bundle-Vendor: H2 Group
+Bundle-Version: ${version}
+Eclipse-SourceBundle: com.h2database.mvstore;version="${version}"

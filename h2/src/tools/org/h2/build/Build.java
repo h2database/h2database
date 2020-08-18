@@ -743,7 +743,7 @@ public class Build extends BuildBase {
                 exclude("docs/org/h2/mvstore/db/*").
                 keep("*.java");
         files.addAll(files("docs").keep("docs/META-INF/*"));
-        manifest = new String(readFile(Paths.get("src/installer/source-manifest.mf")));
+        manifest = new String(readFile(Paths.get("src/installer/source-mvstore-manifest.mf")));
         manifest = replaceAll(manifest, "${version}", getVersion());
         writeFile(Paths.get("docs/META-INF/MANIFEST.MF"), manifest.getBytes());
         jar("docs/h2-mvstore-" + getVersion() + "-sources.jar", files, "docs");

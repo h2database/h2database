@@ -1339,38 +1339,37 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     private void closeImpl(boolean fromShutdownHook) {
-        try {
-            synchronized (this) {
-                if (closing) {
-                    return;
-                }
+        synchronized (this) {
+            if (closing || !fromShutdownHook && !userSessions.isEmpty()) {
+                return;
+            }
+            closing = true;
+            stopServer();
+            if (!userSessions.isEmpty()) {
+                assert fromShutdownHook;
+                trace.info("closing {0} from shutdown hook", databaseName);
+                closeAllSessionsExcept(null);
+            }
+            trace.info("closing {0}", databaseName);
+            if (eventListener != null) {
+                // allow the event listener to connect to the database
+                closing = false;
+                DatabaseEventListener e = eventListener;
+                // set it to null, to make sure it's called only once
+                eventListener = null;
+                e.closingDatabase();
                 closing = true;
-                stopServer();
                 if (!userSessions.isEmpty()) {
-                    if (!fromShutdownHook) {
-                        return;
-                    }
-                    trace.info("closing {0} from shutdown hook", databaseName);
+                    trace.info("event listener {0} left connection open", e.getClass().getName());
+                    // if listener left an open connection
                     closeAllSessionsExcept(null);
                 }
-                trace.info("closing {0}", databaseName);
-                if (eventListener != null) {
-                    // allow the event listener to connect to the database
-                    closing = false;
-                    DatabaseEventListener e = eventListener;
-                    // set it to null, to make sure it's called only once
-                    eventListener = null;
-                    e.closingDatabase();
-                    if (!userSessions.isEmpty()) {
-                        // if a connection was opened, we can't close the database
-                        return;
-                    }
-                    closing = true;
-                }
-                if (!this.isReadOnly()) {
-                    removeOrphanedLobs();
-                }
             }
+            if (!this.isReadOnly()) {
+                removeOrphanedLobs();
+            }
+        }
+        try {
             try {
                 if (systemSession != null) {
                     if (powerOffCount != -1) {
@@ -1703,9 +1702,9 @@ public class Database implements DataHandler, CastDataProvider {
      */
     public SessionLocal[] getSessions(boolean includingSystemSession) {
         ArrayList<SessionLocal> list;
-        // need to synchronized on userSession, otherwise the list
-        // may contain null elements
-        synchronized (userSessions) {
+        // need to synchronized on this database,
+        // otherwise the list may contain null elements
+        synchronized (this) {
             list = new ArrayList<>(userSessions);
         }
         if (includingSystemSession) {

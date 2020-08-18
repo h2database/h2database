@@ -5,6 +5,8 @@
  */
 package org.h2.value;
 
+import java.math.BigDecimal;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
@@ -154,6 +156,11 @@ public final class ValueInteger extends Value {
     @Override
     public long getLong() {
         return value;
+    }
+
+    @Override
+    public BigDecimal getBigDecimal() {
+        return BigDecimal.valueOf(value);
     }
 
     @Override

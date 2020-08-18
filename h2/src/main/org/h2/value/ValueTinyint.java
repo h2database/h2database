@@ -5,6 +5,8 @@
  */
 package org.h2.value;
 
+import java.math.BigDecimal;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
@@ -123,6 +125,10 @@ public final class ValueTinyint extends Value {
         return value;
     }
 
+    @Override
+    public BigDecimal getBigDecimal() {
+        return BigDecimal.valueOf(value);
+    }
     @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         return Integer.compare(value, ((ValueTinyint) o).value);

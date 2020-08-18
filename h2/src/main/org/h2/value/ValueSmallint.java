@@ -5,6 +5,8 @@
  */
 package org.h2.value;
 
+import java.math.BigDecimal;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
@@ -122,6 +124,11 @@ public final class ValueSmallint extends Value {
     @Override
     public int getInt() {
         return value;
+    }
+
+    @Override
+    public BigDecimal getBigDecimal() {
+        return BigDecimal.valueOf(value);
     }
 
     @Override

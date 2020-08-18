@@ -5,6 +5,7 @@
  */
 package org.h2.value;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.h2.api.ErrorCode;
@@ -178,6 +179,11 @@ public final class ValueBigint extends Value {
     @Override
     public long getLong() {
         return value;
+    }
+
+    @Override
+    public BigDecimal getBigDecimal() {
+        return BigDecimal.valueOf(value);
     }
 
     @Override

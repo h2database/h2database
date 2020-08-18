@@ -5,9 +5,12 @@
  */
 package org.h2.value;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
+import org.h2.message.DbException;
 
 /**
  * Base implementation of String based data types.
@@ -79,6 +82,15 @@ abstract class ValueStringBase extends Value {
     @Override
     public byte[] getBytes() {
         return value.getBytes(StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public BigDecimal getBigDecimal() {
+        try {
+            return new BigDecimal(value.trim());
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
+        }
     }
 
     @Override

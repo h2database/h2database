@@ -823,7 +823,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     }
 
     public BigDecimal getBigDecimal() {
-        return convertTo(TypeInfo.TYPE_NUMERIC).getBigDecimal();
+        throw getDataConversionError(NUMERIC);
     }
 
     public float getFloat() {
@@ -1666,46 +1666,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case BOOLEAN:
             v = getBoolean() ? ValueNumeric.ONE : ValueNumeric.ZERO;
             break;
-        case TINYINT:
-        case SMALLINT:
-        case ENUM:
-        case INTEGER:
-            v =  ValueNumeric.get(BigDecimal.valueOf(getInt()));
-            break;
-        case BIGINT:
-            v = ValueNumeric.get(BigDecimal.valueOf(getLong()));
-            break;
-        case DOUBLE:
-        case REAL:
-        case DECFLOAT:
-        case INTERVAL_YEAR:
-        case INTERVAL_MONTH:
-        case INTERVAL_DAY:
-        case INTERVAL_HOUR:
-        case INTERVAL_MINUTE:
-        case INTERVAL_SECOND:
-        case INTERVAL_YEAR_TO_MONTH:
-        case INTERVAL_DAY_TO_HOUR:
-        case INTERVAL_DAY_TO_MINUTE:
-        case INTERVAL_DAY_TO_SECOND:
-        case INTERVAL_HOUR_TO_MINUTE:
-        case INTERVAL_HOUR_TO_SECOND:
-        case INTERVAL_MINUTE_TO_SECOND:
+        default:
             v = ValueNumeric.get(getBigDecimal());
             break;
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR: {
-            String s = getString();
-            try {
-                v = ValueNumeric.get(new BigDecimal(s.trim()));
-            } catch (NumberFormatException e) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
-            }
-            break;
-        }
-        default:
-            throw getDataConversionError(NUMERIC);
+        case NULL:
+            throw DbException.throwInternalError();
         }
         if (conversionMode != CONVERT_TO) {
             int targetScale = targetType.getScale();
@@ -1834,46 +1799,18 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case BOOLEAN:
             v = getBoolean() ? ValueDecfloat.ONE : ValueDecfloat.ZERO;
             break;
-        case TINYINT:
-        case SMALLINT:
-        case ENUM:
-        case INTEGER:
-            v =  ValueDecfloat.get(BigDecimal.valueOf(getInt()));
-            break;
-        case BIGINT:
-            v = ValueDecfloat.get(BigDecimal.valueOf(getLong()));
-            break;
-        case NUMERIC:
-        case DOUBLE:
-        case REAL:
-        case INTERVAL_YEAR:
-        case INTERVAL_MONTH:
-        case INTERVAL_DAY:
-        case INTERVAL_HOUR:
-        case INTERVAL_MINUTE:
-        case INTERVAL_SECOND:
-        case INTERVAL_YEAR_TO_MONTH:
-        case INTERVAL_DAY_TO_HOUR:
-        case INTERVAL_DAY_TO_MINUTE:
-        case INTERVAL_DAY_TO_SECOND:
-        case INTERVAL_HOUR_TO_MINUTE:
-        case INTERVAL_HOUR_TO_SECOND:
-        case INTERVAL_MINUTE_TO_SECOND:
-            v = ValueDecfloat.get(getBigDecimal());
-            break;
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR: {
-            String s = getString();
+        default:
             try {
-                v = ValueDecfloat.get(new BigDecimal(s.trim()));
-            } catch (NumberFormatException e) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
+                v = ValueDecfloat.get(getBigDecimal());
+            } catch (DbException e) {
+                if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
+                    throw getDataConversionError(DECFLOAT);
+                }
+                throw e;
             }
             break;
-        }
-        default:
-            throw getDataConversionError(DECFLOAT);
+        case NULL:
+            throw DbException.throwInternalError();
         }
         if (conversionMode != CONVERT_TO) {
             BigDecimal bd = v.getBigDecimal();

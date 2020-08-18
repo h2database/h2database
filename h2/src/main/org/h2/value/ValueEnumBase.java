@@ -5,6 +5,8 @@
  */
 package org.h2.value;
 
+import java.math.BigDecimal;
+
 import org.h2.engine.CastDataProvider;
 import org.h2.util.StringUtils;
 
@@ -66,6 +68,11 @@ public class ValueEnumBase extends Value {
     @Override
     public long getLong() {
         return ordinal;
+    }
+
+    @Override
+    public BigDecimal getBigDecimal() {
+        return BigDecimal.valueOf(ordinal);
     }
 
     @Override

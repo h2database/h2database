@@ -1608,6 +1608,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case SMALLINT:
         case ENUM:
         case INTEGER:
+            return ValueBigint.get(getInt());
         case INTERVAL_YEAR:
         case INTERVAL_MONTH:
         case INTERVAL_DAY:
@@ -1621,7 +1622,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case INTERVAL_HOUR_TO_MINUTE:
         case INTERVAL_HOUR_TO_SECOND:
         case INTERVAL_MINUTE_TO_SECOND:
-            return ValueBigint.get(getInt());
+            return ValueBigint.get(getLong());
         case NUMERIC:
         case DECFLOAT:
             return ValueBigint.get(convertToLong(getBigDecimal(), column));

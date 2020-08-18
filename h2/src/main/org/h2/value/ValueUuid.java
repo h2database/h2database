@@ -152,6 +152,11 @@ public final class ValueUuid extends Value {
         return addString(new StringBuilder(36)).toString();
     }
 
+    @Override
+    public byte[] getBytes() {
+        return Bits.uuidToBytes(high, low);
+    }
+
     private StringBuilder addString(StringBuilder builder) {
         StringUtils.appendHex(builder, high >> 32, 4).append('-');
         StringUtils.appendHex(builder, high >> 16, 2).append('-');
@@ -186,11 +191,6 @@ public final class ValueUuid extends Value {
      */
     public UUID getUuid() {
         return new UUID(high, low);
-    }
-
-    @Override
-    public byte[] getBytes() {
-        return Bits.uuidToBytes(high, low);
     }
 
     /**

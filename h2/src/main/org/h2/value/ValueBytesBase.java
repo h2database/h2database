@@ -32,13 +32,13 @@ abstract class ValueBytesBase extends Value {
     }
 
     @Override
-    public byte[] getBytesNoCopy() {
-        return value;
+    public final byte[] getBytes() {
+        return Utils.cloneByteArray(value);
     }
 
     @Override
-    public final byte[] getBytes() {
-        return Utils.cloneByteArray(getBytesNoCopy());
+    public final byte[] getBytesNoCopy() {
+        return value;
     }
 
     @Override
@@ -48,7 +48,7 @@ abstract class ValueBytesBase extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return StringUtils.convertBytesToHex(builder.append("X'"), getBytesNoCopy()).append('\'');
+        return StringUtils.convertBytesToHex(builder.append("X'"), value).append('\'');
     }
 
     @Override

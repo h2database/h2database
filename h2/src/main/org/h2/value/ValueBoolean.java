@@ -66,13 +66,13 @@ public final class ValueBoolean extends Value {
     }
 
     @Override
-    public Value negate() {
-        return value ? FALSE : TRUE;
+    public boolean getBoolean() {
+        return value;
     }
 
     @Override
-    public boolean getBoolean() {
-        return value;
+    public Value negate() {
+        return value ? FALSE : TRUE;
     }
 
     @Override

@@ -444,13 +444,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         return 24;
     }
 
-    /**
-     * Get the value as a string.
-     *
-     * @return the string
-     */
-    public abstract String getString();
-
     @Override
     public abstract int hashCode();
 
@@ -756,8 +749,30 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         softCache = null;
     }
 
-    public boolean getBoolean() {
-        return convertToBoolean().getBoolean();
+    /**
+     * Get the value as a string.
+     *
+     * @return the string
+     */
+    public abstract String getString();
+
+    public Reader getReader() {
+        return new StringReader(getString());
+    }
+
+    /**
+     * Get the reader
+     *
+     * @param oneBasedOffset the offset (1 means no offset)
+     * @param length the requested length
+     * @return the new reader
+     */
+    public Reader getReader(long oneBasedOffset, long length) {
+        String string = getString();
+        long zeroBasedOffset = oneBasedOffset - 1;
+        rangeCheck(zeroBasedOffset, length, string.length());
+        int offset = (int) zeroBasedOffset;
+        return new StringReader(string.substring(offset, offset + (int) length));
     }
 
     public byte[] getBytes() {
@@ -766,34 +781,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
 
     public byte[] getBytesNoCopy() {
         return convertTo(TypeInfo.TYPE_VARBINARY).getBytesNoCopy();
-    }
-
-    public byte getByte() {
-        return convertToTinyint(null).getByte();
-    }
-
-    public short getShort() {
-        return convertToSmallint(null).getShort();
-    }
-
-    public BigDecimal getBigDecimal() {
-        return convertTo(TypeInfo.TYPE_NUMERIC).getBigDecimal();
-    }
-
-    public double getDouble() {
-        return convertToDouble().getDouble();
-    }
-
-    public float getFloat() {
-        return convertToReal().getFloat();
-    }
-
-    public int getInt() {
-        return convertToInt(null).getInt();
-    }
-
-    public long getLong() {
-        return convertToBigint(null).getLong();
     }
 
     public InputStream getInputStream() {
@@ -814,23 +801,36 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         return new ByteArrayInputStream(bytes, (int) zeroBasedOffset, (int) length);
     }
 
-    public Reader getReader() {
-        return new StringReader(getString());
+    public boolean getBoolean() {
+        return convertToBoolean().getBoolean();
     }
 
-    /**
-     * Get the reader
-     *
-     * @param oneBasedOffset the offset (1 means no offset)
-     * @param length the requested length
-     * @return the new reader
-     */
-    public Reader getReader(long oneBasedOffset, long length) {
-        String string = getString();
-        long zeroBasedOffset = oneBasedOffset - 1;
-        rangeCheck(zeroBasedOffset, length, string.length());
-        int offset = (int) zeroBasedOffset;
-        return new StringReader(string.substring(offset, offset + (int) length));
+    public byte getByte() {
+        return convertToTinyint(null).getByte();
+    }
+
+    public short getShort() {
+        return convertToSmallint(null).getShort();
+    }
+
+    public int getInt() {
+        return convertToInt(null).getInt();
+    }
+
+    public long getLong() {
+        return convertToBigint(null).getLong();
+    }
+
+    public BigDecimal getBigDecimal() {
+        return convertTo(TypeInfo.TYPE_NUMERIC).getBigDecimal();
+    }
+
+    public float getFloat() {
+        return convertToReal().getFloat();
+    }
+
+    public double getDouble() {
+        return convertToDouble().getDouble();
     }
 
     /**

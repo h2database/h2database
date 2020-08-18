@@ -63,13 +63,23 @@ public final class ValueNull extends Value {
     }
 
     @Override
-    public boolean getBoolean() {
-        return false;
+    public Reader getReader() {
+        return null;
     }
 
     @Override
     public byte[] getBytes() {
         return null;
+    }
+
+    @Override
+    public InputStream getInputStream() {
+        return null;
+    }
+
+    @Override
+    public boolean getBoolean() {
+        return false;
     }
 
     @Override
@@ -83,21 +93,6 @@ public final class ValueNull extends Value {
     }
 
     @Override
-    public BigDecimal getBigDecimal() {
-        return null;
-    }
-
-    @Override
-    public double getDouble() {
-        return 0.0;
-    }
-
-    @Override
-    public float getFloat() {
-        return 0.0F;
-    }
-
-    @Override
     public int getInt() {
         return 0;
     }
@@ -108,13 +103,18 @@ public final class ValueNull extends Value {
     }
 
     @Override
-    public InputStream getInputStream() {
+    public BigDecimal getBigDecimal() {
         return null;
     }
 
     @Override
-    public Reader getReader() {
-        return null;
+    public float getFloat() {
+        return 0.0F;
+    }
+
+    @Override
+    public double getDouble() {
+        return 0.0;
     }
 
     @Override

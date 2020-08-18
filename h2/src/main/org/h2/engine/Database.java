@@ -1340,15 +1340,13 @@ public class Database implements DataHandler, CastDataProvider {
 
     private void closeImpl(boolean fromShutdownHook) {
         synchronized (this) {
-            if (closing) {
+            if (closing || !fromShutdownHook && !userSessions.isEmpty()) {
                 return;
             }
             closing = true;
             stopServer();
             if (!userSessions.isEmpty()) {
-                if (!fromShutdownHook) {
-                    return;
-                }
+                assert fromShutdownHook;
                 trace.info("closing {0} from shutdown hook", databaseName);
                 closeAllSessionsExcept(null);
             }
@@ -1360,11 +1358,12 @@ public class Database implements DataHandler, CastDataProvider {
                 // set it to null, to make sure it's called only once
                 eventListener = null;
                 e.closingDatabase();
-                if (!userSessions.isEmpty()) {
-                    // if a connection was opened, we can't close the database
-                    return;
-                }
                 closing = true;
+                if (!userSessions.isEmpty()) {
+                    trace.info("event listener {0} left connection open", e.getClass().getName());
+                    // if listener left an open connection
+                    closeAllSessionsExcept(null);
+                }
             }
             if (!this.isReadOnly()) {
                 removeOrphanedLobs();
@@ -1703,9 +1702,9 @@ public class Database implements DataHandler, CastDataProvider {
      */
     public SessionLocal[] getSessions(boolean includingSystemSession) {
         ArrayList<SessionLocal> list;
-        // need to synchronized on userSession, otherwise the list
-        // may contain null elements
-        synchronized (userSessions) {
+        // need to synchronized on this database,
+        // otherwise the list may contain null elements
+        synchronized (this) {
             list = new ArrayList<>(userSessions);
         }
         if (includingSystemSession) {

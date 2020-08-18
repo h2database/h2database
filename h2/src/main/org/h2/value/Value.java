@@ -1432,7 +1432,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             return ValueTinyint.get(convertToByte(convertToLong(getDouble(), column), column));
         case CHAR:
         case VARCHAR:
-        case CLOB:
         case VARCHAR_IGNORECASE: {
             String s = getString();
             try {
@@ -1442,8 +1441,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             }
         }
         case BINARY:
-        case VARBINARY:
-        case BLOB: {
+        case VARBINARY: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 1) {
                 return ValueTinyint.get(bytes[0]);
@@ -1498,7 +1496,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             return ValueSmallint.get(convertToShort(convertToLong(getDouble(), column), column));
         case CHAR:
         case VARCHAR:
-        case CLOB:
         case VARCHAR_IGNORECASE: {
             String s = getString();
             try {
@@ -1508,8 +1505,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             }
         }
         case BINARY:
-        case VARBINARY:
-        case BLOB: {
+        case VARBINARY: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 2) {
                 return ValueSmallint.get((short) ((bytes[0] << 8) + (bytes[1] & 0xff)));
@@ -1563,7 +1559,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             return ValueInteger.get(convertToInt(convertToLong(getDouble(), column), column));
         case CHAR:
         case VARCHAR:
-        case CLOB:
         case VARCHAR_IGNORECASE: {
             String s = getString();
             try {
@@ -1573,8 +1568,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             }
         }
         case BINARY:
-        case VARBINARY:
-        case BLOB: {
+        case VARBINARY: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 4) {
                 return ValueInteger.get(Bits.readInt(bytes, 0));
@@ -1627,7 +1621,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             return ValueBigint.get(convertToLong(getDouble(), column));
         case CHAR:
         case VARCHAR:
-        case CLOB:
         case VARCHAR_IGNORECASE: {
             String s = getString();
             try {
@@ -1637,8 +1630,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             }
         }
         case BINARY:
-        case VARBINARY:
-        case BLOB: {
+        case VARBINARY: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 8) {
                 return ValueBigint.get(Bits.readLong(bytes, 0));
@@ -2409,13 +2401,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             return (ValueUuid) this;
         case BINARY:
         case VARBINARY:
-        case BLOB:
             return ValueUuid.get(getBytesNoCopy());
         case JAVA_OBJECT:
             return JdbcUtils.deserializeUuid(getBytesNoCopy());
         case CHAR:
         case VARCHAR:
-        case CLOB:
         case VARCHAR_IGNORECASE:
             return ValueUuid.get(getString());
         default:

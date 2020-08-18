@@ -1404,7 +1404,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case TINYINT:
             return (ValueTinyint) this;
         case BOOLEAN:
-            return ValueTinyint.get(getBoolean() ? (byte) 1 : (byte) 0);
+            return ValueTinyint.get(getByte());
         case SMALLINT:
         case ENUM:
         case INTEGER:
@@ -1470,9 +1470,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case SMALLINT:
             return (ValueSmallint) this;
         case BOOLEAN:
-            return ValueSmallint.get(getBoolean() ? (short) 1 : (short) 0);
         case TINYINT:
-            return ValueSmallint.get(getByte());
+            return ValueSmallint.get(getShort());
         case ENUM:
         case INTEGER:
             return ValueSmallint.get(convertToShort(getInt(), column));
@@ -1537,7 +1536,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case INTEGER:
             return (ValueInteger) this;
         case BOOLEAN:
-            return ValueInteger.get(getBoolean() ? 1 : 0);
         case TINYINT:
         case ENUM:
         case SMALLINT:
@@ -1603,12 +1601,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case BIGINT:
             return (ValueBigint) this;
         case BOOLEAN:
-            return ValueBigint.get(getBoolean() ? 1 : 0);
         case TINYINT:
         case SMALLINT:
-        case ENUM:
         case INTEGER:
-            return ValueBigint.get(getInt());
         case INTERVAL_YEAR:
         case INTERVAL_MONTH:
         case INTERVAL_DAY:
@@ -1622,6 +1617,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case INTERVAL_HOUR_TO_MINUTE:
         case INTERVAL_HOUR_TO_SECOND:
         case INTERVAL_MINUTE_TO_SECOND:
+        case ENUM:
             return ValueBigint.get(getLong());
         case NUMERIC:
         case DECFLOAT:

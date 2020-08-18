@@ -76,6 +76,16 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
+    public float getFloat() {
+        return ordinal;
+    }
+
+    @Override
+    public double getDouble() {
+        return ordinal;
+    }
+
+    @Override
     public int getSignum() {
         return Integer.signum(ordinal);
     }

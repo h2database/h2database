@@ -121,7 +121,17 @@ public final class ValueTinyint extends Value {
     }
 
     @Override
+    public short getShort() {
+        return value;
+    }
+
+    @Override
     public int getInt() {
+        return value;
+    }
+
+    @Override
+    public long getLong() {
         return value;
     }
 
@@ -129,6 +139,17 @@ public final class ValueTinyint extends Value {
     public BigDecimal getBigDecimal() {
         return BigDecimal.valueOf(value);
     }
+
+    @Override
+    public float getFloat() {
+        return value;
+    }
+
+    @Override
+    public double getDouble() {
+        return value;
+    }
+
     @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         return Integer.compare(value, ((ValueTinyint) o).value);

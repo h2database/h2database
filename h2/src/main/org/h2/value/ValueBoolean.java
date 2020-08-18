@@ -73,8 +73,38 @@ public final class ValueBoolean extends Value {
     }
 
     @Override
+    public byte getByte() {
+        return value ? (byte) 1 : (byte) 0;
+    }
+
+    @Override
+    public short getShort() {
+        return value ? (short) 1 : (short) 0;
+    }
+
+    @Override
+    public int getInt() {
+        return value ? 1 : 0;
+    }
+
+    @Override
+    public long getLong() {
+        return value ? 1L : 0L;
+    }
+
+    @Override
     public BigDecimal getBigDecimal() {
         return value ? BigDecimal.ONE : BigDecimal.ZERO;
+    }
+
+    @Override
+    public float getFloat() {
+        return value ? 1f : 0f;
+    }
+
+    @Override
+    public double getDouble() {
+        return value ? 1d : 0d;
     }
 
     @Override

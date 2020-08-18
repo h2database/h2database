@@ -164,6 +164,16 @@ public final class ValueInteger extends Value {
     }
 
     @Override
+    public float getFloat() {
+        return value;
+    }
+
+    @Override
+    public double getDouble() {
+        return value;
+    }
+
+    @Override
     public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         return Integer.compare(value, ((ValueInteger) o).value);
     }

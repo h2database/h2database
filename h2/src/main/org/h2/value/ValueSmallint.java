@@ -127,8 +127,23 @@ public final class ValueSmallint extends Value {
     }
 
     @Override
+    public long getLong() {
+        return value;
+    }
+
+    @Override
     public BigDecimal getBigDecimal() {
         return BigDecimal.valueOf(value);
+    }
+
+    @Override
+    public float getFloat() {
+        return value;
+    }
+
+    @Override
+    public double getDouble() {
+        return value;
     }
 
     @Override

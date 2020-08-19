@@ -8,3 +8,6 @@ select position(null, null) en, position(null, 'abc') en1, position('World', 'He
 > ---- ---- -- --
 > null null 7  4
 > rows: 1
+
+EXPLAIN SELECT POSITION((A > B), C) FROM (VALUES (1, 2, 3)) T(A, B, C);
+>> SELECT POSITION(("A" > "B"), "C") FROM (VALUES (1, 2, 3)) "T"("A", "B", "C") /* table scan */

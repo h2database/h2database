@@ -114,10 +114,9 @@ public final class StringFunction extends FunctionN {
         }
         case INSERT: {
             Value v3 = args[2].getValue(session), v4 = args[3].getValue(session);
-            if (v2 == ValueNull.INSTANCE || v3 == ValueNull.INSTANCE) {
-                v1 = v2;
-            } else {
-                v1 = ValueVarchar.get(insert(v1.getString(), v2.getInt(), v3.getInt(), v4.getString()), session);
+            if (v2 != ValueNull.INSTANCE && v3 != ValueNull.INSTANCE) {
+                String s = insert(v1.getString(), v2.getInt(), v3.getInt(), v4.getString());
+                v1 = s != null ? ValueVarchar.get(s, session) : ValueNull.INSTANCE;
             }
             break;
         }
@@ -263,6 +262,15 @@ public final class StringFunction extends FunctionN {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        if (function == POSITION) {
+            args[0].getEnclosedSQL(builder.append(getName()).append('('), sqlFlags).append(", ");
+            return args[1].getUnenclosedSQL(builder, sqlFlags).append(')');
+        }
+        return super.getUnenclosedSQL(builder, sqlFlags);
     }
 
     @Override

@@ -140,7 +140,7 @@ public final class MathFunction extends Function1_2 {
             if (v2 == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
-            scale = v2.getInt();
+            scale = checkScale(v2);
         } else {
             scale = 0;
         }
@@ -203,7 +203,7 @@ public final class MathFunction extends Function1_2 {
             if (v2 == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
-            scale = v2.getInt();
+            scale = checkScale(v2);
         } else {
             scale = 0;
         }
@@ -229,6 +229,15 @@ public final class MathFunction extends Function1_2 {
             break;
         }
         return v1;
+    }
+
+    private static int checkScale(Value v) {
+        int scale;
+        scale = v.getInt();
+        if (scale < ValueNumeric.MINIMUM_SCALE || scale > ValueNumeric.MAXIMUM_SCALE) {
+            throw DbException.getInvalidValueException("digits", scale);
+        }
+        return scale;
     }
 
     @Override

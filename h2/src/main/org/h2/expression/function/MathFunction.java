@@ -267,7 +267,7 @@ public final class MathFunction extends Function1_2 {
                 }
                 break;
             default:
-                throw DbException.getInvalidValueException("numeric", commonType.getTraceSQL());
+                throw DbException.getInvalidValueException("numeric", type.getTraceSQL());
             }
             break;
         }

@@ -323,6 +323,10 @@ public final class Merge extends CommandWithValues {
                 column.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS).append("=?");
             }
         }
+        if (!hasColumn) {
+            throw DbException.getSyntaxError(sqlStatement, sqlStatement.length(),
+                    "Valid MERGE INTO statement with at least one updatable column");
+        }
         Column.writeColumns(builder.append(" WHERE "), keys, " AND ", "=?", HasSQL.DEFAULT_SQL_FLAGS);
         update = (Update) session.prepare(builder.toString());
     }

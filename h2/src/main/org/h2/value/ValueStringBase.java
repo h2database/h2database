@@ -85,9 +85,81 @@ abstract class ValueStringBase extends Value {
     }
 
     @Override
+    public boolean getBoolean() {
+        String s = value;
+        if (s.equalsIgnoreCase("true") || s.equalsIgnoreCase("t") || s.equalsIgnoreCase("yes")
+                || s.equalsIgnoreCase("y")) {
+            return true;
+        } else if (s.equalsIgnoreCase("false") || s.equalsIgnoreCase("f") || s.equalsIgnoreCase("no")
+                || s.equalsIgnoreCase("n")) {
+            return false;
+        }
+        try {
+            // convert to a number, and if it is not 0 then it is true
+            return new BigDecimal(s).signum() != 0;
+        } catch (NumberFormatException e) {
+            throw getDataConversionError(BOOLEAN);
+        }
+    }
+
+    @Override
+    public byte getByte() {
+        try {
+            return Byte.parseByte(value.trim());
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
+        }
+    }
+
+    @Override
+    public short getShort() {
+        try {
+            return Short.parseShort(value.trim());
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
+        }
+    }
+
+    @Override
+    public int getInt() {
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
+        }
+    }
+
+    @Override
+    public long getLong() {
+        try {
+            return Long.parseLong(value.trim());
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
+        }
+    }
+
+    @Override
     public BigDecimal getBigDecimal() {
         try {
             return new BigDecimal(value.trim());
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
+        }
+    }
+
+    @Override
+    public float getFloat() {
+        try {
+            return Float.parseFloat(value.trim());
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
+        }
+    }
+
+    @Override
+    public double getDouble() {
+        try {
+            return Double.parseDouble(value.trim());
         } catch (NumberFormatException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
         }

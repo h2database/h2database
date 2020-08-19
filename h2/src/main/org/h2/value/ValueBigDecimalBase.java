@@ -103,6 +103,16 @@ abstract class ValueBigDecimalBase extends Value {
     }
 
     @Override
+    public final float getFloat() {
+        return value.floatValue();
+    }
+
+    @Override
+    public final double getDouble() {
+        return value.doubleValue();
+    }
+
+    @Override
     public final String getString() {
         return value.toString();
     }

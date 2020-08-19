@@ -505,6 +505,7 @@ public class Mode {
         mode.allowEndCase = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
+        mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
         add(mode);
 
         mode = new Mode(ModeEnum.Oracle);

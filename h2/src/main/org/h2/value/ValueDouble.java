@@ -142,6 +142,11 @@ public final class ValueDouble extends Value {
     }
 
     @Override
+    public float getFloat() {
+        return (float) value;
+    }
+
+    @Override
     public double getDouble() {
         return value;
     }

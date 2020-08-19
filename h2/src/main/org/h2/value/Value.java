@@ -827,11 +827,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     }
 
     public float getFloat() {
-        return convertToReal().getFloat();
+        throw getDataConversionError(REAL);
     }
 
     public double getDouble() {
-        return convertToDouble().getDouble();
+        throw getDataConversionError(DOUBLE);
     }
 
     /**
@@ -1638,37 +1638,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         switch (getValueType()) {
         case REAL:
             return (ValueReal) this;
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR:
-        case TINYINT:
-        case SMALLINT:
-        case INTEGER:
-        case BIGINT:
-            return ValueReal.get(getFloat());
         case BOOLEAN:
             return getBoolean() ? ValueReal.ONE : ValueReal.ZERO;
-        case INTERVAL_YEAR:
-        case INTERVAL_MONTH:
-        case INTERVAL_DAY:
-        case INTERVAL_HOUR:
-        case INTERVAL_MINUTE:
-            return ValueReal.get(getLong());
-        case NUMERIC:
-        case DECFLOAT:
-        case INTERVAL_SECOND:
-        case INTERVAL_YEAR_TO_MONTH:
-        case INTERVAL_DAY_TO_HOUR:
-        case INTERVAL_DAY_TO_MINUTE:
-        case INTERVAL_DAY_TO_SECOND:
-        case INTERVAL_HOUR_TO_MINUTE:
-        case INTERVAL_HOUR_TO_SECOND:
-        case INTERVAL_MINUTE_TO_SECOND:
-            return ValueReal.get(getBigDecimal().floatValue());
-        case DOUBLE:
-            return ValueReal.get((float) getDouble());
         default:
-            throw getDataConversionError(REAL);
+            return ValueReal.get(getFloat());
         case NULL:
             throw DbException.throwInternalError();
         }
@@ -1683,37 +1656,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         switch (getValueType()) {
         case DOUBLE:
             return (ValueDouble) this;
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR:
-        case TINYINT:
-        case SMALLINT:
-        case INTEGER:
-        case BIGINT:
-            return ValueDouble.get(getDouble());
         case BOOLEAN:
             return getBoolean() ? ValueDouble.ONE : ValueDouble.ZERO;
-        case INTERVAL_YEAR:
-        case INTERVAL_MONTH:
-        case INTERVAL_DAY:
-        case INTERVAL_HOUR:
-        case INTERVAL_MINUTE:
-            return ValueDouble.get(getLong());
-        case NUMERIC:
-        case DECFLOAT:
-        case INTERVAL_SECOND:
-        case INTERVAL_YEAR_TO_MONTH:
-        case INTERVAL_DAY_TO_HOUR:
-        case INTERVAL_DAY_TO_MINUTE:
-        case INTERVAL_DAY_TO_SECOND:
-        case INTERVAL_HOUR_TO_MINUTE:
-        case INTERVAL_HOUR_TO_SECOND:
-        case INTERVAL_MINUTE_TO_SECOND:
-            return ValueDouble.get(getBigDecimal().doubleValue());
-        case REAL:
-            return ValueDouble.get(getFloat());
         default:
-            throw getDataConversionError(DOUBLE);
+            return ValueDouble.get(getDouble());
         case NULL:
             throw DbException.throwInternalError();
         }

@@ -1353,6 +1353,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         switch (getValueType()) {
         case BOOLEAN:
             return (ValueBoolean) this;
+        case CHAR:
+        case VARCHAR:
+        case VARCHAR_IGNORECASE:
+            return ValueBoolean.get(getBoolean());
         case TINYINT:
         case SMALLINT:
         case INTEGER:
@@ -1362,27 +1366,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case REAL:
         case DECFLOAT:
             return ValueBoolean.get(getSignum() != 0);
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR: {
-            String s = getString();
-            if (s.equalsIgnoreCase("true") || s.equalsIgnoreCase("t") || s.equalsIgnoreCase("yes")
-                    || s.equalsIgnoreCase("y")) {
-                return ValueBoolean.TRUE;
-            } else if (s.equalsIgnoreCase("false") || s.equalsIgnoreCase("f") || s.equalsIgnoreCase("no")
-                    || s.equalsIgnoreCase("n")) {
-                return ValueBoolean.FALSE;
-            } else {
-                try {
-                    // convert to a number, and if it is not 0 then it is true
-                    return ValueBoolean.get(new BigDecimal(s).signum() != 0);
-                } catch (NumberFormatException e) {
-                    // Hide this custom exception, it is meaningless for
-                    // conversion to BOOLEAN
-                }
-            }
-        }
-        //$FALL-THROUGH$
         default:
             throw getDataConversionError(BOOLEAN);
         case NULL:
@@ -1403,6 +1386,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         switch (getValueType()) {
         case TINYINT:
             return (ValueTinyint) this;
+        case CHAR:
+        case VARCHAR:
+        case VARCHAR_IGNORECASE:
         case BOOLEAN:
             return ValueTinyint.get(getByte());
         case SMALLINT:
@@ -1430,16 +1416,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case REAL:
         case DOUBLE:
             return ValueTinyint.get(convertToByte(convertToLong(getDouble(), column), column));
-        case CHAR:
-        case VARCHAR:
-        case VARCHAR_IGNORECASE: {
-            String s = getString();
-            try {
-                return ValueTinyint.get(Byte.parseByte(s.trim()));
-            } catch (NumberFormatException e) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
-            }
-        }
         case BINARY:
         case VARBINARY: {
             byte[] bytes = getBytesNoCopy();
@@ -1467,6 +1443,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         switch (getValueType()) {
         case SMALLINT:
             return (ValueSmallint) this;
+        case CHAR:
+        case VARCHAR:
+        case VARCHAR_IGNORECASE:
         case BOOLEAN:
         case TINYINT:
             return ValueSmallint.get(getShort());
@@ -1494,16 +1473,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case REAL:
         case DOUBLE:
             return ValueSmallint.get(convertToShort(convertToLong(getDouble(), column), column));
-        case CHAR:
-        case VARCHAR:
-        case VARCHAR_IGNORECASE: {
-            String s = getString();
-            try {
-                return ValueSmallint.get(Short.parseShort(s.trim()));
-            } catch (NumberFormatException e) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
-            }
-        }
         case BINARY:
         case VARBINARY: {
             byte[] bytes = getBytesNoCopy();
@@ -1531,6 +1500,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         switch (getValueType()) {
         case INTEGER:
             return (ValueInteger) this;
+        case CHAR:
+        case VARCHAR:
+        case VARCHAR_IGNORECASE:
         case BOOLEAN:
         case TINYINT:
         case ENUM:
@@ -1557,16 +1529,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case REAL:
         case DOUBLE:
             return ValueInteger.get(convertToInt(convertToLong(getDouble(), column), column));
-        case CHAR:
-        case VARCHAR:
-        case VARCHAR_IGNORECASE: {
-            String s = getString();
-            try {
-                return ValueInteger.get(Integer.parseInt(s.trim()));
-            } catch (NumberFormatException e) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
-            }
-        }
         case BINARY:
         case VARBINARY: {
             byte[] bytes = getBytesNoCopy();
@@ -1594,6 +1556,9 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         switch (getValueType()) {
         case BIGINT:
             return (ValueBigint) this;
+        case CHAR:
+        case VARCHAR:
+        case VARCHAR_IGNORECASE:
         case BOOLEAN:
         case TINYINT:
         case SMALLINT:
@@ -1619,16 +1584,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case REAL:
         case DOUBLE:
             return ValueBigint.get(convertToLong(getDouble(), column));
-        case CHAR:
-        case VARCHAR:
-        case VARCHAR_IGNORECASE: {
-            String s = getString();
-            try {
-                return ValueBigint.get(Long.parseLong(s.trim()));
-            } catch (NumberFormatException e) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
-            }
-        }
         case BINARY:
         case VARBINARY: {
             byte[] bytes = getBytesNoCopy();
@@ -1683,13 +1638,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         switch (getValueType()) {
         case REAL:
             return (ValueReal) this;
-        case BOOLEAN:
-            return getBoolean() ? ValueReal.ONE : ValueReal.ZERO;
+        case VARCHAR:
+        case VARCHAR_IGNORECASE:
+        case CHAR:
         case TINYINT:
         case SMALLINT:
         case INTEGER:
-            return ValueReal.get(getInt());
         case BIGINT:
+            return ValueReal.get(getFloat());
+        case BOOLEAN:
+            return getBoolean() ? ValueReal.ONE : ValueReal.ZERO;
         case INTERVAL_YEAR:
         case INTERVAL_MONTH:
         case INTERVAL_DAY:
@@ -1709,16 +1667,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             return ValueReal.get(getBigDecimal().floatValue());
         case DOUBLE:
             return ValueReal.get((float) getDouble());
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR: {
-            String s = getString();
-            try {
-                return ValueReal.get(Float.parseFloat(s.trim()));
-            } catch (NumberFormatException e) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
-            }
-        }
         default:
             throw getDataConversionError(REAL);
         case NULL:
@@ -1735,13 +1683,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         switch (getValueType()) {
         case DOUBLE:
             return (ValueDouble) this;
-        case BOOLEAN:
-            return getBoolean() ? ValueDouble.ONE : ValueDouble.ZERO;
+        case VARCHAR:
+        case VARCHAR_IGNORECASE:
+        case CHAR:
         case TINYINT:
         case SMALLINT:
         case INTEGER:
-            return ValueDouble.get(getInt());
         case BIGINT:
+            return ValueDouble.get(getDouble());
+        case BOOLEAN:
+            return getBoolean() ? ValueDouble.ONE : ValueDouble.ZERO;
         case INTERVAL_YEAR:
         case INTERVAL_MONTH:
         case INTERVAL_DAY:
@@ -1761,16 +1712,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             return ValueDouble.get(getBigDecimal().doubleValue());
         case REAL:
             return ValueDouble.get(getFloat());
-        case VARCHAR:
-        case VARCHAR_IGNORECASE:
-        case CHAR: {
-            String s = getString();
-            try {
-                return ValueDouble.get(Double.parseDouble(s.trim()));
-            } catch (NumberFormatException e) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
-            }
-        }
         default:
             throw getDataConversionError(DOUBLE);
         case NULL:

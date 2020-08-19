@@ -6973,8 +6973,12 @@ public class Parser {
                 read();
                 return parseArrayType(TypeInfo.TYPE_VARCHAR);
             }
-            //$FALL-THROUGH$
+            addExpected("data type");
+            throw getSyntaxError();
         default:
+            if (isKeyword(currentToken)) {
+                break;
+            }
             addExpected("data type");
             throw getSyntaxError();
         }

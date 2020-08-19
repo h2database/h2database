@@ -3996,7 +3996,7 @@ TINYINT
 "
 
 "Data Types","SMALLINT Type","
-SMALLINT | @c@ { INT2 | YEAR }
+SMALLINT | @c@ { INT2 }
 ","
 Possible values: -32768 to 32767.
 

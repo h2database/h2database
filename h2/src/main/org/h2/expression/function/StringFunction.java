@@ -265,6 +265,15 @@ public final class StringFunction extends FunctionN {
     }
 
     @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        if (function == POSITION) {
+            args[0].getEnclosedSQL(builder.append(getName()).append('('), sqlFlags).append(", ");
+            return args[1].getUnenclosedSQL(builder, sqlFlags).append(')');
+        }
+        return super.getUnenclosedSQL(builder, sqlFlags);
+    }
+
+    @Override
     public String getName() {
         return NAMES[function];
     }

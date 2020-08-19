@@ -1,9 +1,5 @@
 # Checklist for a release
 
-## Switch to Java 1.8
-
-    . setjava.sh 1.8
-
 ## Formatting, Spellchecking, Javadocs
 
     git pull
@@ -69,7 +65,6 @@ The following can be skipped currently; benchmarks should probably be removed:
 
 ## Build the Release
 
-Switch to Java 1.8.
 In Build.java, comment "-Xdoclint:none", but don't commit that change.
 
 Run the following commands:
@@ -105,7 +100,6 @@ Create tweet at http://twitter.com
 
 ## Sign files and publish files on Maven Central
 
-Switch to Java 1.8.
 In Build.java, comment "-Xdoclint:none", but don't commit that change.
 
     ./build.sh clean compile jar mavenDeployCentral

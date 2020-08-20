@@ -181,9 +181,9 @@ public class TestScript extends TestDb {
         }
         for (String s : new String[] { "array-to-string",
                 "ascii", "bit-length", "char", "concat",
-                "concat-ws", "difference", "hextoraw", "insert", "instr",
+                "concat-ws", "difference", "hextoraw", "insert",
                 "left", "length", "locate", "lower", "lpad", "ltrim",
-                "octet-length", "position", "quote_ident", "rawtohex", "regexp-like",
+                "octet-length", "quote_ident", "rawtohex", "regexp-like",
                 "regex-replace", "regexp-substr", "repeat", "replace", "right", "rpad", "rtrim",
                 "soundex", "space", "stringdecode", "stringencode",
                 "stringtoutf8", "substring", "to-char", "translate", "trim",

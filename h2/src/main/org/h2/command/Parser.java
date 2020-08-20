@@ -4224,6 +4224,19 @@ public class Parser {
         // LOCALTIMESTAMP
         case "NOW":
             return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIMESTAMP, true, "NOW");
+        // LOCATE
+        case "INSTR": {
+            Expression arg1 = readExpression();
+            return new StringFunction(readNextArgument(), arg1, readIfArgument(), StringFunction.LOCATE);
+        }
+        case "POSITION": {
+            // can't read expression because IN would be read too early
+            Expression arg1 = readConcat();
+            if (!readIf(COMMA)) {
+                read(IN);
+            }
+            return new StringFunction(arg1, readSingleArgument(), null, StringFunction.LOCATE);
+        }
         // LOWER
         case "LCASE":
             return new StringFunction1(readSingleArgument(), StringFunction1.LOWER);
@@ -4399,18 +4412,8 @@ public class Parser {
             return new CardinalityExpression(readSingleArgument(), false);
         case "ARRAY_MAX_CARDINALITY":
             return new CardinalityExpression(readSingleArgument(), true);
-        case "INSTR":
-            return new StringFunction(readExpression(), readNextArgument(), readIfArgument(), StringFunction.INSTR);
         case "LOCATE":
             return new StringFunction(readExpression(), readNextArgument(), readIfArgument(), StringFunction.LOCATE);
-        case "POSITION": {
-            // can't read expression because IN would be read too early
-            Expression arg1 = readConcat();
-            if (!readIf(COMMA)) {
-                read(IN);
-            }
-            return new StringFunction(arg1, readSingleArgument(), null, StringFunction.POSITION);
-        }
         case "INSERT":
             return new StringFunction(readExpression(), readNextArgument(), readNextArgument(), readLastArgument(),
                     StringFunction.INSERT);

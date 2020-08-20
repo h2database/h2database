@@ -5249,18 +5249,6 @@ This method returns a string.
 RAWTOHEX(DATA)
 "
 
-"Functions (String)","INSTR","
-@h2@ INSTR(string, searchString, [, startInt])
-","
-Returns the location of a search string in a string.
-If a start position is used, the characters before it are ignored.
-If position is negative, the rightmost location is returned.
-0 is returned if the search string is not found.
-Please note this function is case sensitive, even if the parameters are not.
-","
-INSTR(EMAIL,'@')
-"
-
 "Functions (String)","INSERT Function","
 @h2@ INSERT(originalString, startInt, lengthInt, addString)
 ","
@@ -5304,22 +5292,17 @@ RIGHT(NAME, 3)
 "
 
 "Functions (String)","LOCATE","
-@h2@ LOCATE(searchString, string [, startInt])
+@h2@ { LOCATE(searchString, string [, startInt]) }
+    | @c@ { INSTR(string, searchString, [, startInt]) }
+    | @c@ { POSITION(searchString, string) }
 ","
 Returns the location of a search string in a string.
 If a start position is used, the characters before it are ignored.
 If position is negative, the rightmost location is returned.
 0 is returned if the search string is not found.
+Please note this function is case sensitive, even if the parameters are not.
 ","
 LOCATE('.', NAME)
-"
-
-"Functions (String)","POSITION","
-@h2@ POSITION(searchString, string)
-","
-Returns the location of a search string in a string. See also LOCATE.
-","
-POSITION('.', NAME)
 "
 
 "Functions (String)","LPAD","
@@ -5419,7 +5402,7 @@ REGEXP_LIKE('Hello    World', '[A-Z ]*', 'i')
 "
 
 "Functions (String)","REGEXP_SUBSTR","
-@h2@ REGEXP_SUBSTR(inputString, regexString [, position, occurrenceInt, flagsString, groupInt])
+@h2@ REGEXP_SUBSTR(inputString, regexString [, positionInt, occurrenceInt, flagsString, groupInt])
 ","
 Matches string to a regular expression and returns the matched substring.
 For details, see the java.util.regex.Pattern and related functionality.

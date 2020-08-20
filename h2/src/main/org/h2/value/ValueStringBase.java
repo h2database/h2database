@@ -75,17 +75,17 @@ abstract class ValueStringBase extends Value {
     }
 
     @Override
-    public String getString() {
+    public final String getString() {
         return value;
     }
 
     @Override
-    public byte[] getBytes() {
+    public final byte[] getBytes() {
         return value.getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
-    public boolean getBoolean() {
+    public final boolean getBoolean() {
         String s = value;
         if (s.equalsIgnoreCase("true") || s.equalsIgnoreCase("t") || s.equalsIgnoreCase("yes")
                 || s.equalsIgnoreCase("y")) {
@@ -103,7 +103,7 @@ abstract class ValueStringBase extends Value {
     }
 
     @Override
-    public byte getByte() {
+    public final byte getByte() {
         try {
             return Byte.parseByte(value.trim());
         } catch (NumberFormatException e) {
@@ -112,7 +112,7 @@ abstract class ValueStringBase extends Value {
     }
 
     @Override
-    public short getShort() {
+    public final short getShort() {
         try {
             return Short.parseShort(value.trim());
         } catch (NumberFormatException e) {
@@ -121,7 +121,7 @@ abstract class ValueStringBase extends Value {
     }
 
     @Override
-    public int getInt() {
+    public final int getInt() {
         try {
             return Integer.parseInt(value.trim());
         } catch (NumberFormatException e) {
@@ -130,7 +130,7 @@ abstract class ValueStringBase extends Value {
     }
 
     @Override
-    public long getLong() {
+    public final long getLong() {
         try {
             return Long.parseLong(value.trim());
         } catch (NumberFormatException e) {
@@ -139,7 +139,7 @@ abstract class ValueStringBase extends Value {
     }
 
     @Override
-    public BigDecimal getBigDecimal() {
+    public final BigDecimal getBigDecimal() {
         try {
             return new BigDecimal(value.trim());
         } catch (NumberFormatException e) {
@@ -148,7 +148,7 @@ abstract class ValueStringBase extends Value {
     }
 
     @Override
-    public float getFloat() {
+    public final float getFloat() {
         try {
             return Float.parseFloat(value.trim());
         } catch (NumberFormatException e) {
@@ -157,7 +157,7 @@ abstract class ValueStringBase extends Value {
     }
 
     @Override
-    public double getDouble() {
+    public final double getDouble() {
         try {
             return Double.parseDouble(value.trim());
         } catch (NumberFormatException e) {
@@ -166,7 +166,7 @@ abstract class ValueStringBase extends Value {
     }
 
     @Override
-    public int getMemory() {
+    public final int getMemory() {
         /*
          * Java 11 with -XX:-UseCompressedOops
          * Empty string: 88 bytes

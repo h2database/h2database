@@ -42,7 +42,7 @@ abstract class ValueBytesBase extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
+    public final int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
         return Bits.compareNotNullUnsigned(value, ((ValueBytesBase) v).value);
     }
 
@@ -52,7 +52,7 @@ abstract class ValueBytesBase extends Value {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         int h = hash;
         if (h == 0) {
             h = getClass().hashCode() ^ Utils.getByteArrayHash(value);
@@ -70,7 +70,7 @@ abstract class ValueBytesBase extends Value {
     }
 
     @Override
-    public boolean equals(Object other) {
+    public final boolean equals(Object other) {
         return other != null && getClass() == other.getClass() && Arrays.equals(value, ((ValueBytesBase) other).value);
     }
 

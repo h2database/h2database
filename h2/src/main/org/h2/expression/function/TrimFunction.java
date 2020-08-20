@@ -57,16 +57,23 @@ public final class TrimFunction extends Function1_2 {
     @Override
     public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         builder.append(getName()).append('(');
+        boolean needFrom = false;
         switch (flags) {
         case LEADING:
             builder.append("LEADING ");
+            needFrom = true;
             break;
         case TRAILING:
             builder.append("TRAILING ");
+            needFrom = true;
             break;
         }
         if (right != null) {
-            right.getUnenclosedSQL(builder, sqlFlags).append(" FROM ");
+            right.getUnenclosedSQL(builder, sqlFlags);
+            needFrom = true;
+        }
+        if (needFrom) {
+            builder.append(" FROM ");
         }
         return left.getUnenclosedSQL(builder, sqlFlags).append(')');
     }

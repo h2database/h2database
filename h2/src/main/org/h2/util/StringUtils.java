@@ -312,6 +312,9 @@ public class StringUtils {
                     buff.append('\\');
                     break;
                 case 'u': {
+                    if (i + 4 >= length) {
+                        throw getFormatException(s, i);
+                    }
                     try {
                         c = (char) (Integer.parseInt(s.substring(i + 1, i + 5), 16));
                     } catch (NumberFormatException e) {
@@ -322,7 +325,7 @@ public class StringUtils {
                     break;
                 }
                 default:
-                    if (c >= '0' && c <= '9') {
+                    if (c >= '0' && c <= '9' && i + 2 < length) {
                         try {
                             c = (char) (Integer.parseInt(s.substring(i, i + 3), 8));
                         } catch (NumberFormatException e) {

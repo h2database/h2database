@@ -5240,25 +5240,13 @@ HEXTORAW(DATA)
 "
 
 "Functions (String)","RAWTOHEX","
-@h2@ RAWTOHEX(string|bytes)
+@h2@ RAWTOHEX({string|bytes})
 ","
 Converts a string or bytes to the hex representation.
 4 hex characters per string character are used.
 This method returns a string.
 ","
 RAWTOHEX(DATA)
-"
-
-"Functions (String)","INSTR","
-@h2@ INSTR(string, searchString, [, startInt])
-","
-Returns the location of a search string in a string.
-If a start position is used, the characters before it are ignored.
-If position is negative, the rightmost location is returned.
-0 is returned if the search string is not found.
-Please note this function is case sensitive, even if the parameters are not.
-","
-INSTR(EMAIL,'@')
 "
 
 "Functions (String)","INSERT Function","
@@ -5304,22 +5292,17 @@ RIGHT(NAME, 3)
 "
 
 "Functions (String)","LOCATE","
-@h2@ LOCATE(searchString, string [, startInt])
+@h2@ { LOCATE(searchString, string [, startInt]) }
+    | @c@ { INSTR(string, searchString, [, startInt]) }
+    | @c@ { POSITION(searchString, string) }
 ","
 Returns the location of a search string in a string.
 If a start position is used, the characters before it are ignored.
 If position is negative, the rightmost location is returned.
 0 is returned if the search string is not found.
+Please note this function is case sensitive, even if the parameters are not.
 ","
 LOCATE('.', NAME)
-"
-
-"Functions (String)","POSITION","
-@h2@ POSITION(searchString, string)
-","
-Returns the location of a search string in a string. See also LOCATE.
-","
-POSITION('.', NAME)
 "
 
 "Functions (String)","LPAD","
@@ -5419,7 +5402,7 @@ REGEXP_LIKE('Hello    World', '[A-Z ]*', 'i')
 "
 
 "Functions (String)","REGEXP_SUBSTR","
-@h2@ REGEXP_SUBSTR(inputString, regexString [, position, occurrenceInt, flagsString, groupInt])
+@h2@ REGEXP_SUBSTR(inputString, regexString [, positionInt, occurrenceInt, flagsString, groupInt])
 ","
 Matches string to a regular expression and returns the matched substring.
 For details, see the java.util.regex.Pattern and related functionality.
@@ -5760,7 +5743,7 @@ DAYNAME(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_MONTH","
-@c@ DAY_OF_MONTH(dateAndTime|interval)
+@c@ DAY_OF_MONTH({dateAndTime|interval})
 ","
 Returns the day of the month (1-31).
 
@@ -5790,7 +5773,7 @@ ISO_DAY_OF_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_YEAR","
-@c@ DAY_OF_YEAR(dateAndTime|interval)
+@c@ DAY_OF_YEAR({dateAndTime|interval})
 ","
 Returns the day of the year (1-366).
 
@@ -5826,7 +5809,7 @@ CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',
 "
 
 "Functions (Time and Date)","HOUR","
-@c@ HOUR(dateAndTime|interval)
+@c@ HOUR({dateAndTime|interval})
 ","
 Returns the hour (0-23) from a date/time value.
 
@@ -5836,7 +5819,7 @@ HOUR(CREATED)
 "
 
 "Functions (Time and Date)","MINUTE","
-@c@ MINUTE(dateAndTime|interval)
+@c@ MINUTE({dateAndTime|interval})
 ","
 Returns the minute (0-59) from a date/time value.
 
@@ -5846,7 +5829,7 @@ MINUTE(CREATED)
 "
 
 "Functions (Time and Date)","MONTH","
-@c@ MONTH(dateAndTime|interval)
+@c@ MONTH({dateAndTime|interval})
 ","
 Returns the month (1-12) from a date/time value.
 
@@ -5923,7 +5906,7 @@ ISO_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","YEAR","
-@c@ YEAR(dateAndTime|interval)
+@c@ YEAR({dateAndTime|interval})
 ","
 Returns the year from a date/time value.
 
@@ -6153,7 +6136,8 @@ CALL DATABASE_PATH();
 "
 
 "Functions (System)","DATA_TYPE_SQL","
-@h2@ DATA_TYPE_SQL(objectSchemaString, objectNameString, objectTypeString, typeIdentifierString)
+@h2@ DATA_TYPE_SQL
+@h2@ (objectSchemaString, objectNameString, objectTypeString, typeIdentifierString)
 ","
 Returns SQL representation of data type of the specified
 constant, domain, table column, routine result or argument.
@@ -6560,8 +6544,8 @@ SELECT ""Last Name"" FROM CSVREAD('classpath:/org/acme/data/address.csv');
 "
 
 "Functions (Table)","LINK_SCHEMA","
-@h2@ LINK_SCHEMA(targetSchemaString, driverString, urlString,
-    userString, passwordString, sourceSchemaString)
+@h2@ LINK_SCHEMA (targetSchemaString, driverString, urlString,
+@h2@ userString, passwordString, sourceSchemaString)
 ","
 Creates table links for all tables in a schema.
 If tables with the same name already exist, they are dropped first.

@@ -29,3 +29,21 @@ select charindex('World', 'Hello World') e7, charindex('hi', 'abchihihi', 2) e3;
 
 SET MODE Regular;
 > ok
+
+select instr('Hello World', 'World') e7, instr('abchihihi', 'hi', 2) e3, instr('abcooo', 'o') e2;
+> E7 E3 E2
+> -- -- --
+> 7  4  4
+> rows: 1
+
+EXPLAIN SELECT INSTR(A, B) FROM (VALUES ('A', 'B')) T(A, B);
+>> SELECT LOCATE("B", "A") FROM (VALUES ('A', 'B')) "T"("A", "B") /* table scan */
+
+select position(null, null) en, position(null, 'abc') en1, position('World', 'Hello World') e7, position('hi', 'abchihihi') e1;
+> EN   EN1  E7 E1
+> ---- ---- -- --
+> null null 7  4
+> rows: 1
+
+EXPLAIN SELECT POSITION((A > B), C) FROM (VALUES (1, 2, 3)) T(A, B, C);
+>> SELECT LOCATE("A" > "B", "C") FROM (VALUES (1, 2, 3)) "T"("A", "B", "C") /* table scan */

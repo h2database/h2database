@@ -39,7 +39,7 @@ public final class BuiltinFunctions {
                 // CardinalityExpression
                 "CARDINALITY", "ARRAY_MAX_CARDINALITY",
                 // StringFunction
-                "INSTR", "LOCATE", "POSITION", "INSERT", "REPLACE", "LPAD", "RPAD", "TRANSLATE",
+                "LOCATE", "INSERT", "REPLACE", "LPAD", "RPAD", "TRANSLATE",
                 // StringFunction1
                 "UPPER", "LOWER", "ASCII", "CHAR", "CHR", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8",
                 "UTF8TOSTRING", "HEXTORAW", "RAWTOHEX", "SPACE", "QUOTE_IDENT",

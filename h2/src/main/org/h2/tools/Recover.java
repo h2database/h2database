@@ -556,10 +556,10 @@ public class Recover extends Tool implements DataHandler {
                 }
                 String tableId = mapName.substring("table.".length());
                 if (Integer.parseInt(tableId) == 0) {
-                    TransactionMap<Value, Value> dataMap = store.begin().openMap(mapName, type, type);
-                    Iterator<Value> dataIt = dataMap.keyIterator(null);
+                    TransactionMap<Long, Row> dataMap = store.begin().openMap(mapName);
+                    Iterator<Long> dataIt = dataMap.keyIterator(null);
                     while (dataIt.hasNext()) {
-                        Value rowId = dataIt.next();
+                        Long rowId = dataIt.next();
                         Value[] values = ((ValueCollectionBase) dataMap.get(rowId)).getList();
                         try {
                             writeMetaRow(values);

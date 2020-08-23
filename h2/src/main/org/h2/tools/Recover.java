@@ -589,13 +589,12 @@ public class Recover extends Tool implements DataHandler {
                 }
                 String tableId = mapName.substring("table.".length());
                 if (Integer.parseInt(tableId) == 0) {
-                    TransactionMap<Value, Value> dataMap = store.begin().openMap(mapName, type, type);
-                    Iterator<Value> dataIt = dataMap.keyIterator(null);
+                    TransactionMap<Long, Row> dataMap = store.begin().openMap(mapName);
+                    Iterator<Long> dataIt = dataMap.keyIterator(null);
                     while (dataIt.hasNext()) {
-                        Value rowId = dataIt.next();
-                        Value[] values = ((ValueCollectionBase) dataMap.get(rowId)).getList();
+                        Long rowId = dataIt.next();
                         try {
-                            DefaultRow r = new DefaultRow(values);
+                            Row r = dataMap.get(rowId);
                             MetaRecord meta = new MetaRecord(r);
                             schema.add(meta);
                             if (meta.getObjectType() == DbObject.TABLE_OR_VIEW) {

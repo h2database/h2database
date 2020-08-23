@@ -21,6 +21,7 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
+import org.h2.mvstore.type.LongDataType;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -47,7 +48,7 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
             IndexColumn[] columns, IndexType indexType) {
         super(table, id, table.getName() + "_DATA", columns, indexType);
         this.mvTable = table;
-        LongDBDataType keyType = new LongDBDataType();
+        LongDataType keyType = new LongDataType();
         RowDataType valueType = table.getRowFactory().getRowDataType();
         mapName = "table." + getId();
         Transaction t = mvTable.getTransactionBegin();

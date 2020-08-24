@@ -22,16 +22,17 @@ import org.h2.util.Utils;
  * For b-tree nodes, the key at a given index is larger than the largest key of
  * the child at the same index.
  * <p>
- * File format:
- * page length (including length): int
+ * Serialized format:
+ * length of a serialized page in bytes (including this field): int
  * check value: short
+ * page number (0-based sequential number within a chunk): varInt
  * map id: varInt
  * number of keys: varInt
  * type: byte (0: leaf, 1: node; +2: compressed)
+ * children of the non-leaf node (1 more than keys)
  * compressed: bytes saved (varInt)
  * keys
- * leaf: values (one for each key)
- * node: children (1 more than keys)
+ * values of the leaf node (one for each key)
  */
 public abstract class Page<K,V> implements Cloneable {
 
@@ -583,6 +584,11 @@ public abstract class Page<K,V> implements Cloneable {
                     "File corrupted in chunk {0}, expected check value {1}, got {2}", chunkId, checkTest, check);
         }
 
+        pageNo = DataUtils.readVarInt(buff);
+        if (pageNo < 0) {
+            throw DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
+                    "File corrupted in chunk {0}, got negative page No {1}", chunkId, pageNo);
+        }
 
         int mapId = DataUtils.readVarInt(buff);
         if (mapId != map.getId()) {
@@ -590,9 +596,8 @@ public abstract class Page<K,V> implements Cloneable {
                     "File corrupted in chunk {0}, expected map id {1}, got {2}", chunkId, map.getId(), mapId);
         }
 
-
-        int len = DataUtils.readVarInt(buff);
-        keys = createKeyStorage(len);
+        int keyCount = DataUtils.readVarInt(buff);
+        keys = createKeyStorage(keyCount);
         int type = buff.get();
         if(isLeaf() != ((type & 1) == PAGE_TYPE_LEAF)) {
             throw DataUtils.newMVStoreException(
@@ -600,14 +605,7 @@ public abstract class Page<K,V> implements Cloneable {
                     "File corrupted in chunk {0}, expected node type {1}, got {2}",
                     chunkId, isLeaf() ? "0" : "1" , type);
         }
-        // jump ahead and read pageNo, because if page is compressed,
-        // buffer will be replaced by uncompressed one
-        if ((type & DataUtils.PAGE_HAS_PAGE_NO) != 0) {
-            int position = buff.position();
-            buff.position(start + pageLength);
-            pageNo = DataUtils.readVarInt(buff);
-            buff.position(position);
-        }
+
         // to restrain hacky GenericDataType, which grabs the whole remainder of the buffer
         buff.limit(start + pageLength);
 
@@ -639,7 +637,7 @@ public abstract class Page<K,V> implements Cloneable {
             compressor.expand(comp, pos, compLen, buff.array(),
                     buff.arrayOffset(), l);
         }
-        map.getKeyType().read(buff, keys, len);
+        map.getKeyType().read(buff, keys, keyCount);
         if (isLeaf()) {
             readPayLoad(buff);
         }
@@ -694,19 +692,20 @@ public abstract class Page<K,V> implements Cloneable {
      */
     protected final int write(Chunk chunk, WriteBuffer buff, List<Long> toc) {
         pageNo = toc.size();
+        int keyCount = getKeyCount();
         int start = buff.position();
-        int len = getKeyCount();
-        int type = isLeaf() ? PAGE_TYPE_LEAF : DataUtils.PAGE_TYPE_NODE;
-        buff.putInt(0).         // placeholder for pageLength
-            putShort((byte)0).  // placeholder for check
-            putVarInt(map.getId()).
-            putVarInt(len);
+        buff.putInt(0)          // placeholder for pageLength
+            .putShort((byte)0) // placeholder for check
+            .putVarInt(pageNo)
+            .putVarInt(map.getId())
+            .putVarInt(keyCount);
         int typePos = buff.position();
-        buff.put((byte) (type | DataUtils.PAGE_HAS_PAGE_NO));
+        int type = isLeaf() ? PAGE_TYPE_LEAF : DataUtils.PAGE_TYPE_NODE;
+        buff.put((byte)type);
         int childrenPos = buff.position();
         writeChildren(buff, true);
         int compressStart = buff.position();
-        map.getKeyType().write(buff, keys, len);
+        map.getKeyType().write(buff, keys, keyCount);
         writeValues(buff);
         MVStore store = map.getStore();
         int expLen = buff.position() - compressStart;
@@ -737,7 +736,7 @@ public abstract class Page<K,V> implements Cloneable {
                 int plus = DataUtils.getVarIntLen(compLen - expLen);
                 if (compLen + plus < expLen) {
                     buff.position(typePos)
-                        .put((byte) (type | DataUtils.PAGE_HAS_PAGE_NO | compressType));
+                        .put((byte) (type | compressType));
                     buff.position(compressStart)
                         .putVarInt(expLen - compLen)
                         .put(comp, 0, compLen);
@@ -745,9 +744,6 @@ public abstract class Page<K,V> implements Cloneable {
             }
         }
         int pageLength = buff.position() - start;
-        if (pageNo >= 0) {
-            buff.putVarInt(pageNo);
-        }
         long tocElement = DataUtils.getTocElement(getMapId(), start, buff.position() - start, type);
         toc.add(tocElement);
         int chunkId = chunk.id;

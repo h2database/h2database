@@ -10,6 +10,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
+import org.h2.message.DbException;
 import org.h2.util.ParserUtil;
 
 /**
@@ -40,6 +43,10 @@ public final class ExtTypeInfoRow extends ExtTypeInfo {
      *            number of fields to use
      */
     public ExtTypeInfoRow(Typed[] fields, int degree) {
+        if (degree > Constants.MAX_ARRAY_CARDINALITY) {
+            throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Integer.toString(degree), "0",
+                    "" + Constants.MAX_ARRAY_CARDINALITY);
+        }
         LinkedHashMap<String, TypeInfo> map = new LinkedHashMap<>((int) Math.ceil(degree / .75));
         for (int i = 0; i < degree;) {
             TypeInfo t = fields[i].getType();
@@ -55,6 +62,11 @@ public final class ExtTypeInfoRow extends ExtTypeInfo {
      *            fields
      */
     public ExtTypeInfoRow(LinkedHashMap<String, TypeInfo> fields) {
+        int degree = fields.size();
+        if (degree > Constants.MAX_ARRAY_CARDINALITY) {
+            throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Integer.toString(degree), "0",
+                    "" + Constants.MAX_ARRAY_CARDINALITY);
+        }
         this.fields = fields;
     }
 

@@ -298,6 +298,22 @@ public class Constants {
     public static final int LOCK_SLEEP = 1000;
 
     /**
+     * The maximum allowed length for character string, binary string, and other
+     * data types based on them; excluding LOB data types.
+     */
+    public static final int MAX_STRING_LENGTH = 1024 * 1024;
+
+    /**
+     * The maximum allowed precision of numeric data types.
+     */
+    public static final int MAX_NUMERIC_PRECISION = 100_000;
+
+    /**
+     * The maximum allowed cardinality of array.
+     */
+    public static final int MAX_ARRAY_CARDINALITY = 65_536;
+
+    /**
      * The highest possible parameter index.
      */
     public static final int MAX_PARAMETER_INDEX = 100_000;

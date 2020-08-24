@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
+import org.h2.engine.Constants;
 import org.h2.message.DbException;
 
 /**
@@ -25,6 +26,10 @@ abstract class ValueStringBase extends Value {
     private TypeInfo type;
 
     ValueStringBase(String v) {
+        int length = v.length();
+        if (length > Constants.MAX_STRING_LENGTH) {
+            throw DbException.getValueTooLongException(getTypeName(getValueType()), v, length);
+        }
         this.value = v;
     }
 

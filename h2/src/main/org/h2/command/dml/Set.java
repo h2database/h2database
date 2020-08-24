@@ -76,6 +76,7 @@ public class Set extends Prepared {
         case SetTypes.NON_KEYWORDS:
         case SetTypes.TIME_ZONE:
         case SetTypes.VARIABLE_BINARY:
+        case SetTypes.TRUNCATE_LARGE_LENGTH:
             return true;
         default:
         }
@@ -599,6 +600,9 @@ public class Set extends Prepared {
             }
             break;
         }
+        case SetTypes.TRUNCATE_LARGE_LENGTH:
+            session.setTruncateLargeLength(expression.getBooleanValue(session));
+            break;
         default:
             DbException.throwInternalError("type="+type);
         }

@@ -5,14 +5,20 @@
  */
 package org.h2.test.db;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.Collections;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
+import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -58,6 +64,7 @@ public class TestRunscript extends TestDb implements Trigger {
         testCancelScript();
         testEncoding();
         testClobPrimaryKey();
+        testTruncateLargeLength();
         testVariableBinary();
         deleteDb("runscript");
     }
@@ -542,7 +549,26 @@ public class TestRunscript extends TestDb implements Trigger {
         deleteDb("runscriptRestoreRecover");
         FileUtils.delete(getBaseDir() + "/backup.2.sql");
         FileUtils.delete(getBaseDir() + "/backup.3.sql");
+        FileUtils.delete(getBaseDir() + "/runscript.h2.sql");
 
+    }
+
+    private void testTruncateLargeLength() throws Exception {
+        deleteDb("runscript");
+        Connection conn;
+        Statement stat;
+        Files.write(Paths.get(getBaseDir() + "/backup.sql"),
+                Collections.singleton("CREATE TABLE TEST(V VARCHAR(2147483647))"), //
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        conn = getConnection("runscript");
+        stat = conn.createStatement();
+        assertThrows(ErrorCode.INVALID_VALUE_PRECISION, stat)
+                .execute("RUNSCRIPT FROM '" + getBaseDir() + "/backup.sql'");
+        stat.execute("RUNSCRIPT FROM '" + getBaseDir() + "/backup.sql' TRUNCATE_LARGE_LENGTH");
+        assertEquals(Constants.MAX_STRING_LENGTH, stat.executeQuery("TABLE TEST").getMetaData().getPrecision(1));
+        conn.close();
+        deleteDb("runscript");
+        FileUtils.delete(getBaseDir() + "/backup.sql");
     }
 
     private void testVariableBinary() throws SQLException {

@@ -3717,7 +3717,7 @@ public class Parser {
                 }
                 if (readIf(ON)) {
                     read("OVERFLOW");
-                    read("ERROR");
+                    read("TRUNCATE", "ERROR");
                 }
                 orderByList = null;
             }
@@ -6058,6 +6058,28 @@ public class Parser {
             throw getSyntaxError();
         }
         read();
+    }
+
+    private void read(String... expecteds) {
+        Expression exp = readExpression();
+        boolean matches = false;
+        for (String expected : expecteds) {
+            if (equalsToken(expected, exp.toString())) {
+                matches = true;
+                break;
+            }
+        }
+        if (currentTokenQuoted || !matches) {
+            String expectedString = "";
+            for (String expected : expecteds) {
+                expectedString += expected + ", ";
+            }
+            if (expectedString.endsWith(", ")) {
+                expectedString = expectedString.substring(0, expectedString.length() - 2);
+            }
+            addExpected(expectedString);
+            throw getSyntaxError();
+        }
     }
 
     private void read(int tokenType) {

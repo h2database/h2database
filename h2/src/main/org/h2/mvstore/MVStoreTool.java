@@ -187,7 +187,7 @@ public class MVStoreTool {
                     int entries = DataUtils.readVarInt(chunk);
                     int type = chunk.get();
                     boolean compressed = (type & DataUtils.PAGE_COMPRESSED) != 0;
-                    boolean node = (type & 1) != 0;
+                    boolean node = (type & DataUtils.PAGE_TYPE_NODE) != 0;
                     if (details) {
                         pw.printf(
                                 "+%0" + len +

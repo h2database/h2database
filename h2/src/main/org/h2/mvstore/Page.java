@@ -733,7 +733,7 @@ public abstract class Page<K,V> implements Cloneable {
                     buff.position(compressStart).get(exp);
                 }
                 int compLen = compressor.compress(exp, pos, expLen, comp, 0);
-                int plus = DataUtils.getVarIntLen(compLen - expLen);
+                int plus = DataUtils.getVarIntLen(expLen - compLen);
                 if (compLen + plus < expLen) {
                     buff.position(typePos)
                         .put((byte) (type | compressType));

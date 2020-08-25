@@ -65,7 +65,7 @@ class FileNioMemData {
     static {
         final byte[] n = new byte[BLOCK_SIZE];
         final byte[] output = new byte[BLOCK_SIZE * 2];
-        int len = new CompressLZF().compress(n, BLOCK_SIZE, output, 0);
+        int len = new CompressLZF().compress(n, 0, BLOCK_SIZE, output, 0);
         COMPRESSED_EMPTY_BLOCK = ByteBuffer.allocateDirect(len);
         COMPRESSED_EMPTY_BLOCK.put(output, 0, len);
     }

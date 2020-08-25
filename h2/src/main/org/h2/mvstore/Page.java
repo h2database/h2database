@@ -623,7 +623,7 @@ public abstract class Page<K,V> implements Cloneable {
             int pos = 0;
             if (buff.hasArray()) {
                 comp = buff.array();
-                pos = buff.position();
+                pos = buff.arrayOffset() + buff.position();
             } else {
                 comp = Utils.newBytes(compLen);
                 buff.get(comp);
@@ -722,7 +722,7 @@ public abstract class Page<K,V> implements Cloneable {
                 byte[] exp;
                 if (byteBuffer.hasArray()) {
                     exp = byteBuffer.array();
-                    pos = compressStart;
+                    pos = byteBuffer.arrayOffset()  + compressStart;
                 } else {
                     exp = Utils.newBytes(expLen);
                     buff.position(compressStart).get(exp);

@@ -159,7 +159,7 @@ public class TestCompress extends TestDb {
         int pageSize = Constants.DEFAULT_PAGE_SIZE;
         byte[] buff2 = new byte[pageSize];
         byte[] test = new byte[2 * pageSize];
-        compress.compress(buff2, pageSize, test, 0);
+        compress.compress(buff2, 0, pageSize, test, 0);
         for (int j = 0; j < 4; j++) {
             long time = System.nanoTime();
             for (int i = 0; i < 1000; i++) {
@@ -169,7 +169,7 @@ public class TestCompress extends TestDb {
                     if (len < 0) {
                         break;
                     }
-                    compress.compress(buff2, pageSize, test, 0);
+                    compress.compress(buff2, 0, pageSize, test, 0);
                 }
                 in.close();
             }
@@ -186,7 +186,7 @@ public class TestCompress extends TestDb {
                 if (len < 0) {
                     break;
                 }
-                int b = compress.compress(buff2, pageSize, test, 0);
+                int b = compress.compress(buff2, 0, pageSize, test, 0);
                 byte[] data = Arrays.copyOf(test, b);
                 comp.add(data);
             }

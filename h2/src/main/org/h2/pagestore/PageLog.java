@@ -508,7 +508,7 @@ public class PageLog {
         } else {
             int pageSize = store.getPageSize();
             if (COMPRESS_UNDO) {
-                int size = compress.compress(page.getBytes(),
+                int size = compress.compress(page.getBytes(), 0,
                         pageSize, compressBuffer, 0);
                 if (size < pageSize) {
                     buffer.writeVarInt(size);

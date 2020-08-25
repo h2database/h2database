@@ -602,7 +602,7 @@ public abstract class Page<K,V> implements Cloneable {
             pageNo = DataUtils.readVarInt(buff);
             buff.position(position);
         }
-        // to restrain hacky GenericDataType, which grabs the whole remainer of the buffer
+        // to restrain hacky GenericDataType, which grabs the whole remainder of the buffer
         buff.limit(start + pageLength);
 
         if (!isLeaf()) {
@@ -619,11 +619,18 @@ public abstract class Page<K,V> implements Cloneable {
             }
             int lenAdd = DataUtils.readVarInt(buff);
             int compLen = buff.remaining();
-            byte[] comp = Utils.newBytes(compLen);
-            buff.get(comp);
+            byte[] comp;
+            int pos = 0;
+            if (buff.hasArray()) {
+                comp = buff.array();
+                pos = buff.position();
+            } else {
+                comp = Utils.newBytes(compLen);
+                buff.get(comp);
+            }
             int l = compLen + lenAdd;
             buff = ByteBuffer.allocate(l);
-            compressor.expand(comp, 0, compLen, buff.array(),
+            compressor.expand(comp, pos, compLen, buff.array(),
                     buff.arrayOffset(), l);
         }
         map.getKeyType().read(buff, keys, len);
@@ -709,10 +716,18 @@ public abstract class Page<K,V> implements Cloneable {
                     compressor = store.getCompressorHigh();
                     compressType = DataUtils.PAGE_COMPRESSED_HIGH;
                 }
-                byte[] exp = new byte[expLen];
-                buff.position(compressStart).get(exp);
                 byte[] comp = new byte[expLen * 2];
-                int compLen = compressor.compress(exp, expLen, comp, 0);
+                ByteBuffer byteBuffer = buff.getBuffer();
+                int pos = 0;
+                byte[] exp;
+                if (byteBuffer.hasArray()) {
+                    exp = byteBuffer.array();
+                    pos = compressStart;
+                } else {
+                    exp = Utils.newBytes(expLen);
+                    buff.position(compressStart).get(exp);
+                }
+                int compLen = compressor.compress(exp, pos, expLen, comp, 0);
                 int plus = DataUtils.getVarIntLen(compLen - expLen);
                 if (compLen + plus < expLen) {
                     buff.position(typePos)

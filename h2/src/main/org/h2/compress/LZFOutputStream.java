@@ -54,7 +54,7 @@ public class LZFOutputStream extends OutputStream {
     private void compressAndWrite(byte[] buff, int len) throws IOException {
         if (len > 0) {
             ensureOutput(len);
-            int compressed = compress.compress(buff, len, outBuffer, 0);
+            int compressed = compress.compress(buff, 0, len, outBuffer, 0);
             if (compressed > len) {
                 writeInt(-len);
                 out.write(buff, 0, len);

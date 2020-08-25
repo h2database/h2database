@@ -49,6 +49,7 @@ import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
+import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.IOUtils;
@@ -549,20 +550,20 @@ public class TestResultSet extends TestDb {
 
         rs = stat.executeQuery("explain select * from dual");
         meta = rs.getMetaData();
-        assertEquals(Integer.MAX_VALUE, meta.getColumnDisplaySize(1));
-        assertEquals(Integer.MAX_VALUE, meta.getPrecision(1));
+        assertEquals(Constants.MAX_STRING_LENGTH, meta.getColumnDisplaySize(1));
+        assertEquals(Constants.MAX_STRING_LENGTH, meta.getPrecision(1));
 
         rs = stat.executeQuery("script");
         meta = rs.getMetaData();
-        assertEquals(Integer.MAX_VALUE, meta.getColumnDisplaySize(1));
-        assertEquals(Integer.MAX_VALUE, meta.getPrecision(1));
+        assertEquals(Constants.MAX_STRING_LENGTH, meta.getColumnDisplaySize(1));
+        assertEquals(Constants.MAX_STRING_LENGTH, meta.getPrecision(1));
 
         rs = stat.executeQuery("select group_concat(table_name) " +
                 "from information_schema.tables");
         rs.next();
         meta = rs.getMetaData();
-        assertEquals(Integer.MAX_VALUE, meta.getColumnDisplaySize(1));
-        assertEquals(Integer.MAX_VALUE, meta.getPrecision(1));
+        assertEquals(Constants.MAX_STRING_LENGTH, meta.getColumnDisplaySize(1));
+        assertEquals(Constants.MAX_STRING_LENGTH, meta.getPrecision(1));
 
     }
 

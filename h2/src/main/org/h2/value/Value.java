@@ -2415,17 +2415,12 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     }
 
     final DbException getValueTooLongException(TypeInfo targetType, Object column) {
-        String s = getTraceSQL();
-        if (s.length() > 127) {
-            s = s.substring(0, 128) + "...";
-        }
         StringBuilder builder = new StringBuilder();
         if (column != null) {
             builder.append(column).append(' ');
         }
         targetType.getSQL(builder, TRACE_SQL_FLAGS);
-        return DbException.get(ErrorCode.VALUE_TOO_LONG_2, builder.toString(),
-                s + " (" + getType().getPrecision() + ')');
+        return DbException.getValueTooLongException(builder.toString(), getTraceSQL(), getType().getPrecision());
     }
 
     /**

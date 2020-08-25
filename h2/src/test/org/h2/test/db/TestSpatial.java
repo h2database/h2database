@@ -89,7 +89,6 @@ public class TestSpatial extends TestDb {
         testValueConversion();
         testEquals();
         testTableFunctionGeometry();
-        testHashCode();
         testAggregateWithGeometry();
         testTableViewSpatialPredicate();
         testValueGeometryScript();
@@ -119,17 +118,6 @@ public class TestSpatial extends TestDb {
                 "AND GEOM && 'POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))'");
         conn.close();
         deleteDb("spatial");
-    }
-
-    private void testHashCode() {
-        ValueGeometry geomA = ValueGeometry
-                .get("POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 6,  67 13 6))");
-        ValueGeometry geomB = ValueGeometry
-                .get("POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 6,  67 13 6))");
-        ValueGeometry geomC = ValueGeometry
-                .get("POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 5,  67 13 6))");
-        assertEquals(geomA.hashCode(), geomB.hashCode());
-        assertFalse(geomA.hashCode() == geomC.hashCode());
     }
 
     private void testSpatialValues() throws SQLException {

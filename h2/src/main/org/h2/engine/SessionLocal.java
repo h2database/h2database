@@ -231,6 +231,11 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     private BitSet idsToRelease;
 
     /**
+     * Whether length in definitions of data types is truncated.
+     */
+    private boolean truncateLargeLength;
+
+    /**
      * Whether BINARY is parsed as VARBINARY.
      */
     private boolean variableBinary;
@@ -2130,6 +2135,27 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      */
     public int compareTypeSafe(Value a, Value b) {
         return a.compareTypeSafe(b, database.getCompareMode(), this);
+    }
+
+    /**
+     * Changes parsing mode of data types with too large length.
+     *
+     * @param truncateLargeLength
+     *            {@code true} to truncate to valid bound, {@code false} to
+     *            throw an exception
+     */
+    public void setTruncateLargeLength(boolean truncateLargeLength) {
+        this.truncateLargeLength = truncateLargeLength;
+    }
+
+    /**
+     * Returns parsing mode of data types with too large length.
+     *
+     * @return {@code true} if large length is truncated, {@code false} if an
+     *         exception is thrown
+     */
+    public boolean isTruncateLargeLength() {
+        return truncateLargeLength;
     }
 
     /**

@@ -22,11 +22,6 @@ public final class ValueDecfloat extends ValueBigDecimalBase {
      */
     public static final ValueDecfloat ONE = new ValueDecfloat(BigDecimal.ONE);
 
-    /**
-     * The default precision for a DECFLOAT value.
-     */
-    public static final int DEFAULT_PRECISION = 65535;
-
     private ValueDecfloat(BigDecimal value) {
         super(value);
     }

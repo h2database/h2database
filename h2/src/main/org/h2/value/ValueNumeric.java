@@ -27,11 +27,6 @@ public final class ValueNumeric extends ValueBigDecimalBase {
     public static final ValueNumeric ONE = new ValueNumeric(BigDecimal.ONE);
 
     /**
-     * The default precision for a NUMERIC value.
-     */
-    public static final int DEFAULT_PRECISION = 65535;
-
-    /**
      * The default scale for a NUMERIC value.
      */
     public static final int DEFAULT_SCALE = 0;

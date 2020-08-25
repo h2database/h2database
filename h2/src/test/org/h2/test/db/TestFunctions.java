@@ -528,8 +528,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals(DatabaseMetaData.procedureColumnIn,
                 rs.getInt("COLUMN_TYPE"));
         assertEquals("DOUBLE PRECISION ARRAY", rs.getString("TYPE_NAME"));
-        assertEquals(Integer.MAX_VALUE, rs.getInt("PRECISION"));
-        assertEquals(Integer.MAX_VALUE, rs.getInt("LENGTH"));
+        assertEquals(Constants.MAX_ARRAY_CARDINALITY, rs.getInt("PRECISION"));
+        assertEquals(Constants.MAX_ARRAY_CARDINALITY, rs.getInt("LENGTH"));
         assertEquals(0, rs.getInt("SCALE"));
         assertEquals(DatabaseMetaData.columnNullableUnknown,
                 rs.getInt("NULLABLE"));

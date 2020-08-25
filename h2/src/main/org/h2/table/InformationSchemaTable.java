@@ -2921,6 +2921,7 @@ public final class InformationSchemaTable extends MetaTable {
         add(session, rows, "MODE", database.getMode().getName());
         add(session, rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
         add(session, rows, "TIME ZONE", session.currentTimeZone().getId());
+        add(session, rows, "TRUNCATE_LARGE_LENGTH", session.isTruncateLargeLength() ? "TRUE" : "FALSE");
         add(session, rows, "VARIABLE_BINARY", session.isVariableBinary() ? "TRUE" : "FALSE");
         add(session, rows, "OLD_INFORMATION_SCHEMA", session.isOldInformationSchema() ? "TRUE" : "FALSE");
         BitSet nonKeywords = session.getNonKeywords();

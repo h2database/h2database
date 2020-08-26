@@ -52,12 +52,12 @@ public class TestFunctionOverload extends TestDb {
     private void testOverloadError() throws SQLException {
         Statement stat = conn.createStatement();
         assertThrows(ErrorCode.METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2, stat).
-                execute("create alias overloadError for \"" + ME + ".overloadError\"");
+                execute("create alias overloadError for '" + ME + ".overloadError'");
     }
 
     private void testControl() throws SQLException {
         Statement stat = conn.createStatement();
-        stat.execute("create alias overload0 for \"" + ME + ".overload0\"");
+        stat.execute("create alias overload0 for '" + ME + ".overload0'");
         ResultSet rs = stat.executeQuery("select overload0() from dual");
         assertTrue(rs.next());
         assertEquals("0 args", 0, rs.getInt(1));
@@ -69,7 +69,7 @@ public class TestFunctionOverload extends TestDb {
 
     private void testOverload() throws SQLException {
         Statement stat = conn.createStatement();
-        stat.execute("create alias overload1or2 for \"" + ME + ".overload1or2\"");
+        stat.execute("create alias overload1or2 for '" + ME + ".overload1or2'");
         ResultSet rs = stat.executeQuery("select overload1or2(1) from dual");
         rs.next();
         assertEquals("1 arg", 1, rs.getInt(1));
@@ -89,8 +89,7 @@ public class TestFunctionOverload extends TestDb {
     private void testOverloadNamedArgs() throws SQLException {
         Statement stat = conn.createStatement();
 
-        stat.execute("create alias overload1or2Named for \"" + ME +
-                ".overload1or2(int)\"");
+        stat.execute("create alias overload1or2Named for '" + ME + ".overload1or2(int)'");
 
         ResultSet rs = stat.executeQuery("select overload1or2Named(1) from dual");
         assertTrue("First Row", rs.next());
@@ -105,8 +104,7 @@ public class TestFunctionOverload extends TestDb {
     private void testOverloadWithConnection() throws SQLException {
         Statement stat = conn.createStatement();
 
-        stat.execute("create alias overload1or2WithConn for \"" + ME +
-                ".overload1or2WithConn\"");
+        stat.execute("create alias overload1or2WithConn for '" + ME + ".overload1or2WithConn'");
 
         ResultSet rs = stat.executeQuery("select overload1or2WithConn(1) from dual");
         rs.next();

@@ -168,7 +168,7 @@ public class TestCancel extends TestDb {
         Connection conn = getConnection("cancel");
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("CREATE  ALIAS VISIT FOR \"" + getClass().getName() + ".visit\"");
+        stat.execute("CREATE  ALIAS VISIT FOR '" + getClass().getName() + ".visit'");
         stat.execute("CREATE  MEMORY TABLE TEST" +
                 "(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         PreparedStatement prep = conn.prepareStatement(

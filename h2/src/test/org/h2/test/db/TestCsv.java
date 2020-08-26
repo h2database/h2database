@@ -571,7 +571,7 @@ public class TestCsv extends TestDb {
         }
         trace("read: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         rs = new Csv().read(getBaseDir() + "/testRW.csv", null, "UTF8");
-        // stat.execute("CREATE ALIAS CSVREAD FOR \"org.h2.tools.Csv.read\"");
+        // stat.execute("CREATE ALIAS CSVREAD FOR 'org.h2.tools.Csv.read'");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(2, meta.getColumnCount());
         for (int i = 0; i < len; i++) {

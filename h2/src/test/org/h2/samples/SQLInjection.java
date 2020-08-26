@@ -181,10 +181,8 @@ public class SQLInjection {
      */
     void loginStoredProcedureInsecure() throws Exception {
         System.out.println("Insecure Systems Inc. - login using a stored procedure");
-        stat.execute("CREATE ALIAS IF NOT EXISTS " +
-                "GET_USER FOR \"org.h2.samples.SQLInjection.getUser\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS " +
-                "CHANGE_PASSWORD FOR \"org.h2.samples.SQLInjection.changePassword\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS GET_USER FOR 'org.h2.samples.SQLInjection.getUser'");
+        stat.execute("CREATE ALIAS IF NOT EXISTS CHANGE_PASSWORD FOR 'org.h2.samples.SQLInjection.changePassword'");
         String name = input("Name?");
         String password = input("Password?");
         ResultSet rs = stat.executeQuery(

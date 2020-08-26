@@ -213,9 +213,8 @@ public class TestMetaData extends TestDb {
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs;
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS PROP FOR " +
-                "\"java.lang.System.getProperty(java.lang.String)\"");
-        stat.execute("CREATE ALIAS EXIT FOR \"java.lang.System.exit\"");
+        stat.execute("CREATE ALIAS PROP FOR 'java.lang.System.getProperty(java.lang.String)'");
+        stat.execute("CREATE ALIAS EXIT FOR 'java.lang.System.exit'");
         rs = meta.getProcedures(null, null, "EX%");
         assertResultSetMeta(rs, 9, new String[] { "PROCEDURE_CAT",
                 "PROCEDURE_SCHEM", "PROCEDURE_NAME", "RESERVED1",

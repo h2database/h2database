@@ -488,8 +488,7 @@ public class TestSpatial extends TestDb {
         deleteDb("spatial");
         try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
-            stat.execute("CREATE ALIAS T_GEOM_FROM_TEXT FOR \"" +
-                    TestSpatial.class.getName() + ".geomFromText\"");
+            stat.execute("CREATE ALIAS T_GEOM_FROM_TEXT FOR '" + TestSpatial.class.getName() + ".geomFromText'");
             stat.execute("create table test(id int primary key " +
                     "auto_increment, the_geom geometry)");
             stat.execute("insert into test(the_geom) values(" +
@@ -511,8 +510,8 @@ public class TestSpatial extends TestDb {
         deleteDb("spatial");
         try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
-            stat.execute("CREATE ALIAS T_RANDOM_GEOM_TABLE FOR \"" +
-                    TestSpatial.class.getName() + ".getRandomGeometryTable\"");
+            stat.execute("CREATE ALIAS T_RANDOM_GEOM_TABLE FOR '" +
+                    TestSpatial.class.getName() + ".getRandomGeometryTable'");
             stat.execute(
                     "create table test as " +
                     "select * from T_RANDOM_GEOM_TABLE(42,20,-100,100,-100,100,4)");
@@ -646,9 +645,7 @@ public class TestSpatial extends TestDb {
         deleteDb("spatial");
         Connection conn = getConnection(URL);
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS OBJ_STRING FOR \"" +
-                TestSpatial.class.getName() +
-                ".getObjectString\"");
+        stat.execute("CREATE ALIAS OBJ_STRING FOR '" + TestSpatial.class.getName() + ".getObjectString'");
         ResultSet rs = stat.executeQuery(
                 "select OBJ_STRING('POINT( 15 25 )'::geometry)");
         assertTrue(rs.next());
@@ -698,8 +695,7 @@ public class TestSpatial extends TestDb {
         deleteDb("spatial");
         try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
-            stat.execute("CREATE ALIAS POINT_TABLE FOR \"" +
-                    TestSpatial.class.getName() + ".pointTable\"");
+            stat.execute("CREATE ALIAS POINT_TABLE FOR '" + TestSpatial.class.getName() + ".pointTable'");
             stat.execute("create table test as select * from point_table(1, 1)");
             // Read column type
             ResultSet columnMeta = conn.getMetaData().
@@ -731,8 +727,7 @@ public class TestSpatial extends TestDb {
         deleteDb("spatialIndex");
         try (Connection conn = getConnection("spatialIndex")) {
             Statement st = conn.createStatement();
-            st.execute("CREATE AGGREGATE TABLE_ENVELOPE FOR \""+
-                    TableEnvelope.class.getName()+"\"");
+            st.execute("CREATE AGGREGATE TABLE_ENVELOPE FOR '" + TableEnvelope.class.getName() + '\'');
             st.execute("CREATE TABLE test(the_geom GEOMETRY)");
             st.execute("INSERT INTO test VALUES ('POINT(1 1)'), (null), (null), ('POINT(10 5)')");
             ResultSet rs = st.executeQuery("select TABLE_ENVELOPE(the_geom) from test");

@@ -21,7 +21,6 @@ import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
-import org.h2.util.ParserUtil;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -355,11 +354,9 @@ public final class TriggerObject extends SchemaObject {
             builder.append(" QUEUE ").append(queueSize);
         }
         if (triggerClassName != null) {
-            builder.append(" CALL ");
-            ParserUtil.quoteIdentifier(builder, triggerClassName, DEFAULT_SQL_FLAGS);
+            StringUtils.quoteStringSQL(builder.append(" CALL "), triggerClassName);
         } else {
-            builder.append(" AS ");
-            StringUtils.quoteStringSQL(builder, triggerSource);
+            StringUtils.quoteStringSQL(builder.append(" AS "), triggerSource);
         }
         return builder.toString();
     }

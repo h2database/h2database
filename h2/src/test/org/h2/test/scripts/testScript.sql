@@ -1789,8 +1789,8 @@ script nopasswords nosettings blocksize 10;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
 > CALL SYSTEM_COMBINE_BLOB(-1);
-> CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR "org.h2.command.dml.ScriptCommand.combineBlob";
-> CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR "org.h2.command.dml.ScriptCommand.combineClob";
+> CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR 'org.h2.command.dml.ScriptCommand.combineBlob';
+> CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR 'org.h2.command.dml.ScriptCommand.combineClob';
 > CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INTEGER NOT NULL, "DATA" CHARACTER LARGE OBJECT );
 > CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY ON SYSTEM_LOB_STREAM(ID, PART);
 > CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT NOT NULL, PART INT NOT NULL, CDATA VARCHAR, BDATA VARBINARY);
@@ -3122,14 +3122,14 @@ alter table s.test rename to testtab;
 alter table s.testtab rename to test;
 > ok
 
-create trigger test_trigger before insert on s.test call "org.h2.test.db.TestTriggersConstraints";
+create trigger test_trigger before insert on s.test call 'org.h2.test.db.TestTriggersConstraints';
 > ok
 
 script NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
 > -----------------------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM S.TEST;
-> CREATE FORCE TRIGGER "S"."TEST_TRIGGER" BEFORE INSERT ON "S"."TEST" QUEUE 1024 CALL "org.h2.test.db.TestTriggersConstraints";
+> CREATE FORCE TRIGGER "S"."TEST_TRIGGER" BEFORE INSERT ON "S"."TEST" QUEUE 1024 CALL 'org.h2.test.db.TestTriggersConstraints';
 > CREATE INDEX "S"."INDEX_ID" ON "S"."TEST"("ID" NULLS FIRST);
 > CREATE MEMORY TABLE "S"."TEST"( "ID" INTEGER );
 > CREATE SCHEMA IF NOT EXISTS "S" AUTHORIZATION "SA";

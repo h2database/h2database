@@ -97,8 +97,7 @@ public class TestMultiDimension extends TestDb {
         Connection conn;
         conn = getConnection("multiDimension");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS MAP FOR \"" +
-        getClass().getName() + ".interleave\"");
+        stat.execute("CREATE ALIAS MAP FOR '" + getClass().getName() + ".interleave'");
         stat.execute("CREATE TABLE TEST(X INT NOT NULL, Y INT NOT NULL, " +
                 "XY BIGINT AS MAP(X, Y), DATA VARCHAR)");
         stat.execute("CREATE INDEX IDX_X ON TEST(X, Y)");
@@ -170,8 +169,7 @@ public class TestMultiDimension extends TestDb {
         Connection conn;
         conn = getConnection("multiDimension");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS MAP FOR \"" +
-                getClass().getName() + ".interleave\"");
+        stat.execute("CREATE ALIAS MAP FOR '" + getClass().getName() + ".interleave'");
         stat.execute("CREATE TABLE TEST(X INT NOT NULL, " +
                 "Y INT NOT NULL, Z INT NOT NULL, "
                 + "XYZ BIGINT AS MAP(X, Y, Z), DATA VARCHAR)");

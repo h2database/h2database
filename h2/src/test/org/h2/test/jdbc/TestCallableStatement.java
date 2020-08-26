@@ -238,8 +238,7 @@ public class TestCallableStatement extends TestDb {
         assertEquals(1, rs.getInt(1));
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
-        stat.execute("CREATE ALIAS testCall FOR \"" +
-                    getClass().getName() + ".testCall\"");
+        stat.execute("CREATE ALIAS testCall FOR '" + getClass().getName() + ".testCall'");
         call = conn.prepareCall("{SELECT * FROM testCall(?, ?, ?, ?)}");
         call.setInt("A", 50);
         call.setString("B", "abc");
@@ -392,7 +391,7 @@ public class TestCallableStatement extends TestDb {
         JdbcUtils.addClassFactory(myFactory);
         try {
             Statement stat = conn.createStatement();
-            stat.execute("CREATE ALIAS T_CLASSLOADER FOR \"TestClassFactory.testClassF\"");
+            stat.execute("CREATE ALIAS T_CLASSLOADER FOR 'TestClassFactory.testClassF'");
             ResultSet rs = stat.executeQuery("SELECT T_CLASSLOADER(true)");
             assertTrue(rs.next());
             assertEquals(false, rs.getBoolean(1));
@@ -404,8 +403,7 @@ public class TestCallableStatement extends TestDb {
     private void testArrayArgument(Connection connection) throws SQLException {
         Array array = connection.createArrayOf("Int", new Object[] {0, 1, 2});
         try (Statement statement = connection.createStatement()) {
-            statement.execute("CREATE ALIAS getArrayLength FOR \"" +
-                            getClass().getName() + ".getArrayLength\"");
+            statement.execute("CREATE ALIAS getArrayLength FOR '" + getClass().getName() + ".getArrayLength'");
 
             // test setArray
             try (CallableStatement callableStatement = connection
@@ -444,8 +442,7 @@ public class TestCallableStatement extends TestDb {
             {0, null, 2},
         };
         try (Statement statement = connection.createStatement()) {
-            statement.execute("CREATE ALIAS arrayIdentiy FOR \"" +
-                            getClass().getName() + ".arrayIdentiy\"");
+            statement.execute("CREATE ALIAS arrayIdentiy FOR '" + getClass().getName() + ".arrayIdentiy'");
 
             for (Integer[] arrayToTest : arraysToTest) {
                 Array sqlInputArray = connection.createArrayOf("INTEGER", arrayToTest);

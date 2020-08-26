@@ -7940,7 +7940,7 @@ public class Parser {
         command.setName(name);
         command.setIfNotExists(ifNotExists);
         read(FOR);
-        command.setJavaClassMethod(readUniqueIdentifier());
+        command.setJavaClassMethod(readStringOrIdentifier());
         return command;
     }
 
@@ -8062,7 +8062,7 @@ public class Parser {
             command.setTriggerSource(readString());
         } else {
             read("CALL");
-            command.setTriggerClassName(readUniqueIdentifier());
+            command.setTriggerClassName(readStringOrIdentifier());
         }
         return command;
     }
@@ -8117,9 +8117,13 @@ public class Parser {
             command.setSource(readString());
         } else {
             read(FOR);
-            command.setJavaClassMethod(readUniqueIdentifier());
+            command.setJavaClassMethod(readStringOrIdentifier());
         }
         return command;
+    }
+
+    private String readStringOrIdentifier() {
+        return currentTokenType != IDENTIFIER ? readString() : readUniqueIdentifier();
     }
 
     private boolean isReservedFunctionName(String name) {

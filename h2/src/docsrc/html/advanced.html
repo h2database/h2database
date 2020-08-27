@@ -1894,6 +1894,7 @@ This database has the following known limitations:
     An example database URL is: <code>jdbc:h2:split:~/test</code>.
 </li><li>The maximum number of rows per table is 2^64.
 </li><li>The maximum number of open transactions is 65535.
+</li><li>The maximum length of an identifier (table name, column name, and so on) is 256 characters.
 </li><li>The maximum length of CHARACTER, CHARACTER VARYING and VARCHAR_IGNORECASE values and columns
 is 1048576 characters.
 </li><li>The maximum length of BINARY, BINARY VARYING, JAVA_OBJECT, GEOMETRY, and JSON values and columns
@@ -1907,7 +1908,6 @@ is 1048576 bytes.
 </li><li>Limit on the complexity of SQL statements.
 Very complex expressions may result in a stack overflow exception.
 </li><li>There is no limit for the following entities, except the memory and storage capacity:
-    maximum identifier length (table name, column name, and so on);
     maximum number of tables, columns, indexes, triggers, and other database objects;
     maximum statement length, tables per statement, expressions
     in order by, group by, having, and so on;

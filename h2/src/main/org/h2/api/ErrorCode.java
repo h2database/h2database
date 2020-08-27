@@ -467,6 +467,18 @@ public class ErrorCode {
      */
     public static final int INVALID_NAME_1 = 42602;
 
+    /**
+     * The error with code <code>42622</code> is thrown when
+     * name of identifier is too long.
+     * Example:
+     * <pre>
+     * char[] c = new char[1000];
+     * Arrays.fill(c, 'A');
+     * statement.executeQuery("SELECT 1 " + new String(c));
+     * </pre>
+     */
+    public static final int NAME_TOO_LONG_2 = 42622;
+
     // 0A: feature not supported
 
     // HZ: remote database access

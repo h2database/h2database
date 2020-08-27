@@ -224,7 +224,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
     @Override
     public int prepare(Xid xid) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("prepare("+JdbcXid.toString(xid)+");");
+            debugCode("prepare(" + quoteXid(xid) + ");");
         }
         checkOpen();
         if (!currentTransaction.equals(xid)) {
@@ -232,7 +232,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
         }
 
         try (Statement stat = physicalConn.createStatement()) {
-            stat.execute("PREPARE COMMIT " + JdbcXid.toString(xid));
+            stat.execute(JdbcXid.toString(new StringBuilder("PREPARE COMMIT \""), xid).append('"').toString());
             prepared = true;
         } catch (SQLException e) {
             throw convertException(e);
@@ -249,7 +249,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
     @Override
     public void forget(Xid xid) {
         if (isDebugEnabled()) {
-            debugCode("forget("+JdbcXid.toString(xid)+");");
+            debugCode("forget(" + quoteXid(xid) + ");");
         }
         prepared = false;
     }
@@ -262,12 +262,13 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
     @Override
     public void rollback(Xid xid) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("rollback("+JdbcXid.toString(xid)+");");
+            debugCode("rollback(" + quoteXid(xid) + ");");
         }
         try {
             if (prepared) {
                 try (Statement stat = physicalConn.createStatement()) {
-                    stat.execute("ROLLBACK TRANSACTION " + JdbcXid.toString(xid));
+                    stat.execute(JdbcXid.toString( //
+                            new StringBuilder("ROLLBACK TRANSACTION \""), xid).append('"').toString());
                 }
                 prepared = false;
             } else {
@@ -289,7 +290,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
     @Override
     public void end(Xid xid, int flags) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("end("+JdbcXid.toString(xid)+", "+quoteFlags(flags)+");");
+            debugCode("end(" + quoteXid(xid) + ", " + quoteFlags(flags) + ");");
         }
         // TODO transaction end: implement this method
         if (flags == TMSUSPEND) {
@@ -310,7 +311,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
     @Override
     public void start(Xid xid, int flags) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("start("+JdbcXid.toString(xid)+", "+quoteFlags(flags)+");");
+            debugCode("start(" + quoteXid(xid) + ", " + quoteFlags(flags) + ");");
         }
         if (flags == TMRESUME) {
             return;
@@ -340,7 +341,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
     @Override
     public void commit(Xid xid, boolean onePhase) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("commit("+JdbcXid.toString(xid)+", "+onePhase+");");
+            debugCode("commit(" + quoteXid(xid) + ", " + onePhase + ");");
         }
 
         try {
@@ -348,7 +349,8 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
                 physicalConn.commit();
             } else {
                 try (Statement stat = physicalConn.createStatement()) {
-                    stat.execute("COMMIT TRANSACTION " + JdbcXid.toString(xid));
+                    stat.execute(
+                            JdbcXid.toString(new StringBuilder("COMMIT TRANSACTION \""), xid).append('"').toString());
                     prepared = false;
                 }
             }
@@ -391,6 +393,10 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
         XAException xa = new XAException(e.getMessage());
         xa.initCause(e);
         return xa;
+    }
+
+    private static String quoteXid(Xid xid) {
+        return JdbcXid.toString(new StringBuilder(), xid).toString().replace('-', '$');
     }
 
     private static String quoteFlags(int flags) {

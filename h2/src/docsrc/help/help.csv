@@ -3360,7 +3360,8 @@ WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (S.ID, S.NAME)
 "Other Grammar","Name","
 { { A-Z|_ } [ { A-Z|_|0-9 } [...] ] } | quotedName
 ","
-With default settings unquoted names are converted to upper case. There is no maximum name length.
+With default settings unquoted names are converted to upper case.
+The maximum name length is 256 characters.
 
 Identifiers in H2 are case sensitive by default.
 Because unquoted names are converted to upper case, they can be written in any case anyway.
@@ -3419,9 +3420,9 @@ VALUES (1, 2), (3, 4);
 "Other Grammar","Quoted Name","
 ""anythingExceptDoubleQuote""
 ","
-Case of characters in quoted names is preserved as is. Such names can contain spaces. There is no maximum
-name length. Two double quotes can be used to create a single double quote
-inside an identifier.
+Case of characters in quoted names is preserved as is. Such names can contain spaces.
+The maximum name length is 256 characters.
+Two double quotes can be used to create a single double quote inside an identifier.
 With default settings identifiers in H2 are case sensitive.
 ","
 ""FirstName""

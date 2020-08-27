@@ -102,7 +102,6 @@ public class TestCases extends TestDb {
         testDefaultQueryReconnect();
         testBigString();
         testRenameReconnect();
-        testAllSizes();
         testCreateDrop();
         testPolePos();
         testQuick();
@@ -1407,38 +1406,6 @@ public class TestCases extends TestDb {
                 "SELECT ID FROM FINAL TABLE(INSERT INTO TEST_SEQ(NAME) VALUES('World'))");
         rs.next();
         assertEquals(2, rs.getInt(1));
-        conn.close();
-    }
-
-    private void testAllSizes() throws SQLException {
-        trace("testAllSizes");
-        deleteDb("cases");
-        Connection conn = getConnection("cases");
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(A INT, B INT, C INT, DATA VARCHAR)");
-        int increment = getSize(100, 1);
-        for (int i = 1; i < 500; i += increment) {
-            StringBuilder buff = new StringBuilder();
-            buff.append("CREATE TABLE TEST");
-            for (int j = 0; j < i; j++) {
-                buff.append('a');
-            }
-            buff.append("(ID INT)");
-            String sql = buff.toString();
-            stat.execute(sql);
-            stat.execute("INSERT INTO TEST VALUES(" + i + ", 0, 0, '" + sql + "')");
-        }
-        conn.close();
-        conn = getConnection("cases");
-        stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
-        while (rs.next()) {
-            int id = rs.getInt(1);
-            String s = rs.getString("DATA");
-            if (!s.endsWith(")")) {
-                fail("id=" + id);
-            }
-        }
         conn.close();
     }
 

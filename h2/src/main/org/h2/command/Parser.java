@@ -6143,27 +6143,26 @@ public class Parser {
             }
             currentTokenType = ParserUtil.getTokenType(sqlCommand, !identifiersToUpper, start, i - start, false);
             if (isIdentifier()) {
-                currentToken = StringUtils.cache(sqlCommand.substring(start, i));
+                currentToken = StringUtils.cache(checkIdentifierLength(start, i));
             } else {
                 currentToken = TOKENS[currentTokenType];
             }
             parseIndex = i;
             return;
         case CHAR_QUOTED: {
-            String result = null;
-            for (;; i++) {
-                int begin = i;
-                while (chars[i] != c) {
-                    i++;
-                }
-                if (result == null) {
-                    result = sqlCommand.substring(begin, i);
-                } else {
-                    result += sqlCommand.substring(begin - 1, i);
-                }
-                if (chars[++i] != c) {
-                    break;
-                }
+            int begin = i;
+            while (chars[i] != c) {
+                i++;
+            }
+            String result = checkIdentifierLength(begin, i);
+            if (chars[++i] == c) {
+                StringBuilder builder = new StringBuilder(result);
+                do {
+                    begin = i;
+                    while (chars[++i] != c) {}
+                    checkIdentifierLength(builder, begin, i);
+                } while (chars[++i] == c);
+                result = builder.toString();
             }
             currentToken = StringUtils.cache(result);
             parseIndex = i;
@@ -6270,6 +6269,27 @@ public class Parser {
         default:
             throw getSyntaxError();
         }
+    }
+
+    private String checkIdentifierLength(int begin, int end) {
+        if (end - begin > Constants.MAX_IDENTIFIER_LENGTH) {
+            throw DbException.get(ErrorCode.NAME_TOO_LONG_2, sqlCommand.substring(begin, begin + 32),
+                    "" + Constants.MAX_IDENTIFIER_LENGTH);
+        }
+        return sqlCommand.substring(begin, end);
+    }
+
+    private void checkIdentifierLength(StringBuilder builder, int begin, int end) {
+        int length = builder.length();
+        if (length + end - begin > Constants.MAX_IDENTIFIER_LENGTH) {
+            if (length < 32) {
+                builder.append(sqlCommand, begin, begin + 32 - length);
+            } else {
+                builder.setLength(32);
+            }
+            throw DbException.get(ErrorCode.NAME_TOO_LONG_2, builder.toString(), "" + Constants.MAX_IDENTIFIER_LENGTH);
+        }
+        builder.append(sqlCommand, begin, end);
     }
 
     private void readParameterIndex() {

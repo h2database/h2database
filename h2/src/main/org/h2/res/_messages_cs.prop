@@ -38,6 +38,7 @@
 42S21=Duplicitní název sloupce {0}
 42S22=Sloupec {0} nenalezen
 42S31=#Identical expressions should be used; expected {0}, found {1}
+54011=#Too many columns. The maximum count is {0}
 57014=Příkaz byl zrušen nebo připojení vypršelo
 90000=Funkce {0} musí vracet výsledek
 90001=Metoda neumožňuje dotazování. Použijte execute nebo executeQuery namísto executeUpdate

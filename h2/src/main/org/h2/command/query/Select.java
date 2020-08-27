@@ -975,7 +975,9 @@ public class Select extends Query {
         }
         filters.sort(TableFilter.ORDER_IN_FROM_COMPARATOR);
         expandColumnList();
-        visibleColumnCount = expressions.size();
+        if ((visibleColumnCount = expressions.size()) > Constants.MAX_COLUMNS) {
+            throw DbException.get(ErrorCode.TOO_MANY_COLUMNS_1, "" + Constants.MAX_COLUMNS);
+        }
         ArrayList<String> expressionSQL;
         if (distinctExpressions != null || orderList != null || group != null) {
             expressionSQL = new ArrayList<>(visibleColumnCount);

@@ -476,6 +476,7 @@ public class DbException extends RuntimeException {
         case 7:
         case 21:
         case 42:
+        case 54:
             return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
         case 8:
             return new JdbcSQLNonTransientConnectionException(message, sql, state, errorCode, cause, stackTrace);

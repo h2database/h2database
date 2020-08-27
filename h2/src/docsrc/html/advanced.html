@@ -1894,6 +1894,8 @@ This database has the following known limitations:
     An example database URL is: <code>jdbc:h2:split:~/test</code>.
 </li><li>The maximum number of rows per table is 2^64.
 </li><li>The maximum number of open transactions is 65535.
+</li><li>The maximum number of columns in a table or expressions in a SELECT statement is 16384.
+The actual possible number can be smaller if their definitions are too long.
 </li><li>The maximum length of an identifier (table name, column name, and so on) is 256 characters.
 </li><li>The maximum length of CHARACTER, CHARACTER VARYING and VARCHAR_IGNORECASE values and columns
 is 1048576 characters.
@@ -1902,17 +1904,16 @@ is 1048576 bytes.
 </li><li>The maximum precision of NUMERIC and DECFLOAT values and columns is 100000.
 </li><li>The maximum length of an ENUM value is 1048576 characters, the maximum number of ENUM values is 65536.
 </li><li>The maximum cardinality of an ARRAY value or column is 65536.
-</li><li>The maximum degree of a ROW value or column is 65536.
+</li><li>The maximum degree of a ROW value or column is 16384.
 </li><li>The maximum index of parameter is 100000.
 </li><li>Main memory requirements: The larger the database, the more main memory is required.
 </li><li>Limit on the complexity of SQL statements.
 Very complex expressions may result in a stack overflow exception.
 </li><li>There is no limit for the following entities, except the memory and storage capacity:
-    maximum number of tables, columns, indexes, triggers, and other database objects;
-    maximum statement length, tables per statement, expressions
-    in order by, group by, having, and so on;
+    maximum number of tables, indexes, triggers, and other database objects;
+    maximum statement length, tables per statement;
     maximum rows per query;
-    maximum columns per table, columns per index, indexes per table, lob columns per table, and so on;
+    maximum indexes per table, lob columns per table, and so on;
     maximum row length, index row length, select row length.
 </li><li>Querying from the metadata tables is slow if there are many tables (thousands).
 </li><li>For other limitations on data types, see the data type documentation of this database.

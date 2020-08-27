@@ -479,6 +479,19 @@ public class ErrorCode {
      */
     public static final int NAME_TOO_LONG_2 = 42622;
 
+    // 54: program limit exceeded
+
+    /**
+     * The error with code <code>54011</code> is thrown when
+     * too many columns were specified in a table, select statement,
+     * or row value.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(C1 INTEGER, C2 INTEGER, ..., C20000 INTEGER);
+     * </pre>
+     */
+    public static final int TOO_MANY_COLUMNS_1 = 54011;
+
     // 0A: feature not supported
 
     // HZ: remote database access

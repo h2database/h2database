@@ -43,9 +43,8 @@ public final class ExtTypeInfoRow extends ExtTypeInfo {
      *            number of fields to use
      */
     public ExtTypeInfoRow(Typed[] fields, int degree) {
-        if (degree > Constants.MAX_ARRAY_CARDINALITY) {
-            throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Integer.toString(degree), "0",
-                    "" + Constants.MAX_ARRAY_CARDINALITY);
+        if (degree > Constants.MAX_COLUMNS) {
+            throw DbException.get(ErrorCode.TOO_MANY_COLUMNS_1, "" + Constants.MAX_COLUMNS);
         }
         LinkedHashMap<String, TypeInfo> map = new LinkedHashMap<>((int) Math.ceil(degree / .75));
         for (int i = 0; i < degree;) {
@@ -62,10 +61,8 @@ public final class ExtTypeInfoRow extends ExtTypeInfo {
      *            fields
      */
     public ExtTypeInfoRow(LinkedHashMap<String, TypeInfo> fields) {
-        int degree = fields.size();
-        if (degree > Constants.MAX_ARRAY_CARDINALITY) {
-            throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Integer.toString(degree), "0",
-                    "" + Constants.MAX_ARRAY_CARDINALITY);
+        if (fields.size() > Constants.MAX_COLUMNS) {
+            throw DbException.get(ErrorCode.TOO_MANY_COLUMNS_1, "" + Constants.MAX_COLUMNS);
         }
         this.fields = fields;
     }

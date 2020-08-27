@@ -38,6 +38,7 @@
 42S21=Doppelter Feldname {0}
 42S22=Feld {0} nicht gefunden
 42S31=Es sollten identische Ausdrücke verwendet werden; erwartet {0}, tatsächlich {1}
+54011=Zu viele Felder definiert. Maximale Anzahl von Felder: {0}
 57014=Befehl wurde abgebrochen oder das Session-Timeout ist abgelaufen
 90000=Funktion {0} muss Zeilen zurückgeben
 90001=Methode nicht zulässig für eine Abfrage. Erlaubt sind execute oder executeQuery, nicht jedoch executeUpdate

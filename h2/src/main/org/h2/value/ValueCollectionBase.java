@@ -23,11 +23,6 @@ public abstract class ValueCollectionBase extends Value {
     private int hash;
 
     ValueCollectionBase(Value[] values) {
-        int length = values.length;
-        if (length > Constants.MAX_ARRAY_CARDINALITY) {
-            String typeName = getTypeName(getValueType());
-            throw DbException.getValueTooLongException(typeName, typeName, length);
-        }
         this.values = values;
     }
 

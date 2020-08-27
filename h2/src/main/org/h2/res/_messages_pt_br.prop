@@ -38,6 +38,7 @@
 42S21=Nome duplicado da coluna {0}
 42S22=Coluna {0} não foi encontrada
 42S31=#Identical expressions should be used; expected {0}, found {1}
+54011=#Too many columns. The maximum count is {0}
 57014=#Statement was canceled or the session timed out
 90000=Função {0} deve retornar algum resultado
 90001=O método não esta hábilitado para consulta. Use o execute ou o executeQuery em vez de executeUpdate

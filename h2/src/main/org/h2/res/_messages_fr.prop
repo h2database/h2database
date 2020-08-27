@@ -38,6 +38,7 @@
 42S21=Duplication du nom de colonnes {0}
 42S22=Colonne {0} non trouvée
 42S31=#Identical expressions should be used; expected {0}, found {1}
+54011=#Too many columns. The maximum count is {0}
 57014=L''instruction a été annulée ou la session a expiré
 90000=La fonction {0} doit retourner résultat
 90001=Methode non autorisée pour une requête. Utilisez execute ou executeQuery à la place d''executeUpdate

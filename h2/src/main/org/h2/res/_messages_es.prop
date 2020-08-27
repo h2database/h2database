@@ -38,6 +38,7 @@
 42S21=Nombre de columna Duplicada {0}
 42S22=Columna {0} no encontrada
 42S31=#Identical expressions should be used; expected {0}, found {1}
+54011=#Too many columns. The maximum count is {0}
 57014=Ls sentencia fue cancelado ó la sesión expiró por tiempo vencido
 90000=Función {0} debe devolver un set de resultados (ResultSet)
 90001=Metodo no permitido en un query. Use execute ó executeQuery en lugar de executeUpdate

@@ -6837,11 +6837,9 @@ ENVELOPE(X)
 "
 
 "Aggregate Functions (Ordered)","LISTAGG","
-{ LISTAGG ( [ DISTINCT|ALL ] string [, separatorString] [ ON OVERFLOW ERROR ] )
-    withinGroupSpecification }
-    | @c@ { GROUP_CONCAT ( [ DISTINCT|ALL ] string
-    [ ORDER BY sortSpecificationList ]
-    [ SEPARATOR separatorString ] ) }
+LISTAGG ( [ DISTINCT|ALL ] string [, separatorString]
+[ ON OVERFLOW ERROR ] )
+withinGroupSpecification
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Concatenates strings with a separator.

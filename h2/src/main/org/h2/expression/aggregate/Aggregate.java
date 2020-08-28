@@ -39,6 +39,7 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfoRow;
@@ -65,6 +66,8 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     private ArrayList<QueryOrderBy> orderByList;
     private SortOrder orderBySort;
+
+    private Object extraArguments;
 
     private int flags;
 
@@ -183,6 +186,24 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         return aggregateType;
     }
 
+    /**
+     * Sets the additional arguments.
+     *
+     * @param extraArguments the additional arguments
+     */
+    public void setExtraArguments(Object extraArguments) {
+        this.extraArguments = extraArguments;
+    }
+
+    /**
+     * Returns the additional arguments.
+     *
+     * @return the additional arguments
+     */
+    public Object getExtraArguments() {
+        return extraArguments;
+    }
+
     @Override
     public void setFlags(int flags) {
         this.flags = flags;
@@ -213,10 +234,6 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case LISTAGG:
             if (v != ValueNull.INSTANCE) {
                 v = updateCollecting(session, v.convertTo(TypeInfo.TYPE_VARCHAR), remembered);
-            }
-            if (args.length >= 2) {
-                ((AggregateDataCollecting) data).setSharedArgument(
-                        remembered != null ? remembered[1] : args[1].getValue(session));
             }
             break;
         case ARRAY_AGG:
@@ -610,7 +627,11 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             sortWithOrderBy(array);
         }
         StringBuilder builder = new StringBuilder();
-        String sep = args.length < 2 ? "," : collectingData.getSharedArgument().getString();
+        ListaggArguments arguments = (ListaggArguments) extraArguments;
+        String sep = arguments.getSeparator();
+        if (sep == null) {
+            sep = ",";
+        }
         for (int i = 0, length = array.length; i < length; i++) {
             Value val = array[i];
             String s;
@@ -619,7 +640,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             } else {
                 s = val.getString();
             }
-            if (sep != null && i > 0) {
+            if (i > 0) {
                 builder.append(sep);
             }
             builder.append(s);
@@ -930,8 +951,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             text = "MEDIAN";
             break;
         case LISTAGG:
-            text = "LISTAGG";
-            break;
+            return getSQLListagg(builder, sqlFlags);
         case ARRAY_AGG:
             return getSQLArrayAggregate(builder, sqlFlags);
         case MODE:
@@ -954,10 +974,9 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             builder.append('(');
         }
         writeExpressions(builder, args, sqlFlags).append(')');
-        boolean forceOrderBy = aggregateType == AggregateType.LISTAGG;
-        if (forceOrderBy || orderByList != null) {
+        if (orderByList != null) {
             builder.append(" WITHIN GROUP (");
-            Window.appendOrderBy(builder, orderByList, sqlFlags, forceOrderBy);
+            Window.appendOrderBy(builder, orderByList, sqlFlags, false);
             builder.append(')');
         }
         return appendTailConditions(builder, sqlFlags, false);
@@ -970,6 +989,24 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         }
         args[0].getUnenclosedSQL(builder, sqlFlags);
         Window.appendOrderBy(builder, orderByList, sqlFlags, false);
+        builder.append(')');
+        return appendTailConditions(builder, sqlFlags, false);
+    }
+
+    private StringBuilder getSQLListagg(StringBuilder builder, int sqlFlags) {
+        builder.append("LISTAGG(");
+        if (distinct) {
+            builder.append("DISTINCT ");
+        }
+        args[0].getUnenclosedSQL(builder, sqlFlags);
+        ListaggArguments arguments = (ListaggArguments) extraArguments;
+        String s = arguments.getSeparator();
+        if (s != null) {
+            StringUtils.quoteStringSQL(builder.append(", "), s);
+        }
+        builder.append(')');
+        builder.append(" WITHIN GROUP (");
+        Window.appendOrderBy(builder, orderByList, sqlFlags, true);
         builder.append(')');
         return appendTailConditions(builder, sqlFlags, false);
     }

@@ -88,39 +88,39 @@ SELECT LISTAGG(V, ',') WITHIN GROUP (ORDER BY V) FROM TEST;
 drop table test;
 > ok
 
-create table test(g varchar, v int) as values ('-', 1), ('-', 2), ('-', 3), ('|', 4), ('|', 5), ('|', 6), ('*', null);
+create table test(g int, v int) as values (1, 1), (1, 2), (1, 3), (2, 4), (2, 5), (2, 6), (3, null);
 > ok
 
-select g, listagg(v, g) from test group by g;
-> G LISTAGG(V, G) WITHIN GROUP (ORDER BY NULL)
-> - ------------------------------------------
-> * null
-> - 1-2-3
-> | 4|5|6
+select g, listagg(v, '-') from test group by g;
+> G LISTAGG(V, '-') WITHIN GROUP (ORDER BY NULL)
+> - --------------------------------------------
+> 1 1-2-3
+> 2 4-5-6
+> 3 null
 > rows: 3
 
-select g, listagg(v, g) over (partition by g) from test order by v;
-> G LISTAGG(V, G) WITHIN GROUP (ORDER BY NULL) OVER (PARTITION BY G)
-> - ----------------------------------------------------------------
-> * null
-> - 1-2-3
-> - 1-2-3
-> - 1-2-3
-> | 4|5|6
-> | 4|5|6
-> | 4|5|6
+select g, listagg(v, '-') over (partition by g) from test order by v;
+> G LISTAGG(V, '-') WITHIN GROUP (ORDER BY NULL) OVER (PARTITION BY G)
+> - ------------------------------------------------------------------
+> 3 null
+> 1 1-2-3
+> 1 1-2-3
+> 1 1-2-3
+> 2 4-5-6
+> 2 4-5-6
+> 2 4-5-6
 > rows (ordered): 7
 
-select g, listagg(v, g on overflow error) within group (order by v) filter (where v <> 2) over (partition by g) from test order by v;
-> G LISTAGG(V, G) WITHIN GROUP (ORDER BY V) FILTER (WHERE V <> 2) OVER (PARTITION BY G)
-> - -----------------------------------------------------------------------------------
-> * null
-> - 1-3
-> - 1-3
-> - 1-3
-> | 4|5|6
-> | 4|5|6
-> | 4|5|6
+select g, listagg(v, '-' on overflow error) within group (order by v) filter (where v <> 2) over (partition by g) from test order by v;
+> G LISTAGG(V, '-') WITHIN GROUP (ORDER BY V) FILTER (WHERE V <> 2) OVER (PARTITION BY G)
+> - -------------------------------------------------------------------------------------
+> 3 null
+> 1 1-3
+> 1 1-3
+> 1 1-3
+> 2 4-5-6
+> 2 4-5-6
+> 2 4-5-6
 > rows (ordered): 7
 
 select listagg(distinct v, '-') from test;
@@ -130,7 +130,7 @@ select listagg(distinct v, '-') from test;
 > rows: 1
 
 select g, group_concat(v separator v) from test group by g;
-> exception INVALID_VALUE_2
+> exception SYNTAX_ERROR_2
 
 drop table test;
 > ok
@@ -174,3 +174,12 @@ DROP TABLE TEST;
 
 EXPLAIN SELECT LISTAGG(A) WITHIN GROUP (ORDER BY 'a') FROM (VALUES 'a', 'b') T(A);
 >> SELECT LISTAGG("A") WITHIN GROUP (ORDER BY NULL) FROM (VALUES ('a'), ('b')) "T"("A") /* table scan */
+
+SET MODE Oracle;
+> ok
+
+SELECT LISTAGG(V, '') WITHIN GROUP(ORDER BY V) FROM (VALUES 'a', 'b') T(V);
+>> ab
+
+SET MODE Regular;
+> ok

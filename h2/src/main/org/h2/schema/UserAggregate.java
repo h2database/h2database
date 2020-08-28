@@ -7,6 +7,7 @@ package org.h2.schema;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+
 import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.engine.DbObject;
@@ -14,9 +15,8 @@ import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
-import org.h2.util.HasSQL;
 import org.h2.util.JdbcUtils;
-import org.h2.util.ParserUtil;
+import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 
@@ -71,8 +71,7 @@ public final class UserAggregate extends SchemaObject {
     public String getCreateSQL() {
         StringBuilder builder = new StringBuilder("CREATE FORCE AGGREGATE ");
         getSQL(builder, DEFAULT_SQL_FLAGS).append(" FOR ");
-        ParserUtil.quoteIdentifier(builder, className, HasSQL.DEFAULT_SQL_FLAGS);
-        return builder.toString();
+        return StringUtils.quoteStringSQL(builder, className).toString();
     }
 
     @Override

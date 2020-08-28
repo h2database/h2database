@@ -102,18 +102,13 @@ public class FullTextLucene extends FullText {
             stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
                     ".INDEXES(SCHEMA VARCHAR, `TABLE` VARCHAR, " +
                     "COLUMNS VARCHAR, PRIMARY KEY(SCHEMA, `TABLE`))");
-            stat.execute("CREATE ALIAS IF NOT EXISTS FTL_CREATE_INDEX FOR \"" +
-                    FullTextLucene.class.getName() + ".createIndex\"");
-            stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_INDEX FOR \"" +
-                    FullTextLucene.class.getName() + ".dropIndex\"");
-            stat.execute("CREATE ALIAS IF NOT EXISTS FTL_SEARCH FOR \"" +
-                    FullTextLucene.class.getName() + ".search\"");
-            stat.execute("CREATE ALIAS IF NOT EXISTS FTL_SEARCH_DATA FOR \"" +
-                    FullTextLucene.class.getName() + ".searchData\"");
-            stat.execute("CREATE ALIAS IF NOT EXISTS FTL_REINDEX FOR \"" +
-                    FullTextLucene.class.getName() + ".reindex\"");
-            stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_ALL FOR \"" +
-                    FullTextLucene.class.getName() + ".dropAll\"");
+            String className = FullTextLucene.class.getName();
+            stat.execute("CREATE ALIAS IF NOT EXISTS FTL_CREATE_INDEX FOR '" + className + ".createIndex'");
+            stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_INDEX FOR '" + className + ".dropIndex'");
+            stat.execute("CREATE ALIAS IF NOT EXISTS FTL_SEARCH FOR '" + className + ".search'");
+            stat.execute("CREATE ALIAS IF NOT EXISTS FTL_SEARCH_DATA FOR '" + className + ".searchData'");
+            stat.execute("CREATE ALIAS IF NOT EXISTS FTL_REINDEX FOR '" + className + ".reindex'");
+            stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_ALL FOR '" + className + ".dropAll'");
         }
     }
 

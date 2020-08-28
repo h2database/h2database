@@ -298,6 +298,16 @@ public class Constants {
     public static final int LOCK_SLEEP = 1000;
 
     /**
+     * The maximum allowed length of identifiers.
+     */
+    public static final int MAX_IDENTIFIER_LENGTH = 256;
+
+    /**
+     * The maximum number of columns in a table, select statement or row value.
+     */
+    public static final int MAX_COLUMNS = 16_384;
+
+    /**
      * The maximum allowed length for character string, binary string, and other
      * data types based on them; excluding LOB data types.
      */

@@ -34,8 +34,7 @@ public class Function {
         Statement stat = conn.createStatement();
 
         // Using a custom Java function
-        stat.execute("CREATE ALIAS IS_PRIME " +
-                "FOR \"org.h2.samples.Function.isPrime\" ");
+        stat.execute("CREATE ALIAS IS_PRIME FOR 'org.h2.samples.Function.isPrime'");
         ResultSet rs;
         rs = stat.executeQuery("SELECT IS_PRIME(X), X " +
                 "FROM SYSTEM_RANGE(1, 20) ORDER BY X");
@@ -64,8 +63,7 @@ public class Function {
         rs.close();
 
         // Using a custom function like table
-        stat.execute("CREATE ALIAS MATRIX " +
-                "FOR \"org.h2.samples.Function.getMatrix\" ");
+        stat.execute("CREATE ALIAS MATRIX FOR 'org.h2.samples.Function.getMatrix'");
         prep = conn.prepareStatement("SELECT * FROM MATRIX(?) " +
                 "ORDER BY X, Y");
         prep.setInt(1, 2);

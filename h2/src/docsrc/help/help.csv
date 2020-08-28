@@ -712,7 +712,7 @@ COMMENT ON TABLE TEST IS 'Table used for testing'
 "
 
 "Commands (DDL)","CREATE AGGREGATE","
-@h2@ CREATE AGGREGATE [ IF NOT EXISTS ] [schemaName.]aggregateName FOR className
+@h2@ CREATE AGGREGATE [ IF NOT EXISTS ] [schemaName.]aggregateName FOR classNameString
 ","
 Creates a new user-defined aggregate function. The method name must be the full
 qualified class name. The class must implement the interface
@@ -721,13 +721,13 @@ qualified class name. The class must implement the interface
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
-CREATE AGGREGATE SIMPLE_MEDIAN FOR ""com.acme.db.Median""
+CREATE AGGREGATE SIMPLE_MEDIAN FOR 'com.acme.db.Median'
 "
 
 "Commands (DDL)","CREATE ALIAS","
 @h2@ CREATE ALIAS [ IF NOT EXISTS ] [schemaName.]functionAliasName
 @h2@ [ DETERMINISTIC ]
-@h2@ { FOR classAndMethodName | AS sourceCodeString }
+@h2@ { FOR classAndMethodString | AS sourceCodeString }
 ","
 Creates a new function alias. If this is a ResultSet returning function,
 by default the return value is cached in a local temporary file.
@@ -761,8 +761,9 @@ This command commits an open transaction in this connection.
 
 If you have the Groovy jar in your classpath, it is also possible to write methods using Groovy.
 ","
-CREATE ALIAS MY_SQRT FOR ""java.lang.Math.sqrt"";
-CREATE ALIAS GET_SYSTEM_PROPERTY FOR ""java.lang.System.getProperty"";
+CREATE ALIAS MY_SQRT FOR 'java.lang.Math.sqrt';
+CREATE ALIAS MY_ROUND FOR 'java.lang.Math.round(double)';
+CREATE ALIAS GET_SYSTEM_PROPERTY FOR 'java.lang.System.getProperty';
 CALL GET_SYSTEM_PROPERTY('java.class.path');
 CALL GET_SYSTEM_PROPERTY('com.acme.test', 'true');
 CREATE ALIAS REVERSE AS 'String reverse(String s) { return new StringBuilder(s).reverse().toString(); }';
@@ -962,7 +963,7 @@ CREATE TRIGGER @h2@ [ IF NOT EXISTS ] [schemaName.]triggerName
 { INSERT | UPDATE | DELETE | @h2@ { SELECT | ROLLBACK } }
 @h2@ [,...] ON [schemaName.]tableName [ FOR EACH { ROW | STATEMENT } ]
 @c@ [ QUEUE int ] @h2@ [ NOWAIT ]
-@h2@ { CALL triggeredClassName | AS sourceCodeString }
+@h2@ { CALL triggeredClassNameString | AS sourceCodeString }
 ","
 Creates a new trigger.
 The trigger class must be public and implement ""org.h2.api.Trigger"".
@@ -1014,7 +1015,7 @@ The schema name does not need to be specified when creating the trigger.
 
 This command commits an open transaction in this connection.
 ","
-CREATE TRIGGER TRIG_INS BEFORE INSERT ON TEST FOR EACH ROW CALL ""MyTrigger"";
+CREATE TRIGGER TRIG_INS BEFORE INSERT ON TEST FOR EACH ROW CALL 'MyTrigger';
 CREATE TRIGGER TRIG_SRC BEFORE INSERT ON TEST AS
     'org.h2.api.Trigger create() { return new MyTrigger(""constructorParam""); }';
 CREATE TRIGGER TRIG_JS BEFORE INSERT ON TEST AS '//javascript
@@ -3359,7 +3360,8 @@ WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (S.ID, S.NAME)
 "Other Grammar","Name","
 { { A-Z|_ } [ { A-Z|_|0-9 } [...] ] } | quotedName
 ","
-With default settings unquoted names are converted to upper case. There is no maximum name length.
+With default settings unquoted names are converted to upper case.
+The maximum name length is 256 characters.
 
 Identifiers in H2 are case sensitive by default.
 Because unquoted names are converted to upper case, they can be written in any case anyway.
@@ -3418,9 +3420,9 @@ VALUES (1, 2), (3, 4);
 "Other Grammar","Quoted Name","
 ""anythingExceptDoubleQuote""
 ","
-Case of characters in quoted names is preserved as is. Such names can contain spaces. There is no maximum
-name length. Two double quotes can be used to create a single double quote
-inside an identifier.
+Case of characters in quoted names is preserved as is. Such names can contain spaces.
+The maximum name length is 256 characters.
+Two double quotes can be used to create a single double quote inside an identifier.
 With default settings identifiers in H2 are case sensitive.
 ","
 ""FirstName""

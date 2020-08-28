@@ -74,7 +74,7 @@ public class TestRunscript extends TestDb implements Trigger {
         Connection conn;
         conn = getConnection("runscript");
         Statement stat = conn.createStatement();
-        stat.execute("create alias int_decode for \"java.lang.Integer.decode\"");
+        stat.execute("create alias int_decode for 'java.lang.Integer.decode'");
         stat.execute("create table test(x varchar, y int as int_decode(x))");
         stat.execute("script simple drop to '" +
                 getBaseDir() + "/backup.sql'");
@@ -173,7 +173,7 @@ public class TestRunscript extends TestDb implements Trigger {
         stat.execute("create schema a");
         stat.execute("create schema b");
         stat.execute("create schema c");
-        stat.execute("create alias a.int_decode for \"java.lang.Integer.decode\"");
+        stat.execute("create alias a.int_decode for 'java.lang.Integer.decode'");
         stat.execute("create table a.test(x varchar, y int as a.int_decode(x))");
         stat.execute("script schema b");
         rs = stat.getResultSet();
@@ -456,8 +456,7 @@ public class TestRunscript extends TestDb implements Trigger {
         stat1.execute("create table test2(id int primary key) as " +
                 "select x from system_range(1, 5000)");
         stat1.execute("create sequence testSeq start with 100 increment by 10");
-        stat1.execute("create alias myTest for \"" +
-                getClass().getName() + ".test\"");
+        stat1.execute("create alias myTest for '" + getClass().getName() + ".test'");
         stat1.execute("create trigger myTrigger before insert " +
                 "on test nowait call \"" + getClass().getName() + "\"");
         stat1.execute("create view testView as select * " +

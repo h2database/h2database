@@ -92,8 +92,7 @@ public class TestRecovery extends TestDb {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_INIT " +
-                "FOR \"org.h2.fulltext.FullTextLucene.init\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_INIT FOR 'org.h2.fulltext.FullTextLucene.init'");
         stat.execute("CALL FTL_INIT()");
         stat.execute("create table test(id int primary key, name varchar) as " +
                 "select 1, 'Hello'");

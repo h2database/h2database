@@ -1728,7 +1728,7 @@ public class TestLob extends TestDb {
         deleteDb("lob");
         JdbcConnection conn = (JdbcConnection) getConnection("lob");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS VRS FOR \"" + getClass().getName() + ".testLobInValueResultSetGet\"");
+        stat.execute("CREATE ALIAS VRS FOR '" + getClass().getName() + ".testLobInValueResultSetGet'");
         ResultSet rs = stat.executeQuery("SELECT * FROM VRS()");
         assertTrue(rs.next());
         Clob clob = rs.getClob(1);

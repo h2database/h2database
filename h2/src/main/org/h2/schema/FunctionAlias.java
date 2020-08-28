@@ -32,7 +32,6 @@ import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
-import org.h2.util.ParserUtil;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -209,24 +208,22 @@ public final class FunctionAlias extends SchemaObject {
 
     @Override
     public String getDropSQL() {
-        return "DROP ALIAS IF EXISTS " + getSQL(DEFAULT_SQL_FLAGS);
+        return getSQL(new StringBuilder("DROP ALIAS IF EXISTS "), DEFAULT_SQL_FLAGS).toString();
     }
 
     @Override
     public String getCreateSQL() {
-        StringBuilder buff = new StringBuilder("CREATE FORCE ALIAS ");
-        buff.append(getSQL(DEFAULT_SQL_FLAGS));
+        StringBuilder builder = new StringBuilder("CREATE FORCE ALIAS ");
+        getSQL(builder, DEFAULT_SQL_FLAGS);
         if (deterministic) {
-            buff.append(" DETERMINISTIC");
+            builder.append(" DETERMINISTIC");
         }
         if (source != null) {
-            buff.append(" AS ");
-            StringUtils.quoteStringSQL(buff, source);
+            StringUtils.quoteStringSQL(builder.append(" AS "), source);
         } else {
-            buff.append(" FOR ");
-            ParserUtil.quoteIdentifier(buff, className + '.' + methodName, DEFAULT_SQL_FLAGS);
+            StringUtils.quoteStringSQL(builder.append(" FOR "), className + '.' + methodName);
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     @Override

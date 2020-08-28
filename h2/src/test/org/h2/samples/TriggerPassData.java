@@ -35,9 +35,9 @@ public class TriggerPassData implements Trigger {
                 "jdbc:h2:mem:test", "sa", "");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT)");
-        stat.execute("CREATE ALIAS TRIGGER_SET FOR \"" +
+        stat.execute("CREATE ALIAS TRIGGER_SET FOR '" +
                 TriggerPassData.class.getName() +
-                ".setTriggerData\"");
+                ".setTriggerData'");
         stat.execute("CREATE TRIGGER T1 " +
                 "BEFORE INSERT ON TEST " +
                 "FOR EACH ROW CALL \"" +

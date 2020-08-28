@@ -115,8 +115,7 @@ public class TestBatchUpdates extends TestDb {
         deleteDb("batchUpdates");
         conn = getConnection("batchUpdates");
         stat = conn.createStatement();
-        stat.execute("CREATE ALIAS updatePrices FOR \"" +
-                getClass().getName() + ".updatePrices\"");
+        stat.execute("CREATE ALIAS updatePrices FOR '" + getClass().getName() + ".updatePrices'");
         CallableStatement call = conn.prepareCall("{call updatePrices(?, ?)}");
         call.setString(1, "Hello");
         call.setFloat(2, 1.4f);

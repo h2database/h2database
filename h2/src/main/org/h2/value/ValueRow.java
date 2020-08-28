@@ -7,6 +7,7 @@ package org.h2.value;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
+import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.result.SimpleResult;
 
@@ -24,6 +25,9 @@ public final class ValueRow extends ValueCollectionBase {
 
     private ValueRow(Value[] list) {
         super(list);
+        if (list.length > Constants.MAX_COLUMNS) {
+            throw DbException.get(ErrorCode.TOO_MANY_COLUMNS_1, "" + Constants.MAX_COLUMNS);
+        }
     }
 
     /**

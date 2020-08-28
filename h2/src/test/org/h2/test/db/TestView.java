@@ -212,7 +212,7 @@ public class TestView extends TestDb {
         x = 8;
         stat.execute("CREATE ALIAS GET_X " +
                 (deterministic ? "DETERMINISTIC" : "") +
-                " FOR \"" + getClass().getName() + ".getX\"");
+                " FOR '" + getClass().getName() + ".getX'");
         stat.execute("CREATE VIEW V AS SELECT * FROM (SELECT GET_X())");
         ResultSet rs;
         rs = stat.executeQuery("SELECT * FROM V");

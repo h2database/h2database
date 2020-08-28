@@ -580,9 +580,7 @@ public class TestOptimizations extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("create table item(id int primary key)");
         stat.execute("insert into item values(1)");
-        stat.execute("create alias opt for \"" +
-                getClass().getName() +
-                ".optimizeInJoinSelect\"");
+        stat.execute("create alias opt for '" + getClass().getName() + ".optimizeInJoinSelect'");
         PreparedStatement prep = conn.prepareStatement(
                 "select * from item where id in (select x from opt())");
         ResultSet rs = prep.executeQuery();

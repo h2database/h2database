@@ -130,7 +130,6 @@ public class TestScript extends TestDb {
         if (!config.memory && !config.big && !config.networked) {
             testScript("testSimple.sql");
         }
-        testScript("comments.sql");
         testScript("dual.sql");
         testScript("indexes.sql");
         testScript("information_schema.sql");
@@ -216,6 +215,9 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "at-time-zone", "boolean-test", "case", "concatenation", "conditions",
                 "data-change-delta-table", "field-reference", "help", "sequence", "set" }) {
             testScript("other/" + s + ".sql");
+        }
+        for (String s : new String[] { "comments", "identifiers" }) {
+            testScript("parser/" + s + ".sql");
         }
         for (String s : new String[] { "between", "distinct", "in", "like", "null", "type", "unique" }) {
             testScript("predicates/" + s + ".sql");

@@ -478,10 +478,9 @@ public class ScriptCommand extends ScriptBase {
                     true);
             add("CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY " +
                     "ON SYSTEM_LOB_STREAM(ID, PART)", true);
-            add("CREATE ALIAS IF NOT EXISTS " + "SYSTEM_COMBINE_CLOB FOR \"" +
-                    this.getClass().getName() + ".combineClob\"", true);
-            add("CREATE ALIAS IF NOT EXISTS " + "SYSTEM_COMBINE_BLOB FOR \"" +
-                    this.getClass().getName() + ".combineBlob\"", true);
+            String className = getClass().getName();
+            add("CREATE ALIAS IF NOT EXISTS " + "SYSTEM_COMBINE_CLOB FOR '" + className + ".combineClob'", true);
+            add("CREATE ALIAS IF NOT EXISTS " + "SYSTEM_COMBINE_BLOB FOR '" + className + ".combineBlob'", true);
             tempLobTableCreated = true;
         }
         int id = nextLobId++;

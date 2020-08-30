@@ -103,6 +103,9 @@ public final class ValueJson extends ValueBytesBase {
         try {
             bytes = JSONStringSource.normalize(s);
         } catch (RuntimeException ex) {
+            if (s.length() > 80) {
+                s = new StringBuilder(83).append(s, 0, 80).append("...").toString();
+            }
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
         }
         return getInternal(bytes);
@@ -121,7 +124,13 @@ public final class ValueJson extends ValueBytesBase {
         try {
             bytes = JSONBytesSource.normalize(bytes);
         } catch (RuntimeException ex) {
-            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, StringUtils.convertBytesToHex(bytes));
+            StringBuilder builder = new StringBuilder().append("X'");
+            if (bytes.length > 40) {
+                StringUtils.convertBytesToHex(builder, bytes, 40).append("...");
+            } else {
+                StringUtils.convertBytesToHex(builder, bytes);
+            }
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, builder.append('\'').toString());
         }
         return getInternal(bytes);
     }

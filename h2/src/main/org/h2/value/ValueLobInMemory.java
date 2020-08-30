@@ -10,12 +10,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.h2.engine.CastDataProvider;
+import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.store.LobStorageInterface;
 import org.h2.util.Bits;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -65,16 +67,39 @@ public final class ValueLobInMemory extends ValueLob {
 
     @Override
     public String getString() {
+        if (valueType == CLOB) {
+            if (precision > Constants.MAX_STRING_LENGTH) {
+                throw DbException.getValueTooLongException("CHARACTER VARYING",
+                        new String(small, 0, 81 * 3, StandardCharsets.UTF_8), precision);
+            }
+        } else {
+            long p = otherPrecision;
+            if (p > Constants.MAX_STRING_LENGTH) {
+                throw DbException.getValueTooLongException("CHARACTER VARYING",
+                        new String(small, 0, 81 * 3, StandardCharsets.UTF_8), p);
+            } else if (p < 0L) {
+                String s = new String(small, StandardCharsets.UTF_8);
+                otherPrecision = p = s.length();
+                if (p > Constants.MAX_STRING_LENGTH) {
+                    throw DbException.getValueTooLongException("CHARACTER VARYING", s, p);
+                }
+                return s;
+            }
+        }
         return new String(small, StandardCharsets.UTF_8);
     }
 
     @Override
     public byte[] getBytes() {
-        return Utils.cloneByteArray(small);
+        return Utils.cloneByteArray(getBytesNoCopy());
     }
 
     @Override
     public byte[] getBytesNoCopy() {
+        int p = small.length;
+        if (p > Constants.MAX_STRING_LENGTH) {
+            throw DbException.getValueTooLongException("BINARY VARYING", StringUtils.convertBytesToHex(small, 41), p);
+        }
         return small;
     }
 
@@ -187,7 +212,15 @@ public final class ValueLobInMemory extends ValueLob {
 
     @Override
     public long charLength() {
-        return getString().length();
+        if (valueType == CHAR) {
+            return precision;
+        } else {
+            long p = otherPrecision;
+            if (p < 0L) {
+                otherPrecision = p = getString().length();
+            }
+            return p;
+        }
     }
 
     @Override

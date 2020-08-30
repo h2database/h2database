@@ -717,14 +717,17 @@ public class LobStorageBackend implements LobStorageInterface {
             if (n <= 0) {
                 return 0;
             }
+            if (n > remainingBytes) {
+                n = remainingBytes;
+            }
             long remaining = n;
             remaining -= skipSmall(remaining);
             if (remaining > BLOCK_LENGTH) {
-                while (remaining > BLOCK_LENGTH) {
+                do {
                     remaining -= BLOCK_LENGTH;
                     remainingBytes -= BLOCK_LENGTH;
                     lobMapIndex++;
-                }
+                } while (remaining > BLOCK_LENGTH);
                 bufferPos = 0;
                 buffer = null;
             }

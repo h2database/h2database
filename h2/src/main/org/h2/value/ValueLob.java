@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import org.h2.engine.CastDataProvider;
+import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
@@ -171,7 +172,7 @@ public abstract class ValueLob extends Value {
      * Length in characters for binary large objects or length in bytes for
      * character large objects.
      */
-    private volatile long otherPrecision = -1L;
+    volatile long otherPrecision = -1L;
 
     /**
      * Cache the hashCode because it can be expensive to compute.
@@ -227,7 +228,36 @@ public abstract class ValueLob extends Value {
 
     @Override
     public String getString() {
-        int len = precision > Integer.MAX_VALUE || precision == 0 ? Integer.MAX_VALUE : (int) precision;
+        if (valueType == CLOB) {
+            if (precision > Constants.MAX_STRING_LENGTH) {
+                throw getStringTooLong(precision);
+            }
+            return readString((int) precision);
+        }
+        long p = otherPrecision;
+        if (p >= 0L) {
+            if (p > Constants.MAX_STRING_LENGTH) {
+               throw getStringTooLong(p);
+            }
+            return readString((int) p);
+        }
+        // 1 Java character may be encoded with up to 3 bytes
+        if (precision > Constants.MAX_STRING_LENGTH * 3) {
+            throw getStringTooLong(charLength());
+        }
+        String s = readString(Integer.MAX_VALUE);
+        otherPrecision = p = s.length();
+        if (p > Constants.MAX_STRING_LENGTH) {
+            throw getStringTooLong(p);
+        }
+        return s;
+    }
+
+    private DbException getStringTooLong(long precision) {
+        return DbException.getValueTooLongException("CHARACTER VARYING", readString(81), precision);
+    }
+
+    private String readString(int len) {
         try {
             return IOUtils.readStringAndClose(getReader(), len);
         } catch (IOException e) {
@@ -247,17 +277,38 @@ public abstract class ValueLob extends Value {
 
     @Override
     public byte[] getBytes() {
-        try {
-            return IOUtils.readBytesAndClose(getInputStream(), Integer.MAX_VALUE);
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, toString());
+        if (valueType == BLOB) {
+            if (precision > Constants.MAX_STRING_LENGTH) {
+                throw getBinaryTooLong(precision);
+            }
+            return readBytes((int) precision);
         }
+        long p = otherPrecision;
+        if (p >= 0L) {
+            if (p > Constants.MAX_STRING_LENGTH) {
+               throw getBinaryTooLong(p);
+            }
+            return readBytes((int) p);
+        }
+        if (precision > Constants.MAX_STRING_LENGTH) {
+            throw getBinaryTooLong(octetLength());
+        }
+        byte[] b = readBytes(Integer.MAX_VALUE);
+        otherPrecision = p = b.length;
+        if (p > Constants.MAX_STRING_LENGTH) {
+            throw getBinaryTooLong(p);
+        }
+        return b;
     }
 
-    @Override
-    public byte[] getBytesNoCopy() {
+    private DbException getBinaryTooLong(long precision) {
+        return DbException.getValueTooLongException("BINARY VARYING", StringUtils.convertBytesToHex(readBytes(41)),
+                precision);
+    }
+
+    private byte[] readBytes(int len) {
         try {
-            return IOUtils.readBytesAndClose(getInputStream(), Integer.MAX_VALUE);
+            return IOUtils.readBytesAndClose(getInputStream(), len);
         } catch (IOException e) {
             throw DbException.convertIOException(e, toString());
         }

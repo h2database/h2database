@@ -5,8 +5,9 @@
  */
 package org.h2.value;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
-import org.h2.util.StringUtils;
+import org.h2.message.DbException;
 import org.h2.util.Utils;
 
 /**
@@ -59,7 +60,7 @@ public final class ValueJavaObject extends ValueBytesBase {
 
     @Override
     public String getString() {
-        return StringUtils.convertBytesToHex(getBytesNoCopy());
+        throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "JAVA_OBJECT to CHARACTER VARYING");
     }
 
 }

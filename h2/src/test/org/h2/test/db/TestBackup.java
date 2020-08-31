@@ -169,7 +169,7 @@ public class TestBackup extends TestDb {
         stat1.execute("create table testlob" +
                 "(id int primary key, b blob, c clob)");
         stat1.execute("insert into testlob values" +
-                "(1, space(10000), repeat('00', 10000))");
+                "(1, repeat(char(0), 10000), space(10000))");
         conn2 = getConnection("backup");
         stat2 = conn2.createStatement();
         stat2.execute("insert into test values(3, 'third')");

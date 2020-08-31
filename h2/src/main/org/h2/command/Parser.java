@@ -241,6 +241,7 @@ import org.h2.expression.aggregate.AbstractAggregate;
 import org.h2.expression.aggregate.Aggregate;
 import org.h2.expression.aggregate.AggregateType;
 import org.h2.expression.aggregate.JavaAggregate;
+import org.h2.expression.aggregate.ListaggArguments;
 import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.Window;
 import org.h2.expression.analysis.WindowFrame;
@@ -3691,36 +3692,50 @@ public class Parser {
             break;
         case LISTAGG: {
             boolean distinct = readDistinctAgg();
-            Expression arg = readExpression(), separator = null;
+            Expression arg = readExpression();
+            ListaggArguments extraArguments = new ListaggArguments();
             ArrayList<QueryOrderBy> orderByList;
             if ("STRING_AGG".equals(aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
                 read(COMMA);
-                separator = readExpression();
+                extraArguments.setSeparator(readString());
                 orderByList = readIfOrderBy();
             } else if ("GROUP_CONCAT".equals(aggregateName)) {
                 orderByList = readIfOrderBy();
                 if (readIf("SEPARATOR")) {
-                    separator = readExpression();
+                    extraArguments.setSeparator(readString());
                 }
             } else {
                 if (readIf(COMMA)) {
-                    separator = readExpression();
+                    extraArguments.setSeparator(readString());
                 }
                 if (readIf(ON)) {
                     read("OVERFLOW");
-                    read("ERROR");
+                    if (readIf("TRUNCATE")) {
+                        extraArguments.setOnOverflowTruncate(true);
+                        if (currentTokenType == LITERAL) {
+                            extraArguments.setFilter(readString());
+                        }
+                        if (!readIf(WITH)) {
+                            read("WITHOUT");
+                            extraArguments.setWithoutCount(true);
+                        }
+                        read("COUNT");
+                    } else {
+                        read("ERROR");
+                    }
                 }
                 orderByList = null;
             }
-            Expression[] args = separator == null ? new Expression[] { arg } : new Expression[] { arg, separator };
+            Expression[] args = new Expression[] { arg };
             int index = lastParseIndex;
             read(CLOSE_PAREN);
             if (orderByList == null && isToken("WITHIN")) {
-                r = readWithinGroup(aggregateType, args, distinct, false, false);
+                r = readWithinGroup(aggregateType, args, distinct, extraArguments, false, false);
             } else {
                 reread(index);
                 r = new Aggregate(AggregateType.LISTAGG, args, currentSelect, distinct);
+                r.setExtraArguments(extraArguments);
                 if (orderByList != null) {
                     r.setOrderByList(orderByList);
                 }
@@ -3744,19 +3759,19 @@ public class Parser {
             do {
                 expressions.add(readExpression());
             } while (readIfMore());
-            r = readWithinGroup(aggregateType, expressions.toArray(new Expression[0]), false, true, false);
+            r = readWithinGroup(aggregateType, expressions.toArray(new Expression[0]), false, null, true, false);
             break;
         }
         case PERCENTILE_CONT:
         case PERCENTILE_DISC: {
             Expression num = readExpression();
             read(CLOSE_PAREN);
-            r = readWithinGroup(aggregateType, new Expression[] { num }, false, false, true);
+            r = readWithinGroup(aggregateType, new Expression[] { num }, false, null, false, true);
             break;
         }
         case MODE: {
             if (readIf(CLOSE_PAREN)) {
-                r = readWithinGroup(AggregateType.MODE, new Expression[0], false, false, true);
+                r = readWithinGroup(AggregateType.MODE, new Expression[0], false, null, false, true);
             } else {
                 Expression expr = readExpression();
                 r = new Aggregate(AggregateType.MODE, new Expression[0], currentSelect, false);
@@ -3807,13 +3822,14 @@ public class Parser {
     }
 
     private Aggregate readWithinGroup(AggregateType aggregateType, Expression[] args, boolean distinct,
-            boolean forHypotheticalSet, boolean simple) {
+            Object extraArguments, boolean forHypotheticalSet, boolean simple) {
         read("WITHIN");
         read(GROUP);
         read(OPEN_PAREN);
         read(ORDER);
         read("BY");
         Aggregate r = new Aggregate(aggregateType, args, currentSelect, distinct);
+        r.setExtraArguments(extraArguments);
         if (forHypotheticalSet) {
             int count = args.length;
             ArrayList<QueryOrderBy> orderList = new ArrayList<>(count);
@@ -5973,11 +5989,16 @@ public class Parser {
     }
 
     private String readString() {
-        Expression expr = readExpression().optimize(session);
-        if (!(expr instanceof ValueExpression)) {
-            throw DbException.getSyntaxError(sqlCommand, parseIndex, "string");
+        int index = parseIndex;
+        Expression expr = readExpression();
+        try {
+            String s = expr.optimize(session).getValue(session).getString();
+            if (s == null || s.length() <= Constants.MAX_STRING_LENGTH) {
+                return s;
+            }
+        } catch (DbException e) {
         }
-        return expr.getValue(session).getString();
+        throw DbException.getSyntaxError(sqlCommand, index, "character string");
     }
 
     // TODO: why does this function allow defaultSchemaName=null - which resets

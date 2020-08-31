@@ -1098,14 +1098,14 @@ public class StringUtils {
      * @return the hex encoded string
      */
     public static String convertBytesToHex(byte[] value, int len) {
-        char[] buff = new char[len + len];
+        byte[] bytes = new byte[len * 2];
         char[] hex = HEX;
-        for (int i = 0; i < len; i++) {
+        for (int i = 0, j = 0; i < len; i++) {
             int c = value[i] & 0xff;
-            buff[i + i] = hex[c >> 4];
-            buff[i + i + 1] = hex[c & 0xf];
+            bytes[j++] = (byte) hex[c >> 4];
+            bytes[j++] = (byte) hex[c & 0xf];
         }
-        return new String(buff);
+        return new String(bytes, StandardCharsets.ISO_8859_1);
     }
 
     /**

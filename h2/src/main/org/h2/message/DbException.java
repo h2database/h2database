@@ -284,15 +284,19 @@ public class DbException extends RuntimeException {
      *            string representation of value, will be truncated to 80
      *            characters
      * @param valueLength
-     *            the actual length of value
+     *            the actual length of value, {@code -1L} if unknown
      * @return the exception
      */
     public static DbException getValueTooLongException(String columnOrType, String value, long valueLength) {
         int length = value.length();
+        int m = valueLength >= 0 ? 22 : 0;
         StringBuilder builder = length > 80 //
-                ? new StringBuilder(83 + 22).append(value, 0, 80).append("...")
-                : new StringBuilder(length + 22).append(value);
-        return get(VALUE_TOO_LONG_2, columnOrType, builder.append(" (").append(valueLength).append(')').toString());
+                ? new StringBuilder(83 + m).append(value, 0, 80).append("...")
+                : new StringBuilder(length + m).append(value);
+        if (valueLength >= 0) {
+            builder.append(" (").append(valueLength).append(')');
+        }
+        return get(VALUE_TOO_LONG_2, columnOrType, builder.toString());
     }
 
     /**

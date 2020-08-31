@@ -118,7 +118,7 @@ public class TestOutOfMemory extends TestDb {
             int memoryFree = Utils.getMemoryFree();
             try {
                 stat.execute("create table test(id int, name varchar) as " +
-                        "select x, space(10000000+x) from system_range(1, 1000)");
+                        "select x, space(1000000+x) from system_range(1, 10000)");
                 fail();
             } catch (SQLException e) {
                 assertTrue("Unexpected error code: " + e.getErrorCode(),

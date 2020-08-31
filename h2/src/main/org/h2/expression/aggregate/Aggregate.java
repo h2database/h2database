@@ -19,6 +19,7 @@ import java.util.TreeMap;
 import org.h2.api.ErrorCode;
 import org.h2.command.query.QueryOrderBy;
 import org.h2.command.query.Select;
+import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
@@ -623,29 +624,72 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         if (array == null) {
             return ValueNull.INSTANCE;
         }
+        if (array.length == 1) {
+            Value v = array[0];
+            if (orderByList != null) {
+                v = ((ValueRow) v).getList()[0];
+            }
+            return v.convertTo(Value.VARCHAR, session);
+        }
         if (orderByList != null || distinct) {
             sortWithOrderBy(array);
         }
-        StringBuilder builder = new StringBuilder();
         ListaggArguments arguments = (ListaggArguments) extraArguments;
-        String sep = arguments.getSeparator();
-        if (sep == null) {
-            sep = ",";
-        }
-        for (int i = 0, length = array.length; i < length; i++) {
-            Value val = array[i];
-            String s;
-            if (orderByList != null) {
-                s = ((ValueRow) val).getList()[0].getString();
-            } else {
-                s = val.getString();
+        String separator = arguments.getEffectiveSeparator();
+        return ValueVarchar
+                .get((arguments.getOnOverflowTruncate()
+                        ? getListaggTruncate(session, array, separator, arguments.getEffectiveFilter(),
+                                arguments.isWithoutCount())
+                        : getListaggError(session, array, separator)).toString(), session);
+    }
+
+    private StringBuilder getListaggError(SessionLocal session, Value[] array, String separator) {
+        StringBuilder builder = new StringBuilder(getListaggItem(array[0]));
+        for (int i = 1, count = array.length; i < count; i++) {
+            builder.append(separator).append(getListaggItem(array[i]));
+            if (builder.length() > Constants.MAX_STRING_LENGTH) {
+                throw DbException.getValueTooLongException("CHARACTER VARYING", builder.substring(0, 81), -1L);
             }
-            if (i > 0) {
-                builder.append(sep);
-            }
-            builder.append(s);
         }
-        return ValueVarchar.get(builder.toString());
+        return builder;
+    }
+
+    private StringBuilder getListaggTruncate(SessionLocal session, Value[] array, String separator, String filter,
+            boolean withoutCount) {
+        int count = array.length;
+        String[] strings = new String[count];
+        String s = getListaggItem(array[0]);
+        strings[0] = s;
+        StringBuilder builder = new StringBuilder(s);
+        loop: for (int i = 1; i < count; i++) {
+            builder.append(separator).append(strings[i] = s = getListaggItem(array[i]));
+            int length = builder.length();
+            if (length > Constants.MAX_STRING_LENGTH) {
+                for (; i > 0; i--) {
+                    length -= strings[i].length();
+                    builder.setLength(length);
+                    builder.append(filter);
+                    if (!withoutCount) {
+                        builder.append('(').append(count - i).append(')');
+                    }
+                    if (builder.length() <= Constants.MAX_STRING_LENGTH) {
+                        break loop;
+                    }
+                    length -= separator.length();
+                }
+                builder.setLength(0);
+                builder.append(filter).append('(').append(count).append(')');
+                break;
+            }
+        }
+        return builder;
+    }
+
+    private String getListaggItem(Value v) {
+        if (orderByList != null) {
+            v = ((ValueRow) v).getList()[0];
+        }
+        return v.getString();
     }
 
     private static Value getHistogram(SessionLocal session, AggregateData data) {
@@ -1003,6 +1047,14 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         String s = arguments.getSeparator();
         if (s != null) {
             StringUtils.quoteStringSQL(builder.append(", "), s);
+        }
+        if (arguments.getOnOverflowTruncate()) {
+            builder.append(" ON OVERFLOW TRUNCATE ");
+            s = arguments.getFilter();
+            if (s != null) {
+                StringUtils.quoteStringSQL(builder, s).append(' ');
+            }
+            builder.append(arguments.isWithoutCount() ? "WITHOUT" : "WITH").append(" COUNT");
         }
         builder.append(')');
         builder.append(" WITHIN GROUP (");

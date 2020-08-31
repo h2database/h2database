@@ -3711,7 +3711,19 @@ public class Parser {
                 }
                 if (readIf(ON)) {
                     read("OVERFLOW");
-                    read("ERROR");
+                    if (readIf("TRUNCATE")) {
+                        extraArguments.setOnOverflowTruncate(true);
+                        if (currentTokenType == LITERAL) {
+                            extraArguments.setFilter(readString());
+                        }
+                        if (!readIf(WITH)) {
+                            read("WITHOUT");
+                            extraArguments.setWithoutCount(true);
+                        }
+                        read("COUNT");
+                    } else {
+                        read("ERROR");
+                    }
                 }
                 orderByList = null;
             }

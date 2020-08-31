@@ -349,27 +349,28 @@ public abstract class ValueLob extends Value {
             if (valueType == Value.CLOB) {
                 builder.append("SPACE(").append(precision);
             } else {
-                builder.append("CAST(REPEAT('00', ").append(precision).append(") AS BINARY");
+                builder.append("CAST(REPEAT(CHAR(0), ").append(precision).append(") AS BINARY VARYING");
             }
             ValueLobDatabase lobDb = (ValueLobDatabase) this;
             builder.append(" /* table: ").append(lobDb.getTableId()).append(" id: ").append(lobDb.getLobId())
                     .append(" */)");
-        }
-        if (valueType == Value.CLOB) {
-            if ((sqlFlags & (REPLACE_LOBS_FOR_TRACE | NO_CASTS)) == 0) {
-                StringUtils.quoteStringSQL(builder.append("CAST("), getString()).append(" AS CLOB(").append(precision)
-                        .append("))");
-            } else {
-                StringUtils.quoteStringSQL(builder, getString());
-            }
         } else {
-            if ((sqlFlags & (REPLACE_LOBS_FOR_TRACE | NO_CASTS)) == 0) {
-                builder.append("CAST(X'");
-                StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append("' AS BLOB(").append(precision)
-                        .append("))");
+            if (valueType == Value.CLOB) {
+                if ((sqlFlags & (REPLACE_LOBS_FOR_TRACE | NO_CASTS)) == 0) {
+                    StringUtils.quoteStringSQL(builder.append("CAST("), getString())
+                            .append(" AS CHARACTER LARGE OBJECT(").append(precision).append("))");
+                } else {
+                    StringUtils.quoteStringSQL(builder, getString());
+                }
             } else {
-                builder.append("X'");
-                StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
+                if ((sqlFlags & (REPLACE_LOBS_FOR_TRACE | NO_CASTS)) == 0) {
+                    builder.append("CAST(X'");
+                    StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append("' AS BINARY LARGE OBJECT(")
+                            .append(precision).append("))");
+                } else {
+                    builder.append("X'");
+                    StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
+                }
             }
         }
         return builder;

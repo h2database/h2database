@@ -237,7 +237,7 @@ public abstract class ValueLob extends Value {
         long p = otherPrecision;
         if (p >= 0L) {
             if (p > Constants.MAX_STRING_LENGTH) {
-               throw getStringTooLong(p);
+                throw getStringTooLong(p);
             }
             return readString((int) p);
         }
@@ -286,7 +286,7 @@ public abstract class ValueLob extends Value {
         long p = otherPrecision;
         if (p >= 0L) {
             if (p > Constants.MAX_STRING_LENGTH) {
-               throw getBinaryTooLong(p);
+                throw getBinaryTooLong(p);
             }
             return readBytes((int) p);
         }

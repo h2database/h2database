@@ -354,21 +354,21 @@ public final class InformationSchemaTable extends MetaTable {
                     column("OBJECT_TYPE"), //
                     column("COLLECTION_TYPE_IDENTIFIER"), //
                     column("DATA_TYPE"), //
-                    column("CHARACTER_MAXIMUM_LENGTH"), //
-                    column("CHARACTER_OCTET_LENGTH"), //
+                    column("CHARACTER_MAXIMUM_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_OCTET_LENGTH", TypeInfo.TYPE_BIGINT), //
                     column("CHARACTER_SET_CATALOG"), //
                     column("CHARACTER_SET_SCHEMA"), //
                     column("CHARACTER_SET_NAME"), //
                     column("COLLATION_CATALOG"), //
                     column("COLLATION_SCHEMA"), //
                     column("COLLATION_NAME"), //
-                    column("NUMERIC_PRECISION"), //
-                    column("NUMERIC_PRECISION_RADIX"), //
-                    column("NUMERIC_SCALE"), //
-                    column("DATETIME_PRECISION"), //
+                    column("NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_PRECISION_RADIX", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("DATETIME_PRECISION", TypeInfo.TYPE_INTEGER), //
                     column("INTERVAL_TYPE"), //
-                    column("INTERVAL_PRECISION"), //
-                    column("MAXIMUM_CARDINALITY"), //
+                    column("INTERVAL_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("MAXIMUM_CARDINALITY", TypeInfo.TYPE_INTEGER), //
                     column("DTD_IDENTIFIER"), //
                     column("DECLARED_DATA_TYPE"), //
                     column("DECLARED_NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
@@ -387,23 +387,23 @@ public final class InformationSchemaTable extends MetaTable {
                     column("OBJECT_TYPE"), //
                     column("ROW_IDENTIFIER"), //
                     column("FIELD_NAME"), //
-                    column("ORDINAL_POSITION"), //
+                    column("ORDINAL_POSITION", TypeInfo.TYPE_INTEGER), //
                     column("DATA_TYPE"), //
-                    column("CHARACTER_MAXIMUM_LENGTH"), //
-                    column("CHARACTER_OCTET_LENGTH"), //
+                    column("CHARACTER_MAXIMUM_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_OCTET_LENGTH", TypeInfo.TYPE_BIGINT), //
                     column("CHARACTER_SET_CATALOG"), //
                     column("CHARACTER_SET_SCHEMA"), //
                     column("CHARACTER_SET_NAME"), //
                     column("COLLATION_CATALOG"), //
                     column("COLLATION_SCHEMA"), //
                     column("COLLATION_NAME"), //
-                    column("NUMERIC_PRECISION"), //
-                    column("NUMERIC_PRECISION_RADIX"), //
-                    column("NUMERIC_SCALE"), //
-                    column("DATETIME_PRECISION"), //
+                    column("NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_PRECISION_RADIX", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("DATETIME_PRECISION", TypeInfo.TYPE_INTEGER), //
                     column("INTERVAL_TYPE"), //
-                    column("INTERVAL_PRECISION"), //
-                    column("MAXIMUM_CARDINALITY"), //
+                    column("INTERVAL_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("MAXIMUM_CARDINALITY", TypeInfo.TYPE_INTEGER), //
                     column("DTD_IDENTIFIER"), //
                     column("DECLARED_DATA_TYPE"), //
                     column("DECLARED_NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
@@ -434,7 +434,7 @@ public final class InformationSchemaTable extends MetaTable {
                     column("SPECIFIC_CATALOG"), //
                     column("SPECIFIC_SCHEMA"), //
                     column("SPECIFIC_NAME"), //
-                    column("ORDINAL_POSITION"), //
+                    column("ORDINAL_POSITION", TypeInfo.TYPE_INTEGER), //
                     column("PARAMETER_MODE"), //
                     column("IS_RESULT"), //
                     column("AS_LOCATOR"), //

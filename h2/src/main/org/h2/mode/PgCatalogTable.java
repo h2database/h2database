@@ -163,7 +163,7 @@ public final class PgCatalogTable extends MetaTable {
                     "OID INTEGER", //
                     "RELNAME VARCHAR", //
                     "RELNAMESPACE INTEGER", //
-                    "RELKIND CHAR", //
+                    "RELKIND CHAR(1)", //
                     "RELAM INTEGER", //
                     "RELTUPLES DOUBLE PRECISION", //
                     "RELTABLESPACE INTEGER", //
@@ -260,9 +260,9 @@ public final class PgCatalogTable extends MetaTable {
             cols = createColumns( //
                     "OID INTEGER", //
                     "ROLNAME VARCHAR", //
-                    "ROLSUPER CHAR", //
-                    "ROLCREATEROLE CHAR", //
-                    "ROLCREATEDB CHAR" //
+                    "ROLSUPER CHAR(1)", //
+                    "ROLCREATEROLE CHAR(1)", //
+                    "ROLCREATEDB CHAR(1)" //
             );
             break;
         case PG_SETTINGS:

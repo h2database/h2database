@@ -354,6 +354,10 @@ public class TestPgServer extends TestDb {
         assertEquals(",", rs.getString("typdelim"));
         assertEquals(PgServer.PG_TYPE_VARCHAR, rs.getInt("typelem"));
 
+        rs = stat.executeQuery("select rolsuper from pg_roles");
+        rs.next();
+        assertEquals("f", rs.getString("rolsuper"));
+
         conn.close();
     }
 

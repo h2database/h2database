@@ -93,9 +93,17 @@ public abstract class MetaTable extends Table {
                 if (t != null) {
                     dataType = TypeInfo.getTypeInfo(t.type);
                 } else {
-                    assert tName.endsWith(" ARRAY");
-                    dataType = TypeInfo.getTypeInfo(Value.ARRAY, -1L, 0, TypeInfo.getTypeInfo(
-                            DataType.getTypeByName(tName.substring(0, tName.length() - 6), mode).type));
+                    int idx2 = tName.indexOf('(');
+                    if (idx2 >= 0 && tName.charAt(tName.length() - 1) == ')') {
+                        t = DataType.getTypeByName(tName.substring(0, idx2), mode);
+                        assert t != null;
+                        dataType = TypeInfo.getTypeInfo(t.type,
+                                Integer.parseInt(tName.substring(idx2 + 1, tName.length() - 1)), 0, null);
+                    } else {
+                        assert tName.endsWith(" ARRAY");
+                        dataType = TypeInfo.getTypeInfo(Value.ARRAY, -1L, 0, TypeInfo.getTypeInfo(
+                                DataType.getTypeByName(tName.substring(0, tName.length() - 6), mode).type));
+                    }
                 }
                 name = nameType.substring(0, idx);
             }

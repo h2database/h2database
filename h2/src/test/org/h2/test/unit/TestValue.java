@@ -418,6 +418,7 @@ public class TestValue extends TestDb {
             testTypeInfoCheck(Value.TIMESTAMP_TZ, d, s, d, TypeInfo.getTypeInfo(Value.TIMESTAMP_TZ, 0, s, null));
         }
 
+        testTypeInfoCheck(Value.BINARY, 1, 0, 2, TypeInfo.getTypeInfo(Value.BINARY));
         testTypeInfoCheck(Value.VARBINARY, MAX_STRING_LENGTH, 0, MAX_STRING_LENGTH * 2,
                 TypeInfo.getTypeInfo(Value.VARBINARY));
         testTypeInfoCheck(Value.BLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.getTypeInfo(Value.BLOB));
@@ -425,8 +426,7 @@ public class TestValue extends TestDb {
 
         testTypeInfoCheck(Value.VARCHAR, MAX_STRING_LENGTH, 0, MAX_STRING_LENGTH, TypeInfo.TYPE_VARCHAR,
                 TypeInfo.getTypeInfo(Value.VARCHAR));
-        testTypeInfoCheck(Value.CHAR, MAX_STRING_LENGTH, 0, MAX_STRING_LENGTH,
-                TypeInfo.getTypeInfo(Value.CHAR));
+        testTypeInfoCheck(Value.CHAR, 1, 0, 1, TypeInfo.getTypeInfo(Value.CHAR));
         testTypeInfoCheck(Value.VARCHAR_IGNORECASE, MAX_STRING_LENGTH, 0, MAX_STRING_LENGTH,
                 TypeInfo.getTypeInfo(Value.VARCHAR_IGNORECASE));
 

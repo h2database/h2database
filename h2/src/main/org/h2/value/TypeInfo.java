@@ -33,6 +33,11 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
     public static final TypeInfo TYPE_NULL;
 
     /**
+     * CHAR type with default parameters.
+     */
+    public static final TypeInfo TYPE_CHAR;
+
+    /**
      * CHARACTER VARYING type with maximum parameters.
      */
     public static final TypeInfo TYPE_VARCHAR;
@@ -46,6 +51,11 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
      * CHARACTER LARGE OBJECT type with maximum parameters.
      */
     public static final TypeInfo TYPE_CLOB;
+
+    /**
+     * BINARY type with default parameters.
+     */
+    public static final TypeInfo TYPE_BINARY;
 
     /**
      * BINARY VARYING type with maximum parameters.
@@ -218,12 +228,12 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         // NULL
         infos[Value.NULL] = TYPE_NULL = new TypeInfo(Value.NULL);
         // CHARACTER
-        infos[Value.CHAR] = new TypeInfo(Value.CHAR, (long) Constants.MAX_STRING_LENGTH);
+        infos[Value.CHAR] = TYPE_CHAR = new TypeInfo(Value.CHAR, -1L);
         infos[Value.VARCHAR] = TYPE_VARCHAR = new TypeInfo(Value.VARCHAR);
         infos[Value.CLOB] = TYPE_CLOB = new TypeInfo(Value.CLOB);
         infos[Value.VARCHAR_IGNORECASE] = TYPE_VARCHAR_IGNORECASE = new TypeInfo(Value.VARCHAR_IGNORECASE);
         // BINARY
-        infos[Value.BINARY] = new TypeInfo(Value.BINARY, (long) Constants.MAX_STRING_LENGTH);
+        infos[Value.BINARY] = TYPE_BINARY = new TypeInfo(Value.BINARY, -1L);
         infos[Value.VARBINARY] = TYPE_VARBINARY = new TypeInfo(Value.VARBINARY);
         infos[Value.BLOB] = TYPE_BLOB = new TypeInfo(Value.BLOB);
         // BOOLEAN
@@ -322,8 +332,9 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
             return TYPE_UNKNOWN;
         case Value.CHAR:
             if (precision < 1) {
-                precision = -1L;
-            } else if (precision > Constants.MAX_STRING_LENGTH) {
+                return TYPE_CHAR;
+            }
+            if (precision > Constants.MAX_STRING_LENGTH) {
                 precision = Constants.MAX_STRING_LENGTH;
             }
             return new TypeInfo(Value.CHAR, precision);
@@ -340,11 +351,6 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
                 return TYPE_CLOB;
             }
             return new TypeInfo(Value.CLOB, precision);
-        case Value.BLOB:
-            if (precision < 1) {
-                return TYPE_BLOB;
-            }
-            return new TypeInfo(Value.BLOB, precision);
         case Value.VARCHAR_IGNORECASE:
             if (precision < 1 || precision >= Constants.MAX_STRING_LENGTH) {
                 if (precision != 0) {
@@ -355,8 +361,9 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
             return new TypeInfo(Value.VARCHAR_IGNORECASE, precision);
         case Value.BINARY:
             if (precision < 1) {
-                precision = -1L;
-            } else if (precision > Constants.MAX_STRING_LENGTH) {
+                return TYPE_BINARY;
+            }
+            if (precision > Constants.MAX_STRING_LENGTH) {
                 precision = Constants.MAX_STRING_LENGTH;
             }
             return new TypeInfo(Value.BINARY, precision);
@@ -368,6 +375,11 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
                 precision = 1;
             }
             return new TypeInfo(Value.VARBINARY, precision);
+        case Value.BLOB:
+            if (precision < 1) {
+                return TYPE_BLOB;
+            }
+            return new TypeInfo(Value.BLOB, precision);
         case Value.NUMERIC:
             if (precision < 1) {
                 precision = -1L;

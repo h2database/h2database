@@ -7,7 +7,6 @@ package org.h2.table;
 
 import java.util.ArrayList;
 
-import org.h2.engine.Mode;
 import org.h2.engine.SessionLocal;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -17,7 +16,6 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.util.StringUtils;
-import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -67,41 +65,29 @@ public abstract class MetaTable extends Table {
     }
 
     /**
-     * Creates columns.
+     * Creates a column with the specified name and character string data type.
      *
-     * @param names
-     *            the names of columns with optional space-separated data types
-     *            (VARCHAR by default).
-     * @return the columns
+     * @param name
+     *            the uppercase column name
+     * @return the column
      */
-    protected final Column[] createColumns(String... names) {
-        Column[] cols = new Column[names.length];
-        TypeInfo defaultType = database.getSettings().caseInsensitiveIdentifiers ? TypeInfo.TYPE_VARCHAR_IGNORECASE
-                : TypeInfo.TYPE_VARCHAR;
-        Mode mode = database.getMode();
-        for (int i = 0; i < names.length; i++) {
-            String nameType = names[i];
-            int idx = nameType.indexOf(' ');
-            TypeInfo dataType;
-            String name;
-            if (idx < 0) {
-                dataType = defaultType;
-                name = nameType;
-            } else {
-                String tName = nameType.substring(idx + 1);
-                DataType t = DataType.getTypeByName(tName, mode);
-                if (t != null) {
-                    dataType = TypeInfo.getTypeInfo(t.type);
-                } else {
-                    assert tName.endsWith(" ARRAY");
-                    dataType = TypeInfo.getTypeInfo(Value.ARRAY, -1L, 0, TypeInfo.getTypeInfo(
-                            DataType.getTypeByName(tName.substring(0, tName.length() - 6), mode).type));
-                }
-                name = nameType.substring(0, idx);
-            }
-            cols[i] = new Column(database.sysIdentifier(name), dataType);
-        }
-        return cols;
+    final Column column(String name) {
+        return new Column(database.sysIdentifier(name),
+                database.getSettings().caseInsensitiveIdentifiers ? TypeInfo.TYPE_VARCHAR_IGNORECASE
+                        : TypeInfo.TYPE_VARCHAR);
+    }
+
+    /**
+     * Creates a column with the specified name and data type.
+     *
+     * @param name
+     *            the uppercase column name
+     * @param type
+     *            the data type
+     * @return the column
+     */
+    protected final Column column(String name, TypeInfo type) {
+        return new Column(database.sysIdentifier(name), type);
     }
 
     @Override

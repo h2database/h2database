@@ -1753,7 +1753,7 @@ SET LOCK_TIMEOUT 1000
 Sets the maximum size of an in-place LOB object.
 
 This is the maximum length of an LOB that is stored with the record itself,
-and the default value is 128.
+and the default value is 256.
 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.

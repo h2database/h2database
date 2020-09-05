@@ -343,7 +343,7 @@ public class DatabaseMetaRemote extends DatabaseMeta {
                     }
                     session.done(transfer);
                     int columnCount = transfer.readInt();
-                    return new ResultRemote(session, transfer, objectId, columnCount, Integer.MAX_VALUE);
+                    return ResultRemote.of(session, transfer, objectId, columnCount, Integer.MAX_VALUE);
                 } catch (IOException e) {
                     session.removeServer(e, i--, ++count);
                 }

@@ -22,34 +22,43 @@ import org.h2.value.Value;
  * In many cases, the complete data is kept on the client side,
  * but for large results only a subset is in-memory.
  */
-public class ResultRemote implements ResultInterface {
+public abstract class ResultRemote implements ResultInterface {
+    public static ResultRemote of(SessionRemote session, Transfer transfer, int id,
+            int columnCount, int fetchSize) throws IOException {
+        int rowCount = transfer.readInt();
+        ResultRemote rr;
+        if (rowCount < 0) {
+            rr = new LazyResultRemote(session, transfer, id, columnCount, fetchSize);
+        } else {
+            rr = new RowCountResultRemote(session, transfer, id, columnCount, fetchSize, rowCount);
+        }
+        rr.fetchRows(false);
+        return rr;
+    }
 
-    private int fetchSize;
-    private SessionRemote session;
-    private Transfer transfer;
-    private int id;
-    private final ResultColumn[] columns;
-    private Value[] currentRow;
-    private final int rowCount;
-    private int rowId, rowOffset;
-    private ArrayList<Value[]> result;
-    private final Trace trace;
+    protected int fetchSize;
+    protected SessionRemote session;
+    protected Transfer transfer;
+    protected int id;
+    protected final ResultColumn[] columns;
+    protected Value[] currentRow;
+    protected int rowId, rowOffset;
+    protected ArrayList<Value[]> result;
+    protected final Trace trace;
 
-    public ResultRemote(SessionRemote session, Transfer transfer, int id,
+    ResultRemote(SessionRemote session, Transfer transfer, int id,
             int columnCount, int fetchSize) throws IOException {
         this.session = session;
         trace = session.getTrace();
         this.transfer = transfer;
         this.id = id;
         this.columns = new ResultColumn[columnCount];
-        rowCount = transfer.readInt();
         for (int i = 0; i < columnCount; i++) {
             columns[i] = new ResultColumn(transfer);
         }
         rowId = -1;
-        result = new ArrayList<>(Math.min(fetchSize, rowCount));
+        result = new ArrayList<>();
         this.fetchSize = fetchSize;
-        fetchRows(false);
     }
 
     @Override
@@ -116,45 +125,13 @@ public class ResultRemote implements ResultInterface {
     }
 
     @Override
-    public boolean next() {
-        if (rowId < rowCount) {
-            rowId++;
-            remapIfOld();
-            if (rowId < rowCount) {
-                if (rowId - rowOffset >= result.size()) {
-                    fetchRows(true);
-                }
-                currentRow = result.get(rowId - rowOffset);
-                return true;
-            }
-            currentRow = null;
-        }
-        return false;
-    }
-
-    @Override
     public int getRowId() {
         return rowId;
     }
 
     @Override
-    public boolean isAfterLast() {
-        return rowId >= rowCount;
-    }
-
-    @Override
     public int getVisibleColumnCount() {
         return columns.length;
-    }
-
-    @Override
-    public int getRowCount() {
-        return rowCount;
-    }
-
-    @Override
-    public boolean hasNext() {
-        return rowId < rowCount - 1;
     }
 
     private void sendClose() {
@@ -182,9 +159,6 @@ public class ResultRemote implements ResultInterface {
     }
 
     private void remapIfOld() {
-        if (session == null) {
-            return;
-        }
         try {
             if (id <= session.getCurrentId() - SysProperties.SERVER_CACHED_OBJECTS / 2) {
                 // object is too old - we need to map it to a new id
@@ -201,20 +175,26 @@ public class ResultRemote implements ResultInterface {
         }
     }
 
-    private void fetchRows(boolean sendFetch) {
+    protected abstract int remoteFetchSize();
+
+    protected abstract boolean remoteFetchOver(boolean over);
+
+    protected void fetchRows(boolean sendFetch) {
         synchronized (session) {
             session.checkClosed();
             try {
                 rowOffset += result.size();
                 result.clear();
-                int fetch = Math.min(fetchSize, rowCount - rowOffset);
+                int fetch = remoteFetchSize();
                 if (sendFetch) {
+                    remapIfOld();
                     session.traceOperation("RESULT_FETCH_ROWS", id);
                     transfer.writeInt(SessionRemote.RESULT_FETCH_ROWS).
                             writeInt(id).writeInt(fetch);
                     session.done(transfer);
                 }
-                for (int r = 0; r < fetch; r++) {
+                int r = 0;
+                for (; r < fetch; r++) {
                     boolean row = transfer.readBoolean();
                     if (!row) {
                         break;
@@ -227,7 +207,7 @@ public class ResultRemote implements ResultInterface {
                     }
                     result.add(values);
                 }
-                if (rowOffset + result.size() >= rowCount) {
+                if (remoteFetchOver(r < fetch)) {
                     sendClose();
                 }
             } catch (IOException e) {
@@ -238,7 +218,7 @@ public class ResultRemote implements ResultInterface {
 
     @Override
     public String toString() {
-        return "columns: " + columns.length + " rows: " + rowCount + " pos: " + rowId;
+        return "columns: " + columns.length + " pos: " + rowId;
     }
 
     @Override

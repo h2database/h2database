@@ -125,6 +125,7 @@ import org.h2.test.rowlock.TestRowLocks;
 import org.h2.test.scripts.TestScript;
 import org.h2.test.server.TestAutoServer;
 import org.h2.test.server.TestInit;
+import org.h2.test.server.TestLazyResultRemote;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.server.TestWeb;
 import org.h2.test.store.TestCacheConcurrentLIRS;
@@ -811,6 +812,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             // server
             addTest(new TestAutoServer());
             addTest(new TestNestedLoop());
+            addTest(new TestLazyResultRemote());
 
             // mvcc & row level locking
             addTest(new TestMvcc1());

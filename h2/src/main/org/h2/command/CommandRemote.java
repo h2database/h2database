@@ -142,7 +142,7 @@ public class CommandRemote implements CommandInterface {
                             writeInt(id).writeInt(objectId);
                     session.done(transfer);
                     int columnCount = transfer.readInt();
-                    result = new ResultRemote(session, transfer, objectId,
+                    result = ResultRemote.of(session, transfer, objectId,
                             columnCount, Integer.MAX_VALUE);
                     break;
                 } catch (IOException e) {
@@ -181,7 +181,7 @@ public class CommandRemote implements CommandInterface {
                         result.close();
                         result = null;
                     }
-                    result = new ResultRemote(session, transfer, objectId, columnCount, fetch);
+                    result = ResultRemote.of(session, transfer, objectId, columnCount, fetch);
                     if (readonly) {
                         break;
                     }
@@ -244,7 +244,7 @@ public class CommandRemote implements CommandInterface {
                             generatedKeys.close();
                             generatedKeys = null;
                         }
-                        generatedKeys = new ResultRemote(session, transfer, objectId, columnCount, Integer.MAX_VALUE);
+                        generatedKeys = ResultRemote.of(session, transfer, objectId, columnCount, Integer.MAX_VALUE);
                     }
                 } catch (IOException e) {
                     session.removeServer(e, i--, ++count);

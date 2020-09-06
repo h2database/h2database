@@ -130,7 +130,12 @@ public class SingleFileStore extends RandomAccessStore {
                         DataUtils.ERROR_FILE_LOCKED,
                         "The file is locked: {0}", fileName);
             }
-            setSize(file.size());
+            saveChunkLock.lock();
+            try {
+                setSize(file.size());
+            } finally {
+                saveChunkLock.unlock();
+            }
         } catch (IOException e) {
             try { close(); } catch (Exception ignore) {}
             throw DataUtils.newMVStoreException(
@@ -264,7 +269,7 @@ public class SingleFileStore extends RandomAccessStore {
         return freeSpace.getAfterLastBlock();
     }
 
-    public InputStream getInputStream() throws IOException {
+    public InputStream getInputStream() {
         FileChannel fc = getEncryptedFile();
         if (fc == null) {
             fc = getFile();
@@ -274,11 +279,14 @@ public class SingleFileStore extends RandomAccessStore {
     }
 
     public void backup(ZipOutputStream out) throws IOException {
-        getMvStore().executeFilestoreOperation(() -> {
+        boolean before = isSpaceReused();
+        setReuseSpace(false);
+        try {
             InputStream in = getInputStream();
             backupFile(out, getFileName(), in);
-            return true;
-        });
+        } finally {
+            setReuseSpace(before);
+        }
     }
 
     private static void backupFile(ZipOutputStream out, String fileName, InputStream in) throws IOException {

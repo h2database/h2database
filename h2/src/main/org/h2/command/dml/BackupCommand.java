@@ -73,14 +73,7 @@ public class BackupCommand extends Prepared {
                     ArrayList<String> fileList = FileLister.getDatabaseFiles(dir, name, true);
                     for (String n : fileList) {
                         if (n.endsWith(Constants.SUFFIX_MV_FILE)) {
-                            MVStore s = store.getMvStore();
-                            boolean before = s.isSpaceReused();
-                            s.setReuseSpace(false);
-                            try {
-                                store.getMvStore().getFileStore().backup(out);
-                            } finally {
-                                s.setReuseSpace(before);
-                            }
+                            store.getMvStore().getFileStore().backup(out);
                         }
                     }
                 }

@@ -93,7 +93,7 @@ public final class EWKBUtils {
             if (numInner == 0 && numPoints == 0) {
                 /*
                  * Representation of POLYGON EMPTY is not defined is
-                 * specification. We store it at a polygon with 0 rings, as
+                 * specification. We store it as a polygon with 0 rings, as
                  * PostGIS does.
                  */
                 writeInt(0);

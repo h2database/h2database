@@ -5584,7 +5584,7 @@ public class Parser {
                 int index = lastParseIndex;
                 read();
                 if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
-                    return ValueExpression.get(ValueGeometry.get(readBinaryLiteral()));
+                    return ValueExpression.get(ValueGeometry.getFromEWKB(readBinaryLiteral()));
                 } else {
                     reread(index);
                 }

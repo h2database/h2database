@@ -90,8 +90,17 @@ public final class EWKBUtils {
         @Override
         protected void startPolygon(int numInner, int numPoints) {
             writeHeader(POLYGON);
-            writeInt(numInner + 1);
-            writeInt(numPoints);
+            if (numInner == 0 && numPoints == 0) {
+                /*
+                 * Representation of POLYGON EMPTY is not defined is
+                 * specification. We store it at a polygon with 0 rings, as
+                 * PostGIS does.
+                 */
+                writeInt(0);
+            } else {
+                writeInt(numInner + 1);
+                writeInt(numPoints);
+            }
         }
 
         @Override
@@ -393,22 +402,26 @@ public final class EWKBUtils {
             if (parentType != 0 && parentType != MULTI_POLYGON && parentType != GEOMETRY_COLLECTION) {
                 throw new IllegalArgumentException();
             }
-            int numInner = source.readInt() - 1;
-            if (numInner < 0) {
+            int numRings = source.readInt();
+            if (numRings == 0) {
+                target.startPolygon(0, 0);
+                break;
+            } else if (numRings < 0) {
                 throw new IllegalArgumentException();
             }
+            numRings--;
             int size = source.readInt();
             // Size may be 0 (EMPTY) or 4+
             if (size < 0 || size >= 1 && size <= 3) {
                 throw new IllegalArgumentException();
             }
-            if (size == 0 && numInner > 0) {
+            if (size == 0 && numRings > 0) {
                 throw new IllegalArgumentException();
             }
-            target.startPolygon(numInner, size);
+            target.startPolygon(numRings, size);
             if (size > 0) {
                 addRing(source, target, useZ, useM, size);
-                for (int i = 0; i < numInner; i++) {
+                for (int i = 0; i < numRings; i++) {
                     size = source.readInt();
                     // Size may be 0 (EMPTY) or 4+
                     if (size < 0 || size >= 1 && size <= 3) {

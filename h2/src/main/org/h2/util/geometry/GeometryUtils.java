@@ -52,7 +52,8 @@ public final class GeometryUtils {
         }
 
         /**
-         * Invoked before writing a POLYGON.
+         * Invoked before writing a POLYGON. If polygon is empty, both
+         * parameters are 0.
          *
          * @param numInner
          *            number of inner polygons
@@ -571,8 +572,10 @@ public final class GeometryUtils {
 
     /**
      * Throw exception if param is not finite value (ie. NaN/inf/etc)
-     * @param d double value
-     * @return same double value
+     *
+     * @param d
+     *            a double value
+     * @return the same double value
      */
     static double checkFinite(double d) {
         // Do not push this negation down, it will break NaN rejection

@@ -331,6 +331,9 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                 }
             }
         } else {
+            if (!session.getDatabase().isMVStore()) {
+                query.setNeverLazy(true);
+            }
             query.prepare();
             if (query.getColumnCount() != columns.length) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);

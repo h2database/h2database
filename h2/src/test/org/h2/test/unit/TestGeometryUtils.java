@@ -132,7 +132,7 @@ public class TestGeometryUtils extends TestBase {
         testGeometry("POINT (1 2)", 2);
         testGeometry("POINT (-1.3 15)", 2);
         testGeometry("POINT (-1E32 1.000001)", "POINT (-1E32 1.000001)",
-                "POINT (-100000000000000000000000000000000 1.000001)", 2);
+                "POINT (-100000000000000000000000000000000 1.000001)", 2, true);
         testGeometry("POINT Z (2.7 -3 34)", 3);
         assertEquals("POINT Z (1 2 3)", EWKTUtils.ewkb2ewkt(EWKTUtils.ewkt2ewkb("POINTZ(1 2 3)")));
         assertEquals("POINT Z (1 2 3)", EWKTUtils.ewkb2ewkt(EWKTUtils.ewkt2ewkb("pointz(1 2 3)")));
@@ -148,7 +148,7 @@ public class TestGeometryUtils extends TestBase {
 
     private void testPolygon() throws Exception {
         testGeometry("POLYGON ((-1 -2, 10 1, 2 20, -1 -2))", 2);
-        testGeometry("POLYGON EMPTY", 2);
+        testGeometry("POLYGON EMPTY", "POLYGON EMPTY", "POLYGON EMPTY", 2, false);
         testGeometry("POLYGON ((-1 -2, 10 1, 2 20, -1 -2), (0.5 0.5, 1 0.5, 1 1, 0.5 0.5))", 2);
         // TODO is EMPTY inner ring valid?
         testGeometry("POLYGON ((-1 -2, 10 1, 2 20, -1 -2), EMPTY)", 2);
@@ -158,8 +158,8 @@ public class TestGeometryUtils extends TestBase {
     private void testMultiPoint() throws Exception {
         testGeometry("MULTIPOINT ((1 2), (3 4))", 2);
         // Alternative syntax
-        testGeometry("MULTIPOINT (1 2, 3 4)", "MULTIPOINT ((1 2), (3 4))", "MULTIPOINT ((1 2), (3 4))", 2);
-        testGeometry("MULTIPOINT (1 2)", "MULTIPOINT ((1 2))", "MULTIPOINT ((1 2))", 2);
+        testGeometry("MULTIPOINT (1 2, 3 4)", "MULTIPOINT ((1 2), (3 4))", "MULTIPOINT ((1 2), (3 4))", 2, true);
+        testGeometry("MULTIPOINT (1 2)", "MULTIPOINT ((1 2))", "MULTIPOINT ((1 2))", 2, true);
         testGeometry("MULTIPOINT EMPTY", 2);
         testGeometry("MULTIPOINT Z ((1 2 0.5), (3 4 -3))", 3);
     }
@@ -192,21 +192,24 @@ public class TestGeometryUtils extends TestBase {
     }
 
     private void testGeometry(String wkt, int numOfDimensions) throws Exception {
-        testGeometry(wkt, wkt, wkt, numOfDimensions);
+        testGeometry(wkt, wkt, wkt, numOfDimensions, true);
     }
 
-    private void testGeometry(String wkt, String h2Wkt, String jtsWkt, int numOfDimensions) throws Exception {
+    private void testGeometry(String wkt, String h2Wkt, String jtsWkt, int numOfDimensions, boolean withEWKB)
+            throws Exception {
         Geometry geometryFromJTS = new WKTReader().read(wkt);
         byte[] wkbFromJTS = new WKBWriter(numOfDimensions).write(geometryFromJTS);
 
         // Test WKB->WKT conversion
         assertEquals(h2Wkt, EWKTUtils.ewkb2ewkt(wkbFromJTS));
 
-        // Test WKT->WKB conversion
-        assertEquals(wkbFromJTS, EWKTUtils.ewkt2ewkb(wkt));
+        if (withEWKB) {
+            // Test WKT->WKB conversion
+            assertEquals(wkbFromJTS, EWKTUtils.ewkt2ewkb(wkt));
 
-        // Test WKB->WKB no-op normalization
-        assertEquals(wkbFromJTS, EWKBUtils.ewkb2ewkb(wkbFromJTS));
+            // Test WKB->WKB no-op normalization
+            assertEquals(wkbFromJTS, EWKBUtils.ewkb2ewkb(wkbFromJTS));
+        }
 
         // Test WKB->Geometry conversion
         Geometry geometryFromH2 = JTSUtils.ewkb2geometry(wkbFromJTS);
@@ -215,8 +218,10 @@ public class TestGeometryUtils extends TestBase {
             assertEquals(jtsWkt.replaceAll(" Z ", " Z"), got);
         }
 
-        // Test Geometry->WKB conversion
-        assertEquals(wkbFromJTS, JTSUtils.geometry2ewkb(geometryFromJTS));
+        if (withEWKB) {
+            // Test Geometry->WKB conversion
+            assertEquals(wkbFromJTS, JTSUtils.geometry2ewkb(geometryFromJTS));
+        }
 
         // Test Envelope
         Envelope envelopeFromJTS = geometryFromJTS.getEnvelopeInternal();

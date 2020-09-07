@@ -621,12 +621,12 @@ public final class InformationSchemaTable extends MetaTable {
                     column("TRIGGER_CATALOG"), //
                     column("TRIGGER_SCHEMA"), //
                     column("TRIGGER_NAME"), //
+                    column("ACTION_TIMING"), //
                     // extensions
                     column("TRIGGER_TYPE"), //
                     column("TABLE_CATALOG"), //
                     column("TABLE_SCHEMA"), //
                     column("TABLE_NAME"), //
-                    column("BEFORE", TypeInfo.TYPE_BOOLEAN), //
                     column("JAVA_CLASS"), //
                     column("QUEUE_SIZE", TypeInfo.TYPE_INTEGER), //
                     column("NO_WAIT", TypeInfo.TYPE_BOOLEAN), //
@@ -2330,6 +2330,8 @@ public final class InformationSchemaTable extends MetaTable {
                 trigger.getSchema().getName(),
                 // TRIGGER_NAME
                 trigger.getName(),
+                // ACTION_TIMING
+                trigger.isInsteadOf() ? "INSTEAD OF" : trigger.isBefore() ? "BEFORE" : "AFTER",
                 // extensions
                 // TRIGGER_TYPE
                 trigger.getTypeNameList(new StringBuilder()).toString(),
@@ -2339,8 +2341,6 @@ public final class InformationSchemaTable extends MetaTable {
                 table.getSchema().getName(),
                 // TABLE_NAME
                 tableName,
-                // BEFORE
-                ValueBoolean.get(trigger.isBefore()),
                 // JAVA_CLASS
                 trigger.getTriggerClassName(),
                 // QUEUE_SIZE

@@ -541,7 +541,7 @@ public class DbException extends RuntimeException {
         case LOB_CLOSED_ON_TIMEOUT_1:
             return new JdbcSQLTimeoutException(message, sql, state, errorCode, cause, stackTrace);
         case FUNCTION_MUST_RETURN_RESULT_SET_1:
-        case TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED:
+        case INVALID_TRIGGER_FLAGS_1:
         case SUM_OR_AVG_ON_WRONG_DATATYPE_1:
         case MUST_GROUP_BY_COLUMN_1:
         case SECOND_PRIMARY_KEY:

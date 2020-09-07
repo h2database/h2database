@@ -609,10 +609,9 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90005</code> is thrown when
-     * trying to create a trigger and using the combination of SELECT
-     * and FOR EACH ROW, which we do not support.
+     * trying to create a trigger with invalid combination of flags.
      */
-    public static final int TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED = 90005;
+    public static final int INVALID_TRIGGER_FLAGS_1 = 90005;
 
     /**
      * The error with code <code>90006</code> is thrown when

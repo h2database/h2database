@@ -415,7 +415,7 @@ and re-run the <code>CreateCluster</code> tool.
 To find out which cluster nodes are currently running, execute the following SQL statement:
 </p>
 <pre>
-SELECT `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME='CLUSTER'
+SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'CLUSTER'
 </pre>
 <p>
 If the result is <code>''</code> (two single quotes), then the cluster mode is disabled. Otherwise, the list of

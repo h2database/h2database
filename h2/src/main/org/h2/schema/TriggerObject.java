@@ -312,6 +312,10 @@ public final class TriggerObject extends SchemaObject {
         this.rowBased = rowBased;
     }
 
+    public boolean isRowBased() {
+        return rowBased;
+    }
+
     public void setQueueSize(int size) {
         this.queueSize = size;
     }
@@ -330,6 +334,10 @@ public final class TriggerObject extends SchemaObject {
 
     public void setOnRollback(boolean onRollback) {
         this.onRollback = onRollback;
+    }
+
+    public boolean isOnRollback() {
+        return onRollback;
     }
 
     @Override

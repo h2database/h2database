@@ -45,6 +45,7 @@
 90002=只允许在查询内使用的方法. 使用 execute 或 executeUpdate 代替 executeQuery
 90003=十六进制字符串包含奇数个数字字符: {0}
 90004=十六进制字符串包含非十六进制字符: {0}
+90005=#Invalid trigger flags: {0}
 90006=#Sequence {0} has run out of numbers
 90007=对象已关闭
 90008=被发现非法的数值 {0} 在参数  {1}

@@ -45,6 +45,7 @@
 90002=O método é apenas para consulta. Use o execute ou o executeUpdate em vez de executeQuery
 90003=Sequência Hexadecimal com número ímpar de caracteres: {0}
 90004=Sequência Hexadecimal contêm caracteres inválidos: {0}
+90005=#Invalid trigger flags: {0}
 90006=#Sequence {0} has run out of numbers
 90007=O objeto está fechado
 90008=Valor inválido {0} para o parâmetro {1}

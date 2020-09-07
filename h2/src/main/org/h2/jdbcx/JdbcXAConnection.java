@@ -193,11 +193,10 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
         debugCodeCall("recover", quoteFlags(flag));
         checkOpen();
         try (Statement stat = physicalConn.createStatement()) {
-            ResultSet rs = stat.executeQuery("SELECT * FROM " +
-                    "INFORMATION_SCHEMA.IN_DOUBT ORDER BY TRANSACTION");
+            ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT ORDER BY TRANSACTION_NAME");
             ArrayList<Xid> list = Utils.newSmallArrayList();
             while (rs.next()) {
-                String tid = rs.getString("TRANSACTION");
+                String tid = rs.getString("TRANSACTION_NAME");
                 int id = getNextId(XID);
                 Xid xid = new JdbcXid(factory, id, tid);
                 list.add(xid);

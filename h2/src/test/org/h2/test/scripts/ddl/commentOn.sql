@@ -48,12 +48,12 @@ CREATE USER U2 COMMENT '' PASSWORD '1';
 CREATE USER U3 COMMENT 'comment' PASSWORD '1';
 > ok
 
-SELECT NAME, REMARKS FROM INFORMATION_SCHEMA.USERS WHERE NAME LIKE 'U_';
-> NAME REMARKS
-> ---- -------
-> U1   null
-> U2   null
-> U3   comment
+SELECT USER_NAME, REMARKS FROM INFORMATION_SCHEMA.USERS WHERE USER_NAME LIKE 'U_';
+> USER_NAME REMARKS
+> --------- -------
+> U1        null
+> U2        null
+> U3        comment
 > rows: 3
 
 DROP USER U1;

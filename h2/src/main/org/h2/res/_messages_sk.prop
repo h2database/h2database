@@ -45,6 +45,7 @@
 90002=Metóda je povolená iba pre dopyt (query). Použite execute alebo executeUpdate namiesto executeQuery
 90003=Hexadecimálny reťazec s nepárnym počtom znakov: {0}
 90004=Hexadecimálny reťazec obsahuje nepovolené znaky pre šestnáskovú sústavu: {0}
+90005=#Invalid trigger flags: {0}
 90006=#Sequence {0} has run out of numbers
 90007=Objekt už je zatvorený
 90008=Nesprávna hodnota {0} parametra {1}

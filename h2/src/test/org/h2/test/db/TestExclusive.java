@@ -114,11 +114,11 @@ public class TestExclusive extends TestDb {
     private static boolean getExclusiveMode(Connection connection) throws SQLException{
         boolean exclusiveMode = false;
 
-        String sql = "SELECT `VALUE` FROM INFORMATION_SCHEMA.Settings WHERE NAME = 'EXCLUSIVE'";
+        String sql = "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'EXCLUSIVE'";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             ResultSet result = statement.executeQuery();
             if (result.next()) {
-                exclusiveMode = result.getBoolean("VALUE");
+                exclusiveMode = result.getBoolean(1);
             }
         }
 

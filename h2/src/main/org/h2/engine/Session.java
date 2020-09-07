@@ -43,11 +43,6 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
         public final boolean caseInsensitiveIdentifiers;
 
         /**
-         * Whether old information schema is in use.
-         */
-        public final boolean oldInformationSchema;
-
-        /**
          * Creates new instance of static settings.
          *
          * @param databaseToUpper
@@ -56,15 +51,11 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
          *            whether unquoted identifiers are converted to lower case
          * @param caseInsensitiveIdentifiers
          *            whether all identifiers are case insensitive
-         * @param oldInformationSchema
-         *            whether old information schema is in use
          */
-        public StaticSettings(boolean databaseToUpper, boolean databaseToLower, boolean caseInsensitiveIdentifiers,
-                boolean oldInformationSchema) {
+        public StaticSettings(boolean databaseToUpper, boolean databaseToLower, boolean caseInsensitiveIdentifiers) {
             this.databaseToUpper = databaseToUpper;
             this.databaseToLower = databaseToLower;
             this.caseInsensitiveIdentifiers = caseInsensitiveIdentifiers;
-            this.oldInformationSchema = oldInformationSchema;
         }
 
     }
@@ -167,6 +158,14 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
     public abstract void cancel();
 
     /**
+     * Returns the TCP protocol version of remote connection, or the latest
+     * supported TCP protocol version for local session.
+     *
+     * @return the TCP protocol version
+     */
+    public abstract int getClientVersion();
+
+    /**
      * Check if this session is in auto-commit mode.
      *
      * @return true if the session is in auto-commit mode
@@ -263,6 +262,13 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
     public abstract DatabaseMeta getDatabaseMeta();
 
     /**
+     * Returns whether INFORMATION_SCHEMA contains old-style tables.
+     *
+     * @return whether INFORMATION_SCHEMA contains old-style tables
+     */
+    public abstract boolean isOldInformationSchema();
+
+    /**
      * Re-create the session state using the stored sessionState list.
      */
     void recreateSessionState() {
@@ -289,7 +295,9 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
         }
         sessionStateChanged = false;
         sessionState = Utils.newSmallArrayList();
-        CommandInterface ci = prepareCommand("SELECT SQL FROM INFORMATION_SCHEMA.SESSION_STATE", Integer.MAX_VALUE);
+        CommandInterface ci = prepareCommand(!isOldInformationSchema()
+                ? "SELECT STATE_COMMAND FROM INFORMATION_SCHEMA.SESSION_STATE"
+                : "SELECT SQL FROM INFORMATION_SCHEMA.SESSION_STATE", Integer.MAX_VALUE);
         ResultInterface result = ci.executeQuery(0, false);
         while (result.next()) {
             sessionState.add(result.currentRow()[0].getString());

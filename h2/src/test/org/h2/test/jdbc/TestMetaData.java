@@ -1240,8 +1240,8 @@ public class TestMetaData extends TestDb {
         rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.SETTINGS");
         int mvStoreSettingsCount = 0, pageStoreSettingsCount = 0;
         while (rs.next()) {
-            String name = rs.getString("NAME");
-            trace(name + '=' + rs.getString("VALUE"));
+            String name = rs.getString("SETTING_NAME");
+            trace(name + '=' + rs.getString("SETTING_VALUE"));
             if ("COMPRESS".equals(name) || "REUSE_SPACE".equals(name)) {
                 mvStoreSettingsCount++;
             } else if (name.startsWith("PAGE_STORE_")) {

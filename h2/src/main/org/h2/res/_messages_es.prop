@@ -45,6 +45,7 @@
 90002=Metodo permitido unicamente en un query. Use execute ó executeUpdate en lugar de executeQuery
 90003=Cadena Hexadecimal con cantidad impar de caracteres: {0}
 90004=Cadena Hexadecimal contiene caracteres invalidos: {0}
+90005=#Invalid trigger flags: {0}
 90006=#Sequence {0} has run out of numbers
 90007=El objeto ya está cerrado
 90008=Valor Invalido {0} para el parametro {1}

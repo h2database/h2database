@@ -295,8 +295,8 @@ public class TestRights extends TestDb {
         assertTrue(rs.next());
         assertFalse(rs.next());
         for (String s : new String[] {
-                "information_schema.settings where name='property.java.runtime.version'",
-                "information_schema.users where name='SA'",
+                "information_schema.settings where setting_name='property.java.runtime.version'",
+                "information_schema.users where user_name='SA'",
                 "information_schema.roles",
                 "information_schema.rights",
                 "information_schema.sessions where user_name='SA'"

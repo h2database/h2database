@@ -741,8 +741,8 @@ public final class InformationSchemaTable extends MetaTable {
             setMetaTableName("IN_DOUBT");
             isView = false;
             cols = new Column[] {
-                    column("TRANSACTION"), //
-                    column("STATE"), //
+                    column("TRANSACTION_NAME"), //
+                    column("TRANSACTION_STATE"), //
             };
             break;
         case LOCKS:
@@ -790,7 +790,7 @@ public final class InformationSchemaTable extends MetaTable {
             setMetaTableName("ROLES");
             isView = false;
             cols = new Column[] {
-                    column("NAME"), //
+                    column("ROLE_NAME"), //
                     column("REMARKS"), //
             };
             break;
@@ -798,17 +798,17 @@ public final class InformationSchemaTable extends MetaTable {
             setMetaTableName("SESSIONS");
             isView = false;
             cols = new Column[] {
-                    column("ID", TypeInfo.TYPE_INTEGER), //
+                    column("SESSION_ID", TypeInfo.TYPE_INTEGER), //
                     column("USER_NAME"), //
                     column("SERVER"), //
                     column("CLIENT_ADDR"), //
                     column("CLIENT_INFO"), //
                     column("SESSION_START", TypeInfo.TYPE_TIMESTAMP_TZ), //
                     column("ISOLATION_LEVEL"), //
-                    column("STATEMENT"), //
-                    column("STATEMENT_START", TypeInfo.TYPE_TIMESTAMP_TZ), //
+                    column("EXECUTING_STATEMENT"), //
+                    column("EXECUTING_STATEMENT_START", TypeInfo.TYPE_TIMESTAMP_TZ), //
                     column("CONTAINS_UNCOMMITTED", TypeInfo.TYPE_BOOLEAN), //
-                    column("STATE"), //
+                    column("SESSION_STATE"), //
                     column("BLOCKER_ID", TypeInfo.TYPE_INTEGER), //
                     column("SLEEP_SINCE", TypeInfo.TYPE_TIMESTAMP_TZ), //
             };
@@ -817,16 +817,16 @@ public final class InformationSchemaTable extends MetaTable {
             setMetaTableName("SESSION_STATE");
             isView = false;
             cols = new Column[] {
-                    column("KEY"), //
-                    column("SQL"), //
+                    column("STATE_KEY"), //
+                    column("STATE_COMMAND"), //
             };
             break;
         case SETTINGS:
             setMetaTableName("SETTINGS");
             isView = false;
             cols = new Column[] {
-                    column("NAME"), //
-                    column("VALUE"), //
+                    column("SETTING_NAME"), //
+                    column("SETTING_VALUE"), //
             };
             break;
         case SYNONYMS:
@@ -848,8 +848,8 @@ public final class InformationSchemaTable extends MetaTable {
             setMetaTableName("USERS");
             isView = false;
             cols = new Column[] {
-                    column("NAME"), //
-                    column("ADMIN", TypeInfo.TYPE_BOOLEAN),
+                    column("USER_NAME"), //
+                    column("IS_ADMIN", TypeInfo.TYPE_BOOLEAN),
                     column("REMARKS"), //
             };
             break;
@@ -2672,9 +2672,9 @@ public final class InformationSchemaTable extends MetaTable {
             if (prepared != null) {
                 for (InDoubtTransaction prep : prepared) {
                     add(session, rows,
-                            // TRANSACTION
+                            // TRANSACTION_NAME
                             prep.getTransactionName(),
-                            // STATE
+                            // TRANSACTION_STATE
                             prep.getStateDescription()
                     );
                 }
@@ -2804,7 +2804,7 @@ public final class InformationSchemaTable extends MetaTable {
         for (Role r : database.getAllRoles()) {
             if (admin || session.getUser().isRoleGranted(r)) {
                 add(session, rows,
-                        // NAME
+                        // ROLE_NAME
                         identifier(r.getName()),
                         // REMARKS
                         r.getComment()
@@ -2828,7 +2828,7 @@ public final class InformationSchemaTable extends MetaTable {
         Command command = s.getCurrentCommand();
         int blockingSessionId = s.getBlockingSessionId();
         add(session, rows,
-                // ID
+                // SESSION_ID
                 ValueInteger.get(s.getId()),
                 // USER_NAME
                 s.getUser().getName(),
@@ -2842,13 +2842,13 @@ public final class InformationSchemaTable extends MetaTable {
                 s.getSessionStart(),
                 // ISOLATION_LEVEL
                 session.getIsolationLevel().getSQL(),
-                // STATEMENT
+                // EXECUTING_STATEMENT
                 command == null ? null : command.toString(),
-                // STATEMENT_START
+                // EXECUTING_STATEMENT_START
                 command == null ? null : s.getCommandStartOrEnd(),
                 // CONTAINS_UNCOMMITTED
                 ValueBoolean.get(s.containsUncommitted()),
-                // STATE
+                // SESSION_STATE
                 String.valueOf(s.getState()),
                 // BLOCKER_ID
                 blockingSessionId == 0 ? null : ValueInteger.get(blockingSessionId),
@@ -2863,17 +2863,17 @@ public final class InformationSchemaTable extends MetaTable {
             StringBuilder builder = new StringBuilder().append("SET @").append(name).append(' ');
             v.getSQL(builder, DEFAULT_SQL_FLAGS);
             add(session, rows,
-                    // KEY
+                    // STATE_KEY
                     "@" + name,
-                    // SQL
+                    // STATE_COMMAND
                     builder.toString()
             );
         }
         for (Table table : session.getLocalTempTables()) {
             add(session, rows,
-                    // KEY
+                    // STATE_KEY
                     "TABLE " + table.getName(),
-                    // SQL
+                    // STATE_COMMAND
                     table.getCreateSQL()
             );
         }
@@ -2887,27 +2887,27 @@ public final class InformationSchemaTable extends MetaTable {
                 StringUtils.quoteIdentifier(builder, path[i]);
             }
             add(session, rows,
-                    // KEY
+                    // STATE_KEY
                     "SCHEMA_SEARCH_PATH",
-                    // SQL
+                    // STATE_COMMAND
                     builder.toString()
             );
         }
         String schema = session.getCurrentSchemaName();
         if (schema != null) {
             add(session, rows,
-                    // KEY
+                    // STATE_KEY
                     "SCHEMA",
-                    // SQL
+                    // STATE_COMMAND
                     StringUtils.quoteIdentifier(new StringBuilder("SET SCHEMA "), schema).toString()
             );
         }
         TimeZoneProvider currentTimeZone = session.currentTimeZone();
         if (!currentTimeZone.equals(DateTimeUtils.getTimeZone())) {
             add(session, rows,
-                    // KEY
+                    // STATE_KEY
                     "TIME ZONE",
-                    // SQL
+                    // STATE_COMMAND
                     StringUtils.quoteStringSQL(new StringBuilder("SET TIME ZONE "), currentTimeZone.getId())
                             .toString()
             );
@@ -3058,9 +3058,9 @@ public final class InformationSchemaTable extends MetaTable {
 
     private void users(SessionLocal session, ArrayList<Row> rows, User user) {
         add(session, rows,
-                // NAME
+                // USER_NAME
                 identifier(user.getName()),
-                // ADMIN
+                // IS_ADMIN
                 ValueBoolean.get(user.isAdmin()),
                 // REMARKS
                 user.getComment()

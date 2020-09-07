@@ -141,8 +141,7 @@ public class TestTransaction extends TestDb {
         stat.execute("create table test(id int primary key) as select 1");
         stat.execute("set write_delay 0");
         stat.execute("set log " + logMode);
-        rs = stat.executeQuery(
-                "select `value` from information_schema.settings where name = 'LOG'");
+        rs = stat.executeQuery("SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'LOG'");
         rs.next();
         assertEquals(logMode, rs.getInt(1));
         stat.execute("insert into test values(2)");

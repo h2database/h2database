@@ -1620,7 +1620,7 @@ public class Parser {
             read("ISOLATION");
             read("LEVEL");
             buff.append("LOWER(ISOLATION_LEVEL) TRANSACTION_ISOLATION FROM INFORMATION_SCHEMA.SESSIONS "
-                    + "WHERE ID = SESSION_ID()");
+                    + "WHERE SESSION_ID = SESSION_ID()");
         } else if (readIf("DATESTYLE")) {
             // for PostgreSQL compatibility
             buff.append("'ISO' DATESTYLE");

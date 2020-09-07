@@ -205,7 +205,7 @@ public class TestMVTableEngine extends TestDb {
             Statement stat = conn.createStatement();
             ResultSet rs = stat.executeQuery("select * " +
                     "from information_schema.settings " +
-                    "where name = 'info.PAGE_COUNT'");
+                    "where setting_name = 'info.PAGE_COUNT'");
             rs.next();
             int pages = rs.getInt(2);
             // only one lob should remain (but it is small and compressed)
@@ -242,7 +242,7 @@ public class TestMVTableEngine extends TestDb {
             Statement stat = conn.createStatement();
             ResultSet rs = stat.executeQuery("select * " +
                     "from information_schema.settings " +
-                    "where name = 'info.PAGE_COUNT'");
+                    "where setting_name = 'info.PAGE_COUNT'");
             rs.next();
             int pages = rs.getInt(2);
             // no lobs should remain
@@ -672,8 +672,8 @@ public class TestMVTableEngine extends TestDb {
                 retentionTime = 0;
             }
             ResultSet rs = stat.executeQuery(
-                    "select value from information_schema.settings " +
-                    "where name='RETENTION_TIME'");
+                    "select setting_value from information_schema.settings " +
+                    "where setting_name='RETENTION_TIME'");
             assertTrue(rs.next());
             assertEquals(retentionTime, rs.getInt(1));
             stat.execute("create table test(id int primary key, data varchar)");

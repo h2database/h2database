@@ -1132,8 +1132,8 @@ public class TestLob extends TestDb {
         conn = reconnect(conn);
         stat = conn.createStatement();
         ResultSet rs;
-        rs = stat.executeQuery("select `value` from information_schema.settings " +
-                "where NAME='COMPRESS_LOB'");
+        rs = stat.executeQuery(
+                "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'COMPRESS_LOB'");
         rs.next();
         assertEquals(compress ? "LZF" : "NO", rs.getString(1));
         assertFalse(rs.next());

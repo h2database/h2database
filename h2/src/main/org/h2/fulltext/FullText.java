@@ -963,8 +963,8 @@ public class FullText {
                 throws SQLException {
             try (Statement stat = conn.createStatement()) {
                 ResultSet rs = stat.executeQuery(
-                                "SELECT `VALUE` FROM INFORMATION_SCHEMA.SETTINGS" +
-                                " WHERE NAME = 'MV_STORE'");
+                                "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS" +
+                                " WHERE SETTING_NAME = 'MV_STORE'");
                 return rs.next() && "true".equals(rs.getString(1));
             }
         }

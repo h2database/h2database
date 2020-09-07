@@ -821,8 +821,12 @@ public class WebApp {
                         }
                     }
                     rs.close();
-                    rs = stat.executeQuery("SELECT NAME, ADMIN FROM " +
-                            "INFORMATION_SCHEMA.USERS ORDER BY NAME");
+                    try {
+                        rs = stat.executeQuery(
+                                "SELECT USER_NAME, IS_ADMIN FROM INFORMATION_SCHEMA.USERS ORDER BY USER_NAME");
+                    } catch (SQLException e) {
+                        rs = stat.executeQuery("SELECT NAME, ADMIN FROM INFORMATION_SCHEMA.USERS ORDER BY NAME");
+                    }
                     for (int i = 0; rs.next(); i++) {
                         if (i == 0) {
                             buff.append("setNode(").append(treeIndex)

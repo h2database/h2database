@@ -870,7 +870,7 @@ public class TestPageStore extends TestDb {
         }
         try (Connection c = DriverManager.getConnection(url)) {
             try (ResultSet rs = c.createStatement().executeQuery(
-                    "SELECT `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME = 'MV_STORE'")) {
+                    "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'MV_STORE'")) {
                 assertTrue(rs.next());
                 assertEquals("false", rs.getString(1));
                 assertFalse(rs.next());

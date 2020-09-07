@@ -96,22 +96,22 @@ public class TestSessionsLocks extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs;
         rs = stat.executeQuery("select * from information_schema.sessions " +
-                "order by SESSION_START, ID");
+                "order by SESSION_START, SESSION_ID");
         rs.next();
-        int sessionId = rs.getInt("ID");
+        int sessionId = rs.getInt("SESSION_ID");
         rs.getString("USER_NAME");
         rs.getTimestamp("SESSION_START");
-        rs.getString("STATEMENT");
-        rs.getTimestamp("STATEMENT_START");
+        rs.getString("EXECUTING_STATEMENT");
+        rs.getTimestamp("EXECUTING_STATEMENT_START");
         assertFalse(rs.next());
         Connection conn2 = getConnection("sessionsLocks");
         Statement stat2 = conn2.createStatement();
         rs = stat.executeQuery("select * from information_schema.sessions " +
-                "order by SESSION_START, ID");
+                "order by SESSION_START, SESSION_ID");
         assertTrue(rs.next());
-        assertEquals(sessionId, rs.getInt("ID"));
+        assertEquals(sessionId, rs.getInt("SESSION_ID"));
         assertTrue(rs.next());
-        int otherId = rs.getInt("ID");
+        int otherId = rs.getInt("SESSION_ID");
         assertTrue(otherId != sessionId);
         assertFalse(rs.next());
         stat2.execute("set throttle 1");

@@ -531,6 +531,11 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     }
 
     @Override
+    public int getClientVersion() {
+        return Constants.TCP_PROTOCOL_VERSION_MAX_SUPPORTED;
+    }
+
+    @Override
     public boolean getAutoCommit() {
         return autoCommit;
     }
@@ -2041,7 +2046,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         if (settings == null) {
             DbSettings dbSettings = database.getSettings();
             staticSettings = settings = new StaticSettings(dbSettings.databaseToUpper, dbSettings.databaseToLower,
-                    dbSettings.caseInsensitiveIdentifiers, oldInformationSchema);
+                    dbSettings.caseInsensitiveIdentifiers);
         }
         return settings;
     }
@@ -2190,11 +2195,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         this.oldInformationSchema = oldInformationSchema;
     }
 
-    /**
-     * Returns whether INFORMATION_SCHEMA contains old-style tables.
-     *
-     * @return whether INFORMATION_SCHEMA contains old-style tables
-     */
+    @Override
     public boolean isOldInformationSchema() {
         return oldInformationSchema;
     }

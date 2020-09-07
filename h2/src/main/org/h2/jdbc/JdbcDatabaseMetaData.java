@@ -41,7 +41,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
         setTrace(trace, TraceObject.DATABASE_META_DATA, id);
         this.conn = conn;
         Session session = conn.getSession();
-        meta = session.getStaticSettings().oldInformationSchema ? new DatabaseMetaLegacy(session)
+        meta = session.isOldInformationSchema() ? new DatabaseMetaLegacy(session)
                 : conn.getSession().getDatabaseMeta();
     }
 

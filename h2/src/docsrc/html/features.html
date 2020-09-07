@@ -1679,7 +1679,7 @@ even if the cache size setting stored in the database is larger; however the set
 is kept. Setting the cache size in the database URL or explicitly using <code>SET CACHE_SIZE</code>
 overrides this value (even if larger than the physical memory).
 To get the current used maximum cache size, use the query
-<code>SELECT * FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME = 'info.CACHE_MAX_SIZE'</code>
+<code>SELECT * FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'info.CACHE_MAX_SIZE'</code>
 </p><p>
 An experimental scan-resistant cache algorithm "Two Queue" (2Q) is available.
 To enable it, append <code>;CACHE_TYPE=TQ</code> to the database URL.

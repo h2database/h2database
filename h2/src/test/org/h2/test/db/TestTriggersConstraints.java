@@ -179,7 +179,7 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
         stat = conn.createStatement();
         stat.execute("drop table if exists test");
         stat.execute("create table test(id int)");
-        assertThrows(ErrorCode.TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED, stat)
+        assertThrows(ErrorCode.INVALID_TRIGGER_FLAGS_1, stat)
                 .execute("create trigger test_insert before select on test " +
                     "for each row call \"" + TestTriggerAdapter.class.getName() + "\"");
         conn.close();

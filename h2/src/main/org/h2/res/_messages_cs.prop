@@ -44,6 +44,7 @@
 90001=Metoda neumožňuje dotazování. Použijte execute nebo executeQuery namísto executeUpdate
 90002=Metoda umožňuje pouze pro dotazování. Použijte execute nebo executeUpdate namísto executeQuery
 90003=Hexadecimální řetězec s lichým počtem znaků: {0}
+90005=#Invalid trigger flags: {0}
 90004=Hexadecimální řetězec obsahuje neplatný znak: {0}
 90006=#Sequence {0} has run out of numbers
 90007=Tento objekt byl již uzavřen

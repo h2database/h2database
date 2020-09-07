@@ -45,6 +45,7 @@
 90002=Methode est autorisée uniquement pour une requête. Utilisez execute ou executeUpdate à la place d''executeQuery
 90003=Chaîne héxadecimale contenant un nombre impair de caractères: {0}
 90004=Chaîne héxadecimale contenant un caractère non-héxa: {0}
+90005=#Invalid trigger flags: {0}
 90006=La séquence {0} a épuisé ses éléments
 90007=L''objet est déjà fermé
 90008=Valeur invalide {0} pour le paramètre {1}

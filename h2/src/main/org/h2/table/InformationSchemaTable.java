@@ -621,18 +621,20 @@ public final class InformationSchemaTable extends MetaTable {
                     column("TRIGGER_CATALOG"), //
                     column("TRIGGER_SCHEMA"), //
                     column("TRIGGER_NAME"), //
+                    column("EVENT_MANIPULATION"), //
+                    column("EVENT_OBJECT_CATALOG"), //
+                    column("EVENT_OBJECT_SCHEMA"), //
+                    column("EVENT_OBJECT_TABLE"), //
+                    column("ACTION_ORIENTATION"), //
                     column("ACTION_TIMING"), //
                     // extensions
-                    column("TRIGGER_TYPE"), //
-                    column("TABLE_CATALOG"), //
-                    column("TABLE_SCHEMA"), //
-                    column("TABLE_NAME"), //
+                    column("IS_ROLLBACK", TypeInfo.TYPE_BOOLEAN), //
                     column("JAVA_CLASS"), //
                     column("QUEUE_SIZE", TypeInfo.TYPE_INTEGER), //
                     column("NO_WAIT", TypeInfo.TYPE_BOOLEAN), //
                     column("REMARKS"), //
             };
-            indexColumnName = "TABLE_NAME";
+            indexColumnName = "EVENT_OBJECT_TABLE";
             break;
         case VIEWS:
             setMetaTableName("VIEWS");
@@ -2316,13 +2318,25 @@ public final class InformationSchemaTable extends MetaTable {
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
-                triggers(session, rows, catalog, trigger, table, tableName);
+                int typeMask = trigger.getTypeMask();
+                if ((typeMask & Trigger.INSERT) != 0) {
+                    triggers(session, rows, catalog, trigger, "INSERT", table, tableName);
+                }
+                if ((typeMask & Trigger.UPDATE) != 0) {
+                    triggers(session, rows, catalog, trigger, "UPDATE", table, tableName);
+                }
+                if ((typeMask & Trigger.DELETE) != 0) {
+                    triggers(session, rows, catalog, trigger, "DELETE", table, tableName);
+                }
+                if ((typeMask & Trigger.SELECT) != 0) {
+                    triggers(session, rows, catalog, trigger, "SELECT", table, tableName);
+                }
             }
         }
     }
 
-    private void triggers(SessionLocal session, ArrayList<Row> rows, String catalog, TriggerObject trigger, //
-            Table table, String tableName) {
+    private void triggers(SessionLocal session, ArrayList<Row> rows, String catalog, TriggerObject trigger,
+            String eventManipulation, Table table, String tableName) {
         add(session, rows,
                 // TRIGGER_CATALOG
                 catalog,
@@ -2330,17 +2344,21 @@ public final class InformationSchemaTable extends MetaTable {
                 trigger.getSchema().getName(),
                 // TRIGGER_NAME
                 trigger.getName(),
+                // EVENT_MANIPULATION
+                eventManipulation,
+                // EVENT_OBJECT_CATALOG
+                catalog,
+                // EVENT_OBJECT_SCHEMA
+                table.getSchema().getName(),
+                // EVENT_OBJECT_TABLE
+                tableName,
+                // ACTION_ORIENTATION
+                trigger.isRowBased() ? "ROW" : "STATEMENT",
                 // ACTION_TIMING
                 trigger.isInsteadOf() ? "INSTEAD OF" : trigger.isBefore() ? "BEFORE" : "AFTER",
                 // extensions
-                // TRIGGER_TYPE
-                trigger.getTypeNameList(new StringBuilder()).toString(),
-                // TABLE_CATALOG
-                catalog,
-                // TABLE_SCHEMA
-                table.getSchema().getName(),
-                // TABLE_NAME
-                tableName,
+                // IS_ROLLBACK
+                ValueBoolean.get(trigger.isOnRollback()),
                 // JAVA_CLASS
                 trigger.getTriggerClassName(),
                 // QUEUE_SIZE

@@ -45,6 +45,7 @@
 90002=Metoda jest dozwolona tylko w kwerendzie
 90003=Heksadecymalny string z nieparzystą liczbą znaków: {0}
 90004=Heksadecymalny string zawiera niedozwolony znak: {0}
+90005=#Invalid trigger flags: {0}
 90006=Sekwencja {0} została wyczerpana
 90007=Obiekt jest zamknięty
 90008=Nieprawidłowa wartość {0} parametru {1}

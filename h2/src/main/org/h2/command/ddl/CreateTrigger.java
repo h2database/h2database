@@ -96,10 +96,18 @@ public class CreateTrigger extends SchemaCommand {
                     ErrorCode.TRIGGER_ALREADY_EXISTS_1,
                     triggerName);
         }
-        if ((typeMask & Trigger.SELECT) == Trigger.SELECT && rowBased) {
-            throw DbException.get(
-                    ErrorCode.TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED,
-                    triggerName);
+        if ((typeMask & Trigger.SELECT) != 0) {
+            if (rowBased) {
+                throw DbException.get(ErrorCode.INVALID_TRIGGER_FLAGS_1, "SELECT + FOR EACH ROW");
+            }
+            if (onRollback) {
+                throw DbException.get(ErrorCode.INVALID_TRIGGER_FLAGS_1, "SELECT + ROLLBACK");
+            }
+        } else if ((typeMask & (Trigger.INSERT | Trigger.UPDATE | Trigger.DELETE)) == 0) {
+            if (onRollback) {
+                throw DbException.get(ErrorCode.INVALID_TRIGGER_FLAGS_1, "(!INSERT & !UPDATE & !DELETE) + ROLLBACK");
+            }
+            throw DbException.throwInternalError();
         }
         int id = getObjectId();
         Table table = getSchema().getTableOrView(session, tableName);

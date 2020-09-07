@@ -8039,6 +8039,7 @@ public class Parser {
         }
         int typeMask = 0;
         boolean onRollback = false;
+        boolean allowOr = database.getMode().getEnum() == ModeEnum.PostgreSQL;
         do {
             if (readIf("INSERT")) {
                 typeMask |= Trigger.INSERT;
@@ -8053,9 +8054,7 @@ public class Parser {
             } else {
                 throw getSyntaxError();
             }
-        } while (readIf(COMMA)
-                || (database.getMode().getEnum() == ModeEnum.PostgreSQL
-                        && readIf(OR)));
+        } while (readIf(COMMA) || allowOr && readIf(OR));
         read(ON);
         String tableName = readIdentifierWithSchema();
         checkSchema(schema);

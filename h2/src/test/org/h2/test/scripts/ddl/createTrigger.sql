@@ -191,5 +191,40 @@ SELECT TABLE_CATALOG, TABLE_SCHEMA, TABLE_NAME, VIEW_DEFINITION, CHECK_OPTION, I
 > SCRIPT        PUBLIC       V3         TABLE "PUBLIC"."T" NONE         NO           NO              NO                   YES                  NO
 > rows: 3
 
+SELECT * FROM INFORMATION_SCHEMA.TRIGGERS;
+> TRIGGER_CATALOG TRIGGER_SCHEMA TRIGGER_NAME EVENT_MANIPULATION EVENT_OBJECT_CATALOG EVENT_OBJECT_SCHEMA EVENT_OBJECT_TABLE ACTION_ORIENTATION ACTION_TIMING IS_ROLLBACK JAVA_CLASS QUEUE_SIZE NO_WAIT REMARKS
+> --------------- -------------- ------------ ------------------ -------------------- ------------------- ------------------ ------------------ ------------- ----------- ---------- ---------- ------- -------
+> SCRIPT          PUBLIC         T1           INSERT             SCRIPT               PUBLIC              V1                 ROW                INSTEAD OF    FALSE       null       1024       FALSE   null
+> SCRIPT          PUBLIC         T2           UPDATE             SCRIPT               PUBLIC              V2                 ROW                INSTEAD OF    FALSE       null       1024       FALSE   null
+> SCRIPT          PUBLIC         T3           DELETE             SCRIPT               PUBLIC              V3                 ROW                INSTEAD OF    FALSE       null       1024       FALSE   null
+> rows: 3
+
+CREATE TRIGGER T4 BEFORE ROLLBACK ON TEST FOR EACH ROW AS STRINGDECODE(
+'org.h2.api.Trigger create() {
+    return new org.h2.api.Trigger() {
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
+        }
+    }\u003B
+}');
+> exception INVALID_TRIGGER_FLAGS_1
+
+CREATE TRIGGER T4 BEFORE SELECT ON TEST FOR EACH ROW AS STRINGDECODE(
+'org.h2.api.Trigger create() {
+    return new org.h2.api.Trigger() {
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
+        }
+    }\u003B
+}');
+> exception INVALID_TRIGGER_FLAGS_1
+
+CREATE TRIGGER T4 BEFORE SELECT, ROLLBACK ON TEST FOR EACH STATEMENT AS STRINGDECODE(
+'org.h2.api.Trigger create() {
+    return new org.h2.api.Trigger() {
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
+        }
+    }\u003B
+}');
+> exception INVALID_TRIGGER_FLAGS_1
+
 DROP TABLE T CASCADE;
 > ok

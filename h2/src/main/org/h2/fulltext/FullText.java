@@ -537,7 +537,8 @@ public class FullText {
     protected static void removeAllTriggers(Connection conn, String prefix)
             throws SQLException {
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.TRIGGERS");
+        ResultSet rs = stat.executeQuery(
+                "SELECT DISTINCT TRIGGER_SCHEMA, TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS");
         Statement stat2 = conn.createStatement();
         while (rs.next()) {
             String schema = rs.getString("TRIGGER_SCHEMA");

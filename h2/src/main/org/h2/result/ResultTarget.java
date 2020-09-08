@@ -24,7 +24,7 @@ public interface ResultTarget {
      *
      * @return the number of rows
      */
-    int getRowCount();
+    long getRowCount();
 
     /**
      * A hint that sorting, offset and limit may be ignored by this result

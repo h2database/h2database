@@ -761,7 +761,7 @@ public class Select extends Query {
         disableLazyForJoinSubqueries(topTableFilter);
         OffsetFetch offsetFetch = getOffsetFetch(maxRows);
         long offset = offsetFetch.offset;
-        int fetch = offsetFetch.fetch;
+        long fetch = offsetFetch.fetch;
         boolean fetchPercent = offsetFetch.fetchPercent;
         boolean lazy = session.isLazyQueryExecution() &&
                 target == null && !isForUpdate && !isQuickAggregateQuery &&
@@ -807,7 +807,7 @@ public class Select extends Query {
         LazyResult lazyResult = null;
         if (fetch != 0) {
             // Cannot apply limit now if percent is specified
-            int limit = fetchPercent ? -1 : fetch;
+            long limit = fetchPercent ? -1 : fetch;
             if (isQuickAggregateQuery) {
                 queryQuick(columnCount, to, quickOffset && offset > 0);
             } else if (isWindowQuery) {

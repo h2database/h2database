@@ -126,7 +126,7 @@ public class TableValueConstructor extends Query {
     protected ResultInterface queryWithoutCache(int limit, ResultTarget target) {
         OffsetFetch offsetFetch = getOffsetFetch(limit);
         long offset = offsetFetch.offset;
-        int fetch = offsetFetch.fetch;
+        long fetch = offsetFetch.fetch;
         boolean fetchPercent = offsetFetch.fetchPercent;
         int visibleColumnCount = this.visibleColumnCount, resultColumnCount = this.resultColumnCount;
         LocalResult result = new LocalResult(session, expressionArray, visibleColumnCount, resultColumnCount);

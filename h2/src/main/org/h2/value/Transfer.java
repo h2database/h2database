@@ -1146,6 +1146,26 @@ public final class Transfer {
     }
 
     /**
+     * Read a row count.
+     *
+     * @return the row count
+     */
+    public long readRowCount() throws IOException {
+        return version >= Constants.TCP_PROTOCOL_VERSION_20 ? readLong() : readInt();
+    }
+
+    /**
+     * Write a row count.
+     *
+     * @param rowCount the row count
+     * @return itself
+     */
+    public Transfer writeRowCount(long rowCount) throws IOException {
+        return version >= Constants.TCP_PROTOCOL_VERSION_20 ? writeLong(rowCount)
+                : writeInt(rowCount < Integer.MAX_VALUE ? (int) rowCount : Integer.MAX_VALUE);
+    }
+
+    /**
      * Get the socket.
      *
      * @return the socket

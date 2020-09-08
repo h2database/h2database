@@ -235,8 +235,7 @@ public class CommandRemote implements CommandInterface {
                         }
                     }
                     session.done(transfer);
-                    updateCount = transfer.getVersion() >= Constants.TCP_PROTOCOL_VERSION_20 ? transfer.readLong()
-                            : transfer.readInt();
+                    updateCount = transfer.readRowCount();
                     autoCommit = transfer.readBoolean();
                     if (readGeneratedKeys) {
                         int columnCount = transfer.readInt();

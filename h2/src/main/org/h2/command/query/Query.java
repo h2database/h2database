@@ -59,14 +59,14 @@ public abstract class Query extends Prepared {
         /**
          * FETCH value.
          */
-        final int fetch;
+        final long fetch;
 
         /**
          * Whether FETCH value is a PERCENT value.
          */
         final boolean fetchPercent;
 
-        OffsetFetch(long offset, int fetch, boolean fetchPercent) {
+        OffsetFetch(long offset, long fetch, boolean fetchPercent) {
             this.offset = offset;
             this.fetch = fetch;
             this.fetchPercent = fetchPercent;
@@ -838,10 +838,10 @@ public abstract class Query extends Prepared {
      * @return the evaluated values
      */
     OffsetFetch getOffsetFetch(int maxRows) {
-        int fetch = maxRows == 0 ? -1 : maxRows;
+        long fetch = maxRows == 0 ? -1 : maxRows;
         if (fetchExpr != null) {
             Value v = fetchExpr.getValue(session);
-            int l = v == ValueNull.INSTANCE ? -1 : v.getInt();
+            long l = v == ValueNull.INSTANCE ? -1 : v.getLong();
             if (fetch < 0) {
                 fetch = l;
             } else if (l >= 0) {
@@ -887,12 +887,9 @@ public abstract class Query extends Prepared {
      *            target result or null
      * @return the result or null
      */
-    LocalResult finishResult(LocalResult result, long offset, int fetch, boolean fetchPercent, ResultTarget target) {
+    LocalResult finishResult(LocalResult result, long offset, long fetch, boolean fetchPercent, ResultTarget target) {
         if (offset != 0) {
-            if (offset > Integer.MAX_VALUE) {
-                throw DbException.getInvalidValueException("OFFSET", offset);
-            }
-            result.setOffset((int) offset);
+            result.setOffset(offset);
         }
         if (fetch >= 0) {
             result.setLimit(fetch);

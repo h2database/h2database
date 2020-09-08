@@ -118,7 +118,7 @@ public class SelectUnion extends Query {
     protected ResultInterface queryWithoutCache(int maxRows, ResultTarget target) {
         OffsetFetch offsetFetch = getOffsetFetch(maxRows);
         long offset = offsetFetch.offset;
-        int fetch = offsetFetch.fetch;
+        long fetch = offsetFetch.fetch;
         boolean fetchPercent = offsetFetch.fetchPercent;
         Database db = session.getDatabase();
         if (db.getSettings().optimizeInsertFromSelect) {

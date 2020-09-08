@@ -95,7 +95,7 @@ public class ResultWithPaddedStrings implements ResultInterface {
     }
 
     @Override
-    public int getRowId() {
+    public long getRowId() {
         return source.getRowId();
     }
 
@@ -110,7 +110,7 @@ public class ResultWithPaddedStrings implements ResultInterface {
     }
 
     @Override
-    public int getRowCount() {
+    public long getRowCount() {
         return source.getRowCount();
     }
 

@@ -30,8 +30,8 @@ public class ResultRemote implements ResultInterface {
     private int id;
     private final ResultColumn[] columns;
     private Value[] currentRow;
-    private final int rowCount;
-    private int rowId, rowOffset;
+    private final long rowCount;
+    private long rowId, rowOffset;
     private ArrayList<Value[]> result;
     private final Trace trace;
 
@@ -42,12 +42,12 @@ public class ResultRemote implements ResultInterface {
         this.transfer = transfer;
         this.id = id;
         this.columns = new ResultColumn[columnCount];
-        rowCount = transfer.readInt();
+        rowCount = transfer.readRowCount();
         for (int i = 0; i < columnCount; i++) {
             columns[i] = new ResultColumn(transfer);
         }
         rowId = -1;
-        result = new ArrayList<>(Math.min(fetchSize, rowCount));
+        result = new ArrayList<>((int) Math.min(fetchSize, rowCount));
         this.fetchSize = fetchSize;
         fetchRows(false);
     }
@@ -124,7 +124,7 @@ public class ResultRemote implements ResultInterface {
                 if (rowId - rowOffset >= result.size()) {
                     fetchRows(true);
                 }
-                currentRow = result.get(rowId - rowOffset);
+                currentRow = result.get((int) (rowId - rowOffset));
                 return true;
             }
             currentRow = null;
@@ -133,7 +133,7 @@ public class ResultRemote implements ResultInterface {
     }
 
     @Override
-    public int getRowId() {
+    public long getRowId() {
         return rowId;
     }
 
@@ -148,7 +148,7 @@ public class ResultRemote implements ResultInterface {
     }
 
     @Override
-    public int getRowCount() {
+    public long getRowCount() {
         return rowCount;
     }
 
@@ -207,7 +207,7 @@ public class ResultRemote implements ResultInterface {
             try {
                 rowOffset += result.size();
                 result.clear();
-                int fetch = Math.min(fetchSize, rowCount - rowOffset);
+                int fetch = (int) Math.min(fetchSize, rowCount - rowOffset);
                 if (sendFetch) {
                     session.traceOperation("RESULT_FETCH_ROWS", id);
                     transfer.writeInt(SessionRemote.RESULT_FETCH_ROWS).

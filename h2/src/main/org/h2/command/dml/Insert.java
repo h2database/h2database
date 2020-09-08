@@ -263,9 +263,9 @@ public final class Insert extends CommandWithValues implements ResultTarget {
     }
 
     @Override
-    public int getRowCount() {
+    public long getRowCount() {
         // This method is not used in this class
-        return (int) rowNumber;
+        return rowNumber;
     }
 
     @Override

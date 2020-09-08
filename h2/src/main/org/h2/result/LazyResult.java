@@ -21,19 +21,19 @@ public abstract class LazyResult implements ResultInterface {
 
     private final SessionLocal session;
     private final Expression[] expressions;
-    private int rowId = -1;
+    private long rowId = -1;
     private Value[] currentRow;
     private Value[] nextRow;
     private boolean closed;
     private boolean afterLast;
-    private int limit;
+    private long limit;
 
     public LazyResult(SessionLocal session, Expression[] expressions) {
         this.session = session;
         this.expressions = expressions;
     }
 
-    public void setLimit(int limit) {
+    public void setLimit(long limit) {
         this.limit = limit;
     }
 
@@ -47,7 +47,7 @@ public abstract class LazyResult implements ResultInterface {
         if (closed) {
             throw DbException.getInternalError();
         }
-        rowId = -1;
+        rowId = -1L;
         afterLast = false;
         currentRow = null;
         nextRow = null;
@@ -128,12 +128,12 @@ public abstract class LazyResult implements ResultInterface {
     }
 
     @Override
-    public int getRowId() {
+    public long getRowId() {
         return rowId;
     }
 
     @Override
-    public int getRowCount() {
+    public long getRowCount() {
         throw DbException.getUnsupportedException("Row count is unknown for lazy result.");
     }
 

@@ -328,7 +328,7 @@ public class TcpServerThread implements Runnable {
             cache.addObject(objectId, result);
             int columnCount = result.getVisibleColumnCount();
             transfer.writeInt(SessionRemote.STATUS_OK).
-                    writeInt(columnCount).writeInt(0);
+                    writeInt(columnCount).writeRowCount(0L);
             for (int i = 0; i < columnCount; i++) {
                 ResultColumn.writeColumn(transfer, result, i);
             }
@@ -351,15 +351,12 @@ public class TcpServerThread implements Runnable {
             int columnCount = result.getVisibleColumnCount();
             int state = getState(old);
             transfer.writeInt(state).writeInt(columnCount);
-            int rowCount = result.getRowCount();
-            transfer.writeInt(rowCount);
+            long rowCount = result.getRowCount();
+            transfer.writeRowCount(rowCount);
             for (int i = 0; i < columnCount; i++) {
                 ResultColumn.writeColumn(transfer, result, i);
             }
-            int fetch = Math.min(rowCount, fetchSize);
-            for (int i = 0; i < fetch; i++) {
-                sendRow(result);
-            }
+            sendRows(result, Math.min(rowCount, fetchSize));
             transfer.flush();
             break;
         }
@@ -418,25 +415,18 @@ public class TcpServerThread implements Runnable {
                 status = getState(old);
             }
             transfer.writeInt(status);
-            long updateCount = result.getUpdateCount();
-            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_20) {
-                transfer.writeLong(updateCount);
-            } else {
-                transfer.writeInt(updateCount < Integer.MAX_VALUE ? (int) updateCount : Integer.MAX_VALUE);
-            }
+            transfer.writeRowCount(result.getUpdateCount());
             transfer.writeBoolean(session.getAutoCommit());
             if (writeGeneratedKeys) {
                 ResultInterface generatedKeys = result.getGeneratedKeys();
                 int columnCount = generatedKeys.getVisibleColumnCount();
                 transfer.writeInt(columnCount);
-                int rowCount = generatedKeys.getRowCount();
-                transfer.writeInt(rowCount);
+                long rowCount = generatedKeys.getRowCount();
+                transfer.writeRowCount(rowCount);
                 for (int i = 0; i < columnCount; i++) {
                     ResultColumn.writeColumn(transfer, generatedKeys, i);
                 }
-                for (int i = 0; i < rowCount; i++) {
-                    sendRow(generatedKeys);
-                }
+                sendRows(generatedKeys, rowCount);
                 generatedKeys.close();
             }
             transfer.flush();
@@ -456,9 +446,7 @@ public class TcpServerThread implements Runnable {
             int count = transfer.readInt();
             ResultInterface result = (ResultInterface) cache.getObject(id, false);
             transfer.writeInt(SessionRemote.STATUS_OK);
-            for (int i = 0; i < count; i++) {
-                sendRow(result);
-            }
+            sendRows(result, count);
             transfer.flush();
             break;
         }
@@ -545,14 +533,12 @@ public class TcpServerThread implements Runnable {
             int columnCount = result.getVisibleColumnCount();
             int state = getState(old);
             transfer.writeInt(state).writeInt(columnCount);
-            int rowCount = result.getRowCount();
-            transfer.writeInt(rowCount);
+            long rowCount = result.getRowCount();
+            transfer.writeRowCount(rowCount);
             for (int i = 0; i < columnCount; i++) {
                 ResultColumn.writeColumn(transfer, result, i);
             }
-            for (int i = 0; i < rowCount; i++) {
-                sendRow(result);
-            }
+            sendRows(result, rowCount);
             transfer.flush();
             break;
         }
@@ -576,15 +562,19 @@ public class TcpServerThread implements Runnable {
         return SessionRemote.STATUS_OK_STATE_CHANGED;
     }
 
-    private void sendRow(ResultInterface result) throws IOException {
-        if (result.next()) {
-            transfer.writeBoolean(true);
-            Value[] v = result.currentRow();
-            for (int i = 0; i < result.getVisibleColumnCount(); i++) {
-                transfer.writeValue(v[i]);
+    private void sendRows(ResultInterface result, long count) throws IOException {
+        int columnCount = result.getVisibleColumnCount();
+        while (count-- > 0) {
+            if (result.next()) {
+                transfer.writeBoolean(true);
+                Value[] v = result.currentRow();
+                for (int i = 0; i < columnCount; i++) {
+                    transfer.writeValue(v[i]);
+                }
+            } else {
+                transfer.writeBoolean(false);
+                break;
             }
-        } else {
-            transfer.writeBoolean(false);
         }
     }
 

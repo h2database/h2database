@@ -60,9 +60,9 @@ public class CommandContainer extends Command {
         }
 
         @Override
-        public int getRowCount() {
+        public long getRowCount() {
             // Not required
-            return 0;
+            return 0L;
         }
 
         @Override

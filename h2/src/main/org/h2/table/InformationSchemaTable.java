@@ -854,7 +854,7 @@ public final class InformationSchemaTable extends MetaTable {
             };
             break;
         default:
-            throw DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
         setColumns(cols);
 
@@ -992,7 +992,7 @@ public final class InformationSchemaTable extends MetaTable {
             users(session, rows);
             break;
         default:
-            DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
         return rows;
     }
@@ -3226,7 +3226,7 @@ public final class InformationSchemaTable extends MetaTable {
         if (approximation) {
             return ROW_COUNT_APPROXIMATION;
         }
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     @Override

@@ -64,7 +64,7 @@ public class TreeIndex extends Index {
     @Override
     public void add(SessionLocal session, Row row) {
         if (closed) {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         TreeNode i = new TreeNode(row);
         TreeNode n = root, x = n;
@@ -129,7 +129,7 @@ public class TreeIndex extends Index {
                 }
                 return;
             default:
-                DbException.throwInternalError("b:" + x.balance * sign);
+                throw DbException.getInternalError("b:" + x.balance * sign);
             }
             if (x == root) {
                 return;
@@ -168,11 +168,11 @@ public class TreeIndex extends Index {
     @Override
     public void remove(SessionLocal session, Row row) {
         if (closed) {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         TreeNode x = findFirstNode(row, true);
         if (x == null) {
-            throw DbException.throwInternalError("not found!");
+            throw DbException.getInternalError("not found!");
         }
         TreeNode n;
         if (x.left == null) {
@@ -224,7 +224,7 @@ public class TreeIndex extends Index {
             }
 
             if (x.right == null) {
-                DbException.throwInternalError("tree corrupted");
+                throw DbException.getInternalError("tree corrupted");
             }
             x.right.parent = x;
             x.left.parent = x;
@@ -281,7 +281,7 @@ public class TreeIndex extends Index {
                 }
                 break;
             default:
-                DbException.throwInternalError("b: " + x.balance * sign);
+                throw DbException.getInternalError("b: " + x.balance * sign);
             }
             isLeft = x.isFromLeft();
             n = x.parent;
@@ -358,7 +358,7 @@ public class TreeIndex extends Index {
     @Override
     public Cursor findFirstOrLast(SessionLocal session, boolean first) {
         if (closed) {
-            throw DbException.throwInternalError(toString());
+            throw DbException.getInternalError(toString());
         }
         if (first) {
             // TODO optimization: this loops through NULL

@@ -98,7 +98,7 @@ public class Schema extends DbObject {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     @Override
@@ -256,7 +256,7 @@ public class Schema extends DbObject {
             result = aggregates;
             break;
         default:
-            throw DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
         return (Map<String, SchemaObject>) result;
     }
@@ -270,12 +270,12 @@ public class Schema extends DbObject {
      */
     public void add(SchemaObject obj) {
         if (obj.getSchema() != this) {
-            DbException.throwInternalError("wrong schema");
+            throw DbException.getInternalError("wrong schema");
         }
         String name = obj.getName();
         Map<String, SchemaObject> map = getMap(obj.getType());
         if (map.putIfAbsent(name, obj) != null) {
-            DbException.throwInternalError("object already exists: " + name);
+            throw DbException.getInternalError("object already exists: " + name);
         }
         freeUniqueName(name);
     }
@@ -291,10 +291,10 @@ public class Schema extends DbObject {
         Map<String, SchemaObject> map = getMap(type);
         if (SysProperties.CHECK) {
             if (!map.containsKey(obj.getName()) && !(obj instanceof MetaTable)) {
-                DbException.throwInternalError("not found: " + obj.getName());
+                throw DbException.getInternalError("not found: " + obj.getName());
             }
             if (obj.getName().equals(newName) || map.containsKey(newName)) {
-                DbException.throwInternalError("object already exists: " + newName);
+                throw DbException.getInternalError("object already exists: " + newName);
             }
         }
         obj.checkRename();
@@ -746,7 +746,7 @@ public class Schema extends DbObject {
         String objName = obj.getName();
         Map<String, SchemaObject> map = getMap(obj.getType());
         if (map.remove(objName) == null) {
-            DbException.throwInternalError("not found: " + objName);
+            throw DbException.getInternalError("not found: " + objName);
         }
         freeUniqueName(objName);
     }

@@ -939,9 +939,8 @@ public class Database implements DataHandler, CastDataProvider {
      * @param session the session
      */
     public void verifyMetaLocked(SessionLocal session) {
-        if (lockMode != Constants.LOCK_MODE_OFF &&
-                meta != null && !meta.isLockedExclusivelyBy(session)) {
-            throw DbException.throwInternalError();
+        if (lockMode != Constants.LOCK_MODE_OFF && meta != null && !meta.isLockedExclusivelyBy(session)) {
+            throw DbException.getInternalError();
         }
     }
 
@@ -1029,7 +1028,7 @@ public class Database implements DataHandler, CastDataProvider {
                 Cursor cursor = metaIdIndex.find(session, r, r);
                 if (cursor.next()) {
                     if (lockMode != Constants.LOCK_MODE_OFF && !wasLocked) {
-                        throw DbException.throwInternalError();
+                        throw DbException.getInternalError();
                     }
                     Row found = cursor.get();
                     meta.removeRow(session, found);
@@ -1085,7 +1084,7 @@ public class Database implements DataHandler, CastDataProvider {
             result = comments;
             break;
         default:
-            throw DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
         return (Map<String, DbObject>) result;
     }
@@ -1128,7 +1127,7 @@ public class Database implements DataHandler, CastDataProvider {
         }
         String name = obj.getName();
         if (SysProperties.CHECK && map.get(name) != null) {
-            DbException.throwInternalError("object already exists");
+            throw DbException.getInternalError("object already exists");
         }
         lockMeta(session);
         addMeta(session, obj);
@@ -1553,7 +1552,7 @@ public class Database implements DataHandler, CastDataProvider {
         r.setValue(0, ValueInteger.get(id));
         Cursor cursor = metaIdIndex.find(session, r, r);
         if (cursor.next()) {
-            DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
     }
 
@@ -1779,7 +1778,7 @@ public class Database implements DataHandler, CastDataProvider {
         ArrayList<DbObject> list = obj.getChildren();
         Comment comment = findComment(obj);
         if (comment != null) {
-            DbException.throwInternalError(comment.toString());
+            throw DbException.getInternalError(comment.toString());
         }
         updateMeta(session, obj);
         // remember that this scans only one level deep!
@@ -1806,10 +1805,10 @@ public class Database implements DataHandler, CastDataProvider {
         Map<String, DbObject> map = getMap(type);
         if (SysProperties.CHECK) {
             if (!map.containsKey(obj.getName())) {
-                DbException.throwInternalError("not found: " + obj.getName());
+                throw DbException.getInternalError("not found: " + obj.getName());
             }
             if (obj.getName().equals(newName) || map.containsKey(newName)) {
-                DbException.throwInternalError("object already exists: " + newName);
+                throw DbException.getInternalError("object already exists: " + newName);
             }
         }
         obj.checkRename();
@@ -1875,7 +1874,7 @@ public class Database implements DataHandler, CastDataProvider {
         int type = obj.getType();
         Map<String, DbObject> map = getMap(type);
         if (SysProperties.CHECK && !map.containsKey(objName)) {
-            DbException.throwInternalError("not found: " + objName);
+            throw DbException.getInternalError("not found: " + objName);
         }
         Comment comment = findComment(obj);
         lockMeta(session);
@@ -2811,9 +2810,8 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     @Override
-    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff,
-            int off, int length) {
-        throw DbException.throwInternalError();
+    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
+        throw DbException.getInternalError();
     }
 
     public byte[] getFileEncryptionKey() {

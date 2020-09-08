@@ -159,7 +159,7 @@ public class TableValueConstructor extends Query {
     @Override
     public void init() {
         if (checkInit) {
-            DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         checkInit = true;
         if (withTies && !hasOrder()) {
@@ -174,7 +174,7 @@ public class TableValueConstructor extends Query {
             return;
         }
         if (!checkInit) {
-            DbException.throwInternalError("not initialized");
+            throw DbException.getInternalError("not initialized");
         }
         isPrepared = true;
         if (columnResolver == null) {

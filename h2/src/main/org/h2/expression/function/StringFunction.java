@@ -152,7 +152,7 @@ public final class StringFunction extends FunctionN {
             break;
         }
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return v1;
     }
@@ -228,7 +228,7 @@ public final class StringFunction extends FunctionN {
             type = TypeInfo.TYPE_VARCHAR;
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         if (allConst) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);

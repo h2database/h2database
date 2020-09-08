@@ -69,7 +69,7 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
         }
         t.commit();
         if (!keyType.equals(dataMap.getKeyType())) {
-            throw DbException.throwInternalError(
+            throw DbException.getInternalError(
                     "Incompatible key type, expected " + keyType + " but got "
                             + dataMap.getKeyType() + " for index " + indexName);
         }
@@ -169,7 +169,7 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
         MVMap<SearchRow, Value> map = database.getStore().getMvStore()
                 .openMap(mapName, builder);
         if (!keyType.equals(map.getKeyType())) {
-            throw DbException.throwInternalError(
+            throw DbException.getInternalError(
                     "Incompatible key type, expected " + keyType + " but got "
                             + map.getKeyType() + " for map " + mapName);
         }

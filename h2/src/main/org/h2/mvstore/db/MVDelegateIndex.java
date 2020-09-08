@@ -37,7 +37,7 @@ public class MVDelegateIndex extends MVIndex<Long, SearchRow> {
                 indexType);
         this.mainIndex = mainIndex;
         if (id < 0) {
-            throw DbException.throwInternalError(name);
+            throw DbException.getInternalError(name);
         }
     }
 
@@ -48,12 +48,12 @@ public class MVDelegateIndex extends MVIndex<Long, SearchRow> {
 
     @Override
     public void addRowsToBuffer(List<Row> rows, String bufferName) {
-        throw DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     @Override
     public void addBufferedRows(List<String> bufferNames) {
-        throw DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     @Override

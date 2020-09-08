@@ -45,7 +45,7 @@ public abstract class LazyResult implements ResultInterface {
     @Override
     public void reset() {
         if (closed) {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         rowId = -1;
         afterLast = false;

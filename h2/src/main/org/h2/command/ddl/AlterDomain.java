@@ -128,7 +128,7 @@ public class AlterDomain extends SchemaCommand {
             domain.setOnUpdateExpression(session, expression);
             break;
         default:
-            DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
         if (expression != null) {
             AlterDomain.forAllDependencies(session, domain, this::copyColumn, this::copyDomain, true);

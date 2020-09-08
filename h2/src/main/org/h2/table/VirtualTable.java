@@ -82,7 +82,7 @@ public abstract class VirtualTable extends Table {
 
     @Override
     public boolean canDrop() {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     @Override

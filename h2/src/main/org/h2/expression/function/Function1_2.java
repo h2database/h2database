@@ -51,7 +51,7 @@ public abstract class Function1_2 extends Operation1_2 implements NamedExpressio
      * @return the resulting value
      */
     protected Value getValue(SessionLocal session, Value v1, Value v2) {
-        throw DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     @Override

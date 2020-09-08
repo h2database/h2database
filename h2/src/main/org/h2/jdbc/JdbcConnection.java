@@ -1201,7 +1201,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             return i;
         }
         default:
-            throw DbException.throwInternalError("c=" + c);
+            throw DbException.getInternalError("c=" + c);
         }
     }
 

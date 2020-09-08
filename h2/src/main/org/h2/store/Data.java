@@ -746,7 +746,7 @@ public class Data {
             writeBinary(v, (byte) JSON);
             break;
         default:
-            DbException.throwInternalError("type=" + v.getValueType());
+            throw DbException.getInternalError("type=" + v.getValueType());
         }
         assert pos - start == getValueLen(v)
                 : "value size error: got " + (pos - start) + " expected " + getValueLen(v);
@@ -1177,7 +1177,7 @@ public class Data {
             return 1 + getVarIntLen(b.length) + b.length;
         }
         default:
-            throw DbException.throwInternalError("type=" + v.getValueType());
+            throw DbException.getInternalError("type=" + v.getValueType());
         }
     }
 

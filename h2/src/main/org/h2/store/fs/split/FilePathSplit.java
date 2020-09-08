@@ -202,7 +202,7 @@ public class FilePathSplit extends FilePathWrapper {
      */
     private String[] parse(String fileName) {
         if (!fileName.startsWith(getScheme())) {
-            DbException.throwInternalError(fileName + " doesn't start with " + getScheme());
+            throw DbException.getInternalError(fileName + " doesn't start with " + getScheme());
         }
         fileName = fileName.substring(getScheme().length() + 1);
         String size;

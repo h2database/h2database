@@ -110,9 +110,8 @@ public class PageStoreTable extends RegularTable {
             if (!(index instanceof PageDelegateIndex)) {
                 long rc = index.getRowCount(session);
                 if (rc != rowCount + offset) {
-                    DbException.throwInternalError(
-                            "rowCount expected " + (rowCount + offset) +
-                            " got " + rc + " " + getName() + "." + index.getName());
+                    throw DbException.getInternalError("rowCount expected " + (rowCount + offset) + " got " + rc + ' '
+                            + getName() + '.' + index.getName());
                 }
             }
         }
@@ -210,8 +209,7 @@ public class PageStoreTable extends RegularTable {
                 }
                 addRowsToIndex(session, buffer, index);
                 if (remaining != 0) {
-                    DbException.throwInternalError("rowcount remaining=" +
-                            remaining + " " + getName());
+                    throw DbException.getInternalError("rowcount remaining=" + remaining + ' ' + getName());
                 }
             } catch (DbException e) {
                 getSchema().freeUniqueName(indexName);

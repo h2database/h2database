@@ -42,7 +42,7 @@ public class ConditionAndOr extends Condition {
 
     public ConditionAndOr(int andOrType, Expression left, Expression right) {
         if (left == null || right == null) {
-            DbException.throwInternalError(left + " " + right);
+            throw DbException.getInternalError(left + " " + right);
         }
         this.andOrType = andOrType;
         this.left = left;
@@ -69,7 +69,7 @@ public class ConditionAndOr extends Condition {
             builder.append("\n    OR ");
             break;
         default:
-            throw DbException.throwInternalError("andOrType=" + andOrType);
+            throw DbException.getInternalError("andOrType=" + andOrType);
         }
         return right.getSQL(builder, sqlFlags, AUTO_PARENTHESES);
     }
@@ -133,7 +133,7 @@ public class ConditionAndOr extends Condition {
             return ValueBoolean.FALSE;
         }
         default:
-            throw DbException.throwInternalError("type=" + andOrType);
+            throw DbException.getInternalError("type=" + andOrType);
         }
     }
 
@@ -264,7 +264,7 @@ public class ConditionAndOr extends Condition {
             return ValueExpression.FALSE;
         }
         default:
-            throw DbException.throwInternalError("type=" + andOrType);
+            throw DbException.getInternalError("type=" + andOrType);
         }
     }
 
@@ -285,7 +285,7 @@ public class ConditionAndOr extends Condition {
             }
             break;
         default:
-            throw DbException.throwInternalError("type=" + andOrType);
+            throw DbException.getInternalError("type=" + andOrType);
         }
         return null;
     }

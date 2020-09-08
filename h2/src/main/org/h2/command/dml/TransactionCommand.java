@@ -93,7 +93,7 @@ public class TransactionCommand extends Prepared {
             break;
         }
         default:
-            DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
         return 0;
     }

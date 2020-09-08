@@ -607,7 +607,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     private static void assertNotHolds(Object lock) {
         if (Thread.holdsLock(lock)) {
-            throw DbException.throwInternalError(lock.toString());
+            throw DbException.getInternalError(lock.toString());
         }
     }
 
@@ -618,7 +618,7 @@ public class LobStorageBackend implements LobStorageInterface {
      */
     static void assertHoldsLock(Object lock) {
         if (!Thread.holdsLock(lock)) {
-            throw DbException.throwInternalError(lock.toString());
+            throw DbException.getInternalError(lock.toString());
         }
     }
 

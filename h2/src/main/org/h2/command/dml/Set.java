@@ -604,7 +604,7 @@ public class Set extends Prepared {
             session.setTruncateLargeLength(expression.getBooleanValue(session));
             break;
         default:
-            DbException.throwInternalError("type="+type);
+            throw DbException.getInternalError("type="+type);
         }
         // the meta data information has changed
         database.getNextModificationDataId();

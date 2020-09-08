@@ -311,29 +311,24 @@ public class DbException extends RuntimeException {
     }
 
     /**
-     * Throw an internal error. This method seems to return an exception object,
-     * so that it can be used instead of 'return', but in fact it always throws
-     * the exception.
+     * Gets an internal error.
      *
      * @param s the message
      * @return the RuntimeException object
-     * @throws RuntimeException the exception
      */
-    public static RuntimeException throwInternalError(String s) {
+    public static RuntimeException getInternalError(String s) {
         RuntimeException e = new RuntimeException(s);
         DbException.traceThrowable(e);
-        throw e;
+        return e;
     }
 
     /**
-     * Throw an internal error. This method seems to return an exception object,
-     * so that it can be used instead of 'return', but in fact it always throws
-     * the exception.
+     * Gets an internal error.
      *
      * @return the RuntimeException object
      */
-    public static RuntimeException throwInternalError() {
-        return throwInternalError("Unexpected code path");
+    public static RuntimeException getInternalError() {
+        return getInternalError("Unexpected code path");
     }
 
     /**

@@ -134,7 +134,7 @@ public abstract class ModeFunction extends FunctionN {
      * @throws DbException if the parameter count is incorrect
      */
     void checkParameterCount(int len) {
-        DbException.throwInternalError("type=" + info.type);
+        throw DbException.getInternalError("type=" + info.type);
     }
 
     @Override
@@ -184,7 +184,7 @@ public abstract class ModeFunction extends FunctionN {
         case ExpressionVisitor.GET_COLUMNS2:
             return true;
         default:
-            throw DbException.throwInternalError("type=" + visitor.getType());
+            throw DbException.getInternalError("type=" + visitor.getType());
         }
     }
 

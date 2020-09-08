@@ -1740,7 +1740,7 @@ public class Recover extends Tool implements DataHandler {
      */
     @Override
     public int getMaxLengthInplaceLob() {
-        throw DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     /**
@@ -1787,9 +1787,8 @@ public class Recover extends Tool implements DataHandler {
      * INTERNAL
      */
     @Override
-    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff,
-            int off, int length) {
-        throw DbException.throwInternalError();
+    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
+        throw DbException.getInternalError();
     }
 
     @Override

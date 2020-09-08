@@ -423,7 +423,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
             break;
         }
         default:
-            throw DbException.throwInternalError("data type " + type);
+            throw DbException.getInternalError("data type " + type);
         }
         return v;
     }

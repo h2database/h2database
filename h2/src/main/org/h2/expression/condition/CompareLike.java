@@ -245,7 +245,7 @@ public final class CompareLike extends Condition {
             Value e = escape == null ? null : escape.getValue(session);
             if (e == ValueNull.INSTANCE) {
                 // should already be optimized
-                DbException.throwInternalError();
+                throw DbException.getInternalError();
             }
             initPattern(p, getEscapeChar(e));
         }
@@ -400,7 +400,7 @@ public final class CompareLike extends Condition {
                 }
                 return false;
             default:
-                DbException.throwInternalError(Integer.toString(types[pi]));
+                throw DbException.getInternalError(Integer.toString(types[pi]));
             }
         }
         return si == sLen;

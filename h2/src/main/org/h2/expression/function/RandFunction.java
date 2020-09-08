@@ -77,7 +77,7 @@ public final class RandFunction extends Function0_1 {
             v = ValueUuid.getNewRandom();
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return v;
     }
@@ -100,7 +100,7 @@ public final class RandFunction extends Function0_1 {
             type = TypeInfo.TYPE_UUID;
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return this;
     }

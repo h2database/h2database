@@ -272,7 +272,7 @@ public final class SetClauseList implements HasSQL {
         }
 
         Value update(SessionLocal session) {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
 
         boolean isEverything(ExpressionVisitor visitor) {
@@ -284,7 +284,7 @@ public final class SetClauseList implements HasSQL {
         }
 
         void getSQL(StringBuilder builder, int sqlFlags, Column column) {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
 
     }

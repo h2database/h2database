@@ -137,7 +137,7 @@ public final class ArrayFunction extends FunctionN {
             break;
         }
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return v1;
     }
@@ -159,7 +159,7 @@ public final class ArrayFunction extends FunctionN {
             type = TypeInfo.TYPE_BOOLEAN;
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         if (allConst) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);

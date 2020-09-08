@@ -189,7 +189,7 @@ public final class MathFunction1 extends Function1 {
             d = Math.toRadians(d);
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return ValueDouble.get(d);
     }

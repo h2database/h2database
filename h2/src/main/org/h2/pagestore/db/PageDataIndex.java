@@ -56,7 +56,7 @@ public class PageDataIndex extends PageIndex {
         this.store = database.getPageStore();
         store.addIndex(this);
         if (!database.isPersistent()) {
-            throw DbException.throwInternalError(table.getName());
+            throw DbException.getInternalError(table.getName());
         }
         if (create) {
             rootPageId = store.allocatePage();
@@ -207,8 +207,7 @@ public class PageDataIndex extends PageIndex {
         PageData p = (PageData) pd;
         if (parent != -1) {
             if (p.getParentPageId() != parent) {
-                throw DbException.throwInternalError(p +
-                        " parent " + p.getParentPageId() + " expected " + parent);
+                throw DbException.getInternalError(p + " parent " + p.getParentPageId() + " expected " + parent);
             }
         }
         return p;

@@ -69,7 +69,7 @@ public class LinkedCursor implements Cursor {
 
     @Override
     public boolean previous() {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
 }

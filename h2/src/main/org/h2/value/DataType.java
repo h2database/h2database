@@ -878,8 +878,7 @@ public class DataType {
         } else if (clazz == Double.TYPE) {
             return (double) 0;
         }
-        throw DbException.throwInternalError(
-                "primitive=" + clazz.toString());
+        throw DbException.getInternalError("primitive=" + clazz.toString());
     }
 
     /**

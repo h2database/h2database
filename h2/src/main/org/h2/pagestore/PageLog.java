@@ -227,8 +227,7 @@ public class PageLog {
                     loopCount = 0;
                     loopDetect *= 2;
                 } else if (first != 0 && first == t.getPos()) {
-                    throw DbException.throwInternalError(
-                            "endless loop at " + t);
+                    throw DbException.getInternalError("endless loop at " + t);
                 }
                 t.free(currentDataPage);
                 firstTrunkPage = t.getNextTrunk();
@@ -496,7 +495,7 @@ public class PageLog {
             trace.debug("log undo " + pageId);
         }
         if (page == null) {
-            DbException.throwInternalError("Undo entry not written");
+            throw DbException.getInternalError("Undo entry not written");
         }
         undo.set(pageId);
         undoAll.set(pageId);
@@ -747,7 +746,7 @@ public class PageLog {
             Page p = store.getPage(trunkPage);
             PageStreamTrunk t = (PageStreamTrunk) p;
             if (t == null) {
-                throw DbException.throwInternalError(
+                throw DbException.getInternalError(
                         "log.removeUntil not found: " + firstDataPageToKeep + " last " + last);
             }
             logKey = t.getLogKey();

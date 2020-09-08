@@ -230,7 +230,7 @@ public class CommandContainer extends Command {
                 expressionColumns.add(new ExpressionColumn(db, column));
             }
         } else {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         int columnCount = expressionColumns.size();
         if (columnCount == 0) {

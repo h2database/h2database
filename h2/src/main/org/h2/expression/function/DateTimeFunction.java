@@ -359,7 +359,7 @@ public final class DateTimeFunction extends Function1_2 {
             v1 = ValueBigint.get(datediff(session, field, v1, v2));
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return v1;
     }
@@ -1000,7 +1000,7 @@ public final class DateTimeFunction extends Function1_2 {
             type = TypeInfo.TYPE_BIGINT;
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         if (left.isConstant() && (right == null || right.isConstant())) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
@@ -1024,7 +1024,7 @@ public final class DateTimeFunction extends Function1_2 {
             right.getUnenclosedSQL(builder, sqlFlags);
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return builder.append(')');
     }

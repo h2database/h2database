@@ -524,7 +524,7 @@ public class ScriptCommand extends ScriptBase {
             break;
         }
         default:
-            DbException.throwInternalError("type:" + v.getValueType());
+            throw DbException.getInternalError("type:" + v.getValueType());
         }
         return id;
     }

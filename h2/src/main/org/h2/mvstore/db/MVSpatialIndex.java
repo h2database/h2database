@@ -114,12 +114,12 @@ public class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIn
 
     @Override
     public void addRowsToBuffer(List<Row> rows, String bufferName) {
-        throw DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     @Override
     public void addBufferedRows(List<String> bufferNames) {
-        throw DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     @Override

@@ -100,7 +100,7 @@ public final class CurrentGeneralValueSpecification extends Operation0 implement
             s = session.getDatabase().sysIdentifier(session.getUser().getName());
             break;
         default:
-            throw DbException.throwInternalError("specification=" + specification);
+            throw DbException.getInternalError("specification=" + specification);
         }
         return s != null ? ValueVarchar.get(s, session) : ValueNull.INSTANCE;
     }

@@ -57,7 +57,7 @@ public final class CryptFunction extends FunctionN {
             cipher.decrypt(newData, 0, newData.length);
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return ValueVarbinary.getNoCopy(newData);
     }

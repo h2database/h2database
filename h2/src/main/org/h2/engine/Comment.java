@@ -27,7 +27,7 @@ public final class Comment extends DbObject {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     private static String getTypeName(int type) {
@@ -86,7 +86,7 @@ public final class Comment extends DbObject {
 
     @Override
     public void checkRename() {
-        DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     /**

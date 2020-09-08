@@ -943,7 +943,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     public void registerTableAsLocked(Table table) {
         if (SysProperties.CHECK) {
             if (locks.contains(table)) {
-                throw DbException.throwInternalError(table.toString());
+                throw DbException.getInternalError(table.toString());
             }
         }
         locks.add(table);
@@ -984,7 +984,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
                     if (!locks.contains(log.getTable())
                             && TableType.TABLE_LINK != tableType
                             && TableType.EXTERNAL_TABLE_ENGINE != tableType) {
-                        throw DbException.throwInternalError(String.valueOf(tableType));
+                        throw DbException.getInternalError(String.valueOf(tableType));
                     }
                 }
             }

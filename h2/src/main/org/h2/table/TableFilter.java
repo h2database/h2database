@@ -341,13 +341,13 @@ public class TableFilter implements ColumnResolver {
         }
         if (nestedJoin != null) {
             if (nestedJoin == this) {
-                DbException.throwInternalError("self join");
+                throw DbException.getInternalError("self join");
             }
             nestedJoin.prepare();
         }
         if (join != null) {
             if (join == this) {
-                DbException.throwInternalError("self join");
+                throw DbException.getInternalError("self join");
             }
             join.prepare();
         }
@@ -1074,7 +1074,7 @@ public class TableFilter implements ColumnResolver {
         case Value.BIGINT:
             return ValueBigint.get(key);
         default:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
     }
 

@@ -343,7 +343,7 @@ public class FileShell extends Tool {
             for (String fileName : source) {
                 String f = FileUtils.toRealPath(fileName);
                 if (!f.startsWith(base)) {
-                    DbException.throwInternalError(f + " does not start with " + base);
+                    throw DbException.getInternalError(f + " does not start with " + base);
                 }
                 if (f.endsWith(zipFileName)) {
                     continue;

@@ -223,7 +223,7 @@ public class DbContextRule implements Rule {
             autoCompleteProcedure(sentence);
             break;
         default:
-            throw DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
         if (!s.equals(query)) {
             while (Bnf.startWithSpace(s)) {

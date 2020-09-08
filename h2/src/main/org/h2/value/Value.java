@@ -1369,7 +1369,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         default:
             throw getDataConversionError(BOOLEAN);
         case NULL:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
     }
 
@@ -1427,7 +1427,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         default:
             throw getDataConversionError(TINYINT);
         case NULL:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
     }
 
@@ -1484,7 +1484,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         default:
             throw getDataConversionError(SMALLINT);
         case NULL:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
     }
 
@@ -1540,7 +1540,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         default:
             throw getDataConversionError(INTEGER);
         case NULL:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
     }
 
@@ -1595,7 +1595,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         default:
             throw getDataConversionError(BIGINT);
         case NULL:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
     }
 
@@ -1613,7 +1613,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             v = ValueNumeric.get(getBigDecimal());
             break;
         case NULL:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         if (conversionMode != CONVERT_TO) {
             int targetScale = targetType.getScale();
@@ -1643,7 +1643,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         default:
             return ValueReal.get(getFloat());
         case NULL:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
     }
 
@@ -1661,7 +1661,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         default:
             return ValueDouble.get(getDouble());
         case NULL:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
     }
 
@@ -1685,7 +1685,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             }
             break;
         case NULL:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         if (conversionMode != CONVERT_TO) {
             BigDecimal bd = v.getBigDecimal();
@@ -1726,7 +1726,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         default:
             throw getDataConversionError(DATE);
         case NULL:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
     }
 
@@ -2126,7 +2126,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         default:
             throw getDataConversionError(JAVA_OBJECT);
         case NULL:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         if (conversionMode != CONVERT_TO && v.getBytesNoCopy().length > targetType.getPrecision()) {
             throw v.getValueTooLongException(targetType, column);
@@ -2166,7 +2166,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         default:
             throw getDataConversionError(ENUM);
         case NULL:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
     }
 
@@ -2213,7 +2213,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         default:
             throw getDataConversionError(GEOMETRY);
         case NULL:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         if (extTypeInfo != null) {
             int type = extTypeInfo.getType();
@@ -2298,7 +2298,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         default:
             throw getDataConversionError(UUID);
         case NULL:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
     }
 

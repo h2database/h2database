@@ -111,9 +111,7 @@ public class CacheLRU implements Cache {
             int pos = rec.getPos();
             CacheObject old = find(pos);
             if (old != null) {
-                DbException
-                        .throwInternalError("try to add a record twice at pos " +
-                                pos);
+                throw DbException.getInternalError("try to add a record twice at pos " + pos);
             }
         }
         int index = rec.getPos() & mask;
@@ -132,7 +130,7 @@ public class CacheLRU implements Cache {
             put(rec);
         } else {
             if (old != rec) {
-                DbException.throwInternalError("old!=record pos:" + pos + " old:" + old + " new:" + rec);
+                throw DbException.getInternalError("old!=record pos:" + pos + " old:" + old + " new:" + rec);
             }
             if (!fifo) {
                 removeFromLinkedList(rec);
@@ -188,7 +186,7 @@ public class CacheLRU implements Cache {
                 }
             }
             if (check == head) {
-                DbException.throwInternalError("try to remove head");
+                throw DbException.getInternalError("try to remove head");
             }
             // we are not allowed to remove it if the log is not yet written
             // (because we need to log before writing the data)
@@ -228,7 +226,7 @@ public class CacheLRU implements Cache {
                 CacheObject rec = changed.get(i);
                 remove(rec.getPos());
                 if (rec.cacheNext != null) {
-                    throw DbException.throwInternalError();
+                    throw DbException.getInternalError();
                 }
             }
         }
@@ -236,7 +234,7 @@ public class CacheLRU implements Cache {
 
     private void addToFront(CacheObject rec) {
         if (rec == head) {
-            DbException.throwInternalError("try to move head");
+            throw DbException.getInternalError("try to move head");
         }
         rec.cacheNext = head;
         rec.cachePrevious = head.cachePrevious;
@@ -246,7 +244,7 @@ public class CacheLRU implements Cache {
 
     private void removeFromLinkedList(CacheObject rec) {
         if (rec == head) {
-            DbException.throwInternalError("try to remove head");
+            throw DbException.getInternalError("try to remove head");
         }
         rec.cachePrevious.cacheNext = rec.cacheNext;
         rec.cacheNext.cachePrevious = rec.cachePrevious;
@@ -283,7 +281,7 @@ public class CacheLRU implements Cache {
             rec.cacheChained = null;
             CacheObject o = find(pos);
             if (o != null) {
-                DbException.throwInternalError("not removed: " + o);
+                throw DbException.getInternalError("not removed: " + o);
             }
         }
         return true;

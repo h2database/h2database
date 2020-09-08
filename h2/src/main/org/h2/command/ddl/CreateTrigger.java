@@ -107,7 +107,7 @@ public class CreateTrigger extends SchemaCommand {
             if (onRollback) {
                 throw DbException.get(ErrorCode.INVALID_TRIGGER_FLAGS_1, "(!INSERT & !UPDATE & !DELETE) + ROLLBACK");
             }
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         int id = getObjectId();
         Table table = getSchema().getTableOrView(session, tableName);

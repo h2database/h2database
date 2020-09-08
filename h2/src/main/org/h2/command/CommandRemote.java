@@ -59,7 +59,7 @@ public class CommandRemote implements CommandInterface {
     @Override
     public void stop() {
         // Must never be called, because remote result is not lazy.
-        throw DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     private void prepare(SessionRemote s, boolean createParams) {

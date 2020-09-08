@@ -172,7 +172,7 @@ public final class JTSUtils {
                 m = 1;
                 break;
             default:
-                throw DbException.throwInternalError();
+                throw DbException.getInternalError();
             }
             return factory.getCoordinateSequenceFactory().create(numPoints, d, m);
         }

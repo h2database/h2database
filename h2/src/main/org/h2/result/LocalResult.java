@@ -244,7 +244,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
      */
     public void removeDistinct(Value[] values) {
         if (!distinct) {
-            DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         assert values.length == visibleColumnCount;
         if (distinctRows != null) {

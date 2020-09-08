@@ -67,7 +67,7 @@ public class AlterTableSet extends SchemaCommand {
                     checkExisting : false);
             break;
         default:
-            DbException.throwInternalError("type="+type);
+            throw DbException.getInternalError("type="+type);
         }
         return 0;
     }

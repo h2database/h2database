@@ -76,7 +76,7 @@ public final class MathFunction2 extends Function2 {
             d1 = Math.pow(d1, d2);
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return ValueDouble.get(d1);
     }

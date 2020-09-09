@@ -29,7 +29,7 @@ public final class ResultRemote extends FetchedResult {
     private Transfer transfer;
     private int id;
     private final ResultColumn[] columns;
-    private final long rowCount;
+    private long rowCount;
     private long rowOffset;
     private ArrayList<Value[]> result;
     private final Trace trace;
@@ -47,8 +47,21 @@ public final class ResultRemote extends FetchedResult {
         }
         rowId = -1;
         this.fetchSize = fetchSize;
-        result = new ArrayList<>(getFetchSize(rowCount));
-        fetchRows(false);
+        if (rowCount >= 0) {
+            fetchSize = (int) Math.min(rowCount, fetchSize);
+            result = new ArrayList<>(fetchSize);
+        } else {
+            result = new ArrayList<>();
+        }
+        synchronized (session) {
+            try {
+                if (fetchRows(fetchSize)) {
+                    rowCount = result.size();
+                }
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, null);
+            }
+        }
     }
 
     @Override
@@ -138,7 +151,7 @@ public final class ResultRemote extends FetchedResult {
                 if (session != null) {
                     remapIfOld();
                     if (nextRowId - rowOffset >= result.size()) {
-                        fetchRows(true);
+                        fetchAdditionalRows();
                     }
                 }
                 int index = (int) (nextRowId - rowOffset);
@@ -189,58 +202,53 @@ public final class ResultRemote extends FetchedResult {
         }
     }
 
-    private void fetchRows(boolean sendFetch) {
+    private void fetchAdditionalRows() {
         synchronized (session) {
             session.checkClosed();
             try {
                 rowOffset += result.size();
                 result.clear();
-                int fetch = getFetchSize(rowCount - rowOffset);
-                if (sendFetch) {
-                    session.traceOperation("RESULT_FETCH_ROWS", id);
-                    transfer.writeInt(SessionRemote.RESULT_FETCH_ROWS).
-                            writeInt(id).writeInt(fetch);
-                    session.done(transfer);
+                int fetch = fetchSize;
+                if (rowCount >= 0) {
+                    fetch = (int) Math.min(fetch, rowCount - rowOffset);
+                } else if (fetch == Integer.MAX_VALUE) {
+                    fetch = SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
                 }
-                for (int r = 0; r < fetch; r++) {
-                    switch (transfer.readByte()) {
-                    case 1:
-                        break;
-                    case 0:
-                        sendClose();
-                        return;
-                    case -1:
-                        throw SessionRemote.readException(transfer);
-                    default:
-                        throw DbException.getInternalError();
-                    }
-                    int len = columns.length;
-                    Value[] values = new Value[len];
-                    for (int i = 0; i < len; i++) {
-                        Value v = transfer.readValue();
-                        values[i] = v;
-                    }
-                    result.add(values);
-                }
-                if (rowCount >= 0L && rowOffset + result.size() >= rowCount) {
-                    sendClose();
-                }
+                session.traceOperation("RESULT_FETCH_ROWS", id);
+                transfer.writeInt(SessionRemote.RESULT_FETCH_ROWS).writeInt(id).writeInt(fetch);
+                session.done(transfer);
+                fetchRows(fetch);
             } catch (IOException e) {
                 throw DbException.convertIOException(e, null);
             }
         }
     }
 
-    private int getFetchSize(long remaining) {
-        int fetchSize = this.fetchSize;
-        if (rowCount >= 0) {
-            return (int) Math.min(fetchSize, remaining);
-        } else {
-            if (fetchSize == Integer.MAX_VALUE) {
-                return SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
+    private boolean fetchRows(int fetch) throws IOException {
+        int len = columns.length;
+        for (int r = 0; r < fetch; r++) {
+            switch (transfer.readByte()) {
+            case 1: {
+                Value[] values = new Value[len];
+                for (int i = 0; i < len; i++) {
+                    values[i] = transfer.readValue();
+                }
+                result.add(values);
+                break;
             }
-            return fetchSize;
+            case 0:
+                sendClose();
+                return true;
+            case -1:
+                throw SessionRemote.readException(transfer);
+            default:
+                throw DbException.getInternalError();
+            }
         }
+        if (rowCount >= 0L && rowOffset + result.size() >= rowCount) {
+            sendClose();
+        }
+        return false;
     }
 
     @Override

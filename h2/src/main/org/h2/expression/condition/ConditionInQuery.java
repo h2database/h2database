@@ -44,6 +44,8 @@ public final class ConditionInQuery extends PredicateWithSubquery {
          * order.
          */
         query.setRandomAccessResult(true);
+        query.setNeverLazy(true);
+        query.setDistinctIfPossible();
         this.all = all;
         this.compareType = compareType;
     }
@@ -63,9 +65,6 @@ public final class ConditionInQuery extends PredicateWithSubquery {
 
     private Value getValue(SessionLocal session, Value left) {
         query.setSession(session);
-        // We need a LocalResult
-        query.setNeverLazy(true);
-        query.setDistinctIfPossible();
         LocalResult rows = (LocalResult) query.query(0);
         if (!rows.hasNext()) {
             return ValueBoolean.get(not ^ all);

@@ -1926,6 +1926,9 @@ public class TestFunctions extends TestDb implements AggregateFunction {
 
     private void testThatCurrentTimestampUpdatesOutsideATransaction()
             throws SQLException, InterruptedException {
+        if (config.lazy && config.networked) {
+            return;
+        }
         deleteDb("functions");
         Connection conn = getConnection("functions");
         conn.setAutoCommit(true);

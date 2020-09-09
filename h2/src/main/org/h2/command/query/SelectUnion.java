@@ -115,7 +115,7 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    protected ResultInterface queryWithoutCache(int maxRows, ResultTarget target) {
+    protected ResultInterface queryWithoutCache(long maxRows, ResultTarget target) {
         OffsetFetch offsetFetch = getOffsetFetch(maxRows);
         long offset = offsetFetch.offset;
         long fetch = offsetFetch.fetch;

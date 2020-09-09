@@ -57,7 +57,7 @@ public class Help extends Prepared {
     }
 
     @Override
-    public ResultInterface query(int maxrows) {
+    public ResultInterface query(long maxrows) {
         LocalResult result = new LocalResult(session, expressions, 5, 5);
         try {
             ResultSet rs = getTable();

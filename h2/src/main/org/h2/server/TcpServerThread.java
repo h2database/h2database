@@ -338,7 +338,7 @@ public class TcpServerThread implements Runnable {
         case SessionRemote.COMMAND_EXECUTE_QUERY: {
             int id = transfer.readInt();
             int objectId = transfer.readInt();
-            int maxRows = transfer.readInt();
+            long maxRows = transfer.readRowCount();
             int fetchSize = transfer.readInt();
             Command command = (Command) cache.getObject(id, false);
             setParameters(command);

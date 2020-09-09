@@ -139,7 +139,7 @@ public abstract class Query extends Prepared {
     int resultColumnCount;
 
     private boolean noCache;
-    private int lastLimit;
+    private long lastLimit;
     private long lastEvaluated;
     private ResultInterface lastResult;
     private Value[] lastParameters;
@@ -185,11 +185,9 @@ public abstract class Query extends Prepared {
      * @param target the target to write results to
      * @return the result
      */
-    protected abstract ResultInterface queryWithoutCache(int limit,
-            ResultTarget target);
+    protected abstract ResultInterface queryWithoutCache(long limit, ResultTarget target);
 
-    private ResultInterface queryWithoutCacheLazyCheck(int limit,
-            ResultTarget target) {
+    private ResultInterface queryWithoutCacheLazyCheck(long limit, ResultTarget target) {
         boolean disableLazy = neverLazy && session.isLazyQueryExecution();
         if (disableLazy) {
             session.setLazyQueryExecution(false);
@@ -454,7 +452,7 @@ public abstract class Query extends Prepared {
     }
 
     @Override
-    public final ResultInterface query(int maxrows) {
+    public final ResultInterface query(long maxrows) {
         return query(maxrows, null);
     }
 
@@ -465,7 +463,7 @@ public abstract class Query extends Prepared {
      * @param target the target result (null will return the result)
      * @return the result set (if the target is not set).
      */
-    public final ResultInterface query(int limit, ResultTarget target) {
+    public final ResultInterface query(long limit, ResultTarget target) {
         if (isUnion()) {
             // union doesn't always know the parameter list of the left and
             // right queries
@@ -837,7 +835,7 @@ public abstract class Query extends Prepared {
      *            additional limit
      * @return the evaluated values
      */
-    OffsetFetch getOffsetFetch(int maxRows) {
+    OffsetFetch getOffsetFetch(long maxRows) {
         long fetch = maxRows == 0 ? -1 : maxRows;
         if (fetchExpr != null) {
             Value v = fetchExpr.getValue(session);

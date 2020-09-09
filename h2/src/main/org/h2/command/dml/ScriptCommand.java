@@ -142,7 +142,7 @@ public class ScriptCommand extends ScriptBase {
     }
 
     @Override
-    public ResultInterface query(int maxrows) {
+    public ResultInterface query(long maxrows) {
         session.getUser().checkAdmin();
         reset();
         Database db = session.getDatabase();

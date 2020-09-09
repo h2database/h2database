@@ -70,7 +70,7 @@ public class Explain extends Prepared {
     }
 
     @Override
-    public ResultInterface query(int maxrows) {
+    public ResultInterface query(long maxrows) {
         Database db = session.getDatabase();
         Expression[] expressions = { new ExpressionColumn(db, new Column("PLAN", TypeInfo.TYPE_VARCHAR)) };
         result = new LocalResult(session, expressions, 1, 1);

@@ -68,7 +68,7 @@ public class ExecuteProcedure extends Prepared {
     }
 
     @Override
-    public ResultInterface query(int limit) {
+    public ResultInterface query(long limit) {
         setParameters();
         Prepared prepared = procedure.getPrepared();
         return prepared.query(limit);

@@ -757,7 +757,7 @@ public class Select extends Query {
     }
 
     @Override
-    protected ResultInterface queryWithoutCache(int maxRows, ResultTarget target) {
+    protected ResultInterface queryWithoutCache(long maxRows, ResultTarget target) {
         disableLazyForJoinSubqueries(topTableFilter);
         OffsetFetch offsetFetch = getOffsetFetch(maxRows);
         long offset = offsetFetch.offset;

@@ -123,7 +123,7 @@ public class TableValueConstructor extends Query {
     }
 
     @Override
-    protected ResultInterface queryWithoutCache(int limit, ResultTarget target) {
+    protected ResultInterface queryWithoutCache(long limit, ResultTarget target) {
         OffsetFetch offsetFetch = getOffsetFetch(limit);
         long offset = offsetFetch.offset;
         long fetch = offsetFetch.fetch;

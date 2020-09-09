@@ -155,7 +155,7 @@ public class CommandRemote implements CommandInterface {
     }
 
     @Override
-    public ResultInterface executeQuery(int maxRows, boolean scrollable) {
+    public ResultInterface executeQuery(long maxRows, boolean scrollable) {
         checkParameters();
         synchronized (session) {
             int objectId = session.getNextId();
@@ -165,8 +165,8 @@ public class CommandRemote implements CommandInterface {
                 Transfer transfer = transferList.get(i);
                 try {
                     session.traceOperation("COMMAND_EXECUTE_QUERY", id);
-                    transfer.writeInt(SessionRemote.COMMAND_EXECUTE_QUERY).
-                        writeInt(id).writeInt(objectId).writeInt(maxRows);
+                    transfer.writeInt(SessionRemote.COMMAND_EXECUTE_QUERY).writeInt(id).writeInt(objectId);
+                    transfer.writeRowCount(maxRows);
                     int fetch;
                     if (session.isClustered() || scrollable) {
                         fetch = Integer.MAX_VALUE;

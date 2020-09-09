@@ -117,7 +117,7 @@ public abstract class Command implements CommandInterface {
      * @return the local result set
      * @throws DbException if the command is not a query
      */
-    public abstract ResultInterface query(int maxrows);
+    public abstract ResultInterface query(long maxrows);
 
     @Override
     public final ResultInterface getMetaData() {
@@ -173,7 +173,7 @@ public abstract class Command implements CommandInterface {
      * @return the result set
      */
     @Override
-    public ResultInterface executeQuery(int maxrows, boolean scrollable) {
+    public ResultInterface executeQuery(long maxrows, boolean scrollable) {
         startTimeNanos = 0L;
         long start = 0L;
         Database database = session.getDatabase();

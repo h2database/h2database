@@ -564,7 +564,7 @@ public interface CommandInterface extends AutoCloseable {
      * @param scrollable if the result set must be scrollable
      * @return the result
      */
-    ResultInterface executeQuery(int maxRows, boolean scrollable);
+    ResultInterface executeQuery(long maxRows, boolean scrollable);
 
     /**
      * Execute the statement

@@ -612,6 +612,15 @@ public final class SessionRemote extends Session implements DataHandler {
         }
     }
 
+    /**
+     * Reads an exception.
+     *
+     * @param transfer
+     *            the transfer object
+     * @return the exception
+     * @throws IOException
+     *             on I/O exception
+     */
     public static DbException readException(Transfer transfer) throws IOException {
         String sqlstate = transfer.readString();
         String message = transfer.readString();

@@ -281,14 +281,15 @@ public class TestKeywords extends TestBase {
             "PARAMETER", "PARTITION", "PERCENT_RANK", "PERCENTILE_CONT", "PERCENTILE_DISC", "POSITION",
             "POSITION_REGEX", "POWER", "PRECISION", "PREPARE", "PRIMARY", "PROCEDURE",
 
-            "RANGE", "RANK", "READS", "REAL", "RECURSIVE", "REF", "REFERENCES", "REFERENCING", "REGR_AVGX", "REGR_AVGY",
-            "REGR_COUNT", "REGR_INTERCEPT", "REGR_R2", "REGR_SLOPE", "REGR_SXX", "REGR_SXY", "REGR_SYY", "RELEASE",
-            "RESULT", "RETURN", "RETURNS", "REVOKE", "RIGHT", "ROLLBACK", "ROLLUP", "ROW", "ROW_NUMBER", "ROWS",
+            "RANGE", "RANK", "READS", "REAL", "RECURSIVE", "REF", "REFERENCES", "REFERENCING", "REGR_AVGX", //
+            "REGR_AVGY", "REGR_COUNT", "REGR_INTERCEPT", "REGR_R2", "REGR_SLOPE", "REGR_SXX", "REGR_SXY", "REGR_SYY",
+            "RELEASE", "RESULT", "RETURN", "RETURNS", "REVOKE", "RIGHT", "ROLLBACK", "ROLLUP", "ROW", "ROW_NUMBER",
+            "ROWS",
 
-            "SAVEPOINT", "SCOPE", "SCROLL", "SEARCH", "SECOND", "SELECT", "SENSITIVE", "SESSION_USER", "SET", "SIMILAR",
-            "SMALLINT", "SOME", "SPECIFIC", "SPECIFICTYPE", "SQL", "SQLEXCEPTION", "SQLSTATE", "SQLWARNING", "SQRT",
-            "START", "STATIC", "STDDEV_POP", "STDDEV_SAMP", "SUBMULTISET", "SUBSTRING", "SUBSTRING_REGEX", "SUM",
-            "SYMMETRIC", "SYSTEM", "SYSTEM_USER",
+            "SAVEPOINT", "SCOPE", "SCROLL", "SEARCH", "SECOND", "SELECT", "SENSITIVE", "SESSION_USER", "SET", //
+            "SIMILAR", "SMALLINT", "SOME", "SPECIFIC", "SPECIFICTYPE", "SQL", "SQLEXCEPTION", "SQLSTATE", "SQLWARNING",
+            "SQRT", "START", "STATIC", "STDDEV_POP", "STDDEV_SAMP", "SUBMULTISET", "SUBSTRING", "SUBSTRING_REGEX",
+            "SUM", "SYMMETRIC", "SYSTEM", "SYSTEM_USER",
 
             "TABLE", "TABLESAMPLE", "THEN", "TIME", "TIMESTAMP", "TIMEZONE_HOUR", "TIMEZONE_MINUTE", "TO", "TRAILING",
             "TRANSLATE", "TRANSLATE_REGEX", "TRANSLATION", "TREAT", "TRIGGER", "TRIM", "TRUE",
@@ -496,7 +497,8 @@ public class TestKeywords extends TestBase {
         ClassReader r = new ClassReader(Parser.class.getResourceAsStream("Parser.class"));
         r.accept(new ClassVisitor(Opcodes.ASM8) {
             @Override
-            public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+            public FieldVisitor visitField(int access, String name, String descriptor, String signature, //
+                    Object value) {
                 add(value);
                 return null;
             }

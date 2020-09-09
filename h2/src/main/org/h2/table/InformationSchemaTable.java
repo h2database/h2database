@@ -1500,7 +1500,7 @@ public final class InformationSchemaTable extends MetaTable {
                     FunctionAlias.JavaMethod method = methods[i];
                     TypeInfo typeInfo = method.getDataType();
                     String specificName = name + '_' + (i + 1);
-                    if (typeInfo.getValueType() != Value.NULL) {
+                    if (typeInfo != null && typeInfo.getValueType() != Value.NULL) {
                         elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation,
                                 schemaName, specificName, "ROUTINE", "RESULT", typeInfo);
                     }

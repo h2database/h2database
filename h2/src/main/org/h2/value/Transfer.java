@@ -201,7 +201,7 @@ public final class Transfer {
      * @param x the value
      * @return itself
      */
-    private Transfer writeByte(byte x) throws IOException {
+    public Transfer writeByte(byte x) throws IOException {
         out.writeByte(x);
         return this;
     }
@@ -211,7 +211,7 @@ public final class Transfer {
      *
      * @return the value
      */
-    private byte readByte() throws IOException {
+    public byte readByte() throws IOException {
         return in.readByte();
     }
 

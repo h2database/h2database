@@ -42,6 +42,7 @@ import org.h2.util.SmallLRUCache;
 import org.h2.util.SmallMap;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
+import org.h2.value.ValueLob;
 
 /**
  * One server thread is opened per client connection.
@@ -567,6 +568,7 @@ public class TcpServerThread implements Runnable {
 
     private void sendRows(ResultInterface result, long count) throws IOException {
         int columnCount = result.getVisibleColumnCount();
+        boolean lazy = result.isLazy();
         while (count-- > 0L) {
             boolean hasNext;
             try {
@@ -578,9 +580,16 @@ public class TcpServerThread implements Runnable {
             }
             if (hasNext) {
                 transfer.writeByte((byte) 1);
-                Value[] v = result.currentRow();
+                Value[] values = result.currentRow();
                 for (int i = 0; i < columnCount; i++) {
-                    transfer.writeValue(v[i]);
+                    Value v = values[i];
+                    if (lazy && v instanceof ValueLob) {
+                        ValueLob v2 = ((ValueLob) v).copyToResult();
+                        if (v2 != v) {
+                            v = session.addTemporaryLob(v2);
+                        }
+                    }
+                    transfer.writeValue(v);
                 }
             } else {
                 transfer.writeByte((byte) 0);

@@ -41,7 +41,7 @@ public class Permutations<T> {
         this.n = in.length;
         this.m = m;
         if (n < m || m < 0) {
-            DbException.throwInternalError("n < m or m < 0");
+            throw DbException.getInternalError("n < m or m < 0");
         }
         this.in = in;
         this.out = out;

@@ -512,7 +512,7 @@ public class TestPreparedStatement extends TestDb {
         for (int i = 0; i < badSizes.length; i++) {
             PreparedStatement prep = conn.prepareStatement("SELECT * FROM test_enum WHERE size = ?");
             prep.setObject(1, badSizes[i]);
-            if (config.lazy) {
+            if (config.lazy && !config.networked) {
                 ResultSet resultSet = prep.executeQuery();
                 assertThrows(ErrorCode.ENUM_VALUE_NOT_PERMITTED, resultSet).next();
             } else {

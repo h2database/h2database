@@ -60,9 +60,9 @@ public class CommandContainer extends Command {
         }
 
         @Override
-        public int getRowCount() {
+        public long getRowCount() {
             // Not required
-            return 0;
+            return 0L;
         }
 
         @Override
@@ -230,7 +230,7 @@ public class CommandContainer extends Command {
                 expressionColumns.add(new ExpressionColumn(db, column));
             }
         } else {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         int columnCount = expressionColumns.size();
         if (columnCount == 0) {
@@ -247,7 +247,7 @@ public class CommandContainer extends Command {
     }
 
     @Override
-    public ResultInterface query(int maxrows) {
+    public ResultInterface query(long maxrows) {
         recompileIfRequired();
         setProgress(DatabaseEventListener.STATE_STATEMENT_START);
         start();

@@ -113,7 +113,7 @@ public final class RegexpFunction extends FunctionN {
             break;
         }
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return v1;
     }
@@ -250,7 +250,7 @@ public final class RegexpFunction extends FunctionN {
             type = TypeInfo.TYPE_VARCHAR;
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         int len = args.length;
         if (len < min || len > max) {

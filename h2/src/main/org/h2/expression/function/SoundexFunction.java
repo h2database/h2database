@@ -57,7 +57,7 @@ public final class SoundexFunction extends Function1_2 {
             break;
         }
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return v1;
     }
@@ -112,7 +112,7 @@ public final class SoundexFunction extends Function1_2 {
             type = TypeInfo.TYPE_INTEGER;
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         if (left.isConstant() && (right == null || right.isConstant())) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);

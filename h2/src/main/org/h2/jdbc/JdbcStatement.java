@@ -32,7 +32,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     protected JdbcConnection conn;
     protected Session session;
     protected JdbcResultSet resultSet;
-    protected int maxRows;
+    protected long maxRows;
     protected int fetchSize = SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
     protected long updateCount;
     protected JdbcResultSet generatedKeys;
@@ -442,7 +442,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         try {
             debugCodeCall("getMaxRows");
             checkClosed();
-            return maxRows;
+            return maxRows <= Integer.MAX_VALUE ? (int) maxRows : 0;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -499,7 +499,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             if (maxRows < 0) {
                 throw DbException.getInvalidValueException("maxRows", maxRows);
             }
-            this.maxRows = maxRows <= Integer.MAX_VALUE ? (int) maxRows : 0;
+            this.maxRows = maxRows;
         } catch (Exception e) {
             throw logAndConvert(e);
         }

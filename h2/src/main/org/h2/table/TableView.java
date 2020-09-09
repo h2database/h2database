@@ -365,7 +365,7 @@ public class TableView extends Table {
 
     @Override
     public long getRowCount(SessionLocal session) {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     @Override

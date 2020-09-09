@@ -166,6 +166,7 @@ public class TestAutoReconnect extends TestDb {
                 if (i < 10) {
                     throw e;
                 }
+                break;
             }
         }
         restart();

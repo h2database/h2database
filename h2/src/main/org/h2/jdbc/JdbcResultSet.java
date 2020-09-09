@@ -83,7 +83,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     private Value[] insertRow;
     private Value[] updateRow;
     private HashMap<String, Integer> columnLabelMap;
-    private HashMap<Integer, Value[]> patchedRows;
+    private HashMap<Long, Value[]> patchedRows;
     private JdbcPreparedStatement preparedStatement;
     private final CommandInterface command;
 
@@ -2621,8 +2621,8 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
             if (result.isAfterLast()) {
                 return 0;
             }
-            int rowId = result.getRowId();
-            return rowId + 1;
+            long rowNumber = result.getRowId() + 1;
+            return rowNumber <= Integer.MAX_VALUE ? (int) rowNumber : Statement.SUCCESS_NO_INFO;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2822,7 +2822,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             debugCodeCall("isLast");
             checkClosed();
-            int rowId = result.getRowId();
+            long rowId = result.getRowId();
             return rowId >= 0 && !result.isAfterLast() && !result.hasNext();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -2927,13 +2927,11 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             debugCodeCall("absolute", rowNumber);
             checkClosed();
-            if (rowNumber < 0) {
-                rowNumber = result.getRowCount() + rowNumber + 1;
-            }
-            if (--rowNumber < result.getRowId()) {
+            long longRowNumber = rowNumber >= 0 ? rowNumber : result.getRowCount() + rowNumber + 1;
+            if (--longRowNumber < result.getRowId()) {
                 resetResult();
             }
-            while (result.getRowId() < rowNumber) {
+            while (result.getRowId() < longRowNumber) {
                 if (!nextRow()) {
                     return false;
                 }
@@ -2959,11 +2957,14 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             debugCodeCall("relative", rowCount);
             checkClosed();
+            long longRowCount;
             if (rowCount < 0) {
-                rowCount = result.getRowId() + rowCount + 1;
+                longRowCount = result.getRowId() + rowCount + 1;
                 resetResult();
+            } else {
+                longRowCount = rowCount;
             }
-            for (int i = 0; i < rowCount; i++) {
+            while (longRowCount-- > 0) {
                 if (!nextRow()) {
                     return false;
                 }
@@ -3936,7 +3937,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
         if (patchedRows == null) {
             patchedRows = new HashMap<>();
         }
-        Integer rowId = result.getRowId();
+        Long rowId = result.getRowId();
         if (!changed) {
             patchedRows.remove(rowId);
         } else {

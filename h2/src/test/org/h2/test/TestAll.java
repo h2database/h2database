@@ -601,7 +601,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             abbaLockingDetector = new AbbaLockingDetector().startCollecting();
         }
 
-        smallLog = big = networked = memory = ssl = false;
+        mvStore = true;
+        smallLog = big = networked = memory = lazy = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;
         traceTest = stopOnError = false;
         traceLevelFile = throttle = 0;
@@ -637,14 +638,20 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         mvStore = false;
         test();
         testAdditional();
-
         mvStore = true;
-        memory = true;
-        networked = true;
-        test();
 
+        networked = true;
+
+        memory = true;
+        test();
         memory = false;
+
+        lazy = true;
+        test();
+        lazy = false;
+
         networked = false;
+
         diskUndo = true;
         diskResult = true;
         traceLevelFile = 3;

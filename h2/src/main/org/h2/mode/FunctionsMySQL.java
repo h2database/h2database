@@ -182,8 +182,7 @@ public final class FunctionsMySQL extends ModeFunction {
             max = 1;
             break;
         default:
-            DbException.throwInternalError("type=" + info.type);
-            return;
+            throw DbException.getInternalError("type=" + info.type);
         }
         if (len < min || len > max) {
             throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, min + ".." + max);
@@ -251,7 +250,7 @@ public final class FunctionsMySQL extends ModeFunction {
             }
             break;
         default:
-            throw DbException.throwInternalError("type=" + info.type);
+            throw DbException.getInternalError("type=" + info.type);
         }
         return result;
     }

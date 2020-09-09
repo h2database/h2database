@@ -65,7 +65,7 @@ public final class Variable extends Operation0 {
         case ExpressionVisitor.DETERMINISTIC:
             return false;
         default:
-            throw DbException.throwInternalError("type="+visitor.getType());
+            throw DbException.getInternalError("type="+visitor.getType());
         }
     }
 

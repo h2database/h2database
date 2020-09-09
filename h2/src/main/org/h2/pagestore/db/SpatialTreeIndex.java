@@ -127,7 +127,7 @@ public class SpatialTreeIndex extends Index implements SpatialIndex {
     @Override
     public void add(SessionLocal session, Row row) {
         if (closed) {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         treeMap.add(getKey(row), row.getKey());
     }
@@ -148,10 +148,10 @@ public class SpatialTreeIndex extends Index implements SpatialIndex {
     @Override
     public void remove(SessionLocal session, Row row) {
         if (closed) {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         if (!treeMap.remove(getKey(row), row.getKey())) {
-            throw DbException.throwInternalError("row not found");
+            throw DbException.getInternalError("row not found");
         }
     }
 

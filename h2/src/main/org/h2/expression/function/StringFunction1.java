@@ -158,7 +158,7 @@ public final class StringFunction1 extends Function1 {
             v = ValueVarchar.get(StringUtils.quoteIdentifier(v.getString()), session);
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return v;
     }
@@ -267,7 +267,7 @@ public final class StringFunction1 extends Function1 {
             break;
         }
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         if (arg.isConstant()) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);

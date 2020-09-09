@@ -304,7 +304,7 @@ public final class Comparison extends Condition {
             break;
         }
         default:
-            throw DbException.throwInternalError("type=" + compareType);
+            throw DbException.getInternalError("type=" + compareType);
         }
         return result;
     }
@@ -331,7 +331,7 @@ public final class Comparison extends Condition {
         case SMALLER:
             return BIGGER;
         default:
-            throw DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
     }
 
@@ -363,7 +363,7 @@ public final class Comparison extends Condition {
         case SMALLER:
             return BIGGER_EQUAL;
         default:
-            throw DbException.throwInternalError("type=" + compareType);
+            throw DbException.getInternalError("type=" + compareType);
         }
     }
 
@@ -432,7 +432,7 @@ public final class Comparison extends Condition {
             addIndex = true;
             break;
         default:
-            throw DbException.throwInternalError("type=" + compareType);
+            throw DbException.getInternalError("type=" + compareType);
         }
         if (addIndex) {
             if (l != null) {

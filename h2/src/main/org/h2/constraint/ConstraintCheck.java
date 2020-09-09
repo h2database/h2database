@@ -121,7 +121,7 @@ public class ConstraintCheck extends Constraint {
 
     @Override
     public void setIndexOwner(Index index) {
-        DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     @Override

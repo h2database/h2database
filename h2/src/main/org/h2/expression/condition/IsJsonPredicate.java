@@ -73,7 +73,7 @@ public final class IsJsonPredicate extends Condition {
             builder.append(" SCALAR");
             break;
         default:
-            throw DbException.throwInternalError("itemType=" + itemType);
+            throw DbException.getInternalError("itemType=" + itemType);
         }
         if (withUniqueKeys) {
             builder.append(" WITH UNIQUE KEYS");

@@ -65,12 +65,12 @@ public final class Wildcard extends Expression {
 
     @Override
     public Value getValue(SessionLocal session) {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     @Override
     public TypeInfo getType() {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     @Override
@@ -89,7 +89,7 @@ public final class Wildcard extends Expression {
 
     @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     @Override
@@ -116,7 +116,7 @@ public final class Wildcard extends Expression {
 
     @Override
     public void updateAggregate(SessionLocal session, int stage) {
-        DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     @Override
@@ -124,12 +124,12 @@ public final class Wildcard extends Expression {
         if (visitor.getType() == ExpressionVisitor.QUERY_COMPARABLE) {
             return true;
         }
-        throw DbException.throwInternalError(Integer.toString(visitor.getType()));
+        throw DbException.getInternalError(Integer.toString(visitor.getType()));
     }
 
     @Override
     public int getCost() {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
 }

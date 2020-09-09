@@ -225,7 +225,7 @@ public abstract class MetaTable extends Table {
 
     @Override
     public long getRowCount(SessionLocal session) {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     @Override

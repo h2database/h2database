@@ -51,7 +51,7 @@ public class PageBtreeIndex extends PageIndex {
         // trace.setLevel(TraceSystem.DEBUG);
         tableData = table;
         if (!database.isPersistent() || id < 0) {
-            throw DbException.throwInternalError(indexName);
+            throw DbException.getInternalError(indexName);
         }
         this.store = database.getPageStore();
         store.addIndex(this);

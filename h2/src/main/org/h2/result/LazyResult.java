@@ -5,7 +5,6 @@
  */
 package org.h2.result;
 
-import org.h2.engine.Session;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
@@ -17,23 +16,19 @@ import org.h2.value.Value;
  *
  * @author Sergi Vladykin
  */
-public abstract class LazyResult implements ResultInterface {
+public abstract class LazyResult extends FetchedResult {
 
     private final SessionLocal session;
     private final Expression[] expressions;
-    private int rowId = -1;
-    private Value[] currentRow;
-    private Value[] nextRow;
     private boolean closed;
-    private boolean afterLast;
-    private int limit;
+    private long limit;
 
     public LazyResult(SessionLocal session, Expression[] expressions) {
         this.session = session;
         this.expressions = expressions;
     }
 
-    public void setLimit(int limit) {
+    public void setLimit(long limit) {
         this.limit = limit;
     }
 
@@ -45,33 +40,12 @@ public abstract class LazyResult implements ResultInterface {
     @Override
     public void reset() {
         if (closed) {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
-        rowId = -1;
+        rowId = -1L;
         afterLast = false;
         currentRow = null;
         nextRow = null;
-    }
-
-    @Override
-    public Value[] currentRow() {
-        return currentRow;
-    }
-
-    @Override
-    public boolean next() {
-        if (hasNext()) {
-            rowId++;
-            currentRow = nextRow;
-            nextRow = null;
-            return true;
-        }
-        if (!afterLast) {
-            rowId++;
-            currentRow = null;
-            afterLast = true;
-        }
-        return false;
     }
 
     /**
@@ -123,23 +97,8 @@ public abstract class LazyResult implements ResultInterface {
     }
 
     @Override
-    public boolean isAfterLast() {
-        return afterLast;
-    }
-
-    @Override
-    public int getRowId() {
-        return rowId;
-    }
-
-    @Override
-    public int getRowCount() {
+    public long getRowCount() {
         throw DbException.getUnsupportedException("Row count is unknown for lazy result.");
-    }
-
-    @Override
-    public boolean needToClose() {
-        return true;
     }
 
     @Override
@@ -196,12 +155,6 @@ public abstract class LazyResult implements ResultInterface {
     public int getFetchSize() {
         // We always fetch rows one by one.
         return 1;
-    }
-
-    @Override
-    public ResultInterface createShallowCopy(Session targetSession) {
-        // Copying is impossible with lazy result.
-        return null;
     }
 
 }

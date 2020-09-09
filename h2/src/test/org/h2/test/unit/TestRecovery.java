@@ -202,8 +202,8 @@ public class TestRecovery extends TestDb {
         conn.setAutoCommit(false);
         long base = 0;
         while (true) {
-            ResultSet rs = stat.executeQuery(
-                        "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'info.FILE_WRITE'");
+            ResultSet rs = stat.executeQuery("SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS"
+                    + " WHERE SETTING_NAME = 'info.FILE_WRITE'");
             rs.next();
             long count = rs.getLong(1);
             if (base == 0) {

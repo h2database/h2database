@@ -201,7 +201,7 @@ public final class Transfer {
      * @param x the value
      * @return itself
      */
-    private Transfer writeByte(byte x) throws IOException {
+    public Transfer writeByte(byte x) throws IOException {
         out.writeByte(x);
         return this;
     }
@@ -211,7 +211,7 @@ public final class Transfer {
      *
      * @return the value
      */
-    private byte readByte() throws IOException {
+    public byte readByte() throws IOException {
         return in.readByte();
     }
 
@@ -1143,6 +1143,26 @@ public final class Transfer {
         default:
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }
+    }
+
+    /**
+     * Read a row count.
+     *
+     * @return the row count
+     */
+    public long readRowCount() throws IOException {
+        return version >= Constants.TCP_PROTOCOL_VERSION_20 ? readLong() : readInt();
+    }
+
+    /**
+     * Write a row count.
+     *
+     * @param rowCount the row count
+     * @return itself
+     */
+    public Transfer writeRowCount(long rowCount) throws IOException {
+        return version >= Constants.TCP_PROTOCOL_VERSION_20 ? writeLong(rowCount)
+                : writeInt(rowCount < Integer.MAX_VALUE ? (int) rowCount : Integer.MAX_VALUE);
     }
 
     /**

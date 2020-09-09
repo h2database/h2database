@@ -226,7 +226,7 @@ public abstract class Prepared {
      * @throws DbException if it is not a query
      */
     @SuppressWarnings("unused")
-    public ResultInterface query(int maxrows) {
+    public ResultInterface query(long maxrows) {
         throw DbException.get(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }
 
@@ -272,7 +272,7 @@ public abstract class Prepared {
         if (id == 0) {
             id = session.getDatabase().allocateObjectId();
         } else if (id < 0) {
-            throw DbException.throwInternalError("Prepared.getObjectId() was called before");
+            throw DbException.getInternalError("Prepared.getObjectId() was called before");
         }
         persistedObjectId = ~persistedObjectId;  // while negative, it can be restored later
         return id;

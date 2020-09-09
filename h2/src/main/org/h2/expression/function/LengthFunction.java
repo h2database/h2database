@@ -63,7 +63,7 @@ public final class LengthFunction extends Function1 {
             l = v.octetLength() * 8;
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return ValueBigint.get(l);
     }

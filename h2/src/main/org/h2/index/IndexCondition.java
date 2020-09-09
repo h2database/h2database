@@ -214,7 +214,7 @@ public class IndexCondition {
             builder.append(" && ");
             break;
         default:
-            DbException.throwInternalError("type=" + compareType);
+            throw DbException.getInternalError("type=" + compareType);
         }
         if (expression != null) {
             expression.getSQL(builder, sqlFlags, Expression.AUTO_PARENTHESES);
@@ -260,7 +260,7 @@ public class IndexCondition {
         case Comparison.SPATIAL_INTERSECTS:
             return SPATIAL_INTERSECTS;
         default:
-            throw DbException.throwInternalError("type=" + compareType);
+            throw DbException.getInternalError("type=" + compareType);
         }
     }
 

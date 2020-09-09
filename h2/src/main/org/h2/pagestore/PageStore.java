@@ -588,7 +588,7 @@ public class PageStore implements CacheWriter {
                 }
                 temp = getFirstFree(temp);
                 if (temp == -1) {
-                    DbException.throwInternalError("no free page for defrag");
+                    throw DbException.getInternalError("no free page for defrag");
                 }
                 cache.clear();
                 swap(source, target, temp);
@@ -656,12 +656,11 @@ public class PageStore implements CacheWriter {
 
     private void swap(int a, int b, int free) {
         if (a < MIN_PAGE_COUNT || b < MIN_PAGE_COUNT) {
-            System.out.println(isUsed(a) + " " + isUsed(b));
-            DbException.throwInternalError("can't swap " + a + " and " + b);
+            throw DbException.getInternalError("can't swap " + a + " and " + b);
         }
         Page f = (Page) cache.get(free);
         if (f != null) {
-            DbException.throwInternalError("not free: " + f);
+            throw DbException.getInternalError("not free: " + f);
         }
         if (trace.isDebugEnabled()) {
             trace.debug("swap " + a + " and " + b + " via " + free);
@@ -698,7 +697,7 @@ public class PageStore implements CacheWriter {
         }
         Page f = (Page) cache.get(free);
         if (f != null) {
-            DbException.throwInternalError("not free: " + f);
+            throw DbException.getInternalError("not free: " + f);
         }
         Page p = getPage(full);
         if (p == null) {
@@ -717,8 +716,7 @@ public class PageStore implements CacheWriter {
                 p.moveTo(pageStoreSession, free);
             } finally {
                 if (++changeCount < 0) {
-                    throw DbException.throwInternalError(
-                            "changeCount has wrapped");
+                    throw DbException.getInternalError("changeCount has wrapped");
                 }
             }
         }
@@ -1343,7 +1341,7 @@ public class PageStore implements CacheWriter {
      */
     public synchronized void writePage(int pageId, Data data) {
         if (pageId <= 0) {
-            DbException.throwInternalError("write to page " + pageId);
+            throw DbException.getInternalError("write to page " + pageId);
         }
         byte[] bytes = data.getBytes();
         if (SysProperties.CHECK) {
@@ -1351,7 +1349,7 @@ public class PageStore implements CacheWriter {
                     freeListPagesPerList == 0;
             boolean isFreeList = bytes[0] == Page.TYPE_FREE_LIST;
             if (bytes[0] != 0 && shouldBeFreeList != isFreeList) {
-                throw DbException.throwInternalError();
+                throw DbException.getInternalError();
             }
         }
         checksumSet(bytes, pageId);
@@ -1557,8 +1555,7 @@ public class PageStore implements CacheWriter {
         }
         Index index = metaObjects.get(tableId);
         if (index == null) {
-            throw DbException.throwInternalError(
-                    "Table not found: " + tableId + " " + row + " " + add);
+            throw DbException.getInternalError("Table not found: " + tableId + ' ' + row + ' ' + add);
         }
         Table table = index.getTable();
         if (add) {
@@ -1664,7 +1661,7 @@ public class PageStore implements CacheWriter {
         if (type == META_TYPE_DATA_INDEX) {
             CreateTableData data = new CreateTableData();
             if (columns == null) {
-                throw DbException.throwInternalError(row.toString());
+                throw DbException.getInternalError(row.toString());
             }
             for (int i = 0, len = columns.length; i < len; i++) {
                 Column col = new Column("C" + i, TypeInfo.TYPE_INTEGER);
@@ -1969,7 +1966,7 @@ public class PageStore implements CacheWriter {
      */
     public void incrementChangeCount() {
         if (++changeCount < 0) {
-            throw DbException.throwInternalError("changeCount has wrapped");
+            throw DbException.getInternalError("changeCount has wrapped");
         }
     }
 

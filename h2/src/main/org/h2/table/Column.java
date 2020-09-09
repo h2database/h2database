@@ -448,7 +448,7 @@ public final class Column implements HasSQL, Typed, ColumnTemplate {
      */
     public void initializeSequence(SessionLocal session, Schema schema, int id, boolean temporary) {
         if (identityOptions == null) {
-            DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         String sequenceName;
         do {

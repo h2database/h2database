@@ -88,7 +88,7 @@ public class BinaryOperation extends Operation2 {
         case DIVIDE:
             return "/";
         default:
-            throw DbException.throwInternalError("opType=" + opType);
+            throw DbException.getInternalError("opType=" + opType);
         }
     }
 
@@ -121,7 +121,7 @@ public class BinaryOperation extends Operation2 {
             }
             return l.divide(r, right.getType().getDecimalPrecision());
         default:
-            throw DbException.throwInternalError("type=" + opType);
+            throw DbException.getInternalError("type=" + opType);
         }
     }
 
@@ -209,7 +209,7 @@ public class BinaryOperation extends Operation2 {
             precision = leftPrecision + rightScale - leftScale + scale;
             break;
         default:
-            throw DbException.throwInternalError("type=" + opType);
+            throw DbException.getInternalError("type=" + opType);
         }
         type = TypeInfo.getTypeInfo(Value.NUMERIC, precision, scale, null);
     }
@@ -231,7 +231,7 @@ public class BinaryOperation extends Operation2 {
             precision = leftPrecision + rightPrecision;
             break;
         default:
-            throw DbException.throwInternalError("type=" + opType);
+            throw DbException.getInternalError("type=" + opType);
         }
         type = TypeInfo.getTypeInfo(Value.DECFLOAT, precision, 0, null);
     }

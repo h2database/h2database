@@ -705,7 +705,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         default:
-            throw DbException.throwInternalError("type="+type);
+            throw DbException.getInternalError("type=" + type);
         }
         setColumns(cols);
 
@@ -2347,7 +2347,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         default:
-            DbException.throwInternalError("type="+type);
+            throw DbException.getInternalError("type=" + type);
         }
         return rows;
     }
@@ -2375,7 +2375,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         case SET_NULL:
             return DatabaseMetaData.importedKeySetNull;
         default:
-            throw DbException.throwInternalError("action="+action);
+            throw DbException.getInternalError("action="+action);
         }
     }
 

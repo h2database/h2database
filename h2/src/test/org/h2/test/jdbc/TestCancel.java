@@ -164,6 +164,9 @@ public class TestCancel extends TestDb {
     }
 
     private void testCancelStatement() throws Exception {
+        if (config.lazy && config.networked) {
+            return;
+        }
         deleteDb("cancel");
         Connection conn = getConnection("cancel");
         Statement stat = conn.createStatement();

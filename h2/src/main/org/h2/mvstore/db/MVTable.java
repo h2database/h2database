@@ -395,7 +395,7 @@ public class MVTable extends RegularTable {
 
         int bufferSize = database.getMaxMemoryRows() / 2;
         ArrayList<Row> buffer = new ArrayList<>(bufferSize);
-        String n = getName() + ":" + index.getName();
+        String n = getName() + ':' + index.getName();
         ArrayList<String> bufferNames = Utils.newSmallArrayList();
         while (cursor.next()) {
             Row row = cursor.get();
@@ -421,8 +421,7 @@ public class MVTable extends RegularTable {
             addRowsToIndex(session, buffer, index);
         }
         if (remaining != 0) {
-            throw DbException.throwInternalError("rowcount remaining=" + remaining +
-                    " " + getName());
+            throw DbException.getInternalError("rowcount remaining=" + remaining + ' ' + getName());
         }
     }
 
@@ -434,7 +433,7 @@ public class MVTable extends RegularTable {
         long i = 0;
         int bufferSize = (int) Math.min(total, database.getMaxMemoryRows());
         ArrayList<Row> buffer = new ArrayList<>(bufferSize);
-        String n = getName() + ":" + index.getName();
+        String n = getName() + ':' + index.getName();
         while (cursor.next()) {
             Row row = cursor.get();
             buffer.add(row);
@@ -446,8 +445,7 @@ public class MVTable extends RegularTable {
         }
         addRowsToIndex(session, buffer, index);
         if (remaining != 0) {
-            throw DbException.throwInternalError("rowcount remaining=" + remaining +
-                    " " + getName());
+            throw DbException.getInternalError("rowcount remaining=" + remaining + ' ' + getName());
         }
     }
 

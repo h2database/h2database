@@ -324,7 +324,7 @@ public final class PgCatalogTable extends MetaTable {
             };
             break;
         default:
-            throw DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
         setColumns(cols);
         indexColumn = -1;
@@ -573,8 +573,7 @@ public final class PgCatalogTable extends MetaTable {
             }
             break;
         default:
-            DbException.throwInternalError("type=" + type);
-
+            throw DbException.getInternalError("type=" + type);
         }
         return rows;
 

@@ -128,7 +128,7 @@ public class PageDataLeaf extends PageData {
         rows = new Row[entryCount];
         if (type == Page.TYPE_DATA_LEAF) {
             if (entryCount != 1) {
-                DbException.throwInternalError("entries: " + entryCount);
+                throw DbException.getInternalError("entries: " + entryCount);
             }
             firstOverflowPageId = data.readInt();
         }
@@ -213,7 +213,7 @@ public class PageDataLeaf extends PageData {
         if (offset < start) {
             writtenData = false;
             if (entryCount > 1) {
-                DbException.throwInternalError(Integer.toString(entryCount));
+                throw DbException.getInternalError(Integer.toString(entryCount));
             }
             // need to write the overflow page id
             start += 4;
@@ -273,7 +273,7 @@ public class PageDataLeaf extends PageData {
         }
         entryCount--;
         if (entryCount < 0) {
-            DbException.throwInternalError(Integer.toString(entryCount));
+            throw DbException.getInternalError(Integer.toString(entryCount));
         }
         if (firstOverflowPageId != 0) {
             start -= 4;
@@ -357,7 +357,7 @@ public class PageDataLeaf extends PageData {
         while (splitPoint < entryCount) {
             int split = p2.addRowTry(getRowAt(splitPoint));
             if (split != -1) {
-                DbException.throwInternalError("split " + split);
+                throw DbException.getInternalError("split " + split);
             }
             removeRow(splitPoint);
         }
@@ -561,7 +561,7 @@ public class PageDataLeaf extends PageData {
      */
     void setOverflow(int old, int overflow) {
         if (old != firstOverflowPageId) {
-            DbException.throwInternalError("move " + this + " " + firstOverflowPageId);
+            throw DbException.getInternalError("move " + this + ' ' + firstOverflowPageId);
         }
         index.getPageStore().logUndo(this, data);
         firstOverflowPageId = overflow;

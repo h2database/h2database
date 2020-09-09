@@ -138,7 +138,7 @@ public final class SysInfoFunction extends Operation0 implements NamedExpression
             result = session.getTransactionId();
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return result;
     }

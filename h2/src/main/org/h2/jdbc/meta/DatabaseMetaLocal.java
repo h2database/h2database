@@ -1135,7 +1135,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         case SET_NULL:
             return IMPORTED_KEY_SET_NULL;
         default:
-            throw DbException.throwInternalError("action=" + action);
+            throw DbException.getInternalError("action=" + action);
         }
     }
 

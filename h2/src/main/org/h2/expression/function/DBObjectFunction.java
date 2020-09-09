@@ -119,7 +119,7 @@ public final class DBObjectFunction extends FunctionN {
             String sql = object.getCreateSQLForMeta();
             return sql != null ? ValueVarchar.get(sql, session) : ValueNull.INSTANCE;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
     }
 

@@ -67,10 +67,4 @@ public class LobStorageRemoteInputStream extends InputStream {
         return length;
     }
 
-    @Override
-    public long skip(long n) {
-        pos += n;
-        return n;
-    }
-
 }

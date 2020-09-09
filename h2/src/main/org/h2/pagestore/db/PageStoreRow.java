@@ -41,7 +41,7 @@ public final class PageStoreRow {
             if (i == ROWID_INDEX) {
                 return ValueBigint.get(key);
             }
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
 
         @Override
@@ -49,7 +49,7 @@ public final class PageStoreRow {
             if (i == ROWID_INDEX) {
                 key = v.getLong();
             } else {
-                DbException.throwInternalError();
+                throw DbException.getInternalError();
             }
         }
 

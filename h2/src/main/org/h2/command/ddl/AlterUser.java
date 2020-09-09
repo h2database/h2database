@@ -91,7 +91,7 @@ public class AlterUser extends DefineCommand {
             user.setAdmin(admin);
             break;
         default:
-            DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
         db.updateMeta(session, user);
         return 0;

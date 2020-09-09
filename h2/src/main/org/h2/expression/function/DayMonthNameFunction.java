@@ -65,7 +65,7 @@ public final class DayMonthNameFunction extends Function1 {
             result = getMonthsAndWeeks(0)[DateTimeUtils.monthFromDateValue(dateValue) - 1];
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return ValueVarchar.get(result, session);
     }

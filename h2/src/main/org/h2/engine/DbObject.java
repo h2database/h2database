@@ -207,7 +207,7 @@ public abstract class DbObject implements HasSQL {
      */
     protected void invalidate() {
         if (id == -1) {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         setModified();
         id = -1;

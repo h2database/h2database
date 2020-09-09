@@ -92,7 +92,7 @@ public class GrantRevoke extends DefineCommand {
                 } else if (operationType == CommandInterface.REVOKE) {
                     revokeRole(grantedRole);
                 } else {
-                    DbException.throwInternalError("type=" + operationType);
+                    throw DbException.getInternalError("type=" + operationType);
                 }
             }
         } else {
@@ -101,7 +101,7 @@ public class GrantRevoke extends DefineCommand {
             } else if (operationType == CommandInterface.REVOKE) {
                 revokeRight();
             } else {
-                DbException.throwInternalError("type=" + operationType);
+                throw DbException.getInternalError("type=" + operationType);
             }
         }
         return 0;

@@ -536,7 +536,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             writeBinary((byte) JSON, buff, v);
             break;
         default:
-            throw DbException.throwInternalError("type=" + v.getValueType());
+            throw DbException.getInternalError("type=" + v.getValueType());
         }
     }
 

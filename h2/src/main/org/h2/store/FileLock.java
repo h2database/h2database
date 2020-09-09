@@ -103,7 +103,7 @@ public class FileLock implements Runnable {
     public synchronized void lock(FileLockMethod fileLockMethod) {
         checkServer();
         if (locked) {
-            DbException.throwInternalError("already locked");
+            throw DbException.getInternalError("already locked");
         }
         switch (fileLockMethod) {
         case FILE:

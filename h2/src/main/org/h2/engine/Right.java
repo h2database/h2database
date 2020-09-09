@@ -173,7 +173,7 @@ public final class Right extends DbObject {
 
     @Override
     public void checkRename() {
-        DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     public void setRightMask(int rightMask) {

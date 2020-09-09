@@ -68,7 +68,7 @@ class CommandList extends Command {
     }
 
     @Override
-    public ResultInterface query(int maxrows) {
+    public ResultInterface query(long maxrows) {
         ResultInterface result = command.query(maxrows);
         executeRemaining();
         return result;

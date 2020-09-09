@@ -54,7 +54,7 @@ public final class FunctionsDB2Derby extends ModeFunction {
         case IDENTITY_VAL_LOCAL:
             return session.getLastIdentity().convertTo(type);
         default:
-            throw DbException.throwInternalError("type=" + info.type);
+            throw DbException.getInternalError("type=" + info.type);
         }
     }
 
@@ -65,7 +65,7 @@ public final class FunctionsDB2Derby extends ModeFunction {
             type = IDENTITY_VAL_LOCAL_TYPE;
             break;
         default:
-            throw DbException.throwInternalError("type=" + info.type);
+            throw DbException.getInternalError("type=" + info.type);
         }
         return this;
     }

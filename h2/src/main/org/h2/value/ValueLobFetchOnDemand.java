@@ -126,7 +126,7 @@ public final class ValueLobFetchOnDemand extends ValueLob {
     public InputStream getInputStream(long oneBasedOffset, long length) {
         if (this.valueType == CLOB) {
             // Cannot usefully into index into a unicode based stream with a byte offset
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         final InputStream inputStream = new BufferedInputStream(
                 new LobStorageRemoteInputStream(handler, lobId, hmac));

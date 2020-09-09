@@ -129,7 +129,7 @@ public final class ValueNull extends Value {
 
     @Override
     public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
-        throw DbException.throwInternalError("compare null");
+        throw DbException.getInternalError("compare null");
     }
 
     @Override

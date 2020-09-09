@@ -191,7 +191,7 @@ public class IntervalOperation extends Operation2 {
         case INTERVAL_DIVIDE_NUMERIC:
             return '/';
         default:
-            throw DbException.throwInternalError("opType=" + opType);
+            throw DbException.getInternalError("opType=" + opType);
         }
     }
 
@@ -270,19 +270,19 @@ public class IntervalOperation extends Operation2 {
             return result;
         }
         }
-        throw DbException.throwInternalError("type=" + opType);
+        throw DbException.getInternalError("type=" + opType);
     }
 
     private Value getDateTimeWithInterval(SessionLocal session, Value l, Value r, int lType, int rType) {
         switch (lType) {
         case Value.TIME:
             if (DataType.isYearMonthIntervalType(rType)) {
-                throw DbException.throwInternalError("type=" + rType);
+                throw DbException.getInternalError("type=" + rType);
             }
             return ValueTime.fromNanos(getTimeWithInterval(r, ((ValueTime) l).getNanos()));
         case Value.TIME_TZ: {
             if (DataType.isYearMonthIntervalType(rType)) {
-                throw DbException.throwInternalError("type=" + rType);
+                throw DbException.getInternalError("type=" + rType);
             }
             ValueTimeTimeZone t = (ValueTimeTimeZone) l;
             return ValueTimeTimeZone.fromNanos(getTimeWithInterval(r, t.getNanos()), t.getTimeZoneOffsetSeconds());
@@ -326,7 +326,7 @@ public class IntervalOperation extends Operation2 {
                 }
             }
         }
-        throw DbException.throwInternalError("type=" + opType);
+        throw DbException.getInternalError("type=" + opType);
     }
 
     private long getTimeWithInterval(Value r, long nanos) {

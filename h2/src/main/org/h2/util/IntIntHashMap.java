@@ -96,7 +96,7 @@ public class IntIntHashMap extends HashBase {
             index = (index + plus++) & mask;
         } while (plus <= len);
         // no space
-        DbException.throwInternalError("hashmap is full");
+        throw DbException.getInternalError("hashmap is full");
     }
 
     /**

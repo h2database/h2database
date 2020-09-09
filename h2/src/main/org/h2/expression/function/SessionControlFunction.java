@@ -66,7 +66,7 @@ public final class SessionControlFunction extends Function1 {
                     }
                     break loop;
                 default:
-                    throw DbException.throwInternalError("function=" + function);
+                    throw DbException.getInternalError("function=" + function);
                 }
             }
         }

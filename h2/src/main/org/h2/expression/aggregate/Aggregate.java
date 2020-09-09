@@ -87,7 +87,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     public Aggregate(AggregateType aggregateType, Expression[] args, Select select, boolean distinct) {
         super(select, args, distinct);
         if (distinct && aggregateType == AggregateType.COUNT_ALL) {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         this.aggregateType = aggregateType;
     }
@@ -417,7 +417,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case ENVELOPE:
             return ((MVSpatialIndex) AggregateDataEnvelope.getGeometryColumnIndex(args[0])).getBounds(session);
         default:
-            throw DbException.throwInternalError("type=" + aggregateType);
+            throw DbException.getInternalError("type=" + aggregateType);
         }
     }
 
@@ -596,7 +596,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 return v;
             }
         }
-        throw DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     private static Value getCumeDist(Value[] ordered, Value arg, Comparator<Value> sort) {
@@ -615,7 +615,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
             start = end;
         }
-        throw DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     private Value getListagg(SessionLocal session, AggregateData data) {
@@ -898,7 +898,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             type = TypeInfo.TYPE_JSON;
             break;
         default:
-            DbException.throwInternalError("type=" + aggregateType);
+            throw DbException.getInternalError("type=" + aggregateType);
         }
         return this;
     }
@@ -1009,7 +1009,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case JSON_ARRAYAGG:
             return getSQLJsonArrayAggregate(builder, sqlFlags);
         default:
-            throw DbException.throwInternalError("type=" + aggregateType);
+            throw DbException.getInternalError("type=" + aggregateType);
         }
         builder.append(text);
         if (distinct) {

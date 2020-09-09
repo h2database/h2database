@@ -56,7 +56,7 @@ public final class GeneratedKeysMode {
         if (generatedKeysRequest instanceof String[]) {
             return ((String[]) generatedKeysRequest).length > 0 ? COLUMN_NAMES : NONE;
         }
-        throw DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     private GeneratedKeysMode() {

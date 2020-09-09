@@ -131,7 +131,7 @@ public class PageBtreeLeaf extends PageBtree {
             last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
             rowLength = index.getRowSize(data, row, true);
             if (last - rowLength < start + OFFSET_LENGTH) {
-                throw DbException.throwInternalError();
+                throw DbException.getInternalError();
             }
         }
         index.getPageStore().logUndo(this, data);
@@ -168,7 +168,7 @@ public class PageBtreeLeaf extends PageBtree {
         written = false;
         changeCount = index.getPageStore().getChangeCount();
         if (entryCount <= 0) {
-            DbException.throwInternalError(Integer.toString(entryCount));
+            throw DbException.getInternalError(Integer.toString(entryCount));
         }
         int startNext = at > 0 ? offsets[at - 1] : index.getPageStore().getPageSize();
         int rowLength = startNext - offsets[at];

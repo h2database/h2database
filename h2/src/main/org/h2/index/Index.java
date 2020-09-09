@@ -281,7 +281,7 @@ public abstract class Index extends SchemaObject {
      * @return the cursor
      */
     public Cursor findNext(SessionLocal session, SearchRow higherThan, SearchRow last) {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     /**
@@ -294,7 +294,7 @@ public abstract class Index extends SchemaObject {
      * @return a cursor (never null)
      */
     public Cursor findFirstOrLast(SessionLocal session, boolean first) {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     /**

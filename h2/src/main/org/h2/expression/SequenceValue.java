@@ -87,7 +87,7 @@ public final class SequenceValue extends Operation0 {
         case ExpressionVisitor.READONLY:
             return current;
         default:
-            throw DbException.throwInternalError("type=" + visitor.getType());
+            throw DbException.getInternalError("type=" + visitor.getType());
         }
     }
 

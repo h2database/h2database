@@ -112,7 +112,7 @@ public class CreateUser extends DefineCommand {
         } else if (password != null) {
             setPassword(user, session, password);
         } else {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         db.addDatabaseObject(session, user);
         return 0;

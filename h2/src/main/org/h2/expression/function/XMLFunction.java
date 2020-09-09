@@ -111,7 +111,7 @@ public final class XMLFunction extends FunctionN {
             v1 = ValueVarchar.get(StringUtils.xmlText(v1.getString(), v2 != null && v2.getBoolean()), session);
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return v1;
     }
@@ -140,7 +140,7 @@ public final class XMLFunction extends FunctionN {
             max = 2;
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         int len = args.length;
         if (len < min || len > max) {

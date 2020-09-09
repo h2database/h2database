@@ -21,7 +21,7 @@ public final class Rownum extends Operation0 {
 
     public Rownum(Prepared prepared) {
         if (prepared == null) {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         this.prepared = prepared;
     }
@@ -59,7 +59,7 @@ public final class Rownum extends Operation0 {
             // if everything else is the same, the rownum is the same
             return true;
         default:
-            throw DbException.throwInternalError("type="+visitor.getType());
+            throw DbException.getInternalError("type="+visitor.getType());
         }
     }
 

@@ -120,12 +120,12 @@ public class ConnectionInfo implements Cloneable {
         set.addAll(SetTypes.getTypes());
         for (String setting : commonSettings) {
             if (!set.add(setting)) {
-                DbException.throwInternalError(setting);
+                throw DbException.getInternalError(setting);
             }
         }
         for (String setting : settings) {
             if (!set.add(setting)) {
-                DbException.throwInternalError(setting);
+                throw DbException.getInternalError(setting);
             }
         }
         KNOWN_SETTINGS = set;
@@ -422,7 +422,7 @@ public class ConnectionInfo implements Cloneable {
      */
     String removeProperty(String key, String defaultValue) {
         if (SysProperties.CHECK && !isKnownSetting(key)) {
-            DbException.throwInternalError(key);
+            throw DbException.getInternalError(key);
         }
         Object x = prop.remove(key);
         return x == null ? defaultValue : x.toString();
@@ -535,7 +535,7 @@ public class ConnectionInfo implements Cloneable {
      */
     int getProperty(String key, int defaultValue) {
         if (SysProperties.CHECK && !isKnownSetting(key)) {
-            DbException.throwInternalError(key);
+            throw DbException.getInternalError(key);
         }
         String s = getProperty(key);
         return s == null ? defaultValue : Integer.parseInt(s);
@@ -550,7 +550,7 @@ public class ConnectionInfo implements Cloneable {
      */
     public String getProperty(String key, String defaultValue) {
         if (SysProperties.CHECK && !isKnownSetting(key)) {
-            DbException.throwInternalError(key);
+            throw DbException.getInternalError(key);
         }
         String s = getProperty(key);
         return s == null ? defaultValue : s;

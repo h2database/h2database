@@ -78,7 +78,7 @@ public final class FunctionsOracle extends ModeFunction {
             max = 3;
             break;
         default:
-            throw DbException.throwInternalError("type=" + info.type);
+            throw DbException.getInternalError("type=" + info.type);
         }
         if (len < min || len > max) {
             throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, min + ".." + max);
@@ -127,7 +127,7 @@ public final class FunctionsOracle extends ModeFunction {
             result = ToDateParser.toTimestampTz(session, v0.getString(), v1 == null ? null : v1.getString());
             break;
         default:
-            throw DbException.throwInternalError("type=" + info.type);
+            throw DbException.getInternalError("type=" + info.type);
         }
         return result;
     }

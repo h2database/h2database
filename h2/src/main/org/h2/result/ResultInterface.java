@@ -41,7 +41,7 @@ public interface ResultInterface extends AutoCloseable {
      *
      * @return the row id
      */
-    int getRowId();
+    long getRowId();
 
     /**
      * Check if the current position is after last row.
@@ -63,7 +63,7 @@ public interface ResultInterface extends AutoCloseable {
      *
      * @return the number of rows
      */
-    int getRowCount();
+    long getRowCount();
 
     /**
      * Check if this result has more rows to fetch.

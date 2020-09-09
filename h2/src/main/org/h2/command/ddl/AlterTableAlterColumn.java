@@ -280,7 +280,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             }
             break;
         default:
-            DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
         return 0;
     }
@@ -413,7 +413,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                     }
                 }
                 if (foundCol == null) {
-                    throw DbException.throwInternalError(removeCol.getCreateSQL());
+                    throw DbException.getInternalError(removeCol.getCreateSQL());
                 }
                 newColumns.remove(foundCol);
             }
@@ -513,7 +513,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             if (child instanceof TableView) {
                 continue;
             } else if (child.getType() == DbObject.TABLE_OR_VIEW) {
-                DbException.throwInternalError();
+                throw DbException.getInternalError();
             }
             String quotedName = Parser.quoteIdentifier(tempName + "_" + child.getName(), HasSQL.DEFAULT_SQL_FLAGS);
             String sql = null;

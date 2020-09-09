@@ -396,7 +396,7 @@ public abstract class Table extends SchemaObject {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     /**

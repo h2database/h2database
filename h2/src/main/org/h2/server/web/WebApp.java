@@ -447,7 +447,7 @@ public class WebApp {
             } else if ("CreateCluster".equals(toolName)) {
                 tool = new CreateCluster();
             } else {
-                throw DbException.throwInternalError(toolName);
+                throw DbException.getInternalError(toolName);
             }
             ByteArrayOutputStream outBuff = new ByteArrayOutputStream();
             PrintStream out = new PrintStream(outBuff, false, "UTF-8");

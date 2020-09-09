@@ -378,7 +378,7 @@ public abstract class DataAnalysisOperation extends Expression {
         case ExpressionVisitor.GET_COLUMNS2:
             return true;
         default:
-            throw DbException.throwInternalError("type=" + visitor.getType());
+            throw DbException.getInternalError("type=" + visitor.getType());
         }
     }
 

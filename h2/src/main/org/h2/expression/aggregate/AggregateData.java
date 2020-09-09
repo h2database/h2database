@@ -77,7 +77,7 @@ abstract class AggregateData {
         case ENVELOPE:
             return new AggregateDataEnvelope();
         default:
-            throw DbException.throwInternalError("type=" + aggregateType);
+            throw DbException.getInternalError("type=" + aggregateType);
         }
         return new AggregateDataCollecting(distinct, false);
     }

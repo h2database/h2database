@@ -136,7 +136,7 @@ public class BackupCommand extends Prepared {
         String f = FileUtils.toRealPath(fn);
         base = FileUtils.toRealPath(base);
         if (!f.startsWith(base)) {
-            DbException.throwInternalError(f + " does not start with " + base);
+            throw DbException.getInternalError(f + " does not start with " + base);
         }
         f = f.substring(base.length());
         f = correctFileName(f);

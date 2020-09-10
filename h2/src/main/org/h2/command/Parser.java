@@ -7690,14 +7690,11 @@ public class Parser {
                 if (readIf("SPATIAL")) {
                     spatial = true;
                 }
-                if (readIf("INDEX")) {
-                    if (!isToken(ON)) {
-                        ifNotExists = readIfNotExists();
-                        indexName = readIdentifierWithSchema(null);
-                        oldSchema = getSchema();
-                    }
-                } else {
-                    throw getSyntaxError();
+                read("INDEX");
+                if (!isToken(ON)) {
+                    ifNotExists = readIfNotExists();
+                    indexName = readIdentifierWithSchema(null);
+                    oldSchema = getSchema();
                 }
             }
             read(ON);

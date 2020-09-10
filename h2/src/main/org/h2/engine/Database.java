@@ -368,12 +368,9 @@ public class Database implements DataHandler, CastDataProvider {
         return store;
     }
 
-    public Store getOrCreateStore() {
-        if (store == null) {
-            store = new Store(this);
-            retentionTime = store.getMvStore().getRetentionTime();
-        }
-        return store;
+    private void createStore() {
+        store = new Store(this);
+        retentionTime = store.getMvStore().getRetentionTime();
     }
 
     public long getModificationDataId() {
@@ -561,7 +558,7 @@ public class Database implements DataHandler, CastDataProvider {
             deleteOldTempFiles();
             starting = true;
             if (dbSettings.mvStore) {
-                getOrCreateStore();
+                createStore();
             } else {
                 createPageStore();
             }
@@ -574,7 +571,7 @@ public class Database implements DataHandler, CastDataProvider {
                         "autoServerMode && inMemory");
             }
             if (dbSettings.mvStore) {
-                getOrCreateStore();
+                createStore();
             }
         }
         if (store != null) {
@@ -695,24 +692,29 @@ public class Database implements DataHandler, CastDataProvider {
         setting.setIntValue(Constants.BUILD_ID);
         lockMeta(systemSession);
         updateMeta(systemSession, setting);
-        int binary = -1, uuid = -1;
+        ArrayList<Integer> metaToRemove = new ArrayList<>();
         for (Cursor cursor = metaIdIndex.find(systemSession, null, null); cursor.next();) {
             MetaRecord rec = new MetaRecord(cursor.get());
             objectIds.set(rec.getId());
-            if (rec.getObjectType() == DbObject.SETTING) {
-                String sql = rec.getSQL();
-                if (sql.startsWith("SET BINARY_COLLATION ")) {
-                    binary = rec.getId();
-                } else if (sql.startsWith("SET UUID_COLLATION ")) {
-                    uuid = rec.getId();
+            switch (rec.getObjectType()) {
+            case DbObject.INDEX:
+                if (!isMVStore()) {
+                    String sql = rec.getSQL();
+                    if (sql.startsWith("CREATE SPATIAL INDEX ")) {
+                        metaToRemove.add(rec.getId());
+                    }
                 }
+                break;
+            case DbObject.SETTING:
+                String sql = rec.getSQL();
+                if (sql.startsWith("SET BINARY_COLLATION ") || sql.startsWith("SET UUID_COLLATION ")) {
+                    metaToRemove.add(rec.getId());
+                }
+                break;
             }
         }
-        if (binary >= 0) {
-            removeMeta(systemSession, binary);
-        }
-        if (uuid >= 0) {
-            removeMeta(systemSession, uuid);
+        for (int meta : metaToRemove) {
+            removeMeta(systemSession, meta);
         }
     }
 

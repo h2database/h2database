@@ -818,7 +818,7 @@ Hash indexes can only test for equality, do not support range queries (similar t
 but can perform lookups faster.
 Non-unique keys are supported.
 
-Spatial indexes are supported only on Geometry columns.
+Spatial indexes are supported only on GEOMETRY columns and only by default MVStore engine.
 ","
 CREATE INDEX IDXNAME ON TEST(NAME)
 "

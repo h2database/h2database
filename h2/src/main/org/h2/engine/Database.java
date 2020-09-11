@@ -682,9 +682,7 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     private void upgradeMetaTo2_0(Setting setting) {
-        setting.setIntValue(Constants.BUILD_ID);
         lockMeta(systemSession);
-        updateMeta(systemSession, setting);
         ArrayList<Integer> metaToRemove = new ArrayList<>();
         for (Cursor cursor = metaIdIndex.find(systemSession, null, null); cursor.next();) {
             MetaRecord rec = new MetaRecord(cursor.get());
@@ -709,6 +707,8 @@ public class Database implements DataHandler, CastDataProvider {
         for (int meta : metaToRemove) {
             removeMeta(systemSession, meta);
         }
+        setting.setIntValue(Constants.BUILD_ID);
+        updateMeta(systemSession, setting);
     }
 
     private void executeMeta() {

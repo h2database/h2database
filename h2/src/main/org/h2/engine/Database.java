@@ -47,7 +47,6 @@ import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.db.LobStorageMap;
 import org.h2.mvstore.db.Store;
 import org.h2.pagestore.PageStore;
-import org.h2.pagestore.WriterThread;
 import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.pagestore.db.SessionPageStore;
 import org.h2.result.Row;
@@ -168,7 +167,6 @@ public class Database implements DataHandler, CastDataProvider {
     private Table meta;
     private Index metaIdIndex;
     private FileLock lock;
-    private WriterThread writer;
     private volatile boolean starting;
     private TraceSystem traceSystem;
     private Trace trace;
@@ -183,7 +181,6 @@ public class Database implements DataHandler, CastDataProvider {
     private CompareMode compareMode;
     private String cluster = Constants.CLUSTERING_DISABLED;
     private boolean readOnly;
-    private int writeDelay = Constants.DEFAULT_WRITE_DELAY;
     private DatabaseEventListener eventListener;
     private int maxMemoryRows = SysProperties.MAX_MEMORY_ROWS;
     private int maxMemoryUndo = Constants.DEFAULT_MAX_MEMORY_UNDO;
@@ -216,7 +213,6 @@ public class Database implements DataHandler, CastDataProvider {
     private int cacheSize;
     private int compactMode;
     private SourceCompiler compiler;
-    private boolean flushOnEachCommit;
     private LobStorageInterface lobStorage;
     private final int pageSize;
     private int defaultTableType = Table.TYPE_CACHED;
@@ -306,7 +302,6 @@ public class Database implements DataHandler, CastDataProvider {
         this.cacheType = StringUtils.toUpperEnglish(ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
         this.ignoreCatalogs = ci.getProperty("IGNORE_CATALOGS", dbSettings.ignoreCatalogs);
         this.lockMode = ci.getProperty("LOCK_MODE", Constants.DEFAULT_LOCK_MODE);
-        this.writeDelay = ci.getProperty("WRITE_DELAY", Constants.DEFAULT_WRITE_DELAY);
         try {
             open(traceLevelFile, traceLevelSystemOut, ci);
             if (closeAtVmShutdown) {
@@ -414,12 +409,12 @@ public class Database implements DataHandler, CastDataProvider {
         if (powerOffCount != -1) {
             try {
                 powerOffCount = -1;
-                stopWriter();
                 if (store != null) {
                     store.closeImmediately();
                 } else {
                     synchronized (this) {
                         if (pageStore != null) {
+                            pageStore.stopWriter();
                             try {
                                 pageStore.close();
                             } catch (DbException e) {
@@ -668,10 +663,11 @@ public class Database implements DataHandler, CastDataProvider {
 
         trace.info("opened {0}", databaseName);
         if (persistent) {
-            if (store == null) {
-                writer = WriterThread.create(this, writeDelay);
-            } else {
+            int writeDelay = ci.getProperty("WRITE_DELAY", Constants.DEFAULT_WRITE_DELAY);
+            if (store != null) {
                 setWriteDelay(writeDelay);
+            } else {
+                pageStore.initWriter(writeDelay);
             }
         }
     }
@@ -1444,13 +1440,6 @@ public class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private void stopWriter() {
-        if (writer != null) {
-            writer.stopThread();
-            writer = null;
-        }
-    }
-
     /**
      * Close all open files and unlock the database.
      *
@@ -1458,7 +1447,6 @@ public class Database implements DataHandler, CastDataProvider {
      */
     private synchronized void closeOpenFilesAndUnlock(boolean flush) {
         try {
-            stopWriter();
             if (store != null) {
                 MVStore mvStore = store.getMvStore();
                 if (mvStore != null && !mvStore.isClosed()) {
@@ -1470,6 +1458,7 @@ public class Database implements DataHandler, CastDataProvider {
                     store.close(allowedCompactionTime);
                 }
             } else if (pageStore != null) {
+                pageStore.stopWriter();
                 if (flush) {
                     try {
                         pageStore.checkpoint();
@@ -2040,15 +2029,10 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     public void setWriteDelay(int value) {
-        writeDelay = value;
-        if (writer != null) {
-            writer.setWriteDelay(value);
-            // TODO check if MIN_WRITE_DELAY is a good value
-            flushOnEachCommit = writeDelay < Constants.MIN_WRITE_DELAY;
-        }
         if (store != null) {
-            int millis = value < 0 ? 0 : value;
-            store.getMvStore().setAutoCommitDelay(millis);
+            store.getMvStore().setAutoCommitDelay(value < 0 ? 0 : value);
+        } else if (pageStore != null) {
+            pageStore.setWriteDelay(value);
         }
     }
 
@@ -2069,15 +2053,6 @@ public class Database implements DataHandler, CastDataProvider {
 
     public boolean isAllowBuiltinAliasOverride() {
         return allowBuiltinAliasOverride;
-    }
-
-    /**
-     * Check if flush-on-each-commit is enabled.
-     *
-     * @return true if it is
-     */
-    public boolean getFlushOnEachCommit() {
-        return flushOnEachCommit;
     }
 
     /**
@@ -2449,8 +2424,8 @@ public class Database implements DataHandler, CastDataProvider {
         if (eventListener != null) {
             eventListener.opened();
         }
-        if (writer != null) {
-            writer.startThread();
+        if (pageStore != null) {
+            pageStore.startWriter();
         }
     }
 

@@ -17,7 +17,7 @@ import org.h2.message.TraceSystem;
  * The writer thread is responsible to flush the transaction log
  * from time to time.
  */
-public class WriterThread implements Runnable {
+class WriterThread implements Runnable {
 
     /**
      * The reference to the database.
@@ -45,7 +45,7 @@ public class WriterThread implements Runnable {
      *
      * @param writeDelay the new write delay
      */
-    public void setWriteDelay(int writeDelay) {
+    void setWriteDelay(int writeDelay) {
         this.writeDelay = writeDelay;
     }
 
@@ -57,7 +57,7 @@ public class WriterThread implements Runnable {
      * @param writeDelay the delay
      * @return the writer thread object or null
      */
-    public static WriterThread create(Database database, int writeDelay) {
+    static WriterThread create(Database database, int writeDelay) {
         try {
             WriterThread writer = new WriterThread(database, writeDelay);
             writer.thread = new Thread(writer, "H2 Log Writer " + database.getShortName());
@@ -108,7 +108,7 @@ public class WriterThread implements Runnable {
     /**
      * Stop the thread. This method is called when closing the database.
      */
-    public void stopThread() {
+    void stopThread() {
         stop = true;
         synchronized (this) {
             notify();
@@ -121,7 +121,7 @@ public class WriterThread implements Runnable {
      * Start the thread. This method is called after opening the database
      * (to avoid deadlocks)
      */
-    public void startThread() {
+    void startThread() {
         thread.start();
         thread = null;
     }

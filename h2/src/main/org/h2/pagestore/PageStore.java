@@ -1980,7 +1980,17 @@ public class PageStore implements CacheWriter {
     }
 
     public void setLogMode(int logMode) {
-        this.logMode = logMode;
+        if (logMode < 0 || logMode > 2) {
+            throw DbException.getInvalidValueException("LOG", log);
+        }
+        synchronized (database) {
+            if (logMode != PageStore.LOG_MODE_SYNC || this.logMode != PageStore.LOG_MODE_SYNC) {
+                // write the log mode in the trace file when enabling or
+                // disabling a dangerous mode
+                trace.error(null, "log {0}", logMode);
+            }
+            this.logMode = logMode;
+        }
     }
 
     public int getLogMode() {

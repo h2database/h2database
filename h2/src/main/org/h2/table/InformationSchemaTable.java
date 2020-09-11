@@ -2950,7 +2950,6 @@ public final class InformationSchemaTable extends MetaTable {
             add(session, rows, "NON_KEYWORDS", Parser.formatNonKeywords(nonKeywords));
         }
         add(session, rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
-        add(session, rows, "LOG", Integer.toString(database.getLogMode()));
         // database settings
         for (Map.Entry<String, String> entry : database.getSettings().getSortedSettings()) {
             add(session, rows, entry.getKey(), entry.getValue());
@@ -3004,6 +3003,7 @@ public final class InformationSchemaTable extends MetaTable {
             } else {
                 PageStore pageStore = database.getPageStore();
                 if (pageStore != null) {
+                    add(session, rows, "LOG", Integer.toString(pageStore.getLogMode()));
                     add(session, rows, "info.FILE_WRITE_TOTAL", Long.toString(pageStore.getWriteCountTotal()));
                     add(session, rows, "info.FILE_WRITE", Long.toString(pageStore.getWriteCount()));
                     add(session, rows, "info.FILE_READ", Long.toString(pageStore.getReadCount()));

@@ -18,6 +18,7 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
+import org.h2.message.DbException;
 import org.h2.mvstore.db.Store;
 import org.h2.pagestore.PageStore;
 import org.h2.table.Table;
@@ -123,12 +124,22 @@ public class DatabaseInfo implements DatabaseInfoMBean {
 
     @Override
     public int getLogMode() {
-        return database.getLogMode();
+        PageStore pageStore = database.getPageStore();
+        if (pageStore != null) {
+            return pageStore.getLogMode();
+        }
+        return PageStore.LOG_MODE_OFF;
     }
 
     @Override
     public void setLogMode(int value) {
-        database.setLogMode(value);
+        PageStore pageStore = database.getPageStore();
+        if (pageStore == null) {
+            throw DbException.getUnsupportedException("MV_STORE=FALSE && LOG");
+        }
+        if (database.isPersistent() && value != pageStore.getLogMode()) {
+            pageStore.setLogMode(value);
+        }
     }
 
     @Override

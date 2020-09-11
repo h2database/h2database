@@ -23,6 +23,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.mode.DefaultNullOrdering;
+import org.h2.pagestore.PageStore;
 import org.h2.pagestore.db.SessionPageStore;
 import org.h2.result.ResultInterface;
 import org.h2.schema.Schema;
@@ -300,9 +301,13 @@ public class Set extends Prepared {
         }
         case SetTypes.LOG: {
             int value = getIntValue();
-            if (database.isPersistent() && value != database.getLogMode()) {
+            if (database.isMVStore()) {
+                throw DbException.getUnsupportedException("MV_STORE=TRUE && LOG");
+            }
+            PageStore pageStore = database.getPageStore();
+            if (pageStore != null && value != pageStore.getLogMode()) {
                 session.getUser().checkAdmin();
-                database.setLogMode(value);
+                pageStore.setLogMode(value);
             }
             break;
         }

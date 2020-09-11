@@ -1684,7 +1684,7 @@ SET LAZY_QUERY_EXECUTION 1
 @h2@ SET LOG int
 ","
 Sets the transaction log mode. The values 0, 1, and 2 are supported, the default is 2.
-This setting affects all connections.
+This setting is only supported by the PageStore engine. This setting affects all connections.
 
 LOG 0 means the transaction log is disabled completely. It is the fastest mode,
 but also the most dangerous: if the process is killed while the database is open in this mode,

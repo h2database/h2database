@@ -221,7 +221,6 @@ public class Database implements DataHandler, CastDataProvider {
     private final int pageSize;
     private int defaultTableType = Table.TYPE_CACHED;
     private final DbSettings dbSettings;
-    private int logMode;
     private Store store;
     private int retentionTime;
     private boolean allowBuiltinAliasOverride;
@@ -294,7 +293,6 @@ public class Database implements DataHandler, CastDataProvider {
                 throw DbException.getInvalidValueException("DEFAULT_NULL_ORDERING", s);
             }
         }
-        this.logMode = ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
         s = ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
         if (s != null) {
             s = StringUtils.trim(s, true, true, "'");
@@ -310,7 +308,7 @@ public class Database implements DataHandler, CastDataProvider {
         this.lockMode = ci.getProperty("LOCK_MODE", Constants.DEFAULT_LOCK_MODE);
         this.writeDelay = ci.getProperty("WRITE_DELAY", Constants.DEFAULT_WRITE_DELAY);
         try {
-            open(traceLevelFile, traceLevelSystemOut);
+            open(traceLevelFile, traceLevelSystemOut, ci);
             if (closeAtVmShutdown) {
                 OnExitDatabaseCloser.register(this);
             }
@@ -513,7 +511,7 @@ public class Database implements DataHandler, CastDataProvider {
         trace.info("opening {0} (build {1})", databaseName, Constants.BUILD_ID);
     }
 
-    private synchronized void open(int traceLevelFile, int traceLevelSystemOut) {
+    private synchronized void open(int traceLevelFile, int traceLevelSystemOut, ConnectionInfo ci) {
         if (persistent) {
             if (readOnly) {
                 if (traceLevelFile >= TraceSystem.DEBUG) {
@@ -561,7 +559,7 @@ public class Database implements DataHandler, CastDataProvider {
             if (dbSettings.mvStore) {
                 createStore();
             } else {
-                createPageStore();
+                createPageStore(ci);
             }
             starting = false;
         } else {
@@ -2588,7 +2586,8 @@ public class Database implements DataHandler, CastDataProvider {
         return tempFileDeleter;
     }
 
-    private void createPageStore() {
+    private void createPageStore(ConnectionInfo ci) {
+        int logMode = ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
         pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
         if (pageSize != Constants.DEFAULT_PAGE_SIZE) {
             pageStore.setPageSize(pageSize);
@@ -2679,39 +2678,6 @@ public class Database implements DataHandler, CastDataProvider {
 
     public SessionLocal getLobSession() {
         return lobSession;
-    }
-
-    public void setLogMode(int log) {
-        if (log < 0 || log > 2) {
-            throw DbException.getInvalidValueException("LOG", log);
-        }
-        if (store != null) {
-            this.logMode = log;
-        } else {
-            synchronized (this) {
-                if (pageStore != null) {
-                    if (log != PageStore.LOG_MODE_SYNC || pageStore.getLogMode() != PageStore.LOG_MODE_SYNC) {
-                        // write the log mode in the trace file when enabling or
-                        // disabling a dangerous mode
-                        trace.error(null, "log {0}", log);
-                    }
-                    this.logMode = log;
-                    pageStore.setLogMode(log);
-                }
-            }
-        }
-    }
-
-    public int getLogMode() {
-        if (store != null) {
-            return logMode;
-        }
-        synchronized (this) {
-            if (pageStore != null) {
-                return pageStore.getLogMode();
-            }
-        }
-        return PageStore.LOG_MODE_OFF;
     }
 
     public int getDefaultTableType() {

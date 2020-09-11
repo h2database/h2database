@@ -71,13 +71,6 @@ public class TestJmx extends TestDb {
                 getAttribute(name, "FileWriteCount").toString());
         assertEquals("0", mbeanServer.
                 getAttribute(name, "FileWriteCountTotal").toString());
-        if (config.mvStore) {
-            assertEquals("1", mbeanServer.
-                    getAttribute(name, "LogMode").toString());
-            mbeanServer.setAttribute(name, new Attribute("LogMode", 2));
-            assertEquals("2", mbeanServer.
-                    getAttribute(name, "LogMode").toString());
-        }
         assertEquals("REGULAR", mbeanServer.
                 getAttribute(name, "Mode").toString());
         if (config.mvStore) {
@@ -176,10 +169,9 @@ public class TestJmx extends TestDb {
                     getAttribute(name, "FileWriteCount"));
             assertTrue(0 < (Long) mbeanServer.
                     getAttribute(name, "FileWriteCountTotal"));
+            mbeanServer.setAttribute(name, new Attribute("LogMode", 0));
+            assertEquals("0", mbeanServer.getAttribute(name, "LogMode").toString());
         }
-        mbeanServer.setAttribute(name, new Attribute("LogMode", 0));
-        assertEquals("0", mbeanServer.
-                getAttribute(name, "LogMode").toString());
 
         conn.close();
 

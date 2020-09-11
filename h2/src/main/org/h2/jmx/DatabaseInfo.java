@@ -156,14 +156,17 @@ public class DatabaseInfo implements DatabaseInfoMBean {
 
     @Override
     public long getFileWriteCount() {
-        if (!database.isPersistent()) {
-            return 0;
+        if (database.isPersistent()) {
+            Store store = database.getStore();
+            if (store != null) {
+                return store.getMvStore().getFileStore().getWriteCount();
+            }
+            PageStore pageStore = database.getPageStore();
+            if (pageStore != null) {
+                return pageStore.getWriteCount();
+            }
         }
-        PageStore p = database.getPageStore();
-        if (p != null) {
-            return p.getWriteCount();
-        }
-        return database.getStore().getMvStore().getFileStore().getReadCount();
+        return 0;
     }
 
     @Override

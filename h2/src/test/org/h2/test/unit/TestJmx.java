@@ -33,7 +33,6 @@ public class TestJmx extends TestDb {
      */
     public static void main(String... a) throws Exception {
         TestBase base = TestBase.createCaller().init();
-        base.config.mvStore = false;
         base.testFromMain();
     }
 
@@ -160,8 +159,8 @@ public class TestJmx extends TestDb {
                     getAttribute(name, "CacheSize").toString());
             assertTrue(0 < (Long) mbeanServer.
                     getAttribute(name, "FileReadCount"));
-            assertTrue(0 < (Long) mbeanServer.
-                    getAttribute(name, "FileWriteCount"));
+            // FileWriteCount can be not yet updated and may return 0
+            assertTrue(0 <= (Long) mbeanServer.getAttribute(name, "FileWriteCount"));
             assertEquals("0", mbeanServer.
                     getAttribute(name, "FileWriteCountTotal").toString());
         } else {

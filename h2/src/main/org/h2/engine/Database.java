@@ -419,15 +419,16 @@ public class Database implements DataHandler, CastDataProvider {
                 stopWriter();
                 if (store != null) {
                     store.closeImmediately();
-                }
-                synchronized(this) {
-                    if (pageStore != null) {
-                        try {
-                            pageStore.close();
-                        } catch (DbException e) {
-                            // ignore
+                } else {
+                    synchronized (this) {
+                        if (pageStore != null) {
+                            try {
+                                pageStore.close();
+                            } catch (DbException e) {
+                                // ignore
+                            }
+                            pageStore = null;
                         }
-                        pageStore = null;
                     }
                 }
                 if (lock != null) {
@@ -579,10 +580,8 @@ public class Database implements DataHandler, CastDataProvider {
         }
         Set<String> settingKeys = dbSettings.getSettings().keySet();
         if (dbSettings.mvStore) {
-            // MVStore
             settingKeys.removeIf(name -> name.startsWith("PAGE_STORE_"));
-        } else if (store == null) {
-            // PageStore without additional MVStore for spatial features
+        } else {
             settingKeys.removeIf(name -> "COMPRESS".equals(name) || "REUSE_SPACE".equals(name));
         }
         systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
@@ -1435,10 +1434,7 @@ public class Database implements DataHandler, CastDataProvider {
         if (!persistent) {
             return;
         }
-        boolean lobStorageIsUsed = infoSchema.findTableOrView(
-                systemSession, LobStorageBackend.LOB_DATA_TABLE) != null;
-        lobStorageIsUsed |= store != null;
-        if (!lobStorageIsUsed) {
+        if (store == null && infoSchema.findTableOrView(systemSession, LobStorageBackend.LOB_DATA_TABLE) == null) {
             return;
         }
         try {
@@ -1465,7 +1461,17 @@ public class Database implements DataHandler, CastDataProvider {
     private synchronized void closeOpenFilesAndUnlock(boolean flush) {
         try {
             stopWriter();
-            if (pageStore != null) {
+            if (store != null) {
+                MVStore mvStore = store.getMvStore();
+                if (mvStore != null && !mvStore.isClosed()) {
+                    int allowedCompactionTime =
+                            compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY ? 0 :
+                            compactMode == CommandInterface.SHUTDOWN_COMPACT ||
+                            compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
+                            dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
+                    store.close(allowedCompactionTime);
+                }
+            } else if (pageStore != null) {
                 if (flush) {
                     try {
                         pageStore.checkpoint();
@@ -1490,17 +1496,6 @@ public class Database implements DataHandler, CastDataProvider {
                         }
                         trace.error(t, "close");
                     }
-                }
-            }
-            if (store != null) {
-                MVStore mvStore = store.getMvStore();
-                if (mvStore != null && !mvStore.isClosed()) {
-                    int allowedCompactionTime =
-                            compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY ? 0 :
-                            compactMode == CommandInterface.SHUTDOWN_COMPACT ||
-                            compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
-                            dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
-                    store.close(allowedCompactionTime);
                 }
             }
             if (systemSession != null) {
@@ -1539,8 +1534,7 @@ public class Database implements DataHandler, CastDataProvider {
                 } else {
                     store.close(0);
                 }
-            }
-            if (pageStore != null) {
+            } else if (pageStore != null) {
                 pageStore.close();
                 pageStore = null;
             }
@@ -1995,11 +1989,10 @@ public class Database implements DataHandler, CastDataProvider {
             kb = Math.min(kb, max);
         }
         cacheSize = kb;
-        if (pageStore != null) {
-            pageStore.setMaxCacheMemory(kb);
-        }
         if (store != null) {
             store.setCacheSize(Math.max(1, kb));
+        } else if (pageStore != null) {
+            pageStore.setMaxCacheMemory(kb);
         }
     }
 
@@ -2113,9 +2106,7 @@ public class Database implements DataHandler, CastDataProvider {
         }
         if (store != null) {
             store.prepareCommit(session, transaction);
-            return;
-        }
-        if (pageStore != null) {
+        } else if (pageStore != null) {
             pageStore.flushLog();
             pageStore.prepareCommit(session, transaction);
         }
@@ -2176,9 +2167,6 @@ public class Database implements DataHandler, CastDataProvider {
         if (readOnly) {
             return;
         }
-        if (pageStore != null) {
-            pageStore.flushLog();
-        }
         if (store != null) {
             try {
                 store.flush();
@@ -2186,6 +2174,8 @@ public class Database implements DataHandler, CastDataProvider {
                 backgroundException.compareAndSet(null, DbException.convert(e));
                 throw e;
             }
+        } else if (pageStore != null) {
+            pageStore.flushLog();
         }
     }
 
@@ -2259,8 +2249,7 @@ public class Database implements DataHandler, CastDataProvider {
         }
         if (store != null) {
             store.sync();
-        }
-        if (pageStore != null) {
+        } else if (pageStore != null) {
             pageStore.sync();
         }
     }
@@ -2643,13 +2632,14 @@ public class Database implements DataHandler, CastDataProvider {
      */
     public void checkpoint() {
         if (persistent) {
-            synchronized (this) {
-                if (pageStore != null) {
-                    pageStore.checkpoint();
-                }
-            }
             if (store != null) {
                 store.flush();
+            } else {
+                synchronized (this) {
+                    if (pageStore != null) {
+                        pageStore.checkpoint();
+                    }
+                }
             }
         }
         getTempFileDeleter().deleteUnused();
@@ -2697,18 +2687,17 @@ public class Database implements DataHandler, CastDataProvider {
         }
         if (store != null) {
             this.logMode = log;
-            return;
-        }
-        synchronized (this) {
-            if (pageStore != null) {
-                if (log != PageStore.LOG_MODE_SYNC ||
-                        pageStore.getLogMode() != PageStore.LOG_MODE_SYNC) {
-                    // write the log mode in the trace file when enabling or
-                    // disabling a dangerous mode
-                    trace.error(null, "log {0}", log);
+        } else {
+            synchronized (this) {
+                if (pageStore != null) {
+                    if (log != PageStore.LOG_MODE_SYNC || pageStore.getLogMode() != PageStore.LOG_MODE_SYNC) {
+                        // write the log mode in the trace file when enabling or
+                        // disabling a dangerous mode
+                        trace.error(null, "log {0}", log);
+                    }
+                    this.logMode = log;
+                    pageStore.setLogMode(log);
                 }
-                this.logMode = log;
-                pageStore.setLogMode(log);
             }
         }
     }

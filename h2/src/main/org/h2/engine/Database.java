@@ -101,7 +101,7 @@ import org.h2.value.ValueTimestampTimeZone;
  *
  * @since 2004-04-15 22:49
  */
-public class Database implements DataHandler, CastDataProvider {
+public final class Database implements DataHandler, CastDataProvider {
 
     private static int initialPowerOffCount;
 
@@ -333,14 +333,11 @@ public class Database implements DataHandler, CastDataProvider {
                     if (FileUtils.exists(lockFileName)) {
                         throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, "Lock file exists: " + lockFileName);
                     }
-                }
-                if (!readOnly && fileLockMethod != FileLockMethod.NO) {
-                    if (fileLockMethod != FileLockMethod.FS) {
-                        lock = new FileLock(traceSystem, lockFileName, Constants.LOCK_SLEEP);
-                        lock.lock(fileLockMethod);
-                        if (autoServerMode) {
-                            startServer(lock.getUniqueId());
-                        }
+                } else if (fileLockMethod != FileLockMethod.NO && fileLockMethod != FileLockMethod.FS) {
+                    lock = new FileLock(traceSystem, lockFileName, Constants.LOCK_SLEEP);
+                    lock.lock(fileLockMethod);
+                    if (autoServerMode) {
+                        startServer(lock.getUniqueId());
                     }
                 }
                 deleteOldTempFiles();
@@ -682,12 +679,13 @@ public class Database implements DataHandler, CastDataProvider {
                     }
                 }
                 break;
-            case DbObject.SETTING:
+            case DbObject.SETTING: {
                 String sql = rec.getSQL();
                 if (sql.startsWith("SET BINARY_COLLATION ") || sql.startsWith("SET UUID_COLLATION ")) {
                     metaToRemove.add(rec.getId());
                 }
                 break;
+            }
             }
         }
         for (int meta : metaToRemove) {
@@ -984,7 +982,7 @@ public class Database implements DataHandler, CastDataProvider {
      *
      * @param session the session
      */
-    public void unlockMetaDebug(SessionLocal session) {
+    public static void unlockMetaDebug(SessionLocal session) {
         if (ASSERT) {
             if (META_LOCK_DEBUGGING.get() == session) {
                 META_LOCK_DEBUGGING.set(null);
@@ -1478,16 +1476,13 @@ public class Database implements DataHandler, CastDataProvider {
                 lobSession = null;
             }
             closeFiles(false);
-            if (persistent && lock == null &&
-                    fileLockMethod != FileLockMethod.NO &&
-                    fileLockMethod != FileLockMethod.FS) {
-                // everything already closed (maybe in checkPowerOff)
-                // don't delete temp files in this case because
-                // the database could be open now (even from within another process)
-                return;
-            }
             if (persistent) {
-                deleteOldTempFiles();
+                // Don't delete temp files if everything is already closed
+                // (maybe in checkPowerOff), the database could be open now
+                // (even from within another process).
+                if (lock != null || fileLockMethod == FileLockMethod.NO || fileLockMethod == FileLockMethod.FS) {
+                    deleteOldTempFiles();
+                }
             }
         } finally {
             if (lock != null) {

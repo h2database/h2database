@@ -156,22 +156,22 @@ public class Database implements DataHandler, CastDataProvider {
     private final BitSet objectIds = new BitSet();
     private final Object lobSyncObject = new Object();
 
-    private Schema mainSchema;
-    private Schema infoSchema;
-    private Schema pgCatalogSchema;
+    private final Schema mainSchema;
+    private final Schema infoSchema;
+    private final Schema pgCatalogSchema;
     private int nextSessionId;
     private int nextTempTableId;
-    private User systemUser;
+    private final User systemUser;
     private SessionLocal systemSession;
     private SessionLocal lobSession;
-    private Table meta;
-    private Index metaIdIndex;
+    private final Table meta;
+    private final Index metaIdIndex;
     private FileLock lock;
     private volatile boolean starting;
-    private TraceSystem traceSystem;
-    private Trace trace;
+    private final TraceSystem traceSystem;
+    private final Trace trace;
     private final FileLockMethod fileLockMethod;
-    private Role publicRole;
+    private final Role publicRole;
     private final AtomicLong modificationDataId = new AtomicLong();
     private final AtomicLong modificationMetaId = new AtomicLong();
     /**
@@ -213,11 +213,11 @@ public class Database implements DataHandler, CastDataProvider {
     private int cacheSize;
     private int compactMode;
     private SourceCompiler compiler;
-    private LobStorageInterface lobStorage;
+    private final LobStorageInterface lobStorage;
     private final int pageSize;
     private int defaultTableType = Table.TYPE_CACHED;
     private final DbSettings dbSettings;
-    private Store store;
+    private final Store store;
     private int retentionTime;
     private boolean allowBuiltinAliasOverride;
     private final AtomicReference<DbException> backgroundException = new AtomicReference<>();
@@ -240,13 +240,13 @@ public class Database implements DataHandler, CastDataProvider {
             META_LOCK_DEBUGGING_DB.set(null);
             META_LOCK_DEBUGGING_STACK.set(null);
         }
-        String name = ci.getName();
+        String databaseName = ci.getName();
         this.dbSettings = ci.getDbSettings();
         this.compareMode = CompareMode.getInstance(null, 0);
         this.persistent = ci.isPersistent();
         this.filePasswordHash = ci.getFilePasswordHash();
         this.fileEncryptionKey = ci.getFileEncryptionKey();
-        this.databaseName = name;
+        this.databaseName = databaseName;
         this.databaseShortName = parseDatabaseShortName();
         this.maxLengthInplaceLob = Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
         this.cipher = cipher;
@@ -271,8 +271,7 @@ public class Database implements DataHandler, CastDataProvider {
         this.databaseURL = ci.getURL();
         String s = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
         if (s != null) {
-            s = StringUtils.trim(s, true, true, "'");
-            setEventListenerClass(s);
+            setEventListenerClass(StringUtils.trim(s, true, true, "'"));
         }
         s = ci.removeProperty("MODE", null);
         if (s != null) {
@@ -302,8 +301,137 @@ public class Database implements DataHandler, CastDataProvider {
         this.cacheType = StringUtils.toUpperEnglish(ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
         this.ignoreCatalogs = ci.getProperty("IGNORE_CATALOGS", dbSettings.ignoreCatalogs);
         this.lockMode = ci.getProperty("LOCK_MODE", Constants.DEFAULT_LOCK_MODE);
+        String traceFile;
+        if (persistent) {
+            if (readOnly) {
+                if (traceLevelFile >= TraceSystem.DEBUG) {
+                    traceFile = Utils.getProperty("java.io.tmpdir", ".") + "/h2_" + System.currentTimeMillis()
+                            + Constants.SUFFIX_TRACE_FILE;
+                } else {
+                    traceFile = null;
+                }
+            } else {
+                traceFile = databaseName + Constants.SUFFIX_TRACE_FILE;
+            }
+        } else {
+            traceFile = null;
+        }
+        traceSystem = new TraceSystem(traceFile);
+        traceSystem.setLevelFile(traceLevelFile);
+        traceSystem.setLevelSystemOut(traceLevelSystemOut);
+        trace = traceSystem.getTrace(Trace.DATABASE);
+        trace.info("opening {0} (build {1})", databaseName, Constants.BUILD_ID);
         try {
-            open(traceLevelFile, traceLevelSystemOut, ci);
+            if (autoServerMode && (readOnly || !persistent || fileLockMethod == FileLockMethod.NO
+                    || fileLockMethod == FileLockMethod.FS)) {
+                throw DbException.getUnsupportedException(
+                        "AUTO_SERVER=TRUE && (readOnly || inMemory || FILE_LOCK=NO || FILE_LOCK=FS)");
+            }
+            if (persistent) {
+                String lockFileName = databaseName + Constants.SUFFIX_LOCK_FILE;
+                if (readOnly) {
+                    if (FileUtils.exists(lockFileName)) {
+                        throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, "Lock file exists: " + lockFileName);
+                    }
+                }
+                if (!readOnly && fileLockMethod != FileLockMethod.NO) {
+                    if (fileLockMethod != FileLockMethod.FS) {
+                        lock = new FileLock(traceSystem, lockFileName, Constants.LOCK_SLEEP);
+                        lock.lock(fileLockMethod);
+                        if (autoServerMode) {
+                            startServer(lock.getUniqueId());
+                        }
+                    }
+                }
+                deleteOldTempFiles();
+                starting = true;
+                if (dbSettings.mvStore) {
+                    store = createStore();
+                } else {
+                    store = null;
+                    createPageStore(ci);
+                }
+                starting = false;
+            } else if (dbSettings.mvStore) {
+                store = createStore();
+            } else {
+                store = null;
+            }
+            Set<String> settingKeys = dbSettings.getSettings().keySet();
+            if (store != null) {
+                store.getTransactionStore().init();
+                settingKeys.removeIf(name -> name.startsWith("PAGE_STORE_"));
+            } else {
+                settingKeys.removeIf(name -> "COMPRESS".equals(name) || "REUSE_SPACE".equals(name));
+            }
+            systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
+            systemUser.setAdmin(true);
+            mainSchema = new Schema(this, Constants.MAIN_SCHEMA_ID, sysIdentifier(Constants.SCHEMA_MAIN), systemUser,
+                    true);
+            infoSchema = new InformationSchema(this, systemUser);
+            schemas.put(mainSchema.getName(), mainSchema);
+            schemas.put(infoSchema.getName(), infoSchema);
+            if (mode.getEnum() == ModeEnum.PostgreSQL) {
+                pgCatalogSchema = new PgCatalogSchema(this, systemUser);
+                schemas.put(pgCatalogSchema.getName(), pgCatalogSchema);
+            } else {
+                pgCatalogSchema = null;
+            }
+            publicRole = new Role(this, 0, sysIdentifier(Constants.PUBLIC_ROLE_NAME), true);
+            roles.put(publicRole.getName(), publicRole);
+            systemSession = createSession(systemUser);
+            lobSession = createSession(systemUser);
+            CreateTableData data = createSysTableData();
+            starting = true;
+            meta = mainSchema.createTable(data);
+            handleUpgradeIssues();
+            IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { data.columns.get(0) });
+            metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(false, false),
+                    true, null);
+            systemSession.commit(true);
+            objectIds.set(0);
+            executeMeta();
+            systemSession.commit(true);
+            if (store != null) {
+                store.getTransactionStore().endLeftoverTransactions();
+                store.removeTemporaryMaps(objectIds);
+            } else if (createBuild < 197) {
+                // PageStore has problems due to changes in referential
+                // constraints that lead to database corruption (#1247). LOBs
+                // from 1.2.x releases are also not supported.
+                throw DbException.getFileVersionError(databaseName + Constants.SUFFIX_PAGE_FILE);
+            }
+            recompileInvalidViews();
+            starting = false;
+            if (!readOnly) {
+                // set CREATE_BUILD in a new database
+                String settingName = SetTypes.getTypeName(SetTypes.CREATE_BUILD);
+                Setting setting = settings.get(settingName);
+                if (setting == null) {
+                    setting = new Setting(this, allocateObjectId(), settingName);
+                    setting.setIntValue(Constants.BUILD_ID);
+                    lockMeta(systemSession);
+                    addDatabaseObject(systemSession, setting);
+                } else if (createBuild < 201) {
+                    upgradeMetaTo2_0(setting);
+                }
+                // mark all ids used in the page store
+                if (pageStore != null) {
+                    initPageStoreIds();
+                }
+            }
+            lobStorage = dbSettings.mvStore ? new LobStorageMap(this) : new LobStorageBackend(this);
+            lobStorage.init();
+            systemSession.commit(true);
+            trace.info("opened {0}", databaseName);
+            if (persistent) {
+                int writeDelay = ci.getProperty("WRITE_DELAY", Constants.DEFAULT_WRITE_DELAY);
+                if (store != null) {
+                    setWriteDelay(writeDelay);
+                } else {
+                    pageStore.initWriter(writeDelay);
+                }
+            }
             if (closeAtVmShutdown) {
                 OnExitDatabaseCloser.register(this);
             }
@@ -312,20 +440,17 @@ public class Database implements DataHandler, CastDataProvider {
                 if (e instanceof OutOfMemoryError) {
                     e.fillInStackTrace();
                 }
-                boolean alreadyOpen = e instanceof DbException
-                        && ((DbException) e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
-                if (alreadyOpen) {
-                    stopServer();
-                }
-                if (traceSystem != null) {
-                    if (e instanceof DbException && !alreadyOpen) {
+                if (e instanceof DbException) {
+                    if (((DbException) e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1) {
+                        stopServer();
+                    } else {
                         // only write if the database is not already in use
                         trace.error(e, "opening {0}", databaseName);
                     }
-                    traceSystem.close();
                 }
+                traceSystem.close();
                 closeOpenFilesAndUnlock(false);
-            } catch(Throwable ex) {
+            } catch (Throwable ex) {
                 e.addSuppressed(ex);
             }
             throw DbException.convert(e);
@@ -333,8 +458,7 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     public int getLockTimeout() {
-        Setting setting = findSetting(
-                SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
+        Setting setting = findSetting(SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
         return setting == null ? Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
     }
 
@@ -361,9 +485,10 @@ public class Database implements DataHandler, CastDataProvider {
         return store;
     }
 
-    private void createStore() {
-        store = new Store(this);
+    private Store createStore() {
+        Store store = new Store(this);
         retentionTime = store.getMvStore().getRetentionTime();
+        return store;
     }
 
     public long getModificationDataId() {
@@ -499,99 +624,7 @@ public class Database implements DataHandler, CastDataProvider {
                 : dbSettings.databaseToLower ? StringUtils.toLowerEnglish(n) : n;
     }
 
-    private void initTraceSystem(int traceLevelFile, int traceLevelSystemOut)  {
-        traceSystem.setLevelFile(traceLevelFile);
-        traceSystem.setLevelSystemOut(traceLevelSystemOut);
-        trace = traceSystem.getTrace(Trace.DATABASE);
-        trace.info("opening {0} (build {1})", databaseName, Constants.BUILD_ID);
-    }
-
-    private synchronized void open(int traceLevelFile, int traceLevelSystemOut, ConnectionInfo ci) {
-        if (persistent) {
-            if (readOnly) {
-                if (traceLevelFile >= TraceSystem.DEBUG) {
-                    String traceFile = Utils.getProperty("java.io.tmpdir", ".") +
-                            "/" + "h2_" + System.currentTimeMillis();
-                    traceSystem = new TraceSystem(traceFile +
-                            Constants.SUFFIX_TRACE_FILE);
-                } else {
-                    traceSystem = new TraceSystem(null);
-                }
-            } else {
-                traceSystem = new TraceSystem(databaseName +
-                        Constants.SUFFIX_TRACE_FILE);
-            }
-            initTraceSystem(traceLevelFile, traceLevelSystemOut);
-            if (autoServerMode) {
-                if (readOnly ||
-                        fileLockMethod == FileLockMethod.NO ||
-                        fileLockMethod == FileLockMethod.FS) {
-                    throw DbException.getUnsupportedException(
-                            "autoServerMode && (readOnly || " +
-                            "fileLockMethod == NO || " +
-                            "fileLockMethod == FS || " +
-                            "inMemory)");
-                }
-            }
-            String lockFileName = databaseName + Constants.SUFFIX_LOCK_FILE;
-            if (readOnly) {
-                if (FileUtils.exists(lockFileName)) {
-                    throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1,
-                            "Lock file exists: " + lockFileName);
-                }
-            }
-            if (!readOnly && fileLockMethod != FileLockMethod.NO) {
-                if (fileLockMethod != FileLockMethod.FS) {
-                    lock = new FileLock(traceSystem, lockFileName, Constants.LOCK_SLEEP);
-                    lock.lock(fileLockMethod);
-                    if (autoServerMode) {
-                        startServer(lock.getUniqueId());
-                    }
-                }
-            }
-            deleteOldTempFiles();
-            starting = true;
-            if (dbSettings.mvStore) {
-                createStore();
-            } else {
-                createPageStore(ci);
-            }
-            starting = false;
-        } else {
-            traceSystem = new TraceSystem(null);
-            initTraceSystem(traceLevelFile, traceLevelSystemOut);
-            if (autoServerMode) {
-                throw DbException.getUnsupportedException(
-                        "autoServerMode && inMemory");
-            }
-            if (dbSettings.mvStore) {
-                createStore();
-            }
-        }
-        if (store != null) {
-            store.getTransactionStore().init();
-        }
-        Set<String> settingKeys = dbSettings.getSettings().keySet();
-        if (dbSettings.mvStore) {
-            settingKeys.removeIf(name -> name.startsWith("PAGE_STORE_"));
-        } else {
-            settingKeys.removeIf(name -> "COMPRESS".equals(name) || "REUSE_SPACE".equals(name));
-        }
-        systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
-        mainSchema = new Schema(this, Constants.MAIN_SCHEMA_ID, sysIdentifier(Constants.SCHEMA_MAIN), systemUser,
-                true);
-        infoSchema = new InformationSchema(this, systemUser);
-        schemas.put(mainSchema.getName(), mainSchema);
-        schemas.put(infoSchema.getName(), infoSchema);
-        if (mode.getEnum() == ModeEnum.PostgreSQL) {
-            pgCatalogSchema = new PgCatalogSchema(this, systemUser);
-            schemas.put(pgCatalogSchema.getName(), pgCatalogSchema);
-        }
-        publicRole = new Role(this, 0, sysIdentifier(Constants.PUBLIC_ROLE_NAME), true);
-        roles.put(publicRole.getName(), publicRole);
-        systemUser.setAdmin(true);
-        systemSession = createSession(systemUser);
-        lobSession = createSession(systemUser);
+    private CreateTableData createSysTableData() {
         CreateTableData data = new CreateTableData();
         ArrayList<Column> cols = data.columns;
         Column columnId = new Column("ID", TypeInfo.TYPE_INTEGER);
@@ -612,62 +645,15 @@ public class Database implements DataHandler, CastDataProvider {
         data.create = create;
         data.isHidden = true;
         data.session = systemSession;
-        starting = true;
-        meta = mainSchema.createTable(data);
-        handleUpgradeIssues();
-        IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
-        metaIdIndex = meta.addIndex(systemSession, "SYS_ID",
-                0, pkCols, IndexType.createPrimaryKey(
-                false, false), true, null);
-        systemSession.commit(true);
-        objectIds.set(0);
-        executeMeta();
-        systemSession.commit(true);
-        if (store != null) {
-            store.getTransactionStore().endLeftoverTransactions();
-            store.removeTemporaryMaps(objectIds);
-        }
-        recompileInvalidViews(systemSession);
-        starting = false;
-        if (!readOnly) {
-            // set CREATE_BUILD in a new database
-            String name = SetTypes.getTypeName(SetTypes.CREATE_BUILD);
-            Setting setting = settings.get(name);
-            if (setting == null) {
-                setting = new Setting(this, allocateObjectId(), name);
-                setting.setIntValue(Constants.BUILD_ID);
-                lockMeta(systemSession);
-                addDatabaseObject(systemSession, setting);
-            } else if (createBuild < 201) {
-                upgradeMetaTo2_0(setting);
-            }
-            // mark all ids used in the page store
-            if (pageStore != null) {
-                BitSet f = pageStore.getObjectIds();
-                for (int i = 0, len = f.length(); i < len; i++) {
-                    if (f.get(i) && !objectIds.get(i)) {
-                        trace.info("unused object id: " + i);
-                        objectIds.set(i);
-                    }
-                }
-            }
-        }
-        if (!isMVStore() && createBuild < 197) {
-            // PageStore has problems due to changes in referential constraints
-            // that lead to database corruption (#1247).
-            // LOBs from 1.2.x releases are also not supported.
-            throw DbException.getFileVersionError(databaseName + Constants.SUFFIX_PAGE_FILE);
-        }
-        getLobStorage().init();
-        systemSession.commit(true);
+        return data;
+    }
 
-        trace.info("opened {0}", databaseName);
-        if (persistent) {
-            int writeDelay = ci.getProperty("WRITE_DELAY", Constants.DEFAULT_WRITE_DELAY);
-            if (store != null) {
-                setWriteDelay(writeDelay);
-            } else {
-                pageStore.initWriter(writeDelay);
+    private void initPageStoreIds() {
+        BitSet f = pageStore.getObjectIds();
+        for (int i = 0, len = f.length(); i < len; i++) {
+            if (f.get(i) && !objectIds.get(i)) {
+                trace.info("unused object id: " + i);
+                objectIds.set(i);
             }
         }
     }
@@ -867,7 +853,7 @@ public class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private void recompileInvalidViews(SessionLocal session) {
+    private void recompileInvalidViews() {
         boolean atLeastOneRecompiledSuccessfully;
         do {
             atLeastOneRecompiledSuccessfully = false;
@@ -876,7 +862,7 @@ public class Database implements DataHandler, CastDataProvider {
                     if (obj instanceof TableView) {
                         TableView view = (TableView) obj;
                         if (view.isInvalid()) {
-                            view.recompile(session, true, false);
+                            view.recompile(systemSession, true, false);
                             if (!view.isInvalid()) {
                                 atLeastOneRecompiledSuccessfully = true;
                             }
@@ -885,7 +871,7 @@ public class Database implements DataHandler, CastDataProvider {
                 }
             }
         } while (atLeastOneRecompiledSuccessfully);
-        TableView.clearIndexCaches(session.getDatabase());
+        TableView.clearIndexCaches(this);
     }
 
     private void addMeta(SessionLocal session, DbObject obj) {
@@ -1432,9 +1418,7 @@ public class Database implements DataHandler, CastDataProvider {
             return;
         }
         try {
-            getLobStorage();
-            lobStorage.removeAllForTable(
-                    LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
+            lobStorage.removeAllForTable(LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
         } catch (DbException e) {
             trace.error(e, "close");
         }
@@ -2641,13 +2625,6 @@ public class Database implements DataHandler, CastDataProvider {
 
     @Override
     public LobStorageInterface getLobStorage() {
-        if (lobStorage == null) {
-            if (dbSettings.mvStore) {
-                lobStorage = new LobStorageMap(this);
-            } else {
-                lobStorage = new LobStorageBackend(this);
-            }
-        }
         return lobStorage;
     }
 

@@ -62,7 +62,6 @@ import org.h2.store.DataHandler;
 import org.h2.store.DataReader;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
-import org.h2.store.FileStoreInputStream;
 import org.h2.store.LobStorageFrontend;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.HasSQL;
@@ -322,8 +321,6 @@ public class Recover extends Tool implements DataHandler {
         for (String fileName : list) {
             if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
                 dumpPageStore(fileName);
-            } else if (fileName.endsWith(Constants.SUFFIX_LOB_FILE)) {
-                dumpLob(fileName, false);
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
                 String f = fileName.substring(0, fileName.length() -
                         Constants.SUFFIX_PAGE_FILE.length());
@@ -373,35 +370,6 @@ public class Recover extends Tool implements DataHandler {
             sb.append(Integer.toHexString(x));
         }
         writer.println("-- dump: " + sb.toString());
-    }
-
-    private void dumpLob(String fileName, boolean lobCompression) {
-        OutputStream fileOut = null;
-        FileStore fileStore = null;
-        long size = 0;
-        String n = fileName + (lobCompression ? ".comp" : "") + ".txt";
-        InputStream in = null;
-        try {
-            fileOut = FileUtils.newOutputStream(n, false);
-            fileStore = FileStore.open(null, fileName, "r");
-            fileStore.init();
-            in = new FileStoreInputStream(fileStore, this, lobCompression, false);
-            size = IOUtils.copy(in, fileOut);
-        } catch (Throwable e) {
-            // this is usually not a problem, because we try both compressed and
-            // uncompressed
-        } finally {
-            IOUtils.closeSilently(fileOut);
-            IOUtils.closeSilently(in);
-            closeSilently(fileStore);
-        }
-        if (size == 0) {
-            try {
-                FileUtils.delete(n);
-            } catch (Exception e) {
-                traceError(n, e);
-            }
-        }
     }
 
     private void getSQL(StringBuilder builder, String column, Value v) {

@@ -564,7 +564,7 @@ public class PageLog {
         buffer.writeByte((byte) COMMIT);
         buffer.writeVarInt(sessionId);
         write(buffer);
-        if (store.getDatabase().getFlushOnEachCommit()) {
+        if (store.getFlushOnEachCommit()) {
             flush();
         }
     }
@@ -599,7 +599,7 @@ public class PageLog {
         // store it on a separate log page
         flushOut();
         pageOut.fillPage();
-        if (store.getDatabase().getFlushOnEachCommit()) {
+        if (store.getFlushOnEachCommit()) {
             flush();
         }
     }

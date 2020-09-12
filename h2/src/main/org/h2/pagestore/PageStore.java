@@ -206,6 +206,9 @@ public class PageStore implements CacheWriter {
     private boolean readMode;
     private int backupLevel;
 
+    private WriterThread writer;
+    private boolean flushOnEachCommit;
+
     /**
      * Create a new page store object.
      *
@@ -1980,7 +1983,17 @@ public class PageStore implements CacheWriter {
     }
 
     public void setLogMode(int logMode) {
-        this.logMode = logMode;
+        if (logMode < 0 || logMode > 2) {
+            throw DbException.getInvalidValueException("LOG", log);
+        }
+        synchronized (database) {
+            if (logMode != PageStore.LOG_MODE_SYNC || this.logMode != PageStore.LOG_MODE_SYNC) {
+                // write the log mode in the trace file when enabling or
+                // disabling a dangerous mode
+                trace.error(null, "log {0}", logMode);
+            }
+            this.logMode = logMode;
+        }
     }
 
     public int getLogMode() {
@@ -2014,6 +2027,41 @@ public class PageStore implements CacheWriter {
 
     public synchronized void setMaxCacheMemory(int size) {
         cache.setMaxMemory(size);
+    }
+
+    public void initWriter(int writeDelay) {
+        writer = WriterThread.create(database, writeDelay);
+        flushOnEachCommit = writeDelay < Constants.MIN_WRITE_DELAY;
+    }
+
+    public void startWriter() {
+        if (writer != null) {
+            writer.startThread();
+        }
+    }
+
+    public void stopWriter() {
+        if (writer != null) {
+            writer.stopThread();
+            writer = null;
+        }
+    }
+
+    public void setWriteDelay(int writeDelay) {
+        if (writer != null) {
+            writer.setWriteDelay(writeDelay);
+            // TODO check if MIN_WRITE_DELAY is a good value
+            flushOnEachCommit = writeDelay < Constants.MIN_WRITE_DELAY;
+        }
+    }
+
+    /**
+     * Check if flush-on-each-commit is enabled.
+     *
+     * @return true if it is
+     */
+    boolean getFlushOnEachCommit() {
+        return flushOnEachCommit;
     }
 
 }

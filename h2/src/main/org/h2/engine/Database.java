@@ -47,7 +47,6 @@ import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.db.LobStorageMap;
 import org.h2.mvstore.db.Store;
 import org.h2.pagestore.PageStore;
-import org.h2.pagestore.WriterThread;
 import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.pagestore.db.SessionPageStore;
 import org.h2.result.Row;
@@ -102,7 +101,7 @@ import org.h2.value.ValueTimestampTimeZone;
  *
  * @since 2004-04-15 22:49
  */
-public class Database implements DataHandler, CastDataProvider {
+public final class Database implements DataHandler, CastDataProvider {
 
     private static int initialPowerOffCount;
 
@@ -157,23 +156,22 @@ public class Database implements DataHandler, CastDataProvider {
     private final BitSet objectIds = new BitSet();
     private final Object lobSyncObject = new Object();
 
-    private Schema mainSchema;
-    private Schema infoSchema;
-    private Schema pgCatalogSchema;
+    private final Schema mainSchema;
+    private final Schema infoSchema;
+    private final Schema pgCatalogSchema;
     private int nextSessionId;
     private int nextTempTableId;
-    private User systemUser;
+    private final User systemUser;
     private SessionLocal systemSession;
     private SessionLocal lobSession;
-    private Table meta;
-    private Index metaIdIndex;
+    private final Table meta;
+    private final Index metaIdIndex;
     private FileLock lock;
-    private WriterThread writer;
     private volatile boolean starting;
-    private TraceSystem traceSystem;
-    private Trace trace;
+    private final TraceSystem traceSystem;
+    private final Trace trace;
     private final FileLockMethod fileLockMethod;
-    private Role publicRole;
+    private final Role publicRole;
     private final AtomicLong modificationDataId = new AtomicLong();
     private final AtomicLong modificationMetaId = new AtomicLong();
     /**
@@ -183,7 +181,6 @@ public class Database implements DataHandler, CastDataProvider {
     private CompareMode compareMode;
     private String cluster = Constants.CLUSTERING_DISABLED;
     private boolean readOnly;
-    private int writeDelay = Constants.DEFAULT_WRITE_DELAY;
     private DatabaseEventListener eventListener;
     private int maxMemoryRows = SysProperties.MAX_MEMORY_ROWS;
     private int maxMemoryUndo = Constants.DEFAULT_MAX_MEMORY_UNDO;
@@ -216,13 +213,11 @@ public class Database implements DataHandler, CastDataProvider {
     private int cacheSize;
     private int compactMode;
     private SourceCompiler compiler;
-    private boolean flushOnEachCommit;
-    private LobStorageInterface lobStorage;
+    private final LobStorageInterface lobStorage;
     private final int pageSize;
     private int defaultTableType = Table.TYPE_CACHED;
     private final DbSettings dbSettings;
-    private int logMode;
-    private Store store;
+    private final Store store;
     private int retentionTime;
     private boolean allowBuiltinAliasOverride;
     private final AtomicReference<DbException> backgroundException = new AtomicReference<>();
@@ -245,13 +240,13 @@ public class Database implements DataHandler, CastDataProvider {
             META_LOCK_DEBUGGING_DB.set(null);
             META_LOCK_DEBUGGING_STACK.set(null);
         }
-        String name = ci.getName();
+        String databaseName = ci.getName();
         this.dbSettings = ci.getDbSettings();
         this.compareMode = CompareMode.getInstance(null, 0);
         this.persistent = ci.isPersistent();
         this.filePasswordHash = ci.getFilePasswordHash();
         this.fileEncryptionKey = ci.getFileEncryptionKey();
-        this.databaseName = name;
+        this.databaseName = databaseName;
         this.databaseShortName = parseDatabaseShortName();
         this.maxLengthInplaceLob = Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
         this.cipher = cipher;
@@ -276,8 +271,7 @@ public class Database implements DataHandler, CastDataProvider {
         this.databaseURL = ci.getURL();
         String s = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
         if (s != null) {
-            s = StringUtils.trim(s, true, true, "'");
-            setEventListenerClass(s);
+            setEventListenerClass(StringUtils.trim(s, true, true, "'"));
         }
         s = ci.removeProperty("MODE", null);
         if (s != null) {
@@ -294,7 +288,6 @@ public class Database implements DataHandler, CastDataProvider {
                 throw DbException.getInvalidValueException("DEFAULT_NULL_ORDERING", s);
             }
         }
-        this.logMode = ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
         s = ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
         if (s != null) {
             s = StringUtils.trim(s, true, true, "'");
@@ -308,9 +301,134 @@ public class Database implements DataHandler, CastDataProvider {
         this.cacheType = StringUtils.toUpperEnglish(ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
         this.ignoreCatalogs = ci.getProperty("IGNORE_CATALOGS", dbSettings.ignoreCatalogs);
         this.lockMode = ci.getProperty("LOCK_MODE", Constants.DEFAULT_LOCK_MODE);
-        this.writeDelay = ci.getProperty("WRITE_DELAY", Constants.DEFAULT_WRITE_DELAY);
+        String traceFile;
+        if (persistent) {
+            if (readOnly) {
+                if (traceLevelFile >= TraceSystem.DEBUG) {
+                    traceFile = Utils.getProperty("java.io.tmpdir", ".") + "/h2_" + System.currentTimeMillis()
+                            + Constants.SUFFIX_TRACE_FILE;
+                } else {
+                    traceFile = null;
+                }
+            } else {
+                traceFile = databaseName + Constants.SUFFIX_TRACE_FILE;
+            }
+        } else {
+            traceFile = null;
+        }
+        traceSystem = new TraceSystem(traceFile);
+        traceSystem.setLevelFile(traceLevelFile);
+        traceSystem.setLevelSystemOut(traceLevelSystemOut);
+        trace = traceSystem.getTrace(Trace.DATABASE);
+        trace.info("opening {0} (build {1})", databaseName, Constants.BUILD_ID);
         try {
-            open(traceLevelFile, traceLevelSystemOut);
+            if (autoServerMode && (readOnly || !persistent || fileLockMethod == FileLockMethod.NO
+                    || fileLockMethod == FileLockMethod.FS)) {
+                throw DbException.getUnsupportedException(
+                        "AUTO_SERVER=TRUE && (readOnly || inMemory || FILE_LOCK=NO || FILE_LOCK=FS)");
+            }
+            if (persistent) {
+                String lockFileName = databaseName + Constants.SUFFIX_LOCK_FILE;
+                if (readOnly) {
+                    if (FileUtils.exists(lockFileName)) {
+                        throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, "Lock file exists: " + lockFileName);
+                    }
+                } else if (fileLockMethod != FileLockMethod.NO && fileLockMethod != FileLockMethod.FS) {
+                    lock = new FileLock(traceSystem, lockFileName, Constants.LOCK_SLEEP);
+                    lock.lock(fileLockMethod);
+                    if (autoServerMode) {
+                        startServer(lock.getUniqueId());
+                    }
+                }
+                deleteOldTempFiles();
+                starting = true;
+                if (dbSettings.mvStore) {
+                    store = createStore();
+                } else {
+                    store = null;
+                    createPageStore(ci);
+                }
+                starting = false;
+            } else if (dbSettings.mvStore) {
+                store = createStore();
+            } else {
+                store = null;
+            }
+            Set<String> settingKeys = dbSettings.getSettings().keySet();
+            if (store != null) {
+                store.getTransactionStore().init();
+                settingKeys.removeIf(name -> name.startsWith("PAGE_STORE_"));
+            } else {
+                settingKeys.removeIf(name -> "COMPRESS".equals(name) || "REUSE_SPACE".equals(name));
+            }
+            systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
+            systemUser.setAdmin(true);
+            mainSchema = new Schema(this, Constants.MAIN_SCHEMA_ID, sysIdentifier(Constants.SCHEMA_MAIN), systemUser,
+                    true);
+            infoSchema = new InformationSchema(this, systemUser);
+            schemas.put(mainSchema.getName(), mainSchema);
+            schemas.put(infoSchema.getName(), infoSchema);
+            if (mode.getEnum() == ModeEnum.PostgreSQL) {
+                pgCatalogSchema = new PgCatalogSchema(this, systemUser);
+                schemas.put(pgCatalogSchema.getName(), pgCatalogSchema);
+            } else {
+                pgCatalogSchema = null;
+            }
+            publicRole = new Role(this, 0, sysIdentifier(Constants.PUBLIC_ROLE_NAME), true);
+            roles.put(publicRole.getName(), publicRole);
+            systemSession = createSession(systemUser);
+            lobSession = createSession(systemUser);
+            CreateTableData data = createSysTableData();
+            starting = true;
+            meta = mainSchema.createTable(data);
+            handleUpgradeIssues();
+            IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { data.columns.get(0) });
+            metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(false, false),
+                    true, null);
+            systemSession.commit(true);
+            objectIds.set(0);
+            executeMeta();
+            systemSession.commit(true);
+            if (store != null) {
+                store.getTransactionStore().endLeftoverTransactions();
+                store.removeTemporaryMaps(objectIds);
+            } else if (createBuild < 197) {
+                // PageStore has problems due to changes in referential
+                // constraints that lead to database corruption (#1247). LOBs
+                // from 1.2.x releases are also not supported.
+                throw DbException.getFileVersionError(databaseName + Constants.SUFFIX_PAGE_FILE);
+            }
+            recompileInvalidViews();
+            starting = false;
+            if (!readOnly) {
+                // set CREATE_BUILD in a new database
+                String settingName = SetTypes.getTypeName(SetTypes.CREATE_BUILD);
+                Setting setting = settings.get(settingName);
+                if (setting == null) {
+                    setting = new Setting(this, allocateObjectId(), settingName);
+                    setting.setIntValue(Constants.BUILD_ID);
+                    lockMeta(systemSession);
+                    addDatabaseObject(systemSession, setting);
+                } else if (createBuild < 201) {
+                    upgradeMetaTo2_0(setting);
+                }
+                // mark all ids used in the page store
+                if (pageStore != null) {
+                    initPageStoreIds();
+                }
+            }
+            lobStorage = dbSettings.mvStore ? new LobStorageMap(this) : new LobStorageBackend(this);
+            lobStorage.init();
+            systemSession.commit(true);
+            trace.info("opened {0}", databaseName);
+            if (persistent) {
+                int writeDelay = ci.getProperty("WRITE_DELAY", Constants.DEFAULT_WRITE_DELAY);
+                if (store != null) {
+                    setWriteDelay(writeDelay);
+                } else {
+                    pageStore.initWriter(writeDelay);
+                }
+            }
             if (closeAtVmShutdown) {
                 OnExitDatabaseCloser.register(this);
             }
@@ -319,20 +437,17 @@ public class Database implements DataHandler, CastDataProvider {
                 if (e instanceof OutOfMemoryError) {
                     e.fillInStackTrace();
                 }
-                boolean alreadyOpen = e instanceof DbException
-                        && ((DbException) e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
-                if (alreadyOpen) {
-                    stopServer();
-                }
-                if (traceSystem != null) {
-                    if (e instanceof DbException && !alreadyOpen) {
+                if (e instanceof DbException) {
+                    if (((DbException) e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1) {
+                        stopServer();
+                    } else {
                         // only write if the database is not already in use
                         trace.error(e, "opening {0}", databaseName);
                     }
-                    traceSystem.close();
                 }
+                traceSystem.close();
                 closeOpenFilesAndUnlock(false);
-            } catch(Throwable ex) {
+            } catch (Throwable ex) {
                 e.addSuppressed(ex);
             }
             throw DbException.convert(e);
@@ -340,8 +455,7 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     public int getLockTimeout() {
-        Setting setting = findSetting(
-                SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
+        Setting setting = findSetting(SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
         return setting == null ? Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
     }
 
@@ -368,11 +482,9 @@ public class Database implements DataHandler, CastDataProvider {
         return store;
     }
 
-    public Store getOrCreateStore() {
-        if (store == null) {
-            store = new Store(this);
-            retentionTime = store.getMvStore().getRetentionTime();
-        }
+    private Store createStore() {
+        Store store = new Store(this);
+        retentionTime = store.getMvStore().getRetentionTime();
         return store;
     }
 
@@ -419,18 +531,19 @@ public class Database implements DataHandler, CastDataProvider {
         if (powerOffCount != -1) {
             try {
                 powerOffCount = -1;
-                stopWriter();
                 if (store != null) {
                     store.closeImmediately();
-                }
-                synchronized(this) {
-                    if (pageStore != null) {
-                        try {
-                            pageStore.close();
-                        } catch (DbException e) {
-                            // ignore
+                } else {
+                    synchronized (this) {
+                        if (pageStore != null) {
+                            pageStore.stopWriter();
+                            try {
+                                pageStore.close();
+                            } catch (DbException e) {
+                                // ignore
+                            }
+                            pageStore = null;
                         }
-                        pageStore = null;
                     }
                 }
                 if (lock != null) {
@@ -508,101 +621,7 @@ public class Database implements DataHandler, CastDataProvider {
                 : dbSettings.databaseToLower ? StringUtils.toLowerEnglish(n) : n;
     }
 
-    private void initTraceSystem(int traceLevelFile, int traceLevelSystemOut)  {
-        traceSystem.setLevelFile(traceLevelFile);
-        traceSystem.setLevelSystemOut(traceLevelSystemOut);
-        trace = traceSystem.getTrace(Trace.DATABASE);
-        trace.info("opening {0} (build {1})", databaseName, Constants.BUILD_ID);
-    }
-
-    private synchronized void open(int traceLevelFile, int traceLevelSystemOut) {
-        if (persistent) {
-            if (readOnly) {
-                if (traceLevelFile >= TraceSystem.DEBUG) {
-                    String traceFile = Utils.getProperty("java.io.tmpdir", ".") +
-                            "/" + "h2_" + System.currentTimeMillis();
-                    traceSystem = new TraceSystem(traceFile +
-                            Constants.SUFFIX_TRACE_FILE);
-                } else {
-                    traceSystem = new TraceSystem(null);
-                }
-            } else {
-                traceSystem = new TraceSystem(databaseName +
-                        Constants.SUFFIX_TRACE_FILE);
-            }
-            initTraceSystem(traceLevelFile, traceLevelSystemOut);
-            if (autoServerMode) {
-                if (readOnly ||
-                        fileLockMethod == FileLockMethod.NO ||
-                        fileLockMethod == FileLockMethod.FS) {
-                    throw DbException.getUnsupportedException(
-                            "autoServerMode && (readOnly || " +
-                            "fileLockMethod == NO || " +
-                            "fileLockMethod == FS || " +
-                            "inMemory)");
-                }
-            }
-            String lockFileName = databaseName + Constants.SUFFIX_LOCK_FILE;
-            if (readOnly) {
-                if (FileUtils.exists(lockFileName)) {
-                    throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1,
-                            "Lock file exists: " + lockFileName);
-                }
-            }
-            if (!readOnly && fileLockMethod != FileLockMethod.NO) {
-                if (fileLockMethod != FileLockMethod.FS) {
-                    lock = new FileLock(traceSystem, lockFileName, Constants.LOCK_SLEEP);
-                    lock.lock(fileLockMethod);
-                    if (autoServerMode) {
-                        startServer(lock.getUniqueId());
-                    }
-                }
-            }
-            deleteOldTempFiles();
-            starting = true;
-            if (dbSettings.mvStore) {
-                getOrCreateStore();
-            } else {
-                createPageStore();
-            }
-            starting = false;
-        } else {
-            traceSystem = new TraceSystem(null);
-            initTraceSystem(traceLevelFile, traceLevelSystemOut);
-            if (autoServerMode) {
-                throw DbException.getUnsupportedException(
-                        "autoServerMode && inMemory");
-            }
-            if (dbSettings.mvStore) {
-                getOrCreateStore();
-            }
-        }
-        if (store != null) {
-            store.getTransactionStore().init();
-        }
-        Set<String> settingKeys = dbSettings.getSettings().keySet();
-        if (dbSettings.mvStore) {
-            // MVStore
-            settingKeys.removeIf(name -> name.startsWith("PAGE_STORE_"));
-        } else if (store == null) {
-            // PageStore without additional MVStore for spatial features
-            settingKeys.removeIf(name -> "COMPRESS".equals(name) || "REUSE_SPACE".equals(name));
-        }
-        systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
-        mainSchema = new Schema(this, Constants.MAIN_SCHEMA_ID, sysIdentifier(Constants.SCHEMA_MAIN), systemUser,
-                true);
-        infoSchema = new InformationSchema(this, systemUser);
-        schemas.put(mainSchema.getName(), mainSchema);
-        schemas.put(infoSchema.getName(), infoSchema);
-        if (mode.getEnum() == ModeEnum.PostgreSQL) {
-            pgCatalogSchema = new PgCatalogSchema(this, systemUser);
-            schemas.put(pgCatalogSchema.getName(), pgCatalogSchema);
-        }
-        publicRole = new Role(this, 0, sysIdentifier(Constants.PUBLIC_ROLE_NAME), true);
-        roles.put(publicRole.getName(), publicRole);
-        systemUser.setAdmin(true);
-        systemSession = createSession(systemUser);
-        lobSession = createSession(systemUser);
+    private CreateTableData createSysTableData() {
         CreateTableData data = new CreateTableData();
         ArrayList<Column> cols = data.columns;
         Column columnId = new Column("ID", TypeInfo.TYPE_INTEGER);
@@ -623,61 +642,15 @@ public class Database implements DataHandler, CastDataProvider {
         data.create = create;
         data.isHidden = true;
         data.session = systemSession;
-        starting = true;
-        meta = mainSchema.createTable(data);
-        handleUpgradeIssues();
-        IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
-        metaIdIndex = meta.addIndex(systemSession, "SYS_ID",
-                0, pkCols, IndexType.createPrimaryKey(
-                false, false), true, null);
-        systemSession.commit(true);
-        objectIds.set(0);
-        executeMeta();
-        systemSession.commit(true);
-        if (store != null) {
-            store.getTransactionStore().endLeftoverTransactions();
-            store.removeTemporaryMaps(objectIds);
-        }
-        recompileInvalidViews(systemSession);
-        starting = false;
-        if (!readOnly) {
-            // set CREATE_BUILD in a new database
-            String name = SetTypes.getTypeName(SetTypes.CREATE_BUILD);
-            Setting setting = settings.get(name);
-            if (setting == null) {
-                setting = new Setting(this, allocateObjectId(), name);
-                setting.setIntValue(Constants.BUILD_ID);
-                lockMeta(systemSession);
-                addDatabaseObject(systemSession, setting);
-            } else if (createBuild < 201) {
-                upgradeMetaTo2_0(setting);
-            }
-            // mark all ids used in the page store
-            if (pageStore != null) {
-                BitSet f = pageStore.getObjectIds();
-                for (int i = 0, len = f.length(); i < len; i++) {
-                    if (f.get(i) && !objectIds.get(i)) {
-                        trace.info("unused object id: " + i);
-                        objectIds.set(i);
-                    }
-                }
-            }
-        }
-        if (!isMVStore() && createBuild < 197) {
-            // PageStore has problems due to changes in referential constraints
-            // that lead to database corruption (#1247).
-            // LOBs from 1.2.x releases are also not supported.
-            throw DbException.getFileVersionError(databaseName + Constants.SUFFIX_PAGE_FILE);
-        }
-        getLobStorage().init();
-        systemSession.commit(true);
+        return data;
+    }
 
-        trace.info("opened {0}", databaseName);
-        if (persistent) {
-            if (store == null) {
-                writer = WriterThread.create(this, writeDelay);
-            } else {
-                setWriteDelay(writeDelay);
+    private void initPageStoreIds() {
+        BitSet f = pageStore.getObjectIds();
+        for (int i = 0, len = f.length(); i < len; i++) {
+            if (f.get(i) && !objectIds.get(i)) {
+                trace.info("unused object id: " + i);
+                objectIds.set(i);
             }
         }
     }
@@ -692,28 +665,34 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     private void upgradeMetaTo2_0(Setting setting) {
-        setting.setIntValue(Constants.BUILD_ID);
         lockMeta(systemSession);
-        updateMeta(systemSession, setting);
-        int binary = -1, uuid = -1;
+        ArrayList<Integer> metaToRemove = new ArrayList<>();
         for (Cursor cursor = metaIdIndex.find(systemSession, null, null); cursor.next();) {
             MetaRecord rec = new MetaRecord(cursor.get());
             objectIds.set(rec.getId());
-            if (rec.getObjectType() == DbObject.SETTING) {
-                String sql = rec.getSQL();
-                if (sql.startsWith("SET BINARY_COLLATION ")) {
-                    binary = rec.getId();
-                } else if (sql.startsWith("SET UUID_COLLATION ")) {
-                    uuid = rec.getId();
+            switch (rec.getObjectType()) {
+            case DbObject.INDEX:
+                if (!isMVStore()) {
+                    String sql = rec.getSQL();
+                    if (sql.startsWith("CREATE SPATIAL INDEX ")) {
+                        metaToRemove.add(rec.getId());
+                    }
                 }
+                break;
+            case DbObject.SETTING: {
+                String sql = rec.getSQL();
+                if (sql.startsWith("SET BINARY_COLLATION ") || sql.startsWith("SET UUID_COLLATION ")) {
+                    metaToRemove.add(rec.getId());
+                }
+                break;
+            }
             }
         }
-        if (binary >= 0) {
-            removeMeta(systemSession, binary);
+        for (int meta : metaToRemove) {
+            removeMeta(systemSession, meta);
         }
-        if (uuid >= 0) {
-            removeMeta(systemSession, uuid);
-        }
+        setting.setIntValue(Constants.BUILD_ID);
+        updateMeta(systemSession, setting);
     }
 
     private void executeMeta() {
@@ -872,7 +851,7 @@ public class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private void recompileInvalidViews(SessionLocal session) {
+    private void recompileInvalidViews() {
         boolean atLeastOneRecompiledSuccessfully;
         do {
             atLeastOneRecompiledSuccessfully = false;
@@ -881,7 +860,7 @@ public class Database implements DataHandler, CastDataProvider {
                     if (obj instanceof TableView) {
                         TableView view = (TableView) obj;
                         if (view.isInvalid()) {
-                            view.recompile(session, true, false);
+                            view.recompile(systemSession, true, false);
                             if (!view.isInvalid()) {
                                 atLeastOneRecompiledSuccessfully = true;
                             }
@@ -890,7 +869,7 @@ public class Database implements DataHandler, CastDataProvider {
                 }
             }
         } while (atLeastOneRecompiledSuccessfully);
-        TableView.clearIndexCaches(session.getDatabase());
+        TableView.clearIndexCaches(this);
     }
 
     private void addMeta(SessionLocal session, DbObject obj) {
@@ -1003,7 +982,7 @@ public class Database implements DataHandler, CastDataProvider {
      *
      * @param session the session
      */
-    public void unlockMetaDebug(SessionLocal session) {
+    public static void unlockMetaDebug(SessionLocal session) {
         if (ASSERT) {
             if (META_LOCK_DEBUGGING.get() == session) {
                 META_LOCK_DEBUGGING.set(null);
@@ -1433,25 +1412,13 @@ public class Database implements DataHandler, CastDataProvider {
         if (!persistent) {
             return;
         }
-        boolean lobStorageIsUsed = infoSchema.findTableOrView(
-                systemSession, LobStorageBackend.LOB_DATA_TABLE) != null;
-        lobStorageIsUsed |= store != null;
-        if (!lobStorageIsUsed) {
+        if (store == null && infoSchema.findTableOrView(systemSession, LobStorageBackend.LOB_DATA_TABLE) == null) {
             return;
         }
         try {
-            getLobStorage();
-            lobStorage.removeAllForTable(
-                    LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
+            lobStorage.removeAllForTable(LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
         } catch (DbException e) {
             trace.error(e, "close");
-        }
-    }
-
-    private void stopWriter() {
-        if (writer != null) {
-            writer.stopThread();
-            writer = null;
         }
     }
 
@@ -1462,8 +1429,18 @@ public class Database implements DataHandler, CastDataProvider {
      */
     private synchronized void closeOpenFilesAndUnlock(boolean flush) {
         try {
-            stopWriter();
-            if (pageStore != null) {
+            if (store != null) {
+                MVStore mvStore = store.getMvStore();
+                if (mvStore != null && !mvStore.isClosed()) {
+                    int allowedCompactionTime =
+                            compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY ? 0 :
+                            compactMode == CommandInterface.SHUTDOWN_COMPACT ||
+                            compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
+                            dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
+                    store.close(allowedCompactionTime);
+                }
+            } else if (pageStore != null) {
+                pageStore.stopWriter();
                 if (flush) {
                     try {
                         pageStore.checkpoint();
@@ -1490,17 +1467,6 @@ public class Database implements DataHandler, CastDataProvider {
                     }
                 }
             }
-            if (store != null) {
-                MVStore mvStore = store.getMvStore();
-                if (mvStore != null && !mvStore.isClosed()) {
-                    int allowedCompactionTime =
-                            compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY ? 0 :
-                            compactMode == CommandInterface.SHUTDOWN_COMPACT ||
-                            compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
-                            dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
-                    store.close(allowedCompactionTime);
-                }
-            }
             if (systemSession != null) {
                 systemSession.close();
                 systemSession = null;
@@ -1510,16 +1476,13 @@ public class Database implements DataHandler, CastDataProvider {
                 lobSession = null;
             }
             closeFiles(false);
-            if (persistent && lock == null &&
-                    fileLockMethod != FileLockMethod.NO &&
-                    fileLockMethod != FileLockMethod.FS) {
-                // everything already closed (maybe in checkPowerOff)
-                // don't delete temp files in this case because
-                // the database could be open now (even from within another process)
-                return;
-            }
             if (persistent) {
-                deleteOldTempFiles();
+                // Don't delete temp files if everything is already closed
+                // (maybe in checkPowerOff), the database could be open now
+                // (even from within another process).
+                if (lock != null || fileLockMethod == FileLockMethod.NO || fileLockMethod == FileLockMethod.FS) {
+                    deleteOldTempFiles();
+                }
             }
         } finally {
             if (lock != null) {
@@ -1537,8 +1500,7 @@ public class Database implements DataHandler, CastDataProvider {
                 } else {
                     store.close(0);
                 }
-            }
-            if (pageStore != null) {
+            } else if (pageStore != null) {
                 pageStore.close();
                 pageStore = null;
             }
@@ -1993,11 +1955,10 @@ public class Database implements DataHandler, CastDataProvider {
             kb = Math.min(kb, max);
         }
         cacheSize = kb;
-        if (pageStore != null) {
-            pageStore.setMaxCacheMemory(kb);
-        }
         if (store != null) {
             store.setCacheSize(Math.max(1, kb));
+        } else if (pageStore != null) {
+            pageStore.setMaxCacheMemory(kb);
         }
     }
 
@@ -2047,15 +2008,10 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     public void setWriteDelay(int value) {
-        writeDelay = value;
-        if (writer != null) {
-            writer.setWriteDelay(value);
-            // TODO check if MIN_WRITE_DELAY is a good value
-            flushOnEachCommit = writeDelay < Constants.MIN_WRITE_DELAY;
-        }
         if (store != null) {
-            int millis = value < 0 ? 0 : value;
-            store.getMvStore().setAutoCommitDelay(millis);
+            store.getMvStore().setAutoCommitDelay(value < 0 ? 0 : value);
+        } else if (pageStore != null) {
+            pageStore.setWriteDelay(value);
         }
     }
 
@@ -2076,15 +2032,6 @@ public class Database implements DataHandler, CastDataProvider {
 
     public boolean isAllowBuiltinAliasOverride() {
         return allowBuiltinAliasOverride;
-    }
-
-    /**
-     * Check if flush-on-each-commit is enabled.
-     *
-     * @return true if it is
-     */
-    public boolean getFlushOnEachCommit() {
-        return flushOnEachCommit;
     }
 
     /**
@@ -2111,9 +2058,7 @@ public class Database implements DataHandler, CastDataProvider {
         }
         if (store != null) {
             store.prepareCommit(session, transaction);
-            return;
-        }
-        if (pageStore != null) {
+        } else if (pageStore != null) {
             pageStore.flushLog();
             pageStore.prepareCommit(session, transaction);
         }
@@ -2174,9 +2119,6 @@ public class Database implements DataHandler, CastDataProvider {
         if (readOnly) {
             return;
         }
-        if (pageStore != null) {
-            pageStore.flushLog();
-        }
         if (store != null) {
             try {
                 store.flush();
@@ -2184,6 +2126,8 @@ public class Database implements DataHandler, CastDataProvider {
                 backgroundException.compareAndSet(null, DbException.convert(e));
                 throw e;
             }
+        } else if (pageStore != null) {
+            pageStore.flushLog();
         }
     }
 
@@ -2257,8 +2201,7 @@ public class Database implements DataHandler, CastDataProvider {
         }
         if (store != null) {
             store.sync();
-        }
-        if (pageStore != null) {
+        } else if (pageStore != null) {
             pageStore.sync();
         }
     }
@@ -2460,8 +2403,8 @@ public class Database implements DataHandler, CastDataProvider {
         if (eventListener != null) {
             eventListener.opened();
         }
-        if (writer != null) {
-            writer.startThread();
+        if (pageStore != null) {
+            pageStore.startWriter();
         }
     }
 
@@ -2597,7 +2540,8 @@ public class Database implements DataHandler, CastDataProvider {
         return tempFileDeleter;
     }
 
-    private void createPageStore() {
+    private void createPageStore(ConnectionInfo ci) {
+        int logMode = ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
         pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
         if (pageSize != Constants.DEFAULT_PAGE_SIZE) {
             pageStore.setPageSize(pageSize);
@@ -2641,13 +2585,14 @@ public class Database implements DataHandler, CastDataProvider {
      */
     public void checkpoint() {
         if (persistent) {
-            synchronized (this) {
-                if (pageStore != null) {
-                    pageStore.checkpoint();
-                }
-            }
             if (store != null) {
                 store.flush();
+            } else {
+                synchronized (this) {
+                    if (pageStore != null) {
+                        pageStore.checkpoint();
+                    }
+                }
             }
         }
         getTempFileDeleter().deleteUnused();
@@ -2675,52 +2620,11 @@ public class Database implements DataHandler, CastDataProvider {
 
     @Override
     public LobStorageInterface getLobStorage() {
-        if (lobStorage == null) {
-            if (dbSettings.mvStore) {
-                lobStorage = new LobStorageMap(this);
-            } else {
-                lobStorage = new LobStorageBackend(this);
-            }
-        }
         return lobStorage;
     }
 
     public SessionLocal getLobSession() {
         return lobSession;
-    }
-
-    public void setLogMode(int log) {
-        if (log < 0 || log > 2) {
-            throw DbException.getInvalidValueException("LOG", log);
-        }
-        if (store != null) {
-            this.logMode = log;
-            return;
-        }
-        synchronized (this) {
-            if (pageStore != null) {
-                if (log != PageStore.LOG_MODE_SYNC ||
-                        pageStore.getLogMode() != PageStore.LOG_MODE_SYNC) {
-                    // write the log mode in the trace file when enabling or
-                    // disabling a dangerous mode
-                    trace.error(null, "log {0}", log);
-                }
-                this.logMode = log;
-                pageStore.setLogMode(log);
-            }
-        }
-    }
-
-    public int getLogMode() {
-        if (store != null) {
-            return logMode;
-        }
-        synchronized (this) {
-            if (pageStore != null) {
-                return pageStore.getLogMode();
-            }
-        }
-        return PageStore.LOG_MODE_OFF;
     }
 
     public int getDefaultTableType() {

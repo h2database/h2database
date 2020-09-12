@@ -90,14 +90,7 @@ public class FileLister {
         String start = db == null ? null : (FileUtils.toRealPath(dir + "/" + db) + ".");
         for (String f : FileUtils.newDirectoryStream(dir)) {
             boolean ok = false;
-            if (f.endsWith(Constants.SUFFIX_LOBS_DIRECTORY)) {
-                if (start == null || f.startsWith(start)) {
-                    files.addAll(getDatabaseFiles(f, null, all));
-                    ok = true;
-                }
-            } else if (f.endsWith(Constants.SUFFIX_LOB_FILE)) {
-                ok = true;
-            } else if (f.endsWith(Constants.SUFFIX_PAGE_FILE)) {
+            if (f.endsWith(Constants.SUFFIX_PAGE_FILE)) {
                 ok = true;
             } else if (f.endsWith(Constants.SUFFIX_MV_FILE)) {
                 ok = true;

@@ -78,12 +78,16 @@ public class TestSpatial extends TestDb {
         testSpatialValues();
         testOverlap();
         testNotOverlap();
-        testPersistentSpatialIndex();
-        testSpatialIndexQueryMultipleTable();
-        testIndexTransaction();
+        if (config.mvStore) {
+            testPersistentSpatialIndex();
+            testSpatialIndexQueryMultipleTable();
+            testIndexTransaction();
+        }
         testJavaAlias();
         testJavaAliasTableFunction();
-        testMemorySpatialIndex();
+        if (config.mvStore) {
+            testMemorySpatialIndex();
+        }
         testGeometryDataType();
         testWKB();
         testValueConversion();
@@ -93,16 +97,20 @@ public class TestSpatial extends TestDb {
         testTableViewSpatialPredicate();
         testValueGeometryScript();
         testInPlaceUpdate();
-        testScanIndexOnNonSpatialQuery();
-        testStoreCorruption();
-        testExplainSpatialIndexWithPk();
-        testNullableGeometry();
-        testNullableGeometryDelete();
-        testNullableGeometryInsert();
+        if (config.mvStore) {
+            testScanIndexOnNonSpatialQuery();
+            testStoreCorruption();
+            testExplainSpatialIndexWithPk();
+            testNullableGeometry();
+            testNullableGeometryDelete();
+            testNullableGeometryInsert();
+        }
         testNullableGeometryUpdate();
-        testIndexUpdateNullGeometry();
-        testInsertNull();
-        testSpatialIndexWithOrder();
+        if (config.mvStore) {
+            testIndexUpdateNullGeometry();
+            testInsertNull();
+            testSpatialIndexWithOrder();
+        }
     }
 
     private void testBug1() throws SQLException {

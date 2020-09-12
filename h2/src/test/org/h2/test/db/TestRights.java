@@ -425,8 +425,13 @@ public class TestRights extends TestDb {
                 "(ID INT PRIMARY KEY, NAME VARCHAR)");
         conn.close();
 
+        String url = "rights";
+        if (!config.mvStore) {
+            url += ";LOG=2";
+        }
+
         // try and fail (no rights yet)
-        conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
+        conn = getConnection(url, "SCHEMA_CREATOR", getPassword("xyz"));
         stat = conn.createStatement();
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).execute(
                 "CREATE SCHEMA SCHEMA_RIGHT_TEST_WILL_FAIL");
@@ -443,7 +448,7 @@ public class TestRights extends TestDb {
         conn.close();
 
         // try and succeed
-        conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
+        conn = getConnection(url, "SCHEMA_CREATOR", getPassword("xyz"));
         stat = conn.createStatement();
 
         // should be able to create a schema and manipulate tables on that
@@ -473,7 +478,7 @@ public class TestRights extends TestDb {
         conn.close();
 
         // try again and fail
-        conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
+        conn = getConnection(url, "SCHEMA_CREATOR", getPassword("xyz"));
         stat = conn.createStatement();
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
             execute("CREATE SCHEMA SCHEMA_RIGHT_TEST");
@@ -572,7 +577,11 @@ public class TestRights extends TestDb {
         executeSuccess("GRANT SELECT, INSERT, UPDATE ON TEST TO PASS_READER");
         conn.close();
 
-        conn = getConnection("rights;LOG=2", "PASS_READER", getPassword("abc"));
+        String url = "rights";
+        if (!config.mvStore) {
+            url += ";LOG=2";
+        }
+        conn = getConnection(url, "PASS_READER", getPassword("abc"));
         stat = conn.createStatement();
         executeSuccess("SELECT * FROM PASS_NAME");
         executeSuccess("SELECT * FROM (SELECT * FROM PASS_NAME)");
@@ -645,7 +654,7 @@ public class TestRights extends TestDb {
         } catch (SQLException e) {
             assertKnownException(e);
         }
-        conn = getConnection("rights;LOG=2", "TEST", getPassword("def"));
+        conn = getConnection(url, "TEST", getPassword("def"));
         stat = conn.createStatement();
 
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).

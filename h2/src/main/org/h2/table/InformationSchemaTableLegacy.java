@@ -1110,29 +1110,11 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 add(session, rows, "NON_KEYWORDS", Parser.formatNonKeywords(nonKeywords));
             }
             add(session, rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
-            add(session, rows, "LOG", Integer.toString(database.getLogMode()));
             // database settings
             for (Map.Entry<String, String> entry : database.getSettings().getSortedSettings()) {
                 add(session, rows, entry.getKey(), entry.getValue());
             }
             if (database.isPersistent()) {
-                PageStore pageStore = database.getPageStore();
-                if (pageStore != null) {
-                    add(session, rows,
-                            "info.FILE_WRITE_TOTAL", Long.toString(pageStore.getWriteCountTotal()));
-                    add(session, rows,
-                            "info.FILE_WRITE", Long.toString(pageStore.getWriteCount()));
-                    add(session, rows,
-                            "info.FILE_READ", Long.toString(pageStore.getReadCount()));
-                    add(session, rows,
-                            "info.PAGE_COUNT", Integer.toString(pageStore.getPageCount()));
-                    add(session, rows,
-                            "info.PAGE_SIZE", Integer.toString(pageStore.getPageSize()));
-                    add(session, rows,
-                            "info.CACHE_MAX_SIZE", Integer.toString(pageStore.getCache().getMaxMemory()));
-                    add(session, rows,
-                            "info.CACHE_SIZE", Integer.toString(pageStore.getCache().getMemory()));
-                }
                 Store store = database.getStore();
                 if (store != null) {
                     MVStore mvStore = store.getMvStore();
@@ -1177,6 +1159,19 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                 Integer.toString(mvStore.getTocCacheHitRatio()));
                         add(session, rows,
                                 "info.LEAF_RATIO", Integer.toString(mvStore.getLeafRatio()));
+                    }
+                } else {
+                    PageStore pageStore = database.getPageStore();
+                    if (pageStore != null) {
+                        add(session, rows, "LOG", Integer.toString(pageStore.getLogMode()));
+                        add(session, rows, "info.FILE_WRITE_TOTAL", Long.toString(pageStore.getWriteCountTotal()));
+                        add(session, rows, "info.FILE_WRITE", Long.toString(pageStore.getWriteCount()));
+                        add(session, rows, "info.FILE_READ", Long.toString(pageStore.getReadCount()));
+                        add(session, rows, "info.PAGE_COUNT", Integer.toString(pageStore.getPageCount()));
+                        add(session, rows, "info.PAGE_SIZE", Integer.toString(pageStore.getPageSize()));
+                        add(session, rows, "info.CACHE_MAX_SIZE",
+                                Integer.toString(pageStore.getCache().getMaxMemory()));
+                        add(session, rows, "info.CACHE_SIZE", Integer.toString(pageStore.getCache().getMemory()));
                     }
                 }
             }

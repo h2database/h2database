@@ -818,7 +818,7 @@ Hash indexes can only test for equality, do not support range queries (similar t
 but can perform lookups faster.
 Non-unique keys are supported.
 
-Spatial indexes are supported only on Geometry columns.
+Spatial indexes are supported only on GEOMETRY columns and only by default MVStore engine.
 ","
 CREATE INDEX IDXNAME ON TEST(NAME)
 "
@@ -1684,7 +1684,7 @@ SET LAZY_QUERY_EXECUTION 1
 @h2@ SET LOG int
 ","
 Sets the transaction log mode. The values 0, 1, and 2 are supported, the default is 2.
-This setting affects all connections.
+This setting is only supported by the PageStore engine. This setting affects all connections.
 
 LOG 0 means the transaction log is disabled completely. It is the fastest mode,
 but also the most dangerous: if the process is killed while the database is open in this mode,

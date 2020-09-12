@@ -461,17 +461,6 @@ public class Constants {
     public static final String SUFFIX_DB_FILE = ".db";
 
     /**
-     * The file name suffix of large object files.
-     */
-    public static final String SUFFIX_LOB_FILE = ".lob.db";
-
-    /**
-     * The suffix of the directory name used if LOB objects are stored in a
-     * directory.
-     */
-    public static final String SUFFIX_LOBS_DIRECTORY = ".lobs.db";
-
-    /**
      * The file name suffix of file lock files that are used to make sure a
      * database is open by only one process at any time.
      */

@@ -1892,7 +1892,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         // Here we are relying on the fact that map which backs table's primary index
         // has the same name as the table itself
         Store store = database.getStore();
-        if(store != null) {
+        if (store != null) {
             MVTable table = store.getTable(map.getName());
             if (table != null) {
                 long recKey = (Long)key;

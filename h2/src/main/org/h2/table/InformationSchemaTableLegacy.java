@@ -1381,6 +1381,9 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         }
                         for (FunctionAlias.JavaMethod method : methods) {
                             TypeInfo typeInfo = method.getDataType();
+                            if (typeInfo == null) {
+                                typeInfo = TypeInfo.TYPE_NULL;
+                            }
                             add(session,
                                     rows,
                                     // ALIAS_CATALOG
@@ -1459,7 +1462,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         for (FunctionAlias.JavaMethod method : methods) {
                             // Add return column index 0
                             TypeInfo typeInfo = method.getDataType();
-                            if (typeInfo.getValueType() != Value.NULL) {
+                            if (typeInfo != null && typeInfo.getValueType() != Value.NULL) {
                                 DataType dt = DataType.getDataType(typeInfo.getValueType());
                                 add(session,
                                         rows,

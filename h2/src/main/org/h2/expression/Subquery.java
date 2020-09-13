@@ -103,7 +103,9 @@ public final class Subquery extends Expression {
             for (int i = 0; i < columnCount; i++) {
                 list[i] = expressions.get(i);
             }
-            expression = new ExpressionList(list, false).optimize(session);
+            ExpressionList expressionList = new ExpressionList(list, false);
+            expressionList.initializeType();
+            expression = expressionList;
         }
         return this;
     }

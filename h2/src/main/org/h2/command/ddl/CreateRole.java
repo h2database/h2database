@@ -8,6 +8,7 @@ package org.h2.command.ddl;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
+import org.h2.engine.RightOwner;
 import org.h2.engine.Role;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
@@ -38,14 +39,15 @@ public class CreateRole extends DefineCommand {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
-        if (db.findUser(roleName) != null) {
-            throw DbException.get(ErrorCode.USER_ALREADY_EXISTS_1, roleName);
-        }
-        if (db.findRole(roleName) != null) {
-            if (ifNotExists) {
-                return 0;
+        RightOwner rightOwner = db.findUserOrRole(roleName);
+        if (rightOwner != null) {
+            if (rightOwner instanceof Role) {
+                if (ifNotExists) {
+                    return 0;
+                }
+                throw DbException.get(ErrorCode.ROLE_ALREADY_EXISTS_1, roleName);
             }
-            throw DbException.get(ErrorCode.ROLE_ALREADY_EXISTS_1, roleName);
+            throw DbException.get(ErrorCode.USER_ALREADY_EXISTS_1, roleName);
         }
         int id = getObjectId();
         Role role = new Role(db, id, roleName, false);

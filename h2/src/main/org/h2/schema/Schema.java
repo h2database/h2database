@@ -50,8 +50,7 @@ public class Schema extends DbObject {
     private final ConcurrentHashMap<String, TriggerObject> triggers;
     private final ConcurrentHashMap<String, Constraint> constraints;
     private final ConcurrentHashMap<String, Constant> constants;
-    private final ConcurrentHashMap<String, FunctionAlias> functions;
-    private final ConcurrentHashMap<String, UserAggregate> aggregates;
+    private final ConcurrentHashMap<String, UserDefinedFunction> functionsAndAggregates;
 
     /**
      * The set of returned unique names that are not yet stored. It is used to
@@ -81,8 +80,7 @@ public class Schema extends DbObject {
         triggers = database.newConcurrentStringMap();
         constraints = database.newConcurrentStringMap();
         constants = database.newConcurrentStringMap();
-        functions = database.newConcurrentStringMap();
-        aggregates = database.newConcurrentStringMap();
+        functionsAndAggregates = database.newConcurrentStringMap();
         this.owner = owner;
         this.system = system;
     }
@@ -125,7 +123,7 @@ public class Schema extends DbObject {
     public boolean isEmpty() {
         return tablesAndViews.isEmpty() && domains.isEmpty() && synonyms.isEmpty() && indexes.isEmpty()
                 && sequences.isEmpty() && triggers.isEmpty() && constraints.isEmpty() && constants.isEmpty()
-                && functions.isEmpty() && aggregates.isEmpty();
+                && functionsAndAggregates.isEmpty();
     }
 
     @Override
@@ -173,8 +171,7 @@ public class Schema extends DbObject {
         removeChildrenFromMap(session, indexes);
         removeChildrenFromMap(session, sequences);
         removeChildrenFromMap(session, constants);
-        removeChildrenFromMap(session, functions);
-        removeChildrenFromMap(session, aggregates);
+        removeChildrenFromMap(session, functionsAndAggregates);
         for (Right right : database.getAllRights()) {
             if (right.getGrantedObject() == this) {
                 database.removeDatabaseObject(session, right);
@@ -250,10 +247,8 @@ public class Schema extends DbObject {
             result = constants;
             break;
         case DbObject.FUNCTION_ALIAS:
-            result = functions;
-            break;
         case DbObject.AGGREGATE:
-            result = aggregates;
+            result = functionsAndAggregates;
             break;
         default:
             throw DbException.getInternalError("type=" + type);
@@ -355,19 +350,6 @@ public class Schema extends DbObject {
     }
 
     /**
-     * Get objects of the given type.
-     *
-     * @param type
-     *                  the object type
-     * @param name
-     *                  the name of the object
-     * @return the object, or null
-     */
-    public SchemaObject find(int type, String name) {
-        return getMap(type).get(name);
-    }
-
-    /**
      * Get the domain if it exists, or null if not.
      *
      * @param name the name of the domain
@@ -450,7 +432,8 @@ public class Schema extends DbObject {
      * @return the object or null
      */
     public FunctionAlias findFunction(String functionAlias) {
-        return functions.get(functionAlias);
+        UserDefinedFunction userDefinedFunction = findFunctionOrAggregate(functionAlias);
+        return userDefinedFunction instanceof FunctionAlias ? (FunctionAlias) userDefinedFunction : null;
     }
 
     /**
@@ -461,7 +444,21 @@ public class Schema extends DbObject {
      * @return the aggregate function or null
      */
     public UserAggregate findAggregate(String name) {
-        return aggregates.get(name);
+        UserDefinedFunction userDefinedFunction = findFunctionOrAggregate(name);
+        return userDefinedFunction instanceof UserAggregate ? (UserAggregate) userDefinedFunction : null;
+    }
+
+    /**
+     * Try to find a user defined function or aggregate function with the
+     * specified name. This method returns null if no object with this name
+     * exists.
+     *
+     * @param name
+     *            the object name
+     * @return the object or null
+     */
+    public UserDefinedFunction findFunctionOrAggregate(String name) {
+        return functionsAndAggregates.get(name);
     }
 
     /**
@@ -663,8 +660,7 @@ public class Schema extends DbObject {
         addTo.addAll(triggers.values());
         addTo.addAll(constraints.values());
         addTo.addAll(constants.values());
-        addTo.addAll(functions.values());
-        addTo.addAll(aggregates.values());
+        addTo.addAll(functionsAndAggregates.values());
         return addTo;
     }
 
@@ -718,12 +714,8 @@ public class Schema extends DbObject {
         return synonyms.values();
     }
 
-    public Collection<FunctionAlias> getAllFunctionAliases() {
-        return functions.values();
-    }
-
-    public Collection<UserAggregate> getAllAggregates() {
-        return aggregates.values();
+    public Collection<UserDefinedFunction> getAllFunctionsAndAggregates() {
+        return functionsAndAggregates.values();
     }
 
     /**

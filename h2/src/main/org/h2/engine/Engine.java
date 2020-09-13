@@ -91,11 +91,15 @@ public final class Engine {
                 }
                 database = new Database(ci, cipher);
                 opened = true;
-                if (database.getAllUsers().isEmpty()) {
+                checkUserExists: {
+                    for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+                        if (rightOwner instanceof User) {
+                            break checkUserExists;
+                        }
+                    }
                     // users is the last thing we add, so if no user is around,
                     // the database is new (or not initialized correctly)
-                    user = new User(database, database.allocateObjectId(),
-                            ci.getUserName(), false);
+                    user = new User(database, database.allocateObjectId(), ci.getUserName(), false);
                     user.setAdmin(true);
                     user.setUserPasswordHash(ci.getUserPasswordHash());
                     database.setMasterUser(user);

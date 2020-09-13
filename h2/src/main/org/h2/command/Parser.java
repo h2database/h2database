@@ -326,9 +326,9 @@ import org.h2.result.SortOrder;
 import org.h2.schema.Domain;
 import org.h2.schema.FunctionAlias;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.UserAggregate;
+import org.h2.schema.UserDefinedFunction;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
@@ -2269,10 +2269,7 @@ public class Parser {
                 return readParameters(new LinkSchemaFunction());
             }
         }
-        FunctionAlias functionAlias = findSchemaObjectWithinPath(schema, name, DbObject.FUNCTION_ALIAS);
-        if (functionAlias == null) {
-            throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, name);
-        }
+        FunctionAlias functionAlias = getFunctionAliasWithinPath(name, schema);
         if (!functionAlias.isDeterministic()) {
             recompileAlways = true;
         }
@@ -2771,11 +2768,8 @@ public class Parser {
                 name = readIdentifier();
             }
         }
-        FunctionAlias functionAlias = findSchemaObjectWithinPath(
-                schemaName != null ? database.getSchema(schemaName) : null, name, DbObject.FUNCTION_ALIAS);
-        if (functionAlias == null) {
-            throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, name);
-        }
+        FunctionAlias functionAlias = getFunctionAliasWithinPath(name,
+                schemaName != null ? database.getSchema(schemaName) : null);
         Expression[] args;
         ArrayList<Expression> argList = Utils.newSmallArrayList();
         if (currentTokenType != SEMICOLON && currentTokenType != END_OF_INPUT) {
@@ -2786,6 +2780,14 @@ public class Parser {
         args = argList.toArray(new Expression[0]);
         command.setExpression(new JavaFunction(functionAlias, args));
         return command;
+    }
+
+    private FunctionAlias getFunctionAliasWithinPath(String name, Schema schema) {
+        UserDefinedFunction userDefinedFunction = findUserDefinedFunctionWithinPath(schema, name);
+        if (userDefinedFunction instanceof FunctionAlias) {
+            return (FunctionAlias) userDefinedFunction;
+        }
+        throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, name);
     }
 
     private DeallocateProcedure parseDeallocate() {
@@ -3882,34 +3884,31 @@ public class Parser {
         return order;
     }
 
-    private JavaFunction readJavaFunction(Schema schema, String functionName) {
-        FunctionAlias functionAlias = findSchemaObjectWithinPath(schema, functionName, DbObject.FUNCTION_ALIAS);
-        if (functionAlias == null) {
+    private Expression readUserDefinedFunctionIf(Schema schema, String functionName) {
+        UserDefinedFunction userDefinedFunction = findUserDefinedFunctionWithinPath(schema, functionName);
+        if (userDefinedFunction == null) {
             return null;
-        }
-        ArrayList<Expression> argList = Utils.newSmallArrayList();
-        if (!readIf(CLOSE_PAREN)) {
+        } else if (userDefinedFunction instanceof FunctionAlias) {
+            FunctionAlias functionAlias = (FunctionAlias) userDefinedFunction;
+            ArrayList<Expression> argList = Utils.newSmallArrayList();
+            if (!readIf(CLOSE_PAREN)) {
+                do {
+                    argList.add(readExpression());
+                } while (readIfMore());
+            }
+            return new JavaFunction(functionAlias, argList.toArray(new Expression[0]));
+        } else {
+            UserAggregate aggregate = (UserAggregate) userDefinedFunction;
+            boolean distinct = readDistinctAgg();
+            ArrayList<Expression> params = Utils.newSmallArrayList();
             do {
-                argList.add(readExpression());
+                params.add(readExpression());
             } while (readIfMore());
+            Expression[] list = params.toArray(new Expression[0]);
+            JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect, distinct);
+            readFilterAndOver(agg);
+            return agg;
         }
-        return new JavaFunction(functionAlias, argList.toArray(new Expression[0]));
-    }
-
-    private JavaAggregate readJavaAggregate(Schema schema, String aggregateName) {
-        UserAggregate aggregate = findSchemaObjectWithinPath(schema, aggregateName, DbObject.AGGREGATE);
-        if (aggregate == null) {
-            return null;
-        }
-        boolean distinct = readDistinctAgg();
-        ArrayList<Expression> params = Utils.newSmallArrayList();
-        do {
-            params.add(readExpression());
-        } while (readIfMore());
-        Expression[] list = params.toArray(new Expression[0]);
-        JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect, distinct);
-        readFilterAndOver(agg);
-        return agg;
     }
 
     private boolean readDistinctAgg() {
@@ -4058,9 +4057,9 @@ public class Parser {
         }
         boolean allowOverride = database.isAllowBuiltinAliasOverride();
         if (allowOverride) {
-            JavaFunction jf = readJavaFunction(null, name);
-            if (jf != null) {
-                return jf;
+            Expression e = readUserDefinedFunctionIf(null, name);
+            if (e != null) {
+                return e;
             }
         }
         AggregateType agg = Aggregate.getAggregateType(upperName);
@@ -4079,12 +4078,8 @@ public class Parser {
         if (e != null) {
             return e;
         }
-        e = readJavaAggregate(null, name);
-        if (e != null) {
-            return e;
-        }
         if (!allowOverride) {
-            e = readJavaFunction(null, name);
+            e = readUserDefinedFunctionIf(null, name);
             if (e != null) {
                 return e;
             }
@@ -4100,11 +4095,7 @@ public class Parser {
                 return readParameters(function);
             }
         }
-        Expression function = readJavaFunction(schema, name);
-        if (function != null) {
-            return function;
-        }
-        function = readJavaAggregate(schema, name);
+        Expression function = readUserDefinedFunctionIf(schema, name);
         if (function != null) {
             return function;
         }
@@ -9280,24 +9271,23 @@ public class Parser {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private <T extends SchemaObject> T findSchemaObjectWithinPath(Schema schema, String name, int type) {
+    private UserDefinedFunction findUserDefinedFunctionWithinPath(Schema schema, String name) {
         if (schema != null) {
-            return (T) schema.find(type, name);
+            return schema.findFunctionOrAggregate(name);
         }
         schema = database.getSchema(session.getCurrentSchemaName());
-        SchemaObject object = schema.find(type, name);
-        if (object != null) {
-            return (T) object;
+        UserDefinedFunction userDefinedFunction = schema.findFunctionOrAggregate(name);
+        if (userDefinedFunction != null) {
+            return userDefinedFunction;
         }
         String[] schemaNames = session.getSchemaSearchPath();
         if (schemaNames != null) {
             for (String schemaName : schemaNames) {
                 Schema schemaFromPath = database.getSchema(schemaName);
                 if (schemaFromPath != schema) {
-                    object = schemaFromPath.find(type, name);
-                    if (object != null) {
-                        return (T) object;
+                    userDefinedFunction = schemaFromPath.findFunctionOrAggregate(name);
+                    if (userDefinedFunction != null) {
+                        return userDefinedFunction;
                     }
                 }
             }

@@ -37,7 +37,7 @@ public class CreateFunctionAlias extends SchemaCommand {
         session.getUser().checkAdmin();
         Database db = session.getDatabase();
         Schema schema = getSchema();
-        if (schema.findFunction(aliasName) != null || schema.findAggregate(aliasName) != null) {
+        if (schema.findFunctionOrAggregate(aliasName) != null) {
             if (!ifNotExists) {
                 throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
             }

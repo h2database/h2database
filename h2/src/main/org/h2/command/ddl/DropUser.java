@@ -8,6 +8,7 @@ package org.h2.command.ddl;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
+import org.h2.engine.RightOwner;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.message.DbException;
@@ -46,8 +47,8 @@ public class DropUser extends DefineCommand {
         } else {
             if (user == session.getUser()) {
                 int adminUserCount = 0;
-                for (User u : db.getAllUsers()) {
-                    if (u.isAdmin()) {
+                for (RightOwner rightOwner : db.getAllUsersAndRoles()) {
+                    if (rightOwner instanceof User && ((User) rightOwner).isAdmin()) {
                         adminUserCount++;
                     }
                 }

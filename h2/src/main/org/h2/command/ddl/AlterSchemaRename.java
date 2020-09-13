@@ -50,9 +50,13 @@ public class AlterSchemaRename extends DefineCommand {
         }
         session.getUser().checkSchemaAdmin();
         db.renameDatabaseObject(session, oldSchema, newSchemaName);
-        ArrayList<SchemaObject> all = db.getAllSchemaObjects();
-        for (SchemaObject schemaObject : all) {
-            db.updateMeta(session, schemaObject);
+        ArrayList<SchemaObject> all = new ArrayList<>();
+        for (Schema schema : db.getAllSchemas()) {
+            schema.getAll(all);
+            for (SchemaObject schemaObject : all) {
+                db.updateMeta(session, schemaObject);
+            }
+            all.clear();
         }
         return 0;
     }

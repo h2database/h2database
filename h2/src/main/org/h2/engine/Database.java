@@ -1576,19 +1576,6 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     /**
-     * Get all schema objects.
-     *
-     * @return all objects of all types
-     */
-    public ArrayList<SchemaObject> getAllSchemaObjects() {
-        ArrayList<SchemaObject> list = new ArrayList<>();
-        for (Schema schema : schemas.values()) {
-            schema.getAll(list);
-        }
-        return list;
-    }
-
-    /**
      * Get all tables and views. Meta data tables may be excluded.
      *
      * @return all objects of that type

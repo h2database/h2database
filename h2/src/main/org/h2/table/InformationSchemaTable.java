@@ -51,7 +51,7 @@ import org.h2.schema.FunctionAlias;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
-import org.h2.schema.UserAggregate;
+import org.h2.schema.UserDefinedFunction;
 import org.h2.schema.FunctionAlias.JavaMethod;
 import org.h2.store.InDoubtTransaction;
 import org.h2.util.DateTimeUtils;
@@ -1489,27 +1489,30 @@ public final class InformationSchemaTable extends MetaTable {
                 elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation, schemaName,
                         domain.getName(), "DOMAIN", "TYPE", domain.getDataType());
             }
-            for (FunctionAlias alias : schema.getAllFunctionAliases()) {
-                String name = alias.getName();
-                JavaMethod[] methods;
-                try {
-                    methods = alias.getJavaMethods();
-                } catch (DbException e) {
-                    methods = new JavaMethod[0];
-                }
-                for (int i = 0; i < methods.length; i++) {
-                    FunctionAlias.JavaMethod method = methods[i];
-                    TypeInfo typeInfo = method.getDataType();
-                    String specificName = name + '_' + (i + 1);
-                    if (typeInfo != null && typeInfo.getValueType() != Value.NULL) {
-                        elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation,
-                                schemaName, specificName, "ROUTINE", "RESULT", typeInfo);
+            for (UserDefinedFunction userDefinedFunction : schema.getAllFunctionsAndAggregates()) {
+                if (userDefinedFunction instanceof FunctionAlias) {
+                    String name = userDefinedFunction.getName();
+                    JavaMethod[] methods;
+                    try {
+                        methods = ((FunctionAlias) userDefinedFunction).getJavaMethods();
+                    } catch (DbException e) {
+                        continue;
                     }
-                    Class<?>[] columnList = method.getColumnClasses();
-                    for (int o = 1, p = method.hasConnectionParam() ? 1 : 0, n = columnList.length; p < n; o++, p++) {
-                        elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation,
-                                schemaName, specificName, "ROUTINE", Integer.toString(o),
-                                ValueToObjectConverter2.classToType(columnList[p]));
+                    for (int i = 0; i < methods.length; i++) {
+                        FunctionAlias.JavaMethod method = methods[i];
+                        TypeInfo typeInfo = method.getDataType();
+                        String specificName = name + '_' + (i + 1);
+                        if (typeInfo != null && typeInfo.getValueType() != Value.NULL) {
+                            elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation, schemaName,
+                                    specificName, "ROUTINE", "RESULT", typeInfo);
+                        }
+                        Class<?>[] columnList = method.getColumnClasses();
+                        for (int o = 1, p = method.hasConnectionParam() ? 1
+                                : 0, n = columnList.length; p < n; o++, p++) {
+                            elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation, schemaName,
+                                    specificName, "ROUTINE", Integer.toString(o),
+                                    ValueToObjectConverter2.classToType(columnList[p]));
+                        }
                     }
                 }
             }
@@ -1800,20 +1803,23 @@ public final class InformationSchemaTable extends MetaTable {
         String mainSchemaName = database.getMainSchema().getName();
         String collation = database.getCompareMode().getName();
         for (Schema schema : database.getAllSchemas()) {
-            for (FunctionAlias alias : schema.getAllFunctionAliases()) {
-                JavaMethod[] methods;
-                try {
-                    methods = alias.getJavaMethods();
-                } catch (DbException e) {
-                    methods = new JavaMethod[0];
-                }
-                for (int i = 0; i < methods.length; i++) {
-                    FunctionAlias.JavaMethod method = methods[i];
-                    Class<?>[] columnList = method.getColumnClasses();
-                    for (int o = 1, p = method.hasConnectionParam() ? 1 : 0, n = columnList.length; p < n; o++, p++) {
-                        parameters(session, rows, catalog, mainSchemaName, collation, schema.getName(),
-                                alias.getName() + '_' + (i + 1), ValueToObjectConverter2.classToType(columnList[p]), //
-                                o);
+            for (UserDefinedFunction userDefinedFunction : schema.getAllFunctionsAndAggregates()) {
+                if (userDefinedFunction instanceof FunctionAlias) {
+                    JavaMethod[] methods;
+                    try {
+                        methods = ((FunctionAlias) userDefinedFunction).getJavaMethods();
+                    } catch (DbException e) {
+                        continue;
+                    }
+                    for (int i = 0; i < methods.length; i++) {
+                        FunctionAlias.JavaMethod method = methods[i];
+                        Class<?>[] columnList = method.getColumnClasses();
+                        for (int o = 1, p = method.hasConnectionParam() ? 1
+                                : 0, n = columnList.length; p < n; o++, p++) {
+                            parameters(session, rows, catalog, mainSchemaName, collation, schema.getName(),
+                                    userDefinedFunction.getName() + '_' + (i + 1),
+                                    ValueToObjectConverter2.classToType(columnList[p]), o);
+                        }
                     }
                 }
             }
@@ -1949,34 +1955,36 @@ public final class InformationSchemaTable extends MetaTable {
         String collation = database.getCompareMode().getName();
         for (Schema schema : database.getAllSchemas()) {
             String schemaName = schema.getName();
-            for (FunctionAlias alias : schema.getAllFunctionAliases()) {
-                String name = alias.getName();
-                JavaMethod[] methods;
-                try {
-                    methods = alias.getJavaMethods();
-                } catch (DbException e) {
-                    methods = new JavaMethod[0];
-                }
-                for (int i = 0; i < methods.length; i++) {
-                    FunctionAlias.JavaMethod method = methods[i];
-                    TypeInfo typeInfo = method.getDataType();
-                    String routineType;
-                    if (typeInfo.getValueType() == Value.NULL) {
-                        routineType = "PROCEDURE";
-                        typeInfo = null;
-                    } else {
-                        routineType = "FUNCTION";
+            for (UserDefinedFunction userDefinedFunction : schema.getAllFunctionsAndAggregates()) {
+                String name = userDefinedFunction.getName();
+                if (userDefinedFunction instanceof FunctionAlias) {
+                    FunctionAlias alias = (FunctionAlias) userDefinedFunction;
+                    JavaMethod[] methods;
+                    try {
+                        methods = alias.getJavaMethods();
+                    } catch (DbException e) {
+                        continue;
                     }
-                    routines(session, rows, catalog, mainSchemaName, collation, schemaName, name,
-                            name + '_' + (i + 1), routineType, admin ? alias.getSource() : null,
-                            alias.getJavaClassName() + '.' + alias.getJavaMethodName(), typeInfo,
-                            alias.isDeterministic(), alias.getComment());
+                    for (int i = 0; i < methods.length; i++) {
+                        FunctionAlias.JavaMethod method = methods[i];
+                        TypeInfo typeInfo = method.getDataType();
+                        String routineType;
+                        if (typeInfo.getValueType() == Value.NULL) {
+                            routineType = "PROCEDURE";
+                            typeInfo = null;
+                        } else {
+                            routineType = "FUNCTION";
+                        }
+                        routines(session, rows, catalog, mainSchemaName, collation, schemaName, name,
+                                name + '_' + (i + 1), routineType, admin ? alias.getSource() : null,
+                                alias.getJavaClassName() + '.' + alias.getJavaMethodName(), typeInfo,
+                                alias.isDeterministic(), alias.getComment());
+                    }
+                } else {
+                    routines(session, rows, catalog, mainSchemaName, collation, schemaName, name, name, "AGGREGATE",
+                            null, userDefinedFunction.getJavaClassName(), TypeInfo.TYPE_NULL, false,
+                            userDefinedFunction.getComment());
                 }
-            }
-            for (UserAggregate agg : schema.getAllAggregates()) {
-                String name = agg.getName();
-                routines(session, rows, catalog, mainSchemaName, collation, schemaName, name, name,
-                        "AGGREGATE", null, agg.getJavaClassName(), TypeInfo.TYPE_NULL, false, agg.getComment());
             }
         }
     }

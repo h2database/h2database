@@ -46,11 +46,10 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
-import org.h2.schema.FunctionAlias;
+import org.h2.schema.UserDefinedFunction;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
-import org.h2.schema.UserAggregate;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
@@ -233,19 +232,11 @@ public class ScriptCommand extends ScriptBase {
                 }
             }
             for (Schema schema : schemas) {
-                for (FunctionAlias obj : schema.getAllFunctionAliases()) {
+                for (UserDefinedFunction userDefinedFunction : schema.getAllFunctionsAndAggregates()) {
                     if (drop) {
-                        add(obj.getDropSQL(), false);
+                        add(userDefinedFunction.getDropSQL(), false);
                     }
-                    add(obj.getCreateSQL(), false);
-                }
-            }
-            for (Schema schema : schemas) {
-                for (UserAggregate obj : schema.getAllAggregates()) {
-                    if (drop) {
-                        add(obj.getDropSQL(), false);
-                    }
-                    add(obj.getCreateSQL(), false);
+                    add(userDefinedFunction.getCreateSQL(), false);
                 }
             }
             for (Schema schema : schemas) {

@@ -34,7 +34,7 @@ public class CreateAggregate extends SchemaCommand {
         session.getUser().checkAdmin();
         Database db = session.getDatabase();
         Schema schema = getSchema();
-        if (schema.findAggregate(name) != null || schema.findFunction(name) != null) {
+        if (schema.findFunctionOrAggregate(name) != null) {
             if (!ifNotExists) {
                 throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
             }

@@ -69,10 +69,7 @@ public final class DBObjectFunction extends FunctionN {
                 object = schema.findIndex(session, objectName);
                 break;
             case "ROUTINE":
-                object = schema.findFunction(objectName);
-                if (object == null) {
-                    object = schema.findAggregate(objectName);
-                }
+                object = schema.findFunctionOrAggregate(objectName);
                 break;
             case "SEQUENCE":
                 object = schema.findSequence(objectName);

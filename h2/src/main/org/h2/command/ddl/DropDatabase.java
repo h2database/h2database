@@ -120,8 +120,8 @@ public class DropDatabase extends DefineCommand {
         addAll(schemas, DbObject.CONSTRAINT, list);
         addAll(schemas, DbObject.TRIGGER, list);
         addAll(schemas, DbObject.CONSTANT, list);
+        // Function aliases and aggregates are stored together
         addAll(schemas, DbObject.FUNCTION_ALIAS, list);
-        addAll(schemas, DbObject.AGGREGATE, list);
         addAll(schemas, DbObject.DOMAIN, list);
         for (SchemaObject obj : list) {
             if (!obj.getSchema().isValid() || obj.isHidden()) {

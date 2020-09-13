@@ -37,7 +37,7 @@ import org.h2.result.SortOrder;
 import org.h2.schema.FunctionAlias;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
-import org.h2.schema.UserAggregate;
+import org.h2.schema.UserDefinedFunction;
 import org.h2.schema.FunctionAlias.JavaMethod;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -221,34 +221,31 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         CompareLike procedureLike = getLike(procedureNamePattern);
         for (Schema s : getSchemasForPattern(schemaPattern)) {
             Value schemaValue = getString(s.getName());
-            for (FunctionAlias f : s.getAllFunctionAliases()) {
-                String procedureName = f.getName();
+            for (UserDefinedFunction userDefinedFunction : s.getAllFunctionsAndAggregates()) {
+                String procedureName = userDefinedFunction.getName();
                 if (procedureLike != null && !procedureLike.test(procedureName)) {
                     continue;
                 }
                 Value procedureNameValue = getString(procedureName);
-                JavaMethod[] methods;
-                try {
-                    methods = f.getJavaMethods();
-                } catch (DbException e) {
-                    continue;
+                if (userDefinedFunction instanceof FunctionAlias) {
+                    JavaMethod[] methods;
+                    try {
+                        methods = ((FunctionAlias) userDefinedFunction).getJavaMethods();
+                    } catch (DbException e) {
+                        continue;
+                    }
+                    for (int i = 0; i < methods.length; i++) {
+                        JavaMethod method = methods[i];
+                        getProceduresAdd(result, catalogValue, schemaValue, procedureNameValue,
+                                userDefinedFunction.getComment(),
+                                method.getDataType().getValueType() != Value.NULL ? PROCEDURE_RETURNS_RESULT
+                                        : PROCEDURE_NO_RESULT,
+                                getString(procedureName + '_' + (i + 1)));
+                    }
+                } else {
+                    getProceduresAdd(result, catalogValue, schemaValue, procedureNameValue,
+                            userDefinedFunction.getComment(), PROCEDURE_RETURNS_RESULT, procedureNameValue);
                 }
-                for (int i = 0; i < methods.length; i++) {
-                    JavaMethod method = methods[i];
-                    getProceduresAdd(result, catalogValue, schemaValue, procedureNameValue, f.getComment(),
-                            method.getDataType().getValueType() != Value.NULL ? PROCEDURE_RETURNS_RESULT
-                                    : PROCEDURE_NO_RESULT,
-                            getString(procedureName + '_' + (i + 1)));
-                }
-            }
-            for (UserAggregate a : s.getAllAggregates()) {
-                String procedureName = a.getName();
-                if (procedureLike != null && !procedureLike.test(procedureName)) {
-                    continue;
-                }
-                Value nameValue = getString(procedureName);
-                getProceduresAdd(result, catalogValue, schemaValue, nameValue, a.getComment(), //
-                        PROCEDURE_RETURNS_RESULT, nameValue);
             }
         }
         // PROCEDURE_CAT, PROCEDURE_SCHEM, PROCEDURE_NAME, SPECIFIC_ NAME
@@ -312,15 +309,18 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         CompareLike procedureLike = getLike(procedureNamePattern);
         for (Schema s : getSchemasForPattern(schemaPattern)) {
             Value schemaValue = getString(s.getName());
-            for (FunctionAlias f : s.getAllFunctionAliases()) {
-                String procedureName = f.getName();
+            for (UserDefinedFunction userDefinedFunction : s.getAllFunctionsAndAggregates()) {
+                if (!(userDefinedFunction instanceof FunctionAlias)) {
+                    continue;
+                }
+                String procedureName = userDefinedFunction.getName();
                 if (procedureLike != null && !procedureLike.test(procedureName)) {
                     continue;
                 }
                 Value procedureNameValue = getString(procedureName);
                 JavaMethod[] methods;
                 try {
-                    methods = f.getJavaMethods();
+                    methods = ((FunctionAlias) userDefinedFunction).getJavaMethods();
                 } catch (DbException e) {
                     continue;
                 }
@@ -1302,7 +1302,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                         getString((c.sortType & SortOrder.DESCENDING) != 0 ? "D" : "A"),
                         // CARDINALITY
                         ValueBigint.get(approximate //
-                                ? index.getRowCountApproximation(session) : index.getRowCount(session)),
+                                ? index.getRowCountApproximation(session)
+                                : index.getRowCount(session)),
                         // PAGES
                         ValueBigint.get(index.getDiskSpaceUsed() / db.getPageSize()),
                         // FILTER_CONDITION

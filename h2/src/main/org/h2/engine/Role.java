@@ -55,14 +55,8 @@ public final class Role extends RightOwner {
 
     @Override
     public void removeChildrenAndResources(SessionLocal session) {
-        for (User user : database.getAllUsers()) {
-            Right right = user.getRightForRole(this);
-            if (right != null) {
-                database.removeDatabaseObject(session, right);
-            }
-        }
-        for (Role r2 : database.getAllRoles()) {
-            Right right = r2.getRightForRole(this);
+        for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+            Right right = rightOwner.getRightForRole(this);
             if (right != null) {
                 database.removeDatabaseObject(session, right);
             }

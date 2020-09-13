@@ -142,8 +142,7 @@ public final class Database implements DataHandler, CastDataProvider {
     private final byte[] filePasswordHash;
     private final byte[] fileEncryptionKey;
 
-    private final ConcurrentHashMap<String, Role> roles = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, User> users = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, RightOwner> usersAndRoles = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Setting> settings = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Schema> schemas = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Right> rights = new ConcurrentHashMap<>();
@@ -375,7 +374,7 @@ public final class Database implements DataHandler, CastDataProvider {
                 pgCatalogSchema = null;
             }
             publicRole = new Role(this, 0, sysIdentifier(Constants.PUBLIC_ROLE_NAME), true);
-            roles.put(publicRole.getName(), publicRole);
+            usersAndRoles.put(publicRole.getName(), publicRole);
             systemSession = createSession(systemUser);
             lobSession = createSession(systemUser);
             CreateTableData data = createSysTableData();
@@ -1045,13 +1044,11 @@ public final class Database implements DataHandler, CastDataProvider {
         Map<String, ? extends DbObject> result;
         switch (type) {
         case DbObject.USER:
-            result = users;
+        case DbObject.ROLE:
+            result = usersAndRoles;
             break;
         case DbObject.SETTING:
             result = settings;
-            break;
-        case DbObject.ROLE:
-            result = roles;
             break;
         case DbObject.RIGHT:
             result = rights;
@@ -1135,7 +1132,8 @@ public final class Database implements DataHandler, CastDataProvider {
      * @return the role or null
      */
     public Role findRole(String roleName) {
-        return roles.get(StringUtils.toUpperEnglish(roleName));
+        RightOwner rightOwner = findUserOrRole(roleName);
+        return rightOwner instanceof Role ? (Role) rightOwner : null;
     }
 
     /**
@@ -1168,7 +1166,8 @@ public final class Database implements DataHandler, CastDataProvider {
      * @return the user or null
      */
     public User findUser(String name) {
-        return users.get(StringUtils.toUpperEnglish(name));
+        RightOwner rightOwner = findUserOrRole(name);
+        return rightOwner instanceof User ? (User) rightOwner : null;
     }
 
     /**
@@ -1185,6 +1184,16 @@ public final class Database implements DataHandler, CastDataProvider {
             throw DbException.get(ErrorCode.USER_NOT_FOUND_1, name);
         }
         return user;
+    }
+
+    /**
+     * Get the user or role if it exists, or {@code null} if not.
+     *
+     * @param name the name of the user or role
+     * @return the user, the role, or {@code null}
+     */
+    public RightOwner findUserOrRole(String name) {
+        return usersAndRoles.get(StringUtils.toUpperEnglish(name));
     }
 
     /**
@@ -1566,10 +1575,6 @@ public final class Database implements DataHandler, CastDataProvider {
         return new ArrayList<>(rights.values());
     }
 
-    public ArrayList<Role> getAllRoles() {
-        return new ArrayList<>(roles.values());
-    }
-
     /**
      * Get all schema objects.
      *
@@ -1621,8 +1626,8 @@ public final class Database implements DataHandler, CastDataProvider {
         return settings.values();
     }
 
-    public Collection<User> getAllUsers() {
-        return users.values();
+    public Collection<RightOwner> getAllUsersAndRoles() {
+        return usersAndRoles.values();
     }
 
     public String getCacheType() {

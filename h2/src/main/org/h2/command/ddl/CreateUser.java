@@ -8,6 +8,7 @@ package org.h2.command.ddl;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
+import org.h2.engine.RightOwner;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
@@ -94,14 +95,15 @@ public class CreateUser extends DefineCommand {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
-        if (db.findRole(userName) != null) {
-            throw DbException.get(ErrorCode.ROLE_ALREADY_EXISTS_1, userName);
-        }
-        if (db.findUser(userName) != null) {
-            if (ifNotExists) {
-                return 0;
+        RightOwner rightOwner = db.findUserOrRole(userName);
+        if (rightOwner != null) {
+            if (rightOwner instanceof User) {
+                if (ifNotExists) {
+                    return 0;
+                }
+                throw DbException.get(ErrorCode.USER_ALREADY_EXISTS_1, userName);
             }
-            throw DbException.get(ErrorCode.USER_ALREADY_EXISTS_1, userName);
+            throw DbException.get(ErrorCode.ROLE_ALREADY_EXISTS_1, userName);
         }
         int id = getObjectId();
         User user = new User(db, id, userName, false);

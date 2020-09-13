@@ -29,6 +29,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
+import org.h2.engine.RightOwner;
 import org.h2.engine.Role;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.Setting;
@@ -176,11 +177,12 @@ public class ScriptCommand extends ScriptBase {
             if (out != null) {
                 add("", true);
             }
-            for (User user : db.getAllUsers()) {
-                add(user.getCreateSQL(passwords), false);
-            }
-            for (Role role : db.getAllRoles()) {
-                add(role.getCreateSQL(true), false);
+            for (RightOwner rightOwner : db.getAllUsersAndRoles()) {
+                if (rightOwner instanceof User) {
+                    add(((User) rightOwner).getCreateSQL(passwords), false);
+                } else {
+                    add(((Role) rightOwner).getCreateSQL(true), false);
+                }
             }
             ArrayList<Schema> schemas = new ArrayList<>();
             for (Schema schema : db.getAllSchemas()) {

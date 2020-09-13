@@ -26,6 +26,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.QueryStatisticsData;
 import org.h2.engine.Right;
+import org.h2.engine.RightOwner;
 import org.h2.engine.Role;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.SessionLocal.State;
@@ -2801,14 +2802,17 @@ public final class InformationSchemaTable extends MetaTable {
 
     private void roles(SessionLocal session, ArrayList<Row> rows) {
         boolean admin = session.getUser().isAdmin();
-        for (Role r : database.getAllRoles()) {
-            if (admin || session.getUser().isRoleGranted(r)) {
-                add(session, rows,
-                        // ROLE_NAME
-                        identifier(r.getName()),
-                        // REMARKS
-                        r.getComment()
-                );
+        for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+            if (rightOwner instanceof Role) {
+                Role r = (Role) rightOwner;
+                if (admin || session.getUser().isRoleGranted(r)) {
+                    add(session, rows,
+                            // ROLE_NAME
+                            identifier(r.getName()),
+                            // REMARKS
+                            r.getComment()
+                    );
+                }
             }
         }
     }
@@ -3042,8 +3046,10 @@ public final class InformationSchemaTable extends MetaTable {
     private void users(SessionLocal session, ArrayList<Row> rows) {
         User currentUser = session.getUser();
         if (currentUser.isAdmin()) {
-            for (User u : database.getAllUsers()) {
-                users(session, rows, u);
+            for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+                if (rightOwner instanceof User) {
+                    users(session, rows, (User) rightOwner);
+                }
             }
         } else {
             users(session, rows, currentUser);
@@ -3201,7 +3207,13 @@ public final class InformationSchemaTable extends MetaTable {
             return 0L;
         case ROLES:
             if (session.getUser().isAdmin()) {
-                return session.getDatabase().getAllRoles().size();
+                long count = 0L;
+                for (RightOwner rightOwner : session.getDatabase().getAllUsersAndRoles()) {
+                    if (rightOwner instanceof Role) {
+                        count++;
+                    }
+                }
+                return count;
             }
             break;
         case SESSIONS:
@@ -3212,7 +3224,13 @@ public final class InformationSchemaTable extends MetaTable {
             }
         case USERS:
             if (session.getUser().isAdmin()) {
-                return session.getDatabase().getAllUsers().size();
+                long count = 0L;
+                for (RightOwner rightOwner : session.getDatabase().getAllUsersAndRoles()) {
+                    if (rightOwner instanceof User) {
+                        count++;
+                    }
+                }
+                return count;
             } else {
                 return 1L;
             }

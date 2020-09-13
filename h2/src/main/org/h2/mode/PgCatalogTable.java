@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
+import org.h2.engine.RightOwner;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.index.Index;
@@ -385,9 +386,9 @@ public final class PgCatalogTable extends MetaTable {
             break;
         case PG_DATABASE: {
             int uid = Integer.MAX_VALUE;
-            for (User u : database.getAllUsers()) {
-                if (u.isAdmin()) {
-                    int id = u.getId();
+            for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+                if (rightOwner instanceof User && ((User) rightOwner).isAdmin()) {
+                    int id = rightOwner.getId();
                     if (id < uid) {
                         uid = id;
                     }
@@ -443,14 +444,14 @@ public final class PgCatalogTable extends MetaTable {
         case PG_PROC:
             break;
         case PG_ROLES:
-            for (User u : database.getAllUsers()) {
-                if (admin || session.getUser() == u) {
-                    String r = u.isAdmin() ? "t" : "f";
+            for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+                if (admin || session.getUser() == rightOwner) {
+                    String r = rightOwner instanceof User && ((User) rightOwner).isAdmin() ? "t" : "f";
                     add(session, rows,
                             // OID
-                            ValueInteger.get(u.getId()),
+                            ValueInteger.get(rightOwner.getId()),
                             // ROLNAME
-                            identifier(u.getName()),
+                            identifier(rightOwner.getName()),
                             // ROLSUPER
                             r,
                             // ROLCREATEROLE
@@ -557,18 +558,21 @@ public final class PgCatalogTable extends MetaTable {
             break;
         }
         case PG_USER:
-            for (User u : database.getAllUsers()) {
-                if (admin || session.getUser() == u) {
-                    ValueBoolean r = ValueBoolean.get(u.isAdmin());
-                    add(session, rows,
-                            // OID
-                            ValueInteger.get(u.getId()),
-                            // USENAME
-                            identifier(u.getName()),
-                            // USECREATEDB
-                            r,
-                            // USESUPER;
-                            r);
+            for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+                if (rightOwner instanceof User) {
+                    User u = (User) rightOwner;
+                    if (admin || session.getUser() == u) {
+                        ValueBoolean r = ValueBoolean.get(u.isAdmin());
+                        add(session, rows,
+                                // OID
+                                ValueInteger.get(u.getId()),
+                                // USENAME
+                                identifier(u.getName()),
+                                // USECREATEDB
+                                r,
+                                // USESUPER;
+                                r);
+                    }
                 }
             }
             break;

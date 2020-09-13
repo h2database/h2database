@@ -31,6 +31,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.QueryStatisticsData;
 import org.h2.engine.Right;
+import org.h2.engine.RightOwner;
 import org.h2.engine.Role;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.SessionLocal.State;
@@ -1265,35 +1266,41 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case USERS: {
-            for (User u : database.getAllUsers()) {
-                if (admin || session.getUser() == u) {
-                    add(session,
-                            rows,
-                            // NAME
-                            identifier(u.getName()),
-                            // ADMIN
-                            String.valueOf(u.isAdmin()),
-                            // REMARKS
-                            replaceNullWithEmpty(u.getComment()),
-                            // ID
-                            ValueInteger.get(u.getId())
-                    );
+            for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+                if (rightOwner instanceof User) {
+                    User u = (User) rightOwner;
+                    if (admin || session.getUser() == u) {
+                        add(session,
+                                rows,
+                                // NAME
+                                identifier(u.getName()),
+                                // ADMIN
+                                String.valueOf(u.isAdmin()),
+                                // REMARKS
+                                replaceNullWithEmpty(u.getComment()),
+                                // ID
+                                ValueInteger.get(u.getId())
+                        );
+                    }
                 }
             }
             break;
         }
         case ROLES: {
-            for (Role r : database.getAllRoles()) {
-                if (admin || session.getUser().isRoleGranted(r)) {
-                    add(session,
-                            rows,
-                            // NAME
-                            identifier(r.getName()),
-                            // REMARKS
-                            replaceNullWithEmpty(r.getComment()),
-                            // ID
-                            ValueInteger.get(r.getId())
-                    );
+            for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+                if (rightOwner instanceof Role) {
+                    Role r = (Role) rightOwner;
+                    if (admin || session.getUser().isRoleGranted(r)) {
+                        add(session,
+                                rows,
+                                // NAME
+                                identifier(r.getName()),
+                                // REMARKS
+                                replaceNullWithEmpty(r.getComment()),
+                                // ID
+                                ValueInteger.get(r.getId())
+                        );
+                    }
                 }
             }
             break;

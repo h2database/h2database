@@ -67,12 +67,9 @@ public class GrantRevoke extends DefineCommand {
 
     public void setGranteeName(String granteeName) {
         Database db = session.getDatabase();
-        grantee = db.findUser(granteeName);
+        grantee = db.findUserOrRole(granteeName);
         if (grantee == null) {
-            grantee = db.findRole(granteeName);
-            if (grantee == null) {
-                throw DbException.get(ErrorCode.USER_OR_ROLE_NOT_FOUND_1, granteeName);
-            }
+            throw DbException.get(ErrorCode.USER_OR_ROLE_NOT_FOUND_1, granteeName);
         }
     }
 

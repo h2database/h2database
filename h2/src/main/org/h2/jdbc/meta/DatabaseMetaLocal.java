@@ -236,9 +236,10 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     }
                     for (int i = 0; i < methods.length; i++) {
                         JavaMethod method = methods[i];
+                        TypeInfo typeInfo = method.getDataType();
                         getProceduresAdd(result, catalogValue, schemaValue, procedureNameValue,
                                 userDefinedFunction.getComment(),
-                                method.getDataType().getValueType() != Value.NULL ? PROCEDURE_RETURNS_RESULT
+                                typeInfo == null || typeInfo.getValueType() != Value.NULL ? PROCEDURE_RETURNS_RESULT
                                         : PROCEDURE_NO_RESULT,
                                 getString(procedureName + '_' + (i + 1)));
                     }
@@ -327,10 +328,10 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 for (int i = 0, l = methods.length; i < l; i++) {
                     JavaMethod method = methods[i];
                     Value specificNameValue = getString(procedureName + '_' + (i + 1));
-                    TypeInfo type = method.getDataType();
-                    if (type.getValueType() != Value.NULL) {
+                    TypeInfo typeInfo = method.getDataType();
+                    if (typeInfo != null && typeInfo.getValueType() != Value.NULL) {
                         getProcedureColumnAdd(result, catalogValue, schemaValue, procedureNameValue, specificNameValue,
-                                type, method.getClass().isPrimitive(), 0);
+                                typeInfo, method.getClass().isPrimitive(), 0);
                     }
                     Class<?>[] columnList = method.getColumnClasses();
                     for (int o = 1, p = method.hasConnectionParam() ? 1 : 0, n = columnList.length; p < n; o++, p++) {

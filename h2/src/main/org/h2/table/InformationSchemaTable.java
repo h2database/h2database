@@ -1969,7 +1969,7 @@ public final class InformationSchemaTable extends MetaTable {
                         FunctionAlias.JavaMethod method = methods[i];
                         TypeInfo typeInfo = method.getDataType();
                         String routineType;
-                        if (typeInfo.getValueType() == Value.NULL) {
+                        if (typeInfo != null && typeInfo.getValueType() == Value.NULL) {
                             routineType = "PROCEDURE";
                             typeInfo = null;
                         } else {

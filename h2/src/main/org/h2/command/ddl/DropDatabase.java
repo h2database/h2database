@@ -11,6 +11,7 @@ import java.util.Collection;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
+import org.h2.engine.Right;
 import org.h2.engine.RightOwner;
 import org.h2.engine.Role;
 import org.h2.engine.SessionLocal;
@@ -135,14 +136,8 @@ public class DropDatabase extends DefineCommand {
                 db.removeDatabaseObject(session, rightOwner);
             }
         }
-        ArrayList<DbObject> dbObjects = new ArrayList<>();
-        dbObjects.addAll(db.getAllRights());
-        for (DbObject obj : dbObjects) {
-            String sql = obj.getCreateSQL();
-            // the role PUBLIC must not be dropped
-            if (sql != null) {
-                db.removeDatabaseObject(session, obj);
-            }
+        for (Right right : db.getAllRights()) {
+            db.removeDatabaseObject(session, right);
         }
         for (SessionLocal s : db.getSessions(false)) {
             s.setLastIdentity(ValueNull.INSTANCE);

@@ -326,7 +326,6 @@ import org.h2.result.SortOrder;
 import org.h2.schema.Domain;
 import org.h2.schema.FunctionAlias;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.UserAggregate;
 import org.h2.schema.UserDefinedFunction;

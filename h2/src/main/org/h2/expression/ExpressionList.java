@@ -61,12 +61,16 @@ public final class ExpressionList extends Expression {
             }
             list[i] = e;
         }
-        type = isArray ? TypeInfo.getTypeInfo(Value.ARRAY, list.length, 0, TypeInfo.getHigherType(list))
-                : TypeInfo.getTypeInfo(Value.ROW, 0, 0, new ExtTypeInfoRow(list));
+        initializeType();
         if (allConst) {
             return ValueExpression.get(getValue(session));
         }
         return this;
+    }
+
+    void initializeType() {
+        type = isArray ? TypeInfo.getTypeInfo(Value.ARRAY, list.length, 0, TypeInfo.getHigherType(list))
+                : TypeInfo.getTypeInfo(Value.ROW, 0, 0, new ExtTypeInfoRow(list));
     }
 
     @Override

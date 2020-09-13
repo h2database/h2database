@@ -213,3 +213,25 @@ DROP TABLE TEST;
 
 DROP DOMAIN D;
 > ok
+
+CREATE TABLE TEST(A INT, B INT, C INT) AS VALUES (0, 0, 1), (0, 0, 3);
+> ok
+
+CREATE TABLE S1(A INT, B INT) AS VALUES (1, 2);
+> ok
+
+CREATE TABLE S2(A INT, B INT) AS VALUES (3, 4);
+> ok
+
+UPDATE TEST SET (A, B) = (SELECT * FROM S1 WHERE C = A UNION SELECT * FROM S2 WHERE C = A);
+> update count: 2
+
+TABLE TEST;
+> A B C
+> - - -
+> 1 2 1
+> 3 4 3
+> rows: 2
+
+DROP TABLE TEST, S1, S2;
+> ok

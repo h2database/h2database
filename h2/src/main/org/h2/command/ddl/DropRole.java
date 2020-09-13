@@ -43,6 +43,7 @@ public class DropRole extends DefineCommand {
             if (role == db.getPublicRole()) {
                 throw DbException.get(ErrorCode.ROLE_CAN_NOT_BE_DROPPED_1, roleName);
             }
+            role.checkOwnsNoSchemas();
             db.removeDatabaseObject(session, role);
         }
         return 0;

@@ -874,13 +874,17 @@ CREATE ROLE READONLY
 "
 
 "Commands (DDL)","CREATE SCHEMA","
-CREATE SCHEMA @h2@ [ IF NOT EXISTS ] name
-[ AUTHORIZATION ownerUserName ]
+CREATE SCHEMA @h2@ [ IF NOT EXISTS ]
+{ name [ AUTHORIZATION ownerName ] | [ AUTHORIZATION ownerName ] }
 @h2@ [ WITH tableEngineParamName [,...] ]
 ","
-Creates a new schema. If no owner is specified, the current user is used. The
-user that executes the command must have admin rights, as well as the owner.
-Specifying the owner currently has no effect.
+Creates a new schema. The user that executes the command must have admin rights.
+
+If schema name is not specified, the owner name is used as a schema name.
+If schema name is specified, but no owner is specified, the current user is used as an owner.
+
+Untrusted users and roles should not be be specified in AUTHORIZATION clause.
+
 Optional table engine parameters are used when CREATE TABLE command
 is run on this schema without having its engine params set.
 

@@ -13,6 +13,7 @@ import static org.h2.util.ParserUtil.AND;
 import static org.h2.util.ParserUtil.ARRAY;
 import static org.h2.util.ParserUtil.AS;
 import static org.h2.util.ParserUtil.ASYMMETRIC;
+import static org.h2.util.ParserUtil.AUTHORIZATION;
 import static org.h2.util.ParserUtil.BETWEEN;
 import static org.h2.util.ParserUtil.CASE;
 import static org.h2.util.ParserUtil.CAST;
@@ -568,6 +569,8 @@ public class Parser {
             "AS",
             // ASYMMETRIC
             "ASYMMETRIC",
+            // AUTHORIZATION
+            "AUTHORIZATION",
             // BETWEEN
             "BETWEEN",
             // CASE
@@ -7880,12 +7883,20 @@ public class Parser {
     private CreateSchema parseCreateSchema() {
         CreateSchema command = new CreateSchema(session);
         command.setIfNotExists(readIfNotExists());
-        command.setSchemaName(readIdentifier());
-        if (readIf("AUTHORIZATION")) {
-            command.setAuthorization(readIdentifier());
+        String authorization;
+        if (readIf(AUTHORIZATION)) {
+            authorization = readIdentifier();
+            command.setSchemaName(authorization);
+            command.setAuthorization(authorization);
         } else {
-            command.setAuthorization(session.getUser().getName());
+            command.setSchemaName(readIdentifier());
+            if (readIf(AUTHORIZATION)) {
+                authorization = readIdentifier();
+            } else {
+                authorization = session.getUser().getName();
+            }
         }
+        command.setAuthorization(authorization);
         if (readIf(WITH)) {
             command.setTableEngineParams(readTableEngineParams());
         }

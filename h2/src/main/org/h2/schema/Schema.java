@@ -19,9 +19,9 @@ import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.DbSettings;
 import org.h2.engine.Right;
+import org.h2.engine.RightOwner;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.SysProperties;
-import org.h2.engine.User;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
@@ -38,7 +38,7 @@ import org.h2.util.Utils;
  */
 public class Schema extends DbObject {
 
-    private User owner;
+    private RightOwner owner;
     private final boolean system;
     private ArrayList<String> tableEngineParams;
 
@@ -69,8 +69,7 @@ public class Schema extends DbObject {
      * @param system if this is a system schema (such a schema can not be
      *            dropped)
      */
-    public Schema(Database database, int id, String schemaName, User owner,
-            boolean system) {
+    public Schema(Database database, int id, String schemaName, RightOwner owner, boolean system) {
         super(database, id, schemaName, Trace.SCHEMA);
         tablesAndViews = database.newConcurrentStringMap();
         domains = database.newConcurrentStringMap();
@@ -197,7 +196,7 @@ public class Schema extends DbObject {
      *
      * @return the owner
      */
-    public User getOwner() {
+    public RightOwner getOwner() {
         return owner;
     }
 

@@ -45,9 +45,14 @@ public class ParserUtil {
     public static final int ASYMMETRIC = AS + 1;
 
     /**
+     * The token "AUTHORIZATION".
+     */
+    public static final int AUTHORIZATION = ASYMMETRIC + 1;
+
+    /**
      * The token "BETWEEN".
      */
-    public static final int BETWEEN = ASYMMETRIC + 1;
+    public static final int BETWEEN = AUTHORIZATION + 1;
 
     /**
      * The token "CASE".
@@ -641,6 +646,8 @@ public class ParserUtil {
                 return ARRAY;
             } else if (eq("ASYMMETRIC", s, ignoreCase, start, length)) {
                 return ASYMMETRIC;
+            } else if (eq("AUTHORIZATION", s, ignoreCase, start, length)) {
+                return AUTHORIZATION;
             }
             return IDENTIFIER;
         case 'B':

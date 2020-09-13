@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.h2.api.ErrorCode;
+import org.h2.message.DbException;
+import org.h2.schema.Schema;
 import org.h2.table.Table;
 import org.h2.util.StringUtils;
 
@@ -203,6 +206,21 @@ public abstract class RightOwner extends DbObject {
             return null;
         }
         return grantedRoles.get(role);
+    }
+
+    /**
+     * Check that this right owner does not own any schema. An exception is
+     * thrown if it owns one or more schemas.
+     *
+     * @throws DbException
+     *             if this right owner owns a schema
+     */
+    public final void checkOwnsNoSchemas() {
+        for (Schema s : database.getAllSchemas()) {
+            if (this == s.getOwner()) {
+                throw DbException.get(ErrorCode.CANNOT_DROP_2, getName(), s.getName());
+            }
+        }
     }
 
 }

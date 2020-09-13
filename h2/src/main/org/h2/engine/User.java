@@ -249,18 +249,4 @@ public final class User extends RightOwner {
         invalidate();
     }
 
-    /**
-     * Check that this user does not own any schema. An exception is thrown if
-     * he owns one or more schemas.
-     *
-     * @throws DbException if this user owns a schema
-     */
-    public void checkOwnsNoSchemas() {
-        for (Schema s : database.getAllSchemas()) {
-            if (this == s.getOwner()) {
-                throw DbException.get(ErrorCode.CANNOT_DROP_2, getName(), s.getName());
-            }
-        }
-    }
-
 }

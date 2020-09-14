@@ -159,7 +159,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
     }
 
     private long insertRows() {
-        session.getUser().checkRight(table, Right.INSERT);
+        session.getUser().checkTableRight(table, Right.INSERT);
         setCurrentRowNumber(0);
         table.fire(session, Trigger.INSERT, true);
         rowNumber = 0;

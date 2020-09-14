@@ -31,7 +31,7 @@ public abstract class SchemaCommand extends DefineCommand {
      *
      * @return the schema
      */
-    protected Schema getSchema() {
+    protected final Schema getSchema() {
         return schema;
     }
 

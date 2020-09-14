@@ -26,7 +26,7 @@ import org.h2.table.Table;
  * ALTER DOMAIN SET ON UPDATE
  * ALTER DOMAIN DROP ON UPDATE
  */
-public class AlterDomain extends SchemaCommand {
+public class AlterDomain extends SchemaOwnerCommand {
 
     /**
      * Processes all columns and domains that use the specified domain.
@@ -110,9 +110,7 @@ public class AlterDomain extends SchemaCommand {
     }
 
     @Override
-    public long update() {
-        session.getUser().checkAdmin();
-        session.commit(true);
+    long update(Schema schema) {
         Domain domain = getSchema().findDomain(domainName);
         if (domain == null) {
             if (ifDomainExists) {

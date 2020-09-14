@@ -67,7 +67,7 @@ public final class Delete extends DataChangeStatement {
         targetTableFilter.startQuery(session);
         targetTableFilter.reset();
         Table table = targetTableFilter.getTable();
-        session.getUser().checkRight(table, Right.DELETE);
+        session.getUser().checkTableRight(table, Right.DELETE);
         table.fire(session, Trigger.DELETE, true);
         table.lock(session, true, false);
         int limitRows = -1;

@@ -75,7 +75,7 @@ public class CreateIndex extends SchemaCommand {
             }
             throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1, indexName);
         }
-        session.getUser().checkRight(table, Right.ALL);
+        session.getUser().checkTableRight(table, Right.SCHEMA_OWNER);
         table.lock(session, true, true);
         if (!table.isPersistIndexes()) {
             persistent = false;

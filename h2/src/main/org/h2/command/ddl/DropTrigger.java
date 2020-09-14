@@ -47,7 +47,7 @@ public class DropTrigger extends SchemaCommand {
             }
         } else {
             Table table = trigger.getTable();
-            session.getUser().checkRight(table, Right.ALL);
+            session.getUser().checkTableRight(table, Right.SCHEMA_OWNER);
             db.removeSchemaObject(session, trigger);
         }
         return 0;

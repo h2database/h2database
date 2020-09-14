@@ -17,7 +17,7 @@ import org.h2.schema.Schema;
  * This class represents the statement
  * ALTER DOMAIN RENAME
  */
-public class AlterDomainRename extends SchemaCommand {
+public class AlterDomainRename extends SchemaOwnerCommand {
 
     private boolean ifDomainExists;
     private String oldDomainName;
@@ -40,18 +40,16 @@ public class AlterDomainRename extends SchemaCommand {
     }
 
     @Override
-    public long update() {
-        session.getUser().checkAdmin();
-        session.commit(true);
+    long update(Schema schema) {
         Database db = session.getDatabase();
-        Domain oldDomain = getSchema().findDomain(oldDomainName);
+        Domain oldDomain = schema.findDomain(oldDomainName);
         if (oldDomain == null) {
             if (ifDomainExists) {
                 return 0;
             }
             throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, oldDomainName);
         }
-        Domain d = getSchema().findDomain(newDomainName);
+        Domain d = schema.findDomain(newDomainName);
         if (d != null) {
             if (oldDomain != d) {
                 throw DbException.get(ErrorCode.DOMAIN_ALREADY_EXISTS_1, newDomainName);

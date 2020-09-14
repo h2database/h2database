@@ -115,7 +115,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             }
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
         }
-        session.getUser().checkRight(table, Right.ALL);
+        session.getUser().checkTableRight(table, Right.SCHEMA_OWNER);
         table.checkSupportAlter();
         table.lock(session, true, true);
         if (newColumn != null) {

@@ -377,6 +377,7 @@ ALTER DOMAIN @h2@ [ IF EXISTS ] [schemaName.]domainName
     | @h2@ { DROP ON UPDATE }
 ","
 Changes the default or on update expression of a domain.
+Schema owner rights are required to execute this command.
 
 SET DEFAULT changes the default expression of a domain.
 
@@ -403,6 +404,7 @@ ADD [ constraintNameDefinition ]
 CHECK (condition) @h2@ [ CHECK | NOCHECK ]
 ","
 Adds a constraint to a domain.
+Schema owner rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
 ALTER DOMAIN D ADD CONSTRAINT D_POSITIVE CHECK (VALUE > 0)
@@ -413,6 +415,7 @@ ALTER DOMAIN @h2@ [ IF EXISTS ] [schemaName.]domainName
 DROP CONSTRAINT @h2@ [ IF EXISTS ] [schemaName.]constraintName
 ","
 Removes a constraint from a domain.
+Schema owner rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
 ALTER DOMAIN D DROP CONSTRAINT D_POSITIVE
@@ -422,6 +425,7 @@ ALTER DOMAIN D DROP CONSTRAINT D_POSITIVE
 @h2@ ALTER DOMAIN [ IF EXISTS ] [schemaName.]domainName RENAME TO newName
 ","
 Renames a domain.
+Schema owner rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
 ALTER DOMAIN TEST RENAME TO MY_TYPE
@@ -440,6 +444,7 @@ ALTER INDEX IDXNAME RENAME TO IDX_TEST_NAME
 @h2@ ALTER SCHEMA [ IF EXISTS ] schemaName RENAME TO newSchemaName
 ","
 Renames a schema.
+Schema admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
 ALTER SCHEMA TEST RENAME TO PRODUCTION
@@ -449,6 +454,7 @@ ALTER SCHEMA TEST RENAME TO PRODUCTION
 ALTER SEQUENCE @h2@ [ IF EXISTS ] [schemaName.]sequenceName alterSequenceOption [...]
 ","
 Changes the parameters of a sequence.
+Schema owner rights are required to execute this command.
 This command does not commit the current transaction; however the new value is used by other
 transactions immediately, and rolling back this command has no effect.
 ","
@@ -664,6 +670,7 @@ ALTER USER SA SET PASSWORD 'rioyxlgt'
 @h2@ ALTER VIEW [ IF EXISTS ] [schemaName.]viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created.
+Schema owner rights are required to execute this command.
 This command is used for views created using CREATE FORCE VIEW.
 This command commits an open transaction in this connection.
 ","
@@ -674,6 +681,7 @@ ALTER VIEW ADDRESS_VIEW RECOMPILE
 @h2@ ALTER VIEW [ IF EXISTS ] [schemaName.]viewName RENAME TO newName
 ","
 Renames a view.
+Schema owner rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
 ALTER VIEW TEST RENAME TO MY_VIEW
@@ -705,7 +713,8 @@ ANALYZE SAMPLE_SIZE 1000
 ","
 Sets the comment of a database object. Use NULL or empty string to remove the comment.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command if object is a USER or ROLE.
+Schema owner rights are required to execute this command for all other types of objects.
 This command commits an open transaction in this connection.
 ","
 COMMENT ON TABLE TEST IS 'Table used for testing'
@@ -780,6 +789,7 @@ CREATE ALIAS tr AS '@groovy.transform.CompileStatic
 VALUE expression
 ","
 Creates a new constant.
+Schema owner rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
 CREATE CONSTANT ONE VALUE 1
@@ -794,6 +804,7 @@ CREATE DOMAIN @h2@ [ IF NOT EXISTS ] [schemaName.]domainName
 [ CHECK (condition) ] [...]
 ","
 Creates a new domain to define a set of permissible values.
+Schema owner rights are required to execute this command.
 Domains can be used as data types.
 The domain constraints must evaluate to TRUE or to UNKNOWN.
 In the conditions, the term VALUE refers to the value being tested.
@@ -878,12 +889,16 @@ CREATE SCHEMA @h2@ [ IF NOT EXISTS ]
 { name [ AUTHORIZATION ownerName ] | [ AUTHORIZATION ownerName ] }
 @h2@ [ WITH tableEngineParamName [,...] ]
 ","
-Creates a new schema. The user that executes the command must have admin rights.
+Creates a new schema.
+Schema admin rights are required to execute this command.
 
 If schema name is not specified, the owner name is used as a schema name.
 If schema name is specified, but no owner is specified, the current user is used as an owner.
 
-Untrusted users and roles should not be be specified in AUTHORIZATION clause.
+Schema owners can create, rename, and drop objects in the schema.
+Schema owners can drop the schema itself, but cannot rename it.
+Some objects may still require admin rights for their creation,
+see documentation of their CREATE statements for details.
 
 Optional table engine parameters are used when CREATE TABLE command
 is run on this schema without having its engine params set.
@@ -898,6 +913,7 @@ CREATE SEQUENCE @h2@ [ IF NOT EXISTS ] [schemaName.]sequenceName
 [ { AS dataType | sequenceOption } [...] ]
 ","
 Creates a new sequence.
+Schema owner rights are required to execute this command.
 
 The data type of a sequence must be a numeric type, the default is BIGINT.
 Sequence can produce only integer values.
@@ -970,6 +986,8 @@ CREATE TRIGGER @h2@ [ IF NOT EXISTS ] [schemaName.]triggerName
 @h2@ { CALL triggeredClassNameString | AS sourceCodeString }
 ","
 Creates a new trigger.
+Admin rights are required to execute this command.
+
 The trigger class must be public and implement ""org.h2.api.Trigger"".
 Inner classes are not supported.
 The class must be available in the classpath of the database engine
@@ -1048,6 +1066,7 @@ VIEW @h2@ [ IF NOT EXISTS ] [schemaName.]viewName
 ","
 Creates a new view. If the force option is used, then the view is created even
 if the underlying table(s) don't exist.
+Schema owner rights are required to execute this command.
 
 If the OR REPLACE clause is used an existing view will be replaced, and any
 dependent views will not need to be recreated. If dependent views will become
@@ -1056,7 +1075,6 @@ can be ignored if the FORCE clause is also used.
 
 Views are not updatable except when using 'instead of' triggers.
 
-Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
 CREATE VIEW TEST_VIEW AS SELECT * FROM TEST WHERE ID < 100
@@ -1066,8 +1084,8 @@ CREATE VIEW TEST_VIEW AS SELECT * FROM TEST WHERE ID < 100
 @h2@ DROP AGGREGATE [ IF EXISTS ] aggregateName
 ","
 Drops an existing user-defined aggregate function.
+Schema owner rights are required to execute this command.
 
-Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
 DROP AGGREGATE SIMPLE_MEDIAN
@@ -1077,8 +1095,8 @@ DROP AGGREGATE SIMPLE_MEDIAN
 @h2@ DROP ALIAS [ IF EXISTS ] [schemaName.]aliasName
 ","
 Drops an existing function alias.
+Schema owner rights are required to execute this command.
 
-Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
 DROP ALIAS MY_SQRT
@@ -1102,6 +1120,7 @@ DROP ALL OBJECTS
 @h2@ DROP CONSTANT [ IF EXISTS ] [schemaName.]constantName
 ","
 Drops a constant.
+Schema owner rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
 DROP CONSTANT ONE
@@ -1111,6 +1130,8 @@ DROP CONSTANT ONE
 DROP DOMAIN @h2@ [ IF EXISTS ] [schemaName.]domainName [ RESTRICT | CASCADE ]
 ","
 Drops a data type (domain).
+Schema owner rights are required to execute this command.
+
 The command will fail if it is referenced by a column or another domain (the default).
 Column descriptors are replaced with original definition of specified domain if the CASCADE clause is used.
 Default and on update expressions are copied into domains and columns that use this domain and don't have own
@@ -1134,6 +1155,7 @@ DROP INDEX IF EXISTS IDXNAME
 DROP ROLE @h2@ [ IF EXISTS ] roleName
 ","
 Drops a role.
+Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
 DROP ROLE READONLY
@@ -1143,6 +1165,7 @@ DROP ROLE READONLY
 DROP SCHEMA @h2@ [ IF EXISTS ] schemaName [ RESTRICT | CASCADE ]
 ","
 Drops a schema.
+Schema owner rights are required to execute this command.
 The command will fail if objects in this schema exist and the RESTRICT clause is used (the default).
 All objects in this schema are dropped as well if the CASCADE clause is used.
 This command commits an open transaction in this connection.
@@ -1154,6 +1177,7 @@ DROP SCHEMA TEST_SCHEMA
 DROP SEQUENCE @h2@ [ IF EXISTS ] [schemaName.]sequenceName
 ","
 Drops a sequence.
+Schema owner rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
 DROP SEQUENCE SEQ_ID
@@ -1196,6 +1220,7 @@ DROP USER TOM
 DROP VIEW @h2@ [ IF EXISTS ] [schemaName.]viewName [ RESTRICT | CASCADE ]
 ","
 Drops an existing view.
+Schema owner rights are required to execute this command.
 All dependent views are dropped as well if the CASCADE clause is used (the default).
 The command will fail if dependent views exist and the RESTRICT clause is used.
 This command commits an open transaction in this connection.
@@ -1266,7 +1291,7 @@ TO { PUBLIC | userName | roleName }
 ","
 Grants rights for a table to a user or role.
 
-Admin rights are required to execute this command.
+Schema owner rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
 GRANT SELECT ON TEST TO READONLY
@@ -1275,7 +1300,9 @@ GRANT SELECT ON TEST TO READONLY
 "Commands (Other)","GRANT ALTER ANY SCHEMA","
 @h2@ GRANT ALTER ANY SCHEMA TO userName
 ","
-Grant schema altering rights to a user.
+Grant schema admin rights to a user.
+
+Schema admin can create, rename, or drop schemas and also has schema owner rights in every schema.
 
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
@@ -1318,10 +1345,21 @@ FROM { PUBLIC | userName | roleName }
 ","
 Removes rights for a table from a user or role.
 
-Admin rights are required to execute this command.
+Schema owner rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
 REVOKE SELECT ON TEST FROM READONLY
+"
+
+"Commands (Other)","REVOKE ALTER ANY SCHEMA","
+@h2@ REVOKE ALTER ANY SCHEMA FROM userName
+","
+Removes schema admin rights from a user.
+
+Admin rights are required to execute this command.
+This command commits an open transaction in this connection.
+","
+GRANT ALTER ANY SCHEMA TO Bob
 "
 
 "Commands (Other)","REVOKE ROLE","

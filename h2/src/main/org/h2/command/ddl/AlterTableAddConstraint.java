@@ -119,7 +119,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1,
                     constraintName);
         }
-        session.getUser().checkRight(table, Right.ALL);
+        session.getUser().checkTableRight(table, Right.SCHEMA_OWNER);
         db.lockMeta(session);
         table.lock(session, true, true);
         Constraint constraint;
@@ -193,7 +193,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             if (refTable == null) {
                 throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, refTableName);
             }
-            session.getUser().checkRight(refTable, Right.ALL);
+            session.getUser().checkTableRight(refTable, Right.SCHEMA_OWNER);
             if (!refTable.canReference()) {
                 StringBuilder builder = new StringBuilder("Reference ");
                 refTable.getSQL(builder, HasSQL.TRACE_SQL_FLAGS);

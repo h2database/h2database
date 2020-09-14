@@ -52,7 +52,11 @@ public class AlterTableRename extends SchemaCommand {
             }
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, oldTableName);
         }
-        session.getUser().checkRight(oldTable, Right.ALL);
+        if (oldTable.isView()) {
+            session.getUser().checkSchemaOwner(oldTable.getSchema());
+        } else {
+            session.getUser().checkTableRight(oldTable, Right.SCHEMA_OWNER);
+        }
         Table t = getSchema().findTableOrView(session, newTableName);
         if (t != null && hidden && newTableName.equals(oldTable.getName())) {
             if (!t.isHidden()) {

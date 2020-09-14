@@ -50,8 +50,8 @@ public class AlterTableDropConstraint extends SchemaCommand {
                 throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
             }
         } else {
-            session.getUser().checkRight(constraint.getTable(), Right.ALL);
-            session.getUser().checkRight(constraint.getRefTable(), Right.ALL);
+            session.getUser().checkTableRight(constraint.getTable(), Right.SCHEMA_OWNER);
+            session.getUser().checkTableRight(constraint.getRefTable(), Right.SCHEMA_OWNER);
             if (constraintType == Type.PRIMARY_KEY || constraintType == Type.UNIQUE) {
                 for (Constraint c : constraint.getTable().getConstraints()) {
                     if (c.getReferencedConstraint() == constraint) {
@@ -59,7 +59,7 @@ public class AlterTableDropConstraint extends SchemaCommand {
                             throw DbException.get(ErrorCode.CONSTRAINT_IS_USED_BY_CONSTRAINT_2,
                                     constraint.getTraceSQL(), c.getTraceSQL());
                         }
-                        session.getUser().checkRight(c.getTable(), Right.ALL);
+                        session.getUser().checkTableRight(c.getTable(), Right.SCHEMA_OWNER);
                     }
                 }
             }

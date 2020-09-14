@@ -173,8 +173,8 @@ public final class MergeUsing extends DataChangeStatement {
         for (When w : when) {
             w.checkRights();
         }
-        session.getUser().checkRight(targetTableFilter.getTable(), Right.SELECT);
-        session.getUser().checkRight(sourceTableFilter.getTable(), Right.SELECT);
+        session.getUser().checkTableRight(targetTableFilter.getTable(), Right.SELECT);
+        session.getUser().checkTableRight(sourceTableFilter.getTable(), Right.SELECT);
     }
 
     @Override
@@ -433,7 +433,7 @@ public final class MergeUsing extends DataChangeStatement {
 
         @Override
         void checkRights() {
-            mergeUsing.getSession().getUser().checkRight(mergeUsing.targetTableFilter.getTable(), Right.DELETE);
+            mergeUsing.getSession().getUser().checkTableRight(mergeUsing.targetTableFilter.getTable(), Right.DELETE);
         }
 
         @Override
@@ -480,7 +480,7 @@ public final class MergeUsing extends DataChangeStatement {
 
         @Override
         void checkRights() {
-            mergeUsing.getSession().getUser().checkRight(mergeUsing.targetTableFilter.getTable(), Right.UPDATE);
+            mergeUsing.getSession().getUser().checkTableRight(mergeUsing.targetTableFilter.getTable(), Right.UPDATE);
         }
 
         @Override
@@ -576,7 +576,7 @@ public final class MergeUsing extends DataChangeStatement {
 
         @Override
         void checkRights() {
-            mergeUsing.getSession().getUser().checkRight(mergeUsing.targetTableFilter.getTable(), Right.INSERT);
+            mergeUsing.getSession().getUser().checkTableRight(mergeUsing.targetTableFilter.getTable(), Right.INSERT);
         }
 
         @Override

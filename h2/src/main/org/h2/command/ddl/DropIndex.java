@@ -50,7 +50,7 @@ public class DropIndex extends SchemaCommand {
             }
         } else {
             Table table = index.getTable();
-            session.getUser().checkRight(index.getTable(), Right.ALL);
+            session.getUser().checkTableRight(index.getTable(), Right.SCHEMA_OWNER);
             Constraint pkConstraint = null;
             ArrayList<Constraint> constraints = table.getConstraints();
             for (int i = 0; constraints != null && i < constraints.size(); i++) {

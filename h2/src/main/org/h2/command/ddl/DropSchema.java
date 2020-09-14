@@ -37,7 +37,6 @@ public class DropSchema extends DefineCommand {
 
     @Override
     public long update() {
-        session.getUser().checkSchemaAdmin();
         session.commit(true);
         Database db = session.getDatabase();
         Schema schema = db.findSchema(schemaName);
@@ -46,6 +45,7 @@ public class DropSchema extends DefineCommand {
                 throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
             }
         } else {
+            session.getUser().checkSchemaOwner(schema);
             if (!schema.canDrop()) {
                 throw DbException.get(ErrorCode.SCHEMA_CAN_NOT_BE_DROPPED_1, schemaName);
             }

@@ -18,7 +18,7 @@ import org.h2.schema.Schema;
 /**
  * This class represents the statement ALTER DOMAIN DROP CONSTRAINT
  */
-public class AlterDomainDropConstraint extends SchemaCommand {
+public class AlterDomainDropConstraint extends SchemaOwnerCommand {
 
     private String constraintName;
     private String domainName;
@@ -43,23 +43,21 @@ public class AlterDomainDropConstraint extends SchemaCommand {
     }
 
     @Override
-    public long update() {
-        session.commit(true);
-        Domain domain = getSchema().findDomain(domainName);
+    long update(Schema schema) {
+        Domain domain = schema.findDomain(domainName);
         if (domain == null) {
             if (ifDomainExists) {
                 return 0;
             }
             throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, domainName);
         }
-        Constraint constraint = getSchema().findConstraint(session, constraintName);
+        Constraint constraint = schema.findConstraint(session, constraintName);
         if (constraint == null || constraint.getConstraintType() != Type.DOMAIN
                 || ((ConstraintDomain) constraint).getDomain() != domain) {
             if (!ifConstraintExists) {
                 throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
             }
         } else {
-            session.getUser().checkAdmin();
             session.getDatabase().removeSchemaObject(session, constraint);
         }
         return 0;

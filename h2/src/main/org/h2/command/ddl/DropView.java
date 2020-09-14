@@ -10,7 +10,6 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.ConstraintActionType;
 import org.h2.engine.DbObject;
-import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
@@ -59,7 +58,7 @@ public class DropView extends SchemaCommand {
             if (TableType.VIEW != view.getTableType()) {
                 throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
             }
-            session.getUser().checkRight(view, Right.ALL);
+            session.getUser().checkSchemaOwner(view.getSchema());
 
             if (dropAction == ConstraintActionType.RESTRICT) {
                 for (DbObject child : view.getChildren()) {

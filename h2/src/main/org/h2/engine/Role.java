@@ -5,8 +5,11 @@
  */
 package org.h2.engine;
 
+import java.util.ArrayList;
+
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.schema.Schema;
 import org.h2.table.Table;
 
 /**
@@ -51,6 +54,17 @@ public final class Role extends RightOwner {
     @Override
     public int getType() {
         return DbObject.ROLE;
+    }
+
+    @Override
+    public ArrayList<DbObject> getChildren() {
+        ArrayList<DbObject> children = new ArrayList<>();
+        for (Schema schema : database.getAllSchemas()) {
+            if (schema.getOwner() == this) {
+                children.add(schema);
+            }
+        }
+        return children;
     }
 
     @Override

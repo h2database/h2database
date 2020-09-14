@@ -30,8 +30,8 @@ public class CreateAggregate extends SchemaCommand {
 
     @Override
     public long update() {
-        session.commit(true);
         session.getUser().checkAdmin();
+        session.commit(true);
         Database db = session.getDatabase();
         Schema schema = getSchema();
         if (schema.findFunctionOrAggregate(name) != null) {

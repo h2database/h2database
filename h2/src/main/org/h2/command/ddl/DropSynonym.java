@@ -16,7 +16,7 @@ import org.h2.table.TableSynonym;
  * This class represents the statement
  * DROP SYNONYM
  */
-public class DropSynonym extends SchemaCommand {
+public class DropSynonym extends SchemaOwnerCommand {
 
     private String synonymName;
     private boolean ifExists;
@@ -30,11 +30,8 @@ public class DropSynonym extends SchemaCommand {
     }
 
     @Override
-    public long update() {
-        session.commit(true);
-        session.getUser().checkAdmin();
-
-        TableSynonym synonym = getSchema().getSynonym(synonymName);
+    long update(Schema schema) {
+        TableSynonym synonym = schema.getSynonym(synonymName);
         if (synonym == null) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, synonymName);

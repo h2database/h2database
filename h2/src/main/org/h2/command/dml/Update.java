@@ -74,7 +74,7 @@ public final class Update extends DataChangeStatement {
         targetTableFilter.reset();
         Table table = targetTableFilter.getTable();
         try (RowList rows = new RowList(session, table)) {
-            session.getUser().checkRight(table, Right.UPDATE);
+            session.getUser().checkTableRight(table, Right.UPDATE);
             table.fire(session, Trigger.UPDATE, true);
             table.lock(session, true, false);
             // get the old rows, compute the new rows

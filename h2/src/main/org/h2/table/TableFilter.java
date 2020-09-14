@@ -163,7 +163,7 @@ public class TableFilter implements ColumnResolver {
         this.select = select;
         this.cursor = new IndexCursor();
         if (!rightsChecked) {
-            session.getUser().checkRight(table, Right.SELECT);
+            session.getUser().checkTableRight(table, Right.SELECT);
         }
         hashCode = session.nextObjectId();
         this.orderInFrom = orderInFrom;

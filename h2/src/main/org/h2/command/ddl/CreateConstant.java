@@ -19,7 +19,7 @@ import org.h2.value.Value;
  * This class represents the statement
  * CREATE CONSTANT
  */
-public class CreateConstant extends SchemaCommand {
+public class CreateConstant extends SchemaOwnerCommand {
 
     private String constantName;
     private Expression expression;
@@ -34,18 +34,16 @@ public class CreateConstant extends SchemaCommand {
     }
 
     @Override
-    public long update() {
-        session.commit(true);
-        session.getUser().checkAdmin();
+    long update(Schema schema) {
         Database db = session.getDatabase();
-        if (getSchema().findConstant(constantName) != null) {
+        if (schema.findConstant(constantName) != null) {
             if (ifNotExists) {
                 return 0;
             }
             throw DbException.get(ErrorCode.CONSTANT_ALREADY_EXISTS_1, constantName);
         }
         int id = getObjectId();
-        Constant constant = new Constant(getSchema(), id, constantName);
+        Constant constant = new Constant(schema, id, constantName);
         expression = expression.optimize(session);
         Value value = expression.getValue(session);
         constant.setValue(value);

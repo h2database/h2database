@@ -23,7 +23,7 @@ import org.h2.table.Table;
 /**
  * This class represents the statement DROP DOMAIN
  */
-public class DropDomain extends SchemaCommand {
+public class DropDomain extends SchemaOwnerCommand {
 
     private String typeName;
     private boolean ifExists;
@@ -44,10 +44,7 @@ public class DropDomain extends SchemaCommand {
     }
 
     @Override
-    public long update() {
-        session.getUser().checkAdmin();
-        session.commit(true);
-        Schema schema = getSchema();
+    long update(Schema schema) {
         Domain domain = schema.findDomain(typeName);
         if (domain == null) {
             if (!ifExists) {

@@ -18,7 +18,7 @@ import org.h2.schema.Schema;
 /**
  * This class represents the statement ALTER DOMAIN ADD CONSTRAINT
  */
-public class AlterDomainAddConstraint extends SchemaCommand {
+public class AlterDomainAddConstraint extends SchemaOwnerCommand {
 
     private String constraintName;
     private String domainName;
@@ -45,9 +45,9 @@ public class AlterDomainAddConstraint extends SchemaCommand {
     }
 
     @Override
-    public long update() {
+    long update(Schema schema) {
         try {
-            return tryUpdate();
+            return tryUpdate(schema);
         } finally {
             getSchema().freeUniqueName(constraintName);
         }
@@ -56,30 +56,29 @@ public class AlterDomainAddConstraint extends SchemaCommand {
     /**
      * Try to execute the statement.
      *
+     * @param schema the schema
      * @return the update count
      */
-    private int tryUpdate() {
-        session.commit(true);
-        Domain domain = getSchema().findDomain(domainName);
+    private int tryUpdate(Schema schema) {
+        Domain domain = schema.findDomain(domainName);
         if (domain == null) {
             if (ifDomainExists) {
                 return 0;
             }
             throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, domainName);
         }
-        if (constraintName != null && getSchema().findConstraint(session, constraintName) != null) {
+        if (constraintName != null && schema.findConstraint(session, constraintName) != null) {
             if (ifNotExists) {
                 return 0;
             }
             throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraintName);
         }
-        session.getUser().checkAdmin();
         Database db = session.getDatabase();
         db.lockMeta(session);
 
         int id = getObjectId();
         String name = generateConstraintName(domain);
-        ConstraintDomain constraint = new ConstraintDomain(getSchema(), id, name, domain);
+        ConstraintDomain constraint = new ConstraintDomain(schema, id, name, domain);
         constraint.setExpression(session, checkExpression);
         if (checkExisting) {
             constraint.checkExistingData(session);

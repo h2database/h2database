@@ -86,8 +86,8 @@ public final class Merge extends CommandWithValues {
     @Override
     public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         long count = 0;
-        session.getUser().checkRight(table, Right.INSERT);
-        session.getUser().checkRight(table, Right.UPDATE);
+        session.getUser().checkTableRight(table, Right.INSERT);
+        session.getUser().checkTableRight(table, Right.UPDATE);
         setCurrentRowNumber(0);
         if (!valuesExpressionList.isEmpty()) {
             // process values in list

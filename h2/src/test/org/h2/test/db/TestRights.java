@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
+import org.h2.api.Trigger;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -52,6 +53,8 @@ public class TestRights extends TestDb {
         testTableRename();
         testSchemaRename();
         testSchemaDrop();
+        testDropTable();
+        testSchemaOwner();
         deleteDb("rights");
     }
 
@@ -380,7 +383,7 @@ public class TestRights extends TestDb {
         deleteDb("rights");
         Connection conn = getConnection("rights");
         stat = conn.createStatement();
-        stat.execute("create user test password '' admin");
+        stat.execute("create user test password ''");
         stat.execute("create schema b authorization test");
         stat.execute("create table b.test(id int)");
         stat.execute("alter user test rename to test1");
@@ -389,11 +392,8 @@ public class TestRights extends TestDb {
         stat = conn.createStatement();
         stat.execute("select * from b.test");
         assertThrows(ErrorCode.CANNOT_DROP_2, stat).
-                execute("alter user test1 admin false");
-        assertThrows(ErrorCode.CANNOT_DROP_2, stat).
                 execute("drop user test1");
         stat.execute("drop schema b cascade");
-        stat.execute("alter user test1 admin false");
         stat.execute("drop user test1");
         conn.close();
     }
@@ -437,7 +437,7 @@ public class TestRights extends TestDb {
                 "CREATE SCHEMA SCHEMA_RIGHT_TEST_WILL_FAIL");
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).execute(
                 "ALTER SCHEMA SCHEMA_RIGHT_TEST_EXISTS RENAME TO SCHEMA_RIGHT_TEST_WILL_FAIL");
-        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).execute(
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).execute(
                 "DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
         conn.close();
 
@@ -485,7 +485,7 @@ public class TestRights extends TestDb {
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
             execute("ALTER SCHEMA SCHEMA_RIGHT_TEST_EXISTS " +
                     "RENAME TO SCHEMA_RIGHT_TEST_RENAMED");
-        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
             execute("DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
         assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
         execute("CREATE TABLE SCHEMA_RIGHT_TEST_EXISTS.TEST" +
@@ -595,7 +595,7 @@ public class TestRights extends TestDb {
         executeError("SELECT * FROM (SELECT * FROM PASS)");
         assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).
                 execute("CREATE VIEW X AS SELECT * FROM PASS_READER");
-        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
                 execute("CREATE VIEW X AS SELECT * FROM PASS_NAME");
         conn.close();
 
@@ -719,6 +719,115 @@ public class TestRights extends TestDb {
         rs.next();
         assertEquals(type, rs.getString(1));
         executeSuccess("DROP TABLE TEST");
+    }
+
+    private void testDropTable() throws SQLException {
+        deleteDb("rights");
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT)");
+        stat.execute("CREATE USER U PASSWORD '1'");
+        stat.execute("GRANT ALL PRIVILEGES ON TEST TO U");
+        Connection conn2 = getConnection("rights", "U", getPassword("1"));
+        conn.close();
+        stat = conn2.createStatement();
+        assertEquals(1, stat.executeUpdate("INSERT INTO TEST VALUES 1"));
+        assertEquals(1, stat.executeUpdate("UPDATE TEST SET ID = 2 WHERE ID = 1"));
+        assertEquals(1, stat.executeUpdate("DELETE FROM TEST WHERE ID = 2"));
+        executeError("DROP TABLE TEST");
+        conn2.close();
+    }
+
+    private void testSchemaOwner() throws SQLException {
+        deleteDb("rights");
+        Connection connAdmin = getConnection("rights");
+        Statement statAdmin = connAdmin.createStatement();
+        statAdmin.execute("CREATE USER SCHEMA_ADMIN PASSWORD '1'");
+        statAdmin.execute("GRANT ALTER ANY SCHEMA TO SCHEMA_ADMIN");
+        Connection connSchemaAdmin = getConnection("rights", "SCHEMA_ADMIN", getPassword("1"));
+        Statement statSchemaAdmin = connSchemaAdmin.createStatement();
+        statAdmin.execute("CREATE USER SCHEMA_OWNER PASSWORD '1'");
+        Connection connSchemaOwner = getConnection("rights", "SCHEMA_OWNER", getPassword("1"));
+        Statement statSchemaOwner = connSchemaOwner.createStatement();
+        statAdmin.execute("CREATE USER OTHER PASSWORD '1'");
+        Connection connOther = getConnection("rights", "OTHER", getPassword("1"));
+        Statement statOther = connOther.createStatement();
+        testSchemaOwner(statAdmin, statSchemaAdmin, statSchemaOwner, statOther, "SCHEMA_OWNER");
+        statAdmin.execute("CREATE ROLE SCHEMA_OWNER_ROLE");
+        statAdmin.execute("GRANT SCHEMA_OWNER_ROLE TO SCHEMA_OWNER");
+        testSchemaOwner(statAdmin, statSchemaAdmin, statSchemaOwner, statOther, "SCHEMA_OWNER_ROLE");
+        testAdminAndSchemaOwner(statAdmin, statSchemaAdmin);
+        statAdmin.close();
+        statSchemaAdmin.close();
+        statSchemaOwner.close();
+    }
+
+    private void testSchemaOwner(Statement statAdmin, Statement statSchemaAdmin, Statement statSchemaOwner,
+            Statement statOther, String authorization) throws SQLException {
+        executeSuccessErrorAdmin(statSchemaAdmin, statSchemaOwner, "CREATE SCHEMA S AUTHORIZATION " + authorization);
+        executeSuccessError(statSchemaOwner, statOther, "CREATE DOMAIN S.D INT");
+        executeSuccessError(statSchemaOwner, statOther, "ALTER DOMAIN S.D ADD CONSTRAINT S.D_C CHECK (VALUE > 0)");
+        executeSuccessError(statSchemaOwner, statOther, "ALTER DOMAIN S.D DROP CONSTRAINT S.D_C");
+        executeSuccessError(statSchemaOwner, statOther, "ALTER DOMAIN S.D RENAME TO S.D2");
+        executeSuccessError(statSchemaOwner, statOther, "DROP DOMAIN S.D2");
+        executeSuccessError(statSchemaOwner, statOther, "CREATE CONSTANT S.C VALUE 1");
+        executeSuccessError(statSchemaOwner, statOther, "DROP CONSTANT S.C");
+        executeSuccessErrorAdmin(statAdmin, statSchemaAdmin, "CREATE ALIAS S.F FOR 'java.lang.Math.max(long,long)'");
+        executeSuccessError(statSchemaOwner, statOther, "DROP ALIAS S.F");
+        executeSuccessErrorAdmin(statAdmin, statSchemaAdmin,
+                "CREATE AGGREGATE S.A FOR \'" + TestFunctions.MedianStringType.class.getName() + '\'');
+        executeSuccessError(statSchemaOwner, statOther, "DROP AGGREGATE S.A");
+        executeSuccessError(statSchemaOwner, statOther, "CREATE SEQUENCE S.S");
+        executeSuccessError(statSchemaOwner, statOther, "ALTER SEQUENCE S.S RESTART WITH 2");
+        executeSuccessError(statSchemaOwner, statOther, "DROP SEQUENCE S.S");
+        executeSuccessError(statSchemaOwner, statOther, "CREATE VIEW S.V AS SELECT 1");
+        executeSuccessError(statSchemaOwner, statOther, "ALTER VIEW S.V RECOMPILE");
+        executeSuccessError(statSchemaOwner, statOther, "ALTER VIEW S.V RENAME TO S.V2");
+        executeSuccessError(statSchemaOwner, statOther, "DROP VIEW S.V2");
+        executeSuccessError(statSchemaOwner, statOther, "CREATE TABLE S.T(ID INT)");
+        executeSuccessError(statSchemaOwner, statOther, "ALTER TABLE S.T ADD V INT");
+        executeSuccessError(statSchemaOwner, statOther, "ALTER TABLE S.T ADD CONSTRAINT S.T_C UNIQUE(V)");
+        executeSuccessError(statSchemaOwner, statOther, "ALTER TABLE S.T DROP CONSTRAINT S.T_C");
+        executeSuccessError(statSchemaOwner, statOther, "CREATE UNIQUE INDEX S.I ON S.T(V)");
+        executeSuccessError(statSchemaOwner, statOther, "ALTER INDEX S.I RENAME TO S.I2");
+        executeSuccessError(statSchemaOwner, statOther, "DROP INDEX S.I2");
+        executeSuccessErrorAdmin(statAdmin, statSchemaAdmin,
+                "CREATE TRIGGER S.G BEFORE INSERT ON S.T FOR EACH ROW CALL \'" + TestTrigger.class.getName() + '\'');
+        executeSuccessError(statSchemaOwner, statOther, "DROP TRIGGER S.G");
+        executeSuccessError(statSchemaOwner, statOther, "GRANT SELECT ON S.T TO OTHER");
+        executeSuccessError(statSchemaOwner, statOther, "REVOKE SELECT ON S.T FROM OTHER");
+        executeSuccessError(statSchemaOwner, statOther, "ALTER TABLE S.T RENAME TO S.T2");
+        executeSuccessError(statSchemaOwner, statOther, "DROP TABLE S.T2");
+        executeSuccessError(statSchemaOwner, statOther, "DROP SCHEMA S");
+    }
+
+    private void testAdminAndSchemaOwner(Statement statAdmin, Statement statSchemaAdmin) throws SQLException {
+        executeSuccessErrorAdmin(statAdmin, statSchemaAdmin, "GRANT ALTER ANY SCHEMA TO OTHER");
+        executeSuccessErrorAdmin(statAdmin, statSchemaAdmin, "REVOKE ALTER ANY SCHEMA FROM OTHER");
+        executeSuccessErrorAdmin(statAdmin, statSchemaAdmin, "CREATE USER U PASSWORD '1'");
+        executeSuccessErrorAdmin(statAdmin, statSchemaAdmin, "CREATE ROLE R");
+        executeSuccessErrorAdmin(statAdmin, statSchemaAdmin, "GRANT R TO U");
+        executeSuccessErrorAdmin(statAdmin, statSchemaAdmin, "REVOKE R FROM U");
+        executeSuccessErrorAdmin(statAdmin, statSchemaAdmin, "DROP USER U");
+        executeSuccessErrorAdmin(statAdmin, statSchemaAdmin, "DROP ROLE R");
+    }
+
+    public static class TestTrigger implements Trigger {
+
+        @Override
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+        }
+
+    }
+
+    private void executeSuccessErrorAdmin(Statement success, Statement error, String sql) throws SQLException {
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, error).execute(sql);
+        success.execute(sql);
+    }
+
+    private void executeSuccessError(Statement success, Statement error, String sql) throws SQLException {
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, error).execute(sql);
+        success.execute(sql);
     }
 
     private void executeError(String sql) throws SQLException {

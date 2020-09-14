@@ -6,7 +6,6 @@
 package org.h2.command.ddl;
 
 import org.h2.command.CommandInterface;
-import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.table.TableView;
@@ -38,7 +37,7 @@ public class AlterView extends DefineCommand {
         if (view == null && ifExists) {
             return 0;
         }
-        session.getUser().checkRight(view, Right.ALL);
+        session.getUser().checkSchemaOwner(view.getSchema());
         DbException e = view.recompile(session, false, true);
         if (e != null) {
             throw e;

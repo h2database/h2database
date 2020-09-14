@@ -17,7 +17,7 @@ import org.h2.schema.UserAggregate;
  * This class represents the statement
  * DROP AGGREGATE
  */
-public class DropAggregate extends SchemaCommand {
+public class DropAggregate extends SchemaOwnerCommand {
 
     private String name;
     private boolean ifExists;
@@ -27,11 +27,9 @@ public class DropAggregate extends SchemaCommand {
     }
 
     @Override
-    public long update() {
-        session.getUser().checkAdmin();
-        session.commit(true);
+    long update(Schema schema) {
         Database db = session.getDatabase();
-        UserAggregate aggregate = getSchema().findAggregate(name);
+        UserAggregate aggregate = schema.findAggregate(name);
         if (aggregate == null) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.AGGREGATE_NOT_FOUND_1, name);

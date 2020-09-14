@@ -65,7 +65,7 @@ public class DropTable extends DefineCommand {
                     throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
                 }
             } else {
-                session.getUser().checkRight(table, Right.ALL);
+                session.getUser().checkTableRight(table, Right.SCHEMA_OWNER);
                 if (!table.canDrop()) {
                     throw DbException.get(ErrorCode.CANNOT_DROP_TABLE_1, tableName);
                 }

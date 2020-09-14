@@ -17,7 +17,7 @@ import org.h2.table.Column;
 /**
  * This class represents the statement ALTER SEQUENCE.
  */
-public class AlterSequence extends SchemaCommand {
+public class AlterSequence extends SchemaOwnerCommand {
 
     private boolean ifExists;
 
@@ -33,6 +33,7 @@ public class AlterSequence extends SchemaCommand {
 
     public AlterSequence(SessionLocal session, Schema schema) {
         super(session, schema);
+        transactional = true;
     }
 
     public void setIfExists(boolean b) {
@@ -69,9 +70,9 @@ public class AlterSequence extends SchemaCommand {
     }
 
     @Override
-    public long update() {
+    long update(Schema schema) {
         if (sequence == null) {
-            sequence = getSchema().findSequence(sequenceName);
+            sequence = schema.findSequence(sequenceName);
             if (sequence == null) {
                 if (!ifExists) {
                     throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
@@ -80,7 +81,7 @@ public class AlterSequence extends SchemaCommand {
             }
         }
         if (column != null) {
-            session.getUser().checkRight(column.getTable(), Right.ALL);
+            session.getUser().checkTableRight(column.getTable(), Right.SCHEMA_OWNER);
         }
         options.setDataType(sequence.getDataType());
         Long startValue = options.getStartValue(session);

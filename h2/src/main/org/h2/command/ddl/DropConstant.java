@@ -17,7 +17,7 @@ import org.h2.schema.Schema;
  * This class represents the statement
  * DROP CONSTANT
  */
-public class DropConstant extends SchemaCommand {
+public class DropConstant extends SchemaOwnerCommand {
 
     private String constantName;
     private boolean ifExists;
@@ -35,11 +35,9 @@ public class DropConstant extends SchemaCommand {
     }
 
     @Override
-    public long update() {
-        session.getUser().checkAdmin();
-        session.commit(true);
+    long update(Schema schema) {
         Database db = session.getDatabase();
-        Constant constant = getSchema().findConstant(constantName);
+        Constant constant = schema.findConstant(constantName);
         if (constant == null) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.CONSTANT_NOT_FOUND_1, constantName);

@@ -85,9 +85,6 @@ public class AlterUser extends DefineCommand {
             break;
         case CommandInterface.ALTER_USER_ADMIN:
             session.getUser().checkAdmin();
-            if (!admin) {
-                user.checkOwnsNoSchemas();
-            }
             user.setAdmin(admin);
             break;
         default:

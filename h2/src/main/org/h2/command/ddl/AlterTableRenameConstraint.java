@@ -45,8 +45,8 @@ public class AlterTableRenameConstraint extends SchemaCommand {
             throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1,
                     newConstraintName);
         }
-        session.getUser().checkRight(constraint.getTable(), Right.ALL);
-        session.getUser().checkRight(constraint.getRefTable(), Right.ALL);
+        session.getUser().checkTableRight(constraint.getTable(), Right.SCHEMA_OWNER);
+        session.getUser().checkTableRight(constraint.getRefTable(), Right.SCHEMA_OWNER);
         session.getDatabase().renameSchemaObject(session, constraint, newConstraintName);
         return 0;
     }

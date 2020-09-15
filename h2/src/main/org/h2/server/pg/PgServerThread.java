@@ -462,6 +462,7 @@ public final class PgServerThread implements Runnable {
         case 'Q': {
             server.trace("Query");
             String query = readString();
+            @SuppressWarnings("resource")
             ScriptReader reader = new ScriptReader(new StringReader(query));
             while (true) {
                 String s = reader.readStatement();
@@ -472,7 +473,7 @@ public final class PgServerThread implements Runnable {
                 try (CommandInterface command = session.prepareLocal(s)) {
                     setActiveRequest(command);
                     if (command.isQuery()) {
-                        try (ResultInterface result = command.executeQuery(Long.MAX_VALUE, false)) {
+                        try (ResultInterface result = command.executeQuery(0, false)) {
                             sendRowDescription(result, null);
                             while (result.next()) {
                                 sendDataRow(result, null);

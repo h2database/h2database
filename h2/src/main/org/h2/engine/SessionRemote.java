@@ -872,7 +872,7 @@ public final class SessionRemote extends Session implements DataHandler {
                 parameters.get(0).setValue(ValueVarchar.get("DATABASE_TO_UPPER"), false);
                 parameters.get(1).setValue(ValueVarchar.get("DATABASE_TO_LOWER"), false);
                 parameters.get(2).setValue(ValueVarchar.get("CASE_INSENSITIVE_IDENTIFIERS"), false);
-                try (ResultInterface result = command.executeQuery(Integer.MAX_VALUE, false)) {
+                try (ResultInterface result = command.executeQuery(0, false)) {
                     while (result.next()) {
                         Value[] row = result.currentRow();
                         String value = row[1].getString();
@@ -910,7 +910,7 @@ public final class SessionRemote extends Session implements DataHandler {
                 parameters.get(0).setValue(ValueVarchar.get("MODE"), false);
                 parameters.get(1).setValue(ValueVarchar.get("TIME ZONE"), false);
                 parameters.get(2).setValue(ValueVarchar.get("JAVA_OBJECT_SERIALIZER"), false);
-                try (ResultInterface result = command.executeQuery(Integer.MAX_VALUE, false)) {
+                try (ResultInterface result = command.executeQuery(0, false)) {
                     while (result.next()) {
                         Value[] row = result.currentRow();
                         String value = row[1].getString();

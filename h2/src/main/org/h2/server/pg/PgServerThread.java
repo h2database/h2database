@@ -45,6 +45,7 @@ import org.h2.util.NetUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
+import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 import org.h2.value.CaseInsensitiveMap;
 import org.h2.value.TypeInfo;
@@ -67,10 +68,30 @@ import org.h2.value.ValueVarchar;
 /**
  * One server thread is opened for each client.
  */
-public class PgServerThread implements Runnable {
+public final class PgServerThread implements Runnable {
+
     private static final boolean INTEGER_DATE_TYPES = false;
 
     private static final Pattern SHOULD_QUOTE = Pattern.compile(".*[\",\\\\{}].*");
+
+    private static String pgTimeZone(String value) {
+        if (value.startsWith("GMT+")) {
+            return convertTimeZone(value, "GMT-");
+        } else if (value.startsWith("GMT-")) {
+            return convertTimeZone(value, "GMT+");
+        } else if (value.startsWith("UTC+")) {
+            return convertTimeZone(value, "UTC-");
+        } else if (value.startsWith("UTC-")) {
+            return convertTimeZone(value, "UTC+");
+        } else {
+            return value;
+        }
+    }
+
+    private static String convertTimeZone(String value, String prefix) {
+        int length = value.length();
+        return new StringBuilder(length).append(prefix).append(value, 4, length).toString();
+    }
 
     private final PgServer server;
     private Socket socket;
@@ -91,6 +112,7 @@ public class PgServerThread implements Runnable {
     private CommandInterface activeRequest;
     private String clientEncoding = SysProperties.PG_DEFAULT_CLIENT_ENCODING;
     private String dateStyle = "ISO, MDY";
+    private TimeZoneProvider timeZone = TimeZoneProvider.getDefault();
     private final HashMap<String, Prepared> prepared =
             new CaseInsensitiveMap<>();
     private final HashMap<String, Portal> portals =
@@ -198,11 +220,14 @@ public class PgServerThread implements Runnable {
                         break;
                     }
                     String value = readString();
-                    if ("user".equals(param)) {
+                    switch (param) {
+                    case "user":
                         this.userName = value;
-                    } else if ("database".equals(param)) {
+                        break;
+                    case "database":
                         this.databaseName = server.checkKeyAndGetDatabaseName(value);
-                    } else if ("client_encoding".equals(param)) {
+                        break;
+                    case "client_encoding":
                         // node-postgres will send "'utf-8'"
                         int length = value.length();
                         if (length >= 2 && value.charAt(0) == '\''
@@ -211,11 +236,20 @@ public class PgServerThread implements Runnable {
                         }
                         // UTF8
                         clientEncoding = value;
-                    } else if ("DateStyle".equals(param)) {
+                        break;
+                    case "DateStyle":
                         if (value.indexOf(',') < 0) {
                             value += ", MDY";
                         }
                         dateStyle = value;
+                        break;
+                    case "TimeZone":
+                        try {
+                            timeZone = TimeZoneProvider.ofId(pgTimeZone(value));
+                        } catch (Exception e) {
+                            server.trace("Unknown TimeZone: " + value);
+                        }
+                        break;
                     }
                     // extra_float_digits 2
                     // geqo on (Genetic Query Optimization)
@@ -253,9 +287,6 @@ public class PgServerThread implements Runnable {
                                 .append(':').append(socket.getLocalPort()).toString(), //
                         socket.getInetAddress().getAddress(), socket.getPort(), null));
                 session = Engine.createSession(ci);
-                // can not do this because when called inside
-                // DriverManager.getConnection, a deadlock occurs
-                // conn = DriverManager.getConnection(url, userName, password);
                 initDb();
                 sendAuthenticationOk();
             } catch (Exception e) {
@@ -966,6 +997,7 @@ public class PgServerThread implements Runnable {
     }
 
     private void initDb() {
+        session.setTimeZone(timeZone);
         try (CommandInterface command = session.prepareLocal("set search_path = public, pg_catalog")) {
             command.executeUpdate(null);
         }
@@ -1015,14 +1047,12 @@ public class PgServerThread implements Runnable {
         sendMessage();
         sendParameterStatus("client_encoding", clientEncoding);
         sendParameterStatus("DateStyle", dateStyle);
-        sendParameterStatus("integer_datetimes", "off");
         sendParameterStatus("is_superuser", "off");
         sendParameterStatus("server_encoding", "SQL_ASCII");
         sendParameterStatus("server_version", Constants.PG_VERSION);
         sendParameterStatus("session_authorization", userName);
         sendParameterStatus("standard_conforming_strings", "off");
-        // TODO PostgreSQL TimeZone
-        sendParameterStatus("TimeZone", "CET");
+        sendParameterStatus("TimeZone", pgTimeZone(timeZone.getId()));
         sendParameterStatus("integer_datetimes", INTEGER_DATE_TYPES ? "on" : "off");
         sendBackendKeyData();
         sendReadyForQuery();

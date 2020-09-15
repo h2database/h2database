@@ -98,25 +98,17 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     /**
      * INTERNAL
      */
-    public JdbcConnection(String url, Properties info) throws SQLException {
-        this(new ConnectionInfo(url, info), true);
-    }
-
-    /**
-     * INTERNAL
-     */
     /*
      * the session closable object does not leak as Eclipse warns - due to the
      * CloseWatcher.
      */
     @SuppressWarnings("resource")
-    public JdbcConnection(ConnectionInfo ci, boolean useBaseDir) throws SQLException {
+    public JdbcConnection(String url, Properties info) throws SQLException {
+        ConnectionInfo ci = new ConnectionInfo(url, info);
         try {
-            if (useBaseDir) {
-                String baseDir = SysProperties.getBaseDir();
-                if (baseDir != null) {
-                    ci.setBaseDir(baseDir);
-                }
+            String baseDir = SysProperties.getBaseDir();
+            if (baseDir != null) {
+                ci.setBaseDir(baseDir);
             }
             // this will return an embedded or server connection
             session = new SessionRemote(ci).connectEmbeddedOrServer(false);

@@ -39,7 +39,6 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     protected final int resultSetType;
     protected final int resultSetConcurrency;
     private volatile CommandInterface executingCommand;
-    private int lastExecutedCommandType;
     private ArrayList<String> batchCommands;
     private boolean escapeProcessing = true;
     private volatile boolean cancelled;
@@ -1293,7 +1292,6 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             conn.setExecutingStatement(null);
         } else {
             conn.setExecutingStatement(this);
-            lastExecutedCommandType = c.getCommandType();
         }
         executingCommand = c;
     }
@@ -1310,14 +1308,6 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         if (closeCommand) {
             command.close();
         }
-    }
-
-    /**
-     * INTERNAL.
-     * Get the command type of the last executed command.
-     */
-    public int getLastExecutedCommandType() {
-        return lastExecutedCommandType;
     }
 
     /**

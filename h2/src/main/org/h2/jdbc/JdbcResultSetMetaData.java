@@ -13,7 +13,6 @@ import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.MathUtils;
 import org.h2.value.DataType;
-import org.h2.value.TypeInfo;
 import org.h2.value.ValueToObjectConverter;
 
 /**
@@ -484,13 +483,6 @@ public class JdbcResultSetMetaData extends TraceObject implements
     @Override
     public String toString() {
         return getTraceObjectName() + ": columns=" + columnCount;
-    }
-
-    /**
-     * INTERNAL
-     */
-    public TypeInfo getColumnInternalType(int column) {
-        return result.getColumnType(--column);
     }
 
 }

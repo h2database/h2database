@@ -602,4 +602,5 @@ public interface CommandInterface extends AutoCloseable {
      * @return the empty result
      */
     ResultInterface getMetaData();
+
 }

@@ -337,7 +337,7 @@ public abstract class Command implements CommandInterface {
 
     @Override
     public void cancel() {
-        this.cancel = true;
+        cancel = true;
     }
 
     @Override

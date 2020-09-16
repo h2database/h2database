@@ -5,6 +5,7 @@
  */
 package org.h2.tools;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -12,7 +13,6 @@ import java.sql.SQLException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.h2.engine.Constants;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
@@ -149,7 +149,7 @@ public class Restore extends Tool {
                 if (originalDbName == null) {
                     throw new IOException("No database named " + db + " found");
                 }
-                if (originalDbName.startsWith(SysProperties.FILE_SEPARATOR)) {
+                if (originalDbName.startsWith(File.separator)) {
                     originalDbName = originalDbName.substring(1);
                 }
                 originalDbLen = originalDbName.length();
@@ -163,9 +163,8 @@ public class Restore extends Tool {
                     }
                     String fileName = entry.getName();
                     // restoring windows backups on linux and vice versa
-                    fileName = fileName.replace('\\', SysProperties.FILE_SEPARATOR.charAt(0));
-                    fileName = fileName.replace('/', SysProperties.FILE_SEPARATOR.charAt(0));
-                    if (fileName.startsWith(SysProperties.FILE_SEPARATOR)) {
+                    fileName = IOUtils.nameSeparatorsToNative(fileName);
+                    if (fileName.startsWith(File.separator)) {
                         fileName = fileName.substring(1);
                     }
                     boolean copy = false;
@@ -178,8 +177,7 @@ public class Restore extends Tool {
                     if (copy) {
                         OutputStream o = null;
                         try {
-                            o = FileUtils.newOutputStream(
-                                    directory + SysProperties.FILE_SEPARATOR + fileName, false);
+                            o = FileUtils.newOutputStream(directory + File.separatorChar + fileName, false);
                             IOUtils.copy(zipIn, o);
                             o.close();
                         } finally {

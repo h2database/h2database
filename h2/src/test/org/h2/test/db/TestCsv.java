@@ -25,7 +25,6 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.SysProperties;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -182,7 +181,7 @@ public class TestCsv extends TestDb {
     private void testOptions() {
         Csv csv = new Csv();
         assertEquals(",", csv.getFieldSeparatorWrite());
-        assertEquals(SysProperties.LINE_SEPARATOR, csv.getLineSeparator());
+        assertEquals(System.lineSeparator(), csv.getLineSeparator());
         assertEquals("", csv.getNullString());
         assertEquals('\"', csv.getEscapeCharacter());
         assertEquals('"', csv.getFieldDelimiter());

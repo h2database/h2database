@@ -33,7 +33,6 @@ import org.h2.engine.RightOwner;
 import org.h2.engine.Role;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.Setting;
-import org.h2.engine.SysProperties;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -667,7 +666,7 @@ public class ScriptCommand extends ScriptBase {
     private void reset() {
         result = null;
         buffer = null;
-        lineSeparatorString = SysProperties.LINE_SEPARATOR;
+        lineSeparatorString = System.lineSeparator();
         lineSeparator = lineSeparatorString.getBytes(charset);
     }
 

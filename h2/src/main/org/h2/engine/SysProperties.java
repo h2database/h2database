@@ -353,15 +353,6 @@ public class SysProperties {
             Utils.getProperty("h2.threadDeadlockDetector", false);
 
     /**
-     * System property <code>h2.implicitRelativePath</code>
-     * (default: false).<br />
-     * If disabled, relative paths in database URLs need to be written as
-     * jdbc:h2:./test instead of jdbc:h2:test.
-     */
-    public static final boolean IMPLICIT_RELATIVE_PATH =
-            Utils.getProperty("h2.implicitRelativePath", false);
-
-    /**
      * System property <code>h2.urlMap</code> (default: null).<br />
      * A properties file that contains a mapping between database URLs. New
      * connections are written into the file. An empty value in the map means no

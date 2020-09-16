@@ -10,7 +10,6 @@ import java.util.Properties;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.ConnectionInfo;
-import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.DeleteDbFiles;
@@ -41,9 +40,6 @@ public class TestConnectionInfo extends TestDb {
     }
 
     private void testImplicitRelativePath() throws Exception {
-        if (SysProperties.IMPLICIT_RELATIVE_PATH) {
-            return;
-        }
         assertThrows(ErrorCode.URL_RELATIVE_TO_CWD, this).
             getConnection("jdbc:h2:" + getTestName());
         assertThrows(ErrorCode.URL_RELATIVE_TO_CWD, this).

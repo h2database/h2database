@@ -436,22 +436,14 @@ public class ConnectionInfo implements Cloneable {
             return name;
         }
         if (nameNormalized == null) {
-            if (!SysProperties.IMPLICIT_RELATIVE_PATH) {
-                if (!FileUtils.isAbsolute(name)) {
-                    if (!name.contains("./") &&
-                            !name.contains(".\\") &&
-                            !name.contains(":/") &&
-                            !name.contains(":\\")) {
-                        // the name could start with "./", or
-                        // it could start with a prefix such as "nioMapped:./"
-                        // for Windows, the path "\test" is not considered
-                        // absolute as the drive letter is missing,
-                        // but we consider it absolute
-                        throw DbException.get(
-                                ErrorCode.URL_RELATIVE_TO_CWD,
-                                originalURL);
-                    }
-                }
+            if (!FileUtils.isAbsolute(name) && !name.contains("./") && !name.contains(".\\") && !name.contains(":/")
+                    && !name.contains(":\\")) {
+                // the name could start with "./", or
+                // it could start with a prefix such as "nioMapped:./"
+                // for Windows, the path "\test" is not considered
+                // absolute as the drive letter is missing,
+                // but we consider it absolute
+                throw DbException.get(ErrorCode.URL_RELATIVE_TO_CWD, originalURL);
             }
             String suffix = Constants.SUFFIX_PAGE_FILE;
             String n;

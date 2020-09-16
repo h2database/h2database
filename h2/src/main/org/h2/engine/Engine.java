@@ -20,6 +20,7 @@ import org.h2.store.fs.FileUtils;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.ParserUtil;
+import org.h2.util.StringUtils;
 import org.h2.util.ThreadDeadlockDetector;
 import org.h2.util.Utils;
 
@@ -243,13 +244,17 @@ public final class Engine {
                     continue;
                 }
                 String value = ci.getProperty(setting);
-                if (!ParserUtil.isSimpleIdentifier(setting, false, false) && !setting.equalsIgnoreCase("TIME ZONE")) {
-                    throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, setting);
+                StringBuilder builder = new StringBuilder("SET ").append(setting).append(' ');
+                if (!ParserUtil.isSimpleIdentifier(setting, false, false)) {
+                    if (!setting.equalsIgnoreCase("TIME ZONE")) {
+                        throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, setting);
+                    }
+                    StringUtils.quoteStringSQL(builder, value);
+                } else {
+                    builder.append(value);
                 }
                 try {
-                    CommandInterface command = session.prepareCommand(
-                            "SET " + setting + ' ' + value,
-                            Integer.MAX_VALUE);
+                    CommandInterface command = session.prepareLocal(builder.toString());
                     command.executeUpdate(null);
                 } catch (DbException e) {
                     if (e.getErrorCode() == ErrorCode.ADMIN_RIGHTS_REQUIRED) {
@@ -266,8 +271,7 @@ public final class Engine {
             }
             if (init != null) {
                 try {
-                    CommandInterface command = session.prepareCommand(init,
-                            Integer.MAX_VALUE);
+                    CommandInterface command = session.prepareLocal(init);
                     command.executeUpdate(null);
                 } catch (DbException e) {
                     if (!ignoreUnknownSetting) {

@@ -184,14 +184,6 @@ public class SysProperties {
             Utils.getProperty("h2.lobCloseBetweenReads", false);
 
     /**
-     * System property <code>h2.lobFilesPerDirectory</code>
-     * (default: 256).<br />
-     * Maximum number of LOB files per directory.
-     */
-    public static final int LOB_FILES_PER_DIRECTORY =
-            Utils.getProperty("h2.lobFilesPerDirectory", 256);
-
-    /**
      * System property <code>h2.lobClientMaxSizeMemory</code> (default:
      * 1048576).<br />
      * The maximum size of a LOB object to keep in memory on the client side

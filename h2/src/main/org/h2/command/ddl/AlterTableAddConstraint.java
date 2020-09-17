@@ -302,7 +302,12 @@ public class AlterTableAddConstraint extends SchemaCommand {
         Schema tableSchema = table.getSchema();
         if (forForeignKey) {
             id = session.getDatabase().allocateObjectId();
-            name = tableSchema.getUniqueConstraintName(session, table);
+            try {
+                tableSchema.reserveUniqueName(constraintName);
+                name = tableSchema.getUniqueConstraintName(session, table);
+            } finally {
+                tableSchema.freeUniqueName(constraintName);
+            }
         } else {
             id = getObjectId();
             name = generateConstraintName(table);

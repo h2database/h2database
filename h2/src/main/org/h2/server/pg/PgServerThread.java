@@ -430,7 +430,7 @@ public final class PgServerThread implements Runnable {
                 sendErrorResponse("Portal not found: " + name);
                 break;
             }
-            int maxRows = readShort();
+            int maxRows = readInt();
             Prepared prepared = p.prep;
             CommandInterface prep = prepared.prep;
             server.trace(prepared.sql);

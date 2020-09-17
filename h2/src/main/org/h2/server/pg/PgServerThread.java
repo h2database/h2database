@@ -112,7 +112,7 @@ public final class PgServerThread implements Runnable {
     private CommandInterface activeRequest;
     private String clientEncoding = SysProperties.PG_DEFAULT_CLIENT_ENCODING;
     private String dateStyle = "ISO, MDY";
-    private TimeZoneProvider timeZone = TimeZoneProvider.getDefault();
+    private TimeZoneProvider timeZone = DateTimeUtils.getTimeZone();
     private final HashMap<String, Prepared> prepared =
             new CaseInsensitiveMap<>();
     private final HashMap<String, Portal> portals =

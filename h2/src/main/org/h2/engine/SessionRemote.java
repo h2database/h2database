@@ -127,8 +127,8 @@ public final class SessionRemote extends Session implements DataHandler {
 
     private Transfer initTransfer(ConnectionInfo ci, String db, String server)
             throws IOException {
-        Socket socket = NetUtils.createSocket(server,
-                Constants.DEFAULT_TCP_PORT, ci.isSSL(), ci.getProperty("NETWORK_TIMEOUT",0 ));
+        Socket socket = NetUtils.createSocket(server, Constants.DEFAULT_TCP_PORT, ci.isSSL(),
+                ci.getProperty("NETWORK_TIMEOUT", 0));
         Transfer trans = new Transfer(this, socket);
         trans.setSSL(ci.isSSL());
         trans.init();
@@ -153,6 +153,13 @@ public final class SessionRemote extends Session implements DataHandler {
             }
             trans.writeInt(SessionRemote.SESSION_SET_ID);
             trans.writeString(sessionId);
+            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_20) {
+                TimeZoneProvider timeZone = ci.getTimeZone();
+                if (timeZone == null) {
+                    timeZone = DateTimeUtils.getTimeZone();
+                }
+                trans.writeString(timeZone.getId());
+            }
             done(trans);
             if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_15) {
                 autoCommit = trans.readBoolean();

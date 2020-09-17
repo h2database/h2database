@@ -22,6 +22,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 import org.h2.util.ThreadDeadlockDetector;
+import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 
 /**
@@ -268,6 +269,10 @@ public final class Engine {
                         throw e;
                     }
                 }
+            }
+            TimeZoneProvider timeZone = ci.getTimeZone();
+            if (timeZone != null) {
+                session.setTimeZone(timeZone);
             }
             if (init != null) {
                 try {

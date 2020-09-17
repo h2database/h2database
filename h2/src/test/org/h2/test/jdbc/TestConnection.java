@@ -12,11 +12,14 @@ import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
+import java.util.TimeZone;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
+import org.h2.util.DateTimeUtils;
 
 /**
  * Tests the client info
@@ -48,6 +51,7 @@ public class TestConnection extends TestDb {
         testChangeTransactionLevelCommitRunner();
         testLockTimeout();
         testIgnoreUnknownSettings();
+        testTimeZone();
     }
 
     private void testSetInternalProperty() throws SQLException {
@@ -362,10 +366,45 @@ public class TestConnection extends TestDb {
         } catch (SQLException e) {
             assertEquals(ErrorCode.UNSUPPORTED_SETTING_1, e.getErrorCode());
         }
-        try (Connection c = getConnection("ignoreUnknownSettings;IGNORE_UNKNOWN_SETTINGS=TRUE;A=1")){
+        try (Connection c = getConnection("ignoreUnknownSettings;IGNORE_UNKNOWN_SETTINGS=TRUE;A=1")) {
         } finally {
             deleteDb("ignoreUnknownSettings");
         }
+    }
+
+    private void testTimeZone() throws SQLException {
+        deleteDb("timeZone");
+        String tz1 = "Europe/London", tz2 = "Europe/Paris", tz3 = "Asia/Tokyo";
+        try (Connection c = getConnection("timeZone")) {
+            TimeZone tz = TimeZone.getDefault();
+            try {
+                TimeZone.setDefault(TimeZone.getTimeZone(tz1));
+                DateTimeUtils.resetCalendar();
+                try (Connection c1 = getConnection("timeZone")) {
+                    TimeZone.setDefault(TimeZone.getTimeZone(tz2));
+                    DateTimeUtils.resetCalendar();
+                    try (Connection c2 = getConnection("timeZone");
+                            Connection c3 = getConnection("timeZone;TIME ZONE=" + tz3)) {
+                        checkTimeZone(tz1, c1);
+                        checkTimeZone(tz2, c2);
+                        checkTimeZone(tz3, c3);
+                    }
+                }
+            } finally {
+                TimeZone.setDefault(tz);
+                DateTimeUtils.resetCalendar();
+            }
+        } finally {
+            deleteDb("timeZone");
+        }
+    }
+
+    private void checkTimeZone(String expected, Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery(
+                "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'TIME ZONE'");
+        rs.next();
+        assertEquals(expected, rs.getString(1));
     }
 
 }

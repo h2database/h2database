@@ -23,6 +23,7 @@ import org.h2.util.IOUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
+import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 
 /**
@@ -41,6 +42,8 @@ public class ConnectionInfo implements Cloneable {
     private byte[] filePasswordHash;
     private byte[] fileEncryptionKey;
     private byte[] userPasswordHash;
+
+    private TimeZoneProvider timeZone;
 
     /**
      * The database name
@@ -81,6 +84,10 @@ public class ConnectionInfo implements Cloneable {
         this.url = u;
         readProperties(info);
         readSettingsFromURL();
+        Object timeZoneName = prop.remove("TIME ZONE");
+        if (timeZoneName != null) {
+            timeZone = TimeZoneProvider.ofId(timeZoneName.toString());
+        }
         setUserName(removeProperty("USER", ""));
         name = url.substring(Constants.START_URL.length());
         parseName();
@@ -655,6 +662,15 @@ public class ConnectionInfo implements Cloneable {
      */
     public void setOriginalURL(String url) {
         originalURL = url;
+    }
+
+    /**
+     * Returns the time zone.
+     *
+     * @return the time zone
+     */
+    public TimeZoneProvider getTimeZone() {
+        return timeZone;
     }
 
     /**

@@ -5,8 +5,6 @@
  */
 package org.h2.engine;
 
-import java.io.File;
-
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 
@@ -42,18 +40,6 @@ public class SysProperties {
      * INTERNAL
      */
     public static final String H2_BROWSER = "h2.browser";
-
-    /**
-     * System property <code>file.separator</code>.<br />
-     * It is set by the system, and used to build absolute file names.
-     */
-    public static final String FILE_SEPARATOR = File.separator;
-
-    /**
-     * System property <code>line.separator</code>.<br />
-     * It is set by the system, and used by the script and trace tools.
-     */
-    public static final String LINE_SEPARATOR = System.lineSeparator();
 
     /**
      * System property <code>user.home</code> (empty string if not set).<br />
@@ -196,14 +182,6 @@ public class SysProperties {
      */
     public static boolean lobCloseBetweenReads =
             Utils.getProperty("h2.lobCloseBetweenReads", false);
-
-    /**
-     * System property <code>h2.lobFilesPerDirectory</code>
-     * (default: 256).<br />
-     * Maximum number of LOB files per directory.
-     */
-    public static final int LOB_FILES_PER_DIRECTORY =
-            Utils.getProperty("h2.lobFilesPerDirectory", 256);
 
     /**
      * System property <code>h2.lobClientMaxSizeMemory</code> (default:
@@ -373,15 +351,6 @@ public class SysProperties {
      */
     public static final boolean THREAD_DEADLOCK_DETECTOR =
             Utils.getProperty("h2.threadDeadlockDetector", false);
-
-    /**
-     * System property <code>h2.implicitRelativePath</code>
-     * (default: false).<br />
-     * If disabled, relative paths in database URLs need to be written as
-     * jdbc:h2:./test instead of jdbc:h2:test.
-     */
-    public static final boolean IMPLICIT_RELATIVE_PATH =
-            Utils.getProperty("h2.implicitRelativePath", false);
 
     /**
      * System property <code>h2.urlMap</code> (default: null).<br />

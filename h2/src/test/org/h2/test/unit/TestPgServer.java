@@ -116,6 +116,7 @@ public class TestPgServer extends TestDb {
         try {
             if (getPgJdbcDriver()) {
                 testPgClient();
+                testPgClientSimple();
             }
         } finally {
             server.stop();
@@ -354,6 +355,30 @@ public class TestPgServer extends TestDb {
         assertEquals(",", rs.getString("typdelim"));
         assertEquals(PgServer.PG_TYPE_VARCHAR, rs.getInt("typelem"));
 
+        stat.setMaxRows(10);
+        rs = stat.executeQuery("select * from generate_series(0, 10)");
+        for (int i = 0; i < 10; i++) {
+            assertTrue(rs.next());
+            assertEquals(i, rs.getInt(1));
+        }
+        assertFalse(rs.next());
+        stat.setMaxRows(0);
+
+        conn.close();
+    }
+
+    private void testPgClientSimple() throws SQLException {
+        Connection conn = DriverManager.getConnection(
+                "jdbc:postgresql://localhost:5535/pgserver?preferQueryMode=simple", "sa", "sa");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select 1");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertFalse(rs.next());
+        stat.setMaxRows(0);
+        stat.execute("create table test2(int integer)");
+        stat.execute("drop table test2");
+        assertThrows(SQLException.class, stat).execute("drop table test2");
         conn.close();
     }
 

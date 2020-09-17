@@ -127,8 +127,8 @@ public final class SessionRemote extends Session implements DataHandler {
 
     private Transfer initTransfer(ConnectionInfo ci, String db, String server)
             throws IOException {
-        Socket socket = NetUtils.createSocket(server,
-                Constants.DEFAULT_TCP_PORT, ci.isSSL(), ci.getProperty("NETWORK_TIMEOUT",0 ));
+        Socket socket = NetUtils.createSocket(server, Constants.DEFAULT_TCP_PORT, ci.isSSL(),
+                ci.getProperty("NETWORK_TIMEOUT", 0));
         Transfer trans = new Transfer(this, socket);
         trans.setSSL(ci.isSSL());
         trans.init();
@@ -153,6 +153,13 @@ public final class SessionRemote extends Session implements DataHandler {
             }
             trans.writeInt(SessionRemote.SESSION_SET_ID);
             trans.writeString(sessionId);
+            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_20) {
+                TimeZoneProvider timeZone = ci.getTimeZone();
+                if (timeZone == null) {
+                    timeZone = DateTimeUtils.getTimeZone();
+                }
+                trans.writeString(timeZone.getId());
+            }
             done(trans);
             if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_15) {
                 autoCommit = trans.readBoolean();
@@ -872,7 +879,7 @@ public final class SessionRemote extends Session implements DataHandler {
                 parameters.get(0).setValue(ValueVarchar.get("DATABASE_TO_UPPER"), false);
                 parameters.get(1).setValue(ValueVarchar.get("DATABASE_TO_LOWER"), false);
                 parameters.get(2).setValue(ValueVarchar.get("CASE_INSENSITIVE_IDENTIFIERS"), false);
-                try (ResultInterface result = command.executeQuery(Integer.MAX_VALUE, false)) {
+                try (ResultInterface result = command.executeQuery(0, false)) {
                     while (result.next()) {
                         Value[] row = result.currentRow();
                         String value = row[1].getString();
@@ -910,7 +917,7 @@ public final class SessionRemote extends Session implements DataHandler {
                 parameters.get(0).setValue(ValueVarchar.get("MODE"), false);
                 parameters.get(1).setValue(ValueVarchar.get("TIME ZONE"), false);
                 parameters.get(2).setValue(ValueVarchar.get("JAVA_OBJECT_SERIALIZER"), false);
-                try (ResultInterface result = command.executeQuery(Integer.MAX_VALUE, false)) {
+                try (ResultInterface result = command.executeQuery(0, false)) {
                     while (result.next()) {
                         Value[] row = result.currentRow();
                         String value = row[1].getString();

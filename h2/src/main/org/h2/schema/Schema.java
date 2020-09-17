@@ -461,6 +461,19 @@ public class Schema extends DbObject {
     }
 
     /**
+     * Reserve a unique object name.
+     *
+     * @param name the object name
+     */
+    public void reserveUniqueName(String name) {
+        if (name != null) {
+            synchronized (temporaryUniqueNames) {
+                temporaryUniqueNames.add(name);
+            }
+        }
+    }
+
+    /**
      * Release a unique object name.
      *
      * @param name the object name

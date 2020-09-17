@@ -10,6 +10,7 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -411,6 +412,16 @@ public class IOUtils {
         InputStream in = FileUtils.newInputStream(original);
         OutputStream out = FileUtils.newOutputStream(copy, false);
         copyAndClose(in, out);
+    }
+
+    /**
+     * Converts / and \ name separators in path to native separators.
+     *
+     * @param path path to convert
+     * @return path with converted separators
+     */
+    public static String nameSeparatorsToNative(String path) {
+        return File.separatorChar == '/' ? path.replace('\\', '/') : path.replace('/', '\\');
     }
 
 }

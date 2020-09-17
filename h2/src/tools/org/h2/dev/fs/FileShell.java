@@ -23,7 +23,6 @@ import java.util.zip.ZipOutputStream;
 
 import org.h2.command.dml.BackupCommand;
 import org.h2.engine.Constants;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
@@ -388,17 +387,13 @@ public class FileShell extends Tool {
                 }
                 String fileName = entry.getName();
                 // restoring windows backups on linux and vice versa
-                fileName = fileName.replace('\\',
-                        SysProperties.FILE_SEPARATOR.charAt(0));
-                fileName = fileName.replace('/',
-                        SysProperties.FILE_SEPARATOR.charAt(0));
-                if (fileName.startsWith(SysProperties.FILE_SEPARATOR)) {
+                fileName = IOUtils.nameSeparatorsToNative(fileName);
+                if (fileName.startsWith(File.separator)) {
                     fileName = fileName.substring(1);
                 }
                 OutputStream o = null;
                 try {
-                    o = FileUtils.newOutputStream(targetDir
-                            + SysProperties.FILE_SEPARATOR + fileName, false);
+                    o = FileUtils.newOutputStream(targetDir + File.separatorChar + fileName, false);
                     IOUtils.copy(zipIn, o);
                     o.close();
                 } finally {
@@ -451,7 +446,7 @@ public class FileShell extends Tool {
         }
         String unwrapped = FileUtils.unwrap(f);
         String prefix = f.substring(0, f.length() - unwrapped.length());
-        f = prefix + currentWorkingDirectory + SysProperties.FILE_SEPARATOR + unwrapped;
+        f = prefix + currentWorkingDirectory + File.separatorChar + unwrapped;
         return FileUtils.toRealPath(f);
     }
 

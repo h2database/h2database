@@ -8,7 +8,6 @@ package org.h2.message;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 
-import org.h2.engine.SysProperties;
 import org.h2.expression.ParameterInterface;
 import org.h2.util.StringUtils;
 
@@ -131,7 +130,7 @@ public class Trace {
     Trace(TraceWriter traceWriter, String module) {
         this.traceWriter = traceWriter;
         this.module = module;
-        this.lineSeparator = SysProperties.LINE_SEPARATOR;
+        this.lineSeparator = System.lineSeparator();
     }
 
     /**

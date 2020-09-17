@@ -40,6 +40,7 @@ import org.h2.util.NetUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SmallMap;
+import org.h2.util.TimeZoneProvider;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
@@ -479,6 +480,9 @@ public class TcpServerThread implements Runnable {
         }
         case SessionRemote.SESSION_SET_ID: {
             sessionId = transfer.readString();
+            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_20) {
+                session.setTimeZone(TimeZoneProvider.ofId(transfer.readString()));
+            }
             transfer.writeInt(SessionRemote.STATUS_OK);
             if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_15) {
                 transfer.writeBoolean(session.getAutoCommit());

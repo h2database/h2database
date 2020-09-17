@@ -5,6 +5,7 @@
  */
 package org.h2.engine;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,9 +19,11 @@ import org.h2.security.SHA256;
 import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.encrypt.FilePathEncrypt;
 import org.h2.store.fs.rec.FilePathRec;
+import org.h2.util.IOUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
+import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 
 /**
@@ -39,6 +42,8 @@ public class ConnectionInfo implements Cloneable {
     private byte[] filePasswordHash;
     private byte[] fileEncryptionKey;
     private byte[] userPasswordHash;
+
+    private TimeZoneProvider timeZone;
 
     /**
      * The database name
@@ -79,6 +84,10 @@ public class ConnectionInfo implements Cloneable {
         this.url = u;
         readProperties(info);
         readSettingsFromURL();
+        Object timeZoneName = prop.remove("TIME ZONE");
+        if (timeZoneName != null) {
+            timeZone = TimeZoneProvider.ofId(timeZoneName.toString());
+        }
         setUserName(removeProperty("USER", ""));
         name = url.substring(Constants.START_URL.length());
         parseName();
@@ -196,11 +205,7 @@ public class ConnectionInfo implements Cloneable {
             persistent = true;
         }
         if (persistent && !remote) {
-            if ("/".equals(SysProperties.FILE_SEPARATOR)) {
-                name = name.replace('\\', '/');
-            } else {
-                name = name.replace('/', '\\');
-            }
+            name = IOUtils.nameSeparatorsToNative(name);
         }
     }
 
@@ -216,7 +221,7 @@ public class ConnectionInfo implements Cloneable {
             boolean absolute = FileUtils.isAbsolute(name);
             String n;
             String prefix = null;
-            if (dir.endsWith(SysProperties.FILE_SEPARATOR)) {
+            if (dir.endsWith(File.separator)) {
                 dir = dir.substring(0, dir.length() - 1);
             }
             if (absolute) {
@@ -224,7 +229,7 @@ public class ConnectionInfo implements Cloneable {
             } else {
                 n  = FileUtils.unwrap(name);
                 prefix = name.substring(0, name.length() - n.length());
-                n = dir + SysProperties.FILE_SEPARATOR + n;
+                n = dir + File.separatorChar + n;
             }
             String normalizedName = FileUtils.unwrap(FileUtils.toRealPath(n));
             if (normalizedName.equals(absDir) || !normalizedName.startsWith(absDir)) {
@@ -243,7 +248,7 @@ public class ConnectionInfo implements Cloneable {
                         absDir);
             }
             if (!absolute) {
-                name = prefix + dir + SysProperties.FILE_SEPARATOR + FileUtils.unwrap(name);
+                name = prefix + dir + File.separatorChar + FileUtils.unwrap(name);
             }
         }
     }
@@ -438,22 +443,14 @@ public class ConnectionInfo implements Cloneable {
             return name;
         }
         if (nameNormalized == null) {
-            if (!SysProperties.IMPLICIT_RELATIVE_PATH) {
-                if (!FileUtils.isAbsolute(name)) {
-                    if (!name.contains("./") &&
-                            !name.contains(".\\") &&
-                            !name.contains(":/") &&
-                            !name.contains(":\\")) {
-                        // the name could start with "./", or
-                        // it could start with a prefix such as "nioMapped:./"
-                        // for Windows, the path "\test" is not considered
-                        // absolute as the drive letter is missing,
-                        // but we consider it absolute
-                        throw DbException.get(
-                                ErrorCode.URL_RELATIVE_TO_CWD,
-                                originalURL);
-                    }
-                }
+            if (!FileUtils.isAbsolute(name) && !name.contains("./") && !name.contains(".\\") && !name.contains(":/")
+                    && !name.contains(":\\")) {
+                // the name could start with "./", or
+                // it could start with a prefix such as "nioMapped:./"
+                // for Windows, the path "\test" is not considered
+                // absolute as the drive letter is missing,
+                // but we consider it absolute
+                throw DbException.get(ErrorCode.URL_RELATIVE_TO_CWD, originalURL);
             }
             String suffix = Constants.SUFFIX_PAGE_FILE;
             String n;
@@ -665,6 +662,15 @@ public class ConnectionInfo implements Cloneable {
      */
     public void setOriginalURL(String url) {
         originalURL = url;
+    }
+
+    /**
+     * Returns the time zone.
+     *
+     * @return the time zone
+     */
+    public TimeZoneProvider getTimeZone() {
+        return timeZone;
     }
 
     /**

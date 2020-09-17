@@ -116,8 +116,16 @@ public class AlterTableAddConstraint extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1,
-                    constraintName);
+            /**
+             * 1.4.200 and older databases don't always have a unique constraint
+             * for each referential constraint, so these constrains are created
+             * and they may use the same generated name as some other not yet
+             * initialized constraint that may lead to a name conflict.
+             */
+            if (!session.getDatabase().isStarting()) {
+                throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraintName);
+            }
+            constraintName = null;
         }
         session.getUser().checkTableRight(table, Right.SCHEMA_OWNER);
         db.lockMeta(session);

@@ -1272,7 +1272,7 @@ public final class Database implements DataHandler, CastDataProvider {
         long start = System.currentTimeMillis();
         // 'sleep' should be strictly greater than zero, otherwise real time is not taken into consideration
         // and the thread simply waits until notified
-        long sleep = Math.max(timeout / 20, 50);
+        long sleep = Math.max(timeout / 20, 1);
         boolean done = false;
         while (!done) {
             try {

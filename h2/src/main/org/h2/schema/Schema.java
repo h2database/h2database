@@ -184,9 +184,16 @@ public class Schema extends DbObject {
     private void removeChildrenFromMap(SessionLocal session, ConcurrentHashMap<String, ? extends SchemaObject> map) {
         if (!map.isEmpty()) {
             for (SchemaObject obj : map.values()) {
-                // Database.removeSchemaObject() removes the object from
-                // the map too, but it is safe for ConcurrentHashMap.
-                database.removeSchemaObject(session, obj);
+                /*
+                 * Referential constraints are dropped when unique or PK
+                 * constraint is dropped, but iterator may return already
+                 * removed objects in some cases.
+                 */
+                if (obj.isValid()) {
+                    // Database.removeSchemaObject() removes the object from
+                    // the map too, but it is safe for ConcurrentHashMap.
+                    database.removeSchemaObject(session, obj);
+                }
             }
         }
     }

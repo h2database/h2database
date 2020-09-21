@@ -25,6 +25,8 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.OffHeapStore;
+import org.h2.mvstore.Page;
+import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.mvstore.type.StringDataType;
@@ -788,11 +790,12 @@ public class TestMVStore extends TestBase {
             }
         }
         int[] expectedReadsForCacheSize = {
-                1880, 490, 476, 501, 476, 476, 541   // compressed
+                7176, 1750, 940, 940, 940, 940, 940   // compressed
+//                1880, 490, 476, 501, 476, 476, 541   // compressed
 //                1887, 1775, 1599, 1355, 1035, 732, 507    // uncompressed
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 1) {
-            int cacheMB = 1 + 3 * cacheSize;
+            int cacheMB = cacheSize;
             Utils.collectGarbage();
             try (MVStore s = new MVStore.Builder().
                     fileName(fileName).
@@ -806,14 +809,17 @@ public class TestMVStore extends TestBase {
                         assertEquals(10240, x.length());
                     }
                 }
-                long readCount = s.getFileStore().getReadCount();
+                FileStore fileStore = s.getFileStore();
+                long readCount = fileStore.getReadCount();
                 int expected = expectedReadsForCacheSize[cacheSize];
+                CacheLongKeyLIRS<Page<?, ?>> cache = fileStore.getCache();
                 assertTrue("Cache " + cacheMB + "Mb, reads: " + readCount + " expected: " + expected +
-                                " size: " + s.getFileStore().getReadBytes() +
+                                " size: " + fileStore.getReadBytes() +
                                 " cache used: " + s.getCacheSizeUsed() +
-                                " cache hits: " + s.getCache().getHits() +
-                                " cache misses: " + s.getCache().getMisses() +
-                                " cache requests: " + (s.getCache().getHits() + s.getCache().getMisses()) +
+                                (cache == null ? "" : (
+                                " cache hits: " + cache.getHits() +
+                                " cache misses: " + cache.getMisses() +
+                                " cache requests: " + (cache.getHits() + cache.getMisses()))) +
                                 "",
                         Math.abs(100 - (100 * expected / readCount)) < 15);
             }
@@ -1754,12 +1760,14 @@ public class TestMVStore extends TestBase {
                 for (int i = 0; i < 100; i++) {
                     m.put(j + i, "Hello " + j);
                 }
+                FileStore fileStore = s.getFileStore();
+                assertNotNull(fileStore);
                 trace("Before - fill rate: " + s.getFillRate() + "%, chunks fill rate: "
-                        + s.getChunksFillRate() + ", len: " + FileUtils.size(fileName));
+                        + fileStore.getChunksFillRate() + ", len: " + FileUtils.size(fileName));
                 s.compact(80, 2048);
                 s.compactMoveChunks();
                 trace("After  - fill rate: " + s.getFillRate() + "%, chunks fill rate: "
-                        + s.getChunksFillRate() + ", len: " + FileUtils.size(fileName));
+                        + fileStore.getChunksFillRate() + ", len: " + FileUtils.size(fileName));
             }
             long len = FileUtils.size(fileName);
             // System.out.println("   len:" + len);

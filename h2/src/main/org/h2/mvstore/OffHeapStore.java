@@ -6,7 +6,9 @@
 package org.h2.mvstore;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,7 +23,7 @@ public class OffHeapStore extends RandomAccessStore {
     private final TreeMap<Long, ByteBuffer> memory = new TreeMap<>();
 
     public OffHeapStore() {
-        super();
+        super(new HashMap<>());
     }
 
     @Override

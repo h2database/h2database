@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.PriorityQueue;
 
 /**
@@ -39,8 +40,8 @@ public abstract class RandomAccessStore extends FileStore {
 
 
 
-    public RandomAccessStore() {
-        super();
+    public RandomAccessStore(Map<String, Object> config) {
+        super(config);
     }
 
     /**
@@ -119,7 +120,7 @@ public abstract class RandomAccessStore extends FileStore {
      *            number of blocks vacated
      * @return prospective fill rate (0 - 100)
      */
-    public int getProjectedFillRate(int vacatedBlocks) {
+    protected int getProjectedFillRate(int vacatedBlocks) {
         return freeSpace.getProjectedFillRate(vacatedBlocks);
     }
 
@@ -297,7 +298,7 @@ public abstract class RandomAccessStore extends FileStore {
         this.reservedHigh = reservedHigh;
         saveChunkLock.unlock();
         try {
-            mvStore.store();
+            store();
         } finally {
             saveChunkLock.lock();
             this.reservedLow = 0;
@@ -363,7 +364,7 @@ public abstract class RandomAccessStore extends FileStore {
         // because concurrent reader can pick it up prematurely,
         chunk.block = block;
         chunk.next = 0;
-        mvStore.registerChunk(chunk);
+        acceptChunkChanges(chunk);
         return true;
     }
 

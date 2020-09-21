@@ -16,6 +16,7 @@ import java.util.Random;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.StreamStore;
@@ -127,9 +128,10 @@ public class TestStreamStore extends TestBase {
         MVStore s = new MVStore.Builder().
                 fileName(fileName).
                 open();
-        s.setCacheSize(1);
+        FileStore fileStore = s.getFileStore();
+        fileStore.setCacheSize(1);
         StreamStore streamStore = getAutoCommitStreamStore(s);
-        long size = s.getPageSplitSize() * 2;
+        long size = fileStore.getMaxPageSize() * 2;
         for (int i = 0; i < 100; i++) {
             streamStore.put(new RandomStream(size, i));
         }
@@ -146,7 +148,7 @@ public class TestStreamStore extends TestBase {
             streamStore.put(new RandomStream(size, -i));
         }
         s.commit();
-        long readCount = s.getFileStore().getReadCount();
+        long readCount = fileStore.getReadCount();
         // the read count should be low because new blocks
         // are appended at the end (not between existing blocks)
         assertTrue("rc: " + readCount, readCount <= 20);

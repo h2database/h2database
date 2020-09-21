@@ -773,11 +773,11 @@ public abstract class Page<K,V> implements Cloneable {
         while (!posUpdater.compareAndSet(this, isDeleted ? 1L : 0L, pagePos)) {
             isDeleted = isRemoved();
         }
-        store.cachePage(this);
+        store.getFileStore().cachePage(this);
         if (type == DataUtils.PAGE_TYPE_NODE) {
             // cache again - this will make sure nodes stays in the cache
             // for a longer time
-            store.cachePage(this);
+            store.getFileStore().cachePage(this);
         }
         int pageLengthEncoded = DataUtils.getPageMaxLength(pos);
         boolean singleWriter = map.isSingleWriter();

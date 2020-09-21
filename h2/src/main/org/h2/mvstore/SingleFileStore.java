@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.mvstore.cache.FilePathCache;
@@ -43,8 +44,8 @@ public class SingleFileStore extends RandomAccessStore {
     private FileLock fileLock;
 
 
-    public SingleFileStore() {
-        super();
+    public SingleFileStore(Map<String, Object> config) {
+        super(config);
     }
 
     @Override

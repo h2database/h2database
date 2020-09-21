@@ -316,7 +316,10 @@ public final class Store {
      * @param kb the maximum size in KB
      */
     public void setCacheSize(int kb) {
-        mvStore.setCacheSize(Math.max(1, kb / 1024));
+        FileStore fileStore = mvStore.getFileStore();
+        if (fileStore != null) {
+            fileStore.setCacheSize(Math.max(1, kb / 1024));
+        }
     }
 
     /**

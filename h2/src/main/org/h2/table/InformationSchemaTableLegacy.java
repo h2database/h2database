@@ -1118,47 +1118,46 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 add(session, rows, entry.getKey(), entry.getValue());
             }
             Store store = database.getStore();
-
-                    MVStore mvStore = store.getMvStore();
-                    FileStore fs = mvStore.getFileStore();
-                    if (fs != null) {
-                        add(session, rows,
-                                "info.FILE_WRITE", Long.toString(fs.getWriteCount()));
-                        add(session, rows,
-                                "info.FILE_WRITE_BYTES", Long.toString(fs.getWriteBytes()));
-                        add(session, rows,
-                                "info.FILE_READ", Long.toString(fs.getReadCount()));
-                        add(session, rows,
-                                "info.FILE_READ_BYTES", Long.toString(fs.getReadBytes()));
-                        add(session, rows,
-                                "info.UPDATE_FAILURE_PERCENT",
-                                String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getUpdateFailureRatio()));
-                        add(session, rows,
-                                "info.FILL_RATE", Integer.toString(mvStore.getFillRate()));
-                        add(session, rows,
-                                "info.CHUNKS_FILL_RATE", Integer.toString(mvStore.getChunksFillRate()));
-                        add(session, rows,
-                                "info.CHUNKS_FILL_RATE_RW", Integer.toString(mvStore.getRewritableChunksFillRate()));
-                        add(session, rows,
-                                "info.FILE_SIZE", Long.toString(fs.size()));
+            MVStore mvStore = store.getMvStore();
+            add(session, rows,
+                    "info.UPDATE_FAILURE_PERCENT",
+                    String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getUpdateFailureRatio()));
+            add(session, rows,
+                    "info.LEAF_RATIO", Integer.toString(mvStore.getLeafRatio()));
+            FileStore fs = mvStore.getFileStore();
+            if (fs != null) {
                 add(session, rows,
-                        "info.CHUNK_COUNT", Long.toString(mvStore.getChunkCount()));
+                        "info.FILE_WRITE", Long.toString(fs.getWriteCount()));
                 add(session, rows,
-                        "info.PAGE_COUNT", Long.toString(mvStore.getPageCount()));
+                        "info.FILE_WRITE_BYTES", Long.toString(fs.getWriteBytes()));
                 add(session, rows,
-                        "info.PAGE_COUNT_LIVE", Long.toString(mvStore.getLivePageCount()));
+                        "info.FILE_READ", Long.toString(fs.getReadCount()));
                 add(session, rows,
-                        "info.PAGE_SIZE", Integer.toString(mvStore.getPageSplitSize()));
+                        "info.FILE_READ_BYTES", Long.toString(fs.getReadBytes()));
                 add(session, rows,
-                        "info.CACHE_MAX_SIZE", Integer.toString(mvStore.getCacheSize()));
+                        "info.FILL_RATE", Integer.toString(mvStore.getFillRate()));
                 add(session, rows,
-                        "info.CACHE_SIZE", Integer.toString(mvStore.getCacheSizeUsed()));
+                        "info.CHUNKS_FILL_RATE", Integer.toString(fs.getChunksFillRate()));
                 add(session, rows,
-                        "info.CACHE_HIT_RATIO", Integer.toString(mvStore.getCacheHitRatio()));
-                add(session, rows, "info.TOC_CACHE_HIT_RATIO",
-                        Integer.toString(mvStore.getTocCacheHitRatio()));
+                        "info.CHUNKS_FILL_RATE_RW", Integer.toString(fs.getRewritableChunksFillRate()));
                 add(session, rows,
-                        "info.LEAF_RATIO", Integer.toString(mvStore.getLeafRatio()));
+                        "info.FILE_SIZE", Long.toString(fs.size()));
+                add(session, rows,
+                        "info.CHUNK_COUNT", Long.toString(fs.getChunkCount()));
+                add(session, rows,
+                        "info.PAGE_COUNT", Long.toString(fs.getPageCount()));
+                add(session, rows,
+                        "info.PAGE_SIZE", Long.toString(fs.getMaxPageSize()));
+                add(session, rows,
+                        "info.PAGE_COUNT_LIVE", Long.toString(fs.getLivePageCount()));
+                add(session, rows,
+                        "info.CACHE_MAX_SIZE", Integer.toString(fs.getCacheSize()));
+                add(session, rows,
+                        "info.CACHE_SIZE", Integer.toString(fs.getCacheSizeUsed()));
+                add(session, rows,
+                        "info.CACHE_HIT_RATIO", Integer.toString(fs.getCacheHitRatio()));
+                add(session, rows,
+                        "info.TOC_CACHE_HIT_RATIO", Integer.toString(fs.getTocCacheHitRatio()));
             }
             break;
         }

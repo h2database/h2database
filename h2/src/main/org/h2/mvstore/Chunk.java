@@ -131,7 +131,7 @@ public final class Chunk {
     public long version;
 
     /**
-     * When this chunk was created, in milliseconds after the store was created.
+     * When this chunk was created, in milliseconds since the store was created.
      */
     public long time;
 

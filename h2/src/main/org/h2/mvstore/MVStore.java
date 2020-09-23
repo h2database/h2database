@@ -149,7 +149,7 @@ public class MVStore implements AutoCloseable {
      * It serves as a replacement for synchronized(this), except it allows for
      * non-blocking lock attempts.
      */
-    private final ReentrantLock storeLock = new ReentrantLock(true);
+    final ReentrantLock storeLock = new ReentrantLock(true);
 
     private volatile int state;
 
@@ -213,22 +213,10 @@ public class MVStore implements AutoCloseable {
     private final int autoCommitMemory;
     private volatile boolean saveNeeded;
 
-    private long lastCommitTime;
-
-    /**
-     * The version of the current store operation (if any).
-     */
-    private volatile long currentStoreVersion = INITIAL_VERSION;
+    private volatile boolean storeOperationInProgress;
 
     private volatile boolean metaChanged;
 
-    /**
-     * The delay in milliseconds to automatically commit and write changes.
-     */
-    private int autoCommitDelay;
-
-    private final int autoCompactFillRate;
-    private long autoCompactLastFileOpCount;
 
     private volatile MVStoreException panicException;
 
@@ -279,7 +267,6 @@ public class MVStore implements AutoCloseable {
             int kb = Math.max(1, Math.min(19, Utils.scaleForAvailableMemory(64))) * 1024;
             kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", kb);
             autoCommitMemory = kb * 1024;
-            autoCompactFillRate = DataUtils.getConfigParam(config, "autoCompactFillRate", 90);
             char[] encryptionKey = (char[]) config.remove("encryptionKey");
             // there is no need to lock store here, since it is not opened (or even created) yet,
             // just to make some assertions happy, when they ensure single-threaded access
@@ -300,7 +287,6 @@ public class MVStore implements AutoCloseable {
                 }
                 unlockAndCheckPanicCondition();
             }
-            lastCommitTime = getTimeSinceCreation();
 
             meta = openMetaMap();
             scrubMetaMap();
@@ -311,7 +297,6 @@ public class MVStore implements AutoCloseable {
             setAutoCommitDelay(delay);
         } else {
             autoCommitMemory = 0;
-            autoCompactFillRate = 0;
             meta = openMetaMap();
         }
         onVersionChange(currentVersion);
@@ -364,7 +349,7 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    private void unlockAndCheckPanicCondition() {
+    void unlockAndCheckPanicCondition() {
         storeLock.unlock();
         if (getPanicException() != null) {
             closeImmediately();
@@ -670,7 +655,7 @@ public class MVStore implements AutoCloseable {
                                 if (allowedCompactionTime > 0) {
                                     compactFile(allowedCompactionTime);
                                 } else if (allowedCompactionTime < 0) {
-                                    doMaintenance(autoCompactFillRate);
+                                    fileStore.doMaintenance();
                                 }
 
                                 fileStore.writeCleanShutdown();
@@ -728,11 +713,7 @@ public class MVStore implements AutoCloseable {
     }
 
     private long tryCommit(Predicate<MVStore> check) {
-        // we need to prevent re-entrance, which may be possible,
-        // because meta map is modified within storeNow() and that
-        // causes beforeWrite() call with possibility of going back here
-        if ((!storeLock.isHeldByCurrentThread() || currentStoreVersion < 0) &&
-                storeLock.tryLock()) {
+        if (canStartStoreOperation() && storeLock.tryLock()) {
             try {
                 if (check.test(this)) {
                     return store(false);
@@ -765,10 +746,7 @@ public class MVStore implements AutoCloseable {
     }
 
     private long commit(Predicate<MVStore> check) {
-        // we need to prevent re-entrance, which may be possible,
-        // because meta map is modified within storeNow() and that
-        // causes beforeWrite() call with possibility of going back here
-        if(!storeLock.isHeldByCurrentThread() || currentStoreVersion < 0) {
+        if(canStartStoreOperation()) {
             storeLock.lock();
             try {
                 if (check.test(this)) {
@@ -781,15 +759,22 @@ public class MVStore implements AutoCloseable {
         return INITIAL_VERSION;
     }
 
+    private boolean canStartStoreOperation() {
+        // we need to prevent re-entrance, which may be possible,
+        // because meta map is modified within storeNow() and that
+        // causes beforeWrite() call with possibility of going back here
+        return !storeLock.isHeldByCurrentThread() || !storeOperationInProgress;
+    }
+
     private long store(boolean syncWrite) {
         assert storeLock.isHeldByCurrentThread();
         if (isOpenOrStopping()) {
             if (hasUnsavedChanges()) {
                 try {
-                    currentStoreVersion = currentVersion;
+                    storeOperationInProgress = true;
+                    //noinspection NonAtomicOperationOnVolatileField
+                    long result = ++currentVersion;
                     if (fileStore == null) {
-                        //noinspection NonAtomicOperationOnVolatileField
-                        ++currentVersion;
                         setWriteVersion(currentVersion);
                     } else {
                         dropUnusedChunks();
@@ -799,27 +784,28 @@ public class MVStore implements AutoCloseable {
                         }
                         storeNow(syncWrite);
                     }
-                    return currentStoreVersion + 1;
+                    return result;
                 } finally {
-                    // in any case reset the current store version,
-                    // to allow closing the store
-                    currentStoreVersion = -1;
+                    storeOperationInProgress = false;
                 }
             }
         }
         return INITIAL_VERSION;
     }
 
-    void storeNow(boolean syncWrite) {
+    void storeNow() {
+        ++currentVersion;
+        storeNow(true);
+    }
+
+    private void storeNow(boolean syncWrite) {
         try {
-            lastCommitTime = getTimeSinceCreation();
             int currentUnsavedPageCount = unsavedMemory;
             // it is ok, since that path suppose to be single-threaded under storeLock
-            //noinspection NonAtomicOperationOnVolatileField
-            long version = ++currentVersion;
+            long version = currentVersion;
 
             assert storeLock.isHeldByCurrentThread();
-            fileStore.storeIt(collectChangedMapRoots(version), version, lastCommitTime, syncWrite);
+            fileStore.storeIt(collectChangedMapRoots(version), version, syncWrite);
 
             // some pages might have been changed in the meantime (in the newest
             // version)
@@ -1070,14 +1056,7 @@ public class MVStore implements AutoCloseable {
      * @return true if any chunks were moved as result of this operation, false otherwise
      */
     boolean compactMoveChunks(int targetFillRate, long moveSize) {
-        boolean res = false;
-        if (isSpaceReused()) {
-            res = executeFilestoreOperation(() -> {
-                dropUnusedChunks();
-                return fileStore.compactChunks(targetFillRate, moveSize, this);
-            });
-        }
-        return res;
+        return fileStore.compactMoveChunks(targetFillRate, moveSize);
     }
 
     public <R> R executeFilestoreOperation(Callable<R> operation) {
@@ -1096,6 +1075,22 @@ public class MVStore implements AutoCloseable {
         return null;
     }
 
+    <R> R tryExecuteUnderStoreLock(Callable<R> operation) throws InterruptedException {
+        R result = null;
+        if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+            try {
+                result = operation.call();
+            } catch (MVStoreException e) {
+                panic(e);
+            } catch (Throwable e) {
+                panic(DataUtils.newMVStoreException(
+                        DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
+            } finally {
+                unlockAndCheckPanicCondition();
+            }
+        }
+        return result;
+    }
 
     /**
      * Force all stored changes to be written to the storage. The default
@@ -1803,123 +1798,7 @@ public class MVStore implements AutoCloseable {
         return m == null ? -1 : DataUtils.parseHexInt(m);
     }
 
-    /**
-     * Commit and save all changes, if there are any, and compact the store if
-     * needed.
-     */
-    void writeInBackground() {
-        try {
-            if (!isOpenOrStopping() || isReadOnly()) {
-                return;
-            }
-
-            // could also commit when there are many unsaved pages,
-            // but according to a test it doesn't really help
-
-            long time = getTimeSinceCreation();
-            if (time > lastCommitTime + autoCommitDelay) {
-                tryCommit();
-                if (autoCompactFillRate < 0) {
-                    compact(-getTargetFillRate(), autoCommitMemory);
-                }
-            }
-            int fillRate = getFillRate();
-            if (fileStore.isFragmented() && fillRate < autoCompactFillRate) {
-                if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
-                    try {
-                        int moveSize = autoCommitMemory;
-                        if (isIdle()) {
-                            moveSize *= 4;
-                        }
-                        compactMoveChunks(101, moveSize);
-                    } finally {
-                        unlockAndCheckPanicCondition();
-                    }
-                }
-            } else if (fillRate >= autoCompactFillRate && hasPersitentData()) {
-                int chunksFillRate = fileStore.getRewritableChunksFillRate();
-                chunksFillRate = isIdle() ? 100 - (100 - chunksFillRate) / 2 : chunksFillRate;
-                if (chunksFillRate < getTargetFillRate()) {
-                    if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
-                        try {
-                            int writeLimit = autoCommitMemory * fillRate / Math.max(chunksFillRate, 1);
-                            if (!isIdle()) {
-                                writeLimit /= 4;
-                            }
-                            if (fileStore.rewriteChunks(writeLimit, chunksFillRate)) {
-                                dropUnusedChunks();
-                            }
-                        } finally {
-                            storeLock.unlock();
-                        }
-                    }
-                }
-            }
-            autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
-        } catch (InterruptedException ignore) {
-        } catch (Throwable e) {
-            handleException(e);
-            if (backgroundExceptionHandler == null) {
-                throw e;
-            }
-        }
-    }
-
-    private void doMaintenance(int targetFillRate) {
-        if (autoCompactFillRate > 0 && hasPersitentData() && isSpaceReused()) {
-            try {
-                int lastProjectedFillRate = -1;
-                for (int cnt = 0; cnt < 5; cnt++) {
-                    int fillRate = getFillRate();
-                    int projectedFillRate = fillRate;
-                    if (fillRate > targetFillRate) {
-                        projectedFillRate = fileStore.getProjectedFillRate_(100);
-                        if (projectedFillRate > targetFillRate || projectedFillRate <= lastProjectedFillRate) {
-                            break;
-                        }
-                    }
-                    lastProjectedFillRate = projectedFillRate;
-                    // We can't wait forever for the lock here,
-                    // because if called from the background thread,
-                    // it might go into deadlock with concurrent database closure
-                    // and attempt to stop this thread.
-                    if (!storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
-                        break;
-                    }
-                    try {
-                        int writeLimit = autoCommitMemory * targetFillRate / Math.max(projectedFillRate, 1);
-                        if (projectedFillRate < fillRate) {
-                            if ((!fileStore.rewriteChunks(writeLimit, targetFillRate) || dropUnusedChunks() == 0) && cnt > 0) {
-                                break;
-                            }
-                        }
-                        if (!compactMoveChunks(101, writeLimit)) {
-                            break;
-                        }
-                    } finally {
-                        unlockAndCheckPanicCondition();
-                    }
-                }
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private int getTargetFillRate() {
-        int targetRate = autoCompactFillRate;
-        // use a lower fill rate if there were any file operations since the last time
-        if (!isIdle()) {
-            targetRate /= 2;
-        }
-        return targetRate;
-    }
-
-    private boolean isIdle() {
-        return autoCompactLastFileOpCount == fileStore.getWriteCount() + fileStore.getReadCount();
-    }
-
-    private void handleException(Throwable ex) {
+    void handleException(Throwable ex) {
         if (backgroundExceptionHandler != null) {
             try {
                 backgroundExceptionHandler.uncaughtException(Thread.currentThread(), ex);
@@ -1951,7 +1830,7 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    private boolean isOpenOrStopping() {
+    boolean isOpenOrStopping() {
         return state <= STATE_STOPPING;
     }
 
@@ -1967,14 +1846,9 @@ public class MVStore implements AutoCloseable {
      * @param millis the maximum delay
      */
     public void setAutoCommitDelay(int millis) {
-        if (autoCommitDelay == millis) {
-            return;
+        if (fileStore != null) {
+            fileStore.setAutoCommitDelay(millis);
         }
-        autoCommitDelay = millis;
-        if (fileStore == null || fileStore.isReadOnly()) {
-            return;
-        }
-        fileStore.setAutoCommitDelay(millis);
     }
 
     /**
@@ -1983,7 +1857,7 @@ public class MVStore implements AutoCloseable {
      * @return the delay in milliseconds, or 0 if auto-commit is disabled.
      */
     public int getAutoCommitDelay() {
-        return autoCommitDelay;
+        return fileStore == null ? 0 : fileStore.getAutoCommitDelay();
     }
 
     /**

@@ -196,6 +196,17 @@ public abstract class FileStore
      */
     private final AtomicReference<BackgroundWriterThread> backgroundWriterThread = new AtomicReference<>();
 
+    private final int autoCompactFillRate;
+
+    /**
+     * The delay in milliseconds to automatically commit and write changes.
+     */
+    private int autoCommitDelay;
+
+    private long autoCompactLastFileOpCount;
+
+    private long lastCommitTime;
+
     private final boolean recoveryMode;
 
     public static final int PIPE_LENGTH = 3;
@@ -205,6 +216,7 @@ public abstract class FileStore
 
     public FileStore(Map<String, Object> config) {
         recoveryMode = config.containsKey("recoveryMode");
+        autoCompactFillRate = DataUtils.getConfigParam(config, "autoCompactFillRate", 90);
         CacheLongKeyLIRS.Config cc = null;
         int mb = DataUtils.getConfigParam(config, "cacheSize", 16);
         if (mb > 0) {
@@ -317,6 +329,10 @@ public abstract class FileStore
      */
     public boolean deregisterMapRoot(int mapId) {
         return layout.remove(MVMap.getMapRootKey(mapId)) != null;
+    }
+
+    long getTimeSinceCreation() {
+        return Math.max(0, mvStore.getTimeAbsolute() - getCreationTime());
     }
 
     /**
@@ -471,6 +487,58 @@ public abstract class FileStore
         return maxPageSize;
     }
 
+    /**
+     * Get the auto-commit delay.
+     *
+     * @return the delay in milliseconds, or 0 if auto-commit is disabled.
+     */
+    public int getAutoCommitDelay() {
+        return autoCommitDelay;
+    }
+
+    /**
+     * Set the maximum delay in milliseconds to auto-commit changes.
+     * <p>
+     * To disable auto-commit, set the value to 0. In this case, changes are
+     * only committed when explicitly calling commit.
+     * <p>
+     * The default is 1000, meaning all changes are committed after at most one
+     * second.
+     *
+     * @param millis the maximum delay
+     */
+    public void setAutoCommitDelay(int millis) {
+        if (autoCommitDelay != millis) {
+            autoCommitDelay = millis;
+            if (!isReadOnly()) {
+                stopBackgroundThread(true);
+                // start the background thread if needed
+                if (millis > 0 && mvStore.isOpen()) {
+                    int sleep = Math.max(1, millis / 10);
+                    BackgroundWriterThread t = new BackgroundWriterThread(this, sleep, toString());
+                    if (backgroundWriterThread.compareAndSet(null, t)) {
+                        t.start();
+                        serializationExecutor = createSingleThreadExecutor("H2-serialization");
+                        bufferSaveExecutor = createSingleThreadExecutor("H2-save");
+                    }
+                }
+            }
+        }
+    }
+
+    private int getTargetFillRate() {
+        int targetRate = autoCompactFillRate;
+        // use a lower fill rate if there were any file operations since the last time
+        if (!isIdle()) {
+            targetRate /= 2;
+        }
+        return targetRate;
+    }
+
+    private boolean isIdle() {
+        return autoCompactLastFileOpCount == getWriteCount() + getReadCount();
+    }
+
     private void setLastChunk(Chunk last) {
         lastChunk = last;
 //        long curVersion = lastChunkVersion();
@@ -491,7 +559,7 @@ public abstract class FileStore
         layout.setRootPos(layoutRootPos, lastChunkVersion() - 1);
     }
 
-    public void registerDeadChunk(Chunk chunk) {
+    private void registerDeadChunk(Chunk chunk) {
 //        if (!chunk.isLive()) {
             deadChunks.offer(chunk);
 //        }
@@ -501,7 +569,7 @@ public abstract class FileStore
         int count = 0;
         if (!deadChunks.isEmpty()) {
             long oldestVersionToKeep = mvStore.getOldestVersionToKeep();
-            long time = mvStore.getTimeSinceCreation();
+            long time = getTimeSinceCreation();
             List<Chunk> toBeFreed = new ArrayList<>();
             Chunk chunk;
             while ((chunk = deadChunks.poll()) != null &&
@@ -808,11 +876,13 @@ public abstract class FileStore
                 saveChunkLock.unlock();
             }
         }
+        lastCommitTime = getTimeSinceCreation();
         mvStore.resetLastMapId(lastMapId());
         mvStore.setCurrentVersion(lastChunkVersion());
     }
 
     private void _readStoreHeader(boolean recoveryMode) {
+        long now = System.currentTimeMillis();
         Chunk newest = null;
         boolean assumeCleanShutdown = true;
         boolean validStoreHeader = false;
@@ -884,7 +954,6 @@ public abstract class FileStore
             assumeCleanShutdown = DataUtils.readHexInt(storeHeader, FileStore.HDR_CLEAN, 0) != 0;
         }
         getChunks().clear();
-        long now = System.currentTimeMillis();
         // calculate the year (doesn't have to be exact;
         // we assume 365.25 days per year, * 4 = 1461)
         int year =  1970 + (int) (now / (1000L * 60 * 60 * 6 * 1461));
@@ -1509,7 +1578,7 @@ public abstract class FileStore
     public void store() {
         serializationLock.unlock();
         try {
-            mvStore.storeNow(true);
+            mvStore.storeNow();
         } finally {
             serializationLock.lock();
         }
@@ -1518,7 +1587,8 @@ public abstract class FileStore
     private int serializationExecutorHWM;
 
 
-    void storeIt(ArrayList<Page<?,?>> changed, long version, long lastCommitTime, boolean syncWrite) throws ExecutionException {
+    void storeIt(ArrayList<Page<?,?>> changed, long version, boolean syncWrite) throws ExecutionException {
+        lastCommitTime = getTimeSinceCreation();
         serializationExecutorHWM = submitOrRun(serializationExecutor,
                 () -> serializeAndStore(syncWrite, changed, lastCommitTime, version),
                 syncWrite, PIPE_LENGTH, serializationExecutorHWM);
@@ -1726,7 +1796,7 @@ public abstract class FileStore
     private int getChunksFillRate(boolean all) {
         long maxLengthSum = 1;
         long maxLengthLiveSum = 1;
-        long time = mvStore.getTimeSinceCreation();
+        long time = getTimeSinceCreation();
         for (Chunk c : chunks.values()) {
             if (all || isRewritable(c, time)) {
                 assert c.maxLen >= 0;
@@ -1778,7 +1848,7 @@ public abstract class FileStore
         int vacatedBlocks = 0;
         long maxLengthSum = 1;
         long maxLengthLiveSum = 1;
-        long time = mvStore.getTimeSinceCreation();
+        long time = getTimeSinceCreation();
         for (Chunk c : chunks.values()) {
             assert c.maxLen >= 0;
             if (isRewritable(c, time) && c.getFillRate() <= thresholdChunkFillRate) {
@@ -1873,31 +1943,6 @@ public abstract class FileStore
         return (int) (100 * hits / (hits + cache.getMisses() + 1));
     }
 
-    /**
-     * Set the maximum delay in milliseconds to auto-commit changes.
-     * <p>
-     * To disable auto-commit, set the value to 0. In this case, changes are
-     * only committed when explicitly calling commit.
-     * <p>
-     * The default is 1000, meaning all changes are committed after at most one
-     * second.
-     *
-     * @param millis the maximum delay
-     */
-    public void setAutoCommitDelay(int millis) {
-        stopBackgroundThread(true);
-        // start the background thread if needed
-        if (millis > 0 && mvStore.isOpen()) {
-            int sleep = Math.max(1, millis / 10);
-            BackgroundWriterThread t = new BackgroundWriterThread(this, sleep, toString());
-            if (backgroundWriterThread.compareAndSet(null, t)) {
-                t.start();
-                serializationExecutor = createSingleThreadExecutor("H2-serialization");
-                bufferSaveExecutor = createSingleThreadExecutor("H2-save");
-            }
-        }
-    }
-
     private static ThreadPoolExecutor createSingleThreadExecutor(String threadName) {
         return new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
                                         new LinkedBlockingQueue<>(),
@@ -1960,7 +2005,7 @@ public abstract class FileStore
 
     private Iterable<Chunk> findOldChunks(int writeLimit, int targetFillRate) {
         assert hasPersitentData();
-        long time = mvStore.getTimeSinceCreation();
+        long time = getTimeSinceCreation();
 
         // the queue will contain chunks we want to free up
         // the smaller the collectionPriority, the more desirable this chunk's re-write is
@@ -2006,13 +2051,141 @@ public abstract class FileStore
     }
 
 
+    /**
+     * Commit and save all changes, if there are any, and compact the store if
+     * needed.
+     */
+    void writeInBackground() {
+        try {
+            if (!mvStore.isOpenOrStopping() || isReadOnly()) {
+                return;
+            }
+
+            // could also commit when there are many unsaved pages,
+            // but according to a test it doesn't really help
+
+            int autoCommitMemory = mvStore.getAutoCommitMemory();
+            long time = getTimeSinceCreation();
+            if (time > lastCommitTime + autoCommitDelay) {
+                mvStore.tryCommit();
+                if (autoCompactFillRate < 0) {
+                    mvStore.compact(-getTargetFillRate(), autoCommitMemory);
+                }
+            }
+            int fillRate = getFillRate();
+            if (isFragmented() && fillRate < autoCompactFillRate) {
+                if (mvStore.storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+                    try {
+                        int moveSize = autoCommitMemory;
+                        if (isIdle()) {
+                            moveSize *= 4;
+                        }
+                        compactMoveChunks(101, moveSize);
+                    } finally {
+                        mvStore.unlockAndCheckPanicCondition();
+                    }
+                }
+            } else if (fillRate >= autoCompactFillRate && hasPersitentData()) {
+                int chunksFillRate = getRewritableChunksFillRate();
+                chunksFillRate = isIdle() ? 100 - (100 - chunksFillRate) / 2 : chunksFillRate;
+                if (chunksFillRate < getTargetFillRate()) {
+                    if (mvStore.storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+                        try {
+                            int writeLimit = autoCommitMemory * fillRate / Math.max(chunksFillRate, 1);
+                            if (!isIdle()) {
+                                writeLimit /= 4;
+                            }
+                            if (rewriteChunks(writeLimit, chunksFillRate)) {
+                                dropUnusedChunks();
+                            }
+                        } finally {
+                            mvStore.storeLock.unlock();
+                        }
+                    }
+                }
+            }
+            autoCompactLastFileOpCount = getWriteCount() + getReadCount();
+        } catch (InterruptedException ignore) {
+        } catch (Throwable e) {
+            mvStore.handleException(e);
+            if (mvStore.backgroundExceptionHandler == null) {
+                throw e;
+            }
+        }
+    }
+
+    public void doMaintenance() {
+        doMaintenance(autoCompactFillRate);
+    }
+
+    private void doMaintenance(int targetFillRate) {
+        if (autoCompactFillRate > 0 && hasPersitentData() && isSpaceReused()) {
+            try {
+                int lastProjectedFillRate = -1;
+                for (int cnt = 0; cnt < 5; cnt++) {
+                    int fillRate = getFillRate();
+                    int projectedFillRate = fillRate;
+                    if (fillRate > targetFillRate) {
+                        projectedFillRate = getProjectedFillRate_(100);
+                        if (projectedFillRate > targetFillRate || projectedFillRate <= lastProjectedFillRate) {
+                            break;
+                        }
+                    }
+                    lastProjectedFillRate = projectedFillRate;
+                    // We can't wait forever for the lock here,
+                    // because if called from the background thread,
+                    // it might go into deadlock with concurrent database closure
+                    // and attempt to stop this thread.
+                    if (!mvStore.storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+                        break;
+                    }
+                    try {
+                        int writeLimit = mvStore.getAutoCommitMemory() * targetFillRate / Math.max(projectedFillRate, 1);
+                        if (projectedFillRate < fillRate) {
+                            if ((!rewriteChunks(writeLimit, targetFillRate) || dropUnusedChunks() == 0) && cnt > 0) {
+                                break;
+                            }
+                        }
+                        if (!compactMoveChunks(101, writeLimit)) {
+                            break;
+                        }
+                    } finally {
+                        mvStore.unlockAndCheckPanicCondition();
+                    }
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    /**
+     * Compact the store by moving all chunks next to each other, if there is
+     * free space between chunks. This might temporarily increase the file size.
+     * Chunks are overwritten irrespective of the current retention time. Before
+     * overwriting chunks and before resizing the file, syncFile() is called.
+     *
+     * @param targetFillRate do nothing if the file store fill rate is higher
+     *            than this
+     * @param moveSize the number of bytes to move
+     */
+    boolean compactMoveChunks(int targetFillRate, long moveSize) {
+        boolean res = false;
+        if (isSpaceReused()) {
+            res = mvStore.executeFilestoreOperation(() -> {
+                dropUnusedChunks();
+                return compactChunks(targetFillRate, moveSize, mvStore);
+            });
+        }
+        return res;
+    }
 
     public boolean rewriteChunks(int writeLimit, int targetFillRate) {
         serializationLock.lock();
         try {
             MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
             try {
-                acceptChunkOccupancyChanges(mvStore.getTimeSinceCreation(), mvStore.getCurrentVersion());
+                acceptChunkOccupancyChanges(getTimeSinceCreation(), mvStore.getCurrentVersion());
                 Iterable<Chunk> old = findOldChunks(writeLimit, targetFillRate);
                 if (old != null) {
                     HashSet<Integer> idSet = createIdSet(old);
@@ -2061,9 +2234,9 @@ public abstract class FileStore
     private int compactRewrite(Set<Integer> set) {
 //        assert storeLock.isHeldByCurrentThread();
 //        assert currentStoreVersion < 0; // we should be able to do tryCommit() -> store()
-        acceptChunkOccupancyChanges(mvStore.getTimeSinceCreation(), mvStore.getCurrentVersion());
+        acceptChunkOccupancyChanges(getTimeSinceCreation(), mvStore.getCurrentVersion());
         int rewrittenPageCount = rewriteChunks(set, false);
-        acceptChunkOccupancyChanges(mvStore.getTimeSinceCreation(), mvStore.getCurrentVersion());
+        acceptChunkOccupancyChanges(getTimeSinceCreation(), mvStore.getCurrentVersion());
         rewrittenPageCount += rewriteChunks(set, true);
         return rewrittenPageCount;
     }
@@ -2345,7 +2518,7 @@ public abstract class FileStore
                 if (!store.isBackgroundThread()) {
                     break;
                 }
-                store.mvStore.writeInBackground();
+                store.writeInBackground();
             }
         }
     }

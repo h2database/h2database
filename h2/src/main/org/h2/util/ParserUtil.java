@@ -30,9 +30,14 @@ public class ParserUtil {
     public static final int AND = ALL + 1;
 
     /**
+     * The token "ANY".
+     */
+    public static final int ANY = AND + 1;
+
+    /**
      * The token "ARRAY".
      */
-    public static final int ARRAY = AND + 1;
+    public static final int ARRAY = ANY + 1;
 
     /**
      * The token "AS".
@@ -365,9 +370,14 @@ public class ParserUtil {
     public static final int SET = SESSION_USER + 1;
 
     /**
+     * The token "SOME".
+     */
+    public static final int SOME = SET + 1;
+
+    /**
      * The token "SYMMETRIC".
      */
-    public static final int SYMMETRIC = SET + 1;
+    public static final int SYMMETRIC = SOME + 1;
 
     /**
      * The token "SYSTEM_USER".
@@ -642,6 +652,8 @@ public class ParserUtil {
                 return ALL;
             } else if (eq("AND", s, ignoreCase, start, length)) {
                 return AND;
+            } else if (eq("ANY", s, ignoreCase, start, length)) {
+                return ANY;
             } else if (eq("ARRAY", s, ignoreCase, start, length)) {
                 return ARRAY;
             } else if (eq("ASYMMETRIC", s, ignoreCase, start, length)) {
@@ -845,6 +857,8 @@ public class ParserUtil {
                 return SESSION_USER;
             } else if (eq("SET", s, ignoreCase, start, length)) {
                 return SET;
+            } else if (eq("SOME", s, ignoreCase, start, length)) {
+                return SOME;
             } else if (eq("SYMMETRIC", s, ignoreCase, start, length)) {
                 return SYMMETRIC;
             } else if (eq("SYSTEM_USER", s, ignoreCase, start, length)) {

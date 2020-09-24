@@ -616,6 +616,10 @@ public class TestKeywords extends TestBase {
                             assertTrue(rs.next());
                             assertEquals(Duration.ofDays(1L), rs.getObject(1, Duration.class));
                         }
+                        try (ResultSet rs = stat.executeQuery("SELECT 1 = " + s + " FROM (VALUES 1) T(" + s + ')')) {
+                            rs.next();
+                            assertTrue(rs.getBoolean(1));
+                        }
                         try (ResultSet rs = stat
                                 .executeQuery("SELECT ROW_NUMBER() OVER(" + s + ") WINDOW " + s + " AS ()")) {
                         }

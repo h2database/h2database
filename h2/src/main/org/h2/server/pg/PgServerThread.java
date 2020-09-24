@@ -372,12 +372,7 @@ public final class PgServerThread implements Runnable {
             if (type == 'S') {
                 Prepared p = prepared.remove(name);
                 if (p != null) {
-                    try {
-                        p.closeResult();
-                        p.prep.close();
-                    } catch (Exception e) {
-                        // Ignore
-                    }
+                    p.close();
                 }
             } else if (type == 'P') {
                 Portal p = portals.remove(name);
@@ -1050,6 +1045,9 @@ public final class PgServerThread implements Runnable {
      * Close this connection.
      */
     void close() {
+        for (Prepared prep : prepared.values()) {
+            prep.close();
+        }
         try {
             stop = true;
             try {
@@ -1214,6 +1212,18 @@ public final class PgServerThread implements Runnable {
          * The list of parameter types (if set).
          */
         int[] paramType;
+
+        /**
+         * Closes prepared statement and result, if any.
+         */
+        void close() {
+            try {
+                closeResult();
+                prep.close();
+            } catch (Exception e) {
+                // Ignore
+            }
+        }
 
         /**
          * Closes the result, if any.

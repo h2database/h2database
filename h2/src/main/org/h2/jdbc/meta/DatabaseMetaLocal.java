@@ -139,6 +139,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 + "CURRENT_SCHEMA," //
                 + "GROUPS," //
                 + "IF,ILIKE,INTERSECTS," //
+                + "KEY," //
                 + "LIMIT," //
                 + "MINUS," //
                 + "OFFSET," //

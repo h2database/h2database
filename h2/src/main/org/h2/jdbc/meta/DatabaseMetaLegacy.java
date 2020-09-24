@@ -56,6 +56,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 + "CURRENT_SCHEMA," //
                 + "GROUPS," //
                 + "IF,ILIKE,INTERSECTS," //
+                + "KEY," //
                 + "LIMIT," //
                 + "MINUS," //
                 + "OFFSET," //

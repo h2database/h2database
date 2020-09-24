@@ -5,6 +5,7 @@
  */
 package org.h2.test.unit;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -12,9 +13,12 @@ import java.sql.Statement;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.TreeSet;
 
 import org.h2.command.Parser;
+import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.util.ParserUtil;
 import org.objectweb.asm.ClassReader;
@@ -455,6 +459,8 @@ public class TestKeywords extends TestBase {
 
     private static final HashSet<String> ALL_RESEVED_WORDS;
 
+    private static final HashMap<String, TokenType> TOKENS;
+
     static {
         HashSet<String> set = new HashSet<>(1024);
         set.addAll(SQL92_RESERVED_WORDS);
@@ -464,37 +470,13 @@ public class TestKeywords extends TestBase {
         set.addAll(SQL2011_RESERVED_WORDS);
         set.addAll(SQL2016_RESERVED_WORDS);
         ALL_RESEVED_WORDS = set;
-    }
-
-    private static HashSet<String> toSet(String[] array) {
-        HashSet<String> set = new HashSet<>((int) Math.ceil(array.length / .75));
-        for (String reservedWord : array) {
-            if (!set.add(reservedWord)) {
-                throw new AssertionError(reservedWord);
-            }
+        HashMap<String, TokenType> tokens = new HashMap<>();
+        ClassReader r;
+        try {
+            r = new ClassReader(Parser.class.getResourceAsStream("Parser.class"));
+        } catch (IOException e) {
+            throw DbException.convert(e);
         }
-        return set;
-    }
-
-    /**
-     * Run just this test.
-     *
-     * @param a
-     *            ignored
-     */
-    public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().testFromMain();
-    }
-
-    @Override
-    public void test() throws Exception {
-        testParser();
-        testInformationSchema();
-    }
-
-    private void testParser() throws Exception {
-        final HashMap<String, TokenType> tokens = new HashMap<>();
-        ClassReader r = new ClassReader(Parser.class.getResourceAsStream("Parser.class"));
         r.accept(new ClassVisitor(Opcodes.ASM8) {
             @Override
             public FieldVisitor visitField(int access, String name, String descriptor, String signature, //
@@ -543,9 +525,40 @@ public class TestKeywords extends TestBase {
                 tokens.put(s, type);
             }
         }, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        TOKENS = tokens;
+    }
+
+    private static HashSet<String> toSet(String[] array) {
+        HashSet<String> set = new HashSet<>((int) Math.ceil(array.length / .75));
+        for (String reservedWord : array) {
+            if (!set.add(reservedWord)) {
+                throw new AssertionError(reservedWord);
+            }
+        }
+        return set;
+    }
+
+    /**
+     * Run just this test.
+     *
+     * @param a
+     *            ignored
+     */
+    public static void main(String... a) throws Exception {
+        TestBase.createCaller().init().testFromMain();
+    }
+
+    @Override
+    public void test() throws Exception {
+        testParser();
+        testInformationSchema();
+        testMetaData();
+    }
+
+    private void testParser() throws Exception {
         try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:keywords")) {
             Statement stat = conn.createStatement();
-            for (Entry<String, TokenType> entry : tokens.entrySet()) {
+            for (Entry<String, TokenType> entry : TOKENS.entrySet()) {
                 String s = entry.getKey();
                 TokenType type = entry.getValue();
                 Throwable exception1 = null, exception2 = null;
@@ -668,6 +681,41 @@ public class TestKeywords extends TestBase {
 
     private static boolean isKeyword(String identifier) {
         return ALL_RESEVED_WORDS.contains(identifier) || ParserUtil.isKeyword(identifier, false);
+    }
+
+    @SuppressWarnings("incomplete-switch")
+    private void testMetaData() throws Exception {
+        TreeSet<String> set = new TreeSet<>();
+        for (Entry<String, TokenType> entry : TOKENS.entrySet()) {
+            switch (entry.getValue()) {
+            case KEYWORD:
+            case CONTEXT_SENSITIVE_KEYWORD: {
+                String s = entry.getKey();
+                if (!SQL2003_RESERVED_WORDS.contains(s)) {
+                    set.add(s);
+                }
+            }
+            }
+        }
+        String expected = setToString(set);
+        try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:")) {
+            assertEquals(expected, conn.getMetaData().getSQLKeywords());
+        }
+        try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:;OLD_INFORMATION_SCHEMA=TRUE")) {
+            assertEquals(expected, conn.getMetaData().getSQLKeywords());
+        }
+    }
+
+    private static String setToString(TreeSet<String> set) {
+        Iterator<String> i = set.iterator();
+        if (i.hasNext()) {
+            StringBuilder builder = new StringBuilder(i.next());
+            while (i.hasNext()) {
+                builder.append(',').append(i.next());
+            }
+            return builder.toString();
+        }
+        return "";
     }
 
 }

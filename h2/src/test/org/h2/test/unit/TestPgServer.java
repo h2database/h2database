@@ -357,14 +357,25 @@ public class TestPgServer extends TestDb {
 
         stat.setMaxRows(10);
         rs = stat.executeQuery("select * from generate_series(0, 10)");
-        for (int i = 0; i < 10; i++) {
+        assertNRows(rs, 10);
+        stat.setMaxRows(0);
+
+        stat.setFetchSize(2);
+        rs = stat.executeQuery("select * from generate_series(0, 4)");
+        assertNRows(rs, 5);
+        rs = stat.executeQuery("select * from generate_series(0, 1)");
+        assertNRows(rs, 2);
+        stat.setFetchSize(0);
+
+        conn.close();
+    }
+
+    private void assertNRows(ResultSet rs, int n) throws SQLException {
+        for (int i = 0; i < n; i++) {
             assertTrue(rs.next());
             assertEquals(i, rs.getInt(1));
         }
         assertFalse(rs.next());
-        stat.setMaxRows(0);
-
-        conn.close();
     }
 
     private void testPgClientSimple() throws SQLException {

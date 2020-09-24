@@ -373,13 +373,17 @@ public final class PgServerThread implements Runnable {
                 Prepared p = prepared.remove(name);
                 if (p != null) {
                     try {
+                        p.closeResult();
                         p.prep.close();
                     } catch (Exception e) {
                         // Ignore
                     }
                 }
             } else if (type == 'P') {
-                portals.remove(name);
+                Portal p = portals.remove(name);
+                if (p != null) {
+                    p.prep.closeResult();
+                }
             } else {
                 server.trace("expected S or P, got " + type);
                 sendErrorResponse("expected S or P");
@@ -437,13 +441,7 @@ public final class PgServerThread implements Runnable {
             try {
                 setActiveRequest(prep);
                 if (prep.isQuery()) {
-                    try (ResultInterface result = prep.executeQuery(maxRows, false)) {
-                        // the meta-data is sent in the prior 'Describe'
-                        while (result.next()) {
-                            sendDataRow(result, p.resultColumnFormat);
-                        }
-                        sendCommandComplete(prep, 0);
-                    }
+                    executeQuery(prepared, prep, p.resultColumnFormat, maxRows);
                 } else {
                     sendCommandComplete(prep, prep.executeUpdate(null).getUpdateCount());
                 }
@@ -504,6 +502,36 @@ public final class PgServerThread implements Runnable {
         }
     }
 
+    private void executeQuery(Prepared prepared, CommandInterface prep, int[] resultColumnFormat, int maxRows)
+            throws Exception {
+        ResultInterface result = prepared.result;
+        if (result == null) {
+            result = prep.executeQuery(0L, false);
+        }
+        try {
+            // the meta-data is sent in the prior 'Describe'
+            if (maxRows == 0) {
+                while (result.next()) {
+                    sendDataRow(result, resultColumnFormat);
+                }
+            } else {
+                for (; maxRows > 0 && result.next(); maxRows--) {
+                    sendDataRow(result, resultColumnFormat);
+                }
+                if (result.hasNext()) {
+                    prepared.result = result;
+                    sendCommandSuspended();
+                    return;
+                }
+            }
+            prepared.closeResult();
+            sendCommandComplete(prep, 0);
+        } catch (Exception e) {
+            prepared.closeResult();
+            throw e;
+        }
+    }
+
     private String getSQL(String s) {
         String lower = StringUtils.toLowerEnglish(s);
         if (lower.startsWith("show max_identifier_length")) {
@@ -545,6 +573,11 @@ public final class PgServerThread implements Runnable {
             writeStringPart("UPDATE ");
             writeString(Long.toString(updateCount));
         }
+        sendMessage();
+    }
+
+    private void sendCommandSuspended() throws IOException {
+        startMessage('s');
         sendMessage();
     }
 
@@ -1173,9 +1206,25 @@ public final class PgServerThread implements Runnable {
         CommandInterface prep;
 
         /**
+         * The current result (for suspended portal).
+         */
+        ResultInterface result;
+
+        /**
          * The list of parameter types (if set).
          */
         int[] paramType;
+
+        /**
+         * Closes the result, if any.
+         */
+        void closeResult() {
+            ResultInterface result = this.result;
+            if (result != null) {
+                this.result = null;
+                result.close();
+            }
+        }
     }
 
     /**

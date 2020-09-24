@@ -10,6 +10,7 @@ package org.h2.command;
 
 import static org.h2.util.ParserUtil.ALL;
 import static org.h2.util.ParserUtil.AND;
+import static org.h2.util.ParserUtil.ANY;
 import static org.h2.util.ParserUtil.ARRAY;
 import static org.h2.util.ParserUtil.AS;
 import static org.h2.util.ParserUtil.ASYMMETRIC;
@@ -80,6 +81,7 @@ import static org.h2.util.ParserUtil.SECOND;
 import static org.h2.util.ParserUtil.SELECT;
 import static org.h2.util.ParserUtil.SESSION_USER;
 import static org.h2.util.ParserUtil.SET;
+import static org.h2.util.ParserUtil.SOME;
 import static org.h2.util.ParserUtil.SYMMETRIC;
 import static org.h2.util.ParserUtil.SYSTEM_USER;
 import static org.h2.util.ParserUtil.TABLE;
@@ -312,11 +314,11 @@ import org.h2.expression.function.ToCharFunction;
 import org.h2.expression.function.TrimFunction;
 import org.h2.expression.function.TruncateValueFunction;
 import org.h2.expression.function.XMLFunction;
+import org.h2.expression.function.table.ArrayTableFunction;
 import org.h2.expression.function.table.CSVReadFunction;
 import org.h2.expression.function.table.JavaTableFunction;
 import org.h2.expression.function.table.LinkSchemaFunction;
 import org.h2.expression.function.table.TableFunction;
-import org.h2.expression.function.table.ArrayTableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsPostgreSQL;
@@ -563,6 +565,8 @@ public class Parser {
             "ALL",
             // AND
             "AND",
+            // ANY
+            "ANY",
             // ARRAY
             "ARRAY",
             // AS
@@ -697,6 +701,8 @@ public class Parser {
             "SESSION_USER",
             // SET
             "SET",
+            // SOME
+            "SOME",
             // SYMMETRIC
             "SYMMETRIC",
             // SYSTEM_USER
@@ -3581,7 +3587,7 @@ public class Parser {
                 reread(start);
                 left = new Comparison(compareType, left, readConcat(), whenOperand);
             }
-        } else if (readIf("ANY") || readIf("SOME")) {
+        } else if (readIf(ANY) || readIf(SOME)) {
             read(OPEN_PAREN);
             if (currentTokenType == PARAMETER && compareType == Comparison.EQUAL) {
                 Parameter p = readParameter();
@@ -5376,6 +5382,11 @@ public class Parser {
             return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.SESSION_USER);
         case SYSTEM_USER:
             return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.SYSTEM_USER);
+        case ANY:
+        case SOME:
+            read();
+            read(OPEN_PAREN);
+            return readAggregate(AggregateType.ANY, "ANY");
         case DAY:
         case HOUR:
         case MINUTE:
@@ -5434,7 +5445,7 @@ public class Parser {
             } else if (quoted) {
                 r = new ExpressionColumn(database, null, null, name);
             } else {
-                r = readTermWithIdentifier(name);
+                r = readTermWithIdentifier(name, quoted);
             }
             break;
         }
@@ -5527,7 +5538,7 @@ public class Parser {
         return new OnDuplicateKeyValues(c, update);
     }
 
-    private Expression readTermWithIdentifier(String name) {
+    private Expression readTermWithIdentifier(String name, boolean quoted) {
         /*
          * Convert a-z to A-Z. This method is safe, because only A-Z
          * characters are considered below.
@@ -5612,16 +5623,6 @@ public class Parser {
                 return ValueExpression.get(readCharacterStringLiteral());
             }
             break;
-        case 'S':
-            if (equalsToken("SYSDATE", name)) {
-                return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, false, "SYSDATE");
-            } else if (equalsToken("SYSTIME", name)) {
-                return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIME, false, "SYSTIME");
-            } else if (equalsToken("SYSTIMESTAMP", name)) {
-                return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_TIMESTAMP, false,
-                        "SYSTIMESTAMP");
-            }
-            break;
         case 'T':
             if (equalsToken("TIME", name)) {
                 if (readIf(WITH)) {
@@ -5671,8 +5672,6 @@ public class Parser {
                         throw getSyntaxError();
                     }
                 }
-            } else if (equalsToken("TODAY", name)) {
-                return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, false, "TODAY");
             } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
                 if (equalsToken("T", name)) {
                     String time = currentValue.getString();
@@ -5700,7 +5699,7 @@ public class Parser {
             }
             break;
         }
-        return new ExpressionColumn(database, null, null, name);
+        return new ExpressionColumn(database, null, null, name, quoted);
     }
 
     private Prepared getCurrentSelectOrPrepared() {
@@ -7769,7 +7768,7 @@ public class Parser {
             command.addRight(Right.ALL);
             tableClauseExpected = true;
         } else if (readIf("ALTER")) {
-            read("ANY");
+            read(ANY);
             read("SCHEMA");
             command.addRight(Right.ALTER_ANY_SCHEMA);
             command.addTable(null);

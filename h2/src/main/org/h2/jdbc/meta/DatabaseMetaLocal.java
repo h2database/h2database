@@ -139,13 +139,13 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 + "CURRENT_SCHEMA," //
                 + "GROUPS," //
                 + "IF,ILIKE,INTERSECTS," //
+                + "KEY," //
                 + "LIMIT," //
                 + "MINUS," //
                 + "OFFSET," //
                 + "QUALIFY," //
                 + "REGEXP,ROWNUM," //
-                + "SYSDATE,SYSTIME,SYSTIMESTAMP," //
-                + "TODAY,TOP,"//
+                + "TOP,"//
                 + "_ROWID_";
     }
 

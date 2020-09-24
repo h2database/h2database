@@ -5445,7 +5445,7 @@ public class Parser {
             } else if (quoted) {
                 r = new ExpressionColumn(database, null, null, name);
             } else {
-                r = readTermWithIdentifier(name);
+                r = readTermWithIdentifier(name, quoted);
             }
             break;
         }
@@ -5538,7 +5538,7 @@ public class Parser {
         return new OnDuplicateKeyValues(c, update);
     }
 
-    private Expression readTermWithIdentifier(String name) {
+    private Expression readTermWithIdentifier(String name, boolean quoted) {
         /*
          * Convert a-z to A-Z. This method is safe, because only A-Z
          * characters are considered below.
@@ -5623,16 +5623,6 @@ public class Parser {
                 return ValueExpression.get(readCharacterStringLiteral());
             }
             break;
-        case 'S':
-            if (equalsToken("SYSDATE", name)) {
-                return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, false, "SYSDATE");
-            } else if (equalsToken("SYSTIME", name)) {
-                return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIME, false, "SYSTIME");
-            } else if (equalsToken("SYSTIMESTAMP", name)) {
-                return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_TIMESTAMP, false,
-                        "SYSTIMESTAMP");
-            }
-            break;
         case 'T':
             if (equalsToken("TIME", name)) {
                 if (readIf(WITH)) {
@@ -5682,8 +5672,6 @@ public class Parser {
                         throw getSyntaxError();
                     }
                 }
-            } else if (equalsToken("TODAY", name)) {
-                return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, false, "TODAY");
             } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
                 if (equalsToken("T", name)) {
                     String time = currentValue.getString();
@@ -5711,7 +5699,7 @@ public class Parser {
             }
             break;
         }
-        return new ExpressionColumn(database, null, null, name);
+        return new ExpressionColumn(database, null, null, name, quoted);
     }
 
     private Prepared getCurrentSelectOrPrepared() {

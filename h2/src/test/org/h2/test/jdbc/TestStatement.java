@@ -449,7 +449,7 @@ public class TestStatement extends TestDb {
         assertEquals("\"FROM\"", stat.enquoteIdentifier("FROM", false));
         assertEquals("\"Test\"", stat.enquoteIdentifier("Test", false));
         assertEquals("\"test\"", stat.enquoteIdentifier("test", false));
-        assertEquals("\"TODAY\"", stat.enquoteIdentifier("TODAY", false));
+        assertEquals("\"TOP\"", stat.enquoteIdentifier("TOP", false));
         assertEquals("\"Test\"", stat.enquoteIdentifier("\"Test\"", false));
         assertEquals("\"Test\"", stat.enquoteIdentifier("\"Test\"", true));
         assertEquals("\"\"\"Test\"", stat.enquoteIdentifier("\"\"\"Test\"", true));
@@ -481,7 +481,7 @@ public class TestStatement extends TestDb {
         assertFalse(stat.isSimpleIdentifier("FROM"));
         assertFalse(stat.isSimpleIdentifier("Test"));
         assertFalse(stat.isSimpleIdentifier("test"));
-        assertFalse(stat.isSimpleIdentifier("TODAY"));
+        assertFalse(stat.isSimpleIdentifier("TOP"));
         // Other lower case characters don't have upper case mappings
         assertTrue(stat.isSimpleIdentifier("\u02B0"));
 
@@ -496,14 +496,14 @@ public class TestStatement extends TestDb {
         assertEquals("\"from\"", stat.enquoteIdentifier("from", false));
         assertEquals("\"Test\"", stat.enquoteIdentifier("Test", false));
         assertEquals("\"TEST\"", stat.enquoteIdentifier("TEST", false));
-        assertEquals("\"today\"", stat.enquoteIdentifier("today", false));
+        assertEquals("\"top\"", stat.enquoteIdentifier("top", false));
 
         assertTrue(stat.isSimpleIdentifier("some_id"));
         assertFalse(stat.isSimpleIdentifier("some id"));
         assertFalse(stat.isSimpleIdentifier("from"));
         assertFalse(stat.isSimpleIdentifier("Test"));
         assertFalse(stat.isSimpleIdentifier("TEST"));
-        assertFalse(stat.isSimpleIdentifier("today"));
+        assertFalse(stat.isSimpleIdentifier("top"));
 
         conn.close();
         deleteDb("statement");
@@ -519,8 +519,8 @@ public class TestStatement extends TestDb {
         assertEquals("\"FROM\"", stat.enquoteIdentifier("FROM", false));
         assertEquals("\"from\"", stat.enquoteIdentifier("from", false));
         assertEquals("Test", stat.enquoteIdentifier("Test", false));
-        assertEquals("\"TODAY\"", stat.enquoteIdentifier("TODAY", false));
-        assertEquals("\"today\"", stat.enquoteIdentifier("today", false));
+        assertEquals("\"TOP\"", stat.enquoteIdentifier("TOP", false));
+        assertEquals("\"top\"", stat.enquoteIdentifier("top", false));
 
         assertTrue(stat.isSimpleIdentifier("SOME_ID"));
         assertTrue(stat.isSimpleIdentifier("some_id"));
@@ -529,8 +529,8 @@ public class TestStatement extends TestDb {
         assertFalse(stat.isSimpleIdentifier("FROM"));
         assertFalse(stat.isSimpleIdentifier("from"));
         assertTrue(stat.isSimpleIdentifier("Test"));
-        assertFalse(stat.isSimpleIdentifier("TODAY"));
-        assertFalse(stat.isSimpleIdentifier("today"));
+        assertFalse(stat.isSimpleIdentifier("TOP"));
+        assertFalse(stat.isSimpleIdentifier("top"));
         try {
             stat.isSimpleIdentifier(null);
             fail();

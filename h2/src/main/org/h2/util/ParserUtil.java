@@ -864,12 +864,6 @@ public class ParserUtil {
             } else if (eq("SYSTEM_USER", s, ignoreCase, start, length)) {
                 return SYSTEM_USER;
             }
-            if (additionalKeywords) {
-                if (eq("SYSDATE", s, ignoreCase, start, length) || eq("SYSTIME", s, ignoreCase, start, length)
-                        || eq("SYSTIMESTAMP", s, ignoreCase, start, length)) {
-                    return KEYWORD;
-                }
-            }
             return IDENTIFIER;
         case 'T':
             if (eq("TABLE", s, ignoreCase, start, length)) {
@@ -878,8 +872,7 @@ public class ParserUtil {
                 return TRUE;
             }
             if (additionalKeywords) {
-                if (eq("TODAY", s, ignoreCase, start, length) || eq("TOP", s, ignoreCase, start, length)
-                        || eq("TRAILING", s, ignoreCase, start, length)) {
+                if (eq("TOP", s, ignoreCase, start, length) || eq("TRAILING", s, ignoreCase, start, length)) {
                     return KEYWORD;
                 }
             }

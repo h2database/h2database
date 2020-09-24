@@ -145,8 +145,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 + "OFFSET," //
                 + "QUALIFY," //
                 + "REGEXP,ROWNUM," //
-                + "SYSDATE,SYSTIME,SYSTIMESTAMP," //
-                + "TODAY,TOP,"//
+                + "TOP,"//
                 + "_ROWID_";
     }
 

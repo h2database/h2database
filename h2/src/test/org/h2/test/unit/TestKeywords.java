@@ -701,12 +701,15 @@ public class TestKeywords extends TestBase {
             }
             }
         }
-        String expected = setToString(set);
         try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:")) {
-            assertEquals(expected, conn.getMetaData().getSQLKeywords());
+            assertEquals(setToString(set), conn.getMetaData().getSQLKeywords());
         }
+        set.add("SYSDATE");
+        set.add("SYSTIME");
+        set.add("SYSTIMESTAMP");
+        set.add("TODAY");
         try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:;OLD_INFORMATION_SCHEMA=TRUE")) {
-            assertEquals(expected, conn.getMetaData().getSQLKeywords());
+            assertEquals(setToString(set), conn.getMetaData().getSQLKeywords());
         }
     }
 

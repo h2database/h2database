@@ -267,10 +267,8 @@ public final class PgServerThread implements Runnable {
                 info.put("MODE", "PostgreSQL");
                 info.put("DATABASE_TO_LOWER", "TRUE");
                 info.put("DEFAULT_NULL_ORDERING", "HIGH");
-                info.put("USER", userName);
-                info.put("PASSWORD", password);
                 String url = "jdbc:h2:" + databaseName;
-                ConnectionInfo ci = new ConnectionInfo(url, info);
+                ConnectionInfo ci = new ConnectionInfo(url, info, userName, password);
                 String baseDir = server.getBaseDir();
                 if (baseDir == null) {
                     baseDir = SysProperties.getBaseDir();

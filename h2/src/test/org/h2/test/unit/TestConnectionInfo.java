@@ -6,7 +6,6 @@
 package org.h2.test.unit;
 
 import java.io.File;
-import java.util.Properties;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.ConnectionInfo;
@@ -57,14 +56,13 @@ public class TestConnectionInfo extends TestDb {
     }
 
     private void testConnectionInfo() {
-        Properties info = new Properties();
         ConnectionInfo connectionInfo = new ConnectionInfo(
                 "jdbc:h2:mem:" + getTestName() +
                         ";LOG=2" +
                         ";ACCESS_MODE_DATA=rws" +
                         ";INIT=CREATE this...\\;INSERT that..." +
                         ";IFEXISTS=TRUE",
-                info);
+                null, null, null);
 
         assertEquals("jdbc:h2:mem:" + getTestName(),
                 connectionInfo.getURL());

@@ -103,9 +103,9 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      * CloseWatcher.
      */
     @SuppressWarnings("resource")
-    public JdbcConnection(String url, Properties info) throws SQLException {
+    public JdbcConnection(String url, Properties info, String user, Object password) throws SQLException {
         try {
-            ConnectionInfo ci = new ConnectionInfo(url, info);
+            ConnectionInfo ci = new ConnectionInfo(url, info, user, password);
             String baseDir = SysProperties.getBaseDir();
             if (baseDir != null) {
                 ci.setBaseDir(baseDir);
@@ -117,7 +117,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             if (isInfoEnabled()) {
                 trace.infoCode("Connection " + getTraceObjectName()
                         + " = DriverManager.getConnection("
-                        + quote(ci.getOriginalURL()) + ", " + quote(user)
+                        + quote(ci.getOriginalURL()) + ", " + quote(this.user)
                         + ", \"\");");
             }
             this.url = ci.getURL();

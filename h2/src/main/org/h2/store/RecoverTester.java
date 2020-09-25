@@ -10,7 +10,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.HashSet;
-import java.util.Properties;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.ConnectionInfo;
@@ -103,11 +102,8 @@ public class RecoverTester implements Recorder {
             }
             verifyCount++;
             // avoid using the Engine class to avoid deadlocks
-            Properties p = new Properties();
-            p.setProperty("user", "");
-            p.setProperty("password", "");
             ConnectionInfo ci = new ConnectionInfo("jdbc:h2:" + testDatabase +
-                    ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0", p);
+                    ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0", null, "", "");
             Database database = new Database(ci, null);
             // close the database
             SessionLocal sysSession = database.getSystemSession();
@@ -148,9 +144,8 @@ public class RecoverTester implements Recorder {
         try {
             IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
             // avoid using the Engine class to avoid deadlocks
-            Properties p = new Properties();
             ConnectionInfo ci = new ConnectionInfo("jdbc:h2:" +
-                        testDatabase + ";FILE_LOCK=NO", p);
+                        testDatabase + ";FILE_LOCK=NO", null, null, null);
             Database database = new Database(ci, null);
             // close the database
             database.removeSession(null);

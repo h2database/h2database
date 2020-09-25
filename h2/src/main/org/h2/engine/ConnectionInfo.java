@@ -73,9 +73,13 @@ public class ConnectionInfo implements Cloneable {
      * Create a connection info object.
      *
      * @param u the database URL (must start with jdbc:h2:)
-     * @param info the connection properties
+     * @param info the connection properties or {@code null}
+     * @param user the user name or {@code null}
+     * @param password
+     *            the password as {@code String} or {@code char[]}, or
+     *            {@code null}
      */
-    public ConnectionInfo(String u, Properties info) {
+    public ConnectionInfo(String u, Properties info, String user, Object password) {
         u = remapURL(u);
         this.originalURL = u;
         if (!u.startsWith(Constants.START_URL)) {
@@ -84,6 +88,12 @@ public class ConnectionInfo implements Cloneable {
         this.url = u;
         if (info != null) {
             readProperties(info);
+        }
+        if (user != null) {
+            prop.put("USER", user);
+        }
+        if (password != null) {
+            prop.put("PASSWORD", password);
         }
         readSettingsFromURL();
         Object timeZoneName = prop.remove("TIME ZONE");

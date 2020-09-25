@@ -82,7 +82,9 @@ public class ConnectionInfo implements Cloneable {
             throw DbException.getInvalidValueException("url", u);
         }
         this.url = u;
-        readProperties(info);
+        if (info != null) {
+            readProperties(info);
+        }
         readSettingsFromURL();
         Object timeZoneName = prop.remove("TIME ZONE");
         if (timeZoneName != null) {

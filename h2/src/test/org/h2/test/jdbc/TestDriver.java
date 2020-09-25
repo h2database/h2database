@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import org.h2.Driver;
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -33,6 +34,7 @@ public class TestDriver extends TestDb {
     public void test() throws Exception {
         testSettingsAsProperties();
         testDriverObject();
+        testURLs();
     }
 
     private void testSettingsAsProperties() throws Exception {
@@ -63,6 +65,13 @@ public class TestDriver extends TestDb {
         }
         Driver.load();
         assertTrue(DriverManager.getDriver("jdbc:h2:~/test") == instance);
+    }
+
+    private void testURLs() throws Exception {
+        java.sql.Driver instance = Driver.load();
+        assertThrows(ErrorCode.URL_FORMAT_ERROR_2, instance).acceptsURL(null);
+        assertThrows(ErrorCode.URL_FORMAT_ERROR_2, instance).connect(null, null);
+        assertNull(instance.connect("jdbc:unknown", null));
     }
 
 }

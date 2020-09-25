@@ -56,11 +56,7 @@ public class Driver implements java.sql.Driver, JdbcDriverBackwardsCompat {
         if (url == null) {
             throw DbException.getJdbcSQLException(ErrorCode.URL_FORMAT_ERROR_2, null, Constants.URL_FORMAT, null);
         } else if (url.startsWith(Constants.START_URL)) {
-            try {
-                return new JdbcConnection(url, info);
-            } catch (Exception e) {
-                throw DbException.toSQLException(e);
-            }
+            return new JdbcConnection(url, info);
         } else if (url.equals(DEFAULT_URL)) {
             return DEFAULT_CONNECTION.get();
         } else {

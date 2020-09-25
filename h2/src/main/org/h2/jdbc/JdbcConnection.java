@@ -104,8 +104,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      */
     @SuppressWarnings("resource")
     public JdbcConnection(String url, Properties info) throws SQLException {
-        ConnectionInfo ci = new ConnectionInfo(url, info);
         try {
+            ConnectionInfo ci = new ConnectionInfo(url, info);
             String baseDir = SysProperties.getBaseDir();
             if (baseDir != null) {
                 ci.setBaseDir(baseDir);

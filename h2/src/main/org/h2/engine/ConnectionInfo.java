@@ -81,11 +81,10 @@ public class ConnectionInfo implements Cloneable {
      */
     public ConnectionInfo(String u, Properties info, String user, Object password) {
         u = remapURL(u);
-        this.originalURL = u;
+        originalURL = url = u;
         if (!u.startsWith(Constants.START_URL)) {
-            throw DbException.getInvalidValueException("url", u);
+            throw getFormatException();
         }
-        this.url = u;
         if (info != null) {
             readProperties(info);
         }
@@ -691,8 +690,7 @@ public class ConnectionInfo implements Cloneable {
      * @return the exception
      */
     DbException getFormatException() {
-        String format = Constants.URL_FORMAT;
-        return DbException.get(ErrorCode.URL_FORMAT_ERROR_2, format, url);
+        return DbException.get(ErrorCode.URL_FORMAT_ERROR_2, Constants.URL_FORMAT, url);
     }
 
     /**

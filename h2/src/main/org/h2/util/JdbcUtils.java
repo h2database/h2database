@@ -32,6 +32,7 @@ import javax.naming.Context;
 import javax.sql.DataSource;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
+import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcPreparedStatement;
@@ -283,14 +284,13 @@ public class JdbcUtils {
      */
     public static Connection getConnection(String driver, String url, Properties prop,
             NetworkConnectionInfo networkConnectionInfo) throws SQLException {
-        Connection connection = getConnection(driver, url, prop);
-        if (networkConnectionInfo != null && connection instanceof JdbcConnection) {
-            ((JdbcConnection) connection).getSession().setNetworkConnectionInfo(networkConnectionInfo);
+        if (url.startsWith(Constants.START_URL)) {
+            JdbcConnection connection = new JdbcConnection(url, prop);
+            if (networkConnectionInfo != null) {
+                connection.getSession().setNetworkConnectionInfo(networkConnectionInfo);
+            }
+            return connection;
         }
-        return connection;
-    }
-
-    private static Connection getConnection(String driver, String url, Properties prop) throws SQLException {
         if (StringUtils.isNullOrEmpty(driver)) {
             JdbcUtils.load(url);
         } else {

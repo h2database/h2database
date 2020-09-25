@@ -72,10 +72,6 @@ public class JdbcDataSource extends TraceObject implements XADataSource,
     private String url = "";
     private String description;
 
-    static {
-        org.h2.Driver.load();
-    }
-
     /**
      * The public constructor.
      */

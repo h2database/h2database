@@ -106,7 +106,6 @@ public class PgServer implements Service {
                 keyDatabase = args[++i];
             }
         }
-        org.h2.Driver.load();
         // int testing;
         // trace = true;
     }

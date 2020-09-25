@@ -187,7 +187,6 @@ public class TcpServer implements Service {
                 ifExists = false;
             }
         }
-        org.h2.Driver.load();
     }
 
     @Override
@@ -445,11 +444,6 @@ public class TcpServer implements Service {
                 }
             }
             String db = getManagementDbName(port);
-            try {
-                org.h2.Driver.load();
-            } catch (Throwable e) {
-                throw DbException.convert(e);
-            }
             for (int i = 0; i < 2; i++) {
                 try (JdbcConnection conn = new JdbcConnection("jdbc:h2:" + url + '/' + db, null, "", password)) {
                     PreparedStatement prep = conn.prepareStatement("CALL STOP_SERVER(?, ?, ?)");

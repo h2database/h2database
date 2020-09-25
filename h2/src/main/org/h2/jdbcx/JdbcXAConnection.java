@@ -45,10 +45,6 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
     private Xid currentTransaction;
     private boolean prepared;
 
-    static {
-        org.h2.Driver.load();
-    }
-
     JdbcXAConnection(JdbcDataSourceFactory factory, int id,
             JdbcConnection physicalConn) {
         this.factory = factory;

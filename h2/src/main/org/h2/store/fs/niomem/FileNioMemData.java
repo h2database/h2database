@@ -27,21 +27,11 @@ class FileNioMemData {
     private static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
     private static final ByteBuffer COMPRESSED_EMPTY_BLOCK;
 
-    private static final ThreadLocal<CompressLZF> LZF_THREAD_LOCAL =
-            new ThreadLocal<CompressLZF>() {
-        @Override
-        protected CompressLZF initialValue() {
-            return new CompressLZF();
-        }
-    };
+    private static final ThreadLocal<CompressLZF> LZF_THREAD_LOCAL = ThreadLocal.withInitial(CompressLZF::new);
+
     /** the output buffer when compressing */
-    private static final ThreadLocal<byte[] > COMPRESS_OUT_BUF_THREAD_LOCAL =
-            new ThreadLocal<byte[] >() {
-        @Override
-        protected byte[] initialValue() {
-            return new byte[BLOCK_SIZE * 2];
-        }
-    };
+    private static final ThreadLocal<byte[]> COMPRESS_OUT_BUF_THREAD_LOCAL = ThreadLocal
+            .withInitial(() -> new byte[BLOCK_SIZE * 2]);
 
     /**
      * The hash code of the name.

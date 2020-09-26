@@ -981,7 +981,7 @@ public final class Database implements DataHandler, CastDataProvider {
      *
      * @param session the session
      */
-    public static void unlockMetaDebug(SessionLocal session) {
+    static void unlockMetaDebug(SessionLocal session) {
         if (ASSERT) {
             if (META_LOCK_DEBUGGING.get() == session) {
                 META_LOCK_DEBUGGING.set(null);

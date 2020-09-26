@@ -347,7 +347,7 @@ public class DbSettings extends SettingsBase {
      * @param s the settings
      * @return the settings
      */
-    public static DbSettings getInstance(HashMap<String, String> s) {
+    static DbSettings getInstance(HashMap<String, String> s) {
         return new DbSettings(s);
     }
 

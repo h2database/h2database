@@ -670,7 +670,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     /**
      * INTERNAL
      */
-    public void setQueryTimeout(int seconds) throws SQLException {
+    void setQueryTimeout(int seconds) throws SQLException {
         try {
             debugCodeCall("setQueryTimeout", seconds);
             checkClosed();

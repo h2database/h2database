@@ -1852,12 +1852,12 @@ public class Parser {
         read("THEN");
         MergeUsing.When when;
         if (readIf("UPDATE")) {
-            MergeUsing.WhenMatchedThenUpdate update = new MergeUsing.WhenMatchedThenUpdate(command);
+            MergeUsing.WhenMatchedThenUpdate update = command.new WhenMatchedThenUpdate();
             update.setSetClauseList(readUpdateSetClause(command.getTargetTableFilter()));
             when = update;
         } else {
             read("DELETE");
-            when = new MergeUsing.WhenMatchedThenDelete(command);
+            when = command.new WhenMatchedThenDelete();
         }
         if (and == null && database.getMode().mergeWhere && readIf(WHERE)) {
             and = readExpression();
@@ -1882,7 +1882,7 @@ public class Parser {
                 values.add(readExpressionOrDefault());
             } while (readIfMore());
         }
-        MergeUsing.WhenNotMatched when = new MergeUsing.WhenNotMatched(command, columns, overridingSystem,
+        MergeUsing.WhenNotMatched when = command.new WhenNotMatched(columns, overridingSystem,
                 values.toArray(new Expression[0]));
         when.setAndCondition(and);
         command.addWhen(when);

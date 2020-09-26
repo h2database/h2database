@@ -887,6 +887,9 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
 
     /**
      * Use the new root page from now on.
+     *
+     * @param <K> the key class
+     * @param <V> the value class
      * @param expectedRootReference expected current root reference
      * @param newRootPage the new root page
      * @param attemptUpdateCounter how many attempt (including current)

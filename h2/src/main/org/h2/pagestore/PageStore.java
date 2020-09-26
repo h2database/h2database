@@ -2029,17 +2029,28 @@ public class PageStore implements CacheWriter {
         cache.setMaxMemory(size);
     }
 
+    /**
+     * Initializes the writer thread.
+     *
+     * @param writeDelay the write delay in milliseconds
+     */
     public void initWriter(int writeDelay) {
         writer = WriterThread.create(database, writeDelay);
         flushOnEachCommit = writeDelay < Constants.MIN_WRITE_DELAY;
     }
 
+    /**
+     * Starts the writer thread.
+     */
     public void startWriter() {
         if (writer != null) {
             writer.startThread();
         }
     }
 
+    /**
+     * Stops the writer thread.
+     */
     public void stopWriter() {
         if (writer != null) {
             writer.stopThread();

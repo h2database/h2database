@@ -167,6 +167,8 @@ public abstract class Page<K,V> implements Cloneable {
     /**
      * Create a new non-leaf page. The arrays are not cloned.
      *
+     * @param <K> the key class
+     * @param <V> the value class
      * @param map the map
      * @param keys the keys
      * @param children the child page positions
@@ -953,6 +955,8 @@ public abstract class Page<K,V> implements Cloneable {
     /**
      * Create an array of page references.
      *
+     * @param <K> the key class
+     * @param <V> the value class
      * @param size the number of entries
      * @return the array
      */
@@ -990,6 +994,8 @@ public abstract class Page<K,V> implements Cloneable {
         /**
          * Get an empty page reference.
          *
+         * @param <X> the key class
+         * @param <Y> the value class
          * @return the page reference
          */
         @SuppressWarnings("unchecked")

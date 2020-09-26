@@ -99,6 +99,8 @@ public final class ExpressionColumn extends Expression {
      *            the table alias name, table name, or {@code null}
      * @param columnName
      *            the column name
+     * @param quotedName
+     *            whether name was quoted
      */
     public ExpressionColumn(Database database, String schemaName, String tableAlias, String columnName,
             boolean quotedName) {

@@ -166,7 +166,7 @@ public abstract class Command implements CommandInterface {
 
     /**
      * Execute a query and return the result.
-     * This method prepares everything and calls {@link #query(int)} finally.
+     * This method prepares everything and calls {@link #query(long)} finally.
      *
      * @param maxrows the maximum number of rows to return
      * @param scrollable if the result set must be scrollable (ignored)

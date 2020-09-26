@@ -13,7 +13,7 @@ import java.sql.SQLException;
 /**
  * Represents a batch update database exception.
  */
-public class JdbcBatchUpdateException extends BatchUpdateException {
+public final class JdbcBatchUpdateException extends BatchUpdateException {
 
     private static final long serialVersionUID = 1L;
 

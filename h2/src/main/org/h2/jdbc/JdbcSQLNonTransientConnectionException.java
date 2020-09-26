@@ -14,7 +14,7 @@ import org.h2.message.DbException;
 /**
  * Represents a database exception.
  */
-public class JdbcSQLNonTransientConnectionException extends SQLNonTransientConnectionException
+public final class JdbcSQLNonTransientConnectionException extends SQLNonTransientConnectionException
         implements JdbcException {
 
     private static final long serialVersionUID = 1L;

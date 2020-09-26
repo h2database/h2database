@@ -19,7 +19,7 @@ import org.h2.util.StringUtils;
  * rolled back. The tasks that where done before the savepoint are not rolled
  * back in this case.
  */
-public class JdbcSavepoint extends TraceObject implements Savepoint {
+public final class JdbcSavepoint extends TraceObject implements Savepoint {
 
     private static final String SYSTEM_SAVEPOINT_PREFIX = "SYSTEM_SAVEPOINT_";
 

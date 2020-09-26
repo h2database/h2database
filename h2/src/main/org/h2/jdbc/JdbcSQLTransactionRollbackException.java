@@ -14,7 +14,8 @@ import org.h2.message.DbException;
 /**
  * Represents a database exception.
  */
-public class JdbcSQLTransactionRollbackException extends SQLTransactionRollbackException implements JdbcException {
+public final class JdbcSQLTransactionRollbackException extends SQLTransactionRollbackException
+        implements JdbcException {
 
     private static final long serialVersionUID = 1L;
 

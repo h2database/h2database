@@ -21,7 +21,7 @@ import org.h2.message.TraceSystem;
  * This class is used to create new DataSource objects.
  * An application should not use this class directly.
  */
-public class JdbcDataSourceFactory implements ObjectFactory {
+public final class JdbcDataSourceFactory implements ObjectFactory {
 
     private static final TraceSystem traceSystem;
 

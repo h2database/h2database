@@ -30,8 +30,8 @@ import org.h2.value.ValueVarchar;
 /**
  * Represents the meta data for a database.
  */
-public class JdbcDatabaseMetaData extends TraceObject implements
-        DatabaseMetaData, JdbcDatabaseMetaDataBackwardsCompat {
+public final class JdbcDatabaseMetaData extends TraceObject
+        implements DatabaseMetaData, JdbcDatabaseMetaDataBackwardsCompat {
 
     private final JdbcConnection conn;
 

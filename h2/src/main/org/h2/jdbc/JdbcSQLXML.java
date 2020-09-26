@@ -44,7 +44,7 @@ import org.xml.sax.InputSource;
 /**
  * Represents a SQLXML value.
  */
-public class JdbcSQLXML extends JdbcLob implements SQLXML {
+public final class JdbcSQLXML extends JdbcLob implements SQLXML {
 
     private DOMResult domResult;
 

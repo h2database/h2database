@@ -22,8 +22,7 @@ import org.h2.value.ValueToObjectConverter;
 /**
  * Information about the parameters of a prepared statement.
  */
-public class JdbcParameterMetaData extends TraceObject implements
-        ParameterMetaData {
+public final class JdbcParameterMetaData extends TraceObject implements ParameterMetaData {
 
     private final JdbcPreparedStatement prep;
     private final int paramCount;

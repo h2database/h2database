@@ -25,7 +25,7 @@ import org.h2.value.Value;
 /**
  * Represents a CLOB value.
  */
-public class JdbcClob extends JdbcLob implements NClob {
+public final class JdbcClob extends JdbcLob implements NClob {
 
     /**
      * INTERNAL

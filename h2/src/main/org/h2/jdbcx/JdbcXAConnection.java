@@ -31,7 +31,7 @@ import org.h2.util.Utils;
  * An application developer usually does not use this interface.
  * It is used by the transaction manager internally.
  */
-public class JdbcXAConnection extends TraceObject implements XAConnection,
+public final class JdbcXAConnection extends TraceObject implements XAConnection,
         XAResource {
 
     private final JdbcDataSourceFactory factory;
@@ -438,7 +438,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
     /**
      * A pooled connection.
      */
-    class PooledJdbcConnection extends JdbcConnection {
+    final class PooledJdbcConnection extends JdbcConnection {
 
         private boolean isClosed;
 

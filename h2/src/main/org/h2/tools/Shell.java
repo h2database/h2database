@@ -12,7 +12,6 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -115,6 +114,7 @@ public class Shell extends Tool implements Runnable {
      */
     @Override
     public void runTool(String... args) throws SQLException {
+        String driver = null;
         String url = null;
         String user = "";
         String password = "";
@@ -128,8 +128,7 @@ public class Shell extends Tool implements Runnable {
             } else if (arg.equals("-password")) {
                 password = args[++i];
             } else if (arg.equals("-driver")) {
-                String driver = args[++i];
-                JdbcUtils.loadUserClass(driver);
+                driver = args[++i];
             } else if (arg.equals("-sql")) {
                 sql = args[++i];
             } else if (arg.equals("-properties")) {
@@ -144,7 +143,7 @@ public class Shell extends Tool implements Runnable {
             }
         }
         if (url != null) {
-            conn = DriverManager.getConnection(url, user, password);
+            conn = JdbcUtils.getConnection(driver, url, user, password);
             stat = conn.createStatement();
         }
         if (sql == null) {

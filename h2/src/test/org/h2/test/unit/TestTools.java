@@ -884,7 +884,6 @@ public class TestTools extends TestDb {
     }
 
     private void testScriptRunscriptLob() throws Exception {
-        org.h2.Driver.load();
         String url = getURL("jdbc:h2:" + getBaseDir() +
                 "/testScriptRunscriptLob", true);
         String user = "sa", password = "abc";
@@ -946,7 +945,6 @@ public class TestTools extends TestDb {
     }
 
     private void testScriptRunscript() throws SQLException {
-        org.h2.Driver.load();
         String url = getURL("jdbc:h2:" + getBaseDir() + "/testScriptRunscript",
                 true);
         String user = "sa", password = "abc";

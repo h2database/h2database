@@ -5,8 +5,6 @@
  */
 package org.h2.mvstore.db;
 
-import java.io.InputStream;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -29,7 +27,6 @@ import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.MetaType;
 import org.h2.store.InDoubtTransaction;
-import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.HasSQL;
 import org.h2.util.StringUtils;
@@ -242,10 +239,7 @@ public final class Store {
      */
     public void flush() {
         FileStore s = mvStore.getFileStore();
-        if (s == null || s.isReadOnly()) {
-            return;
-        }
-        if (!mvStore.compact(50, 4 * 1024 * 1024)) {
+        if (s != null && !s.isReadOnly()) {
             mvStore.commit();
         }
     }
@@ -254,9 +248,7 @@ public final class Store {
      * Close the store, without persisting changes.
      */
     public void closeImmediately() {
-        if (!mvStore.isClosed()) {
-            mvStore.closeImmediately();
-        }
+        mvStore.closeImmediately();
     }
 
     /**
@@ -351,7 +343,7 @@ public final class Store {
      * different algorithm - opens alternative temp store and writes all live
      * data there, then replaces this store with a new one.
      *
-     * @param allowedCompactionTime time (in milliseconds) alloted for file
+     * @param allowedCompactionTime time (in milliseconds) allotted for file
      *                              compaction activity, 0 means no compaction,
      *                              -1 means unlimited time (full compaction)
      */

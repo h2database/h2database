@@ -650,8 +650,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
             // let each map instance to have it's own copy
             root = root.copy(this, false);
         }
-        setInitialRoot(root, version);
-        setWriteVersion(store.getCurrentVersion());
+        setInitialRoot(root, version - 1);
+        setWriteVersion(version);
     }
 
     private Page<K,V> readOrCreateRootPage(long rootPos) {

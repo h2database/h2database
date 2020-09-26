@@ -30,7 +30,6 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -162,7 +161,7 @@ public abstract class FileStore
     /**
      * The newest chunk. If nothing was stored yet, this field is not set.
      */
-    volatile Chunk lastChunk;
+    protected volatile Chunk lastChunk;
 
     private int lastChunkId;   // protected by serializationLock
 
@@ -316,23 +315,24 @@ public abstract class FileStore
         return layout;
     }
 
+    /**
+     * Get "position" of the root page for the specified map
+     * @param mapId to get root position for
+     * @return opaque "position" value, that should be used to read the page
+     */
     public long getRootPos(int mapId) {
         String root = layout.get(MVMap.getMapRootKey(mapId));
         return root == null ? 0 : DataUtils.parseHexLong(root);
     }
 
     /**
-     * Performs final stage of map removal - delete root location info from the layout table.
-     * Map is supposedly closed and anonymous and has no outstanding usage by now.
+     * Performs final stage of map removal - delete root location info from the layout map.
+     * Specified map is supposedly closed, is anonymous and has no outstanding usage by now.
      *
      * @param mapId to deregister
      */
     public boolean deregisterMapRoot(int mapId) {
         return layout.remove(MVMap.getMapRootKey(mapId)) != null;
-    }
-
-    long getTimeSinceCreation() {
-        return Math.max(0, mvStore.getTimeAbsolute() - getCreationTime());
     }
 
     /**
@@ -371,10 +371,6 @@ public abstract class FileStore
         return true;
     }
 
-    public void setWriteVersion(long version) {
-        layout.setWriteVersion(version);
-    }
-
     public void rollbackTo(long version) {
         if (version == 0) {
             // special case: remove all data
@@ -406,6 +402,15 @@ public abstract class FileStore
             serializationLock.unlock();
         }
         clearCaches();
+    }
+
+    public void setWriteVersion(long version) {
+        layout.setWriteVersion(version);
+    }
+
+
+    private long getTimeSinceCreation() {
+        return Math.max(0, mvStore.getTimeAbsolute() - getCreationTime());
     }
 
     private MVMap<String, String> getLayoutMap(long version) {
@@ -541,28 +546,19 @@ public abstract class FileStore
 
     private void setLastChunk(Chunk last) {
         lastChunk = last;
-//        long curVersion = lastChunkVersion();
         chunks.clear();
         lastChunkId = 0;
         long layoutRootPos = 0;
-//        int mapId = 0;
         if (last != null) { // there is a valid chunk
             lastChunkId = last.id;
-//            curVersion = last.version;
             layoutRootPos = last.layoutRootPos;
-//            mapId = last.mapId;
             chunks.put(last.id, last);
         }
-//        mvStore.resetLastMapId(mapId);
-//        mvStore.setCurrentVersion(curVersion);
-//        layout.setRootPos(layoutRootPos, curVersion - 1);
-        layout.setRootPos(layoutRootPos, lastChunkVersion() - 1);
+        layout.setRootPos(layoutRootPos, lastChunkVersion());
     }
 
     private void registerDeadChunk(Chunk chunk) {
-//        if (!chunk.isLive()) {
-            deadChunks.offer(chunk);
-//        }
+        deadChunks.offer(chunk);
     }
 
     public int dropUnusedChunks() {
@@ -713,7 +709,7 @@ public abstract class FileStore
         writeStoreHeader();
     }
 
-    public Chunk createChunk(long time, long version) {
+    private Chunk createChunk(long time, long version) {
         int chunkId = lastChunkId;
         if (chunkId != 0) {
             chunkId &= Chunk.MAX_ID;
@@ -838,18 +834,6 @@ public abstract class FileStore
         shrinkIfPossible(minPercent);
     }
 
-    /**
-     * Compact store file, that is, compact blocks that have a low
-     * fill rate, and move chunks next to each other. This will typically
-     * shrink the file. Changes are flushed to the file, and old
-     * chunks are overwritten.
-     *
-     * @param tresholdFildRate do not compact if store fill rate above this value (0-100)
-     * @param maxCompactTime the maximum time in milliseconds to compact
-     * @param maxWriteSize the maximum amount of data to be written as part of this call
-     */
-//    public abstract void compactFile(int tresholdFildRate, long maxCompactTime, long maxWriteSize);
-
     public boolean compactChunks(int targetFillRate, long moveSize, MVStore mvStore) {
         saveChunkLock.lock();
         try {
@@ -860,6 +844,68 @@ public abstract class FileStore
             saveChunkLock.unlock();
         }
         return false;
+    }
+
+    /**
+     * Try to increase the fill rate by re-writing partially full chunks. Chunks
+     * with a low number of live items are re-written.
+     * <p>
+     * If the current fill rate is higher than the target fill rate, nothing is
+     * done.
+     * <p>
+     * Please note this method will not necessarily reduce the file size, as
+     * empty chunks are not overwritten.
+     * <p>
+     * Only data of open maps can be moved. For maps that are not open, the old
+     * chunk is still referenced. Therefore, it is recommended to open all maps
+     * before calling this method.
+     *
+     * @param targetFillRate the minimum percentage of live entries
+     * @param write the minimum number of bytes to write
+     * @return if any chunk was re-written
+     */
+    public boolean compact(int targetFillRate, int write) {
+        if (hasPersitentData()) {
+            if (targetFillRate > 0 && getChunksFillRate() < targetFillRate) {
+                // We can't wait forever for the lock here,
+                // because if called from the background thread,
+                // it might go into deadlock with concurrent database closure
+                // and attempt to stop this thread.
+                try {
+                    Boolean result = mvStore.tryExecuteUnderStoreLock(() -> rewriteChunks(write, 100));
+                    return result != null && result;
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return false;
+    }
+
+    public void compactFile(long maxCompactTime) {
+        compactFile(autoCompactFillRate, maxCompactTime, 16 * 1024 * 1024);
+    }
+
+    /**
+     * Compact store file, that is, compact blocks that have a low
+     * fill rate, and move chunks next to each other. This will typically
+     * shrink the file. Changes are flushed to the file, and old
+     * chunks are overwritten.
+     *
+     * @param thresholdFildRate do not compact if store fill rate above this value (0-100)
+     * @param maxCompactTime the maximum time in milliseconds to compact
+     * @param maxWriteSize the maximum amount of data to be written as part of this call
+     */
+    private void compactFile(int thresholdFildRate, long maxCompactTime, int maxWriteSize) {
+        setRetentionTime(0);
+        long stopAt = System.nanoTime() + maxCompactTime * 1_000_000L;
+        while (compact(thresholdFildRate, maxWriteSize)) {
+            sync();
+            compactMoveChunks(thresholdFildRate, maxWriteSize);
+            if (System.nanoTime() - stopAt > 0L) {
+                break;
+            }
+        }
     }
 
     protected abstract boolean compactMoveChunks(long moveSize, MVStore mvStore);
@@ -1571,11 +1617,7 @@ public abstract class FileStore
     public void setReuseSpace(boolean reuseSpace) {
     }
 
-//    public void registerDeadChunk(Chunk chunk) {
-//        deadChunks.offer(chunk);
-//    }
-
-    public void store() {
+    protected void store() {
         serializationLock.unlock();
         try {
             mvStore.storeNow();
@@ -1844,6 +1886,15 @@ public abstract class FileStore
         return count;
     }
 
+    /**
+     * Calculates a prospective fill rate, which store would have after rewrite
+     * of sparsely populated chunk(s) and evacuation of still live data into a
+     * new chunk.
+     *
+     * @param thresholdChunkFillRate all chunks with fill rate below this vallue
+     *                               end eligible otherwise, are assumed to be rewritten
+     * @return prospective fill rate (0 - 100)
+     */
     int getProjectedFillRate_(int thresholdChunkFillRate) {
         int vacatedBlocks = 0;
         long maxLengthSum = 1;
@@ -2069,39 +2120,34 @@ public abstract class FileStore
             if (time > lastCommitTime + autoCommitDelay) {
                 mvStore.tryCommit();
                 if (autoCompactFillRate < 0) {
-                    mvStore.compact(-getTargetFillRate(), autoCommitMemory);
+                    compact(-getTargetFillRate(), autoCommitMemory);
                 }
             }
             int fillRate = getFillRate();
             if (isFragmented() && fillRate < autoCompactFillRate) {
-                if (mvStore.storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
-                    try {
-                        int moveSize = autoCommitMemory;
-                        if (isIdle()) {
-                            moveSize *= 4;
-                        }
-                        compactMoveChunks(101, moveSize);
-                    } finally {
-                        mvStore.unlockAndCheckPanicCondition();
+
+                mvStore.tryExecuteUnderStoreLock(() -> {
+                    int moveSize = autoCommitMemory;
+                    if (isIdle()) {
+                        moveSize *= 4;
                     }
-                }
+                    compactMoveChunks(101, moveSize);
+                    return true;
+                });
             } else if (fillRate >= autoCompactFillRate && hasPersitentData()) {
                 int chunksFillRate = getRewritableChunksFillRate();
-                chunksFillRate = isIdle() ? 100 - (100 - chunksFillRate) / 2 : chunksFillRate;
-                if (chunksFillRate < getTargetFillRate()) {
-                    if (mvStore.storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
-                        try {
-                            int writeLimit = autoCommitMemory * fillRate / Math.max(chunksFillRate, 1);
-                            if (!isIdle()) {
-                                writeLimit /= 4;
-                            }
-                            if (rewriteChunks(writeLimit, chunksFillRate)) {
-                                dropUnusedChunks();
-                            }
-                        } finally {
-                            mvStore.storeLock.unlock();
+                int _chunksFillRate = isIdle() ? 100 - (100 - chunksFillRate) / 2 : chunksFillRate;
+                if (_chunksFillRate < getTargetFillRate()) {
+                    mvStore.tryExecuteUnderStoreLock(() -> {
+                        int writeLimit = autoCommitMemory * fillRate / Math.max(_chunksFillRate, 1);
+                        if (!isIdle()) {
+                            writeLimit /= 4;
                         }
-                    }
+                        if (rewriteChunks(writeLimit, _chunksFillRate)) {
+                            dropUnusedChunks();
+                        }
+                        return true;
+                    });
                 }
             }
             autoCompactLastFileOpCount = getWriteCount() + getReadCount();
@@ -2110,51 +2156,6 @@ public abstract class FileStore
             mvStore.handleException(e);
             if (mvStore.backgroundExceptionHandler == null) {
                 throw e;
-            }
-        }
-    }
-
-    public void doMaintenance() {
-        doMaintenance(autoCompactFillRate);
-    }
-
-    private void doMaintenance(int targetFillRate) {
-        if (autoCompactFillRate > 0 && hasPersitentData() && isSpaceReused()) {
-            try {
-                int lastProjectedFillRate = -1;
-                for (int cnt = 0; cnt < 5; cnt++) {
-                    int fillRate = getFillRate();
-                    int projectedFillRate = fillRate;
-                    if (fillRate > targetFillRate) {
-                        projectedFillRate = getProjectedFillRate_(100);
-                        if (projectedFillRate > targetFillRate || projectedFillRate <= lastProjectedFillRate) {
-                            break;
-                        }
-                    }
-                    lastProjectedFillRate = projectedFillRate;
-                    // We can't wait forever for the lock here,
-                    // because if called from the background thread,
-                    // it might go into deadlock with concurrent database closure
-                    // and attempt to stop this thread.
-                    if (!mvStore.storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
-                        break;
-                    }
-                    try {
-                        int writeLimit = mvStore.getAutoCommitMemory() * targetFillRate / Math.max(projectedFillRate, 1);
-                        if (projectedFillRate < fillRate) {
-                            if ((!rewriteChunks(writeLimit, targetFillRate) || dropUnusedChunks() == 0) && cnt > 0) {
-                                break;
-                            }
-                        }
-                        if (!compactMoveChunks(101, writeLimit)) {
-                            break;
-                        }
-                    } finally {
-                        mvStore.unlockAndCheckPanicCondition();
-                    }
-                }
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             }
         }
     }
@@ -2169,18 +2170,16 @@ public abstract class FileStore
      *            than this
      * @param moveSize the number of bytes to move
      */
-    boolean compactMoveChunks(int targetFillRate, long moveSize) {
-        boolean res = false;
+    void compactMoveChunks(int targetFillRate, long moveSize) {
         if (isSpaceReused()) {
-            res = mvStore.executeFilestoreOperation(() -> {
+            mvStore.executeFilestoreOperation(() -> {
                 dropUnusedChunks();
-                return compactChunks(targetFillRate, moveSize, mvStore);
+                compactChunks(targetFillRate, moveSize, mvStore);
             });
         }
-        return res;
     }
 
-    public boolean rewriteChunks(int writeLimit, int targetFillRate) {
+    private boolean rewriteChunks(int writeLimit, int targetFillRate) {
         serializationLock.lock();
         try {
             MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
@@ -2208,8 +2207,7 @@ public abstract class FileStore
         return set;
     }
 
-    public <R> R executeFilestoreOperation(Callable<R> operation) throws Exception {
-        R result = null;
+    public void executeFilestoreOperation(Runnable operation) throws Exception {
         // because serializationExecutor is a single-threaded one and
         // all task submissions to it are done under storeLock,
         // it is guaranteed, that upon this dummy task completion
@@ -2221,11 +2219,10 @@ public abstract class FileStore
             // are done under serializationLock, and upon this dummy task completion
             // it will be no pending / in-progress task here
             submitOrRun(bufferSaveExecutor, () -> {}, true, 0, Integer.MAX_VALUE);
-            result = operation.call();
+            operation.run();
         } finally {
             serializationLock.unlock();
         }
-        return result;
     }
 
 
@@ -2409,7 +2406,7 @@ public abstract class FileStore
 
     /**
      * Remove a page.
-     *  @param pos the position of the page
+     * @param pos the position of the page
      * @param version at which page was removed
      * @param pinned whether page is considered pinned
      * @param pageNo sequential page number within chunk

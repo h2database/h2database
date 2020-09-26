@@ -96,6 +96,12 @@ public class TestReorderWrites extends TestBase {
                             store.compactMoveChunks();
                             log("op compactMoveChunks done");
                             break;
+                        case 2:
+                        default:
+                            log("op compactMoveChunks");
+                            store.compactFile(1000);
+                            log("op compactFile done");
+                            break;
                         }
                     }
                     // write has to fail at some point

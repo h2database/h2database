@@ -843,4 +843,4 @@ submissions explaining cycled assigns separation aimed ababab quotation cleanly 
 xnor bitnand bitcount nand bitnor bitxnor ulshift urshift rotates rotation rotateleft rotateright leaking incomparable
 deref corr asensitive sqlexception avgy avgx lateral rollup syy reseved specifictype classifier sqlcode covar uescape
 ptf overlay precedes regr slope sqlerror multiset submultiset inout sxx sxy intercept sqlwarning tablesample preorder
-orientation
+orientation eternal consideration

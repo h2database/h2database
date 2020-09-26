@@ -118,7 +118,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             /**
              * 1.4.200 and older databases don't always have a unique constraint
-             * for each referential constraint, so these constrains are created
+             * for each referential constraint, so these constraints are created
              * and they may use the same generated name as some other not yet
              * initialized constraint that may lead to a name conflict.
              */

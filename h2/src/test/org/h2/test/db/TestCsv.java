@@ -230,9 +230,7 @@ public class TestCsv extends TestDb {
         assertEquals("\0", csv.getNullString());
         assertEquals("", charset);
 
-        createClassProxy(Csv.class);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, csv).
-            setOptions("escape=a error=b");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, () -> csv.setOptions("escape=a error=b"));
         assertEquals('a', csv.getEscapeCharacter());
     }
 

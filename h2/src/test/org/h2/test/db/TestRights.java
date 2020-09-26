@@ -323,8 +323,7 @@ public class TestRights extends TestDb {
         stat.execute("DROP USER " + user);
         conn.close();
         if (!config.memory) {
-            assertThrows(ErrorCode.WRONG_USER_OR_PASSWORD, this).
-                    getConnection("rights");
+            assertThrows(ErrorCode.WRONG_USER_OR_PASSWORD, () -> getConnection("rights"));
         }
     }
 

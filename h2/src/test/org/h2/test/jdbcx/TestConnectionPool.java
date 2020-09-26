@@ -83,9 +83,7 @@ public class TestConnectionPool extends TestDb {
         String password = getPassword();
         final JdbcConnectionPool man = JdbcConnectionPool.create(url, user, password);
         man.setLoginTimeout(1);
-        createClassProxy(man.getClass());
-        assertThrows(IllegalArgumentException.class, man).
-                setMaxConnections(-1);
+        assertThrows(IllegalArgumentException.class, () -> man.setMaxConnections(-1));
         man.setMaxConnections(2);
         // connection 1 (of 2)
         Connection conn = man.getConnection();

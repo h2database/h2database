@@ -39,20 +39,16 @@ public class TestConnectionInfo extends TestDb {
     }
 
     private void testImplicitRelativePath() throws Exception {
-        assertThrows(ErrorCode.URL_RELATIVE_TO_CWD, this).
-            getConnection("jdbc:h2:" + getTestName());
-        assertThrows(ErrorCode.URL_RELATIVE_TO_CWD, this).
-            getConnection("jdbc:h2:data/" + getTestName());
+        assertThrows(ErrorCode.URL_RELATIVE_TO_CWD, () -> getConnection("jdbc:h2:" + getTestName()));
+        assertThrows(ErrorCode.URL_RELATIVE_TO_CWD, () -> getConnection("jdbc:h2:data/" + getTestName()));
 
         getConnection("jdbc:h2:./data/" + getTestName()).close();
         DeleteDbFiles.execute("data", getTestName(), true);
     }
 
     private void testConnectInitError() throws Exception {
-        assertThrows(ErrorCode.SYNTAX_ERROR_2, this).
-                getConnection("jdbc:h2:mem:;init=error");
-        assertThrows(ErrorCode.IO_EXCEPTION_2, this).
-                getConnection("jdbc:h2:mem:;init=runscript from 'wrong.file'");
+        assertThrows(ErrorCode.SYNTAX_ERROR_2, () -> getConnection("jdbc:h2:mem:;init=error"));
+        assertThrows(ErrorCode.IO_EXCEPTION_2, () -> getConnection("jdbc:h2:mem:;init=runscript from 'wrong.file'"));
     }
 
     private void testConnectionInfo() {

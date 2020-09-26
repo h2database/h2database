@@ -116,12 +116,10 @@ public class TestStreamStore extends TestBase {
         HashMap<Long, byte[]> map = new HashMap<>();
         StreamStore s = new StreamStore(map);
         s.setMaxBlockSize(1024);
-        assertThrows(IOException.class, s).
-            put(createFailingStream(new IOException()));
+        assertThrows(IOException.class, () -> s.put(createFailingStream(new IOException())));
         assertEquals(0, map.size());
         // the runtime exception is converted to an IOException
-        assertThrows(IOException.class, s).
-            put(createFailingStream(new IllegalStateException()));
+        assertThrows(IOException.class, () -> s.put(createFailingStream(new IllegalStateException())));
         assertEquals(0, map.size());
     }
 

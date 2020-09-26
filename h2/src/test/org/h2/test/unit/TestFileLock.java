@@ -71,8 +71,7 @@ public class TestFileLock extends TestDb implements Runnable {
         String url = "jdbc:h2:" + getBaseDir() +
                 "/fileLock;FILE_LOCK=FS;OPEN_NEW=TRUE";
         Connection conn = getConnection(url);
-        assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this)
-                .getConnection(url);
+        assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, () -> getConnection(url));
         conn.close();
     }
 
@@ -88,19 +87,14 @@ public class TestFileLock extends TestDb implements Runnable {
     }
 
     private void testSimple() {
-        FileLock lock1 = new FileLock(new TraceSystem(null), getFile(),
-                Constants.LOCK_SLEEP);
-        FileLock lock2 = new FileLock(new TraceSystem(null), getFile(),
-                Constants.LOCK_SLEEP);
+        FileLock lock1 = new FileLock(new TraceSystem(null), getFile(), Constants.LOCK_SLEEP);
+        FileLock lock2 = new FileLock(new TraceSystem(null), getFile(), Constants.LOCK_SLEEP);
         lock1.lock(FileLockMethod.FILE);
-        createClassProxy(FileLock.class);
-        assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, lock2).lock(
-                FileLockMethod.FILE);
+        assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, () -> lock2.lock(FileLockMethod.FILE));
         lock1.unlock();
-        lock2 = new FileLock(new TraceSystem(null), getFile(),
-                Constants.LOCK_SLEEP);
-        lock2.lock(FileLockMethod.FILE);
-        lock2.unlock();
+        FileLock lock3 = new FileLock(new TraceSystem(null), getFile(), Constants.LOCK_SLEEP);
+        lock3.lock(FileLockMethod.FILE);
+        lock3.unlock();
     }
 
     private void test(boolean allowSocketsLock) throws Exception {

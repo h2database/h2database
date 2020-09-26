@@ -42,8 +42,7 @@ public class TestExclusive extends TestDb {
         Connection conn = getConnection("exclusive");
         Statement stat = conn.createStatement();
         stat.execute("set exclusive true");
-        assertThrows(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE, this).
-                getConnection("exclusive");
+        assertThrows(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE, () -> getConnection("exclusive"));
 
         stat.execute("set exclusive false");
         Connection conn2 = getConnection("exclusive");

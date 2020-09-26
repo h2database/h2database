@@ -664,12 +664,11 @@ public class TestCases extends TestDb {
         conn.close();
     }
 
-    private void testInvalidDatabaseName() throws SQLException {
+    private void testInvalidDatabaseName() {
         if (config.memory) {
             return;
         }
-        assertThrows(ErrorCode.INVALID_DATABASE_NAME_1, this).
-            getConnection("cases/");
+        assertThrows(ErrorCode.INVALID_DATABASE_NAME_1, () -> getConnection("cases/"));
     }
 
     private void testReuseSpace() throws SQLException {

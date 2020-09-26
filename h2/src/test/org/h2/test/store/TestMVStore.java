@@ -31,7 +31,6 @@ import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.test.utils.AssertThrows;
 import org.h2.util.Utils;
 
 /**
@@ -356,12 +355,7 @@ public class TestMVStore extends TestBase {
             assertEquals("version 4", m.openVersion(4).get(1));
             assertEquals("version 3", m.openVersion(3).get(1));
             assertEquals("version 2", m.openVersion(2).get(1));
-            new AssertThrows(IllegalArgumentException.class) {
-                @Override
-                public void test() {
-                    m.openVersion(1);
-                }
-            };
+            assertThrows(IllegalArgumentException.class, () -> m.openVersion(1));
         }
     }
 

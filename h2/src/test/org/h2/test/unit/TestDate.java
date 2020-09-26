@@ -20,7 +20,6 @@ import org.h2.engine.CastDataProvider;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
-import org.h2.test.utils.AssertThrows;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.TimeZoneProvider;
@@ -297,18 +296,10 @@ public class TestDate extends TestBase {
                 ValueTimestamp.parse("1970-01-01T00:00:00.000+00:00", null)).getTime());
         assertEquals(0, LegacyDateTimeUtils.toTimestamp(null, null,
                 ValueTimestamp.parse("1970-01-01T00:00:00.000-00:00", null)).getTime());
-        new AssertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2) {
-            @Override
-            public void test() {
-                ValueTimestamp.parse("1970-01-01 00:00:00.000 ABC", null);
-            }
-        };
-        new AssertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2) {
-            @Override
-            public void test() {
-                ValueTimestamp.parse("1970-01-01T00:00:00.000+ABC", null);
-            }
-        };
+        assertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2,
+                () -> ValueTimestamp.parse("1970-01-01 00:00:00.000 ABC", null));
+        assertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2,
+                () -> ValueTimestamp.parse("1970-01-01T00:00:00.000+ABC", null));
     }
 
     private void testAbsoluteDay() {

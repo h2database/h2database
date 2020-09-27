@@ -70,13 +70,8 @@ public class TestTransaction extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, p int)");
         stat.execute("insert into test values(1, 2)");
-        try {
-            stat.execute("alter table test add constraint fail " +
-                    "foreign key(p) references test(id)");
-            fail();
-        } catch (SQLException e) {
-            // expected
-        }
+        assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, stat).execute(
+                "alter table test add constraint fail foreign key(p) references test(id)");
         stat.execute("insert into test values(1, 2)");
         stat.execute("drop table test");
         conn.close();

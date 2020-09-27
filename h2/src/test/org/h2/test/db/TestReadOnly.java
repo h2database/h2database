@@ -198,8 +198,8 @@ public class TestReadOnly extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id identity)");
         stat.execute("insert into test select x from system_range(1, 11)");
-        assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
-                getConnection("readonlyConnect;ACCESS_MODE_DATA=r;OPEN_NEW=TRUE");
+        assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1,
+                () -> getConnection("readonlyConnect;ACCESS_MODE_DATA=r;OPEN_NEW=TRUE"));
         conn.close();
         deleteDb("readonlyConnect");
     }

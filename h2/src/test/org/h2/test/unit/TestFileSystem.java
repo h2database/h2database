@@ -33,7 +33,6 @@ import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.encrypt.FilePathEncrypt;
 import org.h2.store.fs.rec.FilePathRec;
 import org.h2.test.TestBase;
-import org.h2.test.utils.AssertThrows;
 import org.h2.test.utils.FilePathDebug;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
@@ -353,38 +352,14 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testReadOnly(final String f) throws IOException {
-        new AssertThrows(IOException.class) {
-            @Override
-            public void test() throws IOException {
-                FileUtils.newOutputStream(f, false);
-        }};
-        new AssertThrows(DbException.class) {
-            @Override
-            public void test() {
-                FileUtils.move(f, f);
-        }};
-        new AssertThrows(DbException.class) {
-            @Override
-            public void test() {
-                FileUtils.move(f, f);
-        }};
-        new AssertThrows(IOException.class) {
-            @Override
-            public void test() throws IOException {
-                FileUtils.createTempFile(f, ".tmp", false);
-        }};
+        assertThrows(IOException.class, () -> FileUtils.newOutputStream(f, false));
+        assertThrows(DbException.class, () -> FileUtils.move(f, f));
+        assertThrows(DbException.class, () -> FileUtils.move(f, f));
+        assertThrows(IOException.class, () -> FileUtils.createTempFile(f, ".tmp", false));
         final FileChannel channel = FileUtils.open(f, "r");
-        new AssertThrows(NonWritableChannelException.class) {
-            @Override
-            public void test() throws IOException {
-                channel.write(ByteBuffer.allocate(1));
-        }};
-        new AssertThrows(IOException.class) {
-            @Override
-            public void test() throws IOException {
-                channel.truncate(0);
-        }};
-        assertTrue(null == channel.tryLock());
+        assertThrows(NonWritableChannelException.class, () -> channel.write(ByteBuffer.allocate(1)));
+        assertThrows(IOException.class, () -> channel.truncate(0));
+        assertNull(channel.tryLock());
         channel.force(false);
         channel.close();
     }
@@ -427,27 +402,19 @@ public class TestFileSystem extends TestBase {
         }
     }
 
-    private static void testDirectories(String fsBase) {
+    private void testDirectories(String fsBase) {
         final String fileName = fsBase + "/testFile";
         if (FileUtils.exists(fileName)) {
             FileUtils.delete(fileName);
         }
         if (FileUtils.createFile(fileName)) {
-            new AssertThrows(DbException.class) {
-                @Override
-                public void test() {
-                    FileUtils.createDirectory(fileName);
-            }};
-            new AssertThrows(DbException.class) {
-                @Override
-                public void test() {
-                    FileUtils.createDirectories(fileName + "/test");
-            }};
+            assertThrows(DbException.class, () -> FileUtils.createDirectory(fileName));
+            assertThrows(DbException.class, () -> FileUtils.createDirectories(fileName + "/test"));
             FileUtils.delete(fileName);
         }
     }
 
-    private static void testMoveTo(String fsBase) {
+    private void testMoveTo(String fsBase) {
         final String fileName = fsBase + "/testFile";
         final String fileName2 = fsBase + "/testFile2";
         if (FileUtils.exists(fileName)) {
@@ -456,18 +423,10 @@ public class TestFileSystem extends TestBase {
         if (FileUtils.createFile(fileName)) {
             FileUtils.move(fileName, fileName2);
             FileUtils.createFile(fileName);
-            new AssertThrows(DbException.class) {
-                @Override
-                public void test() {
-                    FileUtils.move(fileName2, fileName);
-            }};
+            assertThrows(DbException.class, () -> FileUtils.move(fileName2, fileName));
             FileUtils.delete(fileName);
             FileUtils.delete(fileName2);
-            new AssertThrows(DbException.class) {
-                @Override
-                public void test() {
-                    FileUtils.move(fileName, fileName2);
-            }};
+            assertThrows(DbException.class, () -> FileUtils.move(fileName, fileName2));
         }
     }
 
@@ -532,18 +491,8 @@ public class TestFileSystem extends TestBase {
         FileUtils.readFully(channel, ByteBuffer.wrap(test, 0, 10000));
         assertEquals(buffer, test);
         final FileChannel fc = channel;
-        new AssertThrows(NonWritableChannelException.class) {
-            @Override
-            public void test() throws Exception {
-                fc.write(ByteBuffer.wrap(test, 0, 10));
-            }
-        };
-        new AssertThrows(NonWritableChannelException.class) {
-            @Override
-            public void test() throws Exception {
-                fc.truncate(10);
-            }
-        };
+        assertThrows(NonWritableChannelException.class, () -> fc.write(ByteBuffer.wrap(test, 0, 10)));
+        assertThrows(NonWritableChannelException.class, () -> fc.truncate(10));
         channel.close();
         long lastMod = FileUtils.lastModified(fsBase + "/test");
         if (lastMod < time - 1999) {

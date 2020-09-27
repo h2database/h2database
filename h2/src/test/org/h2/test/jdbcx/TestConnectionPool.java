@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.sql.DataSource;
 
+import org.h2.api.ErrorCode;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.test.TestBase;
@@ -72,7 +73,7 @@ public class TestConnectionPool extends TestDb {
         try {
             cp.getConnection();
         } catch (SQLException e) {
-            assertEquals(8001, e.getErrorCode());
+            assertEquals(ErrorCode.URL_FORMAT_ERROR_2, e.getErrorCode());
         }
         cp.dispose();
     }
@@ -82,9 +83,7 @@ public class TestConnectionPool extends TestDb {
         String password = getPassword();
         final JdbcConnectionPool man = JdbcConnectionPool.create(url, user, password);
         man.setLoginTimeout(1);
-        createClassProxy(man.getClass());
-        assertThrows(IllegalArgumentException.class, man).
-                setMaxConnections(-1);
+        assertThrows(IllegalArgumentException.class, () -> man.setMaxConnections(-1));
         man.setMaxConnections(2);
         // connection 1 (of 2)
         Connection conn = man.getConnection();

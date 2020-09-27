@@ -360,12 +360,7 @@ public class TestConnection extends TestDb {
 
     private void testIgnoreUnknownSettings() throws SQLException {
         deleteDb("ignoreUnknownSettings");
-        try {
-            getConnection("ignoreUnknownSettings;A=1");
-            fail("UNSUPPORTED_SETTING_1 expected");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.UNSUPPORTED_SETTING_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.UNSUPPORTED_SETTING_1, () -> getConnection("ignoreUnknownSettings;A=1"));
         try (Connection c = getConnection("ignoreUnknownSettings;IGNORE_UNKNOWN_SETTINGS=TRUE;A=1")) {
         } finally {
             deleteDb("ignoreUnknownSettings");

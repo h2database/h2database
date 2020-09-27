@@ -18,8 +18,7 @@ import org.h2.value.ValueToObjectConverter;
 /**
  * Represents the meta data for a ResultSet.
  */
-public class JdbcResultSetMetaData extends TraceObject implements
-        ResultSetMetaData {
+public final class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaData {
 
     private final String catalog;
     private final JdbcResultSet rs;

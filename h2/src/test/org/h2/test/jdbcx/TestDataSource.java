@@ -204,12 +204,7 @@ public class TestDataSource extends TestDb {
         assertFalse(ds.isWrapperFor(String.class));
         assertTrue(ds == ds.unwrap(Object.class));
         assertTrue(ds == ds.unwrap(DataSource.class));
-        try {
-            ds.unwrap(String.class);
-            fail();
-        } catch (SQLException ex) {
-            assertEquals(ErrorCode.INVALID_VALUE_2, ex.getErrorCode());
-        }
+        assertThrows(ErrorCode.INVALID_VALUE_2, () -> ds.unwrap(String.class));
     }
 
 }

@@ -15,7 +15,7 @@ import org.h2.message.TraceObject;
 /**
  * An object of this class represents a transaction id.
  */
-public class JdbcXid extends TraceObject implements Xid {
+public final class JdbcXid extends TraceObject implements Xid {
 
     private static final String PREFIX = "XID";
 
@@ -44,7 +44,7 @@ public class JdbcXid extends TraceObject implements Xid {
     /**
      * INTERNAL
      */
-    public static StringBuilder toString(StringBuilder builder, Xid xid) {
+    static StringBuilder toString(StringBuilder builder, Xid xid) {
         return builder.append(PREFIX).append('|').append(xid.getFormatId()) //
                 .append('|').append(ENCODER.encodeToString(xid.getBranchQualifier())) //
                 .append('|').append(ENCODER.encodeToString(xid.getGlobalTransactionId()));

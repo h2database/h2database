@@ -1021,7 +1021,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
                 database.notifyAll();
             }
         }
-        database.unlockMetaDebug(this);
+        Database.unlockMetaDebug(this);
         savepoints = null;
         sessionStateChanged = true;
     }

@@ -19,12 +19,7 @@ public class AbbaDetector {
 
     private static final boolean TRACE = false;
 
-    private static final ThreadLocal<Deque<Object>> STACK =
-            new ThreadLocal<Deque<Object>>() {
-                @Override protected Deque<Object> initialValue() {
-                    return new ArrayDeque<>();
-            }
-        };
+    private static final ThreadLocal<Deque<Object>> STACK = ThreadLocal.withInitial(ArrayDeque::new);
 
     /**
      * Map of (object A) -> (

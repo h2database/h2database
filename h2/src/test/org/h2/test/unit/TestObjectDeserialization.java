@@ -5,7 +5,7 @@
  */
 package org.h2.test.unit;
 
-import org.h2.message.DbException;
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -44,12 +44,8 @@ public class TestObjectDeserialization extends TestBase {
     private void testThreadContextClassLoader() {
         usesThreadContextClassLoader = false;
         Thread.currentThread().setContextClassLoader(new TestClassLoader());
-        try {
-            JdbcUtils.deserialize(StringUtils.convertHexToBytes(OBJECT), null);
-            fail();
-        } catch (DbException e) {
-            // expected
-        }
+        assertThrows(ErrorCode.DESERIALIZATION_FAILED_1,
+                () -> JdbcUtils.deserialize(StringUtils.convertHexToBytes(OBJECT), null));
         assertTrue(usesThreadContextClassLoader);
     }
 

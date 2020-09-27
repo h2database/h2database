@@ -24,7 +24,7 @@ import org.h2.value.ValueToObjectConverter;
 /**
  * Represents an ARRAY value.
  */
-public class JdbcArray extends TraceObject implements Array {
+public final class JdbcArray extends TraceObject implements Array {
 
     private ValueArray value;
     private final JdbcConnection conn;

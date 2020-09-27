@@ -25,7 +25,7 @@ import org.h2.value.Value;
 /**
  * Represents a BLOB value.
  */
-public class JdbcBlob extends JdbcLob implements Blob {
+public final class JdbcBlob extends JdbcLob implements Blob {
 
     /**
      * INTERNAL

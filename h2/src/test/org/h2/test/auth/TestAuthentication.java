@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.Properties;
 import java.util.UUID;
 
 import javax.security.auth.login.AppConfigurationEntry;
@@ -126,9 +125,7 @@ public class TestAuthentication extends TestBase {
         Configuration oldConfiguration = Configuration.getConfiguration();
         try {
             configureJaas();
-            Properties properties = new Properties();
-            properties.setProperty("USER", "dba");
-            ConnectionInfo connectionInfo = new ConnectionInfo(getDatabaseURL(), properties);
+            ConnectionInfo connectionInfo = new ConnectionInfo(getDatabaseURL(), null, "dba", null);
             session = Engine.createSession(connectionInfo);
             database = session.getDatabase();
             configureAuthentication(database);

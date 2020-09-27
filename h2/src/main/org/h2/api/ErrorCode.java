@@ -1081,19 +1081,12 @@ public class ErrorCode {
     // 90051 was removed
 
     /**
-     * The error with code <code>90052</code> is thrown when
-     * a subquery that is used as a value contains more than one column.
-     * Example of wrong usage:
+     * The error with code <code>90052</code> is thrown when a single-column
+     * subquery is expected but a subquery with other number of columns was
+     * specified.
+     * Example:
      * <pre>
-     * CREATE TABLE TEST(ID INT);
-     * INSERT INTO TEST VALUES(1), (2);
-     * SELECT * FROM TEST WHERE ID IN (SELECT 1, 2 FROM DUAL);
-     * </pre>
-     * Correct:
-     * <pre>
-     * CREATE TABLE TEST(ID INT);
-     * INSERT INTO TEST VALUES(1), (2);
-     * SELECT * FROM TEST WHERE ID IN (1, 2);
+     * VALUES ARRAY(SELECT A, B FROM TEST)
      * </pre>
      */
     public static final int SUBQUERY_IS_NOT_SINGLE_COLUMN = 90052;

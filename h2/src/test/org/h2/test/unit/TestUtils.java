@@ -279,18 +279,8 @@ public class TestUtils extends TestBase {
         // Test other values
         assertFalse(Utils.parseBoolean("BAD", false, false));
         assertTrue(Utils.parseBoolean("BAD", true, false));
-        try {
-            Utils.parseBoolean("BAD", false, true);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // OK
-        }
-        try {
-            Utils.parseBoolean("BAD", true, true);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // OK
-        }
+        assertThrows(IllegalArgumentException.class, () -> Utils.parseBoolean("BAD", false, true));
+        assertThrows(IllegalArgumentException.class, () -> Utils.parseBoolean("BAD", true, true));
     }
 
 }

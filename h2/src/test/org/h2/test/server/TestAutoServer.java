@@ -44,7 +44,7 @@ public class TestAutoServer extends TestDb {
         testLinkedLocalTablesWithAutoServerReconnect();
     }
 
-    private void testUnsupportedCombinations() throws SQLException {
+    private void testUnsupportedCombinations() {
         String[] urls = {
                 "jdbc:h2:" + getTestName() + ";file_lock=no;auto_server=true",
                 "jdbc:h2:" + getTestName() + ";file_lock=serialized;auto_server=true",
@@ -52,7 +52,7 @@ public class TestAutoServer extends TestDb {
                 "jdbc:h2:mem:" + getTestName() + ";auto_server=true"
         };
         for (String url : urls) {
-            assertThrows(SQLException.class, this).getConnection(url);
+            assertThrows(SQLException.class, () -> getConnection(url));
             try {
                 getConnection(url);
                 fail(url);

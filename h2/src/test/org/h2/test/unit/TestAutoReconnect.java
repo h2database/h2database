@@ -65,21 +65,17 @@ public class TestAutoReconnect extends TestDb {
         deleteDb(getTestName());
         Server tcp = Server.createTcpServer().start();
         try {
-            conn = getConnection("jdbc:h2:" + getBaseDir() +
-                    "/" + getTestName() + ";AUTO_SERVER=TRUE");
-            assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
-                    getConnection("jdbc:h2:" + getBaseDir() +
-                            "/" + getTestName() + ";OPEN_NEW=TRUE");
-            assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
-                    getConnection("jdbc:h2:" + getBaseDir() +
-                            "/" + getTestName() + ";OPEN_NEW=TRUE");
+            conn = getConnection("jdbc:h2:" + getBaseDir() + '/' + getTestName() + ";AUTO_SERVER=TRUE");
+            assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1,
+                    () -> getConnection("jdbc:h2:" + getBaseDir() + '/' + getTestName() + ";OPEN_NEW=TRUE"));
+            assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1,
+                    () -> getConnection("jdbc:h2:" + getBaseDir() + '/' + getTestName() + ";OPEN_NEW=TRUE"));
             conn.close();
 
-            conn = getConnection("jdbc:h2:tcp://localhost:" + tcp.getPort() +
-                                        "/" + getBaseDir() + "/" + getTestName());
-            assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
-                    getConnection("jdbc:h2:" + getBaseDir() +
-                            "/" + getTestName() + ";AUTO_SERVER=TRUE;OPEN_NEW=TRUE");
+            conn = getConnection("jdbc:h2:tcp://localhost:" + tcp.getPort() + '/' + getBaseDir() + '/' //
+                    + getTestName());
+            assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, () -> getConnection(
+                    "jdbc:h2:" + getBaseDir() + '/' + getTestName() + ";AUTO_SERVER=TRUE;OPEN_NEW=TRUE"));
             conn.close();
         } finally {
             tcp.stop();

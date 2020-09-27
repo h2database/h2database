@@ -63,8 +63,8 @@ import org.h2.message.DbException;
  *      (<a href="http://www.source-code.biz">www.source-code.biz</a>)
  * @author Thomas Mueller
  */
-public class JdbcConnectionPool implements DataSource, ConnectionEventListener,
-        JdbcConnectionPoolBackwardsCompat {
+public final class JdbcConnectionPool
+        implements DataSource, ConnectionEventListener, JdbcConnectionPoolBackwardsCompat {
 
     private static final int DEFAULT_TIMEOUT = 30;
     private static final int DEFAULT_MAX_CONNECTIONS = 10;

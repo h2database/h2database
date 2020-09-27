@@ -14,7 +14,6 @@ import java.util.Random;
 import org.h2.expression.function.DateTimeFormatFunction;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
-import org.h2.test.utils.AssertThrows;
 import org.h2.util.StringUtils;
 
 /**
@@ -81,18 +80,9 @@ public class TestStringUtils extends TestBase {
                 StringUtils.convertHexToBytes("fAcE"));
         assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce },
                 StringUtils.convertHexToBytes("FaCe"));
-        new AssertThrows(DbException.class) { @Override
-        public void test() {
-            StringUtils.convertHexToBytes("120");
-        }};
-        new AssertThrows(DbException.class) { @Override
-        public void test() {
-            StringUtils.convertHexToBytes("fast");
-        }};
-        new AssertThrows(DbException.class) { @Override
-        public void test() {
-            StringUtils.convertHexToBytes("012=abcf");
-        }};
+        assertThrows(DbException.class, () -> StringUtils.convertHexToBytes("120"));
+        assertThrows(DbException.class, () -> StringUtils.convertHexToBytes("fast"));
+        assertThrows(DbException.class, () -> StringUtils.convertHexToBytes("012=abcf"));
     }
 
     private void testPad() {
@@ -289,9 +279,7 @@ public class TestStringUtils extends TestBase {
         testTrimSubstringImpl("a b", " a b ", 1, 4);
         testTrimSubstringImpl("a b", " a b ", 1, 5);
         testTrimSubstringImpl("b", " a b ", 2, 5);
-        new AssertThrows(StringIndexOutOfBoundsException.class) { @Override
-            public void test() { StringUtils.trimSubstring(" with (", 1, 8); }
-        };
+        assertThrows(StringIndexOutOfBoundsException.class, () -> StringUtils.trimSubstring(" with (", 1, 8));
     }
 
     private void testTrimSubstringImpl(String expected, String string, int startIndex, int endIndex) {

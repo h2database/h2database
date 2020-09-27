@@ -39,7 +39,7 @@ import org.h2.value.ValueNull;
  * @author Sergi Vladykin
  * @author Thomas Mueller
  */
-public class JdbcCallableStatement extends JdbcPreparedStatement implements CallableStatement {
+public final class JdbcCallableStatement extends JdbcPreparedStatement implements CallableStatement {
 
     private BitSet outParameters;
     private int maxOutParameters;

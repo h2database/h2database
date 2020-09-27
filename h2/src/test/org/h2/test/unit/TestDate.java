@@ -18,9 +18,7 @@ import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Mode;
-import org.h2.message.DbException;
 import org.h2.test.TestBase;
-import org.h2.test.utils.AssertThrows;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.TimeZoneProvider;
@@ -135,18 +133,8 @@ public class TestDate extends TestBase {
         assertEquals("00:00:00", ValueTime.fromNanos(0).getString());
         assertEquals("23:59:59", ValueTime.parse("23:59:59").getString());
         assertEquals("11:22:33.444555666", ValueTime.parse("11:22:33.444555666").getString());
-        try {
-            ValueTime.parse("-00:00:00.000000001");
-            fail();
-        } catch (DbException ex) {
-            assertEquals(ErrorCode.INVALID_DATETIME_CONSTANT_2, ex.getErrorCode());
-        }
-        try {
-            ValueTime.parse("24:00:00");
-            fail();
-        } catch (DbException ex) {
-            assertEquals(ErrorCode.INVALID_DATETIME_CONSTANT_2, ex.getErrorCode());
-        }
+        assertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2, () -> ValueTime.parse("-00:00:00.000000001"));
+        assertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2, () -> ValueTime.parse("24:00:00"));
         ValueTime t1 = ValueTime.parse("11:11:11");
         assertEquals("11:11:11", LegacyDateTimeUtils.toTime(null,  null, t1).toString());
         assertEquals("TIME '11:11:11'", t1.getTraceSQL());
@@ -297,18 +285,10 @@ public class TestDate extends TestBase {
                 ValueTimestamp.parse("1970-01-01T00:00:00.000+00:00", null)).getTime());
         assertEquals(0, LegacyDateTimeUtils.toTimestamp(null, null,
                 ValueTimestamp.parse("1970-01-01T00:00:00.000-00:00", null)).getTime());
-        new AssertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2) {
-            @Override
-            public void test() {
-                ValueTimestamp.parse("1970-01-01 00:00:00.000 ABC", null);
-            }
-        };
-        new AssertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2) {
-            @Override
-            public void test() {
-                ValueTimestamp.parse("1970-01-01T00:00:00.000+ABC", null);
-            }
-        };
+        assertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2,
+                () -> ValueTimestamp.parse("1970-01-01 00:00:00.000 ABC", null));
+        assertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2,
+                () -> ValueTimestamp.parse("1970-01-01T00:00:00.000+ABC", null));
     }
 
     private void testAbsoluteDay() {

@@ -12,11 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -35,14 +33,15 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.SimpleTimeZone;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.mvstore.MVStoreException;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
-import org.h2.test.utils.ProxyCodeGenerator;
 import org.h2.test.utils.ResultVerifier;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -1453,7 +1452,7 @@ public abstract class TestBase {
                         expectedExceptionClass.getSimpleName() +
                         " to be thrown, but the method returned " +
                         returnValue +
-                        " for " + ProxyCodeGenerator.formatMethodCall(m, args));
+                        " for " + formatMethodCall(m, args));
             }
             if (!expectedExceptionClass.isAssignableFrom(t.getClass())) {
                 AssertionError ae = new AssertionError("Expected an exception of type\n" +
@@ -1461,12 +1460,26 @@ public abstract class TestBase {
                         " to be thrown, but the method under test threw an exception of type\n" +
                         t.getClass().getSimpleName() +
                         " (see in the 'Caused by' for the exception that was thrown) for " +
-                        ProxyCodeGenerator.formatMethodCall(m, args));
+                        formatMethodCall(m, args));
                 ae.initCause(t);
                 throw ae;
             }
             return false;
         }, obj);
+    }
+
+    private static String formatMethodCall(Method m, Object... args) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(m.getName()).append('(');
+        for (int i = 0; i < args.length; i++) {
+            Object a = args[i];
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(a == null ? "null" : a.toString());
+        }
+        builder.append(")");
+        return builder.toString();
     }
 
     /**
@@ -1479,21 +1492,7 @@ public abstract class TestBase {
      */
     protected <T> T assertThrows(int expectedErrorCode, T obj) {
         return assertThrows((returnValue, t, m, args) -> {
-            int errorCode;
-            if (t instanceof DbException) {
-                errorCode = ((DbException) t).getErrorCode();
-            } else if (t instanceof SQLException) {
-                errorCode = ((SQLException) t).getErrorCode();
-            } else {
-                errorCode = 0;
-            }
-            if (errorCode != expectedErrorCode) {
-                AssertionError ae = new AssertionError("Expected an SQLException or DbException with error code "
-                        + expectedErrorCode + ", but got a " + (t == null ? "null"
-                                : t.getClass().getName() + " exception " + " with error code " + errorCode));
-                ae.initCause(t);
-                throw ae;
-            }
+            checkErrorCode(expectedErrorCode, t);
             return false;
         }, obj);
     }
@@ -1552,39 +1551,89 @@ public abstract class TestBase {
                 }
             }
         };
-        if (!ProxyCodeGenerator.isGenerated(c)) {
-            Class<?>[] interfaces = c.getInterfaces();
-            if (Modifier.isFinal(c.getModifiers())
-                    || (interfaces.length > 0 && getClass() != c)) {
-                // interface class proxies
-                if (interfaces.length == 0) {
-                    throw new RuntimeException("Can not create a proxy for the class " +
-                            c.getSimpleName() +
-                            " because it doesn't implement any interfaces and is final");
-                }
-                return (T) Proxy.newProxyInstance(c.getClassLoader(), interfaces, ih);
-            }
+        Class<?>[] interfaces = c.getInterfaces();
+        if (interfaces.length == 0) {
+            throw new RuntimeException("Can not create a proxy for the class " +
+                    c.getSimpleName() +
+                    " because it doesn't implement any interfaces and is final");
         }
+        return (T) Proxy.newProxyInstance(c.getClassLoader(), interfaces, ih);
+    }
+
+    @FunctionalInterface
+    protected interface VoidCallable {
+
+        void call() throws Exception;
+
+    }
+
+    protected void assertThrows(Class<?> expectedExceptionClass, Callable<?> c) {
         try {
-            Class<?> pc = ProxyCodeGenerator.getClassProxy(c);
-            Constructor<?> cons = pc
-                    .getConstructor(new Class<?>[] { InvocationHandler.class });
-            return (T) cons.newInstance(new Object[] { ih });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            Object returnValue = c.call();
+            throw new AssertionError("Expected an exception of type " + expectedExceptionClass.getSimpleName()
+                    + " to be thrown, but the method returned " + returnValue);
+        } catch (Throwable t) {
+            checkException(expectedExceptionClass, t);
         }
     }
 
-    /**
-     * Create a proxy class that extends the given class.
-     *
-     * @param clazz the class
-     */
-    protected void createClassProxy(Class<?> clazz) {
+    protected void assertThrows(Class<?> expectedExceptionClass, VoidCallable c) {
         try {
-            ProxyCodeGenerator.getClassProxy(clazz);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            c.call();
+            throw new AssertionError("Expected an exception of type " + expectedExceptionClass.getSimpleName()
+                    + " to be thrown, but the method returned successfully");
+        } catch (Throwable t) {
+            checkException(expectedExceptionClass, t);
+        }
+    }
+
+    protected void assertThrows(int expectedErrorCode, Callable<?> c) {
+        try {
+            Object returnValue = c.call();
+            throw new AssertionError("Expected an SQLException or DbException with error code " + expectedErrorCode
+                    + " to be thrown, but the method returned " + returnValue);
+        } catch (Throwable t) {
+            checkErrorCode(expectedErrorCode, t);
+        }
+    }
+
+    protected void assertThrows(int expectedErrorCode, VoidCallable c) {
+        try {
+            c.call();
+            throw new AssertionError("Expected an SQLException or DbException with error code " + expectedErrorCode
+                    + " to be thrown, but the method returned successfully");
+        } catch (Throwable t) {
+            checkErrorCode(expectedErrorCode, t);
+        }
+    }
+
+    private static void checkException(Class<?> expectedExceptionClass, Throwable t) throws AssertionError {
+        if (!expectedExceptionClass.isAssignableFrom(t.getClass())) {
+            AssertionError ae = new AssertionError("Expected an exception of type\n"
+                    + expectedExceptionClass.getSimpleName() + " to be thrown, but an exception of type\n"
+                    + t.getClass().getSimpleName() + " was thrown");
+            ae.initCause(t);
+            throw ae;
+        }
+    }
+
+    private static void checkErrorCode(int expectedErrorCode, Throwable t) throws AssertionError {
+        int errorCode;
+        if (t instanceof DbException) {
+            errorCode = ((DbException) t).getErrorCode();
+        } else if (t instanceof SQLException) {
+            errorCode = ((SQLException) t).getErrorCode();
+        } else if (t instanceof MVStoreException) {
+            errorCode = ((MVStoreException) t).getErrorCode();
+        } else {
+            errorCode = 0;
+        }
+        if (errorCode != expectedErrorCode) {
+            AssertionError ae = new AssertionError("Expected an SQLException or DbException with error code "
+                    + expectedErrorCode + ", but got a "
+                    + (t == null ? "null" : t.getClass().getName() + " exception " + " with error code " + errorCode));
+            ae.initCause(t);
+            throw ae;
         }
     }
 

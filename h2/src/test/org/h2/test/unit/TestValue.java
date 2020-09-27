@@ -30,11 +30,9 @@ import org.h2.api.H2Type;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
-import org.h2.test.utils.AssertThrows;
 import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LegacyDateTimeUtils;
@@ -287,19 +285,12 @@ public class TestValue extends TestDb {
 
         ValueJavaObject voString = ValueJavaObject.getNoCopy(JdbcUtils.serialize(
                 new String("This is not a ValueUuid object"), null));
-        try {
-            voString.convertToUuid();
-            fail();
-        } catch (DbException expected) {
-        }
+        assertThrows(ErrorCode.DESERIALIZATION_FAILED_1, () -> voString.convertToUuid());
     }
 
     private void testModulusDouble() {
         final ValueDouble vd1 = ValueDouble.get(12);
-        new AssertThrows(ErrorCode.DIVISION_BY_ZERO_1) { @Override
-        public void test() {
-            vd1.modulus(ValueDouble.get(0));
-        }};
+        assertThrows(ErrorCode.DIVISION_BY_ZERO_1, () -> vd1.modulus(ValueDouble.ZERO));
         ValueDouble vd2 = ValueDouble.get(10);
         ValueDouble vd3 = vd1.modulus(vd2);
         assertEquals(2, vd3.getDouble());
@@ -307,10 +298,7 @@ public class TestValue extends TestDb {
 
     private void testModulusDecimal() {
         final ValueNumeric vd1 = ValueNumeric.get(new BigDecimal(12));
-        new AssertThrows(ErrorCode.DIVISION_BY_ZERO_1) { @Override
-        public void test() {
-            vd1.modulus(ValueNumeric.get(new BigDecimal(0)));
-        }};
+        assertThrows(ErrorCode.DIVISION_BY_ZERO_1, () -> vd1.modulus(ValueNumeric.ZERO));
         ValueNumeric vd2 = ValueNumeric.get(new BigDecimal(10));
         Value vd3 = vd1.modulus(vd2);
         assertEquals(2, vd3.getDouble());
@@ -377,12 +365,7 @@ public class TestValue extends TestDb {
 
     private void testTypeInfo() {
         testTypeInfoCheck(Value.UNKNOWN, -1, -1, -1, TypeInfo.TYPE_UNKNOWN);
-        try {
-            TypeInfo.getTypeInfo(Value.UNKNOWN);
-            fail();
-        } catch (DbException ex) {
-            assertEquals(ErrorCode.UNKNOWN_DATA_TYPE_1, ex.getErrorCode());
-        }
+        assertThrows(ErrorCode.UNKNOWN_DATA_TYPE_1, () -> TypeInfo.getTypeInfo(Value.UNKNOWN));
 
         testTypeInfoCheck(Value.NULL, 1, 0, 4, TypeInfo.TYPE_NULL, TypeInfo.getTypeInfo(Value.NULL));
 

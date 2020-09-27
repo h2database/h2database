@@ -326,12 +326,7 @@ public class TestMVStore extends TestBase {
                 long version = s.getCurrentVersion();
                 if (version >= 6) {
                     map.openVersion(version - 5);
-                    try {
-                        map.openVersion(version - 6);
-                        fail();
-                    } catch (IllegalArgumentException e) {
-                        // expected
-                    }
+                    assertThrows(IllegalArgumentException.class, () -> map.openVersion(version - 6));
                 }
             }
         }
@@ -677,54 +672,40 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
 
         char[] passwordChars = "007".toCharArray();
-        try (MVStore s = new MVStore.Builder().
-                fileName(fileName).
-                encryptionKey(passwordChars).
-                open()) {
-            assertEquals(0, passwordChars[0]);
-            assertEquals(0, passwordChars[1]);
-            assertEquals(0, passwordChars[2]);
+        try (MVStore s = new MVStore.Builder().fileName(fileName).encryptionKey(passwordChars).open()) {
+            assertPasswordErased(passwordChars);
             assertTrue(FileUtils.exists(fileName));
             MVMap<Integer, String> m = s.openMap("test");
             m.put(1, "Hello");
             assertEquals("Hello", m.get(1));
         }
 
-        passwordChars = "008".toCharArray();
-        try {
-            MVStore s = new MVStore.Builder().
-                    fileName(fileName).
-                    encryptionKey(passwordChars).open();
-            fail();
-        } catch (MVStoreException e) {
-            assertEquals(DataUtils.ERROR_FILE_CORRUPT,
-                    e.getErrorCode());
-        }
-        assertEquals(0, passwordChars[0]);
-        assertEquals(0, passwordChars[1]);
-        assertEquals(0, passwordChars[2]);
+        char[] passwordChars2 = "008".toCharArray();
+        assertThrows(DataUtils.ERROR_FILE_CORRUPT,
+                () -> new MVStore.Builder().fileName(fileName).encryptionKey(passwordChars2).open());
+        assertPasswordErased(passwordChars2);
 
         passwordChars = "007".toCharArray();
-        try (MVStore s = new MVStore.Builder().
-                fileName(fileName).
-                encryptionKey(passwordChars).open()) {
-            assertEquals(0, passwordChars[0]);
-            assertEquals(0, passwordChars[1]);
-            assertEquals(0, passwordChars[2]);
+        try (MVStore s = new MVStore.Builder().fileName(fileName).encryptionKey(passwordChars).open()) {
+            assertPasswordErased(passwordChars);
             MVMap<Integer, String> m = s.openMap("test");
             assertEquals("Hello", m.get(1));
         }
 
         FileUtils.setReadOnly(fileName);
         passwordChars = "007".toCharArray();
-        try (MVStore s = new MVStore.Builder().
-                fileName(fileName).
-                encryptionKey(passwordChars).open()) {
+        try (MVStore s = new MVStore.Builder().fileName(fileName).encryptionKey(passwordChars).open()) {
             assertTrue(s.getFileStore().isReadOnly());
         }
 
         FileUtils.delete(fileName);
         assertFalse(FileUtils.exists(fileName));
+    }
+
+    private void assertPasswordErased(char[] passwordChars) {
+        assertEquals(0, passwordChars[0]);
+        assertEquals(0, passwordChars[1]);
+        assertEquals(0, passwordChars[2]);
     }
 
     private void testFileFormatChange() {
@@ -740,13 +721,7 @@ public class TestMVStore extends TestBase {
             header.put("format", Integer.toString(format + 1));
             forceWriteStoreHeader(s);
         }
-        try {
-            openStore(fileName).close();
-            fail();
-        } catch (MVStoreException e) {
-            assertEquals(DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                    e.getErrorCode());
-        }
+        assertThrows(DataUtils.ERROR_UNSUPPORTED_FORMAT, () -> openStore(fileName).close());
         FileUtils.delete(fileName);
     }
 
@@ -847,20 +822,9 @@ public class TestMVStore extends TestBase {
         String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         try (MVStore s = new MVStore.Builder().fileName(fileName).open()) {
-            try {
-                MVStore s1 = new MVStore.Builder().fileName(fileName).open();
-                s1.close();
-                fail();
-            } catch (MVStoreException e) {
-                // expected
-            }
-            try {
-                MVStore s1 = new MVStore.Builder().fileName(fileName).readOnly().open();
-                s1.close();
-                fail();
-            } catch (MVStoreException e) {
-                // expected
-            }
+            assertThrows(MVStoreException.class, () -> new MVStore.Builder().fileName(fileName).open().close());
+            assertThrows(MVStoreException.class,
+                    () -> new MVStore.Builder().fileName(fileName).readOnly().open().close());
             assertFalse(s.getFileStore().isReadOnly());
         }
         try (MVStore s = new MVStore.Builder().fileName(fileName).readOnly().open()) {
@@ -988,12 +952,7 @@ public class TestMVStore extends TestBase {
                 }
             } else {
                 // both headers are corrupt
-                try {
-                    MVStore s = openStore(fileName);
-                    fail();
-                } catch (Exception e) {
-                    // expected
-                }
+                assertThrows(Exception.class, () -> openStore(fileName));
             }
         }
     }
@@ -1374,13 +1333,7 @@ public class TestMVStore extends TestBase {
             MVMap<String, String> m = s.openMap("data");
             assertEquals("Hi", m.get("1"));
             assertEquals(null, m.get("2"));
-
-            try {
-                m.openVersion(-3);
-                fail();
-            } catch (IllegalArgumentException e) {
-                // expected
-            }
+            assertThrows(IllegalArgumentException.class, () -> m.openVersion(-3));
         }
     }
 

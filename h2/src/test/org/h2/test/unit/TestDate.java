@@ -18,7 +18,6 @@ import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Mode;
-import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.LegacyDateTimeUtils;
@@ -134,18 +133,8 @@ public class TestDate extends TestBase {
         assertEquals("00:00:00", ValueTime.fromNanos(0).getString());
         assertEquals("23:59:59", ValueTime.parse("23:59:59").getString());
         assertEquals("11:22:33.444555666", ValueTime.parse("11:22:33.444555666").getString());
-        try {
-            ValueTime.parse("-00:00:00.000000001");
-            fail();
-        } catch (DbException ex) {
-            assertEquals(ErrorCode.INVALID_DATETIME_CONSTANT_2, ex.getErrorCode());
-        }
-        try {
-            ValueTime.parse("24:00:00");
-            fail();
-        } catch (DbException ex) {
-            assertEquals(ErrorCode.INVALID_DATETIME_CONSTANT_2, ex.getErrorCode());
-        }
+        assertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2, () -> ValueTime.parse("-00:00:00.000000001"));
+        assertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2, () -> ValueTime.parse("24:00:00"));
         ValueTime t1 = ValueTime.parse("11:11:11");
         assertEquals("11:11:11", LegacyDateTimeUtils.toTime(null,  null, t1).toString());
         assertEquals("TIME '11:11:11'", t1.getTraceSQL());

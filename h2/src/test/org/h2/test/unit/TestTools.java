@@ -544,12 +544,7 @@ public class TestTools extends TestDb {
         try {
             task.execute();
             Thread.sleep(100);
-            try {
-                getConnection("jdbc:h2:tcp://localhost:9001/test");
-                fail();
-            } catch (SQLException e) {
-                assertEquals(ErrorCode.CONNECTION_BROKEN_1, e.getErrorCode());
-            }
+            assertThrows(ErrorCode.CONNECTION_BROKEN_1, () -> getConnection("jdbc:h2:tcp://localhost:9001/test"));
         } finally {
             serverSocket.close();
             task.getException();

@@ -227,13 +227,8 @@ public class TestOpenClose extends TestDb {
         Path old = Paths.get(getBaseDir()).resolve("db" + Constants.SUFFIX_OLD_DATABASE_FILE);
         Files.createFile(old);
         try {
-            try {
-                DriverManager.getConnection("jdbc:h2:" + getBaseDir() + "/db");
-            } catch (SQLException e) {
-                assertEquals(ErrorCode.FILE_VERSION_ERROR_1, e.getErrorCode());
-                return;
-            }
-            fail("Old 1.1 database isn't detected");
+            assertThrows(ErrorCode.FILE_VERSION_ERROR_1,
+                    () -> DriverManager.getConnection("jdbc:h2:" + getBaseDir() + "/db"));
         } finally {
             Files.deleteIfExists(old);
         }

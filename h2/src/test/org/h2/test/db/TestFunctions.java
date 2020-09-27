@@ -55,7 +55,6 @@ import org.h2.engine.SessionLocal;
 import org.h2.expression.function.ToCharFunction;
 import org.h2.expression.function.ToCharFunction.Capitalization;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.message.DbException;
 import org.h2.mode.ToDateParser;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -1160,18 +1159,10 @@ public class TestFunctions extends TestDb implements AggregateFunction {
     }
 
     private void testToDateException(SessionLocal session) {
-        try {
-            ToDateParser.toDate(session, "1979-ThisWillFail-12", "YYYY-MM-DD");
-        } catch (Exception e) {
-            assertEquals(DbException.class.getSimpleName(), e.getClass().getSimpleName());
-        }
-
-        try {
-            ToDateParser.toDate(session, "1-DEC-0000", "DD-MON-RRRR");
-            fail("Oracle to_date should reject year 0 (ORA-01841)");
-        } catch (Exception e) {
-            // expected
-        }
+        assertThrows(ErrorCode.INVALID_TO_DATE_FORMAT,
+                () -> ToDateParser.toDate(session, "1979-ThisWillFail-12", "YYYY-MM-DD"));
+        assertThrows(ErrorCode.INVALID_TO_DATE_FORMAT, //
+                () -> ToDateParser.toDate(session, "1-DEC-0000", "DD-MON-RRRR"));
     }
 
     private void testToDate(SessionLocal session) {

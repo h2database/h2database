@@ -427,12 +427,7 @@ public class TestGeometryUtils extends TestBase {
     }
 
     private void testFiniteOnly(byte[] ewkb, Target target) {
-        try {
-            EWKBUtils.parseEWKB(ewkb, target);
-            fail(target.getClass().getName() + ' ' + StringUtils.convertBytesToHex(ewkb));
-        } catch (IllegalArgumentException e) {
-            // Expected
-        }
+        assertThrows(IllegalArgumentException.class, () -> EWKBUtils.parseEWKB(ewkb, target));
     }
 
     private void testSRID() throws Exception {
@@ -522,31 +517,11 @@ public class TestGeometryUtils extends TestBase {
     }
 
     private void testMixedGeometries() throws Exception {
-        try {
-            EWKTUtils.ewkt2ewkb(MIXED_WKT);
-            fail();
-        } catch (IllegalArgumentException ex) {
-            // Expected
-        }
-        try {
-            EWKTUtils.ewkb2ewkt(MIXED_WKB);
-            fail();
-        } catch (IllegalArgumentException ex) {
-            // Expected
-        }
-        try {
-            JTSUtils.ewkb2geometry(MIXED_WKB);
-            fail();
-        } catch (IllegalArgumentException ex) {
-            // Expected
-        }
+        assertThrows(IllegalArgumentException.class, () -> EWKTUtils.ewkt2ewkb(MIXED_WKT));
+        assertThrows(IllegalArgumentException.class, () -> EWKTUtils.ewkb2ewkt(MIXED_WKB));
+        assertThrows(IllegalArgumentException.class, () -> JTSUtils.ewkb2geometry(MIXED_WKB));
         Geometry g = new WKTReader().read(MIXED_WKT);
-        try {
-            JTSUtils.geometry2ewkb(g);
-            fail();
-        } catch (IllegalArgumentException ex) {
-            // Expected
-        }
+        assertThrows(IllegalArgumentException.class, () -> JTSUtils.geometry2ewkb(g));
     }
 
 }

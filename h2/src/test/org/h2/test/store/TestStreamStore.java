@@ -231,29 +231,14 @@ public class TestStreamStore extends TestBase {
 
     }
 
-    private void testDetectIllegalId() throws IOException {
+    private void testDetectIllegalId() {
         Map<Long, byte[]> map = new HashMap<>();
         StreamStore store = new StreamStore(map);
-        try {
-            store.length(new byte[]{3, 0, 0});
-            fail();
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
-        try {
-            store.remove(new byte[]{3, 0, 0});
-            fail();
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
+        assertThrows(IllegalArgumentException.class, () -> store.length(new byte[]{3, 0, 0}));
+        assertThrows(IllegalArgumentException.class, () -> store.remove(new byte[]{3, 0, 0}));
         map.put(0L, new byte[]{3, 0, 0});
         InputStream in = store.get(new byte[]{2, 1, 0});
-        try {
-            in.read();
-            fail();
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
+        assertThrows(IllegalArgumentException.class, () -> in.read());
     }
 
     private void testTreeStructure() throws IOException {

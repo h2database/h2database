@@ -30,7 +30,6 @@ import org.h2.api.H2Type;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -286,11 +285,7 @@ public class TestValue extends TestDb {
 
         ValueJavaObject voString = ValueJavaObject.getNoCopy(JdbcUtils.serialize(
                 new String("This is not a ValueUuid object"), null));
-        try {
-            voString.convertToUuid();
-            fail();
-        } catch (DbException expected) {
-        }
+        assertThrows(ErrorCode.DESERIALIZATION_FAILED_1, () -> voString.convertToUuid());
     }
 
     private void testModulusDouble() {
@@ -370,12 +365,7 @@ public class TestValue extends TestDb {
 
     private void testTypeInfo() {
         testTypeInfoCheck(Value.UNKNOWN, -1, -1, -1, TypeInfo.TYPE_UNKNOWN);
-        try {
-            TypeInfo.getTypeInfo(Value.UNKNOWN);
-            fail();
-        } catch (DbException ex) {
-            assertEquals(ErrorCode.UNKNOWN_DATA_TYPE_1, ex.getErrorCode());
-        }
+        assertThrows(ErrorCode.UNKNOWN_DATA_TYPE_1, () -> TypeInfo.getTypeInfo(Value.UNKNOWN));
 
         testTypeInfoCheck(Value.NULL, 1, 0, 4, TypeInfo.TYPE_NULL, TypeInfo.getTypeInfo(Value.NULL));
 

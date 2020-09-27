@@ -262,13 +262,7 @@ public class TestTransactionStore extends TestBase {
 
         Transaction tx2 = ts.begin();
         TransactionMap<Integer, Integer> map2 = tx2.openMap("data");
-        try {
-            map2.put(1, 20);
-            fail();
-        } catch (MVStoreException e) {
-            assertEquals(DataUtils.ERROR_TRANSACTION_LOCKED,
-                    e.getErrorCode());
-        }
+        assertThrows(DataUtils.ERROR_TRANSACTION_LOCKED, () -> map2.put(1, 20));
         assertEquals(10, map1.get(1).intValue());
         assertNull(map2.get(1));
         tx1.commit();
@@ -325,25 +319,20 @@ public class TestTransactionStore extends TestBase {
         }
 
         s = MVStore.open(null);
-        ts = new TransactionStore(s);
-        ts.init();
-        ts.setMaxTransactionId(16);
+        TransactionStore ts2 = new TransactionStore(s);
+        ts2.init();
+        ts2.setMaxTransactionId(16);
         ArrayList<Transaction> fifo = new ArrayList<>();
         int open = 0;
         for (int i = 0; i < 64; i++) {
             Transaction t = null;
             if (open >= 16) {
-                try {
-                    t = ts.begin();
-                    fail();
-                } catch (MVStoreException e) {
-                    // expected - too many open
-                }
+                assertThrows(MVStoreException.class, () -> ts2.begin());
                 Transaction first = fifo.remove(0);
                 first.commit();
                 open--;
             }
-            t = ts.begin();
+            t = ts2.begin();
             t.openMap("data").put(i, i);
             fifo.add(t);
             open++;

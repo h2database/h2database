@@ -153,12 +153,7 @@ public class TestBatchUpdates extends TestDb {
             prep.setString(1, "x");
             prep.addBatch();
         }
-        try {
-            prep.executeBatch();
-            fail();
-        } catch (BatchUpdateException e) {
-            // expected
-        }
+        assertThrows(BatchUpdateException.class, prep).executeBatch();
         conn.close();
     }
 

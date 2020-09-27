@@ -57,12 +57,7 @@ public class TestDriver extends TestDb {
         Driver instance = Driver.load();
         assertTrue(DriverManager.getDriver("jdbc:h2:~/test") == instance);
         Driver.unload();
-        try {
-            java.sql.Driver d = DriverManager.getDriver("jdbc:h2:~/test");
-            fail(d.toString());
-        } catch (SQLException e) {
-            // ignore
-        }
+        assertThrows(SQLException.class, () -> DriverManager.getDriver("jdbc:h2:~/test"));
         Driver.load();
         assertTrue(DriverManager.getDriver("jdbc:h2:~/test") == instance);
     }

@@ -78,24 +78,9 @@ public class TestCacheLIRS extends TestBase {
         CacheLIRS<Integer, Integer> test = createCache(1);
         test.put(1, 10, 100);
         assertEquals(0, test.size());
-        try {
-            test.put(null, 10, 100);
-            fail();
-        } catch (NullPointerException e) {
-            // expected
-        }
-        try {
-            test.put(1, null, 100);
-            fail();
-        } catch (NullPointerException e) {
-            // expected
-        }
-        try {
-            test.setMaxMemory(0);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
+        assertThrows(NullPointerException.class, () -> test.put(null, 10, 100));
+        assertThrows(NullPointerException.class, () -> test.put(1, null, 100));
+        assertThrows(IllegalArgumentException.class, () -> test.setMaxMemory(0));
     }
 
     private void testSize() {

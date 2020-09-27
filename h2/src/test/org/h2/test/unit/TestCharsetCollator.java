@@ -41,12 +41,7 @@ public class TestCharsetCollator extends TestBase {
     }
 
     private void testCreationFromCompareModeWithInvalidCharset() {
-        try {
-            CompareMode.getCollator("CHARSET_INVALID");
-            fail();
-        } catch (UnsupportedCharsetException e) {
-            // expected
-        }
+        assertThrows(UnsupportedCharsetException.class, () -> CompareMode.getCollator("CHARSET_INVALID"));
     }
 
     private void testCreationFromCompareMode() {

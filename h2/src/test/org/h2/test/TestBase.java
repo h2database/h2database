@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.mvstore.MVStoreException;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.utils.ResultVerifier;
@@ -1622,6 +1623,8 @@ public abstract class TestBase {
             errorCode = ((DbException) t).getErrorCode();
         } else if (t instanceof SQLException) {
             errorCode = ((SQLException) t).getErrorCode();
+        } else if (t instanceof MVStoreException) {
+            errorCode = ((MVStoreException) t).getErrorCode();
         } else {
             errorCode = 0;
         }

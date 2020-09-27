@@ -80,7 +80,7 @@ public abstract class RandomAccessStore extends FileStore {
         return freeSpace.predictAllocation(blocks, reservedLow, reservedHigh);
     }
 
-    boolean isFragmented() {
+    private boolean isFragmented() {
         return freeSpace.isFragmented();
     }
 
@@ -162,28 +162,60 @@ public abstract class RandomAccessStore extends FileStore {
         }
     }
 
-/*
-    public void compactFile(int tresholdFildRate, long maxCompactTime, long maxWriteSize, MVStore mvStore) {
-        long start = System.nanoTime();
-        while (compact(tresholdFildRate, maxWriteSize)) {
+    /**
+     * Compact store file, that is, compact blocks that have a low
+     * fill rate, and move chunks next to each other. This will typically
+     * shrink the file. Changes are flushed to the file, and old
+     * chunks are overwritten.
+     *
+     * @param thresholdFildRate do not compact if store fill rate above this value (0-100)
+     * @param maxCompactTime the maximum time in milliseconds to compact
+     * @param maxWriteSize the maximum amount of data to be written as part of this call
+     */
+    protected void compactFile(int thresholdFildRate, long maxCompactTime, int maxWriteSize, MVStore mvStore) {
+        setRetentionTime(0);
+        long stopAt = System.nanoTime() + maxCompactTime * 1_000_000L;
+        while (compact(thresholdFildRate, maxWriteSize)) {
             sync();
-            compactMoveChunks(tresholdFildRate, maxWriteSize);
-            long time = System.nanoTime() - start;
-            if (time > TimeUnit.MILLISECONDS.toNanos(maxCompactTime)) {
+            compactMoveChunks(thresholdFildRate, maxWriteSize, mvStore);
+            if (System.nanoTime() - stopAt > 0L) {
                 break;
             }
         }
     }
-*/
 
-    public boolean compactMoveChunks(long moveSize, MVStore mvStore) {
+    /**
+     * Compact the store by moving all chunks next to each other, if there is
+     * free space between chunks. This might temporarily increase the file size.
+     * Chunks are overwritten irrespective of the current retention time. Before
+     * overwriting chunks and before resizing the file, syncFile() is called.
+     *
+     * @param targetFillRate do nothing if the file store fill rate is higher
+     *            than this
+     * @param moveSize the number of bytes to move
+     */
+    public void compactMoveChunks(int targetFillRate, long moveSize, MVStore mvStore) {
+        if (isSpaceReused()) {
+            mvStore.executeFilestoreOperation(() -> {
+                dropUnusedChunks();
+                saveChunkLock.lock();
+                try {
+                    if (hasPersitentData() && getFillRate() <= targetFillRate) {
+                        compactMoveChunks(moveSize, mvStore);
+                    }
+                } finally {
+                    saveChunkLock.unlock();
+                }
+            });
+        }
+    }
+
+    private void compactMoveChunks(long moveSize, MVStore mvStore) {
         long start = getFirstFree() / FileStore.BLOCK_SIZE;
         Iterable<Chunk> chunksToMove = findChunksToMove(start, moveSize);
         if (chunksToMove != null) {
             compactMoveChunks(chunksToMove, mvStore);
-            return true;
         }
-        return false;
     }
 
     private Iterable<Chunk> findChunksToMove(long startBlock, long moveSize) {
@@ -386,6 +418,38 @@ public abstract class RandomAccessStore extends FileStore {
         }
         sync();
         truncate(end);
+    }
+
+    @Override
+    protected void doHousekeeping(MVStore mvStore) throws InterruptedException {
+        int autoCommitMemory = mvStore.getAutoCommitMemory();
+        int fillRate = getFillRate();
+        if (isFragmented() && fillRate < getAutoCompactFillRate()) {
+
+            mvStore.tryExecuteUnderStoreLock(() -> {
+                int moveSize = autoCommitMemory;
+                if (isIdle()) {
+                    moveSize *= 4;
+                }
+                compactMoveChunks(101, moveSize, mvStore);
+                return true;
+            });
+        } else if (fillRate >= getAutoCompactFillRate() && hasPersitentData()) {
+            int chunksFillRate = getRewritableChunksFillRate();
+            int _chunksFillRate = isIdle() ? 100 - (100 - chunksFillRate) / 2 : chunksFillRate;
+            if (_chunksFillRate < getTargetFillRate()) {
+                mvStore.tryExecuteUnderStoreLock(() -> {
+                    int writeLimit = autoCommitMemory * fillRate / Math.max(_chunksFillRate, 1);
+                    if (!isIdle()) {
+                        writeLimit /= 4;
+                    }
+                    if (rewriteChunks(writeLimit, _chunksFillRate)) {
+                        dropUnusedChunks();
+                    }
+                    return true;
+                });
+            }
+        }
     }
 
     protected abstract void truncate(long size);

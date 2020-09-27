@@ -279,7 +279,7 @@ public class MVStore implements AutoCloseable {
                 } else {
                     fileStore.bind(this);
                 }
-                fileStore.readStoreHeader();
+                fileStore.start();
             } catch (MVStoreException e) {
                 panic(e);
             } finally {
@@ -1035,15 +1035,6 @@ public class MVStore implements AutoCloseable {
         return fileStore != null && fileStore.hasChangesSince(lastStoredVersion);
     }
 
-    /**
-     * Compact by moving all chunks next to each other.
-     */
-    public void compactMoveChunks() {
-        if (hasPersitentData()) {
-            fileStore.compactMoveChunks(100, Long.MAX_VALUE);
-        }
-    }
-
     public void executeFilestoreOperation(Runnable operation) {
         storeLock.lock();
         try {
@@ -1097,12 +1088,14 @@ public class MVStore implements AutoCloseable {
      * @param maxCompactTime the maximum time in milliseconds to compact
      */
     public void compactFile(int maxCompactTime) {
-        setRetentionTime(0);
-        storeLock.lock();
-        try {
-            fileStore.compactFile(maxCompactTime);
-        } finally {
-            unlockAndCheckPanicCondition();
+        if (fileStore != null) {
+            setRetentionTime(0);
+            storeLock.lock();
+            try {
+                fileStore.compactFile(maxCompactTime);
+            } finally {
+                unlockAndCheckPanicCondition();
+            }
         }
     }
 

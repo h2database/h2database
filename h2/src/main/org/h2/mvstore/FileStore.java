@@ -114,7 +114,7 @@ public abstract class FileStore
      */
     private int retentionTime = getDefaultRetentionTime();
 
-    private int maxPageSize;
+    private final int maxPageSize;
 
     /**
      * The file size (cached).
@@ -232,7 +232,7 @@ public abstract class FileStore
         cc2.maxMemory = 1024L * 1024L;
         chunksToC = new CacheLongKeyLIRS<>(cc2);
 
-        maxPageSize = Integer.MAX_VALUE;
+        int maxPageSize = Integer.MAX_VALUE;
         // Make sure pages will fit into cache
         if (cache != null) {
             maxPageSize = 16 * 1024;
@@ -241,6 +241,7 @@ public abstract class FileStore
                 maxPageSize = maxCachableSize;
             }
         }
+        this.maxPageSize = maxPageSize;
     }
 
     public void open(String fileName, boolean readOnly, char[] encryptionKey,
@@ -531,7 +532,7 @@ public abstract class FileStore
         }
     }
 
-    private int getTargetFillRate() {
+    protected final int getTargetFillRate() {
         int targetRate = autoCompactFillRate;
         // use a lower fill rate if there were any file operations since the last time
         if (!isIdle()) {
@@ -540,7 +541,7 @@ public abstract class FileStore
         return targetRate;
     }
 
-    private boolean isIdle() {
+    protected final boolean isIdle() {
         return autoCompactLastFileOpCount == getWriteCount() + getReadCount();
     }
 
@@ -834,18 +835,6 @@ public abstract class FileStore
         shrinkIfPossible(minPercent);
     }
 
-    public boolean compactChunks(int targetFillRate, long moveSize, MVStore mvStore) {
-        saveChunkLock.lock();
-        try {
-            if (hasPersitentData() && getFillRate() <= targetFillRate) {
-                return compactMoveChunks(moveSize, mvStore);
-            }
-        } finally {
-            saveChunkLock.unlock();
-        }
-        return false;
-    }
-
     /**
      * Try to increase the fill rate by re-writing partially full chunks. Chunks
      * with a low number of live items are re-written.
@@ -883,7 +872,7 @@ public abstract class FileStore
     }
 
     public void compactFile(long maxCompactTime) {
-        compactFile(autoCompactFillRate, maxCompactTime, 16 * 1024 * 1024);
+        compactFile(autoCompactFillRate, maxCompactTime, 16 * 1024 * 1024, mvStore);
     }
 
     /**
@@ -896,28 +885,19 @@ public abstract class FileStore
      * @param maxCompactTime the maximum time in milliseconds to compact
      * @param maxWriteSize the maximum amount of data to be written as part of this call
      */
-    private void compactFile(int thresholdFildRate, long maxCompactTime, int maxWriteSize) {
-        setRetentionTime(0);
-        long stopAt = System.nanoTime() + maxCompactTime * 1_000_000L;
-        while (compact(thresholdFildRate, maxWriteSize)) {
-            sync();
-            compactMoveChunks(thresholdFildRate, maxWriteSize);
-            if (System.nanoTime() - stopAt > 0L) {
-                break;
-            }
-        }
-    }
+    protected abstract void compactFile(int thresholdFildRate, long maxCompactTime, int maxWriteSize, MVStore mvStore);
 
-    protected abstract boolean compactMoveChunks(long moveSize, MVStore mvStore);
+    protected abstract void doHousekeeping(MVStore mvStore) throws InterruptedException;
 
 
-    public void readStoreHeader() {
+
+    public void start() {
         if (size() == 0) {
             initializeStoreHeader(mvStore.getTimeAbsolute());
         } else {
             saveChunkLock.lock();
             try {
-                _readStoreHeader(recoveryMode);
+                readStoreHeader(recoveryMode);
             } finally {
                 saveChunkLock.unlock();
             }
@@ -927,7 +907,7 @@ public abstract class FileStore
         mvStore.setCurrentVersion(lastChunkVersion());
     }
 
-    private void _readStoreHeader(boolean recoveryMode) {
+    private void readStoreHeader(boolean recoveryMode) {
         long now = System.currentTimeMillis();
         Chunk newest = null;
         boolean assumeCleanShutdown = true;
@@ -1405,6 +1385,10 @@ public abstract class FileStore
         return creationTime;
     }
 
+    protected final int getAutoCompactFillRate() {
+        return autoCompactFillRate;
+    }
+
 
     /**
      * Write data to the store.
@@ -1559,8 +1543,6 @@ public abstract class FileStore
      */
     abstract void free(long pos, int length);
 
-    abstract boolean isFragmented();
-
     public abstract void backup(ZipOutputStream out) throws IOException;
 
     public void rollback(Chunk keep, ArrayList<Chunk> remove) {
@@ -1575,7 +1557,6 @@ public abstract class FileStore
                 if (c != null) {
                     long start = c.block * FileStore.BLOCK_SIZE;
                     int length = c.len * FileStore.BLOCK_SIZE;
-//                    freeChunkSpace(c);
                     // overwrite the chunk,
                     // so it is not be used later on
                     WriteBuffer buff = getWriteBuffer();
@@ -1596,7 +1577,7 @@ public abstract class FileStore
             deadChunks.clear();
             lastChunk = keep;
             writeStoreHeader();
-            _readStoreHeader(false);
+            readStoreHeader(false);
         } finally {
             saveChunkLock.unlock();
         }
@@ -1629,7 +1610,7 @@ public abstract class FileStore
     private int serializationExecutorHWM;
 
 
-    void storeIt(ArrayList<Page<?,?>> changed, long version, boolean syncWrite) throws ExecutionException {
+    public void storeIt(ArrayList<Page<?,?>> changed, long version, boolean syncWrite) throws ExecutionException {
         lastCommitTime = getTimeSinceCreation();
         serializationExecutorHWM = submitOrRun(serializationExecutor,
                 () -> serializeAndStore(syncWrite, changed, lastCommitTime, version),
@@ -2119,37 +2100,8 @@ public abstract class FileStore
             long time = getTimeSinceCreation();
             if (time > lastCommitTime + autoCommitDelay) {
                 mvStore.tryCommit();
-                if (autoCompactFillRate < 0) {
-                    compact(-getTargetFillRate(), autoCommitMemory);
-                }
             }
-            int fillRate = getFillRate();
-            if (isFragmented() && fillRate < autoCompactFillRate) {
-
-                mvStore.tryExecuteUnderStoreLock(() -> {
-                    int moveSize = autoCommitMemory;
-                    if (isIdle()) {
-                        moveSize *= 4;
-                    }
-                    compactMoveChunks(101, moveSize);
-                    return true;
-                });
-            } else if (fillRate >= autoCompactFillRate && hasPersitentData()) {
-                int chunksFillRate = getRewritableChunksFillRate();
-                int _chunksFillRate = isIdle() ? 100 - (100 - chunksFillRate) / 2 : chunksFillRate;
-                if (_chunksFillRate < getTargetFillRate()) {
-                    mvStore.tryExecuteUnderStoreLock(() -> {
-                        int writeLimit = autoCommitMemory * fillRate / Math.max(_chunksFillRate, 1);
-                        if (!isIdle()) {
-                            writeLimit /= 4;
-                        }
-                        if (rewriteChunks(writeLimit, _chunksFillRate)) {
-                            dropUnusedChunks();
-                        }
-                        return true;
-                    });
-                }
-            }
+            doHousekeeping(mvStore);
             autoCompactLastFileOpCount = getWriteCount() + getReadCount();
         } catch (InterruptedException ignore) {
         } catch (Throwable e) {
@@ -2160,26 +2112,7 @@ public abstract class FileStore
         }
     }
 
-    /**
-     * Compact the store by moving all chunks next to each other, if there is
-     * free space between chunks. This might temporarily increase the file size.
-     * Chunks are overwritten irrespective of the current retention time. Before
-     * overwriting chunks and before resizing the file, syncFile() is called.
-     *
-     * @param targetFillRate do nothing if the file store fill rate is higher
-     *            than this
-     * @param moveSize the number of bytes to move
-     */
-    void compactMoveChunks(int targetFillRate, long moveSize) {
-        if (isSpaceReused()) {
-            mvStore.executeFilestoreOperation(() -> {
-                dropUnusedChunks();
-                compactChunks(targetFillRate, moveSize, mvStore);
-            });
-        }
-    }
-
-    private boolean rewriteChunks(int writeLimit, int targetFillRate) {
+    protected boolean rewriteChunks(int writeLimit, int targetFillRate) {
         serializationLock.lock();
         try {
             MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
@@ -2411,7 +2344,7 @@ public abstract class FileStore
      * @param pinned whether page is considered pinned
      * @param pageNo sequential page number within chunk
      */
-    void accountForRemovedPage(long pos, long version, boolean pinned, int pageNo) {
+    public void accountForRemovedPage(long pos, long version, boolean pinned, int pageNo) {
         assert DataUtils.isPageSaved(pos);
         if (pageNo < 0) {
             pageNo = calculatePageNo(pos);

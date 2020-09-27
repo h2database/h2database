@@ -480,9 +480,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                         continue;
                     }
                 }
-                if (isPersistent()) {
-                    store.registerUnsavedMemory(rootPage.removeAllRecursive(version));
-                }
+                registerUnsavedMemory(rootPage.removeAllRecursive(version));
                 rootPage = emptyRootPage;
                 return rootReference;
             } finally {
@@ -490,6 +488,12 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                     unlockRoot(rootPage);
                 }
             }
+        }
+    }
+
+    protected final void registerUnsavedMemory(int memory) {
+        if (isPersistent()) {
+            store.registerUnsavedMemory(memory);
         }
     }
 
@@ -1210,10 +1214,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
             }
             target.setComplete();
         }
-        store.registerUnsavedMemory(target.getMemory());
-        if (store.isSaveNeeded()) {
-            store.commit();
-        }
+        store.registerUnsavedMemoryAndCommitIfNeeded(target.getMemory());
     }
 
     /**
@@ -1335,8 +1336,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                 if (rootReference != null) {
                     // should always be the case, except for spurious failure?
                     locked = preLocked || isPersistent();
-                    if (isPersistent() && tip != null) {
-                        store.registerUnsavedMemory(unsavedMemoryHolder.value + tip.processRemovalInfo(version));
+                    if (tip != null) {
+                        registerUnsavedMemory(unsavedMemoryHolder.value + tip.processRemovalInfo(version));
                     }
                     assert rootReference.getAppendCounter() <= availabilityThreshold;
                     break;
@@ -1767,11 +1768,11 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
             V result;
             unsavedMemoryHolder.value = 0;
             try {
-                CursorPos<K,V> pos = CursorPos.traverseDown(rootPage, key);
-                if(!locked && rootReference != getRoot()) {
+                CursorPos<K, V> pos = CursorPos.traverseDown(rootPage, key);
+                if (!locked && rootReference != getRoot()) {
                     continue;
                 }
-                Page<K,V> p = pos.page;
+                Page<K, V> p = pos.page;
                 int index = pos.index;
                 tip = pos;
                 pos = pos.parent;
@@ -1783,14 +1784,14 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                         decisionMaker.reset();
                         continue;
                     case ABORT:
-                        if(!locked && rootReference != getRoot()) {
+                        if (!locked && rootReference != getRoot()) {
                             decisionMaker.reset();
                             continue;
                         }
                         return result;
                     case REMOVE: {
                         if (index < 0) {
-                            if(!locked && rootReference != getRoot()) {
+                            if (!locked && rootReference != getRoot()) {
                                 decisionMaker.reset();
                                 continue;
                             }
@@ -1839,18 +1840,18 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                                 long totalCount = p.getTotalCount();
                                 int at = keyCount >> 1;
                                 K k = p.getKey(at);
-                                Page<K,V> split = p.split(at);
+                                Page<K, V> split = p.split(at);
                                 unsavedMemoryHolder.value += p.getMemory() + split.getMemory();
                                 if (pos == null) {
                                     K[] keys = p.createKeyStorage(1);
                                     keys[0] = k;
-                                    Page.PageReference<K,V>[] children = Page.createRefStorage(2);
+                                    Page.PageReference<K, V>[] children = Page.createRefStorage(2);
                                     children[0] = new Page.PageReference<>(p);
                                     children[1] = new Page.PageReference<>(split);
                                     p = Page.createNode(this, keys, children, totalCount, 0);
                                     break;
                                 }
-                                Page<K,V> c = p;
+                                Page<K, V> c = p;
                                 p = pos.page;
                                 index = pos.index;
                                 pos = pos.parent;
@@ -1872,9 +1873,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                         continue;
                     }
                 }
-                if (isPersistent()) {
-                    store.registerUnsavedMemory(unsavedMemoryHolder.value + tip.processRemovalInfo(version));
-                }
+                registerUnsavedMemory(unsavedMemoryHolder.value + tip.processRemovalInfo(version));
                 return result;
             } finally {
                 if(locked) {

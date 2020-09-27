@@ -281,6 +281,14 @@ public abstract class FileStore
         }
     }
 
+    public void stop(long allowedCompactionTime) {
+        if (allowedCompactionTime > 0) {
+            compactFile(allowedCompactionTime);
+        }
+        writeCleanShutdown();
+        clearCaches();
+    }
+
     public void close() {
         closed = true;
         chunks.clear();
@@ -337,146 +345,12 @@ public abstract class FileStore
     }
 
     /**
-     * Check whether all data can be read from this version. This requires that
-     * all chunks referenced by this version are still available (not
-     * overwritten).
-     *
-     * @param version the version
-     * @return true if all data can be read
-     */
-    public boolean isKnownVersion(long version) {
-        if (chunks.isEmpty()) {
-            // no stored data
-            return true;
-        }
-        // need to check if a chunk for this version exists
-        Chunk c = getChunkForVersion(version);
-        if (c == null) {
-            return false;
-        }
-        try {
-            // also, all chunks referenced by this version
-            // need to be available in the file
-            MVMap<String, String> oldLayoutMap = getLayoutMap(version);
-            for (Chunk chunk : getChunksFromLayoutMap(oldLayoutMap)) {
-                String chunkKey = Chunk.getMetaKey(chunk.id);
-                // if current layout map does not have it - verify it's existence
-                if (!layout.containsKey(chunkKey) && !isValidChunk(chunk)) {
-                    return false;
-                }
-            }
-        } catch (MVStoreException e) {
-            // the chunk missing where the metadata is stored
-            return false;
-        }
-        return true;
-    }
-
-    public void rollbackTo(long version) {
-        if (version == 0) {
-            // special case: remove all data
-            layout.setInitialRoot(layout.createEmptyLeaf(), INITIAL_VERSION);
-        } else {
-            layout.rollbackTo(version);
-        }
-        // find out which chunks to remove,
-        // and which is the newest chunk to keep
-        // (the chunk list can have gaps)
-        ArrayList<Chunk> remove = new ArrayList<>();
-        Chunk keep = null;
-        serializationLock.lock();
-        try {
-            for (Iterator<Map.Entry<Integer, Chunk>> iterator = chunks.entrySet().iterator(); iterator.hasNext(); ) {
-                Map.Entry<Integer, Chunk> entry = iterator.next();
-                Chunk c = entry.getValue();
-                if (c.version > version) {
-                    remove.add(c);
-                    iterator.remove();
-                } else if (keep == null || keep.version < c.version) {
-                    keep = c;
-                }
-            }
-            if (!remove.isEmpty()) {
-                rollback(keep, remove);
-            }
-        } finally {
-            serializationLock.unlock();
-        }
-        clearCaches();
-    }
-
-    public void setWriteVersion(long version) {
-        layout.setWriteVersion(version);
-    }
-
-
-    private long getTimeSinceCreation() {
-        return Math.max(0, mvStore.getTimeAbsolute() - getCreationTime());
-    }
-
-    private MVMap<String, String> getLayoutMap(long version) {
-        Chunk chunk = getChunkForVersion(version);
-        DataUtils.checkArgument(chunk != null, "Unknown version {0}", version);
-        return layout.openReadOnly(chunk.layoutRootPos, version);
-    }
-
-    private Chunk getChunkForVersion(long version) {
-        Chunk newest = null;
-        for (Chunk c : chunks.values()) {
-            if (c.version <= version) {
-                if (newest == null || c.id > newest.id) {
-                    newest = c;
-                }
-            }
-        }
-        return newest;
-    }
-
-    /**
      * Check whether there are any unsaved changes since specified version.
      *
      * @return if there are any changes
      */
     public boolean hasChangesSince(long lastStoredVersion) {
         return layout.hasChangesSince(lastStoredVersion) && lastStoredVersion > INITIAL_VERSION;
-    }
-
-    private void scrubLayoutMap(MVStore mvStore) {
-        MVMap<String, String> meta = mvStore.getMetaMap();
-        Set<String> keysToRemove = new HashSet<>();
-
-        // split meta map off layout map
-        for (String prefix : new String[]{ DataUtils.META_NAME, DataUtils.META_MAP }) {
-            for (Iterator<String> it = layout.keyIterator(prefix); it.hasNext(); ) {
-                String key = it.next();
-                if (!key.startsWith(prefix)) {
-                    break;
-                }
-                meta.putIfAbsent(key, layout.get(key));
-                mvStore.markMetaChanged();
-                keysToRemove.add(key);
-            }
-        }
-
-        // remove roots of non-existent maps (leftover after unfinished map removal)
-        for (Iterator<String> it = layout.keyIterator(DataUtils.META_ROOT); it.hasNext();) {
-            String key = it.next();
-            if (!key.startsWith(DataUtils.META_ROOT)) {
-                break;
-            }
-            String mapIdStr = key.substring(key.lastIndexOf('.') + 1);
-            if(!meta.containsKey(DataUtils.META_MAP + mapIdStr) && DataUtils.parseHexInt(mapIdStr) != meta.getId()) {
-                keysToRemove.add(key);
-            }
-        }
-
-        for (String key : keysToRemove) {
-            layout.remove(key);
-        }
-    }
-
-    public boolean hasPersitentData() {
-        return lastChunk != null;
     }
 
     public long lastChunkVersion() {
@@ -492,6 +366,43 @@ public abstract class FileStore
     public long getMaxPageSize() {
         return maxPageSize;
     }
+
+    public int getRetentionTime() {
+        return retentionTime;
+    }
+
+    /**
+     * How long to retain old, persisted chunks, in milliseconds. Chunks that
+     * are older may be overwritten once they contain no live data.
+     * <p>
+     * The default value is 45000 (45 seconds) when using the default file
+     * store. It is assumed that a file system and hard disk will flush all
+     * write buffers within this time. Using a lower value might be dangerous,
+     * unless the file system and hard disk flush the buffers earlier. To
+     * manually flush the buffers, use
+     * <code>MVStore.getFile().force(true)</code>, however please note that
+     * according to various tests this does not always work as expected
+     * depending on the operating system and hardware.
+     * <p>
+     * The retention time needs to be long enough to allow reading old chunks
+     * while traversing over the entries of a map.
+     * <p>
+     * This setting is not persisted.
+     *
+     * @param ms how many milliseconds to retain old chunks (0 to overwrite them
+     *            as early as possible)
+     */
+    public void setRetentionTime(int ms) {
+        retentionTime = ms;
+    }
+
+    /**
+     * Decision about autocommit is delegated to store
+     * @param unsavedMemory amount of unsaved memory, so far
+     * @param autoCommitMemory configured limit on amount of unsaved memory
+     * @return true if commit should happen now
+     */
+    public abstract boolean shoulSaveNow(int unsavedMemory, int autoCommitMemory);
 
     /**
      * Get the auto-commit delay.
@@ -532,13 +443,134 @@ public abstract class FileStore
         }
     }
 
-    protected final int getTargetFillRate() {
-        int targetRate = autoCompactFillRate;
-        // use a lower fill rate if there were any file operations since the last time
-        if (!isIdle()) {
-            targetRate /= 2;
+    /**
+     * Check whether all data can be read from this version. This requires that
+     * all chunks referenced by this version are still available (not
+     * overwritten).
+     *
+     * @param version the version
+     * @return true if all data can be read
+     */
+    public boolean isKnownVersion(long version) {
+        if (chunks.isEmpty()) {
+            // no stored data
+            return true;
         }
-        return targetRate;
+        // need to check if a chunk for this version exists
+        Chunk c = getChunkForVersion(version);
+        if (c == null) {
+            return false;
+        }
+        try {
+            // also, all chunks referenced by this version
+            // need to be available in the file
+            MVMap<String, String> oldLayoutMap = getLayoutMap(version);
+            for (Chunk chunk : getChunksFromLayoutMap(oldLayoutMap)) {
+                String chunkKey = Chunk.getMetaKey(chunk.id);
+                // if current layout map does not have it - verify it's existence
+                if (!layout.containsKey(chunkKey) && !isValidChunk(chunk)) {
+                    return false;
+                }
+            }
+        } catch (MVStoreException e) {
+            // the chunk missing where the metadata is stored
+            return false;
+        }
+        return true;
+    }
+
+    public final void rollbackTo(long version) {
+        if (version == 0) {
+            // special case: remove all data
+            layout.setInitialRoot(layout.createEmptyLeaf(), INITIAL_VERSION);
+        } else {
+            layout.rollbackTo(version);
+        }
+        // find out which chunks to remove,
+        // and which is the newest chunk to keep
+        // (the chunk list can have gaps)
+        ArrayList<Chunk> remove = new ArrayList<>();
+        Chunk keep = null;
+        serializationLock.lock();
+        try {
+            for (Iterator<Map.Entry<Integer, Chunk>> iterator = chunks.entrySet().iterator(); iterator.hasNext(); ) {
+                Map.Entry<Integer, Chunk> entry = iterator.next();
+                Chunk c = entry.getValue();
+                if (c.version > version) {
+                    remove.add(c);
+                    iterator.remove();
+                } else if (keep == null || keep.version < c.version) {
+                    keep = c;
+                }
+            }
+            if (!remove.isEmpty()) {
+                rollback(keep, remove);
+            }
+        } finally {
+            serializationLock.unlock();
+        }
+        clearCaches();
+    }
+
+
+    private long getTimeSinceCreation() {
+        return Math.max(0, mvStore.getTimeAbsolute() - getCreationTime());
+    }
+
+    private MVMap<String, String> getLayoutMap(long version) {
+        Chunk chunk = getChunkForVersion(version);
+        DataUtils.checkArgument(chunk != null, "Unknown version {0}", version);
+        return layout.openReadOnly(chunk.layoutRootPos, version);
+    }
+
+    private Chunk getChunkForVersion(long version) {
+        Chunk newest = null;
+        for (Chunk c : chunks.values()) {
+            if (c.version <= version) {
+                if (newest == null || c.id > newest.id) {
+                    newest = c;
+                }
+            }
+        }
+        return newest;
+    }
+
+    private void scrubLayoutMap(MVStore mvStore) {
+        MVMap<String, String> meta = mvStore.getMetaMap();
+        Set<String> keysToRemove = new HashSet<>();
+
+        // split meta map off layout map
+        for (String prefix : new String[]{ DataUtils.META_NAME, DataUtils.META_MAP }) {
+            for (Iterator<String> it = layout.keyIterator(prefix); it.hasNext(); ) {
+                String key = it.next();
+                if (!key.startsWith(prefix)) {
+                    break;
+                }
+                meta.putIfAbsent(key, layout.get(key));
+                mvStore.markMetaChanged();
+                keysToRemove.add(key);
+            }
+        }
+
+        // remove roots of non-existent maps (leftover after unfinished map removal)
+        for (Iterator<String> it = layout.keyIterator(DataUtils.META_ROOT); it.hasNext();) {
+            String key = it.next();
+            if (!key.startsWith(DataUtils.META_ROOT)) {
+                break;
+            }
+            String mapIdStr = key.substring(key.lastIndexOf('.') + 1);
+            if(!meta.containsKey(DataUtils.META_MAP + mapIdStr) && DataUtils.parseHexInt(mapIdStr) != meta.getId()) {
+                keysToRemove.add(key);
+            }
+        }
+
+        for (String key : keysToRemove) {
+            layout.remove(key);
+        }
+    }
+
+    protected final boolean hasPersitentData() {
+        return lastChunk != null;
     }
 
     protected final boolean isIdle() {
@@ -562,7 +594,7 @@ public abstract class FileStore
         deadChunks.offer(chunk);
     }
 
-    public int dropUnusedChunks() {
+    public final int dropUnusedChunks() {
         int count = 0;
         if (!deadChunks.isEmpty()) {
             long oldestVersionToKeep = mvStore.getOldestVersionToKeep();
@@ -601,35 +633,6 @@ public abstract class FileStore
             }
         }
         return count;
-    }
-
-    public int getRetentionTime() {
-        return retentionTime;
-    }
-
-    /**
-     * How long to retain old, persisted chunks, in milliseconds. Chunks that
-     * are older may be overwritten once they contain no live data.
-     * <p>
-     * The default value is 45000 (45 seconds) when using the default file
-     * store. It is assumed that a file system and hard disk will flush all
-     * write buffers within this time. Using a lower value might be dangerous,
-     * unless the file system and hard disk flush the buffers earlier. To
-     * manually flush the buffers, use
-     * <code>MVStore.getFile().force(true)</code>, however please note that
-     * according to various tests this does not always work as expected
-     * depending on the operating system and hardware.
-     * <p>
-     * The retention time needs to be long enough to allow reading old chunks
-     * while traversing over the entries of a map.
-     * <p>
-     * This setting is not persisted.
-     *
-     * @param ms how many milliseconds to retain old chunks (0 to overwrite them
-     *            as early as possible)
-     */
-    public void setRetentionTime(int ms) {
-        retentionTime = ms;
     }
 
     private static boolean canOverwriteChunk(Chunk c, long oldestVersionToKeep) {
@@ -766,8 +769,7 @@ public abstract class FileStore
         writeFully(0, header);
     }
 
-    // TODO: merge into close
-    public void writeCleanShutdown() {
+    protected void writeCleanShutdown() {
         if (!isReadOnly()) {
             saveChunkLock.lock();
             try {
@@ -1502,27 +1504,6 @@ public abstract class FileStore
         return fileName;
     }
 
-    /**
-     * Calculates relative "priority" for chunk to be moved.
-     *
-     * @param block where chunk starts
-     * @return priority, bigger number indicate that chunk need to be moved sooner
-     */
-    public abstract int getMovePriority(int block);
-
-    /**
-     * Get the index of the first block after last occupied one.
-     * It marks the beginning of the last (infinite) free space.
-     *
-     * @return block index
-     */
-    public long getAfterLastBlock() {
-        assert saveChunkLock.isHeldByCurrentThread();
-        return getAfterLastBlock_();
-    }
-
-    protected abstract long getAfterLastBlock_();
-
     protected final MVStore getMvStore() {
         return mvStore;
     }
@@ -2095,8 +2076,6 @@ public abstract class FileStore
 
             // could also commit when there are many unsaved pages,
             // but according to a test it doesn't really help
-
-            int autoCommitMemory = mvStore.getAutoCommitMemory();
             long time = getTimeSinceCreation();
             if (time > lastCommitTime + autoCommitDelay) {
                 mvStore.tryCommit();
@@ -2308,7 +2287,7 @@ public abstract class FileStore
         return pageNo;
     }
 
-    void clearCaches() {
+    private void clearCaches() {
         if (cache != null) {
             cache.clear();
         }

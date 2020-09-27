@@ -80,6 +80,10 @@ public abstract class RandomAccessStore extends FileStore {
         return freeSpace.predictAllocation(blocks, reservedLow, reservedHigh);
     }
 
+    public boolean shoulSaveNow(int unsavedMemory, int autoCommitMemory) {
+        return unsavedMemory > autoCommitMemory;
+    }
+
     private boolean isFragmented() {
         return freeSpace.isFragmented();
     }
@@ -452,6 +456,15 @@ public abstract class RandomAccessStore extends FileStore {
         }
     }
 
+    private int getTargetFillRate() {
+        int targetRate = getAutoCompactFillRate();
+        // use a lower fill rate if there were any file operations since the last time
+        if (!isIdle()) {
+            targetRate /= 2;
+        }
+        return targetRate;
+    }
+
     protected abstract void truncate(long size);
 
     /**
@@ -470,6 +483,17 @@ public abstract class RandomAccessStore extends FileStore {
      */
     public int getMovePriority(int block) {
         return freeSpace.getMovePriority(block);
+    }
+
+    /**
+     * Get the index of the first block after last occupied one.
+     * It marks the beginning of the last (infinite) free space.
+     *
+     * @return block index
+     */
+    private long getAfterLastBlock() {
+        assert saveChunkLock.isHeldByCurrentThread();
+        return getAfterLastBlock_();
     }
 
     protected long getAfterLastBlock_() {

@@ -30,7 +30,6 @@ import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.util.Utils;
-import org.jetbrains.annotations.TestOnly;
 
 /*
 
@@ -593,10 +592,6 @@ public class MVStore implements AutoCloseable {
         lastMapId.set(mapId);
     }
 
-    private boolean hasPersitentData() {
-        return fileStore != null && fileStore.hasPersitentData();
-    }
-
     /**
      * Close the file and the store. Unsaved changes are written to disk first.
      */
@@ -652,12 +647,7 @@ public class MVStore implements AutoCloseable {
                                 }
                                 setRetentionTime(0);
                                 commit();
-                                if (allowedCompactionTime > 0) {
-                                    fileStore.compactFile(allowedCompactionTime);
-                                }
-
-                                fileStore.writeCleanShutdown();
-                                fileStore.clearCaches();
+                                fileStore.stop(allowedCompactionTime);
                             }
 
                             state = STATE_CLOSING;
@@ -692,10 +682,6 @@ public class MVStore implements AutoCloseable {
             }
         }
         meta.setWriteVersion(version);
-        assert fileStore == null;
-//        if (fileStore != null) {
-//            fileStore.setWriteVersion(version);
-//        }
         onVersionChange(version);
     }
 
@@ -1402,19 +1388,22 @@ public class MVStore implements AutoCloseable {
      * @param memory adjustment
      */
     public void registerUnsavedMemory(int memory) {
+        assert fileStore != null;
         // this counter was intentionally left unprotected against race
         // condition for performance reasons
         // TODO: evaluate performance impact of atomic implementation,
         //       since updates to unsavedMemory are largely aggregated now
         unsavedMemory += memory;
-        int newValue = unsavedMemory;
-        if (newValue > autoCommitMemory && autoCommitMemory > 0) {
+        if (needStore()) {
             saveNeeded = true;
         }
     }
 
-    boolean isSaveNeeded() {
-        return saveNeeded;
+    void registerUnsavedMemoryAndCommitIfNeeded(int memory) {
+        registerUnsavedMemory(memory);
+        if (saveNeeded) {
+            commit();
+        }
     }
 
     /**
@@ -1423,14 +1412,14 @@ public class MVStore implements AutoCloseable {
      * @param map the map
      */
     void beforeWrite(MVMap<?, ?> map) {
-        if (saveNeeded && fileStore != null && isOpenOrStopping() &&
+        if (saveNeeded && isOpenOrStopping() &&
                 // condition below is to prevent potential deadlock,
                 // because we should never seek storeLock while holding
                 // map root lock
                 (storeLock.isHeldByCurrentThread() || !map.getRoot().isLockedByCurrentThread()) &&
                 // to avoid infinite recursion via store() -> dropUnusedChunks() -> layout.remove()
                 map != getLayoutMap()) {
-
+            assert fileStore != null;
             saveNeeded = false;
             // check again, because it could have been written by now
             if (autoCommitMemory > 0 && needStore()) {
@@ -1451,7 +1440,7 @@ public class MVStore implements AutoCloseable {
     }
 
     private boolean needStore() {
-        return unsavedMemory > autoCommitMemory;
+        return autoCommitMemory > 0 && fileStore.shoulSaveNow(unsavedMemory, autoCommitMemory);
     }
 
     /**

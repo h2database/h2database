@@ -16,7 +16,7 @@ import org.h2.util.StringUtils;
 /**
  * The base class for objects that can print trace information about themselves.
  */
-public class TraceObject {
+public abstract class TraceObject {
 
     /**
      * The trace type id  for callable statements.

@@ -56,7 +56,7 @@ public class OffHeapStore extends RandomAccessStore {
 
     @Override
     public void free(long pos, int length) {
-        freeSpace.free(pos, length);
+        super.free(pos, length);
         ByteBuffer buff = memory.remove(pos);
         if (buff == null) {
             // nothing was written (just allocated)

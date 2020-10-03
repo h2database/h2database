@@ -96,13 +96,31 @@ public abstract class RandomAccessStore extends FileStore {
         this.reuseSpace = reuseSpace;
     }
 
+    protected void freeChunkSpace(Iterable<Chunk> chunks) {
+        saveChunkLock.lock();
+        try {
+            for (Chunk chunk : chunks) {
+                freeChunkSpace(chunk);
+            }
+            assert validateFileLength(String.valueOf(chunks));
+        } finally {
+            saveChunkLock.unlock();
+        }
+    }
+
+    private void freeChunkSpace(Chunk chunk) {
+        long start = chunk.block * BLOCK_SIZE;
+        int length = chunk.len * BLOCK_SIZE;
+        free(start, length);
+    }
+
     /**
      * Mark the space as free.
      *
      * @param pos the position in bytes
      * @param length the number of bytes
      */
-    public void free(long pos, int length) {
+    protected void free(long pos, int length) {
         freeSpace.free(pos, length);
     }
 
@@ -113,6 +131,25 @@ public abstract class RandomAccessStore extends FileStore {
         } finally {
             saveChunkLock.unlock();
         }
+    }
+
+    @Override
+    protected final boolean validateFileLength(String msg) {
+        assert saveChunkLock.isHeldByCurrentThread();
+        assert getFileLengthInUse() == measureFileLengthInUse() :
+                getFileLengthInUse() + " != " + measureFileLengthInUse() + " " + msg;
+        return true;
+    }
+
+    private long measureFileLengthInUse() {
+        assert saveChunkLock.isHeldByCurrentThread();
+        long size = 2;
+        for (Chunk c : getChunks().values()) {
+            if (c.isSaved()) {
+                size = Math.max(size, c.block + c.len);
+            }
+        }
+        return size * BLOCK_SIZE;
     }
 
     /**
@@ -176,7 +213,7 @@ public abstract class RandomAccessStore extends FileStore {
      * @param maxCompactTime the maximum time in milliseconds to compact
      * @param maxWriteSize the maximum amount of data to be written as part of this call
      */
-    protected void compactFile(int thresholdFildRate, long maxCompactTime, int maxWriteSize, MVStore mvStore) {
+    protected void compactStore(int thresholdFildRate, long maxCompactTime, int maxWriteSize, MVStore mvStore) {
         setRetentionTime(0);
         long stopAt = System.nanoTime() + maxCompactTime * 1_000_000L;
         while (compact(thresholdFildRate, maxWriteSize)) {
@@ -404,7 +441,20 @@ public abstract class RandomAccessStore extends FileStore {
         return true;
     }
 
-    protected void shrinkIfPossible(int minPercent) {
+    /**
+     * Shrink the store if possible, and if at least a given percentage can be
+     * saved.
+     *
+     * @param minPercent the minimum percentage to save
+     */
+    protected void shrinkStoreIfPossible(int minPercent) {
+        assert saveChunkLock.isHeldByCurrentThread();
+        long result = getFileLengthInUse();
+        assert result == measureFileLengthInUse() : result + " != " + measureFileLengthInUse();
+        shrinkIfPossible(minPercent);
+    }
+
+    private void shrinkIfPossible(int minPercent) {
         if (isReadOnly()) {
             return;
         }

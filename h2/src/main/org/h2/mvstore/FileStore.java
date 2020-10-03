@@ -9,8 +9,10 @@ import static org.h2.mvstore.MVMap.INITIAL_VERSION;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.util.MathUtils;
+import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -283,7 +285,7 @@ public abstract class FileStore
 
     public void stop(long allowedCompactionTime) {
         if (allowedCompactionTime > 0) {
-            compactFile(allowedCompactionTime);
+            compactStore(allowedCompactionTime);
         }
         writeCleanShutdown();
         clearCaches();
@@ -658,6 +660,22 @@ public abstract class FileStore
      */
     public abstract ByteBuffer readFully(long pos, int len);
 
+    @NotNull
+    protected final ByteBuffer readFully(FileChannel file, long pos, int len) {
+        ByteBuffer dst = ByteBuffer.allocate(len);
+        DataUtils.readFully(file, pos, dst);
+        readCount.incrementAndGet();
+        readBytes.addAndGet(len);
+        return dst;
+    }
+
+
+    /**
+     * Allocate logical space and maps buffer into position within the store.
+     *
+     * @param c
+     * @param buff
+     */
     protected abstract void allocateChunkSpace(Chunk c, WriteBuffer buff);
 
     private boolean isWriteStoreHeader(Chunk c, boolean storeAtEndOfFile) {
@@ -788,54 +806,14 @@ public abstract class FileStore
         layout.put(Chunk.getMetaKey(chunk.id), chunk.asString());
     }
 
-    private void freeChunkSpace(Iterable<Chunk> chunks) {
-        saveChunkLock.lock();
-        try {
-            for (Chunk chunk : chunks) {
-                freeChunkSpace(chunk);
-            }
-            assert validateFileLength(String.valueOf(chunks));
-        } finally {
-            saveChunkLock.unlock();
-        }
-    }
-
-    private void freeChunkSpace(Chunk chunk) {
-        long start = chunk.block * BLOCK_SIZE;
-        int length = chunk.len * BLOCK_SIZE;
-        free(start, length);
-    }
-
-    protected boolean validateFileLength(String msg) {
-        assert saveChunkLock.isHeldByCurrentThread();
-        assert getFileLengthInUse() == measureFileLengthInUse() :
-                getFileLengthInUse() + " != " + measureFileLengthInUse() + " " + msg;
-        return true;
-    }
-
-    private long measureFileLengthInUse() {
-        assert saveChunkLock.isHeldByCurrentThread();
-        long size = 2;
-        for (Chunk c : getChunks().values()) {
-            if (c.isSaved()) {
-                size = Math.max(size, c.block + c.len);
-            }
-        }
-        return size * BLOCK_SIZE;
-    }
-
     /**
-     * Shrink the store if possible, and if at least a given percentage can be
-     * saved.
+     * Mark the space occupied by specified chunks as free.
      *
-     * @param minPercent the minimum percentage to save
+     * @param chunks chunks to be processed
      */
-    protected void shrinkStoreIfPossible(int minPercent) {
-        assert saveChunkLock.isHeldByCurrentThread();
-        long result = getFileLengthInUse();
-        assert result == measureFileLengthInUse() : result + " != " + measureFileLengthInUse();
-        shrinkIfPossible(minPercent);
-    }
+    protected abstract void freeChunkSpace(Iterable<Chunk> chunks);
+
+    protected abstract boolean validateFileLength(String msg);
 
     /**
      * Try to increase the fill rate by re-writing partially full chunks. Chunks
@@ -873,8 +851,8 @@ public abstract class FileStore
         return false;
     }
 
-    public void compactFile(long maxCompactTime) {
-        compactFile(autoCompactFillRate, maxCompactTime, 16 * 1024 * 1024, mvStore);
+    public void compactStore(long maxCompactTime) {
+        compactStore(autoCompactFillRate, maxCompactTime, 16 * 1024 * 1024, mvStore);
     }
 
     /**
@@ -887,7 +865,7 @@ public abstract class FileStore
      * @param maxCompactTime the maximum time in milliseconds to compact
      * @param maxWriteSize the maximum amount of data to be written as part of this call
      */
-    protected abstract void compactFile(int thresholdFildRate, long maxCompactTime, int maxWriteSize, MVStore mvStore);
+    protected abstract void compactStore(int thresholdFildRate, long maxCompactTime, int maxWriteSize, MVStore mvStore);
 
     protected abstract void doHousekeeping(MVStore mvStore) throws InterruptedException;
 
@@ -1406,15 +1384,13 @@ public abstract class FileStore
 
     protected abstract int getProjectedFillRate(int vacatedBlocks);
 
-    abstract long getFileLengthInUse();
-
     /**
      * Shrink store if possible, and if at least a given percentage can be
      * saved.
      *
      * @param minPercent the minimum percentage to save
      */
-    protected abstract void shrinkIfPossible(int minPercent);
+    protected abstract void shrinkStoreIfPossible(int minPercent);
 
 
     /**
@@ -1515,14 +1491,6 @@ public abstract class FileStore
      * @param length the number of bytes
      */
     public abstract void markUsed(long pos, int length);
-
-    /**
-     * Mark the space as free.
-     *
-     * @param pos the position in bytes
-     * @param length the number of bytes
-     */
-    abstract void free(long pos, int length);
 
     public abstract void backup(ZipOutputStream out) throws IOException;
 

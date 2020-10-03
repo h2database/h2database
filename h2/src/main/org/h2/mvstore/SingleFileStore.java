@@ -20,6 +20,7 @@ import org.h2.store.fs.FilePath;
 import org.h2.store.fs.encrypt.FileEncrypt;
 import org.h2.store.fs.encrypt.FilePathEncrypt;
 import org.h2.util.IOUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The default storage mechanism of the MVStore. This implementation persists
@@ -61,11 +62,7 @@ public class SingleFileStore extends RandomAccessStore {
      * @return the byte buffer
      */
     public ByteBuffer readFully(long pos, int len) {
-        ByteBuffer dst = ByteBuffer.allocate(len);
-        DataUtils.readFully(file, pos, dst);
-        readCount.incrementAndGet();
-        readBytes.addAndGet(len);
-        return dst;
+        return readFully(this.file, pos, len);
     }
 
     /**

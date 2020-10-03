@@ -1078,7 +1078,7 @@ public class MVStore implements AutoCloseable {
             setRetentionTime(0);
             storeLock.lock();
             try {
-                fileStore.compactFile(maxCompactTime);
+                fileStore.compactStore(maxCompactTime);
             } finally {
                 unlockAndCheckPanicCondition();
             }

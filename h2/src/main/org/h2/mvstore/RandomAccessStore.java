@@ -406,32 +406,13 @@ public abstract class RandomAccessStore extends FileStore {
         }
         long start = chunk.block * FileStore.BLOCK_SIZE;
         int length = chunk.len * FileStore.BLOCK_SIZE;
-        long block;
-        WriteBuffer buff = getWriteBuffer();
-        try {
-            buff.limit(length);
-            ByteBuffer readBuff = readFully(start, length);
-            Chunk chunkFromFile = Chunk.readChunkHeader(readBuff, start);
-            int chunkHeaderLen = readBuff.position();
-            buff.position(chunkHeaderLen);
-            buff.put(readBuff);
-            long pos = allocate(length, reservedAreaLow, reservedAreaHigh);
-            block = pos / FileStore.BLOCK_SIZE;
-            // in the absence of a reserved area,
-            // block should always move closer to the beginning of the file
-            assert reservedAreaHigh > 0 || block <= chunk.block : block + " " + chunk;
-            buff.position(0);
-            // also occupancy accounting fields should not leak into header
-            chunkFromFile.block = block;
-            chunkFromFile.next = 0;
-            chunkFromFile.writeChunkHeader(buff, chunkHeaderLen);
-            buff.position(length - Chunk.FOOTER_LENGTH);
-            buff.put(chunkFromFile.getFooterBytes());
-            buff.position(0);
-            writeFully(pos, buff.getBuffer());
-        } finally {
-            releaseWriteBuffer(buff);
-        }
+        long pos = allocate(length, reservedAreaLow, reservedAreaHigh);
+        long block = pos / FileStore.BLOCK_SIZE;
+        // in the absence of a reserved area,
+        // block should always move closer to the beginning of the file
+        assert reservedAreaHigh > 0 || block <= chunk.block : block + " " + chunk;
+        ByteBuffer readBuff = readFully(start, length);
+        writeFully(pos, readBuff);
         free(start, length);
         // can not set chunk's new block/len until it's fully written at new location,
         // because concurrent reader can pick it up prematurely,

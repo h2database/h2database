@@ -165,17 +165,6 @@ public class SingleFileStore extends RandomAccessStore {
     }
 
     /**
-     * Get the file size.
-     *
-     * @return the file size
-     */
-    public long size() {
-        long size = super.size();
-        assert validateFileSize(size);
-        return size;
-    }
-
-    /**
      * Flush all changes.
      */
     @Override
@@ -189,18 +178,6 @@ public class SingleFileStore extends RandomAccessStore {
                         "Could not sync file {0}", getFileName(), e);
             }
         }
-    }
-
-    private boolean validateFileSize(long size) {
-        try {
-            if (file.isOpen()) {
-                long fileSize = file.size();
-                assert fileSize == size : fileSize + " != " + size;
-            }
-        } catch (IOException ex) {
-            throw new IllegalStateException(ex);
-        }
-        return true;
     }
 
     /**

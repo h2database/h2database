@@ -504,6 +504,7 @@ public final class DataUtils {
      * @return the length code
      */
     public static int encodeLength(int len) {
+        assert len >= 0;
         if (len <= 32) {
             return 0;
         }
@@ -637,6 +638,9 @@ public final class DataUtils {
      * @return the position
      */
     public static long composePagePos(int chunkId, int offset, int length, int type) {
+        assert offset >= 0;
+        assert type == DataUtils.PAGE_TYPE_LEAF || type == DataUtils.PAGE_TYPE_NODE;
+
         long pos = (long) chunkId << 38;
         pos |= (long) offset << 6;
         pos |= encodeLength(length) << 1;
@@ -667,6 +671,10 @@ public final class DataUtils {
      * @return the position
      */
     public static long getTocElement(int mapId, int offset, int length, int type) {
+        assert mapId >= 0;
+        assert offset >= 0;
+        assert type == DataUtils.PAGE_TYPE_LEAF || type == DataUtils.PAGE_TYPE_NODE;
+
         long pos = (long) mapId << 38;
         pos |= (long) offset << 6;
         pos |= encodeLength(length) << 1;

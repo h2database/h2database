@@ -2187,8 +2187,8 @@ public abstract class FileStore
                     throw e;
                 } catch (Exception e) {
                     throw DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
-                            "Unable to read the page at position {0}, chunk {1}, offset {2}",
-                            pos, chunk.id, pageOffset, e);
+                            "Unable to read the page at position 0x{0}, chunk {1}, pageNo {2}, offset 0x{3}",
+                            Long.toHexString(pos), chunk, pageNo, Long.toHexString(pageOffset), e);
                 }
                 cachePage(p);
             }
@@ -2345,7 +2345,10 @@ public abstract class FileStore
          * @return removed page info that contains chunk id, page number, page length and pinned flag
          */
         private static long createRemovedPageInfo(long pagePos, boolean isPinned, int pageNo) {
-            long result = (pagePos & ~((0xFFFFFFFFL << 6) | 1)) | ((pageNo << 6) & 0xFFFFFFFFL);
+            assert pageNo >= 0;
+            assert pageNo >> 26 == 0;
+
+            long result = (pagePos & ~((0xFFFFFFFFL << 6) | 1)) | ((long)pageNo << 6);
             if (isPinned) {
                 result |= 1;
             }

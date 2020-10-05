@@ -463,13 +463,22 @@ public final class Chunk {
     long[] readToC(FileStore fileStore) {
         assert isSaved() : this;
         assert tocPos > 0;
+        long[] toc = new long[pageCount];
         while (true) {
             long originalBlock = block;
             try {
-                long filePos = originalBlock * FileStore.BLOCK_SIZE + tocPos;
-                int length = pageCount * 8;
-                long[] toc = new long[pageCount];
-                fileStore.readFully(filePos, length).asLongBuffer().get(toc);
+                ByteBuffer buff = buffer;
+                if (buff == null) {
+                    int length = pageCount * 8;
+                    long filePos = originalBlock * FileStore.BLOCK_SIZE + tocPos;
+                    buff = fileStore.readFully(filePos, length);
+                } else {
+//                    System.err.println("Using unsaved buffer " + id + " to fetch ToC at offset " + tocPos);
+                    buff = buff.duplicate();
+                    buff.position(tocPos);
+                    buff = buff.slice();
+                }
+                buff.asLongBuffer().get(toc);
                 if (originalBlock == block) {
                     return toc;
                 }

@@ -268,8 +268,8 @@ public final class LegacyDateTimeUtils {
             return fromTimestamp(session, null, (Timestamp) x);
         } else if (x instanceof java.util.Date) {
             return fromTimestamp(session, ((java.util.Date) x).getTime(), 0);
-        } else if (x instanceof GregorianCalendar) {
-            GregorianCalendar gc = (GregorianCalendar) x;
+        } else if (x instanceof Calendar) {
+            Calendar gc = (Calendar) x;
             long ms = gc.getTimeInMillis();
             return timestampFromLocalMillis(ms + gc.getTimeZone().getOffset(ms), 0);
         } else {

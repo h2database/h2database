@@ -226,7 +226,7 @@ public class ConditionAndOrN extends Condition {
                 }
                 if (reduced != null) {
                     expressions.remove(i);
-                    expressions.set(i-1, reduced);
+                    expressions.set(i - 1, reduced.optimize(session));
                     continue; // because we don't want to increment, we want to compare the new pair exposed
                 }
             }

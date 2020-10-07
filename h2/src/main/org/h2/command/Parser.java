@@ -3307,14 +3307,14 @@ public class Parser {
         } else if (readIf("_LOCAL_AND_GLOBAL_")) {
             r = readAnd(new ConditionLocalAndGlobal(r, readCondition()));
         }
-        while (readIf(OR)) {
-            r = new ConditionAndOr(ConditionAndOr.OR, r, readAnd(readCondition()));
-        }
-        return r;
+        return readExpressionPart2(r);
     }
 
     private Expression readExpression() {
-        Expression r1 = readAnd(readCondition());
+        return readExpressionPart2(readAnd(readCondition()));
+    }
+
+    private Expression readExpressionPart2(Expression r1) {
         if (!readIf(OR)) {
             return r1;
         }

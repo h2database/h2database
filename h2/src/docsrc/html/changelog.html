@@ -21,6 +21,10 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #2914: (T1.A = T2.B) OR (T1.A = T2.C) should be optimized to T1.A IN(T2.B, T2.C) to allow index conditions
+</li>
+<li>PR #2903: Assorted changes
+</li>
 <li>Issue #2901: PgServer returns less rows when fetchSize is set
 </li>
 <li>Issue #2894: NPE in DROP SCHEMA when unique constraint is removed before linked referential constraint

@@ -238,7 +238,7 @@ public final class ConditionIn extends Condition {
      * @return null if the condition was not added, or the new condition
      */
     Expression getAdditional(Comparison other) {
-        if (!not && !whenOperand) {
+        if (!not && !whenOperand && left.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
             Expression add = other.getIfEquals(left);
             if (add != null) {
                 ArrayList<Expression> list = new ArrayList<>(valueList.size() + 1);

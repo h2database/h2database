@@ -548,23 +548,23 @@ public final class Comparison extends Condition {
         if (compareType == EQUAL && other.compareType == EQUAL) {
             Expression left2 = other.left;
             Expression right2 = other.right;
-            boolean lc = left.isConstant();
-            boolean rc = right.isConstant();
-            boolean l2c = left2.isConstant();
-            boolean r2c = right2.isConstant();
             String l = left.getSQL(DEFAULT_SQL_FLAGS);
             String l2 = left2.getSQL(DEFAULT_SQL_FLAGS);
             String r = right.getSQL(DEFAULT_SQL_FLAGS);
             String r2 = right2.getSQL(DEFAULT_SQL_FLAGS);
-            // a=b OR a=c
-            if (rc && r2c && l.equals(l2)) {
-                return getConditionIn(session, left, right, right2);
-            } else if (rc && l2c && l.equals(r2)) {
-                return getConditionIn(session, left, right, left2);
-            } else if (lc && r2c && r.equals(l2)) {
-                return getConditionIn(session, right, left, right2);
-            } else if (lc && l2c && r.equals(r2)) {
-                return getConditionIn(session, right, left, left2);
+            if (left.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
+                if (l.equals(l2)) {
+                    return getConditionIn(session, left, right, right2);
+                } else if (l.equals(r2)) {
+                    return getConditionIn(session, left, right, left2);
+                }
+            }
+            if (right.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
+                if (r.equals(l2)) {
+                    return getConditionIn(session, right, left, right2);
+                } else if (r.equals(r2)) {
+                    return getConditionIn(session, right, left, left2);
+                }
             }
         }
         return null;

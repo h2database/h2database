@@ -197,7 +197,6 @@ public abstract class RandomAccessStore extends FileStore {
             buff.put(c.getFooterBytes());
 
             c.block = filePos / BLOCK_SIZE;
-            assert validateFileLength(c.asString());
         } finally {
             saveChunkLock.unlock();
         }

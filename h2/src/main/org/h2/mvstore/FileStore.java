@@ -730,20 +730,15 @@ public abstract class FileStore
     }
 
     private Chunk createChunk(long time, long version) {
-        int chunkId = lastChunkId;
-        if (chunkId != 0) {
-            chunkId &= Chunk.MAX_ID;
-            Chunk lastChunk = chunks.get(chunkId);
-            assert lastChunk != null;
-//            assert lastChunk.isSaved();
-//            assert lastChunk.version + 1 == version : lastChunk.version + " " +  version;
-            // the metadata of the last chunk was not stored so far, and needs to be
-            // set now (it's better not to update right after storing, because that
-            // would modify the meta map again)
-            acceptChunkChanges(lastChunk);
-            // never go backward in time
-            time = Math.max(lastChunk.time, time);
-        }
+        int newChunkId = findNewChunkId();
+        Chunk c = new Chunk(newChunkId);
+        c.time = time;
+        c.version = version;
+        c.occupancy = new BitSet();
+        return c;
+    }
+
+    private int findNewChunkId() {
         int newChunkId;
         while (true) {
             newChunkId = ++lastChunkId & Chunk.MAX_ID;
@@ -757,11 +752,7 @@ public abstract class FileStore
                         "Last block {0} not stored, possibly due to out-of-memory", old);
             }
         }
-        Chunk c = new Chunk(newChunkId);
-        c.time = time;
-        c.version = version;
-        c.occupancy = new BitSet();
-        return c;
+        return newChunkId;
     }
 
     protected void writeStoreHeader() {
@@ -1595,11 +1586,23 @@ public abstract class FileStore
     private void serializeAndStore(boolean syncRun, ArrayList<Page<?,?>> changed, long time, long version) {
         serializationLock.lock();
         try {
+            int chunkId = lastChunkId;
+            if (chunkId != 0) {
+                chunkId &= Chunk.MAX_ID;
+                Chunk lastChunk = chunks.get(chunkId);
+                assert lastChunk != null;
+                // the metadata of the last chunk was not stored so far, and needs to be
+                // set now (it's better not to update right after storing, because that
+                // would modify the meta map again)
+                acceptChunkChanges(lastChunk);
+                // never go backward in time
+                time = Math.max(lastChunk.time, time);
+            }
             Chunk c = createChunk(time, version);
-            chunks.put(c.id, c);
             WriteBuffer buff = getWriteBuffer();
             serializeToBuffer(buff, changed, c);
             allocateChunkSpace(c, buff);
+            chunks.put(c.id, c);
 
             for (Page<?, ?> p : changed) {
                 p.releaseSavedPages();

@@ -548,11 +548,10 @@ public final class Comparison extends Condition {
         if (compareType == EQUAL && other.compareType == EQUAL) {
             Expression left2 = other.left;
             Expression right2 = other.right;
-            String l = left.getSQL(DEFAULT_SQL_FLAGS);
             String l2 = left2.getSQL(DEFAULT_SQL_FLAGS);
-            String r = right.getSQL(DEFAULT_SQL_FLAGS);
             String r2 = right2.getSQL(DEFAULT_SQL_FLAGS);
             if (left.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
+                String l = left.getSQL(DEFAULT_SQL_FLAGS);
                 if (l.equals(l2)) {
                     return getConditionIn(session, left, right, right2);
                 } else if (l.equals(r2)) {
@@ -560,6 +559,7 @@ public final class Comparison extends Condition {
                 }
             }
             if (right.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
+                String r = right.getSQL(DEFAULT_SQL_FLAGS);
                 if (r.equals(l2)) {
                     return getConditionIn(session, right, left, right2);
                 } else if (r.equals(r2)) {

@@ -651,6 +651,12 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 BACKSLASH);
     }
 
+    @Override
+    public ResultInterface getPseudoColumns(String catalog, String schemaPattern, String tableNamePattern,
+            String columnNamePattern) {
+        return getPseudoColumnsResult();
+    }
+
     private ResultInterface executeQuery(String sql, Value... args) {
         checkClosed();
         synchronized (session) {

@@ -708,6 +708,9 @@ public class JdbcUtils {
         } else if (isBuiltIn(sql, "@super_types")) {
             String[] p = split(sql);
             return meta.getSuperTypes(p[1], p[2], p[3]);
+        } else if (isBuiltIn(sql, "@pseudo_columns")) {
+            String[] p = split(sql);
+            return meta.getPseudoColumns(p[1], p[2], p[3], p[4]);
         }
         return null;
     }

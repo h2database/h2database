@@ -405,21 +405,12 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      * @param table the table
      */
     public void removeLocalTempTable(Table table) {
-        // Exception thrown in org.h2.engine.Database.removeMeta if line below
-        // is missing with TestGeneralCommonTableQueries
-        boolean wasLocked = database.lockMeta(this);
-        try {
-            modificationId++;
-            if (localTempTables != null) {
-                localTempTables.remove(table.getName());
-            }
-            synchronized (database) {
-                table.removeChildrenAndResources(this);
-            }
-        } finally {
-            if (!wasLocked) {
-                database.unlockMeta(this);
-            }
+        modificationId++;
+        if (localTempTables != null) {
+            localTempTables.remove(table.getName());
+        }
+        synchronized (database) {
+            table.removeChildrenAndResources(this);
         }
     }
 

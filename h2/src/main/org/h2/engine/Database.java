@@ -1005,9 +1005,6 @@ public final class Database implements DataHandler, CastDataProvider {
             try {
                 Cursor cursor = metaIdIndex.find(session, r, r);
                 if (cursor.next()) {
-                    if (lockMode != Constants.LOCK_MODE_OFF && !wasLocked) {
-                        throw DbException.getInternalError();
-                    }
                     Row found = cursor.get();
                     meta.removeRow(session, found);
                     if (SysProperties.CHECK) {

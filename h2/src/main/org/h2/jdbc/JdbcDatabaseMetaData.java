@@ -169,13 +169,13 @@ public final class JdbcDatabaseMetaData extends TraceObject
      * <li>TABLE_SCHEM (String) table schema</li>
      * <li>TABLE_NAME (String) table name</li>
      * <li>COLUMN_NAME (String) column name</li>
-     * <li>DATA_TYPE (short) data type (see java.sql.Types)</li>
+     * <li>DATA_TYPE (int) data type (see java.sql.Types)</li>
      * <li>TYPE_NAME (String) data type name ("INTEGER", "VARCHAR",...)</li>
      * <li>COLUMN_SIZE (int) precision
      *         (values larger than 2 GB are returned as 2 GB)</li>
      * <li>BUFFER_LENGTH (int) unused</li>
      * <li>DECIMAL_DIGITS (int) scale (0 for INTEGER and VARCHAR)</li>
-     * <li>NUM_PREC_RADIX (int) radix (always 10)</li>
+     * <li>NUM_PREC_RADIX (int) radix</li>
      * <li>NULLABLE (int) columnNoNulls or columnNullable</li>
      * <li>REMARKS (String) comment</li>
      * <li>COLUMN_DEF (String) default value</li>
@@ -506,7 +506,7 @@ public final class JdbcDatabaseMetaData extends TraceObject
      * <li>PRECISION (int) precision</li>
      * <li>LENGTH (int) length</li>
      * <li>SCALE (short) scale</li>
-     * <li>RADIX (int) always 10</li>
+     * <li>RADIX (int)</li>
      * <li>NULLABLE (short) nullable
      * (DatabaseMetaData.columnNoNulls for primitive data types,
      * DatabaseMetaData.columnNullable otherwise)</li>
@@ -2736,7 +2736,26 @@ public final class JdbcDatabaseMetaData extends TraceObject
     }
 
     /**
-     * [Not supported]
+     * Gets the list of pseudo and invisible columns. The result set is sorted
+     * by TABLE_SCHEM, TABLE_NAME, and COLUMN_NAME.
+     *
+     * <ol>
+     * <li>TABLE_CAT (String) table catalog</li>
+     * <li>TABLE_SCHEM (String) table schema</li>
+     * <li>TABLE_NAME (String) table name</li>
+     * <li>COLUMN_NAME (String) column name</li>
+     * <li>DATA_TYPE (int) data type (see java.sql.Types)</li>
+     * <li>COLUMN_SIZE (int) precision
+     *         (values larger than 2 GB are returned as 2 GB)</li>
+     * <li>DECIMAL_DIGITS (int) scale (0 for INTEGER and VARCHAR)</li>
+     * <li>NUM_PREC_RADIX (int) radix</li>
+     * <li>COLUMN_USAGE (String) he allowed usage for the column,
+     *         see {@link java.sql.PseudoColumnUsage}</li>
+     * <li>REMARKS (String) comment</li>
+     * <li>CHAR_OCTET_LENGTH (int) for char types the
+     *         maximum number of bytes in the column</li>
+     * <li>IS_NULLABLE (String) "NO" or "YES"</li>
+     * </ol>
      *
      * @param catalog null (to get all objects) or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name
@@ -2745,6 +2764,7 @@ public final class JdbcDatabaseMetaData extends TraceObject
      *            (uppercase for unquoted names)
      * @param columnNamePattern null (to get all objects) or a column name
      *            (uppercase for unquoted names)
+     * @return the list of pseudo and invisible columns
      */
     @Override
     public ResultSet getPseudoColumns(String catalog, String schemaPattern, String tableNamePattern,

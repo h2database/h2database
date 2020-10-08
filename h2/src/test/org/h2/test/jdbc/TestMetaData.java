@@ -51,6 +51,7 @@ public class TestMetaData extends TestDb {
         testColumnPrecision();
         testColumnDefault();
         testColumnGenerated();
+        testHiddenColumn();
         testCrossReferences();
         testProcedureColumns();
         testTypeInfo();
@@ -203,6 +204,28 @@ public class TestMetaData extends TestDb {
         rs.next();
         assertEquals("B", rs.getString("COLUMN_NAME"));
         assertEquals("YES", rs.getString("IS_GENERATEDCOLUMN"));
+        assertFalse(rs.next());
+        stat.execute("DROP TABLE TEST");
+        conn.close();
+    }
+
+    private void testHiddenColumn() throws SQLException {
+        Connection conn = getConnection("metaData");
+        DatabaseMetaData meta = conn.getMetaData();
+        ResultSet rs;
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(A INT, B INT INVISIBLE)");
+        rs = meta.getColumns(null, null, "TEST", null);
+        assertTrue(rs.next());
+        assertEquals("A", rs.getString("COLUMN_NAME"));
+        assertFalse(rs.next());
+        rs = meta.getPseudoColumns(null, null, "TEST", null);
+        assertTrue(rs.next());
+        assertEquals("B", rs.getString("COLUMN_NAME"));
+        assertEquals("YES", rs.getString("IS_NULLABLE"));
+        assertTrue(rs.next());
+        assertEquals("_ROWID_", rs.getString("COLUMN_NAME"));
+        assertEquals("NO", rs.getString("IS_NULLABLE"));
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
         conn.close();

@@ -226,6 +226,7 @@ public abstract class RegularTable extends TableBase {
         if (rowIdColumn == null) {
             rowIdColumn = new Column(Column.ROWID, TypeInfo.TYPE_BIGINT, this, SearchRow.ROWID_INDEX);
             rowIdColumn.setRowId(true);
+            rowIdColumn.setNullable(false);
         }
         return rowIdColumn;
     }

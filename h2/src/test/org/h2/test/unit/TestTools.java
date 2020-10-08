@@ -509,6 +509,16 @@ public class TestTools extends TestDb {
         rs.next();
         assertEquals(uuid, rs.getObject(1));
         assertEquals(uuid, ValueUuid.get(rs.getBytes(1)).getUuid());
+
+        assertTrue(rs.isWrapperFor(Object.class));
+        assertTrue(rs.isWrapperFor(ResultSet.class));
+        assertTrue(rs.isWrapperFor(rs.getClass()));
+        assertFalse(rs.isWrapperFor(Integer.class));
+        assertTrue(rs == rs.unwrap(Object.class));
+        assertTrue(rs == rs.unwrap(ResultSet.class));
+        assertTrue(rs == rs.unwrap(rs.getClass()));
+        SimpleResultSet rs2 = rs;
+        assertThrows(ErrorCode.INVALID_VALUE_2, () -> rs2.unwrap(Integer.class));
     }
 
     private void testJdbcDriverUtils() {

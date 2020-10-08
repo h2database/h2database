@@ -48,6 +48,7 @@ public class TestConnectionPool extends TestDb {
         testKeepOpen();
         testConnect();
         testThreads();
+        testUnwrap();
         deleteDb("connectionPool");
         deleteDb("connectionPool2");
     }
@@ -251,6 +252,18 @@ public class TestConnectionPool extends TestDb {
                 getConnection();
         assertThrows(UnsupportedOperationException.class, ds).
                 getConnection(null, null);
+    }
+
+    private void testUnwrap() throws SQLException {
+        JdbcConnectionPool pool = JdbcConnectionPool.create(new JdbcDataSource());
+        assertTrue(pool.isWrapperFor(Object.class));
+        assertTrue(pool.isWrapperFor(DataSource.class));
+        assertTrue(pool.isWrapperFor(pool.getClass()));
+        assertFalse(pool.isWrapperFor(Integer.class));
+        assertTrue(pool == pool.unwrap(Object.class));
+        assertTrue(pool == pool.unwrap(DataSource.class));
+        assertTrue(pool == pool.unwrap(pool.getClass()));
+        assertThrows(ErrorCode.INVALID_VALUE_2, () -> pool.unwrap(Integer.class));
     }
 
 }

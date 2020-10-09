@@ -233,7 +233,8 @@ public final class Transaction {
                     break;
                 case STATUS_ROLLED_BACK:
                     valid = currentStatus == STATUS_OPEN ||
-                            currentStatus == STATUS_PREPARED;
+                            currentStatus == STATUS_PREPARED ||
+                            currentStatus == STATUS_ROLLING_BACK;
                     break;
                 case STATUS_CLOSED:
                     valid = currentStatus == STATUS_COMMITTED ||

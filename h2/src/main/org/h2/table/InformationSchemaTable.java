@@ -3391,7 +3391,7 @@ public final class InformationSchemaTable extends MetaTable {
                 if (typeInfo.getDeclaredPrecision() >= 0L) {
                     declaredNumericPrecision = numericPrecision;
                 }
-                if (typeInfo.getDeclaredScale() != Integer.MIN_VALUE) {
+                if (typeInfo.getDeclaredScale() >= 0) {
                     declaredNumericScale = numericScale;
                 }
                 break;

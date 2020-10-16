@@ -156,7 +156,7 @@ public final class MathFunction extends Function1_2 {
             v1 = ValueDecfloat.get(bd);
             break;
         default:
-            v1 = ValueNumeric.get(bd);
+            v1 = ValueNumeric.get(bd.setScale(type.getScale(), RoundingMode.HALF_UP));
         }
         return v1;
     }
@@ -234,7 +234,7 @@ public final class MathFunction extends Function1_2 {
     private static int checkScale(Value v) {
         int scale;
         scale = v.getInt();
-        if (scale < ValueNumeric.MINIMUM_SCALE || scale > ValueNumeric.MAXIMUM_SCALE) {
+        if (scale < 0 || scale > ValueNumeric.MAXIMUM_SCALE) {
             throw DbException.getInvalidValueException("digits", scale);
         }
         return scale;
@@ -352,9 +352,12 @@ public final class MathFunction extends Function1_2 {
                 Value scaleValue = right.getValue(session);
                 if (scaleValue != ValueNull.INSTANCE) {
                     scale = scaleValue.getInt();
+                    if (scale < 0) {
+                        scale = 0;
+                    }
                 }
             } else {
-                scale = Integer.MAX_VALUE;
+                scale = ValueNumeric.MAXIMUM_SCALE;
             }
         }
         return TypeInfo.getTypeInfo(Value.NUMERIC, Integer.MAX_VALUE, scale, null);

@@ -7120,8 +7120,8 @@ public class Parser {
             precision = dataType.defaultPrecision;
             scale = dataType.defaultScale;
         } else {
-            precision = -1;
-            scale = Integer.MIN_VALUE;
+            precision = -1L;
+            scale = -1;
         }
         int t = dataType.type;
         if (database.getIgnoreCase() && t == Value.VARCHAR && !equalsToken("VARCHAR_CASESENSITIVE", original)) {
@@ -7220,7 +7220,7 @@ public class Parser {
 
     private TypeInfo parseNumericType(boolean decimal) {
         long precision = -1L;
-        int scale = Integer.MIN_VALUE;
+        int scale = -1;
         if (readIf(OPEN_PAREN)) {
             precision = readPrecision(Value.NUMERIC);
             if (precision < 1) {
@@ -7234,9 +7234,9 @@ public class Parser {
             }
             if (readIf(COMMA)) {
                 scale = readInt();
-                if (scale < ValueNumeric.MINIMUM_SCALE || scale > ValueNumeric.MAXIMUM_SCALE) {
+                if (scale < 0 || scale > ValueNumeric.MAXIMUM_SCALE) {
                     throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale),
-                            "" + ValueNumeric.MINIMUM_SCALE, "" + ValueNumeric.MAXIMUM_SCALE);
+                            "0", "" + ValueNumeric.MAXIMUM_SCALE);
                 }
             }
             read(CLOSE_PAREN);
@@ -7262,7 +7262,7 @@ public class Parser {
     }
 
     private TypeInfo parseTimeType() {
-        int scale = Integer.MIN_VALUE;
+        int scale = -1;
         if (readIf(OPEN_PAREN)) {
             scale = readNonNegativeInt();
             if (scale > ValueTime.MAXIMUM_SCALE) {
@@ -7284,7 +7284,7 @@ public class Parser {
     }
 
     private TypeInfo parseTimestampType() {
-        int scale = Integer.MIN_VALUE;
+        int scale = -1;
         if (readIf(OPEN_PAREN)) {
             scale = readNonNegativeInt();
             // Allow non-standard TIMESTAMP(..., ...) syntax
@@ -7314,7 +7314,7 @@ public class Parser {
         if (smallDateTime) {
             scale = 0;
         } else {
-            scale = Integer.MIN_VALUE;
+            scale = -1;
             if (readIf(OPEN_PAREN)) {
                 scale = readNonNegativeInt();
                 if (scale > ValueTimestamp.MAXIMUM_SCALE) {
@@ -7329,8 +7329,7 @@ public class Parser {
 
     private TypeInfo readIntervalQualifier() {
         IntervalQualifier qualifier;
-        int precision = -1;
-        int scale = Integer.MIN_VALUE;
+        int precision = -1, scale = -1;
         switch (currentTokenType) {
         case YEAR:
             read();

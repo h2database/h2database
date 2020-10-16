@@ -203,6 +203,9 @@ public class BinaryOperation extends Operation2 {
         case DIVIDE:
             // Precision and scale are implementation-defined.
             scale = ValueNumeric.getQuotientScale(leftScale, rightPrecision, rightScale);
+            if (scale < 0) {
+                scale = 0;
+            }
             // Divider can be effectively multiplied by no more than
             // 10^rightScale, so add rightScale to its precision and adjust the
             // result to the changes in scale.

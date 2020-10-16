@@ -310,7 +310,7 @@ public class TestMetaData extends TestDb {
         testTypeInfo(rs, "CHARACTER", Types.CHAR, MAX_STRING_LENGTH, "'", "'", "LENGTH", true, false, (short) 0,
                 (short) 0, 0);
         testTypeInfo(rs, "NUMERIC", Types.NUMERIC, MAX_NUMERIC_PRECISION, null, null, "PRECISION,SCALE", false, true,
-                Short.MIN_VALUE, Short.MAX_VALUE, 10);
+                (short) 0, Short.MAX_VALUE, 10);
         testTypeInfo(rs, "DECFLOAT", Types.NUMERIC, MAX_NUMERIC_PRECISION, null, null, "PRECISION", false, false,
                 (short) 0, (short) 0, 10);
         testTypeInfo(rs, "INTEGER", Types.INTEGER, 32, null, null, null, false, false, (short) 0,

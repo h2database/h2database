@@ -4,8 +4,8 @@
 --
 
 CREATE MEMORY TABLE TEST(
-    N1 NUMERIC, N2 NUMERIC(10), N3 NUMERIC(10, 0), N4 NUMERIC(10, 2), N5 NUMERIC(10, -2),
-    D1 DECIMAL, D2 DECIMAL(10), D3 DECIMAL(10, 0), D4 DECIMAL(10, 2), D5 DECIMAL(10, -2), D6 DEC,
+    N1 NUMERIC, N2 NUMERIC(10), N3 NUMERIC(10, 0), N4 NUMERIC(10, 2),
+    D1 DECIMAL, D2 DECIMAL(10), D3 DECIMAL(10, 0), D4 DECIMAL(10, 2), D5 DEC,
     X1 NUMBER);
 > ok
 
@@ -18,18 +18,19 @@ SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMER
 > N2          NUMERIC   10                10                      0             NUMERIC            10                         null
 > N3          NUMERIC   10                10                      0             NUMERIC            10                         0
 > N4          NUMERIC   10                10                      2             NUMERIC            10                         2
-> N5          NUMERIC   10                10                      -2            NUMERIC            10                         -2
 > D1          NUMERIC   100000            10                      0             DECIMAL            null                       null
 > D2          NUMERIC   10                10                      0             DECIMAL            10                         null
 > D3          NUMERIC   10                10                      0             DECIMAL            10                         0
 > D4          NUMERIC   10                10                      2             DECIMAL            10                         2
-> D5          NUMERIC   10                10                      -2            DECIMAL            10                         -2
-> D6          NUMERIC   100000            10                      0             DECIMAL            null                       null
+> D5          NUMERIC   100000            10                      0             DECIMAL            null                       null
 > X1          NUMERIC   100000            10                      0             NUMERIC            null                       null
-> rows (ordered): 12
+> rows (ordered): 10
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(N NUMERIC(2, -1));
+> exception INVALID_VALUE_SCALE
 
 CREATE TABLE TEST(ID INT, X1 BIT, XT TINYINT, X_SM SMALLINT, XB BIGINT, XD DECIMAL(10,2), XD2 DOUBLE PRECISION, XR REAL);
 > ok
@@ -79,17 +80,17 @@ SELECT * FROM TEST;
 DROP TABLE TEST;
 > ok
 
-SELECT CAST(10000 AS NUMERIC(5, -3));
+SELECT CAST(10000 AS NUMERIC(5));
 >> 10000
 
-CREATE DOMAIN N AS NUMERIC(10, -1);
+CREATE DOMAIN N AS NUMERIC(10, 1);
 > ok
 
 CREATE TABLE TEST(V N);
 > ok
 
 SELECT NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'V';
->> -1
+>> 1
 
 DROP TABLE TEST;
 > ok

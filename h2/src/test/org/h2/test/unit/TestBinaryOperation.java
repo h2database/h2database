@@ -41,25 +41,19 @@ public class TestBinaryOperation extends TestBase {
         assertPrecisionScale(2, 0, 2, type, 1, 0, 1, 0);
         assertPrecisionScale(3, 1, 2, type, 1, 1, 1, 0);
         assertPrecisionScale(3, 1, 2, type, 1, 0, 1, 1);
-        assertPrecisionScale(3, 0, 2, type, 1, -1, 1, 0);
-        assertPrecisionScale(3, 0, 2, type, 1, 0, 1, -1);
     }
 
     private void testMultiply() {
         assertPrecisionScale(2, 0, 2, BinaryOperation.OpType.MULTIPLY, 1, 0, 1, 0);
         assertPrecisionScale(2, 1, 2, BinaryOperation.OpType.MULTIPLY, 1, 1, 1, 0);
         assertPrecisionScale(2, 1, 2, BinaryOperation.OpType.MULTIPLY, 1, 0, 1, 1);
-        assertPrecisionScale(2, -1, 2, BinaryOperation.OpType.MULTIPLY, 1, -1, 1, 0);
-        assertPrecisionScale(2, -1, 2, BinaryOperation.OpType.MULTIPLY, 1, 0, 1, -1);
     }
 
     private void testDivide() {
         assertPrecisionScale(3, 2, 2, BinaryOperation.OpType.DIVIDE, 1, 0, 1, 0);
         assertPrecisionScale(3, 3, 2, BinaryOperation.OpType.DIVIDE, 1, 1, 1, 0);
         assertPrecisionScale(3, 1, 2, BinaryOperation.OpType.DIVIDE, 1, 0, 1, 1);
-        assertPrecisionScale(3, 1, 2, BinaryOperation.OpType.DIVIDE, 1, -1, 1, 0);
-        assertPrecisionScale(3, 3, 2, BinaryOperation.OpType.DIVIDE, 1, 0, 1, -1);
-        assertPrecisionScale(19, -6, 10, BinaryOperation.OpType.DIVIDE, 1, 3, 9, 27);
+        assertPrecisionScale(25, 0, 10, BinaryOperation.OpType.DIVIDE, 1, 3, 9, 27);
     }
 
     private void assertPrecisionScale(int expectedPrecision, int expectedScale, int expectedDecfloatPrecision,

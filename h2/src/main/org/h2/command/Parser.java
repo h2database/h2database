@@ -361,6 +361,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInteger;
@@ -6209,13 +6210,15 @@ public class Parser {
                 if (c < '0' || c > '9') {
                     switch (c) {
                     case '.':
+                        readNumeric(start, i, false, false);
+                        break loop;
                     case 'E':
                     case 'e':
-                        readDecimal(start, i, false);
+                        readNumeric(start, i, false, true);
                         break loop;
                     case 'L':
                     case 'l':
-                        readDecimal(start, i, true);
+                        readNumeric(start, i, true, false);
                         break loop;
                     }
                     checkLiterals(false);
@@ -6227,7 +6230,7 @@ public class Parser {
                 }
                 number = number * 10 + (c - '0');
                 if (number > Integer.MAX_VALUE) {
-                    readDecimal(start, i, true);
+                    readNumeric(start, i, true, false);
                     break;
                 }
             }
@@ -6239,7 +6242,7 @@ public class Parser {
                 parseIndex = i;
                 return;
             }
-            readDecimal(i - 1, i, false);
+            readNumeric(i - 1, i, false, false);
             return;
         case CHAR_STRING: {
             String result = null;
@@ -6388,7 +6391,7 @@ public class Parser {
         currentToken = "0";
     }
 
-    private void readDecimal(int start, int i, boolean integer) {
+    private void readNumeric(int start, int i, boolean integer, boolean approximate) {
         char[] chars = sqlCommandChars;
         int[] types = characterTypes;
         // go until the first non-number
@@ -6403,6 +6406,7 @@ public class Parser {
         char c = chars[i];
         if (c == 'E' || c == 'e') {
             integer = false;
+            approximate = true;
             c = chars[++i];
             if (c == '+' || c == '-') {
                 i++;
@@ -6436,7 +6440,7 @@ public class Parser {
             } catch (NumberFormatException e) {
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, sqlCommand.substring(start, i));
             }
-            currentValue = ValueNumeric.get(bd);
+            currentValue = approximate ? ValueDecfloat.get(bd) : ValueNumeric.get(bd);
         }
         currentTokenType = LITERAL;
     }

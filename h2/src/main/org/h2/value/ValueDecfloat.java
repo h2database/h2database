@@ -32,8 +32,17 @@ public final class ValueDecfloat extends ValueBigDecimalBase {
     }
 
     @Override
+    public String getString() {
+        return value.toString();
+    }
+
+    @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return builder.append("CAST(").append(value).append(" AS DECFLOAT)");
+        String s = getString();
+        if ((sqlFlags & NO_CASTS) == 0 && s.indexOf('E') < 0) {
+            return builder.append("CAST(").append(s).append(" AS DECFLOAT)");
+        }
+        return builder.append(s);
     }
 
     @Override

@@ -51,9 +51,14 @@ public final class ValueNumeric extends ValueBigDecimalBase {
     }
 
     @Override
+    public String getString() {
+        return value.toPlainString();
+    }
+
+    @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         String s = getString();
-        if ((sqlFlags & NO_CASTS) == 0 && value.scale() == 0 && value.compareTo(MAX_LONG_DECIMAL) <= 0
+        if ((sqlFlags & NO_CASTS) == 0 && s.indexOf('.') < 0 && value.compareTo(MAX_LONG_DECIMAL) <= 0
                 && value.compareTo(MIN_LONG_DECIMAL) >= 0) {
             return builder.append("CAST(").append(value).append(" AS NUMERIC(").append(value.precision()).append("))");
         }

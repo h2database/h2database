@@ -2187,6 +2187,23 @@ A literal value of any data type, or null.
 10
 "
 
+"Literals","Approximate numeric","
+[ + | - ] { { number [ . number ] } | { . number } }
+E [ + | - ] expNumber
+","
+An approximate numeric value.
+Approximate numeric values have [DECFLOAT](https://h2database.com/html/datatypes.html#decfloat_type) data type.
+To define a [DOUBLE PRECISION](https://h2database.com/html/datatypes.html#double_precision_type) value, use
+""CAST(X AS DOUBLE PRECISION)"".
+To define a [REAL](https://h2database.com/html/datatypes.html#real_type) value, use ""CAST(X AS REAL)"".
+There are some special DOUBLE PRECISION and REAL values: to represent positive infinity, use ""POWER(0, -1)"";
+for negative infinity, use ""(-POWER(0, -1))""; for -0.0, use ""(-0e0)"";
+for ""NaN"" (not a number), use ""SQRT(-1)"". For special REAL values use a CAST.
+","
+-1.4e-10
+CAST(1e2 AS REAL)
+"
+
 "Literals","Array","
 ARRAY '[' [ expression [,...] ] ']'
 ","
@@ -2233,22 +2250,6 @@ A literal value of any date-time data type.
 TIMESTAMP '1999-01-31 10:00:00'
 "
 
-"Literals","Decimal","
-[ + | - ] { { number [ . number ] } | { . number } }
-[ E [ + | - ] expNumber [...] ] ]
-","
-A decimal number with fixed precision and scale.
-Internally, ""java.lang.BigDecimal"" is used.
-To ensure the floating point representation is used, use CAST(X AS DOUBLE PRECISION).
-There are some special decimal values: to represent positive infinity, use ""POWER(0, -1)"";
-for negative infinity, use ""(-POWER(0, -1))""; for -0.0, use ""(-CAST(0 AS DOUBLE PRECISION))"";
-for ""NaN"" (not a number), use ""SQRT(-1)"".
-","
--1600.05
-CAST(0 AS DOUBLE PRECISION)
--1.4e-10
-"
-
 "Literals","Dollar Quoted String","
 @h2@ $$anythingExceptTwoDollarSigns$$
 ","
@@ -2257,6 +2258,18 @@ within the text. A whitespace is required before the first set of dollar signs.
 No escaping is required within the text.
 ","
 $$John's car$$
+"
+
+"Literals","Exact numeric","
+[ + | - ] { { number [ . number ] } | { . number } }
+","
+An exact numeric value.
+Exact numeric values with dot have [NUMERIC](https://h2database.com/html/datatypes.html#numeric_type) data type, values
+without dot small enough to fit into [INTEGER](https://h2database.com/html/datatypes.html#integer_type) data type have
+this type, larger values small enough to fit into [BIGINT](https://h2database.com/html/datatypes.html#bigint_type) data
+type have this type, others also have NUMERIC data type.
+","
+-1600.05
 "
 
 "Literals","Hex Number","
@@ -2331,7 +2344,7 @@ The maximum length of the number depends on the data type used.
 "
 
 "Literals","Numeric","
-decimal | int | long | @h2@ { hexNumber }
+exactNumeric | approximateNumeric | int | long | @h2@ { hexNumber }
 ","
 The data type of a numeric literal is the NUMERIC if the number contains a dot;
 otherwise it is is always the lowest possible from INTEGER, BIGINT, or NUMERIC.

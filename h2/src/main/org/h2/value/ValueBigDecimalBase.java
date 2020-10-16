@@ -118,11 +118,6 @@ abstract class ValueBigDecimalBase extends Value {
     }
 
     @Override
-    public final String getString() {
-        return value.toString();
-    }
-
-    @Override
     public final int hashCode() {
         return getClass().hashCode() * 31 + value.hashCode();
     }

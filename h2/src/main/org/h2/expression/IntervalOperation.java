@@ -246,6 +246,34 @@ public class IntervalOperation extends Operation2 {
                 }
                 result = ValueInterval.from(IntervalQualifier.HOUR_TO_SECOND, negative, diff / NANOS_PER_HOUR,
                         diff % NANOS_PER_HOUR);
+            } else if (forcedType != null && DataType.isYearMonthIntervalType(forcedType.getValueType())) {
+                long[] dt1 = dateAndTimeFromValue(l, session), dt2 = dateAndTimeFromValue(r, session);
+                long dateValue1 = lType == Value.TIME || lType == Value.TIME_TZ
+                        ? session.currentTimestamp().getDateValue()
+                        : dt1[0];
+                long dateValue2 = rType == Value.TIME || rType == Value.TIME_TZ
+                        ? session.currentTimestamp().getDateValue()
+                        : dt2[0];
+                long leading = 12L
+                        * (DateTimeUtils.yearFromDateValue(dateValue1) - DateTimeUtils.yearFromDateValue(dateValue2))
+                        + DateTimeUtils.monthFromDateValue(dateValue1) - DateTimeUtils.monthFromDateValue(dateValue2);
+                int d1 = DateTimeUtils.dayFromDateValue(dateValue1);
+                int d2 = DateTimeUtils.dayFromDateValue(dateValue2);
+                if (leading >= 0) {
+                    if (d1 < d2 || d1 == d2 && dt1[1] < dt2[1]) {
+                        leading--;
+                    }
+                } else if (d1 > d2 || d1 == d2 && dt1[1] > dt2[1]) {
+                    leading++;
+                }
+                boolean negative;
+                if (leading < 0) {
+                    negative = true;
+                    leading = -leading;
+                } else {
+                    negative = false;
+                }
+                result = ValueInterval.from(IntervalQualifier.MONTH, negative, leading, 0L);
             } else if (lType == Value.DATE && rType == Value.DATE) {
                 long diff = absoluteDayFromDateValue(((ValueDate) l).getDateValue())
                         - absoluteDayFromDateValue(((ValueDate) r).getDateValue());

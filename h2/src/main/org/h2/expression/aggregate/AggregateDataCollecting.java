@@ -31,9 +31,36 @@ import org.h2.value.ValueRow;
  */
 class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
 
+    /**
+     * NULL values collection mode.
+     */
+    enum NullCollectionMode {
+
+        /**
+         * Rows with NULL value are completely ignored.
+         */
+        IGNORED,
+
+        /**
+         * Rows with NULL values are processed causing the result to be not
+         * NULL, but NULL values aren't collected.
+         */
+        EXCLUDED,
+
+        /**
+         * Rows with NULL values are aggregated just like rows with any other
+         * values, should also be used when NULL values aren't passed to
+         * {@linkplain AggregateDataCollecting}.
+         */
+        USED_OR_IMPOSSIBLE;
+
+    }
+
     private final boolean distinct;
 
     private final boolean orderedWithOrder;
+
+    private final NullCollectionMode nullCollectionMode;
 
     Collection<Value> values;
 
@@ -46,15 +73,18 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
      *            if distinct is used
      * @param orderedWithOrder
      *            if aggregate is an ordered aggregate with ORDER BY clause
+     * @param nullCollectionMode
+     *            NULL values collection mode
      */
-    AggregateDataCollecting(boolean distinct, boolean orderedWithOrder) {
+    AggregateDataCollecting(boolean distinct, boolean orderedWithOrder, NullCollectionMode nullCollectionMode) {
         this.distinct = distinct;
         this.orderedWithOrder = orderedWithOrder;
+        this.nullCollectionMode = nullCollectionMode;
     }
 
     @Override
     void add(SessionLocal session, Value v) {
-        if (v == ValueNull.INSTANCE) {
+        if (nullCollectionMode == NullCollectionMode.IGNORED && isNull(v)) {
             return;
         }
         Collection<Value> c = values;
@@ -70,7 +100,14 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
             }
             values = c;
         }
+        if (nullCollectionMode == NullCollectionMode.EXCLUDED && isNull(v)) {
+            return;
+        }
         c.add(v);
+    }
+
+    private boolean isNull(Value v) {
+        return (orderedWithOrder ? ((ValueRow) v).getList()[0] : v) == ValueNull.INSTANCE;
     }
 
     @Override

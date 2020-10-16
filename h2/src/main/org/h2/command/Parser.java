@@ -3815,8 +3815,9 @@ public class Parser {
             break;
         }
         case JSON_ARRAYAGG: {
+            boolean distinct = readDistinctAgg();
             r = new Aggregate(AggregateType.JSON_ARRAYAGG, new Expression[] { readExpression() }, currentSelect,
-                    false);
+                    distinct);
             r.setOrderByList(readIfOrderBy());
             r.setFlags(JsonConstructorFunction.JSON_ABSENT_ON_NULL);
             readJsonObjectFunctionFlags(r, true);

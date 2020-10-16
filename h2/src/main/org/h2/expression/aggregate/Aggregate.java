@@ -1073,6 +1073,9 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     private StringBuilder getSQLJsonArrayAggregate(StringBuilder builder, int sqlFlags) {
         builder.append("JSON_ARRAYAGG(");
+        if (distinct) {
+            builder.append("DISTINCT ");
+        }
         args[0].getUnenclosedSQL(builder, sqlFlags);
         JsonConstructorFunction.getJsonFunctionFlagsSQL(builder, flags, true);
         Window.appendOrderBy(builder, orderByList, sqlFlags, false);

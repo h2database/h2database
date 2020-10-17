@@ -67,6 +67,7 @@ public class TestPgServer extends TestDb {
         testKeyAlias();
         testCancelQuery();
         testTextualAndBinaryTypes();
+        testBinaryNumeric();
         testDateTime();
         testPrepareWithUnspecifiedType();
         testOtherPgClients();
@@ -419,23 +420,27 @@ public class TestPgServer extends TestDb {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private void testTextualAndBinaryTypes() throws SQLException {
-        testTextualAndBinaryTypes(false);
-        testTextualAndBinaryTypes(true);
-        Set<Integer> supportedBinaryOids;
+    private static Set<Integer> supportedBinaryOids;
+
+    static {
         try {
             Field supportedBinaryOidsField = Class
                     .forName("org.postgresql.jdbc.PgConnection")
                     .getDeclaredField("SUPPORTED_BINARY_OIDS");
             supportedBinaryOidsField.setAccessible(true);
             supportedBinaryOids = (Set<Integer>) supportedBinaryOidsField.get(null);
-            supportedBinaryOids.add(16);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void testTextualAndBinaryTypes() throws SQLException {
+        testTextualAndBinaryTypes(false);
         testTextualAndBinaryTypes(true);
-        supportedBinaryOids.remove(16);
+        // additional support of NUMERIC for Npgsql
+        supportedBinaryOids.add(1700);
+        testTextualAndBinaryTypes(true);
+        supportedBinaryOids.remove(1700);
     }
 
     private void testTextualAndBinaryTypes(boolean binary) throws SQLException {
@@ -517,6 +522,44 @@ public class TestPgServer extends TestDb {
 
             conn.close();
         } finally {
+            server.stop();
+        }
+    }
+
+    private void testBinaryNumeric() throws SQLException {
+        if (!getPgJdbcDriver()) {
+            return;
+        }
+        Server server = createPgServer(
+                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+        supportedBinaryOids.add(1700);
+        try {
+            Properties props = new Properties();
+            props.setProperty("user", "sa");
+            props.setProperty("password", "sa");
+            // force binary
+            props.setProperty("prepareThreshold", "-1");
+
+            Connection conn = DriverManager.getConnection(
+                    "jdbc:postgresql://localhost:5535/pgserver", props);
+            Statement stat = conn.createStatement();
+
+            try (ResultSet rs = stat.executeQuery("SELECT 1E-16383, 1E-16384, 1E+1")) {
+                rs.next();
+                assertEquals(new BigDecimal("1E-16383"), rs.getBigDecimal(1));
+                for (int i = 2; i <= 3; i ++) {
+                    try {
+                        rs.getBigDecimal(i);
+                        fail();
+                    } catch (IllegalArgumentException e) {
+                        // PgJDBC doesn't support scale greater than 16383 or negative scale
+                    }
+                }
+            }
+
+            conn.close();
+        } finally {
+            supportedBinaryOids.remove(1700);
             server.stop();
         }
     }

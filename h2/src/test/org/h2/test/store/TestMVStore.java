@@ -110,6 +110,7 @@ public class TestMVStore extends TestBase {
         testIterateReverse();
         testCloseTwice();
         testSimple();
+        testInvalidSettings();
 
         // longer running tests
         testLargerThan2G();
@@ -2007,6 +2008,11 @@ public class TestMVStore extends TestBase {
                 assertEquals("hello " + i, m.get(i));
             }
         }
+    }
+
+    private void testInvalidSettings() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new MVStore.Builder().fileName("test").fileStore(new OffHeapStore()).open());
     }
 
     private void testLargerThan2G() {

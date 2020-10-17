@@ -172,7 +172,7 @@ public final class JsonConstructorFunction extends OperationN implements Express
     }
 
     /**
-     * Appends a value to a JSON array in the specified string builder.
+     * Appends a value to a JSON array in the specified output stream.
      *
      * @param baos
      *            the output stream to append to

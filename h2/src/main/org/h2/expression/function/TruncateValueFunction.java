@@ -42,9 +42,13 @@ public final class TruncateValueFunction extends FunctionN {
         if (DataType.getDataType(valueType).supportsPrecision) {
             if (precision < t.getPrecision()) {
                 switch (valueType) {
-                case Value.NUMERIC:
-                    return ValueNumeric
-                            .get(v1.getBigDecimal().round(new MathContext(MathUtils.convertLongToInt(precision))));
+                case Value.NUMERIC: {
+                    BigDecimal bd = v1.getBigDecimal().round(new MathContext(MathUtils.convertLongToInt(precision)));
+                    if (bd.scale() < 0) {
+                        bd = bd.setScale(0);
+                    }
+                    return ValueNumeric.get(bd);
+                }
                 case Value.DECFLOAT:
                     return ValueDecfloat
                             .get(v1.getBigDecimal().round(new MathContext(MathUtils.convertLongToInt(precision))));
@@ -72,6 +76,12 @@ public final class TruncateValueFunction extends FunctionN {
                 return v1;
             }
             bd = bd.round(new MathContext(MathUtils.convertLongToInt(precision)));
+            if (valueType == Value.DECFLOAT) {
+                return ValueDecfloat.get(bd);
+            }
+            if (bd.scale() < 0) {
+                bd = bd.setScale(0);
+            }
             return ValueNumeric.get(bd).convertTo(valueType);
         }
         return v1;

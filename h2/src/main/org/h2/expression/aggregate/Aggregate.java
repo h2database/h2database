@@ -233,9 +233,10 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     private void updateData(SessionLocal session, AggregateData data, Value v, Value[] remembered) {
         switch (aggregateType) {
         case LISTAGG:
-            if (v != ValueNull.INSTANCE) {
-                v = updateCollecting(session, v.convertTo(TypeInfo.TYPE_VARCHAR), remembered);
+            if (v == ValueNull.INSTANCE) {
+                return;
             }
+            v = updateCollecting(session, v.convertTo(TypeInfo.TYPE_VARCHAR), remembered);
             break;
         case ARRAY_AGG:
             v = updateCollecting(session, v, remembered);
@@ -252,7 +253,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             ((AggregateDataCollecting) data).setSharedArgument(ValueRow.get(a));
             a = new Value[count];
             for (int i = 0; i < count; i++) {
-                a[i] = remembered != null ? remembered[count + i] :orderByList.get(i).expression.getValue(session);
+                a[i] = remembered != null ? remembered[count + i] : orderByList.get(i).expression.getValue(session);
             }
             v = ValueRow.get(a);
             break;
@@ -266,13 +267,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             v = remembered != null ? remembered[0] : orderByList.get(0).expression.getValue(session);
             break;
         case JSON_ARRAYAGG:
-            if (v != ValueNull.INSTANCE) {
-                v = updateCollecting(session, v, remembered);
-            } else if ((flags & JsonConstructorFunction.JSON_ABSENT_ON_NULL) == 0) {
-                v = updateCollecting(session, ValueJson.NULL, remembered);
-            } else {
-                return;
-            }
+            v = updateCollecting(session, v, remembered);
             break;
         case JSON_OBJECTAGG: {
             Value key = v;
@@ -280,13 +275,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             if (key == ValueNull.INSTANCE) {
                 throw DbException.getInvalidValueException("JSON_OBJECTAGG key", "NULL");
             }
-            if (value != ValueNull.INSTANCE) {
-                v = ValueRow.get(new Value[] { key, value });
-            } else if ((flags & JsonConstructorFunction.JSON_ABSENT_ON_NULL) == 0) {
-                v = ValueRow.get(new Value[] { key, ValueJson.NULL });
-            } else {
-                return;
-            }
+            v = ValueRow.get(new Value[] { key, value });
             break;
         }
         default:
@@ -365,7 +354,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     @Override
     protected Object createAggregateData() {
-        return AggregateData.create(aggregateType, distinct, type, orderByList != null);
+        return AggregateData.create(aggregateType, distinct, type, orderByList != null, flags);
     }
 
     @Override
@@ -520,7 +509,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 if (orderByList != null) {
                     v = ((ValueRow) v).getList()[0];
                 }
-                JsonConstructorFunction.jsonArrayAppend(baos, v, flags);
+                JsonConstructorFunction.jsonArrayAppend(baos, v != ValueNull.INSTANCE ? v : ValueJson.NULL, flags);
             }
             baos.write(']');
             return ValueJson.getInternal(baos.toByteArray());
@@ -538,7 +527,14 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 if (key == null) {
                     throw DbException.getInvalidValueException("JSON_OBJECTAGG key", "NULL");
                 }
-                JsonConstructorFunction.jsonObjectAppend(baos, key, row[1]);
+                Value value = row[1];
+                if (value == ValueNull.INSTANCE) {
+                    if ((flags & JsonConstructorFunction.JSON_ABSENT_ON_NULL) != 0) {
+                        continue;
+                    }
+                    value = ValueJson.NULL;
+                }
+                JsonConstructorFunction.jsonObjectAppend(baos, key, value);
             }
             return JsonConstructorFunction.jsonObjectFinish(baos, flags);
         }
@@ -1073,6 +1069,9 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     private StringBuilder getSQLJsonArrayAggregate(StringBuilder builder, int sqlFlags) {
         builder.append("JSON_ARRAYAGG(");
+        if (distinct) {
+            builder.append("DISTINCT ");
+        }
         args[0].getUnenclosedSQL(builder, sqlFlags);
         JsonConstructorFunction.getJsonFunctionFlagsSQL(builder, flags, true);
         Window.appendOrderBy(builder, orderByList, sqlFlags, false);

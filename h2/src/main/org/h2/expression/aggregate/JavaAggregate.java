@@ -11,6 +11,7 @@ import org.h2.command.query.Select;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.aggregate.AggregateDataCollecting.NullCollectionMode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.schema.UserAggregate;
@@ -218,7 +219,7 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     protected Object createAggregateData() {
-        return distinct ? new AggregateDataCollecting(true, false) : getInstance();
+        return distinct ? new AggregateDataCollecting(true, false, NullCollectionMode.IGNORED) : getInstance();
     }
 
 }

@@ -376,9 +376,16 @@ public class MVStore implements AutoCloseable {
         compressionLevel = DataUtils.getConfigParam(config, "compress", 0);
         String fileName = (String) config.get("fileName");
         FileStore fileStore = (FileStore) config.get("fileStore");
-        fileStoreIsProvided = fileStore != null;
-        if(fileStore == null && fileName != null) {
-            fileStore = new FileStore();
+        if (fileStore == null) {
+            fileStoreIsProvided = false;
+            if (fileName != null) {
+                fileStore = new FileStore();
+            }
+        } else {
+            if (fileName != null) {
+                throw new IllegalArgumentException("fileName && fileStore");
+            }
+            fileStoreIsProvided = true;
         }
         this.fileStore = fileStore;
 

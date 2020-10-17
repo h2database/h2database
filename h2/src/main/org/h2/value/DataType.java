@@ -146,7 +146,7 @@ public class DataType {
         dataType.defaultPrecision = dataType.maxPrecision = Constants.MAX_NUMERIC_PRECISION;
         dataType.defaultScale = ValueNumeric.DEFAULT_SCALE;
         dataType.maxScale = ValueNumeric.MAXIMUM_SCALE;
-        dataType.minScale = ValueNumeric.MINIMUM_SCALE;
+        dataType.minScale = 0;
         dataType.params = "PRECISION,SCALE";
         dataType.supportsPrecision = true;
         dataType.supportsScale = true;

@@ -361,6 +361,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInteger;
@@ -3815,8 +3816,9 @@ public class Parser {
             break;
         }
         case JSON_ARRAYAGG: {
+            boolean distinct = readDistinctAgg();
             r = new Aggregate(AggregateType.JSON_ARRAYAGG, new Expression[] { readExpression() }, currentSelect,
-                    false);
+                    distinct);
             r.setOrderByList(readIfOrderBy());
             r.setFlags(JsonConstructorFunction.JSON_ABSENT_ON_NULL);
             readJsonObjectFunctionFlags(r, true);
@@ -6208,13 +6210,15 @@ public class Parser {
                 if (c < '0' || c > '9') {
                     switch (c) {
                     case '.':
+                        readNumeric(start, i, false, false);
+                        break loop;
                     case 'E':
                     case 'e':
-                        readDecimal(start, i, false);
+                        readNumeric(start, i, false, true);
                         break loop;
                     case 'L':
                     case 'l':
-                        readDecimal(start, i, true);
+                        readNumeric(start, i, true, false);
                         break loop;
                     }
                     checkLiterals(false);
@@ -6226,7 +6230,7 @@ public class Parser {
                 }
                 number = number * 10 + (c - '0');
                 if (number > Integer.MAX_VALUE) {
-                    readDecimal(start, i, true);
+                    readNumeric(start, i, true, false);
                     break;
                 }
             }
@@ -6238,7 +6242,7 @@ public class Parser {
                 parseIndex = i;
                 return;
             }
-            readDecimal(i - 1, i, false);
+            readNumeric(i - 1, i, false, false);
             return;
         case CHAR_STRING: {
             String result = null;
@@ -6387,7 +6391,7 @@ public class Parser {
         currentToken = "0";
     }
 
-    private void readDecimal(int start, int i, boolean integer) {
+    private void readNumeric(int start, int i, boolean integer, boolean approximate) {
         char[] chars = sqlCommandChars;
         int[] types = characterTypes;
         // go until the first non-number
@@ -6402,6 +6406,7 @@ public class Parser {
         char c = chars[i];
         if (c == 'E' || c == 'e') {
             integer = false;
+            approximate = true;
             c = chars[++i];
             if (c == '+' || c == '-') {
                 i++;
@@ -6435,7 +6440,7 @@ public class Parser {
             } catch (NumberFormatException e) {
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, sqlCommand.substring(start, i));
             }
-            currentValue = ValueNumeric.get(bd);
+            currentValue = approximate ? ValueDecfloat.get(bd) : ValueNumeric.get(bd);
         }
         currentTokenType = LITERAL;
     }
@@ -7115,8 +7120,8 @@ public class Parser {
             precision = dataType.defaultPrecision;
             scale = dataType.defaultScale;
         } else {
-            precision = -1;
-            scale = Integer.MIN_VALUE;
+            precision = -1L;
+            scale = -1;
         }
         int t = dataType.type;
         if (database.getIgnoreCase() && t == Value.VARCHAR && !equalsToken("VARCHAR_CASESENSITIVE", original)) {
@@ -7215,7 +7220,7 @@ public class Parser {
 
     private TypeInfo parseNumericType(boolean decimal) {
         long precision = -1L;
-        int scale = Integer.MIN_VALUE;
+        int scale = -1;
         if (readIf(OPEN_PAREN)) {
             precision = readPrecision(Value.NUMERIC);
             if (precision < 1) {
@@ -7229,9 +7234,9 @@ public class Parser {
             }
             if (readIf(COMMA)) {
                 scale = readInt();
-                if (scale < ValueNumeric.MINIMUM_SCALE || scale > ValueNumeric.MAXIMUM_SCALE) {
+                if (scale < 0 || scale > ValueNumeric.MAXIMUM_SCALE) {
                     throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale),
-                            "" + ValueNumeric.MINIMUM_SCALE, "" + ValueNumeric.MAXIMUM_SCALE);
+                            "0", "" + ValueNumeric.MAXIMUM_SCALE);
                 }
             }
             read(CLOSE_PAREN);
@@ -7257,7 +7262,7 @@ public class Parser {
     }
 
     private TypeInfo parseTimeType() {
-        int scale = Integer.MIN_VALUE;
+        int scale = -1;
         if (readIf(OPEN_PAREN)) {
             scale = readNonNegativeInt();
             if (scale > ValueTime.MAXIMUM_SCALE) {
@@ -7279,7 +7284,7 @@ public class Parser {
     }
 
     private TypeInfo parseTimestampType() {
-        int scale = Integer.MIN_VALUE;
+        int scale = -1;
         if (readIf(OPEN_PAREN)) {
             scale = readNonNegativeInt();
             // Allow non-standard TIMESTAMP(..., ...) syntax
@@ -7309,7 +7314,7 @@ public class Parser {
         if (smallDateTime) {
             scale = 0;
         } else {
-            scale = Integer.MIN_VALUE;
+            scale = -1;
             if (readIf(OPEN_PAREN)) {
                 scale = readNonNegativeInt();
                 if (scale > ValueTimestamp.MAXIMUM_SCALE) {
@@ -7324,8 +7329,7 @@ public class Parser {
 
     private TypeInfo readIntervalQualifier() {
         IntervalQualifier qualifier;
-        int precision = -1;
-        int scale = Integer.MIN_VALUE;
+        int precision = -1, scale = -1;
         switch (currentTokenType) {
         case YEAR:
             read();

@@ -653,6 +653,9 @@ SELECT ID, "VALUE",
 INSERT INTO TEST VALUES (9, NULL);
 > update count: 1
 
+SELECT ARRAY_AGG("VALUE") FROM TEST;
+>> [1, 1, 2, 2, 3, 3, 4, 4, null]
+
 SELECT ARRAY_AGG("VALUE" ORDER BY ID) FROM TEST;
 >> [1, 1, 2, 2, 3, 3, 4, 4, null]
 

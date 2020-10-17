@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
+import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 
 /**
@@ -36,13 +37,12 @@ public final class ValueNumeric extends ValueBigDecimalBase {
      */
     public static final int MAXIMUM_SCALE = 100_000;
 
-    /**
-     * The minimum scale.
-     */
-    public static final int MINIMUM_SCALE = -100_000;
-
     private ValueNumeric(BigDecimal value) {
         super(value);
+        int scale = value.scale();
+        if (scale < 0 || scale > MAXIMUM_SCALE) {
+            throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale), "0", "" + MAXIMUM_SCALE);
+        }
     }
 
     @Override
@@ -51,9 +51,14 @@ public final class ValueNumeric extends ValueBigDecimalBase {
     }
 
     @Override
+    public String getString() {
+        return value.toPlainString();
+    }
+
+    @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         String s = getString();
-        if ((sqlFlags & NO_CASTS) == 0 && value.scale() == 0 && value.compareTo(MAX_LONG_DECIMAL) <= 0
+        if ((sqlFlags & NO_CASTS) == 0 && s.indexOf('.') < 0 && value.compareTo(MAX_LONG_DECIMAL) <= 0
                 && value.compareTo(MIN_LONG_DECIMAL) >= 0) {
             return builder.append("CAST(").append(value).append(" AS NUMERIC(").append(value.precision()).append("))");
         }
@@ -112,7 +117,7 @@ public final class ValueNumeric extends ValueBigDecimalBase {
      * @return the scaled value
      */
     public static BigDecimal setScale(BigDecimal bd, int scale) {
-        if (scale > MAXIMUM_SCALE || scale < MINIMUM_SCALE) {
+        if (scale < 0 || scale > MAXIMUM_SCALE) {
             throw DbException.getInvalidValueException("scale", scale);
         }
         return bd.setScale(scale, RoundingMode.HALF_UP);

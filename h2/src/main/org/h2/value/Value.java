@@ -1609,9 +1609,19 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case BOOLEAN:
             v = getBoolean() ? ValueNumeric.ONE : ValueNumeric.ZERO;
             break;
-        default:
-            v = ValueNumeric.get(getBigDecimal());
-            break;
+        default: {
+            BigDecimal value = getBigDecimal();
+            int targetScale = targetType.getScale();
+            int scale = value.scale();
+            if (scale < 0 || scale > ValueNumeric.MAXIMUM_SCALE || conversionMode != CONVERT_TO && scale != targetScale
+                    && (scale >= targetScale || !provider.getMode().convertOnlyToSmallerScale)) {
+                value = ValueNumeric.setScale(value, targetScale);
+            }
+            if (value.precision() > targetType.getPrecision()) {
+                throw getValueTooLongException(targetType, column);
+            }
+            return ValueNumeric.get(value);
+        }
         case NULL:
             throw DbException.getInternalError();
         }

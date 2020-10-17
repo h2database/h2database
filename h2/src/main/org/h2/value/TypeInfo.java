@@ -312,7 +312,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
      * @param precision
      *            the precision or {@code -1L} for default
      * @param scale
-     *            the scale or {@link Integer#MIN_VALUE} for default
+     *            the scale or {@code -1} for default
      * @param extTypeInfo
      *            the extended type information or null
      * @return the data type with parameters object
@@ -386,6 +386,11 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
             } else if (precision > Constants.MAX_NUMERIC_PRECISION) {
                 precision = Constants.MAX_NUMERIC_PRECISION;
             }
+            if (scale < 0) {
+                scale = -1;
+            } else if (scale > ValueNumeric.MAXIMUM_SCALE) {
+                scale = ValueNumeric.MAXIMUM_SCALE;
+            }
             return new TypeInfo(Value.NUMERIC, precision, scale,
                     extTypeInfo instanceof ExtTypeInfoNumeric ? extTypeInfo : null);
         case Value.REAL:
@@ -407,28 +412,28 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
             return new TypeInfo(Value.DECFLOAT, precision, -1, null);
         case Value.TIME:
             if (scale < 0) {
-                scale = Integer.MIN_VALUE;
+                scale = -1;
             } else if (scale >= ValueTime.MAXIMUM_SCALE) {
                 return TYPE_TIME;
             }
             return new TypeInfo(Value.TIME, scale);
         case Value.TIME_TZ:
             if (scale < 0) {
-                scale = Integer.MIN_VALUE;
+                scale = -1;
             } else if (scale >= ValueTime.MAXIMUM_SCALE) {
                 return TYPE_TIME_TZ;
             }
             return new TypeInfo(Value.TIME_TZ, scale);
         case Value.TIMESTAMP:
             if (scale < 0) {
-                scale = Integer.MIN_VALUE;
+                scale = -1;
             } else if (scale >= ValueTimestamp.MAXIMUM_SCALE) {
                 return TYPE_TIMESTAMP;
             }
             return new TypeInfo(Value.TIMESTAMP, scale);
         case Value.TIMESTAMP_TZ:
             if (scale < 0) {
-                scale = Integer.MIN_VALUE;
+                scale = -1;
             } else if (scale >= ValueTimestamp.MAXIMUM_SCALE) {
                 return TYPE_TIMESTAMP_TZ;
             }
@@ -458,7 +463,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
                 precision = ValueInterval.MAXIMUM_PRECISION;
             }
             if (scale < 0) {
-                scale = Integer.MIN_VALUE;
+                scale = -1;
             } else if (scale > ValueInterval.MAXIMUM_SCALE) {
                 scale = ValueInterval.MAXIMUM_SCALE;
             }
@@ -1019,29 +1024,28 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.ROW:
             return 0;
         case Value.NUMERIC:
-            return scale != Integer.MIN_VALUE ? scale : 0;
+            return scale >= 0 ? scale : 0;
         case Value.TIME:
         case Value.TIME_TZ:
-            return scale != Integer.MIN_VALUE ? scale : ValueTime.DEFAULT_SCALE;
+            return scale >= 0 ? scale : ValueTime.DEFAULT_SCALE;
         case Value.TIMESTAMP:
         case Value.TIMESTAMP_TZ:
-            return scale != Integer.MIN_VALUE ? scale : ValueTimestamp.DEFAULT_SCALE;
+            return scale >= 0 ? scale : ValueTimestamp.DEFAULT_SCALE;
         case Value.INTERVAL_SECOND:
         case Value.INTERVAL_DAY_TO_SECOND:
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
-            return scale != Integer.MIN_VALUE ? scale : ValueInterval.DEFAULT_SCALE;
+            return scale >= 0 ? scale : ValueInterval.DEFAULT_SCALE;
         default:
             return scale;
         }
     }
 
     /**
-     * Returns the scale, or {@link Integer#MIN_VALUE} if not specified in data
-     * type definition.
+     * Returns the scale, or {@code -1} if not specified in data type
+     * definition.
      *
-     * @return the scale, or {@link Integer#MIN_VALUE} if not specified in data
-     *         type definition
+     * @return the scale, or {@code -1} if not specified in data type definition
      */
     public int getDeclaredScale() {
         return scale;
@@ -1125,7 +1129,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.INTERVAL_MINUTE_TO_SECOND:
             return ValueInterval.getDisplaySize(valueType,
                     precision >= 0 ? (int) precision : ValueInterval.DEFAULT_PRECISION,
-                    scale != Integer.MIN_VALUE ? scale : ValueInterval.DEFAULT_SCALE);
+                    scale >= 0 ? scale : ValueInterval.DEFAULT_SCALE);
         case Value.GEOMETRY:
         case Value.ARRAY:
         case Value.ROW:
@@ -1170,7 +1174,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
                 builder.append("NUMERIC");
             }
             boolean withPrecision = precision >= 0;
-            boolean withScale = scale != Integer.MIN_VALUE;
+            boolean withScale = scale >= 0;
             if (withPrecision || withScale) {
                 builder.append('(').append(withPrecision ? precision : Constants.MAX_NUMERIC_PRECISION);
                 if (withScale) {
@@ -1200,7 +1204,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.TIME:
         case Value.TIME_TZ:
             builder.append("TIME");
-            if (scale != Integer.MIN_VALUE) {
+            if (scale >= 0) {
                 builder.append('(').append(scale).append(')');
             }
             if (valueType == Value.TIME_TZ) {
@@ -1210,7 +1214,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.TIMESTAMP:
         case Value.TIMESTAMP_TZ:
             builder.append("TIMESTAMP");
-            if (scale != Integer.MIN_VALUE) {
+            if (scale >= 0) {
                 builder.append('(').append(scale).append(')');
             }
             if (valueType == Value.TIMESTAMP_TZ) {
@@ -1230,8 +1234,8 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.INTERVAL_HOUR_TO_MINUTE:
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
-            IntervalQualifier.valueOf(valueType - Value.INTERVAL_YEAR).getTypeName(builder,
-                    precision < 0L ? -1 : (int) precision, scale == Integer.MIN_VALUE ? -1 : scale, false);
+            IntervalQualifier.valueOf(valueType - Value.INTERVAL_YEAR).getTypeName(builder, (int) precision, scale,
+                    false);
             break;
         case Value.ENUM:
             extTypeInfo.getSQL(builder.append("ENUM"), sqlFlags);

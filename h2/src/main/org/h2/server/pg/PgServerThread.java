@@ -758,7 +758,13 @@ public final class PgServerThread implements Runnable {
         int scale = value.scale();
         int signum = value.signum();
         if (signum != 0) {
-            BigInteger[] unscaled = new BigInteger[] {value.unscaledValue()};
+            BigInteger[] unscaled = {null};
+            if (scale < 0) {
+                unscaled[0] = value.setScale(0).unscaledValue();
+                scale = 0;
+            } else {
+                unscaled[0] = value.unscaledValue();
+            }
             if (signum < 0) {
                 unscaled[0] = unscaled[0].negate();
             }
@@ -786,7 +792,8 @@ public final class PgServerThread implements Runnable {
         writeShort(groupCount);
         writeShort(groupCount + weight);
         writeShort(signum < 0 ? 16384 : 0);
-        writeShort(scale < Short.MIN_VALUE ? Short.MIN_VALUE : scale > Short.MAX_VALUE ? Short.MAX_VALUE : scale);
+        assert scale >= 0;
+        writeShort(scale > Short.MAX_VALUE ? Short.MAX_VALUE : scale);
         for (int i = groupCount - 1; i >= 0; i--) {
             writeShort(groups.get(i));
         }

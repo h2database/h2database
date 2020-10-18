@@ -544,16 +544,17 @@ public class TestPgServer extends TestDb {
                     "jdbc:postgresql://localhost:5535/pgserver", props);
             Statement stat = conn.createStatement();
 
-            try (ResultSet rs = stat.executeQuery("SELECT 1E-16383, 1E-16384, 1E+1")) {
+            try (ResultSet rs = stat.executeQuery("SELECT 1E-16383, 1E+1, 1E+89, 1E-16384")) {
                 rs.next();
                 assertEquals(new BigDecimal("1E-16383"), rs.getBigDecimal(1));
-                for (int i = 2; i <= 3; i ++) {
-                    try {
-                        rs.getBigDecimal(i);
-                        fail();
-                    } catch (IllegalArgumentException e) {
-                        // PgJDBC doesn't support scale greater than 16383 or negative scale
-                    }
+                assertEquals(new BigDecimal("10"), rs.getBigDecimal(2));
+                assertEquals(new BigDecimal("10").pow(89), rs.getBigDecimal(3));
+                // TODO `SELECT 1E+90, 1E+131071` fails due to PgJDBC issue 1935
+                try {
+                    rs.getBigDecimal(4);
+                    fail();
+                } catch (IllegalArgumentException e) {
+                    // PgJDBC doesn't support scale greater than 16383
                 }
             }
 

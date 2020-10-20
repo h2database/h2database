@@ -557,6 +557,16 @@ public class TestPgServer extends TestDb {
                     // PgJDBC doesn't support scale greater than 16383
                 }
             }
+            try (ResultSet rs = stat.executeQuery("SELECT 1E-32768")) {
+                fail();
+            } catch (SQLException e) {
+                assertEquals("22003", e.getSQLState());
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT 1E+131072")) {
+                fail();
+            } catch (SQLException e) {
+                assertEquals("22003", e.getSQLState());
+            }
 
             conn.close();
         } finally {

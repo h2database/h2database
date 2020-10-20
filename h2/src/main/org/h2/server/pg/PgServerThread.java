@@ -788,12 +788,14 @@ public final class PgServerThread implements Runnable {
             }
         }
         int groupCount = groups.size();
+        if (groupCount + weight > Short.MAX_VALUE || scale > Short.MAX_VALUE) {
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, value.toString());
+        }
         writeInt(8 + groupCount * 2);
         writeShort(groupCount);
         writeShort(groupCount + weight);
         writeShort(signum < 0 ? 16384 : 0);
-        assert scale >= 0;
-        writeShort(scale > Short.MAX_VALUE ? Short.MAX_VALUE : scale);
+        writeShort(scale);
         for (int i = groupCount - 1; i >= 0; i--) {
             writeShort(groups.get(i));
         }

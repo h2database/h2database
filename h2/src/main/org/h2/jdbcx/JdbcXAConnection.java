@@ -111,7 +111,7 @@ public final class JdbcXAConnection extends TraceObject implements XAConnection,
      */
     @Override
     public void addConnectionEventListener(ConnectionEventListener listener) {
-        debugCode("addConnectionEventListener(listener);");
+        debugCode("addConnectionEventListener(listener)");
         listeners.add(listener);
     }
 
@@ -122,7 +122,7 @@ public final class JdbcXAConnection extends TraceObject implements XAConnection,
      */
     @Override
     public void removeConnectionEventListener(ConnectionEventListener listener) {
-        debugCode("removeConnectionEventListener(listener);");
+        debugCode("removeConnectionEventListener(listener)");
         listeners.remove(listener);
     }
 
@@ -130,7 +130,7 @@ public final class JdbcXAConnection extends TraceObject implements XAConnection,
      * INTERNAL
      */
     void closedHandle() {
-        debugCode("closedHandle();");
+        debugCodeCall("closedHandle");
         ConnectionEvent event = new ConnectionEvent(this);
         // go backward so that a listener can remove itself
         // (otherwise we need to clone the list)
@@ -172,7 +172,7 @@ public final class JdbcXAConnection extends TraceObject implements XAConnection,
      */
     @Override
     public boolean isSameRM(XAResource xares) {
-        debugCode("isSameRM(xares);");
+        debugCode("isSameRM(xares)");
         return xares == this;
     }
 
@@ -219,7 +219,7 @@ public final class JdbcXAConnection extends TraceObject implements XAConnection,
     @Override
     public int prepare(Xid xid) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("prepare(" + quoteXid(xid) + ");");
+            debugCode("prepare(" + quoteXid(xid) + ')');
         }
         checkOpen();
         if (!currentTransaction.equals(xid)) {
@@ -244,7 +244,7 @@ public final class JdbcXAConnection extends TraceObject implements XAConnection,
     @Override
     public void forget(Xid xid) {
         if (isDebugEnabled()) {
-            debugCode("forget(" + quoteXid(xid) + ");");
+            debugCode("forget(" + quoteXid(xid) + ')');
         }
         prepared = false;
     }
@@ -257,7 +257,7 @@ public final class JdbcXAConnection extends TraceObject implements XAConnection,
     @Override
     public void rollback(Xid xid) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("rollback(" + quoteXid(xid) + ");");
+            debugCode("rollback(" + quoteXid(xid) + ')');
         }
         try {
             if (prepared) {
@@ -285,7 +285,7 @@ public final class JdbcXAConnection extends TraceObject implements XAConnection,
     @Override
     public void end(Xid xid, int flags) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("end(" + quoteXid(xid) + ", " + quoteFlags(flags) + ");");
+            debugCode("end(" + quoteXid(xid) + ", " + quoteFlags(flags) + ')');
         }
         // TODO transaction end: implement this method
         if (flags == TMSUSPEND) {
@@ -306,7 +306,7 @@ public final class JdbcXAConnection extends TraceObject implements XAConnection,
     @Override
     public void start(Xid xid, int flags) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("start(" + quoteXid(xid) + ", " + quoteFlags(flags) + ");");
+            debugCode("start(" + quoteXid(xid) + ", " + quoteFlags(flags) + ')');
         }
         if (flags == TMRESUME) {
             return;
@@ -336,7 +336,7 @@ public final class JdbcXAConnection extends TraceObject implements XAConnection,
     @Override
     public void commit(Xid xid, boolean onePhase) throws XAException {
         if (isDebugEnabled()) {
-            debugCode("commit(" + quoteXid(xid) + ", " + onePhase + ");");
+            debugCode("commit(" + quoteXid(xid) + ", " + onePhase + ')');
         }
 
         try {

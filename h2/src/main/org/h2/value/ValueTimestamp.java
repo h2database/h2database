@@ -125,19 +125,26 @@ public final class ValueTimestamp extends Value {
 
     @Override
     public String getString() {
-        return toString(new StringBuilder(MAXIMUM_PRECISION)).toString();
+        return toString(new StringBuilder(MAXIMUM_PRECISION), false).toString();
+    }
+
+    /**
+     * Returns value as string in ISO format.
+     *
+     * @return value as string in ISO format
+     */
+    public String getISOString() {
+        return toString(new StringBuilder(MAXIMUM_PRECISION), true).toString();
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return toString(builder.append("TIMESTAMP '")).append('\'');
+        return toString(builder.append("TIMESTAMP '"), false).append('\'');
     }
 
-    private StringBuilder toString(StringBuilder builder) {
-        DateTimeUtils.appendDate(builder, dateValue);
-        builder.append(' ');
-        DateTimeUtils.appendTime(builder, timeNanos);
-        return builder;
+    private StringBuilder toString(StringBuilder builder, boolean iso) {
+        DateTimeUtils.appendDate(builder, dateValue).append(iso ? 'T' : ' ');
+        return DateTimeUtils.appendTime(builder, timeNanos);
     }
 
     @Override

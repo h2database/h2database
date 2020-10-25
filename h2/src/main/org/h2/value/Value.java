@@ -2271,7 +2271,17 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case VARCHAR:
         case CLOB:
         case VARCHAR_IGNORECASE:
+        case DATE:
+        case TIME:
+        case TIME_TZ:
+        case UUID:
             v = ValueJson.get(getString());
+            break;
+        case TIMESTAMP:
+            v = ValueJson.get(((ValueTimestamp) this).getISOString());
+            break;
+        case TIMESTAMP_TZ:
+            v = ValueJson.get(((ValueTimestampTimeZone) this).getISOString());
             break;
         case GEOMETRY: {
             ValueGeometry vg = (ValueGeometry) this;

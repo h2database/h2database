@@ -36,11 +36,6 @@ public class Utils {
      */
     public static final int[] EMPTY_INT_ARRAY = {};
 
-    /**
-     * An 0-size long array.
-     */
-    private static final long[] EMPTY_LONG_ARRAY = {};
-
     private static final HashMap<String, byte[]> RESOURCES = new HashMap<>();
 
     private Utils() {
@@ -299,19 +294,6 @@ public class Utils {
     }
 
     /**
-     * Create an int array with the given size.
-     *
-     * @param len the number of bytes requested
-     * @return the int array
-     */
-    public static int[] newIntArray(int len) {
-        if (len == 0) {
-            return EMPTY_INT_ARRAY;
-        }
-        return new int[len];
-    }
-
-    /**
      * Create a new ArrayList with an initial capacity of 4.
      *
      * @param <T> the type
@@ -319,19 +301,6 @@ public class Utils {
      */
     public static <T> ArrayList<T> newSmallArrayList() {
         return new ArrayList<>(4);
-    }
-
-    /**
-     * Create a long array with the given size.
-     *
-     * @param len the number of bytes requested
-     * @return the int array
-     */
-    public static long[] newLongArray(int len) {
-        if (len == 0) {
-            return EMPTY_LONG_ARRAY;
-        }
-        return new long[len];
     }
 
     /**

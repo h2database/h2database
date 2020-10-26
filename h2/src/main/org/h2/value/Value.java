@@ -6,6 +6,7 @@
 package org.h2.value;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
@@ -33,6 +34,7 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.geometry.GeoJsonUtils;
+import org.h2.util.json.JsonConstructorUtils;
 
 /**
  * This is the base class for all value classes.
@@ -2286,6 +2288,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case GEOMETRY: {
             ValueGeometry vg = (ValueGeometry) this;
             v = ValueJson.getInternal(GeoJsonUtils.ewkbToGeoJson(vg.getBytesNoCopy(), vg.getDimensionSystem()));
+            break;
+        }
+        case ARRAY: {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            baos.write('[');
+            for (Value e : ((ValueArray) this).getList()) {
+                JsonConstructorUtils.jsonArrayAppend(baos, e, 0);
+            }
+            baos.write(']');
+            v = ValueJson.getInternal(baos.toByteArray());
             break;
         }
         default:

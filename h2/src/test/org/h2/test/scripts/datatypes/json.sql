@@ -352,3 +352,9 @@ SELECT JSON_OBJECT(
     'JSON' : JSON '[]',
     'UUID' : UUID '01234567-89ab-cdef-fedc-ba9876543210');
 >> {"GEOMETRY":{"type":"Point","coordinates":[1,2]},"JSON":[],"UUID":"01234567-89ab-cdef-fedc-ba9876543210"}
+
+SELECT CAST(ARRAY[JSON '[]', JSON '{}'] AS JSON);
+>> [[],{}]
+
+SELECT CAST(ARRAY[1, 2] AS JSON);
+>> [1,2]

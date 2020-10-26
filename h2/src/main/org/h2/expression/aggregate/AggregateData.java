@@ -8,8 +8,8 @@ package org.h2.expression.aggregate;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.aggregate.AggregateDataCollecting.NullCollectionMode;
-import org.h2.expression.function.JsonConstructorFunction;
 import org.h2.message.DbException;
+import org.h2.util.json.JsonConstructorUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
@@ -81,7 +81,7 @@ abstract class AggregateData {
             return new AggregateDataEnvelope();
         case JSON_ARRAYAGG:
             return new AggregateDataCollecting(distinct, orderedWithOrder,
-                    (flags & JsonConstructorFunction.JSON_ABSENT_ON_NULL) != 0 ? NullCollectionMode.EXCLUDED
+                    (flags & JsonConstructorUtils.JSON_ABSENT_ON_NULL) != 0 ? NullCollectionMode.EXCLUDED
                             : NullCollectionMode.USED_OR_IMPOSSIBLE);
         case JSON_OBJECTAGG:
             // ROW(key, value) are collected, so NULL values can't be passed

@@ -41,6 +41,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
+import org.h2.util.json.JsonConstructorUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfoRow;
@@ -509,7 +510,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 if (orderByList != null) {
                     v = ((ValueRow) v).getList()[0];
                 }
-                JsonConstructorFunction.jsonArrayAppend(baos, v != ValueNull.INSTANCE ? v : ValueJson.NULL, flags);
+                JsonConstructorUtils.jsonArrayAppend(baos, v != ValueNull.INSTANCE ? v : ValueJson.NULL, flags);
             }
             baos.write(']');
             return ValueJson.getInternal(baos.toByteArray());
@@ -529,14 +530,14 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 }
                 Value value = row[1];
                 if (value == ValueNull.INSTANCE) {
-                    if ((flags & JsonConstructorFunction.JSON_ABSENT_ON_NULL) != 0) {
+                    if ((flags & JsonConstructorUtils.JSON_ABSENT_ON_NULL) != 0) {
                         continue;
                     }
                     value = ValueJson.NULL;
                 }
-                JsonConstructorFunction.jsonObjectAppend(baos, key, value);
+                JsonConstructorUtils.jsonObjectAppend(baos, key, value);
             }
-            return JsonConstructorFunction.jsonObjectFinish(baos, flags);
+            return JsonConstructorUtils.jsonObjectFinish(baos, flags);
         }
         default:
             // Avoid compiler warning

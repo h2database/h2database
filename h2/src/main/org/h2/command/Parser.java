@@ -7806,33 +7806,30 @@ public class Parser {
 
     private TableValueConstructor parseValues() {
         ArrayList<ArrayList<Expression>> rows = Utils.newSmallArrayList();
-        int columnCount = -1;
-        do {
-            int i = 0;
-            ArrayList<Expression> row = Utils.newSmallArrayList();
-            boolean multiColumn;
-            if (readIf(ROW)) {
-                read(OPEN_PAREN);
-                multiColumn = true;
-            } else {
-                multiColumn = readIf(OPEN_PAREN);
-            }
-            do {
-                Expression expr = readExpression();
-                i++;
-                if (rows.isEmpty()) {
-                    columnCount = i;
-                }
-                row.add(expr);
-            } while (multiColumn && readIfMore());
-            rows.add(row);
-        } while (readIf(COMMA));
-        for (ArrayList<Expression> row : rows) {
+        ArrayList<Expression> row = parseValuesRow(Utils.newSmallArrayList());
+        rows.add(row);
+        int columnCount = row.size();
+        while (readIf(COMMA)) {
+            row = parseValuesRow(new ArrayList<>(columnCount));
             if (row.size() != columnCount) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
+            rows.add(row);
         }
         return new TableValueConstructor(session, rows);
+    }
+
+    private ArrayList<Expression> parseValuesRow(ArrayList<Expression> row) {
+        if (readIf(ROW)) {
+            read(OPEN_PAREN);
+        } else if (!readIf(OPEN_PAREN)) {
+            row.add(readExpression());
+            return row;
+        }
+        do {
+            row.add(readExpression());
+        } while (readIfMore());
+        return row;
     }
 
     private Call parseCall() {

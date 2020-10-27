@@ -103,7 +103,7 @@ public final class PgServerThread implements Runnable {
     private DataInputStream dataIn;
     private OutputStream out;
     private int messageType;
-    private ByteArrayOutputStream outBuffer;
+    private ByteArrayOutputStream outBuffer = new ByteArrayOutputStream();
     private DataOutputStream dataOut;
     private Thread thread;
     private boolean initDone;
@@ -659,7 +659,7 @@ public final class PgServerThread implements Runnable {
                 }
                 baos.write('}');
                 writeInt(baos.size());
-                write(baos.toByteArray());
+                write(baos);
                 break;
             default:
                 byte[] data = v.getString().getBytes(getEncoding());
@@ -1194,24 +1194,30 @@ public final class PgServerThread implements Runnable {
         dataOut.write(data);
     }
 
+    private void write(ByteArrayOutputStream baos) throws IOException {
+        baos.writeTo(dataOut);
+    }
+
     private void write(int b) throws IOException {
         dataOut.write(b);
     }
 
     private void startMessage(int newMessageType) {
         this.messageType = newMessageType;
-        outBuffer = new ByteArrayOutputStream();
+        if (outBuffer.size() <= 65_536) {
+            outBuffer.reset();
+        } else {
+            outBuffer = new ByteArrayOutputStream();
+        }
         dataOut = new DataOutputStream(outBuffer);
     }
 
     private void sendMessage() throws IOException {
         dataOut.flush();
-        byte[] buff = outBuffer.toByteArray();
-        int len = buff.length;
         dataOut = new DataOutputStream(out);
-        dataOut.write(messageType);
-        dataOut.writeInt(len + 4);
-        dataOut.write(buff);
+        write(messageType);
+        writeInt(outBuffer.size() + 4);
+        write(outBuffer);
         dataOut.flush();
     }
 

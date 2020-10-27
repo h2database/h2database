@@ -530,47 +530,6 @@ public class Utils {
     }
 
     /**
-     * Returns a static field.
-     *
-     * @param classAndField a string with the entire class and field name
-     * @return the field value
-     */
-    public static Object getStaticField(String classAndField) throws Exception {
-        int lastDot = classAndField.lastIndexOf('.');
-        String className = classAndField.substring(0, lastDot);
-        String fieldName = classAndField.substring(lastDot + 1);
-        return Class.forName(className).getField(fieldName).get(null);
-    }
-
-    /**
-     * Returns a static field.
-     *
-     * @param instance the instance on which the call is done
-     * @param fieldName the field name
-     * @return the field value
-     */
-    public static Object getField(Object instance, String fieldName)
-            throws Exception {
-        return instance.getClass().getField(fieldName).get(instance);
-    }
-
-    /**
-     * Returns true if the class is present in the current class loader.
-     *
-     * @param fullyQualifiedClassName a string with the entire class name, eg.
-     *        "java.lang.System"
-     * @return true if the class is present
-     */
-    public static boolean isClassPresent(String fullyQualifiedClassName) {
-        try {
-            Class.forName(fullyQualifiedClassName);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
-    /**
      * Convert primitive class names to java.lang.* class names.
      *
      * @param clazz the class (for example: int)

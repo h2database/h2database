@@ -6,7 +6,6 @@
 package org.h2.test.unit;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -218,16 +217,7 @@ public class TestUtils extends TestBase {
         // Instance methods
         long x = (Long) Utils.callMethod(instance, "longValue");
         assertEquals(10, x);
-        // Static fields
-        String pathSeparator = (String) Utils
-                .getStaticField("java.io.File.pathSeparator");
-        assertEquals(File.pathSeparator, pathSeparator);
         // Instance fields
-        String test = (String) Utils.getField(this, "testField");
-        assertEquals(this.testField, test);
-        // Class present?
-        assertFalse(Utils.isClassPresent("abc"));
-        assertTrue(Utils.isClassPresent(getClass().getName()));
         Utils.callStaticMethod("java.lang.String.valueOf", "a");
         Utils.callStaticMethod("java.awt.AWTKeyStroke.getAWTKeyStroke",
                 'x', java.awt.event.InputEvent.SHIFT_DOWN_MASK);

@@ -226,11 +226,10 @@ public class Utils {
      *
      * @return the used memory
      */
-    public static int getMemoryUsed() {
+    public static long getMemoryUsed() {
         collectGarbage();
         Runtime rt = Runtime.getRuntime();
-        long mem = rt.totalMemory() - rt.freeMemory();
-        return (int) (mem >> 10);
+        return rt.totalMemory() - rt.freeMemory() >> 10;
     }
 
     /**
@@ -239,11 +238,9 @@ public class Utils {
      *
      * @return the free memory
      */
-    public static int getMemoryFree() {
+    public static long getMemoryFree() {
         collectGarbage();
-        Runtime rt = Runtime.getRuntime();
-        long mem = rt.freeMemory();
-        return (int) (mem >> 10);
+        return Runtime.getRuntime().freeMemory() >> 10;
     }
 
     /**
@@ -252,8 +249,7 @@ public class Utils {
      * @return the maximum memory
      */
     public static long getMemoryMax() {
-        long max = Runtime.getRuntime().maxMemory();
-        return max / 1024;
+        return Runtime.getRuntime().maxMemory() >> 10;
     }
 
     public static long getGarbageCollectionTime() {

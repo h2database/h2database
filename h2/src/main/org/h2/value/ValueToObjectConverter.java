@@ -232,8 +232,7 @@ public final class ValueToObjectConverter extends TraceObject {
             if (rs.next()) {
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "Multi-row ResultSet to ROW value");
             }
-            // TODO use column types
-            return ValueRow.get(list);
+            return ValueRow.get(new ExtTypeInfoRow(columns), list);
         } catch (SQLException e) {
             throw DbException.convert(e);
         }

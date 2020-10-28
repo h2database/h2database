@@ -272,7 +272,7 @@ public class TcpServerThread implements Runnable {
         ArrayList<? extends ParameterInterface> params = command.getParameters();
         for (int i = 0; i < len; i++) {
             Parameter p = (Parameter) params.get(i);
-            p.setValue(transfer.readValue());
+            p.setValue(transfer.readValue(null));
         }
     }
 
@@ -531,7 +531,7 @@ public class TcpServerThread implements Runnable {
             int length = transfer.readInt();
             Value[] args = new Value[length];
             for (int i = 0; i < length; i++) {
-                args[i] = transfer.readValue();
+                args[i] = transfer.readValue(null);
             }
             int old = session.getModificationId();
             ResultInterface result;

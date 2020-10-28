@@ -85,7 +85,7 @@ public final class ConcatenationOperation extends OperationN {
             int leftLength = leftValues.length, rightLength = rightValues.length;
             Value[] values = Arrays.copyOf(leftValues, leftLength + rightLength);
             System.arraycopy(rightValues, 0, values, leftLength, rightLength);
-            return ValueArray.get(values, session);
+            return ValueArray.get((TypeInfo) type.getExtTypeInfo(), values, session);
         }
     }
 
@@ -132,7 +132,7 @@ public final class ConcatenationOperation extends OperationN {
                 System.arraycopy(a, 0, v, offset, length);
                 offset += length;
             }
-            return ValueArray.get(v, session);
+            return ValueArray.get((TypeInfo) type.getExtTypeInfo(), v, session);
         }
     }
 

@@ -19,10 +19,7 @@ import org.h2.result.ResultExternal;
 import org.h2.result.SortOrder;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.TempFileDeleter;
-import org.h2.value.ExtTypeInfoEnum;
-import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 
 /**
  * Temporary result.
@@ -110,8 +107,6 @@ public abstract class MVTempResult implements ResultExternal {
      */
     final int resultColumnCount;
 
-    final boolean hasEnum;
-
     /**
      * Count of rows. Used only in a root results, copies always have 0 value.
      */
@@ -160,7 +155,6 @@ public abstract class MVTempResult implements ResultExternal {
         this.expressions = parent.expressions;
         this.visibleColumnCount = parent.visibleColumnCount;
         this.resultColumnCount = parent.resultColumnCount;
-        this.hasEnum = parent.hasEnum;
         this.tempFileDeleter = null;
         this.closeable = null;
         this.fileRef = null;
@@ -191,15 +185,6 @@ public abstract class MVTempResult implements ResultExternal {
             this.expressions = expressions;
             this.visibleColumnCount = visibleColumnCount;
             this.resultColumnCount = resultColumnCount;
-            boolean hasEnum = false;
-            for (int i = 0; i < resultColumnCount; i++) {
-                Expression e = expressions[i];
-                if (e.getType().getValueType() == Value.ENUM) {
-                    hasEnum = true;
-                    break;
-                }
-            }
-            this.hasEnum = hasEnum;
             tempFileDeleter = database.getTempFileDeleter();
             closeable = new CloseImpl(store, fileName);
             fileRef = tempFileDeleter.addFile(closeable, this);
@@ -240,22 +225,6 @@ public abstract class MVTempResult implements ResultExternal {
 
     private void delete() {
         tempFileDeleter.deleteFile(fileRef, closeable);
-    }
-
-    /**
-     * If any value in the rows is a ValueEnum, apply custom type conversion.
-     *
-     * @param row the array of values (modified in-place if needed)
-     */
-    final void fixEnum(Value[] row) {
-        for (int i = 0, l = resultColumnCount; i < l; i++) {
-            if (row[i] != ValueNull.INSTANCE) {
-                TypeInfo type = expressions[i].getType();
-                if (type.getValueType() == Value.ENUM) {
-                    row[i] = row[i].convertToEnum((ExtTypeInfoEnum) type.getExtTypeInfo(), database);
-                }
-            }
-        }
     }
 
 }

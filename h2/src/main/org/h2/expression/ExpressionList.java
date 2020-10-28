@@ -35,7 +35,7 @@ public final class ExpressionList extends Expression {
         for (int i = 0; i < list.length; i++) {
             v[i] = list[i].getValue(session);
         }
-        return isArray ? ValueArray.get((TypeInfo) type.getExtTypeInfo(), v, session) : ValueRow.get(v);
+        return isArray ? ValueArray.get((TypeInfo) type.getExtTypeInfo(), v, session) : ValueRow.get(type, v);
     }
 
     @Override

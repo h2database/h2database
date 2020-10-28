@@ -983,7 +983,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         if (getValueType() == Value.ARRAY) {
             return (ValueArray) this;
         }
-        return ValueArray.get(new Value[] { this }, provider);
+        return ValueArray.get(this.getType(), new Value[] { this }, provider);
     }
 
     /**
@@ -2368,7 +2368,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
                     while (++i < length) {
                         newValues[i] = values[i].convertTo(componentType, provider, conversionMode, column);
                     }
-                    v = ValueArray.get(newValues, provider);
+                    v = ValueArray.get(componentType, newValues, provider);
                     break loop;
                 }
             }
@@ -2416,7 +2416,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
                     while (++i < length) {
                         newValues[i] = values[i].convertTo(componentType, provider, conversionMode, column);
                     }
-                    v = ValueRow.get(newValues);
+                    v = ValueRow.get(targetType, newValues);
                     break loop;
                 }
             }

@@ -460,7 +460,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                     array[i] = ((ValueRow) array[i]).getList()[0];
                 }
             }
-            return ValueArray.get(array, session);
+            return ValueArray.get((TypeInfo) type.getExtTypeInfo(), array, session);
         }
         case RANK:
         case DENSE_RANK:
@@ -689,22 +689,23 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         return v.getString();
     }
 
-    private static Value getHistogram(SessionLocal session, AggregateData data) {
+    private Value getHistogram(SessionLocal session, AggregateData data) {
         TreeMap<Value, LongDataCounter> distinctValues = ((AggregateDataDistinctWithCounts) data).getValues();
+        TypeInfo rowType = (TypeInfo) type.getExtTypeInfo();
         if (distinctValues == null) {
-            return ValueArray.EMPTY;
+            return ValueArray.get(rowType, Value.EMPTY_VALUES, session);
         }
         ValueRow[] values = new ValueRow[distinctValues.size()];
         int i = 0;
         for (Entry<Value, LongDataCounter> entry : distinctValues.entrySet()) {
             LongDataCounter d = entry.getValue();
-            values[i] = ValueRow.get(new Value[] { entry.getKey(), ValueBigint.get(d.count) });
+            values[i] = ValueRow.get(rowType, new Value[] { entry.getKey(), ValueBigint.get(d.count) });
             i++;
         }
         Database db = session.getDatabase();
         CompareMode compareMode = db.getCompareMode();
         Arrays.sort(values, (v1, v2) -> v1.getList()[0].compareTo(v2.getList()[0], session, compareMode));
-        return ValueArray.get(values, session);
+        return ValueArray.get(rowType, values, session);
     }
 
     private Value getMode(SessionLocal session, AggregateData data) {

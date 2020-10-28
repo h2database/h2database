@@ -74,6 +74,7 @@ import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueCollectionBase;
@@ -1204,7 +1205,7 @@ public class Recover extends Tool implements DataHandler {
                 data = ValueBigint.get(key);
             } else {
                 try {
-                    data = s.readValue();
+                    data = s.readValue(TypeInfo.TYPE_UNKNOWN);
                 } catch (Throwable e) {
                     writeDataError(writer, "exception " + e, s.getBytes());
                     continue;
@@ -1265,7 +1266,7 @@ public class Recover extends Tool implements DataHandler {
                 data = ValueBigint.get(key);
             } else {
                 try {
-                    data = s.readValue();
+                    data = s.readValue(TypeInfo.TYPE_UNKNOWN);
                 } catch (Throwable e) {
                     writeDataError(writer, "exception " + e, s.getBytes());
                     continue;
@@ -1379,7 +1380,7 @@ public class Recover extends Tool implements DataHandler {
             if (data != null) {
                 for (valueId = 0; valueId < recordLength; valueId++) {
                     try {
-                        Value v = s.readValue();
+                        Value v = s.readValue(TypeInfo.TYPE_UNKNOWN);
                         switch (v.getValueType()) {
                         case Value.VARBINARY:
                         case Value.JAVA_OBJECT:

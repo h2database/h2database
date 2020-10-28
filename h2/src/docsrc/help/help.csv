@@ -6396,7 +6396,7 @@ LOCK_TIMEOUT()
 @h2@ MEMORY_FREE()
 ","
 Returns the free memory in KB (where 1024 bytes is a KB).
-This method returns an int.
+This method returns a long.
 The garbage is run before returning the value.
 Admin rights are required to execute this command.
 ","
@@ -6407,7 +6407,7 @@ MEMORY_FREE()
 @h2@ MEMORY_USED()
 ","
 Returns the used memory in KB (where 1024 bytes is a KB).
-This method returns an int.
+This method returns a long.
 The garbage is run before returning the value.
 Admin rights are required to execute this command.
 ","

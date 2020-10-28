@@ -99,7 +99,7 @@ public class TestBigDb extends TestDb {
                     long t = System.nanoTime();
                     if (t - time > TimeUnit.SECONDS.toNanos(1)) {
                         time = t;
-                        int free = Utils.getMemoryFree();
+                        long free = Utils.getMemoryFree();
                         println("i: " + i + " free: " + free + " used: " + Utils.getMemoryUsed());
                     }
                 }

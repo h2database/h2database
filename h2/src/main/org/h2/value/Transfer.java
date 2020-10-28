@@ -14,9 +14,11 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
@@ -939,7 +941,9 @@ public final class Transfer {
         case Value.ENUM: {
             writeInt(ENUM);
             writeInt(v.getInt());
-            writeString(v.getString());
+            if (version < Constants.TCP_PROTOCOL_VERSION_20) {
+                writeString(v.getString());
+            }
             break;
         }
         case Value.GEOMETRY:
@@ -1001,9 +1005,10 @@ public final class Transfer {
     /**
      * Read a value.
      *
+     * @param columnType the data type of value, or {@code null}
      * @return the value
      */
-    public Value readValue() throws IOException {
+    public Value readValue(TypeInfo columnType) throws IOException {
         int type = readInt();
         switch (type) {
         case NULL:
@@ -1042,6 +1047,9 @@ public final class Transfer {
             return ValueReal.get(readFloat());
         case ENUM: {
             int ordinal = readInt();
+            if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
+                return ((ExtTypeInfoEnum) columnType.getExtTypeInfo()).getValue(ordinal, session);
+            }
             return ValueEnumBase.get(readString(), ordinal);
         }
         case INTEGER:
@@ -1110,17 +1118,25 @@ public final class Transfer {
                 len = ~len;
                 readString();
             }
-            Value[] list = new Value[len];
-            for (int i = 0; i < len; i++) {
-                list[i] = readValue();
+            if (columnType != null) {
+                TypeInfo elementType = (TypeInfo) columnType.getExtTypeInfo();
+                return ValueArray.get(elementType, readArrayElements(len, elementType), session);
             }
-            return ValueArray.get(list, session);
+            return ValueArray.get(readArrayElements(len, null), session);
         }
         case ROW: {
             int len = readInt();
             Value[] list = new Value[len];
+            if (columnType != null) {
+                ExtTypeInfoRow extTypeInfoRow = (ExtTypeInfoRow) columnType.getExtTypeInfo();
+                Iterator<Entry<String, TypeInfo>> fields = extTypeInfoRow.getFields().iterator();
+                for (int i = 0; i < len; i++) {
+                    list[i] = readValue(fields.next().getValue());
+                }
+                return ValueRow.get(columnType, list);
+            }
             for (int i = 0; i < len; i++) {
-                list[i] = readValue();
+                list[i] = readValue(null);
             }
             return ValueRow.get(list);
         }
@@ -1143,6 +1159,14 @@ public final class Transfer {
         default:
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }
+    }
+
+    private Value[] readArrayElements(int len, TypeInfo elementType) throws IOException {
+        Value[] list = new Value[len];
+        for (int i = 0; i < len; i++) {
+            list[i] = readValue(elementType);
+        }
+        return list;
     }
 
     /**

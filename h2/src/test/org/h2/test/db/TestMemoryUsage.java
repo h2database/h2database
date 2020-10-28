@@ -87,13 +87,13 @@ public class TestMemoryUsage extends TestDb {
             stat.execute("DROP TABLE TEST");
         }
         stat.execute("checkpoint");
-        int used = Utils.getMemoryUsed();
+        long used = Utils.getMemoryUsed();
         for (int i = 0; i < 1000; i++) {
             stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
             stat.execute("DROP TABLE TEST");
         }
         stat.execute("checkpoint");
-        int usedNow = Utils.getMemoryUsed();
+        long usedNow = Utils.getMemoryUsed();
         if (usedNow > used * 1.3) {
             // try to lower memory usage (because it might be wrong)
             // by forcing OOME
@@ -134,11 +134,11 @@ public class TestMemoryUsage extends TestDb {
         stat.execute("SET CACHE_SIZE 8000");
         stat.execute("CREATE TABLE TEST(ID IDENTITY, DATA CLOB)");
         try {
-            int base = Utils.getMemoryUsed();
+            long base = Utils.getMemoryUsed();
             for (int i = 0; i < 4; i++) {
                 stat.execute("INSERT INTO TEST(DATA) " +
                         "SELECT SPACE(8000) FROM SYSTEM_RANGE(1, 800)");
-                int used = Utils.getMemoryUsed();
+                long used = Utils.getMemoryUsed();
                 if ((used - base) > 3 * 8192) {
                     fail("Used: " + (used - base) + " i: " + i);
                 }
@@ -185,11 +185,11 @@ public class TestMemoryUsage extends TestDb {
             prep.setInt(1, i);
             prep.executeUpdate();
         }
-        int base = Utils.getMemoryUsed();
+        long base = Utils.getMemoryUsed();
         stat.execute("create index idx_test_id on test(id)");
         for (int i = 0;; i++) {
             System.gc();
-            int used = Utils.getMemoryUsed() - base;
+            long used = Utils.getMemoryUsed() - base;
             if (used <= getSize(7500, 12000)) {
                 break;
             }

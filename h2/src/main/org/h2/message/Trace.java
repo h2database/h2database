@@ -14,7 +14,7 @@ import org.h2.util.StringUtils;
 /**
  * This class represents a trace module.
  */
-public class Trace {
+public final class Trace {
 
     /**
      * The trace module id for commands.

@@ -107,8 +107,13 @@ public class PageBtreeNode extends PageBtree {
         entryCount = data.readShortInt();
         childPageIds = new int[entryCount + 1];
         childPageIds[entryCount] = data.readInt();
-        rows = entryCount == 0 ? PageStoreRow.EMPTY_SEARCH_ARRAY : new SearchRow[entryCount];
-        offsets = Utils.newIntArray(entryCount);
+        if (entryCount == 0) {
+            rows = PageStoreRow.EMPTY_SEARCH_ARRAY;
+            offsets = Utils.EMPTY_INT_ARRAY;
+        } else {
+            rows = new SearchRow[entryCount];
+            offsets = new int[entryCount];
+        }
         for (int i = 0; i < entryCount; i++) {
             childPageIds[i] = data.readInt();
             offsets[i] = data.readShortInt();

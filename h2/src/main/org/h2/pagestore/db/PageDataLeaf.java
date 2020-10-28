@@ -17,6 +17,7 @@ import org.h2.pagestore.PageStore;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
+import org.h2.table.Column;
 import org.h2.util.HasSQL;
 import org.h2.value.Value;
 
@@ -592,12 +593,13 @@ public class PageDataLeaf extends PageData {
      * @param columnCount the number of columns
      * @return the row
      */
-    private static Row readRow(Data data, int pos, int columnCount) {
+    private Row readRow(Data data, int pos, int columnCount) {
         Value[] values = new Value[columnCount];
+        Column[] columns = index.getColumns();
         synchronized (data) {
             data.setPos(pos);
             for (int i = 0; i < columnCount; i++) {
-                values[i] = data.readValue();
+                values[i] = data.readValue(columns[i].getType());
             }
         }
         return Row.get(values, SearchRow.MEMORY_CALCULATE);

@@ -46,7 +46,7 @@ public class OutputCatcher {
         System.setOut(out.print);
         System.err.flush();
         System.setErr(err.print);
-        output = new String(buff.toByteArray());
+        output = buff.toString();
     }
 
     /**

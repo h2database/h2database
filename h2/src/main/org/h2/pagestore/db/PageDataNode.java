@@ -16,7 +16,6 @@ import org.h2.pagestore.Page;
 import org.h2.pagestore.PageStore;
 import org.h2.result.Row;
 import org.h2.store.Data;
-import org.h2.util.Utils;
 
 /**
  * A leaf page that contains data of one or multiple rows. Format:
@@ -34,6 +33,11 @@ import org.h2.util.Utils;
  * largest key of child[0].
  */
 public class PageDataNode extends PageData {
+
+    /**
+     * An 0-size long array.
+     */
+    private static final long[] EMPTY_LONG_ARRAY = new long[0];
 
     /**
      * The page ids of the children.
@@ -101,7 +105,7 @@ public class PageDataNode extends PageData {
         entryCount = data.readShortInt();
         childPageIds = new int[entryCount + 1];
         childPageIds[entryCount] = data.readInt();
-        keys = Utils.newLongArray(entryCount);
+        keys = entryCount != 0 ? new long[entryCount] : EMPTY_LONG_ARRAY;
         for (int i = 0; i < entryCount; i++) {
             childPageIds[i] = data.readInt();
             keys[i] = data.readVarLong();

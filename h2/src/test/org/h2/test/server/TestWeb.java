@@ -49,6 +49,7 @@ import org.h2.test.TestDb;
 import org.h2.tools.Server;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
+import org.h2.util.Utils10;
 
 /**
  * Tests the H2 Console application.
@@ -1173,7 +1174,7 @@ public class TestWeb extends TestDb {
 
         @Override
         public String toString() {
-            return new String(buff.toByteArray(), StandardCharsets.UTF_8);
+            return Utils10.byteArrayOutputStreamToString(buff, StandardCharsets.UTF_8);
         }
 
         @Override

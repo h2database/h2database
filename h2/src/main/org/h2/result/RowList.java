@@ -11,6 +11,7 @@ import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
+import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.Utils;
 import org.h2.value.Value;
@@ -164,12 +165,13 @@ public class RowList implements AutoCloseable {
         int columnCount = buff.readInt();
         long key = buff.readLong();
         Value[] values = new Value[columnCount];
+        Column[] columns = table.getColumns();
         for (int i = 0; i < columnCount; i++) {
             Value v;
             if (buff.readByte() == 0) {
                 v = null;
             } else {
-                v = buff.readValue();
+                v = buff.readValue(columns[i].getType());
                 if (v instanceof ValueLobDatabase) {
                     ValueLobDatabase lob = (ValueLobDatabase) v;
                     // the table id is 0 if it was linked when writing

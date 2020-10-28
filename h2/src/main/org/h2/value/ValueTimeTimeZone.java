@@ -58,9 +58,8 @@ public final class ValueTimeTimeZone extends Value {
      */
     public static ValueTimeTimeZone fromNanos(long nanos, int timeZoneOffsetSeconds) {
         if (nanos < 0L || nanos >= DateTimeUtils.NANOS_PER_DAY) {
-            StringBuilder builder = new StringBuilder();
-            DateTimeUtils.appendTime(builder, nanos);
-            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, "TIME WITH TIME ZONE", builder.toString());
+            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, "TIME WITH TIME ZONE",
+                    DateTimeUtils.appendTime(new StringBuilder(), nanos).toString());
         }
         /*
          * Some current and historic time zones have offsets larger than 12
@@ -130,9 +129,7 @@ public final class ValueTimeTimeZone extends Value {
     }
 
     private StringBuilder toString(StringBuilder builder) {
-        DateTimeUtils.appendTime(builder, nanos);
-        DateTimeUtils.appendTimeZone(builder, timeZoneOffsetSeconds);
-        return builder;
+        return DateTimeUtils.appendTimeZone(DateTimeUtils.appendTime(builder, nanos), timeZoneOffsetSeconds);
     }
 
     @Override

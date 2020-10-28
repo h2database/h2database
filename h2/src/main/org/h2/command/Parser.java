@@ -350,6 +350,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.util.geometry.EWKTUtils;
 import org.h2.util.json.JSONItemType;
+import org.h2.util.json.JsonConstructorUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfoEnum;
@@ -3820,7 +3821,7 @@ public class Parser {
             r = new Aggregate(AggregateType.JSON_ARRAYAGG, new Expression[] { readExpression() }, currentSelect,
                     distinct);
             r.setOrderByList(readIfOrderBy());
-            r.setFlags(JsonConstructorFunction.JSON_ABSENT_ON_NULL);
+            r.setFlags(JsonConstructorUtils.JSON_ABSENT_ON_NULL);
             readJsonObjectFunctionFlags(r, true);
             break;
         }
@@ -4540,7 +4541,7 @@ public class Parser {
         }
         case "JSON_ARRAY": {
             JsonConstructorFunction function = new JsonConstructorFunction(true);
-            function.setFlags(JsonConstructorFunction.JSON_ABSENT_ON_NULL);
+            function.setFlags(JsonConstructorUtils.JSON_ABSENT_ON_NULL);
             if (currentTokenType != CLOSE_PAREN && !readJsonObjectFunctionFlags(function, true)) {
                 do {
                     function.addParameter(readExpression());
@@ -4955,7 +4956,7 @@ public class Parser {
         if (readIf(NULL)) {
             if (readIf(ON)) {
                 read(NULL);
-                flags &= ~JsonConstructorFunction.JSON_ABSENT_ON_NULL;
+                flags &= ~JsonConstructorUtils.JSON_ABSENT_ON_NULL;
                 result = true;
             } else {
                 reread(start);
@@ -4964,7 +4965,7 @@ public class Parser {
         } else if (readIf("ABSENT")) {
             if (readIf(ON)) {
                 read(NULL);
-                flags |= JsonConstructorFunction.JSON_ABSENT_ON_NULL;
+                flags |= JsonConstructorUtils.JSON_ABSENT_ON_NULL;
                 result = true;
             } else {
                 reread(start);
@@ -4975,12 +4976,12 @@ public class Parser {
             if (readIf(WITH)) {
                 read(UNIQUE);
                 read("KEYS");
-                flags |= JsonConstructorFunction.JSON_WITH_UNIQUE_KEYS;
+                flags |= JsonConstructorUtils.JSON_WITH_UNIQUE_KEYS;
                 result = true;
             } else if (readIf("WITHOUT")) {
                 if (readIf(UNIQUE)) {
                     read("KEYS");
-                    flags &= ~JsonConstructorFunction.JSON_WITH_UNIQUE_KEYS;
+                    flags &= ~JsonConstructorUtils.JSON_WITH_UNIQUE_KEYS;
                     result = true;
                 } else if (result) {
                     throw getSyntaxError();
@@ -7805,33 +7806,30 @@ public class Parser {
 
     private TableValueConstructor parseValues() {
         ArrayList<ArrayList<Expression>> rows = Utils.newSmallArrayList();
-        int columnCount = -1;
-        do {
-            int i = 0;
-            ArrayList<Expression> row = Utils.newSmallArrayList();
-            boolean multiColumn;
-            if (readIf(ROW)) {
-                read(OPEN_PAREN);
-                multiColumn = true;
-            } else {
-                multiColumn = readIf(OPEN_PAREN);
-            }
-            do {
-                Expression expr = readExpression();
-                i++;
-                if (rows.isEmpty()) {
-                    columnCount = i;
-                }
-                row.add(expr);
-            } while (multiColumn && readIfMore());
-            rows.add(row);
-        } while (readIf(COMMA));
-        for (ArrayList<Expression> row : rows) {
+        ArrayList<Expression> row = parseValuesRow(Utils.newSmallArrayList());
+        rows.add(row);
+        int columnCount = row.size();
+        while (readIf(COMMA)) {
+            row = parseValuesRow(new ArrayList<>(columnCount));
             if (row.size() != columnCount) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
+            rows.add(row);
         }
         return new TableValueConstructor(session, rows);
+    }
+
+    private ArrayList<Expression> parseValuesRow(ArrayList<Expression> row) {
+        if (readIf(ROW)) {
+            read(OPEN_PAREN);
+        } else if (!readIf(OPEN_PAREN)) {
+            row.add(readExpression());
+            return row;
+        }
+        do {
+            row.add(readExpression());
+        } while (readIfMore());
+        return row;
     }
 
     private Call parseCall() {

@@ -363,3 +363,26 @@ SELECT * FROM INFORMATION_SCHEMA.ENUM_VALUES WHERE OBJECT_NAME = 'TEST';
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(A ENUM('A', 'B') ARRAY, B ROW(V ENUM('C', 'D')));
+> ok
+
+INSERT INTO TEST VALUES (ARRAY['A', 'B'], ROW('C'));
+> update count: 1
+
+TABLE TEST;
+> A      B
+> ------ -------
+> [A, B] ROW (C)
+> rows: 1
+
+@reconnect
+
+TABLE TEST;
+> A      B
+> ------ -------
+> [A, B] ROW (C)
+> rows: 1
+
+DROP TABLE TEST;
+> ok

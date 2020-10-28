@@ -72,6 +72,11 @@ public abstract class TestBase {
     private static String baseDir = getTestDir("");
 
     /**
+     * The maximum size of byte array.
+     */
+    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+
+    /**
      * The test configuration.
      */
     public TestAll config;
@@ -1408,11 +1413,11 @@ public abstract class TestBase {
      * @param remainingKB the number of kilobytes that are not referenced
      */
     protected void eatMemory(int remainingKB) {
-        int memoryFreeKB;
+        long memoryFreeKB;
         try {
             while ((memoryFreeKB = Utils.getMemoryFree()) > remainingKB) {
-                byte[] block = new byte[Math.max((memoryFreeKB - remainingKB) / 16, 16) * 1024];
-                memory.add(block);
+                long blockSize = Math.max((memoryFreeKB - remainingKB) / 16, 16) * 1024;
+                memory.add(new byte[blockSize > MAX_ARRAY_SIZE ? MAX_ARRAY_SIZE : (int) blockSize]);
             }
         } catch (OutOfMemoryError e) {
             if (remainingKB >= 3000) { // OOM is not expected

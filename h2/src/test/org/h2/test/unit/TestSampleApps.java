@@ -19,6 +19,7 @@ import org.h2.test.TestDb;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils10;
 
 /**
  * Tests the sample apps.
@@ -137,7 +138,7 @@ public class TestSampleApps extends TestDb {
         out.flush();
         System.setOut(oldOut);
         System.setErr(oldErr);
-        String s = new String(buff.toByteArray(), StandardCharsets.UTF_8);
+        String s = Utils10.byteArrayOutputStreamToString(buff, StandardCharsets.UTF_8);
         s = StringUtils.replaceAll(s, "\r\n", "\n");
         s = s.trim();
         expected = expected.trim();

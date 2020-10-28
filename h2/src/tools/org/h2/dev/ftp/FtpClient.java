@@ -378,8 +378,7 @@ public class FtpClient {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         IOUtils.copyAndClose(inData, out);
         readCode(226);
-        byte[] data = out.toByteArray();
-        return new String(data);
+        return out.toString();
     }
 
     /**
@@ -395,8 +394,7 @@ public class FtpClient {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         IOUtils.copyAndClose(inData, out);
         readCode(226);
-        byte[] data = out.toByteArray();
-        return new String(data);
+        return out.toString();
     }
 
     /**

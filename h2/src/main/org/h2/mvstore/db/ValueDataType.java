@@ -13,6 +13,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map.Entry;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.CastDataProvider;
@@ -35,6 +37,9 @@ import org.h2.store.DataHandler;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
+import org.h2.value.ExtTypeInfoEnum;
+import org.h2.value.ExtTypeInfoRow;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
@@ -282,7 +287,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
 
     @Override
     public Value read(ByteBuffer buff) {
-        return readValue(buff, true);
+        return readValue(buff, true, null);
     }
 
     @Override
@@ -604,9 +609,12 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     /**
      * Read a value.
      *
+     * @param buff the source buffer
+     * @param rowAsRow read ARRAY as a search row
+     * @param columnType the data type of value, or {@code null}
      * @return the value
      */
-    private Value readValue(ByteBuffer buff, boolean rowAsRow) {
+    private Value readValue(ByteBuffer buff, boolean rowAsRow, TypeInfo columnType) {
         int type = buff.get() & 255;
         switch (type) {
         case NULL:
@@ -617,7 +625,6 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             return ValueBoolean.FALSE;
         case INT_NEG:
             return ValueInteger.get(-readVarInt(buff));
-        case ENUM:
         case INTEGER:
             return ValueInteger.get(readVarInt(buff));
         case BIGINT_NEG:
@@ -671,6 +678,13 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             return ValueVarcharIgnoreCase.get(readString(buff));
         case CHAR:
             return ValueChar.get(readString(buff));
+        case ENUM: {
+            int ordinal = readVarInt(buff);
+            if (columnType != null) {
+                return ((ExtTypeInfoEnum) columnType.getExtTypeInfo()).getValue(ordinal, provider);
+            }
+            return ValueInteger.get(ordinal);
+        }
         case INTERVAL: {
             int ordinal = buff.get();
             boolean negative = ordinal < 0;
@@ -709,37 +723,55 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "lob type: " + smallLen);
             }
         }
-        case ARRAY:
-            if (rowFactory != null && rowAsRow) {
-                int valueCount = readVarInt(buff) - 1;
-                SearchRow row = rowFactory.createRow();
-                int[] indexes = rowFactory.getIndexes();
-                boolean hasRowKey;
-                if (indexes == null) {
-                    int columnCount = row.getColumnCount();
-                    for (int i = 0; i < columnCount; i++) {
-                        row.setValue(i, readValue(buff, false));
+        case ARRAY: {
+            if (rowAsRow) {
+                if (rowFactory != null) {
+                    int valueCount = readVarInt(buff) - 1;
+                    SearchRow row = rowFactory.createRow();
+                    int[] indexes = rowFactory.getIndexes();
+                    boolean hasRowKey;
+                    TypeInfo[] columnTypes = rowFactory.getColumnTypes();
+                    if (indexes == null) {
+                        int columnCount = row.getColumnCount();
+                        for (int i = 0; i < columnCount; i++) {
+                            row.setValue(i, readValue(buff, false, columnTypes != null ? columnTypes[i] : null));
+                        }
+                        hasRowKey = valueCount == columnCount;
+                    } else {
+                        for (int i : indexes) {
+                            row.setValue(i, readValue(buff, false, columnTypes != null ? columnTypes[i] : null));
+                        }
+                        hasRowKey = valueCount == indexes.length;
                     }
-                    hasRowKey = valueCount == columnCount;
-                } else {
-                    for (int i : indexes) {
-                        row.setValue(i, readValue(buff, false));
+                    if (hasRowKey) {
+                        row.setKey(readValue(buff, false, null).getLong());
                     }
-                    hasRowKey = valueCount == indexes.length;
+                    return row;
                 }
-                if (hasRowKey) {
-                    row.setKey(readValue(buff, false).getLong());
-                }
-                return row;
+                return ValueRow.get(readArrayElements(buff, null));
             }
-            //$FALL-THROUGH$
+            if (columnType != null) {
+                TypeInfo elementType = (TypeInfo) columnType.getExtTypeInfo();
+                return ValueArray.get(elementType, readArrayElements(buff, elementType), provider);
+            }
+            return ValueArray.get(readArrayElements(buff, null), provider);
+        }
         case ROW: {
             int len = readVarInt(buff);
             Value[] list = new Value[len];
-            for (int i = 0; i < len; i++) {
-                list[i] = readValue(buff, false);
+            if (columnType != null) {
+                ExtTypeInfoRow extTypeInfoRow = (ExtTypeInfoRow) columnType.getExtTypeInfo();
+                Iterator<Entry<String, TypeInfo>> fields = extTypeInfoRow.getFields().iterator();
+                for (int i = 0; i < len; i++) {
+                    list[i] = readValue(buff, false, fields.next().getValue());
+                }
+                return ValueRow.get(columnType, list);
             }
-            return type == ARRAY && !rowAsRow ? ValueArray.get(list, provider) : ValueRow.get(list);
+            TypeInfo[] columnTypes = rowFactory.getColumnTypes();
+            for (int i = 0; i < len; i++) {
+                list[i] = readValue(buff, false, columnTypes[i]);
+            }
+            return ValueRow.get(list);
         }
         case GEOMETRY:
             return ValueGeometry.get(readVarBytes(buff));
@@ -749,7 +781,11 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             return ValueJson.getInternal(readVarBytes(buff));
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {
-                return ValueInteger.get(type - INT_0_15);
+                int i = type - INT_0_15;
+                if (columnType != null && columnType.getValueType() == Value.ENUM) {
+                    return ((ExtTypeInfoEnum) columnType.getExtTypeInfo()).getValue(i, provider);
+                }
+                return ValueInteger.get(i);
             } else if (type >= BIGINT_0_7 && type < BIGINT_0_7 + 8) {
                 return ValueBigint.get(type - BIGINT_0_7);
             } else if (type >= VARBINARY_0_31 && type < VARBINARY_0_31 + 32) {
@@ -762,6 +798,15 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             }
             throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
         }
+    }
+
+    private Value[] readArrayElements(ByteBuffer buff, TypeInfo elementType) {
+        int len = readVarInt(buff);
+        Value[] list = new Value[len];
+        for (int i = 0; i < len; i++) {
+            list[i] = readValue(buff, false, elementType);
+        }
+        return list;
     }
 
     private static BigDecimal readBigDecimal(ByteBuffer buff) {
@@ -859,7 +904,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 return new ValueDataType(database, null);
             }
             RowFactory rowFactory = RowFactory.getDefaultRowFactory()
-                    .createRowFactory(database, compareMode, mode, database, sortTypes, indexes, columnCount);
+                    .createRowFactory(database, compareMode, mode, database, sortTypes, indexes, null, columnCount);
             return rowFactory.getRowDataType();
         }
 

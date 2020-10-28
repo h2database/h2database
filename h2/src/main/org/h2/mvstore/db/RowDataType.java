@@ -258,7 +258,7 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
             CompareMode compareMode = database == null ? CompareMode.getInstance(null, 0) : database.getCompareMode();
             Mode mode = database == null ? Mode.getRegular() : database.getMode();
             RowFactory rowFactory = RowFactory.getDefaultRowFactory()
-                    .createRowFactory(database, compareMode, mode, database, sortTypes, indexes, columnCount);
+                    .createRowFactory(database, compareMode, mode, database, sortTypes, indexes, null, columnCount);
             return rowFactory.getRowDataType();
         }
 

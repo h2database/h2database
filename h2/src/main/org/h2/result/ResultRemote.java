@@ -231,7 +231,7 @@ public final class ResultRemote extends FetchedResult {
             case 1: {
                 Value[] values = new Value[len];
                 for (int i = 0; i < len; i++) {
-                    values[i] = transfer.readValue();
+                    values[i] = transfer.readValue(columns[i].columnType);
                 }
                 result.add(values);
                 break;

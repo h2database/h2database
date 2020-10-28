@@ -17,7 +17,7 @@ public final class ValueArray extends ValueCollectionBase {
     /**
      * Empty array.
      */
-    public static final ValueArray EMPTY = get(Value.EMPTY_VALUES, null);
+    public static final ValueArray EMPTY = get(TypeInfo.TYPE_NULL, Value.EMPTY_VALUES, null);
 
     private TypeInfo type;
 

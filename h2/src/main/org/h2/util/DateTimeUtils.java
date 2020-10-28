@@ -967,8 +967,9 @@ public class DateTimeUtils {
      *
      * @param builder the target string builder
      * @param nanos the time in nanoseconds
+     * @return the specified string builder
      */
-    public static void appendTime(StringBuilder builder, long nanos) {
+    public static StringBuilder appendTime(StringBuilder builder, long nanos) {
         if (nanos < 0) {
             builder.append('-');
             nanos = -nanos;
@@ -988,7 +989,7 @@ public class DateTimeUtils {
         StringUtils.appendTwoDigits(builder, h).append(':');
         StringUtils.appendTwoDigits(builder, m).append(':');
         StringUtils.appendTwoDigits(builder, (int) s);
-        appendNanos(builder, (int) nanos);
+        return appendNanos(builder, (int) nanos);
     }
 
     /**
@@ -996,8 +997,9 @@ public class DateTimeUtils {
      *
      * @param builder string builder to append to
      * @param nanos nanoseconds of second
+     * @return the specified string builder
      */
-    static void appendNanos(StringBuilder builder, int nanos) {
+    static StringBuilder appendNanos(StringBuilder builder, int nanos) {
         if (nanos > 0) {
             builder.append('.');
             for (int i = 1; nanos < FRACTIONAL_SECONDS_TABLE[i]; i++) {
@@ -1017,34 +1019,35 @@ public class DateTimeUtils {
             }
             builder.append(nanos);
         }
+        return builder;
     }
 
     /**
      * Append a time zone to the string builder.
      *
-     * @param buff the target string builder
+     * @param builder the target string builder
      * @param tz the time zone offset in seconds
+     * @return the specified string builder
      */
-    public static void appendTimeZone(StringBuilder buff, int tz) {
+    public static StringBuilder appendTimeZone(StringBuilder builder, int tz) {
         if (tz < 0) {
-            buff.append('-');
+            builder.append('-');
             tz = -tz;
         } else {
-            buff.append('+');
+            builder.append('+');
         }
         int rem = tz / 3_600;
-        StringUtils.appendTwoDigits(buff, rem);
+        StringUtils.appendTwoDigits(builder, rem);
         tz -= rem * 3_600;
         if (tz != 0) {
             rem = tz / 60;
-            buff.append(':');
-            StringUtils.appendTwoDigits(buff, rem);
+            StringUtils.appendTwoDigits(builder.append(':'), rem);
             tz -= rem * 60;
             if (tz != 0) {
-                buff.append(':');
-                StringUtils.appendTwoDigits(buff, tz);
+                StringUtils.appendTwoDigits(builder.append(':'), tz);
             }
         }
+        return builder;
     }
 
     /**

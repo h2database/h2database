@@ -677,8 +677,8 @@ public class JdbcUtils {
             SimpleResultSet rs = new SimpleResultSet();
             rs.addColumn("Type", Types.VARCHAR, 0, 0);
             rs.addColumn("KB", Types.VARCHAR, 0, 0);
-            rs.addRow("Used Memory", Integer.toString(Utils.getMemoryUsed()));
-            rs.addRow("Free Memory", Integer.toString(Utils.getMemoryFree()));
+            rs.addRow("Used Memory", Long.toString(Utils.getMemoryUsed()));
+            rs.addRow("Free Memory", Long.toString(Utils.getMemoryFree()));
             return rs;
         } else if (isBuiltIn(sql, "@info")) {
             SimpleResultSet rs = new SimpleResultSet();

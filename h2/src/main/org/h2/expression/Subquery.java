@@ -67,11 +67,11 @@ public final class Subquery extends Expression {
         return list;
     }
 
-    private static Value readRow(ResultInterface result) {
+    private Value readRow(ResultInterface result) {
         Value[] values = result.currentRow();
         int visible = result.getVisibleColumnCount();
         return visible == 1 ? values[0]
-                : ValueRow.get(visible == values.length ? values : Arrays.copyOf(values, visible));
+                : ValueRow.get(getType(), visible == values.length ? values : Arrays.copyOf(values, visible));
     }
 
     @Override
@@ -88,12 +88,18 @@ public final class Subquery extends Expression {
     public Expression optimize(SessionLocal session) {
         query.prepare();
         if (query.isConstantQuery()) {
+            setType();
             return ValueExpression.get(getValue(session));
         }
         Expression e = query.getIfSingleRow();
         if (e != null) {
             return e.optimize(session);
         }
+        setType();
+        return this;
+    }
+
+    private void setType() {
         ArrayList<Expression> expressions = query.getExpressions();
         int columnCount = query.getColumnCount();
         if (columnCount == 1) {
@@ -107,7 +113,6 @@ public final class Subquery extends Expression {
             expressionList.initializeType();
             expression = expressionList;
         }
-        return this;
     }
 
     @Override

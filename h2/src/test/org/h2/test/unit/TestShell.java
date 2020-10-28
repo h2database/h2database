@@ -13,9 +13,11 @@ import java.io.LineNumberReader;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import org.h2.test.TestBase;
 import org.h2.tools.Shell;
 import org.h2.util.Task;
+import org.h2.util.Utils10;
 
 /**
  * Test the shell tool.
@@ -47,20 +49,20 @@ public class TestShell extends TestBase {
     public void test() throws Exception {
         Shell shell = new Shell();
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
-        shell.setOut(new PrintStream(buff));
+        shell.setOut(new PrintStream(buff, false, "UTF-8"));
         shell.runTool("-url", "jdbc:h2:mem:", "-driver", "org.h2.Driver",
                 "-user", "sa", "-password", "sa", "-properties", "null",
                 "-sql", "select 'Hello ' || 'World' as hi");
-        String s = new String(buff.toByteArray());
+        String s = Utils10.byteArrayOutputStreamToString(buff, StandardCharsets.UTF_8);
         assertContains(s, "HI");
         assertContains(s, "Hello World");
         assertContains(s, "(1 row, ");
 
         shell = new Shell();
         buff = new ByteArrayOutputStream();
-        shell.setOut(new PrintStream(buff));
+        shell.setOut(new PrintStream(buff, false, "UTF-8"));
         shell.runTool("-help");
-        s = new String(buff.toByteArray());
+        s = Utils10.byteArrayOutputStreamToString(buff, StandardCharsets.UTF_8);
         assertContains(s,
                 "Interactive command line tool to access a database using JDBC.");
 

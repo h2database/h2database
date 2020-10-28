@@ -24,9 +24,9 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
-import org.h2.util.NetUtils2;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
+import org.h2.util.Utils10;
 
 /**
  * The TCP server implements the native H2 database server protocol.
@@ -251,7 +251,7 @@ public class TcpServer implements Service {
         try {
             while (!stop) {
                 Socket s = serverSocket.accept();
-                NetUtils2.setTcpQuickack(s, true);
+                Utils10.setTcpQuickack(s, true);
                 int id = nextThreadId++;
                 TcpServerThread c = new TcpServerThread(s, this, id);
                 running.add(c);

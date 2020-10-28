@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,6 +22,7 @@ import org.h2.test.TestDb;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
 import org.h2.util.IOUtils;
+import org.h2.util.Utils10;
 
 /**
  * Tests database recovery.
@@ -263,7 +265,7 @@ public class TestRecovery extends TestDb {
         DeleteDbFiles.execute(getBaseDir(), "recovery2", true);
     }
 
-    private void testRunScript() throws SQLException {
+    private void testRunScript() throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         DeleteDbFiles.execute(getBaseDir(), "recovery2", true);
         org.h2.Driver.load();
@@ -292,9 +294,9 @@ public class TestRecovery extends TestDb {
 
         Recover rec = new Recover();
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
-        rec.setOut(new PrintStream(buff));
+        rec.setOut(new PrintStream(buff, false, "UTF-8"));
         rec.runTool("-dir", getBaseDir(), "-db", "recovery", "-trace");
-        String out = new String(buff.toByteArray());
+        String out = Utils10.byteArrayOutputStreamToString(buff, StandardCharsets.UTF_8);
         assertContains(out, "Created file");
 
         Connection conn2 = getConnection("recovery2");
@@ -323,7 +325,7 @@ public class TestRecovery extends TestDb {
         FileUtils.deleteRecursive(dir, false);
     }
 
-    private void testRunScript2() throws SQLException {
+    private void testRunScript2() throws Exception {
         if (!config.mvStore) {
             // TODO Does not work in PageStore mode
             return;
@@ -339,9 +341,9 @@ public class TestRecovery extends TestDb {
 
         final Recover recover = new Recover();
         final ByteArrayOutputStream buff = new ByteArrayOutputStream(); // capture the console output
-        recover.setOut(new PrintStream(buff));
+        recover.setOut(new PrintStream(buff, false, "UTF-8"));
         recover.runTool("-dir", getBaseDir(), "-db", "recovery", "-trace");
-        String consoleOut = new String(buff.toByteArray());
+        String consoleOut = Utils10.byteArrayOutputStreamToString(buff, StandardCharsets.UTF_8);
         assertContains(consoleOut, "Created file");
 
         Connection conn2 = getConnection("recovery2");

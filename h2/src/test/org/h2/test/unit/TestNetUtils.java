@@ -20,8 +20,8 @@ import org.h2.build.BuildBase;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.util.NetUtils;
-import org.h2.util.NetUtils2;
 import org.h2.util.Task;
+import org.h2.util.Utils10;
 
 /**
  * Test the network utilities from {@link NetUtils}.
@@ -309,11 +309,11 @@ public class TestNetUtils extends TestBase {
             };
             thread.start();
             try (Socket socket = serverSocket.accept()) {
-                boolean supported = NetUtils2.setTcpQuickack(socket, true);
+                boolean supported = Utils10.setTcpQuickack(socket, true);
                 if (supported) {
-                    assertTrue(NetUtils2.getTcpQuickack(socket));
-                    NetUtils2.setTcpQuickack(socket, false);
-                    assertFalse(NetUtils2.getTcpQuickack(socket));
+                    assertTrue(Utils10.getTcpQuickack(socket));
+                    Utils10.setTcpQuickack(socket, false);
+                    assertFalse(Utils10.getTcpQuickack(socket));
                 }
                 socket.getOutputStream().write(1);
             } finally {

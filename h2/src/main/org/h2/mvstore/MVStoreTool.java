@@ -198,7 +198,7 @@ public class MVStoreTool {
                                 mapId,
                                 node ? entries + 1 : entries,
                                 pageSize,
-                                DataUtils.getPageMaxLength(DataUtils.getPagePos(0, 0, pageSize, 0))
+                                DataUtils.getPageMaxLength(DataUtils.composePagePos(0, 0, pageSize, 0))
                         );
                     }
                     p += pageSize;

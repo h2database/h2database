@@ -9,7 +9,6 @@ import static org.h2.mvstore.MVMap.INITIAL_VERSION;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.util.MathUtils;
-import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -616,7 +615,7 @@ public abstract class FileStore
                     CacheLongKeyLIRS<Page<?, ?>> cache = getCache();
                     if (toc != null && cache != null) {
                         for (long tocElement : toc) {
-                            long pagePos = DataUtils.getPagePos(chunk.id, tocElement);
+                            long pagePos = DataUtils.composePagePos(chunk.id, tocElement);
                             cache.remove(pagePos);
                         }
                     }
@@ -660,7 +659,6 @@ public abstract class FileStore
      */
     public abstract ByteBuffer readFully(long pos, int len);
 
-    @NotNull
     protected final ByteBuffer readFully(FileChannel file, long pos, int len) {
         ByteBuffer dst = ByteBuffer.allocate(len);
         DataUtils.readFully(file, pos, dst);
@@ -2133,7 +2131,7 @@ public abstract class FileStore
                     if (map != null && !map.isClosed()) {
                         assert !map.isSingleWriter();
                         if (secondPass || DataUtils.isLeafPosition(tocElement)) {
-                            long pagePos = DataUtils.getPagePos(chunkId, tocElement);
+                            long pagePos = DataUtils.composePagePos(chunkId, tocElement);
                             serializationLock.unlock();
                             try {
                                 if (map.rewritePage(pagePos)) {

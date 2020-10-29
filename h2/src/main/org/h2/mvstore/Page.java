@@ -53,7 +53,7 @@ public abstract class Page<K,V> implements Cloneable {
      * On top of this update atomicity is required so removal mark and saved position
      * can be set concurrently.
      *
-     * @see DataUtils#getPagePos(int, int, int, int) for field format details
+     * @see DataUtils#composePagePos(int, int, int, int) for field format details
      */
     private volatile long pos;
 
@@ -695,12 +695,13 @@ public abstract class Page<K,V> implements Cloneable {
     }
 
     /**
-     * Store the page and update the position.
+     * Serializes this page into provided buffer, which represents content of the specified
+     * chunk to be persisted and updates the "position" of the page.
      *
-     * @param chunk the chunk
-     * @param buff the target buffer
-     * @param toc prospective table of content
-     * @return the position of the buffer just after the type
+     * @param chunk the chunk this page will be part of
+     * @param buff the target buffer holding chunk's content
+     * @param toc prospective chunk's table of content
+     * @return the position of the buffer, where serialized child page references (if any) begin
      */
     protected final int write(Chunk chunk, WriteBuffer buff, List<Long> toc) {
         pageNo = toc.size();
@@ -768,7 +769,7 @@ public abstract class Page<K,V> implements Cloneable {
             throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_INTERNAL, "Page already stored");
         }
-        long pagePos = DataUtils.getPagePos(chunkId, tocElement);
+        long pagePos = DataUtils.composePagePos(chunkId, tocElement);
         boolean isDeleted = isRemoved();
         while (!posUpdater.compareAndSet(this, isDeleted ? 1L : 0L, pagePos)) {
             isDeleted = isRemoved();

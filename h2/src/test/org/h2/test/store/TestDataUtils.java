@@ -283,7 +283,7 @@ public class TestDataUtils extends TestBase {
         assertEquals(0, DataUtils.PAGE_TYPE_LEAF);
         assertEquals(1, DataUtils.PAGE_TYPE_NODE);
 
-        long max = DataUtils.getPagePos(Chunk.MAX_ID, Integer.MAX_VALUE,
+        long max = DataUtils.composePagePos(Chunk.MAX_ID, Integer.MAX_VALUE,
                     Integer.MAX_VALUE, DataUtils.PAGE_TYPE_NODE);
         String hex = Long.toHexString(max);
         assertEquals(max, DataUtils.parseHexLong(hex));
@@ -292,12 +292,12 @@ public class TestDataUtils extends TestBase {
         assertEquals(DataUtils.PAGE_LARGE, DataUtils.getPageMaxLength(max));
         assertEquals(DataUtils.PAGE_TYPE_NODE, DataUtils.getPageType(max));
 
-        long overflow = DataUtils.getPagePos(Chunk.MAX_ID + 1,
+        long overflow = DataUtils.composePagePos(Chunk.MAX_ID + 1,
                 Integer.MAX_VALUE, Integer.MAX_VALUE, DataUtils.PAGE_TYPE_NODE);
         assertTrue(Chunk.MAX_ID + 1 != DataUtils.getPageChunkId(overflow));
 
         for (int i = 0; i < Chunk.MAX_ID; i++) {
-            long pos = DataUtils.getPagePos(i, 3, 128, 1);
+            long pos = DataUtils.composePagePos(i, 3, 128, 1);
             assertEquals(i, DataUtils.getPageChunkId(pos));
             assertEquals(3, DataUtils.getPageOffset(pos));
             assertEquals(128, DataUtils.getPageMaxLength(pos));
@@ -309,7 +309,7 @@ public class TestDataUtils extends TestBase {
                 for (long offset = 0; offset < Integer.MAX_VALUE;
                         offset += Integer.MAX_VALUE / 100) {
                     for (int length = 0; length < 2000000; length += 200000) {
-                        long pos = DataUtils.getPagePos(
+                        long pos = DataUtils.composePagePos(
                                 chunkId, (int) offset, length, type);
                         assertEquals(chunkId, DataUtils.getPageChunkId(pos));
                         assertEquals(offset, DataUtils.getPageOffset(pos));

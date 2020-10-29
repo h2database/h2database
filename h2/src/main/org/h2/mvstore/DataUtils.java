@@ -636,7 +636,7 @@ public final class DataUtils {
      * @param type the page type (1 for node, 0 for leaf)
      * @return the position
      */
-    public static long getPagePos(int chunkId, int offset, int length, int type) {
+    public static long composePagePos(int chunkId, int offset, int length, int type) {
         long pos = (long) chunkId << 38;
         pos |= (long) offset << 6;
         pos |= encodeLength(length) << 1;
@@ -651,7 +651,7 @@ public final class DataUtils {
      * @param tocElement the element
      * @return the page position
      */
-    public static long getPagePos(int chunkId, long tocElement) {
+    public static long composePagePos(int chunkId, long tocElement) {
         return (tocElement & 0x3FFFFFFFFFL) | ((long) chunkId << 38);
     }
 

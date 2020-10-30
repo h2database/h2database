@@ -1572,6 +1572,12 @@ public abstract class TestBase {
 
     }
 
+    /**
+     * Assert that the lambda function throws an exception of the expected class.
+     * 
+     * @param expectedExceptionClass expected exception class
+     * @param c lambda function
+     */
     protected void assertThrows(Class<?> expectedExceptionClass, Callable<?> c) {
         try {
             Object returnValue = c.call();
@@ -1582,6 +1588,12 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Assert that the lambda function throws an exception of the expected class.
+     * 
+     * @param expectedExceptionClass expected exception class
+     * @param c lambda function
+     */
     protected void assertThrows(Class<?> expectedExceptionClass, VoidCallable c) {
         try {
             c.call();
@@ -1592,6 +1604,13 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Assert that the lambda function throws a SQLException or DbException with the
+     * expected error code.
+     * 
+     * @param expectedErrorCode SQL error code
+     * @param c lambda function
+     */
     protected void assertThrows(int expectedErrorCode, Callable<?> c) {
         try {
             Object returnValue = c.call();
@@ -1602,6 +1621,13 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Assert that the lambda function throws a SQLException or DbException with the
+     * expected error code.
+     * 
+     * @param expectedErrorCode SQL error code
+     * @param c lambda function
+     */
     protected void assertThrows(int expectedErrorCode, VoidCallable c) {
         try {
             c.call();

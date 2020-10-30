@@ -26,7 +26,7 @@ public class ConditionLocalAndGlobal extends Condition {
 
     public ConditionLocalAndGlobal(Expression local, Expression global) {
         if (global == null) {
-            DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         this.local = local;
         this.global = global;

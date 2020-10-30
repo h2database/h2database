@@ -15,7 +15,6 @@ import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
@@ -47,10 +46,10 @@ import org.h2.server.web.WebServlet;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
-import org.h2.test.utils.AssertThrows;
 import org.h2.tools.Server;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
+import org.h2.util.Utils10;
 
 /**
  * Tests the H2 Console application.
@@ -121,22 +120,10 @@ public class TestWeb extends TestDb {
         servlet.destroy();
     }
 
-    private static void testWrongParameters() {
-        new AssertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1) {
-            @Override
-            public void test() throws SQLException {
-                Server.createPgServer("-pgPort 8182");
-        }};
-        new AssertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1) {
-            @Override
-            public void test() throws SQLException {
-                Server.createTcpServer("-tcpPort 8182");
-        }};
-        new AssertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1) {
-            @Override
-            public void test() throws SQLException {
-                Server.createWebServer("-webPort=8182");
-        }};
+    private void testWrongParameters() {
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, () -> Server.createPgServer("-pgPort 8182"));
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, () -> Server.createTcpServer("-tcpPort 8182"));
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, () -> Server.createWebServer("-webPort=8182"));
     }
 
     private void testAlreadyRunning() throws Exception {
@@ -1187,7 +1174,7 @@ public class TestWeb extends TestDb {
 
         @Override
         public String toString() {
-            return new String(buff.toByteArray(), StandardCharsets.UTF_8);
+            return Utils10.byteArrayOutputStreamToString(buff, StandardCharsets.UTF_8);
         }
 
         @Override

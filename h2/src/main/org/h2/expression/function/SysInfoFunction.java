@@ -13,6 +13,7 @@ import org.h2.message.DbException;
 import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
@@ -74,7 +75,7 @@ public final class SysInfoFunction extends Operation0 implements NamedExpression
     public static final int TRANSACTION_ID = SESSION_ID + 1;
 
     private static final int[] TYPES = { Value.BOOLEAN, Value.VARCHAR, Value.VARCHAR, Value.INTEGER, Value.INTEGER,
-            Value.INTEGER, Value.INTEGER, Value.BOOLEAN, Value.INTEGER, Value.VARCHAR };
+            Value.BIGINT, Value.BIGINT, Value.BOOLEAN, Value.INTEGER, Value.VARCHAR };
 
     private static final String[] NAMES = { "AUTOCOMMIT", "DATABASE_PATH", "H2VERSION", "LOCK_MODE", "LOCK_TIMEOUT",
             "MEMORY_FREE", "MEMORY_USED", "READONLY", "SESSION_ID", "TRANSACTION_ID" };
@@ -122,11 +123,11 @@ public final class SysInfoFunction extends Operation0 implements NamedExpression
             break;
         case MEMORY_FREE:
             session.getUser().checkAdmin();
-            result = ValueInteger.get(Utils.getMemoryFree());
+            result = ValueBigint.get(Utils.getMemoryFree());
             break;
         case MEMORY_USED:
             session.getUser().checkAdmin();
-            result = ValueInteger.get(Utils.getMemoryUsed());
+            result = ValueBigint.get(Utils.getMemoryUsed());
             break;
         case READONLY:
             result = ValueBoolean.get(session.getDatabase().isReadOnly());
@@ -138,7 +139,7 @@ public final class SysInfoFunction extends Operation0 implements NamedExpression
             result = session.getTransactionId();
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return result;
     }

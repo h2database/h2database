@@ -7,25 +7,23 @@ package org.h2.schema;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+
 import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.table.Table;
-import org.h2.util.HasSQL;
 import org.h2.util.JdbcUtils;
-import org.h2.util.ParserUtil;
+import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 
 /**
  * Represents a user-defined aggregate function.
  */
-public final class UserAggregate extends SchemaObject {
+public final class UserAggregate extends UserDefinedFunction {
 
-    private String className;
     private Class<?> javaClass;
 
     public UserAggregate(Schema schema, int id, String name, String className,
@@ -57,11 +55,6 @@ public final class UserAggregate extends SchemaObject {
     }
 
     @Override
-    public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError(toString());
-    }
-
-    @Override
     public String getDropSQL() {
         StringBuilder builder = new StringBuilder("DROP AGGREGATE IF EXISTS ");
         return getSQL(builder, DEFAULT_SQL_FLAGS).toString();
@@ -71,8 +64,7 @@ public final class UserAggregate extends SchemaObject {
     public String getCreateSQL() {
         StringBuilder builder = new StringBuilder("CREATE FORCE AGGREGATE ");
         getSQL(builder, DEFAULT_SQL_FLAGS).append(" FOR ");
-        ParserUtil.quoteIdentifier(builder, className, HasSQL.DEFAULT_SQL_FLAGS);
-        return builder.toString();
+        return StringUtils.quoteStringSQL(builder, className).toString();
     }
 
     @Override
@@ -86,15 +78,6 @@ public final class UserAggregate extends SchemaObject {
         className = null;
         javaClass = null;
         invalidate();
-    }
-
-    @Override
-    public void checkRename() {
-        throw DbException.getUnsupportedException("AGGREGATE");
-    }
-
-    public String getJavaClassName() {
-        return this.className;
     }
 
     /**

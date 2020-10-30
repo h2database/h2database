@@ -24,7 +24,7 @@ import org.h2.value.Value;
  * This class represents the statement
  * CREATE DOMAIN
  */
-public class CreateDomain extends SchemaCommand {
+public class CreateDomain extends SchemaOwnerCommand {
 
     private String typeName;
     private boolean ifNotExists;
@@ -74,11 +74,7 @@ public class CreateDomain extends SchemaCommand {
     }
 
     @Override
-    public long update() {
-        session.getUser().checkAdmin();
-        session.commit(true);
-        session.getUser().checkAdmin();
-        Schema schema = getSchema();
+    long update(Schema schema) {
         if (schema.findDomain(typeName) != null) {
             if (ifNotExists) {
                 return 0;

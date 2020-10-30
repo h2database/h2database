@@ -41,9 +41,9 @@ public class UniquePredicate extends PredicateWithSubquery {
         }
 
         @Override
-        public int getRowCount() {
+        public long getRowCount() {
             // Not required
-            return 0;
+            return 0L;
         }
 
         @Override
@@ -59,7 +59,7 @@ public class UniquePredicate extends PredicateWithSubquery {
             if (values.length != columnCount) {
                 values = Arrays.copyOf(values, columnCount);
             }
-            int expected = result.getRowCount() + 1;
+            long expected = result.getRowCount() + 1;
             result.addRow(values);
             if (expected != result.getRowCount()) {
                 hasDuplicates = true;

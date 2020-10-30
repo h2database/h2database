@@ -69,10 +69,7 @@ public final class DBObjectFunction extends FunctionN {
                 object = schema.findIndex(session, objectName);
                 break;
             case "ROUTINE":
-                object = schema.findFunction(objectName);
-                if (object == null) {
-                    object = schema.findAggregate(objectName);
-                }
+                object = schema.findFunctionOrAggregate(objectName);
                 break;
             case "SEQUENCE":
                 object = schema.findSequence(objectName);
@@ -119,7 +116,7 @@ public final class DBObjectFunction extends FunctionN {
             String sql = object.getCreateSQLForMeta();
             return sql != null ? ValueVarchar.get(sql, session) : ValueNull.INSTANCE;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
     }
 

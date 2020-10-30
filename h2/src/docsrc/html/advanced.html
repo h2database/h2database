@@ -49,8 +49,6 @@ Advanced
     Run as Windows Service</a><br />
 <a href="#odbc_driver">
     ODBC Driver</a><br />
-<a href="#microsoft_dot_net">
-    Using H2 in Microsoft .NET</a><br />
 <a href="#acid">
     ACID</a><br />
 <a href="#durability_problems">
@@ -415,7 +413,7 @@ and re-run the <code>CreateCluster</code> tool.
 To find out which cluster nodes are currently running, execute the following SQL statement:
 </p>
 <pre>
-SELECT `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME='CLUSTER'
+SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'CLUSTER'
 </pre>
 <p>
 If the result is <code>''</code> (two single quotes), then the cluster mode is disabled. Otherwise, the list of
@@ -522,12 +520,16 @@ The following tokens are keywords in H2:
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>AND</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>ANY</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>ARRAY</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
 <tr><td>AS</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>ASYMMETRIC</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>NR</td><td></td></tr>
+<tr><td>AUTHORIZATION</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>BETWEEN</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>NR</td><td>+</td></tr>
 <tr><td>BOTH</td>
@@ -674,22 +676,16 @@ The following tokens are keywords in H2:
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
 <tr><td>SET</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>SOME</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>SYMMETRIC</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>NR</td><td></td></tr>
 <tr><td>SYSTEM_USER</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
-<tr><td>SYSDATE</td>
-<td>CS</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>SYSTIME</td>
-<td>CS</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>SYSTIMESTAMP</td>
-<td>CS</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>TABLE</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>TO</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
-<tr><td>TODAY</td>
-<td>CS</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>TOP</td>
 <td>CS</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>TRAILING</td>
@@ -940,55 +936,6 @@ Subsequent connections don't need to be opened by an administrator.
 When using Microsoft Access to edit data in a linked H2 table, you may need to enable the following option:
 Tools - Options - Edit/Find - ODBC fields.
 </p>
-
-<h2 id="microsoft_dot_net">Using H2 in Microsoft .NET</h2>
-<p>
-The database can be used from Microsoft .NET even without using Java, by using IKVM.NET.
-You can access a H2 database on .NET using the JDBC API, or using the ADO.NET interface.
-</p>
-
-<h3>Using the ADO.NET API on .NET</h3>
-<p>
-An implementation of the ADO.NET interface is available in the open source project
-<a href="https://code.google.com/archive/p/h2sharp/">H2Sharp</a>.
-</p>
-
-<h3>Using the JDBC API on .NET</h3>
-<ul><li>Install the .NET Framework from <a href="https://www.microsoft.com">Microsoft</a>.
-    Mono has not yet been tested.
-</li><li>Install <a href="https://www.ikvm.net">IKVM.NET</a>.
-</li><li>Copy the <code>h2*.jar</code> file to <code>ikvm/bin</code>
-</li><li>Run the H2 Console using:
-    <code>ikvm -jar h2*.jar</code>
-</li><li>Convert the H2 Console to an <code>.exe</code> file using:
-    <code>ikvmc -target:winexe h2*.jar</code>.
-    You may ignore the warnings.
-</li><li>Create a <code>.dll</code> file using (change the version accordingly):
-    <code>ikvmc.exe -target:library -version:1.0.69.0 h2*.jar</code>
-</li></ul>
-<p>
-If you want your C# application use H2, you need to add the <code>h2.dll</code> and the
-<code>IKVM.OpenJDK.ClassLibrary.dll</code> to your C# solution. Here some sample code:
-</p>
-<pre>
-using System;
-using java.sql;
-
-class Test
-{
-    static public void Main()
-    {
-        org.h2.Driver.load();
-        Connection conn = DriverManager.getConnection("jdbc:h2:~/test", "sa", "sa");
-        Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("SELECT 'Hello World'");
-        while (rs.next())
-        {
-            Console.WriteLine(rs.getString(1));
-        }
-    }
-}
-</pre>
 
 <h2 id="acid">ACID</h2>
 <p>
@@ -1894,28 +1841,29 @@ This database has the following known limitations:
     An example database URL is: <code>jdbc:h2:split:~/test</code>.
 </li><li>The maximum number of rows per table is 2^64.
 </li><li>The maximum number of open transactions is 65535.
+</li><li>The maximum number of columns in a table or expressions in a SELECT statement is 16384.
+The actual possible number can be smaller if their definitions are too long.
+</li><li>The maximum length of an identifier (table name, column name, and so on) is 256 characters.
+</li><li>The maximum length of CHARACTER, CHARACTER VARYING and VARCHAR_IGNORECASE values and columns
+is 1048576 characters.
+</li><li>The maximum length of BINARY, BINARY VARYING, JAVA_OBJECT, GEOMETRY, and JSON values and columns
+is 1048576 bytes.
+</li><li>The maximum precision of NUMERIC and DECFLOAT values and columns is 100000.
+</li><li>The maximum length of an ENUM value is 1048576 characters, the maximum number of ENUM values is 65536.
+</li><li>The maximum cardinality of an ARRAY value or column is 65536.
+</li><li>The maximum degree of a ROW value or column is 16384.
+</li><li>The maximum index of parameter is 100000.
 </li><li>Main memory requirements: The larger the database, the more main memory is required.
-    With the current storage mechanism (the page store),
-    the minimum main memory required is around 1 MB for each 8 GB database file size.
 </li><li>Limit on the complexity of SQL statements.
-Statements of the following form will result in a stack overflow exception:
-<pre>
-SELECT * FROM DUAL WHERE X = 1
-OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
--- repeat previous line 500 times --
-</pre>
+Very complex expressions may result in a stack overflow exception.
 </li><li>There is no limit for the following entities, except the memory and storage capacity:
-    maximum identifier length (table name, column name, and so on);
-    maximum number of tables, columns, indexes, triggers, and other database objects;
-    maximum statement length, number of parameters per statement, tables per statement, expressions
-    in order by, group by, having, and so on;
+    maximum number of tables, indexes, triggers, and other database objects;
+    maximum statement length, tables per statement;
     maximum rows per query;
-    maximum columns per table, columns per index, indexes per table, lob columns per table, and so on;
-    maximum row length, index row length, select row length;
-    maximum length of a varchar column, decimal column, literal in a statement.
+    maximum indexes per table, lob columns per table, and so on;
+    maximum row length, index row length, select row length.
 </li><li>Querying from the metadata tables is slow if there are many tables (thousands).
-</li><li>For limitations on data types, see the documentation of the respective Java data type
-    or the data type documentation of this database.
+</li><li>For other limitations on data types, see the data type documentation of this database.
 </li></ul>
 
 <h2 id="glossary_links">Glossary and Links</h2>

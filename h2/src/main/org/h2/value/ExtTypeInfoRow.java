@@ -10,6 +10,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
+import org.h2.message.DbException;
 import org.h2.util.ParserUtil;
 
 /**
@@ -40,6 +43,9 @@ public final class ExtTypeInfoRow extends ExtTypeInfo {
      *            number of fields to use
      */
     public ExtTypeInfoRow(Typed[] fields, int degree) {
+        if (degree > Constants.MAX_COLUMNS) {
+            throw DbException.get(ErrorCode.TOO_MANY_COLUMNS_1, "" + Constants.MAX_COLUMNS);
+        }
         LinkedHashMap<String, TypeInfo> map = new LinkedHashMap<>((int) Math.ceil(degree / .75));
         for (int i = 0; i < degree;) {
             TypeInfo t = fields[i].getType();
@@ -55,6 +61,9 @@ public final class ExtTypeInfoRow extends ExtTypeInfo {
      *            fields
      */
     public ExtTypeInfoRow(LinkedHashMap<String, TypeInfo> fields) {
+        if (fields.size() > Constants.MAX_COLUMNS) {
+            throw DbException.get(ErrorCode.TOO_MANY_COLUMNS_1, "" + Constants.MAX_COLUMNS);
+        }
         this.fields = fields;
     }
 

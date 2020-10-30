@@ -10,6 +10,7 @@ import java.math.RoundingMode;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
+import org.h2.engine.Constants;
 import org.h2.message.DbException;
 
 /**
@@ -26,6 +27,10 @@ abstract class ValueBigDecimalBase extends Value {
             throw new IllegalArgumentException("null");
         } else if (value.getClass() != BigDecimal.class) {
             throw DbException.get(ErrorCode.INVALID_CLASS_2, BigDecimal.class.getName(), value.getClass().getName());
+        }
+        int length = value.precision();
+        if (length > Constants.MAX_NUMERIC_PRECISION) {
+            throw DbException.getValueTooLongException(getTypeName(getValueType()), value.toString(), length);
         }
         this.value = value;
     }
@@ -103,8 +108,13 @@ abstract class ValueBigDecimalBase extends Value {
     }
 
     @Override
-    public final String getString() {
-        return value.toString();
+    public final float getFloat() {
+        return value.floatValue();
+    }
+
+    @Override
+    public final double getDouble() {
+        return value.doubleValue();
     }
 
     @Override

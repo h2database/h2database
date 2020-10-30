@@ -21,6 +21,80 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #2936: Add data type conversion code from datetime and UUID values to JSON
+</li>
+<li>Issue #2935: ENUM ARRAY isn't read properly from persisted data
+</li>
+<li>Issue #2923: Combination of fileName() with fileStore() should throw an exception
+</li>
+<li>Issue #2928: JSON_ARRAYAGG and all NULL values
+</li>
+<li>PR #2918: Removal of unnecessary lock
+</li>
+<li>Issue #2911: org.h2.mvstore.MVStoreException: Transaction was illegally transitioned from ROLLING_BACK to
+ROLLED_BACK
+</li>
+<li>Issue #1022: JdbcDatabaseMetaData.getPseudoColumns() should be implemented
+</li>
+<li>Issue #2914: (T1.A = T2.B) OR (T1.A = T2.C) should be optimized to T1.A IN(T2.B, T2.C) to allow index conditions
+</li>
+<li>PR #2903: Assorted changes
+</li>
+<li>Issue #2901: PgServer returns less rows when fetchSize is set
+</li>
+<li>Issue #2894: NPE in DROP SCHEMA when unique constraint is removed before linked referential constraint
+</li>
+<li>Issue #2888: H2 should pass time zone of client to the server
+</li>
+<li>PR #2890: Fixed possible eternal wait(0)
+</li>
+<li>Issue #2846: GRANT SELECT, INSERT, UPDATE, DELETE incorrectly gives privileges to drop a table
+</li>
+<li>Issue #2882: NPE in UPDATE with SELECT UNION
+</li>
+<li>PR #2881: Store users and roles together and user-defined functions and aggregates together
+</li>
+<li>Issue #2878: Disallow spatial indexes in PageStore databases
+</li>
+<li>PR #2874: Use 64-bit row counts in results and other changes
+</li>
+<li>Issue #2866: New INFORMATION_SCHEMA should not use keywords as column names
+</li>
+<li>Issue #2867: PageStore + Lazy + INSERT ... SELECT cause infinite loop
+</li>
+<li>PR #2869: Normalize binary geometry literals and improve EWKB representation of POLYGON EMPTY
+</li>
+<li>Issue #2860: CHAR columns in PgCatalogTable have incorrect length
+</li>
+<li>Issue #2848: Add support for standard &lt;listagg overflow clause&gt;
+</li>
+<li>Issue #2858: Throw 22001 on attempt to use getString() or getBytes() on LOB object longer than 1,048,576
+chars/octets
+</li>
+<li>Issue #2854: Define limits for identifiers, number of columns, etc.
+</li>
+<li>PR #2853: Small optimization for Page compression / decompression
+</li>
+<li>Issue #2832: Define length limits for non-LOB data types
+</li>
+<li>Issue #2842: Querying view that uses LTRIM/RTRIM results in a syntax error
+</li>
+<li>Issue #2841: Call to STRINGDECODE results in StringIndexOutOfBoundsException
+</li>
+<li>Issue #2839: Querying a view that uses the POSITION() function results in an unexpected syntax error
+</li>
+<li>Issue #2838: INSERT() with NULL arguments for the original string and string to be added results in NPE
+</li>
+<li>Issue #2837: ROUND() function should reject invalid number of digits immediately
+</li>
+<li>Issue #2835: Calling math functions with a string argument results in a NullPointerException
+</li>
+<li>Issue #2833: MERGE INTO causes an unexpected syntax error
+</li>
+<li>Issue #2831: Restore YEAR data type for MySQL compatibility mode
+</li>
+<li>Issue #2822: Suspicious logic in Database.closeImpl()
+</li>
 <li>Issue #2829: Incorrect manifest entries in sources jar
 </li>
 <li>Issue #2828: Parser can't parse NOT in simple when operand

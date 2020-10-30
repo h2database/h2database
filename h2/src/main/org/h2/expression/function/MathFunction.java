@@ -128,7 +128,7 @@ public final class MathFunction extends Function1_2 {
             v1 = trunc(session, v1);
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return v1;
     }
@@ -140,7 +140,7 @@ public final class MathFunction extends Function1_2 {
             if (v2 == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
-            scale = v2.getInt();
+            scale = checkScale(v2);
         } else {
             scale = 0;
         }
@@ -156,7 +156,7 @@ public final class MathFunction extends Function1_2 {
             v1 = ValueDecfloat.get(bd);
             break;
         default:
-            v1 = ValueNumeric.get(bd);
+            v1 = ValueNumeric.get(bd.setScale(type.getScale(), RoundingMode.HALF_UP));
         }
         return v1;
     }
@@ -203,7 +203,7 @@ public final class MathFunction extends Function1_2 {
             if (v2 == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
-            scale = v2.getInt();
+            scale = checkScale(v2);
         } else {
             scale = 0;
         }
@@ -229,6 +229,15 @@ public final class MathFunction extends Function1_2 {
             break;
         }
         return v1;
+    }
+
+    private static int checkScale(Value v) {
+        int scale;
+        scale = v.getInt();
+        if (scale < 0 || scale > ValueNumeric.MAXIMUM_SCALE) {
+            throw DbException.getInvalidValueException("digits", scale);
+        }
+        return scale;
     }
 
     @Override
@@ -267,7 +276,7 @@ public final class MathFunction extends Function1_2 {
                 }
                 break;
             default:
-                throw DbException.getInvalidValueException("numeric", commonType.getTraceSQL());
+                throw DbException.getInvalidValueException("numeric", type.getTraceSQL());
             }
             break;
         }
@@ -328,7 +337,7 @@ public final class MathFunction extends Function1_2 {
             }
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         if (left.isConstant() && (right == null || right.isConstant())) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
@@ -343,9 +352,12 @@ public final class MathFunction extends Function1_2 {
                 Value scaleValue = right.getValue(session);
                 if (scaleValue != ValueNull.INSTANCE) {
                     scale = scaleValue.getInt();
+                    if (scale < 0) {
+                        scale = 0;
+                    }
                 }
             } else {
-                scale = Integer.MAX_VALUE;
+                scale = ValueNumeric.MAXIMUM_SCALE;
             }
         }
         return TypeInfo.getTypeInfo(Value.NUMERIC, Integer.MAX_VALUE, scale, null);

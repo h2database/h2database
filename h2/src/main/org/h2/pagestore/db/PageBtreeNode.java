@@ -107,8 +107,13 @@ public class PageBtreeNode extends PageBtree {
         entryCount = data.readShortInt();
         childPageIds = new int[entryCount + 1];
         childPageIds[entryCount] = data.readInt();
-        rows = entryCount == 0 ? PageStoreRow.EMPTY_SEARCH_ARRAY : new SearchRow[entryCount];
-        offsets = Utils.newIntArray(entryCount);
+        if (entryCount == 0) {
+            rows = PageStoreRow.EMPTY_SEARCH_ARRAY;
+            offsets = Utils.EMPTY_INT_ARRAY;
+        } else {
+            rows = new SearchRow[entryCount];
+            offsets = new int[entryCount];
+        }
         for (int i = 0; i < entryCount; i++) {
             childPageIds[i] = data.readInt();
             offsets[i] = data.readShortInt();
@@ -172,7 +177,7 @@ public class PageBtreeNode extends PageBtree {
             last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
             rowLength = index.getRowSize(data, row, true);
             if (last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
-                throw DbException.throwInternalError();
+                throw DbException.getInternalError();
             }
         }
         int offset = last - rowLength;
@@ -409,9 +414,8 @@ public class PageBtreeNode extends PageBtree {
     private void check() {
         if (SysProperties.CHECK) {
             for (int i = 0; i < entryCount + 1; i++) {
-                int child = childPageIds[i];
-                if (child == 0) {
-                    DbException.throwInternalError();
+                if (childPageIds[i] == 0) {
+                    throw DbException.getInternalError();
                 }
             }
         }
@@ -471,7 +475,7 @@ public class PageBtreeNode extends PageBtree {
         written = false;
         changeCount = index.getPageStore().getChangeCount();
         if (entryCount < 0) {
-            DbException.throwInternalError(Integer.toString(entryCount));
+            throw DbException.getInternalError(Integer.toString(entryCount));
         }
         if (entryCount > i) {
             int startNext = i > 0 ? offsets[i - 1] : index.getPageStore().getPageSize();
@@ -570,7 +574,7 @@ public class PageBtreeNode extends PageBtree {
         } else {
             Page p = store.getPage(parentPageId);
             if (!(p instanceof PageBtreeNode)) {
-                throw DbException.throwInternalError();
+                throw DbException.getInternalError();
             }
             PageBtreeNode n = (PageBtreeNode) p;
             n.moveChild(getPos(), newPos);
@@ -601,7 +605,7 @@ public class PageBtreeNode extends PageBtree {
                 return;
             }
         }
-        throw DbException.throwInternalError(oldPos + " " + newPos);
+        throw DbException.getInternalError(oldPos + " " + newPos);
     }
 
 }

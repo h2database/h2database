@@ -28,6 +28,7 @@
 42000=SQLステートメントに文法エラーがあります {0}
 42001=SQLステートメントに文法エラーがあります {0}; 期待されるステートメント {1}
 42602=#Invalid name {0}
+42622=#The name that starts with {0} is too long. The maximum length is {1}
 42S01=テーブル {0} はすでに存在します
 42S02=テーブル {0} が見つかりません
 42S03=#Table {0} not found (candidates are: {1})
@@ -37,12 +38,14 @@
 42S21=列名 {0} が重複しています
 42S22=列 {0} が見つかりません
 42S31=#Identical expressions should be used; expected {0}, found {1}
+54011=#Too many columns. The maximum count is {0}
 57014=ステートメントがキャンセルされたか、セッションがタイムアウトしました
 90000=関数 {0} はリザルトセットを返さなければなりません
 90001=メソッドはクエリをサポートしていません。executeUpdateのかわりに、excute、またはexecuteQueryを使用してください
 90002=メソッドはクエリしかサポートしていません。executeQueryのかわりに、excecute、またはexecuteUpdateを使用してください
 90003=文字数が奇数の16進文字列です: {0}
 90004=16進文字列に不正な文字が含まれています: {0}
+90005=#Invalid trigger flags: {0}
 90006=シーケンス {0} を使い果たしました
 90007=オブジェクトはすでに閉じられています
 90008=パラメータ {1} に対する値 {0} が不正です

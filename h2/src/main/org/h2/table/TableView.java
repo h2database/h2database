@@ -272,7 +272,7 @@ public class TableView extends Table {
 
     @Override
     public String getDropSQL() {
-        return "DROP VIEW IF EXISTS " + getSQL(DEFAULT_SQL_FLAGS) + " CASCADE";
+        return getSQL(new StringBuilder("DROP VIEW IF EXISTS "), DEFAULT_SQL_FLAGS).append(" CASCADE").toString();
     }
 
     @Override
@@ -365,7 +365,7 @@ public class TableView extends Table {
 
     @Override
     public long getRowCount(SessionLocal session) {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     @Override

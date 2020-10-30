@@ -63,6 +63,7 @@ import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
+import org.h2.util.Utils10;
 import org.h2.value.DataType;
 
 /**
@@ -447,7 +448,7 @@ public class WebApp {
             } else if ("CreateCluster".equals(toolName)) {
                 tool = new CreateCluster();
             } else {
-                throw DbException.throwInternalError(toolName);
+                throw DbException.getInternalError(toolName);
             }
             ByteArrayOutputStream outBuff = new ByteArrayOutputStream();
             PrintStream out = new PrintStream(outBuff, false, "UTF-8");
@@ -455,7 +456,7 @@ public class WebApp {
             try {
                 tool.runTool(argList);
                 out.flush();
-                String o = new String(outBuff.toByteArray(), StandardCharsets.UTF_8);
+                String o = Utils10.byteArrayOutputStreamToString(outBuff, StandardCharsets.UTF_8);
                 String result = PageParser.escapeHtml(o);
                 session.put("toolResult", result);
             } catch (Exception e) {
@@ -821,8 +822,12 @@ public class WebApp {
                         }
                     }
                     rs.close();
-                    rs = stat.executeQuery("SELECT NAME, ADMIN FROM " +
-                            "INFORMATION_SCHEMA.USERS ORDER BY NAME");
+                    try {
+                        rs = stat.executeQuery(
+                                "SELECT USER_NAME, IS_ADMIN FROM INFORMATION_SCHEMA.USERS ORDER BY USER_NAME");
+                    } catch (SQLException e) {
+                        rs = stat.executeQuery("SELECT NAME, ADMIN FROM INFORMATION_SCHEMA.USERS ORDER BY NAME");
+                    }
                     for (int i = 0; rs.next(); i++) {
                         if (i == 0) {
                             buff.append("setNode(").append(treeIndex)

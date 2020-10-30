@@ -519,14 +519,10 @@ public class Build extends BuildBase {
 
     /**
      * Add META-INF/versions for Java 9+.
-     *
-     * @param addNetUtils include NetUtils2 implementation
      */
-    private void addVersions(boolean addNetUtils) {
+    private void addVersions() {
         copy("temp/META-INF/versions/9", files("src/java9/precompiled"), "src/java9/precompiled");
-        if (addNetUtils) {
-            copy("temp/META-INF/versions/10", files("src/java10/precompiled"), "src/java10/precompiled");
-        }
+        copy("temp/META-INF/versions/10", files("src/java10/precompiled"), "src/java10/precompiled");
     }
 
     /**
@@ -535,7 +531,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create the regular h2.jar file.")
     public void jar() {
         compile();
-        addVersions(true);
+        addVersions();
         manifest("src/main/META-INF/MANIFEST.MF");
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
@@ -563,7 +559,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create h2mvstore.jar containing only the MVStore.")
     public void jarMVStore() {
         compileMVStore(true);
-        addVersions(false);
+        addVersions();
         manifest("src/installer/mvstore/MANIFEST.MF");
         FileList files = files("temp");
         files.exclude("*.DS_Store");

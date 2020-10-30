@@ -298,6 +298,32 @@ public class Constants {
     public static final int LOCK_SLEEP = 1000;
 
     /**
+     * The maximum allowed length of identifiers.
+     */
+    public static final int MAX_IDENTIFIER_LENGTH = 256;
+
+    /**
+     * The maximum number of columns in a table, select statement or row value.
+     */
+    public static final int MAX_COLUMNS = 16_384;
+
+    /**
+     * The maximum allowed length for character string, binary string, and other
+     * data types based on them; excluding LOB data types.
+     */
+    public static final int MAX_STRING_LENGTH = 1024 * 1024;
+
+    /**
+     * The maximum allowed precision of numeric data types.
+     */
+    public static final int MAX_NUMERIC_PRECISION = 100_000;
+
+    /**
+     * The maximum allowed cardinality of array.
+     */
+    public static final int MAX_ARRAY_CARDINALITY = 65_536;
+
+    /**
      * The highest possible parameter index.
      */
     public static final int MAX_PARAMETER_INDEX = 100_000;
@@ -433,17 +459,6 @@ public class Constants {
      * The file name suffix of all database files.
      */
     public static final String SUFFIX_DB_FILE = ".db";
-
-    /**
-     * The file name suffix of large object files.
-     */
-    public static final String SUFFIX_LOB_FILE = ".lob.db";
-
-    /**
-     * The suffix of the directory name used if LOB objects are stored in a
-     * directory.
-     */
-    public static final String SUFFIX_LOBS_DIRECTORY = ".lobs.db";
 
     /**
      * The file name suffix of file lock files that are used to make sure a

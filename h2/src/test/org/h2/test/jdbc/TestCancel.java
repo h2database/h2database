@@ -117,8 +117,8 @@ public class TestCancel extends TestDb {
         assertEquals(1, stat.getQueryTimeout());
         Statement s2 = conn.createStatement();
         assertEquals(1, s2.getQueryTimeout());
-        ResultSet rs = s2.executeQuery("SELECT `VALUE` " +
-                "FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME = 'QUERY_TIMEOUT'");
+        ResultSet rs = s2.executeQuery(
+                "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'QUERY_TIMEOUT'");
         rs.next();
         assertEquals(1000, rs.getInt(1));
         assertThrows(ErrorCode.STATEMENT_WAS_CANCELED, stat).
@@ -164,11 +164,14 @@ public class TestCancel extends TestDb {
     }
 
     private void testCancelStatement() throws Exception {
+        if (config.lazy && config.networked) {
+            return;
+        }
         deleteDb("cancel");
         Connection conn = getConnection("cancel");
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("CREATE  ALIAS VISIT FOR \"" + getClass().getName() + ".visit\"");
+        stat.execute("CREATE  ALIAS VISIT FOR '" + getClass().getName() + ".visit'");
         stat.execute("CREATE  MEMORY TABLE TEST" +
                 "(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         PreparedStatement prep = conn.prepareStatement(

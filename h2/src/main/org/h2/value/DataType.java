@@ -16,6 +16,7 @@ import java.util.Map;
 import org.h2.api.ErrorCode;
 import org.h2.api.H2Type;
 import org.h2.api.IntervalQualifier;
+import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
@@ -134,7 +135,7 @@ public class DataType {
                 "BINARY LARGE OBJECT", "BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "IMAGE");
         add(Value.BOOLEAN, Types.BOOLEAN, createNumeric(ValueBoolean.PRECISION, 0), "BOOLEAN", "BIT", "BOOL");
         add(Value.TINYINT, Types.TINYINT, createNumeric(ValueTinyint.PRECISION, 0), "TINYINT");
-        add(Value.SMALLINT, Types.SMALLINT, createNumeric(ValueSmallint.PRECISION, 0), "SMALLINT", "YEAR", "INT2");
+        add(Value.SMALLINT, Types.SMALLINT, createNumeric(ValueSmallint.PRECISION, 0), "SMALLINT", "INT2");
         add(Value.INTEGER, Types.INTEGER, createNumeric(ValueInteger.PRECISION, 0),
                 "INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED", "SERIAL"
         );
@@ -142,11 +143,10 @@ public class DataType {
                 "BIGINT", "INT8", "LONG", "IDENTITY", "BIGSERIAL");
         dataType = new DataType();
         dataType.minPrecision = 1;
-        dataType.maxPrecision = Integer.MAX_VALUE;
-        dataType.defaultPrecision = ValueNumeric.DEFAULT_PRECISION;
+        dataType.defaultPrecision = dataType.maxPrecision = Constants.MAX_NUMERIC_PRECISION;
         dataType.defaultScale = ValueNumeric.DEFAULT_SCALE;
         dataType.maxScale = ValueNumeric.MAXIMUM_SCALE;
-        dataType.minScale = ValueNumeric.MINIMUM_SCALE;
+        dataType.minScale = 0;
         dataType.params = "PRECISION,SCALE";
         dataType.supportsPrecision = true;
         dataType.supportsScale = true;
@@ -157,8 +157,7 @@ public class DataType {
         add(Value.DOUBLE, Types.FLOAT, createNumeric(ValueDouble.PRECISION, 0), "FLOAT");
         dataType = new DataType();
         dataType.minPrecision = 1;
-        dataType.maxPrecision = Integer.MAX_VALUE;
-        dataType.defaultPrecision = ValueDecfloat.DEFAULT_PRECISION;
+        dataType.defaultPrecision = dataType.maxPrecision = Constants.MAX_NUMERIC_PRECISION;
         dataType.params = "PRECISION";
         dataType.supportsPrecision = true;
         add(Value.DECFLOAT, Types.NUMERIC, dataType, "DECFLOAT");
@@ -198,7 +197,7 @@ public class DataType {
         dataType.suffix = "]";
         dataType.params = "CARDINALITY";
         dataType.supportsPrecision = true;
-        dataType.defaultPrecision = dataType.maxPrecision = Integer.MAX_VALUE;
+        dataType.defaultPrecision = dataType.maxPrecision = Constants.MAX_ARRAY_CARDINALITY;
         add(Value.ARRAY, Types.ARRAY, dataType, "ARRAY");
         dataType = new DataType();
         dataType.prefix = "ROW(";
@@ -296,8 +295,8 @@ public class DataType {
         dataType.caseSensitive = caseSensitive;
         dataType.supportsPrecision = true;
         dataType.minPrecision = 1;
-        dataType.maxPrecision = Integer.MAX_VALUE;
-        dataType.defaultPrecision = fixedLength ? 1 : Integer.MAX_VALUE;
+        dataType.maxPrecision = Constants.MAX_STRING_LENGTH;
+        dataType.defaultPrecision = fixedLength ? 1 : Constants.MAX_STRING_LENGTH;
         return dataType;
     }
 
@@ -313,8 +312,8 @@ public class DataType {
         dataType.prefix = "'";
         dataType.suffix = "'";
         dataType.params = "TYPE,SRID";
-        dataType.maxPrecision = Integer.MAX_VALUE;
-        dataType.defaultPrecision = Integer.MAX_VALUE;
+        dataType.maxPrecision = Constants.MAX_STRING_LENGTH;
+        dataType.defaultPrecision = Constants.MAX_STRING_LENGTH;
         return dataType;
     }
 
@@ -879,8 +878,7 @@ public class DataType {
         } else if (clazz == Double.TYPE) {
             return (double) 0;
         }
-        throw DbException.throwInternalError(
-                "primitive=" + clazz.toString());
+        throw DbException.getInternalError("primitive=" + clazz.toString());
     }
 
     /**

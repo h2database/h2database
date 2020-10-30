@@ -80,16 +80,15 @@ public class TestMultiDimension extends TestDb {
             assertEquals(y, tool.deinterleave(3, xyz, 1));
             assertEquals(z, tool.deinterleave(3, xyz, 2));
         }
-        createClassProxy(MultiDimension.class);
-        assertThrows(IllegalArgumentException.class, m).getMaxValue(1);
-        assertThrows(IllegalArgumentException.class, m).getMaxValue(33);
-        assertThrows(IllegalArgumentException.class, m).normalize(2, 10, 11, 12);
-        assertThrows(IllegalArgumentException.class, m).normalize(2, 5, 10, 0);
-        assertThrows(IllegalArgumentException.class, m).normalize(2, 10, 0, 9);
-        assertThrows(IllegalArgumentException.class, m).interleave(-1, 5);
-        assertThrows(IllegalArgumentException.class, m).interleave(5, -1);
-        assertThrows(IllegalArgumentException.class, m).
-                interleave(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+        assertThrows(IllegalArgumentException.class, () -> m.getMaxValue(1));
+        assertThrows(IllegalArgumentException.class, () -> m.getMaxValue(33));
+        assertThrows(IllegalArgumentException.class, () -> m.normalize(2, 10, 11, 12));
+        assertThrows(IllegalArgumentException.class, () -> m.normalize(2, 5, 10, 0));
+        assertThrows(IllegalArgumentException.class, () -> m.normalize(2, 10, 0, 9));
+        assertThrows(IllegalArgumentException.class, () -> m.interleave(-1, 5));
+        assertThrows(IllegalArgumentException.class, () -> m.interleave(5, -1));
+        assertThrows(IllegalArgumentException.class,
+                () -> m.interleave(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE));
     }
 
     private void testPerformance2d() throws SQLException {
@@ -97,8 +96,7 @@ public class TestMultiDimension extends TestDb {
         Connection conn;
         conn = getConnection("multiDimension");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS MAP FOR \"" +
-        getClass().getName() + ".interleave\"");
+        stat.execute("CREATE ALIAS MAP FOR '" + getClass().getName() + ".interleave'");
         stat.execute("CREATE TABLE TEST(X INT NOT NULL, Y INT NOT NULL, " +
                 "XY BIGINT AS MAP(X, Y), DATA VARCHAR)");
         stat.execute("CREATE INDEX IDX_X ON TEST(X, Y)");
@@ -170,8 +168,7 @@ public class TestMultiDimension extends TestDb {
         Connection conn;
         conn = getConnection("multiDimension");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS MAP FOR \"" +
-                getClass().getName() + ".interleave\"");
+        stat.execute("CREATE ALIAS MAP FOR '" + getClass().getName() + ".interleave'");
         stat.execute("CREATE TABLE TEST(X INT NOT NULL, " +
                 "Y INT NOT NULL, Z INT NOT NULL, "
                 + "XYZ BIGINT AS MAP(X, Y, Z), DATA VARCHAR)");

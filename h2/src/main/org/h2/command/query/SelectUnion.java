@@ -115,10 +115,10 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    protected ResultInterface queryWithoutCache(int maxRows, ResultTarget target) {
+    protected ResultInterface queryWithoutCache(long maxRows, ResultTarget target) {
         OffsetFetch offsetFetch = getOffsetFetch(maxRows);
         long offset = offsetFetch.offset;
-        int fetch = offsetFetch.fetch;
+        long fetch = offsetFetch.fetch;
         boolean fetchPercent = offsetFetch.fetchPercent;
         Database db = session.getDatabase();
         if (db.getSettings().optimizeInsertFromSelect) {
@@ -166,7 +166,7 @@ public class SelectUnion extends Query {
             right.setDistinctIfPossible();
             break;
         default:
-            DbException.throwInternalError("type=" + unionType);
+            throw DbException.getInternalError("type=" + unionType);
         }
         ResultInterface l = left.query(0);
         ResultInterface r = right.query(0);
@@ -208,7 +208,7 @@ public class SelectUnion extends Query {
             break;
         }
         default:
-            DbException.throwInternalError("type=" + unionType);
+            throw DbException.getInternalError("type=" + unionType);
         }
         l.close();
         r.close();
@@ -222,7 +222,7 @@ public class SelectUnion extends Query {
     @Override
     public void init() {
         if (checkInit) {
-            DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         checkInit = true;
         left.init();
@@ -252,7 +252,7 @@ public class SelectUnion extends Query {
             return;
         }
         if (!checkInit) {
-            DbException.throwInternalError("not initialized");
+            throw DbException.getInternalError("not initialized");
         }
         isPrepared = true;
         left.prepare();
@@ -327,7 +327,7 @@ public class SelectUnion extends Query {
             break;
         }
         default:
-            DbException.throwInternalError("type=" + unionType);
+            throw DbException.getInternalError("type=" + unionType);
         }
     }
 
@@ -349,7 +349,7 @@ public class SelectUnion extends Query {
             buff.append("\nEXCEPT\n");
             break;
         default:
-            DbException.throwInternalError("type=" + unionType);
+            throw DbException.getInternalError("type=" + unionType);
         }
         buff.append('(').append(right.getPlanSQL(sqlFlags)).append(')');
         appendEndOfQueryToSQL(buff, sqlFlags, expressions.toArray(new Expression[0]));

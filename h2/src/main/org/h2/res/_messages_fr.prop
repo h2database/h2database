@@ -28,6 +28,7 @@
 42000=Erreur de syntaxe dans l''instruction SQL {0}
 42001=Erreur de syntaxe dans l''instruction SQL {0}; attendu {1}
 42602=#Invalid name {0}
+42622=#The name that starts with {0} is too long. The maximum length is {1}
 42S01=La table {0} existe déjà
 42S02=Table {0} non trouvée
 42S03=#Table {0} not found (candidates are: {1})
@@ -37,12 +38,14 @@
 42S21=Duplication du nom de colonnes {0}
 42S22=Colonne {0} non trouvée
 42S31=#Identical expressions should be used; expected {0}, found {1}
+54011=#Too many columns. The maximum count is {0}
 57014=L''instruction a été annulée ou la session a expiré
 90000=La fonction {0} doit retourner résultat
 90001=Methode non autorisée pour une requête. Utilisez execute ou executeQuery à la place d''executeUpdate
 90002=Methode est autorisée uniquement pour une requête. Utilisez execute ou executeUpdate à la place d''executeQuery
 90003=Chaîne héxadecimale contenant un nombre impair de caractères: {0}
 90004=Chaîne héxadecimale contenant un caractère non-héxa: {0}
+90005=#Invalid trigger flags: {0}
 90006=La séquence {0} a épuisé ses éléments
 90007=L''objet est déjà fermé
 90008=Valeur invalide {0} pour le paramètre {1}

@@ -145,20 +145,27 @@ public final class ValueTimestampTimeZone extends Value {
 
     @Override
     public String getString() {
-        return toString(new StringBuilder(ValueTimestampTimeZone.MAXIMUM_PRECISION)).toString();
+        return toString(new StringBuilder(MAXIMUM_PRECISION), false).toString();
+    }
+
+    /**
+     * Returns value as string in ISO format.
+     *
+     * @return value as string in ISO format
+     */
+    public String getISOString() {
+        return toString(new StringBuilder(MAXIMUM_PRECISION), true).toString();
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        return toString(builder.append("TIMESTAMP WITH TIME ZONE '")).append('\'');
+        return toString(builder.append("TIMESTAMP WITH TIME ZONE '"), false).append('\'');
     }
 
-    private StringBuilder toString(StringBuilder builder) {
-        DateTimeUtils.appendDate(builder, dateValue);
-        builder.append(' ');
+    private StringBuilder toString(StringBuilder builder, boolean iso) {
+        DateTimeUtils.appendDate(builder, dateValue).append(iso ? 'T' : ' ');
         DateTimeUtils.appendTime(builder, timeNanos);
-        DateTimeUtils.appendTimeZone(builder, timeZoneOffsetSeconds);
-        return builder;
+        return DateTimeUtils.appendTimeZone(builder, timeZoneOffsetSeconds);
     }
 
     @Override

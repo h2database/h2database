@@ -215,7 +215,7 @@ public class WindowFunction extends DataAnalysisOperation {
             getRatioToReport(result, ordered, rowIdColumn);
             break;
         default:
-            throw DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
     }
 
@@ -375,7 +375,7 @@ public class WindowFunction extends DataAnalysisOperation {
                 break;
             }
             default:
-                throw DbException.throwInternalError("type=" + type);
+                throw DbException.getInternalError("type=" + type);
             }
             result.put(rowId, v);
         }
@@ -501,7 +501,7 @@ public class WindowFunction extends DataAnalysisOperation {
         case NTH_VALUE:
             return args[0].getType();
         default:
-            throw DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
     }
 

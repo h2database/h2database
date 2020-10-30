@@ -16,7 +16,6 @@ import org.h2.pagestore.Page;
 import org.h2.pagestore.PageStore;
 import org.h2.result.Row;
 import org.h2.store.Data;
-import org.h2.util.Utils;
 
 /**
  * A leaf page that contains data of one or multiple rows. Format:
@@ -34,6 +33,11 @@ import org.h2.util.Utils;
  * largest key of child[0].
  */
 public class PageDataNode extends PageData {
+
+    /**
+     * An 0-size long array.
+     */
+    private static final long[] EMPTY_LONG_ARRAY = new long[0];
 
     /**
      * The page ids of the children.
@@ -101,7 +105,7 @@ public class PageDataNode extends PageData {
         entryCount = data.readShortInt();
         childPageIds = new int[entryCount + 1];
         childPageIds[entryCount] = data.readInt();
-        keys = Utils.newLongArray(entryCount);
+        keys = entryCount != 0 ? new long[entryCount] : EMPTY_LONG_ARRAY;
         for (int i = 0; i < entryCount; i++) {
             childPageIds[i] = data.readInt();
             keys[i] = data.readVarLong();
@@ -288,7 +292,7 @@ public class PageDataNode extends PageData {
                 int child = childPageIds[i];
                 PageData page = index.getPage(child, getPos());
                 if (getPos() == page.getPos()) {
-                    throw DbException.throwInternalError("Page is its own child: " + getPos());
+                    throw DbException.getInternalError("Page is its own child: " + getPos());
                 }
                 count += page.getRowCount();
                 index.getDatabase().setProgress(DatabaseEventListener.STATE_SCAN_FILE,
@@ -306,7 +310,7 @@ public class PageDataNode extends PageData {
             int child = childPageIds[i];
             PageData page = index.getPage(child, getPos());
             if (getPos() == page.getPos()) {
-                throw DbException.throwInternalError("Page is its own child: " + getPos());
+                throw DbException.getInternalError("Page is its own child: " + getPos());
             }
             count += page.getDiskSpaceUsed();
             index.getDatabase().setProgress(DatabaseEventListener.STATE_SCAN_FILE,
@@ -332,9 +336,8 @@ public class PageDataNode extends PageData {
     private void check() {
         if (SysProperties.CHECK) {
             for (int i = 0; i < entryCount + 1; i++) {
-                int child = childPageIds[i];
-                if (child == 0) {
-                    DbException.throwInternalError();
+                if (childPageIds[i] == 0) {
+                    throw DbException.getInternalError();
                 }
             }
         }
@@ -369,8 +372,7 @@ public class PageDataNode extends PageData {
             data.writeVarLong(keys[i]);
         }
         if (length != data.length()) {
-            DbException.throwInternalError("expected pos: " + length +
-                    " got: " + data.length());
+            throw DbException.getInternalError("expected pos: " + length + " got: " + data.length());
         }
         written = true;
     }
@@ -383,7 +385,7 @@ public class PageDataNode extends PageData {
         entryCount--;
         length -= 4 + Data.getVarLongLen(keys[removedKeyIndex]);
         if (entryCount < 0) {
-            DbException.throwInternalError(Integer.toString(entryCount));
+            throw DbException.getInternalError(Integer.toString(entryCount));
         }
         keys = remove(keys, entryCount + 1, removedKeyIndex);
         childPageIds = remove(childPageIds, entryCount + 2, i);
@@ -448,7 +450,7 @@ public class PageDataNode extends PageData {
                 return;
             }
         }
-        throw DbException.throwInternalError(oldPos + " " + newPos);
+        throw DbException.getInternalError(oldPos + " " + newPos);
     }
 
 }

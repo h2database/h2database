@@ -5,6 +5,10 @@
  */
 package org.h2.test.unit;
 
+import static org.h2.engine.Constants.MAX_ARRAY_CARDINALITY;
+import static org.h2.engine.Constants.MAX_NUMERIC_PRECISION;
+import static org.h2.engine.Constants.MAX_STRING_LENGTH;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
@@ -26,11 +30,9 @@ import org.h2.api.H2Type;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
-import org.h2.test.utils.AssertThrows;
 import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LegacyDateTimeUtils;
@@ -283,19 +285,12 @@ public class TestValue extends TestDb {
 
         ValueJavaObject voString = ValueJavaObject.getNoCopy(JdbcUtils.serialize(
                 new String("This is not a ValueUuid object"), null));
-        try {
-            voString.convertToUuid();
-            fail();
-        } catch (DbException expected) {
-        }
+        assertThrows(ErrorCode.DESERIALIZATION_FAILED_1, () -> voString.convertToUuid());
     }
 
     private void testModulusDouble() {
         final ValueDouble vd1 = ValueDouble.get(12);
-        new AssertThrows(ErrorCode.DIVISION_BY_ZERO_1) { @Override
-        public void test() {
-            vd1.modulus(ValueDouble.get(0));
-        }};
+        assertThrows(ErrorCode.DIVISION_BY_ZERO_1, () -> vd1.modulus(ValueDouble.ZERO));
         ValueDouble vd2 = ValueDouble.get(10);
         ValueDouble vd3 = vd1.modulus(vd2);
         assertEquals(2, vd3.getDouble());
@@ -303,10 +298,7 @@ public class TestValue extends TestDb {
 
     private void testModulusDecimal() {
         final ValueNumeric vd1 = ValueNumeric.get(new BigDecimal(12));
-        new AssertThrows(ErrorCode.DIVISION_BY_ZERO_1) { @Override
-        public void test() {
-            vd1.modulus(ValueNumeric.get(new BigDecimal(0)));
-        }};
+        assertThrows(ErrorCode.DIVISION_BY_ZERO_1, () -> vd1.modulus(ValueNumeric.ZERO));
         ValueNumeric vd2 = ValueNumeric.get(new BigDecimal(10));
         Value vd3 = vd1.modulus(vd2);
         assertEquals(2, vd3.getDouble());
@@ -373,12 +365,7 @@ public class TestValue extends TestDb {
 
     private void testTypeInfo() {
         testTypeInfoCheck(Value.UNKNOWN, -1, -1, -1, TypeInfo.TYPE_UNKNOWN);
-        try {
-            TypeInfo.getTypeInfo(Value.UNKNOWN);
-            fail();
-        } catch (DbException ex) {
-            assertEquals(ErrorCode.UNKNOWN_DATA_TYPE_1, ex.getErrorCode());
-        }
+        assertThrows(ErrorCode.UNKNOWN_DATA_TYPE_1, () -> TypeInfo.getTypeInfo(Value.UNKNOWN));
 
         testTypeInfoCheck(Value.NULL, 1, 0, 4, TypeInfo.TYPE_NULL, TypeInfo.getTypeInfo(Value.NULL));
 
@@ -391,9 +378,10 @@ public class TestValue extends TestDb {
 
         testTypeInfoCheck(Value.REAL, 24, 0, 15, TypeInfo.TYPE_REAL, TypeInfo.getTypeInfo(Value.REAL));
         testTypeInfoCheck(Value.DOUBLE, 53, 0, 24, TypeInfo.TYPE_DOUBLE, TypeInfo.getTypeInfo(Value.DOUBLE));
-        testTypeInfoCheck(Value.NUMERIC, Integer.MAX_VALUE, ValueNumeric.MAXIMUM_SCALE, Integer.MAX_VALUE,
+        testTypeInfoCheck(Value.NUMERIC, MAX_NUMERIC_PRECISION, ValueNumeric.MAXIMUM_SCALE, MAX_NUMERIC_PRECISION + 2,
                 TypeInfo.TYPE_NUMERIC, TypeInfo.getTypeInfo(Value.NUMERIC));
-        testTypeInfoCheck(Value.NUMERIC, 65_535, 32_767, 65_537, TypeInfo.TYPE_NUMERIC_FLOATING_POINT);
+        testTypeInfoCheck(Value.NUMERIC, MAX_NUMERIC_PRECISION, MAX_NUMERIC_PRECISION / 2, MAX_NUMERIC_PRECISION + 2,
+                TypeInfo.TYPE_NUMERIC_FLOATING_POINT);
 
         testTypeInfoCheck(Value.TIME, 18, 9, 18, TypeInfo.TYPE_TIME, TypeInfo.getTypeInfo(Value.TIME));
         for (int s = 0; s <= 9; s++) {
@@ -413,29 +401,29 @@ public class TestValue extends TestDb {
             testTypeInfoCheck(Value.TIMESTAMP_TZ, d, s, d, TypeInfo.getTypeInfo(Value.TIMESTAMP_TZ, 0, s, null));
         }
 
-        testTypeInfoCheck(Value.VARBINARY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
+        testTypeInfoCheck(Value.BINARY, 1, 0, 2, TypeInfo.getTypeInfo(Value.BINARY));
+        testTypeInfoCheck(Value.VARBINARY, MAX_STRING_LENGTH, 0, MAX_STRING_LENGTH * 2,
                 TypeInfo.getTypeInfo(Value.VARBINARY));
         testTypeInfoCheck(Value.BLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.getTypeInfo(Value.BLOB));
         testTypeInfoCheck(Value.CLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.getTypeInfo(Value.CLOB));
 
-        testTypeInfoCheck(Value.VARCHAR, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_VARCHAR,
+        testTypeInfoCheck(Value.VARCHAR, MAX_STRING_LENGTH, 0, MAX_STRING_LENGTH, TypeInfo.TYPE_VARCHAR,
                 TypeInfo.getTypeInfo(Value.VARCHAR));
-        testTypeInfoCheck(Value.CHAR, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
-                TypeInfo.getTypeInfo(Value.CHAR));
-        testTypeInfoCheck(Value.VARCHAR_IGNORECASE, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
+        testTypeInfoCheck(Value.CHAR, 1, 0, 1, TypeInfo.getTypeInfo(Value.CHAR));
+        testTypeInfoCheck(Value.VARCHAR_IGNORECASE, MAX_STRING_LENGTH, 0, MAX_STRING_LENGTH,
                 TypeInfo.getTypeInfo(Value.VARCHAR_IGNORECASE));
 
-        testTypeInfoCheck(Value.ARRAY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_ARRAY_UNKNOWN,
+        testTypeInfoCheck(Value.ARRAY, MAX_ARRAY_CARDINALITY, 0, Integer.MAX_VALUE, TypeInfo.TYPE_ARRAY_UNKNOWN,
                 TypeInfo.getTypeInfo(Value.ARRAY));
         testTypeInfoCheck(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_ROW_EMPTY,
                 TypeInfo.getTypeInfo(Value.ROW));
 
-        testTypeInfoCheck(Value.JAVA_OBJECT, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_JAVA_OBJECT,
+        testTypeInfoCheck(Value.JAVA_OBJECT, MAX_STRING_LENGTH, 0, MAX_STRING_LENGTH * 2, TypeInfo.TYPE_JAVA_OBJECT,
                 TypeInfo.getTypeInfo(Value.JAVA_OBJECT));
         testTypeInfoCheck(Value.UUID, 16, 0, 36, TypeInfo.TYPE_UUID, TypeInfo.getTypeInfo(Value.UUID));
-        testTypeInfoCheck(Value.GEOMETRY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_GEOMETRY,
+        testTypeInfoCheck(Value.GEOMETRY, MAX_STRING_LENGTH, 0, Integer.MAX_VALUE, TypeInfo.TYPE_GEOMETRY,
                 TypeInfo.getTypeInfo(Value.GEOMETRY));
-        testTypeInfoCheck(Value.ENUM, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_ENUM_UNDEFINED,
+        testTypeInfoCheck(Value.ENUM, MAX_STRING_LENGTH, 0, MAX_STRING_LENGTH, TypeInfo.TYPE_ENUM_UNDEFINED,
                 TypeInfo.getTypeInfo(Value.ENUM));
 
         testTypeInfoInterval1(Value.INTERVAL_YEAR);
@@ -452,7 +440,7 @@ public class TestValue extends TestDb {
         testTypeInfoInterval2(Value.INTERVAL_HOUR_TO_SECOND);
         testTypeInfoInterval2(Value.INTERVAL_MINUTE_TO_SECOND);
 
-        testTypeInfoCheck(Value.JSON, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_JSON,
+        testTypeInfoCheck(Value.JSON, MAX_STRING_LENGTH, 0, MAX_STRING_LENGTH, TypeInfo.TYPE_JSON,
                 TypeInfo.getTypeInfo(Value.JSON));
     }
 

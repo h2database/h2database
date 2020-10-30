@@ -110,9 +110,8 @@ public class PageStoreTable extends RegularTable {
             if (!(index instanceof PageDelegateIndex)) {
                 long rc = index.getRowCount(session);
                 if (rc != rowCount + offset) {
-                    DbException.throwInternalError(
-                            "rowCount expected " + (rowCount + offset) +
-                            " got " + rc + " " + getName() + "." + index.getName());
+                    throw DbException.getInternalError("rowCount expected " + (rowCount + offset) + " got " + rc + ' '
+                            + getName() + '.' + index.getName());
                 }
             }
         }
@@ -141,6 +140,9 @@ public class PageStoreTable extends RegularTable {
     @Override
     public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             boolean create, String indexComment) {
+        if (indexType.isSpatial()) {
+            throw DbException.getUnsupportedException("MV_STORE=FALSE && SPATIAL INDEX");
+        }
         cols = prepareColumns(database, cols, indexType);
         boolean isSessionTemporary = isTemporary() && !isGlobalTemporary();
         if (!isSessionTemporary) {
@@ -162,9 +164,6 @@ public class PageStoreTable extends RegularTable {
                 mainIndex.setMainIndexColumn(mainIndexColumn);
                 index = new PageDelegateIndex(this, indexId, indexName,
                         indexType, mainIndex, create, session);
-            } else if (indexType.isSpatial()) {
-                index = new SpatialTreeIndex(this, indexId, indexName, cols,
-                        indexType, true, create, session);
             } else {
                 index = new PageBtreeIndex(this, indexId, indexName, cols,
                         indexType, create, session);
@@ -182,9 +181,6 @@ public class PageStoreTable extends RegularTable {
                     index = new NonUniqueHashIndex(this, indexId, indexName,
                             cols, indexType);
                 }
-            } else if (indexType.isSpatial()) {
-                index = new SpatialTreeIndex(this, indexId, indexName, cols,
-                        indexType, false, true, session);
             } else {
                 index = new TreeIndex(this, indexId, indexName, cols, indexType);
             }
@@ -210,8 +206,7 @@ public class PageStoreTable extends RegularTable {
                 }
                 addRowsToIndex(session, buffer, index);
                 if (remaining != 0) {
-                    DbException.throwInternalError("rowcount remaining=" +
-                            remaining + " " + getName());
+                    throw DbException.getInternalError("rowcount remaining=" + remaining + ' ' + getName());
                 }
             } catch (DbException e) {
                 getSchema().freeUniqueName(indexName);

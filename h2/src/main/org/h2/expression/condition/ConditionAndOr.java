@@ -42,7 +42,7 @@ public class ConditionAndOr extends Condition {
 
     public ConditionAndOr(int andOrType, Expression left, Expression right) {
         if (left == null || right == null) {
-            DbException.throwInternalError(left + " " + right);
+            throw DbException.getInternalError(left + " " + right);
         }
         this.andOrType = andOrType;
         this.left = left;
@@ -69,7 +69,7 @@ public class ConditionAndOr extends Condition {
             builder.append("\n    OR ");
             break;
         default:
-            throw DbException.throwInternalError("andOrType=" + andOrType);
+            throw DbException.getInternalError("andOrType=" + andOrType);
         }
         return right.getSQL(builder, sqlFlags, AUTO_PARENTHESES);
     }
@@ -133,7 +133,7 @@ public class ConditionAndOr extends Condition {
             return ValueBoolean.FALSE;
         }
         default:
-            throw DbException.throwInternalError("type=" + andOrType);
+            throw DbException.getInternalError("type=" + andOrType);
         }
     }
 
@@ -264,7 +264,7 @@ public class ConditionAndOr extends Condition {
             return ValueExpression.FALSE;
         }
         default:
-            throw DbException.throwInternalError("type=" + andOrType);
+            throw DbException.getInternalError("type=" + andOrType);
         }
     }
 
@@ -285,7 +285,7 @@ public class ConditionAndOr extends Condition {
             }
             break;
         default:
-            throw DbException.throwInternalError("type=" + andOrType);
+            throw DbException.getInternalError("type=" + andOrType);
         }
         return null;
     }
@@ -359,24 +359,24 @@ public class ConditionAndOr extends Condition {
         }
         Expression leftLeft = left.getSubexpression(0), leftRight = left.getSubexpression(1);
         Expression rightLeft = right.getSubexpression(0), rightRight = right.getSubexpression(1);
-        String leftLeftSQL = leftLeft.getSQL(DEFAULT_SQL_FLAGS), rightLeftSQL = rightLeft.getSQL(DEFAULT_SQL_FLAGS);
-        Expression combinedExpression;
-        if (leftLeftSQL.equals(rightLeftSQL)) {
-            combinedExpression = new ConditionAndOr(OR, leftRight, rightRight);
-            return new ConditionAndOr(AND, leftLeft, combinedExpression);
-        }
+        String rightLeftSQL = rightLeft.getSQL(DEFAULT_SQL_FLAGS);
         String rightRightSQL = rightRight.getSQL(DEFAULT_SQL_FLAGS);
-        if (leftLeftSQL.equals(rightRightSQL)) {
-            combinedExpression = new ConditionAndOr(OR, leftRight, rightLeft);
-            return new ConditionAndOr(AND, leftLeft, combinedExpression);
+        if (leftLeft.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
+            String leftLeftSQL = leftLeft.getSQL(DEFAULT_SQL_FLAGS);
+            if (leftLeftSQL.equals(rightLeftSQL)) {
+                return new ConditionAndOr(AND, leftLeft, new ConditionAndOr(OR, leftRight, rightRight));
+            }
+            if (leftLeftSQL.equals(rightRightSQL)) {
+                return new ConditionAndOr(AND, leftLeft, new ConditionAndOr(OR, leftRight, rightLeft));
+            }
         }
-        String leftRightSQL = leftRight.getSQL(DEFAULT_SQL_FLAGS);
-        if (leftRightSQL.equals(rightLeftSQL)) {
-            combinedExpression = new ConditionAndOr(OR, leftLeft, rightRight);
-            return new ConditionAndOr(AND, leftRight, combinedExpression);
-        } else if (leftRightSQL.equals(rightRightSQL)) {
-            combinedExpression = new ConditionAndOr(OR, leftLeft, rightLeft);
-            return new ConditionAndOr(AND, leftRight, combinedExpression);
+        if (leftRight.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
+            String leftRightSQL = leftRight.getSQL(DEFAULT_SQL_FLAGS);
+            if (leftRightSQL.equals(rightLeftSQL)) {
+                return new ConditionAndOr(AND, leftRight, new ConditionAndOr(OR, leftLeft, rightRight));
+            } else if (leftRightSQL.equals(rightRightSQL)) {
+                return new ConditionAndOr(AND, leftRight, new ConditionAndOr(OR, leftLeft, rightLeft));
+            }
         }
         return null;
     }

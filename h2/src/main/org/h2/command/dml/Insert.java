@@ -159,7 +159,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
     }
 
     private long insertRows() {
-        session.getUser().checkRight(table, Right.INSERT);
+        session.getUser().checkTableRight(table, Right.INSERT);
         setCurrentRowNumber(0);
         table.fire(session, Trigger.INSERT, true);
         rowNumber = 0;
@@ -263,9 +263,9 @@ public final class Insert extends CommandWithValues implements ResultTarget {
     }
 
     @Override
-    public int getRowCount() {
+    public long getRowCount() {
         // This method is not used in this class
-        return (int) rowNumber;
+        return rowNumber;
     }
 
     @Override
@@ -331,6 +331,9 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                 }
             }
         } else {
+            if (!session.getDatabase().isMVStore()) {
+                query.setNeverLazy(true);
+            }
             query.prepare();
             if (query.getColumnCount() != columns.length) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);

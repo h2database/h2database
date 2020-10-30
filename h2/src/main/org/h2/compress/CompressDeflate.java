@@ -52,10 +52,10 @@ public class CompressDeflate implements Compressor {
     }
 
     @Override
-    public int compress(byte[] in, int inLen, byte[] out, int outPos) {
+    public int compress(byte[] in, int inPos, int inLen, byte[] out, int outPos) {
         Deflater deflater = new Deflater(level);
         deflater.setStrategy(strategy);
-        deflater.setInput(in, 0, inLen);
+        deflater.setInput(in, inPos, inLen);
         deflater.finish();
         int compressed = deflater.deflate(out, outPos, out.length - outPos);
         if (compressed == 0) {
@@ -64,7 +64,7 @@ public class CompressDeflate implements Compressor {
             // try again, using the default strategy and compression level
             strategy = Deflater.DEFAULT_STRATEGY;
             level = Deflater.DEFAULT_COMPRESSION;
-            return compress(in, inLen, out, outPos);
+            return compress(in, inPos, inLen, out, outPos);
         }
         deflater.end();
         return outPos + compressed;

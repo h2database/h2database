@@ -14,7 +14,8 @@ import org.h2.message.DbException;
 /**
  * Represents a database exception.
  */
-public class JdbcSQLFeatureNotSupportedException extends SQLFeatureNotSupportedException implements JdbcException {
+public final class JdbcSQLFeatureNotSupportedException extends SQLFeatureNotSupportedException
+        implements JdbcException {
 
     private static final long serialVersionUID = 1L;
 

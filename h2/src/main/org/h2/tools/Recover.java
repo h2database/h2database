@@ -62,7 +62,6 @@ import org.h2.store.DataHandler;
 import org.h2.store.DataReader;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
-import org.h2.store.FileStoreInputStream;
 import org.h2.store.LobStorageFrontend;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.HasSQL;
@@ -75,6 +74,7 @@ import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueCollectionBase;
@@ -322,8 +322,6 @@ public class Recover extends Tool implements DataHandler {
         for (String fileName : list) {
             if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
                 dumpPageStore(fileName);
-            } else if (fileName.endsWith(Constants.SUFFIX_LOB_FILE)) {
-                dumpLob(fileName, false);
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
                 String f = fileName.substring(0, fileName.length() -
                         Constants.SUFFIX_PAGE_FILE.length());
@@ -375,35 +373,6 @@ public class Recover extends Tool implements DataHandler {
         writer.println("-- dump: " + sb.toString());
     }
 
-    private void dumpLob(String fileName, boolean lobCompression) {
-        OutputStream fileOut = null;
-        FileStore fileStore = null;
-        long size = 0;
-        String n = fileName + (lobCompression ? ".comp" : "") + ".txt";
-        InputStream in = null;
-        try {
-            fileOut = FileUtils.newOutputStream(n, false);
-            fileStore = FileStore.open(null, fileName, "r");
-            fileStore.init();
-            in = new FileStoreInputStream(fileStore, this, lobCompression, false);
-            size = IOUtils.copy(in, fileOut);
-        } catch (Throwable e) {
-            // this is usually not a problem, because we try both compressed and
-            // uncompressed
-        } finally {
-            IOUtils.closeSilently(fileOut);
-            IOUtils.closeSilently(in);
-            closeSilently(fileStore);
-        }
-        if (size == 0) {
-            try {
-                FileUtils.delete(n);
-            } catch (Exception e) {
-                traceError(n, e);
-            }
-        }
-    }
-
     private void getSQL(StringBuilder builder, String column, Value v) {
         if (v instanceof ValueLobDatabase) {
             ValueLobDatabase lob = (ValueLobDatabase) v;
@@ -441,10 +410,9 @@ public class Recover extends Tool implements DataHandler {
         stat = new Stats();
         try {
             writer = getWriter(fileName, ".sql");
-            writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_DB FOR \"" +
-                    this.getClass().getName() + ".readBlobDb\";");
-            writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_DB FOR \"" +
-                    this.getClass().getName() + ".readClobDb\";");
+            String className = getClass().getName();
+            writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_DB FOR '" + className + ".readBlobDb';");
+            writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_DB FOR '" + className + ".readClobDb';");
             resetSchema();
             store = FileStore.open(null, fileName, remove ? "rw" : "r");
             long length = store.length();
@@ -557,10 +525,9 @@ public class Recover extends Tool implements DataHandler {
 
     private void dumpMVStoreFile(PrintWriter writer, String fileName) {
         writer.println("-- MVStore");
-        writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_MAP FOR \"" +
-                this.getClass().getName() + ".readBlobMap\";");
-        writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_MAP FOR \"" +
-                this.getClass().getName() + ".readClobMap\";");
+        String className = getClass().getName();
+        writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_MAP FOR '" + className + ".readBlobMap';");
+        writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_MAP FOR '" + className + ".readClobMap';");
         resetSchema();
         setDatabaseName(fileName.substring(0, fileName.length() -
                 Constants.SUFFIX_MV_FILE.length()));
@@ -1238,7 +1205,7 @@ public class Recover extends Tool implements DataHandler {
                 data = ValueBigint.get(key);
             } else {
                 try {
-                    data = s.readValue();
+                    data = s.readValue(TypeInfo.TYPE_UNKNOWN);
                 } catch (Throwable e) {
                     writeDataError(writer, "exception " + e, s.getBytes());
                     continue;
@@ -1299,7 +1266,7 @@ public class Recover extends Tool implements DataHandler {
                 data = ValueBigint.get(key);
             } else {
                 try {
-                    data = s.readValue();
+                    data = s.readValue(TypeInfo.TYPE_UNKNOWN);
                 } catch (Throwable e) {
                     writeDataError(writer, "exception " + e, s.getBytes());
                     continue;
@@ -1413,7 +1380,7 @@ public class Recover extends Tool implements DataHandler {
             if (data != null) {
                 for (valueId = 0; valueId < recordLength; valueId++) {
                     try {
-                        Value v = s.readValue();
+                        Value v = s.readValue(TypeInfo.TYPE_UNKNOWN);
                         switch (v.getValueType()) {
                         case Value.VARBINARY:
                         case Value.JAVA_OBJECT:
@@ -1742,7 +1709,7 @@ public class Recover extends Tool implements DataHandler {
      */
     @Override
     public int getMaxLengthInplaceLob() {
-        throw DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     /**
@@ -1789,9 +1756,8 @@ public class Recover extends Tool implements DataHandler {
      * INTERNAL
      */
     @Override
-    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff,
-            int off, int length) {
-        throw DbException.throwInternalError();
+    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
+        throw DbException.getInternalError();
     }
 
     @Override

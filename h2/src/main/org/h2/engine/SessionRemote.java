@@ -103,12 +103,15 @@ public final class SessionRemote extends Session implements DataHandler {
 
     private final CompareMode compareMode = CompareMode.getInstance(null, 0);
 
+    private final boolean oldInformationSchema;
+
     private String currentSchemaName;
 
     private volatile DynamicSettings dynamicSettings;
 
     public SessionRemote(ConnectionInfo ci) {
         this.connectionInfo = ci;
+        oldInformationSchema = ci.getProperty("OLD_INFORMATION_SCHEMA", false);
     }
 
     @Override
@@ -124,8 +127,8 @@ public final class SessionRemote extends Session implements DataHandler {
 
     private Transfer initTransfer(ConnectionInfo ci, String db, String server)
             throws IOException {
-        Socket socket = NetUtils.createSocket(server,
-                Constants.DEFAULT_TCP_PORT, ci.isSSL(), ci.getProperty("NETWORK_TIMEOUT",0 ));
+        Socket socket = NetUtils.createSocket(server, Constants.DEFAULT_TCP_PORT, ci.isSSL(),
+                ci.getProperty("NETWORK_TIMEOUT", 0));
         Transfer trans = new Transfer(this, socket);
         trans.setSSL(ci.isSSL());
         trans.init();
@@ -150,6 +153,13 @@ public final class SessionRemote extends Session implements DataHandler {
             }
             trans.writeInt(SessionRemote.SESSION_SET_ID);
             trans.writeString(sessionId);
+            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_20) {
+                TimeZoneProvider timeZone = ci.getTimeZone();
+                if (timeZone == null) {
+                    timeZone = DateTimeUtils.getTimeZone();
+                }
+                trans.writeString(timeZone.getId());
+            }
             done(trans);
             if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_15) {
                 autoCommit = trans.readBoolean();
@@ -224,6 +234,7 @@ public final class SessionRemote extends Session implements DataHandler {
         }
     }
 
+    @Override
     public int getClientVersion() {
         return clientVersion;
     }
@@ -590,30 +601,45 @@ public final class SessionRemote extends Session implements DataHandler {
     public void done(Transfer transfer) throws IOException {
         transfer.flush();
         int status = transfer.readInt();
-        if (status == STATUS_ERROR) {
-            String sqlstate = transfer.readString();
-            String message = transfer.readString();
-            String sql = transfer.readString();
-            int errorCode = transfer.readInt();
-            String stackTrace = transfer.readString();
-            SQLException s = DbException.getJdbcSQLException(message, sql, sqlstate, errorCode, null, stackTrace);
-            if (errorCode == ErrorCode.CONNECTION_BROKEN_1) {
-                // allow re-connect
-                throw new IOException(s.toString(), s);
-            }
-            throw DbException.convert(s);
-        } else if (status == STATUS_CLOSED) {
+        switch (status) {
+        case STATUS_ERROR:
+            throw readException(transfer);
+        case STATUS_OK:
+            break;
+        case STATUS_CLOSED:
             transferList = null;
-        } else if (status == STATUS_OK_STATE_CHANGED) {
+            break;
+        case STATUS_OK_STATE_CHANGED:
             sessionStateChanged = true;
             currentSchemaName = null;
             dynamicSettings = null;
-        } else if (status == STATUS_OK) {
-            // ok
-        } else {
-            throw DbException.get(ErrorCode.CONNECTION_BROKEN_1,
-                    "unexpected status " + status);
+            break;
+        default:
+            throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "unexpected status " + status);
         }
+    }
+
+    /**
+     * Reads an exception.
+     *
+     * @param transfer
+     *            the transfer object
+     * @return the exception
+     * @throws IOException
+     *             on I/O exception
+     */
+    public static DbException readException(Transfer transfer) throws IOException {
+        String sqlstate = transfer.readString();
+        String message = transfer.readString();
+        String sql = transfer.readString();
+        int errorCode = transfer.readInt();
+        String stackTrace = transfer.readString();
+        SQLException s = DbException.getJdbcSQLException(message, sql, sqlstate, errorCode, null, stackTrace);
+        if (errorCode == ErrorCode.CONNECTION_BROKEN_1) {
+            // allow re-connect
+            throw new IOException(s.toString(), s);
+        }
+        return DbException.convert(s);
     }
 
     /**
@@ -801,7 +827,7 @@ public final class SessionRemote extends Session implements DataHandler {
 
     @Override
     public boolean isSupportsGeneratedKeys() {
-        return getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_17;
+        return clientVersion >= Constants.TCP_PROTOCOL_VERSION_17;
     }
 
     @Override
@@ -811,9 +837,10 @@ public final class SessionRemote extends Session implements DataHandler {
 
     @Override
     public IsolationLevel getIsolationLevel() {
-        if (getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_19) {
-            try (CommandInterface command = prepareCommand(
-                    "SELECT ISOLATION_LEVEL FROM INFORMATION_SCHEMA.SESSIONS WHERE ID = SESSION_ID()", 1);
+        if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_19) {
+            try (CommandInterface command = prepareCommand(!isOldInformationSchema()
+                    ? "SELECT ISOLATION_LEVEL FROM INFORMATION_SCHEMA.SESSIONS WHERE SESSION_ID = SESSION_ID()"
+                    : "SELECT ISOLATION_LEVEL FROM INFORMATION_SCHEMA.SESSIONS WHERE ID = SESSION_ID()", 1);
                     ResultInterface result = command.executeQuery(1, false)) {
                 result.next();
                 return IsolationLevel.fromSql(result.currentRow()[0].getString());
@@ -829,7 +856,7 @@ public final class SessionRemote extends Session implements DataHandler {
 
     @Override
     public void setIsolationLevel(IsolationLevel isolationLevel) {
-        if (getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_19) {
+        if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_19) {
             try (CommandInterface command = prepareCommand(
                     "SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL " + isolationLevel.getSQL(), 0)) {
                 command.executeUpdate(null);
@@ -846,17 +873,13 @@ public final class SessionRemote extends Session implements DataHandler {
     public StaticSettings getStaticSettings() {
         StaticSettings settings = staticSettings;
         if (settings == null) {
-            boolean databaseToUpper = true, databaseToLower = false, caseInsensitiveIdentifiers = false,
-                    oldInformationSchema = false;
-            try (CommandInterface command = prepareCommand(
-                    "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN (?, ?, ?, ?)",
-                    Integer.MAX_VALUE)) {
+            boolean databaseToUpper = true, databaseToLower = false, caseInsensitiveIdentifiers = false;
+            try (CommandInterface command = getSettingsCommand(" IN (?, ?, ?)")) {
                 ArrayList<? extends ParameterInterface> parameters = command.getParameters();
                 parameters.get(0).setValue(ValueVarchar.get("DATABASE_TO_UPPER"), false);
                 parameters.get(1).setValue(ValueVarchar.get("DATABASE_TO_LOWER"), false);
                 parameters.get(2).setValue(ValueVarchar.get("CASE_INSENSITIVE_IDENTIFIERS"), false);
-                parameters.get(3).setValue(ValueVarchar.get("OLD_INFORMATION_SCHEMA"), false);
-                try (ResultInterface result = command.executeQuery(Integer.MAX_VALUE, false)) {
+                try (ResultInterface result = command.executeQuery(0, false)) {
                     while (result.next()) {
                         Value[] row = result.currentRow();
                         String value = row[1].getString();
@@ -869,9 +892,6 @@ public final class SessionRemote extends Session implements DataHandler {
                             break;
                         case "CASE_INSENSITIVE_IDENTIFIERS":
                             caseInsensitiveIdentifiers = Boolean.valueOf(value);
-                            break;
-                        case "OLD_INFORMATION_SCHEMA":
-                            oldInformationSchema = Boolean.valueOf(value);
                         }
                     }
                 }
@@ -880,7 +900,7 @@ public final class SessionRemote extends Session implements DataHandler {
                 caseInsensitiveIdentifiers = !databaseToUpper;
             }
             staticSettings = settings = new StaticSettings(databaseToUpper, databaseToLower,
-                    caseInsensitiveIdentifiers, oldInformationSchema);
+                    caseInsensitiveIdentifiers);
         }
         return settings;
     }
@@ -892,14 +912,12 @@ public final class SessionRemote extends Session implements DataHandler {
             String modeName = ModeEnum.REGULAR.name();
             TimeZoneProvider timeZone = DateTimeUtils.getTimeZone();
             String javaObjectSerializerName = null;
-            try (CommandInterface command = prepareCommand(
-                    "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN (?, ?, ?)",
-                    Integer.MAX_VALUE)) {
+            try (CommandInterface command = getSettingsCommand(" IN (?, ?, ?)")) {
                 ArrayList<? extends ParameterInterface> parameters = command.getParameters();
                 parameters.get(0).setValue(ValueVarchar.get("MODE"), false);
                 parameters.get(1).setValue(ValueVarchar.get("TIME ZONE"), false);
                 parameters.get(2).setValue(ValueVarchar.get("JAVA_OBJECT_SERIALIZER"), false);
-                try (ResultInterface result = command.executeQuery(Integer.MAX_VALUE, false)) {
+                try (ResultInterface result = command.executeQuery(0, false)) {
                     while (result.next()) {
                         Value[] row = result.currentRow();
                         String value = row[1].getString();
@@ -937,6 +955,14 @@ public final class SessionRemote extends Session implements DataHandler {
         return settings;
     }
 
+    private CommandInterface getSettingsCommand(String args) {
+        return prepareCommand(
+                (!isOldInformationSchema()
+                        ? "SELECT SETTING_NAME, SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME"
+                        : "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME") + args,
+                Integer.MAX_VALUE);
+    }
+
     @Override
     public ValueTimestampTimeZone currentTimestamp() {
         return DateTimeUtils.currentTimestamp(getDynamicSettings().timeZone);
@@ -956,6 +982,11 @@ public final class SessionRemote extends Session implements DataHandler {
     public DatabaseMeta getDatabaseMeta() {
         return clientVersion >= Constants.TCP_PROTOCOL_VERSION_20 ? new DatabaseMetaRemote(this, transferList)
                 : new DatabaseMetaLegacy(this);
+    }
+
+    @Override
+    public boolean isOldInformationSchema() {
+        return oldInformationSchema || clientVersion < Constants.TCP_PROTOCOL_VERSION_20;
     }
 
     @Override

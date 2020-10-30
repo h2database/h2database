@@ -155,15 +155,16 @@ public final class CompressLZF implements Compressor {
     }
 
     @Override
-    public int compress(byte[] in, int inLen, byte[] out, int outPos) {
-        int inPos = 0;
+    public int compress(byte[] in, int inPos, int inLen, byte[] out, int outPos) {
+        int offset = inPos;
+        inLen += inPos;
         if (cachedHashTable == null) {
             cachedHashTable = new int[HASH_SIZE];
         }
         int[] hashTab = cachedHashTable;
         int literals = 0;
         outPos++;
-        int future = first(in, 0);
+        int future = first(in, inPos);
         while (inPos < inLen - 4) {
             byte p2 = in[inPos + 2];
             // next
@@ -178,7 +179,7 @@ public final class CompressLZF implements Compressor {
             //       && (((in[ref] & 255) << 8) | (in[ref + 1] & 255)) ==
             //           ((future >> 8) & 0xffff)) {
             if (ref < inPos
-                        && ref > 0
+                        && ref > offset
                         && (off = inPos - ref - 1) < MAX_OFF
                         && in[ref + 2] == p2
                         && in[ref + 1] == (byte) (future >> 8)
@@ -265,14 +266,15 @@ public final class CompressLZF implements Compressor {
      * @return the end position
      */
     public int compress(ByteBuffer in, int inPos, byte[] out, int outPos) {
-        int inLen = in.capacity() - inPos;
+        int offset = inPos;
+        int inLen = in.capacity();
         if (cachedHashTable == null) {
             cachedHashTable = new int[HASH_SIZE];
         }
         int[] hashTab = cachedHashTable;
         int literals = 0;
         outPos++;
-        int future = first(in, 0);
+        int future = first(in, inPos);
         while (inPos < inLen - 4) {
             byte p2 = in.get(inPos + 2);
             // next
@@ -287,7 +289,7 @@ public final class CompressLZF implements Compressor {
             //       && (((in[ref] & 255) << 8) | (in[ref + 1] & 255)) ==
             //           ((future >> 8) & 0xffff)) {
             if (ref < inPos
-                        && ref > 0
+                        && ref > offset
                         && (off = inPos - ref - 1) < MAX_OFF
                         && in.get(ref + 2) == p2
                         && in.get(ref + 1) == (byte) (future >> 8)

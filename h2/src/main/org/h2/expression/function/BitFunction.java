@@ -525,7 +525,7 @@ public final class BitFunction extends Function1_2 {
                 }
                 break;
             default:
-                throw DbException.throwInternalError("function=" + function);
+                throw DbException.getInternalError("function=" + function);
             }
         }
         return type.getValueType() == Value.BINARY ? ValueBinary.getNoCopy(bytes) : ValueVarbinary.getNoCopy(bytes);
@@ -556,7 +556,7 @@ public final class BitFunction extends Function1_2 {
             l1 = ~(l1 ^ v2.getLong());
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         switch (type.getValueType()) {
         case Value.TINYINT:
@@ -568,7 +568,7 @@ public final class BitFunction extends Function1_2 {
         case Value.BIGINT:
             return ValueBigint.get(l1);
         default:
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
     }
 

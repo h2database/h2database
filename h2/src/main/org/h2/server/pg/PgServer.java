@@ -18,8 +18,8 @@ import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.server.Service;
 import org.h2.util.NetUtils;
-import org.h2.util.NetUtils2;
 import org.h2.util.Tool;
+import org.h2.util.Utils10;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
@@ -106,7 +106,6 @@ public class PgServer implements Service {
                 keyDatabase = args[++i];
             }
         }
-        org.h2.Driver.load();
         // int testing;
         // trace = true;
     }
@@ -193,7 +192,7 @@ public class PgServer implements Service {
                     trace("Connection not allowed");
                     s.close();
                 } else {
-                    NetUtils2.setTcpQuickack(s, true);
+                    Utils10.setTcpQuickack(s, true);
                     PgServerThread c = new PgServerThread(s, this);
                     running.add(c);
                     int id = pid.incrementAndGet();

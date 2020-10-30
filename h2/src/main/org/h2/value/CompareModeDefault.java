@@ -26,7 +26,7 @@ public class CompareModeDefault extends CompareMode {
         super(name, strength);
         collator = CompareMode.getCollator(name);
         if (collator == null) {
-            throw DbException.throwInternalError(name);
+            throw DbException.getInternalError(name);
         }
         collator.setStrength(strength);
         int cacheSize = SysProperties.COLLATOR_CACHE_SIZE;

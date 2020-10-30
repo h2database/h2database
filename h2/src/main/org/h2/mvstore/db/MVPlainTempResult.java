@@ -12,6 +12,7 @@ import org.h2.mvstore.Cursor;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMap.Builder;
 import org.h2.result.ResultExternal;
+import org.h2.result.RowFactory.DefaultRowFactory;
 import org.h2.value.Value;
 import org.h2.value.ValueRow;
 
@@ -66,8 +67,9 @@ class MVPlainTempResult extends MVTempResult {
     MVPlainTempResult(Database database, Expression[] expressions, int visibleColumnCount, int resultColumnCount) {
         super(database, expressions, visibleColumnCount, resultColumnCount);
         ValueDataType valueType = new ValueDataType(database, new int[resultColumnCount]);
-        Builder<Long, ValueRow> builder = new MVMap.Builder<Long, ValueRow>()
-                                                .valueType(valueType).singleWriter();
+        valueType.setRowFactory(DefaultRowFactory.INSTANCE.createRowFactory(database, database.getCompareMode(),
+                database.getMode(), database, expressions, null));
+        Builder<Long, ValueRow> builder = new MVMap.Builder<Long, ValueRow>().valueType(valueType).singleWriter();
         map = store.openMap("tmp", builder);
     }
 
@@ -104,11 +106,7 @@ class MVPlainTempResult extends MVTempResult {
             return null;
         }
         cursor.next();
-        Value[] currentRow = cursor.getValue().getList();
-        if (hasEnum) {
-            fixEnum(currentRow);
-        }
-        return currentRow;
+        return cursor.getValue().getList();
     }
 
     @Override

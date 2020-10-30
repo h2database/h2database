@@ -34,8 +34,7 @@ public class FunctionMultiReturn {
         Connection conn = DriverManager.getConnection(
                 "jdbc:h2:mem:", "sa", "");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS P2C " +
-                "FOR \"org.h2.samples.FunctionMultiReturn.polar2Cartesian\" ");
+        stat.execute("CREATE ALIAS P2C FOR 'org.h2.samples.FunctionMultiReturn.polar2Cartesian'");
         PreparedStatement prep = conn.prepareStatement(
                 "SELECT X, Y FROM P2C(?, ?)");
         prep.setDouble(1, 5.0);
@@ -49,8 +48,7 @@ public class FunctionMultiReturn {
 
         stat.execute("CREATE TABLE TEST(ID IDENTITY, R DOUBLE, A DOUBLE)");
         stat.execute("INSERT INTO TEST(R, A) VALUES(5.0, 0.5), (10.0, 0.6)");
-        stat.execute("CREATE ALIAS P2C_SET " +
-                "FOR \"org.h2.samples.FunctionMultiReturn.polar2CartesianSet\" ");
+        stat.execute("CREATE ALIAS P2C_SET FOR 'org.h2.samples.FunctionMultiReturn.polar2CartesianSet'");
         rs = conn.createStatement().executeQuery(
                 "SELECT * FROM P2C_SET('SELECT * FROM TEST')");
         while (rs.next()) {
@@ -62,8 +60,7 @@ public class FunctionMultiReturn {
                     " (x=" + x + ", y="+y+")");
         }
 
-        stat.execute("CREATE ALIAS P2C_A " +
-                "FOR \"org.h2.samples.FunctionMultiReturn.polar2CartesianArray\" ");
+        stat.execute("CREATE ALIAS P2C_A FOR 'org.h2.samples.FunctionMultiReturn.polar2CartesianArray'");
         rs = conn.createStatement().executeQuery(
                 "SELECT R, A, P2C_A(R, A) FROM TEST");
         while (rs.next()) {

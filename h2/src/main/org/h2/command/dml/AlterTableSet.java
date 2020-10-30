@@ -59,7 +59,7 @@ public class AlterTableSet extends SchemaCommand {
             }
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
         }
-        session.getUser().checkRight(table, Right.ALL);
+        session.getUser().checkTableRight(table, Right.SCHEMA_OWNER);
         table.lock(session, true, true);
         switch (type) {
         case CommandInterface.ALTER_TABLE_SET_REFERENTIAL_INTEGRITY:
@@ -67,7 +67,7 @@ public class AlterTableSet extends SchemaCommand {
                     checkExisting : false);
             break;
         default:
-            DbException.throwInternalError("type="+type);
+            throw DbException.getInternalError("type="+type);
         }
         return 0;
     }

@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.h2.api.ErrorCode;
+import org.h2.message.DbException;
+import org.h2.schema.Schema;
 import org.h2.table.Table;
 import org.h2.util.StringUtils;
 
@@ -61,36 +64,69 @@ public abstract class RightOwner extends DbObject {
     }
 
     /**
-     * Check if a right is already granted to this object or to objects that
-     * were granted to this object. The rights for schemas takes
-     * precedence over rights of tables, in other words, the rights of schemas
-     * will be valid for every each table in the related schema.
+     * Checks if a right is already granted to this object or to objects that
+     * were granted to this object. The rights of schemas will be valid for
+     * every each table in the related schema. The ALTER ANY SCHEMA right gives
+     * all rights to all tables.
      *
-     * @param table the table to check
-     * @param rightMask the right mask to check
+     * @param table
+     *            the table to check
+     * @param rightMask
+     *            the right mask to check
      * @return true if the right was already granted
      */
-    boolean isRightGrantedRecursive(Table table, int rightMask) {
-        Right right;
+    final boolean isTableRightGrantedRecursive(Table table, int rightMask) {
+        Schema schema = table.getSchema();
+        if (schema.getOwner() == this) {
+            return true;
+        }
         if (grantedRights != null) {
-            if (table != null) {
-                right = grantedRights.get(table.getSchema());
-                if (right != null) {
-                    if ((right.getRightMask() & rightMask) == rightMask) {
-                        return true;
-                    }
-                }
+            Right right = grantedRights.get(null);
+            if (right != null && (right.getRightMask() & Right.ALTER_ANY_SCHEMA) == Right.ALTER_ANY_SCHEMA) {
+                return true;
+            }
+            right = grantedRights.get(schema);
+            if (right != null && (right.getRightMask() & rightMask) == rightMask) {
+                return true;
             }
             right = grantedRights.get(table);
-            if (right != null) {
-                if ((right.getRightMask() & rightMask) == rightMask) {
+            if (right != null && (right.getRightMask() & rightMask) == rightMask) {
+                return true;
+            }
+        }
+        if (grantedRoles != null) {
+            for (Role role : grantedRoles.keySet()) {
+                if (role.isTableRightGrantedRecursive(table, rightMask)) {
                     return true;
                 }
             }
         }
+        return false;
+    }
+
+    /**
+     * Checks if a schema owner right is already granted to this object or to
+     * objects that were granted to this object. The ALTER ANY SCHEMA right
+     * gives rights to all schemas.
+     *
+     * @param schema
+     *            the schema to check, or {@code null} to check for ALTER ANY
+     *            SCHEMA right only
+     * @return true if the right was already granted
+     */
+    final boolean isSchemaRightGrantedRecursive(Schema schema) {
+        if (schema != null && schema.getOwner() == this) {
+            return true;
+        }
+        if (grantedRights != null) {
+            Right right = grantedRights.get(null);
+            if (right != null && (right.getRightMask() & Right.ALTER_ANY_SCHEMA) == Right.ALTER_ANY_SCHEMA) {
+                return true;
+            }
+        }
         if (grantedRoles != null) {
-            for (RightOwner role : grantedRoles.keySet()) {
-                if (role.isRightGrantedRecursive(table, rightMask)) {
+            for (Role role : grantedRoles.keySet()) {
+                if (role.isSchemaRightGrantedRecursive(schema)) {
                     return true;
                 }
             }
@@ -203,6 +239,21 @@ public abstract class RightOwner extends DbObject {
             return null;
         }
         return grantedRoles.get(role);
+    }
+
+    /**
+     * Check that this right owner does not own any schema. An exception is
+     * thrown if it owns one or more schemas.
+     *
+     * @throws DbException
+     *             if this right owner owns a schema
+     */
+    public final void checkOwnsNoSchemas() {
+        for (Schema s : database.getAllSchemas()) {
+            if (this == s.getOwner()) {
+                throw DbException.get(ErrorCode.CANNOT_DROP_2, getName(), s.getName());
+            }
+        }
     }
 
 }

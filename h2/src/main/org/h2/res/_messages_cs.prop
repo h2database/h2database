@@ -28,6 +28,7 @@
 42000=Chyba syntaxe v SQL příkazu {0}
 42001=Chyba syntaxe v SQL příkazu {0}; očekáváno {1}
 42602=#Invalid name {0}
+42622=#The name that starts with {0} is too long. The maximum length is {1}
 42S01=Tabulka {0} již existuje
 42S02=Tabulka {0} nenalezena
 42S03=#Table {0} not found (candidates are: {1})
@@ -37,11 +38,13 @@
 42S21=Duplicitní název sloupce {0}
 42S22=Sloupec {0} nenalezen
 42S31=#Identical expressions should be used; expected {0}, found {1}
+54011=#Too many columns. The maximum count is {0}
 57014=Příkaz byl zrušen nebo připojení vypršelo
 90000=Funkce {0} musí vracet výsledek
 90001=Metoda neumožňuje dotazování. Použijte execute nebo executeQuery namísto executeUpdate
 90002=Metoda umožňuje pouze pro dotazování. Použijte execute nebo executeUpdate namísto executeQuery
 90003=Hexadecimální řetězec s lichým počtem znaků: {0}
+90005=#Invalid trigger flags: {0}
 90004=Hexadecimální řetězec obsahuje neplatný znak: {0}
 90006=#Sequence {0} has run out of numbers
 90007=Tento objekt byl již uzavřen

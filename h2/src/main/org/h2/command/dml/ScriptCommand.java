@@ -29,10 +29,10 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
+import org.h2.engine.RightOwner;
 import org.h2.engine.Role;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.Setting;
-import org.h2.engine.SysProperties;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -45,11 +45,10 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
-import org.h2.schema.FunctionAlias;
+import org.h2.schema.UserDefinedFunction;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
-import org.h2.schema.UserAggregate;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
@@ -142,7 +141,7 @@ public class ScriptCommand extends ScriptBase {
     }
 
     @Override
-    public ResultInterface query(int maxrows) {
+    public ResultInterface query(long maxrows) {
         session.getUser().checkAdmin();
         reset();
         Database db = session.getDatabase();
@@ -176,11 +175,12 @@ public class ScriptCommand extends ScriptBase {
             if (out != null) {
                 add("", true);
             }
-            for (User user : db.getAllUsers()) {
-                add(user.getCreateSQL(passwords), false);
-            }
-            for (Role role : db.getAllRoles()) {
-                add(role.getCreateSQL(true), false);
+            for (RightOwner rightOwner : db.getAllUsersAndRoles()) {
+                if (rightOwner instanceof User) {
+                    add(((User) rightOwner).getCreateSQL(passwords), false);
+                } else {
+                    add(((Role) rightOwner).getCreateSQL(true), false);
+                }
             }
             ArrayList<Schema> schemas = new ArrayList<>();
             for (Schema schema : db.getAllSchemas()) {
@@ -231,19 +231,11 @@ public class ScriptCommand extends ScriptBase {
                 }
             }
             for (Schema schema : schemas) {
-                for (FunctionAlias obj : schema.getAllFunctionAliases()) {
+                for (UserDefinedFunction userDefinedFunction : schema.getAllFunctionsAndAggregates()) {
                     if (drop) {
-                        add(obj.getDropSQL(), false);
+                        add(userDefinedFunction.getDropSQL(), false);
                     }
-                    add(obj.getCreateSQL(), false);
-                }
-            }
-            for (Schema schema : schemas) {
-                for (UserAggregate obj : schema.getAllAggregates()) {
-                    if (drop) {
-                        add(obj.getDropSQL(), false);
-                    }
-                    add(obj.getCreateSQL(), false);
+                    add(userDefinedFunction.getCreateSQL(), false);
                 }
             }
             for (Schema schema : schemas) {
@@ -478,10 +470,9 @@ public class ScriptCommand extends ScriptBase {
                     true);
             add("CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY " +
                     "ON SYSTEM_LOB_STREAM(ID, PART)", true);
-            add("CREATE ALIAS IF NOT EXISTS " + "SYSTEM_COMBINE_CLOB FOR \"" +
-                    this.getClass().getName() + ".combineClob\"", true);
-            add("CREATE ALIAS IF NOT EXISTS " + "SYSTEM_COMBINE_BLOB FOR \"" +
-                    this.getClass().getName() + ".combineBlob\"", true);
+            String className = getClass().getName();
+            add("CREATE ALIAS IF NOT EXISTS " + "SYSTEM_COMBINE_CLOB FOR '" + className + ".combineClob'", true);
+            add("CREATE ALIAS IF NOT EXISTS " + "SYSTEM_COMBINE_BLOB FOR '" + className + ".combineBlob'", true);
             tempLobTableCreated = true;
         }
         int id = nextLobId++;
@@ -525,7 +516,7 @@ public class ScriptCommand extends ScriptBase {
             break;
         }
         default:
-            DbException.throwInternalError("type:" + v.getValueType());
+            throw DbException.getInternalError("type:" + v.getValueType());
         }
         return id;
     }
@@ -675,7 +666,7 @@ public class ScriptCommand extends ScriptBase {
     private void reset() {
         result = null;
         buffer = null;
-        lineSeparatorString = SysProperties.LINE_SEPARATOR;
+        lineSeparatorString = System.lineSeparator();
         lineSeparator = lineSeparatorString.getBytes(charset);
     }
 

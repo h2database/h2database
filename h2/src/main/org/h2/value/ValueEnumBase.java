@@ -13,8 +13,8 @@ import org.h2.util.StringUtils;
 /**
  * Base implementation of the ENUM data type.
  *
- * Currently, this class is used primarily for
- * client-server communication.
+ * This base implementation is only used in 2.0.* clients when they work with
+ * 1.4.* servers.
  */
 public class ValueEnumBase extends Value {
 

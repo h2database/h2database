@@ -13,14 +13,12 @@ import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.MathUtils;
 import org.h2.value.DataType;
-import org.h2.value.TypeInfo;
 import org.h2.value.ValueToObjectConverter;
 
 /**
  * Represents the meta data for a ResultSet.
  */
-public class JdbcResultSetMetaData extends TraceObject implements
-        ResultSetMetaData {
+public final class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaData {
 
     private final String catalog;
     private final JdbcResultSet rs;
@@ -484,13 +482,6 @@ public class JdbcResultSetMetaData extends TraceObject implements
     @Override
     public String toString() {
         return getTraceObjectName() + ": columns=" + columnCount;
-    }
-
-    /**
-     * INTERNAL
-     */
-    public TypeInfo getColumnInternalType(int column) {
-        return result.getColumnType(--column);
     }
 
 }

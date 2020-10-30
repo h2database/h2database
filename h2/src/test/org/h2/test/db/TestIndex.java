@@ -742,7 +742,7 @@ public class TestIndex extends TestDb {
 
     private void testFunctionIndex() throws SQLException {
         testFunctionIndexCounter = 0;
-        stat.execute("CREATE ALIAS TEST_INDEX FOR \"" + TestIndex.class.getName() + ".testFunctionIndexFunction\"");
+        stat.execute("CREATE ALIAS TEST_INDEX FOR '" + TestIndex.class.getName() + ".testFunctionIndexFunction'");
         try (ResultSet rs = stat.executeQuery("SELECT * FROM TEST_INDEX() WHERE ID = 1 OR ID = 3")) {
             assertTrue(rs.next());
             assertEquals(1, rs.getInt(1));

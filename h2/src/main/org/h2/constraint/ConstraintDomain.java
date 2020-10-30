@@ -77,7 +77,7 @@ public class ConstraintDomain extends Constraint {
 
     @Override
     public String getCreateSQLForCopy(Table forTable, String quotedName) {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     @Override
@@ -110,7 +110,7 @@ public class ConstraintDomain extends Constraint {
 
     @Override
     public void checkRow(SessionLocal session, Table t, Row oldRow, Row newRow) {
-        DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     /**
@@ -167,7 +167,7 @@ public class ConstraintDomain extends Constraint {
 
     @Override
     public void setIndexOwner(Index index) {
-        DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     @Override

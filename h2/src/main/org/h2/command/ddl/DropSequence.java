@@ -7,7 +7,6 @@ package org.h2.command.ddl;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
@@ -17,7 +16,7 @@ import org.h2.schema.Sequence;
  * This class represents the statement
  * DROP SEQUENCE
  */
-public class DropSequence extends SchemaCommand {
+public class DropSequence extends SchemaOwnerCommand {
 
     private String sequenceName;
     private boolean ifExists;
@@ -35,11 +34,8 @@ public class DropSequence extends SchemaCommand {
     }
 
     @Override
-    public long update() {
-        session.getUser().checkAdmin();
-        session.commit(true);
-        Database db = session.getDatabase();
-        Sequence sequence = getSchema().findSequence(sequenceName);
+    long update(Schema schema) {
+        Sequence sequence = schema.findSequence(sequenceName);
         if (sequence == null) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
@@ -48,7 +44,7 @@ public class DropSequence extends SchemaCommand {
             if (sequence.getBelongsToTable()) {
                 throw DbException.get(ErrorCode.SEQUENCE_BELONGS_TO_A_TABLE_1, sequenceName);
             }
-            db.removeSchemaObject(session, sequence);
+            session.getDatabase().removeSchemaObject(session, sequence);
         }
         return 0;
     }

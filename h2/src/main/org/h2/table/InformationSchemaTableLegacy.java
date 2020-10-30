@@ -31,6 +31,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.QueryStatisticsData;
 import org.h2.engine.Right;
+import org.h2.engine.RightOwner;
 import org.h2.engine.Role;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.SessionLocal.State;
@@ -56,7 +57,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
-import org.h2.schema.UserAggregate;
+import org.h2.schema.UserDefinedFunction;
 import org.h2.schema.FunctionAlias.JavaMethod;
 import org.h2.store.InDoubtTransaction;
 import org.h2.tools.Csv;
@@ -143,562 +144,569 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         switch (type) {
         case TABLES:
             setMetaTableName("TABLES");
-            cols = createColumns(
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "TABLE_TYPE",
+            cols = new Column[] {
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("TABLE_TYPE"), //
                     // extensions
-                    "STORAGE_TYPE",
-                    "SQL",
-                    "REMARKS",
-                    "LAST_MODIFICATION BIGINT",
-                    "ID INT",
-                    "TYPE_NAME",
-                    "TABLE_CLASS",
-                    "ROW_COUNT_ESTIMATE BIGINT"
-            );
+                    column("STORAGE_TYPE"), //
+                    column("SQL"), //
+                    column("REMARKS"), //
+                    column("LAST_MODIFICATION", TypeInfo.TYPE_BIGINT), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+                    column("TYPE_NAME"), //
+                    column("TABLE_CLASS"), //
+                    column("ROW_COUNT_ESTIMATE", TypeInfo.TYPE_BIGINT), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case COLUMNS:
             setMetaTableName("COLUMNS");
-            cols = createColumns(
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "COLUMN_NAME",
-                    "ORDINAL_POSITION INT",
-                    "COLUMN_DEFAULT",
-                    "IS_NULLABLE",
-                    "DATA_TYPE INT",
-                    "CHARACTER_MAXIMUM_LENGTH INT",
-                    "CHARACTER_OCTET_LENGTH INT",
-                    "NUMERIC_PRECISION INT",
-                    "NUMERIC_PRECISION_RADIX INT",
-                    "NUMERIC_SCALE INT",
-                    "DATETIME_PRECISION INT",
-                    "INTERVAL_TYPE",
-                    "INTERVAL_PRECISION INT",
-                    "CHARACTER_SET_NAME",
-                    "COLLATION_NAME",
-                    "DOMAIN_CATALOG",
-                    "DOMAIN_SCHEMA",
-                    "DOMAIN_NAME",
-                    "IS_GENERATED",
-                    "GENERATION_EXPRESSION",
+            cols = new Column[] {
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("COLUMN_NAME"), //
+                    column("ORDINAL_POSITION", TypeInfo.TYPE_INTEGER), //
+                    column("COLUMN_DEFAULT"), //
+                    column("IS_NULLABLE"), //
+                    column("DATA_TYPE", TypeInfo.TYPE_INTEGER), //
+                    column("CHARACTER_MAXIMUM_LENGTH", TypeInfo.TYPE_INTEGER), //
+                    column("CHARACTER_OCTET_LENGTH", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_PRECISION_RADIX", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("DATETIME_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("INTERVAL_TYPE"), //
+                    column("INTERVAL_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("CHARACTER_SET_NAME"), //
+                    column("COLLATION_NAME"), //
+                    column("DOMAIN_CATALOG"), //
+                    column("DOMAIN_SCHEMA"), //
+                    column("DOMAIN_NAME"), //
+                    column("IS_GENERATED"), //
+                    column("GENERATION_EXPRESSION"), //
                     // extensions
-                    "TYPE_NAME",
-                    "NULLABLE INT",
-                    "IS_COMPUTED BIT",
-                    "SELECTIVITY INT",
-                    "SEQUENCE_NAME",
-                    "REMARKS",
-                    "SOURCE_DATA_TYPE SMALLINT",
-                    "COLUMN_TYPE",
-                    "COLUMN_ON_UPDATE",
-                    "IS_VISIBLE",
+                    column("TYPE_NAME"), //
+                    column("NULLABLE", TypeInfo.TYPE_INTEGER), //
+                    column("IS_COMPUTED", TypeInfo.TYPE_BOOLEAN), //
+                    column("SELECTIVITY", TypeInfo.TYPE_INTEGER), //
+                    column("SEQUENCE_NAME"), //
+                    column("REMARKS"), //
+                    column("SOURCE_DATA_TYPE", TypeInfo.TYPE_SMALLINT), //
+                    column("COLUMN_TYPE"), //
+                    column("COLUMN_ON_UPDATE"), //
+                    column("IS_VISIBLE"), //
                     // compatibility
-                    "CHECK_CONSTRAINT"
-            );
+                    column("CHECK_CONSTRAINT"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case INDEXES:
             setMetaTableName("INDEXES");
-            cols = createColumns(
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "NON_UNIQUE BIT",
-                    "INDEX_NAME",
-                    "ORDINAL_POSITION SMALLINT",
-                    "COLUMN_NAME",
-                    "CARDINALITY INT",
-                    "PRIMARY_KEY BIT",
-                    "INDEX_TYPE_NAME",
-                    "IS_GENERATED BIT",
-                    "INDEX_TYPE SMALLINT",
-                    "ASC_OR_DESC",
-                    "PAGES INT",
-                    "FILTER_CONDITION",
-                    "REMARKS",
-                    "SQL",
-                    "ID INT",
-                    "SORT_TYPE INT",
-                    "CONSTRAINT_NAME",
-                    "INDEX_CLASS"
-            );
+            cols = new Column[] {
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("NON_UNIQUE", TypeInfo.TYPE_BOOLEAN), //
+                    column("INDEX_NAME"), //
+                    column("ORDINAL_POSITION", TypeInfo.TYPE_SMALLINT), //
+                    column("COLUMN_NAME"), //
+                    column("CARDINALITY", TypeInfo.TYPE_INTEGER), //
+                    column("PRIMARY_KEY", TypeInfo.TYPE_BOOLEAN), //
+                    column("INDEX_TYPE_NAME"), //
+                    column("IS_GENERATED", TypeInfo.TYPE_BOOLEAN), //
+                    column("INDEX_TYPE", TypeInfo.TYPE_SMALLINT), //
+                    column("ASC_OR_DESC"), //
+                    column("PAGES", TypeInfo.TYPE_INTEGER), //
+                    column("FILTER_CONDITION"), //
+                    column("REMARKS"), //
+                    column("SQL"), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+                    column("SORT_TYPE", TypeInfo.TYPE_INTEGER), //
+                    column("CONSTRAINT_NAME"), //
+                    column("INDEX_CLASS"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case TABLE_TYPES:
             setMetaTableName("TABLE_TYPES");
-            cols = createColumns("TYPE");
+            cols = new Column[] {
+                    column("TYPE"), //
+            };
             break;
         case TYPE_INFO:
             setMetaTableName("TYPE_INFO");
-            cols = createColumns(
-                "TYPE_NAME",
-                "DATA_TYPE INT",
-                "PRECISION INT",
-                "PREFIX",
-                "SUFFIX",
-                "PARAMS",
-                "AUTO_INCREMENT BIT",
-                "MINIMUM_SCALE SMALLINT",
-                "MAXIMUM_SCALE SMALLINT",
-                "RADIX INT",
-                "POS INT",
-                "CASE_SENSITIVE BIT",
-                "NULLABLE SMALLINT",
-                "SEARCHABLE SMALLINT"
-            );
+            cols = new Column[] {
+                column("TYPE_NAME"), //
+                column("DATA_TYPE", TypeInfo.TYPE_INTEGER), //
+                column("PRECISION", TypeInfo.TYPE_INTEGER), //
+                column("PREFIX"), //
+                column("SUFFIX"), //
+                column("PARAMS"), //
+                column("AUTO_INCREMENT", TypeInfo.TYPE_BOOLEAN), //
+                column("MINIMUM_SCALE", TypeInfo.TYPE_SMALLINT), //
+                column("MAXIMUM_SCALE", TypeInfo.TYPE_SMALLINT), //
+                column("RADIX", TypeInfo.TYPE_INTEGER), //
+                column("POS", TypeInfo.TYPE_INTEGER), //
+                column("CASE_SENSITIVE", TypeInfo.TYPE_BOOLEAN), //
+                column("NULLABLE", TypeInfo.TYPE_SMALLINT), //
+                column("SEARCHABLE", TypeInfo.TYPE_SMALLINT), //
+            };
             break;
         case CATALOGS:
             setMetaTableName("CATALOGS");
-            cols = createColumns("CATALOG_NAME");
+            cols = new Column[] {
+                    column("CATALOG_NAME"), //
+            };
             break;
         case SETTINGS:
             setMetaTableName("SETTINGS");
-            cols = createColumns("NAME", "VALUE");
+            cols = new Column[] {
+                    column("NAME"), //
+                    column("VALUE"), //
+            };
             break;
         case HELP:
             setMetaTableName("HELP");
-            cols = createColumns(
-                    "ID INT",
-                    "SECTION",
-                    "TOPIC",
-                    "SYNTAX",
-                    "TEXT"
-            );
+            cols = new Column[] {
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+                    column("SECTION"), //
+                    column("TOPIC"), //
+                    column("SYNTAX"), //
+                    column("TEXT"), //
+            };
             break;
         case SEQUENCES:
             setMetaTableName("SEQUENCES");
-            cols = createColumns(
-                    "SEQUENCE_CATALOG",
-                    "SEQUENCE_SCHEMA",
-                    "SEQUENCE_NAME",
-                    "DATA_TYPE",
-                    "NUMERIC_PRECISION INT",
-                    "NUMERIC_PRECISION_RADIX INT",
-                    "NUMERIC_SCALE INT",
-                    "START_VALUE BIGINT",
-                    "MINIMUM_VALUE BIGINT",
-                    "MAXIMUM_VALUE BIGINT",
-                    "INCREMENT BIGINT",
-                    "CYCLE_OPTION",
-                    "DECLARED_DATA_TYPE",
-                    "DECLARED_NUMERIC_PRECISION INT",
-                    "DECLARED_NUMERIC_SCALE INT",
-                    "CURRENT_VALUE BIGINT",
-                    "IS_GENERATED BIT",
-                    "REMARKS",
-                    "CACHE BIGINT",
-                    "ID INT",
+            cols = new Column[] {
+                    column("SEQUENCE_CATALOG"), //
+                    column("SEQUENCE_SCHEMA"), //
+                    column("SEQUENCE_NAME"), //
+                    column("DATA_TYPE"), //
+                    column("NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_PRECISION_RADIX", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("START_VALUE", TypeInfo.TYPE_BIGINT), //
+                    column("MINIMUM_VALUE", TypeInfo.TYPE_BIGINT), //
+                    column("MAXIMUM_VALUE", TypeInfo.TYPE_BIGINT), //
+                    column("INCREMENT", TypeInfo.TYPE_BIGINT), //
+                    column("CYCLE_OPTION"), //
+                    column("DECLARED_DATA_TYPE"), //
+                    column("DECLARED_NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("DECLARED_NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("CURRENT_VALUE", TypeInfo.TYPE_BIGINT), //
+                    column("IS_GENERATED", TypeInfo.TYPE_BOOLEAN), //
+                    column("REMARKS"), //
+                    column("CACHE", TypeInfo.TYPE_BIGINT), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
                     // compatibility
-                    "MIN_VALUE BIGINT",
-                    "MAX_VALUE BIGINT",
-                    "IS_CYCLE BIT"
-            );
+                    column("MIN_VALUE", TypeInfo.TYPE_BIGINT), //
+                    column("MAX_VALUE", TypeInfo.TYPE_BIGINT), //
+                    column("IS_CYCLE", TypeInfo.TYPE_BOOLEAN), //
+            };
             break;
         case USERS:
             setMetaTableName("USERS");
-            cols = createColumns(
-                    "NAME",
-                    "ADMIN",
-                    "REMARKS",
-                    "ID INT"
-            );
+            cols = new Column[] {
+                    column("NAME"), //
+                    column("ADMIN"), //
+                    column("REMARKS"), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+            };
             break;
         case ROLES:
             setMetaTableName("ROLES");
-            cols = createColumns(
-                    "NAME",
-                    "REMARKS",
-                    "ID INT"
-            );
+            cols = new Column[] {
+                    column("NAME"), //
+                    column("REMARKS"), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+            };
             break;
         case RIGHTS:
             setMetaTableName("RIGHTS");
-            cols = createColumns(
-                    "GRANTEE",
-                    "GRANTEETYPE",
-                    "GRANTEDROLE",
-                    "RIGHTS",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "ID INT"
-            );
+            cols = new Column[] {
+                    column("GRANTEE"), //
+                    column("GRANTEETYPE"), //
+                    column("GRANTEDROLE"), //
+                    column("RIGHTS"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case FUNCTION_ALIASES:
             setMetaTableName("FUNCTION_ALIASES");
-            cols = createColumns(
-                    "ALIAS_CATALOG",
-                    "ALIAS_SCHEMA",
-                    "ALIAS_NAME",
-                    "JAVA_CLASS",
-                    "JAVA_METHOD",
-                    "DATA_TYPE INT",
-                    "TYPE_NAME",
-                    "COLUMN_COUNT INT",
-                    "RETURNS_RESULT SMALLINT",
-                    "REMARKS",
-                    "ID INT",
-                    "SOURCE"
-            );
+            cols = new Column[] {
+                    column("ALIAS_CATALOG"), //
+                    column("ALIAS_SCHEMA"), //
+                    column("ALIAS_NAME"), //
+                    column("JAVA_CLASS"), //
+                    column("JAVA_METHOD"), //
+                    column("DATA_TYPE", TypeInfo.TYPE_INTEGER), //
+                    column("TYPE_NAME"), //
+                    column("COLUMN_COUNT", TypeInfo.TYPE_INTEGER), //
+                    column("RETURNS_RESULT", TypeInfo.TYPE_SMALLINT), //
+                    column("REMARKS"), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+                    column("SOURCE"), //
+            };
             break;
         case FUNCTION_COLUMNS:
             setMetaTableName("FUNCTION_COLUMNS");
-            cols = createColumns(
-                    "ALIAS_CATALOG",
-                    "ALIAS_SCHEMA",
-                    "ALIAS_NAME",
-                    "JAVA_CLASS",
-                    "JAVA_METHOD",
-                    "COLUMN_COUNT INT",
-                    "POS INT",
-                    "COLUMN_NAME",
-                    "DATA_TYPE INT",
-                    "TYPE_NAME",
-                    "PRECISION INT",
-                    "SCALE SMALLINT",
-                    "RADIX SMALLINT",
-                    "NULLABLE SMALLINT",
-                    "COLUMN_TYPE SMALLINT",
-                    "REMARKS",
-                    "COLUMN_DEFAULT"
-            );
+            cols = new Column[] {
+                    column("ALIAS_CATALOG"), //
+                    column("ALIAS_SCHEMA"), //
+                    column("ALIAS_NAME"), //
+                    column("JAVA_CLASS"), //
+                    column("JAVA_METHOD"), //
+                    column("COLUMN_COUNT", TypeInfo.TYPE_INTEGER), //
+                    column("POS", TypeInfo.TYPE_INTEGER), //
+                    column("COLUMN_NAME"), //
+                    column("DATA_TYPE", TypeInfo.TYPE_INTEGER), //
+                    column("TYPE_NAME"), //
+                    column("PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("SCALE", TypeInfo.TYPE_SMALLINT), //
+                    column("RADIX", TypeInfo.TYPE_SMALLINT), //
+                    column("NULLABLE", TypeInfo.TYPE_SMALLINT), //
+                    column("COLUMN_TYPE", TypeInfo.TYPE_SMALLINT), //
+                    column("REMARKS"), //
+                    column("COLUMN_DEFAULT"), //
+            };
             break;
         case SCHEMATA:
             setMetaTableName("SCHEMATA");
-            cols = createColumns(
-                    "CATALOG_NAME",
-                    "SCHEMA_NAME",
-                    "SCHEMA_OWNER",
-                    "DEFAULT_CHARACTER_SET_NAME",
-                    "DEFAULT_COLLATION_NAME",
-                    "IS_DEFAULT BIT",
-                    "REMARKS",
-                    "ID INT"
-            );
+            cols = new Column[] {
+                    column("CATALOG_NAME"), //
+                    column("SCHEMA_NAME"), //
+                    column("SCHEMA_OWNER"), //
+                    column("DEFAULT_CHARACTER_SET_NAME"), //
+                    column("DEFAULT_COLLATION_NAME"), //
+                    column("IS_DEFAULT", TypeInfo.TYPE_BOOLEAN), //
+                    column("REMARKS"), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+            };
             break;
         case TABLE_PRIVILEGES:
             setMetaTableName("TABLE_PRIVILEGES");
-            cols = createColumns(
-                    "GRANTOR",
-                    "GRANTEE",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "PRIVILEGE_TYPE",
-                    "IS_GRANTABLE"
-            );
+            cols = new Column[] {
+                    column("GRANTOR"), //
+                    column("GRANTEE"), //
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("PRIVILEGE_TYPE"), //
+                    column("IS_GRANTABLE"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case COLUMN_PRIVILEGES:
             setMetaTableName("COLUMN_PRIVILEGES");
-            cols = createColumns(
-                    "GRANTOR",
-                    "GRANTEE",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "COLUMN_NAME",
-                    "PRIVILEGE_TYPE",
-                    "IS_GRANTABLE"
-            );
+            cols = new Column[] {
+                    column("GRANTOR"), //
+                    column("GRANTEE"), //
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("COLUMN_NAME"), //
+                    column("PRIVILEGE_TYPE"), //
+                    column("IS_GRANTABLE"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case COLLATIONS:
             setMetaTableName("COLLATIONS");
-            cols = createColumns(
-                    "NAME",
-                    "KEY"
-            );
+            cols = new Column[] {
+                    column("NAME"), //
+                    column("KEY"), //
+            };
             break;
         case VIEWS:
             setMetaTableName("VIEWS");
-            cols = createColumns(
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "VIEW_DEFINITION",
-                    "CHECK_OPTION",
-                    "IS_UPDATABLE",
-                    "STATUS",
-                    "REMARKS",
-                    "ID INT"
-            );
+            cols = new Column[] {
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("VIEW_DEFINITION"), //
+                    column("CHECK_OPTION"), //
+                    column("IS_UPDATABLE"), //
+                    column("STATUS"), //
+                    column("REMARKS"), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case IN_DOUBT:
             setMetaTableName("IN_DOUBT");
-            cols = createColumns(
-                    "TRANSACTION",
-                    "STATE"
-            );
+            cols = new Column[] {
+                    column("TRANSACTION"), //
+                    column("STATE"), //
+            };
             break;
         case CROSS_REFERENCES:
             setMetaTableName("CROSS_REFERENCES");
-            cols = createColumns(
-                    "PKTABLE_CATALOG",
-                    "PKTABLE_SCHEMA",
-                    "PKTABLE_NAME",
-                    "PKCOLUMN_NAME",
-                    "FKTABLE_CATALOG",
-                    "FKTABLE_SCHEMA",
-                    "FKTABLE_NAME",
-                    "FKCOLUMN_NAME",
-                    "ORDINAL_POSITION SMALLINT",
-                    "UPDATE_RULE SMALLINT",
-                    "DELETE_RULE SMALLINT",
-                    "FK_NAME",
-                    "PK_NAME",
-                    "DEFERRABILITY SMALLINT"
-            );
+            cols = new Column[] {
+                    column("PKTABLE_CATALOG"), //
+                    column("PKTABLE_SCHEMA"), //
+                    column("PKTABLE_NAME"), //
+                    column("PKCOLUMN_NAME"), //
+                    column("FKTABLE_CATALOG"), //
+                    column("FKTABLE_SCHEMA"), //
+                    column("FKTABLE_NAME"), //
+                    column("FKCOLUMN_NAME"), //
+                    column("ORDINAL_POSITION", TypeInfo.TYPE_SMALLINT), //
+                    column("UPDATE_RULE", TypeInfo.TYPE_SMALLINT), //
+                    column("DELETE_RULE", TypeInfo.TYPE_SMALLINT), //
+                    column("FK_NAME"), //
+                    column("PK_NAME"), //
+                    column("DEFERRABILITY", TypeInfo.TYPE_SMALLINT), //
+            };
             indexColumnName = "PKTABLE_NAME";
             break;
         case CONSTRAINTS:
             setMetaTableName("CONSTRAINTS");
-            cols = createColumns(
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME",
-                    "CONSTRAINT_TYPE",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "UNIQUE_INDEX_NAME",
-                    "CHECK_EXPRESSION",
-                    "COLUMN_LIST",
-                    "REMARKS",
-                    "SQL",
-                    "ID INT"
-            );
+            cols = new Column[] {
+                    column("CONSTRAINT_CATALOG"), //
+                    column("CONSTRAINT_SCHEMA"), //
+                    column("CONSTRAINT_NAME"), //
+                    column("CONSTRAINT_TYPE"), //
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("UNIQUE_INDEX_NAME"), //
+                    column("CHECK_EXPRESSION"), //
+                    column("COLUMN_LIST"), //
+                    column("REMARKS"), //
+                    column("SQL"), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case CONSTANTS:
             setMetaTableName("CONSTANTS");
-            cols = createColumns(
-                    "CONSTANT_CATALOG",
-                    "CONSTANT_SCHEMA",
-                    "CONSTANT_NAME",
-                    "DATA_TYPE INT",
-                    "REMARKS",
-                    "SQL",
-                    "ID INT"
-            );
+            cols = new Column[] {
+                    column("CONSTANT_CATALOG"), //
+                    column("CONSTANT_SCHEMA"), //
+                    column("CONSTANT_NAME"), //
+                    column("DATA_TYPE", TypeInfo.TYPE_INTEGER), //
+                    column("REMARKS"), //
+                    column("SQL"), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+            };
             break;
         case DOMAINS:
             setMetaTableName("DOMAINS");
-            cols = createColumns(
-                    "DOMAIN_CATALOG",
-                    "DOMAIN_SCHEMA",
-                    "DOMAIN_NAME",
-                    "DOMAIN_DEFAULT",
-                    "DOMAIN_ON_UPDATE",
-                    "DATA_TYPE INT",
-                    "PRECISION INT",
-                    "SCALE INT",
-                    "TYPE_NAME",
-                    "PARENT_DOMAIN_CATALOG",
-                    "PARENT_DOMAIN_SCHEMA",
-                    "PARENT_DOMAIN_NAME",
-                    "SELECTIVITY INT",
-                    "REMARKS",
-                    "SQL",
-                    "ID INT",
+            cols = new Column[] {
+                    column("DOMAIN_CATALOG"), //
+                    column("DOMAIN_SCHEMA"), //
+                    column("DOMAIN_NAME"), //
+                    column("DOMAIN_DEFAULT"), //
+                    column("DOMAIN_ON_UPDATE"), //
+                    column("DATA_TYPE", TypeInfo.TYPE_INTEGER), //
+                    column("PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("TYPE_NAME"), //
+                    column("PARENT_DOMAIN_CATALOG"), //
+                    column("PARENT_DOMAIN_SCHEMA"), //
+                    column("PARENT_DOMAIN_NAME"), //
+                    column("SELECTIVITY", TypeInfo.TYPE_INTEGER), //
+                    column("REMARKS"), //
+                    column("SQL"), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
                     // compatibility
-                    "COLUMN_DEFAULT",
-                    "IS_NULLABLE",
-                    "CHECK_CONSTRAINT"
-            );
+                    column("COLUMN_DEFAULT"), //
+                    column("IS_NULLABLE"), //
+                    column("CHECK_CONSTRAINT"), //
+            };
             break;
         case TRIGGERS:
             setMetaTableName("TRIGGERS");
-            cols = createColumns(
-                    "TRIGGER_CATALOG",
-                    "TRIGGER_SCHEMA",
-                    "TRIGGER_NAME",
-                    "TRIGGER_TYPE",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "BEFORE BIT",
-                    "JAVA_CLASS",
-                    "QUEUE_SIZE INT",
-                    "NO_WAIT BIT",
-                    "REMARKS",
-                    "SQL",
-                    "ID INT"
-            );
+            cols = new Column[] {
+                    column("TRIGGER_CATALOG"), //
+                    column("TRIGGER_SCHEMA"), //
+                    column("TRIGGER_NAME"), //
+                    column("TRIGGER_TYPE"), //
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("BEFORE", TypeInfo.TYPE_BOOLEAN), //
+                    column("JAVA_CLASS"), //
+                    column("QUEUE_SIZE", TypeInfo.TYPE_INTEGER), //
+                    column("NO_WAIT", TypeInfo.TYPE_BOOLEAN), //
+                    column("REMARKS"), //
+                    column("SQL"), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+            };
             break;
         case SESSIONS: {
             setMetaTableName("SESSIONS");
-            cols = createColumns(
-                    "ID INT",
-                    "USER_NAME",
-                    "SERVER",
-                    "CLIENT_ADDR",
-                    "CLIENT_INFO",
-                    "SESSION_START TIMESTAMP WITH TIME ZONE",
-                    "ISOLATION_LEVEL",
-                    "STATEMENT",
-                    "STATEMENT_START TIMESTAMP WITH TIME ZONE",
-                    "CONTAINS_UNCOMMITTED BIT",
-                    "STATE",
-                    "BLOCKER_ID INT",
-                    "SLEEP_SINCE TIMESTAMP WITH TIME ZONE"
-            );
+            cols = new Column[] {
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+                    column("USER_NAME"), //
+                    column("SERVER"), //
+                    column("CLIENT_ADDR"), //
+                    column("CLIENT_INFO"), //
+                    column("SESSION_START", TypeInfo.TYPE_TIMESTAMP_TZ), //
+                    column("ISOLATION_LEVEL"), //
+                    column("STATEMENT"), //
+                    column("STATEMENT_START", TypeInfo.TYPE_TIMESTAMP_TZ), //
+                    column("CONTAINS_UNCOMMITTED", TypeInfo.TYPE_BOOLEAN), //
+                    column("STATE"), //
+                    column("BLOCKER_ID", TypeInfo.TYPE_INTEGER), //
+                    column("SLEEP_SINCE", TypeInfo.TYPE_TIMESTAMP_TZ), //
+            };
             break;
         }
         case LOCKS: {
             setMetaTableName("LOCKS");
-            cols = createColumns(
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "SESSION_ID INT",
-                    "LOCK_TYPE"
-            );
+            cols = new Column[] {
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("SESSION_ID", TypeInfo.TYPE_INTEGER), //
+                    column("LOCK_TYPE"), //
+            };
             break;
         }
         case SESSION_STATE: {
             setMetaTableName("SESSION_STATE");
-            cols = createColumns(
-                    "KEY",
-                    "SQL"
-            );
+            cols = new Column[] {
+                    column("KEY"), //
+                    column("SQL"), //
+            };
             break;
         }
         case QUERY_STATISTICS: {
             setMetaTableName("QUERY_STATISTICS");
-            cols = createColumns(
-                    "SQL_STATEMENT",
-                    "EXECUTION_COUNT INT",
-                    "MIN_EXECUTION_TIME DOUBLE",
-                    "MAX_EXECUTION_TIME DOUBLE",
-                    "CUMULATIVE_EXECUTION_TIME DOUBLE",
-                    "AVERAGE_EXECUTION_TIME DOUBLE",
-                    "STD_DEV_EXECUTION_TIME DOUBLE",
-                    "MIN_ROW_COUNT BIGINT",
-                    "MAX_ROW_COUNT BIGINT",
-                    "CUMULATIVE_ROW_COUNT LONG",
-                    "AVERAGE_ROW_COUNT DOUBLE",
-                    "STD_DEV_ROW_COUNT DOUBLE"
-            );
+            cols = new Column[] {
+                    column("SQL_STATEMENT"), //
+                    column("EXECUTION_COUNT", TypeInfo.TYPE_INTEGER), //
+                    column("MIN_EXECUTION_TIME", TypeInfo.TYPE_DOUBLE), //
+                    column("MAX_EXECUTION_TIME", TypeInfo.TYPE_DOUBLE), //
+                    column("CUMULATIVE_EXECUTION_TIME", TypeInfo.TYPE_DOUBLE), //
+                    column("AVERAGE_EXECUTION_TIME", TypeInfo.TYPE_DOUBLE), //
+                    column("STD_DEV_EXECUTION_TIME", TypeInfo.TYPE_DOUBLE), //
+                    column("MIN_ROW_COUNT", TypeInfo.TYPE_BIGINT), //
+                    column("MAX_ROW_COUNT", TypeInfo.TYPE_BIGINT), //
+                    column("CUMULATIVE_ROW_COUNT", TypeInfo.TYPE_BIGINT), //
+                    column("AVERAGE_ROW_COUNT", TypeInfo.TYPE_DOUBLE), //
+                    column("STD_DEV_ROW_COUNT", TypeInfo.TYPE_DOUBLE), //
+            };
             break;
         }
         case SYNONYMS: {
             setMetaTableName("SYNONYMS");
-            cols = createColumns(
-                    "SYNONYM_CATALOG",
-                    "SYNONYM_SCHEMA",
-                    "SYNONYM_NAME",
-                    "SYNONYM_FOR",
-                    "SYNONYM_FOR_SCHEMA",
-                    "TYPE_NAME",
-                    "STATUS",
-                    "REMARKS",
-                    "ID INT"
-            );
+            cols = new Column[] {
+                    column("SYNONYM_CATALOG"), //
+                    column("SYNONYM_SCHEMA"), //
+                    column("SYNONYM_NAME"), //
+                    column("SYNONYM_FOR"), //
+                    column("SYNONYM_FOR_SCHEMA"), //
+                    column("TYPE_NAME"), //
+                    column("STATUS"), //
+                    column("REMARKS"), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+            };
             indexColumnName = "SYNONYM_NAME";
             break;
         }
         case TABLE_CONSTRAINTS: {
             setMetaTableName("TABLE_CONSTRAINTS");
-            cols = createColumns(
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME",
-                    "CONSTRAINT_TYPE",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "IS_DEFERRABLE",
-                    "INITIALLY_DEFERRED",
-                    "REMARKS",
-                    "SQL",
-                    "ID INT"
-            );
+            cols = new Column[] {
+                    column("CONSTRAINT_CATALOG"), //
+                    column("CONSTRAINT_SCHEMA"), //
+                    column("CONSTRAINT_NAME"), //
+                    column("CONSTRAINT_TYPE"), //
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("IS_DEFERRABLE"), //
+                    column("INITIALLY_DEFERRED"), //
+                    column("REMARKS"), //
+                    column("SQL"), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         }
         case DOMAIN_CONSTRAINTS: {
             setMetaTableName("DOMAIN_CONSTRAINTS");
-            cols = createColumns(
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME",
-                    "DOMAIN_CATALOG",
-                    "DOMAIN_SCHEMA",
-                    "DOMAIN_NAME",
-                    "IS_DEFERRABLE",
-                    "INITIALLY_DEFERRED",
-                    "REMARKS",
-                    "SQL",
-                    "ID INT"
-            );
+            cols = new Column[] {
+                    column("CONSTRAINT_CATALOG"), //
+                    column("CONSTRAINT_SCHEMA"), //
+                    column("CONSTRAINT_NAME"), //
+                    column("DOMAIN_CATALOG"), //
+                    column("DOMAIN_SCHEMA"), //
+                    column("DOMAIN_NAME"), //
+                    column("IS_DEFERRABLE"), //
+                    column("INITIALLY_DEFERRED"), //
+                    column("REMARKS"), //
+                    column("SQL"), //
+                    column("ID", TypeInfo.TYPE_INTEGER), //
+            };
             break;
         }
         case KEY_COLUMN_USAGE: {
             setMetaTableName("KEY_COLUMN_USAGE");
-            cols = createColumns(
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "COLUMN_NAME",
-                    "ORDINAL_POSITION INT",
-                    "POSITION_IN_UNIQUE_CONSTRAINT INT",
-                    "INDEX_CATALOG",
-                    "INDEX_SCHEMA",
-                    "INDEX_NAME"
-            );
+            cols = new Column[] {
+                    column("CONSTRAINT_CATALOG"), //
+                    column("CONSTRAINT_SCHEMA"), //
+                    column("CONSTRAINT_NAME"), //
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("COLUMN_NAME"), //
+                    column("ORDINAL_POSITION", TypeInfo.TYPE_INTEGER), //
+                    column("POSITION_IN_UNIQUE_CONSTRAINT", TypeInfo.TYPE_INTEGER), //
+                    column("INDEX_CATALOG"), //
+                    column("INDEX_SCHEMA"), //
+                    column("INDEX_NAME"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         }
         case REFERENTIAL_CONSTRAINTS: {
             setMetaTableName("REFERENTIAL_CONSTRAINTS");
-            cols = createColumns(
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME",
-                    "UNIQUE_CONSTRAINT_CATALOG",
-                    "UNIQUE_CONSTRAINT_SCHEMA",
-                    "UNIQUE_CONSTRAINT_NAME",
-                    "MATCH_OPTION",
-                    "UPDATE_RULE",
-                    "DELETE_RULE"
-            );
+            cols = new Column[] {
+                    column("CONSTRAINT_CATALOG"), //
+                    column("CONSTRAINT_SCHEMA"), //
+                    column("CONSTRAINT_NAME"), //
+                    column("UNIQUE_CONSTRAINT_CATALOG"), //
+                    column("UNIQUE_CONSTRAINT_SCHEMA"), //
+                    column("UNIQUE_CONSTRAINT_NAME"), //
+                    column("MATCH_OPTION"), //
+                    column("UPDATE_RULE"), //
+                    column("DELETE_RULE"), //
+            };
             break;
         }
         case CHECK_CONSTRAINTS: {
             setMetaTableName("CHECK_CONSTRAINTS");
-            cols = createColumns(
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME",
-                    "CHECK_CLAUSE"
-            );
+            cols = new Column[] {
+                    column("CONSTRAINT_CATALOG"), //
+                    column("CONSTRAINT_SCHEMA"), //
+                    column("CONSTRAINT_NAME"), //
+                    column("CHECK_CLAUSE"), //
+            };
             break;
         }
         case CONSTRAINT_COLUMN_USAGE: {
             setMetaTableName("CONSTRAINT_COLUMN_USAGE");
-            cols = createColumns(
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "COLUMN_NAME",
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME"
-            );
+            cols = new Column[] {
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("COLUMN_NAME"), //
+                    column("CONSTRAINT_CATALOG"), //
+                    column("CONSTRAINT_SCHEMA"), //
+                    column("CONSTRAINT_NAME"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         }
         default:
-            throw DbException.throwInternalError("type="+type);
+            throw DbException.getInternalError("type=" + type);
         }
         setColumns(cols);
 
@@ -1005,7 +1013,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                 // SORT_TYPE
                                 ValueInteger.get(idxCol.sortType),
                                 // CONSTRAINT_NAME
-                                constraintName, // INDEX_CLASS
+                                constraintName,
+                                // INDEX_CLASS
                                 indexClass
                             );
                     }
@@ -1051,7 +1060,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // CASE_SENSITIVE
                         ValueBoolean.get(t.caseSensitive),
                         // NULLABLE
-                        ValueSmallint.get((short) DatabaseMetaData.typeNullable), // SEARCHABLE
+                        ValueSmallint.get((short) DatabaseMetaData.typeNullable),
+                        // SEARCHABLE
                         ValueSmallint.get((short) DatabaseMetaData.typeSearchable)
                 );
             }
@@ -1093,6 +1103,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             add(session, rows, "MODE", database.getMode().getName());
             add(session, rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
             add(session, rows, "TIME ZONE", session.currentTimeZone().getId());
+            add(session, rows, "TRUNCATE_LARGE_LENGTH", session.isTruncateLargeLength() ? "TRUE" : "FALSE");
             add(session, rows, "VARIABLE_BINARY", session.isVariableBinary() ? "TRUE" : "FALSE");
             add(session, rows, "OLD_INFORMATION_SCHEMA", session.isOldInformationSchema() ? "TRUE" : "FALSE");
             BitSet nonKeywords = session.getNonKeywords();
@@ -1100,29 +1111,11 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 add(session, rows, "NON_KEYWORDS", Parser.formatNonKeywords(nonKeywords));
             }
             add(session, rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
-            add(session, rows, "LOG", Integer.toString(database.getLogMode()));
             // database settings
             for (Map.Entry<String, String> entry : database.getSettings().getSortedSettings()) {
                 add(session, rows, entry.getKey(), entry.getValue());
             }
             if (database.isPersistent()) {
-                PageStore pageStore = database.getPageStore();
-                if (pageStore != null) {
-                    add(session, rows,
-                            "info.FILE_WRITE_TOTAL", Long.toString(pageStore.getWriteCountTotal()));
-                    add(session, rows,
-                            "info.FILE_WRITE", Long.toString(pageStore.getWriteCount()));
-                    add(session, rows,
-                            "info.FILE_READ", Long.toString(pageStore.getReadCount()));
-                    add(session, rows,
-                            "info.PAGE_COUNT", Integer.toString(pageStore.getPageCount()));
-                    add(session, rows,
-                            "info.PAGE_SIZE", Integer.toString(pageStore.getPageSize()));
-                    add(session, rows,
-                            "info.CACHE_MAX_SIZE", Integer.toString(pageStore.getCache().getMaxMemory()));
-                    add(session, rows,
-                            "info.CACHE_SIZE", Integer.toString(pageStore.getCache().getMemory()));
-                }
                 Store store = database.getStore();
                 if (store != null) {
                     MVStore mvStore = store.getMvStore();
@@ -1168,6 +1161,19 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         add(session, rows,
                                 "info.LEAF_RATIO", Integer.toString(mvStore.getLeafRatio()));
                     }
+                } else {
+                    PageStore pageStore = database.getPageStore();
+                    if (pageStore != null) {
+                        add(session, rows, "LOG", Integer.toString(pageStore.getLogMode()));
+                        add(session, rows, "info.FILE_WRITE_TOTAL", Long.toString(pageStore.getWriteCountTotal()));
+                        add(session, rows, "info.FILE_WRITE", Long.toString(pageStore.getWriteCount()));
+                        add(session, rows, "info.FILE_READ", Long.toString(pageStore.getReadCount()));
+                        add(session, rows, "info.PAGE_COUNT", Integer.toString(pageStore.getPageCount()));
+                        add(session, rows, "info.PAGE_SIZE", Integer.toString(pageStore.getPageSize()));
+                        add(session, rows, "info.CACHE_MAX_SIZE",
+                                Integer.toString(pageStore.getCache().getMaxMemory()));
+                        add(session, rows, "info.CACHE_SIZE", Integer.toString(pageStore.getCache().getMemory()));
+                    }
                 }
             }
             break;
@@ -1191,7 +1197,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // TOPIC
                         rs.getString(2).trim(),
                         // SYNTAX
-                        rs.getString(3).trim(), // TEXT
+                        rs.getString(3).trim(),
+                        // TEXT
                         rs.getString(4).trim()
                     );
                 }
@@ -1248,44 +1255,52 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         ValueBigint.get(s.getCacheSize()),
                         // ID
                         ValueInteger.get(s.getId()),
-                        // "MIN_VALUE
+                        // MIN_VALUE
                         ValueBigint.get(s.getMinValue()),
                         // MAX_VALUE
                         ValueBigint.get(s.getMaxValue()),
-                        // IS_CYCLE BIT"
+                        // IS_CYCLE
                         ValueBoolean.get(s.getCycle().isCycle())
                     );
             }
             break;
         }
         case USERS: {
-            for (User u : database.getAllUsers()) {
-                if (admin || session.getUser() == u) {
-                    add(session,
-                            rows,
-                            // NAME
-                            identifier(u.getName()),
-                            // ADMIN
-                            String.valueOf(u.isAdmin()),
-                            // REMARKS
-                            replaceNullWithEmpty(u.getComment()), // ID
-                            ValueInteger.get(u.getId())
-                    );
+            for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+                if (rightOwner instanceof User) {
+                    User u = (User) rightOwner;
+                    if (admin || session.getUser() == u) {
+                        add(session,
+                                rows,
+                                // NAME
+                                identifier(u.getName()),
+                                // ADMIN
+                                String.valueOf(u.isAdmin()),
+                                // REMARKS
+                                replaceNullWithEmpty(u.getComment()),
+                                // ID
+                                ValueInteger.get(u.getId())
+                        );
+                    }
                 }
             }
             break;
         }
         case ROLES: {
-            for (Role r : database.getAllRoles()) {
-                if (admin || session.getUser().isRoleGranted(r)) {
-                    add(session,
-                            rows,
-                            // NAME
-                            identifier(r.getName()),
-                            // REMARKS
-                            replaceNullWithEmpty(r.getComment()), // ID
-                            ValueInteger.get(r.getId())
-                    );
+            for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+                if (rightOwner instanceof Role) {
+                    Role r = (Role) rightOwner;
+                    if (admin || session.getUser().isRoleGranted(r)) {
+                        add(session,
+                                rows,
+                                // NAME
+                                identifier(r.getName()),
+                                // REMARKS
+                                replaceNullWithEmpty(r.getComment()),
+                                // ID
+                                ValueInteger.get(r.getId())
+                        );
+                    }
                 }
             }
             break;
@@ -1326,7 +1341,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                 // TABLE_SCHEMA
                                 schemaName,
                                 // TABLE_NAME
-                                tableName, // ID
+                                tableName,
+                                // ID
                                 ValueInteger.get(r.getId())
                         );
                     } else {
@@ -1343,7 +1359,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                 // TABLE_SCHEMA
                                 "",
                                 // TABLE_NAME
-                                "", // ID
+                                "",
+                                // ID
                                 ValueInteger.get(r.getId())
                         );
                     }
@@ -1351,186 +1368,193 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             }
             break;
         }
-        case FUNCTION_ALIASES: {
-            for (SchemaObject aliasAsSchemaObject :
-                    getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
-                FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
-                JavaMethod[] methods;
-                try {
-                    methods = alias.getJavaMethods();
-                } catch (DbException e) {
-                    methods = new JavaMethod[0];
-                }
-                for (FunctionAlias.JavaMethod method : methods) {
-                    TypeInfo typeInfo = method.getDataType();
-                    add(session,
-                            rows,
-                            // ALIAS_CATALOG
-                            catalog,
-                            // ALIAS_SCHEMA
-                            alias.getSchema().getName(),
-                            // ALIAS_NAME
-                            alias.getName(),
-                            // JAVA_CLASS
-                            alias.getJavaClassName(),
-                            // JAVA_METHOD
-                            alias.getJavaMethodName(),
-                            // DATA_TYPE
-                            ValueInteger.get(DataType.convertTypeToSQLType(typeInfo)),
-                            // TYPE_NAME
-                            getDataTypeName(typeInfo),
-                            // COLUMN_COUNT
-                            ValueInteger.get(method.getParameterCount()),
-                            // RETURNS_RESULT
-                            ValueSmallint.get(typeInfo.getValueType() == Value.NULL
-                                    ? (short) DatabaseMetaData.procedureNoResult
-                                    : (short) DatabaseMetaData.procedureReturnsResult),
-                            // REMARKS
-                            replaceNullWithEmpty(alias.getComment()),
-                            // ID
-                            ValueInteger.get(alias.getId()),
-                            // SOURCE
-                            alias.getSource()
-                            // when adding more columns, see also below
-                    );
-                }
-            }
-            for (SchemaObject aggregateAsSchemaObject : getAllSchemaObjects(DbObject.AGGREGATE)) {
-                UserAggregate agg = (UserAggregate) aggregateAsSchemaObject;
-                add(session,
-                        rows,
-                        // ALIAS_CATALOG
-                        catalog,
-                        // ALIAS_SCHEMA
-                        database.getMainSchema().getName(),
-                        // ALIAS_NAME
-                        agg.getName(),
-                        // JAVA_CLASS
-                        agg.getJavaClassName(),
-                        // JAVA_METHOD
-                        "",
-                        // DATA_TYPE
-                        ValueInteger.get(Types.NULL),
-                        // TYPE_NAME
-                        "NULL",
-                        // COLUMN_COUNT
-                        ValueInteger.get(1),
-                        // RETURNS_RESULT
-                        ValueSmallint.get((short) DatabaseMetaData.procedureReturnsResult),
-                        // REMARKS
-                        replaceNullWithEmpty(agg.getComment()),
-                        // ID
-                        ValueInteger.get(agg.getId()),
-                        // SOURCE
-                        ""
-                        // when adding more columns, see also below
-                );
-            }
-            break;
-        }
-        case FUNCTION_COLUMNS: {
-            for (SchemaObject aliasAsSchemaObject :
-                    getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
-                FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
-                JavaMethod[] methods;
-                try {
-                    methods = alias.getJavaMethods();
-                } catch (DbException e) {
-                    methods = new JavaMethod[0];
-                }
-                for (FunctionAlias.JavaMethod method : methods) {
-                    // Add return column index 0
-                    TypeInfo typeInfo = method.getDataType();
-                    if (typeInfo.getValueType() != Value.NULL) {
-                        DataType dt = DataType.getDataType(typeInfo.getValueType());
-                        add(session,
-                                rows,
-                                // ALIAS_CATALOG
-                                catalog,
-                                // ALIAS_SCHEMA
-                                alias.getSchema().getName(),
-                                // ALIAS_NAME
-                                alias.getName(),
-                                // JAVA_CLASS
-                                alias.getJavaClassName(),
-                                // JAVA_METHOD
-                                alias.getJavaMethodName(),
-                                // COLUMN_COUNT
-                                ValueInteger.get(method.getParameterCount()),
-                                // POS
-                                ValueInteger.get(0),
-                                // COLUMN_NAME
-                                "P0",
-                                // DATA_TYPE
-                                ValueInteger.get(DataType.convertTypeToSQLType(typeInfo)),
-                                // TYPE_NAME
-                                getDataTypeName(typeInfo),
-                                // PRECISION
-                                ValueInteger.get(MathUtils.convertLongToInt(dt.defaultPrecision)),
-                                // SCALE
-                                ValueSmallint.get(MathUtils.convertIntToShort(dt.defaultScale)),
-                                // RADIX
-                                ValueSmallint.get((short) 10),
-                                // NULLABLE
-                                ValueSmallint.get((short) DatabaseMetaData.columnNullableUnknown),
-                                // COLUMN_TYPE
-                                ValueSmallint.get((short) DatabaseMetaData.procedureColumnReturn),
-                                // REMARKS
-                                "", // COLUMN_DEFAULT
-                                null
-                        );
-                    }
-                    Class<?>[] columnList = method.getColumnClasses();
-                    for (int k = 0; k < columnList.length; k++) {
-                        if (method.hasConnectionParam() && k == 0) {
+        case FUNCTION_ALIASES:
+            for (Schema schema : database.getAllSchemas()) {
+                for (UserDefinedFunction userDefinedFunction : schema.getAllFunctionsAndAggregates()) {
+                    if (userDefinedFunction instanceof FunctionAlias) {
+                        FunctionAlias alias = (FunctionAlias) userDefinedFunction;
+                        JavaMethod[] methods;
+                        try {
+                            methods = alias.getJavaMethods();
+                        } catch (DbException e) {
                             continue;
                         }
-                        Class<?> clazz = columnList[k];
-                        TypeInfo columnTypeInfo = ValueToObjectConverter2.classToType(clazz);
-                        DataType dt = DataType.getDataType(columnTypeInfo.getValueType());
+                        for (FunctionAlias.JavaMethod method : methods) {
+                            TypeInfo typeInfo = method.getDataType();
+                            if (typeInfo == null) {
+                                typeInfo = TypeInfo.TYPE_NULL;
+                            }
+                            add(session,
+                                    rows,
+                                    // ALIAS_CATALOG
+                                    catalog,
+                                    // ALIAS_SCHEMA
+                                    alias.getSchema().getName(),
+                                    // ALIAS_NAME
+                                    alias.getName(),
+                                    // JAVA_CLASS
+                                    alias.getJavaClassName(),
+                                    // JAVA_METHOD
+                                    alias.getJavaMethodName(),
+                                    // DATA_TYPE
+                                    ValueInteger.get(DataType.convertTypeToSQLType(typeInfo)),
+                                    // TYPE_NAME
+                                    getDataTypeName(typeInfo),
+                                    // COLUMN_COUNT
+                                    ValueInteger.get(method.getParameterCount()),
+                                    // RETURNS_RESULT
+                                    ValueSmallint.get(typeInfo.getValueType() == Value.NULL
+                                            ? (short) DatabaseMetaData.procedureNoResult
+                                            : (short) DatabaseMetaData.procedureReturnsResult),
+                                    // REMARKS
+                                    replaceNullWithEmpty(alias.getComment()),
+                                    // ID
+                                    ValueInteger.get(alias.getId()),
+                                    // SOURCE
+                                    alias.getSource()
+                                    // when adding more columns, see also below
+                            );
+                        }
+                    } else {
                         add(session,
                                 rows,
                                 // ALIAS_CATALOG
                                 catalog,
                                 // ALIAS_SCHEMA
-                                alias.getSchema().getName(),
+                                database.getMainSchema().getName(),
                                 // ALIAS_NAME
-                                alias.getName(),
+                                userDefinedFunction.getName(),
                                 // JAVA_CLASS
-                                alias.getJavaClassName(),
+                                userDefinedFunction.getJavaClassName(),
                                 // JAVA_METHOD
-                                alias.getJavaMethodName(),
-                                // COLUMN_COUNT
-                                ValueInteger.get(method.getParameterCount()),
-                                // POS
-                                ValueInteger.get(k + (method.hasConnectionParam() ? 0 : 1)),
-                                // COLUMN_NAME
-                                "P" + (k + 1),
+                                "",
                                 // DATA_TYPE
-                                ValueInteger.get(DataType.convertTypeToSQLType(columnTypeInfo)),
+                                ValueInteger.get(Types.NULL),
                                 // TYPE_NAME
-                                getDataTypeName(columnTypeInfo),
-                                // PRECISION
-                                ValueInteger.get(MathUtils.convertLongToInt(dt.defaultPrecision)),
-                                // SCALE
-                                ValueSmallint.get(MathUtils.convertIntToShort(dt.defaultScale)),
-                                // RADIX
-                                ValueSmallint.get((short) 10),
-                                // NULLABLE
-                                ValueSmallint.get(clazz.isPrimitive()
-                                        ? (short) DatabaseMetaData.columnNoNulls
-                                        : (short) DatabaseMetaData.columnNullable),
-                                // COLUMN_TYPE
-                                ValueSmallint.get((short) DatabaseMetaData.procedureColumnIn),
+                                "NULL",
+                                // COLUMN_COUNT
+                                ValueInteger.get(1),
+                                // RETURNS_RESULT
+                                ValueSmallint.get((short) DatabaseMetaData.procedureReturnsResult),
                                 // REMARKS
-                                "", // COLUMN_DEFAULT
-                                null
+                                replaceNullWithEmpty(userDefinedFunction.getComment()),
+                                // ID
+                                ValueInteger.get(userDefinedFunction.getId()),
+                                // SOURCE
+                                ""
+                                // when adding more columns, see also below
                         );
                     }
                 }
             }
             break;
-        }
+        case FUNCTION_COLUMNS:
+            for (Schema schema : database.getAllSchemas()) {
+                for (UserDefinedFunction userDefinedFunction : schema.getAllFunctionsAndAggregates()) {
+                    if (userDefinedFunction instanceof FunctionAlias) {
+                        FunctionAlias alias = (FunctionAlias) userDefinedFunction;
+                        JavaMethod[] methods;
+                        try {
+                            methods = alias.getJavaMethods();
+                        } catch (DbException e) {
+                            continue;
+                        }
+                        for (FunctionAlias.JavaMethod method : methods) {
+                            // Add return column index 0
+                            TypeInfo typeInfo = method.getDataType();
+                            if (typeInfo != null && typeInfo.getValueType() != Value.NULL) {
+                                DataType dt = DataType.getDataType(typeInfo.getValueType());
+                                add(session,
+                                        rows,
+                                        // ALIAS_CATALOG
+                                        catalog,
+                                        // ALIAS_SCHEMA
+                                        alias.getSchema().getName(),
+                                        // ALIAS_NAME
+                                        alias.getName(),
+                                        // JAVA_CLASS
+                                        alias.getJavaClassName(),
+                                        // JAVA_METHOD
+                                        alias.getJavaMethodName(),
+                                        // COLUMN_COUNT
+                                        ValueInteger.get(method.getParameterCount()),
+                                        // POS
+                                        ValueInteger.get(0),
+                                        // COLUMN_NAME
+                                        "P0",
+                                        // DATA_TYPE
+                                        ValueInteger.get(DataType.convertTypeToSQLType(typeInfo)),
+                                        // TYPE_NAME
+                                        getDataTypeName(typeInfo),
+                                        // PRECISION
+                                        ValueInteger.get(MathUtils.convertLongToInt(dt.defaultPrecision)),
+                                        // SCALE
+                                        ValueSmallint.get(MathUtils.convertIntToShort(dt.defaultScale)),
+                                        // RADIX
+                                        ValueSmallint.get((short) 10),
+                                        // NULLABLE
+                                        ValueSmallint.get((short) DatabaseMetaData.columnNullableUnknown),
+                                        // COLUMN_TYPE
+                                        ValueSmallint.get((short) DatabaseMetaData.procedureColumnReturn),
+                                        // REMARKS
+                                        "",
+                                        // COLUMN_DEFAULT
+                                        null
+                                );
+                            }
+                            Class<?>[] columnList = method.getColumnClasses();
+                            for (int k = 0; k < columnList.length; k++) {
+                                if (method.hasConnectionParam() && k == 0) {
+                                    continue;
+                                }
+                                Class<?> clazz = columnList[k];
+                                TypeInfo columnTypeInfo = ValueToObjectConverter2.classToType(clazz);
+                                DataType dt = DataType.getDataType(columnTypeInfo.getValueType());
+                                add(session,
+                                        rows,
+                                        // ALIAS_CATALOG
+                                        catalog,
+                                        // ALIAS_SCHEMA
+                                        alias.getSchema().getName(),
+                                        // ALIAS_NAME
+                                        alias.getName(),
+                                        // JAVA_CLASS
+                                        alias.getJavaClassName(),
+                                        // JAVA_METHOD
+                                        alias.getJavaMethodName(),
+                                        // COLUMN_COUNT
+                                        ValueInteger.get(method.getParameterCount()),
+                                        // POS
+                                        ValueInteger.get(k + (method.hasConnectionParam() ? 0 : 1)),
+                                        // COLUMN_NAME
+                                        "P" + (k + 1),
+                                        // DATA_TYPE
+                                        ValueInteger.get(DataType.convertTypeToSQLType(columnTypeInfo)),
+                                        // TYPE_NAME
+                                        getDataTypeName(columnTypeInfo),
+                                        // PRECISION
+                                        ValueInteger.get(MathUtils.convertLongToInt(dt.defaultPrecision)),
+                                        // SCALE
+                                        ValueSmallint.get(MathUtils.convertIntToShort(dt.defaultScale)),
+                                        // RADIX
+                                        ValueSmallint.get((short) 10),
+                                        // NULLABLE
+                                        ValueSmallint.get(clazz.isPrimitive()
+                                                ? (short) DatabaseMetaData.columnNoNulls
+                                                : (short) DatabaseMetaData.columnNullable),
+                                        // COLUMN_TYPE
+                                        ValueSmallint.get((short) DatabaseMetaData.procedureColumnIn),
+                                        // REMARKS
+                                        "",
+                                        // COLUMN_DEFAULT
+                                        null
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            break;
         case SCHEMATA: {
             String collation = database.getCompareMode().getName();
             for (Schema schema : database.getAllSchemas()) {
@@ -1549,7 +1573,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // IS_DEFAULT
                         ValueBoolean.get(schema.getId() == Constants.MAIN_SCHEMA_ID),
                         // REMARKS
-                        replaceNullWithEmpty(schema.getComment()), // ID
+                        replaceNullWithEmpty(schema.getComment()),
+                        // ID
                         ValueInteger.get(schema.getId())
                 );
             }
@@ -1700,7 +1725,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                             // FK_NAME
                             ref.getName(),
                             // PK_NAME
-                            ref.getReferencedConstraint().getName(), // DEFERRABILITY
+                            ref.getReferencedConstraint().getName(),
+                            // DEFERRABILITY
                             ValueSmallint.get((short) DatabaseMetaData.importedKeyNotDeferrable)
                     );
                 }
@@ -1797,7 +1823,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // REMARKS
                         replaceNullWithEmpty(constant.getComment()),
                         // SQL
-                        expr.getSQL(DEFAULT_SQL_FLAGS), // ID
+                        expr.getSQL(DEFAULT_SQL_FLAGS),
+                        // ID
                         ValueInteger.get(constant.getId())
                     );
             }
@@ -1941,7 +1968,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                 // TABLE_NAME
                                 table.getName(),
                                 // SESSION_ID
-                                ValueInteger.get(s.getId()), // LOCK_TYPE
+                                ValueInteger.get(s.getId()),
+                                // LOCK_TYPE
                                 table.isLockedExclusivelyBy(s) ? "WRITE" : "READ"
                         );
                     }
@@ -1957,14 +1985,17 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 add(session,
                         rows,
                         // KEY
-                        "@" + name, builder.toString()
+                        "@" + name,
+                        // SQL
+                        builder.toString()
                 );
             }
             for (Table table : session.getLocalTempTables()) {
                 add(session,
                         rows,
                         // KEY
-                        "TABLE " + table.getName(), // SQL
+                        "TABLE " + table.getName(),
+                        // SQL
                         table.getCreateSQL()
                 );
             }
@@ -1980,7 +2011,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 add(session,
                         rows,
                         // KEY
-                        "SCHEMA_SEARCH_PATH", // SQL
+                        "SCHEMA_SEARCH_PATH",
+                        // SQL
                         builder.toString()
                 );
             }
@@ -1989,7 +2021,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 add(session,
                         rows,
                         // KEY
-                        "SCHEMA", // SQL
+                        "SCHEMA",
+                        // SQL
                         StringUtils.quoteIdentifier(new StringBuilder("SET SCHEMA "), schema).toString()
                 );
             }
@@ -1998,7 +2031,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 add(session,
                         rows,
                         // KEY
-                        "TIME ZONE", // SQL
+                        "TIME ZONE",
+                        // SQL
                         StringUtils.quoteStringSQL(new StringBuilder("SET TIME ZONE "), currentTimeZone.getId())
                                 .toString()
                 );
@@ -2032,7 +2066,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                             // CUMULATIVE_ROW_COUNT
                             ValueBigint.get(entry.rowCountCumulative),
                             // AVERAGE_ROW_COUNT
-                            ValueDouble.get(entry.rowCountMean), // STD_DEV_ROW_COUNT
+                            ValueDouble.get(entry.rowCountMean),
+                            // STD_DEV_ROW_COUNT
                             ValueDouble.get(entry.getRowCountStandardDeviation())
                     );
                 }
@@ -2058,7 +2093,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // STATUS
                         "VALID",
                         // REMARKS
-                        replaceNullWithEmpty(synonym.getComment()), // ID
+                        replaceNullWithEmpty(synonym.getComment()),
+                        // ID
                         ValueInteger.get(synonym.getId())
                 );
             }
@@ -2102,7 +2138,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // REMARKS
                         replaceNullWithEmpty(constraint.getComment()),
                         // SQL
-                        constraint.getCreateSQL(), // ID
+                        constraint.getCreateSQL(),
+                        // ID
                         ValueInteger.get(constraint.getId())
                 );
             }
@@ -2136,7 +2173,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // REMARKS
                         replaceNullWithEmpty(constraint.getComment()),
                         // SQL
-                        constraint.getCreateSQL(), // ID
+                        constraint.getCreateSQL(),
+                        // ID
                         ValueInteger.get(constraint.getId())
                 );
             }
@@ -2207,7 +2245,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                             // INDEX_CATALOG
                             index != null ? catalog : null,
                             // INDEX_SCHEMA
-                            index != null ? index.getSchema().getName() : null, // INDEX_NAME
+                            index != null ? index.getSchema().getName() : null,
+                            // INDEX_NAME
                             index != null ? index.getName() : null
                     );
                 }
@@ -2242,7 +2281,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // MATCH_OPTION
                         "NONE",
                         // UPDATE_RULE
-                        constraint.getUpdateAction().getSqlName(), // DELETE_RULE
+                        constraint.getUpdateAction().getSqlName(),
+                        // DELETE_RULE
                         constraint.getDeleteAction().getSqlName()
                 );
             }
@@ -2314,7 +2354,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         default:
-            DbException.throwInternalError("type="+type);
+            throw DbException.getInternalError("type=" + type);
         }
         return rows;
     }
@@ -2342,7 +2382,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         case SET_NULL:
             return DatabaseMetaData.importedKeySetNull;
         default:
-            throw DbException.throwInternalError("action="+action);
+            throw DbException.getInternalError("action="+action);
         }
     }
 
@@ -2362,7 +2402,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 // CONSTRAINT_CATALOG
                 catalog,
                 // CONSTRAINT_SCHEMA
-                constraint.getSchema().getName(), // CONSTRAINT_NAME
+                constraint.getSchema().getName(),
+                // CONSTRAINT_NAME
                 constraint.getName()
         );
     }
@@ -2407,7 +2448,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     // TABLE_NAME
                     table.getName(),
                     // PRIVILEGE_TYPE
-                    right, // IS_GRANTABLE
+                    right,
+                    // IS_GRANTABLE
                     isGrantable
             );
         } else {
@@ -2426,7 +2468,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     // COLUMN_NAME
                     column,
                     // PRIVILEGE_TYPE
-                    right, // IS_GRANTABLE
+                    right,
+                    // IS_GRANTABLE
                     isGrantable
             );
         }

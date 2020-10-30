@@ -115,10 +115,10 @@ public class TestOutOfMemory extends TestDb {
         try {
             Connection conn = DriverManager.getConnection(url);
             Statement stat = conn.createStatement();
-            int memoryFree = Utils.getMemoryFree();
+            long memoryFree = Utils.getMemoryFree();
             try {
                 stat.execute("create table test(id int, name varchar) as " +
-                        "select x, space(10000000+x) from system_range(1, 1000)");
+                        "select x, space(1000000+x) from system_range(1, 10000)");
                 fail();
             } catch (SQLException e) {
                 assertTrue("Unexpected error code: " + e.getErrorCode(),
@@ -149,7 +149,7 @@ public class TestOutOfMemory extends TestDb {
         }
     }
 
-    private static void recoverAfterOOM(int expectedFreeMemory) throws InterruptedException {
+    private static void recoverAfterOOM(long expectedFreeMemory) throws InterruptedException {
         for (int i = 0; i < 50; i++) {
             if (Utils.getMemoryFree() > expectedFreeMemory) {
                 break;

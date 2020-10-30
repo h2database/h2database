@@ -3,16 +3,16 @@
 -- Initial Developer: H2 Group
 --
 
-create alias "MIN" for "java.lang.Integer.parseInt(java.lang.String)";
+create alias "MIN" for 'java.lang.Integer.parseInt(java.lang.String)';
 > exception FUNCTION_ALIAS_ALREADY_EXISTS_1
 
-create alias "CAST" for "java.lang.Integer.parseInt(java.lang.String)";
+create alias "CAST" for 'java.lang.Integer.parseInt(java.lang.String)';
 > exception FUNCTION_ALIAS_ALREADY_EXISTS_1
 
 @reconnect off
 
 --- function alias ---------------------------------------------------------------------------------------------
-CREATE ALIAS MY_SQRT FOR "java.lang.Math.sqrt";
+CREATE ALIAS MY_SQRT FOR 'java.lang.Math.sqrt';
 > ok
 
 SELECT MY_SQRT(2.0) MS, SQRT(2.0);
@@ -36,7 +36,7 @@ SELECT MY_SQRT(-1.0) MS, SQRT(NULL) S;
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
 > ----------------------------------------------------------------
-> CREATE FORCE ALIAS "PUBLIC"."MY_SQRT" FOR "java.lang.Math.sqrt";
+> CREATE FORCE ALIAS "PUBLIC"."MY_SQRT" FOR 'java.lang.Math.sqrt';
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 2
 
@@ -60,19 +60,19 @@ DROP ALIAS MY_SQRT;
 CREATE SCHEMA TEST_SCHEMA;
 > ok
 
-CREATE ALIAS TRUNC FOR "java.lang.Math.floor(double)";
+CREATE ALIAS TRUNC FOR 'java.lang.Math.floor(double)';
 > exception FUNCTION_ALIAS_ALREADY_EXISTS_1
 
-CREATE ALIAS PUBLIC.TRUNC FOR "java.lang.Math.floor(double)";
+CREATE ALIAS PUBLIC.TRUNC FOR 'java.lang.Math.floor(double)';
 > exception FUNCTION_ALIAS_ALREADY_EXISTS_1
 
-CREATE ALIAS TEST_SCHEMA.TRUNC FOR "java.lang.Math.round(double)";
+CREATE ALIAS TEST_SCHEMA.TRUNC FOR 'java.lang.Math.round(double)';
 > exception FUNCTION_ALIAS_ALREADY_EXISTS_1
 
 SET BUILTIN_ALIAS_OVERRIDE=1;
 > ok
 
-CREATE ALIAS TRUNC FOR "java.lang.Math.floor(double)";
+CREATE ALIAS TRUNC FOR 'java.lang.Math.floor(double)';
 > ok
 
 SELECT TRUNC(1.5);
@@ -84,10 +84,20 @@ SELECT TRUNC(-1.5);
 DROP ALIAS TRUNC;
 > ok
 
-CREATE ALIAS PUBLIC.TRUNC FOR "java.lang.Math.floor(double)";
+-- Compatibility syntax with identifier
+CREATE ALIAS TRUNC FOR "java.lang.Math.floor(double)";
 > ok
 
-CREATE ALIAS TEST_SCHEMA.TRUNC FOR "java.lang.Math.round(double)";
+SELECT TRUNC(-1.5);
+>> -2.0
+
+DROP ALIAS TRUNC;
+> ok
+
+CREATE ALIAS PUBLIC.TRUNC FOR 'java.lang.Math.floor(double)';
+> ok
+
+CREATE ALIAS TEST_SCHEMA.TRUNC FOR 'java.lang.Math.round(double)';
 > ok
 
 SELECT PUBLIC.TRUNC(1.5);

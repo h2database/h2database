@@ -231,6 +231,11 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     private BitSet idsToRelease;
 
     /**
+     * Whether length in definitions of data types is truncated.
+     */
+    private boolean truncateLargeLength;
+
+    /**
      * Whether BINARY is parsed as VARBINARY.
      */
     private boolean variableBinary;
@@ -400,21 +405,12 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      * @param table the table
      */
     public void removeLocalTempTable(Table table) {
-        // Exception thrown in org.h2.engine.Database.removeMeta if line below
-        // is missing with TestGeneralCommonTableQueries
-        boolean wasLocked = database.lockMeta(this);
-        try {
-            modificationId++;
-            if (localTempTables != null) {
-                localTempTables.remove(table.getName());
-            }
-            synchronized (database) {
-                table.removeChildrenAndResources(this);
-            }
-        } finally {
-            if (!wasLocked) {
-                database.unlockMeta(this);
-            }
+        modificationId++;
+        if (localTempTables != null) {
+            localTempTables.remove(table.getName());
+        }
+        synchronized (database) {
+            table.removeChildrenAndResources(this);
         }
     }
 
@@ -523,6 +519,11 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
                 constraint.removeChildrenAndResources(this);
             }
         }
+    }
+
+    @Override
+    public int getClientVersion() {
+        return Constants.TCP_PROTOCOL_VERSION_MAX_SUPPORTED;
     }
 
     @Override
@@ -933,7 +934,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     public void registerTableAsLocked(Table table) {
         if (SysProperties.CHECK) {
             if (locks.contains(table)) {
-                throw DbException.throwInternalError(table.toString());
+                throw DbException.getInternalError(table.toString());
             }
         }
         locks.add(table);
@@ -974,7 +975,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
                     if (!locks.contains(log.getTable())
                             && TableType.TABLE_LINK != tableType
                             && TableType.EXTERNAL_TABLE_ENGINE != tableType) {
-                        throw DbException.throwInternalError(String.valueOf(tableType));
+                        throw DbException.getInternalError(String.valueOf(tableType));
                     }
                 }
             }
@@ -1011,7 +1012,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
                 database.notifyAll();
             }
         }
-        database.unlockMetaDebug(this);
+        Database.unlockMetaDebug(this);
         savepoints = null;
         sessionStateChanged = true;
     }
@@ -1882,7 +1883,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         // Here we are relying on the fact that map which backs table's primary index
         // has the same name as the table itself
         Store store = database.getStore();
-        if(store != null) {
+        if (store != null) {
             MVTable table = store.getTable(map.getName());
             if (table != null) {
                 long recKey = (Long)key;
@@ -2036,7 +2037,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         if (settings == null) {
             DbSettings dbSettings = database.getSettings();
             staticSettings = settings = new StaticSettings(dbSettings.databaseToUpper, dbSettings.databaseToLower,
-                    dbSettings.caseInsensitiveIdentifiers, oldInformationSchema);
+                    dbSettings.caseInsensitiveIdentifiers);
         }
         return settings;
     }
@@ -2133,6 +2134,27 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     }
 
     /**
+     * Changes parsing mode of data types with too large length.
+     *
+     * @param truncateLargeLength
+     *            {@code true} to truncate to valid bound, {@code false} to
+     *            throw an exception
+     */
+    public void setTruncateLargeLength(boolean truncateLargeLength) {
+        this.truncateLargeLength = truncateLargeLength;
+    }
+
+    /**
+     * Returns parsing mode of data types with too large length.
+     *
+     * @return {@code true} if large length is truncated, {@code false} if an
+     *         exception is thrown
+     */
+    public boolean isTruncateLargeLength() {
+        return truncateLargeLength;
+    }
+
+    /**
      * Changes parsing of a BINARY data type.
      *
      * @param variableBinary
@@ -2164,11 +2186,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         this.oldInformationSchema = oldInformationSchema;
     }
 
-    /**
-     * Returns whether INFORMATION_SCHEMA contains old-style tables.
-     *
-     * @return whether INFORMATION_SCHEMA contains old-style tables
-     */
+    @Override
     public boolean isOldInformationSchema() {
         return oldInformationSchema;
     }

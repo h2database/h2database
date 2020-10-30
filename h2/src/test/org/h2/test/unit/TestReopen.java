@@ -7,7 +7,6 @@ package org.h2.test.unit;
 
 import java.sql.SQLException;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
@@ -109,13 +108,9 @@ public class TestReopen extends TestBase implements Recorder {
             }
             verifyCount++;
             // avoid using the Engine class to avoid deadlocks
-            Properties p = new Properties();
-            String userName =  getUser();
-            p.setProperty("user", userName);
-            p.setProperty("password", getPassword());
             String url = "jdbc:h2:" + testDatabase +
                     ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0";
-            ConnectionInfo ci = new ConnectionInfo(url, p);
+            ConnectionInfo ci = new ConnectionInfo(url, null, getUser(), getPassword());
             Database database = new Database(ci, null);
             // close the database
             SessionLocal session = database.getSystemSession();
@@ -164,9 +159,8 @@ public class TestReopen extends TestBase implements Recorder {
                         Constants.SUFFIX_MV_FILE);
             }
             // avoid using the Engine class to avoid deadlocks
-            Properties p = new Properties();
             String url = "jdbc:h2:" + testDatabase + ";FILE_LOCK=NO";
-            ConnectionInfo ci = new ConnectionInfo(url, p);
+            ConnectionInfo ci = new ConnectionInfo(url, null, null, null);
             Database database = new Database(ci, null);
             // close the database
             database.removeSession(null);

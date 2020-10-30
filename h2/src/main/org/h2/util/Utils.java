@@ -36,11 +36,6 @@ public class Utils {
      */
     public static final int[] EMPTY_INT_ARRAY = {};
 
-    /**
-     * An 0-size long array.
-     */
-    private static final long[] EMPTY_LONG_ARRAY = {};
-
     private static final HashMap<String, byte[]> RESOURCES = new HashMap<>();
 
     private Utils() {
@@ -231,11 +226,10 @@ public class Utils {
      *
      * @return the used memory
      */
-    public static int getMemoryUsed() {
+    public static long getMemoryUsed() {
         collectGarbage();
         Runtime rt = Runtime.getRuntime();
-        long mem = rt.totalMemory() - rt.freeMemory();
-        return (int) (mem >> 10);
+        return rt.totalMemory() - rt.freeMemory() >> 10;
     }
 
     /**
@@ -244,11 +238,9 @@ public class Utils {
      *
      * @return the free memory
      */
-    public static int getMemoryFree() {
+    public static long getMemoryFree() {
         collectGarbage();
-        Runtime rt = Runtime.getRuntime();
-        long mem = rt.freeMemory();
-        return (int) (mem >> 10);
+        return Runtime.getRuntime().freeMemory() >> 10;
     }
 
     /**
@@ -257,8 +249,7 @@ public class Utils {
      * @return the maximum memory
      */
     public static long getMemoryMax() {
-        long max = Runtime.getRuntime().maxMemory();
-        return max / 1024;
+        return Runtime.getRuntime().maxMemory() >> 10;
     }
 
     public static long getGarbageCollectionTime() {
@@ -299,19 +290,6 @@ public class Utils {
     }
 
     /**
-     * Create an int array with the given size.
-     *
-     * @param len the number of bytes requested
-     * @return the int array
-     */
-    public static int[] newIntArray(int len) {
-        if (len == 0) {
-            return EMPTY_INT_ARRAY;
-        }
-        return new int[len];
-    }
-
-    /**
      * Create a new ArrayList with an initial capacity of 4.
      *
      * @param <T> the type
@@ -319,19 +297,6 @@ public class Utils {
      */
     public static <T> ArrayList<T> newSmallArrayList() {
         return new ArrayList<>(4);
-    }
-
-    /**
-     * Create a long array with the given size.
-     *
-     * @param len the number of bytes requested
-     * @return the int array
-     */
-    public static long[] newLongArray(int len) {
-        if (len == 0) {
-            return EMPTY_LONG_ARRAY;
-        }
-        return new long[len];
     }
 
     /**
@@ -558,47 +523,6 @@ public class Utils {
             return points;
         }
         return 0;
-    }
-
-    /**
-     * Returns a static field.
-     *
-     * @param classAndField a string with the entire class and field name
-     * @return the field value
-     */
-    public static Object getStaticField(String classAndField) throws Exception {
-        int lastDot = classAndField.lastIndexOf('.');
-        String className = classAndField.substring(0, lastDot);
-        String fieldName = classAndField.substring(lastDot + 1);
-        return Class.forName(className).getField(fieldName).get(null);
-    }
-
-    /**
-     * Returns a static field.
-     *
-     * @param instance the instance on which the call is done
-     * @param fieldName the field name
-     * @return the field value
-     */
-    public static Object getField(Object instance, String fieldName)
-            throws Exception {
-        return instance.getClass().getField(fieldName).get(instance);
-    }
-
-    /**
-     * Returns true if the class is present in the current class loader.
-     *
-     * @param fullyQualifiedClassName a string with the entire class name, eg.
-     *        "java.lang.System"
-     * @return true if the class is present
-     */
-    public static boolean isClassPresent(String fullyQualifiedClassName) {
-        try {
-            Class.forName(fullyQualifiedClassName);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
     }
 
     /**

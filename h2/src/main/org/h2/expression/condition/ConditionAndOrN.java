@@ -82,7 +82,7 @@ public class ConditionAndOrN extends Condition {
                 builder.append("\n    OR ");
                 break;
             default:
-                throw DbException.throwInternalError("andOrType=" + andOrType);
+                throw DbException.getInternalError("andOrType=" + andOrType);
             }
             it.next().getSQL(builder, sqlFlags, AUTO_PARENTHESES);
         }
@@ -146,7 +146,7 @@ public class ConditionAndOrN extends Condition {
             return hasNull ? ValueNull.INSTANCE : ValueBoolean.FALSE;
         }
         default:
-            throw DbException.throwInternalError("type=" + andOrType);
+            throw DbException.getInternalError("type=" + andOrType);
         }
     }
 
@@ -226,7 +226,7 @@ public class ConditionAndOrN extends Condition {
                 }
                 if (reduced != null) {
                     expressions.remove(i);
-                    expressions.set(i-1, reduced);
+                    expressions.set(i - 1, reduced.optimize(session));
                     continue; // because we don't want to increment, we want to compare the new pair exposed
                 }
             }

@@ -234,7 +234,7 @@ public class TestRandomMapOps extends TestBase {
         s.close();
     }
 
-    private <K,V> Collection<Map.Entry<K,V>> reverse(Collection<Map.Entry<K,V>> entrySet) {
+    private static <K,V> Collection<Map.Entry<K,V>> reverse(Collection<Map.Entry<K,V>> entrySet) {
         ArrayList<Map.Entry<K,V>> list = new ArrayList<>(entrySet);
         Collections.reverse(list);
         entrySet = list;

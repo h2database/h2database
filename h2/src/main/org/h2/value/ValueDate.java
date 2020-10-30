@@ -71,15 +71,12 @@ public final class ValueDate extends Value {
 
     @Override
     public String getString() {
-        StringBuilder builder = new StringBuilder(PRECISION);
-        DateTimeUtils.appendDate(builder, dateValue);
-        return builder.toString();
+        return DateTimeUtils.appendDate(new StringBuilder(PRECISION), dateValue).toString();
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        DateTimeUtils.appendDate(builder.append("DATE '"), dateValue);
-        return builder.append('\'');
+        return DateTimeUtils.appendDate(builder.append("DATE '"), dateValue).append('\'');
     }
 
     @Override
@@ -89,11 +86,7 @@ public final class ValueDate extends Value {
 
     @Override
     public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-        return other instanceof ValueDate
-                && dateValue == (((ValueDate) other).dateValue);
+        return this == other || other instanceof ValueDate && dateValue == ((ValueDate) other).dateValue;
     }
 
     @Override

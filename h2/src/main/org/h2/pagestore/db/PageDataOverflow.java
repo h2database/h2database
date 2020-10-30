@@ -223,7 +223,7 @@ public class PageDataOverflow extends Page {
         // are written
         Page parent = store.getPage(parentPageId);
         if (parent == null) {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         PageDataOverflow next = null;
         if (nextPage != 0) {
@@ -250,7 +250,7 @@ public class PageDataOverflow extends Page {
 
     private void setNext(int old, int nextPage) {
         if (old != this.nextPage) {
-            DbException.throwInternalError("move " + this + " " + nextPage);
+            throw DbException.getInternalError("move " + this + ' ' + nextPage);
         }
         store.logUndo(this, data);
         this.nextPage = nextPage;

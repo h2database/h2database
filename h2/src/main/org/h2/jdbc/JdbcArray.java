@@ -24,7 +24,7 @@ import org.h2.value.ValueToObjectConverter;
 /**
  * Represents an ARRAY value.
  */
-public class JdbcArray extends TraceObject implements Array {
+public final class JdbcArray extends TraceObject implements Array {
 
     private ValueArray value;
     private final JdbcConnection conn;
@@ -66,7 +66,7 @@ public class JdbcArray extends TraceObject implements Array {
     public Object getArray(Map<String, Class<?>> map) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getArray("+quoteMap(map)+");");
+                debugCode("getArray(" + quoteMap(map) + ')');
             }
             JdbcConnection.checkMap(map);
             checkClosed();
@@ -89,7 +89,7 @@ public class JdbcArray extends TraceObject implements Array {
     public Object getArray(long index, int count) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getArray(" + index + ", " + count + ");");
+                debugCode("getArray(" + index + ", " + count + ')');
             }
             checkClosed();
             return get(index, count);
@@ -113,7 +113,7 @@ public class JdbcArray extends TraceObject implements Array {
             throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getArray(" + index + ", " + count + ", " + quoteMap(map)+");");
+                debugCode("getArray(" + index + ", " + count + ", " + quoteMap(map) + ')');
             }
             checkClosed();
             JdbcConnection.checkMap(map);
@@ -185,7 +185,7 @@ public class JdbcArray extends TraceObject implements Array {
     public ResultSet getResultSet(Map<String, Class<?>> map) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getResultSet("+quoteMap(map)+");");
+                debugCode("getResultSet(" + quoteMap(map) + ')');
             }
             checkClosed();
             JdbcConnection.checkMap(map);
@@ -209,7 +209,7 @@ public class JdbcArray extends TraceObject implements Array {
     public ResultSet getResultSet(long index, int count) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getResultSet("+index+", " + count+");");
+                debugCode("getResultSet(" + index + ", " + count + ')');
             }
             checkClosed();
             return getResultSetImpl(index, count);
@@ -235,7 +235,7 @@ public class JdbcArray extends TraceObject implements Array {
             Map<String, Class<?>> map) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getResultSet("+index+", " + count+", " + quoteMap(map)+");");
+                debugCode("getResultSet(" + index + ", " + count + ", " + quoteMap(map) + ')');
             }
             checkClosed();
             JdbcConnection.checkMap(map);

@@ -773,11 +773,6 @@ public class WebServer implements Service {
             String password, String userKey, NetworkConnectionInfo networkConnectionInfo) throws SQLException {
         driver = driver.trim();
         databaseUrl = databaseUrl.trim();
-        Properties p = new Properties();
-        p.setProperty("user", user.trim());
-        // do not trim the password, otherwise an
-        // encrypted H2 database with empty user password doesn't work
-        p.setProperty("password", password);
         if (databaseUrl.startsWith("jdbc:h2:")) {
             if (!allowSecureCreation || key == null || !key.equals(userKey)) {
                 if (ifExists) {
@@ -785,7 +780,9 @@ public class WebServer implements Service {
                 }
             }
         }
-        return JdbcUtils.getConnection(driver, databaseUrl, p, networkConnectionInfo);
+        // do not trim the password, otherwise an
+        // encrypted H2 database with empty user password doesn't work
+        return JdbcUtils.getConnection(driver, databaseUrl, user.trim(), password, networkConnectionInfo);
     }
 
     /**

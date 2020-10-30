@@ -71,6 +71,7 @@ public final class ValueLobFile extends ValueLob {
      */
     ValueLobFile(DataHandler handler, byte[] buff, int len, InputStream in, long remaining) throws IOException {
         super(Value.BLOB, 0);
+        this.handler = handler;
         this.fileName = createTempLobFileName(handler);
         this.tempFile = handler.openFile(fileName, "rw", false);
         this.tempFile.autoDelete();

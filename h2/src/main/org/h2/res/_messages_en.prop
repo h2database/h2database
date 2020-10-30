@@ -28,6 +28,7 @@
 42000=Syntax error in SQL statement {0}
 42001=Syntax error in SQL statement {0}; expected {1}
 42602=Invalid name {0}
+42622=The name that starts with {0} is too long. The maximum length is {1}
 42S01=Table {0} already exists
 42S02=Table {0} not found
 42S03=Table {0} not found (candidates are: {1})
@@ -37,12 +38,14 @@
 42S21=Duplicate column name {0}
 42S22=Column {0} not found
 42S31=Identical expressions should be used; expected {0}, found {1}
+54011=Too many columns. The maximum count is {0}
 57014=Statement was canceled or the session timed out
 90000=Function {0} must return a result set
 90001=Method is not allowed for a query. Use execute or executeQuery instead of executeUpdate
 90002=Method is only allowed for a query. Use execute or executeUpdate instead of executeQuery
 90003=Hexadecimal string with odd number of characters: {0}
 90004=Hexadecimal string contains non-hex character: {0}
+90005=Invalid trigger flags: {0}
 90006=Sequence {0} has run out of numbers
 90007=The object is already closed
 90008=Invalid value {0} for parameter {1}

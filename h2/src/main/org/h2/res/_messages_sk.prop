@@ -28,6 +28,7 @@
 42000=Syntaktická chyba v SQL príkaze {0}
 42001=Syntaktická chyba v SQL príkaze {0}; očakávané {1}
 42602=#Invalid name {0}
+42622=#The name that starts with {0} is too long. The maximum length is {1}
 42S01=Tabuľka {0} už existuje
 42S02=Tabuľka {0} nenájdená
 42S03=#Table {0} not found (candidates are: {1})
@@ -37,12 +38,14 @@
 42S21=Duplicitné meno stĺpca {0}
 42S22=Stĺpec {0} nenájdený
 42S31=#Identical expressions should be used; expected {0}, found {1}
+54011=#Too many columns. The maximum count is {0}
 57014=Príkaz bol zrušený alebo vypršal časový limit sedenia
 90000=Funkcia {0} musí vracať výsledok (result set)
 90001=Metóda nie je povolená pre dopyt (query). Použite execute alebo executeQuery namiesto executeUpdate
 90002=Metóda je povolená iba pre dopyt (query). Použite execute alebo executeUpdate namiesto executeQuery
 90003=Hexadecimálny reťazec s nepárnym počtom znakov: {0}
 90004=Hexadecimálny reťazec obsahuje nepovolené znaky pre šestnáskovú sústavu: {0}
+90005=#Invalid trigger flags: {0}
 90006=#Sequence {0} has run out of numbers
 90007=Objekt už je zatvorený
 90008=Nesprávna hodnota {0} parametra {1}

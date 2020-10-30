@@ -70,6 +70,11 @@ public class CreateTable extends CommandWithColumns {
 
     @Override
     public long update() {
+        Schema schema = getSchema();
+        boolean isSessionTemporary = data.temporary && !data.globalTemporary;
+        if (!isSessionTemporary) {
+            session.getUser().checkSchemaOwner(schema);
+        }
         if (!transactional) {
             session.commit(true);
         }
@@ -77,11 +82,10 @@ public class CreateTable extends CommandWithColumns {
         if (!db.isPersistent()) {
             data.persistIndexes = false;
         }
-        boolean isSessionTemporary = data.temporary && !data.globalTemporary;
         if (!isSessionTemporary) {
             db.lockMeta(session);
         }
-        if (getSchema().resolveTableOrView(session, data.tableName) != null) {
+        if (schema.resolveTableOrView(session, data.tableName) != null) {
             if (ifNotExists) {
                 return 0;
             }
@@ -107,7 +111,7 @@ public class CreateTable extends CommandWithColumns {
         data.id = getObjectId();
         data.create = create;
         data.session = session;
-        Table table = getSchema().createTable(data);
+        Table table = schema.createTable(data);
         ArrayList<Sequence> sequences = generateSequences(data.columns, data.temporary);
         table.setComment(comment);
         if (isSessionTemporary) {

@@ -13,6 +13,7 @@ import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.condition.Comparison;
+import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.schema.Constant;
@@ -22,7 +23,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.ParserUtil;
-import org.h2.value.ExtTypeInfoEnum;
+import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
@@ -30,7 +31,6 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
 import org.h2.value.ValueSmallint;
@@ -46,6 +46,7 @@ public final class ExpressionColumn extends Expression {
     private final String tableAlias;
     private final String columnName;
     private final boolean rowId;
+    private final boolean quotedName;
     private ColumnResolver columnResolver;
     private int queryLevel;
     private Column column;
@@ -64,6 +65,7 @@ public final class ExpressionColumn extends Expression {
         this.column = column;
         columnName = tableAlias = schemaName = null;
         rowId = column.isRowId();
+        quotedName = true;
     }
 
     /**
@@ -80,11 +82,32 @@ public final class ExpressionColumn extends Expression {
      *            the column name
      */
     public ExpressionColumn(Database database, String schemaName, String tableAlias, String columnName) {
+        this(database, schemaName, tableAlias, columnName, true);
+    }
+
+    /**
+     * Creates a new instance of column reference for regular columns as normal
+     * expression.
+     *
+     * @param database
+     *            the database
+     * @param schemaName
+     *            the schema name, or {@code null}
+     * @param tableAlias
+     *            the table alias name, table name, or {@code null}
+     * @param columnName
+     *            the column name
+     * @param quotedName
+     *            whether name was quoted
+     */
+    public ExpressionColumn(Database database, String schemaName, String tableAlias, String columnName,
+            boolean quotedName) {
         this.database = database;
         this.schemaName = schemaName;
         this.tableAlias = tableAlias;
         this.columnName = columnName;
         rowId = false;
+        this.quotedName = quotedName;
     }
 
     /**
@@ -103,7 +126,7 @@ public final class ExpressionColumn extends Expression {
         this.schemaName = schemaName;
         this.tableAlias = tableAlias;
         columnName = Column.ROWID;
-        rowId = true;
+        quotedName = rowId = true;
     }
 
     @Override
@@ -187,9 +210,24 @@ public final class ExpressionColumn extends Expression {
                     return constant.getValue();
                 }
             }
-            throw getColumnException(ErrorCode.COLUMN_NOT_FOUND_1);
+            return optimizeOther();
         }
         return columnResolver.optimize(this, column);
+    }
+
+    private Expression optimizeOther() {
+        if (tableAlias == null && !quotedName) {
+            switch (StringUtils.toUpperEnglish(columnName)) {
+            case "SYSDATE":
+            case "TODAY":
+                return new CurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, -1);
+            case "SYSTIME":
+                return new CurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIME, -1);
+            case "SYSTIMESTAMP":
+                return new CurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_TIMESTAMP, -1);
+            }
+        }
+        throw getColumnException(ErrorCode.COLUMN_NOT_FOUND_1);
     }
 
     /**
@@ -255,15 +293,6 @@ public final class ExpressionColumn extends Expression {
                 throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, getTraceSQL());
             } else {
                 throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getTraceSQL());
-            }
-        }
-        /*
-         * ENUM values are stored as integers.
-         */
-        if (value != ValueNull.INSTANCE) {
-            TypeInfo type = column.getType();
-            if (type.getValueType() == Value.ENUM) {
-                return value.convertToEnum((ExtTypeInfoEnum) type.getExtTypeInfo(), session);
             }
         }
         return value;
@@ -386,7 +415,7 @@ public final class ExpressionColumn extends Expression {
             visitor.addColumn2(column);
             return true;
         default:
-            throw DbException.throwInternalError("type=" + visitor.getType());
+            throw DbException.getInternalError("type=" + visitor.getType());
         }
     }
 

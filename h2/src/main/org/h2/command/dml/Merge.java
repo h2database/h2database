@@ -86,8 +86,8 @@ public final class Merge extends CommandWithValues {
     @Override
     public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         long count = 0;
-        session.getUser().checkRight(table, Right.INSERT);
-        session.getUser().checkRight(table, Right.UPDATE);
+        session.getUser().checkTableRight(table, Right.INSERT);
+        session.getUser().checkTableRight(table, Right.UPDATE);
         setCurrentRowNumber(0);
         if (!valuesExpressionList.isEmpty()) {
             // process values in list
@@ -322,6 +322,10 @@ public final class Merge extends CommandWithValues {
                 hasColumn = true;
                 column.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS).append("=?");
             }
+        }
+        if (!hasColumn) {
+            throw DbException.getSyntaxError(sqlStatement, sqlStatement.length(),
+                    "Valid MERGE INTO statement with at least one updatable column");
         }
         Column.writeColumns(builder.append(" WHERE "), keys, " AND ", "=?", HasSQL.DEFAULT_SQL_FLAGS);
         update = (Update) session.prepare(builder.toString());

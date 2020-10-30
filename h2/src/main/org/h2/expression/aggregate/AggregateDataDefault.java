@@ -128,7 +128,7 @@ class AggregateDataDefault extends AggregateData {
             }
             break;
         default:
-            DbException.throwInternalError("type=" + aggregateType);
+            throw DbException.getInternalError("type=" + aggregateType);
         }
     }
 
@@ -187,7 +187,7 @@ class AggregateDataDefault extends AggregateData {
             break;
         }
         default:
-            DbException.throwInternalError("type=" + aggregateType);
+            throw DbException.getInternalError("type=" + aggregateType);
         }
         return v == null ? ValueNull.INSTANCE : v.convertTo(dataType);
     }

@@ -56,6 +56,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 + "CURRENT_SCHEMA," //
                 + "GROUPS," //
                 + "IF,ILIKE,INTERSECTS," //
+                + "KEY," //
                 + "LIMIT," //
                 + "MINUS," //
                 + "OFFSET," //
@@ -648,6 +649,12 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 getCatalogPattern(catalog), //
                 getSchemaPattern(schemaPattern), //
                 BACKSLASH);
+    }
+
+    @Override
+    public ResultInterface getPseudoColumns(String catalog, String schemaPattern, String tableNamePattern,
+            String columnNamePattern) {
+        return getPseudoColumnsResult();
     }
 
     private ResultInterface executeQuery(String sql, Value... args) {

@@ -571,7 +571,7 @@ public class ConstraintReferential extends Constraint {
         if (this.index == index) {
             indexOwner = true;
         } else {
-            DbException.throwInternalError(index + " " + toString());
+            throw DbException.getInternalError(index + " " + toString());
         }
     }
 

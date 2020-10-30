@@ -517,6 +517,9 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
     }
 
     private void testSimple3RowRecursiveQueryWithLazyEval() throws Exception {
+        if (config.lazy && config.networked) {
+            return;
+        }
 
         String[] expectedRowData = new String[]{"|6"};
         String[] expectedColumnTypes = new String[]{"BIGINT"};

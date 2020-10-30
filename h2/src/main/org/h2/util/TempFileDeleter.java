@@ -64,7 +64,7 @@ public class TempFileDeleter {
             if (f2 != null) {
                 if (SysProperties.CHECK) {
                     if (resource != null && !f2.equals(resource)) {
-                        DbException.throwInternalError("f2:" + f2 + " f:" + resource);
+                        throw DbException.getInternalError("f2:" + f2 + " f:" + resource);
                     }
                 }
                 resource = f2;
@@ -128,8 +128,7 @@ public class TempFileDeleter {
             Object f2 = refMap.remove(ref);
             if (SysProperties.CHECK) {
                 if (f2 == null || !f2.equals(resource)) {
-                    DbException.throwInternalError("f2:" + f2 +
-                            " " + (f2 == null ? "" : f2) + " f:" + resource);
+                    throw DbException.getInternalError("f2:" + f2 + ' ' + (f2 == null ? "" : f2) + " f:" + resource);
                 }
             }
         }

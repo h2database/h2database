@@ -130,7 +130,6 @@ public class TestScript extends TestDb {
         if (!config.memory && !config.big && !config.networked) {
             testScript("testSimple.sql");
         }
-        testScript("comments.sql");
         testScript("dual.sql");
         testScript("indexes.sql");
         testScript("information_schema.sql");
@@ -151,7 +150,7 @@ public class TestScript extends TestDb {
         }
         for (String s : new String[] { "alterDomain", "alterTableAdd", "alterTableAlterColumn", "alterTableDropColumn",
                 "alterTableRename", "analyze", "commentOn", "createAlias", "createConstant", "createDomain",
-                "createSequence", "createSynonym",
+                "createSchema", "createSequence", "createSynonym",
                 "createTable", "createTrigger", "createView", "dropAllObjects", "dropDomain", "dropIndex",
                 "dropSchema", "dropTable", "grant", "truncateTable" }) {
             testScript("ddl/" + s + ".sql");
@@ -181,9 +180,9 @@ public class TestScript extends TestDb {
         }
         for (String s : new String[] { "array-to-string",
                 "ascii", "bit-length", "char", "concat",
-                "concat-ws", "difference", "hextoraw", "insert", "instr",
+                "concat-ws", "difference", "hextoraw", "insert",
                 "left", "length", "locate", "lower", "lpad", "ltrim",
-                "octet-length", "position", "quote_ident", "rawtohex", "regexp-like",
+                "octet-length", "quote_ident", "rawtohex", "regexp-like",
                 "regex-replace", "regexp-substr", "repeat", "replace", "right", "rpad", "rtrim",
                 "soundex", "space", "stringdecode", "stringencode",
                 "stringtoutf8", "substring", "to-char", "translate", "trim",
@@ -216,6 +215,9 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "at-time-zone", "boolean-test", "case", "concatenation", "conditions",
                 "data-change-delta-table", "field-reference", "help", "sequence", "set" }) {
             testScript("other/" + s + ".sql");
+        }
+        for (String s : new String[] { "comments", "identifiers" }) {
+            testScript("parser/" + s + ".sql");
         }
         for (String s : new String[] { "between", "distinct", "in", "like", "null", "type", "unique" }) {
             testScript("predicates/" + s + ".sql");

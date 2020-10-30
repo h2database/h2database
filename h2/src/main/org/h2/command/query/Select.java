@@ -757,11 +757,11 @@ public class Select extends Query {
     }
 
     @Override
-    protected ResultInterface queryWithoutCache(int maxRows, ResultTarget target) {
+    protected ResultInterface queryWithoutCache(long maxRows, ResultTarget target) {
         disableLazyForJoinSubqueries(topTableFilter);
         OffsetFetch offsetFetch = getOffsetFetch(maxRows);
         long offset = offsetFetch.offset;
-        int fetch = offsetFetch.fetch;
+        long fetch = offsetFetch.fetch;
         boolean fetchPercent = offsetFetch.fetchPercent;
         boolean lazy = session.isLazyQueryExecution() &&
                 target == null && !isForUpdate && !isQuickAggregateQuery &&
@@ -807,7 +807,7 @@ public class Select extends Query {
         LazyResult lazyResult = null;
         if (fetch != 0) {
             // Cannot apply limit now if percent is specified
-            int limit = fetchPercent ? -1 : fetch;
+            long limit = fetchPercent ? -1 : fetch;
             if (isQuickAggregateQuery) {
                 queryQuick(columnCount, to, quickOffset && offset > 0);
             } else if (isWindowQuery) {
@@ -971,11 +971,13 @@ public class Select extends Query {
     @Override
     public void init() {
         if (checkInit) {
-            DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         filters.sort(TableFilter.ORDER_IN_FROM_COMPARATOR);
         expandColumnList();
-        visibleColumnCount = expressions.size();
+        if ((visibleColumnCount = expressions.size()) > Constants.MAX_COLUMNS) {
+            throw DbException.get(ErrorCode.TOO_MANY_COLUMNS_1, "" + Constants.MAX_COLUMNS);
+        }
         ArrayList<String> expressionSQL;
         if (distinctExpressions != null || orderList != null || group != null) {
             expressionSQL = new ArrayList<>(visibleColumnCount);
@@ -1157,7 +1159,7 @@ public class Select extends Query {
             return;
         }
         if (!checkInit) {
-            DbException.throwInternalError("not initialized");
+            throw DbException.getInternalError("not initialized");
         }
         if (orderList != null) {
             prepareOrder(orderList, expressions.size());

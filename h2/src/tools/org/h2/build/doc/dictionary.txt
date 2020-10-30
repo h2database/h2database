@@ -839,5 +839,8 @@ nsp pgagent pga awoken serverencoding untyped ambiguities tons lhs letting rhs o
 usefully pipelining fetches reenable joiner visits dcl avxaaa german fold degree supertype overloads hierarchy locator
 conrelid conkey tabrelname refnamespace dsc pred typrelid conname contype confrelid numscans beaver typdelim typelem
 jsonb und decfloat attnums oids studio smells pvs mention statically deletable insertable reconstructed similarly
-submissions explaining cycled assigns separation aimed ababab quotation cleanly beff cdab
+submissions explaining cycled assigns separation aimed ababab quotation cleanly beff cdab efgh
 xnor bitnand bitcount nand bitnor bitxnor ulshift urshift rotates rotation rotateleft rotateright leaking incomparable
+deref corr asensitive sqlexception avgy avgx lateral rollup syy reseved specifictype classifier sqlcode covar uescape
+ptf overlay precedes regr slope sqlerror multiset submultiset inout sxx sxy intercept sqlwarning tablesample preorder
+orientation eternal consideration erased fedc npgsql powers

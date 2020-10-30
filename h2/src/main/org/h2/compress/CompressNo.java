@@ -23,8 +23,8 @@ public class CompressNo implements Compressor {
     }
 
     @Override
-    public int compress(byte[] in, int inLen, byte[] out, int outPos) {
-        System.arraycopy(in, 0, out, outPos, inLen);
+    public int compress(byte[] in, int inPos, int inLen, byte[] out, int outPos) {
+        System.arraycopy(in, inPos, out, outPos, inLen);
         return outPos + inLen;
     }
 

@@ -114,8 +114,8 @@ public class TestOptimizations extends TestDb {
 
     private void testExplainRoundTrip() throws Exception {
         Connection conn = getConnection("optimizations");
-        assertExplainRoundTrip(conn,
-                "SELECT \"X\" FROM SYSTEM_RANGE(1, 1) WHERE \"X\" > ANY(SELECT \"X\" FROM SYSTEM_RANGE(1, 1))");
+        assertExplainRoundTrip(conn, "SELECT \"X\" FROM SYSTEM_RANGE(1, 1)"
+                + " WHERE \"X\" > ANY(SELECT DISTINCT \"X\" FROM SYSTEM_RANGE(1, 1))");
         conn.close();
     }
 
@@ -362,8 +362,8 @@ public class TestOptimizations extends TestDb {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select `value` " +
-                "from information_schema.settings where name='analyzeAuto'");
+        ResultSet rs = stat.executeQuery(
+                "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'analyzeAuto'");
         int auto = rs.next() ? rs.getInt(1) : 0;
         if (auto != 0) {
             stat.execute("create table test(id int)");
@@ -580,9 +580,7 @@ public class TestOptimizations extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("create table item(id int primary key)");
         stat.execute("insert into item values(1)");
-        stat.execute("create alias opt for \"" +
-                getClass().getName() +
-                ".optimizeInJoinSelect\"");
+        stat.execute("create alias opt for '" + getClass().getName() + ".optimizeInJoinSelect'");
         PreparedStatement prep = conn.prepareStatement(
                 "select * from item where id in (select x from opt())");
         ResultSet rs = prep.executeQuery();

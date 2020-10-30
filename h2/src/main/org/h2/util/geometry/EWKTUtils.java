@@ -24,6 +24,7 @@ import static org.h2.util.geometry.GeometryUtils.Z;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 
+import org.h2.util.StringUtils;
 import org.h2.util.geometry.EWKBUtils.EWKBTarget;
 import org.h2.util.geometry.GeometryUtils.DimensionSystemTarget;
 import org.h2.util.geometry.GeometryUtils.Target;
@@ -255,7 +256,7 @@ public final class EWKTUtils {
                 while (ewkt.charAt(end - 1) <= ' ') {
                     end--;
                 }
-                srid = Integer.parseInt(ewkt.substring(offset, end).trim());
+                srid = Integer.parseInt(StringUtils.trimSubstring(ewkt, offset, end));
                 offset = idx + 1;
             } else {
                 srid = 0;

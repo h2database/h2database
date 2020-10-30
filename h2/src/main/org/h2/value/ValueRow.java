@@ -7,6 +7,7 @@ package org.h2.value;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
+import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.result.SimpleResult;
 
@@ -22,8 +23,18 @@ public final class ValueRow extends ValueCollectionBase {
 
     private TypeInfo type;
 
-    private ValueRow(Value[] list) {
+    private ValueRow(TypeInfo type, Value[] list) {
         super(list);
+        int degree = list.length;
+        if (degree > Constants.MAX_COLUMNS) {
+            throw DbException.get(ErrorCode.TOO_MANY_COLUMNS_1, "" + Constants.MAX_COLUMNS);
+        }
+        if (type != null) {
+            if (type.getValueType() != ROW || ((ExtTypeInfoRow) type.getExtTypeInfo()).getFields().size() != degree) {
+                throw DbException.getInternalError();
+            }
+            this.type = type;
+        }
     }
 
     /**
@@ -34,7 +45,31 @@ public final class ValueRow extends ValueCollectionBase {
      * @return the value
      */
     public static ValueRow get(Value[] list) {
-        return new ValueRow(list);
+        return new ValueRow(null, list);
+    }
+
+    /**
+     * Get or create a typed row value for the given value array.
+     * Do not clone the data.
+     *
+     * @param extTypeInfo the extended data type information
+     * @param list the value array
+     * @return the value
+     */
+    public static ValueRow get(ExtTypeInfoRow extTypeInfo, Value[] list) {
+        return new ValueRow(new TypeInfo(ROW, -1, -1, extTypeInfo), list);
+    }
+
+    /**
+     * Get or create a typed row value for the given value array.
+     * Do not clone the data.
+     *
+     * @param typeInfo the data type information
+     * @param list the value array
+     * @return the value
+     */
+    public static ValueRow get(TypeInfo typeInfo, Value[] list) {
+        return new ValueRow(typeInfo, list);
     }
 
     @Override

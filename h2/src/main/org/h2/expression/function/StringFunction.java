@@ -23,24 +23,14 @@ import org.h2.value.ValueVarchar;
 public final class StringFunction extends FunctionN {
 
     /**
-     * INSTR() (non-standard).
-     */
-    public static final int INSTR = 0;
-
-    /**
      * LOCATE() (non-standard).
      */
-    public static final int LOCATE = INSTR + 1;
-
-    /**
-     * POSITION() (non-standard).
-     */
-    public static final int POSITION = LOCATE + 1;
+    public static final int LOCATE = 0;
 
     /**
      * INSERT() (non-standard).
      */
-    public static final int INSERT = POSITION + 1;
+    public static final int INSERT = LOCATE + 1;
 
     /**
      * REPLACE() (non-standard).
@@ -63,7 +53,7 @@ public final class StringFunction extends FunctionN {
     public static final int TRANSLATE = RPAD + 1;
 
     private static final String[] NAMES = { //
-            "INSTR", "LOCATE", "POSITION", "INSERT", "REPLACE", "LPAD", "RPAD", "TRANSLATE" //
+            "LOCATE", "INSERT", "REPLACE", "LPAD", "RPAD", "TRANSLATE" //
     };
 
     private final int function;
@@ -87,37 +77,22 @@ public final class StringFunction extends FunctionN {
     public Value getValue(SessionLocal session) {
         Value v1 = args[0].getValue(session), v2 = args[1].getValue(session);
         switch (function) {
-        case INSTR:
-        case LOCATE:
-        case POSITION: {
+        case LOCATE: {
             if (v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
-            int start;
-            if (function == POSITION) {
-                start = 0;
-            } else {
-                Value v3 = args.length >= 3 ? args[2].getValue(session) : null;
-                if (v3 == ValueNull.INSTANCE) {
-                    return ValueNull.INSTANCE;
-                }
-                start = v3 == null ? 0 : v3.getInt();
+            Value v3 = args.length >= 3 ? args[2].getValue(session) : null;
+            if (v3 == ValueNull.INSTANCE) {
+                return ValueNull.INSTANCE;
             }
-            String search = v1.getString(), s = v2.getString();
-            if (function == INSTR) {
-                String t = search;
-                search = s;
-                s = t;
-            }
-            v1 = ValueInteger.get(locate(search, s, start));
+            v1 = ValueInteger.get(locate(v1.getString(), v2.getString(), v3 == null ? 1 : v3.getInt()));
             break;
         }
         case INSERT: {
             Value v3 = args[2].getValue(session), v4 = args[3].getValue(session);
-            if (v2 == ValueNull.INSTANCE || v3 == ValueNull.INSTANCE) {
-                v1 = v2;
-            } else {
-                v1 = ValueVarchar.get(insert(v1.getString(), v2.getInt(), v3.getInt(), v4.getString()), session);
+            if (v2 != ValueNull.INSTANCE && v3 != ValueNull.INSTANCE) {
+                String s = insert(v1.getString(), v2.getInt(), v3.getInt(), v4.getString());
+                v1 = s != null ? ValueVarchar.get(s, session) : ValueNull.INSTANCE;
             }
             break;
         }
@@ -177,18 +152,16 @@ public final class StringFunction extends FunctionN {
             break;
         }
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return v1;
     }
 
     private static int locate(String search, String s, int start) {
         if (start < 0) {
-            int i = s.length() + start;
-            return s.lastIndexOf(search, i) + 1;
+            return s.lastIndexOf(search, s.length() + start) + 1;
         }
-        int i = (start == 0) ? 0 : start - 1;
-        return s.indexOf(search, i) + 1;
+        return s.indexOf(search, start == 0 ? 0 : start - 1) + 1;
     }
 
     private static String insert(String s1, int start, int length, String s2) {
@@ -244,9 +217,7 @@ public final class StringFunction extends FunctionN {
     public Expression optimize(SessionLocal session) {
         boolean allConst = optimizeArguments(session, true);
         switch (function) {
-        case INSTR:
         case LOCATE:
-        case POSITION:
             type = TypeInfo.TYPE_INTEGER;
             break;
         case INSERT:
@@ -257,7 +228,7 @@ public final class StringFunction extends FunctionN {
             type = TypeInfo.TYPE_VARCHAR;
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         if (allConst) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);

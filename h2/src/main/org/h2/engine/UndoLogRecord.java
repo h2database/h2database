@@ -12,6 +12,7 @@ import org.h2.result.SearchRow;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
 import org.h2.table.Table;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -110,7 +111,7 @@ public class UndoLogRecord {
             }
             break;
         default:
-            DbException.throwInternalError("op=" + operation);
+            throw DbException.getInternalError("op=" + operation);
         }
     }
 
@@ -189,7 +190,7 @@ public class UndoLogRecord {
         int oldOp = operation;
         load(buff, log);
         if (operation != oldOp) {
-            DbException.throwInternalError("operation=" + operation + " op=" + oldOp);
+            throw DbException.getInternalError("operation=" + operation + " op=" + oldOp);
         }
     }
 
@@ -200,7 +201,7 @@ public class UndoLogRecord {
         int columnCount = buff.readInt();
         Value[] values = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
-            values[i] = buff.readValue();
+            values[i] = buff.readValue(TypeInfo.TYPE_UNKNOWN);
         }
         row = table.createRow(values, SearchRow.MEMORY_CALCULATE, key);
         state = IN_MEMORY_INVALID;

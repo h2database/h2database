@@ -26,3 +26,6 @@ SELECT CEIL(1.5::REAL), CEIL(-1.5::REAL), CEIL(1.5::REAL) IS OF (REAL);
 > --- ---- ----
 > 2.0 -1.0 TRUE
 > rows: 1
+
+SELECT CEIL('a');
+> exception INVALID_VALUE_2

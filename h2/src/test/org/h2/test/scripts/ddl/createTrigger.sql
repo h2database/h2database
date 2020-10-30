@@ -6,7 +6,7 @@
 CREATE TABLE COUNT(X INT);
 > ok
 
-CREATE FORCE TRIGGER T_COUNT BEFORE INSERT ON COUNT CALL "com.Unknown";
+CREATE FORCE TRIGGER T_COUNT BEFORE INSERT ON COUNT CALL 'com.Unknown';
 > ok
 
 INSERT INTO COUNT VALUES(NULL);
@@ -33,7 +33,7 @@ drop table items, count;
 CREATE TABLE TEST(A VARCHAR, B VARCHAR, C VARCHAR);
 > ok
 
-CREATE TRIGGER T1 BEFORE INSERT, UPDATE ON TEST FOR EACH ROW CALL "org.h2.test.scripts.Trigger1";
+CREATE TRIGGER T1 BEFORE INSERT, UPDATE ON TEST FOR EACH ROW CALL 'org.h2.test.scripts.Trigger1';
 > ok
 
 INSERT INTO TEST VALUES ('a', 'b', 'c');
@@ -45,7 +45,7 @@ DROP TABLE TEST;
 CREATE TABLE TEST(A VARCHAR, B VARCHAR, C INT);
 > ok
 
-CREATE TRIGGER T1 BEFORE INSERT ON TEST FOR EACH ROW CALL "org.h2.test.scripts.Trigger1";
+CREATE TRIGGER T1 BEFORE INSERT ON TEST FOR EACH ROW CALL 'org.h2.test.scripts.Trigger1';
 > ok
 
 INSERT INTO TEST VALUES ('1', 'a', 1);
@@ -54,7 +54,7 @@ INSERT INTO TEST VALUES ('1', 'a', 1);
 DROP TRIGGER T1;
 > ok
 
-CREATE TRIGGER T1 BEFORE INSERT ON TEST FOR EACH STATEMENT CALL "org.h2.test.scripts.Trigger1";
+CREATE TRIGGER T1 BEFORE INSERT ON TEST FOR EACH STATEMENT CALL 'org.h2.test.scripts.Trigger1';
 > ok
 
 INSERT INTO TEST VALUES ('2', 'b', 2);
@@ -117,7 +117,7 @@ CREATE TABLE COUNT(X INT);
 INSERT INTO COUNT VALUES(1);
 > update count: 1
 
-CREATE FORCE TRIGGER T_COUNT BEFORE INSERT OR UPDATE ON COUNT CALL "com.Unknown";
+CREATE FORCE TRIGGER T_COUNT BEFORE INSERT OR UPDATE ON COUNT CALL 'com.Unknown';
 > ok
 
 INSERT INTO COUNT VALUES(NULL);
@@ -190,6 +190,41 @@ SELECT TABLE_CATALOG, TABLE_SCHEMA, TABLE_NAME, VIEW_DEFINITION, CHECK_OPTION, I
 > SCRIPT        PUBLIC       V2         TABLE "PUBLIC"."T" NONE         NO           NO              YES                  NO                   NO
 > SCRIPT        PUBLIC       V3         TABLE "PUBLIC"."T" NONE         NO           NO              NO                   YES                  NO
 > rows: 3
+
+SELECT * FROM INFORMATION_SCHEMA.TRIGGERS;
+> TRIGGER_CATALOG TRIGGER_SCHEMA TRIGGER_NAME EVENT_MANIPULATION EVENT_OBJECT_CATALOG EVENT_OBJECT_SCHEMA EVENT_OBJECT_TABLE ACTION_ORIENTATION ACTION_TIMING IS_ROLLBACK JAVA_CLASS QUEUE_SIZE NO_WAIT REMARKS
+> --------------- -------------- ------------ ------------------ -------------------- ------------------- ------------------ ------------------ ------------- ----------- ---------- ---------- ------- -------
+> SCRIPT          PUBLIC         T1           INSERT             SCRIPT               PUBLIC              V1                 ROW                INSTEAD OF    FALSE       null       1024       FALSE   null
+> SCRIPT          PUBLIC         T2           UPDATE             SCRIPT               PUBLIC              V2                 ROW                INSTEAD OF    FALSE       null       1024       FALSE   null
+> SCRIPT          PUBLIC         T3           DELETE             SCRIPT               PUBLIC              V3                 ROW                INSTEAD OF    FALSE       null       1024       FALSE   null
+> rows: 3
+
+CREATE TRIGGER T4 BEFORE ROLLBACK ON TEST FOR EACH ROW AS STRINGDECODE(
+'org.h2.api.Trigger create() {
+    return new org.h2.api.Trigger() {
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
+        }
+    }\u003B
+}');
+> exception INVALID_TRIGGER_FLAGS_1
+
+CREATE TRIGGER T4 BEFORE SELECT ON TEST FOR EACH ROW AS STRINGDECODE(
+'org.h2.api.Trigger create() {
+    return new org.h2.api.Trigger() {
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
+        }
+    }\u003B
+}');
+> exception INVALID_TRIGGER_FLAGS_1
+
+CREATE TRIGGER T4 BEFORE SELECT, ROLLBACK ON TEST FOR EACH STATEMENT AS STRINGDECODE(
+'org.h2.api.Trigger create() {
+    return new org.h2.api.Trigger() {
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
+        }
+    }\u003B
+}');
+> exception INVALID_TRIGGER_FLAGS_1
 
 DROP TABLE T CASCADE;
 > ok

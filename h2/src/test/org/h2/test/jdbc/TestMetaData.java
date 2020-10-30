@@ -5,6 +5,10 @@
  */
 package org.h2.test.jdbc;
 
+import static org.h2.engine.Constants.MAX_ARRAY_CARDINALITY;
+import static org.h2.engine.Constants.MAX_NUMERIC_PRECISION;
+import static org.h2.engine.Constants.MAX_STRING_LENGTH;
+
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
@@ -47,6 +51,7 @@ public class TestMetaData extends TestDb {
         testColumnPrecision();
         testColumnDefault();
         testColumnGenerated();
+        testHiddenColumn();
         testCrossReferences();
         testProcedureColumns();
         testTypeInfo();
@@ -204,14 +209,35 @@ public class TestMetaData extends TestDb {
         conn.close();
     }
 
+    private void testHiddenColumn() throws SQLException {
+        Connection conn = getConnection("metaData");
+        DatabaseMetaData meta = conn.getMetaData();
+        ResultSet rs;
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(A INT, B INT INVISIBLE)");
+        rs = meta.getColumns(null, null, "TEST", null);
+        assertTrue(rs.next());
+        assertEquals("A", rs.getString("COLUMN_NAME"));
+        assertFalse(rs.next());
+        rs = meta.getPseudoColumns(null, null, "TEST", null);
+        assertTrue(rs.next());
+        assertEquals("B", rs.getString("COLUMN_NAME"));
+        assertEquals("YES", rs.getString("IS_NULLABLE"));
+        assertTrue(rs.next());
+        assertEquals("_ROWID_", rs.getString("COLUMN_NAME"));
+        assertEquals("NO", rs.getString("IS_NULLABLE"));
+        assertFalse(rs.next());
+        stat.execute("DROP TABLE TEST");
+        conn.close();
+    }
+
     private void testProcedureColumns() throws SQLException {
         Connection conn = getConnection("metaData");
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs;
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS PROP FOR " +
-                "\"java.lang.System.getProperty(java.lang.String)\"");
-        stat.execute("CREATE ALIAS EXIT FOR \"java.lang.System.exit\"");
+        stat.execute("CREATE ALIAS PROP FOR 'java.lang.System.getProperty(java.lang.String)'");
+        stat.execute("CREATE ALIAS EXIT FOR 'java.lang.System.exit'");
         rs = meta.getProcedures(null, null, "EX%");
         assertResultSetMeta(rs, 9, new String[] { "PROCEDURE_CAT",
                 "PROCEDURE_SCHEM", "PROCEDURE_NAME", "RESERVED1",
@@ -245,16 +271,16 @@ public class TestMetaData extends TestDb {
                         null, null, null, null, null, "1", "", "EXIT_1" },
                 { CATALOG, Constants.SCHEMA_MAIN, "PROP", "RESULT",
                         "" + DatabaseMetaData.procedureColumnReturn,
-                        "" + Types.VARCHAR, "CHARACTER VARYING", "" + Integer.MAX_VALUE,
-                        "" + Integer.MAX_VALUE, null, null,
+                        "" + Types.VARCHAR, "CHARACTER VARYING", "" + MAX_STRING_LENGTH,
+                        "" + MAX_STRING_LENGTH, null, null,
                         "" + DatabaseMetaData.procedureNullableUnknown,
-                        null, null, null, null, "" + Integer.MAX_VALUE, "0", "", "PROP_1" },
+                        null, null, null, null, "" + MAX_STRING_LENGTH, "0", "", "PROP_1" },
                 { CATALOG, Constants.SCHEMA_MAIN, "PROP", "P1",
                         "" + DatabaseMetaData.procedureColumnIn,
-                        "" + Types.VARCHAR, "CHARACTER VARYING", "" + Integer.MAX_VALUE,
-                        "" + Integer.MAX_VALUE, null, null,
+                        "" + Types.VARCHAR, "CHARACTER VARYING", "" + MAX_STRING_LENGTH,
+                        "" + MAX_STRING_LENGTH, null, null,
                         "" + DatabaseMetaData.procedureNullableUnknown,
-                        null, null, null, null, "" + Integer.MAX_VALUE, "1", "", "PROP_1" }, });
+                        null, null, null, null, "" + MAX_STRING_LENGTH, "1", "", "PROP_1" }, });
         stat.execute("DROP ALIAS EXIT");
         stat.execute("DROP ALIAS PROP");
         conn.close();
@@ -276,16 +302,16 @@ public class TestMetaData extends TestDb {
                 null, null);
         testTypeInfo(rs, "TINYINT", Types.TINYINT, 8, null, null, null, false, false, (short) 0, (short) 0, 2);
         testTypeInfo(rs, "BIGINT", Types.BIGINT, 64, null, null, null, false, false, (short) 0, (short) 0, 2);
-        testTypeInfo(rs, "BINARY VARYING", Types.VARBINARY, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false,
+        testTypeInfo(rs, "BINARY VARYING", Types.VARBINARY, MAX_STRING_LENGTH, "X'", "'", "LENGTH", false, false,
                 (short) 0, (short) 0, 0);
-        testTypeInfo(rs, "BINARY", Types.BINARY, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false, (short) 0,
+        testTypeInfo(rs, "BINARY", Types.BINARY, MAX_STRING_LENGTH, "X'", "'", "LENGTH", false, false, (short) 0,
                 (short) 0, 0);
         testTypeInfo(rs, "UUID", Types.BINARY, 16, "'", "'", null, false, false, (short) 0, (short) 0, 0);
-        testTypeInfo(rs, "CHARACTER", Types.CHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false, (short) 0,
+        testTypeInfo(rs, "CHARACTER", Types.CHAR, MAX_STRING_LENGTH, "'", "'", "LENGTH", true, false, (short) 0,
                 (short) 0, 0);
-        testTypeInfo(rs, "NUMERIC", Types.NUMERIC, Integer.MAX_VALUE, null, null, "PRECISION,SCALE", false, true,
-                Short.MIN_VALUE, Short.MAX_VALUE, 10);
-        testTypeInfo(rs, "DECFLOAT", Types.NUMERIC, Integer.MAX_VALUE, null, null, "PRECISION", false, false,
+        testTypeInfo(rs, "NUMERIC", Types.NUMERIC, MAX_NUMERIC_PRECISION, null, null, "PRECISION,SCALE", false, true,
+                (short) 0, Short.MAX_VALUE, 10);
+        testTypeInfo(rs, "DECFLOAT", Types.NUMERIC, MAX_NUMERIC_PRECISION, null, null, "PRECISION", false, false,
                 (short) 0, (short) 0, 10);
         testTypeInfo(rs, "INTEGER", Types.INTEGER, 32, null, null, null, false, false, (short) 0,
                 (short) 0, 2);
@@ -294,9 +320,9 @@ public class TestMetaData extends TestDb {
         testTypeInfo(rs, "REAL", Types.REAL, 24, null, null, null, false, false, (short) 0, (short) 0, 2);
         testTypeInfo(rs, "DOUBLE PRECISION", Types.DOUBLE, 53, null, null, null, false, false, (short) 0, (short) 0,
                 2);
-        testTypeInfo(rs, "CHARACTER VARYING", Types.VARCHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", true, false,
+        testTypeInfo(rs, "CHARACTER VARYING", Types.VARCHAR, MAX_STRING_LENGTH, "'", "'", "LENGTH", true, false,
                 (short) 0, (short) 0, 0);
-        testTypeInfo(rs, "VARCHAR_IGNORECASE", Types.VARCHAR, Integer.MAX_VALUE, "'", "'", "LENGTH", false, false,
+        testTypeInfo(rs, "VARCHAR_IGNORECASE", Types.VARCHAR, MAX_STRING_LENGTH, "'", "'", "LENGTH", false, false,
                 (short) 0, (short) 0, 0);
         testTypeInfo(rs, "BOOLEAN", Types.BOOLEAN, 1, null, null, null, false, false, (short) 0,
                 (short) 0, 0);
@@ -330,17 +356,17 @@ public class TestMetaData extends TestDb {
                 "PRECISION,SCALE", false, false, (short) 0, (short) 9, 0);
         testTypeInfo(rs, "INTERVAL MINUTE TO SECOND", Types.OTHER, 18, "INTERVAL '", "' MINUTE TO SECOND",
                 "PRECISION,SCALE", false, false, (short) 0, (short) 9, 0);
-        testTypeInfo(rs, "ENUM", Types.OTHER, Integer.MAX_VALUE, "'", "'", "ELEMENT [,...]", false, false, (short) 0,
+        testTypeInfo(rs, "ENUM", Types.OTHER, MAX_STRING_LENGTH, "'", "'", "ELEMENT [,...]", false, false, (short) 0,
                 (short) 0, 0);
-        testTypeInfo(rs, "GEOMETRY", Types.OTHER, Integer.MAX_VALUE, "'", "'", "TYPE,SRID", false, false, (short) 0,
+        testTypeInfo(rs, "GEOMETRY", Types.OTHER, MAX_STRING_LENGTH, "'", "'", "TYPE,SRID", false, false, (short) 0,
                 (short) 0, 0);
-        testTypeInfo(rs, "JSON", Types.OTHER, Integer.MAX_VALUE, "JSON '", "'", "LENGTH", true, false, (short) 0,
+        testTypeInfo(rs, "JSON", Types.OTHER, MAX_STRING_LENGTH, "JSON '", "'", "LENGTH", true, false, (short) 0,
                 (short) 0, 0);
         testTypeInfo(rs, "ROW", Types.OTHER, 0, "ROW(", ")", "NAME DATA_TYPE [,...]", false, false, (short) 0,
                 (short) 0, 0);
-        testTypeInfo(rs, "JAVA_OBJECT", Types.JAVA_OBJECT, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false,
+        testTypeInfo(rs, "JAVA_OBJECT", Types.JAVA_OBJECT, MAX_STRING_LENGTH, "X'", "'", "LENGTH", false, false,
                 (short) 0, (short) 0, 0);
-        testTypeInfo(rs, "ARRAY", Types.ARRAY, Integer.MAX_VALUE, "ARRAY[", "]", "CARDINALITY", false, false,
+        testTypeInfo(rs, "ARRAY", Types.ARRAY, MAX_ARRAY_CARDINALITY, "ARRAY[", "]", "CARDINALITY", false, false,
                 (short) 0, (short) 0, 0);
         testTypeInfo(rs, "BINARY LARGE OBJECT", Types.BLOB, Integer.MAX_VALUE, "X'", "'", "LENGTH", false, false,
                 (short) 0, (short) 0, 0);
@@ -541,19 +567,6 @@ public class TestMetaData extends TestDb {
 
         assertEquals("schema", meta.getSchemaTerm());
         assertEquals("\\", meta.getSearchStringEscape());
-        assertEquals("CURRENT_CATALOG," //
-                + "CURRENT_SCHEMA," //
-                + "GROUPS," //
-                + "IF,ILIKE,INTERSECTS," //
-                + "LIMIT," //
-                + "MINUS," //
-                + "OFFSET," //
-                + "QUALIFY," //
-                + "REGEXP,ROWNUM," //
-                + "SYSDATE,SYSTIME,SYSTIMESTAMP," //
-                + "TODAY,TOP,"//
-                + "_ROWID_", //
-                meta.getSQLKeywords());
 
         assertTrue(meta.getURL().startsWith("jdbc:h2:"));
         assertTrue(meta.getUserName().length() > 1);
@@ -1237,8 +1250,8 @@ public class TestMetaData extends TestDb {
         rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.SETTINGS");
         int mvStoreSettingsCount = 0, pageStoreSettingsCount = 0;
         while (rs.next()) {
-            String name = rs.getString("NAME");
-            trace(name + '=' + rs.getString("VALUE"));
+            String name = rs.getString("SETTING_NAME");
+            trace(name + '=' + rs.getString("SETTING_VALUE"));
             if ("COMPRESS".equals(name) || "REUSE_SPACE".equals(name)) {
                 mvStoreSettingsCount++;
             } else if (name.startsWith("PAGE_STORE_")) {

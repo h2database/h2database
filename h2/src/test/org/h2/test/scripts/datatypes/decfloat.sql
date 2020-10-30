@@ -20,7 +20,7 @@ SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMER
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
 > COLUMN_NAME DATA_TYPE NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE
 > ----------- --------- ----------------- ----------------------- ------------- ------------------ -------------------------- ----------------------
-> D1          DECFLOAT  65535             10                      null          DECFLOAT           null                       null
+> D1          DECFLOAT  100000            10                      null          DECFLOAT           null                       null
 > D2          DECFLOAT  5                 10                      null          DECFLOAT           5                          null
 > D3          DECFLOAT  10                10                      null          DECFLOAT           10                         null
 > rows (ordered): 3
@@ -64,6 +64,9 @@ CREATE TABLE T(C DECFLOAT(0));
 SELECT CAST(11 AS DECFLOAT(1));
 >> 1E+1
 
+SELECT 1E1 IS OF(DECFLOAT);
+>> TRUE
+
 SELECT (CAST(1 AS REAL) + CAST(1 AS SMALLINT)) IS OF(REAL);
 >> TRUE
 
@@ -75,3 +78,6 @@ SELECT (CAST(1 AS REAL) + CAST(1 AS NUMERIC)) IS OF(DECFLOAT);
 
 SELECT MOD(CAST(5 AS DECFLOAT), CAST(2 AS DECFLOAT));
 >> 1
+
+EXPLAIN SELECT 1.1E0, 1E1;
+>> SELECT CAST(1.1 AS DECFLOAT), 1E+1

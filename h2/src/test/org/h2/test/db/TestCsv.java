@@ -25,7 +25,6 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.SysProperties;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -182,7 +181,7 @@ public class TestCsv extends TestDb {
     private void testOptions() {
         Csv csv = new Csv();
         assertEquals(",", csv.getFieldSeparatorWrite());
-        assertEquals(SysProperties.LINE_SEPARATOR, csv.getLineSeparator());
+        assertEquals(System.lineSeparator(), csv.getLineSeparator());
         assertEquals("", csv.getNullString());
         assertEquals('\"', csv.getEscapeCharacter());
         assertEquals('"', csv.getFieldDelimiter());
@@ -231,9 +230,7 @@ public class TestCsv extends TestDb {
         assertEquals("\0", csv.getNullString());
         assertEquals("", charset);
 
-        createClassProxy(Csv.class);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, csv).
-            setOptions("escape=a error=b");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, () -> csv.setOptions("escape=a error=b"));
         assertEquals('a', csv.getEscapeCharacter());
     }
 
@@ -571,7 +568,7 @@ public class TestCsv extends TestDb {
         }
         trace("read: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         rs = new Csv().read(getBaseDir() + "/testRW.csv", null, "UTF8");
-        // stat.execute("CREATE ALIAS CSVREAD FOR \"org.h2.tools.Csv.read\"");
+        // stat.execute("CREATE ALIAS CSVREAD FOR 'org.h2.tools.Csv.read'");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(2, meta.getColumnCount());
         for (int i = 0; i < len; i++) {

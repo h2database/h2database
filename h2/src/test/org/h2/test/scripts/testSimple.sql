@@ -12,16 +12,16 @@ select 1 from(select 2 from(select 1) a right join dual b) c;
 >> 1
 
 select 1.00 / 3 * 0.00;
->> 0E-24
+>> 0.000000000000000000000000
 
 select 1.00000 / 3 * 0.0000;
->> 0E-29
+>> 0.00000000000000000000000000000
 
 select 1.0000000 / 3 * 0.00000;
->> 0E-32
+>> 0.00000000000000000000000000000000
 
 select 1.0000000 / 3 * 0.000000;
->> 0E-33
+>> 0.000000000000000000000000000000000
 
 create table test(id null);
 > ok
@@ -878,12 +878,12 @@ create role hr;
 comment on role hr is 'Human Resources';
 > ok
 
-select remarks from information_schema.roles where name = 'HR';
+select remarks from information_schema.roles where role_name = 'HR';
 >> Human Resources
 
 @reconnect
 
-select remarks from information_schema.roles where name = 'HR';
+select remarks from information_schema.roles where role_name = 'HR';
 >> Human Resources
 
 create user abc password 'x';
@@ -998,23 +998,23 @@ create user sales password '1';
 comment on user sales is 'mr. money';
 > ok
 
-select remarks from information_schema.users where name = 'SALES';
+select remarks from information_schema.users where user_name = 'SALES';
 >> mr. money
 
 @reconnect
 
-select remarks from information_schema.users where name = 'SALES';
+select remarks from information_schema.users where user_name = 'SALES';
 >> mr. money
 
 alter user sales rename to SALES_USER;
 > ok
 
-select remarks from information_schema.users where name = 'SALES_USER';
+select remarks from information_schema.users where user_name = 'SALES_USER';
 >> mr. money
 
 @reconnect
 
-select remarks from information_schema.users where name = 'SALES_USER';
+select remarks from information_schema.users where user_name = 'SALES_USER';
 >> mr. money
 
 create table test(id int);

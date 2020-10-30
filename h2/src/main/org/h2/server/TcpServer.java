@@ -9,28 +9,24 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.h2.Driver;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
-import org.h2.util.NetUtils2;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
+import org.h2.util.Utils10;
 
 /**
  * The TCP server implements the native H2 database server protocol.
@@ -66,7 +62,7 @@ public class TcpServer implements Service {
     private boolean allowOthers;
     private boolean isDaemon;
     private boolean ifExists = true;
-    private Connection managementDb;
+    private JdbcConnection managementDb;
     private PreparedStatement managementDbAdd;
     private PreparedStatement managementDbRemove;
     private String managementPassword = "";
@@ -89,17 +85,12 @@ public class TcpServer implements Service {
         if (managementPassword.isEmpty()) {
             managementPassword = StringUtils.convertBytesToHex(MathUtils.secureRandomBytes(32));
         }
-        Properties prop = new Properties();
-        prop.setProperty("user", "");
-        prop.setProperty("password", managementPassword);
         // avoid using the driver manager
-        Connection conn = Driver.load().connect("jdbc:h2:" +
-                getManagementDbName(port), prop);
+        JdbcConnection conn = new JdbcConnection("jdbc:h2:" + getManagementDbName(port), null, "", managementPassword);
         managementDb = conn;
 
         try (Statement stat = conn.createStatement()) {
-            stat.execute("CREATE ALIAS IF NOT EXISTS STOP_SERVER FOR \"" +
-                    TcpServer.class.getName() + ".stopServer\"");
+            stat.execute("CREATE ALIAS IF NOT EXISTS STOP_SERVER FOR '" + TcpServer.class.getName() + ".stopServer'");
             stat.execute("CREATE TABLE IF NOT EXISTS SESSIONS" +
                     "(ID INT PRIMARY KEY, URL VARCHAR, `USER` VARCHAR, " +
                     "CONNECTED TIMESTAMP(9) WITH TIME ZONE)");
@@ -196,7 +187,6 @@ public class TcpServer implements Service {
                 ifExists = false;
             }
         }
-        org.h2.Driver.load();
     }
 
     @Override
@@ -261,7 +251,7 @@ public class TcpServer implements Service {
         try {
             while (!stop) {
                 Socket s = serverSocket.accept();
-                NetUtils2.setTcpQuickack(s, true);
+                Utils10.setTcpQuickack(s, true);
                 int id = nextThreadId++;
                 TcpServerThread c = new TcpServerThread(s, this, id);
                 running.add(c);
@@ -454,17 +444,9 @@ public class TcpServer implements Service {
                 }
             }
             String db = getManagementDbName(port);
-            try {
-                org.h2.Driver.load();
-            } catch (Throwable e) {
-                throw DbException.convert(e);
-            }
             for (int i = 0; i < 2; i++) {
-                Connection conn = null;
-                PreparedStatement prep = null;
-                try {
-                    conn = DriverManager.getConnection("jdbc:h2:" + url + "/" + db, "", password);
-                    prep = conn.prepareStatement("CALL STOP_SERVER(?, ?, ?)");
+                try (JdbcConnection conn = new JdbcConnection("jdbc:h2:" + url + '/' + db, null, "", password)) {
+                    PreparedStatement prep = conn.prepareStatement("CALL STOP_SERVER(?, ?, ?)");
                     prep.setInt(1, all ? 0 : port);
                     prep.setString(2, password);
                     prep.setInt(3, force ? SHUTDOWN_FORCE : SHUTDOWN_NORMAL);
@@ -484,9 +466,6 @@ public class TcpServer implements Service {
                     if (i == 1) {
                         throw e;
                     }
-                } finally {
-                    JdbcUtils.closeSilently(prep);
-                    JdbcUtils.closeSilently(conn);
                 }
             }
         } catch (Exception e) {

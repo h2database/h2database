@@ -46,7 +46,7 @@ public class TestMultiConn extends TestDb {
         Connection conn1 = getConnection("multiConn");
         Connection conn2 = getConnection("multiConn");
         final Statement stat1 = conn1.createStatement();
-        stat1.execute("CREATE ALIAS SLEEP FOR \"java.lang.Thread.sleep(long)\"");
+        stat1.execute("CREATE ALIAS SLEEP FOR 'java.lang.Thread.sleep(long)'");
         final Statement stat2 = conn2.createStatement();
         stat1.execute("SET THROTTLE 100");
         Task t = new Task() {

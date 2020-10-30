@@ -70,7 +70,7 @@ public final class TableInfoFunction extends Function1_2 {
             break;
         }
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return v1;
     }
@@ -89,7 +89,7 @@ public final class TableInfoFunction extends Function1_2 {
             type = TypeInfo.TYPE_GEOMETRY;
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return this;
     }

@@ -42,7 +42,7 @@ public class TruncateTable extends DefineCommand {
         if (!table.canTruncate()) {
             throw DbException.get(ErrorCode.CANNOT_TRUNCATE_1, table.getTraceSQL());
         }
-        session.getUser().checkRight(table, Right.DELETE);
+        session.getUser().checkTableRight(table, Right.DELETE);
         table.lock(session, true, true);
         long result = table.truncate(session);
         if (restart) {

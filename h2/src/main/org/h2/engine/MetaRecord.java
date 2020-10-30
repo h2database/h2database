@@ -196,14 +196,13 @@ public class MetaRecord implements Comparable<MetaRecord> {
         case DbObject.COMMENT:
             return 15;
         default:
-            throw DbException.throwInternalError("type="+objectType);
+            throw DbException.getInternalError("type=" + objectType);
         }
     }
 
     @Override
     public String toString() {
-        return "MetaRecord [id=" + id + ", objectType=" + objectType +
-                ", sql=" + sql + "]";
+        return "MetaRecord [id=" + id + ", objectType=" + objectType + ", sql=" + sql + ']';
     }
 
 }

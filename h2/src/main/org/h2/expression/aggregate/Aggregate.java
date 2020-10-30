@@ -19,6 +19,7 @@ import java.util.TreeMap;
 import org.h2.api.ErrorCode;
 import org.h2.command.query.QueryOrderBy;
 import org.h2.command.query.Select;
+import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
@@ -39,6 +40,8 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.StringUtils;
+import org.h2.util.json.JsonConstructorUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfoRow;
@@ -66,6 +69,8 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     private ArrayList<QueryOrderBy> orderByList;
     private SortOrder orderBySort;
 
+    private Object extraArguments;
+
     private int flags;
 
     /**
@@ -83,7 +88,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     public Aggregate(AggregateType aggregateType, Expression[] args, Select select, boolean distinct) {
         super(select, args, distinct);
         if (distinct && aggregateType == AggregateType.COUNT_ALL) {
-            throw DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         this.aggregateType = aggregateType;
     }
@@ -183,6 +188,24 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         return aggregateType;
     }
 
+    /**
+     * Sets the additional arguments.
+     *
+     * @param extraArguments the additional arguments
+     */
+    public void setExtraArguments(Object extraArguments) {
+        this.extraArguments = extraArguments;
+    }
+
+    /**
+     * Returns the additional arguments.
+     *
+     * @return the additional arguments
+     */
+    public Object getExtraArguments() {
+        return extraArguments;
+    }
+
     @Override
     public void setFlags(int flags) {
         this.flags = flags;
@@ -211,13 +234,10 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     private void updateData(SessionLocal session, AggregateData data, Value v, Value[] remembered) {
         switch (aggregateType) {
         case LISTAGG:
-            if (v != ValueNull.INSTANCE) {
-                v = updateCollecting(session, v.convertTo(TypeInfo.TYPE_VARCHAR), remembered);
+            if (v == ValueNull.INSTANCE) {
+                return;
             }
-            if (args.length >= 2) {
-                ((AggregateDataCollecting) data).setSharedArgument(
-                        remembered != null ? remembered[1] : args[1].getValue(session));
-            }
+            v = updateCollecting(session, v.convertTo(TypeInfo.TYPE_VARCHAR), remembered);
             break;
         case ARRAY_AGG:
             v = updateCollecting(session, v, remembered);
@@ -234,7 +254,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             ((AggregateDataCollecting) data).setSharedArgument(ValueRow.get(a));
             a = new Value[count];
             for (int i = 0; i < count; i++) {
-                a[i] = remembered != null ? remembered[count + i] :orderByList.get(i).expression.getValue(session);
+                a[i] = remembered != null ? remembered[count + i] : orderByList.get(i).expression.getValue(session);
             }
             v = ValueRow.get(a);
             break;
@@ -248,13 +268,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             v = remembered != null ? remembered[0] : orderByList.get(0).expression.getValue(session);
             break;
         case JSON_ARRAYAGG:
-            if (v != ValueNull.INSTANCE) {
-                v = updateCollecting(session, v, remembered);
-            } else if ((flags & JsonConstructorFunction.JSON_ABSENT_ON_NULL) == 0) {
-                v = updateCollecting(session, ValueJson.NULL, remembered);
-            } else {
-                return;
-            }
+            v = updateCollecting(session, v, remembered);
             break;
         case JSON_OBJECTAGG: {
             Value key = v;
@@ -262,13 +276,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             if (key == ValueNull.INSTANCE) {
                 throw DbException.getInvalidValueException("JSON_OBJECTAGG key", "NULL");
             }
-            if (value != ValueNull.INSTANCE) {
-                v = ValueRow.get(new Value[] { key, value });
-            } else if ((flags & JsonConstructorFunction.JSON_ABSENT_ON_NULL) == 0) {
-                v = ValueRow.get(new Value[] { key, ValueJson.NULL });
-            } else {
-                return;
-            }
+            v = ValueRow.get(new Value[] { key, value });
             break;
         }
         default:
@@ -347,7 +355,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     @Override
     protected Object createAggregateData() {
-        return AggregateData.create(aggregateType, distinct, type, orderByList != null);
+        return AggregateData.create(aggregateType, distinct, type, orderByList != null, flags);
     }
 
     @Override
@@ -399,7 +407,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case ENVELOPE:
             return ((MVSpatialIndex) AggregateDataEnvelope.getGeometryColumnIndex(args[0])).getBounds(session);
         default:
-            throw DbException.throwInternalError("type=" + aggregateType);
+            throw DbException.getInternalError("type=" + aggregateType);
         }
     }
 
@@ -452,7 +460,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                     array[i] = ((ValueRow) array[i]).getList()[0];
                 }
             }
-            return ValueArray.get(array, session);
+            return ValueArray.get((TypeInfo) type.getExtTypeInfo(), array, session);
         }
         case RANK:
         case DENSE_RANK:
@@ -502,7 +510,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 if (orderByList != null) {
                     v = ((ValueRow) v).getList()[0];
                 }
-                JsonConstructorFunction.jsonArrayAppend(baos, v, flags);
+                JsonConstructorUtils.jsonArrayAppend(baos, v != ValueNull.INSTANCE ? v : ValueJson.NULL, flags);
             }
             baos.write(']');
             return ValueJson.getInternal(baos.toByteArray());
@@ -520,9 +528,16 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 if (key == null) {
                     throw DbException.getInvalidValueException("JSON_OBJECTAGG key", "NULL");
                 }
-                JsonConstructorFunction.jsonObjectAppend(baos, key, row[1]);
+                Value value = row[1];
+                if (value == ValueNull.INSTANCE) {
+                    if ((flags & JsonConstructorUtils.JSON_ABSENT_ON_NULL) != 0) {
+                        continue;
+                    }
+                    value = ValueJson.NULL;
+                }
+                JsonConstructorUtils.jsonObjectAppend(baos, key, value);
             }
-            return JsonConstructorFunction.jsonObjectFinish(baos, flags);
+            return JsonConstructorUtils.jsonObjectFinish(baos, flags);
         }
         default:
             // Avoid compiler warning
@@ -578,7 +593,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 return v;
             }
         }
-        throw DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     private static Value getCumeDist(Value[] ordered, Value arg, Comparator<Value> sort) {
@@ -597,7 +612,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
             start = end;
         }
-        throw DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     private Value getListagg(SessionLocal session, AggregateData data) {
@@ -606,43 +621,91 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         if (array == null) {
             return ValueNull.INSTANCE;
         }
+        if (array.length == 1) {
+            Value v = array[0];
+            if (orderByList != null) {
+                v = ((ValueRow) v).getList()[0];
+            }
+            return v.convertTo(Value.VARCHAR, session);
+        }
         if (orderByList != null || distinct) {
             sortWithOrderBy(array);
         }
-        StringBuilder builder = new StringBuilder();
-        String sep = args.length < 2 ? "," : collectingData.getSharedArgument().getString();
-        for (int i = 0, length = array.length; i < length; i++) {
-            Value val = array[i];
-            String s;
-            if (orderByList != null) {
-                s = ((ValueRow) val).getList()[0].getString();
-            } else {
-                s = val.getString();
-            }
-            if (sep != null && i > 0) {
-                builder.append(sep);
-            }
-            builder.append(s);
-        }
-        return ValueVarchar.get(builder.toString());
+        ListaggArguments arguments = (ListaggArguments) extraArguments;
+        String separator = arguments.getEffectiveSeparator();
+        return ValueVarchar
+                .get((arguments.getOnOverflowTruncate()
+                        ? getListaggTruncate(session, array, separator, arguments.getEffectiveFilter(),
+                                arguments.isWithoutCount())
+                        : getListaggError(session, array, separator)).toString(), session);
     }
 
-    private static Value getHistogram(SessionLocal session, AggregateData data) {
+    private StringBuilder getListaggError(SessionLocal session, Value[] array, String separator) {
+        StringBuilder builder = new StringBuilder(getListaggItem(array[0]));
+        for (int i = 1, count = array.length; i < count; i++) {
+            builder.append(separator).append(getListaggItem(array[i]));
+            if (builder.length() > Constants.MAX_STRING_LENGTH) {
+                throw DbException.getValueTooLongException("CHARACTER VARYING", builder.substring(0, 81), -1L);
+            }
+        }
+        return builder;
+    }
+
+    private StringBuilder getListaggTruncate(SessionLocal session, Value[] array, String separator, String filter,
+            boolean withoutCount) {
+        int count = array.length;
+        String[] strings = new String[count];
+        String s = getListaggItem(array[0]);
+        strings[0] = s;
+        StringBuilder builder = new StringBuilder(s);
+        loop: for (int i = 1; i < count; i++) {
+            builder.append(separator).append(strings[i] = s = getListaggItem(array[i]));
+            int length = builder.length();
+            if (length > Constants.MAX_STRING_LENGTH) {
+                for (; i > 0; i--) {
+                    length -= strings[i].length();
+                    builder.setLength(length);
+                    builder.append(filter);
+                    if (!withoutCount) {
+                        builder.append('(').append(count - i).append(')');
+                    }
+                    if (builder.length() <= Constants.MAX_STRING_LENGTH) {
+                        break loop;
+                    }
+                    length -= separator.length();
+                }
+                builder.setLength(0);
+                builder.append(filter).append('(').append(count).append(')');
+                break;
+            }
+        }
+        return builder;
+    }
+
+    private String getListaggItem(Value v) {
+        if (orderByList != null) {
+            v = ((ValueRow) v).getList()[0];
+        }
+        return v.getString();
+    }
+
+    private Value getHistogram(SessionLocal session, AggregateData data) {
         TreeMap<Value, LongDataCounter> distinctValues = ((AggregateDataDistinctWithCounts) data).getValues();
+        TypeInfo rowType = (TypeInfo) type.getExtTypeInfo();
         if (distinctValues == null) {
-            return ValueArray.EMPTY;
+            return ValueArray.get(rowType, Value.EMPTY_VALUES, session);
         }
         ValueRow[] values = new ValueRow[distinctValues.size()];
         int i = 0;
         for (Entry<Value, LongDataCounter> entry : distinctValues.entrySet()) {
             LongDataCounter d = entry.getValue();
-            values[i] = ValueRow.get(new Value[] { entry.getKey(), ValueBigint.get(d.count) });
+            values[i] = ValueRow.get(rowType, new Value[] { entry.getKey(), ValueBigint.get(d.count) });
             i++;
         }
         Database db = session.getDatabase();
         CompareMode compareMode = db.getCompareMode();
         Arrays.sort(values, (v1, v2) -> v1.getList()[0].compareTo(v2.getList()[0], session, compareMode));
-        return ValueArray.get(values, session);
+        return ValueArray.get(rowType, values, session);
     }
 
     private Value getMode(SessionLocal session, AggregateData data) {
@@ -833,7 +896,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             type = TypeInfo.TYPE_JSON;
             break;
         default:
-            DbException.throwInternalError("type=" + aggregateType);
+            throw DbException.getInternalError("type=" + aggregateType);
         }
         return this;
     }
@@ -930,8 +993,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             text = "MEDIAN";
             break;
         case LISTAGG:
-            text = "LISTAGG";
-            break;
+            return getSQLListagg(builder, sqlFlags);
         case ARRAY_AGG:
             return getSQLArrayAggregate(builder, sqlFlags);
         case MODE:
@@ -945,7 +1007,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case JSON_ARRAYAGG:
             return getSQLJsonArrayAggregate(builder, sqlFlags);
         default:
-            throw DbException.throwInternalError("type=" + aggregateType);
+            throw DbException.getInternalError("type=" + aggregateType);
         }
         builder.append(text);
         if (distinct) {
@@ -954,10 +1016,9 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             builder.append('(');
         }
         writeExpressions(builder, args, sqlFlags).append(')');
-        boolean forceOrderBy = aggregateType == AggregateType.LISTAGG;
-        if (forceOrderBy || orderByList != null) {
+        if (orderByList != null) {
             builder.append(" WITHIN GROUP (");
-            Window.appendOrderBy(builder, orderByList, sqlFlags, forceOrderBy);
+            Window.appendOrderBy(builder, orderByList, sqlFlags, false);
             builder.append(')');
         }
         return appendTailConditions(builder, sqlFlags, false);
@@ -974,6 +1035,32 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         return appendTailConditions(builder, sqlFlags, false);
     }
 
+    private StringBuilder getSQLListagg(StringBuilder builder, int sqlFlags) {
+        builder.append("LISTAGG(");
+        if (distinct) {
+            builder.append("DISTINCT ");
+        }
+        args[0].getUnenclosedSQL(builder, sqlFlags);
+        ListaggArguments arguments = (ListaggArguments) extraArguments;
+        String s = arguments.getSeparator();
+        if (s != null) {
+            StringUtils.quoteStringSQL(builder.append(", "), s);
+        }
+        if (arguments.getOnOverflowTruncate()) {
+            builder.append(" ON OVERFLOW TRUNCATE ");
+            s = arguments.getFilter();
+            if (s != null) {
+                StringUtils.quoteStringSQL(builder, s).append(' ');
+            }
+            builder.append(arguments.isWithoutCount() ? "WITHOUT" : "WITH").append(" COUNT");
+        }
+        builder.append(')');
+        builder.append(" WITHIN GROUP (");
+        Window.appendOrderBy(builder, orderByList, sqlFlags, true);
+        builder.append(')');
+        return appendTailConditions(builder, sqlFlags, false);
+    }
+
     private StringBuilder getSQLJsonObjectAggregate(StringBuilder builder, int sqlFlags) {
         builder.append("JSON_OBJECTAGG(");
         args[0].getUnenclosedSQL(builder, sqlFlags).append(": ");
@@ -984,6 +1071,9 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     private StringBuilder getSQLJsonArrayAggregate(StringBuilder builder, int sqlFlags) {
         builder.append("JSON_ARRAYAGG(");
+        if (distinct) {
+            builder.append("DISTINCT ");
+        }
         args[0].getUnenclosedSQL(builder, sqlFlags);
         JsonConstructorFunction.getJsonFunctionFlagsSQL(builder, flags, true);
         Window.appendOrderBy(builder, orderByList, sqlFlags, false);

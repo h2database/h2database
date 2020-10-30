@@ -428,10 +428,10 @@ public class TestCluster extends TestDb {
 
         // try to connect in standalone mode - should fail
         // should not be able to connect in standalone mode
-        assertThrows(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, this).
-                getConnection("jdbc:h2:tcp://localhost:"+port1+"/test", user, password);
-        assertThrows(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, this).
-                getConnection("jdbc:h2:tcp://localhost:"+port2+"/test", user, password);
+        assertThrows(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1,
+                () -> getConnection("jdbc:h2:tcp://localhost:" + port1 + "/test", user, password));
+        assertThrows(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1,
+                () -> getConnection("jdbc:h2:tcp://localhost:" + port2 + "/test", user, password));
 
         // test a cluster connection
         conn = getConnection("jdbc:h2:tcp://" + serverList + "/test", user, password);
@@ -510,7 +510,7 @@ public class TestCluster extends TestDb {
             assertFalse(rs.next());
         }
         ResultSet rs = conn.createStatement().executeQuery(
-                "SELECT `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME='CLUSTER'");
+                "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'CLUSTER'");
         String cluster = rs.next() ? rs.getString(1) : "''";
         assertEquals(expectedCluster, cluster);
     }

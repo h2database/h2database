@@ -28,6 +28,7 @@
 42000=Error de Sintaxis en sentencia SQL {0}
 42001=Error de Sintaxis en sentencia SQL {0}; se esperaba {1}
 42602=#Invalid name {0}
+42622=#The name that starts with {0} is too long. The maximum length is {1}
 42S01=Tabla {0} ya existe
 42S02=Tabla {0} no encontrada
 42S03=#Table {0} not found (candidates are: {1})
@@ -37,12 +38,14 @@
 42S21=Nombre de columna Duplicada {0}
 42S22=Columna {0} no encontrada
 42S31=#Identical expressions should be used; expected {0}, found {1}
+54011=#Too many columns. The maximum count is {0}
 57014=Ls sentencia fue cancelado ó la sesión expiró por tiempo vencido
 90000=Función {0} debe devolver un set de resultados (ResultSet)
 90001=Metodo no permitido en un query. Use execute ó executeQuery en lugar de executeUpdate
 90002=Metodo permitido unicamente en un query. Use execute ó executeUpdate en lugar de executeQuery
 90003=Cadena Hexadecimal con cantidad impar de caracteres: {0}
 90004=Cadena Hexadecimal contiene caracteres invalidos: {0}
+90005=#Invalid trigger flags: {0}
 90006=#Sequence {0} has run out of numbers
 90007=El objeto ya está cerrado
 90008=Valor Invalido {0} para el parametro {1}

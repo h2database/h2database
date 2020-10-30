@@ -63,7 +63,7 @@ public final class HashFunction extends FunctionN {
             v1 = oraHash(v1, v2 == null ? 0xffff_ffffL : v2.getLong(), v3 == null ? 0L : v3.getLong());
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         return v1;
     }
@@ -177,7 +177,7 @@ public final class HashFunction extends FunctionN {
             type = TypeInfo.TYPE_BIGINT;
             break;
         default:
-            throw DbException.throwInternalError("function=" + function);
+            throw DbException.getInternalError("function=" + function);
         }
         if (allConst) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);

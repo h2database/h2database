@@ -16,7 +16,7 @@ import org.h2.schema.Sequence;
 /**
  * This class represents the statement CREATE SEQUENCE.
  */
-public class CreateSequence extends SchemaCommand {
+public class CreateSequence extends SchemaOwnerCommand {
 
     private String sequenceName;
 
@@ -28,6 +28,7 @@ public class CreateSequence extends SchemaCommand {
 
     public CreateSequence(SessionLocal session, Schema schema) {
         super(session, schema);
+        transactional = true;
     }
 
     public void setSequenceName(String sequenceName) {
@@ -43,17 +44,16 @@ public class CreateSequence extends SchemaCommand {
     }
 
     @Override
-    public long update() {
-        session.commit(true);
+    long update(Schema schema) {
         Database db = session.getDatabase();
-        if (getSchema().findSequence(sequenceName) != null) {
+        if (schema.findSequence(sequenceName) != null) {
             if (ifNotExists) {
                 return 0;
             }
             throw DbException.get(ErrorCode.SEQUENCE_ALREADY_EXISTS_1, sequenceName);
         }
         int id = getObjectId();
-        Sequence sequence = new Sequence(session, getSchema(), id, sequenceName, options, belongsToTable);
+        Sequence sequence = new Sequence(session, schema, id, sequenceName, options, belongsToTable);
         db.addSchemaObject(session, sequence);
         return 0;
     }

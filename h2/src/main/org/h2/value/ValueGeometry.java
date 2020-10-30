@@ -7,8 +7,6 @@ package org.h2.value;
 
 import static org.h2.util.geometry.EWKBUtils.EWKB_SRID;
 
-import java.util.Arrays;
-
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.Bits;
@@ -262,19 +260,6 @@ public final class ValueGeometry extends ValueBytesBase {
     @Override
     public String getString() {
         return EWKTUtils.ewkb2ewkt(value, getDimensionSystem());
-    }
-
-    @Override
-    public int hashCode() {
-        int h = hash;
-        if (h == 0) {
-            h = getClass().hashCode() ^ Arrays.hashCode(value);
-            if (h == 0) {
-                h = 1_456_791_899;
-            }
-            hash = h;
-        }
-        return h;
     }
 
     @Override

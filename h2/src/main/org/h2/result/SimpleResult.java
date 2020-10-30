@@ -172,7 +172,7 @@ public class SimpleResult implements ResultInterface, ResultTarget {
     }
 
     @Override
-    public int getRowId() {
+    public long getRowId() {
         return rowId;
     }
 
@@ -187,7 +187,7 @@ public class SimpleResult implements ResultInterface, ResultTarget {
     }
 
     @Override
-    public int getRowCount() {
+    public long getRowCount() {
         return rows.size();
     }
 

@@ -10,6 +10,7 @@ import java.util.Locale;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
+import org.h2.engine.Constants;
 import org.h2.message.DbException;
 
 /**
@@ -43,7 +44,14 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
     }
 
     private static String sanitize(String label) {
-        return label == null ? null : label.trim().toUpperCase(Locale.ENGLISH);
+        if (label == null) {
+            return null;
+        }
+        int length = label.length();
+        if (length > Constants.MAX_STRING_LENGTH) {
+            throw DbException.getValueTooLongException("ENUM", label, length);
+        }
+        return label.trim().toUpperCase(Locale.ENGLISH);
     }
 
     private static StringBuilder toSQL(StringBuilder builder, String[] enumerators) {
@@ -73,11 +81,15 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
      *            the enumerators. May not be modified by caller or this class.
      */
     public ExtTypeInfoEnum(String[] enumerators) {
-        if (enumerators == null || enumerators.length == 0) {
+        int length;
+        if (enumerators == null || (length = enumerators.length) == 0) {
             throw DbException.get(ErrorCode.ENUM_EMPTY);
         }
-        final String[] cleaned = new String[enumerators.length];
-        for (int i = 0; i < enumerators.length; i++) {
+        if (length > Constants.MAX_ARRAY_CARDINALITY) {
+            throw DbException.getValueTooLongException("ENUM", "(" + length + " elements)", length);
+        }
+        final String[] cleaned = new String[length];
+        for (int i = 0; i < length; i++) {
             String l = sanitize(enumerators[i]);
             if (l == null || l.isEmpty()) {
                 throw DbException.get(ErrorCode.ENUM_EMPTY);

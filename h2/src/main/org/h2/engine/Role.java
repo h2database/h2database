@@ -5,8 +5,11 @@
  */
 package org.h2.engine;
 
+import java.util.ArrayList;
+
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.schema.Schema;
 import org.h2.table.Table;
 
 /**
@@ -23,7 +26,7 @@ public final class Role extends RightOwner {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     /**
@@ -54,15 +57,20 @@ public final class Role extends RightOwner {
     }
 
     @Override
-    public void removeChildrenAndResources(SessionLocal session) {
-        for (User user : database.getAllUsers()) {
-            Right right = user.getRightForRole(this);
-            if (right != null) {
-                database.removeDatabaseObject(session, right);
+    public ArrayList<DbObject> getChildren() {
+        ArrayList<DbObject> children = new ArrayList<>();
+        for (Schema schema : database.getAllSchemas()) {
+            if (schema.getOwner() == this) {
+                children.add(schema);
             }
         }
-        for (Role r2 : database.getAllRoles()) {
-            Right right = r2.getRightForRole(this);
+        return children;
+    }
+
+    @Override
+    public void removeChildrenAndResources(SessionLocal session) {
+        for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+            Right right = rightOwner.getRightForRole(this);
             if (right != null) {
                 database.removeDatabaseObject(session, right);
             }

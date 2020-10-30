@@ -467,6 +467,31 @@ public class ErrorCode {
      */
     public static final int INVALID_NAME_1 = 42602;
 
+    /**
+     * The error with code <code>42622</code> is thrown when
+     * name of identifier is too long.
+     * Example:
+     * <pre>
+     * char[] c = new char[1000];
+     * Arrays.fill(c, 'A');
+     * statement.executeQuery("SELECT 1 " + new String(c));
+     * </pre>
+     */
+    public static final int NAME_TOO_LONG_2 = 42622;
+
+    // 54: program limit exceeded
+
+    /**
+     * The error with code <code>54011</code> is thrown when
+     * too many columns were specified in a table, select statement,
+     * or row value.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(C1 INTEGER, C2 INTEGER, ..., C20000 INTEGER);
+     * </pre>
+     */
+    public static final int TOO_MANY_COLUMNS_1 = 54011;
+
     // 0A: feature not supported
 
     // HZ: remote database access
@@ -584,10 +609,9 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90005</code> is thrown when
-     * trying to create a trigger and using the combination of SELECT
-     * and FOR EACH ROW, which we do not support.
+     * trying to create a trigger with invalid combination of flags.
      */
-    public static final int TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED = 90005;
+    public static final int INVALID_TRIGGER_FLAGS_1 = 90005;
 
     /**
      * The error with code <code>90006</code> is thrown when
@@ -1057,19 +1081,12 @@ public class ErrorCode {
     // 90051 was removed
 
     /**
-     * The error with code <code>90052</code> is thrown when
-     * a subquery that is used as a value contains more than one column.
-     * Example of wrong usage:
+     * The error with code <code>90052</code> is thrown when a single-column
+     * subquery is expected but a subquery with other number of columns was
+     * specified.
+     * Example:
      * <pre>
-     * CREATE TABLE TEST(ID INT);
-     * INSERT INTO TEST VALUES(1), (2);
-     * SELECT * FROM TEST WHERE ID IN (SELECT 1, 2 FROM DUAL);
-     * </pre>
-     * Correct:
-     * <pre>
-     * CREATE TABLE TEST(ID INT);
-     * INSERT INTO TEST VALUES(1), (2);
-     * SELECT * FROM TEST WHERE ID IN (1, 2);
+     * VALUES ARRAY(SELECT A, B FROM TEST)
      * </pre>
      */
     public static final int SUBQUERY_IS_NOT_SINGLE_COLUMN = 90052;

@@ -185,7 +185,7 @@ public final class ConditionInConstantSet extends Condition {
         case ExpressionVisitor.GET_COLUMNS2:
             return true;
         default:
-            throw DbException.throwInternalError("type=" + visitor.getType());
+            throw DbException.getInternalError("type=" + visitor.getType());
         }
     }
 
@@ -203,7 +203,7 @@ public final class ConditionInConstantSet extends Condition {
      * @return null if the condition was not added, or the new condition
      */
     Expression getAdditional(SessionLocal session, Comparison other) {
-        if (!not && !whenOperand) {
+        if (!not && !whenOperand && left.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
             Expression add = other.getIfEquals(left);
             if (add != null) {
                 if (add.isConstant()) {

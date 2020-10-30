@@ -14,3 +14,6 @@ select insert('World', 2, 4, 'e') welt, insert('Hello', 2, 1, 'a') hallo;
 > ---- -----
 > We   Hallo
 > rows: 1
+
+SELECT INSERT(NULL, 0, 0, NULL);
+>> null

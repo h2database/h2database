@@ -17,7 +17,7 @@ import org.h2.schema.Schema;
  * This class represents the statement
  * DROP ALIAS
  */
-public class DropFunctionAlias extends SchemaCommand {
+public class DropFunctionAlias extends SchemaOwnerCommand {
 
     private String aliasName;
     private boolean ifExists;
@@ -27,11 +27,9 @@ public class DropFunctionAlias extends SchemaCommand {
     }
 
     @Override
-    public long update() {
-        session.getUser().checkAdmin();
-        session.commit(true);
+    long update(Schema schema) {
         Database db = session.getDatabase();
-        FunctionAlias functionAlias = getSchema().findFunction(aliasName);
+        FunctionAlias functionAlias = schema.findFunction(aliasName);
         if (functionAlias == null) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.FUNCTION_ALIAS_NOT_FOUND_1, aliasName);

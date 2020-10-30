@@ -19,6 +19,7 @@ import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.value.CompareMode;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
@@ -218,7 +219,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         data.writeValue(v);
         data.writeInt(123);
         data.reset();
-        Value v2 = data.readValue();
+        Value v2 = data.readValue(v.getType());
         assertEquals(v.getValueType(), v2.getValueType());
         assertEquals(0, v.compareTo(v2, null, compareMode));
         assertEquals(123, data.readInt());
@@ -252,11 +253,11 @@ public class TestDataPage extends TestBase implements DataHandler {
 
         trace(page.readString());
         trace(page.readString());
-        trace(page.readValue().getInt());
-        trace(page.readValue().getString());
-        trace("" + page.readValue().getFloat());
-        trace("" + page.readValue().getDouble());
-        trace(page.readValue().toString());
+        trace(page.readValue(TypeInfo.TYPE_INTEGER).getInt());
+        trace(page.readValue(TypeInfo.TYPE_VARCHAR).getString());
+        trace("" + page.readValue(TypeInfo.TYPE_REAL).getFloat());
+        trace("" + page.readValue(TypeInfo.TYPE_DOUBLE).getDouble());
+        trace(page.readValue(TypeInfo.TYPE_VARCHAR).toString());
         page.reset();
 
         page.writeInt(0);

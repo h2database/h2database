@@ -28,6 +28,7 @@
 42000=Erro de sintax na declaração SQL {0}
 42001=Erro de sintax na declaração SQL {0}; esperado {1}
 42602=#Invalid name {0}
+42622=#The name that starts with {0} is too long. The maximum length is {1}
 42S01=Tabela {0} já existe
 42S02=Tabela {0} não foi encontrada
 42S03=#Table {0} not found (candidates are: {1})
@@ -37,12 +38,14 @@
 42S21=Nome duplicado da coluna {0}
 42S22=Coluna {0} não foi encontrada
 42S31=#Identical expressions should be used; expected {0}, found {1}
+54011=#Too many columns. The maximum count is {0}
 57014=#Statement was canceled or the session timed out
 90000=Função {0} deve retornar algum resultado
 90001=O método não esta hábilitado para consulta. Use o execute ou o executeQuery em vez de executeUpdate
 90002=O método é apenas para consulta. Use o execute ou o executeUpdate em vez de executeQuery
 90003=Sequência Hexadecimal com número ímpar de caracteres: {0}
 90004=Sequência Hexadecimal contêm caracteres inválidos: {0}
+90005=#Invalid trigger flags: {0}
 90006=#Sequence {0} has run out of numbers
 90007=O objeto está fechado
 90008=Valor inválido {0} para o parâmetro {1}

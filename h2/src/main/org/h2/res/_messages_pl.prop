@@ -28,6 +28,7 @@
 42000=Błąd składniowy w wyrażeniu SQL {0}
 42001=Błąd składniowy w wyrażeniu SQL {0}; oczekiwano {1}
 42602=#Invalid name {0}
+42622=#The name that starts with {0} is too long. The maximum length is {1}
 42S01=Tabela {0} już istnieje
 42S02=Tabela {0} nie istnieje
 42S03=#Table {0} not found (candidates are: {1})
@@ -37,12 +38,14 @@
 42S21=Zduplikowana nazwa kolumny {0}
 42S22=Kolumna {0} nie istnieje
 42S31=#Identical expressions should be used; expected {0}, found {1}
+54011=#Too many columns. The maximum count is {0}
 57014=Kwerenda została anulowana albo sesja wygasła
 90000=Funkcja {0} musi zwrócić dane
 90001=Metoda nie jest dozwolona w kwerendzie
 90002=Metoda jest dozwolona tylko w kwerendzie
 90003=Heksadecymalny string z nieparzystą liczbą znaków: {0}
 90004=Heksadecymalny string zawiera niedozwolony znak: {0}
+90005=#Invalid trigger flags: {0}
 90006=Sekwencja {0} została wyczerpana
 90007=Obiekt jest zamknięty
 90008=Nieprawidłowa wartość {0} parametru {1}

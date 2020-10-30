@@ -98,7 +98,7 @@ public final class CompatibilitySequenceValueFunction extends Function1_2 {
         case ExpressionVisitor.GET_COLUMNS2:
             return super.isEverything(visitor);
         default:
-            throw DbException.throwInternalError("type=" + visitor.getType());
+            throw DbException.getInternalError("type=" + visitor.getType());
         }
     }
 

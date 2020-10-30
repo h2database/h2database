@@ -66,8 +66,8 @@ public class TestViewDropView extends TestDb {
 
     private void testDropViewDefaultBehaviour() throws SQLException {
         createTestData();
-        ResultSet rs = stat.executeQuery("select `value` " +
-                "from information_schema.settings where name = 'DROP_RESTRICT'");
+        ResultSet rs = stat.executeQuery(
+                "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'DROP_RESTRICT'");
         rs.next();
         boolean dropRestrict = rs.getBoolean(1);
         if (dropRestrict) {

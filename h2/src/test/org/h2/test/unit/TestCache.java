@@ -129,8 +129,7 @@ public class TestCache extends TestDb implements CacheWriter {
     private static int getReadCount(Statement stat) throws Exception {
         ResultSet rs;
         rs = stat.executeQuery(
-                "select `value` from information_schema.settings " +
-                "where name = 'info.FILE_READ'");
+                "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'info.FILE_READ'");
         rs.next();
         return rs.getInt(1);
     }
@@ -169,8 +168,7 @@ public class TestCache extends TestDb implements CacheWriter {
         // stat.execute("select data from test where data >= ''");
 
         rs = stat.executeQuery(
-                "select `value` from information_schema.settings " +
-                "where name = 'info.CACHE_SIZE'");
+                "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'info.CACHE_SIZE'");
         rs.next();
         int calculated = rs.getInt(1);
         rs = null;
@@ -186,7 +184,7 @@ public class TestCache extends TestDb implements CacheWriter {
                 " after closing: " + afterClose);
     }
 
-    private static int getRealMemory() {
+    private static long getRealMemory() {
         StringUtils.clearCache();
         Value.clearCache();
         return Utils.getMemoryUsed();

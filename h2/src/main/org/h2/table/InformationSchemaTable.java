@@ -26,6 +26,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.QueryStatisticsData;
 import org.h2.engine.Right;
+import org.h2.engine.RightOwner;
 import org.h2.engine.Role;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.SessionLocal.State;
@@ -50,7 +51,7 @@ import org.h2.schema.FunctionAlias;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
-import org.h2.schema.UserAggregate;
+import org.h2.schema.UserDefinedFunction;
 import org.h2.schema.FunctionAlias.JavaMethod;
 import org.h2.store.InDoubtTransaction;
 import org.h2.util.DateTimeUtils;
@@ -183,673 +184,678 @@ public final class InformationSchemaTable extends MetaTable {
         case INFORMATION_SCHEMA_CATALOG_NAME:
             setMetaTableName("INFORMATION_SCHEMA_CATALOG_NAME");
             isView = false;
-            cols = createColumns(
-                    "CATALOG_NAME"
-            );
+            cols = new Column[] {
+                    column("CATALOG_NAME"), //
+            };
             break;
         // Standard views
         case CHECK_CONSTRAINTS:
             setMetaTableName("CHECK_CONSTRAINTS");
-            cols = createColumns(
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME",
-                    "CHECK_CLAUSE"
-            );
+            cols = new Column[] {
+                    column("CONSTRAINT_CATALOG"), //
+                    column("CONSTRAINT_SCHEMA"), //
+                    column("CONSTRAINT_NAME"), //
+                    column("CHECK_CLAUSE"), //
+            };
             indexColumnName = "CONSTRAINT_NAME";
             break;
         case COLLATIONS:
             setMetaTableName("COLLATIONS");
-            cols = createColumns(
-                    "COLLATION_CATALOG",
-                    "COLLATION_SCHEMA",
-                    "COLLATION_NAME",
-                    "PAD_ATTRIBUTE",
+            cols = new Column[] {
+                    column("COLLATION_CATALOG"), //
+                    column("COLLATION_SCHEMA"), //
+                    column("COLLATION_NAME"), //
+                    column("PAD_ATTRIBUTE"), //
                     // extensions
-                    "LANGUAGE_TAG"
-            );
+                    column("LANGUAGE_TAG"), //
+            };
             break;
         case COLUMNS:
             setMetaTableName("COLUMNS");
-            cols = createColumns(
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "COLUMN_NAME",
-                    "ORDINAL_POSITION INT",
-                    "COLUMN_DEFAULT",
-                    "IS_NULLABLE",
-                    "DATA_TYPE",
-                    "CHARACTER_MAXIMUM_LENGTH BIGINT",
-                    "CHARACTER_OCTET_LENGTH BIGINT",
-                    "NUMERIC_PRECISION INT",
-                    "NUMERIC_PRECISION_RADIX INT",
-                    "NUMERIC_SCALE INT",
-                    "DATETIME_PRECISION INT",
-                    "INTERVAL_TYPE",
-                    "INTERVAL_PRECISION INT",
-                    "CHARACTER_SET_CATALOG",
-                    "CHARACTER_SET_SCHEMA",
-                    "CHARACTER_SET_NAME",
-                    "COLLATION_CATALOG",
-                    "COLLATION_SCHEMA",
-                    "COLLATION_NAME",
-                    "DOMAIN_CATALOG",
-                    "DOMAIN_SCHEMA",
-                    "DOMAIN_NAME",
-                    "MAXIMUM_CARDINALITY INT",
-                    "DTD_IDENTIFIER",
-                    "IS_IDENTITY",
-                    "IDENTITY_GENERATION",
-                    "IDENTITY_START BIGINT",
-                    "IDENTITY_INCREMENT BIGINT",
-                    "IDENTITY_MAXIMUM BIGINT",
-                    "IDENTITY_MINIMUM BIGINT",
-                    "IDENTITY_CYCLE",
-                    "IS_GENERATED",
-                    "GENERATION_EXPRESSION",
-                    "DECLARED_DATA_TYPE",
-                    "DECLARED_NUMERIC_PRECISION INT",
-                    "DECLARED_NUMERIC_SCALE INT",
+            cols = new Column[] {
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("COLUMN_NAME"), //
+                    column("ORDINAL_POSITION", TypeInfo.TYPE_INTEGER), //
+                    column("COLUMN_DEFAULT"), //
+                    column("IS_NULLABLE"), //
+                    column("DATA_TYPE"), //
+                    column("CHARACTER_MAXIMUM_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_OCTET_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_PRECISION_RADIX", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("DATETIME_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("INTERVAL_TYPE"), //
+                    column("INTERVAL_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("CHARACTER_SET_CATALOG"), //
+                    column("CHARACTER_SET_SCHEMA"), //
+                    column("CHARACTER_SET_NAME"), //
+                    column("COLLATION_CATALOG"), //
+                    column("COLLATION_SCHEMA"), //
+                    column("COLLATION_NAME"), //
+                    column("DOMAIN_CATALOG"), //
+                    column("DOMAIN_SCHEMA"), //
+                    column("DOMAIN_NAME"), //
+                    column("MAXIMUM_CARDINALITY", TypeInfo.TYPE_INTEGER), //
+                    column("DTD_IDENTIFIER"), //
+                    column("IS_IDENTITY"), //
+                    column("IDENTITY_GENERATION"), //
+                    column("IDENTITY_START", TypeInfo.TYPE_BIGINT), //
+                    column("IDENTITY_INCREMENT", TypeInfo.TYPE_BIGINT), //
+                    column("IDENTITY_MAXIMUM", TypeInfo.TYPE_BIGINT), //
+                    column("IDENTITY_MINIMUM", TypeInfo.TYPE_BIGINT), //
+                    column("IDENTITY_CYCLE"), //
+                    column("IS_GENERATED"), //
+                    column("GENERATION_EXPRESSION"), //
+                    column("DECLARED_DATA_TYPE"), //
+                    column("DECLARED_NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("DECLARED_NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
                     // extensions
-                    "GEOMETRY_TYPE",
-                    "GEOMETRY_SRID INT",
-                    "IDENTITY_BASE BIGINT",
-                    "IDENTITY_CACHE BIGINT",
-                    "COLUMN_ON_UPDATE",
-                    "IS_VISIBLE BOOLEAN",
-                    "DEFAULT_ON_NULL BOOLEAN",
-                    "SELECTIVITY INT",
-                    "REMARKS"
-            );
+                    column("GEOMETRY_TYPE"), //
+                    column("GEOMETRY_SRID", TypeInfo.TYPE_INTEGER), //
+                    column("IDENTITY_BASE", TypeInfo.TYPE_BIGINT), //
+                    column("IDENTITY_CACHE", TypeInfo.TYPE_BIGINT), //
+                    column("COLUMN_ON_UPDATE"), //
+                    column("IS_VISIBLE", TypeInfo.TYPE_BOOLEAN), //
+                    column("DEFAULT_ON_NULL", TypeInfo.TYPE_BOOLEAN), //
+                    column("SELECTIVITY", TypeInfo.TYPE_INTEGER), //
+                    column("REMARKS"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case COLUMN_PRIVILEGES:
             setMetaTableName("COLUMN_PRIVILEGES");
-            cols = createColumns(
-                    "GRANTOR",
-                    "GRANTEE",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "COLUMN_NAME",
-                    "PRIVILEGE_TYPE",
-                    "IS_GRANTABLE"
-            );
+            cols = new Column[] {
+                    column("GRANTOR"), //
+                    column("GRANTEE"), //
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("COLUMN_NAME"), //
+                    column("PRIVILEGE_TYPE"), //
+                    column("IS_GRANTABLE"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case CONSTRAINT_COLUMN_USAGE:
             setMetaTableName("CONSTRAINT_COLUMN_USAGE");
-            cols = createColumns(
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "COLUMN_NAME",
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME"
-            );
+            cols = new Column[] {
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("COLUMN_NAME"), //
+                    column("CONSTRAINT_CATALOG"), //
+                    column("CONSTRAINT_SCHEMA"), //
+                    column("CONSTRAINT_NAME"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case DOMAINS:
             setMetaTableName("DOMAINS");
-            cols = createColumns(
-                    "DOMAIN_CATALOG",
-                    "DOMAIN_SCHEMA",
-                    "DOMAIN_NAME",
-                    "DATA_TYPE",
-                    "CHARACTER_MAXIMUM_LENGTH BIGINT",
-                    "CHARACTER_OCTET_LENGTH BIGINT",
-                    "CHARACTER_SET_CATALOG",
-                    "CHARACTER_SET_SCHEMA",
-                    "CHARACTER_SET_NAME",
-                    "COLLATION_CATALOG",
-                    "COLLATION_SCHEMA",
-                    "COLLATION_NAME",
-                    "NUMERIC_PRECISION INT",
-                    "NUMERIC_PRECISION_RADIX INT",
-                    "NUMERIC_SCALE INT",
-                    "DATETIME_PRECISION INT",
-                    "INTERVAL_TYPE",
-                    "INTERVAL_PRECISION INT",
-                    "DOMAIN_DEFAULT",
-                    "MAXIMUM_CARDINALITY INT",
-                    "DTD_IDENTIFIER",
-                    "DECLARED_DATA_TYPE",
-                    "DECLARED_NUMERIC_PRECISION INT",
-                    "DECLARED_NUMERIC_SCALE INT",
+            cols = new Column[] {
+                    column("DOMAIN_CATALOG"), //
+                    column("DOMAIN_SCHEMA"), //
+                    column("DOMAIN_NAME"), //
+                    column("DATA_TYPE"), //
+                    column("CHARACTER_MAXIMUM_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_OCTET_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_SET_CATALOG"), //
+                    column("CHARACTER_SET_SCHEMA"), //
+                    column("CHARACTER_SET_NAME"), //
+                    column("COLLATION_CATALOG"), //
+                    column("COLLATION_SCHEMA"), //
+                    column("COLLATION_NAME"), //
+                    column("NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_PRECISION_RADIX", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("DATETIME_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("INTERVAL_TYPE"), //
+                    column("INTERVAL_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("DOMAIN_DEFAULT"), //
+                    column("MAXIMUM_CARDINALITY", TypeInfo.TYPE_INTEGER), //
+                    column("DTD_IDENTIFIER"), //
+                    column("DECLARED_DATA_TYPE"), //
+                    column("DECLARED_NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("DECLARED_NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
                     // extensions
-                    "GEOMETRY_TYPE",
-                    "GEOMETRY_SRID INT",
-                    "DOMAIN_ON_UPDATE",
-                    "PARENT_DOMAIN_CATALOG",
-                    "PARENT_DOMAIN_SCHEMA",
-                    "PARENT_DOMAIN_NAME",
-                    "REMARKS"
-            );
+                    column("GEOMETRY_TYPE"), //
+                    column("GEOMETRY_SRID", TypeInfo.TYPE_INTEGER), //
+                    column("DOMAIN_ON_UPDATE"), //
+                    column("PARENT_DOMAIN_CATALOG"), //
+                    column("PARENT_DOMAIN_SCHEMA"), //
+                    column("PARENT_DOMAIN_NAME"), //
+                    column("REMARKS"), //
+            };
             indexColumnName = "DOMAIN_NAME";
             break;
         case DOMAIN_CONSTRAINTS:
             setMetaTableName("DOMAIN_CONSTRAINTS");
-            cols = createColumns(
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME",
-                    "DOMAIN_CATALOG",
-                    "DOMAIN_SCHEMA",
-                    "DOMAIN_NAME",
-                    "IS_DEFERRABLE",
-                    "INITIALLY_DEFERRED",
+            cols = new Column[] {
+                    column("CONSTRAINT_CATALOG"), //
+                    column("CONSTRAINT_SCHEMA"), //
+                    column("CONSTRAINT_NAME"), //
+                    column("DOMAIN_CATALOG"), //
+                    column("DOMAIN_SCHEMA"), //
+                    column("DOMAIN_NAME"), //
+                    column("IS_DEFERRABLE"), //
+                    column("INITIALLY_DEFERRED"), //
                     // extensions
-                    "REMARKS"
-            );
+                    column("REMARKS"), //
+            };
             indexColumnName = "DOMAIN_NAME";
             break;
         case ELEMENT_TYPES:
             setMetaTableName("ELEMENT_TYPES");
-            cols = createColumns(
-                    "OBJECT_CATALOG",
-                    "OBJECT_SCHEMA",
-                    "OBJECT_NAME",
-                    "OBJECT_TYPE",
-                    "COLLECTION_TYPE_IDENTIFIER",
-                    "DATA_TYPE",
-                    "CHARACTER_MAXIMUM_LENGTH",
-                    "CHARACTER_OCTET_LENGTH",
-                    "CHARACTER_SET_CATALOG",
-                    "CHARACTER_SET_SCHEMA",
-                    "CHARACTER_SET_NAME",
-                    "COLLATION_CATALOG",
-                    "COLLATION_SCHEMA",
-                    "COLLATION_NAME",
-                    "NUMERIC_PRECISION",
-                    "NUMERIC_PRECISION_RADIX",
-                    "NUMERIC_SCALE",
-                    "DATETIME_PRECISION",
-                    "INTERVAL_TYPE",
-                    "INTERVAL_PRECISION",
-                    "MAXIMUM_CARDINALITY",
-                    "DTD_IDENTIFIER",
-                    "DECLARED_DATA_TYPE",
-                    "DECLARED_NUMERIC_PRECISION INT",
-                    "DECLARED_NUMERIC_SCALE INT",
+            cols = new Column[] {
+                    column("OBJECT_CATALOG"), //
+                    column("OBJECT_SCHEMA"), //
+                    column("OBJECT_NAME"), //
+                    column("OBJECT_TYPE"), //
+                    column("COLLECTION_TYPE_IDENTIFIER"), //
+                    column("DATA_TYPE"), //
+                    column("CHARACTER_MAXIMUM_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_OCTET_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_SET_CATALOG"), //
+                    column("CHARACTER_SET_SCHEMA"), //
+                    column("CHARACTER_SET_NAME"), //
+                    column("COLLATION_CATALOG"), //
+                    column("COLLATION_SCHEMA"), //
+                    column("COLLATION_NAME"), //
+                    column("NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_PRECISION_RADIX", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("DATETIME_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("INTERVAL_TYPE"), //
+                    column("INTERVAL_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("MAXIMUM_CARDINALITY", TypeInfo.TYPE_INTEGER), //
+                    column("DTD_IDENTIFIER"), //
+                    column("DECLARED_DATA_TYPE"), //
+                    column("DECLARED_NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("DECLARED_NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
                     // extensions
-                    "GEOMETRY_TYPE",
-                    "GEOMETRY_SRID INT"
-            );
+                    column("GEOMETRY_TYPE"), //
+                    column("GEOMETRY_SRID", TypeInfo.TYPE_INTEGER), //
+            };
             break;
         case FIELDS:
             setMetaTableName("FIELDS");
-            cols = createColumns(
-                    "OBJECT_CATALOG",
-                    "OBJECT_SCHEMA",
-                    "OBJECT_NAME",
-                    "OBJECT_TYPE",
-                    "ROW_IDENTIFIER",
-                    "FIELD_NAME",
-                    "ORDINAL_POSITION",
-                    "DATA_TYPE",
-                    "CHARACTER_MAXIMUM_LENGTH",
-                    "CHARACTER_OCTET_LENGTH",
-                    "CHARACTER_SET_CATALOG",
-                    "CHARACTER_SET_SCHEMA",
-                    "CHARACTER_SET_NAME",
-                    "COLLATION_CATALOG",
-                    "COLLATION_SCHEMA",
-                    "COLLATION_NAME",
-                    "NUMERIC_PRECISION",
-                    "NUMERIC_PRECISION_RADIX",
-                    "NUMERIC_SCALE",
-                    "DATETIME_PRECISION",
-                    "INTERVAL_TYPE",
-                    "INTERVAL_PRECISION",
-                    "MAXIMUM_CARDINALITY",
-                    "DTD_IDENTIFIER",
-                    "DECLARED_DATA_TYPE",
-                    "DECLARED_NUMERIC_PRECISION INT",
-                    "DECLARED_NUMERIC_SCALE INT",
+            cols = new Column[] {
+                    column("OBJECT_CATALOG"), //
+                    column("OBJECT_SCHEMA"), //
+                    column("OBJECT_NAME"), //
+                    column("OBJECT_TYPE"), //
+                    column("ROW_IDENTIFIER"), //
+                    column("FIELD_NAME"), //
+                    column("ORDINAL_POSITION", TypeInfo.TYPE_INTEGER), //
+                    column("DATA_TYPE"), //
+                    column("CHARACTER_MAXIMUM_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_OCTET_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_SET_CATALOG"), //
+                    column("CHARACTER_SET_SCHEMA"), //
+                    column("CHARACTER_SET_NAME"), //
+                    column("COLLATION_CATALOG"), //
+                    column("COLLATION_SCHEMA"), //
+                    column("COLLATION_NAME"), //
+                    column("NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_PRECISION_RADIX", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("DATETIME_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("INTERVAL_TYPE"), //
+                    column("INTERVAL_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("MAXIMUM_CARDINALITY", TypeInfo.TYPE_INTEGER), //
+                    column("DTD_IDENTIFIER"), //
+                    column("DECLARED_DATA_TYPE"), //
+                    column("DECLARED_NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("DECLARED_NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
                     // extensions
-                    "GEOMETRY_TYPE",
-                    "GEOMETRY_SRID INT"
-            );
+                    column("GEOMETRY_TYPE"), //
+                    column("GEOMETRY_SRID", TypeInfo.TYPE_INTEGER), //
+            };
             break;
         case KEY_COLUMN_USAGE:
             setMetaTableName("KEY_COLUMN_USAGE");
-            cols = createColumns(
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "COLUMN_NAME",
-                    "ORDINAL_POSITION INT",
-                    "POSITION_IN_UNIQUE_CONSTRAINT INT"
-            );
+            cols = new Column[] {
+                    column("CONSTRAINT_CATALOG"), //
+                    column("CONSTRAINT_SCHEMA"), //
+                    column("CONSTRAINT_NAME"), //
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("COLUMN_NAME"), //
+                    column("ORDINAL_POSITION", TypeInfo.TYPE_INTEGER), //
+                    column("POSITION_IN_UNIQUE_CONSTRAINT", TypeInfo.TYPE_INTEGER), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case PARAMETERS:
             setMetaTableName("PARAMETERS");
-            cols = createColumns(
-                    "SPECIFIC_CATALOG",
-                    "SPECIFIC_SCHEMA",
-                    "SPECIFIC_NAME",
-                    "ORDINAL_POSITION",
-                    "PARAMETER_MODE",
-                    "IS_RESULT",
-                    "AS_LOCATOR",
-                    "PARAMETER_NAME",
-                    "DATA_TYPE",
-                    "CHARACTER_MAXIMUM_LENGTH BIGINT",
-                    "CHARACTER_OCTET_LENGTH BIGINT",
-                    "CHARACTER_SET_CATALOG",
-                    "CHARACTER_SET_SCHEMA",
-                    "CHARACTER_SET_NAME",
-                    "COLLATION_CATALOG",
-                    "COLLATION_SCHEMA",
-                    "COLLATION_NAME",
-                    "NUMERIC_PRECISION INT",
-                    "NUMERIC_PRECISION_RADIX INT",
-                    "NUMERIC_SCALE INT",
-                    "DATETIME_PRECISION INT",
-                    "INTERVAL_TYPE",
-                    "INTERVAL_PRECISION INT",
-                    "MAXIMUM_CARDINALITY INT",
-                    "DTD_IDENTIFIER",
-                    "DECLARED_DATA_TYPE",
-                    "DECLARED_NUMERIC_PRECISION INT",
-                    "DECLARED_NUMERIC_SCALE INT",
-                    "PARAMETER_DEFAULT",
+            cols = new Column[] {
+                    column("SPECIFIC_CATALOG"), //
+                    column("SPECIFIC_SCHEMA"), //
+                    column("SPECIFIC_NAME"), //
+                    column("ORDINAL_POSITION", TypeInfo.TYPE_INTEGER), //
+                    column("PARAMETER_MODE"), //
+                    column("IS_RESULT"), //
+                    column("AS_LOCATOR"), //
+                    column("PARAMETER_NAME"), //
+                    column("DATA_TYPE"), //
+                    column("CHARACTER_MAXIMUM_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_OCTET_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_SET_CATALOG"), //
+                    column("CHARACTER_SET_SCHEMA"), //
+                    column("CHARACTER_SET_NAME"), //
+                    column("COLLATION_CATALOG"), //
+                    column("COLLATION_SCHEMA"), //
+                    column("COLLATION_NAME"), //
+                    column("NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_PRECISION_RADIX", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("DATETIME_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("INTERVAL_TYPE"), //
+                    column("INTERVAL_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("MAXIMUM_CARDINALITY", TypeInfo.TYPE_INTEGER), //
+                    column("DTD_IDENTIFIER"), //
+                    column("DECLARED_DATA_TYPE"), //
+                    column("DECLARED_NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("DECLARED_NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("PARAMETER_DEFAULT"), //
                     // extensions
-                    "GEOMETRY_TYPE",
-                    "GEOMETRY_SRID INT"
-            );
+                    column("GEOMETRY_TYPE"), //
+                    column("GEOMETRY_SRID", TypeInfo.TYPE_INTEGER), //
+            };
             break;
         case REFERENTIAL_CONSTRAINTS:
             setMetaTableName("REFERENTIAL_CONSTRAINTS");
-            cols = createColumns(
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME",
-                    "UNIQUE_CONSTRAINT_CATALOG",
-                    "UNIQUE_CONSTRAINT_SCHEMA",
-                    "UNIQUE_CONSTRAINT_NAME",
-                    "MATCH_OPTION",
-                    "UPDATE_RULE",
-                    "DELETE_RULE"
-            );
+            cols = new Column[] {
+                    column("CONSTRAINT_CATALOG"), //
+                    column("CONSTRAINT_SCHEMA"), //
+                    column("CONSTRAINT_NAME"), //
+                    column("UNIQUE_CONSTRAINT_CATALOG"), //
+                    column("UNIQUE_CONSTRAINT_SCHEMA"), //
+                    column("UNIQUE_CONSTRAINT_NAME"), //
+                    column("MATCH_OPTION"), //
+                    column("UPDATE_RULE"), //
+                    column("DELETE_RULE"), //
+            };
             indexColumnName = "CONSTRAINT_NAME";
             break;
         case ROUTINES:
             setMetaTableName("ROUTINES");
-            cols = createColumns(
-                    "SPECIFIC_CATALOG",
-                    "SPECIFIC_SCHEMA",
-                    "SPECIFIC_NAME",
-                    "ROUTINE_CATALOG",
-                    "ROUTINE_SCHEMA",
-                    "ROUTINE_NAME",
-                    "ROUTINE_TYPE",
-                    "DATA_TYPE",
-                    "CHARACTER_MAXIMUM_LENGTH BIGINT",
-                    "CHARACTER_OCTET_LENGTH BIGINT",
-                    "CHARACTER_SET_CATALOG",
-                    "CHARACTER_SET_SCHEMA",
-                    "CHARACTER_SET_NAME",
-                    "COLLATION_CATALOG",
-                    "COLLATION_SCHEMA",
-                    "COLLATION_NAME",
-                    "NUMERIC_PRECISION INT",
-                    "NUMERIC_PRECISION_RADIX INT",
-                    "NUMERIC_SCALE INT",
-                    "DATETIME_PRECISION INT",
-                    "INTERVAL_TYPE",
-                    "INTERVAL_PRECISION INT",
-                    "MAXIMUM_CARDINALITY INT",
-                    "DTD_IDENTIFIER",
-                    "ROUTINE_BODY",
-                    "ROUTINE_DEFINITION",
-                    "EXTERNAL_NAME",
-                    "EXTERNAL_LANGUAGE",
-                    "PARAMETER_STYLE",
-                    "IS_DETERMINISTIC",
-                    "DECLARED_DATA_TYPE",
-                    "DECLARED_NUMERIC_PRECISION INT",
-                    "DECLARED_NUMERIC_SCALE INT",
+            cols = new Column[] {
+                    column("SPECIFIC_CATALOG"), //
+                    column("SPECIFIC_SCHEMA"), //
+                    column("SPECIFIC_NAME"), //
+                    column("ROUTINE_CATALOG"), //
+                    column("ROUTINE_SCHEMA"), //
+                    column("ROUTINE_NAME"), //
+                    column("ROUTINE_TYPE"), //
+                    column("DATA_TYPE"), //
+                    column("CHARACTER_MAXIMUM_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_OCTET_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_SET_CATALOG"), //
+                    column("CHARACTER_SET_SCHEMA"), //
+                    column("CHARACTER_SET_NAME"), //
+                    column("COLLATION_CATALOG"), //
+                    column("COLLATION_SCHEMA"), //
+                    column("COLLATION_NAME"), //
+                    column("NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_PRECISION_RADIX", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("DATETIME_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("INTERVAL_TYPE"), //
+                    column("INTERVAL_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("MAXIMUM_CARDINALITY", TypeInfo.TYPE_INTEGER), //
+                    column("DTD_IDENTIFIER"), //
+                    column("ROUTINE_BODY"), //
+                    column("ROUTINE_DEFINITION"), //
+                    column("EXTERNAL_NAME"), //
+                    column("EXTERNAL_LANGUAGE"), //
+                    column("PARAMETER_STYLE"), //
+                    column("IS_DETERMINISTIC"), //
+                    column("DECLARED_DATA_TYPE"), //
+                    column("DECLARED_NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("DECLARED_NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
                     // extensions
-                    "GEOMETRY_TYPE",
-                    "GEOMETRY_SRID INT",
-                    "REMARKS"
-            );
+                    column("GEOMETRY_TYPE"), //
+                    column("GEOMETRY_SRID", TypeInfo.TYPE_INTEGER), //
+                    column("REMARKS"), //
+            };
             break;
         case SCHEMATA:
             setMetaTableName("SCHEMATA");
-            cols = createColumns(
-                    "CATALOG_NAME",
-                    "SCHEMA_NAME",
-                    "SCHEMA_OWNER",
-                    "DEFAULT_CHARACTER_SET_CATALOG",
-                    "DEFAULT_CHARACTER_SET_SCHEMA",
-                    "DEFAULT_CHARACTER_SET_NAME",
-                    "SQL_PATH",
+            cols = new Column[] {
+                    column("CATALOG_NAME"), //
+                    column("SCHEMA_NAME"), //
+                    column("SCHEMA_OWNER"), //
+                    column("DEFAULT_CHARACTER_SET_CATALOG"), //
+                    column("DEFAULT_CHARACTER_SET_SCHEMA"), //
+                    column("DEFAULT_CHARACTER_SET_NAME"), //
+                    column("SQL_PATH"), //
                     // extensions
-                    "DEFAULT_COLLATION_NAME", // MySQL
-                    "REMARKS"
-            );
+                    column("DEFAULT_COLLATION_NAME"), // // MySQL
+                    column("REMARKS"), //
+            };
             break;
         case SEQUENCES:
             setMetaTableName("SEQUENCES");
-            cols = createColumns(
-                    "SEQUENCE_CATALOG",
-                    "SEQUENCE_SCHEMA",
-                    "SEQUENCE_NAME",
-                    "DATA_TYPE",
-                    "NUMERIC_PRECISION INT",
-                    "NUMERIC_PRECISION_RADIX INT",
-                    "NUMERIC_SCALE INT",
-                    "START_VALUE BIGINT",
-                    "MINIMUM_VALUE BIGINT",
-                    "MAXIMUM_VALUE BIGINT",
-                    "INCREMENT BIGINT",
-                    "CYCLE_OPTION",
-                    "DECLARED_DATA_TYPE",
-                    "DECLARED_NUMERIC_PRECISION INT",
-                    "DECLARED_NUMERIC_SCALE INT",
+            cols = new Column[] {
+                    column("SEQUENCE_CATALOG"), //
+                    column("SEQUENCE_SCHEMA"), //
+                    column("SEQUENCE_NAME"), //
+                    column("DATA_TYPE"), //
+                    column("NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_PRECISION_RADIX", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("START_VALUE", TypeInfo.TYPE_BIGINT), //
+                    column("MINIMUM_VALUE", TypeInfo.TYPE_BIGINT), //
+                    column("MAXIMUM_VALUE", TypeInfo.TYPE_BIGINT), //
+                    column("INCREMENT", TypeInfo.TYPE_BIGINT), //
+                    column("CYCLE_OPTION"), //
+                    column("DECLARED_DATA_TYPE"), //
+                    column("DECLARED_NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("DECLARED_NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
                     // extensions
-                    "BASE_VALUE BIGINT",
-                    "CACHE BIGINT",
-                    "REMARKS"
-            );
+                    column("BASE_VALUE", TypeInfo.TYPE_BIGINT), //
+                    column("CACHE", TypeInfo.TYPE_BIGINT), //
+                    column("REMARKS"), //
+            };
             indexColumnName = "SEQUENCE_NAME";
             break;
         case TABLES:
             setMetaTableName("TABLES");
-            cols = createColumns(
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "TABLE_TYPE",
-                    "IS_INSERTABLE_INTO",
-                    "COMMIT_ACTION",
+            cols = new Column[] {
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("TABLE_TYPE"), //
+                    column("IS_INSERTABLE_INTO"), //
+                    column("COMMIT_ACTION"), //
                     // extensions
-                    "STORAGE_TYPE",
-                    "REMARKS",
-                    "LAST_MODIFICATION BIGINT",
-                    "TABLE_CLASS",
-                    "ROW_COUNT_ESTIMATE BIGINT"
-            );
+                    column("STORAGE_TYPE"), //
+                    column("REMARKS"), //
+                    column("LAST_MODIFICATION", TypeInfo.TYPE_BIGINT), //
+                    column("TABLE_CLASS"), //
+                    column("ROW_COUNT_ESTIMATE", TypeInfo.TYPE_BIGINT), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case TABLE_CONSTRAINTS:
             setMetaTableName("TABLE_CONSTRAINTS");
-            cols = createColumns(
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME",
-                    "CONSTRAINT_TYPE",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "IS_DEFERRABLE",
-                    "INITIALLY_DEFERRED",
-                    "ENFORCED",
+            cols = new Column[] {
+                    column("CONSTRAINT_CATALOG"), //
+                    column("CONSTRAINT_SCHEMA"), //
+                    column("CONSTRAINT_NAME"), //
+                    column("CONSTRAINT_TYPE"), //
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("IS_DEFERRABLE"), //
+                    column("INITIALLY_DEFERRED"), //
+                    column("ENFORCED"), //
                     // extensions
-                    "INDEX_CATALOG",
-                    "INDEX_SCHEMA",
-                    "INDEX_NAME",
-                    "REMARKS"
-            );
+                    column("INDEX_CATALOG"), //
+                    column("INDEX_SCHEMA"), //
+                    column("INDEX_NAME"), //
+                    column("REMARKS"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case TABLE_PRIVILEGES:
             setMetaTableName("TABLE_PRIVILEGES");
-            cols = createColumns(
-                    "GRANTOR",
-                    "GRANTEE",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "PRIVILEGE_TYPE",
-                    "IS_GRANTABLE",
-                    "WITH_HIERARCHY"
-            );
+            cols = new Column[] {
+                    column("GRANTOR"), //
+                    column("GRANTEE"), //
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("PRIVILEGE_TYPE"), //
+                    column("IS_GRANTABLE"), //
+                    column("WITH_HIERARCHY"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case TRIGGERS:
             setMetaTableName("TRIGGERS");
-            cols = createColumns(
-                    "TRIGGER_CATALOG",
-                    "TRIGGER_SCHEMA",
-                    "TRIGGER_NAME",
+            cols = new Column[] {
+                    column("TRIGGER_CATALOG"), //
+                    column("TRIGGER_SCHEMA"), //
+                    column("TRIGGER_NAME"), //
+                    column("EVENT_MANIPULATION"), //
+                    column("EVENT_OBJECT_CATALOG"), //
+                    column("EVENT_OBJECT_SCHEMA"), //
+                    column("EVENT_OBJECT_TABLE"), //
+                    column("ACTION_ORIENTATION"), //
+                    column("ACTION_TIMING"), //
                     // extensions
-                    "TRIGGER_TYPE",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "BEFORE BIT",
-                    "JAVA_CLASS",
-                    "QUEUE_SIZE INT",
-                    "NO_WAIT BIT",
-                    "REMARKS"
-            );
-            indexColumnName = "TABLE_NAME";
+                    column("IS_ROLLBACK", TypeInfo.TYPE_BOOLEAN), //
+                    column("JAVA_CLASS"), //
+                    column("QUEUE_SIZE", TypeInfo.TYPE_INTEGER), //
+                    column("NO_WAIT", TypeInfo.TYPE_BOOLEAN), //
+                    column("REMARKS"), //
+            };
+            indexColumnName = "EVENT_OBJECT_TABLE";
             break;
         case VIEWS:
             setMetaTableName("VIEWS");
-            cols = createColumns(
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "VIEW_DEFINITION",
-                    "CHECK_OPTION",
-                    "IS_UPDATABLE",
-                    "INSERTABLE_INTO",
-                    "IS_TRIGGER_UPDATABLE",
-                    "IS_TRIGGER_DELETABLE",
-                    "IS_TRIGGER_INSERTABLE_INTO",
+            cols = new Column[] {
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("VIEW_DEFINITION"), //
+                    column("CHECK_OPTION"), //
+                    column("IS_UPDATABLE"), //
+                    column("INSERTABLE_INTO"), //
+                    column("IS_TRIGGER_UPDATABLE"), //
+                    column("IS_TRIGGER_DELETABLE"), //
+                    column("IS_TRIGGER_INSERTABLE_INTO"), //
                     // extensions
-                    "STATUS",
-                    "REMARKS"
-            );
+                    column("STATUS"), //
+                    column("REMARKS"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         // Extensions
         case CONSTANTS:
             setMetaTableName("CONSTANTS");
             isView = false;
-            cols = createColumns(
-                    "CONSTANT_CATALOG",
-                    "CONSTANT_SCHEMA",
-                    "CONSTANT_NAME",
-                    "VALUE_DEFINITION",
-                    "DATA_TYPE",
-                    "CHARACTER_MAXIMUM_LENGTH BIGINT",
-                    "CHARACTER_OCTET_LENGTH BIGINT",
-                    "CHARACTER_SET_CATALOG",
-                    "CHARACTER_SET_SCHEMA",
-                    "CHARACTER_SET_NAME",
-                    "COLLATION_CATALOG",
-                    "COLLATION_SCHEMA",
-                    "COLLATION_NAME",
-                    "NUMERIC_PRECISION INT",
-                    "NUMERIC_PRECISION_RADIX INT",
-                    "NUMERIC_SCALE INT",
-                    "DATETIME_PRECISION INT",
-                    "INTERVAL_TYPE",
-                    "INTERVAL_PRECISION INT",
-                    "MAXIMUM_CARDINALITY INT",
-                    "DTD_IDENTIFIER",
-                    "DECLARED_DATA_TYPE",
-                    "DECLARED_NUMERIC_PRECISION INT",
-                    "DECLARED_NUMERIC_SCALE INT",
-                    "GEOMETRY_TYPE",
-                    "GEOMETRY_SRID INT",
-                    "REMARKS"
-            );
+            cols = new Column[] {
+                    column("CONSTANT_CATALOG"), //
+                    column("CONSTANT_SCHEMA"), //
+                    column("CONSTANT_NAME"), //
+                    column("VALUE_DEFINITION"), //
+                    column("DATA_TYPE"), //
+                    column("CHARACTER_MAXIMUM_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_OCTET_LENGTH", TypeInfo.TYPE_BIGINT), //
+                    column("CHARACTER_SET_CATALOG"), //
+                    column("CHARACTER_SET_SCHEMA"), //
+                    column("CHARACTER_SET_NAME"), //
+                    column("COLLATION_CATALOG"), //
+                    column("COLLATION_SCHEMA"), //
+                    column("COLLATION_NAME"), //
+                    column("NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_PRECISION_RADIX", TypeInfo.TYPE_INTEGER), //
+                    column("NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("DATETIME_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("INTERVAL_TYPE"), //
+                    column("INTERVAL_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("MAXIMUM_CARDINALITY", TypeInfo.TYPE_INTEGER), //
+                    column("DTD_IDENTIFIER"), //
+                    column("DECLARED_DATA_TYPE"), //
+                    column("DECLARED_NUMERIC_PRECISION", TypeInfo.TYPE_INTEGER), //
+                    column("DECLARED_NUMERIC_SCALE", TypeInfo.TYPE_INTEGER), //
+                    column("GEOMETRY_TYPE"), //
+                    column("GEOMETRY_SRID", TypeInfo.TYPE_INTEGER), //
+                    column("REMARKS"), //
+            };
             indexColumnName = "CONSTANT_NAME";
             break;
         case ENUM_VALUES:
             setMetaTableName("ENUM_VALUES");
             isView = false;
-            cols = createColumns(
-                    "OBJECT_CATALOG",
-                    "OBJECT_SCHEMA",
-                    "OBJECT_NAME",
-                    "OBJECT_TYPE",
-                    "ENUM_IDENTIFIER",
-                    "VALUE_NAME",
-                    "VALUE_ORDINAL"
-            );
+            cols = new Column[] {
+                    column("OBJECT_CATALOG"), //
+                    column("OBJECT_SCHEMA"), //
+                    column("OBJECT_NAME"), //
+                    column("OBJECT_TYPE"), //
+                    column("ENUM_IDENTIFIER"), //
+                    column("VALUE_NAME"), //
+                    column("VALUE_ORDINAL"), //
+            };
             break;
         case INDEXES:
             setMetaTableName("INDEXES");
             isView = false;
-            cols = createColumns(
-                    "INDEX_CATALOG",
-                    "INDEX_SCHEMA",
-                    "INDEX_NAME",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "INDEX_TYPE_NAME",
-                    "IS_GENERATED BOOLEAN",
-                    "REMARKS",
-                    "INDEX_CLASS"
-            );
+            cols = new Column[] {
+                    column("INDEX_CATALOG"), //
+                    column("INDEX_SCHEMA"), //
+                    column("INDEX_NAME"), //
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("INDEX_TYPE_NAME"), //
+                    column("IS_GENERATED", TypeInfo.TYPE_BOOLEAN), //
+                    column("REMARKS"), //
+                    column("INDEX_CLASS"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case INDEX_COLUMNS:
             setMetaTableName("INDEX_COLUMNS");
             isView = false;
-            cols = createColumns(
-                    "INDEX_CATALOG",
-                    "INDEX_SCHEMA",
-                    "INDEX_NAME",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "COLUMN_NAME",
-                    "ORDINAL_POSITION INT",
-                    "ORDERING_SPECIFICATION",
-                    "NULL_ORDERING"
-            );
+            cols = new Column[] {
+                    column("INDEX_CATALOG"), //
+                    column("INDEX_SCHEMA"), //
+                    column("INDEX_NAME"), //
+                    column("TABLE_CATALOG"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("COLUMN_NAME"), //
+                    column("ORDINAL_POSITION", TypeInfo.TYPE_INTEGER), //
+                    column("ORDERING_SPECIFICATION"), //
+                    column("NULL_ORDERING"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case IN_DOUBT:
             setMetaTableName("IN_DOUBT");
             isView = false;
-            cols = createColumns(
-                    "TRANSACTION",
-                    "STATE"
-            );
+            cols = new Column[] {
+                    column("TRANSACTION_NAME"), //
+                    column("TRANSACTION_STATE"), //
+            };
             break;
         case LOCKS:
             setMetaTableName("LOCKS");
             isView = false;
-            cols = createColumns(
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "SESSION_ID INT",
-                    "LOCK_TYPE"
-            );
+            cols = new Column[] {
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+                    column("SESSION_ID", TypeInfo.TYPE_INTEGER), //
+                    column("LOCK_TYPE"), //
+            };
             break;
         case QUERY_STATISTICS:
             setMetaTableName("QUERY_STATISTICS");
             isView = false;
-            cols = createColumns(
-                    "SQL_STATEMENT",
-                    "EXECUTION_COUNT INT",
-                    "MIN_EXECUTION_TIME DOUBLE",
-                    "MAX_EXECUTION_TIME DOUBLE",
-                    "CUMULATIVE_EXECUTION_TIME DOUBLE",
-                    "AVERAGE_EXECUTION_TIME DOUBLE",
-                    "STD_DEV_EXECUTION_TIME DOUBLE",
-                    "MIN_ROW_COUNT BIGINT",
-                    "MAX_ROW_COUNT BIGINT",
-                    "CUMULATIVE_ROW_COUNT LONG",
-                    "AVERAGE_ROW_COUNT DOUBLE",
-                    "STD_DEV_ROW_COUNT DOUBLE"
-            );
+            cols = new Column[] {
+                    column("SQL_STATEMENT"), //
+                    column("EXECUTION_COUNT", TypeInfo.TYPE_INTEGER), //
+                    column("MIN_EXECUTION_TIME", TypeInfo.TYPE_DOUBLE), //
+                    column("MAX_EXECUTION_TIME", TypeInfo.TYPE_DOUBLE), //
+                    column("CUMULATIVE_EXECUTION_TIME", TypeInfo.TYPE_DOUBLE), //
+                    column("AVERAGE_EXECUTION_TIME", TypeInfo.TYPE_DOUBLE), //
+                    column("STD_DEV_EXECUTION_TIME", TypeInfo.TYPE_DOUBLE), //
+                    column("MIN_ROW_COUNT", TypeInfo.TYPE_BIGINT), //
+                    column("MAX_ROW_COUNT", TypeInfo.TYPE_BIGINT), //
+                    column("CUMULATIVE_ROW_COUNT", TypeInfo.TYPE_BIGINT), //
+                    column("AVERAGE_ROW_COUNT", TypeInfo.TYPE_DOUBLE), //
+                    column("STD_DEV_ROW_COUNT", TypeInfo.TYPE_DOUBLE), //
+            };
             break;
         case RIGHTS:
             setMetaTableName("RIGHTS");
             isView = false;
-            cols = createColumns(
-                    "GRANTEE",
-                    "GRANTEETYPE",
-                    "GRANTEDROLE",
-                    "RIGHTS",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME"
-            );
+            cols = new Column[] {
+                    column("GRANTEE"), //
+                    column("GRANTEETYPE"), //
+                    column("GRANTEDROLE"), //
+                    column("RIGHTS"), //
+                    column("TABLE_SCHEMA"), //
+                    column("TABLE_NAME"), //
+            };
             indexColumnName = "TABLE_NAME";
             break;
         case ROLES:
             setMetaTableName("ROLES");
             isView = false;
-            cols = createColumns(
-                    "NAME",
-                    "REMARKS"
-            );
+            cols = new Column[] {
+                    column("ROLE_NAME"), //
+                    column("REMARKS"), //
+            };
             break;
         case SESSIONS:
             setMetaTableName("SESSIONS");
             isView = false;
-            cols = createColumns(
-                    "ID INT",
-                    "USER_NAME",
-                    "SERVER",
-                    "CLIENT_ADDR",
-                    "CLIENT_INFO",
-                    "SESSION_START TIMESTAMP WITH TIME ZONE",
-                    "ISOLATION_LEVEL",
-                    "STATEMENT",
-                    "STATEMENT_START TIMESTAMP WITH TIME ZONE",
-                    "CONTAINS_UNCOMMITTED BIT",
-                    "STATE",
-                    "BLOCKER_ID INT",
-                    "SLEEP_SINCE TIMESTAMP WITH TIME ZONE"
-            );
+            cols = new Column[] {
+                    column("SESSION_ID", TypeInfo.TYPE_INTEGER), //
+                    column("USER_NAME"), //
+                    column("SERVER"), //
+                    column("CLIENT_ADDR"), //
+                    column("CLIENT_INFO"), //
+                    column("SESSION_START", TypeInfo.TYPE_TIMESTAMP_TZ), //
+                    column("ISOLATION_LEVEL"), //
+                    column("EXECUTING_STATEMENT"), //
+                    column("EXECUTING_STATEMENT_START", TypeInfo.TYPE_TIMESTAMP_TZ), //
+                    column("CONTAINS_UNCOMMITTED", TypeInfo.TYPE_BOOLEAN), //
+                    column("SESSION_STATE"), //
+                    column("BLOCKER_ID", TypeInfo.TYPE_INTEGER), //
+                    column("SLEEP_SINCE", TypeInfo.TYPE_TIMESTAMP_TZ), //
+            };
             break;
         case SESSION_STATE:
             setMetaTableName("SESSION_STATE");
             isView = false;
-            cols = createColumns(
-                    "KEY",
-                    "SQL"
-            );
+            cols = new Column[] {
+                    column("STATE_KEY"), //
+                    column("STATE_COMMAND"), //
+            };
             break;
         case SETTINGS:
             setMetaTableName("SETTINGS");
             isView = false;
-            cols = createColumns("NAME", "VALUE");
+            cols = new Column[] {
+                    column("SETTING_NAME"), //
+                    column("SETTING_VALUE"), //
+            };
             break;
         case SYNONYMS:
             setMetaTableName("SYNONYMS");
             isView = false;
-            cols = createColumns(
-                    "SYNONYM_CATALOG",
-                    "SYNONYM_SCHEMA",
-                    "SYNONYM_NAME",
-                    "SYNONYM_FOR",
-                    "SYNONYM_FOR_SCHEMA",
-                    "TYPE_NAME",
-                    "STATUS",
-                    "REMARKS"
-            );
+            cols = new Column[] {
+                    column("SYNONYM_CATALOG"), //
+                    column("SYNONYM_SCHEMA"), //
+                    column("SYNONYM_NAME"), //
+                    column("SYNONYM_FOR"), //
+                    column("SYNONYM_FOR_SCHEMA"), //
+                    column("TYPE_NAME"), //
+                    column("STATUS"), //
+                    column("REMARKS"), //
+            };
             indexColumnName = "SYNONYM_NAME";
             break;
         case USERS:
             setMetaTableName("USERS");
             isView = false;
-            cols = createColumns(
-                    "NAME",
-                    "ADMIN BOOLEAN",
-                    "REMARKS"
-            );
+            cols = new Column[] {
+                    column("USER_NAME"), //
+                    column("IS_ADMIN", TypeInfo.TYPE_BOOLEAN),
+                    column("REMARKS"), //
+            };
             break;
         default:
-            throw DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
         setColumns(cols);
 
@@ -987,7 +993,7 @@ public final class InformationSchemaTable extends MetaTable {
             users(session, rows);
             break;
         default:
-            DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
         return rows;
     }
@@ -1483,27 +1489,30 @@ public final class InformationSchemaTable extends MetaTable {
                 elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation, schemaName,
                         domain.getName(), "DOMAIN", "TYPE", domain.getDataType());
             }
-            for (FunctionAlias alias : schema.getAllFunctionAliases()) {
-                String name = alias.getName();
-                JavaMethod[] methods;
-                try {
-                    methods = alias.getJavaMethods();
-                } catch (DbException e) {
-                    methods = new JavaMethod[0];
-                }
-                for (int i = 0; i < methods.length; i++) {
-                    FunctionAlias.JavaMethod method = methods[i];
-                    TypeInfo typeInfo = method.getDataType();
-                    String specificName = name + '_' + (i + 1);
-                    if (typeInfo.getValueType() != Value.NULL) {
-                        elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation,
-                                schemaName, specificName, "ROUTINE", "RESULT", typeInfo);
+            for (UserDefinedFunction userDefinedFunction : schema.getAllFunctionsAndAggregates()) {
+                if (userDefinedFunction instanceof FunctionAlias) {
+                    String name = userDefinedFunction.getName();
+                    JavaMethod[] methods;
+                    try {
+                        methods = ((FunctionAlias) userDefinedFunction).getJavaMethods();
+                    } catch (DbException e) {
+                        continue;
                     }
-                    Class<?>[] columnList = method.getColumnClasses();
-                    for (int o = 1, p = method.hasConnectionParam() ? 1 : 0, n = columnList.length; p < n; o++, p++) {
-                        elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation,
-                                schemaName, specificName, "ROUTINE", Integer.toString(o),
-                                ValueToObjectConverter2.classToType(columnList[p]));
+                    for (int i = 0; i < methods.length; i++) {
+                        FunctionAlias.JavaMethod method = methods[i];
+                        TypeInfo typeInfo = method.getDataType();
+                        String specificName = name + '_' + (i + 1);
+                        if (typeInfo != null && typeInfo.getValueType() != Value.NULL) {
+                            elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation, schemaName,
+                                    specificName, "ROUTINE", "RESULT", typeInfo);
+                        }
+                        Class<?>[] columnList = method.getColumnClasses();
+                        for (int o = 1, p = method.hasConnectionParam() ? 1
+                                : 0, n = columnList.length; p < n; o++, p++) {
+                            elementTypesFieldsRow(session, rows, catalog, type, mainSchemaName, collation, schemaName,
+                                    specificName, "ROUTINE", Integer.toString(o),
+                                    ValueToObjectConverter2.classToType(columnList[p]));
+                        }
                     }
                 }
             }
@@ -1794,20 +1803,23 @@ public final class InformationSchemaTable extends MetaTable {
         String mainSchemaName = database.getMainSchema().getName();
         String collation = database.getCompareMode().getName();
         for (Schema schema : database.getAllSchemas()) {
-            for (FunctionAlias alias : schema.getAllFunctionAliases()) {
-                JavaMethod[] methods;
-                try {
-                    methods = alias.getJavaMethods();
-                } catch (DbException e) {
-                    methods = new JavaMethod[0];
-                }
-                for (int i = 0; i < methods.length; i++) {
-                    FunctionAlias.JavaMethod method = methods[i];
-                    Class<?>[] columnList = method.getColumnClasses();
-                    for (int o = 1, p = method.hasConnectionParam() ? 1 : 0, n = columnList.length; p < n; o++, p++) {
-                        parameters(session, rows, catalog, mainSchemaName, collation, schema.getName(),
-                                alias.getName() + '_' + (i + 1), ValueToObjectConverter2.classToType(columnList[p]), //
-                                o);
+            for (UserDefinedFunction userDefinedFunction : schema.getAllFunctionsAndAggregates()) {
+                if (userDefinedFunction instanceof FunctionAlias) {
+                    JavaMethod[] methods;
+                    try {
+                        methods = ((FunctionAlias) userDefinedFunction).getJavaMethods();
+                    } catch (DbException e) {
+                        continue;
+                    }
+                    for (int i = 0; i < methods.length; i++) {
+                        FunctionAlias.JavaMethod method = methods[i];
+                        Class<?>[] columnList = method.getColumnClasses();
+                        for (int o = 1, p = method.hasConnectionParam() ? 1
+                                : 0, n = columnList.length; p < n; o++, p++) {
+                            parameters(session, rows, catalog, mainSchemaName, collation, schema.getName(),
+                                    userDefinedFunction.getName() + '_' + (i + 1),
+                                    ValueToObjectConverter2.classToType(columnList[p]), o);
+                        }
                     }
                 }
             }
@@ -1943,34 +1955,36 @@ public final class InformationSchemaTable extends MetaTable {
         String collation = database.getCompareMode().getName();
         for (Schema schema : database.getAllSchemas()) {
             String schemaName = schema.getName();
-            for (FunctionAlias alias : schema.getAllFunctionAliases()) {
-                String name = alias.getName();
-                JavaMethod[] methods;
-                try {
-                    methods = alias.getJavaMethods();
-                } catch (DbException e) {
-                    methods = new JavaMethod[0];
-                }
-                for (int i = 0; i < methods.length; i++) {
-                    FunctionAlias.JavaMethod method = methods[i];
-                    TypeInfo typeInfo = method.getDataType();
-                    String routineType;
-                    if (typeInfo.getValueType() == Value.NULL) {
-                        routineType = "PROCEDURE";
-                        typeInfo = null;
-                    } else {
-                        routineType = "FUNCTION";
+            for (UserDefinedFunction userDefinedFunction : schema.getAllFunctionsAndAggregates()) {
+                String name = userDefinedFunction.getName();
+                if (userDefinedFunction instanceof FunctionAlias) {
+                    FunctionAlias alias = (FunctionAlias) userDefinedFunction;
+                    JavaMethod[] methods;
+                    try {
+                        methods = alias.getJavaMethods();
+                    } catch (DbException e) {
+                        continue;
                     }
-                    routines(session, rows, catalog, mainSchemaName, collation, schemaName, name,
-                            name + '_' + (i + 1), routineType, admin ? alias.getSource() : null,
-                            alias.getJavaClassName() + '.' + alias.getJavaMethodName(), typeInfo,
-                            alias.isDeterministic(), alias.getComment());
+                    for (int i = 0; i < methods.length; i++) {
+                        FunctionAlias.JavaMethod method = methods[i];
+                        TypeInfo typeInfo = method.getDataType();
+                        String routineType;
+                        if (typeInfo != null && typeInfo.getValueType() == Value.NULL) {
+                            routineType = "PROCEDURE";
+                            typeInfo = null;
+                        } else {
+                            routineType = "FUNCTION";
+                        }
+                        routines(session, rows, catalog, mainSchemaName, collation, schemaName, name,
+                                name + '_' + (i + 1), routineType, admin ? alias.getSource() : null,
+                                alias.getJavaClassName() + '.' + alias.getJavaMethodName(), typeInfo,
+                                alias.isDeterministic(), alias.getComment());
+                    }
+                } else {
+                    routines(session, rows, catalog, mainSchemaName, collation, schemaName, name, name, "AGGREGATE",
+                            null, userDefinedFunction.getJavaClassName(), TypeInfo.TYPE_NULL, false,
+                            userDefinedFunction.getComment());
                 }
-            }
-            for (UserAggregate agg : schema.getAllAggregates()) {
-                String name = agg.getName();
-                routines(session, rows, catalog, mainSchemaName, collation, schemaName, name, name,
-                        "AGGREGATE", null, agg.getJavaClassName(), TypeInfo.TYPE_NULL, false, agg.getComment());
             }
         }
     }
@@ -2313,13 +2327,25 @@ public final class InformationSchemaTable extends MetaTable {
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
-                triggers(session, rows, catalog, trigger, table, tableName);
+                int typeMask = trigger.getTypeMask();
+                if ((typeMask & Trigger.INSERT) != 0) {
+                    triggers(session, rows, catalog, trigger, "INSERT", table, tableName);
+                }
+                if ((typeMask & Trigger.UPDATE) != 0) {
+                    triggers(session, rows, catalog, trigger, "UPDATE", table, tableName);
+                }
+                if ((typeMask & Trigger.DELETE) != 0) {
+                    triggers(session, rows, catalog, trigger, "DELETE", table, tableName);
+                }
+                if ((typeMask & Trigger.SELECT) != 0) {
+                    triggers(session, rows, catalog, trigger, "SELECT", table, tableName);
+                }
             }
         }
     }
 
-    private void triggers(SessionLocal session, ArrayList<Row> rows, String catalog, TriggerObject trigger, //
-            Table table, String tableName) {
+    private void triggers(SessionLocal session, ArrayList<Row> rows, String catalog, TriggerObject trigger,
+            String eventManipulation, Table table, String tableName) {
         add(session, rows,
                 // TRIGGER_CATALOG
                 catalog,
@@ -2327,17 +2353,21 @@ public final class InformationSchemaTable extends MetaTable {
                 trigger.getSchema().getName(),
                 // TRIGGER_NAME
                 trigger.getName(),
-                // extensions
-                // TRIGGER_TYPE
-                trigger.getTypeNameList(new StringBuilder()).toString(),
-                // TABLE_CATALOG
+                // EVENT_MANIPULATION
+                eventManipulation,
+                // EVENT_OBJECT_CATALOG
                 catalog,
-                // TABLE_SCHEMA
+                // EVENT_OBJECT_SCHEMA
                 table.getSchema().getName(),
-                // TABLE_NAME
+                // EVENT_OBJECT_TABLE
                 tableName,
-                // BEFORE
-                ValueBoolean.get(trigger.isBefore()),
+                // ACTION_ORIENTATION
+                trigger.isRowBased() ? "ROW" : "STATEMENT",
+                // ACTION_TIMING
+                trigger.isInsteadOf() ? "INSTEAD OF" : trigger.isBefore() ? "BEFORE" : "AFTER",
+                // extensions
+                // IS_ROLLBACK
+                ValueBoolean.get(trigger.isOnRollback()),
                 // JAVA_CLASS
                 trigger.getTriggerClassName(),
                 // QUEUE_SIZE
@@ -2651,9 +2681,9 @@ public final class InformationSchemaTable extends MetaTable {
             if (prepared != null) {
                 for (InDoubtTransaction prep : prepared) {
                     add(session, rows,
-                            // TRANSACTION
+                            // TRANSACTION_NAME
                             prep.getTransactionName(),
-                            // STATE
+                            // TRANSACTION_STATE
                             prep.getStateDescription()
                     );
                 }
@@ -2780,14 +2810,17 @@ public final class InformationSchemaTable extends MetaTable {
 
     private void roles(SessionLocal session, ArrayList<Row> rows) {
         boolean admin = session.getUser().isAdmin();
-        for (Role r : database.getAllRoles()) {
-            if (admin || session.getUser().isRoleGranted(r)) {
-                add(session, rows,
-                        // NAME
-                        identifier(r.getName()),
-                        // REMARKS
-                        r.getComment()
-                );
+        for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+            if (rightOwner instanceof Role) {
+                Role r = (Role) rightOwner;
+                if (admin || session.getUser().isRoleGranted(r)) {
+                    add(session, rows,
+                            // ROLE_NAME
+                            identifier(r.getName()),
+                            // REMARKS
+                            r.getComment()
+                    );
+                }
             }
         }
     }
@@ -2807,7 +2840,7 @@ public final class InformationSchemaTable extends MetaTable {
         Command command = s.getCurrentCommand();
         int blockingSessionId = s.getBlockingSessionId();
         add(session, rows,
-                // ID
+                // SESSION_ID
                 ValueInteger.get(s.getId()),
                 // USER_NAME
                 s.getUser().getName(),
@@ -2821,13 +2854,13 @@ public final class InformationSchemaTable extends MetaTable {
                 s.getSessionStart(),
                 // ISOLATION_LEVEL
                 session.getIsolationLevel().getSQL(),
-                // STATEMENT
+                // EXECUTING_STATEMENT
                 command == null ? null : command.toString(),
-                // STATEMENT_START
+                // EXECUTING_STATEMENT_START
                 command == null ? null : s.getCommandStartOrEnd(),
                 // CONTAINS_UNCOMMITTED
                 ValueBoolean.get(s.containsUncommitted()),
-                // STATE
+                // SESSION_STATE
                 String.valueOf(s.getState()),
                 // BLOCKER_ID
                 blockingSessionId == 0 ? null : ValueInteger.get(blockingSessionId),
@@ -2842,17 +2875,17 @@ public final class InformationSchemaTable extends MetaTable {
             StringBuilder builder = new StringBuilder().append("SET @").append(name).append(' ');
             v.getSQL(builder, DEFAULT_SQL_FLAGS);
             add(session, rows,
-                    // KEY
+                    // STATE_KEY
                     "@" + name,
-                    // SQL
+                    // STATE_COMMAND
                     builder.toString()
             );
         }
         for (Table table : session.getLocalTempTables()) {
             add(session, rows,
-                    // KEY
+                    // STATE_KEY
                     "TABLE " + table.getName(),
-                    // SQL
+                    // STATE_COMMAND
                     table.getCreateSQL()
             );
         }
@@ -2866,27 +2899,27 @@ public final class InformationSchemaTable extends MetaTable {
                 StringUtils.quoteIdentifier(builder, path[i]);
             }
             add(session, rows,
-                    // KEY
+                    // STATE_KEY
                     "SCHEMA_SEARCH_PATH",
-                    // SQL
+                    // STATE_COMMAND
                     builder.toString()
             );
         }
         String schema = session.getCurrentSchemaName();
         if (schema != null) {
             add(session, rows,
-                    // KEY
+                    // STATE_KEY
                     "SCHEMA",
-                    // SQL
+                    // STATE_COMMAND
                     StringUtils.quoteIdentifier(new StringBuilder("SET SCHEMA "), schema).toString()
             );
         }
         TimeZoneProvider currentTimeZone = session.currentTimeZone();
         if (!currentTimeZone.equals(DateTimeUtils.getTimeZone())) {
             add(session, rows,
-                    // KEY
+                    // STATE_KEY
                     "TIME ZONE",
-                    // SQL
+                    // STATE_COMMAND
                     StringUtils.quoteStringSQL(new StringBuilder("SET TIME ZONE "), currentTimeZone.getId())
                             .toString()
             );
@@ -2921,6 +2954,7 @@ public final class InformationSchemaTable extends MetaTable {
         add(session, rows, "MODE", database.getMode().getName());
         add(session, rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
         add(session, rows, "TIME ZONE", session.currentTimeZone().getId());
+        add(session, rows, "TRUNCATE_LARGE_LENGTH", session.isTruncateLargeLength() ? "TRUE" : "FALSE");
         add(session, rows, "VARIABLE_BINARY", session.isVariableBinary() ? "TRUE" : "FALSE");
         add(session, rows, "OLD_INFORMATION_SCHEMA", session.isOldInformationSchema() ? "TRUE" : "FALSE");
         BitSet nonKeywords = session.getNonKeywords();
@@ -2928,29 +2962,11 @@ public final class InformationSchemaTable extends MetaTable {
             add(session, rows, "NON_KEYWORDS", Parser.formatNonKeywords(nonKeywords));
         }
         add(session, rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
-        add(session, rows, "LOG", Integer.toString(database.getLogMode()));
         // database settings
         for (Map.Entry<String, String> entry : database.getSettings().getSortedSettings()) {
             add(session, rows, entry.getKey(), entry.getValue());
         }
         if (database.isPersistent()) {
-            PageStore pageStore = database.getPageStore();
-            if (pageStore != null) {
-                add(session, rows,
-                        "info.FILE_WRITE_TOTAL", Long.toString(pageStore.getWriteCountTotal()));
-                add(session, rows,
-                        "info.FILE_WRITE", Long.toString(pageStore.getWriteCount()));
-                add(session, rows,
-                        "info.FILE_READ", Long.toString(pageStore.getReadCount()));
-                add(session, rows,
-                        "info.PAGE_COUNT", Integer.toString(pageStore.getPageCount()));
-                add(session, rows,
-                        "info.PAGE_SIZE", Integer.toString(pageStore.getPageSize()));
-                add(session, rows,
-                        "info.CACHE_MAX_SIZE", Integer.toString(pageStore.getCache().getMaxMemory()));
-                add(session, rows,
-                        "info.CACHE_SIZE", Integer.toString(pageStore.getCache().getMemory()));
-            }
             Store store = database.getStore();
             if (store != null) {
                 MVStore mvStore = store.getMvStore();
@@ -2996,6 +3012,18 @@ public final class InformationSchemaTable extends MetaTable {
                     add(session, rows,
                             "info.LEAF_RATIO", Integer.toString(mvStore.getLeafRatio()));
                 }
+            } else {
+                PageStore pageStore = database.getPageStore();
+                if (pageStore != null) {
+                    add(session, rows, "LOG", Integer.toString(pageStore.getLogMode()));
+                    add(session, rows, "info.FILE_WRITE_TOTAL", Long.toString(pageStore.getWriteCountTotal()));
+                    add(session, rows, "info.FILE_WRITE", Long.toString(pageStore.getWriteCount()));
+                    add(session, rows, "info.FILE_READ", Long.toString(pageStore.getReadCount()));
+                    add(session, rows, "info.PAGE_COUNT", Integer.toString(pageStore.getPageCount()));
+                    add(session, rows, "info.PAGE_SIZE", Integer.toString(pageStore.getPageSize()));
+                    add(session, rows, "info.CACHE_MAX_SIZE", Integer.toString(pageStore.getCache().getMaxMemory()));
+                    add(session, rows, "info.CACHE_SIZE", Integer.toString(pageStore.getCache().getMemory()));
+                }
             }
         }
     }
@@ -3026,8 +3054,10 @@ public final class InformationSchemaTable extends MetaTable {
     private void users(SessionLocal session, ArrayList<Row> rows) {
         User currentUser = session.getUser();
         if (currentUser.isAdmin()) {
-            for (User u : database.getAllUsers()) {
-                users(session, rows, u);
+            for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+                if (rightOwner instanceof User) {
+                    users(session, rows, (User) rightOwner);
+                }
             }
         } else {
             users(session, rows, currentUser);
@@ -3036,9 +3066,9 @@ public final class InformationSchemaTable extends MetaTable {
 
     private void users(SessionLocal session, ArrayList<Row> rows, User user) {
         add(session, rows,
-                // NAME
+                // USER_NAME
                 identifier(user.getName()),
-                // ADMIN
+                // IS_ADMIN
                 ValueBoolean.get(user.isAdmin()),
                 // REMARKS
                 user.getComment()
@@ -3185,7 +3215,13 @@ public final class InformationSchemaTable extends MetaTable {
             return 0L;
         case ROLES:
             if (session.getUser().isAdmin()) {
-                return session.getDatabase().getAllRoles().size();
+                long count = 0L;
+                for (RightOwner rightOwner : session.getDatabase().getAllUsersAndRoles()) {
+                    if (rightOwner instanceof Role) {
+                        count++;
+                    }
+                }
+                return count;
             }
             break;
         case SESSIONS:
@@ -3196,7 +3232,13 @@ public final class InformationSchemaTable extends MetaTable {
             }
         case USERS:
             if (session.getUser().isAdmin()) {
-                return session.getDatabase().getAllUsers().size();
+                long count = 0L;
+                for (RightOwner rightOwner : session.getDatabase().getAllUsersAndRoles()) {
+                    if (rightOwner instanceof User) {
+                        count++;
+                    }
+                }
+                return count;
             } else {
                 return 1L;
             }
@@ -3204,7 +3246,7 @@ public final class InformationSchemaTable extends MetaTable {
         if (approximation) {
             return ROW_COUNT_APPROXIMATION;
         }
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     @Override
@@ -3349,7 +3391,7 @@ public final class InformationSchemaTable extends MetaTable {
                 if (typeInfo.getDeclaredPrecision() >= 0L) {
                     declaredNumericPrecision = numericPrecision;
                 }
-                if (typeInfo.getDeclaredScale() != Integer.MIN_VALUE) {
+                if (typeInfo.getDeclaredScale() >= 0) {
                     declaredNumericScale = numericScale;
                 }
                 break;

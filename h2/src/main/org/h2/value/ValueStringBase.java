@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
+import org.h2.engine.Constants;
 import org.h2.message.DbException;
 
 /**
@@ -25,6 +26,10 @@ abstract class ValueStringBase extends Value {
     private TypeInfo type;
 
     ValueStringBase(String v) {
+        int length = v.length();
+        if (length > Constants.MAX_STRING_LENGTH) {
+            throw DbException.getValueTooLongException(getTypeName(getValueType()), v, length);
+        }
         this.value = v;
     }
 
@@ -75,17 +80,71 @@ abstract class ValueStringBase extends Value {
     }
 
     @Override
-    public String getString() {
+    public final String getString() {
         return value;
     }
 
     @Override
-    public byte[] getBytes() {
+    public final byte[] getBytes() {
         return value.getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
-    public BigDecimal getBigDecimal() {
+    public final boolean getBoolean() {
+        String s = value;
+        if (s.equalsIgnoreCase("true") || s.equalsIgnoreCase("t") || s.equalsIgnoreCase("yes")
+                || s.equalsIgnoreCase("y")) {
+            return true;
+        } else if (s.equalsIgnoreCase("false") || s.equalsIgnoreCase("f") || s.equalsIgnoreCase("no")
+                || s.equalsIgnoreCase("n")) {
+            return false;
+        }
+        try {
+            // convert to a number, and if it is not 0 then it is true
+            return new BigDecimal(s).signum() != 0;
+        } catch (NumberFormatException e) {
+            throw getDataConversionError(BOOLEAN);
+        }
+    }
+
+    @Override
+    public final byte getByte() {
+        try {
+            return Byte.parseByte(value.trim());
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
+        }
+    }
+
+    @Override
+    public final short getShort() {
+        try {
+            return Short.parseShort(value.trim());
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
+        }
+    }
+
+    @Override
+    public final int getInt() {
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
+        }
+    }
+
+    @Override
+    public final long getLong() {
+        try {
+            return Long.parseLong(value.trim());
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
+        }
+    }
+
+    @Override
+    public final BigDecimal getBigDecimal() {
         try {
             return new BigDecimal(value.trim());
         } catch (NumberFormatException e) {
@@ -94,7 +153,25 @@ abstract class ValueStringBase extends Value {
     }
 
     @Override
-    public int getMemory() {
+    public final float getFloat() {
+        try {
+            return Float.parseFloat(value.trim());
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
+        }
+    }
+
+    @Override
+    public final double getDouble() {
+        try {
+            return Double.parseDouble(value.trim());
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
+        }
+    }
+
+    @Override
+    public final int getMemory() {
         /*
          * Java 11 with -XX:-UseCompressedOops
          * Empty string: 88 bytes

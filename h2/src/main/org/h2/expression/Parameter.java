@@ -111,7 +111,7 @@ public final class Parameter extends Operation0 implements ParameterInterface {
         case ExpressionVisitor.INDEPENDENT:
             return value != null;
         default:
-            throw DbException.throwInternalError("type="+visitor.getType());
+            throw DbException.getInternalError("type="+visitor.getType());
         }
     }
 

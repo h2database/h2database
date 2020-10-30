@@ -81,7 +81,7 @@ public final class FunctionsMSSQLServer extends ModeFunction {
             max = 3;
             break;
         default:
-            throw DbException.throwInternalError("type=" + info.type);
+            throw DbException.getInternalError("type=" + info.type);
         }
         if (len < min || len > max) {
             throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, min + ".." + max);
@@ -113,7 +113,7 @@ public final class FunctionsMSSQLServer extends ModeFunction {
         case SCOPE_IDENTITY:
             return session.getLastIdentity().convertTo(type);
         default:
-            throw DbException.throwInternalError("type=" + info.type);
+            throw DbException.getInternalError("type=" + info.type);
         }
     }
 

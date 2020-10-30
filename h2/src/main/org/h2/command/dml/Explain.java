@@ -70,7 +70,7 @@ public class Explain extends Prepared {
     }
 
     @Override
-    public ResultInterface query(int maxrows) {
+    public ResultInterface query(long maxrows) {
         Database db = session.getDatabase();
         Expression[] expressions = { new ExpressionColumn(db, new Column("PLAN", TypeInfo.TYPE_VARCHAR)) };
         result = new LocalResult(session, expressions, 1, 1);
@@ -78,16 +78,17 @@ public class Explain extends Prepared {
         if (maxrows >= 0) {
             String plan;
             if (executeCommand) {
-                PageStore store = null;
-                Store mvStore = null;
+                Store store = null;
+                PageStore pageStore = null;
                 if (db.isPersistent()) {
-                    store = db.getPageStore();
+                    store = db.getStore();
                     if (store != null) {
                         store.statisticsStart();
-                    }
-                    mvStore = db.getStore();
-                    if (mvStore != null) {
-                        mvStore.statisticsStart();
+                    } else {
+                        pageStore = db.getPageStore();
+                        if (pageStore != null) {
+                            pageStore.statisticsStart();
+                        }
                     }
                 }
                 if (command.isQuery()) {
@@ -99,8 +100,8 @@ public class Explain extends Prepared {
                 Map<String, Integer> statistics = null;
                 if (store != null) {
                     statistics = store.statisticsEnd();
-                } else if (mvStore != null) {
-                    statistics = mvStore.statisticsEnd();
+                } else if (pageStore != null) {
+                    statistics = pageStore.statisticsEnd();
                 }
                 if (statistics != null) {
                     int total = 0;

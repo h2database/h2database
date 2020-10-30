@@ -404,7 +404,7 @@ public class TestPreparedStatement extends TestDb {
 
     private void testCancelReuse(Connection conn) throws Exception {
         conn.createStatement().execute(
-                "CREATE ALIAS SLEEP FOR \"java.lang.Thread.sleep\"");
+                "CREATE ALIAS SLEEP FOR 'java.lang.Thread.sleep'");
         // sleep for 10 seconds
         final PreparedStatement prep = conn.prepareStatement(
                 "SELECT SLEEP(?) FROM SYSTEM_RANGE(1, 10000) LIMIT ?");
@@ -512,7 +512,7 @@ public class TestPreparedStatement extends TestDb {
         for (int i = 0; i < badSizes.length; i++) {
             PreparedStatement prep = conn.prepareStatement("SELECT * FROM test_enum WHERE size = ?");
             prep.setObject(1, badSizes[i]);
-            if (config.lazy) {
+            if (config.lazy && !config.networked) {
                 ResultSet resultSet = prep.executeQuery();
                 assertThrows(ErrorCode.ENUM_VALUE_NOT_PERMITTED, resultSet).next();
             } else {

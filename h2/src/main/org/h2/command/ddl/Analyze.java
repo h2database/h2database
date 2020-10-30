@@ -112,7 +112,7 @@ public class Analyze extends DefineCommand {
                 || table.isTemporary() && !table.isGlobalTemporary() //
                         && session.findLocalTempTable(table.getName()) == null //
                 || table.isLockedExclusively() && !table.isLockedExclusivelyBy(session)
-                || !session.getUser().hasRight(table, Right.SELECT) //
+                || !session.getUser().hasTableRight(table, Right.SELECT) //
                 // if the connection is closed and there is something to undo
                 || session.getCancel() != 0) {
             return;

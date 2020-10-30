@@ -23,6 +23,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.mode.DefaultNullOrdering;
+import org.h2.pagestore.PageStore;
 import org.h2.pagestore.db.SessionPageStore;
 import org.h2.result.ResultInterface;
 import org.h2.schema.Schema;
@@ -76,6 +77,7 @@ public class Set extends Prepared {
         case SetTypes.NON_KEYWORDS:
         case SetTypes.TIME_ZONE:
         case SetTypes.VARIABLE_BINARY:
+        case SetTypes.TRUNCATE_LARGE_LENGTH:
             return true;
         default:
         }
@@ -299,9 +301,13 @@ public class Set extends Prepared {
         }
         case SetTypes.LOG: {
             int value = getIntValue();
-            if (database.isPersistent() && value != database.getLogMode()) {
+            if (database.isMVStore()) {
+                throw DbException.getUnsupportedException("MV_STORE=TRUE && LOG");
+            }
+            PageStore pageStore = database.getPageStore();
+            if (pageStore != null && value != pageStore.getLogMode()) {
                 session.getUser().checkAdmin();
-                database.setLogMode(value);
+                pageStore.setLogMode(value);
             }
             break;
         }
@@ -599,8 +605,11 @@ public class Set extends Prepared {
             }
             break;
         }
+        case SetTypes.TRUNCATE_LARGE_LENGTH:
+            session.setTruncateLargeLength(expression.getBooleanValue(session));
+            break;
         default:
-            DbException.throwInternalError("type="+type);
+            throw DbException.getInternalError("type="+type);
         }
         // the meta data information has changed
         database.getNextModificationDataId();

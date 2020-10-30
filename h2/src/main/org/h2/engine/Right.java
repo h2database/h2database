@@ -42,6 +42,12 @@ public final class Right extends DbObject {
     public static final int ALTER_ANY_SCHEMA = 16;
 
     /**
+     * The right bit mask that means: user is a schema owner. This mask isn't
+     * used in GRANT / REVOKE statements.
+     */
+    public static final int SCHEMA_OWNER = 32;
+
+    /**
      * The right bit mask that means: select, insert, update, delete, and update
      * for this object is allowed.
      */
@@ -73,16 +79,14 @@ public final class Right extends DbObject {
         this.grantedRole = grantedRole;
     }
 
-    public Right(Database db, int id, RightOwner grantee, int grantedRight,
-            DbObject grantedObject) {
+    public Right(Database db, int id, RightOwner grantee, int grantedRight, DbObject grantedObject) {
         super(db, id, Integer.toString(id), Trace.USER);
         this.grantee = grantee;
         this.grantedRight = grantedRight;
         this.grantedObject = grantedObject;
     }
 
-    private static boolean appendRight(StringBuilder buff, int right, int mask,
-            String name, boolean comma) {
+    private static boolean appendRight(StringBuilder buff, int right, int mask, String name, boolean comma) {
         if ((right & mask) != 0) {
             if (comma) {
                 buff.append(", ");
@@ -173,7 +177,7 @@ public final class Right extends DbObject {
 
     @Override
     public void checkRename() {
-        DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     public void setRightMask(int rightMask) {

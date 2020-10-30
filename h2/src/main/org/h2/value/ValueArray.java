@@ -6,6 +6,8 @@
 package org.h2.value;
 
 import org.h2.engine.CastDataProvider;
+import org.h2.engine.Constants;
+import org.h2.message.DbException;
 
 /**
  * Implementation of the ARRAY data type.
@@ -15,7 +17,7 @@ public final class ValueArray extends ValueCollectionBase {
     /**
      * Empty array.
      */
-    public static final ValueArray EMPTY = get(Value.EMPTY_VALUES, null);
+    public static final ValueArray EMPTY = get(TypeInfo.TYPE_NULL, Value.EMPTY_VALUES, null);
 
     private TypeInfo type;
 
@@ -23,7 +25,12 @@ public final class ValueArray extends ValueCollectionBase {
 
     private ValueArray(TypeInfo componentType, Value[] list, CastDataProvider provider) {
         super(list);
-        for (int i = 0, l = list.length; i < l; i++) {
+        int length = list.length;
+        if (length > Constants.MAX_ARRAY_CARDINALITY) {
+            String typeName = getTypeName(getValueType());
+            throw DbException.getValueTooLongException(typeName, typeName, length);
+        }
+        for (int i = 0; i < length; i++) {
             list[i] = list[i].castTo(componentType, provider);
         }
         this.componentType = componentType;

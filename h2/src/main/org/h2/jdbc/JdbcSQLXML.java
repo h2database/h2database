@@ -44,7 +44,7 @@ import org.xml.sax.InputSource;
 /**
  * Represents a SQLXML value.
  */
-public class JdbcSQLXML extends JdbcLob implements SQLXML {
+public final class JdbcSQLXML extends JdbcLob implements SQLXML {
 
     private DOMResult domResult;
 
@@ -103,7 +103,7 @@ public class JdbcSQLXML extends JdbcLob implements SQLXML {
     public <T extends Source> T getSource(Class<T> sourceClass) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCodeCall(
+                debugCode(
                         "getSource(" + (sourceClass != null ? sourceClass.getSimpleName() + ".class" : "null") + ')');
             }
             checkReadable();
@@ -164,7 +164,7 @@ public class JdbcSQLXML extends JdbcLob implements SQLXML {
     public <T extends Result> T setResult(Class<T> resultClass) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCodeCall(
+                debugCode(
                         "getSource(" + (resultClass != null ? resultClass.getSimpleName() + ".class" : "null") + ')');
             }
             checkEditable();

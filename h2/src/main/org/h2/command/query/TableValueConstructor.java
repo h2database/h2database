@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
@@ -58,7 +59,9 @@ public class TableValueConstructor extends Query {
     public TableValueConstructor(SessionLocal session, ArrayList<ArrayList<Expression>> rows) {
         super(session);
         this.rows = rows;
-        visibleColumnCount = rows.get(0).size();
+        if ((visibleColumnCount = rows.get(0).size()) > Constants.MAX_COLUMNS) {
+            throw DbException.get(ErrorCode.TOO_MANY_COLUMNS_1, "" + Constants.MAX_COLUMNS);
+        }
         for (ArrayList<Expression> row : rows) {
             for (Expression column : row) {
                 if (!column.isConstant()) {
@@ -120,10 +123,10 @@ public class TableValueConstructor extends Query {
     }
 
     @Override
-    protected ResultInterface queryWithoutCache(int limit, ResultTarget target) {
+    protected ResultInterface queryWithoutCache(long limit, ResultTarget target) {
         OffsetFetch offsetFetch = getOffsetFetch(limit);
         long offset = offsetFetch.offset;
-        int fetch = offsetFetch.fetch;
+        long fetch = offsetFetch.fetch;
         boolean fetchPercent = offsetFetch.fetchPercent;
         int visibleColumnCount = this.visibleColumnCount, resultColumnCount = this.resultColumnCount;
         LocalResult result = new LocalResult(session, expressionArray, visibleColumnCount, resultColumnCount);
@@ -156,7 +159,7 @@ public class TableValueConstructor extends Query {
     @Override
     public void init() {
         if (checkInit) {
-            DbException.throwInternalError();
+            throw DbException.getInternalError();
         }
         checkInit = true;
         if (withTies && !hasOrder()) {
@@ -171,7 +174,7 @@ public class TableValueConstructor extends Query {
             return;
         }
         if (!checkInit) {
-            DbException.throwInternalError("not initialized");
+            throw DbException.getInternalError("not initialized");
         }
         isPrepared = true;
         if (columnResolver == null) {

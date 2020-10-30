@@ -124,10 +124,10 @@ DROP DOMAIN A;
 DROP DOMAIN B;
 > ok
 
-CREATE ALIAS A FOR "java.lang.Math.sqrt";
+CREATE ALIAS A FOR 'java.lang.Math.sqrt';
 > ok
 
-CREATE AGGREGATE B FOR "org.h2.test.scripts.Aggregate1";
+CREATE AGGREGATE B FOR 'org.h2.test.scripts.Aggregate1';
 > ok
 
 SELECT ID_A <> ID_B, SQL_A, SQL_B FROM (VALUES (
@@ -138,7 +138,7 @@ SELECT ID_A <> ID_B, SQL_A, SQL_B FROM (VALUES (
 )) T(ID_A, ID_B, SQL_A, SQL_B);
 > ID_A <> ID_B SQL_A                                                     SQL_B
 > ------------ --------------------------------------------------------- ------------------------------------------------------------------------
-> TRUE         CREATE FORCE ALIAS "PUBLIC"."A" FOR "java.lang.Math.sqrt" CREATE FORCE AGGREGATE "PUBLIC"."B" FOR "org.h2.test.scripts.Aggregate1"
+> TRUE         CREATE FORCE ALIAS "PUBLIC"."A" FOR 'java.lang.Math.sqrt' CREATE FORCE AGGREGATE "PUBLIC"."B" FOR 'org.h2.test.scripts.Aggregate1'
 > rows: 1
 
 DROP ALIAS A;
@@ -182,7 +182,7 @@ ALTER TABLE T_A ADD CONSTRAINT C_A UNIQUE(ID);
 CREATE SYNONYM S_A FOR T_A;
 > ok
 
-CREATE TRIGGER G_A BEFORE INSERT ON T_A FOR EACH ROW CALL "org.h2.test.scripts.Trigger1";
+CREATE TRIGGER G_A BEFORE INSERT ON T_A FOR EACH ROW CALL 'org.h2.test.scripts.Trigger1';
 > ok
 
 CREATE MEMORY TABLE T_B(ID INT);
@@ -197,7 +197,7 @@ ALTER TABLE T_B ADD CONSTRAINT C_B UNIQUE(ID);
 CREATE SYNONYM S_B FOR T_B;
 > ok
 
-CREATE TRIGGER G_B BEFORE INSERT ON T_B FOR EACH ROW CALL "org.h2.test.scripts.Trigger1";
+CREATE TRIGGER G_B BEFORE INSERT ON T_B FOR EACH ROW CALL 'org.h2.test.scripts.Trigger1';
 > ok
 
 SELECT T, ID_A <> ID_B, SQL_A, SQL_B FROM (VALUES
@@ -238,7 +238,7 @@ SELECT T, ID_A <> ID_B, SQL_A, SQL_B FROM (VALUES
 > INDEX      TRUE         CREATE UNIQUE INDEX "PUBLIC"."I_A" ON "PUBLIC"."T_A"("ID" NULLS FIRST)                                                          CREATE UNIQUE INDEX "PUBLIC"."I_B" ON "PUBLIC"."T_B"("ID" NULLS FIRST)
 > SYNONYM    TRUE         CREATE SYNONYM "PUBLIC"."S_A" FOR "PUBLIC"."T_A"                                                                                CREATE SYNONYM "PUBLIC"."S_B" FOR "PUBLIC"."T_B"
 > TABLE      TRUE         CREATE MEMORY TABLE "PUBLIC"."T_A"( "ID" INTEGER )                                                                              CREATE MEMORY TABLE "PUBLIC"."T_B"( "ID" INTEGER )
-> TRIGGER    TRUE         CREATE FORCE TRIGGER "PUBLIC"."G_A" BEFORE INSERT ON "PUBLIC"."T_A" FOR EACH ROW QUEUE 1024 CALL "org.h2.test.scripts.Trigger1" CREATE FORCE TRIGGER "PUBLIC"."G_B" BEFORE INSERT ON "PUBLIC"."T_B" FOR EACH ROW QUEUE 1024 CALL "org.h2.test.scripts.Trigger1"
+> TRIGGER    TRUE         CREATE FORCE TRIGGER "PUBLIC"."G_A" BEFORE INSERT ON "PUBLIC"."T_A" FOR EACH ROW QUEUE 1024 CALL 'org.h2.test.scripts.Trigger1' CREATE FORCE TRIGGER "PUBLIC"."G_B" BEFORE INSERT ON "PUBLIC"."T_B" FOR EACH ROW QUEUE 1024 CALL 'org.h2.test.scripts.Trigger1'
 > rows: 5
 
 DROP SYNONYM S_A;

@@ -30,11 +30,11 @@ public class CreateAggregate extends SchemaCommand {
 
     @Override
     public long update() {
-        session.commit(true);
         session.getUser().checkAdmin();
+        session.commit(true);
         Database db = session.getDatabase();
         Schema schema = getSchema();
-        if (schema.findAggregate(name) != null || schema.findFunction(name) != null) {
+        if (schema.findFunctionOrAggregate(name) != null) {
             if (!ifNotExists) {
                 throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
             }

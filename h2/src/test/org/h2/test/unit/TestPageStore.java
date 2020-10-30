@@ -241,8 +241,11 @@ public class TestPageStore extends TestDb {
             return;
         }
         deleteDb("pageStoreDefrag");
-        Connection conn = getConnection(
-                "pageStoreDefrag;LOG=0;UNDO_LOG=0;LOCK_MODE=0");
+        String url = "pageStoreDefrag;UNDO_LOG=0;LOCK_MODE=0";
+        if (!config.mvStore) {
+            url += ";LOG=0";
+        }
+        Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
         int tableCount = 10;
         int rowCount = getSize(1000, 100000);
@@ -870,7 +873,7 @@ public class TestPageStore extends TestDb {
         }
         try (Connection c = DriverManager.getConnection(url)) {
             try (ResultSet rs = c.createStatement().executeQuery(
-                    "SELECT `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME = 'MV_STORE'")) {
+                    "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'MV_STORE'")) {
                 assertTrue(rs.next());
                 assertEquals("false", rs.getString(1));
                 assertFalse(rs.next());

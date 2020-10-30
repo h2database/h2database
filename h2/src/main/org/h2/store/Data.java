@@ -17,6 +17,8 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
@@ -27,6 +29,9 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
+import org.h2.value.ExtTypeInfoEnum;
+import org.h2.value.ExtTypeInfoRow;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
@@ -746,7 +751,7 @@ public class Data {
             writeBinary(v, (byte) JSON);
             break;
         default:
-            DbException.throwInternalError("type=" + v.getValueType());
+            throw DbException.getInternalError("type=" + v.getValueType());
         }
         assert pos - start == getValueLen(v)
                 : "value size error: got " + (pos - start) + " expected " + getValueLen(v);
@@ -763,9 +768,10 @@ public class Data {
     /**
      * Read a value.
      *
+     * @param columnType the data type information of a column
      * @return the value
      */
-    public Value readValue() {
+    public Value readValue(TypeInfo columnType) {
         int type = data[pos++] & 255;
         switch (type) {
         case NULL:
@@ -776,7 +782,6 @@ public class Data {
             return ValueBoolean.FALSE;
         case INT_NEG:
             return ValueInteger.get(-readVarInt());
-        case ENUM:
         case INTEGER:
             return ValueInteger.get(readVarInt());
         case BIGINT_NEG:
@@ -905,15 +910,27 @@ public class Data {
                 throw getOldLobException(smallLen);
             }
         }
-        case ARRAY:
-        case ROW: // Special storage type for ValueRow
-        {
+        case ARRAY: {
             int len = readVarInt();
             Value[] list = new Value[len];
-            for (int i = 0; i < len; i++) {
-                list[i] = readValue();
+            if (columnType.getValueType() == Value.ARRAY) {
+                TypeInfo elementType = (TypeInfo) columnType.getExtTypeInfo();
+                for (int i = 0; i < len; i++) {
+                    list[i] = readValue(elementType);
+                }
+                return ValueArray.get(elementType, list, null);
             }
-            return type == ARRAY ? ValueArray.get(list, null) : ValueRow.get(list);
+            for (int i = 0; i < len; i++) {
+                list[i] = readValue(TypeInfo.TYPE_UNKNOWN);
+            }
+            return ValueArray.get(list, null);
+        }
+        case ENUM: {
+            int ordinal = readVarInt();
+            if (columnType.getValueType() == Value.ENUM) {
+                return ((ExtTypeInfoEnum) columnType.getExtTypeInfo()).getValue(ordinal, null);
+            }
+            return ValueInteger.get(ordinal);
         }
         case INTERVAL: {
             int ordinal = readByte();
@@ -924,6 +941,22 @@ public class Data {
             return ValueInterval.from(IntervalQualifier.valueOf(ordinal), negative, readVarLong(),
                     ordinal < 5 ? 0 : readVarLong());
         }
+        case ROW: {
+            int len = readVarInt();
+            Value[] list = new Value[len];
+            if (columnType.getValueType() == Value.ROW) {
+                ExtTypeInfoRow extTypeInfoRow = (ExtTypeInfoRow) columnType.getExtTypeInfo();
+                Iterator<Entry<String, TypeInfo>> fields = extTypeInfoRow.getFields().iterator();
+                for (int i = 0; i < len; i++) {
+                    list[i] = readValue(fields.next().getValue());
+                }
+                return ValueRow.get(columnType, list);
+            }
+            for (int i = 0; i < len; i++) {
+                list[i] = readValue(TypeInfo.TYPE_UNKNOWN);
+            }
+            return ValueRow.get(list);
+        }
         case JSON: {
             int len = readVarInt();
             byte[] b = Utils.newBytes(len);
@@ -932,7 +965,11 @@ public class Data {
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {
-                return ValueInteger.get(type - INT_0_15);
+                int i = type - INT_0_15;
+                if (columnType.getValueType() == Value.ENUM) {
+                    return ((ExtTypeInfoEnum) columnType.getExtTypeInfo()).getValue(i, null);
+                }
+                return ValueInteger.get(i);
             } else if (type >= BIGINT_0_7 && type < BIGINT_0_7 + 8) {
                 return ValueBigint.get(type - BIGINT_0_7);
             } else if (type >= VARBINARY_0_31 && type < VARBINARY_0_31 + 32) {
@@ -1177,7 +1214,7 @@ public class Data {
             return 1 + getVarIntLen(b.length) + b.length;
         }
         default:
-            throw DbException.throwInternalError("type=" + v.getValueType());
+            throw DbException.getInternalError("type=" + v.getValueType());
         }
     }
 

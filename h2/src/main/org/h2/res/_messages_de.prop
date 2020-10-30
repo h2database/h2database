@@ -28,6 +28,7 @@
 42000=Syntax Fehler in SQL Befehl {0}
 42001=Syntax Fehler in SQL Befehl {0}; erwartet {1}
 42602=Ungültiger Name {0}
+42622=Der Name mit {0} beginnt ist zu lang. Die maximale Länge beträgt {1}
 42S01=Tabelle {0} besteht bereits
 42S02=Tabelle {0} nicht gefunden
 42S03=Tabelle {0} nicht gefunden (mögliche Kandidaten: {1})
@@ -37,12 +38,14 @@
 42S21=Doppelter Feldname {0}
 42S22=Feld {0} nicht gefunden
 42S31=Es sollten identische Ausdrücke verwendet werden; erwartet {0}, tatsächlich {1}
+54011=Zu viele Felder definiert. Maximale Anzahl von Felder: {0}
 57014=Befehl wurde abgebrochen oder das Session-Timeout ist abgelaufen
 90000=Funktion {0} muss Zeilen zurückgeben
 90001=Methode nicht zulässig für eine Abfrage. Erlaubt sind execute oder executeQuery, nicht jedoch executeUpdate
 90002=Methode nur zulässig für eine Abfrage. Erlaubt sind execute oder executeUpdate, nicht jedoch executeQuery
 90003=Hexadezimal Zahl mit einer ungeraden Anzahl Zeichen: {0}
 90004=Hexadezimal Zahl enthält unerlaubtes Zeichen: {0}
+90005=Ungültige Triggeroptionen: {0}
 90006=Die Sequenz {0} hat keine freien Nummern mehr
 90007=Das Objekt wurde bereits geschlossen
 90008=Unerlaubter Wert {0} für Parameter {1}

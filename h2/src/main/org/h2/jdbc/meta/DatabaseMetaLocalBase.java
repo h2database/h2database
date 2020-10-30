@@ -150,9 +150,7 @@ abstract class DatabaseMetaLocalBase extends DatabaseMeta {
         return result;
     }
 
-    @Override
-    public final ResultInterface getPseudoColumns(String catalog, String schemaPattern, String tableNamePattern,
-            String columnNamePattern) {
+    final SimpleResult getPseudoColumnsResult() {
         checkClosed();
         SimpleResult result = new SimpleResult();
         result.addColumn("TABLE_CAT", TypeInfo.TYPE_VARCHAR);

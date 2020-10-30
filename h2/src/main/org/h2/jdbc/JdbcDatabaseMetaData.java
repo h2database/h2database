@@ -30,8 +30,8 @@ import org.h2.value.ValueVarchar;
 /**
  * Represents the meta data for a database.
  */
-public class JdbcDatabaseMetaData extends TraceObject implements
-        DatabaseMetaData, JdbcDatabaseMetaDataBackwardsCompat {
+public final class JdbcDatabaseMetaData extends TraceObject
+        implements DatabaseMetaData, JdbcDatabaseMetaDataBackwardsCompat {
 
     private final JdbcConnection conn;
 
@@ -41,7 +41,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
         setTrace(trace, TraceObject.DATABASE_META_DATA, id);
         this.conn = conn;
         Session session = conn.getSession();
-        meta = session.getStaticSettings().oldInformationSchema ? new DatabaseMetaLegacy(session)
+        meta = session.isOldInformationSchema() ? new DatabaseMetaLegacy(session)
                 : conn.getSession().getDatabaseMeta();
     }
 
@@ -150,9 +150,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getTables(" + quote(catalog) + ", " +
-                        quote(schemaPattern) + ", " + quote(tableNamePattern) +
-                        ", " + quoteArray(types) + ");");
+                debugCode("getTables(" + quote(catalog) + ", " + quote(schemaPattern) + ", " + quote(tableNamePattern)
+                        + ", " + quoteArray(types) + ')');
             }
             return getResultSet(meta.getTables(catalog, schemaPattern, tableNamePattern, types));
         } catch (Exception e) {
@@ -169,13 +168,13 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <li>TABLE_SCHEM (String) table schema</li>
      * <li>TABLE_NAME (String) table name</li>
      * <li>COLUMN_NAME (String) column name</li>
-     * <li>DATA_TYPE (short) data type (see java.sql.Types)</li>
+     * <li>DATA_TYPE (int) data type (see java.sql.Types)</li>
      * <li>TYPE_NAME (String) data type name ("INTEGER", "VARCHAR",...)</li>
      * <li>COLUMN_SIZE (int) precision
      *         (values larger than 2 GB are returned as 2 GB)</li>
      * <li>BUFFER_LENGTH (int) unused</li>
      * <li>DECIMAL_DIGITS (int) scale (0 for INTEGER and VARCHAR)</li>
-     * <li>NUM_PREC_RADIX (int) radix (always 10)</li>
+     * <li>NUM_PREC_RADIX (int) radix</li>
      * <li>NULLABLE (int) columnNoNulls or columnNullable</li>
      * <li>REMARKS (String) comment</li>
      * <li>COLUMN_DEF (String) default value</li>
@@ -210,7 +209,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                 debugCode("getColumns(" + quote(catalog)+", "
                         +quote(schemaPattern)+", "
                         +quote(tableNamePattern)+", "
-                        +quote(columnNamePattern)+");");
+                        +quote(columnNamePattern)+')');
             }
             return getResultSet(meta.getColumns(catalog, schemaPattern, tableNamePattern, columnNamePattern));
         } catch (Exception e) {
@@ -257,9 +256,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getIndexInfo(" + quote(catalog) + ", " +
-                        quote(schema) + ", " + quote(table) + ", " +
-                        unique + ", " + approximate + ");");
+                debugCode("getIndexInfo(" + quote(catalog) + ", " + quote(schema) + ", " + quote(table) + ", " + unique
+                        + ", " + approximate + ')');
             }
             return getResultSet(meta.getIndexInfo(catalog, schema, table, unique, approximate));
         } catch (Exception e) {
@@ -291,10 +289,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public ResultSet getPrimaryKeys(String catalog, String schema, String table) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getPrimaryKeys("
-                        +quote(catalog)+", "
-                        +quote(schema)+", "
-                        +quote(table)+");");
+                debugCode("getPrimaryKeys(" + quote(catalog) + ", " + quote(schema) + ", " + quote(table) + ')');
             }
             return getResultSet(meta.getPrimaryKeys(catalog, schema, table));
         } catch (Exception e) {
@@ -480,7 +475,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                 debugCode("getProcedures("
                         +quote(catalog)+", "
                         +quote(schemaPattern)+", "
-                        +quote(procedureNamePattern)+");");
+                        +quote(procedureNamePattern)+')');
             }
             return getResultSet(meta.getProcedures(catalog, schemaPattern, procedureNamePattern));
         } catch (Exception e) {
@@ -506,7 +501,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <li>PRECISION (int) precision</li>
      * <li>LENGTH (int) length</li>
      * <li>SCALE (short) scale</li>
-     * <li>RADIX (int) always 10</li>
+     * <li>RADIX (int)</li>
      * <li>NULLABLE (short) nullable
      * (DatabaseMetaData.columnNoNulls for primitive data types,
      * DatabaseMetaData.columnNullable otherwise)</li>
@@ -535,11 +530,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             String columnNamePattern) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getProcedureColumns("
-                        +quote(catalog)+", "
-                        +quote(schemaPattern)+", "
-                        +quote(procedureNamePattern)+", "
-                        +quote(columnNamePattern)+");");
+                debugCode("getProcedureColumns(" + quote(catalog) + ", " + quote(schemaPattern) + ", "
+                        + quote(procedureNamePattern) + ", " + quote(columnNamePattern) + ')');
             }
             checkClosed();
             return getResultSet(
@@ -643,11 +635,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getColumnPrivileges("
-                        +quote(catalog)+", "
-                        +quote(schema)+", "
-                        +quote(table)+", "
-                        +quote(columnNamePattern)+");");
+                debugCode("getColumnPrivileges(" + quote(catalog) + ", " + quote(schema) + ", " + quote(table) + ", "
+                        + quote(columnNamePattern) + ')');
             }
             return getResultSet(meta.getColumnPrivileges(catalog, schema, table, columnNamePattern));
         } catch (Exception e) {
@@ -684,10 +673,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getTablePrivileges("
-                        +quote(catalog)+", "
-                        +quote(schemaPattern)+", "
-                        +quote(tableNamePattern)+");");
+                debugCode("getTablePrivileges(" + quote(catalog) + ", " + quote(schemaPattern) + ", "
+                        + quote(tableNamePattern) + ')');
             }
             checkClosed();
             return getResultSet(meta.getTablePrivileges(catalog, schemaPattern, tableNamePattern));
@@ -726,11 +713,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getBestRowIdentifier("
-                        +quote(catalog)+", "
-                        +quote(schema)+", "
-                        +quote(table)+", "
-                        +scope+", "+nullable+");");
+                debugCode("getBestRowIdentifier(" + quote(catalog) + ", " + quote(schema) + ", " + quote(table) + ", "
+                        + scope + ", " + nullable + ')');
             }
             return getResultSet(meta.getBestRowIdentifier(catalog, schema, table, scope, nullable));
         } catch (Exception e) {
@@ -764,10 +748,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public ResultSet getVersionColumns(String catalog, String schema, String table) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getVersionColumns("
-                        +quote(catalog)+", "
-                        +quote(schema)+", "
-                        +quote(table)+");");
+                debugCode("getVersionColumns(" + quote(catalog) + ", " + quote(schema) + ", " + quote(table) + ')');
             }
             return getResultSet(meta.getVersionColumns(catalog, schema, table));
         } catch (Exception e) {
@@ -810,10 +791,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public ResultSet getImportedKeys(String catalog, String schema, String table) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getImportedKeys("
-                        +quote(catalog)+", "
-                        +quote(schema)+", "
-                        +quote(table)+");");
+                debugCode("getImportedKeys(" + quote(catalog) + ", " + quote(schema) + ", " + quote(table) + ')');
             }
             return getResultSet(meta.getImportedKeys(catalog, schema, table));
         } catch (Exception e) {
@@ -856,10 +834,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public ResultSet getExportedKeys(String catalog, String schema, String table) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getExportedKeys("
-                        +quote(catalog)+", "
-                        +quote(schema)+", "
-                        +quote(table)+");");
+                debugCode("getExportedKeys(" + quote(catalog) + ", " + quote(schema) + ", " + quote(table) + ')');
             }
             return getResultSet(meta.getExportedKeys(catalog, schema, table));
         } catch (Exception e) {
@@ -909,13 +884,9 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             String foreignCatalog, String foreignSchema, String foreignTable) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getCrossReference("
-                        +quote(primaryCatalog)+", "
-                        +quote(primarySchema)+", "
-                        +quote(primaryTable)+", "
-                        +quote(foreignCatalog)+", "
-                        +quote(foreignSchema)+", "
-                        +quote(foreignTable)+");");
+                debugCode("getCrossReference(" + quote(primaryCatalog) + ", " + quote(primarySchema) + ", "
+                        + quote(primaryTable) + ", " + quote(foreignCatalog) + ", " + quote(foreignSchema) + ", "
+                        + quote(foreignTable) + ')');
             }
             return getResultSet(meta.getCrossReference(primaryCatalog, primarySchema, primaryTable, foreignCatalog,
                     foreignSchema, foreignTable));
@@ -954,7 +925,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                         +quote(catalog)+", "
                         +quote(schemaPattern)+", "
                         +quote(typeNamePattern)+", "
-                        +quoteIntArray(types)+");");
+                        +quoteIntArray(types)+')');
             }
             return getResultSet(meta.getUDTs(catalog, schemaPattern, typeNamePattern, types));
         } catch (Exception e) {
@@ -1141,6 +1112,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
 
     /**
      * Returns whether alter table with add column is supported.
+     *
      * @return true
      */
     @Override
@@ -1203,7 +1175,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean supportsConvert(int fromType, int toType) {
         if (isDebugEnabled()) {
-            debugCode("supportsConvert("+fromType+", "+fromType+");");
+            debugCode("supportsConvert(" + fromType + ", " + toType + ')');
         }
         return true;
     }
@@ -1876,7 +1848,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean supportsResultSetConcurrency(int type, int concurrency) {
         if (isDebugEnabled()) {
-            debugCode("supportsResultSetConcurrency("+type+", "+concurrency+");");
+            debugCode("supportsResultSetConcurrency(" + type + ", " + concurrency + ')');
         }
         return type != ResultSet.TYPE_SCROLL_SENSITIVE;
     }
@@ -2029,7 +2001,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * @return true is so, false otherwise
      */
     @Override
-    public boolean supportsMixedCaseIdentifiers() throws SQLException{
+    public boolean supportsMixedCaseIdentifiers() throws SQLException {
         debugCodeCall("supportsMixedCaseIdentifiers");
         Session.StaticSettings settings = conn.getStaticSettings();
         return !settings.databaseToUpper && !settings.databaseToLower && !settings.caseInsensitiveIdentifiers;
@@ -2392,10 +2364,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public ResultSet getSuperTypes(String catalog, String schemaPattern, String typeNamePattern) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getSuperTypes("
-                        +quote(catalog)+", "
-                        +quote(schemaPattern)+", "
-                        +quote(typeNamePattern)+");");
+                debugCode("getSuperTypes(" + quote(catalog) + ", " + quote(schemaPattern) + ", "
+                        + quote(typeNamePattern) + ')');
             }
             return getResultSet(meta.getSuperTypes(catalog, schemaPattern, typeNamePattern));
         } catch (Exception e) {
@@ -2421,14 +2391,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * @return an empty result set
      */
     @Override
-    public ResultSet getSuperTables(String catalog, String schemaPattern,
-            String tableNamePattern) throws SQLException {
+    public ResultSet getSuperTables(String catalog, String schemaPattern, String tableNamePattern) //
+            throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getSuperTables("
-                        +quote(catalog)+", "
-                        +quote(schemaPattern)+", "
-                        +quote(tableNamePattern)+");");
+                debugCode("getSuperTables(" + quote(catalog) + ", " + quote(schemaPattern) + ", "
+                        + quote(tableNamePattern) + ')');
             }
             return getResultSet(meta.getSuperTables(catalog, schemaPattern, tableNamePattern));
         } catch (Exception e) {
@@ -2444,11 +2412,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             String attributeNamePattern) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getAttributes("
-                        +quote(catalog)+", "
-                        +quote(schemaPattern)+", "
-                        +quote(typeNamePattern)+", "
-                        +quote(attributeNamePattern)+");");
+                debugCode("getAttributes(" + quote(catalog) + ", " + quote(schemaPattern) + ", "
+                        + quote(typeNamePattern) + ", " + quote(attributeNamePattern) + ')');
             }
             return getResultSet(meta.getAttributes(catalog, schemaPattern, typeNamePattern, attributeNamePattern));
         } catch (Exception e) {
@@ -2647,9 +2612,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     ValueVarchar.EMPTY, ValueVarchar.EMPTY, ValueVarchar.get((String) entry.getValue()));
         }
         int id = getNextId(TraceObject.RESULT_SET);
-        if (isDebugEnabled()) {
-            debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getClientInfoProperties()");
-        }
+        debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getClientInfoProperties()");
         return new JdbcResultSet(conn, null, null, result, id, true, false);
     }
 
@@ -2687,16 +2650,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * [Not supported] Gets the list of function columns.
      */
     @Override
-    public ResultSet getFunctionColumns(String catalog, String schemaPattern,
-            String functionNamePattern, String columnNamePattern)
-            throws SQLException {
+    public ResultSet getFunctionColumns(String catalog, String schemaPattern, String functionNamePattern,
+            String columnNamePattern) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getFunctionColumns("
-                        +quote(catalog)+", "
-                        +quote(schemaPattern)+", "
-                        +quote(functionNamePattern)+", "
-                        +quote(columnNamePattern)+");");
+                debugCode("getFunctionColumns(" + quote(catalog) + ", " + quote(schemaPattern) + ", "
+                        + quote(functionNamePattern) + ", " + quote(columnNamePattern) + ')');
             }
             return getResultSet(
                     meta.getFunctionColumns(catalog, schemaPattern, functionNamePattern, columnNamePattern));
@@ -2709,14 +2668,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * [Not supported] Gets the list of functions.
      */
     @Override
-    public ResultSet getFunctions(String catalog, String schemaPattern,
-            String functionNamePattern) throws SQLException {
+    public ResultSet getFunctions(String catalog, String schemaPattern, String functionNamePattern)
+            throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getFunctions("
-                        +quote(catalog)+", "
-                        +quote(schemaPattern)+", "
-                        +quote(functionNamePattern)+");");
+                debugCode("getFunctions(" + quote(catalog) + ", " + quote(schemaPattern) + ", "
+                        + quote(functionNamePattern) + ')');
             }
             return getResultSet(meta.getFunctions(catalog, schemaPattern, functionNamePattern));
         } catch (Exception e) {
@@ -2736,7 +2693,26 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     }
 
     /**
-     * [Not supported]
+     * Gets the list of pseudo and invisible columns. The result set is sorted
+     * by TABLE_SCHEM, TABLE_NAME, and COLUMN_NAME.
+     *
+     * <ol>
+     * <li>TABLE_CAT (String) table catalog</li>
+     * <li>TABLE_SCHEM (String) table schema</li>
+     * <li>TABLE_NAME (String) table name</li>
+     * <li>COLUMN_NAME (String) column name</li>
+     * <li>DATA_TYPE (int) data type (see java.sql.Types)</li>
+     * <li>COLUMN_SIZE (int) precision
+     *         (values larger than 2 GB are returned as 2 GB)</li>
+     * <li>DECIMAL_DIGITS (int) scale (0 for INTEGER and VARCHAR)</li>
+     * <li>NUM_PREC_RADIX (int) radix</li>
+     * <li>COLUMN_USAGE (String) he allowed usage for the column,
+     *         see {@link java.sql.PseudoColumnUsage}</li>
+     * <li>REMARKS (String) comment</li>
+     * <li>CHAR_OCTET_LENGTH (int) for char types the
+     *         maximum number of bytes in the column</li>
+     * <li>IS_NULLABLE (String) "NO" or "YES"</li>
+     * </ol>
      *
      * @param catalog null (to get all objects) or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name
@@ -2745,17 +2721,15 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      *            (uppercase for unquoted names)
      * @param columnNamePattern null (to get all objects) or a column name
      *            (uppercase for unquoted names)
+     * @return the list of pseudo and invisible columns
      */
     @Override
     public ResultSet getPseudoColumns(String catalog, String schemaPattern, String tableNamePattern,
             String columnNamePattern) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getPseudoColumns("
-                        +quote(catalog)+", "
-                        +quote(schemaPattern)+", "
-                        +quote(tableNamePattern)+", "
-                        +quote(columnNamePattern)+");");
+                debugCode("getPseudoColumns(" + quote(catalog) + ", " + quote(schemaPattern) + ", "
+                        + quote(tableNamePattern) + ", " + quote(columnNamePattern) + ')');
             }
             return getResultSet(meta.getPseudoColumns(catalog, schemaPattern, tableNamePattern, columnNamePattern));
         } catch (Exception e) {

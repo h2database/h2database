@@ -277,12 +277,7 @@ public class TestCompatibility extends TestDb {
         String[] DISALLOWED_TYPES = {"NUMBER", "IDENTITY", "TINYINT", "BLOB"};
         for (String type : DISALLOWED_TYPES) {
             stat.execute("DROP TABLE IF EXISTS TEST");
-            try {
-                stat.execute("CREATE TABLE TEST(COL " + type + ")");
-                fail("Expect type " + type + " to not exist in PostgreSQL mode");
-            } catch (SQLException e) {
-                /* Expected! */
-            }
+            assertThrows(ErrorCode.UNKNOWN_DATA_TYPE_1, stat).execute("CREATE TABLE TEST(COL " + type + ")");
         }
 
         /* Test MONEY data type */
@@ -748,14 +743,10 @@ public class TestCompatibility extends TestDb {
     }
 
     private void testUnknownURL() {
-        try {
+        assertThrows(ErrorCode.UNKNOWN_MODE_1, () -> {
             getConnection("compatibility;MODE=Unknown").close();
             deleteDb("compatibility");
-        } catch (SQLException ex) {
-            assertEquals(ErrorCode.UNKNOWN_MODE_1, ex.getErrorCode());
-            return;
-        }
-        fail();
+        });
     }
 
     private void testIdentifiersCaseInResultSet() throws SQLException {

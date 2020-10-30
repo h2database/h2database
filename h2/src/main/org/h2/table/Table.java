@@ -396,7 +396,7 @@ public abstract class Table extends SchemaObject {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError(toString());
+        throw DbException.getInternalError(toString());
     }
 
     /**
@@ -466,6 +466,9 @@ public abstract class Table extends SchemaObject {
     }
 
     protected void setColumns(Column[] columns) {
+        if (columns.length > Constants.MAX_COLUMNS) {
+            throw DbException.get(ErrorCode.TOO_MANY_COLUMNS_1, "" + Constants.MAX_COLUMNS);
+        }
         this.columns = columns;
         if (columnMap.size() > 0) {
             columnMap.clear();

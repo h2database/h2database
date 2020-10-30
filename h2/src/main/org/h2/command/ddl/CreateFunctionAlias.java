@@ -33,11 +33,11 @@ public class CreateFunctionAlias extends SchemaCommand {
 
     @Override
     public long update() {
-        session.commit(true);
         session.getUser().checkAdmin();
+        session.commit(true);
         Database db = session.getDatabase();
         Schema schema = getSchema();
-        if (schema.findFunction(aliasName) != null || schema.findAggregate(aliasName) != null) {
+        if (schema.findFunctionOrAggregate(aliasName) != null) {
             if (!ifNotExists) {
                 throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
             }

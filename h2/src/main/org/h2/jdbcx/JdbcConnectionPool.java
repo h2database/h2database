@@ -63,8 +63,8 @@ import org.h2.message.DbException;
  *      (<a href="http://www.source-code.biz">www.source-code.biz</a>)
  * @author Thomas Mueller
  */
-public class JdbcConnectionPool implements DataSource, ConnectionEventListener,
-        JdbcConnectionPoolBackwardsCompat {
+public final class JdbcConnectionPool
+        implements DataSource, ConnectionEventListener, JdbcConnectionPoolBackwardsCompat {
 
     private static final int DEFAULT_TIMEOUT = 30;
     private static final int DEFAULT_MAX_CONNECTIONS = 10;
@@ -317,23 +317,33 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener,
     }
 
     /**
-     * [Not supported] Return an object of this class if possible.
+     * Return an object of this class if possible.
      *
      * @param iface the class
+     * @return this
      */
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        throw DbException.getUnsupportedException("unwrap");
+        try {
+            if (isWrapperFor(iface)) {
+                return (T) this;
+            }
+            throw DbException.getInvalidValueException("iface", iface);
+        } catch (Exception e) {
+            throw DbException.toSQLException(e);
+        }
     }
 
     /**
-     * [Not supported] Checks if unwrap can return an object of this class.
+     * Checks if unwrap can return an object of this class.
      *
      * @param iface the class
+     * @return whether or not the interface is assignable from this class
      */
     @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
-        throw DbException.getUnsupportedException("isWrapperFor");
+        return iface != null && iface.isAssignableFrom(getClass());
     }
 
     /**

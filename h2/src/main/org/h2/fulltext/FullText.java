@@ -123,18 +123,13 @@ public class FullText {
                 ".IGNORELIST(LIST VARCHAR)");
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
                 ".SETTINGS(`KEY` VARCHAR PRIMARY KEY, `VALUE` VARCHAR)");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_CREATE_INDEX FOR \"" +
-                FullText.class.getName() + ".createIndex\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_INDEX FOR \"" +
-                FullText.class.getName() + ".dropIndex\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH FOR \"" +
-                FullText.class.getName() + ".search\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH_DATA FOR \"" +
-                FullText.class.getName() + ".searchData\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_REINDEX FOR \"" +
-                FullText.class.getName() + ".reindex\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_ALL FOR \"" +
-                FullText.class.getName() + ".dropAll\"");
+        String className = FullText.class.getName();
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_CREATE_INDEX FOR '" + className + ".createIndex'");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_INDEX FOR '" + className + ".dropIndex'");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH FOR '" + className + ".search'");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH_DATA FOR '" + className + ".searchData'");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_REINDEX FOR '" + className + ".reindex'");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_ALL FOR '" + className + ".dropAll'");
         FullTextSettings setting = FullTextSettings.getInstance(conn);
         ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA +
                 ".IGNORELIST");
@@ -542,7 +537,8 @@ public class FullText {
     protected static void removeAllTriggers(Connection conn, String prefix)
             throws SQLException {
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.TRIGGERS");
+        ResultSet rs = stat.executeQuery(
+                "SELECT DISTINCT TRIGGER_SCHEMA, TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS");
         Statement stat2 = conn.createStatement();
         while (rs.next()) {
             String schema = rs.getString("TRIGGER_SCHEMA");
@@ -967,8 +963,8 @@ public class FullText {
                 throws SQLException {
             try (Statement stat = conn.createStatement()) {
                 ResultSet rs = stat.executeQuery(
-                                "SELECT `VALUE` FROM INFORMATION_SCHEMA.SETTINGS" +
-                                " WHERE NAME = 'MV_STORE'");
+                                "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS" +
+                                " WHERE SETTING_NAME = 'MV_STORE'");
                 return rs.next() && "true".equals(rs.getString(1));
             }
         }

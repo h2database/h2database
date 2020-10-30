@@ -21,14 +21,13 @@ import org.h2.message.TraceSystem;
  * This class is used to create new DataSource objects.
  * An application should not use this class directly.
  */
-public class JdbcDataSourceFactory implements ObjectFactory {
+public final class JdbcDataSourceFactory implements ObjectFactory {
 
     private static final TraceSystem traceSystem;
 
     private final Trace trace;
 
     static {
-        org.h2.Driver.load();
         traceSystem = new TraceSystem(SysProperties.CLIENT_TRACE_DIRECTORY + "h2datasource"
                 + Constants.SUFFIX_TRACE_FILE);
         traceSystem.setLevelFile(SysProperties.DATASOURCE_TRACE_LEVEL);

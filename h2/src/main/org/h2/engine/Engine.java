@@ -20,7 +20,9 @@ import org.h2.store.fs.FileUtils;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.ParserUtil;
+import org.h2.util.StringUtils;
 import org.h2.util.ThreadDeadlockDetector;
+import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 
 /**
@@ -91,11 +93,15 @@ public final class Engine {
                 }
                 database = new Database(ci, cipher);
                 opened = true;
-                if (database.getAllUsers().isEmpty()) {
+                checkUserExists: {
+                    for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+                        if (rightOwner instanceof User) {
+                            break checkUserExists;
+                        }
+                    }
                     // users is the last thing we add, so if no user is around,
                     // the database is new (or not initialized correctly)
-                    user = new User(database, database.allocateObjectId(),
-                            ci.getUserName(), false);
+                    user = new User(database, database.allocateObjectId(), ci.getUserName(), false);
                     user.setAdmin(true);
                     user.setUserPasswordHash(ci.getUserPasswordHash());
                     database.setMasterUser(user);
@@ -239,13 +245,17 @@ public final class Engine {
                     continue;
                 }
                 String value = ci.getProperty(setting);
-                if (!ParserUtil.isSimpleIdentifier(setting, false, false) && !setting.equalsIgnoreCase("TIME ZONE")) {
-                    throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, setting);
+                StringBuilder builder = new StringBuilder("SET ").append(setting).append(' ');
+                if (!ParserUtil.isSimpleIdentifier(setting, false, false)) {
+                    if (!setting.equalsIgnoreCase("TIME ZONE")) {
+                        throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, setting);
+                    }
+                    StringUtils.quoteStringSQL(builder, value);
+                } else {
+                    builder.append(value);
                 }
                 try {
-                    CommandInterface command = session.prepareCommand(
-                            "SET " + setting + ' ' + value,
-                            Integer.MAX_VALUE);
+                    CommandInterface command = session.prepareLocal(builder.toString());
                     command.executeUpdate(null);
                 } catch (DbException e) {
                     if (e.getErrorCode() == ErrorCode.ADMIN_RIGHTS_REQUIRED) {
@@ -260,10 +270,13 @@ public final class Engine {
                     }
                 }
             }
+            TimeZoneProvider timeZone = ci.getTimeZone();
+            if (timeZone != null) {
+                session.setTimeZone(timeZone);
+            }
             if (init != null) {
                 try {
-                    CommandInterface command = session.prepareCommand(init,
-                            Integer.MAX_VALUE);
+                    CommandInterface command = session.prepareLocal(init);
                     command.executeUpdate(null);
                 } catch (DbException e) {
                     if (!ignoreUnknownSetting) {

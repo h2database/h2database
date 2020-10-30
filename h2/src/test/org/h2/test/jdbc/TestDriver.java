@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import org.h2.Driver;
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -33,6 +34,7 @@ public class TestDriver extends TestDb {
     public void test() throws Exception {
         testSettingsAsProperties();
         testDriverObject();
+        testURLs();
     }
 
     private void testSettingsAsProperties() throws Exception {
@@ -45,9 +47,9 @@ public class TestDriver extends TestDb {
         Connection conn = DriverManager.getConnection(url, prop);
         ResultSet rs;
         rs = conn.createStatement().executeQuery(
-                "select * from information_schema.settings where name='MAX_COMPACT_TIME'");
+                "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'MAX_COMPACT_TIME'");
         rs.next();
-        assertEquals(1234, rs.getInt(2));
+        assertEquals(1234, rs.getInt(1));
         conn.close();
     }
 
@@ -55,14 +57,16 @@ public class TestDriver extends TestDb {
         Driver instance = Driver.load();
         assertTrue(DriverManager.getDriver("jdbc:h2:~/test") == instance);
         Driver.unload();
-        try {
-            java.sql.Driver d = DriverManager.getDriver("jdbc:h2:~/test");
-            fail(d.toString());
-        } catch (SQLException e) {
-            // ignore
-        }
+        assertThrows(SQLException.class, () -> DriverManager.getDriver("jdbc:h2:~/test"));
         Driver.load();
         assertTrue(DriverManager.getDriver("jdbc:h2:~/test") == instance);
+    }
+
+    private void testURLs() throws Exception {
+        java.sql.Driver instance = Driver.load();
+        assertThrows(ErrorCode.URL_FORMAT_ERROR_2, instance).acceptsURL(null);
+        assertThrows(ErrorCode.URL_FORMAT_ERROR_2, instance).connect(null, null);
+        assertNull(instance.connect("jdbc:unknown", null));
     }
 
 }

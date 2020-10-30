@@ -67,6 +67,7 @@ public class TestPgServer extends TestDb {
         testKeyAlias();
         testCancelQuery();
         testTextualAndBinaryTypes();
+        testBinaryNumeric();
         testDateTime();
         testPrepareWithUnspecifiedType();
         testOtherPgClients();
@@ -116,6 +117,7 @@ public class TestPgServer extends TestDb {
         try {
             if (getPgJdbcDriver()) {
                 testPgClient();
+                testPgClientSimple();
             }
         } finally {
             server.stop();
@@ -135,7 +137,7 @@ public class TestPgServer extends TestDb {
             Connection conn = DriverManager.getConnection(
                     "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
             Statement stat = conn.createStatement();
-            stat.execute("create alias sleep for \"java.lang.Thread.sleep\"");
+            stat.execute("create alias sleep for 'java.lang.Thread.sleep'");
 
             // create a table with 200 rows (cancel interval is 127)
             stat.execute("create table test(id int)");
@@ -354,6 +356,41 @@ public class TestPgServer extends TestDb {
         assertEquals(",", rs.getString("typdelim"));
         assertEquals(PgServer.PG_TYPE_VARCHAR, rs.getInt("typelem"));
 
+        stat.setMaxRows(10);
+        rs = stat.executeQuery("select * from generate_series(0, 10)");
+        assertNRows(rs, 10);
+        stat.setMaxRows(0);
+
+        stat.setFetchSize(2);
+        rs = stat.executeQuery("select * from generate_series(0, 4)");
+        assertNRows(rs, 5);
+        rs = stat.executeQuery("select * from generate_series(0, 1)");
+        assertNRows(rs, 2);
+        stat.setFetchSize(0);
+
+        conn.close();
+    }
+
+    private void assertNRows(ResultSet rs, int n) throws SQLException {
+        for (int i = 0; i < n; i++) {
+            assertTrue(rs.next());
+            assertEquals(i, rs.getInt(1));
+        }
+        assertFalse(rs.next());
+    }
+
+    private void testPgClientSimple() throws SQLException {
+        Connection conn = DriverManager.getConnection(
+                "jdbc:postgresql://localhost:5535/pgserver?preferQueryMode=simple", "sa", "sa");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select 1");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertFalse(rs.next());
+        stat.setMaxRows(0);
+        stat.execute("create table test2(int integer)");
+        stat.execute("drop table test2");
+        assertThrows(SQLException.class, stat).execute("drop table test2");
         conn.close();
     }
 
@@ -383,23 +420,27 @@ public class TestPgServer extends TestDb {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private void testTextualAndBinaryTypes() throws SQLException {
-        testTextualAndBinaryTypes(false);
-        testTextualAndBinaryTypes(true);
-        Set<Integer> supportedBinaryOids;
+    private static Set<Integer> supportedBinaryOids;
+
+    static {
         try {
             Field supportedBinaryOidsField = Class
                     .forName("org.postgresql.jdbc.PgConnection")
                     .getDeclaredField("SUPPORTED_BINARY_OIDS");
             supportedBinaryOidsField.setAccessible(true);
             supportedBinaryOids = (Set<Integer>) supportedBinaryOidsField.get(null);
-            supportedBinaryOids.add(16);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void testTextualAndBinaryTypes() throws SQLException {
+        testTextualAndBinaryTypes(false);
         testTextualAndBinaryTypes(true);
-        supportedBinaryOids.remove(16);
+        // additional support of NUMERIC for Npgsql
+        supportedBinaryOids.add(1700);
+        testTextualAndBinaryTypes(true);
+        supportedBinaryOids.remove(1700);
     }
 
     private void testTextualAndBinaryTypes(boolean binary) throws SQLException {
@@ -481,6 +522,55 @@ public class TestPgServer extends TestDb {
 
             conn.close();
         } finally {
+            server.stop();
+        }
+    }
+
+    private void testBinaryNumeric() throws SQLException {
+        if (!getPgJdbcDriver()) {
+            return;
+        }
+        Server server = createPgServer(
+                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+        supportedBinaryOids.add(1700);
+        try {
+            Properties props = new Properties();
+            props.setProperty("user", "sa");
+            props.setProperty("password", "sa");
+            // force binary
+            props.setProperty("prepareThreshold", "-1");
+
+            Connection conn = DriverManager.getConnection(
+                    "jdbc:postgresql://localhost:5535/pgserver", props);
+            Statement stat = conn.createStatement();
+
+            try (ResultSet rs = stat.executeQuery("SELECT 1E-16383, 1E+1, 1E+89, 1E-16384")) {
+                rs.next();
+                assertEquals(new BigDecimal("1E-16383"), rs.getBigDecimal(1));
+                assertEquals(new BigDecimal("10"), rs.getBigDecimal(2));
+                assertEquals(new BigDecimal("10").pow(89), rs.getBigDecimal(3));
+                // TODO `SELECT 1E+90, 1E+131071` fails due to PgJDBC issue 1935
+                try {
+                    rs.getBigDecimal(4);
+                    fail();
+                } catch (IllegalArgumentException e) {
+                    // PgJDBC doesn't support scale greater than 16383
+                }
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT 1E-32768")) {
+                fail();
+            } catch (SQLException e) {
+                assertEquals("22003", e.getSQLState());
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT 1E+131072")) {
+                fail();
+            } catch (SQLException e) {
+                assertEquals("22003", e.getSQLState());
+            }
+
+            conn.close();
+        } finally {
+            supportedBinaryOids.remove(1700);
             server.stop();
         }
     }

@@ -8,6 +8,8 @@ package org.h2.value;
 import java.util.Arrays;
 
 import org.h2.engine.CastDataProvider;
+import org.h2.engine.Constants;
+import org.h2.message.DbException;
 import org.h2.util.Bits;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -28,6 +30,11 @@ abstract class ValueBytesBase extends Value {
     int hash;
 
     ValueBytesBase(byte[] value) {
+        int length = value.length;
+        if (length > Constants.MAX_STRING_LENGTH) {
+            throw DbException.getValueTooLongException(getTypeName(getValueType()),
+                    StringUtils.convertBytesToHex(value, 41), length);
+        }
         this.value = value;
     }
 
@@ -42,7 +49,7 @@ abstract class ValueBytesBase extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
+    public final int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
         return Bits.compareNotNullUnsigned(value, ((ValueBytesBase) v).value);
     }
 
@@ -52,7 +59,7 @@ abstract class ValueBytesBase extends Value {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         int h = hash;
         if (h == 0) {
             h = getClass().hashCode() ^ Utils.getByteArrayHash(value);
@@ -70,7 +77,7 @@ abstract class ValueBytesBase extends Value {
     }
 
     @Override
-    public boolean equals(Object other) {
+    public final boolean equals(Object other) {
         return other != null && getClass() == other.getClass() && Arrays.equals(value, ((ValueBytesBase) other).value);
     }
 

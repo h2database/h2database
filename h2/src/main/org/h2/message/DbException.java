@@ -276,6 +276,30 @@ public class DbException extends RuntimeException {
     }
 
     /**
+     * Gets a SQL exception meaning this value is too long.
+     *
+     * @param columnOrType
+     *            column with data type or data type name
+     * @param value
+     *            string representation of value, will be truncated to 80
+     *            characters
+     * @param valueLength
+     *            the actual length of value, {@code -1L} if unknown
+     * @return the exception
+     */
+    public static DbException getValueTooLongException(String columnOrType, String value, long valueLength) {
+        int length = value.length();
+        int m = valueLength >= 0 ? 22 : 0;
+        StringBuilder builder = length > 80 //
+                ? new StringBuilder(83 + m).append(value, 0, 80).append("...")
+                : new StringBuilder(length + m).append(value);
+        if (valueLength >= 0) {
+            builder.append(" (").append(valueLength).append(')');
+        }
+        return get(VALUE_TOO_LONG_2, columnOrType, builder.toString());
+    }
+
+    /**
      * Gets a file version exception.
      *
      * @param dataFileName the name of the database
@@ -287,29 +311,24 @@ public class DbException extends RuntimeException {
     }
 
     /**
-     * Throw an internal error. This method seems to return an exception object,
-     * so that it can be used instead of 'return', but in fact it always throws
-     * the exception.
+     * Gets an internal error.
      *
      * @param s the message
      * @return the RuntimeException object
-     * @throws RuntimeException the exception
      */
-    public static RuntimeException throwInternalError(String s) {
+    public static RuntimeException getInternalError(String s) {
         RuntimeException e = new RuntimeException(s);
         DbException.traceThrowable(e);
-        throw e;
+        return e;
     }
 
     /**
-     * Throw an internal error. This method seems to return an exception object,
-     * so that it can be used instead of 'return', but in fact it always throws
-     * the exception.
+     * Gets an internal error.
      *
      * @return the RuntimeException object
      */
-    public static RuntimeException throwInternalError() {
-        return throwInternalError("Unexpected code path");
+    public static RuntimeException getInternalError() {
+        return getInternalError("Unexpected code path");
     }
 
     /**
@@ -456,6 +475,7 @@ public class DbException extends RuntimeException {
         case 7:
         case 21:
         case 42:
+        case 54:
             return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
         case 8:
             return new JdbcSQLNonTransientConnectionException(message, sql, state, errorCode, cause, stackTrace);
@@ -516,7 +536,7 @@ public class DbException extends RuntimeException {
         case LOB_CLOSED_ON_TIMEOUT_1:
             return new JdbcSQLTimeoutException(message, sql, state, errorCode, cause, stackTrace);
         case FUNCTION_MUST_RETURN_RESULT_SET_1:
-        case TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED:
+        case INVALID_TRIGGER_FLAGS_1:
         case SUM_OR_AVG_ON_WRONG_DATATYPE_1:
         case MUST_GROUP_BY_COLUMN_1:
         case SECOND_PRIMARY_KEY:

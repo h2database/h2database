@@ -129,11 +129,11 @@ SELECT COLUMN_NAME, DATA_TYPE, DOMAIN_NAME, MAXIMUM_CARDINALITY, DTD_IDENTIFIER 
     WHERE TABLE_SCHEMA = 'PUBLIC';
 > COLUMN_NAME DATA_TYPE DOMAIN_NAME MAXIMUM_CARDINALITY DTD_IDENTIFIER
 > ----------- --------- ----------- ------------------- --------------
-> A           ARRAY     null        2147483647          1
+> A           ARRAY     null        65536               1
 > B           ARRAY     null        3                   2
 > C           ROW       null        null                3
 > D           ROW       D1          null                4
-> E           ARRAY     D2          2147483647          5
+> E           ARRAY     D2          65536               5
 > rows: 5
 
 SELECT OBJECT_NAME, OBJECT_TYPE, COLLECTION_TYPE_IDENTIFIER, DATA_TYPE, MAXIMUM_CARDINALITY, DTD_IDENTIFIER
@@ -157,7 +157,7 @@ SELECT OBJECT_NAME, OBJECT_TYPE, ROW_IDENTIFIER, FIELD_NAME, ORDINAL_POSITION, D
 > D1          DOMAIN      TYPE           A          1                INTEGER   null                TYPE_1
 > TEST        TABLE       1_             A          1                INTEGER   null                1__1
 > TEST        TABLE       1_             B          2                ARRAY     1                   1__2
-> TEST        TABLE       3              A          2                ARRAY     2147483647          3_2
+> TEST        TABLE       3              A          2                ARRAY     65536               3_2
 > TEST        TABLE       3              V          1                BIGINT    null                3_1
 > TEST        TABLE       4              A          1                INTEGER   null                4_1
 > rows: 6
@@ -192,6 +192,24 @@ DROP TABLE TEST;
 > ok
 
 @reconnect on
+
+EXECUTE IMMEDIATE 'CREATE TABLE TEST AS SELECT (' || (SELECT LISTAGG('1') FROM SYSTEM_RANGE(1, 16384)) || ')';
+> ok
+
+DROP TABLE TEST;
+> ok
+
+EXECUTE IMMEDIATE 'CREATE TABLE TEST AS SELECT (' || (SELECT LISTAGG('1') FROM SYSTEM_RANGE(1, 16385)) || ')';
+> exception TOO_MANY_COLUMNS_1
+
+EXECUTE IMMEDIATE 'CREATE TABLE TEST(R ROW(' || (SELECT LISTAGG('C' || X || ' INTEGER') FROM SYSTEM_RANGE(1, 16384)) || '))';
+> ok
+
+DROP TABLE TEST;
+> ok
+
+EXECUTE IMMEDIATE 'CREATE TABLE TEST(R ROW(' || (SELECT LISTAGG('C' || X || ' INTEGER') FROM SYSTEM_RANGE(1, 16385)) || '))';
+> exception TOO_MANY_COLUMNS_1
 
 -- The next tests should be at the of this file
 

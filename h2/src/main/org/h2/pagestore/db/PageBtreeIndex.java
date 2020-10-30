@@ -51,7 +51,7 @@ public class PageBtreeIndex extends PageIndex {
         // trace.setLevel(TraceSystem.DEBUG);
         tableData = table;
         if (!database.isPersistent() || id < 0) {
-            throw DbException.throwInternalError(indexName);
+            throw DbException.getInternalError(indexName);
         }
         this.store = database.getPageStore();
         store.addIndex(this);
@@ -370,7 +370,7 @@ public class PageBtreeIndex extends PageIndex {
             row.setKey(key);
             for (Column col : columns) {
                 int idx = col.getColumnId();
-                row.setValue(idx, data.readValue());
+                row.setValue(idx, data.readValue(col.getType()));
             }
             return row;
         }

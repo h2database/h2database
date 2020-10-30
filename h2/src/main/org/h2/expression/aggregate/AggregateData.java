@@ -7,7 +7,9 @@ package org.h2.expression.aggregate;
 
 import org.h2.engine.Constants;
 import org.h2.engine.SessionLocal;
+import org.h2.expression.aggregate.AggregateDataCollecting.NullCollectionMode;
 import org.h2.message.DbException;
+import org.h2.util.json.JsonConstructorUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
@@ -24,10 +26,11 @@ abstract class AggregateData {
      * @param dataType the data type of the computed result
      * @param orderedWithOrder
      *            if aggregate is an ordered aggregate with ORDER BY clause
+     * @param flags the aggregate function flags
      * @return the aggregate data object of the specified type
      */
     static AggregateData create(AggregateType aggregateType, boolean distinct, TypeInfo dataType,
-            boolean orderedWithOrder) {
+            boolean orderedWithOrder, int flags) {
         switch (aggregateType) {
         case COUNT_ALL:
             return new AggregateDataCount(true);
@@ -43,8 +46,6 @@ abstract class AggregateData {
         case PERCENTILE_CONT:
         case PERCENTILE_DISC:
         case MEDIAN:
-        case JSON_ARRAYAGG:
-        case JSON_OBJECTAGG:
             break;
         case MIN:
         case MAX:
@@ -70,16 +71,25 @@ abstract class AggregateData {
         case HISTOGRAM:
             return new AggregateDataDistinctWithCounts(false, Constants.SELECTIVITY_DISTINCT_COUNT);
         case LISTAGG:
+            // NULL values are excluded by Aggregate
+            return new AggregateDataCollecting(distinct, orderedWithOrder, NullCollectionMode.USED_OR_IMPOSSIBLE);
         case ARRAY_AGG:
-            return new AggregateDataCollecting(distinct, orderedWithOrder);
+            return new AggregateDataCollecting(distinct, orderedWithOrder, NullCollectionMode.USED_OR_IMPOSSIBLE);
         case MODE:
             return new AggregateDataDistinctWithCounts(true, Integer.MAX_VALUE);
         case ENVELOPE:
             return new AggregateDataEnvelope();
+        case JSON_ARRAYAGG:
+            return new AggregateDataCollecting(distinct, orderedWithOrder,
+                    (flags & JsonConstructorUtils.JSON_ABSENT_ON_NULL) != 0 ? NullCollectionMode.EXCLUDED
+                            : NullCollectionMode.USED_OR_IMPOSSIBLE);
+        case JSON_OBJECTAGG:
+            // ROW(key, value) are collected, so NULL values can't be passed
+            return new AggregateDataCollecting(distinct, false, NullCollectionMode.USED_OR_IMPOSSIBLE);
         default:
-            throw DbException.throwInternalError("type=" + aggregateType);
+            throw DbException.getInternalError("type=" + aggregateType);
         }
-        return new AggregateDataCollecting(distinct, false);
+        return new AggregateDataCollecting(distinct, false, NullCollectionMode.IGNORED);
     }
 
     /**

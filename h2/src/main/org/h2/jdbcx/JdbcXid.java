@@ -5,20 +5,21 @@
  */
 package org.h2.jdbcx;
 
-import java.util.StringTokenizer;
+import java.util.Base64;
 import javax.transaction.xa.Xid;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
-import org.h2.util.StringUtils;
 
 /**
  * An object of this class represents a transaction id.
  */
-public class JdbcXid extends TraceObject implements Xid {
+public final class JdbcXid extends TraceObject implements Xid {
 
     private static final String PREFIX = "XID";
+
+    private static final Base64.Encoder ENCODER = Base64.getUrlEncoder().withoutPadding();
 
     private final int formatId;
     private final byte[] branchQualifier;
@@ -27,32 +28,26 @@ public class JdbcXid extends TraceObject implements Xid {
     JdbcXid(JdbcDataSourceFactory factory, int id, String tid) {
         setTrace(factory.getTrace(), TraceObject.XID, id);
         try {
-            StringTokenizer tokenizer = new StringTokenizer(tid, "_");
-            String prefix = tokenizer.nextToken();
-            if (!PREFIX.equals(prefix)) {
-                throw DbException.get(ErrorCode.WRONG_XID_FORMAT_1, tid);
+            String[] splits = tid.split("\\|");
+            if (splits.length == 4 && PREFIX.equals(splits[0])) {
+                formatId = Integer.parseInt(splits[1]);
+                Base64.Decoder decoder = Base64.getUrlDecoder();
+                branchQualifier = decoder.decode(splits[2]);
+                globalTransactionId = decoder.decode(splits[3]);
+                return;
             }
-            formatId = Integer.parseInt(tokenizer.nextToken());
-            branchQualifier = StringUtils.convertHexToBytes(tokenizer.nextToken());
-            globalTransactionId = StringUtils.convertHexToBytes(tokenizer.nextToken());
-        } catch (RuntimeException e) {
-            throw DbException.get(ErrorCode.WRONG_XID_FORMAT_1, tid);
+        } catch (IllegalArgumentException e) {
         }
+        throw DbException.get(ErrorCode.WRONG_XID_FORMAT_1, tid);
     }
 
     /**
      * INTERNAL
      */
-    public static String toString(Xid xid) {
-        StringBuilder builder = new StringBuilder()
-                .append(PREFIX)
-                .append('_')
-                .append(xid.getFormatId())
-                .append('_');
-        StringUtils.convertBytesToHex(builder, xid.getBranchQualifier())
-                .append('_');
-        StringUtils.convertBytesToHex(builder, xid.getGlobalTransactionId());
-        return builder.toString();
+    static StringBuilder toString(StringBuilder builder, Xid xid) {
+        return builder.append(PREFIX).append('|').append(xid.getFormatId()) //
+                .append('|').append(ENCODER.encodeToString(xid.getBranchQualifier())) //
+                .append('|').append(ENCODER.encodeToString(xid.getGlobalTransactionId()));
     }
 
     /**

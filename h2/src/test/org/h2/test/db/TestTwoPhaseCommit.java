@@ -96,7 +96,7 @@ public class TestTwoPhaseCommit extends TestDb {
         ArrayList<String> list = new ArrayList<>();
         ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT");
         while (rs.next()) {
-            list.add(rs.getString("TRANSACTION"));
+            list.add(rs.getString("TRANSACTION_NAME"));
         }
         for (String s : list) {
             if (rollback) {
@@ -141,7 +141,8 @@ public class TestTwoPhaseCommit extends TestDb {
         stat.execute("SHUTDOWN IMMEDIATELY");
         conn = getConnection("twoPhaseCommit");
         stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("SELECT TRANSACTION, STATE FROM INFORMATION_SCHEMA.IN_DOUBT");
+        ResultSet rs = stat.executeQuery(
+                "SELECT TRANSACTION_NAME, TRANSACTION_STATE FROM INFORMATION_SCHEMA.IN_DOUBT");
         assertFalse(rs.next());
         rs = stat.executeQuery("SELECT ID FROM TEST");
         assertTrue(rs.next());
@@ -154,7 +155,7 @@ public class TestTwoPhaseCommit extends TestDb {
         stat.execute("SHUTDOWN IMMEDIATELY");
         conn = getConnection("twoPhaseCommit");
         stat = conn.createStatement();
-        rs = stat.executeQuery("SELECT TRANSACTION, STATE FROM INFORMATION_SCHEMA.IN_DOUBT");
+        rs = stat.executeQuery("SELECT TRANSACTION_NAME, TRANSACTION_STATE FROM INFORMATION_SCHEMA.IN_DOUBT");
         assertFalse(rs.next());
         rs = stat.executeQuery("SELECT ID FROM TEST");
         assertTrue(rs.next());
@@ -166,10 +167,10 @@ public class TestTwoPhaseCommit extends TestDb {
         stat.execute("SHUTDOWN IMMEDIATELY");
         conn = getConnection("twoPhaseCommit");
         stat = conn.createStatement();
-        rs = stat.executeQuery("SELECT TRANSACTION, STATE FROM INFORMATION_SCHEMA.IN_DOUBT");
+        rs = stat.executeQuery("SELECT TRANSACTION_NAME, TRANSACTION_STATE FROM INFORMATION_SCHEMA.IN_DOUBT");
         assertTrue(rs.next());
-        assertEquals("#3", rs.getString("TRANSACTION"));
-        assertEquals("IN_DOUBT", rs.getString("STATE"));
+        assertEquals("#3", rs.getString("TRANSACTION_NAME"));
+        assertEquals("IN_DOUBT", rs.getString("TRANSACTION_STATE"));
         rs = stat.executeQuery("SELECT ID FROM TEST");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));

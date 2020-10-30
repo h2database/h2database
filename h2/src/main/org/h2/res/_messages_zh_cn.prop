@@ -28,6 +28,7 @@
 42000=SQL语法错误 {0}
 42001=SQL语法错误 {0}; 预期： {1}
 42602=#Invalid name {0}
+42622=#The name that starts with {0} is too long. The maximum length is {1}
 42S01= {0}表已存在
 42S02=找不到表 {0}
 42S03=#Table {0} not found (candidates are: {1})
@@ -37,12 +38,14 @@
 42S21=重复的字段： {0}
 42S22=找不到字段 {0}
 42S31=#Identical expressions should be used; expected {0}, found {1}
+54011=#Too many columns. The maximum count is {0}
 57014=语句已取消执行或会话已过期
 90000={0} 函数必须返回一个结果集
 90001=不允许在查询内使用的方法，使用execute 或 executeQuery 代替 executeUpdate
 90002=只允许在查询内使用的方法. 使用 execute 或 executeUpdate 代替 executeQuery
 90003=十六进制字符串包含奇数个数字字符: {0}
 90004=十六进制字符串包含非十六进制字符: {0}
+90005=#Invalid trigger flags: {0}
 90006=#Sequence {0} has run out of numbers
 90007=对象已关闭
 90008=被发现非法的数值 {0} 在参数  {1}

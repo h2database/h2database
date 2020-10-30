@@ -67,7 +67,7 @@ public abstract class FunctionN extends OperationN implements NamedExpression {
      * @return the resulting value
      */
     protected Value getValue(SessionLocal session, Value v1, Value v2, Value v3) {
-        throw DbException.throwInternalError();
+        throw DbException.getInternalError();
     }
 
     @Override
@@ -104,7 +104,7 @@ public abstract class FunctionN extends OperationN implements NamedExpression {
         case ExpressionVisitor.GET_COLUMNS2:
             return true;
         default:
-            throw DbException.throwInternalError("type=" + visitor.getType());
+            throw DbException.getInternalError("type=" + visitor.getType());
         }
     }
 

@@ -68,7 +68,7 @@ public class AlterTableRenameColumn extends SchemaCommand {
         if (column == null) {
             return 0;
         }
-        session.getUser().checkRight(table, Right.ALL);
+        session.getUser().checkTableRight(table, Right.SCHEMA_OWNER);
         table.checkSupportAlter();
         table.renameColumn(column, newName);
         table.setModified();

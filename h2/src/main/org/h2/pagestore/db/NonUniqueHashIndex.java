@@ -96,11 +96,11 @@ public class NonUniqueHashIndex extends Index {
     @Override
     public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
         if (first == null || last == null) {
-            throw DbException.throwInternalError(first + " " + last);
+            throw DbException.getInternalError(first + " " + last);
         }
         if (first != last) {
             if (TreeIndex.compareKeys(first, last) != 0) {
-                throw DbException.throwInternalError();
+                throw DbException.getInternalError();
             }
         }
         Value v = first.getValue(indexColumn);

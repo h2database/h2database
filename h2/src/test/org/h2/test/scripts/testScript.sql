@@ -1789,8 +1789,8 @@ script nopasswords nosettings blocksize 10;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
 > CALL SYSTEM_COMBINE_BLOB(-1);
-> CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR "org.h2.command.dml.ScriptCommand.combineBlob";
-> CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR "org.h2.command.dml.ScriptCommand.combineClob";
+> CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR 'org.h2.command.dml.ScriptCommand.combineBlob';
+> CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR 'org.h2.command.dml.ScriptCommand.combineClob';
 > CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INTEGER NOT NULL, "DATA" CHARACTER LARGE OBJECT );
 > CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY ON SYSTEM_LOB_STREAM(ID, PART);
 > CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT NOT NULL, PART INT NOT NULL, CDATA VARCHAR, BDATA VARBINARY);
@@ -2164,9 +2164,9 @@ select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, PARENT_
 > EMAIL       null           CHARACTER VARYING 200                      null               null
 > GMAIL       '@gmail.com'   CHARACTER VARYING 200                      EMAIL              null
 > STRING      ''             CHARACTER VARYING 255                      null               null
-> STRING1     null           CHARACTER VARYING 2147483647               null               null
-> STRING2     '<empty>'      CHARACTER VARYING 2147483647               null               null
-> STRING_X    null           CHARACTER VARYING 2147483647               STRING2            null
+> STRING1     null           CHARACTER VARYING 1048576                  null               null
+> STRING2     '<empty>'      CHARACTER VARYING 1048576                  null               null
+> STRING_X    null           CHARACTER VARYING 1048576                  STRING2            null
 > rows: 6
 
 script nodata nopasswords nosettings;
@@ -2174,8 +2174,8 @@ script nodata nopasswords nosettings;
 > -------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.ADDRESS;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER DOMAIN "PUBLIC"."EMAIL" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_3" CHECK(POSITION('@', VALUE) > 1) NOCHECK;
-> ALTER DOMAIN "PUBLIC"."GMAIL" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_4" CHECK(POSITION('gmail', VALUE) > 1) NOCHECK;
+> ALTER DOMAIN "PUBLIC"."EMAIL" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_3" CHECK(LOCATE('@', VALUE) > 1) NOCHECK;
+> ALTER DOMAIN "PUBLIC"."GMAIL" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_4" CHECK(LOCATE('gmail', VALUE) > 1) NOCHECK;
 > ALTER TABLE "PUBLIC"."ADDRESS" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_E" PRIMARY KEY("ID");
 > CREATE DOMAIN "PUBLIC"."EMAIL" AS CHARACTER VARYING(200);
 > CREATE DOMAIN "PUBLIC"."GMAIL" AS "PUBLIC"."EMAIL" DEFAULT '@gmail.com';
@@ -2568,7 +2568,7 @@ where exists (select 1 from test t4 where t2.id=t4.id);
 > rows: 2
 
 explain select * from test t1 where id in(select id from test t2 where t1.id=t2.id);
->> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ WHERE "T1"."ID" = "T2"."ID")
+>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" IN( SELECT DISTINCT "ID" FROM "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ WHERE "T1"."ID" = "T2"."ID")
 
 select * from test t1 where id in(select id from test t2 where t1.id=t2.id);
 > ID NAME
@@ -2598,8 +2598,8 @@ select * from test t1 where id in(id);
 > rows: 2
 
 explain select * from test t1 where id in(select id from test);
-#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */)
-#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
+#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */) */ WHERE "ID" IN( SELECT DISTINCT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */)
+#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */) */ WHERE "ID" IN( SELECT DISTINCT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
 
 select * from test t1 where id in(select id from test);
 > ID NAME
@@ -2673,9 +2673,9 @@ drop table test;
 > ok
 
 call select 1.0/3.0*3.0, 100.0/2.0, -25.0/100.0, 0.0/3.0, 6.9/2.0, 0.72179425150347250912311550800000 / 5314251955.21;
-> ROW (0.99990, 50.0000, -0.25000000, 0.0000, 3.4500, 1.35822361752313607260107721120531135706133162E-10)
-> -------------------------------------------------------------------------------------------------------
-> ROW (0.99990, 50.0000, -0.25000000, 0.0000, 3.4500, 1.35822361752313607260107721120531135706133162E-10)
+> ROW (0.99990, 50.0000, -0.25000000, 0.0000, 3.4500, 0.000000000135822361752313607260107721120531135706133162)
+> -------------------------------------------------------------------------------------------------------------
+> ROW (0.99990, 50.0000, -0.25000000, 0.0000, 3.4500, 0.000000000135822361752313607260107721120531135706133162)
 > rows: 1
 
 create sequence test_seq;
@@ -3122,14 +3122,14 @@ alter table s.test rename to testtab;
 alter table s.testtab rename to test;
 > ok
 
-create trigger test_trigger before insert on s.test call "org.h2.test.db.TestTriggersConstraints";
+create trigger test_trigger before insert on s.test call 'org.h2.test.db.TestTriggersConstraints';
 > ok
 
 script NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
 > -----------------------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM S.TEST;
-> CREATE FORCE TRIGGER "S"."TEST_TRIGGER" BEFORE INSERT ON "S"."TEST" QUEUE 1024 CALL "org.h2.test.db.TestTriggersConstraints";
+> CREATE FORCE TRIGGER "S"."TEST_TRIGGER" BEFORE INSERT ON "S"."TEST" QUEUE 1024 CALL 'org.h2.test.db.TestTriggersConstraints';
 > CREATE INDEX "S"."INDEX_ID" ON "S"."TEST"("ID" NULLS FIRST);
 > CREATE MEMORY TABLE "S"."TEST"( "ID" INTEGER );
 > CREATE SCHEMA IF NOT EXISTS "S" AUTHORIZATION "SA";
@@ -4526,8 +4526,8 @@ GRANT UPDATE ON TEST TO TEST_ROLE;
 GRANT TEST_ROLE TO TEST_USER;
 > ok
 
-SELECT NAME FROM INFORMATION_SCHEMA.ROLES;
-> NAME
+SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ROLES;
+> ROLE_NAME
 > ---------
 > PUBLIC
 > TEST_ROLE
@@ -4587,9 +4587,9 @@ DROP ROLE TEST_ROLE;
 > ok
 
 SELECT * FROM INFORMATION_SCHEMA.ROLES;
-> NAME   REMARKS
-> ------ -------
-> PUBLIC null
+> ROLE_NAME REMARKS
+> --------- -------
+> PUBLIC    null
 > rows: 1
 
 SELECT * FROM INFORMATION_SCHEMA.RIGHTS;
@@ -4663,12 +4663,12 @@ EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(1, 2);
 >> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(1, 2) */ WHERE "ID" IN(1, 2)
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(SELECT ID FROM TEST);
-#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */)
-#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
+#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */) */ WHERE "ID" IN( SELECT DISTINCT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */)
+#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT DISTINCT ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */) */ WHERE "ID" IN( SELECT DISTINCT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID NOT IN(SELECT ID FROM TEST);
-#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" NOT IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */)
-#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" NOT IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
+#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" NOT IN( SELECT DISTINCT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */)
+#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" NOT IN( SELECT DISTINCT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
 
 EXPLAIN PLAN FOR SELECT CAST(ID AS VARCHAR(255)) FROM TEST;
 #+mvStore#>> SELECT CAST("ID" AS CHARACTER VARYING(255)) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
@@ -6781,9 +6781,9 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > CREATE USER IF NOT EXISTS "TEST_ADMIN" PASSWORD '' ADMIN;
 > rows: 10
 
-SELECT NAME, ADMIN FROM INFORMATION_SCHEMA.USERS;
-> NAME       ADMIN
-> ---------- -----
+SELECT USER_NAME, IS_ADMIN FROM INFORMATION_SCHEMA.USERS;
+> USER_NAME  IS_ADMIN
+> ---------- --------
 > SA         TRUE
 > TEST       FALSE
 > TEST2      FALSE

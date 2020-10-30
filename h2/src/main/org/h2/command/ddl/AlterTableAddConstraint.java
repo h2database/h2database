@@ -116,10 +116,18 @@ public class AlterTableAddConstraint extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1,
-                    constraintName);
+            /**
+             * 1.4.200 and older databases don't always have a unique constraint
+             * for each referential constraint, so these constraints are created
+             * and they may use the same generated name as some other not yet
+             * initialized constraint that may lead to a name conflict.
+             */
+            if (!session.getDatabase().isStarting()) {
+                throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraintName);
+            }
+            constraintName = null;
         }
-        session.getUser().checkRight(table, Right.ALL);
+        session.getUser().checkTableRight(table, Right.SCHEMA_OWNER);
         db.lockMeta(session);
         table.lock(session, true, true);
         Constraint constraint;
@@ -193,7 +201,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             if (refTable == null) {
                 throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, refTableName);
             }
-            session.getUser().checkRight(refTable, Right.ALL);
+            session.getUser().checkTableRight(refTable, Right.SCHEMA_OWNER);
             if (!refTable.canReference()) {
                 StringBuilder builder = new StringBuilder("Reference ");
                 refTable.getSQL(builder, HasSQL.TRACE_SQL_FLAGS);
@@ -276,7 +284,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             break;
         }
         default:
-            throw DbException.throwInternalError("type=" + type);
+            throw DbException.getInternalError("type=" + type);
         }
         // parent relationship is already set with addConstraint
         constraint.setComment(comment);
@@ -302,7 +310,12 @@ public class AlterTableAddConstraint extends SchemaCommand {
         Schema tableSchema = table.getSchema();
         if (forForeignKey) {
             id = session.getDatabase().allocateObjectId();
-            name = tableSchema.getUniqueConstraintName(session, table);
+            try {
+                tableSchema.reserveUniqueName(constraintName);
+                name = tableSchema.getUniqueConstraintName(session, table);
+            } finally {
+                tableSchema.freeUniqueName(constraintName);
+            }
         } else {
             id = getObjectId();
             name = generateConstraintName(table);

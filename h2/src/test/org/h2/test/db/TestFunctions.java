@@ -55,7 +55,6 @@ import org.h2.engine.SessionLocal;
 import org.h2.expression.function.ToCharFunction;
 import org.h2.expression.function.ToCharFunction.Capitalization;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.message.DbException;
 import org.h2.mode.ToDateParser;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -154,8 +153,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
     private void testFunctionTable() throws SQLException {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("create alias simple_function_table for \"" +
-                TestFunctions.class.getName() + ".simpleFunctionTable\"");
+        stat.execute("create alias simple_function_table for '" +
+                TestFunctions.class.getName() + ".simpleFunctionTable'");
         stat.execute("select * from simple_function_table() " +
                 "where a>0 and b in ('x', 'y')");
         conn.close();
@@ -164,8 +163,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
     private void testFunctionTableVarArgs() throws SQLException {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("create alias varargs_function_table for \"" + TestFunctions.class.getName()
-                + ".varArgsFunctionTable\"");
+        stat.execute("create alias varargs_function_table for '" + TestFunctions.class.getName()
+                + ".varArgsFunctionTable'");
         ResultSet rs = stat.executeQuery("select * from varargs_function_table(1,2,3,5,8,13)");
         for (int i : new int[] { 1, 2, 3, 5, 8, 13 }) {
             assertTrue(rs.next());
@@ -273,8 +272,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
         ResultSet rs;
-        stat.execute("create alias TO_CHAR_2 for \"" +
-                getClass().getName() + ".toChar\"");
+        stat.execute("create alias TO_CHAR_2 for '" + getClass().getName() + ".toChar'");
         rs = stat.executeQuery(
                 "call TO_CHAR_2(TIMESTAMP '2001-02-03 04:05:06', 'format')");
         rs.next();
@@ -299,8 +297,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
     private void testDefaultConnection() throws SQLException {
         Connection conn = getConnection("functions;DEFAULT_CONNECTION=TRUE");
         Statement stat = conn.createStatement();
-        stat.execute("create alias test for \""+
-                TestFunctions.class.getName()+".testDefaultConn\"");
+        stat.execute("create alias test for '" + TestFunctions.class.getName() + ".testDefaultConn'");
         stat.execute("call test()");
         stat.execute("drop alias test");
         conn.close();
@@ -385,8 +382,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
         ResultSet rs;
-        stat.execute("create alias dynamic deterministic for \"" +
-                getClass().getName() + ".dynamic\"");
+        stat.execute("create alias dynamic deterministic for '" + getClass().getName() + ".dynamic'");
         setCount(0);
         rs = stat.executeQuery("call dynamic(ARRAY['a', '1'])[1]");
         rs.next();
@@ -401,8 +397,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         Statement stat = conn.createStatement();
         ResultSet rs;
 
-        stat.execute("create alias xorUUID for \""+
-                getClass().getName()+".xorUUID\"");
+        stat.execute("create alias xorUUID for '" + getClass().getName() + ".xorUUID'");
         setCount(0);
         rs = stat.executeQuery("call xorUUID(random_uuid(), random_uuid())");
         rs.next();
@@ -418,8 +413,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         Statement stat = conn.createStatement();
         ResultSet rs;
 
-        stat.execute("create alias getCount for \""+
-                getClass().getName()+".getCount\"");
+        stat.execute("create alias getCount for '" + getClass().getName() + ".getCount'");
         setCount(0);
         rs = stat.executeQuery("select getCount() from system_range(1, 2)");
         rs.next();
@@ -428,8 +422,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals(1, rs.getInt(1));
         stat.execute("drop alias getCount");
 
-        stat.execute("create alias getCount deterministic for \""+
-                getClass().getName()+".getCount\"");
+        stat.execute("create alias getCount deterministic for '" + getClass().getName() + ".getCount'");
         setCount(0);
         rs = stat.executeQuery("select getCount() from system_range(1, 2)");
         rs.next();
@@ -441,8 +434,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
                 "INFORMATION_SCHEMA.ROUTINES " +
                 "WHERE UPPER(ROUTINE_NAME) = 'GET' || 'COUNT'");
         assertFalse(rs.next());
-        stat.execute("create alias reverse deterministic for \""+
-                getClass().getName()+".reverse\"");
+        stat.execute("create alias reverse deterministic for '" + getClass().getName() + ".reverse'");
         rs = stat.executeQuery("select reverse(x) from system_range(700, 700)");
         rs.next();
         assertEquals("007", rs.getString(1));
@@ -478,14 +470,14 @@ public class TestFunctions extends TestDb implements AggregateFunction {
     private void testPrecision() throws SQLException {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("create alias no_op for \""+getClass().getName()+".noOp\"");
+        stat.execute("create alias no_op for '" + getClass().getName() + ".noOp'");
         PreparedStatement prep = conn.prepareStatement(
                 "select * from dual where no_op(1.6)=?");
         prep.setBigDecimal(1, new BigDecimal("1.6"));
         ResultSet rs = prep.executeQuery();
         assertTrue(rs.next());
 
-        stat.execute("create aggregate agg_sum for \""+getClass().getName()+"\"");
+        stat.execute("create aggregate agg_sum for '" + getClass().getName() + '\'');
         rs = stat.executeQuery("select agg_sum(1), sum(1.6) from dual");
         rs.next();
         assertEquals(ValueNumeric.MAXIMUM_SCALE, rs.getMetaData().getScale(2));
@@ -497,8 +489,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
     private void testVarArgs() throws SQLException {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS mean FOR \"" +
-                getClass().getName() + ".mean\"");
+        stat.execute("CREATE ALIAS mean FOR '" + getClass().getName() + ".mean'");
         ResultSet rs = stat.executeQuery(
                 "select mean(), mean(10), mean(10, 20), mean(10, 20, 30)");
         rs.next();
@@ -507,8 +498,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals(15.0, rs.getDouble(3));
         assertEquals(20.0, rs.getDouble(4));
 
-        stat.execute("CREATE ALIAS mean2 FOR \"" +
-                getClass().getName() + ".mean2\"");
+        stat.execute("CREATE ALIAS mean2 FOR '" + getClass().getName() + ".mean2'");
         rs = stat.executeQuery(
                 "select mean2(), mean2(10), mean2(10, 20)");
         rs.next();
@@ -528,8 +518,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals(DatabaseMetaData.procedureColumnIn,
                 rs.getInt("COLUMN_TYPE"));
         assertEquals("DOUBLE PRECISION ARRAY", rs.getString("TYPE_NAME"));
-        assertEquals(Integer.MAX_VALUE, rs.getInt("PRECISION"));
-        assertEquals(Integer.MAX_VALUE, rs.getInt("LENGTH"));
+        assertEquals(Constants.MAX_ARRAY_CARDINALITY, rs.getInt("PRECISION"));
+        assertEquals(Constants.MAX_ARRAY_CARDINALITY, rs.getInt("LENGTH"));
         assertEquals(0, rs.getInt("SCALE"));
         assertEquals(DatabaseMetaData.columnNullableUnknown,
                 rs.getInt("NULLABLE"));
@@ -543,8 +533,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals("MEAN2_1", rs.getString("SPECIFIC_NAME"));
         assertFalse(rs.next());
 
-        stat.execute("CREATE ALIAS printMean FOR \"" +
-                getClass().getName() + ".printMean\"");
+        stat.execute("CREATE ALIAS printMean FOR '" + getClass().getName() + ".printMean'");
         rs = stat.executeQuery(
                 "select printMean('A'), printMean('A', 10), " +
                 "printMean('BB', 10, 20), printMean ('CCC', 10, 20, 30)");
@@ -674,10 +663,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE AGGREGATE SIMPLE_MEDIAN FOR \"" +
-                MedianStringType.class.getName() + "\"");
-        stat.execute("CREATE AGGREGATE IF NOT EXISTS SIMPLE_MEDIAN FOR \"" +
-                MedianStringType.class.getName() + "\"");
+        stat.execute("CREATE AGGREGATE SIMPLE_MEDIAN FOR '" + MedianStringType.class.getName() + '\'');
+        stat.execute("CREATE AGGREGATE IF NOT EXISTS SIMPLE_MEDIAN FOR '" + MedianStringType.class.getName() + '\'');
         ResultSet rs = stat.executeQuery(
                 "SELECT SIMPLE_MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
         rs.next();
@@ -727,10 +714,10 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE AGGREGATE SIMPLE_MEDIAN FOR \"" + MedianString.class.getName() + "\"");
-        stat.execute("CREATE AGGREGATE IF NOT EXISTS SIMPLE_MEDIAN FOR \"" + MedianString.class.getName() + "\"");
+        stat.execute("CREATE AGGREGATE SIMPLE_MEDIAN FOR '" + MedianString.class.getName() + '\'');
+        stat.execute("CREATE AGGREGATE IF NOT EXISTS SIMPLE_MEDIAN FOR '" + MedianString.class.getName() + '\'');
         stat.execute("CREATE SCHEMA S1");
-        stat.execute("CREATE AGGREGATE S1.MEDIAN2 FOR \"" + MedianString.class.getName() + "\"");
+        stat.execute("CREATE AGGREGATE S1.MEDIAN2 FOR '" + MedianString.class.getName() + '\'');
         ResultSet rs = stat.executeQuery("SELECT SIMPLE_MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
         rs.next();
         assertEquals("5", rs.getString(1));
@@ -792,8 +779,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertCallResult("1", stat, "abs(1)");
 
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
-        stat.execute("CREATE ALIAS ADD_ROW FOR \"" +
-                getClass().getName() + ".addRow\"");
+        stat.execute("CREATE ALIAS ADD_ROW FOR '" + getClass().getName() + ".addRow'");
         ResultSet rs;
         rs = stat.executeQuery("CALL ADD_ROW(1, 'Hello')");
         rs.next();
@@ -835,8 +821,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
 
         stat.executeQuery("CALL ADD_ROW(2, 'World')");
 
-        stat.execute("CREATE ALIAS SELECT_F FOR \"" +
-                getClass().getName() + ".select\"");
+        stat.execute("CREATE ALIAS SELECT_F FOR '" + getClass().getName() + ".select'");
         rs = stat.executeQuery("SELECT * FROM SELECT_F('SELECT * " +
                 "FROM TEST ORDER BY ID')");
         assertEquals(2, rs.getMetaData().getColumnCount());
@@ -859,8 +844,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
 
         assertThrows(ErrorCode.SYNTAX_ERROR_2, stat).
                 executeQuery("SELECT * FROM SELECT_F('ERROR')");
-        stat.execute("CREATE ALIAS SIMPLE FOR \"" +
-                getClass().getName() + ".simpleResultSet\"");
+        stat.execute("CREATE ALIAS SIMPLE FOR '" + getClass().getName() + ".simpleResultSet'");
         rs = stat.executeQuery("SELECT * FROM SIMPLE(2, 1, 1, 1, 1, 1, 1, 1)");
         assertEquals(2, rs.getMetaData().getColumnCount());
         rs.next();
@@ -878,8 +862,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
 
-        stat.execute("CREATE ALIAS GET_ARRAY FOR \"" +
-                getClass().getName() + ".getArray\"");
+        stat.execute("CREATE ALIAS GET_ARRAY FOR '" + getClass().getName() + ".getArray'");
         rs = stat.executeQuery("CALL GET_ARRAY()");
         assertEquals(1, rs.getMetaData().getColumnCount());
         rs.next();
@@ -942,14 +925,13 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertThrows(ErrorCode.OBJECT_CLOSED, a).getArray();
         assertThrows(ErrorCode.OBJECT_CLOSED, a).getResultSet();
 
-        stat.execute("CREATE ALIAS ROOT FOR \"" + getClass().getName() + ".root\"");
+        stat.execute("CREATE ALIAS ROOT FOR '" + getClass().getName() + ".root'");
         rs = stat.executeQuery("CALL ROOT(9)");
         rs.next();
         assertEquals(3, rs.getInt(1));
         assertFalse(rs.next());
 
-        stat.execute("CREATE ALIAS MAX_ID FOR \"" +
-                getClass().getName() + ".selectMaxId\"");
+        stat.execute("CREATE ALIAS MAX_ID FOR '" + getClass().getName() + ".selectMaxId'");
 
         rs = stat.executeQuery("SELECT * FROM MAX_ID()");
         rs.next();
@@ -961,14 +943,14 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals(0, rs.getInt(1));
         assertFalse(rs.next());
 
-        stat.execute("CREATE ALIAS blob FOR \"" + getClass().getName() + ".blob\"");
+        stat.execute("CREATE ALIAS blob FOR '" + getClass().getName() + ".blob'");
         rs = stat.executeQuery("SELECT blob(CAST('0102' AS BLOB)) FROM DUAL");
         while (rs.next()) {
             // ignore
         }
         rs.close();
 
-        stat.execute("CREATE ALIAS clob FOR \"" + getClass().getName() + ".clob\"");
+        stat.execute("CREATE ALIAS clob FOR '" + getClass().getName() + ".clob'");
         rs = stat.executeQuery("SELECT clob(CAST('Hello' AS CLOB)) FROM DUAL");
         while (rs.next()) {
             // ignore
@@ -998,10 +980,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals("CHARACTER VARYING", meta2.getColumnTypeName(2));
         assertEquals("java.lang.String", meta2.getColumnClassName(2));
 
-        stat.execute("CREATE ALIAS blob2stream FOR \"" +
-                getClass().getName() + ".blob2stream\"");
-        stat.execute("CREATE ALIAS stream2stream FOR \"" +
-                getClass().getName() + ".stream2stream\"");
+        stat.execute("CREATE ALIAS blob2stream FOR '" + getClass().getName() + ".blob2stream'");
+        stat.execute("CREATE ALIAS stream2stream FOR '" + getClass().getName() + ".stream2stream'");
         stat.execute("CREATE TABLE TEST_BLOB(ID INT PRIMARY KEY, \"VALUE\" BLOB)");
         stat.execute("INSERT INTO TEST_BLOB VALUES(0, null)");
         stat.execute("INSERT INTO TEST_BLOB VALUES(1, 'edd1f011edd1f011edd1f011')");
@@ -1141,7 +1121,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
 
         stat.execute("drop alias array_test");
 
-        stat.execute("CREATE ALIAS F DETERMINISTIC FOR \"" + TestFunctions.class.getName() + ".arrayParameters1\"");
+        stat.execute("CREATE ALIAS F DETERMINISTIC FOR '" + TestFunctions.class.getName() + ".arrayParameters1'");
         prep = conn.prepareStatement("SELECT F(ARRAY[ARRAY['1', '2'], ARRAY['3']])");
         try (ResultSet rs = prep.executeQuery()) {
             rs.next();
@@ -1179,18 +1159,10 @@ public class TestFunctions extends TestDb implements AggregateFunction {
     }
 
     private void testToDateException(SessionLocal session) {
-        try {
-            ToDateParser.toDate(session, "1979-ThisWillFail-12", "YYYY-MM-DD");
-        } catch (Exception e) {
-            assertEquals(DbException.class.getSimpleName(), e.getClass().getSimpleName());
-        }
-
-        try {
-            ToDateParser.toDate(session, "1-DEC-0000", "DD-MON-RRRR");
-            fail("Oracle to_date should reject year 0 (ORA-01841)");
-        } catch (Exception e) {
-            // expected
-        }
+        assertThrows(ErrorCode.INVALID_TO_DATE_FORMAT,
+                () -> ToDateParser.toDate(session, "1979-ThisWillFail-12", "YYYY-MM-DD"));
+        assertThrows(ErrorCode.INVALID_TO_DATE_FORMAT, //
+                () -> ToDateParser.toDate(session, "1-DEC-0000", "DD-MON-RRRR"));
     }
 
     private void testToDate(SessionLocal session) {
@@ -1945,6 +1917,9 @@ public class TestFunctions extends TestDb implements AggregateFunction {
 
     private void testThatCurrentTimestampUpdatesOutsideATransaction()
             throws SQLException, InterruptedException {
+        if (config.lazy && config.networked) {
+            return;
+        }
         deleteDb("functions");
         Connection conn = getConnection("functions");
         conn.setAutoCommit(true);
@@ -1974,13 +1949,12 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         conn.setAutoCommit(true);
         Statement stat = conn.createStatement();
 
-        assertThrows(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, stat).execute("create alias CURRENT_TIMESTAMP for \"" +
-                getClass().getName() + ".currentTimestamp\"");
+        assertThrows(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, stat).execute("create alias CURRENT_TIMESTAMP for '" +
+                getClass().getName() + ".currentTimestamp'");
 
         stat.execute("set BUILTIN_ALIAS_OVERRIDE true");
 
-        stat.execute("create alias CURRENT_TIMESTAMP for \"" +
-                getClass().getName() + ".currentTimestampOverride\"");
+        stat.execute("create alias CURRENT_TIMESTAMP for '" + getClass().getName() + ".currentTimestampOverride'");
 
         assertCallResult("3141", stat, "CURRENT_TIMESTAMP");
 

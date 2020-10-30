@@ -179,7 +179,7 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
         stat = conn.createStatement();
         stat.execute("drop table if exists test");
         stat.execute("create table test(id int)");
-        assertThrows(ErrorCode.TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED, stat)
+        assertThrows(ErrorCode.INVALID_TRIGGER_FLAGS_1, stat)
                 .execute("create trigger test_insert before select on test " +
                     "for each row call \"" + TestTriggerAdapter.class.getName() + "\"");
         conn.close();
@@ -579,35 +579,35 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
         // [FOR EACH ROW] [QUEUE n] [NOWAIT] CALL triggeredClass
         stat.execute("CREATE TRIGGER IF NOT EXISTS INS_BEFORE " +
                 "BEFORE INSERT ON TEST " +
-                "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\"");
+                "FOR EACH ROW NOWAIT CALL '" + getClass().getName() + '\'');
         stat.execute("CREATE TRIGGER IF NOT EXISTS INS_BEFORE " +
                 "BEFORE INSERT ON TEST " +
-                "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\"");
+                "FOR EACH ROW NOWAIT CALL '" + getClass().getName() + '\'');
         stat.execute("CREATE TRIGGER INS_AFTER " + "" +
                 "AFTER INSERT ON TEST " +
-                "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\"");
+                "FOR EACH ROW NOWAIT CALL '" + getClass().getName() + '\'');
         stat.execute("CREATE TRIGGER UPD_BEFORE " +
                 "BEFORE UPDATE ON TEST " +
-                "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\"");
+                "FOR EACH ROW NOWAIT CALL '" + getClass().getName() + '\'');
         stat.execute("CREATE TRIGGER INS_AFTER_ROLLBACK " +
                 "AFTER INSERT, ROLLBACK ON TEST " +
-                "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\"");
+                "FOR EACH ROW NOWAIT CALL '" + getClass().getName() + '\'');
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         ResultSet rs;
         rs = stat.executeQuery("SCRIPT");
         checkRows(rs, new String[] {
                 "CREATE FORCE TRIGGER \"PUBLIC\".\"INS_BEFORE\" " +
                     "BEFORE INSERT ON \"PUBLIC\".\"TEST\" " +
-                    "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
+                    "FOR EACH ROW NOWAIT CALL '" + getClass().getName() + "';",
                 "CREATE FORCE TRIGGER \"PUBLIC\".\"INS_AFTER\" " +
                     "AFTER INSERT ON \"PUBLIC\".\"TEST\" " +
-                    "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
+                    "FOR EACH ROW NOWAIT CALL '" + getClass().getName() + "';",
                 "CREATE FORCE TRIGGER \"PUBLIC\".\"UPD_BEFORE\" " +
                     "BEFORE UPDATE ON \"PUBLIC\".\"TEST\" " +
-                    "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
+                    "FOR EACH ROW NOWAIT CALL '" + getClass().getName() + "';",
                 "CREATE FORCE TRIGGER \"PUBLIC\".\"INS_AFTER_ROLLBACK\" " +
                     "AFTER INSERT, ROLLBACK ON \"PUBLIC\".\"TEST\" " +
-                    "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
+                    "FOR EACH ROW NOWAIT CALL '" + getClass().getName() + "';",
                         });
         while (rs.next()) {
             String sql = rs.getString(1);
@@ -660,7 +660,7 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(A INT)");
         stat.execute("CREATE TRIGGER TEST_BEFORE BEFORE INSERT, UPDATE ON TEST FOR EACH ROW CALL " +
-                StringUtils.quoteIdentifier(ConcurrentTrigger.class.getName()));
+                StringUtils.quoteStringSQL(ConcurrentTrigger.class.getName()));
         Thread[] threads = new Thread[ConcurrentTrigger.N_T];
         AtomicInteger a = new AtomicInteger();
         for (int i = 0; i < ConcurrentTrigger.N_T; i++) {

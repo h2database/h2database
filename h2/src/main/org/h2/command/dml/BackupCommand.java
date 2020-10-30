@@ -80,9 +80,6 @@ public class BackupCommand extends Prepared {
                     dir = FileLister.getDir(dir);
                     ArrayList<String> fileList = FileLister.getDatabaseFiles(dir, name, true);
                     for (String n : fileList) {
-                        if (n.endsWith(Constants.SUFFIX_LOB_FILE)) {
-                            backupFile(out, base, n);
-                        }
                         if (n.endsWith(Constants.SUFFIX_MV_FILE) && store != null) {
                             MVStore s = store.getMvStore();
                             boolean before = s.getReuseSpace();
@@ -125,18 +122,12 @@ public class BackupCommand extends Prepared {
         out.closeEntry();
     }
 
-    private static void backupFile(ZipOutputStream out, String base, String fn)
-            throws IOException {
-        InputStream in = FileUtils.newInputStream(fn);
-        backupFile(out, base, fn, in);
-    }
-
     private static void backupFile(ZipOutputStream out, String base, String fn,
             InputStream in) throws IOException {
         String f = FileUtils.toRealPath(fn);
         base = FileUtils.toRealPath(base);
         if (!f.startsWith(base)) {
-            DbException.throwInternalError(f + " does not start with " + base);
+            throw DbException.getInternalError(f + " does not start with " + base);
         }
         f = f.substring(base.length());
         f = correctFileName(f);

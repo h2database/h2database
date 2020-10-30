@@ -45,6 +45,25 @@ public final class ValueInterval extends Value {
      */
     public static final int MAXIMUM_SCALE = 9;
 
+    private static final long[] MULTIPLIERS = {
+            // INTERVAL_SECOND
+            DateTimeUtils.NANOS_PER_SECOND,
+            // INTERVAL_YEAR_TO_MONTH
+            12,
+            // INTERVAL_DAY_TO_HOUR
+            24,
+            // INTERVAL_DAY_TO_MINUTE
+            24 * 60,
+            // INTERVAL_DAY_TO_SECOND
+            DateTimeUtils.NANOS_PER_DAY,
+            // INTERVAL_HOUR_TO_MINUTE:
+            60,
+            // INTERVAL_HOUR_TO_SECOND
+            DateTimeUtils.NANOS_PER_HOUR,
+            // INTERVAL_MINUTE_TO_SECOND
+            DateTimeUtils.NANOS_PER_MINUTE //
+    };
+
     private final int valueType;
 
     private final boolean negative;
@@ -165,7 +184,8 @@ public final class ValueInterval extends Value {
     /**
      * Check if the precision is smaller or equal than the given precision.
      *
-     * @param prec the maximum precision
+     * @param prec
+     *            the maximum precision
      * @return true if the precision of this value is smaller or equal to the
      *         given precision
      */
@@ -226,57 +246,40 @@ public final class ValueInterval extends Value {
 
     @Override
     public long getLong() {
-        if (valueType <= INTERVAL_MINUTE) {
-            return negative ? -leading : leading;
+        long l = leading;
+        if (valueType >= INTERVAL_SECOND && remaining != 0L
+                && remaining >= MULTIPLIERS[valueType - INTERVAL_SECOND] >> 1) {
+            l++;
         }
-        return getBigDecimal().setScale(0, RoundingMode.HALF_UP).longValue();
+        return negative ? -l : l;
     }
 
     @Override
     public BigDecimal getBigDecimal() {
-        long multiplier;
-        switch (valueType) {
-        case INTERVAL_YEAR:
-        case INTERVAL_MONTH:
-        case INTERVAL_DAY:
-        case INTERVAL_HOUR:
-        case INTERVAL_MINUTE:
+        if (valueType < INTERVAL_SECOND || remaining == 0L) {
             return BigDecimal.valueOf(negative ? -leading : leading);
-        case INTERVAL_SECOND:
-            multiplier = DateTimeUtils.NANOS_PER_SECOND;
-            break;
-        case INTERVAL_YEAR_TO_MONTH: {
-            multiplier = 12;
-            break;
         }
-        case INTERVAL_DAY_TO_HOUR:
-            multiplier = 24;
-            break;
-        case INTERVAL_DAY_TO_MINUTE:
-            multiplier = 24 * 60;
-            break;
-        case INTERVAL_DAY_TO_SECOND:
-            multiplier = DateTimeUtils.NANOS_PER_DAY;
-            break;
-        case INTERVAL_HOUR_TO_MINUTE:
-            multiplier = 60;
-            break;
-        case INTERVAL_HOUR_TO_SECOND:
-            multiplier = DateTimeUtils.NANOS_PER_HOUR;
-            break;
-        case INTERVAL_MINUTE_TO_SECOND:
-            multiplier = DateTimeUtils.NANOS_PER_MINUTE;
-            break;
-        default:
-            throw DbException.getUnsupportedException("valueType = " + valueType);
-        }
-        BigDecimal bd = BigDecimal.valueOf(leading);
-        if (remaining != 0L) {
-            BigDecimal m = BigDecimal.valueOf(multiplier);
-            bd = bd.add(BigDecimal.valueOf(remaining).divide(m, m.precision(), RoundingMode.HALF_DOWN))
-                    .stripTrailingZeros();
-        }
+        BigDecimal m = BigDecimal.valueOf(MULTIPLIERS[valueType - INTERVAL_SECOND]);
+        BigDecimal bd = BigDecimal.valueOf(leading)
+                .add(BigDecimal.valueOf(remaining).divide(m, m.precision(), RoundingMode.HALF_DOWN)) //
+                .stripTrailingZeros();
         return negative ? bd.negate() : bd;
+    }
+
+    @Override
+    public float getFloat() {
+        if (valueType < INTERVAL_SECOND || remaining == 0L) {
+            return negative ? -leading : leading;
+        }
+        return getBigDecimal().floatValue();
+    }
+
+    @Override
+    public double getDouble() {
+        if (valueType < INTERVAL_SECOND || remaining == 0L) {
+            return negative ? -leading : leading;
+        }
+        return getBigDecimal().doubleValue();
     }
 
     /**

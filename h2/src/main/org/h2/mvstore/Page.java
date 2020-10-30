@@ -376,6 +376,7 @@ public abstract class Page<K,V> implements Cloneable {
     public final Page<K,V> copy() {
         Page<K,V> newPage = clone();
         newPage.pos = 0;
+        newPage.pageNo = -1;
         return newPage;
     }
 
@@ -780,13 +781,13 @@ public abstract class Page<K,V> implements Cloneable {
             // for a longer time
             store.getFileStore().cachePage(this);
         }
-        int pageLengthEncoded = DataUtils.getPageMaxLength(pos);
+        int pageLengthDecoded = DataUtils.getPageMaxLength(pos);
         boolean singleWriter = map.isSingleWriter();
-        chunk.accountForWrittenPage(pageLengthEncoded, singleWriter);
+        chunk.accountForWrittenPage(pageLengthDecoded, singleWriter);
         if (isDeleted) {
             store.accountForRemovedPage(pagePos, chunk.version + 1, singleWriter, pageNo);
         }
-        diskSpaceUsed = pageLengthEncoded != DataUtils.PAGE_LARGE ? pageLengthEncoded : pageLength;
+        diskSpaceUsed = pageLengthDecoded != DataUtils.PAGE_LARGE ? pageLengthDecoded : pageLength;
         return childrenPos;
     }
 

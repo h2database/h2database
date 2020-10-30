@@ -80,7 +80,7 @@ public abstract class RandomAccessStore extends FileStore {
         return freeSpace.predictAllocation(blocks, reservedLow, reservedHigh);
     }
 
-    public boolean shoulSaveNow(int unsavedMemory, int autoCommitMemory) {
+    public boolean shouldSaveNow(int unsavedMemory, int autoCommitMemory) {
         return unsavedMemory > autoCommitMemory;
     }
 

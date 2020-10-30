@@ -351,8 +351,10 @@ public class MVStore implements AutoCloseable {
 
     void unlockAndCheckPanicCondition() {
         storeLock.unlock();
-        if (getPanicException() != null) {
+        MVStoreException exception = getPanicException();
+        if (exception != null) {
             closeImmediately();
+            throw exception;
         }
     }
 
@@ -1440,7 +1442,7 @@ public class MVStore implements AutoCloseable {
     }
 
     private boolean needStore() {
-        return autoCommitMemory > 0 && fileStore.shoulSaveNow(unsavedMemory, autoCommitMemory);
+        return autoCommitMemory > 0 && fileStore.shouldSaveNow(unsavedMemory, autoCommitMemory);
     }
 
     /**

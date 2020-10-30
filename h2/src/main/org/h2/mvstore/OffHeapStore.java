@@ -115,25 +115,24 @@ public class OffHeapStore extends RandomAccessStore {
     @Override
     public void truncate(long size) {
         writeCount.incrementAndGet();
-        if (size == 0) {
-            setSize(0);
-            memory.clear();
-            return;
-        }
         setSize(size);
-        for (Iterator<Long> it = memory.keySet().iterator(); it.hasNext();) {
-            long pos = it.next();
-            if (pos < size) {
-                break;
+        if (size == 0) {
+            memory.clear();
+        } else {
+            for (Iterator<Long> it = memory.keySet().iterator(); it.hasNext(); ) {
+                long pos = it.next();
+                if (pos < size) {
+                    break;
+                }
+                ByteBuffer buff = memory.get(pos);
+                if (buff.capacity() > size) {
+                    throw DataUtils.newMVStoreException(
+                            DataUtils.ERROR_READING_FAILED,
+                            "Could not truncate to {0}; " +
+                                    "partial truncate is not supported", pos);
+                }
+                it.remove();
             }
-            ByteBuffer buff = memory.get(pos);
-            if (buff.capacity() > size) {
-                throw DataUtils.newMVStoreException(
-                        DataUtils.ERROR_READING_FAILED,
-                        "Could not truncate to {0}; " +
-                        "partial truncate is not supported", pos);
-            }
-            it.remove();
         }
     }
 

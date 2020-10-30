@@ -54,7 +54,7 @@ public class AppendOnlyMultiFileStore extends FileStore
     }
 
     @Override
-    public boolean shoulSaveNow(int unsavedMemory, int autoCommitMemory) {
+    public boolean shouldSaveNow(int unsavedMemory, int autoCommitMemory) {
         return false;
     }
 

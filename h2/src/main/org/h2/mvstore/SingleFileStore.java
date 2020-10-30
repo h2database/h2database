@@ -20,7 +20,6 @@ import org.h2.store.fs.FilePath;
 import org.h2.store.fs.encrypt.FileEncrypt;
 import org.h2.store.fs.encrypt.FilePathEncrypt;
 import org.h2.util.IOUtils;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * The default storage mechanism of the MVStore. This implementation persists

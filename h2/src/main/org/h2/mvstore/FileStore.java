@@ -403,7 +403,7 @@ public abstract class FileStore
      * @param autoCommitMemory configured limit on amount of unsaved memory
      * @return true if commit should happen now
      */
-    public abstract boolean shoulSaveNow(int unsavedMemory, int autoCommitMemory);
+    public abstract boolean shouldSaveNow(int unsavedMemory, int autoCommitMemory);
 
     /**
      * Get the auto-commit delay.
@@ -2190,8 +2190,8 @@ public abstract class FileStore
                     throw e;
                 } catch (Exception e) {
                     throw DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
-                            "Unable to read the page at position 0x{0}, chunk {1}, pageNo {2}, offset 0x{3}",
-                            Long.toHexString(pos), chunk, pageNo, Long.toHexString(pageOffset), e);
+                            "Unable to read the page at position 0x{0}, chunk {1}, offset 0x{3}",
+                            Long.toHexString(pos), chunk, Long.toHexString(pageOffset), e);
                 }
                 cachePage(p);
             }

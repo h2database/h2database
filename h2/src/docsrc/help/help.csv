@@ -2226,7 +2226,8 @@ TRUE
 "Literals","Bytes","
 X'hex' [ 'hex' [...] ]
 ","
-A binary value. The hex value is not case sensitive and may contain space characters.
+A binary string value. The hex value is not case sensitive and may contain space characters as separators.
+If there are more than one group of quoted hex values, groups must be separated with whitespace.
 ","
 X''
 X'01FF'

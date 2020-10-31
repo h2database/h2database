@@ -610,8 +610,7 @@ public abstract class FileStore
 
                 if (chunks.remove(chunk.id) != null) {
                     // purge dead pages from cache
-                    CacheLongKeyLIRS<long[]> toCCache = getToCCache();
-                    long[] toc = toCCache.remove(chunk.id);
+                    long[] toc = cleanToCCache(chunk);
                     CacheLongKeyLIRS<Page<?, ?>> cache = getCache();
                     if (toc != null && cache != null) {
                         for (long tocElement : toc) {
@@ -630,7 +629,12 @@ public abstract class FileStore
                 }
             }
             if (!toBeFreed.isEmpty()) {
-                freeChunkSpace(toBeFreed);
+                saveChunkLock.lock();
+                try {
+                    freeChunkSpace(toBeFreed);
+                } finally {
+                    saveChunkLock.unlock();
+                }
             }
         }
         return count;
@@ -1601,7 +1605,6 @@ public abstract class FileStore
             Chunk c = createChunk(time, version);
             WriteBuffer buff = getWriteBuffer();
             serializeToBuffer(buff, changed, c);
-            allocateChunkSpace(c, buff);
             chunks.put(c.id, c);
 
             for (Page<?, ?> p : changed) {
@@ -1669,7 +1672,7 @@ public abstract class FileStore
             buff.putLong(tocElement);
             mvStore.countNewPage(DataUtils.isLeafPosition(tocElement));
         }
-        chunksToC.put(c.id, tocArray);
+        cacheToC(c, tocArray);
         int chunkLength = buff.position();
 
         // add the store header and round to the next block
@@ -1686,6 +1689,7 @@ public abstract class FileStore
             if (closed) {
                 throw DataUtils.newMVStoreException(DataUtils.ERROR_WRITING_FAILED, "This fileStore is closed");
             }
+            allocateChunkSpace(c, buff);
             buff.position(0);
             long filePos = c.block * BLOCK_SIZE;
             writeFully(filePos, buff.getBuffer());
@@ -1905,8 +1909,12 @@ public abstract class FileStore
         return cache;
     }
 
-    public CacheLongKeyLIRS<long[]> getToCCache() {
-        return chunksToC;
+    protected void cacheToC(Chunk chunk, long[] toc) {
+        chunksToC.put(chunk.version, toc, toc.length * 8);
+    }
+
+    protected long[] cleanToCCache(Chunk chunk) {
+        return chunksToC.remove(chunk.version);
     }
 
     public int getCacheHitRatio() {
@@ -2274,7 +2282,7 @@ public abstract class FileStore
         long[] toc = chunksToC.get(chunk.id);
         if (toc == null) {
             toc = chunk.readToC(this);
-            chunksToC.put(chunk.id, toc, toc.length * 8);
+            cacheToC(chunk, toc);
         }
         assert toc.length == chunk.pageCount : toc.length + " != " + chunk.pageCount;
         return toc;

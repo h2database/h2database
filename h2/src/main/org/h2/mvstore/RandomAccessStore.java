@@ -97,15 +97,10 @@ public abstract class RandomAccessStore extends FileStore {
     }
 
     protected void freeChunkSpace(Iterable<Chunk> chunks) {
-        saveChunkLock.lock();
-        try {
-            for (Chunk chunk : chunks) {
-                freeChunkSpace(chunk);
-            }
-            assert validateFileLength(String.valueOf(chunks));
-        } finally {
-            saveChunkLock.unlock();
+        for (Chunk chunk : chunks) {
+            freeChunkSpace(chunk);
         }
+        assert validateFileLength(String.valueOf(chunks));
     }
 
     private void freeChunkSpace(Chunk chunk) {
@@ -174,32 +169,25 @@ public abstract class RandomAccessStore extends FileStore {
     }
 
     protected void allocateChunkSpace(Chunk c, WriteBuffer buff) {
-        saveChunkLock.lock();
-        try {
-            int headerLength = (int)c.next;
-            long reservedLow = this.reservedLow;
-            long reservedHigh = this.reservedHigh > 0 ? this.reservedHigh : isSpaceReused() ? 0 : getAfterLastBlock();
-            long filePos = allocate(buff.limit(), reservedLow, reservedHigh);
-            // calculate and set the likely next position
-            if (reservedLow > 0 || reservedHigh == reservedLow) {
-                c.next = predictAllocation(c.len, 0, 0);
-            } else {
-                // just after this chunk
-                c.next = 0;
-            }
-//            assert c.pageCountLive == c.pageCount : c;
-//            assert c.occupancy.cardinality() == 0 : c;
-
-            buff.position(0);
-            c.writeChunkHeader(buff, headerLength);
-
-            buff.position(buff.limit() - Chunk.FOOTER_LENGTH);
-            buff.put(c.getFooterBytes());
-
-            c.block = filePos / BLOCK_SIZE;
-        } finally {
-            saveChunkLock.unlock();
+        int headerLength = (int)c.next;
+        long reservedLow = this.reservedLow;
+        long reservedHigh = this.reservedHigh > 0 ? this.reservedHigh : isSpaceReused() ? 0 : getAfterLastBlock();
+        long filePos = allocate(buff.limit(), reservedLow, reservedHigh);
+        // calculate and set the likely next position
+        if (reservedLow > 0 || reservedHigh == reservedLow) {
+            c.next = predictAllocation(c.len, 0, 0);
+        } else {
+            // just after this chunk
+            c.next = 0;
         }
+
+        buff.position(0);
+        c.writeChunkHeader(buff, headerLength);
+
+        buff.position(buff.limit() - Chunk.FOOTER_LENGTH);
+        buff.put(c.getFooterBytes());
+
+        c.block = filePos / BLOCK_SIZE;
     }
 
     /**

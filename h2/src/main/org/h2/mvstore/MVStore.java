@@ -789,7 +789,7 @@ public class MVStore implements AutoCloseable {
 
     private void storeNow(boolean syncWrite) {
         try {
-            int currentUnsavedPageCount = unsavedMemory;
+            int currentUnsavedMemory = unsavedMemory;
             long version = currentVersion;
 
             assert storeLock.isHeldByCurrentThread();
@@ -798,7 +798,7 @@ public class MVStore implements AutoCloseable {
             // some pages might have been changed in the meantime (in the newest
             // version)
             saveNeeded = false;
-            unsavedMemory = Math.max(0, unsavedMemory - currentUnsavedPageCount);
+            unsavedMemory = Math.max(0, unsavedMemory - currentUnsavedMemory);
         } catch (MVStoreException e) {
             panic(e);
         } catch (Throwable e) {

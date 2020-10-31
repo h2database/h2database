@@ -477,9 +477,14 @@ public class Parser {
     private static final int CLOSE_PAREN = OPEN_PAREN + 1;
 
     /**
+     * The token &amp;.
+     */
+    private static final int AMPERSAND = CLOSE_PAREN + 1;
+
+    /**
      * The token "&amp;&amp;".
      */
-    private static final int SPATIAL_INTERSECTS = CLOSE_PAREN + 1;
+    private static final int SPATIAL_INTERSECTS = AMPERSAND + 1;
 
     /**
      * The token "*".
@@ -715,6 +720,8 @@ public class Parser {
             "TO",
             // TRUE
             "TRUE",
+            // UESCAPE
+            "UESCAPE",
             // UNION
             "UNION",
             // UNIQUE
@@ -6148,6 +6155,36 @@ public class Parser {
                     currentTokenType = LITERAL;
                     return;
                 }
+                break;
+            case 'U':
+            case 'u':
+                if (chars[i] == '&') {
+                    switch (chars[i + 1]) {
+                    case '\'': {
+                        String s = readRawString(i + 2, chars, types);
+                        currentValue = ValueVarchar.get(StringUtils.decodeUnicodeStringSQL(s,
+                                readUescape(parseIndex, chars, types)));
+                        return;
+                    }
+                    case '"': {
+                        readQuotedIdentifier(i + 2, '"', chars, false);
+                        String identifier = currentToken;
+                        i = parseIndex;
+                        while (types[i] == 0) {
+                            i++;
+                        }
+                        identifier = StringUtils.decodeUnicodeStringSQL(identifier, readUescape(i, chars, types));
+                        if (identifier.length() > Constants.MAX_IDENTIFIER_LENGTH) {
+                            throw DbException.get(ErrorCode.NAME_TOO_LONG_2, identifier.substring(0, 32),
+                                    "" + Constants.MAX_IDENTIFIER_LENGTH);
+                        }
+                        currentToken = StringUtils.cache(identifier);
+                        currentTokenQuoted = true;
+                        currentTokenType = IDENTIFIER;
+                        return;
+                    }
+                    }
+                }
             }
             while ((type = types[i]) == CHAR_NAME || type == CHAR_VALUE) {
                 i++;
@@ -6160,27 +6197,9 @@ public class Parser {
             }
             parseIndex = i;
             return;
-        case CHAR_QUOTED: {
-            int begin = i;
-            while (chars[i] != c) {
-                i++;
-            }
-            String result = checkIdentifierLength(begin, i);
-            if (chars[++i] == c) {
-                StringBuilder builder = new StringBuilder(result);
-                do {
-                    begin = i;
-                    while (chars[++i] != c) {}
-                    checkIdentifierLength(builder, begin, i);
-                } while (chars[++i] == c);
-                result = builder.toString();
-            }
-            currentToken = StringUtils.cache(result);
-            parseIndex = i;
-            currentTokenQuoted = true;
-            currentTokenType = IDENTIFIER;
+        case CHAR_QUOTED:
+            readQuotedIdentifier(i, c, chars, true);
             return;
-        }
         case CHAR_SPECIAL_2:
             if (types[i] == CHAR_SPECIAL_2) {
                 char c1 = chars[i++];
@@ -6264,6 +6283,29 @@ public class Parser {
         }
     }
 
+    private void readQuotedIdentifier(int i, char c, char[] chars, boolean checkLength) {
+        int begin = i;
+        while (chars[i] != c) {
+            i++;
+        }
+        String result = checkLength ? checkIdentifierLength(begin, i) : sqlCommand.substring(begin, i);
+        if (chars[++i] == c) {
+            StringBuilder builder = new StringBuilder(result);
+            do {
+                begin = i;
+                while (chars[++i] != c) {}
+                if (checkLength) {
+                    checkIdentifierLength(builder, begin, i);
+                }
+            } while (chars[++i] == c);
+            result = builder.toString();
+        }
+        currentToken = StringUtils.cache(result);
+        parseIndex = i;
+        currentTokenQuoted = true;
+        currentTokenType = IDENTIFIER;
+    }
+
     private String checkIdentifierLength(int begin, int end) {
         if (end - begin > Constants.MAX_IDENTIFIER_LENGTH) {
             throw DbException.get(ErrorCode.NAME_TOO_LONG_2, sqlCommand.substring(begin, begin + 32),
@@ -6314,6 +6356,10 @@ public class Parser {
     }
 
     private void readString(int i, char[] chars, int[] types) {
+        currentValue = ValueVarchar.get(readRawString(i, chars, types), database);
+    }
+
+    private String readRawString(int i, char[] chars, int[] types) {
         StringBuilder result = new StringBuilder();
         for (;; i++) {
             boolean next = false;
@@ -6336,11 +6382,43 @@ public class Parser {
                 break;
             }
         }
-        currentToken = "'";
         checkLiterals(true);
-        currentValue = ValueVarchar.get(result.toString(), database);
         parseIndex = i;
+        currentToken = "'";
         currentTokenType = LITERAL;
+        return result.toString();
+    }
+
+    private int readUescape(int i, char[] chars, int[] types) {
+        int start = i;
+        while (types[i] == CHAR_NAME) {
+            i++;
+        }
+        if (i - start == 7 && "UESCAPE".regionMatches(!identifiersToUpper, 0, sqlCommand, start, 7)) {
+            int type;
+            while ((type = types[i]) == 0) {
+                i++;
+            }
+            if (type == CHAR_STRING) {
+                String s = readRawString(i + 1, chars, types);
+                if (s.codePointCount(0, s.length()) == 1) {
+                    int escape = s.codePointAt(0);
+                    if (!Character.isWhitespace(escape) && (escape < '0' || escape > '9')
+                            && (escape < 'A' || escape > 'F') && (escape < 'a' || escape > 'f')) {
+                        switch (escape) {
+                        default:
+                            return escape;
+                        case '"':
+                        case '\'':
+                        case '+':
+                        }
+                    }
+                }
+            }
+            addExpected("'<Unicode escape character>'");
+            throw getSyntaxError();
+        }
+        return '\\';
     }
 
     private void readHexNumber(int i, int start, char[] chars, int[] types) {
@@ -6715,6 +6793,8 @@ public class Parser {
             return SLASH;
         case '%':
             return PERCENT;
+        case '&':
+            return AMPERSAND;
         case ';':
             return SEMICOLON;
         case ':':

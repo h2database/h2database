@@ -400,9 +400,14 @@ public class ParserUtil {
     public static final int TRUE = TO + 1;
 
     /**
+     * The token "UESCAPE".
+     */
+    public static final int UESCAPE = TRUE + 1;
+
+    /**
      * The token "UNION".
      */
-    public static final int UNION = TRUE + 1;
+    public static final int UNION = UESCAPE + 1;
 
     /**
      * The token "UNIQUE".
@@ -476,35 +481,6 @@ public class ParserUtil {
      */
     public static final int LAST_KEYWORD = _ROWID_;
 
-    private static final int UPPER_OR_OTHER_LETTER =
-            1 << Character.UPPERCASE_LETTER
-            | 1 << Character.MODIFIER_LETTER
-            | 1 << Character.OTHER_LETTER;
-
-    private static final int UPPER_OR_OTHER_LETTER_OR_DIGIT =
-            UPPER_OR_OTHER_LETTER
-            | 1 << Character.DECIMAL_DIGIT_NUMBER;
-
-    private static final int LOWER_OR_OTHER_LETTER =
-            1 << Character.LOWERCASE_LETTER
-            | 1 << Character.MODIFIER_LETTER
-            | 1 << Character.OTHER_LETTER;
-
-    private static final int LOWER_OR_OTHER_LETTER_OR_DIGIT =
-            LOWER_OR_OTHER_LETTER
-            | 1 << Character.DECIMAL_DIGIT_NUMBER;
-
-    private static final int LETTER =
-            1 << Character.UPPERCASE_LETTER
-            | 1 << Character.LOWERCASE_LETTER
-            | 1 << Character.TITLECASE_LETTER
-            | 1 << Character.MODIFIER_LETTER
-            | 1 << Character.OTHER_LETTER;
-
-    private static final int LETTER_OR_DIGIT =
-            LETTER
-            | 1 << Character.DECIMAL_DIGIT_NUMBER;
-
     private ParserUtil() {
         // utility class
     }
@@ -550,38 +526,37 @@ public class ParserUtil {
      * @throws NullPointerException if s is {@code null}
      */
     public static boolean isSimpleIdentifier(String s, boolean databaseToUpper, boolean databaseToLower) {
+        if (databaseToUpper && databaseToLower) {
+            throw new IllegalArgumentException("databaseToUpper && databaseToLower");
+        }
         int length = s.length();
-        if (length == 0) {
-            return false;
-        }
-        int startFlags, partFlags;
-        if (databaseToUpper) {
-            if (databaseToLower) {
-                throw new IllegalArgumentException("databaseToUpper && databaseToLower");
-            } else {
-                startFlags = UPPER_OR_OTHER_LETTER;
-                partFlags = UPPER_OR_OTHER_LETTER_OR_DIGIT;
-            }
-        } else {
-            if (databaseToLower) {
-                startFlags = LOWER_OR_OTHER_LETTER;
-                partFlags = LOWER_OR_OTHER_LETTER_OR_DIGIT;
-            } else {
-                startFlags = LETTER;
-                partFlags = LETTER_OR_DIGIT;
-            }
-        }
-        char c = s.charAt(0);
-        if ((startFlags >>> Character.getType(c) & 1) == 0 && c != '_') {
+        if (length == 0 || !checkLetter(databaseToUpper, databaseToLower, s.charAt(0))) {
             return false;
         }
         for (int i = 1; i < length; i++) {
-            c = s.charAt(i);
-            if ((partFlags >>> Character.getType(c) & 1) == 0 && c != '_') {
+            char c = s.charAt(i);
+            if (c != '_' && (c < '0' || c > '9') && !checkLetter(databaseToUpper, databaseToLower, c)) {
                 return false;
             }
         }
         return getTokenType(s, !databaseToUpper, 0, length, true) == IDENTIFIER;
+    }
+
+    private static boolean checkLetter(boolean databaseToUpper, boolean databaseToLower, char c) {
+        if (databaseToUpper) {
+            if (c < 'A' || c > 'Z') {
+                return false;
+            }
+        } else if (databaseToLower) {
+            if (c < 'a' || c > 'z') {
+                return false;
+            }
+        } else {
+            if ((c < 'A' || c > 'Z') && (c < 'a' || c > 'z')) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -878,7 +853,9 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'U':
-            if (eq("UNION", s, ignoreCase, start, length)) {
+            if (eq("UESCAPE", s, ignoreCase, start, length)) {
+                return UESCAPE;
+            } else if (eq("UNION", s, ignoreCase, start, length)) {
                 return UNION;
             } else if (eq("UNIQUE", s, ignoreCase, start, length)) {
                 return UNIQUE;

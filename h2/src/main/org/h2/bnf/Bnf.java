@@ -117,6 +117,7 @@ public class Bnf {
         addFixedRule("@hms@", RuleFixed.HMS);
         addFixedRule("@nanos@", RuleFixed.NANOS);
         addFixedRule("anything_except_single_quote", RuleFixed.ANY_EXCEPT_SINGLE_QUOTE);
+        addFixedRule("single_character", RuleFixed.ANY_EXCEPT_SINGLE_QUOTE);
         addFixedRule("anything_except_double_quote", RuleFixed.ANY_EXCEPT_DOUBLE_QUOTE);
         addFixedRule("anything_until_end_of_line", RuleFixed.ANY_UNTIL_EOL);
         addFixedRule("anything_until_comment_start_or_end", RuleFixed.ANY_UNTIL_END);

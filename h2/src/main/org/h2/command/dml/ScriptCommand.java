@@ -49,6 +49,7 @@ import org.h2.result.Row;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
+import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.schema.UserDefinedFunction;
@@ -71,7 +72,15 @@ import org.h2.value.ValueVarchar;
  */
 public class ScriptCommand extends ScriptBase {
 
-    private static final Comparator<? super DbObject> BY_NAME_COMPARATOR = Comparator.comparing(DbObject::getName);
+    private static final Comparator<? super DbObject> BY_NAME_COMPARATOR = (o1, o2) -> {
+        if (o1 instanceof SchemaObject && o2 instanceof SchemaObject) {
+            int cmp = ((SchemaObject) o1).getSchema().getName().compareTo(((SchemaObject) o2).getSchema().getName());
+            if (cmp != 0) {
+                return cmp;
+            }
+        }
+        return o1.getName().compareTo(o2.getName());
+    };
 
     private Charset charset = StandardCharsets.UTF_8;
     private Set<String> schemaNames;
@@ -354,25 +363,7 @@ public class ScriptCommand extends ScriptBase {
                 }
             }
             // Generate GRANT ...
-            for (Right right : db.getAllRights()) {
-                DbObject object = right.getGrantedObject();
-                if (object != null) {
-                    if (object instanceof Schema) {
-                        if (excludeSchema((Schema) object)) {
-                            continue;
-                        }
-                    } else if (object instanceof Table) {
-                        Table table = (Table) object;
-                        if (excludeSchema(table.getSchema())) {
-                            continue;
-                        }
-                        if (excludeTable(table)) {
-                            continue;
-                        }
-                    }
-                }
-                add(right.getCreateSQL(), false);
-            }
+            dumpRights(db);
             // Generate COMMENT ON ...
             for (Comment comment : db.getAllComments()) {
                 add(comment.getCreateSQL(), false);
@@ -421,6 +412,56 @@ public class ScriptCommand extends ScriptBase {
                 }
             }
             known = known2;
+        }
+    }
+
+    private void dumpRights(Database db) throws IOException {
+        Right[] rights = db.getAllRights().toArray(new Right[0]);
+        Arrays.sort(rights, (o1, o2) -> {
+            Role r1 = o1.getGrantedRole(), r2 = o2.getGrantedRole();
+            if ((r1 == null) != (r2 == null)) {
+                return r1 == null ? -1 : 1;
+            }
+            if (r1 == null) {
+                DbObject g1 = o1.getGrantedObject(), g2 = o2.getGrantedObject();
+                if ((g1 == null) != (g2 == null)) {
+                    return g1 == null ? -1 : 1;
+                }
+                if (g1 != null) {
+                    if (g1 instanceof Schema != g2 instanceof Schema) {
+                        return g1 instanceof Schema ? -1 : 1;
+                    }
+                    int cmp = g1.getName().compareTo(g2.getName());
+                    if (cmp != 0) {
+                        return cmp;
+                    }
+                }
+            } else {
+                int cmp = r1.getName().compareTo(r2.getName());
+                if (cmp != 0) {
+                    return cmp;
+                }
+            }
+            return o1.getGrantee().getName().compareTo(o2.getGrantee().getName());
+        });
+        for (Right right : rights) {
+            DbObject object = right.getGrantedObject();
+            if (object != null) {
+                if (object instanceof Schema) {
+                    if (excludeSchema((Schema) object)) {
+                        continue;
+                    }
+                } else if (object instanceof Table) {
+                    Table table = (Table) object;
+                    if (excludeSchema(table.getSchema())) {
+                        continue;
+                    }
+                    if (excludeTable(table)) {
+                        continue;
+                    }
+                }
+            }
+            add(right.getCreateSQL(), false);
         }
     }
 

@@ -563,7 +563,7 @@ public class TestRunscript extends TestDb implements Trigger {
         stat = conn.createStatement();
         assertThrows(ErrorCode.INVALID_VALUE_PRECISION, stat)
                 .execute("RUNSCRIPT FROM '" + getBaseDir() + "/backup.sql'");
-        stat.execute("RUNSCRIPT FROM '" + getBaseDir() + "/backup.sql' TRUNCATE_LARGE_LENGTH");
+        stat.execute("RUNSCRIPT FROM '" + getBaseDir() + "/backup.sql' QUIRKS_MODE");
         assertEquals(Constants.MAX_STRING_LENGTH, stat.executeQuery("TABLE TEST").getMetaData().getPrecision(1));
         conn.close();
         deleteDb("runscript");

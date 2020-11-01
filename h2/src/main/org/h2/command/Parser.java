@@ -6360,7 +6360,8 @@ public class Parser {
     }
 
     private String readRawString(int i, char[] chars, int[] types) {
-        StringBuilder result = new StringBuilder();
+        String result = null;
+        StringBuilder builder = null;
         for (;; i++) {
             boolean next = false;
             for (;; i++) {
@@ -6368,7 +6369,14 @@ public class Parser {
                 while (chars[i] != '\'') {
                     i++;
                 }
-                result.append(sqlCommand, next ? begin - 1 : begin, i);
+                if (result == null) {
+                    result = sqlCommand.substring(begin, i);
+                } else {
+                    if (builder == null) {
+                        builder = new StringBuilder(result);
+                    }
+                    builder.append(sqlCommand, next ? begin - 1 : begin, i);
+                }
                 if (chars[++i] != '\'') {
                     break;
                 }
@@ -6386,7 +6394,7 @@ public class Parser {
         parseIndex = i;
         currentToken = "'";
         currentTokenType = LITERAL;
-        return result.toString();
+        return builder != null ? builder.toString() : result;
     }
 
     private int readUescape(int i, char[] chars, int[] types) {

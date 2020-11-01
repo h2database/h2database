@@ -477,9 +477,14 @@ public class Parser {
     private static final int CLOSE_PAREN = OPEN_PAREN + 1;
 
     /**
+     * The token &amp;.
+     */
+    private static final int AMPERSAND = CLOSE_PAREN + 1;
+
+    /**
      * The token "&amp;&amp;".
      */
-    private static final int SPATIAL_INTERSECTS = CLOSE_PAREN + 1;
+    private static final int SPATIAL_INTERSECTS = AMPERSAND + 1;
 
     /**
      * The token "*".
@@ -715,6 +720,8 @@ public class Parser {
             "TO",
             // TRUE
             "TRUE",
+            // UESCAPE
+            "UESCAPE",
             // UNION
             "UNION",
             // UNIQUE
@@ -5323,12 +5330,8 @@ public class Parser {
             r = new ExpressionColumn(database, null, null);
             break;
         case LITERAL:
-            if (currentValue.getValueType() == Value.VARCHAR) {
-                r = ValueExpression.get(readCharacterStringLiteral());
-            } else {
-                r = ValueExpression.get(currentValue);
-                read();
-            }
+            r = ValueExpression.get(currentValue);
+            read();
             break;
         case VALUES:
             if (database.getMode().onDuplicateKeyUpdate) {
@@ -5583,33 +5586,30 @@ public class Parser {
             }
             break;
         case 'G':
-            if (currentTokenType == LITERAL ) {
-                if (currentValue.getValueType() == Value.VARCHAR && equalsToken("GEOMETRY", name)) {
-                    return ValueExpression.get(ValueGeometry.get(readCharacterStringLiteral().getString()));
-                }
-            } else if (currentTokenType == IDENTIFIER && equalsToken("GEOMETRY", name)
-                    && equalsToken("X", currentToken)) {
-                int index = lastParseIndex;
-                read();
-                if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
-                    return ValueExpression.get(ValueGeometry.getFromEWKB(readBinaryLiteral()));
-                } else {
-                    reread(index);
+            if (currentTokenType == LITERAL) {
+                int t = currentValue.getValueType();
+                if (t == Value.VARCHAR && equalsToken("GEOMETRY", name)) {
+                    ValueExpression v = ValueExpression.get(ValueGeometry.get(currentValue.getString()));
+                    read();
+                    return v;
+                } else if (t == Value.VARBINARY && equalsToken("GEOMETRY", name)) {
+                    ValueExpression v = ValueExpression.get(ValueGeometry.getFromEWKB(currentValue.getBytesNoCopy()));
+                    read();
+                    return v;
                 }
             }
             break;
         case 'J':
-            if (currentTokenType == LITERAL ) {
-                if (currentValue.getValueType() == Value.VARCHAR && equalsToken("JSON", name)) {
-                    return ValueExpression.get(ValueJson.fromJson(readCharacterStringLiteral().getString()));
-                }
-            } else if (currentTokenType == IDENTIFIER && equalsToken("JSON", name) && equalsToken("X", currentToken)) {
-                int index = lastParseIndex;
-                read();
-                if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
-                    return ValueExpression.get(ValueJson.fromJson(readBinaryLiteral()));
-                } else {
-                    reread(index);
+            if (currentTokenType == LITERAL) {
+                int t = currentValue.getValueType();
+                if (t == Value.VARCHAR && equalsToken("JSON", name)) {
+                    ValueExpression v = ValueExpression.get(ValueJson.fromJson(currentValue.getString()));
+                    read();
+                    return v;
+                } else if (t == Value.VARBINARY && equalsToken("JSON", name)) {
+                    ValueExpression v = ValueExpression.get(ValueJson.fromJson(currentValue.getBytesNoCopy()));
+                    read();
+                    return v;
                 }
             }
             break;
@@ -5620,10 +5620,6 @@ public class Parser {
                     return new SequenceValue(readSequence(), getCurrentSelectOrPrepared());
                 }
                 reread(index);
-            } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR
-                    && equalsToken("N", name)) {
-                // National character string literal
-                return ValueExpression.get(readCharacterStringLiteral());
             }
             break;
         case 'T':
@@ -5695,41 +5691,12 @@ public class Parser {
                 return ValueExpression.get(ValueUuid.get(uuid));
             }
             break;
-        case 'X':
-            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR //
-                    && equalsToken("X", name)) {
-                return ValueExpression.get(ValueVarbinary.getNoCopy(readBinaryLiteral()));
-            }
-            break;
         }
         return new ExpressionColumn(database, null, null, name, quoted);
     }
 
     private Prepared getCurrentSelectOrPrepared() {
         return currentSelect == null ? currentPrepared : currentSelect;
-    }
-
-    private byte[] readBinaryLiteral() {
-        ByteArrayOutputStream baos = null;
-        do {
-            baos = StringUtils.convertHexWithSpacesToBytes(baos, currentValue.getString());
-            read();
-        } while (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR);
-        return baos.toByteArray();
-    }
-
-    private Value readCharacterStringLiteral() {
-        Value value = currentValue;
-        read();
-        if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
-            StringBuilder builder = new StringBuilder(value.getString());
-            do {
-                builder.append(currentValue.getString());
-                read();
-            } while (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR);
-            return ValueVarchar.get(builder.toString());
-        }
-        return value;
     }
 
     private Expression readInterval() {
@@ -6155,6 +6122,70 @@ public class Parser {
         currentToken = "";
         switch (type) {
         case CHAR_NAME:
+            switch (c) {
+            case 'N':
+            case 'n':
+                if (chars[i] == '\'') {
+                    readString(i + 1, chars, types);
+                    return;
+                }
+                break;
+            case 'X':
+            case 'x':
+                if (chars[i] == '\'') {
+                    ByteArrayOutputStream result = new ByteArrayOutputStream();
+                    for (;;) {
+                        int begin = ++i;
+                        while (chars[i] != '\'') {
+                            i++;
+                        }
+                        StringUtils.convertHexWithSpacesToBytes(result, sqlCommandChars, begin, i);
+                        begin = ++i;
+                        while ((type = types[i]) == 0) {
+                            i++;
+                        }
+                        if (begin == i || type != CHAR_STRING) {
+                            break;
+                        }
+                    }
+                    currentToken = "X'";
+                    checkLiterals(true);
+                    currentValue = ValueVarbinary.get(result.toByteArray());
+                    parseIndex = i;
+                    currentTokenType = LITERAL;
+                    return;
+                }
+                break;
+            case 'U':
+            case 'u':
+                if (chars[i] == '&') {
+                    switch (chars[i + 1]) {
+                    case '\'': {
+                        String s = readRawString(i + 2, chars, types);
+                        currentValue = ValueVarchar.get(StringUtils.decodeUnicodeStringSQL(s,
+                                readUescape(parseIndex, chars, types)));
+                        return;
+                    }
+                    case '"': {
+                        readQuotedIdentifier(i + 2, '"', chars, false);
+                        String identifier = currentToken;
+                        i = parseIndex;
+                        while (types[i] == 0) {
+                            i++;
+                        }
+                        identifier = StringUtils.decodeUnicodeStringSQL(identifier, readUescape(i, chars, types));
+                        if (identifier.length() > Constants.MAX_IDENTIFIER_LENGTH) {
+                            throw DbException.get(ErrorCode.NAME_TOO_LONG_2, identifier.substring(0, 32),
+                                    "" + Constants.MAX_IDENTIFIER_LENGTH);
+                        }
+                        currentToken = StringUtils.cache(identifier);
+                        currentTokenQuoted = true;
+                        currentTokenType = IDENTIFIER;
+                        return;
+                    }
+                    }
+                }
+            }
             while ((type = types[i]) == CHAR_NAME || type == CHAR_VALUE) {
                 i++;
             }
@@ -6166,27 +6197,9 @@ public class Parser {
             }
             parseIndex = i;
             return;
-        case CHAR_QUOTED: {
-            int begin = i;
-            while (chars[i] != c) {
-                i++;
-            }
-            String result = checkIdentifierLength(begin, i);
-            if (chars[++i] == c) {
-                StringBuilder builder = new StringBuilder(result);
-                do {
-                    begin = i;
-                    while (chars[++i] != c) {}
-                    checkIdentifierLength(builder, begin, i);
-                } while (chars[++i] == c);
-                result = builder.toString();
-            }
-            currentToken = StringUtils.cache(result);
-            parseIndex = i;
-            currentTokenQuoted = true;
-            currentTokenType = IDENTIFIER;
+        case CHAR_QUOTED:
+            readQuotedIdentifier(i, c, chars, true);
             return;
-        }
         case CHAR_SPECIAL_2:
             if (types[i] == CHAR_SPECIAL_2) {
                 char c1 = chars[i++];
@@ -6245,29 +6258,9 @@ public class Parser {
             }
             readNumeric(i - 1, i, false, false);
             return;
-        case CHAR_STRING: {
-            String result = null;
-            for (;; i++) {
-                int begin = i;
-                while (chars[i] != '\'') {
-                    i++;
-                }
-                if (result == null) {
-                    result = sqlCommand.substring(begin, i);
-                } else {
-                    result += sqlCommand.substring(begin - 1, i);
-                }
-                if (chars[++i] != '\'') {
-                    break;
-                }
-            }
-            currentToken = "'";
-            checkLiterals(true);
-            currentValue = ValueVarchar.get(result, database);
-            parseIndex = i;
-            currentTokenType = LITERAL;
+        case CHAR_STRING:
+            readString(i, chars, types);
             return;
-        }
         case CHAR_DOLLAR_QUOTED_STRING: {
             int begin = i - 1;
             while (types[i] == CHAR_DOLLAR_QUOTED_STRING) {
@@ -6288,6 +6281,29 @@ public class Parser {
         default:
             throw getSyntaxError();
         }
+    }
+
+    private void readQuotedIdentifier(int i, char c, char[] chars, boolean checkLength) {
+        int begin = i;
+        while (chars[i] != c) {
+            i++;
+        }
+        String result = checkLength ? checkIdentifierLength(begin, i) : sqlCommand.substring(begin, i);
+        if (chars[++i] == c) {
+            StringBuilder builder = new StringBuilder(result);
+            do {
+                begin = i;
+                while (chars[++i] != c) {}
+                if (checkLength) {
+                    checkIdentifierLength(builder, begin, i);
+                }
+            } while (chars[++i] == c);
+            result = builder.toString();
+        }
+        currentToken = StringUtils.cache(result);
+        parseIndex = i;
+        currentTokenQuoted = true;
+        currentTokenType = IDENTIFIER;
     }
 
     private String checkIdentifierLength(int begin, int end) {
@@ -6337,6 +6353,80 @@ public class Parser {
                 throw DbException.get(ErrorCode.LITERALS_ARE_NOT_ALLOWED);
             }
         }
+    }
+
+    private void readString(int i, char[] chars, int[] types) {
+        currentValue = ValueVarchar.get(readRawString(i, chars, types), database);
+    }
+
+    private String readRawString(int i, char[] chars, int[] types) {
+        String result = null;
+        StringBuilder builder = null;
+        for (;; i++) {
+            boolean next = false;
+            for (;; i++) {
+                int begin = i;
+                while (chars[i] != '\'') {
+                    i++;
+                }
+                if (result == null) {
+                    result = sqlCommand.substring(begin, i);
+                } else {
+                    if (builder == null) {
+                        builder = new StringBuilder(result);
+                    }
+                    builder.append(sqlCommand, next ? begin - 1 : begin, i);
+                }
+                if (chars[++i] != '\'') {
+                    break;
+                }
+                next = true;
+            }
+            int type;
+            while ((type = types[i]) == 0) {
+                i++;
+            }
+            if (type != CHAR_STRING) {
+                break;
+            }
+        }
+        checkLiterals(true);
+        parseIndex = i;
+        currentToken = "'";
+        currentTokenType = LITERAL;
+        return builder != null ? builder.toString() : result;
+    }
+
+    private int readUescape(int i, char[] chars, int[] types) {
+        int start = i;
+        while (types[i] == CHAR_NAME) {
+            i++;
+        }
+        if (i - start == 7 && "UESCAPE".regionMatches(!identifiersToUpper, 0, sqlCommand, start, 7)) {
+            int type;
+            while ((type = types[i]) == 0) {
+                i++;
+            }
+            if (type == CHAR_STRING) {
+                String s = readRawString(i + 1, chars, types);
+                if (s.codePointCount(0, s.length()) == 1) {
+                    int escape = s.codePointAt(0);
+                    if (!Character.isWhitespace(escape) && (escape < '0' || escape > '9')
+                            && (escape < 'A' || escape > 'F') && (escape < 'a' || escape > 'f')) {
+                        switch (escape) {
+                        default:
+                            return escape;
+                        case '"':
+                        case '\'':
+                        case '+':
+                        }
+                    }
+                }
+            }
+            addExpected("'<Unicode escape character>'");
+            throw getSyntaxError();
+        }
+        return '\\';
     }
 
     private void readHexNumber(int i, int start, char[] chars, int[] types) {
@@ -6711,6 +6801,8 @@ public class Parser {
             return SLASH;
         case '%':
             return PERCENT;
+        case '&':
+            return AMPERSAND;
         case ';':
             return SEMICOLON;
         case ':':

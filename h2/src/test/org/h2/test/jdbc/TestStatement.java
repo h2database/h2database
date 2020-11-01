@@ -455,20 +455,26 @@ public class TestStatement extends TestDb {
         assertEquals("\"\"\"Test\"", stat.enquoteIdentifier("\"\"\"Test\"", true));
         assertEquals("\"\"", stat.enquoteIdentifier("", false));
         assertEquals("\"\"", stat.enquoteIdentifier("", true));
+        assertEquals("U&\"\"", stat.enquoteIdentifier("U&\"\"", false));
+        assertEquals("U&\"\"", stat.enquoteIdentifier("U&\"\"", true));
+        assertEquals("U&\"\0100\"", stat.enquoteIdentifier("U&\"\0100\"", false));
+        assertEquals("U&\"\0100\"", stat.enquoteIdentifier("U&\"\0100\"", true));
         assertThrows(NullPointerException.class, () -> stat.enquoteIdentifier(null, false));
         assertThrows(ErrorCode.INVALID_NAME_1, () -> stat.enquoteIdentifier("\"Test", true));
         assertThrows(ErrorCode.INVALID_NAME_1, () -> stat.enquoteIdentifier("\"a\"a\"", true));
-        // Other lower case characters don't have upper case mappings
-        assertEquals("\u02B0", stat.enquoteIdentifier("\u02B0", false));
+        assertThrows(ErrorCode.INVALID_NAME_1, () -> stat.enquoteIdentifier("U&\"a\"a\"", true));
+        assertThrows(ErrorCode.STRING_FORMAT_ERROR_1, () -> stat.enquoteIdentifier("U&\"\\111\"", true));
+        assertEquals("U&\"\\02b0\"", stat.enquoteIdentifier("\u02B0", false));
 
-        assertTrue(stat.isSimpleIdentifier("SOME_ID"));
+        assertTrue(stat.isSimpleIdentifier("SOME_ID_1"));
         assertFalse(stat.isSimpleIdentifier("SOME ID"));
         assertFalse(stat.isSimpleIdentifier("FROM"));
         assertFalse(stat.isSimpleIdentifier("Test"));
         assertFalse(stat.isSimpleIdentifier("test"));
         assertFalse(stat.isSimpleIdentifier("TOP"));
-        // Other lower case characters don't have upper case mappings
-        assertTrue(stat.isSimpleIdentifier("\u02B0"));
+        assertFalse(stat.isSimpleIdentifier("_"));
+        assertFalse(stat.isSimpleIdentifier("_1"));
+        assertFalse(stat.isSimpleIdentifier("\u02B0"));
 
         conn.close();
         deleteDb("statement");

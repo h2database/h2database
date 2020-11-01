@@ -232,7 +232,7 @@ public class TestTableEngines extends TestDb {
         checkPlan(stat, "select * from t where a = 0", "scan");
         checkPlan(stat, "select * from t where a > 0 order by c, b", "IDX_C_B_A");
         checkPlan(stat, "select * from t where a = 0 and c > 0", "IDX_C_B_A");
-        checkPlan(stat, "select * from t where a = 0 and b < 0", "IDX_B_A");
+        checkPlan(stat, "select * from t where a = 0 and b < '0'", "IDX_B_A");
 
         assertEquals(6, ((Number) query(stat, "select count(*) from t").get(0).get(0)).intValue());
 

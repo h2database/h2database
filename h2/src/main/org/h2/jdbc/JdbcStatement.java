@@ -1396,23 +1396,35 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         }
         try {
             int length = identifier.length();
-            if (length > 0 && identifier.charAt(0) == '"') {
-                boolean quoted = true;
-                for (int i = 1; i < length; i++) {
-                    if (identifier.charAt(i) == '"') {
-                        quoted = !quoted;
-                    } else if (!quoted) {
-                        throw DbException.get(ErrorCode.INVALID_NAME_1, identifier);
-                    }
+            if (length > 0) {
+                if (identifier.charAt(0) == '"') {
+                    checkQuotes(identifier, 1, length);
+                    return identifier;
+                } else if (identifier.startsWith("U&\"") || identifier.startsWith("u&\"")) {
+                    // Check validity of double quotes
+                    checkQuotes(identifier, 3, length);
+                    // Check validity of escape sequences
+                    StringUtils.decodeUnicodeStringSQL(identifier, '\\');
+                    return identifier;
                 }
-                if (quoted) {
-                    throw DbException.get(ErrorCode.INVALID_NAME_1, identifier);
-                }
-                return identifier;
             }
             return StringUtils.quoteIdentifier(identifier);
         } catch (Exception e) {
             throw logAndConvert(e);
+        }
+    }
+
+    private static void checkQuotes(String identifier, int offset, int length) {
+        boolean quoted = true;
+        for (int i = offset; i < length; i++) {
+            if (identifier.charAt(i) == '"') {
+                quoted = !quoted;
+            } else if (!quoted) {
+                throw DbException.get(ErrorCode.INVALID_NAME_1, identifier);
+            }
+        }
+        if (quoted) {
+            throw DbException.get(ErrorCode.INVALID_NAME_1, identifier);
         }
     }
 

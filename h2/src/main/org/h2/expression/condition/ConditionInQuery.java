@@ -230,12 +230,16 @@ public final class ConditionInQuery extends PredicateWithSubquery {
         if (query.getColumnCount() != 1) {
             return;
         }
-        int leftType = left.getType().getValueType();
-        if (!DataType.hasTotalOrdering(leftType)
-                && leftType != query.getExpressions().get(0).getType().getValueType()) {
+        if (!(left instanceof ExpressionColumn)) {
             return;
         }
-        if (!(left instanceof ExpressionColumn)) {
+        TypeInfo colType = left.getType();
+        TypeInfo queryType = query.getExpressions().get(0).getType();
+        if (!TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, queryType))) {
+            return;
+        }
+        int leftType = colType.getValueType();
+        if (!DataType.hasTotalOrdering(leftType) && leftType != queryType.getValueType()) {
             return;
         }
         ExpressionColumn l = (ExpressionColumn) left;

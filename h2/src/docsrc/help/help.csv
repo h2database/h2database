@@ -2226,7 +2226,8 @@ TRUE
 "Literals","Bytes","
 X'hex' [ 'hex' [...] ]
 ","
-A binary value. The hex value is not case sensitive and may contain space characters.
+A binary string value. The hex value is not case sensitive and may contain space characters as separators.
+If there are more than one group of quoted hex values, groups must be separated with whitespace.
 ","
 X''
 X'01FF'
@@ -2357,13 +2358,28 @@ CAST(0 AS DOUBLE PRECISION)
 "
 
 "Literals","String","
-'anythingExceptSingleQuote' [ 'anythingExceptSingleQuote' [...] ]
+[N]'anythingExceptSingleQuote' [...]
+    | U&{'anythingExceptSingleQuote' [...]} [ UESCAPE 'singleCharacter' ]
 ","
-A string starts and ends with a single quote. Two single quotes can be used to
-create a single quote inside a string.
+A character string literal starts and ends with a single quote.
+Two single quotes can be used to create a single quote inside a string.
+Prefix ""N"" means a national character string literal;
+H2 does not distinguish regular and national character string literals in any way, this prefix has no effect in H2.
+
+String literals staring with ""U&"" are Unicode character string literals.
+All character string literals in H2 may have Unicode characters,
+but Unicode character string literals may contain Unicode escape sequences ""\0000"" or ""\+000000"",
+where \ is an escape character, ""0000"" and ""000000"" are Unicode character codes in hexadecimal notation.
+Optional ""UESCAPE"" clause may be used to specify another escape character,
+with exception for single quote, double quote, plus sign, and hexadecimal digits (0-9, a-f, and A-F).
+By default the backslash is used.
+Two escape characters can be used to include a single character inside a string.
+Two single quotes can be used to create a single quote inside a string.
 ","
 'John''s car'
 'A' 'B' 'C'
+U&'W\00f6rter ' '\\ \+01f600 /'
+U&'|00a1' UESCAPE '|'
 "
 
 "Literals","UUID","
@@ -3474,13 +3490,26 @@ VALUES (1, 2), (3, 4);
 
 "Other Grammar","Quoted Name","
 ""anythingExceptDoubleQuote""
+    | U&'anythingExceptDoubleQuote' [ UESCAPE 'singleCharacter' ]
 ","
 Case of characters in quoted names is preserved as is. Such names can contain spaces.
 The maximum name length is 256 characters.
 Two double quotes can be used to create a single double quote inside an identifier.
 With default settings identifiers in H2 are case sensitive.
+
+Identifiers staring with ""U&"" are Unicode identifiers.
+All identifiers in H2 may have Unicode characters,
+but Unicode identifiers may contain Unicode escape sequences ""\0000"" or ""\+000000"",
+where \ is an escape character, ""0000"" and ""000000"" are Unicode character codes in hexadecimal notation.
+Optional ""UESCAPE"" clause may be used to specify another escape character,
+with exception for single quote, double quote, plus sign, and hexadecimal digits (0-9, a-f, and A-F).
+By default the backslash is used.
+Two escape characters can be used to include a single character inside an Unicode identifier.
+Two double quotes can be used to create a single double quote inside an Unicode identifier.
 ","
 ""FirstName""
+U&""\00d6ffnungszeit""
+U&""/00d6ffnungszeit"" UESCAPE '/'
 "
 
 "Other Grammar","Referential Constraint","

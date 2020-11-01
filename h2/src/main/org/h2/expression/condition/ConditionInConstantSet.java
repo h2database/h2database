@@ -134,7 +134,10 @@ public final class ConditionInConstantSet extends Condition {
             return;
         }
         if (session.getDatabase().getSettings().optimizeInList) {
-            filter.addIndexCondition(IndexCondition.getInList(l, valueList));
+            TypeInfo colType = l.getType();
+            if (TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, type))) {
+                filter.addIndexCondition(IndexCondition.getInList(l, valueList));
+            }
         }
     }
 

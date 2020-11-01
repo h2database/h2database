@@ -824,6 +824,87 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         return false;
     }
 
+    /**
+     * Determines whether two specified types have the same ordering rules.
+     *
+     * @param t1
+     *            first data type
+     * @param t2
+     *            second data type
+     * @return whether types are comparable
+     */
+    public static boolean haveSameOrdering(TypeInfo t1, TypeInfo t2) {
+        int vt1 = (t1 = t1.unwrapRow()).getValueType(), vt2 = (t2 = t2.unwrapRow()).getValueType();
+        if (vt1 > vt2) {
+            int vt = vt1;
+            vt1 = vt2;
+            vt2 = vt;
+            TypeInfo t = t1;
+            t1 = t2;
+            t2 = t;
+        }
+        if (vt1 <= Value.NULL) {
+            return true;
+        }
+        if (vt1 == vt2) {
+            switch (vt1) {
+            case Value.ARRAY:
+                return haveSameOrdering((TypeInfo) t1.getExtTypeInfo(), (TypeInfo) t2.getExtTypeInfo());
+            case Value.ROW: {
+                Set<Entry<String, TypeInfo>> f1 = ((ExtTypeInfoRow) t1.getExtTypeInfo()).getFields();
+                Set<Entry<String, TypeInfo>> f2 = ((ExtTypeInfoRow) t2.getExtTypeInfo()).getFields();
+                int degree = f1.size();
+                if (f2.size() != degree) {
+                    return false;
+                }
+                Iterator<Entry<String, TypeInfo>> i1 = f1.iterator(), i2 = f2.iterator();
+                while (i1.hasNext()) {
+                    if (!haveSameOrdering(i1.next().getValue(), i2.next().getValue())) {
+                        return false;
+                    }
+                }
+            }
+            //$FALL-THROUGH$
+            default:
+                return true;
+            }
+        }
+        byte g1 = Value.GROUPS[vt1], g2 = Value.GROUPS[vt2];
+        if (g1 == g2) {
+            switch (g1) {
+            default:
+                return true;
+            case Value.GROUP_CHARACTER_STRING:
+                return (vt1 == Value.VARCHAR_IGNORECASE) == (vt2 == Value.VARCHAR_IGNORECASE);
+            case Value.GROUP_DATETIME:
+                switch (vt1) {
+                case Value.DATE:
+                    return vt2 == Value.TIMESTAMP || vt2 == Value.TIMESTAMP_TZ;
+                case Value.TIME:
+                case Value.TIME_TZ:
+                    return vt2 == Value.TIME || vt2 == Value.TIME_TZ;
+                default: // TIMESTAMP TIMESTAMP_TZ
+                    return true;
+                }
+            case Value.GROUP_OTHER:
+            case Value.GROUP_COLLECTION:
+                return false;
+            }
+        }
+        if (g1 == Value.GROUP_BINARY_STRING) {
+            switch (vt2) {
+            case Value.JAVA_OBJECT:
+            case Value.GEOMETRY:
+            case Value.JSON:
+            case Value.UUID:
+                return true;
+            default:
+                return false;
+            }
+        }
+        return false;
+    }
+
     private TypeInfo(int valueType) {
         this.valueType = valueType;
         precision = -1L;

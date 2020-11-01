@@ -77,3 +77,25 @@ SELECT _ROWID_, A FROM TEST WHERE B = 4;
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(V VARCHAR(2)) AS VALUES -1, -2;
+> ok
+
+CREATE INDEX TEST_INDEX ON TEST(V);
+> ok
+
+SELECT * FROM TEST WHERE V >= -1;
+>> -1
+
+-- H2 may use the index for a table scan, but may not create index conditions due to incompatible type
+EXPLAIN SELECT * FROM TEST WHERE V >= -1;
+>> SELECT "PUBLIC"."TEST"."V" FROM "PUBLIC"."TEST" /* PUBLIC.TEST_INDEX */ WHERE "V" >= -1
+
+EXPLAIN SELECT * FROM TEST WHERE V IN (-1, -3);
+>> SELECT "PUBLIC"."TEST"."V" FROM "PUBLIC"."TEST" /* PUBLIC.TEST_INDEX */ WHERE "V" IN(-1, -3)
+
+SELECT * FROM TEST WHERE V < -1;
+>> -2
+
+DROP TABLE TEST;
+> ok

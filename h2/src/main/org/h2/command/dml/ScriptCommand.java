@@ -17,9 +17,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
@@ -45,10 +48,10 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
-import org.h2.schema.UserDefinedFunction;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
+import org.h2.schema.UserDefinedFunction;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
@@ -67,6 +70,8 @@ import org.h2.value.ValueVarchar;
  * SCRIPT
  */
 public class ScriptCommand extends ScriptBase {
+
+    private static final Comparator<? super DbObject> BY_NAME_COMPARATOR = Comparator.comparing(DbObject::getName);
 
     private Charset charset = StandardCharsets.UTF_8;
     private Set<String> schemaNames;
@@ -175,7 +180,22 @@ public class ScriptCommand extends ScriptBase {
             if (out != null) {
                 add("", true);
             }
-            for (RightOwner rightOwner : db.getAllUsersAndRoles()) {
+            RightOwner[] rightOwners = db.getAllUsersAndRoles().toArray(new RightOwner[0]);
+            // ADMIN users first, other users next, roles last
+            Arrays.sort(rightOwners, (o1, o2) -> {
+                boolean b = o1 instanceof User;
+                if (b != o2 instanceof User) {
+                    return b ? -1 : 1;
+                }
+                if (b) {
+                    b = ((User) o1).isAdmin();
+                    if (b != ((User) o2).isAdmin()) {
+                        return b ? -1 : 1;
+                    }
+                }
+                return o1.getName().compareTo(o2.getName());
+            });
+            for (RightOwner rightOwner : rightOwners) {
                 if (rightOwner instanceof User) {
                     add(((User) rightOwner).getCreateSQL(passwords), false);
                 } else {
@@ -190,16 +210,9 @@ public class ScriptCommand extends ScriptBase {
                 schemas.add(schema);
                 add(schema.getCreateSQL(), false);
             }
+            dumpDomains(schemas);
             for (Schema schema : schemas) {
-                for (Domain domain : schema.getAllDomains()) {
-                    if (drop) {
-                        add(domain.getDropSQL(), false);
-                    }
-                    add(domain.getCreateSQL(), false);
-                }
-            }
-            for (Schema schema : schemas) {
-                for (Constant constant : schema.getAllConstants()) {
+                for (Constant constant : sorted(schema.getAllConstants(), Constant.class)) {
                     add(constant.getCreateSQL(), false);
                 }
             }
@@ -231,7 +244,8 @@ public class ScriptCommand extends ScriptBase {
                 }
             }
             for (Schema schema : schemas) {
-                for (UserDefinedFunction userDefinedFunction : schema.getAllFunctionsAndAggregates()) {
+                for (UserDefinedFunction userDefinedFunction : sorted(schema.getAllFunctionsAndAggregates(),
+                        UserDefinedFunction.class)) {
                     if (drop) {
                         add(userDefinedFunction.getDropSQL(), false);
                     }
@@ -239,7 +253,7 @@ public class ScriptCommand extends ScriptBase {
                 }
             }
             for (Schema schema : schemas) {
-                for (Sequence sequence : schema.getAllSequences()) {
+                for (Sequence sequence : sorted(schema.getAllSequences(), Sequence.class)) {
                     if (sequence.getBelongsToTable()) {
                         continue;
                     }
@@ -370,6 +384,53 @@ public class ScriptCommand extends ScriptBase {
         LocalResult r = result;
         reset();
         return r;
+    }
+
+    private void dumpDomains(ArrayList<Schema> schemas) throws IOException {
+        TreeMap<Domain, TreeSet<Domain>> referencingDomains = new TreeMap<>(BY_NAME_COMPARATOR);
+        TreeSet<Domain> known = new TreeSet<>(BY_NAME_COMPARATOR);
+        for (Schema schema : schemas) {
+            for (Domain domain : sorted(schema.getAllDomains(), Domain.class)) {
+                Domain parent = domain.getDomain();
+                if (parent == null) {
+                    addDomain(domain);
+                } else {
+                    TreeSet<Domain> set = referencingDomains.get(parent);
+                    if (set == null) {
+                        set = new TreeSet<>(BY_NAME_COMPARATOR);
+                        referencingDomains.put(parent, set);
+                    }
+                    set.add(domain);
+                    if (parent.getDomain() == null) {
+                        known.add(parent);
+                    }
+                }
+            }
+        }
+        while (!referencingDomains.isEmpty()) {
+            TreeSet<Domain> known2 = new TreeSet<>(BY_NAME_COMPARATOR);
+            for (Domain d : known) {
+                for (Domain d2 : referencingDomains.remove(d)) {
+                    addDomain(d2);
+                    known2.add(d2);
+                }
+            }
+            known = known2;
+        }
+    }
+
+    private void addDomain(Domain domain) throws IOException {
+        if (drop) {
+            add(domain.getDropSQL(), false);
+        }
+        add(domain.getCreateSQL(), false);
+    }
+
+    private static <T extends DbObject> T[] sorted(Collection<T> collection, Class<T> clazz) {
+        @SuppressWarnings("unchecked")
+        T[] array = collection.toArray((T[]) java.lang.reflect.Array.newInstance(clazz, 0));
+        Arrays.sort(array, BY_NAME_COMPARATOR);
+        return array;
     }
 
     private int generateInsertValues(int count, Table table) throws IOException {

@@ -33,7 +33,7 @@ public class FileStoreInputStream extends InputStream {
         } else {
             compress = null;
         }
-        page = Data.create(handler, Constants.FILE_BLOCK_SIZE, true);
+        page = Data.create(handler, Constants.FILE_BLOCK_SIZE);
         try {
             if (store.length() <= FileStore.HEADER_LENGTH) {
                 close();

@@ -103,7 +103,7 @@ public class PageBtreeLeaf extends PageBtree {
     }
 
     private int addRow(SearchRow row, boolean tryOnly) {
-        int rowLength = index.getRowSize(data, row, onlyPosition);
+        int rowLength = index.getRowSize(row, onlyPosition);
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (last - rowLength < start + OFFSET_LENGTH) {
@@ -125,11 +125,11 @@ public class PageBtreeLeaf extends PageBtree {
             // change the offsets (now storing only positions)
             int o = pageSize;
             for (int i = 0; i < entryCount; i++) {
-                o -= index.getRowSize(data, getRow(i), true);
+                o -= index.getRowSize(getRow(i), true);
                 offsets[i] = o;
             }
             last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
-            rowLength = index.getRowSize(data, row, true);
+            rowLength = index.getRowSize(row, true);
             if (last - rowLength < start + OFFSET_LENGTH) {
                 throw DbException.getInternalError();
             }

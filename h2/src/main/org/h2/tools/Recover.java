@@ -421,7 +421,7 @@ public class Recover extends Tool implements DataHandler {
             } catch (Exception e) {
                 writeError(writer, e);
             }
-            Data s = Data.create(this, 128, false);
+            Data s = Data.create(this, 128);
             seek(0);
             store.readFully(s.getBytes(), 0, 128);
             s.setPos(48);
@@ -438,7 +438,7 @@ public class Recover extends Tool implements DataHandler {
             }
             long pageCount = length / pageSize;
             parents = new int[(int) pageCount];
-            s = Data.create(this, pageSize, false);
+            s = Data.create(this, pageSize);
             for (long i = 3; i < pageCount; i++) {
                 s.reset();
                 seek(i);
@@ -448,7 +448,7 @@ public class Recover extends Tool implements DataHandler {
                 parents[(int) i] = s.readInt();
             }
             int logKey = 0, logFirstTrunkPage = 0, logFirstDataPage = 0;
-            s = Data.create(this, pageSize, false);
+            s = Data.create(this, pageSize);
             for (long i = 1;; i++) {
                 if (i == 3) {
                     break;
@@ -742,9 +742,9 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void dumpPageStore(PrintWriter writer, long pageCount) {
-        Data s = Data.create(this, pageSize, false);
+        Data s = Data.create(this, pageSize);
         for (long page = 3; page < pageCount; page++) {
-            s = Data.create(this, pageSize, false);
+            s = Data.create(this, pageSize);
             seek(page);
             store.readFully(s.getBytes(), 0, pageSize);
             dumpPage(writer, s, page, pageCount);
@@ -852,7 +852,7 @@ public class Recover extends Tool implements DataHandler {
     private void dumpPageLogStream(PrintWriter writer, int logKey,
             int logFirstTrunkPage, int logFirstDataPage, long pageCount)
             throws IOException {
-        Data s = Data.create(this, pageSize, false);
+        Data s = Data.create(this, pageSize);
         DataReader in = new DataReader(
                 new PageInputStream(writer, this, store, logKey,
                 logFirstTrunkPage, logFirstDataPage, pageSize)
@@ -921,7 +921,7 @@ public class Recover extends Tool implements DataHandler {
                 }
                 writer.println("-- undo page " + pageId + " " + typeName);
                 if (trace) {
-                    Data d = Data.create(null, data, false);
+                    Data d = Data.create(null, data);
                     dumpPage(writer, d, pageId, pageCount);
                 }
             } else if (x == PageLog.ADD) {
@@ -1047,7 +1047,7 @@ public class Recover extends Tool implements DataHandler {
             this.logKey = logKey - 1;
             this.nextTrunkPage = firstTrunkPage;
             this.dataPage = firstDataPage;
-            page = Data.create(handler, pageSize, false);
+            page = Data.create(handler, pageSize);
         }
 
         @Override
@@ -1332,7 +1332,7 @@ public class Recover extends Tool implements DataHandler {
             writer.println("--   empty: " + empty);
         }
         if (!last) {
-            Data s2 = Data.create(this, pageSize, false);
+            Data s2 = Data.create(this, pageSize);
             s.setPos(pageSize);
             long parent = pageId;
             while (true) {

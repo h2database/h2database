@@ -408,17 +408,15 @@ public class PageBtreeIndex extends PageIndex {
     /**
      * Get the size of a row (only the part that is stored in the index).
      *
-     * @param dummy a dummy data page to calculate the size
      * @param row the row
      * @param onlyPosition whether only the position of the row is stored
      * @return the number of bytes
      */
-    int getRowSize(Data dummy, SearchRow row, boolean onlyPosition) {
+    int getRowSize(SearchRow row, boolean onlyPosition) {
         int rowsize = Data.getVarLongLen(row.getKey());
         if (!onlyPosition) {
             for (Column col : columns) {
-                Value v = row.getValue(col.getColumnId());
-                rowsize += dummy.getValueLen(v);
+                rowsize += Data.getValueLen(row.getValue(col.getColumnId()));
             }
         }
         return rowsize;

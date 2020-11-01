@@ -74,7 +74,7 @@ public class RowList implements AutoCloseable {
                     }
                     lobs.add((ValueLobFile)v);
                 }
-                buff.checkCapacity(buff.getValueLen(v));
+                buff.checkCapacity(Data.getValueLen(v));
                 buff.writeValue(v);
             }
         }
@@ -87,7 +87,7 @@ public class RowList implements AutoCloseable {
             file = db.openFile(fileName, "rw", false);
             file.setCheckedWriting(false);
             file.seek(FileStore.HEADER_LENGTH);
-            rowBuff = Data.create(db, Constants.DEFAULT_PAGE_SIZE, true);
+            rowBuff = Data.create(db, Constants.DEFAULT_PAGE_SIZE);
             file.seek(FileStore.HEADER_LENGTH);
         }
         Data buff = rowBuff;

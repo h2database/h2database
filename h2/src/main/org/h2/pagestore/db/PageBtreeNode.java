@@ -142,7 +142,7 @@ public class PageBtreeNode extends PageBtree {
             // more space) - and removing a child can't split this page
             startData = entryCount + 1 * MAX_KEY_LENGTH;
         } else {
-            int rowLength = index.getRowSize(data, row, onlyPosition);
+            int rowLength = index.getRowSize(row, onlyPosition);
             int pageSize = index.getPageStore().getPageSize();
             int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
             startData = last - rowLength;
@@ -162,7 +162,7 @@ public class PageBtreeNode extends PageBtree {
      *            children
      */
     private void addChild(int x, int childPageId, SearchRow row) {
-        int rowLength = index.getRowSize(data, row, onlyPosition);
+        int rowLength = index.getRowSize(row, onlyPosition);
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
@@ -171,11 +171,11 @@ public class PageBtreeNode extends PageBtree {
             // change the offsets (now storing only positions)
             int o = pageSize;
             for (int i = 0; i < entryCount; i++) {
-                o -= index.getRowSize(data, getRow(i), true);
+                o -= index.getRowSize(getRow(i), true);
                 offsets[i] = o;
             }
             last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
-            rowLength = index.getRowSize(data, row, true);
+            rowLength = index.getRowSize(row, true);
             if (last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
                 throw DbException.getInternalError();
             }

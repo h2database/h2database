@@ -23,7 +23,7 @@ SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMER
 > D4          REAL      24                2                       null          FLOAT              24                         null
 > rows (ordered): 4
 
-SCRIPT NODATA NOPASSWORDS NOSETTINGS TABLE TEST;
+SCRIPT NODATA NOPASSWORDS NOSETTINGS NOVERSION TABLE TEST;
 > SCRIPT
 > -------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;

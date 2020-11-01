@@ -9209,7 +9209,7 @@ public class Parser {
 
     private ScriptCommand parseScript() {
         ScriptCommand command = new ScriptCommand(session);
-        boolean data = true, passwords = true, settings = true;
+        boolean data = true, passwords = true, settings = true, version = true;
         boolean dropTables = false, simple = false, withColumns = false;
         if (readIf("NODATA")) {
             data = false;
@@ -9227,6 +9227,9 @@ public class Parser {
         if (readIf("NOSETTINGS")) {
             settings = false;
         }
+        if (readIf("NOVERSION")) {
+            version = false;
+        }
         if (readIf("DROP")) {
             dropTables = true;
         }
@@ -9237,6 +9240,7 @@ public class Parser {
         command.setData(data);
         command.setPasswords(passwords);
         command.setSettings(settings);
+        command.setVersion(version);
         command.setDrop(dropTables);
         command.setSimple(simple);
         command.setWithColumns(withColumns);

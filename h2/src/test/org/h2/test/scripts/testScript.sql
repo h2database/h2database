@@ -567,7 +567,7 @@ create domain int as varchar;
 create memory table test(id int);
 > ok
 
-script nodata nopasswords nosettings;
+script nodata nopasswords nosettings noversion;
 > SCRIPT
 > -----------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -877,7 +877,7 @@ select * from test order by id;
 > 2  NaN       NaN
 > rows (ordered): 3
 
-script nopasswords nosettings;
+script nopasswords nosettings noversion;
 > SCRIPT
 > -----------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -1783,7 +1783,7 @@ create memory table test(id int primary key, data clob);
 insert into test values(1, 'abc' || space(20));
 > update count: 1
 
-script nopasswords nosettings blocksize 10;
+script nopasswords nosettings noversion blocksize 10;
 > SCRIPT
 > -----------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -2096,7 +2096,7 @@ insert into test values('aa');
 insert into test values('AA');
 > update count: 1
 
-script nodata nopasswords nosettings;
+script nodata nopasswords nosettings noversion;
 > SCRIPT
 > ---------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -2169,7 +2169,7 @@ select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, PARENT_
 > STRING_X    null           CHARACTER VARYING 1048576                  STRING2            null
 > rows: 6
 
-script nodata nopasswords nosettings;
+script nodata nopasswords nosettings noversion;
 > SCRIPT
 > -------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -2230,7 +2230,7 @@ drop table address;
 create memory table a(k10 blob(10k), m20 blob(20m), g30 clob(30g));
 > ok
 
-script NODATA NOPASSWORDS NOSETTINGS drop;
+SCRIPT NODATA NOPASSWORDS NOSETTINGS NOVERSION DROP;
 > SCRIPT
 > -----------------------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -2835,7 +2835,7 @@ CREATE memory TABLE sp1(S_NO VARCHAR(5) REFERENCES s, p_no VARCHAR(5) REFERENCES
 CREATE memory TABLE sp2(S_NO VARCHAR(5), p_no VARCHAR(5), qty INT, constraint c1 FOREIGN KEY (S_NO) references s, PRIMARY KEY (S_NO, p_no));
 > ok
 
-script NOPASSWORDS NOSETTINGS;
+script NOPASSWORDS NOSETTINGS noversion;
 > SCRIPT
 > --------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -2905,7 +2905,7 @@ create local temporary table test (id identity, b int, foreign key(b) references
 drop table test;
 > ok
 
-script NOPASSWORDS NOSETTINGS drop;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION DROP;
 > SCRIPT
 > -------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -3125,7 +3125,7 @@ alter table s.testtab rename to test;
 create trigger test_trigger before insert on s.test call 'org.h2.test.db.TestTriggersConstraints';
 > ok
 
-script NOPASSWORDS NOSETTINGS drop;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION DROP;
 > SCRIPT
 > -----------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -3158,7 +3158,7 @@ alter table test add constraint abc foreign key(id) references (id);
 alter table test rename column id to i;
 > ok
 
-script NOPASSWORDS NOSETTINGS drop;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION DROP;
 > SCRIPT
 > --------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -3414,7 +3414,7 @@ create memory table test (id int primary key, im_ie varchar(10));
 create sequence test_seq;
 > ok
 
-script NODATA NOPASSWORDS NOSETTINGS drop;
+SCRIPT NODATA NOPASSWORDS NOSETTINGS NOVERSION DROP;
 > SCRIPT
 > --------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -3754,7 +3754,7 @@ insert into test values(1, '', '');
 insert into test values(2, 'Cafe', X'cafe');
 > update count: 1
 
-script simple nopasswords nosettings;
+script simple nopasswords nosettings noversion;
 > SCRIPT
 > ------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -4125,7 +4125,7 @@ drop schema ClientServer_Schema restrict;
 CREATE MEMORY TABLE TEST(ID INT PRIMARY KEY);
 > ok
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > -------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -4212,7 +4212,7 @@ SELECT * FROM TEST_SEQ ORDER BY ID;
 > 20 20
 > rows (ordered): 4
 
-SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
+SCRIPT SIMPLE NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -4247,7 +4247,7 @@ ALTER TABLE TEST DROP NAME;
 DROP TABLE TEST_SEQ;
 > ok
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > ---------------------------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -4260,7 +4260,7 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 ALTER TABLE TEST ADD NAME VARCHAR(255) NULL BEFORE CREATEDATE;
 > ok
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -4333,7 +4333,7 @@ drop table test;
 CREATE MEMORY TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
 > ok
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > ---------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -5415,7 +5415,7 @@ CAST(XD AS TIMESTAMP) D2TS FROM TEST;
 > null null       null               null
 > rows: 4
 
-SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
+SCRIPT SIMPLE NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > ---------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -6305,7 +6305,7 @@ CREATE MEMORY TABLE PARENT(ID INT PRIMARY KEY);
 CREATE MEMORY TABLE CHILD(ID INT, PARENT_ID INT, FOREIGN KEY(PARENT_ID) REFERENCES PARENT);
 > ok
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > ----------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -6365,7 +6365,7 @@ ALTER TABLE TEST DROP CONSTRAINT A_UNIQUE;
 ALTER TABLE TEST ADD CONSTRAINT C1 FOREIGN KEY(A_INT) REFERENCES TEST(B_INT);
 > ok
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > --------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -6510,7 +6510,7 @@ SELECT * FROM B_TEST;
 > -1    XX
 > rows: 1
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -6608,7 +6608,7 @@ SELECT * FROM CHILD;
 > 201 null     null      Johann
 > rows: 4
 
-SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
+SCRIPT SIMPLE NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -6635,7 +6635,7 @@ SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 ALTER TABLE CHILD DROP CONSTRAINT PARENT_CHILD;
 > ok
 
-SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
+SCRIPT SIMPLE NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > ------------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -6716,7 +6716,7 @@ DROP TABLE INVOICE, INVOICE_LINE;
 CREATE MEMORY TABLE TEST(A INT, B INT, FOREIGN KEY (B) REFERENCES(A) ON UPDATE RESTRICT ON DELETE NO ACTION);
 > ok
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > ----------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -6766,7 +6766,7 @@ ALTER TABLE TEST2_X RENAME TO TEST2;
 ALTER INDEX IDX_ID RENAME TO IDX_ID2;
 > ok
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > --------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -6820,7 +6820,7 @@ CREATE USER SECURE SALT '001122' HASH '1122334455';
 ALTER USER SECURE SET SALT '112233' HASH '2233445566';
 > ok
 
-SCRIPT NOSETTINGS;
+SCRIPT NOSETTINGS NOVERSION;
 > SCRIPT
 > -------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" SALT '' HASH '' ADMIN;

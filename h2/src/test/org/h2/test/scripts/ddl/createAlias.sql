@@ -33,7 +33,7 @@ SELECT MY_SQRT(-1.0) MS, SQRT(NULL) S;
 > NaN null
 > rows: 1
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > ----------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;

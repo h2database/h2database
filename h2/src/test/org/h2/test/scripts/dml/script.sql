@@ -9,7 +9,7 @@ create memory table test(id int primary key, name varchar(255));
 INSERT INTO TEST VALUES(2, STRINGDECODE('abcsond\344rzeich\344 ') || char(22222) || STRINGDECODE(' \366\344\374\326\304\334\351\350\340\361!'));
 > update count: 1
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > ------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -19,7 +19,7 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > INSERT INTO "PUBLIC"."TEST" VALUES (2, U&'abcsond\00e4rzeich\00e4 \56ce \00f6\00e4\00fc\00d6\00c4\00dc\00e9\00e8\00e0\00f1!');
 > rows (ordered): 5
 
-SCRIPT COLUMNS NOPASSWORDS NOSETTINGS;
+SCRIPT COLUMNS NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > --------------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -38,7 +38,7 @@ CREATE MEMORY TABLE TEST(ID BIGINT GENERATED ALWAYS AS IDENTITY, V INT, G INT GE
 INSERT INTO TEST(V) VALUES 5;
 > update count: 1
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -59,7 +59,7 @@ CREATE DOMAIN B AS C;
 CREATE DOMAIN A AS B;
 > ok
 
-SCRIPT NOPASSWORDS;
+SCRIPT NOPASSWORDS NOVERSION;
 > SCRIPT
 > -------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;

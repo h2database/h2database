@@ -190,7 +190,7 @@ create sequence s.seq cache 0;
 alter sequence s.seq restart with 10;
 > ok
 
-script NOPASSWORDS NOSETTINGS drop;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION DROP;
 > SCRIPT
 > ----------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
@@ -355,7 +355,7 @@ SELECT NEXT VALUE FOR SEQ;
 SELECT CACHE FROM INFORMATION_SCHEMA.SEQUENCES WHERE SEQUENCE_NAME = 'SEQ';
 >> 2
 
-SCRIPT NODATA NOPASSWORDS NOSETTINGS;
+SCRIPT NODATA NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > -----------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;

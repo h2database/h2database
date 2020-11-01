@@ -115,8 +115,8 @@ public class TestRunscript extends TestDb implements Trigger {
         stat.execute("create schema include_schema2");
         stat.execute("script nosettings schema include_schema1, include_schema2");
         rs = stat.getResultSet();
-        // user and one row per schema = 3
-        assertResultRowCount(3, rs);
+        // version, user, and one row per schema = 4
+        assertResultRowCount(4, rs);
         rs.close();
         conn.close();
     }
@@ -158,8 +158,8 @@ public class TestRunscript extends TestDb implements Trigger {
         }
         stat.execute("script nosettings table a.test1, test2");
         rs = stat.getResultSet();
-        // user, schemas 'a' & 'b' and 2 rows per table = 7
-        assertResultRowCount(7, rs);
+        // version, user, schemas 'a' & 'b', and 2 rows per table = 7
+        assertResultRowCount(8, rs);
         rs.close();
         conn.close();
     }

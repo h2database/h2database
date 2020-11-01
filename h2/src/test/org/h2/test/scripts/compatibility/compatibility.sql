@@ -229,7 +229,7 @@ drop table word;
 CREATE MEMORY TABLE TEST1(ID BIGINT(20) NOT NULL PRIMARY KEY COMMENT 'COMMENT1', FIELD_NAME VARCHAR(100) NOT NULL COMMENT 'COMMENT2');
 > ok
 
-SCRIPT NOPASSWORDS NOSETTINGS TABLE TEST1;
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION TABLE TEST1;
 > SCRIPT
 > -------------------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;

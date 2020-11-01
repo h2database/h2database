@@ -86,6 +86,8 @@ public class ScriptCommand extends ScriptBase {
     private boolean drop;
     private boolean simple;
     private boolean withColumns;
+    private boolean version = true;
+
     private LocalResult result;
     private String lineSeparatorString;
     private byte[] lineSeparator;
@@ -165,6 +167,9 @@ public class ScriptCommand extends ScriptBase {
             openOutput();
             if (out != null) {
                 buffer = new byte[Constants.IO_BUFFER_SIZE];
+            }
+            if (version) {
+                add("-- H2 " + Constants.VERSION, true);
             }
             if (settings) {
                 for (Setting setting : db.getAllSettings()) {
@@ -790,6 +795,10 @@ public class ScriptCommand extends ScriptBase {
 
     public void setWithColumns(boolean withColumns) {
         this.withColumns = withColumns;
+    }
+
+    public void setVersion(boolean version) {
+        this.version = version;
     }
 
     public void setCharset(Charset charset) {

@@ -22,6 +22,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -222,10 +223,8 @@ public final class CompareLike extends Condition {
             return;
         }
         ExpressionColumn l = (ExpressionColumn) left;
-        if (ignoreCase && l.getType().getValueType() != Value.VARCHAR_IGNORECASE) {
-            return;
-        }
-        if (filter != l.getTableFilter()) {
+        if (filter != l.getTableFilter() || !TypeInfo.haveSameOrdering(l.getType(),
+                ignoreCase ? TypeInfo.TYPE_VARCHAR_IGNORECASE : TypeInfo.TYPE_VARCHAR)) {
             return;
         }
         // parameters are always evaluatable, but
@@ -236,8 +235,7 @@ public final class CompareLike extends Condition {
         if (!right.isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
             return;
         }
-        if (escape != null &&
-                !escape.isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
+        if (escape != null && !escape.isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
             return;
         }
         String p = right.getValue(session).getString();

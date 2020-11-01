@@ -161,8 +161,10 @@ public final class ConditionIn extends Condition {
         }
         if (session.getDatabase().getSettings().optimizeInList) {
             ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
+            TypeInfo colType = l.getType();
             for (Expression e : valueList) {
-                if (!e.isEverything(visitor)) {
+                if (!e.isEverything(visitor)
+                        || !TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, e.getType()))) {
                     return;
                 }
             }

@@ -159,19 +159,18 @@ public final class Comparison extends Condition {
                 }
                 TypeInfo colType = left.getType(), constType = r.getType();
                 int constValueType = constType.getValueType();
-                if (constValueType != colType.getValueType()) {
+                if (constValueType != colType.getValueType() || constValueType >= Value.ARRAY) {
                     TypeInfo resType = TypeInfo.getHigherType(colType, constType);
                     // If not, the column values will need to be promoted
                     // to constant type, but vise versa, then let's do this here
                     // once.
-                    if (constValueType != resType.getValueType()) {
+                    if (constValueType != resType.getValueType() || constValueType >= Value.ARRAY) {
                         Column column = ((ExpressionColumn) left).getColumn();
                         right = ValueExpression.get(r.convertTo(resType, session, column));
                     }
                 }
             } else if (right instanceof Parameter) {
-                ((Parameter) right).setColumn(
-                        ((ExpressionColumn) left).getColumn());
+                ((Parameter) right).setColumn(((ExpressionColumn) left).getColumn());
             }
         }
         if (left.isConstant() && right.isConstant()) {
@@ -393,34 +392,21 @@ public final class Comparison extends Condition {
             }
         }
         // one side must be from the current filter
-        if (l == null && r == null) {
-            return;
-        }
-        if (l != null && r != null) {
+        if ((l == null) == (r == null)) {
             return;
         }
         if (l == null) {
-            ExpressionVisitor visitor =
-                    ExpressionVisitor.getNotFromResolverVisitor(filter);
-            if (!left.isEverything(visitor)) {
+            if (!left.isEverything(ExpressionVisitor.getNotFromResolverVisitor(filter))) {
                 return;
             }
-        } else if (r == null) {
-            ExpressionVisitor visitor =
-                    ExpressionVisitor.getNotFromResolverVisitor(filter);
-            if (!right.isEverything(visitor)) {
+        } else { // r == null
+            if (!right.isEverything(ExpressionVisitor.getNotFromResolverVisitor(filter))) {
                 return;
             }
-        } else {
-            // if both sides are part of the same filter, it can't be used for
-            // index lookup
-            return;
         }
-        boolean addIndex;
         switch (compareType) {
         case NOT_EQUAL:
         case NOT_EQUAL_NULL_SAFE:
-            addIndex = false;
             break;
         case EQUAL:
         case EQUAL_NULL_SAFE:
@@ -429,26 +415,21 @@ public final class Comparison extends Condition {
         case SMALLER_EQUAL:
         case SMALLER:
         case SPATIAL_INTERSECTS:
-            addIndex = true;
+            if (l != null) {
+                TypeInfo colType = l.getType();
+                if (TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, right.getType()))) {
+                    filter.addIndexCondition(IndexCondition.get(compareType, l, right));
+                }
+            } else {
+                @SuppressWarnings("null")
+                TypeInfo colType = r.getType();
+                if (TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, left.getType()))) {
+                    filter.addIndexCondition(IndexCondition.get(getReversedCompareType(compareType), r, left));
+                }
+            }
             break;
         default:
             throw DbException.getInternalError("type=" + compareType);
-        }
-        if (addIndex) {
-            if (l != null) {
-                int rType = right.getType().getValueType();
-                if (l.getType().getValueType() == rType || rType != Value.VARCHAR_IGNORECASE) {
-                    filter.addIndexCondition(
-                            IndexCondition.get(compareType, l, right));
-                }
-            } else if (r != null) {
-                int lType = left.getType().getValueType();
-                if (r.getType().getValueType() == lType || lType != Value.VARCHAR_IGNORECASE) {
-                    int compareRev = getReversedCompareType(compareType);
-                    filter.addIndexCondition(
-                            IndexCondition.get(compareRev, r, left));
-                }
-            }
         }
     }
 

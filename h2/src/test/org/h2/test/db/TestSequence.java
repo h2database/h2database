@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.h2.api.Trigger;
+import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.Task;
@@ -377,17 +378,18 @@ public class TestSequence extends TestDb {
             script.add(rs.getString(1));
         }
         Collections.sort(script);
-        assertEquals("CREATE SEQUENCE \"PUBLIC\".\"A\" START WITH 1;", script.get(0));
+        assertEquals("-- H2 " + Constants.VERSION + ";", script.get(0));
+        assertEquals("CREATE SEQUENCE \"PUBLIC\".\"A\" START WITH 1;", script.get(1));
         assertEquals("CREATE SEQUENCE \"PUBLIC\".\"B\" START " +
                 "WITH 5 INCREMENT BY 2 " +
-                "MINVALUE 3 MAXVALUE 7 CYCLE NO CACHE;", script.get(1));
+                "MINVALUE 3 MAXVALUE 7 CYCLE NO CACHE;", script.get(2));
         assertEquals("CREATE SEQUENCE \"PUBLIC\".\"C\" START " +
                 "WITH 3 MINVALUE 2 MAXVALUE 9 CACHE 2;",
-                script.get(2));
+                script.get(3));
         assertEquals("CREATE SEQUENCE \"PUBLIC\".\"D\" START " +
-                "WITH 1 NO CACHE;", script.get(3));
-        assertEquals("CREATE SEQUENCE \"PUBLIC\".\"E\" START " +
                 "WITH 1 NO CACHE;", script.get(4));
+        assertEquals("CREATE SEQUENCE \"PUBLIC\".\"E\" START " +
+                "WITH 1 NO CACHE;", script.get(5));
         conn.close();
     }
 

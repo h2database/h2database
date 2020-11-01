@@ -3511,7 +3511,7 @@ public class Parser {
                  * versions can contain invalid generated IS [ NOT ]
                  * expressions.
                  */
-                if (whenOperand || !database.isStarting()) {
+                if (whenOperand || !session.isQuirksMode()) {
                     throw getSyntaxError();
                 }
                 left = new Comparison(isNot ? Comparison.NOT_EQUAL_NULL_SAFE : Comparison.EQUAL_NULL_SAFE, left,
@@ -6009,7 +6009,7 @@ public class Parser {
              * PageStore's LobStorageBackend also needs this in databases that
              * were created in 1.4.197 and older versions.
              */
-            if (!database.isStarting() || !isKeyword(currentTokenType)) {
+            if (!session.isQuirksMode() || !isKeyword(currentTokenType)) {
                 throw DbException.getSyntaxError(sqlCommand, parseIndex, "identifier");
             }
         }
@@ -7086,7 +7086,7 @@ public class Parser {
             return parseRowType();
         case ARRAY:
             // Partial compatibility with 1.4.200 and older versions
-            if (database.isStarting()) {
+            if (session.isQuirksMode()) {
                 read();
                 return parseArrayType(TypeInfo.TYPE_VARCHAR);
             }
@@ -7228,7 +7228,7 @@ public class Parser {
                         throw getInvalidPrecisionException(dataType, precision);
                     } else if (precision > dataType.maxPrecision)
                     badPrecision: {
-                        if (database.isStarting() || session.isTruncateLargeLength()) {
+                        if (session.isQuirksMode() || session.isTruncateLargeLength()) {
                             switch (dataType.type) {
                             case Value.CHAR:
                             case Value.VARCHAR:
@@ -7319,7 +7319,7 @@ public class Parser {
             if (precision < 1) {
                 throw getInvalidNumericPrecisionException(precision);
             } else if (precision > Constants.MAX_NUMERIC_PRECISION) {
-                if (database.isStarting() || session.isTruncateLargeLength()) {
+                if (session.isQuirksMode() || session.isTruncateLargeLength()) {
                     precision = Constants.MAX_NUMERIC_PRECISION;
                 } else {
                     throw getInvalidNumericPrecisionException(precision);
@@ -9198,8 +9198,8 @@ public class Parser {
         if (readIf("CHARSET")) {
             command.setCharset(Charset.forName(readString()));
         }
-        if (readIf("TRUNCATE_LARGE_LENGTH")) {
-            command.setTruncateLargeLength(true);
+        if (readIf("QUIRKS_MODE")) {
+            command.setQuirksMode(true);
         }
         if (readIf("VARIABLE_BINARY")) {
             command.setVariableBinary(true);
@@ -9209,7 +9209,7 @@ public class Parser {
 
     private ScriptCommand parseScript() {
         ScriptCommand command = new ScriptCommand(session);
-        boolean data = true, passwords = true, settings = true;
+        boolean data = true, passwords = true, settings = true, version = true;
         boolean dropTables = false, simple = false, withColumns = false;
         if (readIf("NODATA")) {
             data = false;
@@ -9227,6 +9227,9 @@ public class Parser {
         if (readIf("NOSETTINGS")) {
             settings = false;
         }
+        if (readIf("NOVERSION")) {
+            version = false;
+        }
         if (readIf("DROP")) {
             dropTables = true;
         }
@@ -9237,6 +9240,7 @@ public class Parser {
         command.setData(data);
         command.setPasswords(passwords);
         command.setSettings(settings);
+        command.setVersion(version);
         command.setDrop(dropTables);
         command.setSimple(simple);
         command.setWithColumns(withColumns);

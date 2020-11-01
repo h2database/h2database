@@ -145,7 +145,7 @@ public class PageDataLeaf extends PageData {
     private int getRowLength(Row row) {
         int size = 0;
         for (int i = 0; i < columnCount; i++) {
-            size += data.getValueLen(row.getValue(i));
+            size += Data.getValueLen(row.getValue(i));
         }
         return size;
     }

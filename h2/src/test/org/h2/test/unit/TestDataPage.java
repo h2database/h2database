@@ -68,7 +68,7 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
     private static void testPerformance() {
-        Data data = Data.create(null, 1024, false);
+        Data data = Data.create(null, 1024);
         for (int j = 0; j < 4; j++) {
             long time = System.nanoTime();
             for (int i = 0; i < 100000; i++) {
@@ -204,17 +204,7 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
     private void testValue(Value v) {
-        testValue(v, false);
-        switch (v.getValueType()) {
-        case Value.DATE:
-        case Value.TIME:
-        case Value.TIMESTAMP:
-            testValue(v, true);
-        }
-    }
-
-    private void testValue(Value v, boolean storeLocalTime) {
-        Data data = Data.create(null, 1024, storeLocalTime);
+        Data data = Data.create(null, 1024);
         data.checkCapacity((int) v.getType().getPrecision());
         data.writeValue(v);
         data.writeInt(123);
@@ -226,7 +216,7 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
     private void testAll() {
-        Data page = Data.create(this, 128, false);
+        Data page = Data.create(this, 128);
 
         char[] data = new char[0x10000];
         for (int i = 0; i < data.length; i++) {

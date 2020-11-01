@@ -245,6 +245,11 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      */
     private boolean oldInformationSchema;
 
+    /**
+     * Whether commands are executed in quirks mode to support scripts from older versions of H2.
+     */
+    private boolean quirksMode;
+
     public SessionLocal(Database database, User user, int id) {
         this.database = database;
         this.queryTimeout = database.getSettings().maxQueryTimeout;
@@ -2199,6 +2204,26 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     @Override
     public boolean zeroBasedEnums() {
         return database.zeroBasedEnums();
+    }
+
+    /**
+     * Enables or disables the quirks mode.
+     *
+     * @param quirksMode
+     *            whether quirks mode should be enabled
+     */
+    public void setQuirksMode(boolean quirksMode) {
+        this.quirksMode = quirksMode;
+    }
+
+    /**
+     * Returns whether quirks mode is enabled explicitly or implicitly.
+     *
+     * @return {@code true} if database is starting or quirks mode was enabled
+     *         explicitly, {@code false} otherwise
+     */
+    public boolean isQuirksMode() {
+        return quirksMode || database.isStarting();
     }
 
 }

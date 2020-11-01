@@ -131,7 +131,7 @@ public class UndoLogRecord {
         buff.writeInt(count);
         for (int i = 0; i < count; i++) {
             Value v = row.getValue(i);
-            buff.checkCapacity(buff.getValueLen(v));
+            buff.checkCapacity(Data.getValueLen(v));
             buff.writeValue(v);
         }
         buff.fillAligned();

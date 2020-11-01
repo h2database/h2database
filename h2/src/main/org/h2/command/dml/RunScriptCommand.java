@@ -33,7 +33,7 @@ public class RunScriptCommand extends ScriptBase {
 
     private Charset charset = StandardCharsets.UTF_8;
 
-    private boolean truncateLargeLength;
+    private boolean quirksMode;
 
     private boolean variableBinary;
 
@@ -45,7 +45,7 @@ public class RunScriptCommand extends ScriptBase {
     public long update() {
         session.getUser().checkAdmin();
         int count = 0;
-        boolean oldTruncateLargeLength = session.isTruncateLargeLength();
+        boolean oldQuirksMode = session.isQuirksMode();
         boolean oldVariableBinary = session.isVariableBinary();
         try {
             openInput();
@@ -55,8 +55,8 @@ public class RunScriptCommand extends ScriptBase {
             if (reader.read() != UTF8_BOM) {
                 reader.reset();
             }
-            if (truncateLargeLength) {
-                session.setTruncateLargeLength(true);
+            if (quirksMode) {
+                session.setQuirksMode(true);
             }
             if (variableBinary) {
                 session.setVariableBinary(true);
@@ -77,8 +77,8 @@ public class RunScriptCommand extends ScriptBase {
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         } finally {
-            if (truncateLargeLength) {
-                session.setTruncateLargeLength(oldTruncateLargeLength);
+            if (quirksMode) {
+                session.setQuirksMode(oldQuirksMode);
             }
             if (variableBinary) {
                 session.setVariableBinary(oldVariableBinary);
@@ -109,13 +109,13 @@ public class RunScriptCommand extends ScriptBase {
     }
 
     /**
-     * Changes parsing of a too large lengths of data types.
+     * Enables or disables the quirks mode.
      *
-     * @param truncateLargeLength
-     *            {@code true} to truncate length in definitions of data types
+     * @param quirksMode
+     *            whether quirks mode should be enabled
      */
-    public void setTruncateLargeLength(boolean truncateLargeLength) {
-        this.truncateLargeLength = truncateLargeLength;
+    public void setQuirksMode(boolean quirksMode) {
+        this.quirksMode = quirksMode;
     }
 
     /**

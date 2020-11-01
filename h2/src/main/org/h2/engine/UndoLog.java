@@ -73,7 +73,7 @@ public class UndoLog {
             long pos = storedEntriesPos.remove(last);
             long end = file.length();
             int bufferLength = (int) (end - pos);
-            Data buff = Data.create(database, bufferLength, true);
+            Data buff = Data.create(database, bufferLength);
             file.seek(pos);
             file.readFully(buff.getBytes(), 0, bufferLength);
             while (buff.length() < bufferLength) {
@@ -147,7 +147,7 @@ public class UndoLog {
                 file.setCheckedWriting(false);
                 file.setLength(FileStore.HEADER_LENGTH);
             }
-            Data buff = Data.create(database, Constants.DEFAULT_PAGE_SIZE, true);
+            Data buff = Data.create(database, Constants.DEFAULT_PAGE_SIZE);
             for (int i = 0; i < records.size(); i++) {
                 UndoLogRecord r = records.get(i);
                 buff.checkCapacity(Constants.DEFAULT_PAGE_SIZE);

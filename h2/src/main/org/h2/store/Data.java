@@ -13,7 +13,6 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -158,12 +157,9 @@ public class Data {
      */
     private final DataHandler handler;
 
-    private final boolean storeLocalTime;
-
-    private Data(DataHandler handler, byte[] data, boolean storeLocalTime) {
+    private Data(DataHandler handler, byte[] data) {
         this.handler = handler;
         this.data = data;
-        this.storeLocalTime = storeLocalTime;
     }
 
     /**
@@ -342,13 +338,10 @@ public class Data {
      *
      * @param handler the data handler
      * @param capacity the initial capacity of the buffer
-     * @param storeLocalTime
-     *            store DATE, TIME, and TIMESTAMP values with local time storage
-     *            format
      * @return the buffer
      */
-    public static Data create(DataHandler handler, int capacity, boolean storeLocalTime) {
-        return new Data(handler, new byte[capacity], storeLocalTime);
+    public static Data create(DataHandler handler, int capacity) {
+        return new Data(handler, new byte[capacity]);
     }
 
     /**
@@ -357,13 +350,10 @@ public class Data {
      *
      * @param handler the data handler
      * @param buff the data
-     * @param storeLocalTime
-     *            store DATE, TIME, and TIMESTAMP values with local time storage
-     *            format
      * @return the buffer
      */
-    public static Data create(DataHandler handler, byte[] buff, boolean storeLocalTime) {
-        return new Data(handler, buff, storeLocalTime);
+    public static Data create(DataHandler handler, byte[] buff) {
+        return new Data(handler, buff);
     }
 
     /**
@@ -545,20 +535,16 @@ public class Data {
             write(bytes, 0, bytes.length);
             break;
         }
-        case Value.TIME:
-            if (storeLocalTime) {
-                writeByte((byte) LOCAL_TIME);
-                ValueTime t = (ValueTime) v;
-                long nanos = t.getNanos();
-                long millis = nanos / 1_000_000;
-                nanos -= millis * 1_000_000;
-                writeVarLong(millis);
-                writeVarInt((int) nanos);
-            } else {
-                writeByte(TIME);
-                writeVarLong(LegacyDateTimeUtils.toTime(null, null, v).getTime() + zoneOffsetMillis);
-            }
+        case Value.TIME: {
+            writeByte((byte) LOCAL_TIME);
+            ValueTime t = (ValueTime) v;
+            long nanos = t.getNanos();
+            long millis = nanos / 1_000_000;
+            nanos -= millis * 1_000_000;
+            writeVarLong(millis);
+            writeVarInt((int) nanos);
             break;
+        }
         case Value.TIME_TZ: {
             writeByte((byte) TIME_TZ);
             ValueTimeTimeZone ts = (ValueTimeTimeZone) v;
@@ -568,35 +554,20 @@ public class Data {
             writeTimeZone(ts.getTimeZoneOffsetSeconds());
             break;
         }
-        case Value.DATE: {
-            if (storeLocalTime) {
-                writeByte((byte) LOCAL_DATE);
-                long x = ((ValueDate) v).getDateValue();
-                writeVarLong(x);
-            } else {
-                writeByte(DATE);
-                long x = LegacyDateTimeUtils.toDate(null, null, v).getTime() + zoneOffsetMillis;
-                writeVarLong(x / MILLIS_PER_MINUTE);
-            }
+        case Value.DATE:
+            writeByte((byte) LOCAL_DATE);
+            writeVarLong(((ValueDate) v).getDateValue());
             break;
-        }
         case Value.TIMESTAMP: {
-            if (storeLocalTime) {
-                writeByte((byte) LOCAL_TIMESTAMP);
-                ValueTimestamp ts = (ValueTimestamp) v;
-                long dateValue = ts.getDateValue();
-                writeVarLong(dateValue);
-                long nanos = ts.getTimeNanos();
-                long millis = nanos / 1_000_000;
-                nanos -= millis * 1_000_000;
-                writeVarLong(millis);
-                writeVarInt((int) nanos);
-            } else {
-                Timestamp ts = LegacyDateTimeUtils.toTimestamp(null, null, v);
-                writeByte(TIMESTAMP);
-                writeVarLong(ts.getTime() + zoneOffsetMillis);
-                writeVarInt(ts.getNanos() % 1_000_000);
-            }
+            writeByte((byte) LOCAL_TIMESTAMP);
+            ValueTimestamp ts = (ValueTimestamp) v;
+            long dateValue = ts.getDateValue();
+            writeVarLong(dateValue);
+            long nanos = ts.getTimeNanos();
+            long millis = nanos / 1_000_000;
+            nanos -= millis * 1_000_000;
+            writeVarLong(millis);
+            writeVarInt((int) nanos);
             break;
         }
         case Value.TIMESTAMP_TZ: {
@@ -1003,20 +974,7 @@ public class Data {
      * @param v the value
      * @return the number of bytes required to store this value
      */
-    public int getValueLen(Value v) {
-        return getValueLen(v, storeLocalTime);
-    }
-
-    /**
-     * Calculate the number of bytes required to encode the given value.
-     *
-     * @param v the value
-     * @param storeLocalTime
-     *            calculate size of DATE, TIME, and TIMESTAMP values with local
-     *            time storage format
-     * @return the number of bytes required to store this value
-     */
-    public static int getValueLen(Value v, boolean storeLocalTime) {
+    public static int getValueLen(Value v) {
         if (v == ValueNull.INSTANCE) {
             return 1;
         }
@@ -1105,14 +1063,12 @@ public class Data {
             int len = x.unscaledValue().toByteArray().length;
             return 1 + getVarIntLen(x.scale()) + getVarIntLen(len) + len;
         }
-        case Value.TIME:
-            if (storeLocalTime) {
-                long nanos = ((ValueTime) v).getNanos();
-                long millis = nanos / 1_000_000;
-                nanos -= millis * 1_000_000;
-                return 1 + getVarLongLen(millis) + getVarLongLen(nanos);
-            }
-            return 1 + getVarLongLen(LegacyDateTimeUtils.toTime(null, null, v).getTime() + zoneOffsetMillis);
+        case Value.TIME: {
+            long nanos = ((ValueTime) v).getNanos();
+            long millis = nanos / 1_000_000;
+            nanos -= millis * 1_000_000;
+            return 1 + getVarLongLen(millis) + getVarLongLen(nanos);
+        }
         case Value.TIME_TZ: {
             ValueTimeTimeZone ts = (ValueTimeTimeZone) v;
             long nanosOfDay = ts.getNanos();
@@ -1120,26 +1076,15 @@ public class Data {
             return 1 + getVarIntLen((int) (nanosOfDay / DateTimeUtils.NANOS_PER_SECOND))
                     + getVarIntLen((int) (nanosOfDay % DateTimeUtils.NANOS_PER_SECOND)) + getTimeZoneLen(tz);
         }
-        case Value.DATE: {
-            if (storeLocalTime) {
-                long dateValue = ((ValueDate) v).getDateValue();
-                return 1 + getVarLongLen(dateValue);
-            }
-            long x = LegacyDateTimeUtils.toDate(null, null, v).getTime() + zoneOffsetMillis;
-            return 1 + getVarLongLen(x / MILLIS_PER_MINUTE);
-        }
+        case Value.DATE:
+            return 1 + getVarLongLen(((ValueDate) v).getDateValue());
         case Value.TIMESTAMP: {
-            if (storeLocalTime) {
-                ValueTimestamp ts = (ValueTimestamp) v;
-                long dateValue = ts.getDateValue();
-                long nanos = ts.getTimeNanos();
-                long millis = nanos / 1_000_000;
-                nanos -= millis * 1_000_000;
-                return 1 + getVarLongLen(dateValue) + getVarLongLen(millis) +
-                        getVarLongLen(nanos);
-            }
-            Timestamp ts = LegacyDateTimeUtils.toTimestamp(null, null, v);
-            return 1 + getVarLongLen(ts.getTime() + zoneOffsetMillis) + getVarIntLen(ts.getNanos() % 1_000_000);
+            ValueTimestamp ts = (ValueTimestamp) v;
+            long dateValue = ts.getDateValue();
+            long nanos = ts.getTimeNanos();
+            long millis = nanos / 1_000_000;
+            nanos -= millis * 1_000_000;
+            return 1 + getVarLongLen(dateValue) + getVarLongLen(millis) + getVarLongLen(nanos);
         }
         case Value.TIMESTAMP_TZ: {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v;
@@ -1186,7 +1131,7 @@ public class Data {
             Value[] list = ((ValueCollectionBase) v).getList();
             int len = 1 + getVarIntLen(list.length);
             for (Value x : list) {
-                len += getValueLen(x, storeLocalTime);
+                len += getValueLen(x);
             }
             return len;
         }
@@ -1461,7 +1406,7 @@ public class Data {
     public static void copyString(Reader source, OutputStream target)
             throws IOException {
         char[] buff = new char[Constants.IO_BUFFER_SIZE];
-        Data d = new Data(null, new byte[3 * Constants.IO_BUFFER_SIZE], false);
+        Data d = new Data(null, new byte[3 * Constants.IO_BUFFER_SIZE]);
         while (true) {
             int l = source.read(buff);
             if (l < 0) {

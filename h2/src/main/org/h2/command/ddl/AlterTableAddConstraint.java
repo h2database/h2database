@@ -122,7 +122,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
              * and they may use the same generated name as some other not yet
              * initialized constraint that may lead to a name conflict.
              */
-            if (!session.getDatabase().isStarting()) {
+            if (!session.isQuirksMode()) {
                 throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraintName);
             }
             constraintName = null;

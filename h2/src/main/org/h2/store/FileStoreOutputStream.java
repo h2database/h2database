@@ -31,7 +31,7 @@ public class FileStoreOutputStream extends OutputStream {
             this.compress = null;
             this.compressionAlgorithm = null;
         }
-        page = Data.create(handler, Constants.FILE_BLOCK_SIZE, true);
+        page = Data.create(handler, Constants.FILE_BLOCK_SIZE);
     }
 
     @Override

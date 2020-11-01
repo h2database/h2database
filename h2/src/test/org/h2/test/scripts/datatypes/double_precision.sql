@@ -21,13 +21,13 @@ SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMER
 > D5          DOUBLE PRECISION 53                2                       null          FLOAT              53                         null
 > rows (ordered): 5
 
-SCRIPT NODATA NOPASSWORDS NOSETTINGS TABLE TEST;
+SCRIPT NODATA NOPASSWORDS NOSETTINGS NOVERSION TABLE TEST;
 > SCRIPT
 > --------------------------------------------------------------------------------------------------------------------------------
-> -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "D1" DOUBLE PRECISION, "D2" DOUBLE PRECISION, "D3" FLOAT, "D4" FLOAT(25), "D5" FLOAT(53) );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> rows: 3
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "D1" DOUBLE PRECISION, "D2" DOUBLE PRECISION, "D3" FLOAT, "D4" FLOAT(25), "D5" FLOAT(53) );
+> -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
+> rows (ordered): 3
 
 DROP TABLE TEST;
 > ok

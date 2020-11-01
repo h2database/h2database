@@ -17,9 +17,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
@@ -45,10 +48,11 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
-import org.h2.schema.UserDefinedFunction;
 import org.h2.schema.Schema;
+import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
+import org.h2.schema.UserDefinedFunction;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
@@ -68,6 +72,16 @@ import org.h2.value.ValueVarchar;
  */
 public class ScriptCommand extends ScriptBase {
 
+    private static final Comparator<? super DbObject> BY_NAME_COMPARATOR = (o1, o2) -> {
+        if (o1 instanceof SchemaObject && o2 instanceof SchemaObject) {
+            int cmp = ((SchemaObject) o1).getSchema().getName().compareTo(((SchemaObject) o2).getSchema().getName());
+            if (cmp != 0) {
+                return cmp;
+            }
+        }
+        return o1.getName().compareTo(o2.getName());
+    };
+
     private Charset charset = StandardCharsets.UTF_8;
     private Set<String> schemaNames;
     private Collection<Table> tables;
@@ -81,6 +95,8 @@ public class ScriptCommand extends ScriptBase {
     private boolean drop;
     private boolean simple;
     private boolean withColumns;
+    private boolean version = true;
+
     private LocalResult result;
     private String lineSeparatorString;
     private byte[] lineSeparator;
@@ -161,6 +177,9 @@ public class ScriptCommand extends ScriptBase {
             if (out != null) {
                 buffer = new byte[Constants.IO_BUFFER_SIZE];
             }
+            if (version) {
+                add("-- H2 " + Constants.VERSION, true);
+            }
             if (settings) {
                 for (Setting setting : db.getAllSettings()) {
                     if (setting.getName().equals(SetTypes.getTypeName(
@@ -175,7 +194,22 @@ public class ScriptCommand extends ScriptBase {
             if (out != null) {
                 add("", true);
             }
-            for (RightOwner rightOwner : db.getAllUsersAndRoles()) {
+            RightOwner[] rightOwners = db.getAllUsersAndRoles().toArray(new RightOwner[0]);
+            // ADMIN users first, other users next, roles last
+            Arrays.sort(rightOwners, (o1, o2) -> {
+                boolean b = o1 instanceof User;
+                if (b != o2 instanceof User) {
+                    return b ? -1 : 1;
+                }
+                if (b) {
+                    b = ((User) o1).isAdmin();
+                    if (b != ((User) o2).isAdmin()) {
+                        return b ? -1 : 1;
+                    }
+                }
+                return o1.getName().compareTo(o2.getName());
+            });
+            for (RightOwner rightOwner : rightOwners) {
                 if (rightOwner instanceof User) {
                     add(((User) rightOwner).getCreateSQL(passwords), false);
                 } else {
@@ -190,16 +224,9 @@ public class ScriptCommand extends ScriptBase {
                 schemas.add(schema);
                 add(schema.getCreateSQL(), false);
             }
+            dumpDomains(schemas);
             for (Schema schema : schemas) {
-                for (Domain domain : schema.getAllDomains()) {
-                    if (drop) {
-                        add(domain.getDropSQL(), false);
-                    }
-                    add(domain.getCreateSQL(), false);
-                }
-            }
-            for (Schema schema : schemas) {
-                for (Constant constant : schema.getAllConstants()) {
+                for (Constant constant : sorted(schema.getAllConstants(), Constant.class)) {
                     add(constant.getCreateSQL(), false);
                 }
             }
@@ -231,7 +258,8 @@ public class ScriptCommand extends ScriptBase {
                 }
             }
             for (Schema schema : schemas) {
-                for (UserDefinedFunction userDefinedFunction : schema.getAllFunctionsAndAggregates()) {
+                for (UserDefinedFunction userDefinedFunction : sorted(schema.getAllFunctionsAndAggregates(),
+                        UserDefinedFunction.class)) {
                     if (drop) {
                         add(userDefinedFunction.getDropSQL(), false);
                     }
@@ -239,7 +267,7 @@ public class ScriptCommand extends ScriptBase {
                 }
             }
             for (Schema schema : schemas) {
-                for (Sequence sequence : schema.getAllSequences()) {
+                for (Sequence sequence : sorted(schema.getAllSequences(), Sequence.class)) {
                     if (sequence.getBelongsToTable()) {
                         continue;
                     }
@@ -335,25 +363,7 @@ public class ScriptCommand extends ScriptBase {
                 }
             }
             // Generate GRANT ...
-            for (Right right : db.getAllRights()) {
-                DbObject object = right.getGrantedObject();
-                if (object != null) {
-                    if (object instanceof Schema) {
-                        if (excludeSchema((Schema) object)) {
-                            continue;
-                        }
-                    } else if (object instanceof Table) {
-                        Table table = (Table) object;
-                        if (excludeSchema(table.getSchema())) {
-                            continue;
-                        }
-                        if (excludeTable(table)) {
-                            continue;
-                        }
-                    }
-                }
-                add(right.getCreateSQL(), false);
-            }
+            dumpRights(db);
             // Generate COMMENT ON ...
             for (Comment comment : db.getAllComments()) {
                 add(comment.getCreateSQL(), false);
@@ -370,6 +380,103 @@ public class ScriptCommand extends ScriptBase {
         LocalResult r = result;
         reset();
         return r;
+    }
+
+    private void dumpDomains(ArrayList<Schema> schemas) throws IOException {
+        TreeMap<Domain, TreeSet<Domain>> referencingDomains = new TreeMap<>(BY_NAME_COMPARATOR);
+        TreeSet<Domain> known = new TreeSet<>(BY_NAME_COMPARATOR);
+        for (Schema schema : schemas) {
+            for (Domain domain : sorted(schema.getAllDomains(), Domain.class)) {
+                Domain parent = domain.getDomain();
+                if (parent == null) {
+                    addDomain(domain);
+                } else {
+                    TreeSet<Domain> set = referencingDomains.get(parent);
+                    if (set == null) {
+                        set = new TreeSet<>(BY_NAME_COMPARATOR);
+                        referencingDomains.put(parent, set);
+                    }
+                    set.add(domain);
+                    if (parent.getDomain() == null) {
+                        known.add(parent);
+                    }
+                }
+            }
+        }
+        while (!referencingDomains.isEmpty()) {
+            TreeSet<Domain> known2 = new TreeSet<>(BY_NAME_COMPARATOR);
+            for (Domain d : known) {
+                for (Domain d2 : referencingDomains.remove(d)) {
+                    addDomain(d2);
+                    known2.add(d2);
+                }
+            }
+            known = known2;
+        }
+    }
+
+    private void dumpRights(Database db) throws IOException {
+        Right[] rights = db.getAllRights().toArray(new Right[0]);
+        Arrays.sort(rights, (o1, o2) -> {
+            Role r1 = o1.getGrantedRole(), r2 = o2.getGrantedRole();
+            if ((r1 == null) != (r2 == null)) {
+                return r1 == null ? -1 : 1;
+            }
+            if (r1 == null) {
+                DbObject g1 = o1.getGrantedObject(), g2 = o2.getGrantedObject();
+                if ((g1 == null) != (g2 == null)) {
+                    return g1 == null ? -1 : 1;
+                }
+                if (g1 != null) {
+                    if (g1 instanceof Schema != g2 instanceof Schema) {
+                        return g1 instanceof Schema ? -1 : 1;
+                    }
+                    int cmp = g1.getName().compareTo(g2.getName());
+                    if (cmp != 0) {
+                        return cmp;
+                    }
+                }
+            } else {
+                int cmp = r1.getName().compareTo(r2.getName());
+                if (cmp != 0) {
+                    return cmp;
+                }
+            }
+            return o1.getGrantee().getName().compareTo(o2.getGrantee().getName());
+        });
+        for (Right right : rights) {
+            DbObject object = right.getGrantedObject();
+            if (object != null) {
+                if (object instanceof Schema) {
+                    if (excludeSchema((Schema) object)) {
+                        continue;
+                    }
+                } else if (object instanceof Table) {
+                    Table table = (Table) object;
+                    if (excludeSchema(table.getSchema())) {
+                        continue;
+                    }
+                    if (excludeTable(table)) {
+                        continue;
+                    }
+                }
+            }
+            add(right.getCreateSQL(), false);
+        }
+    }
+
+    private void addDomain(Domain domain) throws IOException {
+        if (drop) {
+            add(domain.getDropSQL(), false);
+        }
+        add(domain.getCreateSQL(), false);
+    }
+
+    private static <T extends DbObject> T[] sorted(Collection<T> collection, Class<T> clazz) {
+        @SuppressWarnings("unchecked")
+        T[] array = collection.toArray((T[]) java.lang.reflect.Array.newInstance(clazz, 0));
+        Arrays.sort(array, BY_NAME_COMPARATOR);
+        return array;
     }
 
     private int generateInsertValues(int count, Table table) throws IOException {
@@ -729,6 +836,10 @@ public class ScriptCommand extends ScriptBase {
 
     public void setWithColumns(boolean withColumns) {
         this.withColumns = withColumns;
+    }
+
+    public void setVersion(boolean version) {
+        this.version = version;
     }
 
     public void setCharset(Charset charset) {

@@ -626,7 +626,7 @@ public class PageLog {
         data.writeVarInt(columns);
         int size = 0;
         for (Value v : row.getValueList()) {
-            size += data.getValueLen(v);
+            size += Data.getValueLen(v);
         }
         data.checkCapacity(size);
         if (session.isRedoLogBinaryEnabled()) {

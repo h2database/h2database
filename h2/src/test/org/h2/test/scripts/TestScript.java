@@ -32,6 +32,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandContainer;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
+import org.h2.command.dml.ScriptCommand;
 import org.h2.command.query.Query;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.jdbc.JdbcConnection;
@@ -608,6 +609,8 @@ public class TestScript extends TestDb {
                 Prepared p = (Prepared) PREPARED.get(ci);
                 if (p instanceof Query) {
                     gotOrdered = ((Query) p).hasOrder();
+                } else if (p instanceof ScriptCommand) {
+                    gotOrdered = true;
                 }
             }
         }

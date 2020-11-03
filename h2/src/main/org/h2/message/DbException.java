@@ -109,12 +109,35 @@ public class DbException extends RuntimeException {
             for (int i = 0; i < params.length; i++) {
                 String s = params[i];
                 if (s != null && s.length() > 0) {
-                    params[i] = StringUtils.quoteIdentifier(s);
+                    params[i] = quote(s);
                 }
             }
             message = MessageFormat.format(message, (Object[]) params);
         }
         return message;
+    }
+
+    private static String quote(String s) {
+        int l = s.length();
+        StringBuilder builder = new StringBuilder(l + 2).append('"');
+        for (int i = 0; i < l;) {
+            int cp = s.codePointAt(i);
+            i += Character.charCount(cp);
+            int t = Character.getType(cp);
+            if (t == 0 || t >= Character.SPACE_SEPARATOR && t <= Character.SURROGATE && cp != ' ') {
+                if (cp <= 0xffff) {
+                    StringUtils.appendHex(builder.append('\\'), cp, 2);
+                } else {
+                    StringUtils.appendHex(builder.append("\\+"), cp, 3);
+                }
+            } else {
+                if (cp == '"' || cp == '\\') {
+                    builder.append((char) cp);
+                }
+                builder.appendCodePoint(cp);
+            }
+        }
+        return builder.append('"').toString();
     }
 
     /**

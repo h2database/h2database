@@ -38,6 +38,9 @@ import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.Windows;
+
+import static org.h2.util.Windows.IS_WINDOWS;
 
 /**
  * This file system stores files on disk.
@@ -197,6 +200,9 @@ public class FilePathDisk extends FilePath {
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
             IOUtils.trace("delete", name, null);
             try {
+                if (IS_WINDOWS) {
+                    Windows.setWritableIfExists(name);
+                }
                 Files.deleteIfExists(file);
                 return;
             } catch (DirectoryNotEmptyException e) {

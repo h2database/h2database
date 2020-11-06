@@ -362,7 +362,7 @@ public class FileUtils {
      */
     public static boolean tryDelete(String path) {
         try {
-            FilePath.get(path).delete();
+            delete(path);
             return true;
         } catch (Exception e) {
             return false;

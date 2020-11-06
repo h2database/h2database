@@ -15,6 +15,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 import org.h2.Driver;
@@ -24,6 +25,7 @@ import org.h2.engine.SessionRemote;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
+import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -210,7 +212,8 @@ public class FileLock implements Runnable {
          * cache.
          */
         try {
-            try (FileChannel f = FileChannel.open(Paths.get(fileName), FileUtils.RWS, FileUtils.NO_ATTRIBUTES);) {
+            final Path path = Paths.get(FilePath.get(fileName).unwrap().toString());
+            try (FileChannel f = FileChannel.open(path, FileUtils.RWS, FileUtils.NO_ATTRIBUTES);) {
                 ByteBuffer b = ByteBuffer.wrap(new byte[1]);
                 f.read(b);
             }

@@ -1003,7 +1003,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
         ResultSet rs;
-        WeekFields wf = WeekFields.of(Locale.getDefault());
+        final Locale locale = Locale.getDefault();
+        WeekFields wf = WeekFields.of(locale);
         for (int y = 2001; y <= 2010; y++) {
             for (int d = 1; d <= 7; d++) {
                 String date1 = y + "-01-0" + d, date2 = y + "-01-0" + (d + 1);
@@ -1021,7 +1022,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
                 assertEquals(w1 == local2.get(wf.weekOfWeekBasedYear()) ? 0 : 1, rs.getInt(4));
                 assertEquals(local1.minus(local1.get(wf.dayOfWeek()) - 1, ChronoUnit.DAYS),
                         rs.getObject(5, LocalDate.class));
-                assertEquals(DateTimeFormatter.ofPattern("Y-w-e").parse(weekYear + "-1-1")
+                assertEquals(DateTimeFormatter.ofPattern("Y-w-e", locale).parse(weekYear + "-1-1")
                         .query(TemporalQueries.localDate()), rs.getObject(6, LocalDate.class));
             }
         }
@@ -1320,7 +1321,10 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         TimeZone tz = TimeZone.getDefault();
         final Timestamp timestamp1979 = Timestamp.valueOf("1979-11-12 08:12:34.560");
         boolean daylight = tz.inDaylightTime(timestamp1979);
-        String tzShortName = tz.getDisplayName(daylight, TimeZone.SHORT);
+        /**
+         * Force Locale.ENGLISH here because {@link org.h2.util.TimeZoneProvider.WithTimeZone#getShortId} also uses it
+         */
+        String tzShortName = tz.getDisplayName(daylight, TimeZone.SHORT, Locale.ENGLISH);
         String tzLongName = tz.getID();
 
         stat.executeUpdate("CREATE TABLE T (X TIMESTAMP(6))");

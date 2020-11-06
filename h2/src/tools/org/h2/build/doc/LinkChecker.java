@@ -5,6 +5,7 @@
  */
 package org.h2.build.doc;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -181,7 +182,7 @@ public class LinkChecker {
      */
     void processFile(Path file) throws IOException {
         String path = file.toString();
-        targets.put(path, "file");
+        targets.put(pathToUrl(path), "file");
         String fileName = file.getFileName().toString();
         String lower = StringUtils.toLowerEnglish(fileName);
         if (!lower.endsWith(".html") && !lower.endsWith(".htm")) {
@@ -202,7 +203,7 @@ public class LinkChecker {
             }
             String ref = html.substring(start, end);
             if (!ref.startsWith("_")) {
-                targets.put(path + "#" + ref, "id");
+                targets.put(pathToUrl(path) + "#" + ref, "id");
             }
         }
         idx = -1;
@@ -243,7 +244,7 @@ public class LinkChecker {
                 ref = p + "/" + ref;
             }
             if (ref != null) {
-                links.put(ref, path);
+                links.put(pathToUrl(ref), path);
             }
         }
         idx = -1;
@@ -269,11 +270,15 @@ public class LinkChecker {
             if (type.equals("href")) {
                 // already checked
             } else if (type.equals("id")) {
-                targets.put(path + "#" + ref, "id");
+                targets.put(pathToUrl(path) + "#" + ref, "id");
             } else {
                 error(fileName, "Unsupported <a ?: " + html.substring(idx, idx + 100));
             }
         }
+    }
+
+    private static String pathToUrl(final String path) {
+        return "/".equals(File.separator) ? path : path.replace(File.separator, "/");
     }
 
     private static void error(String fileName, String string) {

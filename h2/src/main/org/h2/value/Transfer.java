@@ -1154,8 +1154,19 @@ public final class Transfer {
         case JSON:
             // Do not trust the value
             return ValueJson.fromJson(readBytes());
-        case DECFLOAT:
-            return ValueDecfloat.get(new BigDecimal(readString()));
+        case DECFLOAT: {
+            String s = readString();
+            switch (s) {
+            case "-Infinity":
+                return ValueDecfloat.NEGATIVE_INFINITY;
+            case "Infinity":
+                return ValueDecfloat.POSITIVE_INFINITY;
+            case "NaN":
+                return ValueDecfloat.NAN;
+            default:
+                return ValueDecfloat.get(new BigDecimal(s));
+            }
+        }
         default:
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }

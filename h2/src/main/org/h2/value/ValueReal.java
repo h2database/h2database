@@ -103,15 +103,14 @@ public final class ValueReal extends Value {
 
     private StringBuilder getSQL(StringBuilder builder) {
         if (value == Float.POSITIVE_INFINITY) {
-            builder.append("POWER(0, -1)");
+            return builder.append("'Infinity'");
         } else if (value == Float.NEGATIVE_INFINITY) {
-            builder.append("(-POWER(0, -1))");
+            return builder.append("'-Infinity'");
         } else if (Float.isNaN(value)) {
-            builder.append("SQRT(-1)");
+            return builder.append("'NaN'");
         } else {
-            builder.append(value);
+            return builder.append(value);
         }
-        return builder;
     }
 
     @Override

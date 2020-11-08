@@ -35,7 +35,7 @@ DROP TABLE TEST;
 EXPLAIN VALUES CAST(0 AS DOUBLE);
 >> VALUES (CAST(0.0 AS DOUBLE PRECISION))
 
-CREATE TABLE TEST(D DOUBLE PRECISION) AS VALUES '-Infinity', '-1', '0', '1', '1.5', 'Infinity', 'NaN';
+CREATE MEMORY TABLE TEST(D DOUBLE PRECISION) AS VALUES '-Infinity', '-1', '0', '1', '1.5', 'Infinity', 'NaN';
 > ok
 
 SELECT D, -D, SIGN(D) FROM TEST ORDER BY D;
@@ -204,6 +204,30 @@ SELECT A.D, B.D, A.D > B.D, A.D = B.D, A.D < B.D FROM TEST A JOIN TEST B ORDER B
 > NaN       Infinity  TRUE      FALSE     FALSE
 > NaN       NaN       FALSE     TRUE      FALSE
 > rows (ordered): 49
+
+SELECT D, CAST(D AS REAL) D1, CAST(D AS DECFLOAT) D2 FROM TEST ORDER BY D;
+> D         D1        D2
+> --------- --------- ---------
+> -Infinity -Infinity -Infinity
+> -1.0      -1.0      -1
+> 0.0       0.0       0
+> 1.0       1.0       1
+> 1.5       1.5       1.5
+> Infinity  Infinity  Infinity
+> NaN       NaN       NaN
+> rows (ordered): 7
+
+EXPLAIN SELECT CAST('Infinity' AS DOUBLE PRECISION), CAST('-Infinity' AS DOUBLE PRECISION), CAST('NaN' AS DOUBLE PRECISION), CAST(0 AS DOUBLE PRECISION);
+>> SELECT CAST('Infinity' AS DOUBLE PRECISION), CAST('-Infinity' AS DOUBLE PRECISION), CAST('NaN' AS DOUBLE PRECISION), CAST(0.0 AS DOUBLE PRECISION)
+
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION TABLE TEST;
+> SCRIPT
+> -----------------------------------------------------------------------------------------------------
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "D" DOUBLE PRECISION );
+> -- 7 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
+> INSERT INTO "PUBLIC"."TEST" VALUES ('-Infinity'), (-1.0), (0.0), (1.0), (1.5), ('Infinity'), ('NaN');
+> rows (ordered): 4
 
 DROP TABLE TEST;
 > ok

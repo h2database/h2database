@@ -95,18 +95,22 @@ public final class ValueDouble extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        if (value == Double.POSITIVE_INFINITY) {
-            builder.append("POWER(0, -1)");
-        } else if (value == Double.NEGATIVE_INFINITY) {
-            builder.append("(-POWER(0, -1))");
-        } else if (Double.isNaN(value)) {
-            builder.append("SQRT(-1)");
-        } else if ((sqlFlags & NO_CASTS) == 0) {
-            builder.append("CAST(").append(value).append(" AS DOUBLE PRECISION)");
-        } else {
-            builder.append(value);
+        if ((sqlFlags & NO_CASTS) == 0) {
+            return getSQL(builder.append("CAST(")).append(" AS DOUBLE PRECISION)");
         }
-        return builder;
+        return getSQL(builder);
+    }
+
+    private StringBuilder getSQL(StringBuilder builder) {
+        if (value == Double.POSITIVE_INFINITY) {
+            return builder.append("'Infinity'");
+        } else if (value == Double.NEGATIVE_INFINITY) {
+            return builder.append("'-Infinity'");
+        } else if (Double.isNaN(value)) {
+            return builder.append("'NaN'");
+        } else {
+            return builder.append(value);
+        }
     }
 
     @Override

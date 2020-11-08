@@ -49,7 +49,7 @@ SELECT F, I, F = I FROM TEST;
 DROP TABLE TEST;
 > ok
 
-CREATE TABLE TEST(D REAL) AS VALUES '-Infinity', '-1', '0', '1', '1.5', 'Infinity', 'NaN';
+CREATE MEMORY TABLE TEST(D REAL) AS VALUES '-Infinity', '-1', '0', '1', '1.5', 'Infinity', 'NaN';
 > ok
 
 SELECT D, -D, SIGN(D) FROM TEST ORDER BY D;
@@ -218,6 +218,30 @@ SELECT A.D, B.D, A.D > B.D, A.D = B.D, A.D < B.D FROM TEST A JOIN TEST B ORDER B
 > NaN       Infinity  TRUE      FALSE     FALSE
 > NaN       NaN       FALSE     TRUE      FALSE
 > rows (ordered): 49
+
+SELECT D, CAST(D AS DOUBLE PRECISION) D1, CAST(D AS DECFLOAT) D2 FROM TEST ORDER BY D;
+> D         D1        D2
+> --------- --------- ---------
+> -Infinity -Infinity -Infinity
+> -1.0      -1.0      -1
+> 0.0       0.0       0
+> 1.0       1.0       1
+> 1.5       1.5       1.5
+> Infinity  Infinity  Infinity
+> NaN       NaN       NaN
+> rows (ordered): 7
+
+EXPLAIN SELECT CAST('Infinity' AS REAL), CAST('-Infinity' AS REAL), CAST('NaN' AS REAL), CAST(0 AS REAL);
+>> SELECT CAST('Infinity' AS REAL), CAST('-Infinity' AS REAL), CAST('NaN' AS REAL), CAST(0.0 AS REAL)
+
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION TABLE TEST;
+> SCRIPT
+> -----------------------------------------------------------------------------------------------------
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "D" REAL );
+> -- 7 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
+> INSERT INTO "PUBLIC"."TEST" VALUES ('-Infinity'), (-1.0), (0.0), (1.0), (1.5), ('Infinity'), ('NaN');
+> rows (ordered): 4
 
 DROP TABLE TEST;
 > ok

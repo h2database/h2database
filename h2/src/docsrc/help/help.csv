@@ -2194,12 +2194,14 @@ Approximate numeric values have [DECFLOAT](https://h2database.com/html/datatypes
 To define a [DOUBLE PRECISION](https://h2database.com/html/datatypes.html#double_precision_type) value, use
 ""CAST(X AS DOUBLE PRECISION)"".
 To define a [REAL](https://h2database.com/html/datatypes.html#real_type) value, use ""CAST(X AS REAL)"".
-There are some special DOUBLE PRECISION and REAL values: to represent positive infinity, use ""POWER(0, -1)"";
-for negative infinity, use ""(-POWER(0, -1))""; for ""NaN"" (not a number), use ""SQRT(-1)"".
-For special REAL values use a CAST.
+There are some special REAL, DOUBLE PRECISION, and DECFLOAT values:
+to represent positive infinity, use ""CAST('Infinity' AS dataType)"";
+for negative infinity, use ""CAST('-Infinity' AS dataType)"";
+for ""NaN"" (not a number), use ""CAST('NaN' AS dataType)"".
 ","
 -1.4e-10
 CAST(1e2 AS REAL)
+CAST('NaN' AS DOUBLE PRECISION)
 "
 
 "Literals","Array","
@@ -4192,6 +4194,9 @@ If precision is specified, it must be from 1 to 100000.
 
 See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
 Mapped to ""java.math.BigDecimal"".
+There are three special values: 'Infinity', '-Infinity', and 'NaN'.
+These special values can't be read or set as ""BigDecimal"" values,
+but they can be read or set using ""java.lang.String"", float, or double.
 ","
 DECFLOAT
 DECFLOAT(20)

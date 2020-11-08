@@ -2195,8 +2195,8 @@ To define a [DOUBLE PRECISION](https://h2database.com/html/datatypes.html#double
 ""CAST(X AS DOUBLE PRECISION)"".
 To define a [REAL](https://h2database.com/html/datatypes.html#real_type) value, use ""CAST(X AS REAL)"".
 There are some special DOUBLE PRECISION and REAL values: to represent positive infinity, use ""POWER(0, -1)"";
-for negative infinity, use ""(-POWER(0, -1))""; for -0.0, use ""(-0e0)"";
-for ""NaN"" (not a number), use ""SQRT(-1)"". For special REAL values use a CAST.
+for negative infinity, use ""(-POWER(0, -1))""; for ""NaN"" (not a number), use ""SQRT(-1)"".
+For special REAL values use a CAST.
 ","
 -1.4e-10
 CAST(1e2 AS REAL)
@@ -2345,8 +2345,8 @@ The maximum length of the number depends on the data type used.
 "Literals","Numeric","
 exactNumeric | approximateNumeric | int | long | @h2@ { hexNumber }
 ","
-The data type of a numeric literal is the NUMERIC if the number contains a dot;
-otherwise it is is always the lowest possible from INTEGER, BIGINT, or NUMERIC.
+The data type of a numeric literal is the one of numeric data types, such as NUMERIC, DECFLOAT, BIGINT, or INTEGER
+depending on format and value.
 
 An explicit CAST can be used to change the data type.
 ","

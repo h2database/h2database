@@ -57,14 +57,12 @@ public final class ValueDouble extends Value {
 
     @Override
     public Value add(Value v) {
-        ValueDouble v2 = (ValueDouble) v;
-        return get(value + v2.value);
+        return get(value + ((ValueDouble) v).value);
     }
 
     @Override
     public Value subtract(Value v) {
-        ValueDouble v2 = (ValueDouble) v;
-        return get(value - v2.value);
+        return get(value - ((ValueDouble) v).value);
     }
 
     @Override
@@ -74,8 +72,7 @@ public final class ValueDouble extends Value {
 
     @Override
     public Value multiply(Value v) {
-        ValueDouble v2 = (ValueDouble) v;
-        return get(value * v2.value);
+        return get(value * ((ValueDouble) v).value);
     }
 
     @Override
@@ -134,7 +131,7 @@ public final class ValueDouble extends Value {
 
     @Override
     public BigDecimal getBigDecimal() {
-        if (Math.abs(value) <= Double.MAX_VALUE) {
+        if (Double.isFinite(value)) {
             return BigDecimal.valueOf(value);
         }
         // Infinite or NaN

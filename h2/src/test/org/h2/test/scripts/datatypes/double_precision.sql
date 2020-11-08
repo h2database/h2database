@@ -34,3 +34,176 @@ DROP TABLE TEST;
 
 EXPLAIN VALUES CAST(0 AS DOUBLE);
 >> VALUES (CAST(0.0 AS DOUBLE PRECISION))
+
+CREATE TABLE TEST(D DOUBLE PRECISION) AS VALUES '-Infinity', '-1', '0', '1', '1.5', 'Infinity', 'NaN';
+> ok
+
+SELECT D, -D, SIGN(D) FROM TEST ORDER BY D;
+> D         - D       SIGN(D)
+> --------- --------- -------
+> -Infinity Infinity  -1
+> -1.0      1.0       -1
+> 0.0       0.0       0
+> 1.0       -1.0      1
+> 1.5       -1.5      1
+> Infinity  -Infinity 1
+> NaN       NaN       1
+> rows (ordered): 7
+
+SELECT A.D, B.D, A.D + B.D, A.D - B.D, A.D * B.D FROM TEST A JOIN TEST B ORDER BY A.D, B.D;
+> D         D         A.D + B.D A.D - B.D A.D * B.D
+> --------- --------- --------- --------- ---------
+> -Infinity -Infinity -Infinity NaN       Infinity
+> -Infinity -1.0      -Infinity -Infinity Infinity
+> -Infinity 0.0       -Infinity -Infinity NaN
+> -Infinity 1.0       -Infinity -Infinity -Infinity
+> -Infinity 1.5       -Infinity -Infinity -Infinity
+> -Infinity Infinity  NaN       -Infinity -Infinity
+> -Infinity NaN       NaN       NaN       NaN
+> -1.0      -Infinity -Infinity Infinity  Infinity
+> -1.0      -1.0      -2.0      0.0       1.0
+> -1.0      0.0       -1.0      -1.0      0.0
+> -1.0      1.0       0.0       -2.0      -1.0
+> -1.0      1.5       0.5       -2.5      -1.5
+> -1.0      Infinity  Infinity  -Infinity -Infinity
+> -1.0      NaN       NaN       NaN       NaN
+> 0.0       -Infinity -Infinity Infinity  NaN
+> 0.0       -1.0      -1.0      1.0       0.0
+> 0.0       0.0       0.0       0.0       0.0
+> 0.0       1.0       1.0       -1.0      0.0
+> 0.0       1.5       1.5       -1.5      0.0
+> 0.0       Infinity  Infinity  -Infinity NaN
+> 0.0       NaN       NaN       NaN       NaN
+> 1.0       -Infinity -Infinity Infinity  -Infinity
+> 1.0       -1.0      0.0       2.0       -1.0
+> 1.0       0.0       1.0       1.0       0.0
+> 1.0       1.0       2.0       0.0       1.0
+> 1.0       1.5       2.5       -0.5      1.5
+> 1.0       Infinity  Infinity  -Infinity Infinity
+> 1.0       NaN       NaN       NaN       NaN
+> 1.5       -Infinity -Infinity Infinity  -Infinity
+> 1.5       -1.0      0.5       2.5       -1.5
+> 1.5       0.0       1.5       1.5       0.0
+> 1.5       1.0       2.5       0.5       1.5
+> 1.5       1.5       3.0       0.0       2.25
+> 1.5       Infinity  Infinity  -Infinity Infinity
+> 1.5       NaN       NaN       NaN       NaN
+> Infinity  -Infinity NaN       Infinity  -Infinity
+> Infinity  -1.0      Infinity  Infinity  -Infinity
+> Infinity  0.0       Infinity  Infinity  NaN
+> Infinity  1.0       Infinity  Infinity  Infinity
+> Infinity  1.5       Infinity  Infinity  Infinity
+> Infinity  Infinity  Infinity  NaN       Infinity
+> Infinity  NaN       NaN       NaN       NaN
+> NaN       -Infinity NaN       NaN       NaN
+> NaN       -1.0      NaN       NaN       NaN
+> NaN       0.0       NaN       NaN       NaN
+> NaN       1.0       NaN       NaN       NaN
+> NaN       1.5       NaN       NaN       NaN
+> NaN       Infinity  NaN       NaN       NaN
+> NaN       NaN       NaN       NaN       NaN
+> rows (ordered): 49
+
+SELECT A.D, B.D, A.D / B.D, MOD(A.D, B.D) FROM TEST A JOIN TEST B WHERE B.D <> 0 ORDER BY A.D, B.D;
+> D         D         A.D / B.D           MOD(A.D, B.D)
+> --------- --------- ------------------- -------------
+> -Infinity -Infinity NaN                 NaN
+> -Infinity -1.0      Infinity            NaN
+> -Infinity 1.0       -Infinity           NaN
+> -Infinity 1.5       -Infinity           NaN
+> -Infinity Infinity  NaN                 NaN
+> -Infinity NaN       NaN                 NaN
+> -1.0      -Infinity 0.0                 -1.0
+> -1.0      -1.0      1.0                 0.0
+> -1.0      1.0       -1.0                0.0
+> -1.0      1.5       -0.6666666666666666 -1.0
+> -1.0      Infinity  0.0                 -1.0
+> -1.0      NaN       NaN                 NaN
+> 0.0       -Infinity 0.0                 0.0
+> 0.0       -1.0      0.0                 0.0
+> 0.0       1.0       0.0                 0.0
+> 0.0       1.5       0.0                 0.0
+> 0.0       Infinity  0.0                 0.0
+> 0.0       NaN       NaN                 NaN
+> 1.0       -Infinity 0.0                 1.0
+> 1.0       -1.0      -1.0                0.0
+> 1.0       1.0       1.0                 0.0
+> 1.0       1.5       0.6666666666666666  1.0
+> 1.0       Infinity  0.0                 1.0
+> 1.0       NaN       NaN                 NaN
+> 1.5       -Infinity 0.0                 1.5
+> 1.5       -1.0      -1.5                0.5
+> 1.5       1.0       1.5                 0.5
+> 1.5       1.5       1.0                 0.0
+> 1.5       Infinity  0.0                 1.5
+> 1.5       NaN       NaN                 NaN
+> Infinity  -Infinity NaN                 NaN
+> Infinity  -1.0      -Infinity           NaN
+> Infinity  1.0       Infinity            NaN
+> Infinity  1.5       Infinity            NaN
+> Infinity  Infinity  NaN                 NaN
+> Infinity  NaN       NaN                 NaN
+> NaN       -Infinity NaN                 NaN
+> NaN       -1.0      NaN                 NaN
+> NaN       1.0       NaN                 NaN
+> NaN       1.5       NaN                 NaN
+> NaN       Infinity  NaN                 NaN
+> NaN       NaN       NaN                 NaN
+> rows (ordered): 42
+
+SELECT A.D, B.D, A.D > B.D, A.D = B.D, A.D < B.D FROM TEST A JOIN TEST B ORDER BY A.D, B.D;
+> D         D         A.D > B.D A.D = B.D A.D < B.D
+> --------- --------- --------- --------- ---------
+> -Infinity -Infinity FALSE     TRUE      FALSE
+> -Infinity -1.0      FALSE     FALSE     TRUE
+> -Infinity 0.0       FALSE     FALSE     TRUE
+> -Infinity 1.0       FALSE     FALSE     TRUE
+> -Infinity 1.5       FALSE     FALSE     TRUE
+> -Infinity Infinity  FALSE     FALSE     TRUE
+> -Infinity NaN       FALSE     FALSE     TRUE
+> -1.0      -Infinity TRUE      FALSE     FALSE
+> -1.0      -1.0      FALSE     TRUE      FALSE
+> -1.0      0.0       FALSE     FALSE     TRUE
+> -1.0      1.0       FALSE     FALSE     TRUE
+> -1.0      1.5       FALSE     FALSE     TRUE
+> -1.0      Infinity  FALSE     FALSE     TRUE
+> -1.0      NaN       FALSE     FALSE     TRUE
+> 0.0       -Infinity TRUE      FALSE     FALSE
+> 0.0       -1.0      TRUE      FALSE     FALSE
+> 0.0       0.0       FALSE     TRUE      FALSE
+> 0.0       1.0       FALSE     FALSE     TRUE
+> 0.0       1.5       FALSE     FALSE     TRUE
+> 0.0       Infinity  FALSE     FALSE     TRUE
+> 0.0       NaN       FALSE     FALSE     TRUE
+> 1.0       -Infinity TRUE      FALSE     FALSE
+> 1.0       -1.0      TRUE      FALSE     FALSE
+> 1.0       0.0       TRUE      FALSE     FALSE
+> 1.0       1.0       FALSE     TRUE      FALSE
+> 1.0       1.5       FALSE     FALSE     TRUE
+> 1.0       Infinity  FALSE     FALSE     TRUE
+> 1.0       NaN       FALSE     FALSE     TRUE
+> 1.5       -Infinity TRUE      FALSE     FALSE
+> 1.5       -1.0      TRUE      FALSE     FALSE
+> 1.5       0.0       TRUE      FALSE     FALSE
+> 1.5       1.0       TRUE      FALSE     FALSE
+> 1.5       1.5       FALSE     TRUE      FALSE
+> 1.5       Infinity  FALSE     FALSE     TRUE
+> 1.5       NaN       FALSE     FALSE     TRUE
+> Infinity  -Infinity TRUE      FALSE     FALSE
+> Infinity  -1.0      TRUE      FALSE     FALSE
+> Infinity  0.0       TRUE      FALSE     FALSE
+> Infinity  1.0       TRUE      FALSE     FALSE
+> Infinity  1.5       TRUE      FALSE     FALSE
+> Infinity  Infinity  FALSE     TRUE      FALSE
+> Infinity  NaN       FALSE     FALSE     TRUE
+> NaN       -Infinity TRUE      FALSE     FALSE
+> NaN       -1.0      TRUE      FALSE     FALSE
+> NaN       0.0       TRUE      FALSE     FALSE
+> NaN       1.0       TRUE      FALSE     FALSE
+> NaN       1.5       TRUE      FALSE     FALSE
+> NaN       Infinity  TRUE      FALSE     FALSE
+> NaN       NaN       FALSE     TRUE      FALSE
+> rows (ordered): 49
+
+DROP TABLE TEST;
+> ok

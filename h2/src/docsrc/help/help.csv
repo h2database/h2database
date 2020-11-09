@@ -2853,7 +2853,6 @@ When converting a number to a boolean, 0 is false and every other value is true.
 When converting a boolean to a number, false is 0 and true is 1.
 When converting a number to a number of another type, the value is checked for overflow.
 When converting a string to binary, UTF-8 encoding is used.
-If a direct conversion is not possible, the value is first converted to a string.
 Note that some data types may need explicitly specified precision to avoid overflow or rounding.
 ","
 CAST(NAME AS INT);
@@ -5621,7 +5620,6 @@ The length is optional.
 ","
 CALL SUBSTRING('[Hello]' FROM 2 FOR 5);
 CALL SUBSTRING('hour' FROM 2);
-CALL SUBSTR('Hello World', -5);
 "
 
 "Functions (String)","UTF8TOSTRING","

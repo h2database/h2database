@@ -57,14 +57,12 @@ public final class ValueReal extends Value {
 
     @Override
     public Value add(Value v) {
-        ValueReal v2 = (ValueReal) v;
-        return get(value + v2.value);
+        return get(value + ((ValueReal) v).value);
     }
 
     @Override
     public Value subtract(Value v) {
-        ValueReal v2 = (ValueReal) v;
-        return get(value - v2.value);
+        return get(value - ((ValueReal) v).value);
     }
 
     @Override
@@ -74,8 +72,7 @@ public final class ValueReal extends Value {
 
     @Override
     public Value multiply(Value v) {
-        ValueReal v2 = (ValueReal) v;
-        return get(value * v2.value);
+        return get(value * ((ValueReal) v).value);
     }
 
     @Override
@@ -106,15 +103,14 @@ public final class ValueReal extends Value {
 
     private StringBuilder getSQL(StringBuilder builder) {
         if (value == Float.POSITIVE_INFINITY) {
-            builder.append("POWER(0, -1)");
+            return builder.append("'Infinity'");
         } else if (value == Float.NEGATIVE_INFINITY) {
-            builder.append("(-POWER(0, -1))");
+            return builder.append("'-Infinity'");
         } else if (Float.isNaN(value)) {
-            builder.append("SQRT(-1)");
+            return builder.append("'NaN'");
         } else {
-            builder.append(value);
+            return builder.append(value);
         }
-        return builder;
     }
 
     @Override
@@ -139,7 +135,7 @@ public final class ValueReal extends Value {
 
     @Override
     public BigDecimal getBigDecimal() {
-        if (Math.abs(value) <= Float.MAX_VALUE) {
+        if (Float.isFinite(value)) {
             // better rounding behavior than BigDecimal.valueOf(f)
             return new BigDecimal(Float.toString(value));
         }

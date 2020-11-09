@@ -2194,12 +2194,14 @@ Approximate numeric values have [DECFLOAT](https://h2database.com/html/datatypes
 To define a [DOUBLE PRECISION](https://h2database.com/html/datatypes.html#double_precision_type) value, use
 ""CAST(X AS DOUBLE PRECISION)"".
 To define a [REAL](https://h2database.com/html/datatypes.html#real_type) value, use ""CAST(X AS REAL)"".
-There are some special DOUBLE PRECISION and REAL values: to represent positive infinity, use ""POWER(0, -1)"";
-for negative infinity, use ""(-POWER(0, -1))""; for -0.0, use ""(-0e0)"";
-for ""NaN"" (not a number), use ""SQRT(-1)"". For special REAL values use a CAST.
+There are some special REAL, DOUBLE PRECISION, and DECFLOAT values:
+to represent positive infinity, use ""CAST('Infinity' AS dataType)"";
+for negative infinity, use ""CAST('-Infinity' AS dataType)"";
+for ""NaN"" (not a number), use ""CAST('NaN' AS dataType)"".
 ","
 -1.4e-10
 CAST(1e2 AS REAL)
+CAST('NaN' AS DOUBLE PRECISION)
 "
 
 "Literals","Array","
@@ -2345,8 +2347,8 @@ The maximum length of the number depends on the data type used.
 "Literals","Numeric","
 exactNumeric | approximateNumeric | int | long | @h2@ { hexNumber }
 ","
-The data type of a numeric literal is the NUMERIC if the number contains a dot;
-otherwise it is is always the lowest possible from INTEGER, BIGINT, or NUMERIC.
+The data type of a numeric literal is the one of numeric data types, such as NUMERIC, DECFLOAT, BIGINT, or INTEGER
+depending on format and value.
 
 An explicit CAST can be used to change the data type.
 ","
@@ -2851,7 +2853,6 @@ When converting a number to a boolean, 0 is false and every other value is true.
 When converting a boolean to a number, false is 0 and true is 1.
 When converting a number to a number of another type, the value is checked for overflow.
 When converting a string to binary, UTF-8 encoding is used.
-If a direct conversion is not possible, the value is first converted to a string.
 Note that some data types may need explicitly specified precision to avoid overflow or rounding.
 ","
 CAST(NAME AS INT);
@@ -4192,6 +4193,9 @@ If precision is specified, it must be from 1 to 100000.
 
 See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
 Mapped to ""java.math.BigDecimal"".
+There are three special values: 'Infinity', '-Infinity', and 'NaN'.
+These special values can't be read or set as ""BigDecimal"" values,
+but they can be read or set using ""java.lang.String"", float, or double.
 ","
 DECFLOAT
 DECFLOAT(20)
@@ -5616,7 +5620,6 @@ The length is optional.
 ","
 CALL SUBSTRING('[Hello]' FROM 2 FOR 5);
 CALL SUBSTRING('hour' FROM 2);
-CALL SUBSTR('Hello World', -5);
 "
 
 "Functions (String)","UTF8TOSTRING","

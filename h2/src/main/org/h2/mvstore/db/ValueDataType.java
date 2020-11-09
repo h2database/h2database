@@ -361,12 +361,25 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             break;
         }
         case Value.DECFLOAT: {
-            BigDecimal x = v.getBigDecimal();
-            byte[] bytes = x.unscaledValue().toByteArray();
-            buff.put((byte) DECFLOAT).
-                putVarInt(x.scale()).
-                putVarInt(bytes.length).
-                put(bytes);
+            ValueDecfloat d = (ValueDecfloat) v;
+            buff.put((byte) DECFLOAT);
+            if (d.isFinite()) {
+                BigDecimal x = d.getBigDecimal();
+                byte[] bytes = x.unscaledValue().toByteArray();
+                buff.putVarInt(x.scale()).
+                    putVarInt(bytes.length).
+                    put(bytes);
+            } else {
+                int c;
+                if (d == ValueDecfloat.NEGATIVE_INFINITY) {
+                    c = -3;
+                } else if (d == ValueDecfloat.POSITIVE_INFINITY) {
+                    c = -2;
+                } else {
+                    c = -1;
+                }
+                buff.putVarInt(0).putVarInt(c);
+            }
             break;
         }
         case Value.TIME:
@@ -645,10 +658,25 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             int scale = readVarInt(buff);
             return ValueNumeric.get(BigDecimal.valueOf(readVarLong(buff), scale));
         }
-        case NUMERIC:
-            return ValueNumeric.get(readBigDecimal(buff));
-        case DECFLOAT:
-            return ValueDecfloat.get(readBigDecimal(buff));
+        case NUMERIC: {
+            int scale = readVarInt(buff);
+            return ValueNumeric.get(new BigDecimal(new BigInteger(readVarBytes(buff)), scale));
+        }
+        case DECFLOAT: {
+            int scale = readVarInt(buff), len = readVarInt(buff);
+            switch (len) {
+            case -3:
+                return ValueDecfloat.NEGATIVE_INFINITY;
+            case -2:
+                return ValueDecfloat.POSITIVE_INFINITY;
+            case -1:
+                return ValueDecfloat.NAN;
+            default:
+                byte[] b = Utils.newBytes(len);
+                buff.get(b, 0, len);
+                return ValueDecfloat.get(new BigDecimal(new BigInteger(b), scale));
+            }
+        }
         case DATE:
             return ValueDate.fromDateValue(readVarLong(buff));
         case TIME:
@@ -807,11 +835,6 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             list[i] = readValue(buff, false, elementType);
         }
         return list;
-    }
-
-    private static BigDecimal readBigDecimal(ByteBuffer buff) {
-        int scale = readVarInt(buff);
-        return new BigDecimal(new BigInteger(readVarBytes(buff)), scale);
     }
 
     private static byte[] readVarBytes(ByteBuffer buff) {

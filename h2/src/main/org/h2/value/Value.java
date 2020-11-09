@@ -1682,10 +1682,62 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         switch (getValueType()) {
         case DECFLOAT:
             v = (ValueDecfloat) this;
+            if (v.value == null) {
+                return v;
+            }
             break;
+        case CHAR:
+        case VARCHAR:
+        case VARCHAR_IGNORECASE: {
+            String s = getString().trim();
+            try {
+                v = ValueDecfloat.get(new BigDecimal(s));
+            } catch (NumberFormatException e) {
+                switch (s) {
+                case "-Infinity":
+                    return ValueDecfloat.NEGATIVE_INFINITY;
+                case "Infinity":
+                case "+Infinity":
+                    return ValueDecfloat.POSITIVE_INFINITY;
+                case "NaN":
+                case "-NaN":
+                case "+NaN":
+                    return ValueDecfloat.NAN;
+                default:
+                    throw getDataConversionError(DECFLOAT);
+                }
+            }
+            break;
+        }
         case BOOLEAN:
             v = getBoolean() ? ValueDecfloat.ONE : ValueDecfloat.ZERO;
             break;
+        case REAL: {
+            float value = getFloat();
+            if (Float.isFinite(value)) {
+                v = ValueDecfloat.get(new BigDecimal(Float.toString(value)));
+            } else if (value == Float.POSITIVE_INFINITY) {
+                return ValueDecfloat.POSITIVE_INFINITY;
+            } else if (value == Float.NEGATIVE_INFINITY) {
+                return ValueDecfloat.NEGATIVE_INFINITY;
+            } else {
+                return ValueDecfloat.NAN;
+            }
+            break;
+        }
+        case DOUBLE: {
+            double value = getDouble();
+            if (Double.isFinite(value)) {
+                v = ValueDecfloat.get(new BigDecimal(Double.toString(value)));
+            } else if (value == Double.POSITIVE_INFINITY) {
+                return ValueDecfloat.POSITIVE_INFINITY;
+            } else if (value == Double.NEGATIVE_INFINITY) {
+                return ValueDecfloat.NEGATIVE_INFINITY;
+            } else {
+                return ValueDecfloat.NAN;
+            }
+            break;
+        }
         default:
             try {
                 v = ValueDecfloat.get(getBigDecimal());
@@ -1700,7 +1752,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             throw DbException.getInternalError();
         }
         if (conversionMode != CONVERT_TO) {
-            BigDecimal bd = v.getBigDecimal();
+            BigDecimal bd = v.value;
             int precision = bd.precision(), targetPrecision = (int) targetType.getPrecision();
             if (precision > targetPrecision) {
                 v = ValueDecfloat.get(bd.setScale(bd.scale() - precision + targetPrecision, RoundingMode.HALF_UP));

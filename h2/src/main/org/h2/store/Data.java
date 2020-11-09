@@ -528,11 +528,25 @@ public class Data {
         }
         case Value.DECFLOAT: {
             writeByte((byte) DECFLOAT);
-            BigDecimal x = v.getBigDecimal();
-            writeVarInt(x.scale());
-            byte[] bytes = x.unscaledValue().toByteArray();
-            writeVarInt(bytes.length);
-            write(bytes, 0, bytes.length);
+            ValueDecfloat d = (ValueDecfloat) v;
+            if (d.isFinite()) {
+                BigDecimal x = d.getBigDecimal();
+                writeVarInt(x.scale());
+                byte[] bytes = x.unscaledValue().toByteArray();
+                writeVarInt(bytes.length);
+                write(bytes, 0, bytes.length);
+            } else {
+                int c;
+                if (d == ValueDecfloat.NEGATIVE_INFINITY) {
+                    c = -3;
+                } else if (d == ValueDecfloat.POSITIVE_INFINITY) {
+                    c = -2;
+                } else {
+                    c = -1;
+                }
+                writeVarInt(0);
+                writeVarInt(c);
+            }
             break;
         }
         case Value.TIME: {
@@ -783,9 +797,18 @@ public class Data {
         case DECFLOAT: {
             int scale = readVarInt();
             int len = readVarInt();
-            byte[] buff = Utils.newBytes(len);
-            read(buff, 0, len);
-            return ValueDecfloat.get(new BigDecimal(new BigInteger(buff), scale));
+            switch (len) {
+            case -3:
+                return ValueDecfloat.NEGATIVE_INFINITY;
+            case -2:
+                return ValueDecfloat.POSITIVE_INFINITY;
+            case -1:
+                return ValueDecfloat.NAN;
+            default:
+                byte[] buff = Utils.newBytes(len);
+                read(buff, 0, len);
+                return ValueDecfloat.get(new BigDecimal(new BigInteger(buff), scale));
+            }
         }
         case LOCAL_DATE:
             return ValueDate.fromDateValue(readVarLong());
@@ -1059,9 +1082,14 @@ public class Data {
             return 1 + getVarIntLen(scale) + getVarIntLen(len) + len;
         }
         case Value.DECFLOAT: {
-            BigDecimal x = v.getBigDecimal();
-            int len = x.unscaledValue().toByteArray().length;
-            return 1 + getVarIntLen(x.scale()) + getVarIntLen(len) + len;
+            ValueDecfloat d = (ValueDecfloat) v;
+            if (d.isFinite()) {
+                BigDecimal x = d.getBigDecimal();
+                int len = x.unscaledValue().toByteArray().length;
+                return 1 + getVarIntLen(x.scale()) + getVarIntLen(len) + len;
+            } else {
+                return 7;
+            }
         }
         case Value.TIME: {
             long nanos = ((ValueTime) v).getNanos();

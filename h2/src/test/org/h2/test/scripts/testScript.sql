@@ -879,11 +879,11 @@ select * from test order by id;
 
 script nopasswords nosettings noversion;
 > SCRIPT
-> -----------------------------------------------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INTEGER, "D" DOUBLE PRECISION, "F" FLOAT );
 > -- 3 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> INSERT INTO "PUBLIC"."TEST" VALUES (0, POWER(0, -1), POWER(0, -1)), (1, (-POWER(0, -1)), (-POWER(0, -1))), (2, SQRT(-1), SQRT(-1));
+> INSERT INTO "PUBLIC"."TEST" VALUES (0, 'Infinity', 'Infinity'), (1, '-Infinity', '-Infinity'), (2, 'NaN', 'NaN');
 > rows (ordered): 4
 
 DROP TABLE TEST;

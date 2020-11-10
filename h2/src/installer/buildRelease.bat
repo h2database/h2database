@@ -11,7 +11,6 @@ mkdir ..\h2web
 rmdir /s /q bin 2>nul
 rmdir /s /q temp 2>nul
 
-call java16 >nul 2>nul
 call build -quiet compile
 call build -quiet spellcheck javadocImpl
 call build -quiet clean compile installer mavenDeployCentral

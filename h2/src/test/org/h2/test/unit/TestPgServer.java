@@ -424,14 +424,19 @@ public class TestPgServer extends TestDb {
 
     static {
         try {
-            Field supportedBinaryOidsField = Class
-                    .forName("org.postgresql.jdbc.PgConnection")
-                    .getDeclaredField("SUPPORTED_BINARY_OIDS");
-            supportedBinaryOidsField.setAccessible(true);
-            supportedBinaryOids = (Set<Integer>) supportedBinaryOidsField.get(null);
+            supportedBinaryOids = getSupportedBinaryOids();
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Set<Integer> getSupportedBinaryOids() throws ReflectiveOperationException {
+        Field supportedBinaryOidsField = Class
+                .forName("org.postgresql.jdbc.PgConnection")
+                .getDeclaredField("SUPPORTED_BINARY_OIDS");
+        supportedBinaryOidsField.setAccessible(true);
+        return (Set<Integer>) supportedBinaryOidsField.get(null);
     }
 
     private void testTextualAndBinaryTypes() throws SQLException {

@@ -5,6 +5,7 @@
  */
 package org.h2.build.doc;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -44,7 +45,13 @@ public class LinkChecker {
         "#tutorial_index"
     };
 
-    private final HashMap<String, String> targets = new HashMap<>();
+    private static enum TargetKind {
+        FILE, ID
+    }
+    private final HashMap<String, TargetKind> targets = new HashMap<>();
+    /**
+     * Map of source link (i.e. <a> tag) in the document, to the document path
+     */
     private final HashMap<String, String> links = new HashMap<>();
 
     /**
@@ -142,7 +149,7 @@ public class LinkChecker {
             }
         }
         for (String name : targets.keySet()) {
-            if (targets.get(name).equals("id")) {
+            if (targets.get(name) == TargetKind.ID) {
                 boolean ignore = false;
                 for (String to : IGNORE_MISSING_LINKS_TO) {
                     if (name.contains(to)) {
@@ -181,14 +188,15 @@ public class LinkChecker {
      */
     void processFile(Path file) throws IOException {
         String path = file.toString();
-        targets.put(path, "file");
+        targets.put(path, TargetKind.FILE);
         String fileName = file.getFileName().toString();
         String lower = StringUtils.toLowerEnglish(fileName);
         if (!lower.endsWith(".html") && !lower.endsWith(".htm")) {
             return;
         }
         Path parent = file.getParent();
-        String html = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
+        final String html = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
+        // find all the target fragments in the document (those elements marked with id attribute)
         int idx = -1;
         while (true) {
             idx = html.indexOf(" id=\"", idx + 1);
@@ -202,9 +210,10 @@ public class LinkChecker {
             }
             String ref = html.substring(start, end);
             if (!ref.startsWith("_")) {
-                targets.put(path + "#" + ref, "id");
+                targets.put(path + "#" + ref, TargetKind.ID);
             }
         }
+        // find all the href links in the document
         idx = -1;
         while (true) {
             idx = html.indexOf(" href=\"", idx + 1);
@@ -240,10 +249,10 @@ public class LinkChecker {
                         p = p.getParent();
                     }
                 }
-                ref = p + "/" + ref;
+                ref = p + File.separator + ref;
             }
             if (ref != null) {
-                links.put(ref, path);
+                links.put(ref.replace('/', File.separatorChar), path);
             }
         }
         idx = -1;
@@ -269,7 +278,7 @@ public class LinkChecker {
             if (type.equals("href")) {
                 // already checked
             } else if (type.equals("id")) {
-                targets.put(path + "#" + ref, "id");
+                targets.put(path + "#" + ref, TargetKind.ID);
             } else {
                 error(fileName, "Unsupported <a ?: " + html.substring(idx, idx + 100));
             }

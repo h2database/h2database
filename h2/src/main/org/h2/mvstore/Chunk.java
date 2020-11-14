@@ -396,8 +396,12 @@ public final class Chunk {
         return buff.toString().getBytes(StandardCharsets.ISO_8859_1);
     }
 
-    boolean isSaved() {
+    boolean isAllocated() {
         return block != 0;
+    }
+
+    boolean isSaved() {
+        return isAllocated() && buffer == null;
     }
 
     boolean isLive() {
@@ -465,7 +469,7 @@ public final class Chunk {
     }
 
     long[] readToC(FileStore fileStore) {
-        assert isSaved() || buffer != null : this;
+        assert buffer != null || isAllocated() : this;
         assert tocPos > 0;
         long[] toc = new long[pageCount];
         while (true) {
@@ -535,7 +539,7 @@ public final class Chunk {
      *         removed, and false otherwise
      */
     boolean accountForRemovedPage(int pageNo, int pageLength, boolean pinned, long now, long version) {
-        assert buffer != null || isSaved() : this;
+        assert buffer != null || isAllocated() : this;
         // legacy chunks do not have a table of content,
         // therefore pageNo is not valid, skip
         if (tocPos > 0) {

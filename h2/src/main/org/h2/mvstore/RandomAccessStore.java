@@ -140,7 +140,7 @@ public abstract class RandomAccessStore extends FileStore {
         assert saveChunkLock.isHeldByCurrentThread();
         long size = 2;
         for (Chunk c : getChunks().values()) {
-            if (c.isSaved()) {
+            if (c.isAllocated()) {
                 size = Math.max(size, c.block + c.len);
             }
         }
@@ -262,7 +262,7 @@ public abstract class RandomAccessStore extends FileStore {
                     });
             long size = 0;
             for (Chunk chunk : getChunks().values()) {
-                if (chunk.isSaved() && chunk.block > startBlock) {
+                if (chunk.isAllocated() && chunk.block > startBlock) {
                     chunk.collectPriority = getMovePriority(chunk);
                     queue.offer(chunk);
                     size += chunk.len;
@@ -405,7 +405,7 @@ public abstract class RandomAccessStore extends FileStore {
         // because concurrent reader can pick it up prematurely,
         chunk.block = block;
         chunk.next = 0;
-        acceptChunkChanges(chunk);
+        saveChunkMetadataChanges(chunk);
         return true;
     }
 

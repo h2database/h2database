@@ -622,7 +622,7 @@ public abstract class FileStore
                     if (getLayoutMap().remove(Chunk.getMetaKey(chunk.id)) != null) {
                         mvStore.markMetaChanged();
                     }
-                    if (chunk.isSaved()) {
+                    if (chunk.isAllocated()) {
                         toBeFreed.add(chunk);
                     }
                     ++count;
@@ -746,6 +746,9 @@ public abstract class FileStore
         int newChunkId;
         while (true) {
             newChunkId = ++lastChunkId & Chunk.MAX_ID;
+            if (newChunkId == lastChunkId) {
+                break;
+            }
             Chunk old = chunks.get(newChunkId);
             if (old == null) {
                 break;
@@ -795,7 +798,28 @@ public abstract class FileStore
         }
     }
 
-    public void acceptChunkChanges(Chunk chunk) {
+    /**
+     * Store chunk's serialized metadata as an entry in layout a map.
+     * Key for this entry would be "chunk.<id>"
+     *
+     * @param chunk to save
+     */
+    public void saveChunkMetadataChanges(Chunk chunk) {
+        assert serializationLock.isHeldByCurrentThread();
+        // chunk's location has to be determined before
+        // it's metadata can be is serialized
+        while (!chunk.isAllocated()) {
+            saveChunkLock.lock();
+            try {
+                if (chunk.isAllocated()) {
+                    break;
+                }
+            } finally {
+                saveChunkLock.unlock();
+            }
+            // just let chunks saving thread to deal with it
+            Thread.yield();
+        }
         layout.put(Chunk.getMetaKey(chunk.id), chunk.asString());
     }
 
@@ -1090,7 +1114,7 @@ public abstract class FileStore
         clear();
         // build the free space list
         for (Chunk c : getChunks().values()) {
-            if (c.isSaved()) {
+            if (c.isAllocated()) {
                 long start = c.block * FileStore.BLOCK_SIZE;
                 int length = c.len * FileStore.BLOCK_SIZE;
                 markUsed(start, length);
@@ -1590,30 +1614,26 @@ public abstract class FileStore
     private void serializeAndStore(boolean syncRun, ArrayList<Page<?,?>> changed, long time, long version) {
         serializationLock.lock();
         try {
+            Chunk lastChunk = null;
             int chunkId = lastChunkId;
             if (chunkId != 0) {
                 chunkId &= Chunk.MAX_ID;
-                Chunk lastChunk = chunks.get(chunkId);
-                assert lastChunk != null;
-                // the metadata of the last chunk was not stored so far, and needs to be
-                // set now (it's better not to update right after storing, because that
-                // would modify the meta map again)
-                acceptChunkChanges(lastChunk);
+                lastChunk = chunks.get(chunkId);
+                assert lastChunk != null : lastChunkId + " ("+chunkId+") " + chunks;
                 // never go backward in time
                 time = Math.max(lastChunk.time, time);
             }
             Chunk c = createChunk(time, version);
             WriteBuffer buff = getWriteBuffer();
-            serializeToBuffer(buff, changed, c);
+            serializeToBuffer(buff, changed, c, lastChunk);
             chunks.put(c.id, c);
-
-            for (Page<?, ?> p : changed) {
-                p.releaseSavedPages();
-            }
 
             bufferSaveExecutorHWM = submitOrRun(bufferSaveExecutor, () -> storeBuffer(c, buff),
                     syncRun, 5, bufferSaveExecutorHWM);
 
+            for (Page<?, ?> p : changed) {
+                p.releaseSavedPages();
+            }
         } catch (MVStoreException e) {
             mvStore.panic(e);
         } catch (Throwable e) {
@@ -1623,7 +1643,7 @@ public abstract class FileStore
         }
     }
 
-    private void serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, Chunk c) {
+    private void serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, Chunk c, Chunk previousChunk) {
         // need to patch the header later
         c.writeChunkHeader(buff, 0);
         int headerLength = buff.position() + 66; // len:0[fffffff]map:0[fffffff],toc:0[fffffffffffffff],root:0[fffffffffffffff,next:ffffffffffffffff]
@@ -1646,6 +1666,16 @@ public abstract class FileStore
 
         acceptChunkOccupancyChanges(c.time, version);
 
+        if (previousChunk != null) {
+            // the metadata of the last chunk was not stored in the layout map yet,
+            // just was ebeded into the chunk itself, and needs to be done now
+            // (it's better not to update right after storing, because that
+            // would modify the meta map again)
+            if (!layout.containsKey(Chunk.getMetaKey(previousChunk.id))) {
+                saveChunkMetadataChanges(previousChunk);
+            }
+        }
+
         RootReference<String,String> layoutRootReference = layoutMap.setWriteVersion(version);
         assert layoutRootReference != null;
         assert layoutRootReference.version == version : layoutRootReference.version + " != " + version;
@@ -1661,7 +1691,7 @@ public abstract class FileStore
 
         // last allocated map id should be captured after the meta map was saved, because
         // this will ensure that concurrently created map, which made it into meta before save,
-        // will have it's id reflected in mapid field of currently written chunk
+        // will have it's id reflected in mapid header field of the currently written chunk
         c.mapId = mvStore.getLastMapId();
 
         c.tocPos = buff.position();
@@ -1747,7 +1777,7 @@ public abstract class FileStore
                     return;
                 }
                 for (Chunk chunk : modifiedChunks) {
-                    acceptChunkChanges(chunk);
+                    saveChunkMetadataChanges(chunk);
                 }
                 modifiedChunks.clear();
             }

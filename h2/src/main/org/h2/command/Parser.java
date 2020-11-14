@@ -1185,12 +1185,7 @@ public class Parser {
                 }
                 break;
             case 'P':
-                if (database.getMode().getEnum() != ModeEnum.MSSQLServer && readIf("PREPARE")) {
-                    /*
-                     * PostgreSQL-style PREPARE is disabled in MSSQLServer mode
-                     * because PostgreSQL-style EXECUTE is redefined in this
-                     * mode.
-                     */
+                if (readIf("PREPARE")) {
                     c = parsePrepare();
                 }
                 break;
@@ -1357,6 +1352,18 @@ public class Parser {
             TransactionCommand command = new TransactionCommand(session, CommandInterface.PREPARE_COMMIT);
             command.setTransactionName(readIdentifier());
             return command;
+        }
+        return parsePrepareProcedure();
+    }
+
+    private Prepared parsePrepareProcedure() {
+        if (database.getMode().getEnum() == ModeEnum.MSSQLServer) {
+            throw getSyntaxError();
+            /*
+             * PostgreSQL-style PREPARE is disabled in MSSQLServer mode
+             * because PostgreSQL-style EXECUTE is redefined in this
+             * mode.
+             */
         }
         String procedureName = readIdentifier();
         if (readIf(OPEN_PAREN)) {

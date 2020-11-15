@@ -1,0 +1,868 @@
+# Copyright 2004-2020 H2 Group. Multiple-Licensed under the MPL 2.0,
+# and the EPL 1.0 (https://h2database.com/html/license.html).
+# Initial Developer: H2 Group
+
+"TABLE_NAME","COLUMN_NAME","DESCRIPTION"
+
+# Common columns with data type information
+
+,"DATA_TYPE","
+The SQL data type name.
+"
+
+,"CHARACTER_MAXIMUM_LENGTH","
+The maximum length in characters for character string data types.
+For binary string data types contains the same value as CHARACTER_OCTET_LENGTH.
+"
+
+,"CHARACTER_OCTET_LENGTH","
+The maximum length in bytes for binary string data types.
+For character string data types contains the same value as CHARACTER_MAXIMUM_LENGTH.
+"
+
+,"NUMERIC_PRECISION","
+The precision for numeric data types.
+"
+
+,"NUMERIC_PRECISION_RADIX","
+The radix of precision (2 or 10) for numeric data types.
+"
+
+,"NUMERIC_SCALE","
+The scale for numeric data types.
+"
+
+,"DATETIME_PRECISION","
+The fractional seconds precision for datetime data types.
+"
+
+,"INTERVAL_TYPE","
+The data type of interval qualifier for interval data types.
+"
+
+,"INTERVAL_PRECISION","
+The leading field precision for interval data types.
+"
+
+,"CHARACTER_SET_CATALOG","
+The catalog (database name) for character string data types.
+"
+
+,"CHARACTER_SET_SCHEMA","
+The name of public schema for character string data types.
+"
+
+,"CHARACTER_SET_NAME","
+The 'Unicode' for character string data types.
+"
+
+,"COLLATION_CATALOG","
+The catalog (database name) for character string data types.
+"
+
+,"COLLATION_SCHEMA","
+The name of public schema for character string data types.
+"
+
+,"COLLATION_NAME","
+The name of collation for character string data types.
+"
+
+,"MAXIMUM_CARDINALITY","
+The maximum cardinality for array data types.
+"
+
+,"DTD_IDENTIFIER","
+The data type identifier to read additional information from INFORMATION_SCHEMA.ELEMENT_TYPES for array data types,
+INFORMATION_SCHEMA.ENUM_VALUES for ENUM data type, and INFORMATION_SCHEMA.FIELDS for row value data types.
+"
+
+,"DECLARED_DATA_TYPE","
+The declared SQL data type name for numeric data types.
+"
+
+,"DECLARED_NUMERIC_PRECISION","
+The declared precision, if any, for numeric data types.
+"
+
+,"DECLARED_NUMERIC_SCALE","
+The declared scale, if any, for numeric data types.
+"
+
+,"GEOMETRY_TYPE","
+The geometry type constraint, if any, for geometry data types.
+"
+
+,"GEOMETRY_SRID","
+The geometry SRID (Spatial Reference Identifier) constraint, if any, for geometry data types.
+"
+
+# Other common fields
+
+,"CONSTRAINT_CATALOG","
+The catalog (database name).
+"
+
+,"CONSTRAINT_SCHEMA","
+The schema of the constraint.
+"
+
+,"CONSTRAINT_NAME","
+The name of the constraint.
+"
+
+,"DOMAIN_CATALOG","
+The catalog (database name).
+"
+
+,"DOMAIN_SCHEMA","
+The schema of domain.
+"
+
+,"DOMAIN_NAME","
+The name of domain.
+"
+
+,"INDEX_CATALOG","
+The catalog (database name).
+"
+
+,"INDEX_SCHEMA","
+The schema of the index.
+"
+
+,"INDEX_NAME","
+The name of the index.
+"
+
+,"OBJECT_CATALOG","
+The catalog (database name).
+"
+
+,"OBJECT_SCHEMA","
+The schema of the object.
+"
+
+,"OBJECT_NAME","
+The name of the object.
+"
+
+,"OBJECT_TYPE","
+The TYPE of the object ('CONSTANT', 'DOMAIN', 'TABLE', or 'ROUTINE').
+"
+
+,"SPECIFIC_CATALOG","
+The catalog (database name).
+"
+
+,"SPECIFIC_SCHEMA","
+The schema of the overloaded version of routine.
+"
+
+,"SPECIFIC_NAME","
+The name of the overloaded version of routine.
+"
+
+,"TABLE_CATALOG","
+The catalog (database name).
+"
+
+,"TABLE_SCHEMA","
+The schema of the table.
+"
+
+,"TABLE_NAME","
+The name of the table.
+"
+
+,"COLUMN_NAME","
+The name of the column.
+"
+
+,"ORDINAL_POSITION","
+The ordinal position (1-based).
+"
+
+,"GRANTOR","
+NULL.
+"
+
+,"GRANTEE","
+The name of grantee.
+"
+
+,"PRIVILEGE_TYPE","
+'SELECT', 'INSERT', 'UPDATE', or 'DELETE'.
+"
+
+,"IS_GRANTABLE","
+Whether grantee may grant rights to this object to others ('YES' or 'NO').
+"
+
+,"REMARKS","
+Optional remarks.
+"
+
+,"SESSION_ID","
+The identifier of the session.
+"
+
+# Individual fields
+
+"CHECK_CONSTRAINTS","CHECK_CLAUSE","
+The SQL of CHECK clause.
+"
+
+"COLLATIONS","PAD_ATTRIBUTE","
+'NO PAD'.
+"
+
+"COLLATIONS","LANGUAGE_TAG","
+The language tag.
+"
+
+"COLUMNS","COLUMN_DEFAULT","
+The SQL of DEFAULT expression, if any.
+"
+
+"COLUMNS","IS_NULLABLE","
+Whether column may contain NULL value ('YES' or 'NO').
+"
+
+"COLUMNS","DOMAIN_CATALOG","
+The catalog for columns with domain.
+"
+
+"COLUMNS","DOMAIN_SCHEMA","
+The schema of domain for columns with domain.
+"
+
+"COLUMNS","DOMAIN_NAME","
+The name of domain for columns with domain.
+"
+
+"COLUMNS","IS_IDENTITY","
+Whether column is an identity column ('YES' or 'NO').
+"
+
+"COLUMNS","IDENTITY_GENERATION","
+Identity generation ('ALWAYS' or 'BY DEFAULT') for identity columns.
+"
+
+"COLUMNS","IDENTITY_START","
+The initial start value for identity columns.
+"
+
+"COLUMNS","IDENTITY_INCREMENT","
+The increment value for identity columns.
+"
+
+"COLUMNS","IDENTITY_MAXIMUM","
+The maximum value for identity columns.
+"
+
+"COLUMNS","IDENTITY_MINIMUM","
+The minimum value for identity columns.
+"
+
+"COLUMNS","IDENTITY_CYCLE","
+Whether identity values are cycled ('YES' or 'NO') for identity columns.
+"
+
+"COLUMNS","IS_GENERATED","
+Whether column is an generated column ('YES' or 'NO')
+"
+
+"COLUMNS","GENERATION_EXPRESSION","
+The SQL of GENERATED ALWAYS AS expression for generated columns.
+"
+
+"COLUMNS","IDENTITY_BASE","
+The current base value for identity columns.
+"
+
+"COLUMNS","IDENTITY_CACHE","
+The cache size for identity columns.
+"
+
+"COLUMNS","COLUMN_ON_UPDATE","
+The SQL of ON UPDATE expression, if any.
+"
+
+"COLUMNS","IS_VISIBLE","
+Whether column is visible (included into SELECT *).
+"
+
+"COLUMNS","DEFAULT_ON_NULL","
+Whether value of DEFAULT expression is used when NULL value is inserted.
+"
+
+"COLUMNS","SELECTIVITY","
+The selectivity of a column (0-100), used to choose the best index.
+"
+
+"CONSTANTS","CONSTANT_CATALOG","
+The catalog (database name).
+"
+
+"CONSTANTS","CONSTANT_SCHEMA","
+The schema of the constant.
+"
+
+"CONSTANTS","CONSTANT_NAME","
+The name of the constant.
+"
+
+"CONSTANTS","VALUE_DEFINITION","
+The SQL of value.
+"
+
+"DOMAINS","DOMAIN_DEFAULT","
+The SQL of DEFAULT expression, if any.
+"
+
+"DOMAINS","DOMAIN_ON_UPDATE","
+The SQL of ON UPDATE expression, if any.
+"
+
+"DOMAINS","PARENT_DOMAIN_CATALOG","
+The catalog (database name) for domains with parent domain.
+"
+
+"DOMAINS","PARENT_DOMAIN_SCHEMA","
+The schema of parent domain for domains with parent domain.
+"
+
+"DOMAINS","PARENT_DOMAIN_NAME","
+The name of parent domain for domains with parent domain.
+"
+
+"DOMAIN_CONSTRAINTS","IS_DEFERRABLE","
+'NO'.
+"
+
+"DOMAIN_CONSTRAINTS","INITIALLY_DEFERRED","
+'NO'.
+"
+
+"ELEMENT_TYPES","COLLECTION_TYPE_IDENTIFIER","
+The DTD_IDENTIFIER value of the object.
+"
+
+"ENUM_VALUES","ENUM_IDENTIFIER","
+The DTD_IDENTIFIER value of the object.
+"
+
+"ENUM_VALUES","VALUE_NAME","
+The name of enum value.
+"
+
+"ENUM_VALUES","VALUE_ORDINAL","
+The ordinal of enum value.
+"
+
+"FIELDS","ROW_IDENTIFIER","
+The DTD_IDENTIFIER value of the object.
+"
+
+"FIELDS","FIELD_NAME","
+The name of the field of the row value.
+"
+
+"INDEXES","INDEX_TYPE_NAME","
+The type of the index ('PRIMARY KEY', 'UNIQUE INDEX', 'SPATIAL INDEX', etc.)
+"
+
+"INDEXES","IS_GENERATED","
+Whether index is generated by a constraint and belongs to it.
+"
+
+"INDEXES","INDEX_CLASS","
+The Java class name of index implementation.
+"
+
+"INDEX_COLUMNS","ORDERING_SPECIFICATION","
+'ASC' or 'DESC'.
+"
+
+"INDEX_COLUMNS","NULL_ORDERING","
+'FIRST', 'LAST', or NULL.
+"
+
+"INFORMATION_SCHEMA_CATALOG_NAME","CATALOG_NAME","
+The catalog (database name).
+"
+
+"IN_DOUBT","TRANSACTION_NAME","
+The name of prepared transaction.
+"
+
+"IN_DOUBT","TRANSACTION_STATE","
+The state of prepared transaction ('IN_DOUBT', 'COMMIT', or 'ROLLBACK').
+"
+
+"KEY_COLUMN_USAGE","POSITION_IN_UNIQUE_CONSTRAINT","
+The ordinal position in the referenced unique constraint (1-based).
+"
+
+"LOCKS","LOCK_TYPE","
+'READ' or 'WRITE'.
+"
+
+"PARAMETERS","PARAMETER_MODE","
+'IN'.
+"
+
+"PARAMETERS","IS_RESULT","
+'NO'.
+"
+
+"PARAMETERS","AS_LOCATOR","
+'YES' for LOBs, 'NO' for others.
+"
+
+"PARAMETERS","PARAMETER_NAME","
+The name of the parameter.
+"
+
+"PARAMETERS","PARAMETER_DEFAULT","
+NULL.
+"
+
+"QUERY_STATISTICS","SQL_STATEMENT","
+The SQL statement.
+"
+
+"QUERY_STATISTICS","EXECUTION_COUNT","
+The execution count.
+"
+
+"QUERY_STATISTICS","MIN_EXECUTION_TIME","
+The minimum execution time in milliseconds.
+"
+
+"QUERY_STATISTICS","MAX_EXECUTION_TIME","
+The maximum execution time in milliseconds.
+"
+
+"QUERY_STATISTICS","CUMULATIVE_EXECUTION_TIME","
+The total execution time in milliseconds.
+"
+
+"QUERY_STATISTICS","AVERAGE_EXECUTION_TIME","
+The average execution time in milliseconds.
+"
+
+"QUERY_STATISTICS","STD_DEV_EXECUTION_TIME","
+The standard deviation of execution time in milliseconds.
+"
+
+"QUERY_STATISTICS","MIN_ROW_COUNT","
+The minimum number of rows.
+"
+
+"QUERY_STATISTICS","MAX_ROW_COUNT","
+The maximum number of rows.
+"
+
+"QUERY_STATISTICS","CUMULATIVE_ROW_COUNT","
+The total number of rows.
+"
+
+"QUERY_STATISTICS","AVERAGE_ROW_COUNT","
+The average number of rows.
+"
+
+"QUERY_STATISTICS","STD_DEV_ROW_COUNT","
+The standard deviation of number of rows.
+"
+
+"REFERENTIAL_CONSTRAINTS","UNIQUE_CONSTRAINT_CATALOG","
+The catalog (database name).
+"
+
+"REFERENTIAL_CONSTRAINTS","UNIQUE_CONSTRAINT_SCHEMA","
+The schema of referenced unique constraint.
+"
+
+"REFERENTIAL_CONSTRAINTS","UNIQUE_CONSTRAINT_NAME","
+The name of referenced unique constraint.
+"
+
+"REFERENTIAL_CONSTRAINTS","MATCH_OPTION","
+'NONE'.
+"
+
+"REFERENTIAL_CONSTRAINTS","UPDATE_RULE","
+The rule for UPDATE in referenced table ('RESTRICT', 'CASCADE', 'SET DEFAULT', or 'SET NULL').
+"
+
+"REFERENTIAL_CONSTRAINTS","DELETE_RULE","
+The rule for DELETE in referenced table ('RESTRICT', 'CASCADE', 'SET DEFAULT', or 'SET NULL').
+"
+
+"RIGHTS","GRANTEETYPE","
+'USER' if grantee is a user, 'ROLE' if grantee is a role.
+"
+
+"RIGHTS","GRANTEDROLE","
+The name of the granted role for role grants.
+"
+
+"RIGHTS","RIGHTS","
+The set of rights ('SELECT', 'DELETE', 'INSERT', 'UPDATE', or 'ALTER ANY SCHEMA' separated with ', ') for table grants.
+"
+
+"ROLES","ROLE_NAME","
+The name of the role.
+"
+
+"ROUTINES","ROUTINE_CATALOG","
+The catalog (database name).
+"
+
+"ROUTINES","ROUTINE_SCHEMA","
+The schema of the routine.
+"
+
+"ROUTINES","ROUTINE_NAME","
+The name of the routine.
+"
+
+"ROUTINES","ROUTINE_TYPE","
+'PROCEDURE', 'FUNCTION', or 'AGGREGATE'.
+"
+
+"ROUTINES","ROUTINE_BODY","
+'EXTERNAL'.
+"
+
+"ROUTINES","ROUTINE_DEFINITION","
+Source code or NULL if not applicable or user doesn't have ADMIN privileges.
+"
+
+"ROUTINES","EXTERNAL_NAME","
+The name of the class or method.
+"
+
+"ROUTINES","EXTERNAL_LANGUAGE","
+'JAVA'.
+"
+
+"ROUTINES","PARAMETER_STYLE","
+'GENERAL'.
+"
+
+"ROUTINES","IS_DETERMINISTIC","
+Whether routine is deterministic ('YES' or 'NO').
+"
+
+"SCHEMATA","CATALOG_NAME","
+The catalog (database name).
+"
+
+"SCHEMATA","SCHEMA_NAME","
+The schema name.
+"
+
+"SCHEMATA","SCHEMA_OWNER","
+The name of schema owner.
+"
+
+"SCHEMATA","DEFAULT_CHARACTER_SET_CATALOG","
+The catalog (database name).
+"
+
+"SCHEMATA","DEFAULT_CHARACTER_SET_SCHEMA","
+The name of public schema.
+"
+
+"SCHEMATA","DEFAULT_CHARACTER_SET_NAME","
+'Unicode'.
+"
+
+"SCHEMATA","SQL_PATH","
+NULL.
+"
+
+"SCHEMATA","DEFAULT_COLLATION_NAME","
+The name of database collation.
+"
+
+"SEQUENCES","SEQUENCE_CATALOG","
+The catalog (database name).
+"
+
+"SEQUENCES","SEQUENCE_SCHEMA","
+The schema of the sequence.
+"
+
+"SEQUENCES","SEQUENCE_NAME","
+The name of the sequence.
+"
+
+"SEQUENCES","START_VALUE","
+The initial start value.
+"
+
+"SEQUENCES","MINIMUM_VALUE","
+The maximum value.
+"
+
+"SEQUENCES","MAXIMUM_VALUE","
+The minimum value.
+"
+
+"SEQUENCES","INCREMENT","
+The increment value.
+"
+
+"SEQUENCES","CYCLE_OPTION","
+Whether values are cycled ('YES' or 'NO').
+"
+
+"SEQUENCES","BASE_VALUE","
+The current base value.
+"
+
+"SEQUENCES","CACHE","
+The cache size.
+"
+
+"SESSIONS","USER_NAME","
+The name of the user.
+"
+
+"SESSIONS","SERVER","
+The name of the server used by remote connection.
+"
+
+"SESSIONS","CLIENT_ADDR","
+The client address and port used by remote connection.
+"
+
+"SESSIONS","CLIENT_INFO","
+Additional client information provided by remote connection.
+"
+
+"SESSIONS","SESSION_START","
+When this session was started.
+"
+
+"SESSIONS","ISOLATION_LEVEL","
+The isolation level of the session ('READ UNCOMMITTED', 'READ COMMITTED', 'REPEATABLE READ', 'SNAPSHOT',
+or 'SERIALIZABLE').
+"
+
+"SESSIONS","EXECUTING_STATEMENT","
+The currently executing statement, if any.
+"
+
+"SESSIONS","EXECUTING_STATEMENT_START","
+When the current command was started, if any.
+"
+
+"SESSIONS","CONTAINS_UNCOMMITTED","
+Whether the session contains any uncommitted changes.
+"
+
+"SESSIONS","SESSION_STATE","
+The state of the session ('RUNNING', 'SLEEP', etc.)
+"
+
+"SESSIONS","BLOCKER_ID","
+The identifier or blocking session, if any.
+"
+
+"SESSIONS","SLEEP_SINCE","
+When the last command was finished if session is sleeping.
+"
+
+"SESSION_STATE","STATE_KEY","
+The key.
+"
+
+"SESSION_STATE","STATE_COMMAND","
+The SQL command that can be used to restore the state.
+"
+
+"SETTINGS","SETTING_NAME","
+The name of the setting.
+"
+
+"SETTINGS","SETTING_VALUE","
+The value of the setting.
+"
+
+"SYNONYMS","SYNONYM_CATALOG","
+The catalog (database name).
+"
+
+"SYNONYMS","SYNONYM_SCHEMA","
+The schema of the synonym.
+"
+
+"SYNONYMS","SYNONYM_NAME","
+The name of the synonym.
+"
+
+"SYNONYMS","SYNONYM_FOR","
+The name of the referenced table.
+"
+
+"SYNONYMS","SYNONYM_FOR_SCHEMA","
+The name of the referenced schema.
+"
+
+"SYNONYMS","TYPE_NAME","
+'SYNONYM'.
+"
+
+"SYNONYMS","STATUS","
+'VALID'.
+"
+
+"TABLES","TABLE_TYPE","
+'BASE TABLE', 'VIEW', 'GLOBAL TEMPORARY', or 'LOCAL TEMPORARY'.
+"
+
+"TABLES","IS_INSERTABLE_INTO","
+Whether the table is insertable ('YES' or 'NO').
+"
+
+"TABLES","COMMIT_ACTION","
+'DELETE', 'DROP', or 'PRESERVE' for temporary tables.
+"
+
+"TABLES","STORAGE_TYPE","
+'CACHED' for regular persisted tables, 'MEMORY' for in-memory tables or persisted tables with in-memory indexes,
+'GLOBAL TEMPORARY' or 'LOCAL TEMPORARY' for temporary tables, 'EXTERNAL' for tables with external table engines,
+or 'TABLE LINK' for linked tables.
+"
+
+"TABLES","LAST_MODIFICATION","
+The sequence number of the last modification, if applicable.
+"
+
+"TABLES","TABLE_CLASS","
+The Java class name of implementation.
+"
+
+"TABLES","ROW_COUNT_ESTIMATE","
+The approximate number of rows if known or some default value if unknown.
+For regular tables contains the total number of rows including the uncommitted rows.
+"
+
+"TABLE_CONSTRAINTS","CONSTRAINT_TYPE","
+'CHECK', 'PRIMARY KEY', 'UNIQUE', or 'REFERENTIAL'.
+"
+
+"TABLE_CONSTRAINTS","IS_DEFERRABLE","
+'NO'.
+"
+
+"TABLE_CONSTRAINTS","INITIALLY_DEFERRED","
+'NO'.
+"
+
+"TABLE_CONSTRAINTS","ENFORCED","
+'YES' for non-referential constants.
+'YES' for referential constants when checks for referential integrity are enabled for the both referenced and
+referencing tables and 'NO' when they are disabled.
+"
+
+"TABLE_PRIVILEGES","WITH_HIERARCHY","
+'NO'.
+"
+
+"TRIGGERS","TRIGGER_CATALOG","
+The catalog (database name).
+"
+
+"TRIGGERS","TRIGGER_SCHEMA","
+The schema of the trigger.
+"
+
+"TRIGGERS","TRIGGER_NAME","
+The name of the trigger.
+"
+
+"TRIGGERS","EVENT_MANIPULATION","
+'INSERT', 'UPDATE', 'DELETE', or 'SELECT'.
+"
+
+"TRIGGERS","EVENT_OBJECT_CATALOG","
+The catalog (database name).
+"
+
+"TRIGGERS","EVENT_OBJECT_SCHEMA","
+The schema of the table.
+"
+
+"TRIGGERS","EVENT_OBJECT_TABLE","
+The name of the table.
+"
+
+"TRIGGERS","ACTION_ORIENTATION","
+'ROW' or 'STATEMENT'.
+"
+
+"TRIGGERS","ACTION_TIMING","
+'BEFORE', 'AFTER', or 'INSTEAD OF'.
+"
+
+"TRIGGERS","IS_ROLLBACK","
+Whether this trigger is executed on rollback.
+"
+
+"TRIGGERS","JAVA_CLASS","
+The Java class name.
+"
+
+"TRIGGERS","QUEUE_SIZE","
+The size of the queue (is not actually used).
+"
+
+"TRIGGERS","NO_WAIT","
+Whether trigger is defined with NO WAIT clause (is not actually used).
+"
+
+"USERS","USER_NAME","
+The name of the user.
+"
+
+"USERS","IS_ADMIN","
+Whether user has ADMIN privileges.
+"
+
+"VIEWS","VIEW_DEFINITION","
+The query SQL, if applicable.
+"
+
+"VIEWS","CHECK_OPTION","
+'NONE'.
+"
+
+"VIEWS","IS_UPDATABLE","
+'NO'.
+"
+
+"VIEWS","INSERTABLE_INTO","
+'NO'.
+"
+
+"VIEWS","IS_TRIGGER_UPDATABLE","
+Whether the view has INSTEAD OF trigger for UPDATE ('YES' or 'NO').
+"
+
+"VIEWS","IS_TRIGGER_DELETABLE","
+Whether the view has INSTEAD OF trigger for DELETE ('YES' or 'NO').
+"
+
+"VIEWS","IS_TRIGGER_INSERTABLE_INTO","
+Whether the view has INSTEAD OF trigger for INSERT ('YES' or 'NO').
+"
+
+"VIEWS","STATUS","
+'VALID' or 'INVALID'.
+"

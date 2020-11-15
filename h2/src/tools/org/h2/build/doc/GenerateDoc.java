@@ -26,6 +26,7 @@ import java.util.List;
 import org.h2.bnf.Bnf;
 import org.h2.engine.Constants;
 import org.h2.server.web.PageParser;
+import org.h2.tools.Csv;
 import org.h2.util.StringUtils;
 
 /**
@@ -125,6 +126,18 @@ public class GenerateDoc {
                 help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true, true);
         map("intervalDataTypes",
                 help + "LIKE 'Interval Data Types%' ORDER BY SECTION, ID", true, true);
+        HashMap<String, String> informationSchemaColumns = new HashMap<>(512);
+        Csv csv = new Csv();
+        csv.setLineCommentCharacter('#');
+        try (ResultSet rs = csv.read("src/docsrc/help/information_schema.csv", null, null)) {
+            while (rs.next()) {
+                String tableName = rs.getString(1);
+                String columnName = rs.getString(2);
+                String key = tableName == null ? columnName : tableName + '.' + columnName;
+                informationSchemaColumns.put(key, rs.getString(3));
+            }
+        }
+        int errorCount = 0;
         try (Statement stat = conn.createStatement();
                 PreparedStatement prep = conn.prepareStatement("SELECT COLUMN_NAME, "
                         + "DATA_TYPE_SQL('INFORMATION_SCHEMA', TABLE_NAME, 'TABLE', DTD_IDENTIFIER) DT "
@@ -132,6 +145,7 @@ public class GenerateDoc {
                         + "WHERE TABLE_SCHEMA = 'INFORMATION_SCHEMA' AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION")) {
             ResultSet rs = stat.executeQuery("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES "
                     + "WHERE TABLE_SCHEMA = 'INFORMATION_SCHEMA' ORDER BY TABLE_NAME");
+
             ArrayList<HashMap<String, String>> list = new ArrayList<>();
             StringBuilder builder = new StringBuilder();
             while (rs.next()) {
@@ -147,8 +161,18 @@ public class GenerateDoc {
                         builder.append('\n');
                     }
                     String column = rs2.getString(1);
+                    String description = informationSchemaColumns.get(table + '.' + column);
+                    if (description == null) {
+                        description = informationSchemaColumns.get(column);
+                        if (description == null) {
+                            System.out.println("No documentation for INFORMATION_SCHEMA." + table + '.' + column);
+                            errorCount++;
+                            description = "";
+                        }
+                    }
                     builder.append("<tr><td>").append(column).append("</td><td>").append(rs2.getString(2))
-                            .append("</td></tr>");
+                            .append("</td></tr><tr><td colspan=\"2\">")
+                            .append(StringUtils.xmlText(description)).append("</td></tr>");
                 }
                 map.put("columns", builder.toString());
                 list.add(map);
@@ -163,6 +187,9 @@ public class GenerateDoc {
             }
         });
         conn.close();
+        if (errorCount > 0) {
+            throw new IOException(errorCount + (errorCount == 1 ? " error" : " errors") +  " found");
+        }
     }
 
     /**

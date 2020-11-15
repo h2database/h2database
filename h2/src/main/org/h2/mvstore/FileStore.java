@@ -90,18 +90,22 @@ public abstract class FileStore
      * The number of read operations.
      */
     protected final AtomicLong readCount = new AtomicLong();
+
     /**
      * The number of read bytes.
      */
     protected final AtomicLong readBytes = new AtomicLong();
+
     /**
      * The number of write operations.
      */
     protected final AtomicLong writeCount = new AtomicLong();
+
     /**
      * The number of written bytes.
      */
     protected final AtomicLong writeBytes = new AtomicLong();
+
     /**
      * The file name.
      */
@@ -673,12 +677,12 @@ public abstract class FileStore
 
 
     /**
-     * Allocate logical space and maps buffer into position within the store.
+     * Allocate logical space and assign position of the buffer within the store.
      *
-     * @param c
-     * @param buff
+     * @param chunk to allocate space for
+     * @param buff to allocate space for
      */
-    protected abstract void allocateChunkSpace(Chunk c, WriteBuffer buff);
+    protected abstract void allocateChunkSpace(Chunk chunk, WriteBuffer buff);
 
     private boolean isWriteStoreHeader(Chunk c, boolean storeAtEndOfFile) {
         // whether we need to write the store header
@@ -1065,24 +1069,11 @@ public abstract class FileStore
         }
 
         if (!assumeCleanShutdown) {
-            boolean quickRecovery = false;
-            if (!recoveryMode) {
-                // now we know, that previous shutdown did not go well and file
-                // is possibly corrupted but there is still hope for a quick
-                // recovery
-
-                // this collection will hold potential candidates for lastChunk to fall back to,
-                // in order from the most to least likely
-                Chunk[] lastChunkCandidates = validChunksByLocation.values().toArray(new Chunk[0]);
-                Arrays.sort(lastChunkCandidates, chunkComparator);
-                Map<Integer, Chunk> validChunksById = new HashMap<>();
-                for (Chunk chunk : lastChunkCandidates) {
-                    validChunksById.put(chunk.id, chunk);
-                }
-                quickRecovery = findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation,
-                        validChunksById, false);
-            }
-
+            // now we know, that previous shutdown did not go well and file
+            // is possibly corrupted but there is still hope for a quick
+            // recovery
+            boolean quickRecovery = !recoveryMode &&
+                    findLastChunkWithCompleteValidChunkSet(chunkComparator, validChunksByLocation, false);
             if (!quickRecovery) {
                 // scan whole file and try to fetch chunk header and/or footer out of every block
                 // matching pairs with nothing in-between are considered as valid chunk
@@ -1093,20 +1084,11 @@ public abstract class FileStore
                     validChunksByLocation.put(block, tailChunk);
                 }
 
-                // this collection will hold potential candidates for lastChunk to fall back to,
-                // in order from the most to least likely
-                Chunk[] lastChunkCandidates = validChunksByLocation.values().toArray(new Chunk[0]);
-                Arrays.sort(lastChunkCandidates, chunkComparator);
-                Map<Integer, Chunk> validChunksById = new HashMap<>();
-                for (Chunk chunk : lastChunkCandidates) {
-                    validChunksById.put(chunk.id, chunk);
-                }
-                if (!findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation,
-                        validChunksById, true) && hasPersitentData()) {
+                if (!findLastChunkWithCompleteValidChunkSet(chunkComparator, validChunksByLocation, true)
+                        && hasPersitentData()) {
                     throw DataUtils.newMVStoreException(
                             DataUtils.ERROR_FILE_CORRUPT,
                             "File is corrupted - unable to recover a valid set of chunks");
-
                 }
             }
         }
@@ -1166,10 +1148,17 @@ public abstract class FileStore
         }
     }
 
-    private boolean findLastChunkWithCompleteValidChunkSet(Chunk[] lastChunkCandidates,
+    private boolean findLastChunkWithCompleteValidChunkSet(Comparator<Chunk> chunkComparator,
                                                            Map<Long, Chunk> validChunksByLocation,
-                                                           Map<Integer, Chunk> validChunksById,
                                                            boolean afterFullScan) {
+        // this collection will hold potential candidates for lastChunk to fall back to,
+        // in order from the most to least likely
+        Chunk[] lastChunkCandidates = validChunksByLocation.values().toArray(new Chunk[0]);
+        Arrays.sort(lastChunkCandidates, chunkComparator);
+        Map<Integer, Chunk> validChunksById = new HashMap<>();
+        for (Chunk chunk : lastChunkCandidates) {
+            validChunksById.put(chunk.id, chunk);
+        }
         // Try candidates for "last chunk" in order from newest to oldest
         // until suitable is found. Suitable one should have meta map
         // where all chunk references point to valid locations.
@@ -1849,34 +1838,6 @@ public abstract class FileStore
             count += chunk.pageCountLive;
         }
         return count;
-    }
-
-    /**
-     * Calculates a prospective fill rate, which store would have after rewrite
-     * of sparsely populated chunk(s) and evacuation of still live data into a
-     * new chunk.
-     *
-     * @param thresholdChunkFillRate all chunks with fill rate below this vallue
-     *                               end eligible otherwise, are assumed to be rewritten
-     * @return prospective fill rate (0 - 100)
-     */
-    int getProjectedFillRate_(int thresholdChunkFillRate) {
-        int vacatedBlocks = 0;
-        long maxLengthSum = 1;
-        long maxLengthLiveSum = 1;
-        long time = getTimeSinceCreation();
-        for (Chunk c : chunks.values()) {
-            assert c.maxLen >= 0;
-            if (isRewritable(c, time) && c.getFillRate() <= thresholdChunkFillRate) {
-                assert c.maxLen >= c.maxLenLive;
-                vacatedBlocks += c.len;
-                maxLengthSum += c.maxLen;
-                maxLengthLiveSum += c.maxLenLive;
-            }
-        }
-        int additionalBlocks = (int) (vacatedBlocks * maxLengthLiveSum / maxLengthSum);
-        int fillRate = getProjectedFillRate(vacatedBlocks - additionalBlocks);
-        return fillRate;
     }
 
     /**

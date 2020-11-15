@@ -71,19 +71,19 @@ public class AppendOnlyMultiFileStore extends FileStore
     }
 
     @Override
-    protected void allocateChunkSpace(Chunk c, WriteBuffer buff) {
+    protected void allocateChunkSpace(Chunk chunk, WriteBuffer buff) {
         saveChunkLock.lock();
         try {
-            int headerLength = (int)c.next;
+            int headerLength = (int) chunk.next;
 
             buff.position(0);
-            c.writeChunkHeader(buff, headerLength);
+            chunk.writeChunkHeader(buff, headerLength);
 
             buff.position(buff.limit() - Chunk.FOOTER_LENGTH);
-            buff.put(c.getFooterBytes());
+            buff.put(chunk.getFooterBytes());
 
-            c.block = size() / BLOCK_SIZE;
-            setSize((c.block + c.len) * BLOCK_SIZE);
+            chunk.block = size() / BLOCK_SIZE;
+            setSize((chunk.block + chunk.len) * BLOCK_SIZE);
         } finally {
             saveChunkLock.unlock();
         }

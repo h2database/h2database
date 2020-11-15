@@ -100,18 +100,10 @@ public final class Delete extends FilteredDataChangeStatement {
 
     @Override
     public String getPlanSQL(int sqlFlags) {
-        StringBuilder buff = new StringBuilder();
-        buff.append("DELETE FROM ");
-        targetTableFilter.getPlanSQL(buff, false, sqlFlags);
-        if (condition != null) {
-            buff.append("\nWHERE ");
-            condition.getUnenclosedSQL(buff, sqlFlags);
-        }
-        if (fetchExpr != null) {
-            buff.append("\nLIMIT ");
-            fetchExpr.getUnenclosedSQL(buff, sqlFlags);
-        }
-        return buff.toString();
+        StringBuilder builder = new StringBuilder("DELETE FROM ");
+        targetTableFilter.getPlanSQL(builder, false, sqlFlags);
+        appendFilterCondition(builder, sqlFlags);
+        return builder.toString();
     }
 
     @Override

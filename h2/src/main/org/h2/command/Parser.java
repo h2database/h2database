@@ -1501,9 +1501,7 @@ public class Parser {
             // for MySQL compatibility
             // (this syntax is supported, but ignored)
             readIfOrderBy();
-            if (readIf(LIMIT)) {
-                fetch = readTerm().optimize(session);
-            }
+            fetch = readFetchOrLimit();
         }
         command.setFetch(fetch);
         setSQL(command, start);
@@ -1549,12 +1547,33 @@ public class Parser {
         if (readIf(WHERE)) {
             command.setCondition(readExpression());
         }
-        if (fetch == null && readIf(LIMIT)) {
-            fetch = readTerm().optimize(session);
+        if (fetch == null) {
+            fetch = readFetchOrLimit();
         }
         command.setFetch(fetch);
         setSQL(command, start);
         return command;
+    }
+
+    private Expression readFetchOrLimit() {
+        Expression fetch = null;
+        if (readIf(FETCH)) {
+            if (!readIf("FIRST")) {
+                read("NEXT");
+            }
+            if (readIf(ROW) || readIf("ROWS")) {
+                fetch = ValueExpression.get(ValueInteger.get(1));
+            } else {
+                fetch = readExpression().optimize(session);
+                if (!readIf(ROW)) {
+                    read("ROWS");
+                }
+            }
+            read("ONLY");
+        } else if (readIf(LIMIT)) {
+            fetch = readTerm().optimize(session);
+        }
+        return fetch;
     }
 
     private IndexColumn[] parseIndexColumnList() {

@@ -78,4 +78,20 @@ abstract class FilteredDataChangeStatement extends DataChangeStatement {
         return false;
     }
 
+    final void appendFilterCondition(StringBuilder builder, int sqlFlags) {
+        if (condition != null) {
+            builder.append("\nWHERE ");
+            condition.getUnenclosedSQL(builder, sqlFlags);
+        }
+        if (fetchExpr != null) {
+            builder.append("\nFETCH FIRST ");
+            String count = fetchExpr.getSQL(sqlFlags, Expression.WITHOUT_PARENTHESES);
+            if ("1".equals(count)) {
+                builder.append("ROW ONLY");
+            } else {
+                builder.append(count).append(" ROWS ONLY");
+            }
+        }
+    }
+
 }

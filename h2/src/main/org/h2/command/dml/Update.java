@@ -113,14 +113,7 @@ public final class Update extends FilteredDataChangeStatement {
         StringBuilder builder = new StringBuilder("UPDATE ");
         targetTableFilter.getPlanSQL(builder, false, sqlFlags);
         setClauseList.getSQL(builder, sqlFlags);
-        if (condition != null) {
-            builder.append("\nWHERE ");
-            condition.getUnenclosedSQL(builder, sqlFlags);
-        }
-        if (fetchExpr != null) {
-            builder.append("\nLIMIT ");
-            fetchExpr.getUnenclosedSQL(builder, sqlFlags);
-        }
+        appendFilterCondition(builder, sqlFlags);
         return builder.toString();
     }
 

@@ -332,16 +332,6 @@ public final class Merge extends CommandWithValues {
     }
 
     @Override
-    public boolean isTransactional() {
-        return true;
-    }
-
-    @Override
-    public ResultInterface queryMeta() {
-        return null;
-    }
-
-    @Override
     public int getType() {
         return isReplace ? CommandInterface.REPLACE : CommandInterface.MERGE;
     }
@@ -349,11 +339,6 @@ public final class Merge extends CommandWithValues {
     @Override
     public String getStatementName() {
         return isReplace ? "REPLACE" : "MERGE";
-    }
-
-    @Override
-    public boolean isCacheable() {
-        return true;
     }
 
     @Override

@@ -27,8 +27,9 @@ public class RowList implements AutoCloseable {
     private final SessionLocal session;
     private final Table table;
     private final ArrayList<Row> list = Utils.newSmallArrayList();
-    private int size;
-    private int index, listIndex;
+    private long size;
+    private long index;
+    private int listIndex;
     private FileStore file;
     private Data rowBuff;
     private ArrayList<ValueLobFile> lobs;
@@ -195,7 +196,7 @@ public class RowList implements AutoCloseable {
     public Row next() {
         Row r;
         if (file == null) {
-            r = list.get(index++);
+            r = list.get((int) index++);
         } else {
             if (listIndex >= list.size()) {
                 list.clear();
@@ -228,7 +229,7 @@ public class RowList implements AutoCloseable {
      *
      * @return the number of rows
      */
-    public int size() {
+    public long size() {
         return size;
     }
 

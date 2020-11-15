@@ -1485,11 +1485,10 @@ public class Parser {
     private Update parseUpdate(int start) {
         Update command = new Update(session);
         currentPrepared = command;
-        Expression limit = null;
+        Expression fetch = null;
         if (database.getMode().getEnum() == ModeEnum.MSSQLServer && readIf("TOP")) {
             read(OPEN_PAREN);
-            limit = readTerm().optimize(session);
-            command.setLimit(limit);
+            fetch = readTerm().optimize(session);
             read(CLOSE_PAREN);
         }
         TableFilter filter = readSimpleTableFilter();
@@ -1498,14 +1497,15 @@ public class Parser {
         if (readIf(WHERE)) {
             command.setCondition(readExpression());
         }
-        if (limit == null) {
+        if (fetch == null) {
             // for MySQL compatibility
             // (this syntax is supported, but ignored)
             readIfOrderBy();
             if (readIf(LIMIT)) {
-                command.setLimit(readTerm().optimize(session));
+                fetch = readTerm().optimize(session);
             }
         }
+        command.setFetch(fetch);
         setSQL(command, start);
         return command;
     }
@@ -1536,9 +1536,9 @@ public class Parser {
 
     private Delete parseDelete(int start) {
         Delete command = new Delete(session);
-        Expression limit = null;
+        Expression fetch = null;
         if (readIf("TOP")) {
-            limit = readTerm().optimize(session);
+            fetch = readTerm().optimize(session);
         }
         currentPrepared = command;
         if (!readIf(FROM) && database.getMode().getEnum() == ModeEnum.MySQL) {
@@ -1549,10 +1549,10 @@ public class Parser {
         if (readIf(WHERE)) {
             command.setCondition(readExpression());
         }
-        if (limit == null && readIf(LIMIT)) {
-            limit = readTerm().optimize(session);
+        if (fetch == null && readIf(LIMIT)) {
+            fetch = readTerm().optimize(session);
         }
-        command.setLimit(limit);
+        command.setFetch(fetch);
         setSQL(command, start);
         return command;
     }

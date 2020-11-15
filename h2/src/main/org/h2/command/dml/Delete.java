@@ -16,7 +16,6 @@ import org.h2.engine.SessionLocal;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.result.RowList;
@@ -31,36 +30,12 @@ import org.h2.value.ValueNull;
  * This class represents the statement
  * DELETE
  */
-public final class Delete extends DataChangeStatement {
-
-    private Expression condition;
-    private TableFilter targetTableFilter;
-
-    /**
-     * The limit expression as specified in the LIMIT or TOP clause.
-     */
-    private Expression limitExpr;
+public final class Delete extends FilteredDataChangeStatement {
 
     public Delete(SessionLocal session) {
         super(session);
     }
 
-    @Override
-    public Table getTable() {
-        return targetTableFilter.getTable();
-    }
-
-    public void setTableFilter(TableFilter tableFilter) {
-        this.targetTableFilter = tableFilter;
-    }
-
-    public void setCondition(Expression condition) {
-        this.condition = condition;
-    }
-
-    public Expression getCondition() {
-        return this.condition;
-    }
 
     @Override
     public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
@@ -70,46 +45,40 @@ public final class Delete extends DataChangeStatement {
         session.getUser().checkTableRight(table, Right.DELETE);
         table.fire(session, Trigger.DELETE, true);
         table.lock(session, true, false);
-        int limitRows = -1;
-        if (limitExpr != null) {
-            Value v = limitExpr.getValue(session);
+        long limitRows = -1;
+        if (fetchExpr != null) {
+            Value v = fetchExpr.getValue(session);
             if (v != ValueNull.INSTANCE) {
-                limitRows = v.getInt();
+                limitRows = v.getLong();
             }
         }
         try (RowList rows = new RowList(session, table)) {
             setCurrentRowNumber(0);
             long count = 0;
-            while (limitRows != 0 && targetTableFilter.next()) {
-                setCurrentRowNumber(rows.size() + 1);
-                if (condition == null || condition.getBooleanValue(session)) {
-                    Row row = targetTableFilter.get();
-                    if (table.isMVStore()) {
-                        Row lockedRow = table.lockRow(session, row);
-                        if (lockedRow == null) {
+            while (nextRow(limitRows, count)) {
+                Row row = targetTableFilter.get();
+                if (table.isMVStore()) {
+                    Row lockedRow = table.lockRow(session, row);
+                    if (lockedRow == null) {
+                        continue;
+                    }
+                    if (!row.hasSharedData(lockedRow)) {
+                        row = lockedRow;
+                        targetTableFilter.set(row);
+                        if (condition != null && !condition.getBooleanValue(session)) {
                             continue;
                         }
-                        if (!row.hasSharedData(lockedRow)) {
-                            row = lockedRow;
-                            targetTableFilter.set(row);
-                            if (condition != null && !condition.getBooleanValue(session)) {
-                                continue;
-                            }
-                        }
-                    }
-                    if (deltaChangeCollectionMode == ResultOption.OLD) {
-                        deltaChangeCollector.addRow(row.getValueList());
-                    }
-                    if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
-                        rows.add(row);
-                    }
-                    count++;
-                    if (limitRows >= 0 && count >= limitRows) {
-                        break;
                     }
                 }
+                if (deltaChangeCollectionMode == ResultOption.OLD) {
+                    deltaChangeCollector.addRow(row.getValueList());
+                }
+                if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
+                    rows.add(row);
+                }
+                count++;
             }
-            int rowScanCount = 0;
+            long rowScanCount = 0;
             for (rows.reset(); rows.hasNext();) {
                 if ((++rowScanCount & 127) == 0) {
                     checkCanceled();
@@ -138,9 +107,9 @@ public final class Delete extends DataChangeStatement {
             buff.append("\nWHERE ");
             condition.getUnenclosedSQL(buff, sqlFlags);
         }
-        if (limitExpr != null) {
+        if (fetchExpr != null) {
             buff.append("\nLIMIT ");
-            limitExpr.getUnenclosedSQL(buff, sqlFlags);
+            fetchExpr.getUnenclosedSQL(buff, sqlFlags);
         }
         return buff.toString();
     }
@@ -161,16 +130,6 @@ public final class Delete extends DataChangeStatement {
     }
 
     @Override
-    public boolean isTransactional() {
-        return true;
-    }
-
-    @Override
-    public ResultInterface queryMeta() {
-        return null;
-    }
-
-    @Override
     public int getType() {
         return CommandInterface.DELETE;
     }
@@ -178,19 +137,6 @@ public final class Delete extends DataChangeStatement {
     @Override
     public String getStatementName() {
         return "DELETE";
-    }
-
-    public void setLimit(Expression limit) {
-        this.limitExpr = limit;
-    }
-
-    @Override
-    public boolean isCacheable() {
-        return true;
-    }
-
-    public TableFilter getTableFilter() {
-        return targetTableFilter;
     }
 
     @Override

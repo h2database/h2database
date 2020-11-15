@@ -253,7 +253,7 @@ public final class ValueDecfloat extends ValueBigDecimalBase {
         if (value != null) {
             return value.signum();
         }
-        return this == NEGATIVE_INFINITY ? -1 : 1;
+        return this == POSITIVE_INFINITY ? 1 : this == NEGATIVE_INFINITY ? -1 : 0;
     }
 
     @Override

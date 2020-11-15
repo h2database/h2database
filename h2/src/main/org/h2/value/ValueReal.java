@@ -130,7 +130,7 @@ public final class ValueReal extends Value {
 
     @Override
     public int getSignum() {
-        return value == 0 ? 0 : (value < 0 ? -1 : 1);
+        return value == 0 || Float.isNaN(value) ? 0 : value < 0 ? -1 : 1;
     }
 
     @Override

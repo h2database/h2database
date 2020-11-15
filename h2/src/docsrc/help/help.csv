@@ -5172,7 +5172,7 @@ CALL SECURE_RAND(16)
 "Functions (Numeric)","SIGN","
 @h2@ SIGN( { numeric | interval } )
 ","
-Returns -1 if the value is smaller than 0, 0 if zero, and otherwise 1.
+Returns -1 if the value is smaller than 0, 0 if zero or NaN, and otherwise 1.
 ","
 SIGN(VALUE)
 "

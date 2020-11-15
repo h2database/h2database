@@ -14,6 +14,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
@@ -25,7 +26,6 @@ import java.util.List;
 import org.h2.bnf.Bnf;
 import org.h2.engine.Constants;
 import org.h2.server.web.PageParser;
-import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -125,12 +125,36 @@ public class GenerateDoc {
                 help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true, true);
         map("intervalDataTypes",
                 help + "LIKE 'Interval Data Types%' ORDER BY SECTION, ID", true, true);
-        map("informationSchema", "SELECT TABLE_NAME TOPIC, " +
-                "GROUP_CONCAT(COLUMN_NAME " +
-                "ORDER BY ORDINAL_POSITION SEPARATOR ', ') SYNTAX " +
-                "FROM INFORMATION_SCHEMA.COLUMNS " +
-                "WHERE TABLE_SCHEMA='INFORMATION_SCHEMA' " +
-                "GROUP BY TABLE_NAME ORDER BY TABLE_NAME", false, false);
+        try (Statement stat = conn.createStatement();
+                PreparedStatement prep = conn.prepareStatement("SELECT COLUMN_NAME, "
+                        + "DATA_TYPE_SQL('INFORMATION_SCHEMA', TABLE_NAME, 'TABLE', DTD_IDENTIFIER) DT "
+                        + "FROM INFORMATION_SCHEMA.COLUMNS "
+                        + "WHERE TABLE_SCHEMA = 'INFORMATION_SCHEMA' AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION")) {
+            ResultSet rs = stat.executeQuery("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES "
+                    + "WHERE TABLE_SCHEMA = 'INFORMATION_SCHEMA' ORDER BY TABLE_NAME");
+            ArrayList<HashMap<String, String>> list = new ArrayList<>();
+            StringBuilder builder = new StringBuilder();
+            while (rs.next()) {
+                HashMap<String, String> map = new HashMap<>(4);
+                String table = rs.getString(1);
+                map.put("table", table);
+                map.put("link", "information_schema_" + StringUtils.urlEncode(table.toLowerCase()));
+                prep.setString(1, table);
+                ResultSet rs2 = prep.executeQuery();
+                builder.setLength(0);
+                while (rs2.next()) {
+                    if (rs2.getRow() > 1) {
+                        builder.append('\n');
+                    }
+                    String column = rs2.getString(1);
+                    builder.append("<tr><td>").append(column).append("</td><td>").append(rs2.getString(2))
+                            .append("</td></tr>");
+                }
+                map.put("columns", builder.toString());
+                list.add(map);
+            }
+            putToMap("informationSchema", list);
+        }
         Files.walkFileTree(inDir, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -160,11 +184,8 @@ public class GenerateDoc {
 
     private void map(String key, String sql, boolean railroads, boolean forDataTypes)
             throws Exception {
-        ResultSet rs = null;
-        Statement stat = null;
-        try {
-            stat = conn.createStatement();
-            rs = stat.executeQuery(sql);
+        try (Statement stat = conn.createStatement();
+                ResultSet rs = stat.executeQuery(sql)) {
             ArrayList<HashMap<String, String>> list =
                     new ArrayList<>();
             while (rs.next()) {
@@ -212,18 +233,19 @@ public class GenerateDoc {
 
                 list.add(map);
             }
-            session.put(key, list);
-            int div = 3;
-            int part = (list.size() + div - 1) / div;
-            for (int i = 0, start = 0; i < div; i++, start += part) {
-                int end = Math.min(start + part, list.size());
-                List<HashMap<String, String>> listThird = start <= end ? list.subList(start, end)
-                        : Collections.emptyList();
-                session.put(key + "-" + i, listThird);
-            }
-        } finally {
-            JdbcUtils.closeSilently(rs);
-            JdbcUtils.closeSilently(stat);
+            putToMap(key, list);
+        }
+    }
+
+    private void putToMap(String key, ArrayList<HashMap<String, String>> list) {
+        session.put(key, list);
+        int div = 3;
+        int part = (list.size() + div - 1) / div;
+        for (int i = 0, start = 0; i < div; i++, start += part) {
+            int end = Math.min(start + part, list.size());
+            List<HashMap<String, String>> listThird = start <= end ? list.subList(start, end)
+                    : Collections.emptyList();
+            session.put(key + '-' + i, listThird);
         }
     }
 

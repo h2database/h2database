@@ -19,19 +19,59 @@ System Tables
 
 <h1>System Tables</h1>
 
+<h2>Index</h2>
+
 <p class="notranslate">
-<a href="#information_schema">Information Schema</a><br />
+<a href="#information_schema">Information Schema</a>
+</p>
+
+<!-- syntax-start
+<p class="notranslate">
+<c:forEach var="item" items="informationSchema">
+    <a href="#${item.link}" >${item.table}</a><br />
+</c:forEach>
+</p>
+syntax-end -->
+<!-- railroad-start -->
+<table class="notranslate index">
+    <tr>
+        <td class="index">
+            <c:forEach var="item" items="informationSchema-0">
+                <a href="#${item.link}" >${item.table}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="informationSchema-1">
+                <a href="#${item.link}" >${item.table}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="informationSchema-2">
+                <a href="#${item.link}" >${item.table}</a><br />
+            </c:forEach>
+        </td>
+    </tr>
+</table>
+<!-- railroad-end -->
+
+<p class="notranslate">
 <a href="#range_table">Range Table</a><br />
 </p>
 
 <h2 id="information_schema" class="notranslate">Information Schema</h2>
 <p>
-The system tables in the schema <code>INFORMATION_SCHEMA</code> contain the meta data
-of all tables in the database as well as the current settings.
+The system tables and views in the schema <code>INFORMATION_SCHEMA</code> contain the meta data
+of all tables, views, domains, and other objects in the database as well as the current settings.
+This documentation describes the default new version of <code>INFORMATION_SCHEMA</code> for H2 2.0.
+Old TCP clients (1.4.200 and below) see the legacy version of <code>INFORMATION_SCHEMA</code>,
+because they can't work with the new one. The legacy version is not documented.
 </p>
+
 <c:forEach var="item" items="informationSchema">
-<h3 class="notranslate">${item.topic}</h3>
-<p class="notranslate">${item.syntax}</p>
+<h3 class="notranslate" id="${item.link}">${item.table}</h3>
+<table class="main">
+<tbody>
+${item.columns}
+</tbody>
+</table>
 </c:forEach>
 
 <h2 id="range_table" class="notranslate">Range Table</h2>

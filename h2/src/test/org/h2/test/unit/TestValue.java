@@ -200,6 +200,14 @@ public class TestValue extends TestDb {
                 Double.POSITIVE_INFINITY,
                 Double.NaN
         };
+        int[] signum = {
+                -1,
+                -1,
+                0,
+                1,
+                1,
+                0
+        };
         Value[] values = new Value[d.length];
         for (int i = 0; i < d.length; i++) {
             Value v = useFloat ? (Value) ValueReal.get((float) d[i])
@@ -207,7 +215,7 @@ public class TestValue extends TestDb {
             values[i] = v;
             assertTrue(values[i].compareTypeSafe(values[i], null, null) == 0);
             assertTrue(v.equals(v));
-            assertEquals(Integer.compare(i, 2), v.getSignum());
+            assertEquals(signum[i], v.getSignum());
         }
         for (int i = 0; i < d.length - 1; i++) {
             assertTrue(values[i].compareTypeSafe(values[i+1], null, null) < 0);

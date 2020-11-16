@@ -26,7 +26,7 @@ SET MODE MSSQLServer;
 
 -- PostgreSQL-style PREPARE is not available in MSSQLServer mode
 PREPARE TEST AS SELECT 1;
-> exception SYNTAX_ERROR_1
+> exception SYNTAX_ERROR_2
 
 -- PostgreSQL-style DEALLOCATE is not available in MSSQLServer mode
 DEALLOCATE TEST;

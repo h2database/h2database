@@ -96,7 +96,7 @@ SELECT D, -D, SIGN(D) FROM TEST ORDER BY D;
 > 1         -1        1
 > 1.5       -1.5      1
 > Infinity  -Infinity 1
-> NaN       NaN       1
+> NaN       NaN       0
 > rows (ordered): 7
 
 SELECT A.D, B.D, A.D + B.D, A.D - B.D, A.D * B.D FROM TEST A JOIN TEST B ORDER BY A.D, B.D;

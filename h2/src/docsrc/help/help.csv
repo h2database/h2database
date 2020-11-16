@@ -116,21 +116,24 @@ INSERT INTO TEST VALUES(1, 'Hello')
 
 "Commands (DML)","UPDATE","
 UPDATE [schemaName.]tableName [ [ AS ] newTableAlias ] SET setClauseList
-[ WHERE expression ] @c@ [ ORDER BY sortSpecificationList ] @h2@ [ LIMIT expression ]
+[ WHERE expression ] @c@ [ ORDER BY sortSpecificationList ]
+@h2@ FETCH { FIRST | NEXT } [ expression ] { ROW | ROWS } ONLY
 ","
 Updates data in a table.
 ORDER BY is supported for MySQL compatibility, but it is ignored.
+If FETCH is specified, at most the specified number of rows are updated (no limit if null or smaller than zero).
 ","
 UPDATE TEST SET NAME='Hi' WHERE ID=1;
 UPDATE PERSON P SET NAME=(SELECT A.NAME FROM ADDRESS A WHERE A.ID=P.ID);
 "
 
 "Commands (DML)","DELETE","
-DELETE @c@ [ TOP term ] FROM [schemaName.]tableName
-[ WHERE expression ] @h2@ [ LIMIT term ]
+DELETE FROM [schemaName.]tableName
+[ WHERE expression ]
+@h2@ FETCH { FIRST | NEXT } [ expression ] { ROW | ROWS } ONLY
 ","
 Deletes rows form a table.
-If TOP or LIMIT is specified, at most the specified number of rows are deleted (no limit if null or smaller than zero).
+If FETCH is specified, at most the specified number of rows are deleted (no limit if null or smaller than zero).
 ","
 DELETE FROM TEST WHERE ID=2
 "
@@ -5169,7 +5172,7 @@ CALL SECURE_RAND(16)
 "Functions (Numeric)","SIGN","
 @h2@ SIGN( { numeric | interval } )
 ","
-Returns -1 if the value is smaller than 0, 0 if zero, and otherwise 1.
+Returns -1 if the value is smaller than 0, 0 if zero or NaN, and otherwise 1.
 ","
 SIGN(VALUE)
 "

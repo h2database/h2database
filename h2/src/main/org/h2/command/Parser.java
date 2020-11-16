@@ -1185,12 +1185,7 @@ public class Parser {
                 }
                 break;
             case 'P':
-                if (database.getMode().getEnum() != ModeEnum.MSSQLServer && readIf("PREPARE")) {
-                    /*
-                     * PostgreSQL-style PREPARE is disabled in MSSQLServer mode
-                     * because PostgreSQL-style EXECUTE is redefined in this
-                     * mode.
-                     */
+                if (readIf("PREPARE")) {
                     c = parsePrepare();
                 }
                 break;
@@ -1358,6 +1353,18 @@ public class Parser {
             command.setTransactionName(readIdentifier());
             return command;
         }
+        return parsePrepareProcedure();
+    }
+
+    private Prepared parsePrepareProcedure() {
+        if (database.getMode().getEnum() == ModeEnum.MSSQLServer) {
+            throw getSyntaxError();
+            /*
+             * PostgreSQL-style PREPARE is disabled in MSSQLServer mode
+             * because PostgreSQL-style EXECUTE is redefined in this
+             * mode.
+             */
+        }
         String procedureName = readIdentifier();
         if (readIf(OPEN_PAREN)) {
             ArrayList<Column> list = Utils.newSmallArrayList();
@@ -1478,11 +1485,10 @@ public class Parser {
     private Update parseUpdate(int start) {
         Update command = new Update(session);
         currentPrepared = command;
-        Expression limit = null;
+        Expression fetch = null;
         if (database.getMode().getEnum() == ModeEnum.MSSQLServer && readIf("TOP")) {
             read(OPEN_PAREN);
-            limit = readTerm().optimize(session);
-            command.setLimit(limit);
+            fetch = readTerm().optimize(session);
             read(CLOSE_PAREN);
         }
         TableFilter filter = readSimpleTableFilter();
@@ -1491,14 +1497,13 @@ public class Parser {
         if (readIf(WHERE)) {
             command.setCondition(readExpression());
         }
-        if (limit == null) {
+        if (fetch == null) {
             // for MySQL compatibility
             // (this syntax is supported, but ignored)
             readIfOrderBy();
-            if (readIf(LIMIT)) {
-                command.setLimit(readTerm().optimize(session));
-            }
+            fetch = readFetchOrLimit();
         }
+        command.setFetch(fetch);
         setSQL(command, start);
         return command;
     }
@@ -1529,9 +1534,9 @@ public class Parser {
 
     private Delete parseDelete(int start) {
         Delete command = new Delete(session);
-        Expression limit = null;
+        Expression fetch = null;
         if (readIf("TOP")) {
-            limit = readTerm().optimize(session);
+            fetch = readTerm().optimize(session);
         }
         currentPrepared = command;
         if (!readIf(FROM) && database.getMode().getEnum() == ModeEnum.MySQL) {
@@ -1542,12 +1547,33 @@ public class Parser {
         if (readIf(WHERE)) {
             command.setCondition(readExpression());
         }
-        if (limit == null && readIf(LIMIT)) {
-            limit = readTerm().optimize(session);
+        if (fetch == null) {
+            fetch = readFetchOrLimit();
         }
-        command.setLimit(limit);
+        command.setFetch(fetch);
         setSQL(command, start);
         return command;
+    }
+
+    private Expression readFetchOrLimit() {
+        Expression fetch = null;
+        if (readIf(FETCH)) {
+            if (!readIf("FIRST")) {
+                read("NEXT");
+            }
+            if (readIf(ROW) || readIf("ROWS")) {
+                fetch = ValueExpression.get(ValueInteger.get(1));
+            } else {
+                fetch = readExpression().optimize(session);
+                if (!readIf(ROW)) {
+                    read("ROWS");
+                }
+            }
+            read("ONLY");
+        } else if (readIf(LIMIT)) {
+            fetch = readTerm().optimize(session);
+        }
+        return fetch;
     }
 
     private IndexColumn[] parseIndexColumnList() {

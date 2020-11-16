@@ -130,7 +130,7 @@ public final class ValueDouble extends Value {
 
     @Override
     public int getSignum() {
-        return value == 0 ? 0 : (value < 0 ? -1 : 1);
+        return value == 0 || Double.isNaN(value) ? 0 : value < 0 ? -1 : 1;
     }
 
     @Override

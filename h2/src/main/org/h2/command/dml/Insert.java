@@ -341,16 +341,6 @@ public final class Insert extends CommandWithValues implements ResultTarget {
         }
     }
 
-    @Override
-    public boolean isTransactional() {
-        return true;
-    }
-
-    @Override
-    public ResultInterface queryMeta() {
-        return null;
-    }
-
     public void setSortedInsertMode(boolean sortedInsertMode) {
         this.sortedInsertMode = sortedInsertMode;
     }

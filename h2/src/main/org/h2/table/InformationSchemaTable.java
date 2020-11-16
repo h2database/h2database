@@ -2781,7 +2781,7 @@ public final class InformationSchemaTable extends MetaTable {
                         // GRANTEETYPE
                         rightType,
                         // GRANTEDROLE
-                        "",
+                        null,
                         // RIGHTS
                         r.getRights(),
                         // TABLE_SCHEMA
@@ -2798,11 +2798,11 @@ public final class InformationSchemaTable extends MetaTable {
                         // GRANTEDROLE
                         identifier(role.getName()),
                         // RIGHTS
-                        "",
+                        null,
                         // TABLE_SCHEMA
-                        "",
+                        null,
                         // TABLE_NAME
-                        ""
+                        null
                 );
             }
         }

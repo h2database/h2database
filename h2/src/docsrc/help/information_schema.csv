@@ -4,6 +4,156 @@
 
 "TABLE_NAME","COLUMN_NAME","DESCRIPTION"
 
+# Tables and views
+
+"CHECK_CONSTRAINTS",,"
+Contains CHECK clauses of check and domain constraints.
+"
+
+"COLLATIONS",,"
+Contains available collations.
+"
+
+"COLUMNS",,"
+Contains information about columns of tables.
+"
+
+"COLUMN_PRIVILEGES",,"
+Contains information about privileges of columns.
+H2 doesn't have per-column privileges, so this view actually contains privileges of their tables.
+"
+
+"CONSTANTS",,"
+Contains information about constants.
+"
+
+"CONSTRAINT_COLUMN_USAGE",,"
+Contains information about columns used in constraints.
+"
+
+"DOMAINS",,"
+Contains information about domains.
+"
+
+"DOMAIN_CONSTRAINTS",,"
+Contains basic information about domain constraints.
+See also INFORMATION_SCHEMA.CHECK_CONSTRAINTS.
+"
+
+"ELEMENT_TYPES",,"
+Contains information about types of array elements.
+"
+
+"ENUM_VALUES",,"
+Contains information about enum values.
+"
+
+"FIELDS",,"
+Contains information about fields of row values.
+"
+
+"INDEXES",,"
+Contains information about indexes.
+"
+
+"INDEX_COLUMNS",,"
+Contains information about columns used in indexes.
+"
+
+"INFORMATION_SCHEMA_CATALOG_NAME",,"
+Contains a single row with the name of catalog (database name).
+"
+
+"IN_DOUBT",,"
+Contains information about prepared transactions.
+"
+
+"KEY_COLUMN_USAGE",,"
+Contains information about columns used by primary key, unique, or referential constraint.
+"
+
+"LOCKS",,"
+Contains information about tables locked by sessions.
+"
+
+"PARAMETERS",,"
+Contains information about parameters of routines.
+"
+
+"QUERY_STATISTICS",,"
+Contains statistics of queries when query statistics gathering is enabled.
+"
+
+"REFERENTIAL_CONSTRAINTS",,"
+Contains additional information about referential constraints.
+"
+
+"RIGHTS",,"
+Contains information about granted rights and roles.
+"
+
+"ROLES",,"
+Contains information about roles.
+"
+
+"ROUTINES",,"
+Contains information about user-defined routines, including aggregate functions.
+"
+
+"SCHEMATA",,"
+Contains information about schemas.
+"
+
+"SEQUENCES",,"
+Contains information about sequences.
+"
+
+"SESSIONS",,"
+Contains information about sessions.
+Only users with ADMIN privileges can see all sessions, other users can see only own session.
+"
+
+"SESSION_STATE",,"
+Contains the state of the current session.
+"
+
+"SETTINGS",,"
+Contains values of various settings.
+"
+
+"SYNONYMS",,"
+Contains information about table synonyms.
+"
+
+"TABLES",,"
+Contains information about tables.
+See also INFORMATION_SCHEMA.COLUMNS.
+"
+
+"TABLE_CONSTRAINTS",,"
+Contains basic information about table constraints (check, primary key, unique, and referential).
+"
+
+"TABLE_PRIVILEGES",,"
+Contains information about privileges of tables.
+See INFORMATION_SCHEMA.CHECK_CONSTRAINTS, INFORMATION_SCHEMA.KEY_COLUMN_USAGE,
+and INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS for additional information.
+"
+
+"TRIGGERS",,"
+Contains information about triggers.
+"
+
+"USERS",,"
+Contains information about users.
+Only users with ADMIN privileges can see all users, other users can see only themselves.
+"
+
+"VIEWS",,"
+Contains additional information about views.
+See INFORMATION_SCHEMA.TABLES for basic information.
+"
+
 # Common columns with data type information
 
 ,"DATA_TYPE","

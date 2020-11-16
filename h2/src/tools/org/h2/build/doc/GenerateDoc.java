@@ -126,6 +126,7 @@ public class GenerateDoc {
                 help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true, true);
         map("intervalDataTypes",
                 help + "LIKE 'Interval Data Types%' ORDER BY SECTION, ID", true, true);
+        HashMap<String, String> informationSchemaTables = new HashMap<>();
         HashMap<String, String> informationSchemaColumns = new HashMap<>(512);
         Csv csv = new Csv();
         csv.setLineCommentCharacter('#');
@@ -133,8 +134,13 @@ public class GenerateDoc {
             while (rs.next()) {
                 String tableName = rs.getString(1);
                 String columnName = rs.getString(2);
-                String key = tableName == null ? columnName : tableName + '.' + columnName;
-                informationSchemaColumns.put(key, rs.getString(3));
+                String description = rs.getString(3);
+                if (columnName != null) {
+                    informationSchemaColumns.put(tableName == null ? columnName : tableName + '.' + columnName,
+                            description);
+                } else {
+                    informationSchemaTables.put(tableName, description);
+                }
             }
         }
         int errorCount = 0;
@@ -149,10 +155,17 @@ public class GenerateDoc {
             ArrayList<HashMap<String, String>> list = new ArrayList<>();
             StringBuilder builder = new StringBuilder();
             while (rs.next()) {
-                HashMap<String, String> map = new HashMap<>(4);
+                HashMap<String, String> map = new HashMap<>(8);
                 String table = rs.getString(1);
                 map.put("table", table);
                 map.put("link", "information_schema_" + StringUtils.urlEncode(table.toLowerCase()));
+                String description = informationSchemaTables.get(table);
+                if (description == null) {
+                    System.out.println("No documentation for INFORMATION_SCHEMA." + table);
+                    errorCount++;
+                    description = "";
+                }
+                map.put("description", StringUtils.xmlText(description));
                 prep.setString(1, table);
                 ResultSet rs2 = prep.executeQuery();
                 builder.setLength(0);
@@ -161,7 +174,7 @@ public class GenerateDoc {
                         builder.append('\n');
                     }
                     String column = rs2.getString(1);
-                    String description = informationSchemaColumns.get(table + '.' + column);
+                    description = informationSchemaColumns.get(table + '.' + column);
                     if (description == null) {
                         description = informationSchemaColumns.get(column);
                         if (description == null) {

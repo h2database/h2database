@@ -595,7 +595,11 @@ public class Select extends Query {
             return null;
         }
         ArrayList<Column> sortColumns = Utils.newSmallArrayList();
-        for (int idx : sort.getQueryColumnIndexes()) {
+        int[] queryColumnIndexes = sort.getQueryColumnIndexes();
+        int queryIndexesLength = queryColumnIndexes.length;
+        int[] sortIndex = new int[queryIndexesLength];
+        for (int i = 0, j = 0; i < queryIndexesLength; i++) {
+            int idx = queryColumnIndexes[i];
             if (idx < 0 || idx >= expressions.size()) {
                 throw DbException.getInvalidValueException("ORDER BY", idx + 1);
             }
@@ -612,6 +616,7 @@ public class Select extends Query {
                 return null;
             }
             sortColumns.add(exprCol.getColumn());
+            sortIndex[j++] = i;
         }
         Column[] sortCols = sortColumns.toArray(new Column[0]);
         if (sortCols.length == 0) {
@@ -642,9 +647,10 @@ public class Select extends Query {
                     if (idxCol.column != sortCol) {
                         continue loop;
                     }
+                    int sortType = sortTypes[sortIndex[j]];
                     if (sortCol.isNullable()
-                            ? defaultNullOrdering.addExplicitNullOrdering(idxCol.sortType) != sortTypes[j]
-                            : (idxCol.sortType & SortOrder.DESCENDING) != (sortTypes[j] & SortOrder.DESCENDING)) {
+                            ? defaultNullOrdering.addExplicitNullOrdering(idxCol.sortType) != sortType
+                            : (idxCol.sortType & SortOrder.DESCENDING) != (sortType & SortOrder.DESCENDING)) {
                         continue loop;
                     }
                 }

@@ -9583,7 +9583,7 @@ public class Parser {
             boolean ifExists, String columnName, Column column) {
         int index = lastParseIndex;
         Boolean always = null;
-        if (readIf("SET") && readIf("GENERATED")) {
+        if (readIf(SET) && readIf("GENERATED")) {
             if (readIf("ALWAYS")) {
                 always = true;
             } else {

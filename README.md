@@ -35,5 +35,5 @@ More information: https://h2database.com
 ## Support
 
 * [Issue tracker](https://github.com/h2database/h2database/issues) for bug reports and feature requests
-* [Mailing list / forum](https://groups.google.com/forum/#!forum/h2-database) for questions about H2
+* [Mailing list / forum](https://groups.google.com/g/h2-database) for questions about H2
 * ['h2' tag on Stack Overflow](https://stackoverflow.com/questions/tagged/h2) for other questions (Hibernate with H2 etc.)

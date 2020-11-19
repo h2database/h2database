@@ -115,7 +115,7 @@ $$<rdf:RDF xmlns="http://usefulinc.com/ns/doap#" xmlns:rdf="http://www.w3.org/19
             <location rdf:resource="https://github.com/h2database/h2database"/>
         </SVNRepository>
     </repository>
-    <mailing-list rdf:resource="https://groups.google.com/forum/#!forum/h2-database"/>
+    <mailing-list rdf:resource="https://groups.google.com/g/h2-database"/>
 $$ ||
     GROUP_CONCAT(
         XMLNODE('release', NULL,

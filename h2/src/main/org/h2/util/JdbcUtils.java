@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Properties;
+
 import javax.naming.Context;
 import javax.sql.DataSource;
 import org.h2.api.ErrorCode;
@@ -291,12 +293,19 @@ public class JdbcUtils {
             try {
                 if (java.sql.Driver.class.isAssignableFrom(d)) {
                     Driver driverInstance = (Driver) d.getDeclaredConstructor().newInstance();
+                    Properties prop = new Properties();
+                    if (user != null) {
+                        prop.setProperty("user", user);
+                    }
+                    if (password != null) {
+                        prop.setProperty("password", password);
+                    }
                     /*
                      * fix issue #695 with drivers with the same jdbc
                      * subprotocol in classpath of jdbc drivers (as example
                      * redshift and postgresql drivers)
                      */
-                    Connection connection = driverInstance.connect(url, null);
+                    Connection connection = driverInstance.connect(url, prop);
                     if (connection != null) {
                         return connection;
                     }

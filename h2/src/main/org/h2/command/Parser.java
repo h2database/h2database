@@ -7783,7 +7783,7 @@ public class Parser {
             String indexName = null;
             Schema oldSchema = null;
             boolean ifNotExists = false;
-            if (readIf(PRIMARY)) {
+            if (session.isQuirksMode() && readIf(PRIMARY)) {
                 read(KEY);
                 if (readIf("HASH")) {
                     hash = true;

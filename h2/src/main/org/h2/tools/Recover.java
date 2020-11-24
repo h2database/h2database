@@ -562,14 +562,7 @@ public class Recover extends Tool implements DataHandler {
                         Value rowId = dataIt.next();
                         Value[] values = ((ValueCollectionBase) dataMap.get(rowId)).getList();
                         try {
-                            DefaultRow r = new DefaultRow(values);
-                            MetaRecord meta = new MetaRecord(r);
-                            schema.add(meta);
-                            if (meta.getObjectType() == DbObject.TABLE_OR_VIEW) {
-                                String sql = r.getValue(3).getString();
-                                String name = extractTableOrViewName(sql);
-                                tableMap.put(meta.getId(), name);
-                            }
+                            writeMetaRow(values);
                         } catch (Throwable t) {
                             writeError(writer, t);
                         }
@@ -936,10 +929,13 @@ public class Recover extends Tool implements DataHandler {
                         int tableId = (int) row.getKey();
                         String sql = row.getValue(3).getString();
                         String name = extractTableOrViewName(sql);
-                        if (row.getValue(2).getInt() == DbObject.TABLE_OR_VIEW) {
-                            tableMap.put(tableId, name);
+                        int objectType = row.getValue(2).getInt();
+                        if (objectType != DbObject.INDEX || !sql.startsWith("CREATE PRIMARY KEY ")) {
+                            if (objectType == DbObject.TABLE_OR_VIEW) {
+                                tableMap.put(tableId, name);
+                            }
+                            writer.println(sql + ";");
                         }
-                        writer.println(sql + ";");
                     } else {
                         String tableName = tableMap.get(storageId);
                         if (tableName != null) {
@@ -1487,17 +1483,22 @@ public class Recover extends Tool implements DataHandler {
         writer.println(sb.toString());
         if (storageId == 0) {
             try {
-                DefaultRow r = new DefaultRow(data);
-                MetaRecord meta = new MetaRecord(r);
-                schema.add(meta);
-                if (meta.getObjectType() == DbObject.TABLE_OR_VIEW) {
-                    String sql = data[3].getString();
-                    String name = extractTableOrViewName(sql);
-                    tableMap.put(meta.getId(), name);
-                }
+                writeMetaRow(data);
             } catch (Throwable t) {
                 writeError(writer, t);
             }
+        }
+    }
+
+    private void writeMetaRow(Value[] values) {
+        MetaRecord meta = new MetaRecord(new DefaultRow(values));
+        int objectType = meta.getObjectType();
+        if (objectType == DbObject.INDEX && meta.getSQL().startsWith("CREATE PRIMARY KEY ")) {
+            return;
+        }
+        schema.add(meta);
+        if (objectType == DbObject.TABLE_OR_VIEW) {
+            tableMap.put(meta.getId(), extractTableOrViewName(meta.getSQL()));
         }
     }
 

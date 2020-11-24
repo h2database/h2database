@@ -1077,7 +1077,8 @@ java -cp h2*.jar org.h2.tools.Recover
 For each database in the current directory, a text file will be created.
 This file contains raw insert statements (for the data) and data definition (DDL) statements to recreate
 the schema of the database. This file can be executed using the <code>RunScript</code> tool or a
-<code>RUNSCRIPT FROM</code> SQL statement. The script includes at least one
+<a href="https://h2database.com/html/commands.html#runscript"><code>RUNSCRIPT</code></a> SQL statement.
+The script includes at least one
 <code>CREATE USER</code> statement. If you run the script against a database that was created with the same
 user, or if there are conflicting users, running the script will fail. Consider running the script
 against a database that was created with a user name that is not in the script.

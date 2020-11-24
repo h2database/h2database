@@ -1791,7 +1791,7 @@ script nopasswords nosettings noversion blocksize 10;
 > ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT NOT NULL, PART INT NOT NULL, CDATA VARCHAR, BDATA VARBINARY);
-> CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY ON SYSTEM_LOB_STREAM(ID, PART);
+> ALTER TABLE SYSTEM_LOB_STREAM ADD CONSTRAINT SYSTEM_LOB_STREAM_PRIMARY_KEY PRIMARY KEY(ID, PART);
 > CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR 'org.h2.command.dml.ScriptCommand.combineClob';
 > CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR 'org.h2.command.dml.ScriptCommand.combineBlob';
 > INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 0, 'abc ', NULL);
@@ -2878,7 +2878,7 @@ drop table p;
 create table test (id identity, "VALUE" int not null);
 > ok
 
-create primary key on test(id);
+alter table test add primary key(id);
 > exception SECOND_PRIMARY_KEY
 
 alter table test drop primary key;
@@ -2887,7 +2887,7 @@ alter table test drop primary key;
 alter table test drop primary key;
 > exception INDEX_NOT_FOUND_1
 
-create primary key on test(id, id, id);
+alter table test add primary key(id, id, id);
 > ok
 
 alter table test drop primary key;

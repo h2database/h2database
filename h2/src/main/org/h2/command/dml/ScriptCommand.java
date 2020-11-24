@@ -575,8 +575,8 @@ public class ScriptCommand extends ScriptBase {
                     "(ID INT NOT NULL, PART INT NOT NULL, " +
                     "CDATA VARCHAR, BDATA VARBINARY)",
                     true);
-            add("CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY " +
-                    "ON SYSTEM_LOB_STREAM(ID, PART)", true);
+            add("ALTER TABLE SYSTEM_LOB_STREAM ADD CONSTRAINT SYSTEM_LOB_STREAM_PRIMARY_KEY PRIMARY KEY(ID, PART)",
+                    true);
             String className = getClass().getName();
             add("CREATE ALIAS IF NOT EXISTS " + "SYSTEM_COMBINE_CLOB FOR '" + className + ".combineClob'", true);
             add("CREATE ALIAS IF NOT EXISTS " + "SYSTEM_COMBINE_BLOB FOR '" + className + ".combineBlob'", true);

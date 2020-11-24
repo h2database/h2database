@@ -433,7 +433,7 @@ public class TestRunscript extends TestDb implements Trigger {
         stat.execute("create table test(id int not null, data clob) " +
                 "as select 1, space(4100)");
         // the primary key for SYSTEM_LOB_STREAM used to be named like this
-        stat.execute("create primary key primary_key_e on test(id)");
+        stat.execute("alter table test add constraint primary_key_e primary key(id)");
         stat.execute("script to '" + getBaseDir() + "/backup.sql'");
         conn.close();
         deleteDb("runscript");

@@ -11,8 +11,6 @@ os: linux
 jobs:
   include:
     - jdk: openjdk11
-      dist: trusty
-      group: edge
       before_script:
         - "cd h2"
         - "echo $JAVA_OPTS"

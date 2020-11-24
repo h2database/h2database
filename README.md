@@ -8,7 +8,7 @@
 * Browser based Console application
 * Encrypted databases
 * Fulltext search
-* Pure Java with small footprint: around 2 MB jar file size
+* Pure Java with small footprint: around 2.5 MB jar file size
 * ODBC driver
 
 More information: https://h2database.com

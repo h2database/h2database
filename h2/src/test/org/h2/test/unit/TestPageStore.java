@@ -711,7 +711,7 @@ public class TestPageStore extends TestDb {
         conn = getConnection("pageStoreCreatePkLater");
         stat = conn.createStatement();
         stat.execute("create table test(id int not null) as select 100");
-        stat.execute("create primary key on test(id)");
+        stat.execute("alter table test add primary key(id)");
         conn.close();
         conn = getConnection("pageStoreCreatePkLater");
         stat = conn.createStatement();

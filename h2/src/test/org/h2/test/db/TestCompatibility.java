@@ -58,6 +58,7 @@ public class TestCompatibility extends TestDb {
         conn.close();
         testIdentifiers();
         testIdentifiersCaseInResultSet();
+        testDatabaseToLowerParser();
         testOldInformationSchema();
         deleteDb("compatibility");
 
@@ -760,6 +761,17 @@ public class TestCompatibility extends TestDb {
             rs = stat.executeQuery("SELECT a FROM (SELECT 1) t(A)");
             md = rs.getMetaData();
             assertEquals("A", md.getColumnName(1));
+        } finally {
+            deleteDb("compatibility");
+        }
+    }
+
+    private void testDatabaseToLowerParser() throws SQLException {
+        try (Connection conn = getConnection("compatibility;DATABASE_TO_LOWER=TRUE")) {
+            Statement stat = conn.createStatement();
+            ResultSet rs = stat.executeQuery("SELECT 0x1234567890AbCdEf");
+            rs.next();
+            assertEquals(0x1234567890ABCDEFL, rs.getLong(1));
         } finally {
             deleteDb("compatibility");
         }

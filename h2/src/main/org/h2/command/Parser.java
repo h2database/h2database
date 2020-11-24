@@ -6472,10 +6472,8 @@ public class Parser {
                 char c = chars[i];
                 if (c >= '0' && c <= '9') {
                     number = (number << 4) + c - '0';
-                } else if (c >= 'A' && c <= 'F') {
+                } else if ((c &= 0xffdf) >= 'A' && c <= 'F') { // Convert a-z to A-Z
                     number = (number << 4) + c - ('A' - 10);
-                } else if (c >= 'a' && c <= 'f') {
-                    number = (number << 4) + c - ('a' - 10);
                 } else if (i == start) {
                     parseIndex = i;
                     addExpected("Hex number");
@@ -6487,7 +6485,7 @@ public class Parser {
                 if (number > Integer.MAX_VALUE) {
                     do {
                         c = chars[++i];
-                    } while ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'));
+                    } while ((c >= '0' && c <= '9') || ((c &= 0xffdf) >= 'A' && c <= 'F')); // Convert a-z to A-Z
                     String sub = sqlCommand.substring(start, i);
                     currentValue = ValueNumeric.get(new BigInteger(sub, 16));
                     break;

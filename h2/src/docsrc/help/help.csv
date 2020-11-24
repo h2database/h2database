@@ -817,7 +817,8 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 
 "Commands (DDL)","CREATE INDEX","
 @h2@ CREATE
-@h2@ { [ UNIQUE ] [ HASH | SPATIAL] INDEX [ [ IF NOT EXISTS ] [schemaName.]indexName ]
+@h2@ { { [ UNIQUE ] [ HASH ] | SPATIAL } INDEX
+    [ [ IF NOT EXISTS ] [schemaName.]indexName ]
     | PRIMARY KEY [ HASH ] }
 @h2@ ON [schemaName.]tableName ( indexColumn [,...] )
 ","
@@ -831,6 +832,8 @@ but can perform lookups faster.
 Non-unique keys are supported.
 
 Spatial indexes are supported only on GEOMETRY columns and only by default MVStore engine.
+They may contain only one column and are used by the
+[spatial overlapping operator](https://h2database.com/html/grammar.html#compare).
 ","
 CREATE INDEX IDXNAME ON TEST(NAME)
 "

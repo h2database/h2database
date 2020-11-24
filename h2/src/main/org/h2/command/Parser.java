@@ -7800,8 +7800,7 @@ public class Parser {
                 }
                 if (readIf("HASH")) {
                     hash = true;
-                }
-                if (readIf("SPATIAL")) {
+                } else if (!unique && readIf("SPATIAL")) {
                     spatial = true;
                 }
                 read("INDEX");

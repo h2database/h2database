@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -604,20 +603,21 @@ public final class Database implements DataHandler, CastDataProvider {
 
     private String parseDatabaseShortName() {
         String n = databaseName;
-        if (n.endsWith(":")) {
-            n = null;
-        }
-        if (n != null) {
-            StringTokenizer tokenizer = new StringTokenizer(n, "/\\:,;");
-            while (tokenizer.hasMoreTokens()) {
-                n = tokenizer.nextToken();
+        int l = n.length(), i = l;
+        loop: while (--i >= 0) {
+            char ch = n.charAt(i);
+            switch (ch) {
+            case '/':
+            case ':':
+            case '\\':
+                break loop;
             }
         }
-        if (n == null || n.isEmpty()) {
-            n = "unnamed";
-        }
-        return dbSettings.databaseToUpper ? StringUtils.toUpperEnglish(n)
-                : dbSettings.databaseToLower ? StringUtils.toLowerEnglish(n) : n;
+        n = ++i == l ? "UNNAMED" : n.substring(i);
+        return StringUtils.truncateString(
+                dbSettings.databaseToUpper ? StringUtils.toUpperEnglish(n)
+                        : dbSettings.databaseToLower ? StringUtils.toLowerEnglish(n) : n,
+                Constants.MAX_IDENTIFIER_LENGTH);
     }
 
     private CreateTableData createSysTableData() {

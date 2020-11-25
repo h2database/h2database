@@ -42,6 +42,7 @@ public class TestStringUtils extends TestBase {
         testReplaceAll();
         testTrim();
         testTrimSubstring();
+        testTruncateString();
     }
 
     private void testParseUInt31() {
@@ -286,6 +287,14 @@ public class TestStringUtils extends TestBase {
         assertEquals(expected, StringUtils.trimSubstring(string, startIndex, endIndex));
         assertEquals(expected, StringUtils
                 .trimSubstring(new StringBuilder(endIndex - startIndex), string, startIndex, endIndex).toString());
+    }
+
+    private void testTruncateString() {
+        assertEquals("", StringUtils.truncateString("", 1));
+        assertEquals("", StringUtils.truncateString("a", 0));
+        assertEquals("_\ud83d\ude00", StringUtils.truncateString("_\ud83d\ude00", 3));
+        assertEquals("_", StringUtils.truncateString("_\ud83d\ude00", 2));
+        assertEquals("_\ud83d", StringUtils.truncateString("_\ud83d_", 2));
     }
 
 }

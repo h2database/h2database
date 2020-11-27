@@ -1528,7 +1528,7 @@ public class ObjectDataType extends BasicDataType<Object> {
      */
     static class SerializedObjectType extends AutoDetectDataType<Object> {
 
-        private int averageSize = 10_000;
+        private long averageSize = 10_000;
 
         SerializedObjectType(ObjectDataType base) {
             super(base, TYPE_SERIALIZED_OBJECT);
@@ -1574,7 +1574,7 @@ public class ObjectDataType extends BasicDataType<Object> {
         public int getMemory(Object obj) {
             DataType<Object> t = getType(obj);
             if (t == this) {
-                return averageSize;
+                return (int) averageSize;
             }
             return t.getMemory(obj);
         }

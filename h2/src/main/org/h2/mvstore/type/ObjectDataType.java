@@ -1528,7 +1528,7 @@ public class ObjectDataType extends BasicDataType<Object> {
      */
     static class SerializedObjectType extends AutoDetectDataType<Object> {
 
-        private long averageSize = 10_000;
+        private int averageSize = 10_000;
 
         SerializedObjectType(ObjectDataType base) {
             super(base, TYPE_SERIALIZED_OBJECT);
@@ -1574,7 +1574,7 @@ public class ObjectDataType extends BasicDataType<Object> {
         public int getMemory(Object obj) {
             DataType<Object> t = getType(obj);
             if (t == this) {
-                return (int) averageSize;
+                return averageSize;
             }
             return t.getMemory(obj);
         }
@@ -1592,7 +1592,7 @@ public class ObjectDataType extends BasicDataType<Object> {
             int size = data.length * 2;
             // adjust the average size
             // using an exponential moving average
-            averageSize = (size + 15 * averageSize) / 16;
+            averageSize = (int) ((size + 15L * averageSize) / 16);
             buff.put((byte) TYPE_SERIALIZED_OBJECT).putVarInt(data.length)
                     .put(data);
         }
@@ -1609,7 +1609,7 @@ public class ObjectDataType extends BasicDataType<Object> {
             int size = data.length * 2;
             // adjust the average size
             // using an exponential moving average
-            averageSize = (size + 15 * averageSize) / 16;
+            averageSize = (int) ((size + 15L * averageSize) / 16);
             buff.get(data);
             return deserialize(data);
         }

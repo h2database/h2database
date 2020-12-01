@@ -3493,7 +3493,7 @@ VALUES (1, 2), (3, 4);
 
 "Other Grammar","Quoted Name","
 ""anythingExceptDoubleQuote""
-    | U&'anythingExceptDoubleQuote' [ UESCAPE 'singleCharacter' ]
+    | U&""anythingExceptDoubleQuote"" [ UESCAPE 'singleCharacter' ]
 ","
 Case of characters in quoted names is preserved as is. Such names can contain spaces.
 The maximum name length is 256 characters.

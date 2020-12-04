@@ -849,6 +849,9 @@ public abstract class Page<K,V> implements Cloneable {
      */
     final void addMemory(int mem) {
         memory += mem;
+        if (memory < 0) {
+            recalculateMemory();
+        }
     }
 
     /**

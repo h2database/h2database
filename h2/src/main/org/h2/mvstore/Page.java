@@ -477,11 +477,13 @@ public abstract class Page<K,V> implements Cloneable {
         keys = keys.clone();
         if(isPersistent()) {
             K old = keys[index];
-            int mem = map.evaluateMemoryForKey(key);
-            if (old != null) {
-                mem -= map.evaluateMemoryForKey(old);
+            if (!map.isMemoryEstimationAllowed() || old == null) {
+                int mem = map.evaluateMemoryForKey(key);
+                if (old != null) {
+                    mem -= map.evaluateMemoryForKey(old);
+                }
+                addMemory(mem);
             }
-            addMemory(mem);
         }
         keys[index] = key;
     }
@@ -544,8 +546,10 @@ public abstract class Page<K,V> implements Cloneable {
             --index;
         }
         if(isPersistent()) {
-            K old = getKey(index);
-            addMemory(-MEMORY_POINTER - map.evaluateMemoryForKey(old));
+            if (!map.isMemoryEstimationAllowed()) {
+                K old = getKey(index);
+                addMemory(-MEMORY_POINTER - map.evaluateMemoryForKey(old));
+            }
         }
         K[] newKeys = createKeyStorage(keyCount - 1);
         DataUtils.copyExcept(keys, newKeys, keyCount, index);
@@ -849,6 +853,7 @@ public abstract class Page<K,V> implements Cloneable {
      */
     final void addMemory(int mem) {
         memory += mem;
+        assert memory >= 0;
     }
 
     /**
@@ -1223,7 +1228,11 @@ public abstract class Page<K,V> implements Cloneable {
             int childCount = getRawChildPageCount();
             super.remove(index);
             if(isPersistent()) {
-                addMemory(-MEMORY_POINTER - PAGE_MEMORY_CHILD);
+                if (map.isMemoryEstimationAllowed()) {
+                    addMemory(-getMemory() / childCount);
+                } else {
+                    addMemory(-MEMORY_POINTER - PAGE_MEMORY_CHILD);
+                }
             }
             totalCount -= children[index].count;
             PageReference<K,V>[] newChildren = createRefStorage(childCount - 1);
@@ -1508,8 +1517,10 @@ public abstract class Page<K,V> implements Cloneable {
             values = values.clone();
             V old = setValueInternal(index, value);
             if(isPersistent()) {
-                addMemory(map.evaluateMemoryForValue(value) -
+                if (!map.isMemoryEstimationAllowed()) {
+                    addMemory(map.evaluateMemoryForValue(value) -
                             map.evaluateMemoryForValue(old));
+                }
             }
             return old;
         }
@@ -1547,8 +1558,12 @@ public abstract class Page<K,V> implements Cloneable {
             super.remove(index);
             if (values != null) {
                 if(isPersistent()) {
-                    V old = getValue(index);
-                    addMemory(-MEMORY_POINTER - map.evaluateMemoryForValue(old));
+                    if (map.isMemoryEstimationAllowed()) {
+                        addMemory(-getMemory() / keyCount);
+                    } else {
+                        V old = getValue(index);
+                        addMemory(-MEMORY_POINTER - map.evaluateMemoryForValue(old));
+                    }
                 }
                 V[] newValues = createValueStorage(keyCount - 1);
                 DataUtils.copyExcept(values, newValues, keyCount, index);

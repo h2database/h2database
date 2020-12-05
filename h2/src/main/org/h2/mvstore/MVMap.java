@@ -1968,6 +1968,10 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         }
     }
 
+    final boolean isMemoryEstimationAllowed() {
+        return avgKeySize != null || avgValSize != null;
+    }
+
     final int evaluateMemoryForKeys(K[] storage, int count) {
         if (avgKeySize == null) {
             return calculateMemory(keyType, storage, count);

@@ -55,18 +55,14 @@ public final class Engine {
         DatabaseHolder databaseHolder = new DatabaseHolder();;
         if (!ci.isUnnamedInMemory()) {
             synchronized (DATABASES) {
-                if (openNew) {
-                    DATABASES.put(name, databaseHolder);
-                } else {
-                    databaseHolder = DATABASES.computeIfAbsent(name, (key) -> new DatabaseHolder());
-                }
+                databaseHolder = DATABASES.computeIfAbsent(name, (key) -> new DatabaseHolder());
             }
         }
         database = databaseHolder.database;
-        if (database == null) {
+        if (database == null || openNew) {
             synchronized (databaseHolder) {
                 database = databaseHolder.database;
-                if (database == null) {
+                if (database == null || openNew) {
                     if (ci.isPersistent()) {
                         String p = ci.getProperty("MV_STORE");
                         String fileName;

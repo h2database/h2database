@@ -175,6 +175,7 @@ public class TcpServerThread implements Runnable {
                 transfer.setSession(session);
                 server.addConnection(threadId, originalURL, ci.getUserName());
                 trace("Connected");
+                lastRemoteSettingsId = session.getDatabase().getRemoteSettingsId();
             } catch (OutOfMemoryError e) {
                 // catch this separately otherwise such errors will never hit the console
                 server.traceError(e);
@@ -184,7 +185,6 @@ public class TcpServerThread implements Runnable {
                 sendError(e,true);
                 stop = true;
             }
-            lastRemoteSettingsId = session.getDatabase().getRemoteSettingsId();
             while (!stop) {
                 try {
                     process();

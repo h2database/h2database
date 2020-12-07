@@ -58,62 +58,59 @@ public final class Engine {
                 databaseHolder = DATABASES.computeIfAbsent(name, (key) -> new DatabaseHolder());
             }
         }
-        database = databaseHolder.database;
-        if (database == null || openNew) {
-            synchronized (databaseHolder) {
-                database = databaseHolder.database;
-                if (database == null || openNew) {
-                    if (ci.isPersistent()) {
-                        String p = ci.getProperty("MV_STORE");
-                        String fileName;
-                        if (p == null) {
-                            fileName = name + Constants.SUFFIX_MV_FILE;
-                            if (!FileUtils.exists(fileName)) {
-                                fileName = name + Constants.SUFFIX_PAGE_FILE;
-                                if (FileUtils.exists(fileName)) {
-                                    ci.setProperty("MV_STORE", "false");
-                                } else {
-                                    throwNotFound(ifExists, forbidCreation, name);
-                                    fileName = name + Constants.SUFFIX_OLD_DATABASE_FILE;
-                                    if (FileUtils.exists(fileName)) {
-                                        throw DbException.getFileVersionError(fileName);
-                                    }
-                                    fileName = null;
-                                }
-                            }
-                        } else {
-                            fileName = name + (Utils.parseBoolean(p, true, false) ? Constants.SUFFIX_MV_FILE
-                                    : Constants.SUFFIX_PAGE_FILE);
-                            if (!FileUtils.exists(fileName)) {
+        synchronized (databaseHolder) {
+            database = databaseHolder.database;
+            if (database == null || openNew) {
+                if (ci.isPersistent()) {
+                    String p = ci.getProperty("MV_STORE");
+                    String fileName;
+                    if (p == null) {
+                        fileName = name + Constants.SUFFIX_MV_FILE;
+                        if (!FileUtils.exists(fileName)) {
+                            fileName = name + Constants.SUFFIX_PAGE_FILE;
+                            if (FileUtils.exists(fileName)) {
+                                ci.setProperty("MV_STORE", "false");
+                            } else {
                                 throwNotFound(ifExists, forbidCreation, name);
+                                fileName = name + Constants.SUFFIX_OLD_DATABASE_FILE;
+                                if (FileUtils.exists(fileName)) {
+                                    throw DbException.getFileVersionError(fileName);
+                                }
                                 fileName = null;
                             }
                         }
-                        if (fileName != null && !FileUtils.canWrite(fileName)) {
-                            ci.setProperty("ACCESS_MODE_DATA", "r");
-                        }
                     } else {
-                        throwNotFound(ifExists, forbidCreation, name);
-                    }
-                    database = new Database(ci, cipher);
-                    opened = true;
-                    boolean found = false;
-                    for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
-                        if (rightOwner instanceof User) {
-                            found = true;
-                            break;
+                        fileName = name + (Utils.parseBoolean(p, true, false) ? Constants.SUFFIX_MV_FILE
+                                : Constants.SUFFIX_PAGE_FILE);
+                        if (!FileUtils.exists(fileName)) {
+                            throwNotFound(ifExists, forbidCreation, name);
+                            fileName = null;
                         }
                     }
-                    if (!found) {
-                        // users is the last thing we add, so if no user is around,
-                        // the database is new (or not initialized correctly)
-                        user = new User(database, database.allocateObjectId(), ci.getUserName(), false);
-                        user.setAdmin(true);
-                        user.setUserPasswordHash(ci.getUserPasswordHash());
-                        database.setMasterUser(user);
+                    if (fileName != null && !FileUtils.canWrite(fileName)) {
+                        ci.setProperty("ACCESS_MODE_DATA", "r");
                     }
-                    databaseHolder.database = database;
+                } else {
+                    throwNotFound(ifExists, forbidCreation, name);
                 }
+                database = new Database(ci, cipher);
+                opened = true;
+                boolean found = false;
+                for (RightOwner rightOwner : database.getAllUsersAndRoles()) {
+                    if (rightOwner instanceof User) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    // users is the last thing we add, so if no user is around,
+                    // the database is new (or not initialized correctly)
+                    user = new User(database, database.allocateObjectId(), ci.getUserName(), false);
+                    user.setAdmin(true);
+                    user.setUserPasswordHash(ci.getUserPasswordHash());
+                    database.setMasterUser(user);
+                }
+                databaseHolder.database = database;
             }
         }
 

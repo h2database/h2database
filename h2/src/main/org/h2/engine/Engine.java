@@ -52,7 +52,7 @@ public final class Engine {
         boolean openNew = ci.getProperty("OPEN_NEW", false);
         boolean opened = false;
         User user = null;
-        DatabaseHolder databaseHolder = new DatabaseHolder();;
+        DatabaseHolder databaseHolder = new DatabaseHolder();
         if (!ci.isUnnamedInMemory()) {
             synchronized (DATABASES) {
                 databaseHolder = DATABASES.computeIfAbsent(name, (key) -> new DatabaseHolder());

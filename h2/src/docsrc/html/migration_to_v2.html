@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+Copyright 2004-2020 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (https://h2database.com/html/license.html).
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>
+Migration to 2.0
+</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<!-- [search] { -->
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+<!-- } -->
+
+<h1>Contents</h1>
+<a href="#intro">
+    Introduction</a><br />
+<a href="#upgrade">
+    Upgrading</a><br />
+<a href="#format">
+    File Format</a><br />
+<a href="#datestimes">
+    Date / Time / Timestamp</a><br />
+<a href="#general">
+    General</a><br />
+
+<h2 id="intro">Introduction</h2>
+
+<p>
+Between version 1.4.198 and version 2.0.0 there have been considerable changes, such that a simple update is
+not possible.
+</p>
+
+<p>
+It would have been nice to write some kind of migration tool, or auto-detect the file and upgrade. Unfortunately, this
+is purely a volunteer-run project, so this is just the way it has to be.
+</p>
+
+<h2 id="upgrade">Upgrading</h2>
+
+<p>
+The official way to upgrade is to do a BACKUP of your existing database <bold>USING YOUR CURRENT VERSION OF H2.</bold>
+</p>
+
+<p>
+Then create a fresh database <bold>USING THE NEW VERSION OF H2</bold>, then perform a SCRIPT to load your data.
+</p>
+
+<h2 id="format">MVStore file format</h2>
+
+<p>
+The MVStore file format we use (i.e. the default) is still mostly the same, but some subtle changes have been made to the undologs,
+for the purposes of improving crash safety and also read/write performance.
+</p>
+
+<h2 id="datestimes">Date / Time / Timestamp</h2>
+
+<p>
+TODO - Correctness.
+</p>
+
+<h2 id="general">General</h2>
+
+<p>
+There are a lot more SQL keywords now. Many SQL statements feature far better support of SQL-Standard behaviour. Some old non-standard SQL syntax support has been removed.
+</p>
+
+<!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

@@ -67,8 +67,8 @@ Features
     Read Only Databases</a><br />
 <a href="#database_in_zip">
     Read Only Databases in Zip or Jar File</a><br />
-<a href="#computed_columns">
-    Computed Columns / Function Based Index</a><br />
+<a href="#generated_columns">
+    Generated Columns (Computed Columns) / Function Based Index</a><br />
 <a href="#multi_dimensional">
     Multi-Dimensional Indexes</a><br />
 <a href="#user_defined_functions">
@@ -116,7 +116,7 @@ Features
 </li><li>Triggers and Java functions / stored procedures
 </li><li>Many built-in functions, including XML and lossless data compression
 </li><li>Wide range of data types including large objects (BLOB/CLOB) and arrays
-</li><li>Sequence and autoincrement columns, computed columns (can be used for function based indexes)
+</li><li>Sequence and autoincrement columns, generated columns (can be used for function based indexes)
 </li><li>ORDER BY, GROUP BY, HAVING, UNION, OFFSET / FETCH (including PERCENT and WITH TIES), LIMIT, TOP,
     DISTINCT / DISTINCT ON (...)
 </li><li>Window functions
@@ -1272,9 +1272,10 @@ is corrupted, then the database can be opened by specifying a database event lis
 The exceptions are logged, but opening the database will continue.
 </p>
 
-<h2 id="computed_columns">Computed Columns / Function Based Index</h2>
+<h2 id="generated_columns">Generated Columns (Computed Columns) / Function Based Index</h2>
 <p>
-A computed column is a column whose value is calculated before storing.
+Each column is either a base column or a generated column.
+A generated column is a column whose value is calculated before storing and cannot be assigned directly.
 The formula is evaluated when the row is inserted, and re-evaluated every time the row is updated.
 One use case is to automatically update the last-modification time:
 </p>
@@ -1282,20 +1283,21 @@ One use case is to automatically update the last-modification time:
 CREATE TABLE TEST(
     ID INT,
     NAME VARCHAR,
-    LAST_MOD TIMESTAMP WITH TIME ZONE AS CURRENT_TIMESTAMP
+    LAST_MOD TIMESTAMP WITH TIME ZONE
+        GENERATED ALWAYS AS CURRENT_TIMESTAMP
 );
 </pre>
 <p>
 Function indexes are not directly supported by this database, but they can be emulated
-by using computed columns. For example, if an index on the upper-case version of
-a column is required, create a computed column with the upper-case version of the original column,
+by using generated columns. For example, if an index on the upper-case version of
+a column is required, create a generated column with the upper-case version of the original column,
 and create an index for this column:
 </p>
 <pre>
 CREATE TABLE ADDRESS(
     ID INT PRIMARY KEY,
     NAME VARCHAR,
-    UPPER_NAME VARCHAR AS UPPER(NAME)
+    UPPER_NAME VARCHAR GENERATED ALWAYS AS UPPER(NAME)
 );
 CREATE INDEX IDX_U_NAME ON ADDRESS(UPPER_NAME);
 </pre>
@@ -1320,7 +1322,7 @@ This value specifies the location on a space-filling curve.
 Currently, Z-order (also called N-order or Morton-order) is used;
 Hilbert curve could also be used, but the implementation is more complex.
 The algorithm to convert the multi-dimensional value is called bit-interleaving.
-The scalar value is indexed using a B-Tree index (usually using a computed column).
+The scalar value is indexed using a B-Tree index (usually using a generated column).
 </p><p>
 The method can result in a drastic performance improvement
 over just using an index on the first column. Depending on the

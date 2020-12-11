@@ -3416,7 +3416,7 @@ UPDATE SET setClauseList | DELETE
 ","
 WHEN MATCHED clause for MERGE USING command.
 ","
-WHEN MATCHED THEN UPDATE SET VALUE = S.VALUE
+WHEN MATCHED THEN UPDATE SET NAME = S.NAME
 WHEN MATCHED THEN DELETE
 "
 
@@ -3493,7 +3493,7 @@ VALUES (1, 2), (3, 4);
 
 "Other Grammar","Quoted Name","
 ""anythingExceptDoubleQuote""
-    | U&'anythingExceptDoubleQuote' [ UESCAPE 'singleCharacter' ]
+    | U&""anythingExceptDoubleQuote"" [ UESCAPE 'singleCharacter' ]
 ","
 Case of characters in quoted names is preserved as is. Such names can contain spaces.
 The maximum name length is 256 characters.
@@ -3587,7 +3587,7 @@ wildcardExpression | expression [ [ AS ] columnAlias ]
 ","
 An expression in a SELECT statement.
 ","
-ID AS VALUE
+ID AS DOCUMENT_ID
 "
 
 "Other Grammar","Sequence value expression","
@@ -3695,7 +3695,7 @@ NO CACHE
 ","
 List of SET clauses.
 ","
-NAME = 'Test', VALUE = 2
+NAME = 'Test', PRICE = 2
 (A, B) = (1, 2)
 (A, B) = (1, 2), C = 3
 (A, B) = (SELECT X, Y FROM OTHER T2 WHERE T1.ID = T2.ID)
@@ -4679,8 +4679,8 @@ ABS(-2147483648) should be 2147483648, but this value is not allowed for this da
 It leads to an exception.
 To avoid it cast argument of this function to a higher data type.
 ","
-ABS(VALUE)
-ABS(CAST(VALUE AS BIGINT))
+ABS(I)
+ABS(CAST(I AS BIGINT))
 "
 
 "Functions (Numeric)","ACOS","
@@ -5145,7 +5145,7 @@ RANDOM_UUID()
 Rounds to a number of fractional digits.
 This method returns a double, float, or numeric value depending on type of the argument.
 ","
-ROUND(VALUE, 2)
+ROUND(N, 2)
 "
 
 "Functions (Numeric)","ROUNDMAGIC","
@@ -5158,7 +5158,7 @@ The value is converted to a String internally, and then the last 4 characters ar
 '000x' becomes '0000' and '999x' becomes '999999', which is rounded automatically.
 This method returns a double.
 ","
-ROUNDMAGIC(VALUE/3*3)
+ROUNDMAGIC(N/3*3)
 "
 
 "Functions (Numeric)","SECURE_RAND","
@@ -5175,7 +5175,7 @@ CALL SECURE_RAND(16)
 ","
 Returns -1 if the value is smaller than 0, 0 if zero or NaN, and otherwise 1.
 ","
-SIGN(VALUE)
+SIGN(N)
 "
 
 "Functions (Numeric)","ENCRYPT","
@@ -5237,7 +5237,7 @@ When used with a date, returns a timestamp at start of this date.
 When used with a timestamp as string, truncates the timestamp to a date (day) value
 and returns a timestamp without time zone.
 ","
-TRUNCATE(VALUE, 2)
+TRUNCATE(N, 2)
 "
 
 "Functions (Numeric)","COMPRESS","
@@ -6682,7 +6682,7 @@ SELECT * FROM LINK_SCHEMA('TEST2', '', 'jdbc:h2:./test2', 'sa', 'sa', 'PUBLIC');
 ","
 Returns the result set. TABLE_DISTINCT removes duplicate rows.
 ","
-SELECT * FROM TABLE(VALUE INT = ARRAY[1, 2]);
+SELECT * FROM TABLE(V INT = ARRAY[1, 2]);
 SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'));
 "
 

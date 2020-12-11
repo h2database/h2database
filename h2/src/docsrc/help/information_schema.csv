@@ -420,7 +420,7 @@ Whether identity values are cycled ('YES' or 'NO') for identity columns.
 "
 
 "COLUMNS","IS_GENERATED","
-Whether column is an generated column ('YES' or 'NO')
+Whether column is an generated column ('ALWAYS' or 'NEVER')
 "
 
 "COLUMNS","GENERATION_EXPRESSION","

@@ -994,6 +994,29 @@ public class StringUtils {
     }
 
     /**
+     * Truncates the specified string to the specified length. This method,
+     * unlike {@link String#substring(int, int)}, doesn't break Unicode code
+     * points. If the specified length in characters breaks a valid pair of
+     * surrogates, the whole pair is not included into result.
+     *
+     * @param s
+     *            the string to truncate
+     * @param maximumLength
+     *            the maximum length in characters
+     * @return the specified string if it isn't longer than the specified
+     *         maximum length, and the truncated string otherwise
+     */
+    public static String truncateString(String s, int maximumLength) {
+        if (s.length() > maximumLength) {
+            s = maximumLength > 0 ? s.substring(0,
+                    Character.isSurrogatePair(s.charAt(maximumLength - 1), s.charAt(maximumLength)) ? maximumLength - 1
+                            : maximumLength)
+                    : "";
+        }
+        return s;
+    }
+
+    /**
      * Get the string from the cache if possible. If the string has not been
      * found, it is added to the cache. If there is such a string in the cache,
      * that one is returned.

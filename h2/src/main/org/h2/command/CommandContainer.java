@@ -13,6 +13,7 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.DefineCommand;
 import org.h2.command.dml.DataChangeStatement;
+import org.h2.command.query.Select;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.DbSettings;
@@ -21,6 +22,8 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
+import org.h2.expression.aggregate.Aggregate;
+import org.h2.expression.aggregate.AggregateType;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
@@ -110,10 +113,31 @@ public class CommandContainer extends Command {
         }
     }
 
+    private static boolean findAggregateAny(Expression e) {
+        if (e instanceof Aggregate && ((Aggregate) e).getAggregateType() == AggregateType.ANY) {
+            return true;
+        }
+        for (int i = 0; i < e.getSubexpressionCount(); i ++) {
+            if (findAggregateAny(e.getSubexpression(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     CommandContainer(SessionLocal session, String sql, Prepared prepared) {
         super(session, sql);
         prepared.setCommand(this);
         this.prepared = prepared;
+        if (!(prepared instanceof Select)) {
+            return;
+        }
+        for (Expression e : ((Select) prepared).getExpressions()) {
+            if (findAggregateAny(e)) {
+                ((Select) prepared).setGroupQuery();
+                return;
+            }
+        }
     }
 
     @Override

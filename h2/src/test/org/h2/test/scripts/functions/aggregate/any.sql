@@ -31,3 +31,45 @@ SELECT TRUE = (ANY((SELECT X < 0 FROM SYSTEM_RANGE(1, 1))));
 > ----------------------------------------------------
 > FALSE
 > rows: 1
+
+-- test `value = ANY(array)`
+
+SELECT 1 = ANY(ARRAY[1, 2] || ARRAY[3, 4]);
+>> TRUE
+
+SELECT 0 = ANY(1 || ARRAY[2, 3] || 4);
+>> FALSE
+
+SELECT 0 = ANY(ARRAY[]);
+>> FALSE
+
+CREATE TABLE test_array (id INT PRIMARY KEY, val INT ARRAY);
+> ok
+
+INSERT INTO test_array (id, val) VALUES (1, ARRAY[2, 3]), (2, ARRAY[4, 6]);
+> update count: 2
+
+SELECT id, val FROM test_array WHERE 4 = ANY(test_array.val);
+> ID VAL
+> -- ------
+> 2  [4, 6]
+> rows: 1
+
+CREATE TABLE test_int (id INT PRIMARY KEY, val INT);
+> ok
+
+INSERT INTO test_int (id, val) VALUES (1, 1), (2, 6);
+> update count: 2
+
+SELECT i.id, i.val, a.id, a.val FROM test_int i, test_array a
+WHERE i.id = a.id AND i.val = ANY(a.val);
+> ID VAL ID VAL
+> -- --- -- ------
+> 2  6   2  [4, 6]
+> rows: 1
+
+DROP TABLE test_int;
+> ok
+
+DROP TABLE test_array;
+> ok

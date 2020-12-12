@@ -735,9 +735,9 @@ SELECT COLUMN_NAME, IS_IDENTITY, IDENTITY_GENERATION
 
 SCRIPT NODATA NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" BIGINT GENERATED ALWAYS AS IDENTITY( START WITH 1 RESTART WITH 2) NOT NULL, "V" INTEGER );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" BIGINT GENERATED ALWAYS AS IDENTITY(START WITH 1 RESTART WITH 2) NOT NULL, "V" INTEGER );
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > rows (ordered): 3
 

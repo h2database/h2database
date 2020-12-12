@@ -40,9 +40,9 @@ INSERT INTO TEST(V) VALUES 5;
 
 SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" BIGINT GENERATED ALWAYS AS IDENTITY( START WITH 1 RESTART WITH 2) NOT NULL, "V" INTEGER, "G" INTEGER GENERATED ALWAYS AS ("V" + 1) );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" BIGINT GENERATED ALWAYS AS IDENTITY(START WITH 1 RESTART WITH 2) NOT NULL, "V" INTEGER, "G" INTEGER GENERATED ALWAYS AS ("V" + 1) );
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > INSERT INTO "PUBLIC"."TEST"("ID", "V") OVERRIDING SYSTEM VALUE VALUES (1, 5);
 > rows (ordered): 4

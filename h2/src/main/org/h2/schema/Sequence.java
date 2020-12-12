@@ -361,6 +361,7 @@ public final class Sequence extends SchemaObject {
         if (dataType.getValueType() != Value.BIGINT) {
             dataType.getSQL(builder.append(" AS "), DEFAULT_SQL_FLAGS);
         }
+        builder.append(' ');
         synchronized (this) {
             getSequenceOptionsSQL(builder, writeWithMargin ? margin : baseValue);
         }
@@ -381,7 +382,7 @@ public final class Sequence extends SchemaObject {
     }
 
     private StringBuilder getSequenceOptionsSQL(StringBuilder builder, long value) {
-        builder.append(" START WITH ").append(startValue);
+        builder.append("START WITH ").append(startValue);
         if (value != startValue && cycle != Cycle.EXHAUSTED) {
             builder.append(" RESTART WITH ").append(value);
         }

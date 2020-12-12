@@ -2914,9 +2914,11 @@ Otherwise, it works as normal column.
 
 Column constraint definitions are not supported for ALTER statements.
 ","
-CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255) DEFAULT '');
-CREATE TABLE TEST(ID BIGINT IDENTITY);
-CREATE TABLE TEST(QUANTITY INT, PRICE DECIMAL, AMOUNT DECIMAL AS QUANTITY*PRICE);
+CREATE TABLE TEST(ID INT PRIMARY KEY,
+    NAME VARCHAR(255) DEFAULT '' NOT NULL);
+CREATE TABLE TEST(ID BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    QUANTITY INT, PRICE NUMERIC(10, 2),
+    AMOUNT NUMERIC(20, 2) GENERATED ALWAYS AS (QUANTITY * PRICE));
 "
 
 "Other Grammar","Column Constraint Definition","
@@ -2989,7 +2991,7 @@ Rows with ""NULL"" value in any column are ignored.
 ""INTERSECTS"" checks whether 2D bounding boxes of specified geometries intersect with each other
 and returns ""TRUE"" or ""FALSE"".
 ","
-ID<>2
+ID <> 2
 NOT(A OR B)
 EXISTS (SELECT NULL FROM TEST T WHERE T.GROUP_ID = P.ID)
 UNIQUE (SELECT A, B FROM TEST T WHERE T.CATEGORY = CAT)

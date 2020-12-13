@@ -6917,14 +6917,14 @@ public class Parser {
                         currentToken);
             }
             column = new Column(columnName, TypeInfo.TYPE_BIGINT);
-            parseAutoIncrement(column);
+            parseCompatibilityIdentityOptions(column);
             // PostgreSQL compatibility
             if (!database.getMode().serialColumnIsNotPK) {
                 column.setPrimaryKey(true);
             }
         } else if (readIf("SERIAL")) {
             column = new Column(columnName, TypeInfo.TYPE_INTEGER);
-            parseAutoIncrement(column);
+            parseCompatibilityIdentityOptions(column);
             // PostgreSQL compatibility
             if (!database.getMode().serialColumnIsNotPK) {
                 column.setPrimaryKey(true);
@@ -6976,10 +6976,10 @@ public class Parser {
             }
             nullConstraint = parseNotNullConstraint(nullConstraint);
             if (readIf("AUTO_INCREMENT") || readIf("BIGSERIAL") || readIf("SERIAL")) {
-                parseAutoIncrement(column);
+                parseCompatibilityIdentityOptions(column);
                 nullConstraint = parseNotNullConstraint(nullConstraint);
             } else if (readIf("IDENTITY")) {
-                parseAutoIncrement(column);
+                parseCompatibilityIdentityOptions(column);
                 column.setPrimaryKey(true);
                 nullConstraint = parseNotNullConstraint(nullConstraint);
             }
@@ -7039,7 +7039,7 @@ public class Parser {
         return column;
     }
 
-    private void parseAutoIncrement(Column column) {
+    private void parseCompatibilityIdentityOptions(Column column) {
         SequenceOptions options = new SequenceOptions();
         if (readIf(OPEN_PAREN)) {
             options.setStartValue(ValueExpression.get(ValueBigint.get(readLong())));
@@ -10357,15 +10357,15 @@ public class Parser {
                 pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
                 command.addConstraintCommand(pk);
                 if (readIf("AUTO_INCREMENT")) {
-                    parseAutoIncrement(column);
+                    parseCompatibilityIdentityOptions(column);
                 }
-                if (database.getMode().useIdentityAsAutoIncrement) {
+                if (database.getMode().identityInPrimaryKey) {
                     if (readIf(NOT)) {
                         read(NULL);
                         column.setNullable(false);
                     }
                     if (readIf("IDENTITY")) {
-                        parseAutoIncrement(column);
+                        parseCompatibilityIdentityOptions(column);
                     }
                 }
             } else if (readIf(UNIQUE)) {

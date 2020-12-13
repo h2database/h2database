@@ -362,7 +362,7 @@ public final class ExpressionColumn extends Expression {
     }
 
     @Override
-    public boolean isAutoIncrement() {
+    public boolean isIdentity() {
         return column.isIdentity();
     }
 

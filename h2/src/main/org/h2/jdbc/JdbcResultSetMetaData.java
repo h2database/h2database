@@ -179,7 +179,7 @@ public final class JdbcResultSetMetaData extends TraceObject implements ResultSe
     @Override
     public boolean isAutoIncrement(int column) throws SQLException {
         try {
-            return result.isAutoIncrement(getColumn("isAutoIncrement", column));
+            return result.isIdentity(getColumn("isAutoIncrement", column));
         } catch (Exception e) {
             throw logAndConvert(e);
         }

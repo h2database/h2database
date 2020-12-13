@@ -574,8 +574,8 @@ public class LocalResult implements ResultInterface, ResultTarget {
     }
 
     @Override
-    public boolean isAutoIncrement(int i) {
-        return expressions[i].isAutoIncrement();
+    public boolean isIdentity(int i) {
+        return expressions[i].isIdentity();
     }
 
     /**

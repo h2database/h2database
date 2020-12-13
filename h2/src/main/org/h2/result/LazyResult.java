@@ -137,8 +137,8 @@ public abstract class LazyResult extends FetchedResult {
     }
 
     @Override
-    public boolean isAutoIncrement(int i) {
-        return expressions[i].isAutoIncrement();
+    public boolean isIdentity(int i) {
+        return expressions[i].isIdentity();
     }
 
     @Override

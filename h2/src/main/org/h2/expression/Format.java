@@ -72,8 +72,8 @@ public final class Format extends Operation1 {
     }
 
     @Override
-    public boolean isAutoIncrement() {
-        return arg.isAutoIncrement();
+    public boolean isIdentity() {
+        return arg.isIdentity();
     }
 
     @Override

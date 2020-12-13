@@ -127,12 +127,12 @@ public interface ResultInterface extends AutoCloseable {
     TypeInfo getColumnType(int i);
 
     /**
-     * Check if this is an auto-increment column.
+     * Check if this is an identity column.
      *
      * @param i the column number (starting with 0)
-     * @return true for auto-increment columns
+     * @return true for identity columns
      */
-    boolean isAutoIncrement(int i);
+    boolean isIdentity(int i);
 
     /**
      * Check if this column is nullable.

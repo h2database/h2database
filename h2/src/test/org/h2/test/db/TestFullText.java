@@ -8,11 +8,14 @@ package org.h2.test.db;
 import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
@@ -54,6 +57,8 @@ public class TestFullText extends TestDb {
         testUuidPrimaryKey(false);
         testAutoAnalyze();
         testNativeFeatures();
+        testAliasMetaDataForPrimitives();
+        testAliasMetaDataForPrimitiveArrays();
         testTransaction(false);
         testCreateDropNative();
         testStreamLob();
@@ -142,7 +147,6 @@ public class TestFullText extends TestDb {
         assertEquals("\"PUBLIC\".\"TEST\" WHERE \"ID\"=1", rs.getString(1));
         assertEquals("1.0", rs.getString(2));
         rs = stat.executeQuery("SELECT * FROM FT_SEARCH_DATA('One', 0, 0)");
-        assertFalse(rs.next());
         rs = stat.executeQuery("SELECT * FROM FT_SEARCH_DATA('One_Word', 0, 0)");
         assertTrue(rs.next());
         rs = stat.executeQuery("SELECT * FROM FT_SEARCH_DATA('Welcome', 0, 0)");
@@ -177,6 +181,62 @@ public class TestFullText extends TestDb {
         close(connList);
     }
 
+    /** Used from testNativeAliasMetaData. */
+    public static void testPrimitiveArrays(byte[] byte1, short[] short1, int[] int1, long[] long1, float[] float1, double[] double1, char[] char1) {
+        // nothing for now
+    }
+
+    /** Used from testNativeAliasMetaData. */
+    public static void testPrimitives(byte byte1, short short1, int int1, long long1, float float1, double double1, char char1) {
+        // nothing for now
+    }
+
+    /** Fails since the "Column" and "Value" slots are null for alias parameter metadata. */
+    private void testAliasMetaDataForPrimitives() throws SQLException {
+        deleteDb("fullTextNative");
+        ArrayList<Connection> connList = new ArrayList<>();
+        try {
+            Connection conn = getConnection("fullTextNative", connList);
+            Statement stat = conn.createStatement();
+            stat.execute(String.format("CREATE ALIAS IF NOT EXISTS TestPrimitives FOR '%s.testPrimitives'", getClass().getName()));
+            //
+            CallableStatement cStatement = conn.prepareCall("{call TestPrimitives(?, ?, ?, ?, ?, ?, ?)}");
+            ParameterMetaData parameterMetaData = cStatement.getParameterMetaData();
+            assertEquals(Types.TINYINT, parameterMetaData.getParameterType(1));
+            assertEquals(Types.SMALLINT, parameterMetaData.getParameterType(2));
+            assertEquals(Types.INTEGER, parameterMetaData.getParameterType(3));
+            assertEquals(Types.INTEGER, parameterMetaData.getParameterType(4));
+            assertEquals(Types.FLOAT, parameterMetaData.getParameterType(5));
+            assertEquals(Types.DOUBLE, parameterMetaData.getParameterType(6));
+            assertEquals(Types.CHAR, parameterMetaData.getParameterType(7));
+        } finally {
+            close(connList);
+        }
+    }
+    
+    /** Fails since the "Column" and "Value" slots are null for alias parameter metadata. */
+    private void testAliasMetaDataForPrimitiveArrays() throws SQLException {
+        deleteDb("fullTextNative");
+        ArrayList<Connection> connList = new ArrayList<>();
+        try {
+            Connection conn = getConnection("fullTextNative", connList);
+            Statement stat = conn.createStatement();
+            stat.execute(String.format("CREATE ALIAS IF NOT EXISTS TestPrimitiveArrays FOR '%s.testPrimitiveArrays'", getClass().getName()));
+            //
+            CallableStatement cStatement = conn.prepareCall("{call TestPrimitiveArrays(?, ?, ?, ?, ?, ?, ?)}");
+            ParameterMetaData parameterMetaData = cStatement.getParameterMetaData();
+            assertEquals(Types.ARRAY, parameterMetaData.getParameterType(1));
+            assertEquals(Types.ARRAY, parameterMetaData.getParameterType(2));
+            assertEquals(Types.ARRAY, parameterMetaData.getParameterType(3));
+            assertEquals(Types.ARRAY, parameterMetaData.getParameterType(4));
+            assertEquals(Types.ARRAY, parameterMetaData.getParameterType(5));
+            assertEquals(Types.ARRAY, parameterMetaData.getParameterType(6));
+            assertEquals(Types.ARRAY, parameterMetaData.getParameterType(7));
+        } finally {
+            close(connList);
+        }
+    }
+    
     private void testUuidPrimaryKey(boolean lucene) throws SQLException {
         deleteDb("fullText");
         Connection conn = getConnection("fullText");

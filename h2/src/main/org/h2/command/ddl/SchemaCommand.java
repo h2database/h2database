@@ -35,4 +35,10 @@ public abstract class SchemaCommand extends DefineCommand {
         return schema;
     }
 
+    protected final void commitIfNonTransactional() {
+        if (!transactional) {
+            session.commit(true);
+            session.startStatementWithinTransaction(null);
+        }
+    }
 }

@@ -75,9 +75,7 @@ public class CreateTable extends CommandWithColumns {
         if (!isSessionTemporary) {
             session.getUser().checkSchemaOwner(schema);
         }
-        if (!transactional) {
-            session.commit(true);
-        }
+        commitIfNonTransactional();
         Database db = session.getDatabase();
         if (!db.isPersistent()) {
             data.persistIndexes = false;
@@ -176,9 +174,7 @@ public class CreateTable extends CommandWithColumns {
             try {
                 db.checkPowerOff();
                 db.removeSchemaObject(session, table);
-                if (!transactional) {
-                    session.commit(true);
-                }
+                commitIfNonTransactional();
             } catch (Throwable ex) {
                 e.addSuppressed(ex);
             }

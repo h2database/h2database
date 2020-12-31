@@ -75,9 +75,6 @@ public class CreateTable extends CommandWithColumns {
         if (!isSessionTemporary) {
             session.getUser().checkSchemaOwner(schema);
         }
-        if (!transactional) {
-            session.commit(true);
-        }
         Database db = session.getDatabase();
         if (!db.isPersistent()) {
             data.persistIndexes = false;

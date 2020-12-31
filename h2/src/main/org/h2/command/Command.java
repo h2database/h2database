@@ -240,6 +240,13 @@ public abstract class Command implements CommandInterface {
         boolean callStop = true;
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (sync) {
+            if (!isTransactional()) {
+                boolean autoCommit = session.getAutoCommit();
+                session.commit(true);
+                if (!autoCommit && session.getAutoCommit()) {
+                    session.begin();
+                }
+            }
             SessionLocal.Savepoint rollback = session.setSavepoint();
             session.startStatementWithinTransaction(this);
             DbException ex = null;

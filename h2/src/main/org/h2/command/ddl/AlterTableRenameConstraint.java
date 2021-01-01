@@ -35,7 +35,7 @@ public class AlterTableRenameConstraint extends SchemaCommand {
 
     @Override
     public long update() {
-        session.commit(true);
+        assert !isTransactional();
         Constraint constraint = getSchema().findConstraint(session, constraintName);
         if (constraint == null) {
             throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);

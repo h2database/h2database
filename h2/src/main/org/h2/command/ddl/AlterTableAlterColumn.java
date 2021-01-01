@@ -106,7 +106,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
 
     @Override
     public long update() {
-        session.commit(true);
+        assert !isTransactional();
         Database db = session.getDatabase();
         Table table = getSchema().resolveTableOrView(session, tableName);
         if (table == null) {

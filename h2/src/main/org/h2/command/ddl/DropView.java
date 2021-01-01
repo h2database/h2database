@@ -48,7 +48,7 @@ public class DropView extends SchemaCommand {
 
     @Override
     public long update() {
-        session.commit(true);
+        assert !isTransactional();
         Table view = getSchema().findTableOrView(session, viewName);
         if (view == null) {
             if (!ifExists) {

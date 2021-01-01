@@ -47,7 +47,6 @@ public class AlterIndexRename extends DefineCommand {
 
     @Override
     public long update() {
-        session.commit(true);
         Database db = session.getDatabase();
         Index oldIndex = oldSchema.findIndex(session, oldIndexName);
         if (oldIndex == null) {

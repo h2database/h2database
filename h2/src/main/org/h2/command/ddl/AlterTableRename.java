@@ -43,7 +43,7 @@ public class AlterTableRename extends SchemaCommand {
 
     @Override
     public long update() {
-        session.commit(true);
+        assert !isTransactional();
         Database db = session.getDatabase();
         Table oldTable = getSchema().findTableOrView(session, oldTableName);
         if (oldTable == null) {

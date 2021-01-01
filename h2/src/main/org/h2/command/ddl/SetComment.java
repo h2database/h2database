@@ -35,7 +35,7 @@ public class SetComment extends DefineCommand {
 
     @Override
     public long update() {
-        session.commit(true);
+        assert !isTransactional();
         Database db = session.getDatabase();
         DbObject object = null;
         int errorCode = ErrorCode.GENERAL_ERROR_1;

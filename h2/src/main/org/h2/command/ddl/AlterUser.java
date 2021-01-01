@@ -63,7 +63,7 @@ public class AlterUser extends DefineCommand {
 
     @Override
     public long update() {
-        session.commit(true);
+        assert !isTransactional();
         Database db = session.getDatabase();
         switch (type) {
         case CommandInterface.ALTER_USER_SET_PASSWORD:

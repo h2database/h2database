@@ -32,7 +32,7 @@ public class DropRole extends DefineCommand {
     @Override
     public long update() {
         session.getUser().checkAdmin();
-        session.commit(true);
+        assert !isTransactional();
         Database db = session.getDatabase();
         Role role = db.findRole(roleName);
         if (role == null) {

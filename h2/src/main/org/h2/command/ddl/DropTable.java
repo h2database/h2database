@@ -120,7 +120,7 @@ public class DropTable extends DefineCommand {
 
     @Override
     public long update() {
-        session.commit(true);
+        assert !isTransactional();
         if (prepareDrop()) {
             executeDrop();
         }

@@ -151,9 +151,8 @@ public abstract class Command implements CommandInterface {
 
     @Override
     public void stop() {
-        if (!isTransactional()) {
-            session.commit(true);
-        } else if (session.getAutoCommit()) {
+        commitIfNonTransactional();
+        if (isTransactional() && session.getAutoCommit()) {
             session.commit(false);
         }
         if (trace.isInfoEnabled() && startTimeNanos != 0L) {
@@ -240,13 +239,7 @@ public abstract class Command implements CommandInterface {
         boolean callStop = true;
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (sync) {
-            if (!isTransactional()) {
-                boolean autoCommit = session.getAutoCommit();
-                session.commit(true);
-                if (!autoCommit && session.getAutoCommit()) {
-                    session.begin();
-                }
-            }
+            commitIfNonTransactional();
             SessionLocal.Savepoint rollback = session.setSavepoint();
             session.startStatementWithinTransaction(this);
             DbException ex = null;
@@ -303,6 +296,16 @@ public abstract class Command implements CommandInterface {
                         ex.addSuppressed(nested);
                     }
                 }
+            }
+        }
+    }
+
+    private void commitIfNonTransactional() {
+        if (!isTransactional()) {
+            boolean autoCommit = session.getAutoCommit();
+            session.commit(true);
+            if (!autoCommit && session.getAutoCommit()) {
+                session.begin();
             }
         }
     }

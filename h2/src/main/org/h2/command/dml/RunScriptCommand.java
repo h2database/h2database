@@ -98,14 +98,6 @@ public class RunScriptCommand extends ScriptBase {
             } else {
                 commandContainer.executeUpdate(null);
             }
-//            if (command.isQuery()) {
-//                command.query(0);
-//            } else {
-//                command.update();
-//            }
-//            if (session.getAutoCommit()) {
-//                session.commit(false);
-//            }
         } catch (DbException e) {
             throw e.addSQL(sql);
         }

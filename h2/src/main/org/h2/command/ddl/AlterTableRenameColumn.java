@@ -55,7 +55,6 @@ public class AlterTableRenameColumn extends SchemaCommand {
 
     @Override
     public long update() {
-        session.commit(true);
         Database db = session.getDatabase();
         Table table = getSchema().findTableOrView(session, tableName);
         if (table == null) {

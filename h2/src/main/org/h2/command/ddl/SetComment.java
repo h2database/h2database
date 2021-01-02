@@ -35,7 +35,6 @@ public class SetComment extends DefineCommand {
 
     @Override
     public long update() {
-        session.commit(true);
         Database db = session.getDatabase();
         DbObject object = null;
         int errorCode = ErrorCode.GENERAL_ERROR_1;

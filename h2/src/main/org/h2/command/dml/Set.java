@@ -78,6 +78,7 @@ public class Set extends Prepared {
         case SetTypes.TIME_ZONE:
         case SetTypes.VARIABLE_BINARY:
         case SetTypes.TRUNCATE_LARGE_LENGTH:
+        case SetTypes.WRITE_DELAY:
             return true;
         default:
         }

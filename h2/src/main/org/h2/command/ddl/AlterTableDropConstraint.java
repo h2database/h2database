@@ -42,7 +42,6 @@ public class AlterTableDropConstraint extends SchemaCommand {
 
     @Override
     public long update() {
-        session.commit(true);
         Constraint constraint = getSchema().findConstraint(session, constraintName);
         Type constraintType;
         if (constraint == null || (constraintType = constraint.getConstraintType()) == Type.DOMAIN) {

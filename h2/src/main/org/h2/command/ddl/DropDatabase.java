@@ -50,7 +50,6 @@ public class DropDatabase extends DefineCommand {
     private void dropAllObjects() {
         User user = session.getUser();
         user.checkAdmin();
-        session.commit(true);
         Database db = session.getDatabase();
         db.lockMeta(session);
 

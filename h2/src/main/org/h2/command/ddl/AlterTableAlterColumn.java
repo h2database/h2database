@@ -8,6 +8,7 @@ package org.h2.command.ddl;
 import java.util.ArrayList;
 import java.util.HashSet;
 import org.h2.api.ErrorCode;
+import org.h2.command.CommandContainer;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
@@ -106,7 +107,6 @@ public class AlterTableAlterColumn extends CommandWithColumns {
 
     @Override
     public long update() {
-        session.commit(true);
         Database db = session.getDatabase();
         Table table = getSchema().resolveTableOrView(session, tableName);
         if (table == null) {
@@ -353,7 +353,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         } catch (DbException e) {
             StringBuilder builder = new StringBuilder("DROP TABLE ");
             newTable.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
-            execute(builder.toString(), true);
+            execute(builder.toString());
             throw e;
         }
         String tableName = table.getName();
@@ -363,7 +363,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         }
         StringBuilder builder = new StringBuilder("DROP TABLE ");
         table.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS).append(" IGNORE");
-        execute(builder.toString(), true);
+        execute(builder.toString());
         db.renameSchemaObject(session, newTable, tableName);
         for (DbObject child : newTable.getChildren()) {
             if (child instanceof Sequence) {
@@ -393,7 +393,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         }
         for (TableView view : dependentViews) {
             String sql = view.getCreateSQL(true, true);
-            execute(sql, true);
+            execute(sql);
         }
     }
 
@@ -492,7 +492,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         Schema newTableSchema = newTable.getSchema();
         newTable.removeChildrenAndResources(session);
 
-        execute(newTableSQL, true);
+        execute(newTableSQL);
         newTable = newTableSchema.getTableOrView(session, newTableName);
         ArrayList<String> children = Utils.newSmallArrayList();
         ArrayList<String> triggers = Utils.newSmallArrayList();
@@ -543,7 +543,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                         if (index != null
                                 && TableBase.getMainIndexColumn(index.getIndexType(), index.getIndexColumns())
                                         != SearchRow.ROWID_INDEX) {
-                            execute(sql, true);
+                            execute(sql);
                             hasDelegateIndex = true;
                             continue;
                         }
@@ -565,17 +565,17 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         buff.append(" FROM ");
         table.getSQL(buff, HasSQL.DEFAULT_SQL_FLAGS);
         try {
-            execute(buff.toString(), true);
+            execute(buff.toString());
         } catch (Throwable t) {
             // data was not inserted due to data conversion error or some
             // unexpected reason
             StringBuilder builder = new StringBuilder("DROP TABLE ");
             newTable.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
-            execute(builder.toString(), true);
+            execute(builder.toString());
             throw t;
         }
         for (String sql : children) {
-            execute(sql, true);
+            execute(sql);
         }
         table.setModified();
         // remove the sequences from the columns (except dropped columns)
@@ -588,7 +588,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             }
         }
         for (String sql : triggers) {
-            execute(sql, true);
+            execute(sql);
         }
         return newTable;
     }
@@ -639,12 +639,10 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         }
     }
 
-    private void execute(String sql, boolean ddl) {
+    private void execute(String sql) {
         Prepared command = session.prepare(sql);
-        command.update();
-        if (ddl) {
-            session.commit(true);
-        }
+        CommandContainer commandContainer = new CommandContainer(session, sql, command);
+        commandContainer.executeUpdate(null);
     }
 
     private void checkNullable(Table table) {

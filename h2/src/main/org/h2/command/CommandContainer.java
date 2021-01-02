@@ -110,7 +110,7 @@ public class CommandContainer extends Command {
         }
     }
 
-    CommandContainer(SessionLocal session, String sql, Prepared prepared) {
+    public CommandContainer(SessionLocal session, String sql, Prepared prepared) {
         super(session, sql);
         prepared.setCommand(this);
         this.prepared = prepared;

@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import org.h2.command.CommandContainer;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.SessionLocal;
@@ -91,13 +92,11 @@ public class RunScriptCommand extends ScriptBase {
     private void execute(String sql) {
         try {
             Prepared command = session.prepare(sql);
-            if (command.isQuery()) {
-                command.query(0);
+            CommandContainer commandContainer = new CommandContainer(session, sql, command);
+            if (commandContainer.isQuery()) {
+                commandContainer.executeQuery(0, false);
             } else {
-                command.update();
-            }
-            if (session.getAutoCommit()) {
-                session.commit(false);
+                commandContainer.executeUpdate(null);
             }
         } catch (DbException e) {
             throw e.addSQL(sql);

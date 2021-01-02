@@ -30,9 +30,6 @@ abstract class SchemaOwnerCommand extends SchemaCommand {
     public final long update() {
         Schema schema = getSchema();
         session.getUser().checkSchemaOwner(schema);
-        if (!transactional) {
-            session.commit(true);
-        }
         return update(schema);
     }
 

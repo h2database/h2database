@@ -76,7 +76,6 @@ public class GrantRevoke extends DefineCommand {
 
     @Override
     public long update() {
-        session.commit(true);
         Database db = session.getDatabase();
         User user = session.getUser();
         if (roleNames != null) {

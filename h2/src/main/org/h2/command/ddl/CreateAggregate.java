@@ -31,7 +31,6 @@ public class CreateAggregate extends SchemaCommand {
     @Override
     public long update() {
         session.getUser().checkAdmin();
-        assert !isTransactional();
         Database db = session.getDatabase();
         Schema schema = getSchema();
         if (schema.findFunctionOrAggregate(name) != null) {

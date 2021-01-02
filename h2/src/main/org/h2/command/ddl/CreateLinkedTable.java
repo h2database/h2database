@@ -64,7 +64,6 @@ public class CreateLinkedTable extends SchemaCommand {
     @Override
     public long update() {
         session.getUser().checkAdmin();
-        assert !isTransactional();
         Database db = session.getDatabase();
         if (getSchema().resolveTableOrView(session, tableName) != null) {
             if (ifNotExists) {

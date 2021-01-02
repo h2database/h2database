@@ -33,7 +33,6 @@ public class AlterView extends DefineCommand {
 
     @Override
     public long update() {
-        assert !isTransactional();
         if (view == null && ifExists) {
             return 0;
         }

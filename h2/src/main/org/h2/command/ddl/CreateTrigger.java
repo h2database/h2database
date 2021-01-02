@@ -87,7 +87,6 @@ public class CreateTrigger extends SchemaCommand {
     @Override
     public long update() {
         session.getUser().checkAdmin();
-        assert !isTransactional();
         Database db = session.getDatabase();
         if (getSchema().findTrigger(triggerName) != null) {
             if (ifNotExists) {

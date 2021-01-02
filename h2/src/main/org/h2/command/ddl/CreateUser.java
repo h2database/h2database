@@ -93,7 +93,6 @@ public class CreateUser extends DefineCommand {
     @Override
     public long update() {
         session.getUser().checkAdmin();
-        assert !isTransactional();
         Database db = session.getDatabase();
         RightOwner rightOwner = db.findUserOrRole(userName);
         if (rightOwner != null) {

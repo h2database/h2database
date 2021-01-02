@@ -120,7 +120,6 @@ public class DropTable extends DefineCommand {
 
     @Override
     public long update() {
-        assert !isTransactional();
         if (prepareDrop()) {
             executeDrop();
         }

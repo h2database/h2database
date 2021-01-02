@@ -81,7 +81,6 @@ public class Analyze extends DefineCommand {
 
     @Override
     public long update() {
-        assert !isTransactional();
         session.getUser().checkAdmin();
         Database db = session.getDatabase();
         if (table != null) {

@@ -37,7 +37,6 @@ public class DropUser extends DefineCommand {
     @Override
     public long update() {
         session.getUser().checkAdmin();
-        assert !isTransactional();
         Database db = session.getDatabase();
         User user = db.findUser(userName);
         if (user == null) {

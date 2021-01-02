@@ -37,7 +37,6 @@ public class DropSchema extends DefineCommand {
 
     @Override
     public long update() {
-        assert !isTransactional();
         Database db = session.getDatabase();
         Schema schema = db.findSchema(schemaName);
         if (schema == null) {

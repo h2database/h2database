@@ -36,7 +36,6 @@ public class CreateSchema extends DefineCommand {
     @Override
     public long update() {
         session.getUser().checkSchemaAdmin();
-        assert !isTransactional();
         Database db = session.getDatabase();
         RightOwner owner = db.findUserOrRole(authorization);
         if (owner == null) {

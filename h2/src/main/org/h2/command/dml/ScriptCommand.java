@@ -397,7 +397,7 @@ public class ScriptCommand extends ScriptBase {
                         referencingDomains.put(parent, set);
                     }
                     set.add(domain);
-                    if (parent.getDomain() == null) {
+                    if (parent.getDomain() == null || !schemas.contains(parent.getSchema())) {
                         known.add(parent);
                     }
                 }

@@ -406,9 +406,12 @@ public class ScriptCommand extends ScriptBase {
         while (!referencingDomains.isEmpty()) {
             TreeSet<Domain> known2 = new TreeSet<>(BY_NAME_COMPARATOR);
             for (Domain d : known) {
-                for (Domain d2 : referencingDomains.remove(d)) {
-                    addDomain(d2);
-                    known2.add(d2);
+                TreeSet<Domain> set = referencingDomains.remove(d);
+                if (set != null) {
+                    for (Domain d2 : set) {
+                        addDomain(d2);
+                        known2.add(d2);
+                    }
                 }
             }
             known = known2;

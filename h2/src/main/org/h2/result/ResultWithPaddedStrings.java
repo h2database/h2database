@@ -155,8 +155,8 @@ public class ResultWithPaddedStrings implements ResultInterface {
     }
 
     @Override
-    public boolean isAutoIncrement(int i) {
-        return source.isAutoIncrement(i);
+    public boolean isIdentity(int i) {
+        return source.isIdentity(i);
     }
 
     @Override

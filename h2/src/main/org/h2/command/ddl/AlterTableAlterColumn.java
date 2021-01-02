@@ -209,7 +209,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             // need to copy the table because the length is only a constraint,
             // and does not affect the storage structure.
             if (oldColumn.isWideningConversion(newColumn) && usingExpression == null) {
-                convertAutoIncrementColumn(table, newColumn);
+                convertIdentityColumn(table, newColumn);
                 oldColumn.copy(newColumn);
                 db.updateMeta(session, table);
             } else {
@@ -223,7 +223,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 if (oldColumn.getVisible() ^ newColumn.getVisible()) {
                     oldColumn.setVisible(newColumn.getVisible());
                 }
-                convertAutoIncrementColumn(table, newColumn);
+                convertIdentityColumn(table, newColumn);
                 copyData(table, null, true);
             }
             table.setModified();
@@ -307,7 +307,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         }
     }
 
-    private void convertAutoIncrementColumn(Table table, Column c) {
+    private void convertIdentityColumn(Table table, Column c) {
         if (c.hasIdentityOptions()) {
             if (c.isPrimaryKey()) {
                 addConstraintCommand(

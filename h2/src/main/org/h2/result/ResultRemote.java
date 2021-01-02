@@ -95,8 +95,8 @@ public final class ResultRemote extends FetchedResult {
     }
 
     @Override
-    public boolean isAutoIncrement(int i) {
-        return columns[i].autoIncrement;
+    public boolean isIdentity(int i) {
+        return columns[i].identity;
     }
 
     @Override

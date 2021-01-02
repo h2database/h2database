@@ -59,8 +59,8 @@ public final class Alias extends Expression {
     }
 
     @Override
-    public boolean isAutoIncrement() {
-        return expr.isAutoIncrement();
+    public boolean isIdentity() {
+        return expr.isIdentity();
     }
 
     @Override

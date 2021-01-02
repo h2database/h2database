@@ -232,7 +232,7 @@ public class SimpleResult implements ResultInterface, ResultTarget {
     }
 
     @Override
-    public boolean isAutoIncrement(int i) {
+    public boolean isIdentity(int i) {
         return false;
     }
 

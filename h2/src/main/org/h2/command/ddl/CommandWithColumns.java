@@ -86,7 +86,7 @@ public abstract class CommandWithColumns extends SchemaCommand {
     }
 
     /**
-     * For the given list of columns, create sequences for auto-increment
+     * For the given list of columns, create sequences for identity
      * columns (if needed), and then get the list of all sequences of the
      * columns.
      *

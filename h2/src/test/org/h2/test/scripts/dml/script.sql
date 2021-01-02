@@ -40,9 +40,9 @@ INSERT INTO TEST(V) VALUES 5;
 
 SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" BIGINT GENERATED ALWAYS AS IDENTITY( START WITH 1 RESTART WITH 2) NOT NULL, "V" INTEGER, "G" INTEGER GENERATED ALWAYS AS ("V" + 1) );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" BIGINT GENERATED ALWAYS AS IDENTITY(START WITH 1 RESTART WITH 2) NOT NULL, "V" INTEGER, "G" INTEGER GENERATED ALWAYS AS ("V" + 1) );
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > INSERT INTO "PUBLIC"."TEST"("ID", "V") OVERRIDING SYSTEM VALUE VALUES (1, 5);
 > rows (ordered): 4
@@ -75,4 +75,68 @@ DROP DOMAIN B;
 > ok
 
 DROP DOMAIN C;
+> ok
+
+CREATE DOMAIN A AS INT;
+> ok
+
+CREATE DOMAIN B AS A;
+> ok
+
+CREATE DOMAIN X AS INT;
+> ok
+
+CREATE DOMAIN Y AS X;
+> ok
+
+CREATE DOMAIN Z AS Y;
+> ok
+
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
+> SCRIPT
+> -------------------------------------------------
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> CREATE DOMAIN "PUBLIC"."A" AS INTEGER;
+> CREATE DOMAIN "PUBLIC"."X" AS INTEGER;
+> CREATE DOMAIN "PUBLIC"."B" AS "PUBLIC"."A";
+> CREATE DOMAIN "PUBLIC"."Y" AS "PUBLIC"."X";
+> CREATE DOMAIN "PUBLIC"."Z" AS "PUBLIC"."Y";
+> rows (ordered): 6
+
+DROP ALL OBJECTS;
+> ok
+
+CREATE SCHEMA S1;
+> ok
+
+CREATE SCHEMA S2;
+> ok
+
+CREATE SCHEMA S3;
+> ok
+
+CREATE DOMAIN S1.D1 AS INTEGER;
+> ok
+
+CREATE DOMAIN S2.D2 AS S1.D1;
+> ok
+
+CREATE DOMAIN S3.D3 AS S2.D2;
+> ok
+
+SCRIPT NOPASSWORDS NOSETTINGS NOVERSION SCHEMA S3;
+> SCRIPT
+> ----------------------------------------------------
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> CREATE SCHEMA IF NOT EXISTS "S3" AUTHORIZATION "SA";
+> CREATE DOMAIN "S3"."D3" AS "S2"."D2";
+> rows (ordered): 3
+
+DROP SCHEMA S3 CASCADE;
+> ok
+
+DROP SCHEMA S2 CASCADE;
+> ok
+
+DROP SCHEMA S1 CASCADE;
 > ok

@@ -262,9 +262,9 @@ public class Mode {
     public boolean discardWithTableHints;
 
     /**
-     * Use "IDENTITY" as an alias for "auto_increment" (SQLServer style)
+     * Whether IDENTITY may be specified after inline PRIMARY KEY constraint.
      */
-    public boolean useIdentityAsAutoIncrement;
+    public boolean identityInPrimaryKey;
 
     /**
      * If {@code true}, datetime value function return the same value within a
@@ -457,7 +457,7 @@ public class Mode {
         mode.swapConvertFunctionParameters = true;
         mode.supportPoundSymbolForColumnNames = true;
         mode.discardWithTableHints = true;
-        mode.useIdentityAsAutoIncrement = true;
+        mode.identityInPrimaryKey = true;
         // MS SQL Server does not support client info properties. See
         // https://msdn.microsoft.com/en-Us/library/dd571296%28v=sql.110%29.aspx
         mode.supportedClientInfoPropertiesRegEx = null;

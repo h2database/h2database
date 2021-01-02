@@ -35,7 +35,7 @@ public class TestCompatibilitySQLServer extends TestDb {
         final Connection conn = getConnection("sqlserver;MODE=MSSQLServer");
         try {
             testDiscardTableHints(conn);
-            testUseIdentityAsAutoIncrementAlias(conn);
+            testPrimaryKeyIdentity(conn);
         } finally {
             conn.close();
             deleteDb("sqlserver");
@@ -67,9 +67,10 @@ public class TestCompatibilitySQLServer extends TestDb {
                             "join child ch with(nolock, index(id, name)) on ch.parent_id = p.id");
     }
 
-    private void testUseIdentityAsAutoIncrementAlias(Connection conn) throws SQLException {
+    private void testPrimaryKeyIdentity(Connection conn) throws SQLException {
         final Statement stat = conn.createStatement();
 
+        // IDENTITY after PRIMARY KEY is an undocumented syntax of MS SQL
         stat.execute("create table test(id int primary key identity, expected_id int)");
         stat.execute("insert into test (expected_id) VALUES (1), (2), (3)");
 

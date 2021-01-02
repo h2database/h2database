@@ -4329,7 +4329,6 @@ select * from test;
 drop table test;
 > ok
 
---- autoIncrement ----------------------------------------------------------------------------------------------
 CREATE MEMORY TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
 > ok
 

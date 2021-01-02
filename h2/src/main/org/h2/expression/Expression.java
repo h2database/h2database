@@ -314,11 +314,11 @@ public abstract class Expression implements HasSQL, Typed {
     }
 
     /**
-     * Check if this is an auto-increment column.
+     * Check if this is an identity column.
      *
-     * @return true if it is an auto-increment column
+     * @return true if it is an identity column
      */
-    public boolean isAutoIncrement() {
+    public boolean isIdentity() {
         return false;
     }
 

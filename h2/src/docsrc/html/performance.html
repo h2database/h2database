@@ -401,7 +401,7 @@ If a single column primary key of type <code>BIGINT, INT, SMALLINT, TINYINT</cod
 then this column is used as the key of the data b-tree.
 If no primary key has been specified, if the primary key column is of another data type,
 or if the primary key contains more than one column,
-then a hidden auto-increment column of type <code>BIGINT</code> is added to the table,
+then a hidden identity column of type <code>BIGINT</code> is added to the table,
 which is used as the key for the data b-tree.
 All other columns of the table are stored within the data area of this data b-tree
 (except for large <code>BLOB, CLOB</code> columns, which are stored externally).

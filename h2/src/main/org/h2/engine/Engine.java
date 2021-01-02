@@ -52,11 +52,13 @@ public final class Engine {
         boolean openNew = ci.getProperty("OPEN_NEW", false);
         boolean opened = false;
         User user = null;
-        DatabaseHolder databaseHolder = new DatabaseHolder();
+        DatabaseHolder databaseHolder;
         if (!ci.isUnnamedInMemory()) {
             synchronized (DATABASES) {
                 databaseHolder = DATABASES.computeIfAbsent(name, (key) -> new DatabaseHolder());
             }
+        } else {
+            databaseHolder = new DatabaseHolder();
         }
         synchronized (databaseHolder) {
             database = databaseHolder.database;
@@ -402,7 +404,11 @@ public final class Engine {
     private Engine() {
     }
 
-    private static class DatabaseHolder {
+    private static final class DatabaseHolder {
+
+        DatabaseHolder() {
+        }
+
         volatile Database database;
     }
 }

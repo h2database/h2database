@@ -1156,7 +1156,9 @@ public final class PgServerThread implements Runnable {
         sendParameterStatus("session_authorization", userName);
         sendParameterStatus("standard_conforming_strings", "off");
         sendParameterStatus("TimeZone", pgTimeZone(timeZone.getId()));
-        sendParameterStatus("integer_datetimes", INTEGER_DATE_TYPES ? "on" : "off");
+        // Don't inline, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=569498
+        String value = INTEGER_DATE_TYPES ? "on" : "off";
+        sendParameterStatus("integer_datetimes", value);
         sendBackendKeyData();
         sendReadyForQuery();
     }

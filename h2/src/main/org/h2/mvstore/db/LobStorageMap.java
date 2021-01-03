@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore.db;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -31,6 +32,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDatabase;
 import org.h2.value.ValueLobInMemory;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class stores LOB objects in the database, in maps. This is the back-end
@@ -308,7 +310,18 @@ public final class LobStorageMap implements LobStorageInterface
                 throw DbException.get(ErrorCode.LOB_CLOSED_ON_TIMEOUT_1, "" + lobId);
             }
             byte[] streamStoreId = (byte[]) value[0];
-            return streamStore.get(streamStoreId);
+            InputStream inputStream = streamStore.get(streamStoreId);
+            return new FilterInputStream(inputStream) {
+                @Override
+                public int read(@NotNull byte[] b, int off, int len) throws IOException {
+                    MVStore.TxCounter txCounter = initialize();
+                    try {
+                        return super.read(b, off, len);
+                    } finally {
+                        deregisterVersionUsage(txCounter);
+                    }
+                }
+            };
         } finally {
             deregisterVersionUsage(txCounter);
         }

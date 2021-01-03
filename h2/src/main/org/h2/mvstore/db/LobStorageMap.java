@@ -32,7 +32,6 @@ import org.h2.value.Value;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDatabase;
 import org.h2.value.ValueLobInMemory;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * This class stores LOB objects in the database, in maps. This is the back-end

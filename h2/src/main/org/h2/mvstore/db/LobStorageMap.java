@@ -313,7 +313,7 @@ public final class LobStorageMap implements LobStorageInterface
             InputStream inputStream = streamStore.get(streamStoreId);
             return new FilterInputStream(inputStream) {
                 @Override
-                public int read(@NotNull byte[] b, int off, int len) throws IOException {
+                public int read(byte[] b, int off, int len) throws IOException {
                     MVStore.TxCounter txCounter = initialize();
                     try {
                         return super.read(b, off, len);

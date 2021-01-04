@@ -64,6 +64,7 @@ public class TableLink extends Table {
     private boolean globalTemporary;
     private boolean readOnly;
     private boolean targetsMySql;
+    private int fetchSize =-1;
 
     public TableLink(Schema schema, int id, String name, String driver,
             String url, String user, String password, String originalSchema,
@@ -686,6 +687,15 @@ public class TableLink extends Table {
                 }
             }
         }
+    }
+
+    /**
+     * Specify the number of rows fetched by the linked table command
+     * 
+     * @param fetchSize 
+     */
+    public void setFetchSize(int fetchSize) {
+        this.fetchSize =fetchSize;
     }
 
 }

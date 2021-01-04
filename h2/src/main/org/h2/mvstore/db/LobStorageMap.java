@@ -320,6 +320,16 @@ public final class LobStorageMap implements LobStorageInterface
                         deregisterVersionUsage(txCounter);
                     }
                 }
+
+                @Override
+                public int read() throws IOException {
+                    MVStore.TxCounter txCounter = initialize();
+                    try {
+                        return super.read();
+                    } finally {
+                        deregisterVersionUsage(txCounter);
+                    }
+                }
             };
         } finally {
             deregisterVersionUsage(txCounter);

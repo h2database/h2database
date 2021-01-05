@@ -396,6 +396,9 @@ public class TableLink extends Table {
         if (readOnly) {
             buff.append(" READONLY");
         }
+        if(fetchSize!=-1){
+            buff.append(" FETCH_SIZE ").append(fetchSize);
+        }
         buff.append(" /*").append(DbException.HIDE_SQL).append("*/");
         return buff.toString();
     }

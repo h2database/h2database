@@ -701,4 +701,13 @@ public class TableLink extends Table {
         this.fetchSize = fetchSize;
     }
 
+    /**
+     * The number of rows to fetch default is -1
+     *
+     * @return
+     */
+    public int getFetchSize() {
+        return fetchSize;
+    }
+
 }

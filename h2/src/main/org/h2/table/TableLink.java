@@ -64,7 +64,7 @@ public class TableLink extends Table {
     private boolean globalTemporary;
     private boolean readOnly;
     private boolean targetsMySql;
-    private int fetchSize =-1;
+    private int fetchSize = -1;
 
     public TableLink(Schema schema, int id, String name, String driver,
             String url, String user, String password, String originalSchema,

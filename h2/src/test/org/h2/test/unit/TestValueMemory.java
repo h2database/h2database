@@ -418,12 +418,5 @@ public class TestValueMemory extends TestBase implements DataHandler {
             // to read a block while writing something)
             return ValueLobFile.createTempClob(reader, maxLength, TestValueMemory.this);
         }
-
-        @Override
-        public void init() {
-            // nothing to do
-        }
-
     }
-
 }

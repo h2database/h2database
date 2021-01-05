@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
@@ -43,9 +42,6 @@ public final class LobStorageMap implements LobStorageInterface
 
     private final Database database;
     private final MVStore mvStore;
-
-    private final AtomicBoolean init = new AtomicBoolean();
-
     private final Object nextLobIdSync = new Object();
     private long nextLobId;
 
@@ -57,7 +53,7 @@ public final class LobStorageMap implements LobStorageInterface
      * Value: { streamStoreId (byte[]), tableId (int),
      * byteCount (long), hash (long) }.
      */
-    private MVMap<Long, Object[]> lobMap;
+    private final MVMap<Long, Object[]> lobMap;
 
     /**
      * The reference map. It is used to remove data from the stream store: if no
@@ -67,9 +63,9 @@ public final class LobStorageMap implements LobStorageInterface
      * Key: { streamStoreId (byte[]), lobId (long) }.
      * Value: true (boolean).
      */
-    private MVMap<Object[], Boolean> refMap;
+    private final MVMap<Object[], Boolean> refMap;
 
-    private StreamStore streamStore;
+    private final StreamStore streamStore;
 
 
     public LobStorageMap(Database database) {
@@ -81,34 +77,20 @@ public final class LobStorageMap implements LobStorageInterface
         } else {
             mvStore = s.getMvStore();
         }
-    }
-
-    @Override
-    public void init() {
-        deregisterVersionUsage(initialize());
-    }
-
-    private MVStore.TxCounter initialize() {
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
-        if (init.compareAndSet(false, true)) {
-            try {
-                lobMap = mvStore.openMap("lobMap");
-                refMap = mvStore.openMap("lobRef");
+        try {
+            lobMap = mvStore.openMap("lobMap");
+            refMap = mvStore.openMap("lobRef");
 
-                /* The stream store data map.
-                 *
-                 * Key: stream store block id (long).
-                 * Value: data (byte[]).
-                 */
-                MVMap<Long, byte[]> dataMap = mvStore.openMap("lobData");
-                streamStore = new StreamStore(dataMap);
-                // garbage collection of the last blocks
-                if (database.isReadOnly()) {
-                    return txCounter;
-                }
-                if (dataMap.isEmpty()) {
-                    return txCounter;
-                }
+            /* The stream store data map.
+             *
+             * Key: stream store block id (long).
+             * Value: data (byte[]).
+             */
+            MVMap<Long, byte[]> dataMap = mvStore.openMap("lobData");
+            streamStore = new StreamStore(dataMap);
+            // garbage collection of the last blocks
+            if (!database.isReadOnly() && !dataMap.isEmpty()) {
                 // search for the last block
                 // (in theory, only the latest lob can have unreferenced blocks,
                 // but the latest lob could be a copy of another one, and
@@ -146,21 +128,15 @@ public final class LobStorageMap implements LobStorageInterface
                 if (last != null) {
                     streamStore.setNextKey(last + 1);
                 }
-            } catch (Throwable ex) {
-                mvStore.deregisterVersionUsage(txCounter);
-                throw ex;
             }
+        } finally {
+            mvStore.deregisterVersionUsage(txCounter);
         }
-        return txCounter;
-    }
-
-    private void deregisterVersionUsage(MVStore.TxCounter txCounter) {
-        mvStore.deregisterVersionUsage(txCounter);
     }
 
     @Override
     public ValueLob createBlob(InputStream in, long maxLength) {
-        MVStore.TxCounter txCounter = initialize();
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         int type = Value.BLOB;
         try {
             if (maxLength != -1
@@ -185,13 +161,13 @@ public final class LobStorageMap implements LobStorageInterface
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         } finally {
-            deregisterVersionUsage(txCounter);
+            mvStore.deregisterVersionUsage(txCounter);
         }
     }
 
     @Override
     public ValueLob createClob(Reader reader, long maxLength) {
-        MVStore.TxCounter txCounter = initialize();
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         int type = Value.CLOB;
         try {
             // we multiple by 3 here to get the worst-case size in bytes
@@ -227,7 +203,7 @@ public final class LobStorageMap implements LobStorageInterface
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         } finally {
-            deregisterVersionUsage(txCounter);
+            mvStore.deregisterVersionUsage(txCounter);
         }
     }
 
@@ -270,7 +246,7 @@ public final class LobStorageMap implements LobStorageInterface
 
     @Override
     public ValueLob copyLob(ValueLob old_, int tableId, long length) {
-        MVStore.TxCounter txCounter = initialize();
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             ValueLobDatabase old = (ValueLobDatabase) old_;
             int type = old.getValueType();
@@ -295,14 +271,14 @@ public final class LobStorageMap implements LobStorageInterface
             }
             return lob;
         } finally {
-            deregisterVersionUsage(txCounter);
+            mvStore.deregisterVersionUsage(txCounter);
         }
     }
 
     @Override
     public InputStream getInputStream(long lobId, long byteCount)
             throws IOException {
-        MVStore.TxCounter txCounter = initialize();
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             Object[] value = lobMap.get(lobId);
             if (value == null) {
@@ -313,26 +289,26 @@ public final class LobStorageMap implements LobStorageInterface
             return new FilterInputStream(inputStream) {
                 @Override
                 public int read(byte[] b, int off, int len) throws IOException {
-                    MVStore.TxCounter txCounter = initialize();
+                    MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
                     try {
                         return super.read(b, off, len);
                     } finally {
-                        deregisterVersionUsage(txCounter);
+                        mvStore.deregisterVersionUsage(txCounter);
                     }
                 }
 
                 @Override
                 public int read() throws IOException {
-                    MVStore.TxCounter txCounter = initialize();
+                    MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
                     try {
                         return super.read();
                     } finally {
-                        deregisterVersionUsage(txCounter);
+                        mvStore.deregisterVersionUsage(txCounter);
                     }
                 }
             };
         } finally {
-            deregisterVersionUsage(txCounter);
+            mvStore.deregisterVersionUsage(txCounter);
         }
     }
 
@@ -341,7 +317,7 @@ public final class LobStorageMap implements LobStorageInterface
         if (mvStore.isClosed()) {
             return;
         }
-        MVStore.TxCounter txCounter = initialize();
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             // this might not be very efficient -
             // to speed it up, we would need yet another map
@@ -361,20 +337,20 @@ public final class LobStorageMap implements LobStorageInterface
                 removeAllForTable(LobStorageFrontend.TABLE_RESULT);
             }
         } finally {
-            deregisterVersionUsage(txCounter);
+            mvStore.deregisterVersionUsage(txCounter);
         }
     }
 
     @Override
     public void removeLob(ValueLob lob_) {
-        MVStore.TxCounter txCounter = initialize();
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             ValueLobDatabase lob = (ValueLobDatabase) lob_;
             int tableId = lob.getTableId();
             long lobId = lob.getLobId();
             removeLob(tableId, lobId);
         } finally {
-            deregisterVersionUsage(txCounter);
+            mvStore.deregisterVersionUsage(txCounter);
         }
     }
 

@@ -416,7 +416,6 @@ public final class Database implements DataHandler, CastDataProvider {
                 }
             }
             lobStorage = dbSettings.mvStore ? new LobStorageMap(this) : new LobStorageBackend(this);
-            lobStorage.init();
             systemSession.commit(true);
             trace.info("opened {0}", databaseName);
             if (persistent) {

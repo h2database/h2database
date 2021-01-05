@@ -1281,9 +1281,3 @@ select max(col1) from test;
 
 drop table if exists test;
 > ok
-
-drop table if exists test_link;
-> ok
-
-create linked table test_link('org.h2.Driver', 'jdbc:h2:mem:', 'sa', 'sa', 'DUAL') FETCH_SIZE 1000;
-> ok

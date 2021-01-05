@@ -734,6 +734,9 @@ public class TestLinkedTable extends TestDb {
             assertTrue(rs.next());
             assertEquals(1000, rs.getInt(1));
         }
+        ResultSet res = sb.executeQuery("CALL DB_OBJECT_SQL('TABLE', 'PUBLIC', 'T')");
+        res.next();
+        assertEquals("CREATE FORCE LINKED TABLE \"PUBLIC\".\"T\"(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST') FETCH_SIZE 10 /*--hide--*/", res.getString(1));
         sb.execute("DROP TABLE T");
         ca.close();
         cb.close();

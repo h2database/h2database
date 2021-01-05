@@ -726,13 +726,13 @@ public class TestLinkedTable extends TestDb {
         Statement sa = ca.createStatement();
         Statement sb = cb.createStatement();
         sa.execute("DROP TABLE IF EXISTS TEST; "
-                + "CREATE TABLE TEST as select st_makepoint(-60 + n*random()/500.00, 30 + n*random()/500.00), n as id from generate_series(1,1000) as n;");
+                + "CREATE TABLE TEST as select * from generate_series(1,1000) as n;");
         String sql = "CREATE LINKED TABLE T(NULL, " +
                 "'jdbc:h2:mem:one', 'sa', 'sa', 'TEST') FETCH_SIZE 10";
         sb.execute(sql);
-        try (ResultSet rs = sb.executeQuery("SELECT * FROM T")) {
+        try (ResultSet rs = sb.executeQuery("SELECT count(*) FROM T")) {
             assertTrue(rs.next());
-            assertEquals("POINT (1 1)", rs.getString("THE_GEOM"));
+            assertEquals(1000, rs.getInt(1));
         }
         sb.execute("DROP TABLE T");
         ca.close();

@@ -127,7 +127,7 @@ public class LinkedIndex extends Index {
         String sql = builder.toString();
         try {
             PreparedStatement prep = link.execute(sql, params, false, session);
-            if (link.getFetchSize() != -1) {
+            if (link.getFetchSize() != 0) {
                 prep.setFetchSize(link.getFetchSize());
             }
             ResultSet rs = prep.getResultSet();

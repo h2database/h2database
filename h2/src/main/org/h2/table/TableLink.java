@@ -64,7 +64,7 @@ public class TableLink extends Table {
     private boolean globalTemporary;
     private boolean readOnly;
     private boolean targetsMySql;
-    private int fetchSize = -1;
+    private int fetchSize = 0;
 
     public TableLink(Schema schema, int id, String name, String driver,
             String url, String user, String password, String originalSchema,
@@ -396,7 +396,7 @@ public class TableLink extends Table {
         if (readOnly) {
             buff.append(" READONLY");
         }
-        if (fetchSize != -1) {
+        if (fetchSize != 0) {
             buff.append(" FETCH_SIZE ").append(fetchSize);
         }
         buff.append(" /*").append(DbException.HIDE_SQL).append("*/");
@@ -702,7 +702,8 @@ public class TableLink extends Table {
     }
 
     /**
-     * The number of rows to fetch default is -1
+     * The number of rows to fetch 
+     * default is 0
      *
      * @return
      */

@@ -35,7 +35,7 @@ public class TestLinkedTable extends TestDb {
 
     @Override
     public void test() throws SQLException {
-        /*testLinkedServerMode();
+        testLinkedServerMode();
         testDefaultValues();
         testHiddenSQL();
         // testLinkAutoAdd();
@@ -51,7 +51,7 @@ public class TestLinkedTable extends TestDb {
         testLinkTwoTables();
         testCachingResults();
         testLinkedTableInReadOnlyDb();
-        testGeometry();*/
+        testGeometry();
         testFetchSize();
         deleteDb("linkedTable");
     }
@@ -717,7 +717,7 @@ public class TestLinkedTable extends TestDb {
     }
     
     private void testFetchSize() throws SQLException {
-        if (config.memory && config.mvStore) {
+        if (config.memory) {
             return;
         }
         org.h2.Driver.load();
@@ -726,7 +726,7 @@ public class TestLinkedTable extends TestDb {
         Statement sa = ca.createStatement();
         Statement sb = cb.createStatement();
         sa.execute("DROP TABLE IF EXISTS TEST; "
-                + "CREATE TABLE TEST as select * from generate_series(1,1000) as n;");
+                + "CREATE TABLE TEST as select * from SYSTEM_RANGE(1,1000) as n;");
         String sql = "CREATE LINKED TABLE T(NULL, " +
                 "'jdbc:h2:mem:one', 'sa', 'sa', 'TEST') FETCH_SIZE 10";
         sb.execute(sql);

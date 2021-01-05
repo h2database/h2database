@@ -65,11 +65,11 @@ public class CreateLinkedTable extends SchemaCommand {
     
     /**
      * Specify the number of rows fetched by the linked table command
-     * 
-     * @param fetchSize 
+     *
+     * @param fetchSize
      */
-    public void setFetchSize(Expression fetchSize){
-        this.fetchSize =fetchSize;
+    public void setFetchSize(Expression fetchSize) {
+        this.fetchSize = fetchSize;
     }
 
     @Override

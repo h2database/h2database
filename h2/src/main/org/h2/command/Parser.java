@@ -10209,19 +10209,18 @@ public class Parser {
         }
         command.setOriginalTable(originalTable);
         read(CLOSE_PAREN);
-        if(readIf("FETCH_SIZE")){      
-            command.setFetchSize(readExpression().optimize(session));            
-        }
-        else if (readIf("EMIT")) {
+        if (readIf("FETCH_SIZE")) {
+            command.setFetchSize(readExpression().optimize(session));
+        } else if (readIf("EMIT")) {
             read("UPDATES");
             command.setEmitUpdates(true);
-            if(readIf("FETCH_SIZE")){      
-            command.setFetchSize(readExpression().optimize(session));            
+            if (readIf("FETCH_SIZE")) {
+                command.setFetchSize(readExpression().optimize(session));
             }
         } else if (readIf("READONLY")) {
             command.setReadOnly(true);
-            if(readIf("FETCH_SIZE")){      
-            command.setFetchSize(readExpression().optimize(session));            
+            if (readIf("FETCH_SIZE")) {
+                command.setFetchSize(readExpression().optimize(session));
             }
         }
         return command;

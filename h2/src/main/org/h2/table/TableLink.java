@@ -691,11 +691,11 @@ public class TableLink extends Table {
 
     /**
      * Specify the number of rows fetched by the linked table command
-     * 
-     * @param fetchSize 
+     *
+     * @param fetchSize
      */
     public void setFetchSize(int fetchSize) {
-        this.fetchSize =fetchSize;
+        this.fetchSize = fetchSize;
     }
 
 }

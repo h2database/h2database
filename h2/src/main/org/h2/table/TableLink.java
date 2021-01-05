@@ -504,6 +504,9 @@ public class TableLink extends Table {
                     PreparedStatement prep = preparedMap.remove(sql);
                     if (prep == null) {
                         prep = conn.getConnection().prepareStatement(sql);
+                        if (fetchSize != 0) {
+                            prep.setFetchSize(fetchSize);
+                        }
                     }
                     if (trace.isDebugEnabled()) {
                         StringBuilder builder = new StringBuilder(getName()).append(":\n").append(sql);

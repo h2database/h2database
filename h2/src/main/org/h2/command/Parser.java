@@ -10216,7 +10216,7 @@ public class Parser {
             command.setReadOnly(true);
         }
         if (readIf("FETCH_SIZE")) {
-            command.setFetchSize(readExpression().optimize(session));
+            command.setFetchSize(readNonNegativeInt());
         }
         return command;
     }

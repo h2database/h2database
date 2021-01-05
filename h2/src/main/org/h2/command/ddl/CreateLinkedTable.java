@@ -29,7 +29,7 @@ public class CreateLinkedTable extends SchemaCommand {
     private boolean temporary;
     private boolean globalTemporary;
     private boolean readOnly;
-    private Expression fetchSize;
+    private int fetchSize;
 
     public CreateLinkedTable(SessionLocal session, Schema schema) {
         super(session, schema);
@@ -68,7 +68,7 @@ public class CreateLinkedTable extends SchemaCommand {
      *
      * @param fetchSize
      */
-    public void setFetchSize(Expression fetchSize) {
+    public void setFetchSize(int fetchSize) {
         this.fetchSize = fetchSize;
     }
 
@@ -90,8 +90,8 @@ public class CreateLinkedTable extends SchemaCommand {
         table.setGlobalTemporary(globalTemporary);
         table.setComment(comment);
         table.setReadOnly(readOnly);
-        if(fetchSize!=null){
-            table.setFetchSize(fetchSize.getValue(session).getInt());
+        if (fetchSize > 0) {
+            table.setFetchSize(fetchSize);
         }
         if (temporary && !globalTemporary) {
             session.addLocalTempTable(table);

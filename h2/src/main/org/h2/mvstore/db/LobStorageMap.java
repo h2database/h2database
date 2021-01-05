@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore.db;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -35,14 +36,12 @@ import org.h2.value.ValueLobInMemory;
  * This class stores LOB objects in the database, in maps. This is the back-end
  * i.e. the server side of the LOB storage.
  */
-public class LobStorageMap implements LobStorageInterface {
-
+public final class LobStorageMap implements LobStorageInterface
+{
     private static final boolean TRACE = false;
 
     private final Database database;
-
-    private boolean init;
-
+    private final MVStore mvStore;
     private final Object nextLobIdSync = new Object();
     private long nextLobId;
 
@@ -54,7 +53,7 @@ public class LobStorageMap implements LobStorageInterface {
      * Value: { streamStoreId (byte[]), tableId (int),
      * byteCount (long), hash (long) }.
      */
-    private MVMap<Long, Object[]> lobMap;
+    private final MVMap<Long, Object[]> lobMap;
 
     /**
      * The reference map. It is used to remove data from the stream store: if no
@@ -64,87 +63,80 @@ public class LobStorageMap implements LobStorageInterface {
      * Key: { streamStoreId (byte[]), lobId (long) }.
      * Value: true (boolean).
      */
-    private MVMap<Object[], Boolean> refMap;
+    private final MVMap<Object[], Boolean> refMap;
 
-    private StreamStore streamStore;
+    private final StreamStore streamStore;
+
 
     public LobStorageMap(Database database) {
         this.database = database;
-    }
-
-    @Override
-    public void init() {
-        if (init) {
-            return;
-        }
-        init = true;
         Store s = database.getStore();
-        MVStore mvStore;
         if (s == null) {
             // in-memory database
             mvStore = MVStore.open(null);
         } else {
             mvStore = s.getMvStore();
         }
-        lobMap = mvStore.openMap("lobMap");
-        refMap = mvStore.openMap("lobRef");
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        try {
+            lobMap = mvStore.openMap("lobMap");
+            refMap = mvStore.openMap("lobRef");
 
-        /* The stream store data map.
-         *
-         * Key: stream store block id (long).
-         * Value: data (byte[]).
-         */
-        MVMap<Long, byte[]> dataMap = mvStore.openMap("lobData");
-        streamStore = new StreamStore(dataMap);
-        // garbage collection of the last blocks
-        if (database.isReadOnly()) {
-            return;
-        }
-        if (dataMap.isEmpty()) {
-            return;
-        }
-        // search for the last block
-        // (in theory, only the latest lob can have unreferenced blocks,
-        // but the latest lob could be a copy of another one, and
-        // we don't know that, so we iterate over all lobs)
-        long lastUsedKey = -1;
-        for (Entry<Long, Object[]> e : lobMap.entrySet()) {
-            long lobId = e.getKey();
-            Object[] v = e.getValue();
-            byte[] id = (byte[]) v[0];
-            long max = streamStore.getMaxBlockKey(id);
-            // a lob may not have a referenced blocks if data is kept inline
-            if (max != -1 && max > lastUsedKey) {
-                lastUsedKey = max;
+            /* The stream store data map.
+             *
+             * Key: stream store block id (long).
+             * Value: data (byte[]).
+             */
+            MVMap<Long, byte[]> dataMap = mvStore.openMap("lobData");
+            streamStore = new StreamStore(dataMap);
+            // garbage collection of the last blocks
+            if (!database.isReadOnly() && !dataMap.isEmpty()) {
+                // search for the last block
+                // (in theory, only the latest lob can have unreferenced blocks,
+                // but the latest lob could be a copy of another one, and
+                // we don't know that, so we iterate over all lobs)
+                long lastUsedKey = -1;
+                for (Entry<Long, Object[]> e : lobMap.entrySet()) {
+                    long lobId = e.getKey();
+                    Object[] v = e.getValue();
+                    byte[] id = (byte[]) v[0];
+                    long max = streamStore.getMaxBlockKey(id);
+                    // a lob may not have a referenced blocks if data is kept inline
+                    if (max != -1 && max > lastUsedKey) {
+                        lastUsedKey = max;
+                        if (TRACE) {
+                            trace("lob " + lobId + " lastUsedKey=" + lastUsedKey);
+                        }
+                    }
+                }
                 if (TRACE) {
-                    trace("lob " + lobId + " lastUsedKey=" + lastUsedKey);
+                    trace("lastUsedKey=" + lastUsedKey);
+                }
+                // delete all blocks that are newer
+                while (true) {
+                    Long last = dataMap.lastKey();
+                    if (last == null || last <= lastUsedKey) {
+                        break;
+                    }
+                    if (TRACE) {
+                        trace("gc " + last);
+                    }
+                    dataMap.remove(last);
+                }
+                // don't re-use block ids, except at the very end
+                Long last = dataMap.lastKey();
+                if (last != null) {
+                    streamStore.setNextKey(last + 1);
                 }
             }
-        }
-        if (TRACE) {
-            trace("lastUsedKey=" + lastUsedKey);
-        }
-        // delete all blocks that are newer
-        while (true) {
-            Long last = dataMap.lastKey();
-            if (last == null || last <= lastUsedKey) {
-                break;
-            }
-            if (TRACE) {
-                trace("gc " + last);
-            }
-            dataMap.remove(last);
-        }
-        // don't re-use block ids, except at the very end
-        Long last = dataMap.lastKey();
-        if (last != null) {
-            streamStore.setNextKey(last + 1);
+        } finally {
+            mvStore.deregisterVersionUsage(txCounter);
         }
     }
 
     @Override
     public ValueLob createBlob(InputStream in, long maxLength) {
-        init();
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         int type = Value.BLOB;
         try {
             if (maxLength != -1
@@ -168,12 +160,14 @@ public class LobStorageMap implements LobStorageInterface {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
+        } finally {
+            mvStore.deregisterVersionUsage(txCounter);
         }
     }
 
     @Override
     public ValueLob createClob(Reader reader, long maxLength) {
-        init();
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         int type = Value.CLOB;
         try {
             // we multiple by 3 here to get the worst-case size in bytes
@@ -208,6 +202,8 @@ public class LobStorageMap implements LobStorageInterface {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
+        } finally {
+            mvStore.deregisterVersionUsage(txCounter);
         }
     }
 
@@ -250,75 +246,112 @@ public class LobStorageMap implements LobStorageInterface {
 
     @Override
     public ValueLob copyLob(ValueLob old_, int tableId, long length) {
-        init();
-        ValueLobDatabase old = (ValueLobDatabase) old_;
-        int type = old.getValueType();
-        long oldLobId = old.getLobId();
-        long oldLength = old.getType().getPrecision();
-        if (oldLength != length) {
-            throw DbException.getInternalError("Length is different");
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        try {
+            ValueLobDatabase old = (ValueLobDatabase) old_;
+            int type = old.getValueType();
+            long oldLobId = old.getLobId();
+            long oldLength = old.getType().getPrecision();
+            if (oldLength != length) {
+                throw DbException.getInternalError("Length is different");
+            }
+            Object[] value = lobMap.get(oldLobId);
+            value = value.clone();
+            byte[] streamStoreId = (byte[]) value[0];
+            long lobId = generateLobId();
+            value[1] = tableId;
+            lobMap.put(lobId, value);
+            Object[] key = {streamStoreId, lobId};
+            refMap.put(key, Boolean.TRUE);
+            ValueLob lob = ValueLobDatabase.create(
+                    type, database, tableId, lobId, length);
+            if (TRACE) {
+                trace("copy " + old.getTableId() + "/" + old.getLobId() +
+                        " > " + tableId + "/" + lobId);
+            }
+            return lob;
+        } finally {
+            mvStore.deregisterVersionUsage(txCounter);
         }
-        Object[] value = lobMap.get(oldLobId);
-        value = value.clone();
-        byte[] streamStoreId = (byte[]) value[0];
-        long lobId = generateLobId();
-        value[1] = tableId;
-        lobMap.put(lobId, value);
-        Object[] key = { streamStoreId, lobId };
-        refMap.put(key, Boolean.TRUE);
-        ValueLob lob = ValueLobDatabase.create(
-                type, database, tableId, lobId, length);
-        if (TRACE) {
-            trace("copy " + old.getTableId() + "/" + old.getLobId() +
-                    " > " + tableId + "/" + lobId);
-        }
-        return lob;
     }
 
     @Override
     public InputStream getInputStream(long lobId, long byteCount)
             throws IOException {
-        init();
-        Object[] value = lobMap.get(lobId);
-        if (value == null) {
-            throw DbException.get(ErrorCode.LOB_CLOSED_ON_TIMEOUT_1, "" + lobId);
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        try {
+            Object[] value = lobMap.get(lobId);
+            if (value == null) {
+                throw DbException.get(ErrorCode.LOB_CLOSED_ON_TIMEOUT_1, "" + lobId);
+            }
+            byte[] streamStoreId = (byte[]) value[0];
+            InputStream inputStream = streamStore.get(streamStoreId);
+            return new FilterInputStream(inputStream) {
+                @Override
+                public int read(byte[] b, int off, int len) throws IOException {
+                    MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+                    try {
+                        return super.read(b, off, len);
+                    } finally {
+                        mvStore.deregisterVersionUsage(txCounter);
+                    }
+                }
+
+                @Override
+                public int read() throws IOException {
+                    MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+                    try {
+                        return super.read();
+                    } finally {
+                        mvStore.deregisterVersionUsage(txCounter);
+                    }
+                }
+            };
+        } finally {
+            mvStore.deregisterVersionUsage(txCounter);
         }
-        byte[] streamStoreId = (byte[]) value[0];
-        return streamStore.get(streamStoreId);
     }
 
     @Override
     public void removeAllForTable(int tableId) {
-        init();
-        if (database.getStore().getMvStore().isClosed()) {
+        if (mvStore.isClosed()) {
             return;
         }
-        // this might not be very efficient -
-        // to speed it up, we would need yet another map
-        ArrayList<Long> list = new ArrayList<>();
-        for (Entry<Long, Object[]> e : lobMap.entrySet()) {
-            Object[] value = e.getValue();
-            int t = (Integer) value[1];
-            if (t == tableId) {
-                list.add(e.getKey());
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        try {
+            // this might not be very efficient -
+            // to speed it up, we would need yet another map
+            ArrayList<Long> list = new ArrayList<>();
+            for (Entry<Long, Object[]> e : lobMap.entrySet()) {
+                Object[] value = e.getValue();
+                int t = (Integer) value[1];
+                if (t == tableId) {
+                    list.add(e.getKey());
+                }
             }
-        }
-        for (long lobId : list) {
-            removeLob(tableId, lobId);
-        }
-        if (tableId == LobStorageFrontend.TABLE_ID_SESSION_VARIABLE) {
-            removeAllForTable(LobStorageFrontend.TABLE_TEMP);
-            removeAllForTable(LobStorageFrontend.TABLE_RESULT);
+            for (long lobId : list) {
+                removeLob(tableId, lobId);
+            }
+            if (tableId == LobStorageFrontend.TABLE_ID_SESSION_VARIABLE) {
+                removeAllForTable(LobStorageFrontend.TABLE_TEMP);
+                removeAllForTable(LobStorageFrontend.TABLE_RESULT);
+            }
+        } finally {
+            mvStore.deregisterVersionUsage(txCounter);
         }
     }
 
     @Override
     public void removeLob(ValueLob lob_) {
-        init();
-        ValueLobDatabase lob = (ValueLobDatabase) lob_;
-        int tableId = lob.getTableId();
-        long lobId = lob.getLobId();
-        removeLob(tableId, lobId);
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        try {
+            ValueLobDatabase lob = (ValueLobDatabase) lob_;
+            int tableId = lob.getTableId();
+            long lobId = lob.getLobId();
+            removeLob(tableId, lobId);
+        } finally {
+            mvStore.deregisterVersionUsage(txCounter);
+        }
     }
 
     private void removeLob(int tableId, long lobId) {

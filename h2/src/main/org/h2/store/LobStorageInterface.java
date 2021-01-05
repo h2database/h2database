@@ -68,15 +68,9 @@ public interface LobStorageInterface {
     void removeAllForTable(int tableId);
 
     /**
-     * Initialize the lob storage.
-     */
-    void init();
-
-    /**
      * Whether the storage is read-only
      *
      * @return true if yes
      */
     boolean isReadOnly();
-
 }

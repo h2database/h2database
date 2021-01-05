@@ -88,10 +88,4 @@ public class LobStorageFrontend implements LobStorageInterface {
         // to read a block while writing something)
         return ValueLobFile.createTempClob(reader, maxLength, sessionRemote);
     }
-
-    @Override
-    public void init() {
-        // nothing to do
-    }
-
 }

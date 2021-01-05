@@ -840,7 +840,8 @@ CREATE INDEX IDXNAME ON TEST(NAME)
 @h2@ CREATE [ FORCE ] [ [ GLOBAL | LOCAL ] TEMPORARY ]
 @h2@ LINKED TABLE [ IF NOT EXISTS ]
 @h2@ [schemaName.]tableName ( driverString, urlString, userString, passwordString,
-@h2@ [ originalSchemaString, ] @h2@ originalTableString ) [ EMIT UPDATES | READONLY ]
+@h2@ [ originalSchemaString, ] @h2@ originalTableString ) 
+@h2@ [ EMIT UPDATES | READONLY ] [ FETCH_SIZE sizeInt ]
 ","
 Creates a table link to an external table. The driver name may be empty if the
 driver is already loaded. If the schema name is not set, only one table with
@@ -854,6 +855,10 @@ rollback), however in this case multi-row unique key updates may not always
 work. Linked tables to the same database share one connection.
 
 READONLY - is set, the remote table may not be updated. This is enforced by H2.
+
+FETCH_SIZE - the number of rows fetched, a hint with non-negative number of rows to fetch from the external table 
+at once, may be ignored by the driver of external database. 0 is default and means no hint. 
+The value is passed to ""java.sql.Statement.setFetchSize()"" method.
 
 If the connection to the source database is lost, the connection is re-opened
 (this is a workaround for MySQL that disconnects after 8 hours of inactivity by default).

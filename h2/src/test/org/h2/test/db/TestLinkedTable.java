@@ -52,6 +52,7 @@ public class TestLinkedTable extends TestDb {
         testCachingResults();
         testLinkedTableInReadOnlyDb();
         testGeometry();
+        testFetchSize();
         deleteDb("linkedTable");
     }
 
@@ -710,6 +711,32 @@ public class TestLinkedTable extends TestDb {
             assertTrue(rs.next());
             assertEquals("POINT (1 1)", rs.getString("THE_GEOM"));
         }
+        sb.execute("DROP TABLE T");
+        ca.close();
+        cb.close();
+    }
+    
+    private void testFetchSize() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        org.h2.Driver.load();
+        Connection ca = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
+        Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
+        Statement sa = ca.createStatement();
+        Statement sb = cb.createStatement();
+        sa.execute("DROP TABLE IF EXISTS TEST; "
+                + "CREATE TABLE TEST as select * from SYSTEM_RANGE(1,1000) as n;");
+        String sql = "CREATE LINKED TABLE T(NULL, " +
+                "'jdbc:h2:mem:one', 'sa', 'sa', 'TEST') FETCH_SIZE 10";
+        sb.execute(sql);
+        try (ResultSet rs = sb.executeQuery("SELECT count(*) FROM T")) {
+            assertTrue(rs.next());
+            assertEquals(1000, rs.getInt(1));
+        }
+        ResultSet res = sb.executeQuery("CALL DB_OBJECT_SQL('TABLE', 'PUBLIC', 'T')");
+        res.next();
+        assertEquals("CREATE FORCE LINKED TABLE \"PUBLIC\".\"T\"(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST') FETCH_SIZE 10 /*--hide--*/", res.getString(1));
         sb.execute("DROP TABLE T");
         ca.close();
         cb.close();

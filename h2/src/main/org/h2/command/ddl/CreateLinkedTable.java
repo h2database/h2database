@@ -9,6 +9,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
+import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.TableLink;
@@ -28,6 +29,7 @@ public class CreateLinkedTable extends SchemaCommand {
     private boolean temporary;
     private boolean globalTemporary;
     private boolean readOnly;
+    private int fetchSize;
 
     public CreateLinkedTable(SessionLocal session, Schema schema) {
         super(session, schema);
@@ -60,6 +62,15 @@ public class CreateLinkedTable extends SchemaCommand {
     public void setIfNotExists(boolean ifNotExists) {
         this.ifNotExists = ifNotExists;
     }
+    
+    /**
+     * Specify the number of rows fetched by the linked table command
+     *
+     * @param fetchSize
+     */
+    public void setFetchSize(int fetchSize) {
+        this.fetchSize = fetchSize;
+    }
 
     @Override
     public long update() {
@@ -79,6 +90,9 @@ public class CreateLinkedTable extends SchemaCommand {
         table.setGlobalTemporary(globalTemporary);
         table.setComment(comment);
         table.setReadOnly(readOnly);
+        if (fetchSize > 0) {
+            table.setFetchSize(fetchSize);
+        }
         if (temporary && !globalTemporary) {
             session.addLocalTempTable(table);
         } else {

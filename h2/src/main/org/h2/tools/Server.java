@@ -140,7 +140,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 } else if ("-webPort".equals(arg)) {
                     i++;
                 } else if ("-webAdminPassword".equals(arg)) {
-                    i += 2;
+                    i++;
                 } else {
                     throwUnsupportedOption(arg);
                 }
@@ -241,7 +241,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 } else if ("-webPort".equals(arg)) {
                     i++;
                 } else if ("-webAdminPassword".equals(arg)) {
-                    i += 2;
+                    i++;
                 } else {
                     showUsageAndThrowUnsupportedOption(arg);
                 }

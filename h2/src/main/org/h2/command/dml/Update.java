@@ -1,7 +1,7 @@
 /*
- * Copyright 2004-2020 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (https://h2database.com/html/license.html).
- * Initial Developer: H2 Group
+ * Copyright 2004-2020 H2 Group. Multiple-Licensed under the MPL 2.0, and the
+ * EPL 1.0 (https://h2database.com/html/license.html). Initial Developer: H2
+ * Group
  */
 package org.h2.command.dml;
 
@@ -27,8 +27,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * This class represents the statement
- * UPDATE
+ * This class represents the statement UPDATE
  */
 public final class Update extends FilteredDataChangeStatement {
 
@@ -36,12 +35,18 @@ public final class Update extends FilteredDataChangeStatement {
 
     private Insert onDuplicateKeyInsert;
 
+    private TableFilter fromTableFilter;
+
     public Update(SessionLocal session) {
         super(session);
     }
 
     public void setSetClauseList(SetClauseList setClauseList) {
         this.setClauseList = setClauseList;
+    }
+
+    public void setFromTableFilter(TableFilter tableFilter) {
+        this.fromTableFilter = tableFilter;
     }
 
     @Override
@@ -78,8 +83,8 @@ public final class Update extends FilteredDataChangeStatement {
                         }
                     }
                 }
-                if (setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode,
-                        rows, oldRow, onDuplicateKeyInsert != null)) {
+                if (setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode, rows,
+                        oldRow, onDuplicateKeyInsert != null)) {
                     count++;
                 }
             }
@@ -112,6 +117,10 @@ public final class Update extends FilteredDataChangeStatement {
     public String getPlanSQL(int sqlFlags) {
         StringBuilder builder = new StringBuilder("UPDATE ");
         targetTableFilter.getPlanSQL(builder, false, sqlFlags);
+        if (fromTableFilter != null) {
+            builder.append("\nFROM ");
+            fromTableFilter.getPlanSQL(builder, false, sqlFlags);
+        }
         setClauseList.getSQL(builder, sqlFlags);
         appendFilterCondition(builder, sqlFlags);
         return builder.toString();
@@ -119,15 +128,26 @@ public final class Update extends FilteredDataChangeStatement {
 
     @Override
     public void prepare() {
+        if (fromTableFilter != null) {
+            targetTableFilter.addJoin(fromTableFilter, false, null);
+        }
         if (condition != null) {
             condition.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
+            if (fromTableFilter != null) {
+                condition.mapColumns(fromTableFilter, 0, Expression.MAP_INITIAL);
+            }
             condition = condition.optimizeCondition(session);
             if (condition != null) {
                 condition.createIndexConditions(session, targetTableFilter);
             }
         }
-        setClauseList.mapAndOptimize(session, targetTableFilter, null);
-        TableFilter[] filters = new TableFilter[] { targetTableFilter };
+        setClauseList.mapAndOptimize(session, targetTableFilter, fromTableFilter);
+        TableFilter[] filters = null;
+        if (fromTableFilter == null) {
+            filters = new TableFilter[] { targetTableFilter };
+        } else {
+            filters = new TableFilter[] { targetTableFilter, fromTableFilter };
+        }
         PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters));
         targetTableFilter.setPlanItem(item);
         targetTableFilter.prepare();

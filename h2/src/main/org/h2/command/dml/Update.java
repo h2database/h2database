@@ -1,7 +1,7 @@
 /*
- * Copyright 2004-2020 H2 Group. Multiple-Licensed under the MPL 2.0, and the
- * EPL 1.0 (https://h2database.com/html/license.html). Initial Developer: H2
- * Group
+ * Copyright 2004-2020 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
  */
 package org.h2.command.dml;
 
@@ -27,7 +27,8 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * This class represents the statement UPDATE
+ * This class represents the statement
+ * UPDATE
  */
 public final class Update extends FilteredDataChangeStatement {
 
@@ -83,8 +84,8 @@ public final class Update extends FilteredDataChangeStatement {
                         }
                     }
                 }
-                if (setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode, rows,
-                        oldRow, onDuplicateKeyInsert != null)) {
+                if (setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode,
+                        rows, oldRow, onDuplicateKeyInsert != null)) {
                     count++;
                 }
             }

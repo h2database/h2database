@@ -378,6 +378,11 @@ public class Mode {
     public boolean mergeWhere;
 
     /**
+     * If {@code true}, allow using from clause in update statement.
+     */
+    public boolean allowUsingFromClauseInUpdateStatement;
+
+    /**
      * How column names are generated for expressions.
      */
     public ExpressionNames expressionNames = ExpressionNames.OPTIMIZED_SQL;
@@ -551,6 +556,7 @@ public class Mode {
         mode.nextValueReturnsDifferentValues = true;
         mode.takeGeneratedSequenceValue = true;
         mode.expressionNames = ExpressionNames.POSTGRESQL_STYLE;
+        mode.allowUsingFromClauseInUpdateStatement = true;
         // Enumerate all H2 types NOT supported by PostgreSQL:
         Set<String> disallowedTypes = new java.util.HashSet<>();
         disallowedTypes.add("NUMBER");

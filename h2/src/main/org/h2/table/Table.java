@@ -16,6 +16,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.constraint.Constraint;
+import org.h2.constraint.Constraint.Type;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
@@ -1234,12 +1235,13 @@ public abstract class Table extends SchemaObject {
      * @param checkExisting true if existing rows must be checked during this
      *            call
      */
-    public void setCheckForeignKeyConstraints(SessionLocal session, boolean enabled,
-            boolean checkExisting) {
+    public void setCheckForeignKeyConstraints(SessionLocal session, boolean enabled, boolean checkExisting) {
         if (enabled && checkExisting) {
             if (constraints != null) {
                 for (Constraint c : constraints) {
-                    c.checkExistingData(session);
+                    if (c.getConstraintType() == Type.REFERENTIAL) {
+                        c.checkExistingData(session);
+                    }
                 }
             }
         }

@@ -304,30 +304,13 @@ public class Utils {
      * full array sort, in descending order.
      *
      * @param array the array.
-     * @param offset the offset.
-     * @param limit the limit.
+     * @param fromInclusive the start index, inclusive
+     * @param toExclusive the end index, exclusive
      * @param comp the comparator.
      */
-    public static <X> void sortTopN(X[] array, int offset, int limit,
-            Comparator<? super X> comp) {
-        partitionTopN(array, offset, limit, comp);
-        Arrays.sort(array, offset,
-                (int) Math.min((long) offset + limit, array.length), comp);
-    }
-
-    /**
-     * Find the top limit values using given comparator and place them as in a
-     * full array sort. This method does not sort the top elements themselves.
-     *
-     * @param array the array
-     * @param offset the offset
-     * @param limit the limit
-     * @param comp the comparator
-     */
-    private static <X> void partitionTopN(X[] array, int offset, int limit,
-            Comparator<? super X> comp) {
-        partialQuickSort(array, 0, array.length - 1, comp, offset, offset +
-                limit - 1);
+    public static <X> void sortTopN(X[] array, int fromInclusive, int toExclusive, Comparator<? super X> comp) {
+        partialQuickSort(array, 0, array.length - 1, comp, fromInclusive, toExclusive - 1);
+        Arrays.sort(array, fromInclusive, toExclusive, comp);
     }
 
     private static <X> void partialQuickSort(X[] array, int low, int high,

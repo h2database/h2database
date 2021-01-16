@@ -303,22 +303,44 @@ public class Utils {
      * Find the top limit values using given comparator and place them as in a
      * full array sort, in descending order.
      *
+     * @param <X> the type of elements
      * @param array the array.
      * @param fromInclusive the start index, inclusive
      * @param toExclusive the end index, exclusive
      * @param comp the comparator.
      */
     public static <X> void sortTopN(X[] array, int fromInclusive, int toExclusive, Comparator<? super X> comp) {
-        partialQuickSort(array, 0, array.length - 1, comp, fromInclusive, toExclusive - 1);
-        Arrays.sort(array, fromInclusive, toExclusive, comp);
+        int highInclusive = array.length - 1;
+        if (highInclusive > 0 && toExclusive > fromInclusive) {
+            partialQuickSort(array, 0, highInclusive, comp, fromInclusive, toExclusive - 1);
+            Arrays.sort(array, fromInclusive, toExclusive, comp);
+        }
     }
 
+    /**
+     * Partial quick sort.
+     *
+     * <p>
+     * Works with elements from {@code low} to {@code high} indexes, inclusive.
+     * </p>
+     * <p>
+     * Moves smallest elements to {@code low..start-1} positions and largest
+     * elements to {@code end+1..high} positions. Middle elements are placed
+     * into {@code start..end} positions. All these regions aren't fully sorted.
+     * </p>
+     *
+     * @param <X> the type of elements
+     * @param array the array to sort
+     * @param low the lower index with data, inclusive
+     * @param high the higher index with data, inclusive, {@code high > low}
+     * @param comp the comparator
+     * @param start the start index of requested region, inclusive
+     * @param end the end index of requested region, inclusive, {@code end >= start}
+     */
     private static <X> void partialQuickSort(X[] array, int low, int high,
             Comparator<? super X> comp, int start, int end) {
-        if (low > end || high < start || (low > start && high < end)) {
-            return;
-        }
-        if (low == high) {
+        if (low >= start && high <= end) {
+            // Don't sort blocks entirely contained in the middle region
             return;
         }
         int i = low, j = high;
@@ -343,10 +365,10 @@ public class Utils {
                 array[j--] = temp;
             }
         }
-        if (low < j) {
+        if (low < j && /* Intersection with middle region */ start <= j) {
             partialQuickSort(array, low, j, comp, start, end);
         }
-        if (i < high) {
+        if (i < high && /* Intersection with middle region */ i <= end) {
             partialQuickSort(array, i, high, comp, start, end);
         }
     }

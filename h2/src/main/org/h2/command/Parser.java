@@ -1494,6 +1494,10 @@ public class Parser {
         TableFilter filter = readSimpleTableFilter();
         command.setTableFilter(filter);
         command.setSetClauseList(readUpdateSetClause(filter));
+        if (database.getMode().allowUsingFromClauseInUpdateStatement && readIf(FROM)) {
+            TableFilter fromTable = readTableFilter();
+            command.setFromTableFilter(fromTable);
+        }
         if (readIf(WHERE)) {
             command.setCondition(readExpression());
         }

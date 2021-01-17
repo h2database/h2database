@@ -383,14 +383,18 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             return new AggregateDataDefault(aggregateType, type);
         case SUM:
         case AVG:
-        case STDDEV_POP:
-        case STDDEV_SAMP:
-        case VAR_POP:
-        case VAR_SAMP:
         case BIT_XOR_AGG:
         case BIT_XNOR_AGG:
             if (!distinct) {
                 return new AggregateDataDefault(aggregateType, type);
+            }
+            break;
+        case STDDEV_POP:
+        case STDDEV_SAMP:
+        case VAR_POP:
+        case VAR_SAMP:
+            if (!distinct) {
+                return new AggregateDataStdVar(aggregateType);
             }
             break;
         case HISTOGRAM:
@@ -484,10 +488,6 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             break;
         case SUM:
         case AVG:
-        case STDDEV_POP:
-        case STDDEV_SAMP:
-        case VAR_POP:
-        case VAR_SAMP:
         case BIT_XOR_AGG:
         case BIT_XNOR_AGG:
             if (distinct) {
@@ -495,11 +495,19 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 if (c.getCount() == 0) {
                     return ValueNull.INSTANCE;
                 }
-                AggregateDataDefault d = new AggregateDataDefault(aggregateType, type);
-                for (Value v : c) {
-                    d.add(session, v);
+                return collect(session, c, new AggregateDataDefault(aggregateType, type));
+            }
+            break;
+        case STDDEV_POP:
+        case STDDEV_SAMP:
+        case VAR_POP:
+        case VAR_SAMP:
+            if (distinct) {
+                AggregateDataCollecting c = ((AggregateDataCollecting) data);
+                if (c.getCount() == 0) {
+                    return ValueNull.INSTANCE;
                 }
-                return d.getValue(session);
+                return collect(session, c, new AggregateDataStdVar(aggregateType));
             }
             break;
         case HISTOGRAM:
@@ -602,6 +610,13 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             // Avoid compiler warning
         }
         return data.getValue(session);
+    }
+
+    private static Value collect(SessionLocal session, AggregateDataCollecting c, AggregateData d) {
+        for (Value v : c) {
+            d.add(session, v);
+        }
+        return d.getValue(session);
     }
 
     private Value getHypotheticalSet(SessionLocal session, AggregateData data) {

@@ -13,7 +13,6 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
-import org.h2.value.ValueDouble;
 import org.h2.value.ValueNull;
 
 /**
@@ -25,7 +24,6 @@ final class AggregateDataDefault extends AggregateData {
     private final TypeInfo dataType;
     private long count;
     private Value value;
-    private double m2, mean;
 
     /**
      * @param aggregateType the type of the aggregate operation
@@ -69,24 +67,6 @@ final class AggregateDataDefault extends AggregateData {
                 value = v;
             }
             break;
-        case STDDEV_POP:
-        case STDDEV_SAMP:
-        case VAR_POP:
-        case VAR_SAMP: {
-            // Using Welford's method, see also
-            // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-            // https://www.johndcook.com/standard_deviation.html
-            double x = v.getDouble();
-            if (count == 1) {
-                mean = x;
-                m2 = 0;
-            } else {
-                double delta = x - mean;
-                mean += delta / count;
-                m2 += delta * (x - mean);
-            }
-            break;
-        }
         case EVERY:
             v = v.convertToBoolean();
             if (value == null) {
@@ -158,34 +138,6 @@ final class AggregateDataDefault extends AggregateData {
                 v = divide(value, count);
             }
             break;
-        case STDDEV_POP: {
-            if (count < 1) {
-                return ValueNull.INSTANCE;
-            }
-            v = ValueDouble.get(Math.sqrt(m2 / count));
-            break;
-        }
-        case STDDEV_SAMP: {
-            if (count < 2) {
-                return ValueNull.INSTANCE;
-            }
-            v = ValueDouble.get(Math.sqrt(m2 / (count - 1)));
-            break;
-        }
-        case VAR_POP: {
-            if (count < 1) {
-                return ValueNull.INSTANCE;
-            }
-            v = ValueDouble.get(m2 / count);
-            break;
-        }
-        case VAR_SAMP: {
-            if (count < 2) {
-                return ValueNull.INSTANCE;
-            }
-            v = ValueDouble.get(m2 / (count - 1));
-            break;
-        }
         default:
             throw DbException.getInternalError("type=" + aggregateType);
         }

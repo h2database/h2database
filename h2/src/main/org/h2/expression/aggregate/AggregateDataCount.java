@@ -13,7 +13,7 @@ import org.h2.value.ValueNull;
 /**
  * Data stored while calculating a COUNT aggregate.
  */
-class AggregateDataCount extends AggregateData {
+final class AggregateDataCount extends AggregateData {
 
     private final boolean all;
 

@@ -19,7 +19,7 @@ import org.h2.value.ValueNull;
 /**
  * Data stored while calculating an aggregate.
  */
-class AggregateDataDefault extends AggregateData {
+final class AggregateDataDefault extends AggregateData {
 
     private final AggregateType aggregateType;
     private final TypeInfo dataType;

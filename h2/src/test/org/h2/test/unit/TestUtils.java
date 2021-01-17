@@ -150,10 +150,10 @@ public class TestUtils extends TestBase {
     private void testSortTopN() {
         Comparator<Integer> comp = Comparator.naturalOrder();
         Integer[] arr = new Integer[] {};
-        Utils.sortTopN(arr, 0, 5, comp);
+        Utils.sortTopN(arr, 0, 0, comp);
 
         arr = new Integer[] { 1 };
-        Utils.sortTopN(arr, 0, 5, comp);
+        Utils.sortTopN(arr, 0, 1, comp);
 
         arr = new Integer[] { 3, 5, 1, 4, 2 };
         Utils.sortTopN(arr, 0, 2, comp);
@@ -165,16 +165,17 @@ public class TestUtils extends TestBase {
         Random rnd = new Random();
         Comparator<Integer> comp = Comparator.naturalOrder();
         for (int z = 0; z < 10000; z++) {
-            Integer[] arr = new Integer[1 + rnd.nextInt(500)];
-            for (int i = 0; i < arr.length; i++) {
+            int length = 1 + rnd.nextInt(500);
+            Integer[] arr = new Integer[length];
+            for (int i = 0; i < length; i++) {
                 arr[i] = rnd.nextInt(50);
             }
-            Integer[] arr2 = Arrays.copyOf(arr, arr.length);
-            int offset = rnd.nextInt(arr.length);
-            int limit = rnd.nextInt(arr.length);
-            Utils.sortTopN(arr, offset, limit, comp);
+            Integer[] arr2 = Arrays.copyOf(arr, length);
+            int offset = rnd.nextInt(length);
+            int limit = rnd.nextInt(length - offset + 1);
+            Utils.sortTopN(arr, offset, offset + limit, comp);
             Arrays.sort(arr2, comp);
-            for (int i = offset, end = Math.min(offset + limit, arr.length); i < end; i++) {
+            for (int i = offset, end = offset + limit; i < end; i++) {
                 if (!arr[i].equals(arr2[i])) {
                     fail(offset + " " + end + "\n" + Arrays.toString(arr) +
                             "\n" + Arrays.toString(arr2));

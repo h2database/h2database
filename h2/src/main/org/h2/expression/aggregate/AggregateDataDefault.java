@@ -8,10 +8,8 @@ package org.h2.expression.aggregate;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.function.BitFunction;
 import org.h2.message.DbException;
-import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
@@ -22,7 +20,6 @@ final class AggregateDataDefault extends AggregateData {
 
     private final AggregateType aggregateType;
     private final TypeInfo dataType;
-    private long count;
     private Value value;
 
     /**
@@ -39,19 +36,10 @@ final class AggregateDataDefault extends AggregateData {
         if (v == ValueNull.INSTANCE) {
             return;
         }
-        count++;
         switch (aggregateType) {
         case SUM:
             if (value == null) {
                 value = v.convertTo(dataType.getValueType());
-            } else {
-                v = v.convertTo(value.getValueType());
-                value = value.add(v);
-            }
-            break;
-        case AVG:
-            if (value == null) {
-                value = v.convertTo(DataType.getAddProofType(dataType.getValueType()));
             } else {
                 v = v.convertTo(value.getValueType());
                 value = value.add(v);
@@ -112,46 +100,20 @@ final class AggregateDataDefault extends AggregateData {
         }
     }
 
+    @SuppressWarnings("incomplete-switch")
     @Override
     Value getValue(SessionLocal session) {
-        Value v = null;
+        Value v = value;
+        if (v == null) {
+            return ValueNull.INSTANCE;
+        }
         switch (aggregateType) {
-        case SUM:
-        case MIN:
-        case MAX:
-        case BIT_AND_AGG:
-        case BIT_OR_AGG:
-        case BIT_XOR_AGG:
-        case ANY:
-        case EVERY:
-            v = value;
-            break;
         case BIT_NAND_AGG:
         case BIT_NOR_AGG:
         case BIT_XNOR_AGG:
-            if (value != null) {
-                v = BitFunction.getBitwise(BitFunction.BITNOT, dataType, value, null);
-            }
-            break;
-        case AVG:
-            if (value != null) {
-                v = divide(value, count);
-            }
-            break;
-        default:
-            throw DbException.getInternalError("type=" + aggregateType);
+            v = BitFunction.getBitwise(BitFunction.BITNOT, dataType, v, null);
         }
-        return v == null ? ValueNull.INSTANCE : v.convertTo(dataType);
-    }
-
-    private static Value divide(Value a, long by) {
-        if (by == 0) {
-            return ValueNull.INSTANCE;
-        }
-        int type = Value.getHigherOrder(a.getValueType(), Value.BIGINT);
-        Value b = ValueBigint.get(by).convertTo(type);
-        a = a.convertTo(type).divide(b, ValueBigint.DECIMAL_PRECISION);
-        return a;
+        return v.convertTo(dataType);
     }
 
 }

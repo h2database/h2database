@@ -382,11 +382,15 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case EVERY:
             return new AggregateDataDefault(aggregateType, type);
         case SUM:
-        case AVG:
         case BIT_XOR_AGG:
         case BIT_XNOR_AGG:
             if (!distinct) {
                 return new AggregateDataDefault(aggregateType, type);
+            }
+            break;
+        case AVG:
+            if (!distinct) {
+                return new AggregateDataAvg(type);
             }
             break;
         case STDDEV_POP:
@@ -487,7 +491,6 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
             break;
         case SUM:
-        case AVG:
         case BIT_XOR_AGG:
         case BIT_XNOR_AGG:
             if (distinct) {
@@ -496,6 +499,15 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                     return ValueNull.INSTANCE;
                 }
                 return collect(session, c, new AggregateDataDefault(aggregateType, type));
+            }
+            break;
+        case AVG:
+            if (distinct) {
+                AggregateDataCollecting c = ((AggregateDataCollecting) data);
+                if (c.getCount() == 0) {
+                    return ValueNull.INSTANCE;
+                }
+                return collect(session, c, new AggregateDataAvg(type));
             }
             break;
         case STDDEV_POP:

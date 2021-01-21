@@ -5,6 +5,7 @@
  */
 package org.h2.util;
 
+import java.io.File;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -370,6 +371,13 @@ public class SourceCompiler {
             // But if it sees those flags, it will write out a message
             // to stderr, which messes up our parsing of the output.
             builder.environment().remove("JAVA_TOOL_OPTIONS");
+
+            // Look for javac only in JAVA_HOME to prevent someone from
+            // placing a malicious binary disguised as a javac in other
+            // folders of PATH tricking H2 to run it.
+            String java_home = builder.environment().get("JAVA_HOME");
+            builder.environment().put("PATH", java_home + File.separator + "bin");
+
             builder.command(args);
 
             Process p = builder.start();

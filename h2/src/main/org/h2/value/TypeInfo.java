@@ -93,11 +93,6 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
     public static final TypeInfo TYPE_BIGINT;
 
     /**
-     * NUMERIC type with maximum parameters.
-     */
-    public static final TypeInfo TYPE_NUMERIC;
-
-    /**
      * NUMERIC type with maximum precision and scale 0.
      */
     public static final TypeInfo TYPE_NUMERIC_SCALE_0;
@@ -243,12 +238,10 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         infos[Value.SMALLINT] = TYPE_SMALLINT = new TypeInfo(Value.SMALLINT);
         infos[Value.INTEGER] = TYPE_INTEGER = new TypeInfo(Value.INTEGER);
         infos[Value.BIGINT] = TYPE_BIGINT = new TypeInfo(Value.BIGINT);
-        infos[Value.NUMERIC] = TYPE_NUMERIC = new TypeInfo(Value.NUMERIC, Constants.MAX_NUMERIC_PRECISION, //
-                ValueNumeric.MAXIMUM_SCALE, null);
         TYPE_NUMERIC_SCALE_0 = new TypeInfo(Value.NUMERIC, Constants.MAX_NUMERIC_PRECISION, 0, null);
         TYPE_NUMERIC_BIGINT = new TypeInfo(Value.NUMERIC, ValueBigint.DECIMAL_PRECISION, 0, null);
-        TYPE_NUMERIC_FLOATING_POINT = new TypeInfo(Value.NUMERIC, Constants.MAX_NUMERIC_PRECISION,
-                Constants.MAX_NUMERIC_PRECISION / 2, null);
+        infos[Value.NUMERIC] = TYPE_NUMERIC_FLOATING_POINT = new TypeInfo(Value.NUMERIC,
+                Constants.MAX_NUMERIC_PRECISION, Constants.MAX_NUMERIC_PRECISION / 2, null);
         infos[Value.REAL] = TYPE_REAL = new TypeInfo(Value.REAL);
         infos[Value.DOUBLE] = TYPE_DOUBLE = new TypeInfo(Value.DOUBLE);
         infos[Value.DECFLOAT] = TYPE_DECFLOAT = new TypeInfo(Value.DECFLOAT);

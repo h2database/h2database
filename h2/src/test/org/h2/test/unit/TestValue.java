@@ -173,7 +173,7 @@ public class TestValue extends TestDb {
         testDataType(TypeInfo.TYPE_VARBINARY, byte[].class);
         testDataType(TypeInfo.TYPE_UUID, UUID.class);
         testDataType(TypeInfo.TYPE_NULL, Void.class);
-        testDataType(TypeInfo.TYPE_NUMERIC, BigDecimal.class);
+        testDataType(TypeInfo.TYPE_NUMERIC_FLOATING_POINT, BigDecimal.class);
         testDataType(TypeInfo.TYPE_DATE, Date.class);
         testDataType(TypeInfo.TYPE_TIME, Time.class);
         testDataType(TypeInfo.TYPE_TIMESTAMP, Timestamp.class);
@@ -386,8 +386,6 @@ public class TestValue extends TestDb {
 
         testTypeInfoCheck(Value.REAL, 24, 0, 15, TypeInfo.TYPE_REAL, TypeInfo.getTypeInfo(Value.REAL));
         testTypeInfoCheck(Value.DOUBLE, 53, 0, 24, TypeInfo.TYPE_DOUBLE, TypeInfo.getTypeInfo(Value.DOUBLE));
-        testTypeInfoCheck(Value.NUMERIC, MAX_NUMERIC_PRECISION, ValueNumeric.MAXIMUM_SCALE, MAX_NUMERIC_PRECISION + 2,
-                TypeInfo.TYPE_NUMERIC, TypeInfo.getTypeInfo(Value.NUMERIC));
         testTypeInfoCheck(Value.NUMERIC, MAX_NUMERIC_PRECISION, MAX_NUMERIC_PRECISION / 2, MAX_NUMERIC_PRECISION + 2,
                 TypeInfo.TYPE_NUMERIC_FLOATING_POINT);
 

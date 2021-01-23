@@ -87,7 +87,7 @@ public final class H2Type implements SQLType {
     /**
      * The NUMERIC data type.
      */
-    public static final H2Type NUMERIC = new H2Type(TypeInfo.TYPE_NUMERIC, "NUMERIC");
+    public static final H2Type NUMERIC = new H2Type(TypeInfo.TYPE_NUMERIC_FLOATING_POINT, "NUMERIC");
 
     // Approximate numeric data types
 

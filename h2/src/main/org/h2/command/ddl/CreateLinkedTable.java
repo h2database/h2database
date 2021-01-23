@@ -62,7 +62,7 @@ public class CreateLinkedTable extends SchemaCommand {
     public void setIfNotExists(boolean ifNotExists) {
         this.ifNotExists = ifNotExists;
     }
-    
+
     /**
      * Specify the number of rows fetched by the linked table command
      *

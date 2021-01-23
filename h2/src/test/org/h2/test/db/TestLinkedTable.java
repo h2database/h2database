@@ -715,7 +715,7 @@ public class TestLinkedTable extends TestDb {
         ca.close();
         cb.close();
     }
-    
+
     private void testFetchSize() throws SQLException {
         if (config.memory) {
             return;
@@ -736,7 +736,8 @@ public class TestLinkedTable extends TestDb {
         }
         ResultSet res = sb.executeQuery("CALL DB_OBJECT_SQL('TABLE', 'PUBLIC', 'T')");
         res.next();
-        assertEquals("CREATE FORCE LINKED TABLE \"PUBLIC\".\"T\"(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST') FETCH_SIZE 10 /*--hide--*/", res.getString(1));
+        assertEquals("CREATE FORCE LINKED TABLE \"PUBLIC\".\"T\"(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST')"
+                + " FETCH_SIZE 10 /*--hide--*/", res.getString(1));
         sb.execute("DROP TABLE T");
         ca.close();
         cb.close();

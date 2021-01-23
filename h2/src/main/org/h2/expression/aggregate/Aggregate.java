@@ -53,15 +53,28 @@ import org.h2.value.ValueBigint;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
+import org.h2.value.ValueInterval;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
+import org.h2.value.ValueSmallint;
+import org.h2.value.ValueTinyint;
 import org.h2.value.ValueVarchar;
 
 /**
  * Implements the integrated aggregate functions, such as COUNT, MAX, SUM.
  */
 public class Aggregate extends AbstractAggregate implements ExpressionWithFlags {
+
+    /**
+     * The additional result precision in decimal digits for a SUM aggregate function.
+     */
+    private static final int ADDITIONAL_SUM_PRECISION = 10;
+
+    /**
+     * The additional precision and scale in decimal digits for an AVG aggregate function.
+     */
+    private static final int ADDITIONAL_AVG_SCALE = 10;
 
     private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(64);
 
@@ -904,20 +917,13 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                     TypeInfo.getTypeInfo(Value.ROW, -1, -1, new ExtTypeInfoRow(fields)));
             break;
         }
-        case SUM: {
-            int dataType = type.getValueType();
-            if (dataType == Value.BOOLEAN) {
-                // example: sum(id > 3) (count the rows)
-                type = TypeInfo.TYPE_BIGINT;
-            } else if (!DataType.supportsAdd(dataType)) {
+        case SUM:
+            if ((type = getSumType(type)) == null) {
                 throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getTraceSQL());
-            } else {
-                type = TypeInfo.getTypeInfo(DataType.getAddProofType(dataType));
             }
             break;
-        }
         case AVG:
-            if (!DataType.supportsAdd(type.getValueType())) {
+            if ((type = getAvgType(type)) == null) {
                 throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getTraceSQL());
             }
             break;
@@ -985,6 +991,81 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             throw DbException.getInternalError("type=" + aggregateType);
         }
         return this;
+    }
+
+    static TypeInfo getSumType(TypeInfo type) {
+        int valueType = type.getValueType();
+        switch (valueType) {
+        case Value.BOOLEAN:
+        case Value.TINYINT:
+        case Value.SMALLINT:
+        case Value.INTEGER:
+            return TypeInfo.TYPE_BIGINT;
+        case Value.BIGINT:
+            return TypeInfo.getTypeInfo(Value.NUMERIC, ValueBigint.DECIMAL_PRECISION + ADDITIONAL_SUM_PRECISION, -1,
+                    null);
+        case Value.NUMERIC:
+            return TypeInfo.getTypeInfo(Value.NUMERIC, type.getPrecision() + ADDITIONAL_SUM_PRECISION,
+                    type.getDeclaredScale(), null);
+        case Value.REAL:
+            return TypeInfo.TYPE_DOUBLE;
+        case Value.DOUBLE:
+            return TypeInfo.getTypeInfo(Value.DECFLOAT, ValueDouble.DECIMAL_PRECISION + ADDITIONAL_SUM_PRECISION, -1,
+                    null);
+        case Value.DECFLOAT:
+            return TypeInfo.getTypeInfo(Value.DECFLOAT, type.getPrecision() + ADDITIONAL_SUM_PRECISION, -1, null);
+        default:
+            if (DataType.isIntervalType(valueType)) {
+                return TypeInfo.getTypeInfo(valueType, ValueInterval.MAXIMUM_PRECISION, type.getDeclaredScale(), null);
+            }
+            return null;
+        }
+    }
+
+    private static TypeInfo getAvgType(TypeInfo type) {
+        switch (type.getValueType()) {
+        case Value.TINYINT:
+        case Value.SMALLINT:
+        case Value.INTEGER:
+        case Value.REAL:
+            return TypeInfo.TYPE_DOUBLE;
+        case Value.BIGINT:
+            return TypeInfo.getTypeInfo(Value.NUMERIC, ValueBigint.DECIMAL_PRECISION + ADDITIONAL_AVG_SCALE,
+                    ADDITIONAL_AVG_SCALE, null);
+        case Value.NUMERIC:
+            return TypeInfo.getTypeInfo(Value.NUMERIC, type.getPrecision() + ADDITIONAL_AVG_SCALE,
+                    type.getScale() + ADDITIONAL_AVG_SCALE, null);
+        case Value.DOUBLE:
+            return TypeInfo.getTypeInfo(Value.DECFLOAT, ValueDouble.DECIMAL_PRECISION + ADDITIONAL_AVG_SCALE, -1, //
+                    null);
+        case Value.DECFLOAT:
+            return TypeInfo.getTypeInfo(Value.DECFLOAT, type.getPrecision() + ADDITIONAL_AVG_SCALE, -1, null);
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+            return TypeInfo.getTypeInfo(Value.INTERVAL_YEAR_TO_MONTH, type.getDeclaredPrecision(), 0, null);
+        case Value.INTERVAL_MONTH:
+            return TypeInfo.getTypeInfo(Value.INTERVAL_MONTH, type.getDeclaredPrecision(), 0, null);
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_DAY_TO_SECOND:
+            return TypeInfo.getTypeInfo(Value.INTERVAL_DAY_TO_SECOND, type.getDeclaredPrecision(),
+                    ValueInterval.MAXIMUM_SCALE, null);
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+            return TypeInfo.getTypeInfo(Value.INTERVAL_HOUR_TO_SECOND, type.getDeclaredPrecision(),
+                    ValueInterval.MAXIMUM_SCALE, null);
+        case Value.INTERVAL_MINUTE:
+        case Value.INTERVAL_MINUTE_TO_SECOND:
+            return TypeInfo.getTypeInfo(Value.INTERVAL_MINUTE_TO_SECOND, type.getDeclaredPrecision(),
+                    ValueInterval.MAXIMUM_SCALE, null);
+        case Value.INTERVAL_SECOND:
+            return TypeInfo.getTypeInfo(Value.INTERVAL_SECOND, type.getDeclaredPrecision(), //
+                    ValueInterval.MAXIMUM_SCALE, null);
+        default:
+            return null;
+        }
     }
 
     @Override

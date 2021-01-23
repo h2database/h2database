@@ -217,30 +217,6 @@ drop table test;
 select count(*)from((select 1 from dual limit 1)union(select 2 from dual limit 1));
 >> 2
 
-select sum(cast(x as int)) from system_range(2147483547, 2147483637);
->> 195421006872
-
-select sum(x) from system_range(9223372036854775707, 9223372036854775797);
->> 839326855353784593432
-
-select sum(cast(100 as tinyint)) from system_range(1, 1000);
->> 100000
-
-select sum(cast(100 as smallint)) from system_range(1, 1000);
->> 100000
-
-select avg(cast(x as int)) from system_range(2147483547, 2147483637);
->> 2147483592
-
-select avg(x) from system_range(9223372036854775707, 9223372036854775797);
->> 9223372036854775752
-
-select avg(cast(100 as tinyint)) from system_range(1, 1000);
->> 100
-
-select avg(cast(100 as smallint)) from system_range(1, 1000);
->> 100
-
 select datediff(yyyy, now(), now());
 >> 0
 

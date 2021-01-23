@@ -25,7 +25,7 @@ public final class ValueInteger extends Value {
     /**
      * The approximate precision in decimal digits.
      */
-    static final int DECIMAL_PRECISION = 10;
+    public static final int DECIMAL_PRECISION = 10;
 
     /**
      * The maximum display size of an INT.

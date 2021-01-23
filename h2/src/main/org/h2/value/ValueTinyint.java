@@ -24,7 +24,7 @@ public final class ValueTinyint extends Value {
     /**
      * The approximate precision in decimal digits.
      */
-    static final int DECIMAL_PRECISION = 3;
+    public static final int DECIMAL_PRECISION = 3;
 
     /**
      * The display size for a TINYINT.

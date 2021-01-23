@@ -24,7 +24,7 @@ public final class ValueSmallint extends Value {
     /**
      * The approximate precision in decimal digits.
      */
-    static final int DECIMAL_PRECISION = 5;
+    public static final int DECIMAL_PRECISION = 5;
 
     /**
      * The maximum display size of a SMALLINT.

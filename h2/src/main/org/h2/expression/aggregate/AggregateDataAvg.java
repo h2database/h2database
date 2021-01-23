@@ -5,11 +5,16 @@
  */
 package org.h2.expression.aggregate;
 
+import java.math.BigInteger;
+
+import org.h2.api.IntervalQualifier;
 import org.h2.engine.SessionLocal;
+import org.h2.util.IntervalUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
+import org.h2.value.ValueInterval;
 import org.h2.value.ValueNull;
 
 /**
@@ -17,7 +22,7 @@ import org.h2.value.ValueNull;
  */
 final class AggregateDataAvg extends AggregateData {
 
-    private final TypeInfo dataType;
+    private final TypeInfo dataType, sumDataType;
     private long count;
     private Value value;
 
@@ -27,6 +32,7 @@ final class AggregateDataAvg extends AggregateData {
      */
     AggregateDataAvg(TypeInfo dataType) {
         this.dataType = dataType;
+        sumDataType = Aggregate.getSumType(dataType);
     }
 
     @Override
@@ -35,11 +41,8 @@ final class AggregateDataAvg extends AggregateData {
             return;
         }
         count++;
-        if (value == null) {
-            value = v.convertTo(DataType.getAddProofType(dataType.getValueType()));
-        } else {
-            value = value.add(v.convertTo(value.getValueType()));
-        }
+        v = v.convertTo(sumDataType);
+        value = value == null ? v : value.add(v);
     }
 
     @Override
@@ -47,9 +50,17 @@ final class AggregateDataAvg extends AggregateData {
         if (count == 0) {
             return ValueNull.INSTANCE;
         }
-        Value b = ValueBigint.get(count).convertTo(Value.getHigherOrder(value.getValueType(), Value.BIGINT));
-        return value.convertTo(Value.getHigherOrder(value.getValueType(), Value.BIGINT))
-                .divide(b, ValueBigint.DECIMAL_PRECISION).convertTo(dataType);
+        Value v;
+        if (DataType.isIntervalType(dataType.getValueType())) {
+            v = IntervalUtils.intervalFromAbsolute(
+                    IntervalQualifier.valueOf(dataType.getValueType() - Value.INTERVAL_YEAR),
+                    IntervalUtils.intervalToAbsolute((ValueInterval) value).divide(BigInteger.valueOf(count)));
+        } else {
+            Value b = ValueBigint.get(count).convertTo(Value.getHigherOrder(value.getValueType(), Value.BIGINT));
+            v = value.convertTo(Value.getHigherOrder(value.getValueType(), Value.BIGINT)).divide(b,
+                    ValueBigint.DECIMAL_PRECISION);
+        }
+        return v.castTo(dataType, session);
     }
 
 }

@@ -6706,13 +6706,18 @@ SELECT * FROM UNNEST(ARRAY['a', 'b', 'c']);
 "
 
 "Aggregate Functions (General)","AVG","
-AVG ( [ DISTINCT|ALL ] { numeric } )
+AVG ( [ DISTINCT|ALL ] { numeric | interval } )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The average (mean) value.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
-The returned value is of the same data type as the parameter.
+
+The data type of result is DOUBLE PRECISION for TINYINT, SMALLINT, INTEGER, and REAL arguments,
+NUMERIC with additional 10 decimal digits of precision and scale for BIGINT, and NUMERIC arguments;
+DECFLOAT with additional 10 decimal digits of precision for DOUBLE PRECISION and DECFLOAT arguments;
+INTERVAL with the same leading field precision, all additional smaller datetime units in interval qualifier,
+and the maximum scale for INTERVAL arguments.
 ","
 AVG(X)
 "
@@ -6742,14 +6747,18 @@ MIN(NAME)
 "
 
 "Aggregate Functions (General)","SUM","
-SUM( [ DISTINCT|ALL ] { numeric } )
+SUM( [ DISTINCT|ALL ] { numeric | interval | @h2@ { boolean } } )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The sum of all values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
-The data type of the returned value depends on the parameter data type like this:
-""BOOLEAN, TINYINT, SMALLINT, INT -> BIGINT, BIGINT -> DECIMAL, REAL -> DOUBLE PRECISION""
+
+The data type of result is BIGINT for BOOLEAN, TINYINT, SMALLINT, and INTEGER arguments;
+NUMERIC with additional 10 decimal digits of precision for BIGINT and NUMERIC arguments;
+DOUBLE PRECISION for REAL arguments,
+DECFLOAT with additional 10 decimal digits of precision for DOUBLE PRECISION and DECFLOAT arguments;
+INTERVAL with maximum precision and the same interval qualifier and scale for INTERVAL arguments.
 ","
 SUM(X)
 "

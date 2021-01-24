@@ -105,7 +105,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
         } else if (Blob.class.isAssignableFrom(clazz) || InputStream.class.isAssignableFrom(clazz)) {
             return TypeInfo.TYPE_BLOB;
         } else if (BigDecimal.class.isAssignableFrom(clazz)) {
-            return TypeInfo.TYPE_NUMERIC;
+            return TypeInfo.TYPE_NUMERIC_FLOATING_POINT;
         } else if (GEOMETRY_CLASS != null && GEOMETRY_CLASS.isAssignableFrom(clazz)) {
             return TypeInfo.TYPE_GEOMETRY;
         } else if (Array.class.isAssignableFrom(clazz)) {

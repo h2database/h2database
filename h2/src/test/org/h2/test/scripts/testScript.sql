@@ -2321,10 +2321,10 @@ insert into x values(0), (1), (10);
 
 SELECT t1.ID, (SELECT t1.id || ':' || AVG(t2.ID) FROM X t2) AS col2 FROM X t1;
 > ID COL2
-> -- ----
-> 0  0:3
-> 1  1:3
-> 10 10:3
+> -- ---------------------
+> 0  0:3.6666666666666665
+> 1  1:3.6666666666666665
+> 10 10:3.6666666666666665
 > rows: 3
 
 drop table x;
@@ -5971,13 +5971,13 @@ SELECT DISTINCT NAME FROM TEST ORDER BY NAME DESC NULLS LAST LIMIT 2 OFFSET 1;
 > rows (ordered): 2
 
 SELECT NAME, COUNT(*), SUM("VALUE"), MAX("VALUE"), MIN("VALUE"), AVG("VALUE"), COUNT(DISTINCT "VALUE") FROM TEST GROUP BY NAME;
-> NAME     COUNT(*) SUM("VALUE") MAX("VALUE") MIN("VALUE") AVG("VALUE")                                COUNT(DISTINCT "VALUE")
-> -------- -------- ------------ ------------ ------------ ------------------------------------------- -----------------------
-> Apples   3        3.80         1.50         1.10         1.2666666666666666666666666666666666666667  3
-> Bananas  1        2.50         2.50         2.50         2.5000000000000000000000000000000000000000  1
-> Cherries 1        5.10         5.10         5.10         5.1000000000000000000000000000000000000000  1
-> Oranges  2        3.85         2.05         1.80         1.9250000000000000000000000000000000000000  2
-> null     2        -6.90        3.10         -10.00       -3.4500000000000000000000000000000000000000 2
+> NAME     COUNT(*) SUM("VALUE") MAX("VALUE") MIN("VALUE") AVG("VALUE")    COUNT(DISTINCT "VALUE")
+> -------- -------- ------------ ------------ ------------ --------------- -----------------------
+> Apples   3        3.80         1.50         1.10         1.266666666667  3
+> Bananas  1        2.50         2.50         2.50         2.500000000000  1
+> Cherries 1        5.10         5.10         5.10         5.100000000000  1
+> Oranges  2        3.85         2.05         1.80         1.925000000000  2
+> null     2        -6.90        3.10         -10.00       -3.450000000000 2
 > rows: 5
 
 SELECT NAME, MAX("VALUE"), MIN("VALUE"), MAX("VALUE"+1)*MIN("VALUE"+1) FROM TEST GROUP BY NAME;

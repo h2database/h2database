@@ -24,7 +24,7 @@ public final class ValueTinyint extends Value {
     /**
      * The approximate precision in decimal digits.
      */
-    static final int DECIMAL_PRECISION = 3;
+    public static final int DECIMAL_PRECISION = 3;
 
     /**
      * The display size for a TINYINT.
@@ -75,7 +75,7 @@ public final class ValueTinyint extends Value {
     }
 
     @Override
-    public Value divide(Value v, long divisorPrecision) {
+    public Value divide(Value v, TypeInfo quotientType) {
         ValueTinyint other = (ValueTinyint) v;
         if (other.value == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());

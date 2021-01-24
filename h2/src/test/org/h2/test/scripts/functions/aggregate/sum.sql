@@ -3,6 +3,18 @@
 -- Initial Developer: H2 Group
 --
 
+select sum(cast(x as int)) from system_range(2147483547, 2147483637);
+>> 195421006872
+
+select sum(x) from system_range(9223372036854775707, 9223372036854775797);
+>> 839326855353784593432
+
+select sum(cast(100 as tinyint)) from system_range(1, 1000);
+>> 100000
+
+select sum(cast(100 as smallint)) from system_range(1, 1000);
+>> 100000
+
 -- with filter condition
 
 create table test(v int);
@@ -131,3 +143,90 @@ SELECT V,
 > 2 4 4
 > 2 4 4
 > rows: 3
+
+
+
+CREATE TABLE S(
+    B BOOLEAN,
+    N1 TINYINT,
+    N2 SMALLINT,
+    N4 INTEGER,
+    N8 BIGINT,
+    N NUMERIC(10, 2),
+    F4 REAL,
+    F8 DOUBLE PRECISION,
+    D DECFLOAT(10),
+    I1 INTERVAL YEAR(3),
+    I2 INTERVAL MONTH(3),
+    I3 INTERVAL DAY(3),
+    I4 INTERVAL HOUR(3),
+    I5 INTERVAL MINUTE(3),
+    I6 INTERVAL SECOND(2),
+    I7 INTERVAL YEAR(3) TO MONTH,
+    I8 INTERVAL DAY(3) TO HOUR,
+    I9 INTERVAL DAY(3) TO MINUTE,
+    I10 INTERVAL DAY(3) TO SECOND(2),
+    I11 INTERVAL HOUR(3) TO MINUTE,
+    I12 INTERVAL HOUR(3) TO SECOND(2),
+    I13 INTERVAL MINUTE(3) TO SECOND(2));
+> ok
+
+CREATE TABLE A AS SELECT
+    SUM(B) B,
+    SUM(N1) N1,
+    SUM(N2) N2,
+    SUM(N4) N4,
+    SUM(N8) N8,
+    SUM(N) N,
+    SUM(F4) F4,
+    SUM(F8) F8,
+    SUM(D) D,
+    SUM(I1) I1,
+    SUM(I2) I2,
+    SUM(I3) I3,
+    SUM(I4) I4,
+    SUM(I5) I5,
+    SUM(I6) I6,
+    SUM(I7) I7,
+    SUM(I8) I8,
+    SUM(I9) I9,
+    SUM(I10) I10,
+    SUM(I11) I11,
+    SUM(I12) I12,
+    SUM(I13) I13
+    FROM S;
+> ok
+
+SELECT COLUMN_NAME, DATA_TYPE_SQL('PUBLIC', 'A', 'TABLE', DTD_IDENTIFIER) TYPE FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'A' ORDER BY ORDINAL_POSITION;
+> COLUMN_NAME TYPE
+> ----------- --------------------------------
+> B           BIGINT
+> N1          BIGINT
+> N2          BIGINT
+> N4          BIGINT
+> N8          NUMERIC(29)
+> N           NUMERIC(20, 2)
+> F4          DOUBLE PRECISION
+> F8          DECFLOAT(27)
+> D           DECFLOAT(20)
+> I1          INTERVAL YEAR(18)
+> I2          INTERVAL MONTH(18)
+> I3          INTERVAL DAY(18)
+> I4          INTERVAL HOUR(18)
+> I5          INTERVAL MINUTE(18)
+> I6          INTERVAL SECOND(18)
+> I7          INTERVAL YEAR(18) TO MONTH
+> I8          INTERVAL DAY(18) TO HOUR
+> I9          INTERVAL DAY(18) TO MINUTE
+> I10         INTERVAL DAY(18) TO SECOND(2)
+> I11         INTERVAL HOUR(18) TO MINUTE
+> I12         INTERVAL HOUR(18) TO SECOND(2)
+> I13         INTERVAL MINUTE(18) TO SECOND(2)
+> rows (ordered): 22
+
+DROP TABLE S, A;
+> ok
+
+SELECT SUM(I) FROM (VALUES INTERVAL '999999999999999999' SECOND, INTERVAL '1' SECOND) T(I);
+> exception NUMERIC_VALUE_OUT_OF_RANGE_1

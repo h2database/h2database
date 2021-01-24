@@ -99,13 +99,12 @@ public final class ValueNumeric extends ValueBigDecimalBase {
     }
 
     @Override
-    public Value divide(Value v, long divisorPrecision) {
+    public Value divide(Value v, TypeInfo quotientType) {
         BigDecimal divisor = ((ValueNumeric) v).value;
         if (divisor.signum() == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
-        return get(value.divide(divisor,
-                getQuotientScale(value.scale(), divisorPrecision, divisor.scale()), RoundingMode.HALF_DOWN));
+        return get(value.divide(divisor, quotientType.getScale(), RoundingMode.HALF_DOWN));
     }
 
     @Override

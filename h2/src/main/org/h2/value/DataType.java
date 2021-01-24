@@ -777,41 +777,6 @@ public class DataType {
     }
 
     /**
-     * Check if the given value type supports the add operation.
-     *
-     * @param type the value type
-     * @return true if add is supported
-     */
-    public static boolean supportsAdd(int type) {
-        switch (type) {
-        case Value.TINYINT:
-        case Value.SMALLINT:
-        case Value.INTEGER:
-        case Value.BIGINT:
-        case Value.NUMERIC:
-        case Value.REAL:
-        case Value.DOUBLE:
-        case Value.DECFLOAT:
-        case Value.INTERVAL_YEAR:
-        case Value.INTERVAL_MONTH:
-        case Value.INTERVAL_DAY:
-        case Value.INTERVAL_HOUR:
-        case Value.INTERVAL_MINUTE:
-        case Value.INTERVAL_SECOND:
-        case Value.INTERVAL_YEAR_TO_MONTH:
-        case Value.INTERVAL_DAY_TO_HOUR:
-        case Value.INTERVAL_DAY_TO_MINUTE:
-        case Value.INTERVAL_DAY_TO_SECOND:
-        case Value.INTERVAL_HOUR_TO_MINUTE:
-        case Value.INTERVAL_HOUR_TO_SECOND:
-        case Value.INTERVAL_MINUTE_TO_SECOND:
-            return true;
-        default:
-            return false;
-        }
-    }
-
-    /**
      * Performs saturated addition of precision values.
      *
      * @param p1
@@ -827,30 +792,6 @@ public class DataType {
             return Long.MAX_VALUE;
         }
         return sum;
-    }
-
-    /**
-     * Get the data type that will not overflow when calling 'add' 2 billion
-     * times.
-     *
-     * @param type the value type
-     * @return the data type that supports adding
-     */
-    public static int getAddProofType(int type) {
-        switch (type) {
-        case Value.TINYINT:
-            return Value.BIGINT;
-        case Value.REAL:
-            return Value.DOUBLE;
-        case Value.INTEGER:
-            return Value.BIGINT;
-        case Value.BIGINT:
-            return Value.NUMERIC;
-        case Value.SMALLINT:
-            return Value.BIGINT;
-        default:
-            return type;
-        }
     }
 
     /**

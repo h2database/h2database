@@ -24,7 +24,7 @@ public final class ValueSmallint extends Value {
     /**
      * The approximate precision in decimal digits.
      */
-    static final int DECIMAL_PRECISION = 5;
+    public static final int DECIMAL_PRECISION = 5;
 
     /**
      * The maximum display size of a SMALLINT.
@@ -75,7 +75,7 @@ public final class ValueSmallint extends Value {
     }
 
     @Override
-    public Value divide(Value v, long divisorPrecision) {
+    public Value divide(Value v, TypeInfo quotientType) {
         ValueSmallint other = (ValueSmallint) v;
         if (other.value == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());

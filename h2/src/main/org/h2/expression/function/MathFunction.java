@@ -250,7 +250,7 @@ public final class MathFunction extends Function1_2 {
         case ABS:
             type = left.getType();
             if (type.getValueType() == Value.NULL) {
-                type = TypeInfo.TYPE_NUMERIC;
+                type = TypeInfo.TYPE_NUMERIC_FLOATING_POINT;
             }
             break;
         case FLOOR:

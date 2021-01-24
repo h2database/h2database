@@ -480,8 +480,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         stat.execute("create aggregate agg_sum for '" + getClass().getName() + '\'');
         rs = stat.executeQuery("select agg_sum(1), sum(1.6) from dual");
         rs.next();
-        assertEquals(ValueNumeric.MAXIMUM_SCALE, rs.getMetaData().getScale(2));
-        assertEquals(ValueNumeric.MAXIMUM_SCALE, rs.getMetaData().getScale(1));
+        assertEquals(1, rs.getMetaData().getScale(2));
+        assertEquals(ValueNumeric.MAXIMUM_SCALE / 2, rs.getMetaData().getScale(1));
         stat.executeQuery("select * from information_schema.routines");
         conn.close();
     }

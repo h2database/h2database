@@ -14,7 +14,7 @@ import org.h2.value.ValueNull;
  * Data stored while calculating an aggregate that needs distinct values with
  * their counts.
  */
-class AggregateDataDistinctWithCounts extends AggregateData {
+final class AggregateDataDistinctWithCounts extends AggregateData {
 
     private final boolean ignoreNulls;
 

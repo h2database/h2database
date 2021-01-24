@@ -22,7 +22,7 @@ import org.h2.value.ValueNull;
 /**
  * Data stored while calculating an aggregate.
  */
-class AggregateDataEnvelope extends AggregateData {
+final class AggregateDataEnvelope extends AggregateData {
 
     private double[] envelope;
 

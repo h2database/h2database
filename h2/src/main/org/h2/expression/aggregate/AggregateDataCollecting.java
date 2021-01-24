@@ -29,7 +29,7 @@ import org.h2.value.ValueRow;
  * instead.
  * </p>
  */
-class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
+final class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
 
     /**
      * NULL values collection mode.

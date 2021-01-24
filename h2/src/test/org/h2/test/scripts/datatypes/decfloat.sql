@@ -154,50 +154,50 @@ SELECT A.D, B.D, A.D + B.D, A.D - B.D, A.D * B.D FROM TEST A JOIN TEST B ORDER B
 > rows (ordered): 49
 
 SELECT A.D, B.D, A.D / B.D, MOD(A.D, B.D) FROM TEST A JOIN TEST B WHERE B.D <> 0 ORDER BY A.D, B.D;
-> D         D         A.D / B.D          MOD(A.D, B.D)
-> --------- --------- ------------------ -------------
-> -Infinity -Infinity NaN                NaN
-> -Infinity -1        Infinity           NaN
-> -Infinity 1         -Infinity          NaN
-> -Infinity 1.5       -Infinity          NaN
-> -Infinity Infinity  NaN                NaN
-> -Infinity NaN       NaN                NaN
-> -1        -Infinity 0                  -1
-> -1        -1        1                  0
-> -1        1         -1                 0
-> -1        1.5       -0.666666666666667 -1
-> -1        Infinity  0                  -1
-> -1        NaN       NaN                NaN
-> 0         -Infinity 0                  0
-> 0         -1        0                  0
-> 0         1         0                  0
-> 0         1.5       0                  0
-> 0         Infinity  0                  0
-> 0         NaN       NaN                NaN
-> 1         -Infinity 0                  1
-> 1         -1        -1                 0
-> 1         1         1                  0
-> 1         1.5       0.666666666666667  1
-> 1         Infinity  0                  1
-> 1         NaN       NaN                NaN
-> 1.5       -Infinity 0                  1.5
-> 1.5       -1        -1.5               0.5
-> 1.5       1         1.5                0.5
-> 1.5       1.5       1                  0
-> 1.5       Infinity  0                  1.5
-> 1.5       NaN       NaN                NaN
-> Infinity  -Infinity NaN                NaN
-> Infinity  -1        -Infinity          NaN
-> Infinity  1         Infinity           NaN
-> Infinity  1.5       Infinity           NaN
-> Infinity  Infinity  NaN                NaN
-> Infinity  NaN       NaN                NaN
-> NaN       -Infinity NaN                NaN
-> NaN       -1        NaN                NaN
-> NaN       1         NaN                NaN
-> NaN       1.5       NaN                NaN
-> NaN       Infinity  NaN                NaN
-> NaN       NaN       NaN                NaN
+> D         D         A.D / B.D    MOD(A.D, B.D)
+> --------- --------- ------------ -------------
+> -Infinity -Infinity NaN          NaN
+> -Infinity -1        Infinity     NaN
+> -Infinity 1         -Infinity    NaN
+> -Infinity 1.5       -Infinity    NaN
+> -Infinity Infinity  NaN          NaN
+> -Infinity NaN       NaN          NaN
+> -1        -Infinity 0            -1
+> -1        -1        1            0
+> -1        1         -1           0
+> -1        1.5       -0.666666667 -1
+> -1        Infinity  0            -1
+> -1        NaN       NaN          NaN
+> 0         -Infinity 0            0
+> 0         -1        0            0
+> 0         1         0            0
+> 0         1.5       0            0
+> 0         Infinity  0            0
+> 0         NaN       NaN          NaN
+> 1         -Infinity 0            1
+> 1         -1        -1           0
+> 1         1         1            0
+> 1         1.5       0.666666667  1
+> 1         Infinity  0            1
+> 1         NaN       NaN          NaN
+> 1.5       -Infinity 0            1.5
+> 1.5       -1        -1.5         0.5
+> 1.5       1         1.5          0.5
+> 1.5       1.5       1            0
+> 1.5       Infinity  0            1.5
+> 1.5       NaN       NaN          NaN
+> Infinity  -Infinity NaN          NaN
+> Infinity  -1        -Infinity    NaN
+> Infinity  1         Infinity     NaN
+> Infinity  1.5       Infinity     NaN
+> Infinity  Infinity  NaN          NaN
+> Infinity  NaN       NaN          NaN
+> NaN       -Infinity NaN          NaN
+> NaN       -1        NaN          NaN
+> NaN       1         NaN          NaN
+> NaN       1.5       NaN          NaN
+> NaN       Infinity  NaN          NaN
+> NaN       NaN       NaN          NaN
 > rows (ordered): 42
 
 SELECT A.D, B.D, A.D > B.D, A.D = B.D, A.D < B.D FROM TEST A JOIN TEST B ORDER BY A.D, B.D;

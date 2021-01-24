@@ -705,7 +705,7 @@ public class TableLink extends Table {
     }
 
     /**
-     * The number of rows to fetch 
+     * The number of rows to fetch
      * default is 0
      *
      * @return

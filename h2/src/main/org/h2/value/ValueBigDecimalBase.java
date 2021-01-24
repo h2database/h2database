@@ -34,20 +34,4 @@ abstract class ValueBigDecimalBase extends Value {
         this.value = value;
     }
 
-    /**
-     * Evaluates the scale of the quotient.
-     *
-     * @param dividerScale
-     *            the scale of the divider
-     * @param divisorPrecision
-     *            the precision of the divisor
-     * @param divisorScale
-     *            the scale of the divisor
-     * @return the scale of the quotient
-     */
-    public static int getQuotientScale(int dividerScale, long divisorPrecision, int divisorScale) {
-        long scale = dividerScale - divisorScale + divisorPrecision * 2;
-        return scale >= ValueNumeric.MAXIMUM_SCALE ? ValueNumeric.MAXIMUM_SCALE : (int) scale;
-    }
-
 }

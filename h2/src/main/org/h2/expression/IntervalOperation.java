@@ -213,9 +213,8 @@ public class IntervalOperation extends Operation2 {
                     opType == IntervalOpType.INTERVAL_PLUS_INTERVAL ? a1.add(a2) : a1.subtract(a2));
         }
         case INTERVAL_DIVIDE_INTERVAL:
-            return ValueNumeric.get(IntervalUtils.intervalToAbsolute((ValueInterval) l)).divide(
-                    ValueNumeric.get(IntervalUtils.intervalToAbsolute((ValueInterval) r)),
-                    DataType.isYearMonthIntervalType(l.getValueType()) ? INTERVAL_YEAR_DIGITS : INTERVAL_DAY_DIGITS);
+            return ValueNumeric.get(IntervalUtils.intervalToAbsolute((ValueInterval) l))
+                    .divide(ValueNumeric.get(IntervalUtils.intervalToAbsolute((ValueInterval) r)), type);
         case DATETIME_PLUS_INTERVAL:
         case DATETIME_MINUS_INTERVAL:
             return getDateTimeWithInterval(session, l, r, lType, rType);

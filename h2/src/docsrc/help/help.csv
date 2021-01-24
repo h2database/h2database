@@ -6714,7 +6714,7 @@ If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 
 The data type of result is DOUBLE PRECISION for TINYINT, SMALLINT, INTEGER, and REAL arguments,
-NUMERIC with additional 10 decimal digits of precision and scale for BIGINT, and NUMERIC arguments;
+NUMERIC with additional 10 decimal digits of precision and scale for BIGINT and NUMERIC arguments;
 DECFLOAT with additional 10 decimal digits of precision for DOUBLE PRECISION and DECFLOAT arguments;
 INTERVAL with the same leading field precision, all additional smaller datetime units in interval qualifier,
 and the maximum scale for INTERVAL arguments.

@@ -130,7 +130,7 @@ public final class ValueBigint extends Value {
     }
 
     @Override
-    public Value divide(Value v, long divisorPrecision) {
+    public Value divide(Value v, TypeInfo quotientType) {
         long y = ((ValueBigint) v).value;
         if (y == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());

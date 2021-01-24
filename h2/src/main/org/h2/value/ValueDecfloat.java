@@ -191,15 +191,14 @@ public final class ValueDecfloat extends ValueBigDecimalBase {
     }
 
     @Override
-    public final Value divide(Value v, long divisorPrecision) {
+    public Value divide(Value v, TypeInfo quotientType) {
         BigDecimal value2 = ((ValueDecfloat) v).value;
         if (value2 != null && value2.signum() == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
         if (value != null) {
             if (value2 != null) {
-                return get(value.divide(value2, getQuotientScale(value.scale(), divisorPrecision, value2.scale()),
-                        RoundingMode.HALF_DOWN));
+                return divide(value, value2, quotientType);
             } else {
                 if (v != NAN) {
                     return ZERO;
@@ -209,6 +208,27 @@ public final class ValueDecfloat extends ValueBigDecimalBase {
             return (this == POSITIVE_INFINITY) == (value2.signum() > 0) ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
         }
         return NAN;
+    }
+
+    /**
+     * Divides to {@link BigDecimal} values and returns a {@code DECFLOAT}
+     * result of the specified data type.
+     *
+     * @param dividend the dividend
+     * @param divisor the divisor
+     * @param quotientType the type of quotient
+     * @return the quotient
+     */
+    public static ValueDecfloat divide(BigDecimal dividend, BigDecimal divisor, TypeInfo quotientType) {
+        int quotientPrecision = (int) quotientType.getPrecision();
+        BigDecimal quotient = dividend.divide(divisor,
+                dividend.scale() - dividend.precision() + divisor.precision() - divisor.scale() + quotientPrecision,
+                RoundingMode.HALF_DOWN);
+        int precision = quotient.precision();
+        if (precision > quotientPrecision) {
+            quotient = quotient.setScale(quotient.scale() - precision + quotientPrecision, RoundingMode.HALF_UP);
+        }
+        return get(quotient);
     }
 
     @Override

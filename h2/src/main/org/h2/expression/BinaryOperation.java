@@ -119,7 +119,7 @@ public class BinaryOperation extends Operation2 {
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
-            return l.divide(r, right.getType().getDecimalPrecision());
+            return l.divide(r, type);
         default:
             throw DbException.getInternalError("type=" + opType);
         }
@@ -200,17 +200,22 @@ public class BinaryOperation extends Operation2 {
             precision = leftPrecision + rightPrecision;
             scale = leftScale + rightScale;
             break;
-        case DIVIDE:
+        case DIVIDE: {
             // Precision and scale are implementation-defined.
-            scale = ValueNumeric.getQuotientScale(leftScale, rightPrecision, rightScale);
-            if (scale < 0) {
+            long scaleAsLong = leftScale - rightScale + rightPrecision * 2;
+            if (scaleAsLong >= ValueNumeric.MAXIMUM_SCALE) {
+                scale = ValueNumeric.MAXIMUM_SCALE;
+            } else if (scaleAsLong <= 0) {
                 scale = 0;
+            } else {
+                scale = (int) scaleAsLong;
             }
             // Divider can be effectively multiplied by no more than
             // 10^rightScale, so add rightScale to its precision and adjust the
             // result to the changes in scale.
             precision = leftPrecision + rightScale - leftScale + scale;
             break;
+        }
         default:
             throw DbException.getInternalError("type=" + opType);
         }

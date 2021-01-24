@@ -56,9 +56,8 @@ import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueNumeric;
 import org.h2.value.ValueRow;
-import org.h2.value.ValueSmallint;
-import org.h2.value.ValueTinyint;
 import org.h2.value.ValueVarchar;
 
 /**
@@ -993,7 +992,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         return this;
     }
 
-    static TypeInfo getSumType(TypeInfo type) {
+    private static TypeInfo getSumType(TypeInfo type) {
         int valueType = type.getValueType();
         switch (valueType) {
         case Value.BOOLEAN:
@@ -1032,9 +1031,12 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case Value.BIGINT:
             return TypeInfo.getTypeInfo(Value.NUMERIC, ValueBigint.DECIMAL_PRECISION + ADDITIONAL_AVG_SCALE,
                     ADDITIONAL_AVG_SCALE, null);
-        case Value.NUMERIC:
-            return TypeInfo.getTypeInfo(Value.NUMERIC, type.getPrecision() + ADDITIONAL_AVG_SCALE,
-                    type.getScale() + ADDITIONAL_AVG_SCALE, null);
+        case Value.NUMERIC: {
+            int additionalScale = Math.min(ValueNumeric.MAXIMUM_SCALE - type.getScale(),
+                    Math.min(Constants.MAX_NUMERIC_PRECISION - (int) type.getPrecision(), ADDITIONAL_AVG_SCALE));
+            return TypeInfo.getTypeInfo(Value.NUMERIC, type.getPrecision() + additionalScale,
+                    type.getScale() + additionalScale, null);
+        }
         case Value.DOUBLE:
             return TypeInfo.getTypeInfo(Value.DECFLOAT, ValueDouble.DECIMAL_PRECISION + ADDITIONAL_AVG_SCALE, -1, //
                     null);

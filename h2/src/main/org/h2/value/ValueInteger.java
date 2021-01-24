@@ -105,7 +105,7 @@ public final class ValueInteger extends Value {
     }
 
     @Override
-    public Value divide(Value v, long divisorPrecision) {
+    public Value divide(Value v, TypeInfo quotientType) {
         int y = ((ValueInteger) v).value;
         if (y == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());

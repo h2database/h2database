@@ -75,7 +75,7 @@ public final class ValueTinyint extends Value {
     }
 
     @Override
-    public Value divide(Value v, long divisorPrecision) {
+    public Value divide(Value v, TypeInfo quotientType) {
         ValueTinyint other = (ValueTinyint) v;
         if (other.value == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());

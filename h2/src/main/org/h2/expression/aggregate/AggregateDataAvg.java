@@ -5,26 +5,31 @@
  */
 package org.h2.expression.aggregate;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.SessionLocal;
 import org.h2.util.IntervalUtils;
-import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueBigint;
+import org.h2.value.ValueDecfloat;
+import org.h2.value.ValueDouble;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueNumeric;
 
 /**
  * Data stored while calculating an AVG aggregate.
  */
 final class AggregateDataAvg extends AggregateData {
 
-    private final TypeInfo dataType, sumDataType;
+    private final TypeInfo dataType;
     private long count;
-    private Value value;
+    private double doubleValue;
+    private BigDecimal decimalValue;
+    private BigInteger integerValue;
 
     /**
      * @param dataType
@@ -32,7 +37,6 @@ final class AggregateDataAvg extends AggregateData {
      */
     AggregateDataAvg(TypeInfo dataType) {
         this.dataType = dataType;
-        sumDataType = Aggregate.getSumType(dataType);
     }
 
     @Override
@@ -41,8 +45,21 @@ final class AggregateDataAvg extends AggregateData {
             return;
         }
         count++;
-        v = v.convertTo(sumDataType);
-        value = value == null ? v : value.add(v);
+        switch (dataType.getValueType()) {
+        case Value.DOUBLE:
+            doubleValue += v.getDouble();
+            break;
+        case Value.NUMERIC:
+        case Value.DECFLOAT: {
+            BigDecimal bd = v.getBigDecimal();
+            decimalValue = decimalValue == null ? bd : decimalValue.add(bd);
+            break;
+        }
+        default: {
+            BigInteger bi = IntervalUtils.intervalToAbsolute((ValueInterval) v);
+            integerValue = integerValue == null ? bi : integerValue.add(bi);
+        }
+        }
     }
 
     @Override
@@ -51,14 +68,21 @@ final class AggregateDataAvg extends AggregateData {
             return ValueNull.INSTANCE;
         }
         Value v;
-        if (DataType.isIntervalType(dataType.getValueType())) {
-            v = IntervalUtils.intervalFromAbsolute(
-                    IntervalQualifier.valueOf(dataType.getValueType() - Value.INTERVAL_YEAR),
-                    IntervalUtils.intervalToAbsolute((ValueInterval) value).divide(BigInteger.valueOf(count)));
-        } else {
-            Value b = ValueBigint.get(count).convertTo(Value.getHigherOrder(value.getValueType(), Value.BIGINT));
-            v = value.convertTo(Value.getHigherOrder(value.getValueType(), Value.BIGINT)).divide(b,
-                    ValueBigint.DECIMAL_PRECISION);
+        int valueType = dataType.getValueType();
+        switch (valueType) {
+        case Value.DOUBLE:
+            v = ValueDouble.get(doubleValue / count);
+            break;
+        case Value.NUMERIC:
+            v = ValueNumeric
+                    .get(decimalValue.divide(BigDecimal.valueOf(count), dataType.getScale(), RoundingMode.HALF_DOWN));
+            break;
+        case Value.DECFLOAT:
+            v = ValueDecfloat.divide(decimalValue, BigDecimal.valueOf(count), dataType);
+            break;
+        default:
+            v = IntervalUtils.intervalFromAbsolute(IntervalQualifier.valueOf(valueType - Value.INTERVAL_YEAR),
+                    integerValue.divide(BigInteger.valueOf(count)));
         }
         return v.castTo(dataType, session);
     }

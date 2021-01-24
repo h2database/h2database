@@ -76,7 +76,7 @@ public final class ValueReal extends Value {
     }
 
     @Override
-    public Value divide(Value v, long divisorPrecision) {
+    public Value divide(Value v, TypeInfo quotientType) {
         ValueReal v2 = (ValueReal) v;
         if (v2.value == 0.0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());

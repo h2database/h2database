@@ -873,10 +873,11 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * Divide by a value and return the result.
      *
      * @param v the divisor
-     * @param divisorPrecision the precision of divisor
+     *            the type of quotient (used only to read precision and scale
+     *            when applicable)
      * @return the result
      */
-    public Value divide(@SuppressWarnings("unused") Value v, long divisorPrecision) {
+    public Value divide(@SuppressWarnings("unused") Value v, TypeInfo quotientType) {
         throw getUnsupportedExceptionForOperation("/");
     }
 

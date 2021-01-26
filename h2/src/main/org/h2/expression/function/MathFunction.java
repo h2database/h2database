@@ -270,11 +270,14 @@ public final class MathFunction extends Function1_2 {
             case Value.DOUBLE:
             case Value.DECFLOAT:
                 break;
-            case Value.NUMERIC:
-                if (type.getScale() > 0) {
-                    type = TypeInfo.getTypeInfo(Value.NUMERIC, type.getPrecision(), 0, null);
+            case Value.NUMERIC: {
+                int scale = type.getScale();
+                if (scale == 0) {
+                    return left;
                 }
+                type = TypeInfo.getTypeInfo(Value.NUMERIC, type.getPrecision() - scale + 1, 0, null);
                 break;
+            }
             default:
                 throw DbException.getInvalidValueException("numeric", type.getTraceSQL());
             }

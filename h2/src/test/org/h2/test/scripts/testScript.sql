@@ -7103,3 +7103,48 @@ select * from test where "YEAR" in (select distinct "YEAR" from test order by "Y
 
 drop table test;
 > ok
+
+----- Issue#2390 -----
+CREATE TABLE TEST_TABLE ("ID" NUMBER(19, 0), "TEXT" VARCHAR(100));
+> ok
+
+CREATE VIEW TEST_VIEW("ID", "TEXT") AS SELECT ID, TEXT FROM TEST_TABLE;
+> ok
+
+ALTER TABLE TEST_TABLE ADD COLUMN ("NEW_COLUMN" VARCHAR(10));
+> ok
+
+script nodata nopasswords nosettings noversion;
+> SCRIPT
+> ------------------------------------------------------------------------------------------------------------------------------------
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> CREATE MEMORY TABLE "PUBLIC"."TEST_TABLE"( "ID" NUMERIC(19, 0), "TEXT" CHARACTER VARYING(100), "NEW_COLUMN" CHARACTER VARYING(10) );
+> -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST_TABLE;
+> CREATE FORCE VIEW "PUBLIC"."TEST_VIEW"("ID", "TEXT") AS SELECT "ID", "TEXT" FROM "PUBLIC"."TEST_TABLE";
+> rows (ordered): 4
+
+----- Issue#2391 -----
+CREATE VIEW TEST_VIEW_INNER("ID", "TEXT") AS SELECT ID, TEXT FROM TEST_TABLE;
+> ok
+
+CREATE OR REPLACE FORCE VIEW TEST_VIEW("ID", "TEXT") AS SELECT ID, TEXT FROM TEST_VIEW_INNER;
+> ok
+
+script nodata nopasswords nosettings noversion;
+> SCRIPT
+> ------------------------------------------------------------------------------------------------------------------------------------
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> CREATE MEMORY TABLE "PUBLIC"."TEST_TABLE"( "ID" NUMERIC(19, 0), "TEXT" CHARACTER VARYING(100), "NEW_COLUMN" CHARACTER VARYING(10) );
+> -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST_TABLE;
+> CREATE FORCE VIEW "PUBLIC"."TEST_VIEW_INNER"("ID", "TEXT") AS SELECT "ID", "TEXT" FROM "PUBLIC"."TEST_TABLE";
+> CREATE FORCE VIEW "PUBLIC"."TEST_VIEW"("ID", "TEXT") AS SELECT "ID", "TEXT" FROM "PUBLIC"."TEST_VIEW_INNER";
+> rows (ordered): 5
+
+DROP VIEW "PUBLIC"."TEST_VIEW";
+> ok
+
+DROP VIEW "PUBLIC"."TEST_VIEW_INNER";
+> ok
+
+DROP TABLE "PUBLIC"."TEST_TABLE";
+> ok

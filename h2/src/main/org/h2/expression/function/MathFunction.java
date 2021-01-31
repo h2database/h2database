@@ -93,30 +93,13 @@ public final class MathFunction extends Function1_2 {
             v1 = v1.convertTo(commonType, session).modulus(v2.convertTo(commonType, session)).convertTo(type, session);
             break;
         case FLOOR:
+            v1 = round(v1, v2, RoundingMode.FLOOR);
+            break;
         case CEIL:
-            int t = v1.getValueType();
-            switch (t) {
-            case Value.NUMERIC:
-                v1 = ValueNumeric.get(
-                        v1.getBigDecimal().setScale(0, function == FLOOR ? RoundingMode.FLOOR : RoundingMode.CEILING));
-                break;
-            case Value.DECFLOAT: {
-                BigDecimal bd = v1.getBigDecimal();
-                if (bd.scale() > 0) {
-                    v1 = ValueDecfloat.get(
-                            bd.setScale(0, function == FLOOR ? RoundingMode.FLOOR : RoundingMode.CEILING));
-                }
-                break;
-            }
-            default:
-                double v = v1.getDouble();
-                v = function == FLOOR ? Math.floor(v) : Math.ceil(v);
-                v1 = t == Value.DOUBLE ? ValueDouble.get(v) : ValueReal.get((float) v);
-                break;
-            }
+            v1 = round(v1, v2, RoundingMode.CEILING);
             break;
         case ROUND:
-            v1 = round(session, v1);
+            v1 = round(v1, v2, RoundingMode.HALF_UP);
             break;
         case ROUNDMAGIC:
             v1 = ValueDouble.get(roundMagic(v1.getDouble()));
@@ -125,7 +108,7 @@ public final class MathFunction extends Function1_2 {
             v1 = ValueInteger.get(v1.getSignum());
             break;
         case TRUNC:
-            v1 = trunc(session, v1);
+            v1 = round(v1, v2, RoundingMode.DOWN);
             break;
         default:
             throw DbException.getInternalError("function=" + function);
@@ -133,30 +116,47 @@ public final class MathFunction extends Function1_2 {
         return v1;
     }
 
-    private Value round(SessionLocal session, Value v1) {
-        int scale;
-        if (right != null) {
-            Value v2 = right.getValue(session);
-            if (v2 == ValueNull.INSTANCE) {
-                return ValueNull.INSTANCE;
+    @SuppressWarnings("incomplete-switch")
+    private Value round(Value v1, Value v2, RoundingMode roundingMode) {
+        int scale = v2 != null ? checkScale(v2) : 0;
+        int t = type.getValueType();
+        c: switch (t) {
+        case Value.NUMERIC: {
+            int targetScale = type.getScale();
+            BigDecimal bd = v1.getBigDecimal();
+            if (scale < targetScale) {
+                bd = bd.setScale(scale, roundingMode);
             }
-            scale = checkScale(v2);
-        } else {
-            scale = 0;
+            v1 = ValueNumeric.get(bd.setScale(targetScale, roundingMode));
+            break;
         }
-        BigDecimal bd = v1.getBigDecimal().setScale(scale, RoundingMode.HALF_UP);
-        switch (type.getValueType()) {
-        case Value.DOUBLE:
-            v1 = ValueDouble.get(bd.doubleValue());
-            break;
         case Value.REAL:
-            v1 = ValueReal.get(bd.floatValue());
+        case Value.DOUBLE: {
+            l: if (scale == 0) {
+                double d;
+                switch (roundingMode) {
+                case DOWN:
+                    d = v1.getDouble();
+                    d = d < 0 ? Math.ceil(d) : Math.floor(d);
+                    break;
+                case CEILING:
+                    d = Math.ceil(v1.getDouble());
+                    break;
+                case FLOOR:
+                    d = Math.floor(v1.getDouble());
+                    break;
+                default:
+                    break l;
+                }
+                v1 = t == Value.REAL ? ValueReal.get((float) d) : ValueDouble.get(d);
+                break c;
+            }
+            BigDecimal bd = v1.getBigDecimal().setScale(scale, roundingMode);
+            v1 = t == Value.REAL ? ValueReal.get(bd.floatValue()) : ValueDouble.get(bd.doubleValue());
             break;
+        }
         case Value.DECFLOAT:
-            v1 = ValueDecfloat.get(bd);
-            break;
-        default:
-            v1 = ValueNumeric.get(bd.setScale(type.getScale(), RoundingMode.HALF_UP));
+            v1 = ValueDecfloat.get(v1.getBigDecimal().setScale(scale, roundingMode));
         }
         return v1;
     }
@@ -196,44 +196,8 @@ public final class MathFunction extends Function1_2 {
         return Double.parseDouble(s.toString());
     }
 
-    private Value trunc(SessionLocal session, Value v1) {
-        int scale;
-        if (right != null) {
-            Value v2 = right.getValue(session);
-            if (v2 == ValueNull.INSTANCE) {
-                return ValueNull.INSTANCE;
-            }
-            scale = checkScale(v2);
-        } else {
-            scale = 0;
-        }
-        int t = v1.getValueType();
-        switch (t) {
-        case Value.DOUBLE:
-        case Value.REAL:
-            double d = v1.getDouble();
-            if (scale == 0) {
-                d = d < 0 ? Math.ceil(d) : Math.floor(d);
-            } else {
-                double f = Math.pow(10, scale);
-                d *= f;
-                d = (d < 0 ? Math.ceil(d) : Math.floor(d)) / f;
-            }
-            v1 = t == Value.DOUBLE ? ValueDouble.get(d) : ValueReal.get((float) d);
-            break;
-        case Value.DECFLOAT:
-            v1 = ValueDecfloat.get(v1.getBigDecimal().setScale(scale, RoundingMode.DOWN));
-            break;
-        default:
-            v1 = ValueNumeric.get(v1.getBigDecimal().setScale(scale, RoundingMode.DOWN));
-            break;
-        }
-        return v1;
-    }
-
     private static int checkScale(Value v) {
-        int scale;
-        scale = v.getInt();
+        int scale = v.getInt();
         if (scale < 0 || scale > ValueNumeric.MAXIMUM_SCALE) {
             throw DbException.getInvalidValueException("digits", scale);
         }
@@ -255,31 +219,9 @@ public final class MathFunction extends Function1_2 {
             break;
         case FLOOR:
         case CEIL: {
-            type = left.getType();
-            int valueType = type.getValueType();
-            switch (valueType) {
-            case Value.NULL:
-                type = TypeInfo.TYPE_NUMERIC_SCALE_0;
-                break;
-            case Value.TINYINT:
-            case Value.SMALLINT:
-            case Value.INTEGER:
-            case Value.BIGINT:
-                return left;
-            case Value.REAL:
-            case Value.DOUBLE:
-            case Value.DECFLOAT:
-                break;
-            case Value.NUMERIC: {
-                int scale = type.getScale();
-                if (scale == 0) {
-                    return left;
-                }
-                type = TypeInfo.getTypeInfo(Value.NUMERIC, type.getPrecision() - scale + 1, 0, null);
-                break;
-            }
-            default:
-                throw DbException.getInvalidValueException("numeric", type.getTraceSQL());
+            Expression e = optimizeRound(0, false, true);
+            if (e != null) {
+                return e;
             }
             break;
         }
@@ -294,17 +236,13 @@ public final class MathFunction extends Function1_2 {
             }
             type = DataType.isNumericType(divisorType.getValueType()) ? divisorType : commonType;
             break;
-        case ROUND:
-            switch (left.getType().getValueType()) {
-            case Value.DOUBLE:
-            case Value.REAL:
-            case Value.DECFLOAT:
-                type = left.getType();
-                break;
-            default:
-                type = getRoundNumericType(session);
+        case ROUND: {
+            Expression e = optimizeRoundWithScale(session, true);
+            if (e != null) {
+                return e;
             }
             break;
+        }
         case ROUNDMAGIC:
             type = TypeInfo.TYPE_DOUBLE;
             break;
@@ -313,11 +251,6 @@ public final class MathFunction extends Function1_2 {
             break;
         case TRUNC:
             switch (left.getType().getValueType()) {
-            case Value.DOUBLE:
-            case Value.REAL:
-            case Value.DECFLOAT:
-                type = left.getType();
-                break;
             case Value.VARCHAR:
                 left = new CastSpecification(left, TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, 0, null))
                         .optimize(session);
@@ -335,8 +268,12 @@ public final class MathFunction extends Function1_2 {
                 }
                 return new CastSpecification(left, TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, 0, null))
                         .optimize(session);
-            default:
-                type = getRoundNumericType(session);
+            default: {
+                Expression e = optimizeRoundWithScale(session, false);
+                if (e != null) {
+                    return e;
+                }
+            }
             }
             break;
         default:
@@ -348,22 +285,90 @@ public final class MathFunction extends Function1_2 {
         return this;
     }
 
-    private TypeInfo getRoundNumericType(SessionLocal session) {
-        int scale = 0;
+    private Expression optimizeRoundWithScale(SessionLocal session, boolean possibleRoundUp) {
+        int scale;
+        boolean scaleIsNull = false;
         if (right != null) {
             if (right.isConstant()) {
                 Value scaleValue = right.getValue(session);
                 if (scaleValue != ValueNull.INSTANCE) {
-                    scale = scaleValue.getInt();
-                    if (scale < 0) {
-                        scale = 0;
+                    scale = checkScale(scaleValue);
+                } else {
+                    scale = -1;
+                    scaleIsNull = true;
+                }
+            } else {
+                scale = -1;
+            }
+        } else {
+            scale = 0;
+        }
+        return optimizeRound(scale, scaleIsNull, possibleRoundUp);
+    }
+
+    /**
+     * Optimizes rounding and truncation functions.
+     *
+     * @param scale
+     *            the scale, {@code -1} if {@code NULL} or unknown, non-negative
+     *            integer if known and valid scale
+     * @param scaleIsNull
+     *            whether scale is {@code NULL}
+     * @param possibleRoundUp
+     *            {@code true} if result of rounding can have larger precision
+     *            than precision of argument, {@code false} otherwise
+     * @return the optimized expression or {@code null} if this function should
+     *         be used
+     */
+    private Expression optimizeRound(int scale, boolean scaleIsNull, boolean possibleRoundUp) {
+        TypeInfo leftType = left.getType();
+        switch (leftType.getValueType()) {
+        case Value.NULL:
+            type = TypeInfo.TYPE_NUMERIC_SCALE_0;
+            break;
+        case Value.TINYINT:
+        case Value.SMALLINT:
+        case Value.INTEGER:
+        case Value.BIGINT:
+            if (scale >= 0) {
+                return left;
+            }
+            type = leftType;
+            break;
+        case Value.REAL:
+        case Value.DOUBLE:
+        case Value.DECFLOAT:
+            type = leftType;
+            break;
+        case Value.NUMERIC: {
+            long precision;
+            int originalScale = leftType.getScale();
+            if (scale >= 0) {
+                if (originalScale <= scale) {
+                    return left;
+                } else {
+                    precision = leftType.getPrecision() - originalScale + scale;
+                    if (possibleRoundUp) {
+                        precision++;
                     }
                 }
             } else {
-                scale = ValueNumeric.MAXIMUM_SCALE;
+                precision = leftType.getPrecision();
+                if (possibleRoundUp) {
+                    precision++;
+                }
+                scale = originalScale;
             }
+            type = TypeInfo.getTypeInfo(Value.NUMERIC, precision, scale, null);
+            break;
         }
-        return TypeInfo.getTypeInfo(Value.NUMERIC, Integer.MAX_VALUE, scale, null);
+        default:
+            throw DbException.getInvalidValueException("numeric", leftType.getTraceSQL());
+        }
+        if (scaleIsNull) {
+            return TypedValueExpression.get(ValueNull.INSTANCE, type);
+        }
+        return null;
     }
 
     @Override

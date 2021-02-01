@@ -5008,7 +5008,7 @@ MOD(A, B)
 { CEIL | CEILING } (numeric)
 ","
 Returns the smallest integer value that is greater than or equal to the argument.
-This method returns value of the same type as argument, but with scale set to 0, if applicable.
+This method returns value of the same type as argument, but with scale set to 0 and adjusted precision, if applicable.
 ","
 CEIL(A)
 "
@@ -5035,7 +5035,7 @@ EXP(A)
 FLOOR(numeric)
 ","
 Returns the largest integer value that is less than or equal to the argument.
-This method returns value of the same type as argument, but with scale set to 0, if applicable.
+This method returns value of the same type as argument, but with scale set to 0 and adjusted precision, if applicable.
 ","
 FLOOR(A)
 "
@@ -5150,7 +5150,7 @@ RANDOM_UUID()
 @h2@ ROUND(numeric [, digitsInt])
 ","
 Rounds to a number of fractional digits.
-This method returns a double, float, or numeric value depending on type of the argument.
+This method returns value of the same type as argument, but with adjusted precision and scale, if applicable.
 ","
 ROUND(N, 2)
 "
@@ -5234,7 +5234,7 @@ CALL HASH('SHA3-256', X'0102')
     | @c@ { timestamp | timestampWithTimeZone | date | timestampString } } )
 ","
 When a numeric argument is specified, truncates it to a number of digits (to the next value closer to 0)
-and returns a double, float, or numeric value depending on type of the argument.
+and returns value of the same type as argument, but with adjusted precision and scale, if applicable.
 
 This function with datetime or string argument is deprecated, use
 [DATE_TRUNC](https://h2database.com/html/functions.html#date_trunc) instead.

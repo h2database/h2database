@@ -61,7 +61,7 @@ CALL ROUND(1.285::DOUBLE, 2);
 CALL ROUND(1.285::REAL, 2);
 >> 1.29
 
-CALL ROUND(1, 1) IS OF (NUMERIC);
+CALL ROUND(1, 1) IS OF (INTEGER);
 >> TRUE
 
 CALL ROUND(1::DOUBLE, 1) IS OF (DOUBLE);
@@ -72,3 +72,38 @@ CALL ROUND(1::REAL, 1) IS OF (REAL);
 
 SELECT ROUND(1, 10000000);
 > exception INVALID_VALUE_2
+
+CREATE TABLE T1(N NUMERIC(10, 2), D DECFLOAT(10), I INTEGER) AS VALUES (99999999.99, 99999999.99, 10);
+> ok
+
+SELECT ROUND(N) N0, ROUND(N, 1) N1, ROUND(N, 2) N2, ROUND(N, 3) N3,
+    ROUND(D) D0, ROUND(D, 2) D2, ROUND(D, 3) D3,
+    ROUND(I) I0, ROUND(I, 1) I1, ROUND(I, I) II FROM T1;
+> N0        N1          N2          N3          D0   D2          D3          I0 I1 II
+> --------- ----------- ----------- ----------- ---- ----------- ----------- -- -- --
+> 100000000 100000000.0 99999999.99 99999999.99 1E+8 99999999.99 99999999.99 10 10 10
+> rows: 1
+
+CREATE TABLE T2 AS SELECT ROUND(N) N0, ROUND(N, 1) N1, ROUND(N, 2) N2, ROUND(N, 3) N3,
+    ROUND(D) D0, ROUND(D, 2) D2, ROUND(D, 3) D3,
+    ROUND(I) I0, ROUND(I, 1) I1, ROUND(I, I) II FROM T1;
+> ok
+
+SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'T2' ORDER BY ORDINAL_POSITION;
+> COLUMN_NAME DATA_TYPE NUMERIC_PRECISION NUMERIC_SCALE
+> ----------- --------- ----------------- -------------
+> N0          NUMERIC   9                 0
+> N1          NUMERIC   10                1
+> N2          NUMERIC   10                2
+> N3          NUMERIC   10                2
+> D0          DECFLOAT  10                null
+> D2          DECFLOAT  10                null
+> D3          DECFLOAT  10                null
+> I0          INTEGER   32                0
+> I1          INTEGER   32                0
+> II          INTEGER   32                0
+> rows (ordered): 10
+
+DROP TABLE T1;
+> ok

@@ -875,11 +875,11 @@ public class PageStore implements CacheWriter {
         setPageSize(page.readInt());
         int writeVersion = page.readByte();
         int readVersion = page.readByte();
-        if (readVersion > READ_VERSION) {
+        if (readVersion != READ_VERSION) {
             throw DbException.get(
                     ErrorCode.FILE_VERSION_ERROR_1, fileName);
         }
-        if (writeVersion > WRITE_VERSION) {
+        if (writeVersion != WRITE_VERSION) {
             close();
             database.setReadOnly(true);
             accessMode = "r";

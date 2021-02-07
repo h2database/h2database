@@ -73,14 +73,6 @@ public class PageBtreeIndex extends PageIndex {
             rowCount = root.getRowCount();
             if (rowCount == 0 && store.isRecoveryRunning()) {
                 needRebuild = true;
-            } else if (database.upgradeTo2_0()) {
-                for (IndexColumn c : columns) {
-                    if (org.h2.value.DataType.rebuildIndexOnUpgradeTo2_0(c.column.getType().getValueType())) {
-                        removeAllRows();
-                        needRebuild = true;
-                        break;
-                    }
-                }
             }
         }
         this.needRebuild = needRebuild;

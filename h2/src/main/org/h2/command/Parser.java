@@ -9057,6 +9057,16 @@ public class Parser {
                     return command;
                 }
             }
+            if (session.isQuirksMode()) {
+                switch (upperName) {
+                case "BINARY_COLLATION":
+                case "UUID_COLLATION":
+                    read();
+                    readIfEqualOrTo();
+                    readIdentifier();
+                    return new NoOperation(session);
+                }
+            }
             throw getSyntaxError();
         }
     }

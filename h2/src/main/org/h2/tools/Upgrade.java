@@ -257,7 +257,7 @@ public final class Upgrade {
                 String resourceName = name.replace('.', '/') + ".class";
                 byte[] b = map.get(resourceName);
                 if (b == null) {
-                    throw new ClassNotFoundException(name);
+                    return ClassLoader.getSystemClassLoader().loadClass(name);
                 }
                 return defineClass(name, b, 0, b.length);
             }

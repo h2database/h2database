@@ -18,7 +18,6 @@ import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
@@ -156,20 +155,21 @@ public final class Upgrade {
         copyProperty(ci, oldUrl, "MV_STORE");
         String cipher = copyProperty(ci, oldUrl, "CIPHER");
         String scriptCommandSuffix = cipher == null ? "" : " CIPHER AES PASSWORD '" + UUID.randomUUID() + "' --hide--";
-        ClassLoader cl = loadH2(version);
-        @SuppressWarnings("unchecked")
-        Class<java.sql.Driver> driverClass = (Class<java.sql.Driver>) cl.loadClass("org.h2.Driver");
-        java.sql.Driver driver = driverClass.getDeclaredConstructor().newInstance();
+        java.sql.Driver driver = loadH2(version);
         try (Connection conn = driver.connect(oldUrl.toString(), oldInfo)) {
             conn.createStatement().execute(StringUtils.quoteStringSQL(new StringBuilder("SCRIPT TO "), script)
                     .append(scriptCommandSuffix).toString());
         } finally {
-            DriverManager.deregisterDriver(driver);
+            unloadH2(driver);
         }
         rename(name, false);
         try (JdbcConnection conn = new JdbcConnection(url, info, null, null)) {
-            conn.createStatement().execute(StringUtils.quoteStringSQL(new StringBuilder("RUNSCRIPT FROM "), script)
-                    .append(scriptCommandSuffix).append(" QUIRKS_MODE VARIABLE_BINARY").toString());
+            StringBuilder builder = StringUtils.quoteStringSQL(new StringBuilder("RUNSCRIPT FROM "), script)
+                    .append(scriptCommandSuffix);
+            if (version <= 200) {
+                builder.append(" FROM_1X");
+            }
+            conn.createStatement().execute(builder.toString());
         } catch (Throwable t) {
             rename(name, true);
             throw t;
@@ -211,7 +211,18 @@ public final class Upgrade {
         }
     }
 
-    private static ClassLoader loadH2(int version) throws IOException {
+    /**
+     * Loads the specified version of H2 in a separate class loader.
+     *
+     * @param version
+     *            the version to load
+     * @return the driver of the specified version
+     * @throws IOException
+     *             on I/O exception
+     * @throws ReflectiveOperationException
+     *             on exception during initialization of the driver
+     */
+    public static java.sql.Driver loadH2(int version) throws IOException, ReflectiveOperationException {
         String prefix;
         if (version >= 201) {
             if ((version & 1) != 0 || version > Constants.BUILD_ID) {
@@ -240,7 +251,7 @@ public final class Upgrade {
             map.put(ze.getName(), baos.toByteArray());
             baos.reset();
         }
-        return new ClassLoader(null) {
+        ClassLoader cl = new ClassLoader(null) {
             @Override
             protected Class<?> findClass(String name) throws ClassNotFoundException {
                 String resourceName = name.replace('.', '/') + ".class";
@@ -257,6 +268,19 @@ public final class Upgrade {
                 return b != null ? new ByteArrayInputStream(b) : null;
             }
         };
+        return (java.sql.Driver) cl.loadClass("org.h2.Driver").getDeclaredMethod("load").invoke(null);
+    }
+
+    /**
+     * Unloads the specified driver of H2.
+     *
+     * @param driver
+     *            the driver to unload
+     * @throws ReflectiveOperationException
+     *             on exception
+     */
+    public static void unloadH2(java.sql.Driver driver) throws ReflectiveOperationException {
+        driver.getClass().getDeclaredMethod("unload").invoke(null);
     }
 
     private static byte[] downloadUsingMaven(String group, String artifact, String version, String sha256Checksum)

@@ -38,6 +38,8 @@ public class RunScriptCommand extends ScriptBase {
 
     private boolean variableBinary;
 
+    private boolean from1X;
+
     public RunScriptCommand(SessionLocal session) {
         super(session);
     }
@@ -90,6 +92,16 @@ public class RunScriptCommand extends ScriptBase {
     }
 
     private void execute(String sql) {
+        if (from1X) {
+            sql = sql.trim();
+            if (sql.startsWith("INSERT INTO SYSTEM_LOB_STREAM VALUES(")) {
+                int idx = sql.indexOf(", NULL, '");
+                if (idx >= 0) {
+                    sql = new StringBuilder(sql.length() + 1).append(sql, 0, idx + 8).append("X'")
+                            .append(sql, idx + 9, sql.length()).toString();
+                }
+            }
+        }
         try {
             Prepared command = session.prepare(sql);
             CommandContainer commandContainer = new CommandContainer(session, sql, command);
@@ -126,6 +138,13 @@ public class RunScriptCommand extends ScriptBase {
      */
     public void setVariableBinary(boolean variableBinary) {
         this.variableBinary = variableBinary;
+    }
+
+    /**
+     * Enables quirks for parsing scripts from H2 1.*.*.
+     */
+    public void setFrom1X() {
+        variableBinary = quirksMode = from1X = true;
     }
 
     @Override

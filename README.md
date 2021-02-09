@@ -1,4 +1,4 @@
-# Welcome to H2, the Java SQL database. [![Build Status](https://github.com/h2database/h2database/workflows/CI/badge.svg)](https://github.com/h2database/h2database/actions?query=workflow%3ACI)
+# Welcome to H2, the Java SQL database. [![CI](https://github.com/h2database/h2database/workflows/CI/badge.svg?event=push)](https://github.com/h2database/h2database/actions?query=workflow%3ACI)
 
 ## The main features of H2 are:
 

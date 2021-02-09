@@ -859,12 +859,12 @@ public class Build extends BuildBase {
     /**
      * Compile and run all fast tests. This does not include the compile step.
      */
-    @Description(summary = "Compile and run all tests for Travis (excl. the compile step).")
-    public void testTravis() {
+    @Description(summary = "Compile and run all tests for CI (excl. the compile step).")
+    public void testCI() {
         test(true);
     }
 
-    private void test(boolean travis) {
+    private void test(boolean ci) {
         downloadTest();
         String cp = "temp" + File.pathSeparator + "bin" +
                 File.pathSeparator + "ext/postgresql-" + PGJDBC_VERSION + ".jar" +
@@ -887,13 +887,13 @@ public class Build extends BuildBase {
             }
         }
         int ret;
-        if (travis) {
+        if (ci) {
             ret = execJava(args(
                     "-ea",
                     "-Xmx128m",
                     "-XX:MaxDirectMemorySize=2g",
                     "-cp", cp,
-                    "org.h2.test.TestAll", "travis"));
+                    "org.h2.test.TestAll", "ci"));
         } else {
             ret = execJava(args(
                     "-ea",
@@ -901,7 +901,7 @@ public class Build extends BuildBase {
                     "-cp", cp,
                     "org.h2.test.TestAll"));
         }
-        // return a failure code for Jenkins/Travis/CI builds
+        // return a failure code for CI builds
         if (ret != 0) {
             System.exit(ret);
         }

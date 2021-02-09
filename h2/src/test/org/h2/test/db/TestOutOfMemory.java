@@ -53,7 +53,7 @@ public class TestOutOfMemory extends TestDb {
     @Override
     public void test() throws Exception {
         try {
-            if (!config.travis) {
+            if (!config.ci) {
                 System.gc();
                 testMVStoreUsingInMemoryFileSystem();
                 System.gc();

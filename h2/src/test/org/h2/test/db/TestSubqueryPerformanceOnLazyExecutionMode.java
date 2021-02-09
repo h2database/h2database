@@ -35,7 +35,7 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
 
     @Override
     public boolean isEnabled() {
-        return !config.travis;
+        return !config.ci;
     }
 
     @Override

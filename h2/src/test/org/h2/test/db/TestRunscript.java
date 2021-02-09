@@ -339,7 +339,7 @@ public class TestRunscript extends TestDb implements Trigger {
     }
 
     private void testCancelScript() throws Exception {
-        if (config.travis) {
+        if (config.ci) {
             // fails regularly under Travis, not sure why
             return;
         }

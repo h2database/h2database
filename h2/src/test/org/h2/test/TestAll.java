@@ -349,9 +349,9 @@ java org.h2.test.TestAll timer
     public boolean splitFileSystem;
 
     /**
-     * If only fast/CI/Jenkins/Travis tests should be run.
+     * If only fast CI tests should be run.
      */
-    public boolean travis;
+    public boolean ci;
 
     /**
      * the vmlens.com race condition tool
@@ -494,8 +494,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 */
         TestAll test = new TestAll();
         if (args.length > 0) {
-            if ("travis".equals(args[0])) {
-                test.travis = true;
+            if ("ci".equals(args[0])) {
+                test.ci = true;
                 test.testAll(args, 1);
             } else if ("vmlens".equals(args[0])) {
                 test.vmlens = true;
@@ -556,7 +556,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             }
         }
         runTests();
-        if (!travis && !vmlens) {
+        if (!ci && !vmlens) {
             Profiler prof = new Profiler();
             prof.depth = 16;
             prof.interval = 1;
@@ -619,7 +619,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         testAdditional();
 
         // test utilities
-        big = !travis;
+        big = !ci;
         testUtils();
         big = false;
 
@@ -668,7 +668,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         cacheType = null;
         cipher = null;
 
-        if (!travis) {
+        if (!ci) {
             traceLevelFile = 0;
             smallLog = true;
             networked = true;

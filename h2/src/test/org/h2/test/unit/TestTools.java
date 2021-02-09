@@ -585,7 +585,7 @@ public class TestTools extends TestDb {
 
     private void testServerMain() throws Exception {
         testNonSSL();
-        if (!config.travis) {
+        if (!config.ci) {
             testSSL();
         }
     }

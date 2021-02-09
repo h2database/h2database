@@ -62,7 +62,7 @@ public class TestNetUtils extends TestBase {
      * (no SSL certificate is needed).
      */
     private void testAnonymousTlsSession() throws Exception {
-        if (BuildBase.getJavaVersion() >= 11) {
+        if (config.ci || BuildBase.getJavaVersion() >= 11) {
             // Issue #1303
             return;
         }
@@ -106,6 +106,10 @@ public class TestNetUtils extends TestBase {
      * instead, the server socket is altered.
      */
     private void testTlsSessionWithServerSideAnonymousDisabled() throws Exception {
+        if (config.ci) {
+            // Issue #1303
+            return;
+        }
         boolean ssl = true;
         Task task = null;
         ServerSocket serverSocket = null;
@@ -296,7 +300,7 @@ public class TestNetUtils extends TestBase {
     }
 
     private void testTcpQuickack() {
-        final boolean ssl = BuildBase.getJavaVersion() < 11;
+        final boolean ssl = !config.ci && BuildBase.getJavaVersion() < 11;
         try (ServerSocket serverSocket = NetUtils.createServerSocket(PORT, ssl)) {
             Thread thread = new Thread() {
                 @Override

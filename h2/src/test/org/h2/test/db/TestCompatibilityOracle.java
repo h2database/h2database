@@ -218,7 +218,7 @@ public class TestCompatibilityOracle extends TestDb {
     }
 
     private void testToDate() throws SQLException {
-        if (Locale.getDefault() != Locale.ENGLISH) {
+        if (config.ci || Locale.getDefault() != Locale.ENGLISH) {
             return;
         }
         deleteDb("oracle");

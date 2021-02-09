@@ -1322,6 +1322,9 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         boolean daylight = tz.inDaylightTime(timestamp1979);
         String tzShortName = tz.getDisplayName(daylight, TimeZone.SHORT);
         String tzLongName = tz.getID();
+        if (tzLongName.equals("Etc/UTC")) {
+            tzLongName = "UTC";
+        }
 
         stat.executeUpdate("CREATE TABLE T (X TIMESTAMP(6))");
         stat.executeUpdate("INSERT INTO T VALUES " +
@@ -1560,8 +1563,10 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
+        Locale.setDefault(new Locale("en"));
 
-        Currency currency = Currency.getInstance(Locale.getDefault());
+        Locale locale = Locale.getDefault();
+        Currency currency = Currency.getInstance(locale.getCountry().length() == 2 ? locale : Locale.US);
         String cc = currency.getCurrencyCode();
         String cs = currency.getSymbol();
 
@@ -1598,7 +1603,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertResult("######", stat,
                 "SELECT TO_CHAR(12345, '$9999') FROM DUAL");
         String expected = String.format("%,d", 12345);
-        if (Locale.getDefault() == Locale.ENGLISH) {
+        if (locale == Locale.ENGLISH) {
             assertResult(String.format("%5s12345", cs), stat,
                     "SELECT TO_CHAR(12345, '$99999999') FROM DUAL");
             assertResult(String.format("%6s12,345.35", cs), stat,

@@ -17,7 +17,7 @@ public class TestAllJunit {
      * Run all the fast tests.
      */
     @Test
-    public void testTravis() throws Exception {
-        TestAll.main("travis");
+    public void testCI() throws Exception {
+        TestAll.main("ci");
     }
 }

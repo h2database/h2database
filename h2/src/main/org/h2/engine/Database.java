@@ -407,8 +407,6 @@ public final class Database implements DataHandler, CastDataProvider {
                     setting.setIntValue(Constants.BUILD_ID);
                     lockMeta(systemSession);
                     addDatabaseObject(systemSession, setting);
-                } else if (createBuild < 201) {
-                    upgradeMetaTo2_0(setting);
                 }
                 // mark all ids used in the page store
                 if (pageStore != null) {
@@ -651,46 +649,6 @@ public final class Database implements DataHandler, CastDataProvider {
                 objectIds.set(i);
             }
         }
-    }
-
-    /**
-     * Returns whether database was in 1.X format.
-     *
-     * @return {@code true} if database was in 1.X format, {@code false} otherwise
-     */
-    public boolean upgradeTo2_0() {
-        return createBuild < 201;
-    }
-
-    private void upgradeMetaTo2_0(Setting setting) {
-        lockMeta(systemSession);
-        ArrayList<Integer> metaToRemove = new ArrayList<>();
-        for (Cursor cursor = metaIdIndex.find(systemSession, null, null); cursor.next();) {
-            MetaRecord rec = new MetaRecord(cursor.get());
-            objectIds.set(rec.getId());
-            switch (rec.getObjectType()) {
-            case DbObject.INDEX:
-                if (!isMVStore()) {
-                    String sql = rec.getSQL();
-                    if (sql.startsWith("CREATE SPATIAL INDEX ")) {
-                        metaToRemove.add(rec.getId());
-                    }
-                }
-                break;
-            case DbObject.SETTING: {
-                String sql = rec.getSQL();
-                if (sql.startsWith("SET BINARY_COLLATION ") || sql.startsWith("SET UUID_COLLATION ")) {
-                    metaToRemove.add(rec.getId());
-                }
-                break;
-            }
-            }
-        }
-        for (int meta : metaToRemove) {
-            removeMeta(systemSession, meta);
-        }
-        setting.setIntValue(Constants.BUILD_ID);
-        updateMeta(systemSession, setting);
     }
 
     private void executeMeta() {

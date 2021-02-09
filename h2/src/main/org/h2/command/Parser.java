@@ -9057,6 +9057,16 @@ public class Parser {
                     return command;
                 }
             }
+            if (session.isQuirksMode()) {
+                switch (upperName) {
+                case "BINARY_COLLATION":
+                case "UUID_COLLATION":
+                    read();
+                    readIfEqualOrTo();
+                    readIdentifier();
+                    return new NoOperation(session);
+                }
+            }
             throw getSyntaxError();
         }
     }
@@ -9225,11 +9235,15 @@ public class Parser {
         if (readIf("CHARSET")) {
             command.setCharset(Charset.forName(readString()));
         }
-        if (readIf("QUIRKS_MODE")) {
-            command.setQuirksMode(true);
-        }
-        if (readIf("VARIABLE_BINARY")) {
-            command.setVariableBinary(true);
+        if (readIf("FROM_1X")) {
+            command.setFrom1X();
+        } else {
+            if (readIf("QUIRKS_MODE")) {
+                command.setQuirksMode(true);
+            }
+            if (readIf("VARIABLE_BINARY")) {
+                command.setVariableBinary(true);
+            }
         }
         return command;
     }

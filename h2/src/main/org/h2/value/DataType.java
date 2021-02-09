@@ -822,30 +822,4 @@ public class DataType {
         throw DbException.getInternalError("primitive=" + clazz.toString());
     }
 
-    /**
-     * Check if index with the given value type of a some column may need to be
-     * reconstructed during upgrade from 1.X to 2.0.
-     *
-     * @param type
-     *            the value type
-     * @return {@code true} if index may need to be reconstructed, {@code false}
-     *         if it definitely doesn't need it
-     */
-    public static boolean rebuildIndexOnUpgradeTo2_0(int type) {
-        switch (type) {
-        case Value.VARBINARY:
-        case Value.BINARY:
-        case Value.BLOB: // Should not be indexed, but just to be sure
-        case Value.JAVA_OBJECT:
-        case Value.UUID:
-        case Value.GEOMETRY:
-        case Value.JSON:
-        case Value.ARRAY:
-        case Value.ROW:
-            return true;
-        default:
-            return false;
-        }
-    }
-
 }

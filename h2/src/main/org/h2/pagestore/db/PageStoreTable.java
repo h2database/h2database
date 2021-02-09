@@ -141,6 +141,9 @@ public class PageStoreTable extends RegularTable {
     public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             boolean create, String indexComment) {
         if (indexType.isSpatial()) {
+            if (session.isQuirksMode()) {
+                return null;
+            }
             throw DbException.getUnsupportedException("MV_STORE=FALSE && SPATIAL INDEX");
         }
         cols = prepareColumns(database, cols, indexType);

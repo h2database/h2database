@@ -59,13 +59,6 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
         dataMap.map.setVolatile(!table.isPersistData() || !indexType.isPersistent());
         if (!db.isStarting()) {
             dataMap.clear();
-        } else if (database.upgradeTo2_0()) {
-            for (IndexColumn c : columns) {
-                if (org.h2.value.DataType.rebuildIndexOnUpgradeTo2_0(c.column.getType().getValueType())) {
-                    dataMap.clear();
-                    break;
-                }
-            }
         }
         t.commit();
         if (!keyType.equals(dataMap.getKeyType())) {

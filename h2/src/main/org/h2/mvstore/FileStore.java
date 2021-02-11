@@ -806,7 +806,7 @@ public abstract class FileStore
     }
 
     /**
-     * Store chunk's serialized metadata as an entry in layout a map.
+     * Store chunk's serialized metadata as an entry in a layout map.
      * Key for this entry would be "chunk.<id>"
      *
      * @param chunk to save
@@ -1673,7 +1673,7 @@ public abstract class FileStore
 
         if (previousChunk != null) {
             // the metadata of the last chunk was not stored in the layout map yet,
-            // just was ebeded into the chunk itself, and needs to be done now
+            // just was embeded into the chunk itself, and this need to be done now
             // (it's better not to update right after storing, because that
             // would modify the meta map again)
             if (!layout.containsKey(Chunk.getMetaKey(previousChunk.id))) {

@@ -202,14 +202,6 @@ public class MVStoreTool {
                         );
                     }
                     p += pageSize;
-                    if ((type & DataUtils.PAGE_HAS_PAGE_NO) != 0) {
-                        int position = chunk.position();
-                        chunk.position(p);
-                        /*int pageNo =*/
-                        DataUtils.readVarInt(chunk);
-                        p = chunk.position();
-                        chunk.position(position);
-                    }
                     Integer mapSize = mapSizes.get(mapId);
                     if (mapSize == null) {
                         mapSize = 0;

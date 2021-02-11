@@ -2198,9 +2198,6 @@ public abstract class FileStore
                         buff = buff.slice();
                     }
                     p = Page.read(buff, pos, map);
-                    if (p.pageNo < 0) {
-                        p.pageNo = calculatePageNo(pos);
-                    }
                 } catch (MVStoreException e) {
                     throw e;
                 } catch (Exception e) {

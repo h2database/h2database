@@ -80,8 +80,11 @@ public abstract class FileStore
      * written twice, one copy in each block, to ensure it survives a crash.
      */
     static final int BLOCK_SIZE = 4 * 1024;
-    static final int FORMAT_WRITE = 2;
-    static final int FORMAT_READ = 2;
+
+    private static final int FORMAT_WRITE_MIN = 2;
+    private static final int FORMAT_WRITE_MAX = 2;
+    private static final int FORMAT_READ_MIN = 2;
+    private static final int FORMAT_READ_MAX = 2;
 
     private MVStore mvStore;
     private boolean closed;
@@ -732,7 +735,7 @@ public abstract class FileStore
         creationTime = time;
         storeHeader.put(FileStore.HDR_H, 2);
         storeHeader.put(FileStore.HDR_BLOCK_SIZE, FileStore.BLOCK_SIZE);
-        storeHeader.put(FileStore.HDR_FORMAT, FileStore.FORMAT_WRITE);
+        storeHeader.put(FileStore.HDR_FORMAT, FileStore.FORMAT_WRITE_MAX);
         storeHeader.put(FileStore.HDR_CREATED, creationTime);
         writeStoreHeader();
     }
@@ -958,22 +961,27 @@ public abstract class FileStore
                     "Block size {0} is currently not supported",
                     blockSize);
         }
-        long format = DataUtils.readHexLong(storeHeader, FileStore.HDR_FORMAT, 1);
-        if (format > FileStore.FORMAT_WRITE && !isReadOnly()) {
-            throw DataUtils.newMVStoreException(
-                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                    "The write format {0} is larger " +
-                    "than the supported format {1}, " +
-                    "and the file was not opened in read-only mode",
-                    format, FileStore.FORMAT_WRITE);
+        long format = DataUtils.readHexLong(storeHeader, HDR_FORMAT, 1);
+        if (!isReadOnly()) {
+            if (format > FORMAT_WRITE_MAX) {
+                throw getUnsupportedWriteFormatException(format, FORMAT_WRITE_MAX,
+                        "The write format {0} is larger than the supported format {1}");
+            } else if (format < FORMAT_WRITE_MIN) {
+                throw getUnsupportedWriteFormatException(format, FORMAT_WRITE_MIN,
+                        "The write format {0} is smaller than the supported format {1}");
+            }
         }
-        format = DataUtils.readHexLong(storeHeader, FileStore.HDR_FORMAT_READ, format);
-        if (format > FileStore.FORMAT_READ) {
+        format = DataUtils.readHexLong(storeHeader, HDR_FORMAT_READ, format);
+        if (format > FORMAT_READ_MAX) {
             throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                    "The read format {0} is larger " +
-                    "than the supported format {1}",
-                    format, FileStore.FORMAT_READ);
+                    "The read format {0} is larger than the supported format {1}",
+                    format, FORMAT_READ_MAX);
+        } else if (format < FORMAT_READ_MIN) {
+            throw DataUtils.newMVStoreException(
+                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
+                    "The read format {0} is smaller than the supported format {1}",
+                    format, FORMAT_READ_MIN);
         }
 
         assumeCleanShutdown = assumeCleanShutdown && newest != null && !recoveryMode;
@@ -1146,6 +1154,14 @@ public abstract class FileStore
                 candidateLocation = Long.MAX_VALUE;
             }
         }
+    }
+
+    private MVStoreException getUnsupportedWriteFormatException(long format, int expectedFormat, String s) {
+        format = DataUtils.readHexLong(storeHeader, HDR_FORMAT_READ, format);
+        if (format >= FORMAT_READ_MIN && format <= FORMAT_READ_MAX) {
+            s += ", and the file was not opened in read-only mode";
+        }
+        return DataUtils.newMVStoreException(DataUtils.ERROR_UNSUPPORTED_FORMAT, s, format, expectedFormat);
     }
 
     private boolean findLastChunkWithCompleteValidChunkSet(Comparator<Chunk> chunkComparator,

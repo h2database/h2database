@@ -556,13 +556,13 @@ public class Recover extends Tool implements DataHandler {
                 }
                 String tableId = mapName.substring("table.".length());
                 if (Integer.parseInt(tableId) == 0) {
-                    TransactionMap<Value, Value> dataMap = store.begin().openMap(mapName, type, type);
-                    Iterator<Value> dataIt = dataMap.keyIterator(null);
+                    TransactionMap<Long, Row> dataMap = store.begin().openMap(mapName);
+                    Iterator<Long> dataIt = dataMap.keyIterator(null);
                     while (dataIt.hasNext()) {
-                        Value rowId = dataIt.next();
-                        Value[] values = ((ValueCollectionBase) dataMap.get(rowId)).getList();
+                        Long rowId = dataIt.next();
+                        Row row = dataMap.get(rowId);
                         try {
-                            writeMetaRow(values);
+                            writeMetaRow(row);
                         } catch (Throwable t) {
                             writeError(writer, t);
                         }
@@ -1483,15 +1483,15 @@ public class Recover extends Tool implements DataHandler {
         writer.println(sb.toString());
         if (storageId == 0) {
             try {
-                writeMetaRow(data);
+                writeMetaRow(new DefaultRow(data));
             } catch (Throwable t) {
                 writeError(writer, t);
             }
         }
     }
 
-    private void writeMetaRow(Value[] values) {
-        MetaRecord meta = new MetaRecord(new DefaultRow(values));
+    private void writeMetaRow(Row r) {
+        MetaRecord meta = new MetaRecord(r);
         int objectType = meta.getObjectType();
         if (objectType == DbObject.INDEX && meta.getSQL().startsWith("CREATE PRIMARY KEY ")) {
             return;

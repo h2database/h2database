@@ -44,15 +44,13 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
     private final AtomicLong lastKey = new AtomicLong();
     private int mainIndexColumn = SearchRow.ROWID_INDEX;
 
-    public MVPrimaryIndex(Database db, MVTable table, int id,
-            IndexColumn[] columns, IndexType indexType) {
+    public MVPrimaryIndex(Database db, MVTable table, int id, IndexColumn[] columns, IndexType indexType) {
         super(table, id, table.getName() + "_DATA", columns, indexType);
         this.mvTable = table;
-        LongDataType keyType = new LongDataType();
         RowDataType valueType = table.getRowFactory().getRowDataType();
         mapName = "table." + getId();
         Transaction t = mvTable.getTransactionBegin();
-        dataMap = t.openMap(mapName, keyType, valueType);
+        dataMap = t.openMap(mapName, LongDataType.INSTANCE, valueType);
         dataMap.map.setVolatile(!table.isPersistData() || !indexType.isPersistent());
         if (!db.isStarting()) {
             dataMap.clear();

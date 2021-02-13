@@ -24,7 +24,7 @@ public final class MetaType<D> extends BasicDataType<DataType<?>> {
 
     private final D database;
     private final Thread.UncaughtExceptionHandler exceptionHandler;
-    private final Map<String, StatefulDataType.Factory<D>> cache = new HashMap<>();
+    private final Map<String, Object> cache = new HashMap<>();
 
     public MetaType(D database, Thread.UncaughtExceptionHandler exceptionHandler) {
         this.database = database;
@@ -68,16 +68,29 @@ public final class MetaType<D> extends BasicDataType<DataType<?>> {
         int len = DataUtils.readVarInt(buff);
         String className = DataUtils.readString(buff, len);
         try {
-            StatefulDataType.Factory<D> factory = cache.get(className);
-            if (factory != null) {
-                return factory.create(buff, this, database);
+            Object o = cache.get(className);
+            if (o != null) {
+                if (o instanceof StatefulDataType.Factory) {
+                    return ((StatefulDataType.Factory<D>) o).create(buff, this, database);
+                }
+                return (DataType<?>) o;
             }
             Class<?> clazz = Class.forName(className);
-            Object obj = clazz.getDeclaredConstructor().newInstance();
+            boolean singleton = false;
+            Object obj;
+            try {
+                obj = clazz.getDeclaredField("INSTANCE").get(null);
+                singleton = true;
+            } catch (ReflectiveOperationException | NullPointerException e) {
+                obj = clazz.getDeclaredConstructor().newInstance();
+            }
             if (obj instanceof StatefulDataType.Factory) {
-                factory = (StatefulDataType.Factory<D>) obj;
+                StatefulDataType.Factory<D> factory = (StatefulDataType.Factory<D>) obj;
                 cache.put(className, factory);
                 return factory.create(buff, this, database);
+            }
+            if (singleton) {
+                cache.put(className, obj);
             }
             return (DataType<?>) obj;
         } catch (ReflectiveOperationException | SecurityException | IllegalArgumentException e) {

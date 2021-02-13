@@ -14,13 +14,14 @@ import org.h2.message.DbException;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMap.Builder;
+import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.LongDataType;
 import org.h2.result.ResultExternal;
-import org.h2.result.RowFactory;
-import org.h2.result.SortOrder;
 import org.h2.result.RowFactory.DefaultRowFactory;
+import org.h2.result.SortOrder;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
 
 /**
@@ -60,7 +61,7 @@ class MVSortedTempResult extends MVTempResult {
      * {@link #contains(Value[])} method is invoked. Only the root result should
      * have an index if required.
      */
-    private MVMap<ValueRow, ValueRow> index;
+    private MVMap<ValueRow, Value> index;
 
     /**
      * Used for DISTINCT ON in presence of ORDER BY.
@@ -212,14 +213,13 @@ class MVSortedTempResult extends MVTempResult {
             ValueDataType distinctType = new ValueDataType(database, new int[count]);
             distinctType.setRowFactory(DefaultRowFactory.INSTANCE.createRowFactory(database, database.getCompareMode(),
                     database, types, null));
-            ValueDataType distinctValueType;
+            DataType<Value> distinctValueType;
             if (distinctIndexes != null && sort != null) {
-                orderedDistinctOnType = distinctValueType = keyType;
+                distinctValueType = orderedDistinctOnType = keyType;
             } else {
-                distinctValueType = new ValueDataType();
-                distinctValueType.setRowFactory(RowFactory.getDefaultRowFactory());
+                distinctValueType = NullValueDataType.INSTANCE;
             }
-            Builder<ValueRow, ValueRow> indexBuilder = new MVMap.Builder<ValueRow, ValueRow>().keyType(distinctType)
+            Builder<ValueRow, Value> indexBuilder = new MVMap.Builder<ValueRow, Value>().keyType(distinctType)
                     .valueType(distinctValueType);
             index = store.openMap("idx", indexBuilder);
         }
@@ -238,11 +238,11 @@ class MVSortedTempResult extends MVTempResult {
                 }
                 ValueRow distinctRow = ValueRow.get(newValues);
                 if (orderedDistinctOnType == null) {
-                    if (index.putIfAbsent(distinctRow, ValueRow.EMPTY) != null) {
+                    if (index.putIfAbsent(distinctRow, ValueNull.INSTANCE) != null) {
                         return rowCount;
                     }
                 } else {
-                    ValueRow previous = index.get(distinctRow);
+                    ValueRow previous = (ValueRow) index.get(distinctRow);
                     if (previous == null) {
                         index.put(distinctRow, key);
                     } else if (orderedDistinctOnType.compare(previous, key) > 0) {
@@ -255,7 +255,7 @@ class MVSortedTempResult extends MVTempResult {
                 }
             } else if (visibleColumnCount != resultColumnCount) {
                 ValueRow distinctRow = ValueRow.get(Arrays.copyOf(values, visibleColumnCount));
-                if (index.putIfAbsent(distinctRow, ValueRow.EMPTY) != null) {
+                if (index.putIfAbsent(distinctRow, ValueNull.INSTANCE) != null) {
                     return rowCount;
                 }
             }

@@ -69,7 +69,6 @@ import org.h2.test.db.TestRecursiveQueries;
 import org.h2.test.db.TestRights;
 import org.h2.test.db.TestRunscript;
 import org.h2.test.db.TestSQLInjection;
-import org.h2.test.db.TestSelectCountNonNullColumn;
 import org.h2.test.db.TestSelectTableNotFound;
 import org.h2.test.db.TestSequence;
 import org.h2.test.db.TestSessionsLocks;
@@ -773,7 +772,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestRunscript());
             addTest(new TestSQLInjection());
             addTest(new TestSessionsLocks());
-            addTest(new TestSelectCountNonNullColumn());
             addTest(new TestSequence());
             addTest(new TestSpaceReuse());
             addTest(new TestSpatial());

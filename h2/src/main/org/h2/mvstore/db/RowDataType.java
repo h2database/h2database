@@ -152,7 +152,7 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
         }
         TypeInfo[] columnTypes = rowFactory.getColumnTypes();
         if (indexes == null) {
-            int columnCount = DataUtils.readVarInt(buff);
+            int columnCount = row.getColumnCount();
             for (int i = 0; i < columnCount; i++) {
                 row.setValue(i, valueDataType.readValue(buff, columnTypes != null ? columnTypes[i] : null));
             }
@@ -171,7 +171,6 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
         }
         if (indexes == null) {
             int columnCount = row.getColumnCount();
-            buff.putVarInt(columnCount);
             for (int i = 0; i < columnCount; i++) {
                 valueDataType.write(buff, row.getValue(i));
             }

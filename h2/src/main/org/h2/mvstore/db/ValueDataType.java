@@ -19,7 +19,6 @@ import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Database;
-import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.mode.DefaultNullOrdering;
 import org.h2.mvstore.DataUtils;
@@ -125,23 +124,20 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     final DataHandler handler;
     final CastDataProvider provider;
     final CompareMode compareMode;
-    protected final Mode mode;
     final int[] sortTypes;
     private RowFactory rowFactory;
 
     public ValueDataType() {
-        this(null, CompareMode.getInstance(null, 0), null, null, null);
+        this(null, CompareMode.getInstance(null, 0), null, null);
     }
 
     public ValueDataType(Database database, int[] sortTypes) {
-        this(database, database.getCompareMode(), database.getMode(), database, sortTypes);
+        this(database, database.getCompareMode(), database, sortTypes);
     }
 
-    public ValueDataType(CastDataProvider provider, CompareMode compareMode, Mode mode, DataHandler handler,
-            int[] sortTypes) {
+    public ValueDataType(CastDataProvider provider, CompareMode compareMode, DataHandler handler, int[] sortTypes) {
         this.provider = provider;
         this.compareMode = compareMode;
-        this.mode = mode;
         this.handler = handler;
         this.sortTypes = sortTypes;
     }
@@ -840,14 +836,13 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             int columnCount = DataUtils.readVarInt(buff);
             int[] indexes = readIntArray(buff);
             CompareMode compareMode = database == null ? CompareMode.getInstance(null, 0) : database.getCompareMode();
-            Mode mode = database == null ? Mode.getRegular() : database.getMode();
             if (database == null) {
                 return new ValueDataType();
             } else if (sortTypes == null) {
                 return new ValueDataType(database, null);
             }
             RowFactory rowFactory = RowFactory.getDefaultRowFactory()
-                    .createRowFactory(database, compareMode, mode, database, sortTypes, indexes, null, columnCount);
+                    .createRowFactory(database, compareMode, database, sortTypes, indexes, null, columnCount);
             return rowFactory.getRowDataType();
         }
 

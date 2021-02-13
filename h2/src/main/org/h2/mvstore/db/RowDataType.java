@@ -9,7 +9,6 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Database;
-import org.h2.engine.Mode;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.BasicDataType;
@@ -34,9 +33,9 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
     private final int[]         indexes;
     private final int           columnCount;
 
-    public RowDataType(CastDataProvider provider, CompareMode compareMode, Mode mode, DataHandler handler,
-            int[] sortTypes, int[] indexes, int columnCount) {
-        this.valueDataType = new ValueDataType(provider, compareMode, mode, handler, sortTypes);
+    public RowDataType(CastDataProvider provider, CompareMode compareMode, DataHandler handler, int[] sortTypes,
+            int[] indexes, int columnCount) {
+        this.valueDataType = new ValueDataType(provider, compareMode, handler, sortTypes);
         this.sortTypes = sortTypes;
         this.indexes = indexes;
         this.columnCount = columnCount;
@@ -232,9 +231,8 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
             int[] sortTypes = readIntArray(buff);
             int[] indexes = readIntArray(buff);
             CompareMode compareMode = database == null ? CompareMode.getInstance(null, 0) : database.getCompareMode();
-            Mode mode = database == null ? Mode.getRegular() : database.getMode();
             RowFactory rowFactory = RowFactory.getDefaultRowFactory()
-                    .createRowFactory(database, compareMode, mode, database, sortTypes, indexes, null, columnCount);
+                    .createRowFactory(database, compareMode, database, sortTypes, indexes, null, columnCount);
             return rowFactory.getRowDataType();
         }
 

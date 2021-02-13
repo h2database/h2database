@@ -486,8 +486,8 @@ public abstract class Table extends SchemaObject {
                 throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, columnName);
             }
         }
-        rowFactory = database.getRowFactory().createRowFactory(database, database.getCompareMode(),
-                database.getMode(), database, columns, null);
+        rowFactory = database.getRowFactory().createRowFactory(database, database.getCompareMode(), database, columns,
+                null);
     }
 
     /**

@@ -806,7 +806,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         buff.putVarInt(columnCount);
         int[] indexes = rowFactory == null ? null : rowFactory.getIndexes();
         writeIntArray(buff, indexes);
-        buff.put(rowFactory.getRowDataType().isStoreKeys() ? (byte) 1 : (byte) 0);
+        buff.put(rowFactory == null || rowFactory.getRowDataType().isStoreKeys() ? (byte) 1 : (byte) 0);
     }
 
     private static void writeIntArray(WriteBuffer buff, int[] array) {
@@ -824,8 +824,6 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     public Factory getFactory() {
         return FACTORY;
     }
-
-
 
     private static final Factory FACTORY = new Factory();
 

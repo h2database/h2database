@@ -15,6 +15,7 @@ import org.h2.mvstore.Cursor;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMap.Builder;
 import org.h2.result.ResultExternal;
+import org.h2.result.RowFactory;
 import org.h2.result.SortOrder;
 import org.h2.result.RowFactory.DefaultRowFactory;
 import org.h2.value.TypeInfo;
@@ -209,11 +210,15 @@ class MVSortedTempResult extends MVTempResult {
             ValueDataType distinctType = new ValueDataType(database, new int[count]);
             distinctType.setRowFactory(DefaultRowFactory.INSTANCE.createRowFactory(database, database.getCompareMode(),
                     database.getMode(), database, types, null));
-            Builder<ValueRow, ValueRow> indexBuilder = new MVMap.Builder<ValueRow, ValueRow>().keyType(distinctType);
+            ValueDataType distinctValueType;
             if (distinctIndexes != null && sort != null) {
-                indexBuilder.valueType(keyType);
-                orderedDistinctOnType = keyType;
+                orderedDistinctOnType = distinctValueType = keyType;
+            } else {
+                distinctValueType = new ValueDataType();
+                distinctValueType.setRowFactory(RowFactory.getDefaultRowFactory());
             }
+            Builder<ValueRow, ValueRow> indexBuilder = new MVMap.Builder<ValueRow, ValueRow>().keyType(distinctType)
+                    .valueType(distinctValueType);
             index = store.openMap("idx", indexBuilder);
         }
     }

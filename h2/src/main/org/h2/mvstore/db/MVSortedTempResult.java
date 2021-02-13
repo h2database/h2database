@@ -14,6 +14,7 @@ import org.h2.message.DbException;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMap.Builder;
+import org.h2.mvstore.type.LongDataType;
 import org.h2.result.ResultExternal;
 import org.h2.result.RowFactory;
 import org.h2.result.SortOrder;
@@ -189,7 +190,8 @@ class MVSortedTempResult extends MVTempResult {
             keyType.setRowFactory(DefaultRowFactory.INSTANCE.createRowFactory(database, database.getCompareMode(),
                     database, expressions, null));
         }
-        Builder<ValueRow, Long> builder = new MVMap.Builder<ValueRow, Long>().keyType(keyType);
+        Builder<ValueRow, Long> builder = new MVMap.Builder<ValueRow, Long>().keyType(keyType)
+                .valueType(LongDataType.INSTANCE);
         map = store.openMap("tmp", builder);
         if (distinct && resultColumnCount != visibleColumnCount || distinctIndexes != null) {
             int count;

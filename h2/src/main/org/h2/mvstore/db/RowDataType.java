@@ -19,6 +19,7 @@ import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
 import org.h2.store.DataHandler;
 import org.h2.value.CompareMode;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -139,62 +140,37 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
 
     @Override
     public SearchRow read(ByteBuffer buff) {
-        //TODO: switch to compact format when format backward-compatibility is not required
-        return readCompatible(buff);
-/*
-        SearchRow row = valueDataType.getRowFactory().createRow();
+        RowFactory rowFactory = valueDataType.getRowFactory();
+        SearchRow row = rowFactory.createRow();
         row.setKey(DataUtils.readVarLong(buff));
+        TypeInfo[] columnTypes = rowFactory.getColumnTypes();
         if (indexes == null) {
             int columnCount = DataUtils.readVarInt(buff);
             for (int i = 0; i < columnCount; i++) {
-                row.setValue(i, valueDataType.read(buff));
+                row.setValue(i, valueDataType.readValue(buff, columnTypes != null ? columnTypes[i] : null));
             }
         } else {
             for (int i : indexes) {
-                row.setValue(i, valueDataType.read(buff));
+                row.setValue(i, valueDataType.readValue(buff, columnTypes != null ? columnTypes[i] : null));
             }
         }
         return row;
-*/
     }
-
-    /**
-     * Reads a row.
-     *
-     * @param buff the source buffer
-     * @return the row
-     */
-    public SearchRow readCompatible(ByteBuffer buff) {
-        return (SearchRow)valueDataType.read(buff);
-    }
-
 
     @Override
     public void write(WriteBuffer buff, SearchRow row) {
-        //TODO: switch to compact format when format backward-compatibility is not required
-        writeCompatible(buff, row);
-//        buff.putVarLong(row.getKey());
-//        if (indexes == null) {
-//            int columnCount = row.getColumnCount();
-//            buff.putVarInt(columnCount);
-//            for (int i = 0; i < columnCount; i++) {
-//                valueDataType.write(buff, row.getValue(i));
-//            }
-//        } else {
-//            for (int i : indexes) {
-//                valueDataType.write(buff, row.getValue(i));
-//            }
-//        }
-    }
-
-    /**
-     * Writes a row.
-     *
-     * @param buff the target buffer
-     * @param row the row
-     */
-    public void writeCompatible(WriteBuffer buff, SearchRow row) {
-        valueDataType.writeRow(buff, row, indexes);
+        buff.putVarLong(row.getKey());
+        if (indexes == null) {
+            int columnCount = row.getColumnCount();
+            buff.putVarInt(columnCount);
+            for (int i = 0; i < columnCount; i++) {
+                valueDataType.write(buff, row.getValue(i));
+            }
+        } else {
+            for (int i : indexes) {
+                valueDataType.write(buff, row.getValue(i));
+            }
+        }
     }
 
     @Override

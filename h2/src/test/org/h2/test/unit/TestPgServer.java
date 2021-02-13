@@ -30,7 +30,6 @@ import java.util.concurrent.Future;
 
 import org.h2.api.ErrorCode;
 import org.h2.server.pg.PgServer;
-import org.h2.store.Data;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.Server;
@@ -591,7 +590,6 @@ public class TestPgServer extends TestDb {
          */
         TimeZone.setDefault(TimeZone.getTimeZone("GMT+01"));
         DateTimeUtils.resetCalendar();
-        Data.resetCalendar();
         try {
             Server server = createPgServer(
                     "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
@@ -648,7 +646,6 @@ public class TestPgServer extends TestDb {
         } finally {
             TimeZone.setDefault(old);
             DateTimeUtils.resetCalendar();
-            Data.resetCalendar();
         }
     }
 

@@ -98,10 +98,8 @@ public abstract class Index extends SchemaObject {
                 columnIds[i] = col.getColumnId();
             }
         }
-        rowFactory = database.getRowFactory().createRowFactory(
-                database, database.getCompareMode(), database.getMode(),
-                database, table.getColumns(),
-                newIndexType.isScan() ? null : newIndexColumns);
+        rowFactory = database.getRowFactory().createRowFactory(database, database.getCompareMode(), database,
+                table.getColumns(), newIndexType.isScan() ? null : newIndexColumns, true);
     }
 
     @Override

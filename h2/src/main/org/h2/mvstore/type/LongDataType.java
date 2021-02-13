@@ -23,7 +23,7 @@ public class LongDataType extends BasicDataType<Long> {
 
     private static final Long[] EMPTY_LONG_ARR = new Long[0];
 
-    public LongDataType() {}
+    private LongDataType() {}
 
     @Override
     public int getMemory(Long obj) {

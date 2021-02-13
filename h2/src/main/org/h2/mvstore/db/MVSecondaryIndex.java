@@ -53,9 +53,8 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
         }
         String mapName = "index." + getId();
         RowDataType keyType = getRowFactory().getRowDataType();
-        ValueDataType valueType = new ValueDataType();
         Transaction t = mvTable.getTransactionBegin();
-        dataMap = t.openMap(mapName, keyType, valueType);
+        dataMap = t.openMap(mapName, keyType, NullValueDataType.INSTANCE);
         dataMap.map.setVolatile(!table.isPersistData() || !indexType.isPersistent());
         if (!db.isStarting()) {
             dataMap.clear();
@@ -154,11 +153,10 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
 
     private MVMap<SearchRow,Value> openMap(String mapName) {
         RowDataType keyType = getRowFactory().getRowDataType();
-        ValueDataType valueType = new ValueDataType();
         MVMap.Builder<SearchRow,Value> builder = new MVMap.Builder<SearchRow,Value>()
                                                 .singleWriter()
                                                 .keyType(keyType)
-                                                .valueType(valueType);
+                                                .valueType(NullValueDataType.INSTANCE);
         MVMap<SearchRow, Value> map = database.getStore().getMvStore()
                 .openMap(mapName, builder);
         if (!keyType.equals(map.getKeyType())) {

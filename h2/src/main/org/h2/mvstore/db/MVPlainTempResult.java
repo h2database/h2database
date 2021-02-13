@@ -11,6 +11,7 @@ import org.h2.message.DbException;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMap.Builder;
+import org.h2.mvstore.type.LongDataType;
 import org.h2.result.ResultExternal;
 import org.h2.result.RowFactory.DefaultRowFactory;
 import org.h2.value.Value;
@@ -68,8 +69,9 @@ class MVPlainTempResult extends MVTempResult {
         super(database, expressions, visibleColumnCount, resultColumnCount);
         ValueDataType valueType = new ValueDataType(database, new int[resultColumnCount]);
         valueType.setRowFactory(DefaultRowFactory.INSTANCE.createRowFactory(database, database.getCompareMode(),
-                database.getMode(), database, expressions, null));
-        Builder<Long, ValueRow> builder = new MVMap.Builder<Long, ValueRow>().valueType(valueType).singleWriter();
+                database, expressions, null, false));
+        Builder<Long, ValueRow> builder = new MVMap.Builder<Long, ValueRow>().keyType(LongDataType.INSTANCE)
+                .valueType(valueType).singleWriter();
         map = store.openMap("tmp", builder);
     }
 

@@ -817,23 +817,6 @@ The following files are created for persistent databases by both MVStore and Pag
 </td></tr>
 </table>
 
-<p>
-Legacy PageStore databases from old versions of H2 can have the following additional files:
-</p>
-<table class="main">
-<tr><th>File Name</th><th>Description</th><th>Number of Files</th></tr>
-<tr><td class="notranslate">
-    test.lobs.db/*
-</td><td>
-    Directory containing one file for each<br />
-    BLOB or CLOB value larger than a certain size.
-    <br />
-    Format: <code>&lt;id&gt;.t&lt;tableId&gt;.lob.db</code>
-</td><td>
-    1 per large object
-</td></tr>
-</table>
-
 <h3>Moving and Renaming Database Files</h3>
 <p>
 Database name and location are not stored inside the database files.

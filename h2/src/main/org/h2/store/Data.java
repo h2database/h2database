@@ -14,8 +14,6 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -25,7 +23,6 @@ import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 import org.h2.value.ExtTypeInfoEnum;
@@ -91,9 +88,6 @@ public class Data {
     private static final byte NUMERIC = 6;
     private static final byte DOUBLE = 7;
     private static final byte REAL = 8;
-    private static final byte TIME = 9;
-    private static final byte DATE = 10;
-    private static final byte TIMESTAMP = 11;
     private static final byte VARBINARY = 12;
     private static final byte VARCHAR = 13;
     private static final byte VARCHAR_IGNORECASE = 14;
@@ -130,17 +124,6 @@ public class Data {
     private static final int TIME_TZ = 138;
     private static final int BINARY = 139;
     private static final int DECFLOAT = 140;
-
-    private static final long MILLIS_PER_MINUTE = 1000 * 60;
-
-    /**
-     * Raw offset doesn't change during DST transitions, but changes during
-     * other transitions that some time zones have. H2 1.4.193 and later
-     * versions use zone offset that is valid for startup time for performance
-     * reasons. Datetime storage code of PageStore has issues with all time zone
-     * transitions, so this buggy logic is preserved as is too.
-     */
-    private static int zoneOffsetMillis = new GregorianCalendar().get(Calendar.ZONE_OFFSET);
 
     /**
      * The data itself.
@@ -812,25 +795,13 @@ public class Data {
         }
         case LOCAL_DATE:
             return ValueDate.fromDateValue(readVarLong());
-        case DATE: {
-            long ms = readVarLong() * MILLIS_PER_MINUTE - zoneOffsetMillis;
-            return ValueDate.fromDateValue(LegacyDateTimeUtils.dateValueFromLocalMillis(
-                    ms + LegacyDateTimeUtils.getTimeZoneOffsetMillis(null, ms)));
-        }
         case LOCAL_TIME:
             return ValueTime.fromNanos(readVarLong() * 1_000_000 + readVarInt());
-        case TIME: {
-            long ms = readVarLong() - zoneOffsetMillis;
-            return ValueTime.fromNanos(LegacyDateTimeUtils.nanosFromLocalMillis(
-                    ms + LegacyDateTimeUtils.getTimeZoneOffsetMillis(null, ms)));
-        }
         case TIME_TZ:
             return ValueTimeTimeZone.fromNanos(readVarInt() * DateTimeUtils.NANOS_PER_SECOND + readVarInt(),
                     readTimeZone());
         case LOCAL_TIMESTAMP:
             return ValueTimestamp.fromDateValueAndNanos(readVarLong(), readVarLong() * 1_000_000 + readVarInt());
-        case TIMESTAMP:
-            return LegacyDateTimeUtils.fromTimestamp(null, readVarLong() - zoneOffsetMillis, readVarInt() % 1_000_000);
         case TIMESTAMP_TZ: {
             long dateValue = readVarLong();
             long nanos = readVarLong();
@@ -1448,14 +1419,6 @@ public class Data {
 
     public DataHandler getHandler() {
         return handler;
-    }
-
-    /**
-     * Reset the cached calendar for default timezone, for example after
-     * changing the default timezone.
-     */
-    public static void resetCalendar() {
-        zoneOffsetMillis = new GregorianCalendar().get(Calendar.ZONE_OFFSET);
     }
 
 }

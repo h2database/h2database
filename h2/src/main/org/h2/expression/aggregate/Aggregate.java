@@ -891,9 +891,6 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case LISTAGG:
             type = TypeInfo.TYPE_VARCHAR;
             break;
-        case COUNT_ALL:
-            type = TypeInfo.TYPE_BIGINT;
-            break;
         case COUNT:
             if (args[0].isConstant()) {
                 if (args[0].getValue(session) == ValueNull.INSTANCE) {
@@ -906,6 +903,8 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                     return aggregate.optimize(session);
                 }
             }
+            //$FALL-THROUGH$
+        case COUNT_ALL:
             type = TypeInfo.TYPE_BIGINT;
             break;
         case HISTOGRAM: {
@@ -1275,16 +1274,15 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         if (visitor.getType() == ExpressionVisitor.OPTIMIZABLE_AGGREGATE) {
             switch (aggregateType) {
             case COUNT:
-                if (!distinct && args[0].getNullable() == Column.NOT_NULLABLE) {
-                    return visitor.getTable().canGetRowCount(select.getSession());
+                if (distinct || args[0].getNullable() != Column.NOT_NULLABLE) {
+                    return false;
                 }
-                return false;
+                //$FALL-THROUGH$
             case COUNT_ALL:
                 return visitor.getTable().canGetRowCount(select.getSession());
             case MIN:
             case MAX:
-                Index index = getMinMaxColumnIndex();
-                return index != null;
+                return getMinMaxColumnIndex() != null;
             case PERCENTILE_CONT:
             case PERCENTILE_DISC:
                 return args[0].isConstant() && Percentile.getColumnIndex(select.getSession().getDatabase(),

@@ -69,7 +69,7 @@ class MVPlainTempResult extends MVTempResult {
         super(database, expressions, visibleColumnCount, resultColumnCount);
         ValueDataType valueType = new ValueDataType(database, new int[resultColumnCount]);
         valueType.setRowFactory(DefaultRowFactory.INSTANCE.createRowFactory(database, database.getCompareMode(),
-                database, expressions, null));
+                database, expressions, null, false));
         Builder<Long, ValueRow> builder = new MVMap.Builder<Long, ValueRow>().keyType(LongDataType.INSTANCE)
                 .valueType(valueType).singleWriter();
         map = store.openMap("tmp", builder);

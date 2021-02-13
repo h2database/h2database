@@ -99,7 +99,7 @@ public abstract class Index extends SchemaObject {
             }
         }
         rowFactory = database.getRowFactory().createRowFactory(database, database.getCompareMode(), database,
-                table.getColumns(), newIndexType.isScan() ? null : newIndexColumns);
+                table.getColumns(), newIndexType.isScan() ? null : newIndexColumns, true);
     }
 
     @Override

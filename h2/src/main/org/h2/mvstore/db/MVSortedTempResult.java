@@ -186,10 +186,10 @@ class MVSortedTempResult extends MVTempResult {
                 types[i] = expressions[indexes[i]].getType();
             }
             keyType.setRowFactory(DefaultRowFactory.INSTANCE.createRowFactory(database, database.getCompareMode(),
-                    database, types, null));
+                    database, types, null, false));
         } else {
             keyType.setRowFactory(DefaultRowFactory.INSTANCE.createRowFactory(database, database.getCompareMode(),
-                    database, expressions, null));
+                    database, expressions, null, false));
         }
         Builder<ValueRow, Long> builder = new MVMap.Builder<ValueRow, Long>().keyType(keyType)
                 .valueType(LongDataType.INSTANCE);
@@ -212,7 +212,7 @@ class MVSortedTempResult extends MVTempResult {
             }
             ValueDataType distinctType = new ValueDataType(database, new int[count]);
             distinctType.setRowFactory(DefaultRowFactory.INSTANCE.createRowFactory(database, database.getCompareMode(),
-                    database, types, null));
+                    database, types, null, false));
             DataType<Value> distinctValueType;
             if (distinctIndexes != null && sort != null) {
                 distinctValueType = orderedDistinctOnType = keyType;

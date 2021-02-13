@@ -487,7 +487,7 @@ public abstract class Table extends SchemaObject {
             }
         }
         rowFactory = database.getRowFactory().createRowFactory(database, database.getCompareMode(), database, columns,
-                null);
+                null, false);
     }
 
     /**

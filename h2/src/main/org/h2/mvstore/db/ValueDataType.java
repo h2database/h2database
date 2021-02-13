@@ -806,6 +806,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         buff.putVarInt(columnCount);
         int[] indexes = rowFactory == null ? null : rowFactory.getIndexes();
         writeIntArray(buff, indexes);
+        buff.put(rowFactory.getRowDataType().isStoreKeys() ? (byte) 1 : (byte) 0);
     }
 
     private static void writeIntArray(WriteBuffer buff, int[] array) {
@@ -835,14 +836,15 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             int[] sortTypes = readIntArray(buff);
             int columnCount = DataUtils.readVarInt(buff);
             int[] indexes = readIntArray(buff);
+            boolean storeKeys = buff.get() != 0;
             CompareMode compareMode = database == null ? CompareMode.getInstance(null, 0) : database.getCompareMode();
             if (database == null) {
                 return new ValueDataType();
             } else if (sortTypes == null) {
                 return new ValueDataType(database, null);
             }
-            RowFactory rowFactory = RowFactory.getDefaultRowFactory()
-                    .createRowFactory(database, compareMode, database, sortTypes, indexes, null, columnCount);
+            RowFactory rowFactory = RowFactory.getDefaultRowFactory().createRowFactory(database, compareMode, database,
+                    sortTypes, indexes, null, columnCount, storeKeys);
             return rowFactory.getRowDataType();
         }
 

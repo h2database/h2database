@@ -32,13 +32,15 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
     private final int[]         sortTypes;
     private final int[]         indexes;
     private final int           columnCount;
+    private final boolean       storeKeys;
 
     public RowDataType(CastDataProvider provider, CompareMode compareMode, DataHandler handler, int[] sortTypes,
-            int[] indexes, int columnCount) {
+            int[] indexes, int columnCount, boolean storeKeys) {
         this.valueDataType = new ValueDataType(provider, compareMode, handler, sortTypes);
         this.sortTypes = sortTypes;
         this.indexes = indexes;
         this.columnCount = columnCount;
+        this.storeKeys = storeKeys;
         assert indexes == null || sortTypes.length == indexes.length;
     }
 
@@ -56,6 +58,10 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
 
     public int getColumnCount() {
         return columnCount;
+    }
+
+    public boolean isStoreKeys() {
+        return storeKeys;
     }
 
     @Override
@@ -141,7 +147,9 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
     public SearchRow read(ByteBuffer buff) {
         RowFactory rowFactory = valueDataType.getRowFactory();
         SearchRow row = rowFactory.createRow();
-        row.setKey(DataUtils.readVarLong(buff));
+        if (storeKeys) {
+            row.setKey(DataUtils.readVarLong(buff));
+        }
         TypeInfo[] columnTypes = rowFactory.getColumnTypes();
         if (indexes == null) {
             int columnCount = DataUtils.readVarInt(buff);
@@ -158,7 +166,9 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
 
     @Override
     public void write(WriteBuffer buff, SearchRow row) {
-        buff.putVarLong(row.getKey());
+        if (storeKeys) {
+            buff.putVarLong(row.getKey());
+        }
         if (indexes == null) {
             int columnCount = row.getColumnCount();
             buff.putVarInt(columnCount);
@@ -201,6 +211,7 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
         buff.putVarInt(columnCount);
         writeIntArray(buff, sortTypes);
         writeIntArray(buff, indexes);
+        buff.put(storeKeys ? (byte) 1 : (byte) 0);
     }
 
     private static void writeIntArray(WriteBuffer buff, int[] array) {
@@ -230,9 +241,10 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
             int columnCount = DataUtils.readVarInt(buff);
             int[] sortTypes = readIntArray(buff);
             int[] indexes = readIntArray(buff);
+            boolean storeKeys = buff.get() != 0;
             CompareMode compareMode = database == null ? CompareMode.getInstance(null, 0) : database.getCompareMode();
-            RowFactory rowFactory = RowFactory.getDefaultRowFactory()
-                    .createRowFactory(database, compareMode, database, sortTypes, indexes, null, columnCount);
+            RowFactory rowFactory = RowFactory.getDefaultRowFactory().createRowFactory(database, compareMode, database,
+                    sortTypes, indexes, null, columnCount, storeKeys);
             return rowFactory.getRowDataType();
         }
 

@@ -219,9 +219,7 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
 
     private Row lockRow(TransactionMap<Long,SearchRow> map, long key) {
         try {
-            Row row = (Row) map.lock(key);
-            ensureRowKey(row, key);
-            return row;
+            return setRowKey((Row) map.lock(key), key);
         } catch (MVStoreException ex) {
             throw mvTable.convertException(ex);
         }
@@ -260,12 +258,11 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
     @Override
     public Row getRow(SessionLocal session, long key) {
         TransactionMap<Long,SearchRow> map = getMap(session);
-        Row row = (Row)map.getFromSnapshot(key);
+        Row row = (Row) map.getFromSnapshot(key);
         if (row == null) {
             throw DbException.get(ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX, getTraceSQL(), String.valueOf(key));
         }
-        ensureRowKey(row, key);
-        return row;
+        return setRowKey(row, key);
     }
 
     @Override
@@ -319,8 +316,7 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
         Long rowId = first ? map.firstKey() : map.lastKey();
         Row row = null;
         if (rowId != null) {
-            row = (Row) map.getFromSnapshot(rowId);
-            ensureRowKey(row, rowId);
+            row = setRowKey((Row) map.getFromSnapshot(rowId), rowId);
         }
         return new SingleRowCursor(row);
     }
@@ -385,9 +381,7 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
     private Cursor find(SessionLocal session, Long first, Long last) {
         TransactionMap<Long,SearchRow> map = getMap(session);
         if (first != null && last != null && first.longValue() == last.longValue()) {
-            Row row = (Row)map.getFromSnapshot(first);
-            ensureRowKey(row, first);
-            return new SingleRowCursor(row);
+            return new SingleRowCursor(setRowKey((Row) map.getFromSnapshot(first), first));
         }
         return new MVStoreCursor(map.entryIterator(first, last));
     }
@@ -416,12 +410,11 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
         return dataMap.map;
     }
 
-    private void ensureRowKey(Row row, long key) {
-        if (mainIndexColumn != SearchRow.ROWID_INDEX && row != null && row.getKey() == 0) {
-            long c = row.getValue(mainIndexColumn).getLong();
-            assert c == key : c + " <> " + key;
+    private static Row setRowKey(Row row, long key) {
+        if (row != null && row.getKey() == 0) {
             row.setKey(key);
         }
+        return row;
     }
 
     /**

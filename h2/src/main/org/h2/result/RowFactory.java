@@ -42,10 +42,11 @@ public abstract class RowFactory {
      * @param handler the data handler
      * @param columns the list of columns
      * @param indexColumns the list of index columns
+     * @param storeKeys whether row keys are stored
      * @return the (possibly new) row factory
      */
     public RowFactory createRowFactory(CastDataProvider provider, CompareMode compareMode, DataHandler handler,
-            Typed[] columns, IndexColumn[] indexColumns) {
+            Typed[] columns, IndexColumn[] indexColumns, boolean storeKeys) {
         return this;
     }
 
@@ -73,6 +74,8 @@ public abstract class RowFactory {
 
     public abstract int getColumnCount();
 
+    public abstract boolean getStoreKeys();
+
 
     /**
      * Default implementation of row factory.
@@ -87,7 +90,7 @@ public abstract class RowFactory {
         public static final DefaultRowFactory INSTANCE = new DefaultRowFactory();
 
         DefaultRowFactory() {
-            this(new RowDataType(null, CompareMode.getInstance(null, 0), null, null, null, 0), 0, null, null);
+            this(new RowDataType(null, CompareMode.getInstance(null, 0), null, null, null, 0, true), 0, null, null);
         }
 
         private DefaultRowFactory(RowDataType dataType, int columnCount, int[] indexes, TypeInfo[] columnTypes) {
@@ -107,7 +110,7 @@ public abstract class RowFactory {
 
         @Override
         public RowFactory createRowFactory(CastDataProvider provider, CompareMode compareMode, DataHandler handler,
-                Typed[] columns, IndexColumn[] indexColumns) {
+                Typed[] columns, IndexColumn[] indexColumns, boolean storeKeys) {
             int[] indexes = null;
             int[] sortTypes = null;
             TypeInfo[] columnTypes = null;
@@ -134,7 +137,8 @@ public abstract class RowFactory {
                     columnTypes[i] = columns[i].getType();
                 }
             }
-            return createRowFactory(provider, compareMode, handler, sortTypes, indexes, columnTypes, columnCount);
+            return createRowFactory(provider, compareMode, handler, sortTypes, indexes, columnTypes, columnCount,
+                    storeKeys);
         }
 
         /**
@@ -147,11 +151,13 @@ public abstract class RowFactory {
          * @param indexes the list of indexed columns
          * @param columnTypes the list of column data type information
          * @param columnCount the number of columns
+         * @param storeKeys whether row keys are stored
          * @return the (possibly new) row factory
          */
         public RowFactory createRowFactory(CastDataProvider provider, CompareMode compareMode, DataHandler handler,
-                int[] sortTypes, int[] indexes, TypeInfo[] columnTypes, int columnCount) {
-            RowDataType rowDataType = new RowDataType(provider, compareMode, handler, sortTypes, indexes, columnCount);
+                int[] sortTypes, int[] indexes, TypeInfo[] columnTypes, int columnCount, boolean storeKeys) {
+            RowDataType rowDataType = new RowDataType(provider, compareMode, handler, sortTypes, indexes, columnCount,
+                    storeKeys);
             RowFactory rowFactory = new DefaultRowFactory(rowDataType, columnCount, indexes, columnTypes);
             rowDataType.setRowFactory(rowFactory);
             return rowFactory;
@@ -191,6 +197,11 @@ public abstract class RowFactory {
         @Override
         public int getColumnCount() {
             return columnCount;
+        }
+
+        @Override
+        public boolean getStoreKeys() {
+            return dataType.isStoreKeys();
         }
     }
 }

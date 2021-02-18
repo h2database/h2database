@@ -161,8 +161,9 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     private String currentTransactionName;
     private volatile long cancelAtNs;
     private final ValueTimestampTimeZone sessionStart;
-    private ValueTimestampTimeZone transactionStart;
-    private ValueTimestampTimeZone commandStartOrEnd;
+    private ValueTimestampTimeZone currentTimestamp;
+    private long transactionStart;
+    private long commandStartOrEnd;
     private HashMap<String, Value> variables;
     private HashSet<ResultInterface> temporaryResults;
     private int queryTimeout;
@@ -660,8 +661,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     public void commit(boolean ddl) {
         checkCommitRollback();
 
-        currentTransactionName = null;
-        transactionStart = null;
+        onTransactionStop();
         boolean forRepeatableRead = false;
         if (transaction != null) {
             forRepeatableRead = !transaction.allowNonRepeatableRead();
@@ -796,8 +796,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      */
     public void rollback() {
         checkCommitRollback();
-        currentTransactionName = null;
-        transactionStart = null;
+        onTransactionStop();
         boolean needCommit = undoLog != null && undoLog.size() > 0 || transaction != null;
         if (needCommit) {
             rollbackTo(null);
@@ -1177,8 +1176,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      */
     public void rollbackToSavepoint(String name) {
         checkCommitRollback();
-        currentTransactionName = null;
-        transactionStart = null;
+        onTransactionStop();
         if (savepoints == null) {
             throw DbException.get(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
@@ -1267,9 +1265,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      * Wait for some time if this session is throttled (slowed down).
      */
     public void throttle() {
-        if (commandStartOrEnd == null) {
-            commandStartOrEnd = DateTimeUtils.currentTimestamp(timeZone);
-        }
         if (throttleMs == 0) {
             return;
         }
@@ -1298,7 +1293,8 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         transitionToState(targetState, true);
         if (isOpen()) {
             currentCommand = command;
-            commandStartOrEnd = DateTimeUtils.currentTimestamp(timeZone);
+            currentTimestamp = null;
+            commandStartOrEnd = System.currentTimeMillis();
             if (command != null) {
                 if (queryTimeout > 0) {
                     cancelAtNs = Utils.currentNanoTimePlusMillis(queryTimeout);
@@ -1323,6 +1319,12 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
             throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
         }
         return true;
+    }
+
+    private void onTransactionStop() {
+        currentTransactionName = null;
+        currentTimestamp = null;
+        transactionStart = 0;
     }
 
     /**
@@ -1357,10 +1359,11 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     }
 
     public ValueTimestampTimeZone getCommandStartOrEnd() {
-        if (commandStartOrEnd == null) {
-            commandStartOrEnd = DateTimeUtils.currentTimestamp(timeZone);
+        if (commandStartOrEnd == 0) {
+            commandStartOrEnd = System.currentTimeMillis();
+            currentTimestamp = null;
         }
-        return commandStartOrEnd;
+        return DateTimeUtils.timestampWithTimeZone(commandStartOrEnd, timeZone);
     }
 
     public boolean getAllowLiterals() {
@@ -1529,10 +1532,10 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     }
 
     public ValueTimestampTimeZone getTransactionStart() {
-        if (transactionStart == null) {
-            transactionStart = DateTimeUtils.currentTimestamp(timeZone);
+        if (transactionStart == 0) {
+            transactionStart = System.currentTimeMillis();
         }
-        return transactionStart;
+        return DateTimeUtils.timestampWithTimeZone(transactionStart, timeZone);
     }
 
     public Set<Table> getLocks() {
@@ -1994,7 +1997,10 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
 
     @Override
     public ValueTimestampTimeZone currentTimestamp() {
-        return database.getMode().dateTimeValueWithinTransaction ? getTransactionStart() : getCommandStartOrEnd();
+        if (currentTimestamp == null) {
+            currentTimestamp = database.getMode().dateTimeValueWithinTransaction ? getTransactionStart() : getCommandStartOrEnd();
+        }
+        return currentTimestamp;
     }
 
     @Override
@@ -2065,14 +2071,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     public void setTimeZone(TimeZoneProvider timeZone) {
         if (!timeZone.equals(this.timeZone)) {
             this.timeZone = timeZone;
-            ValueTimestampTimeZone ts = transactionStart;
-            if (ts != null) {
-                transactionStart = moveTimestamp(ts, timeZone);
-            }
-            ts = commandStartOrEnd;
-            if (ts != null) {
-                commandStartOrEnd = moveTimestamp(ts, timeZone);
-            }
             modificationId++;
         }
     }

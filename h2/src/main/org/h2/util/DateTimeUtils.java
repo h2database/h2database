@@ -127,9 +127,16 @@ public class DateTimeUtils {
      * @return current timestamp
      */
     public static ValueTimestampTimeZone currentTimestamp(TimeZoneProvider timeZone) {
-        Instant now = Instant.now();
-        long second = now.getEpochSecond();
-        int nano = now.getNano();
+        return timestampWithTimeZone(Instant.now(), timeZone);
+    }
+
+    public static ValueTimestampTimeZone timestampWithTimeZone(long millis, TimeZoneProvider timeZone) {
+        return timestampWithTimeZone(Instant.ofEpochMilli(millis), timeZone);
+    }
+
+    public static ValueTimestampTimeZone timestampWithTimeZone(Instant instant, TimeZoneProvider timeZone) {
+        long second = instant.getEpochSecond();
+        int nano = instant.getNano();
         /*
          * This code intentionally does not support properly dates before UNIX
          * epoch because such support is not required for current dates.

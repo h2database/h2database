@@ -227,6 +227,9 @@ public class TestScript extends TestDb {
                 "table", "values", "window" }) {
             testScript("queries/" + s + ".sql");
         }
+        if (config.mvStore) {
+            testScript("other/two_phase_commit.sql");
+        }
 
         deleteDb("script");
         System.out.flush();

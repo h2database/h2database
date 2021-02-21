@@ -908,6 +908,9 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
 
                 // release any open table locks
                 if (hasPreparedTransaction()) {
+                    if (currentTransactionName != null) {
+                        removeLobMap = null;
+                    }
                     endTransaction(transaction != null && !transaction.allowNonRepeatableRead());
                 } else {
                     rollback();

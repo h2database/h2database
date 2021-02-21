@@ -658,10 +658,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      * @param ddl if the statement was a data definition statement
      */
     public void commit(boolean ddl) {
-        checkCommitRollback();
-
-        currentTransactionName = null;
-        transactionStart = null;
+        beforeCommitOrRollback();
         boolean forRepeatableRead = false;
         if (transaction != null) {
             forRepeatableRead = !transaction.allowNonRepeatableRead();
@@ -753,10 +750,12 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         }
     }
 
-    private void checkCommitRollback() {
+    private void beforeCommitOrRollback() {
         if (commitOrRollbackDisabled && !locks.isEmpty()) {
             throw DbException.get(ErrorCode.COMMIT_ROLLBACK_NOT_ALLOWED);
         }
+        currentTransactionName = null;
+        transactionStart = null;
     }
 
     private void endTransaction(boolean forRepeatableRead) {
@@ -795,9 +794,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      * Fully roll back the current transaction.
      */
     public void rollback() {
-        checkCommitRollback();
-        currentTransactionName = null;
-        transactionStart = null;
+        beforeCommitOrRollback();
         boolean needCommit = undoLog != null && undoLog.size() > 0 || transaction != null;
         if (needCommit) {
             rollbackTo(null);
@@ -1176,14 +1173,9 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      * @param name the savepoint name
      */
     public void rollbackToSavepoint(String name) {
-        checkCommitRollback();
-        currentTransactionName = null;
-        transactionStart = null;
-        if (savepoints == null) {
-            throw DbException.get(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
-        }
-        Savepoint savepoint = savepoints.get(name);
-        if (savepoint == null) {
+        beforeCommitOrRollback();
+        Savepoint savepoint;
+        if (savepoints == null || (savepoint = savepoints.get(name)) == null) {
             throw DbException.get(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
         rollbackTo(savepoint);

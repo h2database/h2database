@@ -127,17 +127,29 @@ public class DateTimeUtils {
      * @return current timestamp
      */
     public static ValueTimestampTimeZone currentTimestamp(TimeZoneProvider timeZone) {
-        Instant now = Instant.now();
-        long second = now.getEpochSecond();
-        int nano = now.getNano();
+        return currentTimestamp(timeZone, Instant.now());
+    }
+
+    /**
+     * Returns current timestamp using the specified instant for its value.
+     *
+     * @param timeZone
+     *            the time zone
+     * @param now
+     *            timestamp source, must be greater than or equal to
+     *            1970-01-01T00:00:00Z
+     * @return current timestamp
+     */
+    public static ValueTimestampTimeZone currentTimestamp(TimeZoneProvider timeZone, Instant now) {
         /*
          * This code intentionally does not support properly dates before UNIX
          * epoch because such support is not required for current dates.
          */
+        long second = now.getEpochSecond();
         int offset = timeZone.getTimeZoneOffsetUTC(second);
         second += offset;
         return ValueTimestampTimeZone.fromDateValueAndNanos(dateValueFromAbsoluteDay(second / SECONDS_PER_DAY),
-                second % SECONDS_PER_DAY * 1_000_000_000 + nano, offset);
+                second % SECONDS_PER_DAY * 1_000_000_000 + now.getNano(), offset);
     }
 
     /**

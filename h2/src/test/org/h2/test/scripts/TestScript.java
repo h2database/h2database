@@ -395,6 +395,12 @@ public class TestScript extends TestDb {
                         write("");
                         allowReconnect = false;
                         break;
+                    case "@autocommit on":
+                        conn.setAutoCommit(true);
+                        break;
+                    case "@autocommit off":
+                        conn.setAutoCommit(false);
+                        break;
                     default:
                         addWriteResultError("<command>", sql);
                     }

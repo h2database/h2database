@@ -227,6 +227,9 @@ public class TestScript extends TestDb {
                 "table", "values", "window" }) {
             testScript("queries/" + s + ".sql");
         }
+        if (config.mvStore) {
+            testScript("other/two_phase_commit.sql");
+        }
 
         deleteDb("script");
         System.out.flush();
@@ -394,6 +397,12 @@ public class TestScript extends TestDb {
                         write(sql);
                         write("");
                         allowReconnect = false;
+                        break;
+                    case "@autocommit on":
+                        conn.setAutoCommit(true);
+                        break;
+                    case "@autocommit off":
+                        conn.setAutoCommit(false);
                         break;
                     default:
                         addWriteResultError("<command>", sql);

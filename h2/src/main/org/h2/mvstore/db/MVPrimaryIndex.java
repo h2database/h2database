@@ -30,7 +30,6 @@ import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueNull;
 import org.h2.value.VersionedValue;
 
 /**
@@ -362,20 +361,6 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
     @Override
     public void addBufferedRows(List<String> bufferNames) {
         throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Search for a specific row or a set of rows.
-     *
-     * @param session the session
-     * @param first the key of the first row
-     * @param last the key of the last row
-     * @return the cursor
-     */
-    Cursor find(SessionLocal session, Value first, Value last) {
-        long from = first == null || first == ValueNull.INSTANCE ? Long.MIN_VALUE : first.getLong();
-        long to = last == null || last == ValueNull.INSTANCE ? Long.MAX_VALUE : last.getLong();
-        return find(session, from, to);
     }
 
     private Cursor find(SessionLocal session, Long first, Long last) {

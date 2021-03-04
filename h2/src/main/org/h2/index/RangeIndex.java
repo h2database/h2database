@@ -5,6 +5,7 @@
  */
 package org.h2.index;
 
+import org.h2.api.ErrorCode;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
@@ -35,6 +36,9 @@ public class RangeIndex extends VirtualTableIndex {
         long min = rangeTable.getMin(session);
         long max = rangeTable.getMax(session);
         long step = rangeTable.getStep(session);
+        if (step == 0L) {
+            throw DbException.get(ErrorCode.STEP_SIZE_MUST_NOT_BE_ZERO);
+        }
         if (first != null) {
             try {
                 long v = first.getValue(0).getLong();
@@ -88,6 +92,9 @@ public class RangeIndex extends VirtualTableIndex {
         long min = rangeTable.getMin(session);
         long max = rangeTable.getMax(session);
         long step = rangeTable.getStep(session);
+        if (step == 0L) {
+            throw DbException.get(ErrorCode.STEP_SIZE_MUST_NOT_BE_ZERO);
+        }
         return new SingleRowCursor((step > 0 ? min <= max : min >= max)
                 ? Row.get(new Value[]{ ValueBigint.get(first ^ min >= max ? min : max) }, 1) : null);
     }

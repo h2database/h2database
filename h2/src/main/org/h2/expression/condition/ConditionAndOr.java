@@ -107,11 +107,7 @@ public class ConditionAndOr extends Condition {
         Value r;
         switch (andOrType) {
         case AND: {
-            if (l.isFalse()) {
-                return ValueBoolean.FALSE;
-            }
-            r = right.getValue(session);
-            if (r.isFalse()) {
+            if (l.isFalse() || (r = right.getValue(session)).isFalse()) {
                 return ValueBoolean.FALSE;
             }
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
@@ -120,11 +116,7 @@ public class ConditionAndOr extends Condition {
             return ValueBoolean.TRUE;
         }
         case OR: {
-            if (l.isTrue()) {
-                return ValueBoolean.TRUE;
-            }
-            r = right.getValue(session);
-            if (r.isTrue()) {
+            if (l.isTrue() || (r = right.getValue(session)).isTrue()) {
                 return ValueBoolean.TRUE;
             }
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {

@@ -56,12 +56,14 @@ import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 
 /**
- * <p>
  * Represents a result set.
- * </p>
  * <p>
  * Column labels are case-insensitive, quotes are not supported. The first
  * column has the column index 1.
+ * </p>
+ * <p>
+ * Thread safety: the result set is not thread-safe and must not be used by
+ * multiple threads concurrently.
  * </p>
  * <p>
  * Updatable result sets: Result sets are updatable when the result only

@@ -55,6 +55,26 @@ import org.h2.value.ValueVarchar;
 
 /**
  * Represents a prepared statement.
+ * <p>
+ * Thread safety: the prepared statement is not thread-safe. If the same
+ * prepared statement is used by multiple threads access to it must be
+ * synchronized. The single synchronized block must include assignment of
+ * parameters, execution of the command and all operations with its result.
+ * </p>
+ * <pre>
+ * synchronized (prep) {
+ *     prep.setInt(1, 10);
+ *     try (ResultSet rs = prep.executeQuery()) {
+ *         while (rs.next) {
+ *             // Do something
+ *         }
+ *     }
+ * }
+ * synchronized (prep) {
+ *     prep.setInt(1, 15);
+ *     updateCount = prep.executeUpdate();
+ * }
+ * </pre>
  */
 public class JdbcPreparedStatement extends JdbcStatement implements PreparedStatement {
 

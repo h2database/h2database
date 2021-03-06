@@ -59,13 +59,13 @@ import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 
 /**
- * <p>
  * Represents a connection (session) to a database.
- * </p>
  * <p>
  * Thread safety: the connection is thread-safe, because access is synchronized.
- * However, for compatibility with other databases, a connection should only be
- * used in one thread at any time.
+ * Different statements from the same connection may try to execute their
+ * commands in parallel, but they will be executed sequentially. If real
+ * concurrent execution of these commands is needed, different connections
+ * should be used.
  * </p>
  */
 public class JdbcConnection extends TraceObject implements Connection, JdbcConnectionBackwardsCompat,

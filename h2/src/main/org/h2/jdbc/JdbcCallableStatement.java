@@ -35,7 +35,26 @@ import org.h2.value.ValueNull;
 
 /**
  * Represents a callable statement.
- *
+ * <p>
+ * Thread safety: the callable statement is not thread-safe. If the same
+ * callable statement is used by multiple threads access to it must be
+ * synchronized. The single synchronized block must include assignment of
+ * parameters, execution of the command and all operations with its result.
+ * </p>
+ * <pre>
+ * synchronized (call) {
+ *     call.setInt(1, 10);
+ *     try (ResultSet rs = call.executeQuery()) {
+ *         while (rs.next) {
+ *             // Do something
+ *         }
+ *     }
+ * }
+ * synchronized (call) {
+ *     call.setInt(1, 15);
+ *     updateCount = call.executeUpdate();
+ * }
+ * </pre>
  * @author Sergi Vladykin
  * @author Thomas Mueller
  */

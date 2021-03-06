@@ -804,22 +804,64 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         return new ByteArrayInputStream(bytes, (int) zeroBasedOffset, (int) length);
     }
 
+    /**
+     * Returns this value as a Java {@code boolean} value.
+     *
+     * @throws DbException
+     *             if this value is {@code NULL} or cannot be casted to
+     *             {@code BOOLEAN}
+     * @return value
+     * @see #isTrue()
+     * @see #isFalse()
+     */
     public boolean getBoolean() {
         return convertToBoolean().getBoolean();
     }
 
+    /**
+     * Returns this value as a Java {@code byte} value.
+     *
+     * @throws DbException
+     *             if this value is {@code NULL} or cannot be casted to
+     *             {@code TINYINT}
+     * @return value
+     */
     public byte getByte() {
         return convertToTinyint(null).getByte();
     }
 
+    /**
+     * Returns this value as a Java {@code short} value.
+     *
+     * @throws DbException
+     *             if this value is {@code NULL} or cannot be casted to
+     *             {@code SMALLINT}
+     * @return value
+     */
     public short getShort() {
         return convertToSmallint(null).getShort();
     }
 
+    /**
+     * Returns this value as a Java {@code int} value.
+     *
+     * @throws DbException
+     *             if this value is {@code NULL} or cannot be casted to
+     *             {@code INTEGER}
+     * @return value
+     */
     public int getInt() {
         return convertToInt(null).getInt();
     }
 
+    /**
+     * Returns this value as a Java {@code long} value.
+     *
+     * @throws DbException
+     *             if this value is {@code NULL} or cannot be casted to
+     *             {@code BIGINT}
+     * @return value
+     */
     public long getLong() {
         return convertToBigint(null).getLong();
     }
@@ -828,10 +870,26 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         throw getDataConversionError(NUMERIC);
     }
 
+    /**
+     * Returns this value as a Java {@code float} value.
+     *
+     * @throws DbException
+     *             if this value is {@code NULL} or cannot be casted to
+     *             {@code REAL}
+     * @return value
+     */
     public float getFloat() {
         throw getDataConversionError(REAL);
     }
 
+    /**
+     * Returns this value as a Java {@code double} value.
+     *
+     * @throws DbException
+     *             if this value is {@code NULL} or cannot be casted to
+     *             {@code DOUBLE PRECISION}
+     * @return value
+     */
     public double getDouble() {
         throw getDataConversionError(DOUBLE);
     }
@@ -2686,6 +2744,32 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      */
     public long octetLength() {
         return getBytesNoCopy().length;
+    }
+
+    /**
+     * Returns whether this value {@code IS TRUE}.
+     *
+     * @return {@code true} if it is. For {@code BOOLEAN} values returns
+     *         {@code true} for {@code TRUE} and {@code false} for {@code FALSE}
+     *         and {@code UNKNOWN} ({@code NULL}).
+     * @see #getBoolean()
+     * @see #isFalse()
+     */
+    public final boolean isTrue() {
+        return this != ValueNull.INSTANCE ? getBoolean() : false;
+    }
+
+    /**
+     * Returns whether this value {@code IS FALSE}.
+     *
+     * @return {@code true} if it is. For {@code BOOLEAN} values returns
+     *         {@code true} for {@code FALSE} and {@code false} for {@code TRUE}
+     *         and {@code UNKNOWN} ({@code NULL}).
+     * @see #getBoolean()
+     * @see #isTrue()
+     */
+    public final boolean isFalse() {
+        return this != ValueNull.INSTANCE && !getBoolean();
     }
 
 }

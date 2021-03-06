@@ -86,7 +86,7 @@ public final class ConditionInConstantSet extends Condition {
         if (!whenOperand) {
             return super.getWhenValue(session, left);
         }
-        return getValue(left, session).getBoolean();
+        return getValue(left, session).isTrue();
     }
 
     private Value getValue(Value left, SessionLocal session) {

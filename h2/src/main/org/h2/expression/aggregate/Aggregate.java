@@ -359,7 +359,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     @Override
     protected void updateFromExpressions(SessionLocal session, Object aggregateData, Value[] array) {
-        if (filterCondition == null || array[getNumExpressions() - 1].getBoolean()) {
+        if (filterCondition == null || array[getNumExpressions() - 1].isTrue()) {
             AggregateData data = (AggregateData) aggregateData;
             Value v = args.length == 0 ? null : array[0];
             updateData(session, data, v, array);

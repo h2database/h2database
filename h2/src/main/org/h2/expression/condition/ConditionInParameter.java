@@ -129,7 +129,7 @@ public final class ConditionInParameter extends Condition {
         if (left == ValueNull.INSTANCE) {
             return false;
         }
-        return getValue(session, left, not, parameter.getValue(session)).getBoolean();
+        return getValue(session, left, not, parameter.getValue(session)).isTrue();
     }
 
     @Override

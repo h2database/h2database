@@ -618,7 +618,7 @@ public final class ValueToObjectConverter extends TraceObject {
      * @return the value
      */
     public static Value readValue(Session session, JdbcResultSet rs, int columnIndex) {
-        Value value = rs.get(columnIndex);
+        Value value = rs.getInternal(columnIndex);
         switch (value.getValueType()) {
         case Value.CLOB:
             value = session.addTemporaryLob(

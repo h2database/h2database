@@ -16,6 +16,7 @@ import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.message.DbException;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.result.RowList;
@@ -65,8 +66,8 @@ public final class Update extends FilteredDataChangeStatement {
             long limitRows = -1;
             if (fetchExpr != null) {
                 Value v = fetchExpr.getValue(session);
-                if (v != ValueNull.INSTANCE) {
-                    limitRows = v.getLong();
+                if (v == ValueNull.INSTANCE || (limitRows = v.getLong()) < 0) {
+                    throw DbException.getInvalidValueException("FETCH", v);
                 }
             }
             while (nextRow(limitRows, count)) {

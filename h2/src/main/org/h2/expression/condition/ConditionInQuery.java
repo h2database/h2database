@@ -60,7 +60,7 @@ public final class ConditionInQuery extends PredicateWithSubquery {
         if (!whenOperand) {
             return super.getWhenValue(session, left);
         }
-        return getValue(session, left).getBoolean();
+        return getValue(session, left).isTrue();
     }
 
     private Value getValue(SessionLocal session, Value left) {

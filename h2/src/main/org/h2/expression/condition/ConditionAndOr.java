@@ -107,11 +107,11 @@ public class ConditionAndOr extends Condition {
         Value r;
         switch (andOrType) {
         case AND: {
-            if (l != ValueNull.INSTANCE && !l.getBoolean()) {
+            if (l.isFalse()) {
                 return ValueBoolean.FALSE;
             }
             r = right.getValue(session);
-            if (r != ValueNull.INSTANCE && !r.getBoolean()) {
+            if (r.isFalse()) {
                 return ValueBoolean.FALSE;
             }
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
@@ -120,11 +120,11 @@ public class ConditionAndOr extends Condition {
             return ValueBoolean.TRUE;
         }
         case OR: {
-            if (l.getBoolean()) {
+            if (l.isTrue()) {
                 return ValueBoolean.TRUE;
             }
             r = right.getValue(session);
-            if (r.getBoolean()) {
+            if (r.isTrue()) {
                 return ValueBoolean.TRUE;
             }
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
@@ -246,7 +246,7 @@ public class ConditionAndOr extends Condition {
         Value r = right.getValue(session);
         switch (andOrType) {
         case AND: {
-            if (l != ValueNull.INSTANCE && !l.getBoolean() || r != ValueNull.INSTANCE && !r.getBoolean()) {
+            if (l.isFalse() || r.isFalse()) {
                 return ValueExpression.FALSE;
             }
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
@@ -255,7 +255,7 @@ public class ConditionAndOr extends Condition {
             return ValueExpression.TRUE;
         }
         case OR: {
-            if (l.getBoolean() || r.getBoolean()) {
+            if (l.isTrue() || r.isTrue()) {
                 return ValueExpression.TRUE;
             }
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
@@ -269,23 +269,15 @@ public class ConditionAndOr extends Condition {
     }
 
     private static Expression optimizeConstant(SessionLocal session, int andOrType, Value l, Expression right) {
-        switch (andOrType) {
-        case AND:
-            if (l != ValueNull.INSTANCE && !l.getBoolean()) {
-                return ValueExpression.FALSE;
-            } else if (l.getBoolean()) {
-                return castToBoolean(session, right);
+        if (l != ValueNull.INSTANCE) {
+            switch (andOrType) {
+            case AND:
+                return l.getBoolean() ? castToBoolean(session, right) : ValueExpression.FALSE;
+            case OR:
+                return l.getBoolean() ? ValueExpression.TRUE : castToBoolean(session, right);
+            default:
+                throw DbException.getInternalError("type=" + andOrType);
             }
-            break;
-        case OR:
-            if (l.getBoolean()) {
-                return ValueExpression.TRUE;
-            } else if (l != ValueNull.INSTANCE) {
-                return castToBoolean(session, right);
-            }
-            break;
-        default:
-            throw DbException.getInternalError("type=" + andOrType);
         }
         return null;
     }

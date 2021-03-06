@@ -369,11 +369,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Date.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalDate.class)} instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Date getDate(int columnIndex) throws SQLException {
@@ -387,11 +392,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Time.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalTime.class)} instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Time getTime(int columnIndex) throws SQLException {
@@ -405,11 +415,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Timestamp.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalDateTime.class)} instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Timestamp getTimestamp(int columnIndex) throws SQLException {
@@ -441,11 +456,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Date.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnLabel, LocalDate.class)} instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Date getDate(String columnLabel) throws SQLException {
@@ -459,11 +479,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Time.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnLabel, LocalTime.class)} instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Time getTime(String columnLabel) throws SQLException {
@@ -477,11 +502,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Timestamp.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnLabel, LocalDateTime.class)} instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Timestamp getTimestamp(String columnLabel) throws SQLException {
@@ -940,12 +970,17 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a java.sql.Date using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalDate.class)} instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @param calendar the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Date getDate(int columnIndex, Calendar calendar) throws SQLException {
@@ -963,12 +998,17 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a java.sql.Date using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnLabel, LocalDate.class)} instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @param calendar the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Date getDate(String columnLabel, Calendar calendar) throws SQLException {
@@ -986,12 +1026,17 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a java.sql.Time using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalTime.class)} instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @param calendar the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Time getTime(int columnIndex, Calendar calendar) throws SQLException {
@@ -1009,12 +1054,17 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a java.sql.Time using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnLabel, LocalTime.class)} instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @param calendar the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Time getTime(String columnLabel, Calendar calendar) throws SQLException {
@@ -1032,12 +1082,17 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a java.sql.Timestamp using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalDateTime.class)} instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @param calendar the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Timestamp getTimestamp(int columnIndex, Calendar calendar) throws SQLException {
@@ -1054,12 +1109,17 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Timestamp.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnLabel, LocalDateTime.class)} instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @param calendar the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Timestamp getTimestamp(String columnLabel, Calendar calendar) throws SQLException {
@@ -1806,10 +1866,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Updates a column in the current or insert row.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code updateObject(columnIndex, value)} with {@link java.time.LocalDate}
+     * parameter instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
+     * @see #updateObject(int, Object)
      */
     @Override
     public void updateDate(int columnIndex, Date x) throws SQLException {
@@ -1826,10 +1892,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Updates a column in the current or insert row.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code updateObject(columnLabel, value)} with {@link java.time.LocalDate}
+     * parameter instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
+     * @see #updateObject(String, Object)
      */
     @Override
     public void updateDate(String columnLabel, Date x) throws SQLException {
@@ -1846,10 +1918,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Updates a column in the current or insert row.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code updateObject(columnIndex, value)} with {@link java.time.LocalTime}
+     * parameter instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
+     * @see #updateObject(int, Object)
      */
     @Override
     public void updateTime(int columnIndex, Time x) throws SQLException {
@@ -1866,10 +1944,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Updates a column in the current or insert row.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code updateObject(columnLabel, value)} with {@link java.time.LocalTime}
+     * parameter instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
+     * @see #updateObject(String, Object)
      */
     @Override
     public void updateTime(String columnLabel, Time x) throws SQLException {
@@ -1886,10 +1970,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Updates a column in the current or insert row.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code updateObject(columnIndex, value)} with
+     * {@link java.time.LocalDateTime} parameter instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
+     * @see #updateObject(int, Object)
      */
     @Override
     public void updateTimestamp(int columnIndex, Timestamp x) throws SQLException {
@@ -1906,10 +1996,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Updates a column in the current or insert row.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code updateObject(columnLabel, value)} with
+     * {@link java.time.LocalDateTime} parameter instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
+     * @see #updateObject(String, Object)
      */
     @Override
     public void updateTimestamp(String columnLabel, Timestamp x) throws SQLException {
@@ -4065,8 +4161,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns a column value as a Java object. The data is
-     * de-serialized into a Java object (on the client side).
+     * Returns a column value as a Java object of the specified type.
      *
      * @param columnIndex the column index (1, 2, ...)
      * @param type the class of the returned value
@@ -4088,8 +4183,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns a column value as a Java object. The data is
-     * de-serialized into a Java object (on the client side).
+     * Returns a column value as a Java object of the specified type.
      *
      * @param columnName the column name
      * @param type the class of the returned value

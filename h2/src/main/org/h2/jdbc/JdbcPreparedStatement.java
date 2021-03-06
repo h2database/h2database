@@ -402,10 +402,16 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code setObject(parameterIndex, value)} with {@link java.time.LocalDate}
+     * parameter instead.
+     * </p>
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
      * @throws SQLException if this object is closed
+     * @see #setObject(int, Object)
      */
     @Override
     public void setDate(int parameterIndex, java.sql.Date x) throws SQLException {
@@ -421,10 +427,16 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code setObject(parameterIndex, value)} with {@link java.time.LocalTime}
+     * parameter instead.
+     * </p>
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
      * @throws SQLException if this object is closed
+     * @see #setObject(int, Object)
      */
     @Override
     public void setTime(int parameterIndex, java.sql.Time x) throws SQLException {
@@ -440,10 +452,16 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code setObject(parameterIndex, value)} with
+     * {@link java.time.LocalDateTime} parameter instead.
+     * </p>
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
      * @throws SQLException if this object is closed
+     * @see #setObject(int, Object)
      */
     @Override
     public void setTimestamp(int parameterIndex, java.sql.Timestamp x) throws SQLException {
@@ -712,11 +730,17 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * Sets the date using a specified time zone. The value will be converted to
      * the local time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code setObject(parameterIndex, value)} with {@link java.time.LocalDate}
+     * parameter instead.
+     * </p>
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
      * @param calendar the calendar
      * @throws SQLException if this object is closed
+     * @see #setObject(int, Object)
      */
     @Override
     public void setDate(int parameterIndex, java.sql.Date x, Calendar calendar) throws SQLException {
@@ -738,11 +762,17 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * Sets the time using a specified time zone. The value will be converted to
      * the local time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code setObject(parameterIndex, value)} with {@link java.time.LocalTime}
+     * parameter instead.
+     * </p>
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
      * @param calendar the calendar
      * @throws SQLException if this object is closed
+     * @see #setObject(int, Object)
      */
     @Override
     public void setTime(int parameterIndex, java.sql.Time x, Calendar calendar) throws SQLException {
@@ -764,11 +794,17 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * Sets the timestamp using a specified time zone. The value will be
      * converted to the local time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code setObject(parameterIndex, value)} with
+     * {@link java.time.LocalDateTime} parameter instead.
+     * </p>
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
      * @param calendar the calendar
      * @throws SQLException if this object is closed
+     * @see #setObject(int, Object)
      */
     @Override
     public void setTimestamp(int parameterIndex, java.sql.Timestamp x, Calendar calendar) throws SQLException {

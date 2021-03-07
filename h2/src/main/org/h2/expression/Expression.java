@@ -21,6 +21,7 @@ import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Typed;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
 
 /**
@@ -331,7 +332,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @return the result
      */
     public boolean getBooleanValue(SessionLocal session) {
-        return getValue(session).getBoolean();
+        return getValue(session).isTrue();
     }
 
     /**

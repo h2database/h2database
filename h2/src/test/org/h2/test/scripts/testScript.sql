@@ -285,12 +285,7 @@ insert into test values(1), (2), (4);
 > update count: 3
 
 select * from test order by id limit -1;
-> ID
-> --
-> 1
-> 2
-> 4
-> rows (ordered): 3
+> exception INVALID_VALUE_2
 
 select * from test order by id limit 0;
 > ID
@@ -311,12 +306,7 @@ select * from test order by id limit 1+1;
 > rows (ordered): 2
 
 select * from test order by id limit null;
-> ID
-> --
-> 1
-> 2
-> 4
-> rows (ordered): 3
+> exception INVALID_VALUE_2
 
 delete from test limit 0;
 > ok
@@ -325,7 +315,7 @@ delete from test limit 1;
 > update count: 1
 
 delete from test limit -1;
-> update count: 2
+> exception INVALID_VALUE_2
 
 drop table test;
 > ok

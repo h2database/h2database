@@ -26,6 +26,24 @@ import org.h2.util.Utils;
 
 /**
  * Represents a statement.
+ * <p>
+ * Thread safety: the statement is not thread-safe. If the same statement is
+ * used by multiple threads access to it must be synchronized. The single
+ * synchronized block must include execution of the command and all operations
+ * with its result.
+ * </p>
+ * <pre>
+ * synchronized (stat) {
+ *     try (ResultSet rs = stat.executeQuery(queryString)) {
+ *         while (rs.next) {
+ *             // Do something
+ *         }
+ *     }
+ * }
+ * synchronized (stat) {
+ *     updateCount = stat.executeUpdate(commandString);
+ * }
+ * </pre>
  */
 public class JdbcStatement extends TraceObject implements Statement, JdbcStatementBackwardsCompat {
 

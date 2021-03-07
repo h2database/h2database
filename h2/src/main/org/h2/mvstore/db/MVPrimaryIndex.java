@@ -30,6 +30,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueNull;
 import org.h2.value.VersionedValue;
 
 /**
@@ -241,6 +242,8 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
             Value v = row.getValue(mainIndexColumn);
             if (v == null) {
                 result = row.getKey();
+            } else if (v == ValueNull.INSTANCE) {
+                result = 0L;
             } else {
                 result = v.getLong();
             }

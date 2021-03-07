@@ -56,12 +56,14 @@ import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 
 /**
- * <p>
  * Represents a result set.
- * </p>
  * <p>
  * Column labels are case-insensitive, quotes are not supported. The first
  * column has the column index 1.
+ * </p>
+ * <p>
+ * Thread safety: the result set is not thread-safe and must not be used by
+ * multiple threads concurrently.
  * </p>
  * <p>
  * Updatable result sets: Result sets are updatable when the result only
@@ -310,7 +312,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public int getInt(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getInt", columnIndex);
-            return get(checkColumnIndex(columnIndex)).getInt();
+            return getIntInternal(checkColumnIndex(columnIndex));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -328,10 +330,23 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public int getInt(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getInt", columnLabel);
-            return get(getColumnIndex(columnLabel)).getInt();
+            return getIntInternal(getColumnIndex(columnLabel));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    private int getIntInternal(int columnIndex) {
+        Value v = getInternal(columnIndex);
+        int result;
+        if (v != ValueNull.INSTANCE) {
+            wasNull = false;
+            result = v.getInt();
+        } else {
+            wasNull = true;
+            result = 0;
+        }
+        return result;
     }
 
     /**
@@ -354,11 +369,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Date.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalDate.class)} instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Date getDate(int columnIndex) throws SQLException {
@@ -372,11 +392,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Time.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalTime.class)} instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Time getTime(int columnIndex) throws SQLException {
@@ -390,11 +415,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Timestamp.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalDateTime.class)} instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Timestamp getTimestamp(int columnIndex) throws SQLException {
@@ -426,11 +456,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Date.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnLabel, LocalDate.class)} instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Date getDate(String columnLabel) throws SQLException {
@@ -444,11 +479,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Time.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnLabel, LocalTime.class)} instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Time getTime(String columnLabel) throws SQLException {
@@ -462,11 +502,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Timestamp.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnLabel, LocalDateTime.class)} instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Timestamp getTimestamp(String columnLabel) throws SQLException {
@@ -528,7 +573,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public boolean getBoolean(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getBoolean", columnIndex);
-            return get(checkColumnIndex(columnIndex)).getBoolean();
+            return getBooleanInternal(checkColumnIndex(columnIndex));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -546,10 +591,23 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public boolean getBoolean(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getBoolean", columnLabel);
-            return get(getColumnIndex(columnLabel)).getBoolean();
+            return getBooleanInternal(getColumnIndex(columnLabel));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    private boolean getBooleanInternal(int columnIndex) {
+        Value v = getInternal(columnIndex);
+        boolean result;
+        if (v != ValueNull.INSTANCE) {
+            wasNull = false;
+            result = v.getBoolean();
+        } else {
+            wasNull = true;
+            result = false;
+        }
+        return result;
     }
 
     /**
@@ -564,7 +622,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public byte getByte(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getByte", columnIndex);
-            return get(checkColumnIndex(columnIndex)).getByte();
+            return getByteInternal(checkColumnIndex(columnIndex));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -582,10 +640,23 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public byte getByte(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getByte", columnLabel);
-            return get(getColumnIndex(columnLabel)).getByte();
+            return getByteInternal(getColumnIndex(columnLabel));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    private byte getByteInternal(int columnIndex) {
+        Value v = getInternal(columnIndex);
+        byte result;
+        if (v != ValueNull.INSTANCE) {
+            wasNull = false;
+            result = v.getByte();
+        } else {
+            wasNull = true;
+            result = 0;
+        }
+        return result;
     }
 
     /**
@@ -600,7 +671,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public short getShort(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getShort", columnIndex);
-            return get(checkColumnIndex(columnIndex)).getShort();
+            return getShortInternal(checkColumnIndex(columnIndex));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -618,10 +689,23 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public short getShort(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getShort", columnLabel);
-            return get(getColumnIndex(columnLabel)).getShort();
+            return getShortInternal(getColumnIndex(columnLabel));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    private short getShortInternal(int columnIndex) {
+        Value v = getInternal(columnIndex);
+        short result;
+        if (v != ValueNull.INSTANCE) {
+            wasNull = false;
+            result = v.getShort();
+        } else {
+            wasNull = true;
+            result = 0;
+        }
+        return result;
     }
 
     /**
@@ -636,7 +720,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public long getLong(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getLong", columnIndex);
-            return get(checkColumnIndex(columnIndex)).getLong();
+            return getLongInternal(checkColumnIndex(columnIndex));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -654,10 +738,23 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public long getLong(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getLong", columnLabel);
-            return get(getColumnIndex(columnLabel)).getLong();
+            return getLongInternal(getColumnIndex(columnLabel));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    private long getLongInternal(int columnIndex) {
+        Value v = getInternal(columnIndex);
+        long result;
+        if (v != ValueNull.INSTANCE) {
+            wasNull = false;
+            result = v.getLong();
+        } else {
+            wasNull = true;
+            result = 0L;
+        }
+        return result;
     }
 
     /**
@@ -672,7 +769,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public float getFloat(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getFloat", columnIndex);
-            return get(checkColumnIndex(columnIndex)).getFloat();
+            return getFloatInternal(checkColumnIndex(columnIndex));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -690,10 +787,23 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public float getFloat(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getFloat", columnLabel);
-            return get(getColumnIndex(columnLabel)).getFloat();
+            return getFloatInternal(getColumnIndex(columnLabel));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    private float getFloatInternal(int columnIndex) {
+        Value v = getInternal(columnIndex);
+        float result;
+        if (v != ValueNull.INSTANCE) {
+            wasNull = false;
+            result = v.getFloat();
+        } else {
+            wasNull = true;
+            result = 0f;
+        }
+        return result;
     }
 
     /**
@@ -708,7 +818,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public double getDouble(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getDouble", columnIndex);
-            return get(checkColumnIndex(columnIndex)).getDouble();
+            return getDoubleInternal(checkColumnIndex(columnIndex));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -726,10 +836,23 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     public double getDouble(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getDouble", columnLabel);
-            return get(getColumnIndex(columnLabel)).getDouble();
+            return getDoubleInternal(getColumnIndex(columnLabel));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    private double getDoubleInternal(int columnIndex) {
+        Value v = getInternal(columnIndex);
+        double result;
+        if (v != ValueNull.INSTANCE) {
+            wasNull = false;
+            result = v.getDouble();
+        } else {
+            wasNull = true;
+            result = 0d;
+        }
+        return result;
     }
 
     /**
@@ -847,12 +970,17 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a java.sql.Date using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalDate.class)} instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @param calendar the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Date getDate(int columnIndex, Calendar calendar) throws SQLException {
@@ -870,12 +998,17 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a java.sql.Date using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnLabel, LocalDate.class)} instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @param calendar the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Date getDate(String columnLabel, Calendar calendar) throws SQLException {
@@ -893,12 +1026,17 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a java.sql.Time using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalTime.class)} instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @param calendar the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Time getTime(int columnIndex, Calendar calendar) throws SQLException {
@@ -916,12 +1054,17 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a java.sql.Time using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnLabel, LocalTime.class)} instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @param calendar the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Time getTime(String columnLabel, Calendar calendar) throws SQLException {
@@ -939,12 +1082,17 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a java.sql.Timestamp using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalDateTime.class)} instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @param calendar the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Timestamp getTimestamp(int columnIndex, Calendar calendar) throws SQLException {
@@ -961,12 +1109,17 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Timestamp.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnLabel, LocalDateTime.class)} instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @param calendar the calendar
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Timestamp getTimestamp(String columnLabel, Calendar calendar) throws SQLException {
@@ -996,8 +1149,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCodeAssign("Blob", TraceObject.BLOB, id, "getBlob(" + columnIndex + ')');
             }
-            Value v = get(checkColumnIndex(columnIndex));
-            return v == ValueNull.INSTANCE ? null : new JdbcBlob(conn, v, JdbcLob.State.WITH_VALUE, id);
+            return getBlob(id, checkColumnIndex(columnIndex));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1018,11 +1170,23 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCodeAssign("Blob", TraceObject.BLOB, id, "getBlob(" + quote(columnLabel) + ')');
             }
-            Value v = get(getColumnIndex(columnLabel));
-            return v == ValueNull.INSTANCE ? null : new JdbcBlob(conn, v, JdbcLob.State.WITH_VALUE, id);
+            return getBlob(id, getColumnIndex(columnLabel));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    private JdbcBlob getBlob(int id, int columnIndex) {
+        Value v = getInternal(columnIndex);
+        JdbcBlob result;
+        if (v != ValueNull.INSTANCE) {
+            wasNull = false;
+            result = new JdbcBlob(conn, v, JdbcLob.State.WITH_VALUE, id);
+        } else {
+            wasNull = true;
+            result = null;
+        }
+        return result;
     }
 
     /**
@@ -1113,8 +1277,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCodeAssign("Clob", TraceObject.CLOB, id, "getClob(" + columnIndex + ')');
             }
-            Value v = get(checkColumnIndex(columnIndex));
-            return v == ValueNull.INSTANCE ? null : new JdbcClob(conn, v, JdbcLob.State.WITH_VALUE, id);
+            return getClob(id, checkColumnIndex(columnIndex));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1135,8 +1298,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCodeAssign("Clob", TraceObject.CLOB, id, "getClob(" + quote(columnLabel) + ')');
             }
-            Value v = get(getColumnIndex(columnLabel));
-            return v == ValueNull.INSTANCE ? null : new JdbcClob(conn, v, JdbcLob.State.WITH_VALUE, id);
+            return getClob(id, getColumnIndex(columnLabel));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1157,8 +1319,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCodeAssign("Array", TraceObject.ARRAY, id, "getArray(" + columnIndex + ')');
             }
-            Value v = get(checkColumnIndex(columnIndex));
-            return v == ValueNull.INSTANCE ? null : new JdbcArray(conn, v, id);
+            return getArray(id, checkColumnIndex(columnIndex));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1179,11 +1340,23 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCodeAssign("Array", TraceObject.ARRAY, id, "getArray(" + quote(columnLabel) + ')');
             }
-            Value v = get(getColumnIndex(columnLabel));
-            return v == ValueNull.INSTANCE ? null : new JdbcArray(conn, v, id);
+            return getArray(id, getColumnIndex(columnLabel));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    private Array getArray(int id, int columnIndex) {
+        Value v = getInternal(columnIndex);
+        JdbcArray result;
+        if (v != ValueNull.INSTANCE) {
+            wasNull = false;
+            result = new JdbcArray(conn, v, id);
+        } else {
+            wasNull = true;
+            result = null;
+        }
+        return result;
     }
 
     /**
@@ -1693,10 +1866,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Updates a column in the current or insert row.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code updateObject(columnIndex, value)} with {@link java.time.LocalDate}
+     * parameter instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
+     * @see #updateObject(int, Object)
      */
     @Override
     public void updateDate(int columnIndex, Date x) throws SQLException {
@@ -1713,10 +1892,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Updates a column in the current or insert row.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code updateObject(columnLabel, value)} with {@link java.time.LocalDate}
+     * parameter instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
+     * @see #updateObject(String, Object)
      */
     @Override
     public void updateDate(String columnLabel, Date x) throws SQLException {
@@ -1733,10 +1918,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Updates a column in the current or insert row.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code updateObject(columnIndex, value)} with {@link java.time.LocalTime}
+     * parameter instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
+     * @see #updateObject(int, Object)
      */
     @Override
     public void updateTime(int columnIndex, Time x) throws SQLException {
@@ -1753,10 +1944,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Updates a column in the current or insert row.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code updateObject(columnLabel, value)} with {@link java.time.LocalTime}
+     * parameter instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
+     * @see #updateObject(String, Object)
      */
     @Override
     public void updateTime(String columnLabel, Time x) throws SQLException {
@@ -1773,10 +1970,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Updates a column in the current or insert row.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code updateObject(columnIndex, value)} with
+     * {@link java.time.LocalDateTime} parameter instead.
+     * </p>
      *
      * @param columnIndex (1,2,...)
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
+     * @see #updateObject(int, Object)
      */
     @Override
     public void updateTimestamp(int columnIndex, Timestamp x) throws SQLException {
@@ -1793,10 +1996,16 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Updates a column in the current or insert row.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code updateObject(columnLabel, value)} with
+     * {@link java.time.LocalDateTime} parameter instead.
+     * </p>
      *
      * @param columnLabel the column label
      * @param x the value
      * @throws SQLException if the result set is closed or not updatable
+     * @see #updateObject(String, Object)
      */
     @Override
     public void updateTimestamp(String columnLabel, Timestamp x) throws SQLException {
@@ -3147,7 +3356,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
                 UpdatableRow row = getUpdatableRow();
                 Value[] current = new Value[columnCount];
                 for (int i = 0; i < updateRow.length; i++) {
-                    current[i] = get(checkColumnIndex(i + 1));
+                    current[i] = getInternal(checkColumnIndex(i + 1));
                 }
                 row.updateRow(current, updateRow);
                 for (int i = 0; i < updateRow.length; i++) {
@@ -3341,6 +3550,12 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
         }
     }
 
+    private Value get(int columnIndex) {
+        Value value = getInternal(columnIndex);
+        wasNull = value == ValueNull.INSTANCE;
+        return value;
+    }
+
     /**
      * INTERNAL
      *
@@ -3348,15 +3563,13 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
      *            index of a column
      * @return internal representation of the value in the specified column
      */
-    public Value get(int columnIndex) {
+    public Value getInternal(int columnIndex) {
         checkOnValidRow();
         Value[] list;
         if (patchedRows == null || (list = patchedRows.get(result.getRowId())) == null) {
             list = result.currentRow();
         }
-        Value value = list[columnIndex - 1];
-        wasNull = value == ValueNull.INSTANCE;
-        return value;
+        return list[columnIndex - 1];
     }
 
     private void update(int columnIndex, Value v) {
@@ -3636,8 +3849,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCodeAssign("NClob", TraceObject.CLOB, id, "getNClob(" + columnIndex + ')');
             }
-            Value v = get(checkColumnIndex(columnIndex));
-            return v == ValueNull.INSTANCE ? null : new JdbcClob(conn, v, JdbcLob.State.WITH_VALUE, id);
+            return getClob(id, checkColumnIndex(columnIndex));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3658,11 +3870,23 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCodeAssign("NClob", TraceObject.CLOB, id, "getNClob(" + quote(columnLabel) + ')');
             }
-            Value v = get(getColumnIndex(columnLabel));
-            return v == ValueNull.INSTANCE ? null : new JdbcClob(conn, v, JdbcLob.State.WITH_VALUE, id);
+            return getClob(id, getColumnIndex(columnLabel));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    private JdbcClob getClob(int id, int columnIndex) {
+        Value v = getInternal(columnIndex);
+        JdbcClob result;
+        if (v != ValueNull.INSTANCE) {
+            wasNull = false;
+            result = new JdbcClob(conn, v, JdbcLob.State.WITH_VALUE, id);
+        } else {
+            wasNull = true;
+            result = null;
+        }
+        return result;
     }
 
     /**
@@ -3937,8 +4161,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns a column value as a Java object. The data is
-     * de-serialized into a Java object (on the client side).
+     * Returns a column value as a Java object of the specified type.
      *
      * @param columnIndex the column index (1, 2, ...)
      * @param type the class of the returned value
@@ -3960,8 +4183,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns a column value as a Java object. The data is
-     * de-serialized into a Java object (on the client side).
+     * Returns a column value as a Java object of the specified type.
      *
      * @param columnName the column name
      * @param type the class of the returned value

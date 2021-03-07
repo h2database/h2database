@@ -59,6 +59,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
 
 /**
@@ -355,7 +356,7 @@ public class Select extends Query {
     }
 
     private boolean isHavingNullOrFalse(Value[] row) {
-        return havingIndex >= 0 && !row[havingIndex].getBoolean();
+        return havingIndex >= 0 && !row[havingIndex].isTrue();
     }
 
     private Index getGroupSortedIndex() {
@@ -548,7 +549,7 @@ public class Select extends Query {
             if (withHaving && isHavingNullOrFalse(row)) {
                 continue;
             }
-            if (qualifyIndex >= 0 && !row[qualifyIndex].getBoolean()) {
+            if (qualifyIndex >= 0 && !row[qualifyIndex].isTrue()) {
                 continue;
             }
             if (quickOffset && offset > 0) {

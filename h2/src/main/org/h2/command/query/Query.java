@@ -836,35 +836,33 @@ public abstract class Query extends Prepared {
      * @return the evaluated values
      */
     OffsetFetch getOffsetFetch(long maxRows) {
+        long offset;
+        if (offsetExpr != null) {
+            Value v = offsetExpr.getValue(session);
+            if (v == ValueNull.INSTANCE || (offset = v.getLong()) < 0) {
+                throw DbException.getInvalidValueException("result OFFSET", v);
+            }
+        } else {
+            offset = 0;
+        }
         long fetch = maxRows == 0 ? -1 : maxRows;
         if (fetchExpr != null) {
             Value v = fetchExpr.getValue(session);
-            long l = v == ValueNull.INSTANCE ? -1 : v.getLong();
-            if (fetch < 0) {
-                fetch = l;
-            } else if (l >= 0) {
-                fetch = Math.min(l, fetch);
+            long l;
+            if (v == ValueNull.INSTANCE || (l = v.getLong()) < 0) {
+                throw DbException.getInvalidValueException("result FETCH", v);
             }
+            fetch = fetch < 0 ? l : Math.min(l, fetch);
         }
         boolean fetchPercent = this.fetchPercent;
         if (fetchPercent) {
-            // Need to check it now, because negative limit has special treatment later
-            if (fetch < 0 || fetch > 100) {
-                throw DbException.getInvalidValueException("FETCH PERCENT", fetch);
+            if (fetch > 100) {
+                throw DbException.getInvalidValueException("result FETCH PERCENT", fetch);
             }
             // 0 PERCENT means 0
             if (fetch == 0) {
                 fetchPercent = false;
             }
-        }
-        long offset;
-        if (offsetExpr != null) {
-            offset = offsetExpr.getValue(session).getLong();
-            if (offset < 0) {
-                offset = 0;
-            }
-        } else {
-            offset = 0;
         }
         return new OffsetFetch(offset, fetch, fetchPercent);
     }

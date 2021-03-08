@@ -7013,7 +7013,6 @@ REGR_INTERCEPT(Y, X)
 "
 
 "Aggregate Functions (Binary Set)","REGR_COUNT","
-","
 REGR_COUNT(dependentExpression, independentExpression)
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","

@@ -6826,7 +6826,7 @@ STDDEV_SAMP( [ DISTINCT|ALL ] numeric )
 ","
 The sample standard deviation.
 This method returns a double.
-If no rows are selected, the result is NULL.
+If less than two rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 STDDEV(X)
@@ -6850,7 +6850,7 @@ VAR_SAMP( [ DISTINCT|ALL ] numeric )
 ","
 The sample variance (square of the sample standard deviation).
 This method returns a double.
-If no rows are selected, the result is NULL.
+If less than two rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 VAR_SAMP(X)
@@ -6945,6 +6945,160 @@ If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 ENVELOPE(X)
+"
+
+"Aggregate Functions (Binary Set)","COVAR_POP","
+COVAR_POP(dependentExpression, independentExpression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The population covariance.
+This method returns a double.
+Rows in which either argument is NULL are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+COVAR_POP(Y, X)
+"
+
+"Aggregate Functions (Binary Set)","COVAR_SAMP","
+COVAR_SAMP(dependentExpression, independentExpression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The sample covariance.
+This method returns a double.
+Rows in which either argument is NULL are ignored in the calculation.
+If less than two rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+COVAR_SAMP(Y, X)
+"
+
+"Aggregate Functions (Binary Set)","CORR","
+CORR(dependentExpression, independentExpression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Pearson's correlation coefficient.
+This method returns a double.
+Rows in which either argument is NULL are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+CORR(Y, X)
+"
+
+"Aggregate Functions (Binary Set)","REGR_SLOPE","
+REGR_SLOPE(dependentExpression, independentExpression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The slope of the line.
+This method returns a double.
+Rows in which either argument is NULL are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+REGR_SLOPE(Y, X)
+"
+
+"Aggregate Functions (Binary Set)","REGR_INTERCEPT","
+REGR_INTERCEPT(dependentExpression, independentExpression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The y-intercept of the regression line.
+This method returns a double.
+Rows in which either argument is NULL are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+REGR_INTERCEPT(Y, X)
+"
+
+"Aggregate Functions (Binary Set)","REGR_COUNT","
+","
+REGR_COUNT(dependentExpression, independentExpression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the number of rows in the group.
+This method returns a long.
+Rows in which either argument is NULL are ignored in the calculation.
+If no rows are selected, the result is 0.
+Aggregates are only allowed in select statements.
+","
+REGR_COUNT(Y, X)
+"
+
+"Aggregate Functions (Binary Set)","REGR_R2","
+REGR_R2(dependentExpression, independentExpression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The coefficient of determination.
+This method returns a double.
+Rows in which either argument is NULL are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+REGR_R2(Y, X)
+"
+
+"Aggregate Functions (Binary Set)","REGR_AVGX","
+REGR_AVGX(dependentExpression, independentExpression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The average (mean) value of dependent expression.
+Rows in which either argument is NULL are ignored in the calculation.
+If no rows are selected, the result is NULL.
+For details about the data type see [AVG](https://h2database.com/html/functions-aggregate.html#avg).
+Aggregates are only allowed in select statements.
+","
+REGR_AVGX(Y, X)
+"
+
+"Aggregate Functions (Binary Set)","REGR_AVGY","
+REGR_AVGY(dependentExpression, independentExpression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The average (mean) value of independent expression.
+Rows in which either argument is NULL are ignored in the calculation.
+If no rows are selected, the result is NULL.
+For details about the data type see [AVG](https://h2database.com/html/functions-aggregate.html#avg).
+Aggregates are only allowed in select statements.
+","
+REGR_AVGY(Y, X)
+"
+
+"Aggregate Functions (Binary Set)","REGR_SXX","
+REGR_SXX(dependentExpression, independentExpression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The the sum of squares of independent expression.
+Rows in which either argument is NULL are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+REGR_SXX(Y, X)
+"
+
+"Aggregate Functions (Binary Set)","REGR_SYY","
+REGR_SYY(dependentExpression, independentExpression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The the sum of squares of dependent expression.
+Rows in which either argument is NULL are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+REGR_SYY(Y, X)
+"
+
+"Aggregate Functions (Binary Set)","REGR_SXY","
+REGR_SXY(dependentExpression, independentExpression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The the sum of products independent expression times dependent expression.
+Rows in which either argument is NULL are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+REGR_SXY(Y, X)
 "
 
 "Aggregate Functions (Ordered)","LISTAGG","

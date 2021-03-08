@@ -1751,6 +1751,9 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param type the class of the returned value
+     * @return the value
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public <T> T getObject(int parameterIndex, Class<T> type) throws SQLException {
@@ -1763,6 +1766,9 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
      *
      * @param parameterName the parameter name
      * @param type the class of the returned value
+     * @return the value
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public <T> T getObject(String parameterName, Class<T> type) throws SQLException {

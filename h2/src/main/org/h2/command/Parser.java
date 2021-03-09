@@ -3737,6 +3737,21 @@ public class Parser {
                 }
             }
             break;
+        case COVAR_POP:
+        case COVAR_SAMP:
+        case CORR:
+        case REGR_SLOPE:
+        case REGR_INTERCEPT:
+        case REGR_COUNT:
+        case REGR_R2:
+        case REGR_AVGX:
+        case REGR_AVGY:
+        case REGR_SXX:
+        case REGR_SYY:
+        case REGR_SXY:
+            r = new Aggregate(aggregateType, new Expression[] { readExpression(), readNextArgument() },
+                    currentSelect, false);
+            break;
         case HISTOGRAM:
             r = new Aggregate(aggregateType, new Expression[] { readExpression() }, currentSelect, false);
             break;

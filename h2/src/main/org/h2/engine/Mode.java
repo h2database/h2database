@@ -22,7 +22,7 @@ import org.h2.value.Value;
 public class Mode {
 
     public enum ModeEnum {
-        REGULAR, DB2, Derby, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL
+        REGULAR, DB2, Derby, MariaDB, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL
     }
 
     /**
@@ -479,9 +479,30 @@ public class Mode {
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         add(mode);
 
+        mode = new Mode(ModeEnum.MariaDB);
+        mode.indexDefinitionInCreateTable = true;
+        mode.regexpReplaceBackslashReferences = true;
+        mode.onDuplicateKeyUpdate = true;
+        mode.replaceInto = true;
+        mode.charPadding = CharPadding.NEVER;
+        mode.supportedClientInfoPropertiesRegEx = Pattern.compile(".*");
+        mode.zeroExLiteralsAreBinaryStrings = true;
+        mode.allowUnrelatedOrderByExpressionsInDistinctQueries = true;
+        mode.alterTableExtensionsMySQL = true;
+        mode.alterTableModifyColumn = true;
+        mode.truncateTableRestartIdentity = true;
+        mode.allNumericTypesHavePrecision = true;
+        mode.nextValueReturnsDifferentValues = true;
+        mode.updateSequenceOnManualIdentityInsertion = true;
+        mode.takeInsertedIdentity = true;
+        mode.identityColumnsHaveDefaultOnNull = true;
+        mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
+        mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
+        mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
+        add(mode);
+
         mode = new Mode(ModeEnum.MySQL);
         mode.indexDefinitionInCreateTable = true;
-        // Next one is for MariaDB
         mode.regexpReplaceBackslashReferences = true;
         mode.onDuplicateKeyUpdate = true;
         mode.replaceInto = true;
@@ -496,8 +517,6 @@ public class Mode {
         mode.alterTableModifyColumn = true;
         mode.truncateTableRestartIdentity = true;
         mode.allNumericTypesHavePrecision = true;
-        // Next one is for MariaDB
-        mode.nextValueReturnsDifferentValues = true;
         mode.updateSequenceOnManualIdentityInsertion = true;
         mode.takeInsertedIdentity = true;
         mode.identityColumnsHaveDefaultOnNull = true;

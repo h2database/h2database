@@ -925,10 +925,9 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
 </li><li>TRUNCATE TABLE restarts next values of generated columns.
 </li></ul>
 
-<h3>MySQL Compatibility Mode</h3>
+<h3>MariaDB Compatibility Mode</h3>
 <p>
-To use the MySQL mode, use the database URL <code>jdbc:h2:~/test;MODE=MySQL;DATABASE_TO_LOWER=TRUE</code>.
-Use this mode for compatibility with MariaDB too.
+To use the MariaDB mode, use the database URL <code>jdbc:h2:~/test;MODE=MariaDB;DATABASE_TO_LOWER=TRUE</code>.
 When case-insensitive identifiers are needed append <code>;CASE_INSENSITIVE_IDENTIFIERS=TRUE</code> to URL.
 Do not change value of DATABASE_TO_LOWER after creation of database.
 </p>
@@ -943,14 +942,48 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
     UPDATE is not specified.
 </li><li>REPLACE INTO is partially supported.
 </li><li>Spaces are trimmed from the right side of CHAR values.
-</li><li>REGEXP_REPLACE() uses \ for back-references for compatibility with MariaDB.
+</li><li>REGEXP_REPLACE() uses \ for back-references.
+</li><li>Datetime value functions return the same value within a command.
+</li><li>0x literals are parsed as binary string literals.
+</li><li>Unrelated expressions in ORDER BY clause of DISTINCT queries are allowed.
+</li><li>Some MariaDB-specific ALTER TABLE commands are partially supported.
+</li><li>TRUNCATE TABLE restarts next values of generated columns.
+</li><li>NEXT VALUE FOR returns different values when invoked multiple times within the same row.
+</li><li>If value of an identity column was manually specified, its sequence is updated to generate values after
+inserted.
+</li><li>NULL value works like DEFAULT value is assignments to identity columns.
+</li><li>YEAR data type is treated like SMALLINT data type.
+</li></ul>
+<p>
+Text comparison in MariaDB is case insensitive by default, while in H2 it is case sensitive (as in most other databases).
+H2 does support case insensitive text comparison, but it needs to be set separately,
+using <code>SET IGNORECASE TRUE</code>.
+This affects comparison using <code>=, LIKE, REGEXP</code>.
+</p>
+
+<h3>MySQL Compatibility Mode</h3>
+<p>
+To use the MySQL mode, use the database URL <code>jdbc:h2:~/test;MODE=MySQL;DATABASE_TO_LOWER=TRUE</code>.
+When case-insensitive identifiers are needed append <code>;CASE_INSENSITIVE_IDENTIFIERS=TRUE</code> to URL.
+Do not change value of DATABASE_TO_LOWER after creation of database.
+</p>
+<ul><li>Creating indexes in the <code>CREATE TABLE</code> statement is allowed using
+    <code>INDEX(..)</code> or <code>KEY(..)</code>.
+    Example: <code>create table test(id int primary key, name varchar(255), key idx_name(name));</code>
+</li><li>When converting a floating point number to an integer, the fractional
+    digits are not truncated, but the value is rounded.
+</li><li>ON DUPLICATE KEY UPDATE is supported in INSERT statements, due to this feature VALUES has special non-standard
+    meaning is some contexts.
+</li><li>INSERT IGNORE is partially supported and may be used to skip rows with duplicate keys if ON DUPLICATE KEY
+    UPDATE is not specified.
+</li><li>REPLACE INTO is partially supported.
+</li><li>Spaces are trimmed from the right side of CHAR values.
+</li><li>REGEXP_REPLACE() uses \ for back-references.
 </li><li>Datetime value functions return the same value within a command.
 </li><li>0x literals are parsed as binary string literals.
 </li><li>Unrelated expressions in ORDER BY clause of DISTINCT queries are allowed.
 </li><li>Some MySQL-specific ALTER TABLE commands are partially supported.
 </li><li>TRUNCATE TABLE restarts next values of generated columns.
-</li><li>NEXT VALUE FOR returns different values when invoked multiple times within the same row for compatibility
-    with MariaDB.
 </li><li>If value of an identity column was manually specified, its sequence is updated to generate values after
 inserted.
 </li><li>NULL value works like DEFAULT value is assignments to identity columns.

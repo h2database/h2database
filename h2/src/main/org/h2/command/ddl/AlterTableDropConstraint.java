@@ -21,6 +21,7 @@ import org.h2.schema.Schema;
  */
 public class AlterTableDropConstraint extends SchemaCommand {
 
+    private String tableName;
     private String constraintName;
     private final boolean ifExists;
     private ConstraintActionType dropAction;
@@ -30,6 +31,10 @@ public class AlterTableDropConstraint extends SchemaCommand {
         this.ifExists = ifExists;
         dropAction = session.getDatabase().getSettings().dropRestrict ?
                 ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;
+    }
+
+    public void setTableName(String string) {
+        tableName = string;
     }
 
     public void setConstraintName(String string) {
@@ -44,7 +49,8 @@ public class AlterTableDropConstraint extends SchemaCommand {
     public long update() {
         Constraint constraint = getSchema().findConstraint(session, constraintName);
         Type constraintType;
-        if (constraint == null || (constraintType = constraint.getConstraintType()) == Type.DOMAIN) {
+        if (constraint == null || (constraintType = constraint.getConstraintType()) == Type.DOMAIN
+                || !session.getDatabase().equalsIdentifiers(constraint.getTable().getName(), tableName)) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
             }

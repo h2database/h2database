@@ -5880,9 +5880,6 @@ public class Parser {
             c = new SimpleCase(caseOperand, when, readIf(ELSE) ? readExpression() : null);
         }
         read(END);
-        if (currentTokenType == CASE && database.getMode().allowEndCase) {
-            read();
-        }
         return c;
     }
 

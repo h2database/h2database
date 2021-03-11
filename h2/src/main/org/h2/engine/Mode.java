@@ -367,12 +367,6 @@ public class Mode {
     public boolean identityColumnsHaveDefaultOnNull;
 
     /**
-     * If {@code true}, case specification may have an optional CASE keyword
-     * after END.
-     */
-    public boolean allowEndCase;
-
-    /**
      * If {@code true}, merge when matched clause may have WHERE clause.
      */
     public boolean mergeWhere;
@@ -507,7 +501,6 @@ public class Mode {
         mode.updateSequenceOnManualIdentityInsertion = true;
         mode.takeInsertedIdentity = true;
         mode.identityColumnsHaveDefaultOnNull = true;
-        mode.allowEndCase = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));

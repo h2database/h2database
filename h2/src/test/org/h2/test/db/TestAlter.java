@@ -58,7 +58,7 @@ public class TestAlter extends TestDb {
     }
 
     private void testAlterTableDropColumnWithReferences() throws SQLException {
-        stat.execute("create table parent(id int, b int)");
+        stat.execute("create table parent(id int primary key, b int)");
         stat.execute("create table child(p int primary key)");
         stat.execute("alter table child add foreign key(p) references parent(id)");
         stat.execute("alter table parent drop column id");

@@ -279,7 +279,7 @@ public class TestRecovery extends TestDb {
                 "select * from test");
         stat.execute("create table a(id int primary key) as " +
                 "select * from system_range(1, 100)");
-        stat.execute("create table b(id int references a(id)) as " +
+        stat.execute("create table b(id int primary key references a(id)) as " +
                 "select * from system_range(1, 100)");
         stat.execute("create table lob(c clob, b blob) as " +
                 "select space(10000) || 'end', SECURE_RAND(10000)");

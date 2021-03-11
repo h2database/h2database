@@ -987,6 +987,8 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
 </li><li>If value of an identity column was manually specified, its sequence is updated to generate values after
 inserted.
 </li><li>NULL value works like DEFAULT value is assignments to identity columns.
+</li><li>Referential constraints don't require an existing primary key or unique constraint on referenced columns
+and create a unique constraint automatically if such constraint doesn't exist.
 </li><li>YEAR data type is treated like SMALLINT data type.
 </li></ul>
 <p>

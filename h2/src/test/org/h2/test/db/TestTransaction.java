@@ -68,11 +68,11 @@ public class TestTransaction extends TestDb {
         deleteDb("transaction");
         Connection conn = getConnection("transaction");
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id int, p int)");
+        stat.execute("create table test(id int unique, p int)");
         stat.execute("insert into test values(1, 2)");
         assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, stat).execute(
                 "alter table test add constraint fail foreign key(p) references test(id)");
-        stat.execute("insert into test values(1, 2)");
+        stat.execute("insert into test values(2, 3)");
         stat.execute("drop table test");
         conn.close();
     }
@@ -548,7 +548,7 @@ public class TestTransaction extends TestDb {
 
         conn = getConnection("transaction");
         stat = conn.createStatement();
-        stat.execute("create table master(id int) as select 1");
+        stat.execute("create table master(id int primary key) as select 1");
         stat.execute("create table child1(id int references master(id) " +
                 "on delete cascade)");
         stat.execute("insert into child1 values(1), (1), (1)");
@@ -593,7 +593,7 @@ public class TestTransaction extends TestDb {
 
         conn = getConnection("transaction");
         stat = conn.createStatement();
-        stat.execute("create table master(id int) as select 1");
+        stat.execute("create table master(id int primary key) as select 1");
         stat.execute("create table child1(id int references master(id) " +
                 "on delete cascade)");
         stat.execute("insert into child1 values(1), (1)");

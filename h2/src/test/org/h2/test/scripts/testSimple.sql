@@ -62,7 +62,7 @@ select N'test';
 select E'test\\test';
 >> test\test
 
-create table a(id int) as select null;
+create table a(id int unique) as select null;
 > ok
 
 create table b(id int references a(id)) as select null;
@@ -280,7 +280,7 @@ drop table master, detail;
 drop all objects;
 > ok
 
-create table test(id int, parent int references test(id) on delete cascade);
+create table test(id int primary key, parent int references test(id) on delete cascade);
 > ok
 
 insert into test values(0, 0);
@@ -430,10 +430,10 @@ DROP SEQUENCE TEST_SEQ;
 create schema Contact;
 > ok
 
-CREATE TABLE Account (id BIGINT);
+CREATE TABLE Account (id BIGINT PRIMARY KEY);
 > ok
 
-CREATE TABLE Person (id BIGINT, FOREIGN KEY (id) REFERENCES Account(id));
+CREATE TABLE Person (id BIGINT PRIMARY KEY, FOREIGN KEY (id) REFERENCES Account(id));
 > ok
 
 CREATE TABLE Contact.Contact (id BIGINT, FOREIGN KEY (id) REFERENCES public.Person(id));

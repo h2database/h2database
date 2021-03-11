@@ -3544,7 +3544,8 @@ Defines a referential specification of a referential constraint.
 If the table name is not specified, then the same table is referenced.
 RESTRICT is the default action.
 If the referenced columns are not specified, then the primary key columns are used.
-The required indexes are automatically created if required.
+Referential constraint requires an existing unique or primary key constraint on referenced columns,
+this constraint must include all referenced columns in any order and must not include any other columns.
 Some tables may not be referenced, such as metadata tables.
 ","
 REFERENCES TEST(ID)

@@ -377,6 +377,13 @@ public class Mode {
     public boolean allowUsingFromClauseInUpdateStatement;
 
     /**
+     * If {@code true}, referential constraints will create a unique constraint
+     * on referenced columns if it doesn't exist instead of throwing an
+     * exception.
+     */
+    public boolean createUniqueConstraintForReferencedColumns;
+
+    /**
      * How column names are generated for expressions.
      */
     public ExpressionNames expressionNames = ExpressionNames.OPTIMIZED_SQL;
@@ -520,6 +527,7 @@ public class Mode {
         mode.updateSequenceOnManualIdentityInsertion = true;
         mode.takeInsertedIdentity = true;
         mode.identityColumnsHaveDefaultOnNull = true;
+        mode.createUniqueConstraintForReferencedColumns = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));

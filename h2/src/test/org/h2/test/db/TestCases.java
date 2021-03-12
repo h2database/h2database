@@ -146,6 +146,7 @@ public class TestCases extends TestDb {
         stat.execute("drop table if exists a, b");
         stat.execute("create table a(id int, x int) as select 1, 100");
         stat.execute("create index idx1 on a(id, x)");
+        stat.execute("alter table a add unique(id)");
         stat.execute("create table b(id int primary key, a_id int) as select 1, 1");
         stat.execute("alter table b add constraint x " +
                 "foreign key(a_id) references a(id)");
@@ -583,7 +584,7 @@ public class TestCases extends TestDb {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
-        stat.execute("create table parent (pid int)");
+        stat.execute("create table parent (pid int primary key)");
         stat.execute("create table child (cid int primary key, pid int)");
         stat.execute("alter table child add foreign key (pid) references parent(pid)");
         stat.execute("alter table child add column c2 int");
@@ -1330,7 +1331,7 @@ public class TestCases extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists parent");
         stat.execute("drop table if exists child");
-        stat.execute("create table parent(id int)");
+        stat.execute("create table parent(id int primary key)");
         stat.execute("create table child(c_id int, p_id int, " +
                 "foreign key(p_id) references parent(id))");
         stat.execute("insert into parent values(1), (2)");

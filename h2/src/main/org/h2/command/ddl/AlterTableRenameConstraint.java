@@ -8,6 +8,7 @@ package org.h2.command.ddl;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
+import org.h2.constraint.Constraint.Type;
 import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
@@ -19,6 +20,7 @@ import org.h2.schema.Schema;
  */
 public class AlterTableRenameConstraint extends SchemaCommand {
 
+    private String tableName;
     private String constraintName;
     private String newConstraintName;
 
@@ -26,9 +28,14 @@ public class AlterTableRenameConstraint extends SchemaCommand {
         super(session, schema);
     }
 
+    public void setTableName(String string) {
+        tableName = string;
+    }
+
     public void setConstraintName(String string) {
         constraintName = string;
     }
+
     public void setNewConstraintName(String newName) {
         this.newConstraintName = newName;
     }
@@ -36,7 +43,8 @@ public class AlterTableRenameConstraint extends SchemaCommand {
     @Override
     public long update() {
         Constraint constraint = getSchema().findConstraint(session, constraintName);
-        if (constraint == null) {
+        if (constraint == null || constraint.getConstraintType() == Type.DOMAIN
+                || !session.getDatabase().equalsIdentifiers(constraint.getTable().getName(), tableName)) {
             throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
         }
         if (getSchema().findConstraint(session, newConstraintName) != null ||

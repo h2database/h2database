@@ -246,6 +246,13 @@ public class AlterTableAddConstraint extends SchemaCommand {
                             column2.getCreateSQL());
                 }
             }
+            ConstraintUnique unique = getUniqueConstraint(refTable, refIndexColumns);
+            if (unique == null && !session.isQuirksMode()
+                    && !session.getMode().createUniqueConstraintForReferencedColumns) {
+                throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, IndexColumn.writeColumns(
+                        new StringBuilder("PRIMARY KEY | UNIQUE ("), refIndexColumns, HasSQL.TRACE_SQL_FLAGS)
+                        .append(')').toString());
+            }
             if (index != null && canUseIndex(index, table, indexColumns, false)) {
                 isOwner = true;
                 index.getIndexType().setBelongsToConstraint(true);
@@ -264,7 +271,6 @@ public class AlterTableAddConstraint extends SchemaCommand {
             refConstraint.setIndex(index, isOwner);
             refConstraint.setRefTable(refTable);
             refConstraint.setRefColumns(refIndexColumns);
-            ConstraintUnique unique = getUniqueConstraint(refTable, refIndexColumns);
             if (unique == null) {
                 unique = createUniqueConstraint(refTable, refIndex, refIndexColumns, true);
                 addConstraintToTable(db, refTable, unique);

@@ -5880,9 +5880,6 @@ public class Parser {
             c = new SimpleCase(caseOperand, when, readIf(ELSE) ? readExpression() : null);
         }
         read(END);
-        if (currentTokenType == CASE && database.getMode().allowEndCase) {
-            read();
-        }
         return c;
     }
 
@@ -9706,6 +9703,7 @@ public class Parser {
             ifExists = readIfExists(ifExists);
             checkSchema(schema);
             AlterTableDropConstraint command = new AlterTableDropConstraint(session, getSchema(), ifExists);
+            command.setTableName(tableName);
             command.setConstraintName(constraintName);
             ConstraintActionType dropAction = parseCascadeOrRestrict();
             if (dropAction != null) {
@@ -9766,6 +9764,7 @@ public class Parser {
             String constraintName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             AlterTableDropConstraint command = new AlterTableDropConstraint(session, getSchema(), ifExists);
+            command.setTableName(tableName);
             command.setConstraintName(constraintName);
             return commandIfTableExists(schema, tableName, ifTableExists, command);
         } else if (readIf("INDEX")) {
@@ -9779,6 +9778,7 @@ public class Parser {
                 command = dropIndexCommand;
             } else {
                 AlterTableDropConstraint dropCommand = new AlterTableDropConstraint(session, getSchema(), ifExists);
+                dropCommand.setTableName(tableName);
                 dropCommand.setConstraintName(indexOrConstraintName);
                 command = dropCommand;
             }
@@ -9803,8 +9803,8 @@ public class Parser {
             String constraintName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             read(TO);
-            AlterTableRenameConstraint command = new AlterTableRenameConstraint(
-                    session, schema);
+            AlterTableRenameConstraint command = new AlterTableRenameConstraint(session, schema);
+            command.setTableName(tableName);
             command.setConstraintName(constraintName);
             command.setNewConstraintName(readIdentifier());
             return commandIfTableExists(schema, tableName, ifTableExists, command);

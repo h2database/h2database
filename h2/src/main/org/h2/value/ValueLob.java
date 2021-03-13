@@ -267,7 +267,7 @@ public abstract class ValueLob extends Value {
 
     @Override
     public Reader getReader() {
-        return IOUtils.getBufferedReader(getInputStream());
+        return IOUtils.getReader(getInputStream());
     }
 
     @Override

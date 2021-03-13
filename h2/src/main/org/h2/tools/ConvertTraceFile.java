@@ -107,7 +107,7 @@ public class ConvertTraceFile extends Tool {
     private void convertFile(String traceFileName, String javaClassName,
             String script) throws IOException {
         LineNumberReader reader = new LineNumberReader(
-                IOUtils.getBufferedReader(
+                IOUtils.getReader(
                 FileUtils.newInputStream(traceFileName)));
         PrintWriter javaWriter = new PrintWriter(
                 IOUtils.getBufferedWriter(

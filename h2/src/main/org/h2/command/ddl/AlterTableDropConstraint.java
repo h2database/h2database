@@ -14,14 +14,14 @@ import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
+import org.h2.table.Table;
 
 /**
  * This class represents the statement
  * ALTER TABLE DROP CONSTRAINT
  */
-public class AlterTableDropConstraint extends SchemaCommand {
+public class AlterTableDropConstraint extends AlterTable {
 
-    private String tableName;
     private String constraintName;
     private final boolean ifExists;
     private ConstraintActionType dropAction;
@@ -33,10 +33,6 @@ public class AlterTableDropConstraint extends SchemaCommand {
                 ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;
     }
 
-    public void setTableName(String string) {
-        tableName = string;
-    }
-
     public void setConstraintName(String string) {
         constraintName = string;
     }
@@ -46,17 +42,19 @@ public class AlterTableDropConstraint extends SchemaCommand {
     }
 
     @Override
-    public long update() {
+    public long update(Table table) {
         Constraint constraint = getSchema().findConstraint(session, constraintName);
         Type constraintType;
         if (constraint == null || (constraintType = constraint.getConstraintType()) == Type.DOMAIN
-                || !session.getDatabase().equalsIdentifiers(constraint.getTable().getName(), tableName)) {
+                || constraint.getTable() != table) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
             }
         } else {
-            session.getUser().checkTableRight(constraint.getTable(), Right.SCHEMA_OWNER);
-            session.getUser().checkTableRight(constraint.getRefTable(), Right.SCHEMA_OWNER);
+            Table refTable = constraint.getRefTable();
+            if (refTable != table) {
+                session.getUser().checkTableRight(refTable, Right.SCHEMA_OWNER);
+            }
             if (constraintType == Type.PRIMARY_KEY || constraintType == Type.UNIQUE) {
                 for (Constraint c : constraint.getTable().getConstraints()) {
                     if (c.getReferencedConstraint() == constraint) {
@@ -64,7 +62,10 @@ public class AlterTableDropConstraint extends SchemaCommand {
                             throw DbException.get(ErrorCode.CONSTRAINT_IS_USED_BY_CONSTRAINT_2,
                                     constraint.getTraceSQL(), c.getTraceSQL());
                         }
-                        session.getUser().checkTableRight(c.getTable(), Right.SCHEMA_OWNER);
+                        Table t = c.getTable();
+                        if (t != table && t != refTable) {
+                            session.getUser().checkTableRight(t, Right.SCHEMA_OWNER);
+                        }
                     }
                 }
             }

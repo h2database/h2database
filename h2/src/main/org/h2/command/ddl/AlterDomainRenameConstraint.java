@@ -16,39 +16,44 @@ import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 
 /**
- * This class represents the statement ALTER DOMAIN DROP CONSTRAINT
+ * This class represents the statement
+ * ALTER DOMAIN RENAME CONSTRAINT
  */
-public class AlterDomainDropConstraint extends AlterDomain {
+public class AlterDomainRenameConstraint extends AlterDomain {
 
     private String constraintName;
-    private final boolean ifConstraintExists;
+    private String newConstraintName;
 
-    public AlterDomainDropConstraint(SessionLocal session, Schema schema, boolean ifConstraintExists) {
+    public AlterDomainRenameConstraint(SessionLocal session, Schema schema) {
         super(session, schema);
-        this.ifConstraintExists = ifConstraintExists;
     }
 
     public void setConstraintName(String string) {
         constraintName = string;
     }
 
+    public void setNewConstraintName(String newName) {
+        this.newConstraintName = newName;
+    }
+
     @Override
     long update(Schema schema, Domain domain) {
-        Constraint constraint = schema.findConstraint(session, constraintName);
+        Constraint constraint = getSchema().findConstraint(session, constraintName);
         if (constraint == null || constraint.getConstraintType() != Type.DOMAIN
                 || ((ConstraintDomain) constraint).getDomain() != domain) {
-            if (!ifConstraintExists) {
-                throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
-            }
-        } else {
-            session.getDatabase().removeSchemaObject(session, constraint);
+            throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
         }
+        if (getSchema().findConstraint(session, newConstraintName) != null
+                || newConstraintName.equals(constraintName)) {
+            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, newConstraintName);
+        }
+        session.getDatabase().renameSchemaObject(session, constraint, newConstraintName);
         return 0;
     }
 
     @Override
     public int getType() {
-        return CommandInterface.ALTER_DOMAIN_DROP_CONSTRAINT;
+        return CommandInterface.ALTER_DOMAIN_RENAME_CONSTRAINT;
     }
 
 }

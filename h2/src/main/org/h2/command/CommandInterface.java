@@ -537,6 +537,11 @@ public interface CommandInterface extends AutoCloseable {
     int ALTER_TABLE_ALTER_COLUMN_DEFAULT_ON_NULL = 100;
 
     /**
+     * The type of an ALTER DOMAIN RENAME CONSTRAINT statement.
+     */
+    int ALTER_DOMAIN_RENAME_CONSTRAINT = 101;
+
+    /**
      * Get command type.
      *
      * @return one of the constants above

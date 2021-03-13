@@ -120,10 +120,11 @@ import java.util.TreeSet;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
-import org.h2.command.ddl.AlterDomain;
+import org.h2.command.ddl.AlterDomainExpressions;
 import org.h2.command.ddl.AlterDomainAddConstraint;
 import org.h2.command.ddl.AlterDomainDropConstraint;
 import org.h2.command.ddl.AlterDomainRename;
+import org.h2.command.ddl.AlterDomainRenameConstraint;
 import org.h2.command.ddl.AlterIndexRename;
 import org.h2.command.ddl.AlterSchemaRename;
 import org.h2.command.ddl.AlterSequence;
@@ -169,7 +170,6 @@ import org.h2.command.ddl.DropUser;
 import org.h2.command.ddl.DropView;
 import org.h2.command.ddl.GrantRevoke;
 import org.h2.command.ddl.PrepareProcedure;
-import org.h2.command.ddl.SchemaCommand;
 import org.h2.command.ddl.SequenceOptions;
 import org.h2.command.ddl.SetComment;
 import org.h2.command.ddl.TruncateTable;
@@ -2624,9 +2624,9 @@ public class Parser {
         boolean ifExists = readIfExists(false);
         String domainName = readIdentifierWithSchema();
         DropDomain command = new DropDomain(session, getSchema());
-        command.setTypeName(domainName);
+        command.setDomainName(domainName);
         ifExists = readIfExists(ifExists);
-        command.setIfExists(ifExists);
+        command.setIfDomainExists(ifExists);
         ConstraintActionType dropAction = parseCascadeOrRestrict();
         if (dropAction != null) {
             command.setDropAction(dropAction);
@@ -8609,10 +8609,6 @@ public class Parser {
         boolean ifDomainExists = readIfExists(false);
         String domainName = readIdentifierWithSchema();
         Schema schema = getSchema();
-        Domain domain = schema.findDomain(domainName);
-        if (domain == null && !ifDomainExists) {
-            throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, domainName);
-        }
         if (readIf("ADD")) {
             boolean ifNotExists = false;
             String constraintName = null;
@@ -8654,39 +8650,54 @@ public class Parser {
                 command.setIfDomainExists(ifDomainExists);
                 return command;
             } else if (readIf(DEFAULT)) {
-                AlterDomain command = new AlterDomain(session, schema, CommandInterface.ALTER_DOMAIN_DEFAULT);
+                AlterDomainExpressions command = new AlterDomainExpressions(session, schema,
+                        CommandInterface.ALTER_DOMAIN_DEFAULT);
                 command.setDomainName(domainName);
                 command.setIfDomainExists(ifDomainExists);
                 command.setExpression(null);
                 return command;
             } else if (readIf(ON)) {
                 read("UPDATE");
-                AlterDomain command = new AlterDomain(session, schema, CommandInterface.ALTER_DOMAIN_ON_UPDATE);
+                AlterDomainExpressions command = new AlterDomainExpressions(session, schema,
+                        CommandInterface.ALTER_DOMAIN_ON_UPDATE);
                 command.setDomainName(domainName);
                 command.setIfDomainExists(ifDomainExists);
                 command.setExpression(null);
                 return command;
             }
         } else if (readIf("RENAME")) {
+            if (readIf(CONSTRAINT)) {
+                String constraintName = readIdentifierWithSchema(schema.getName());
+                checkSchema(schema);
+                read(TO);
+                AlterDomainRenameConstraint command = new AlterDomainRenameConstraint(session, schema);
+                command.setDomainName(domainName);
+                command.setIfDomainExists(ifDomainExists);
+                command.setConstraintName(constraintName);
+                command.setNewConstraintName(readIdentifier());
+                return command;
+            }
             read(TO);
             String newName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             AlterDomainRename command = new AlterDomainRename(session, getSchema());
-            command.setOldDomainName(domainName);
+            command.setDomainName(domainName);
             command.setIfDomainExists(ifDomainExists);
             command.setNewDomainName(newName);
             return command;
         } else {
             read(SET);
             if (readIf(DEFAULT)) {
-                AlterDomain command = new AlterDomain(session, schema, CommandInterface.ALTER_DOMAIN_DEFAULT);
+                AlterDomainExpressions command = new AlterDomainExpressions(session, schema,
+                        CommandInterface.ALTER_DOMAIN_DEFAULT);
                 command.setDomainName(domainName);
                 command.setIfDomainExists(ifDomainExists);
                 command.setExpression(readExpression());
                 return command;
             } else if (readIf(ON)) {
                 read("UPDATE");
-                AlterDomain command = new AlterDomain(session, schema, CommandInterface.ALTER_DOMAIN_ON_UPDATE);
+                AlterDomainExpressions command = new AlterDomainExpressions(session, schema,
+                        CommandInterface.ALTER_DOMAIN_ON_UPDATE);
                 command.setDomainName(domainName);
                 command.setIfDomainExists(ifDomainExists);
                 command.setExpression(readExpression());
@@ -8709,7 +8720,7 @@ public class Parser {
             String newName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             AlterTableRename command = new AlterTableRename(session, getSchema());
-            command.setOldTableName(viewName);
+            command.setTableName(viewName);
             command.setNewTableName(newName);
             command.setIfTableExists(ifExists);
             return command;
@@ -9704,12 +9715,13 @@ public class Parser {
             checkSchema(schema);
             AlterTableDropConstraint command = new AlterTableDropConstraint(session, getSchema(), ifExists);
             command.setTableName(tableName);
+            command.setIfTableExists(ifTableExists);
             command.setConstraintName(constraintName);
             ConstraintActionType dropAction = parseCascadeOrRestrict();
             if (dropAction != null) {
                 command.setDropAction(dropAction);
             }
-            return commandIfTableExists(schema, tableName, ifTableExists, command);
+            return command;
         } else if (readIf(PRIMARY)) {
             read(KEY);
             Table table = tableIfTableExists(schema, tableName, ifTableExists);
@@ -9765,24 +9777,24 @@ public class Parser {
             checkSchema(schema);
             AlterTableDropConstraint command = new AlterTableDropConstraint(session, getSchema(), ifExists);
             command.setTableName(tableName);
+            command.setIfTableExists(ifTableExists);
             command.setConstraintName(constraintName);
-            return commandIfTableExists(schema, tableName, ifTableExists, command);
+            return command;
         } else if (readIf("INDEX")) {
             // For MariaDB
             boolean ifExists = readIfExists(false);
             String indexOrConstraintName = readIdentifierWithSchema(schema.getName());
-            final SchemaCommand command;
             if (schema.findIndex(session, indexOrConstraintName) != null) {
                 DropIndex dropIndexCommand = new DropIndex(session, getSchema());
                 dropIndexCommand.setIndexName(indexOrConstraintName);
-                command = dropIndexCommand;
+                return commandIfTableExists(schema, tableName, ifTableExists, dropIndexCommand);
             } else {
                 AlterTableDropConstraint dropCommand = new AlterTableDropConstraint(session, getSchema(), ifExists);
                 dropCommand.setTableName(tableName);
+                dropCommand.setIfTableExists(ifTableExists);
                 dropCommand.setConstraintName(indexOrConstraintName);
-                command = dropCommand;
+                return dropCommand;
             }
-            return commandIfTableExists(schema, tableName, ifTableExists, command);
         }
         return null;
     }
@@ -9805,16 +9817,17 @@ public class Parser {
             read(TO);
             AlterTableRenameConstraint command = new AlterTableRenameConstraint(session, schema);
             command.setTableName(tableName);
+            command.setIfTableExists(ifTableExists);
             command.setConstraintName(constraintName);
             command.setNewConstraintName(readIdentifier());
-            return commandIfTableExists(schema, tableName, ifTableExists, command);
+            return command;
         } else {
             read(TO);
             String newName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             AlterTableRename command = new AlterTableRename(session,
                     getSchema());
-            command.setOldTableName(tableName);
+            command.setTableName(tableName);
             command.setNewTableName(newName);
             command.setIfTableExists(ifTableExists);
             command.setHidden(readIf("HIDDEN"));

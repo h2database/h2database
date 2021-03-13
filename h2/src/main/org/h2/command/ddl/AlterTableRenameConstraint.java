@@ -9,27 +9,25 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.Constraint.Type;
+import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
+import org.h2.engine.User;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
+import org.h2.table.Table;
 
 /**
  * This class represents the statement
  * ALTER TABLE RENAME CONSTRAINT
  */
-public class AlterTableRenameConstraint extends SchemaCommand {
+public class AlterTableRenameConstraint extends AlterTable {
 
-    private String tableName;
     private String constraintName;
     private String newConstraintName;
 
     public AlterTableRenameConstraint(SessionLocal session, Schema schema) {
         super(session, schema);
-    }
-
-    public void setTableName(String string) {
-        tableName = string;
     }
 
     public void setConstraintName(String string) {
@@ -41,20 +39,22 @@ public class AlterTableRenameConstraint extends SchemaCommand {
     }
 
     @Override
-    public long update() {
+    public long update(Table table) {
         Constraint constraint = getSchema().findConstraint(session, constraintName);
-        if (constraint == null || constraint.getConstraintType() == Type.DOMAIN
-                || !session.getDatabase().equalsIdentifiers(constraint.getTable().getName(), tableName)) {
+        Database db = session.getDatabase();
+        if (constraint == null || constraint.getConstraintType() == Type.DOMAIN || constraint.getTable() != table) {
             throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
         }
-        if (getSchema().findConstraint(session, newConstraintName) != null ||
-                newConstraintName.equals(constraintName)) {
-            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1,
-                    newConstraintName);
+        if (getSchema().findConstraint(session, newConstraintName) != null
+                || newConstraintName.equals(constraintName)) {
+            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, newConstraintName);
         }
-        session.getUser().checkTableRight(constraint.getTable(), Right.SCHEMA_OWNER);
-        session.getUser().checkTableRight(constraint.getRefTable(), Right.SCHEMA_OWNER);
-        session.getDatabase().renameSchemaObject(session, constraint, newConstraintName);
+        User user = session.getUser();
+        Table refTable = constraint.getRefTable();
+        if (refTable != table) {
+            user.checkTableRight(refTable, Right.SCHEMA_OWNER);
+        }
+        db.renameSchemaObject(session, constraint, newConstraintName);
         return 0;
     }
 

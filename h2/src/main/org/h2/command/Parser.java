@@ -857,6 +857,7 @@ public class Parser {
     private CreateView createView;
     private Prepared currentPrepared;
     private Select currentSelect;
+    private List<TableView> cteCleanups;
     private ArrayList<Parameter> parameters;
     private ArrayList<Parameter> indexedParameterList;
     private ArrayList<Parameter> suppliedParameters;
@@ -1059,9 +1060,20 @@ public class Parser {
         currentSelect = null;
         currentPrepared = null;
         createView = null;
+        cteCleanups = null;
         recompileAlways = false;
         read();
-        return parsePrepared();
+        Prepared p;
+        try {
+            p = parsePrepared();
+            p.setCteCleanups(cteCleanups);
+        } catch (Throwable t) {
+            if (cteCleanups != null) {
+                CommandContainer.clearCTE(session, cteCleanups);
+            }
+            throw t;
+        }
+        return p;
     }
 
     private Prepared parsePrepared() {
@@ -1864,7 +1876,10 @@ public class Parser {
                 sourceTableFilter.setDerivedColumns(derivedColumnNames);
             }
             command.setSourceTableFilter(sourceTableFilter);
-            command.setCteCleanups(Collections.singletonList(temporarySourceTableView));
+            if (cteCleanups == null) {
+                cteCleanups = new ArrayList<>(1);
+            }
+            cteCleanups.add(temporarySourceTableView);
         } else {
             command.setSourceTableFilter(readTableFilter());
         }
@@ -8377,7 +8392,10 @@ public class Parser {
         // Clean up temporary views starting with last to first (in case of
         // dependencies) - but only if they are not persistent.
         if (isTemporary) {
-            p.setCteCleanups(viewsCreated);
+            if (cteCleanups == null) {
+                cteCleanups = new ArrayList<>(viewsCreated.size());
+            }
+            cteCleanups.addAll(viewsCreated);
         }
         return p;
     }

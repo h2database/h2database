@@ -4,13 +4,13 @@
 --
 
 help abc;
-> ID SECTION TOPIC SYNTAX TEXT
-> -- ------- ----- ------ ----
+> SECTION TOPIC SYNTAX TEXT
+> ------- ----- ------ ----
 > rows: 0
 
 HELP ABCDE EF_GH;
-> ID SECTION TOPIC SYNTAX TEXT
-> -- ------- ----- ------ ----
+> SECTION TOPIC SYNTAX TEXT
+> ------- ----- ------ ----
 > rows: 0
 
 HELP HELP;

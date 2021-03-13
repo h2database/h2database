@@ -170,7 +170,6 @@ import org.h2.command.ddl.DropUser;
 import org.h2.command.ddl.DropView;
 import org.h2.command.ddl.GrantRevoke;
 import org.h2.command.ddl.PrepareProcedure;
-import org.h2.command.ddl.SchemaCommand;
 import org.h2.command.ddl.SequenceOptions;
 import org.h2.command.ddl.SetComment;
 import org.h2.command.ddl.TruncateTable;
@@ -8721,7 +8720,7 @@ public class Parser {
             String newName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             AlterTableRename command = new AlterTableRename(session, getSchema());
-            command.setOldTableName(viewName);
+            command.setTableName(viewName);
             command.setNewTableName(newName);
             command.setIfTableExists(ifExists);
             return command;
@@ -9716,12 +9715,13 @@ public class Parser {
             checkSchema(schema);
             AlterTableDropConstraint command = new AlterTableDropConstraint(session, getSchema(), ifExists);
             command.setTableName(tableName);
+            command.setIfTableExists(ifTableExists);
             command.setConstraintName(constraintName);
             ConstraintActionType dropAction = parseCascadeOrRestrict();
             if (dropAction != null) {
                 command.setDropAction(dropAction);
             }
-            return commandIfTableExists(schema, tableName, ifTableExists, command);
+            return command;
         } else if (readIf(PRIMARY)) {
             read(KEY);
             Table table = tableIfTableExists(schema, tableName, ifTableExists);
@@ -9777,24 +9777,24 @@ public class Parser {
             checkSchema(schema);
             AlterTableDropConstraint command = new AlterTableDropConstraint(session, getSchema(), ifExists);
             command.setTableName(tableName);
+            command.setIfTableExists(ifTableExists);
             command.setConstraintName(constraintName);
-            return commandIfTableExists(schema, tableName, ifTableExists, command);
+            return command;
         } else if (readIf("INDEX")) {
             // For MariaDB
             boolean ifExists = readIfExists(false);
             String indexOrConstraintName = readIdentifierWithSchema(schema.getName());
-            final SchemaCommand command;
             if (schema.findIndex(session, indexOrConstraintName) != null) {
                 DropIndex dropIndexCommand = new DropIndex(session, getSchema());
                 dropIndexCommand.setIndexName(indexOrConstraintName);
-                command = dropIndexCommand;
+                return commandIfTableExists(schema, tableName, ifTableExists, dropIndexCommand);
             } else {
                 AlterTableDropConstraint dropCommand = new AlterTableDropConstraint(session, getSchema(), ifExists);
                 dropCommand.setTableName(tableName);
+                dropCommand.setIfTableExists(ifTableExists);
                 dropCommand.setConstraintName(indexOrConstraintName);
-                command = dropCommand;
+                return dropCommand;
             }
-            return commandIfTableExists(schema, tableName, ifTableExists, command);
         }
         return null;
     }
@@ -9817,16 +9817,17 @@ public class Parser {
             read(TO);
             AlterTableRenameConstraint command = new AlterTableRenameConstraint(session, schema);
             command.setTableName(tableName);
+            command.setIfTableExists(ifTableExists);
             command.setConstraintName(constraintName);
             command.setNewConstraintName(readIdentifier());
-            return commandIfTableExists(schema, tableName, ifTableExists, command);
+            return command;
         } else {
             read(TO);
             String newName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             AlterTableRename command = new AlterTableRename(session,
                     getSchema());
-            command.setOldTableName(tableName);
+            command.setTableName(tableName);
             command.setNewTableName(newName);
             command.setIfTableExists(ifTableExists);
             command.setHidden(readIf("HIDDEN"));

@@ -8,7 +8,6 @@ package org.h2.command.ddl;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
-import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
@@ -18,10 +17,8 @@ import org.h2.table.Table;
  * This class represents the statement
  * ALTER TABLE RENAME
  */
-public class AlterTableRename extends SchemaCommand {
+public class AlterTableRename extends AlterTable {
 
-    private boolean ifTableExists;
-    private String oldTableName;
     private String newTableName;
     private boolean hidden;
 
@@ -29,49 +26,29 @@ public class AlterTableRename extends SchemaCommand {
         super(session, schema);
     }
 
-    public void setIfTableExists(boolean b) {
-        ifTableExists = b;
-    }
-
-    public void setOldTableName(String name) {
-        oldTableName = name;
-    }
-
     public void setNewTableName(String name) {
         newTableName = name;
     }
 
     @Override
-    public long update() {
+    public long update(Table table) {
         Database db = session.getDatabase();
-        Table oldTable = getSchema().findTableOrView(session, oldTableName);
-        if (oldTable == null) {
-            if (ifTableExists) {
-                return 0;
-            }
-            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, oldTableName);
-        }
-        if (oldTable.isView()) {
-            session.getUser().checkSchemaOwner(oldTable.getSchema());
-        } else {
-            session.getUser().checkTableRight(oldTable, Right.SCHEMA_OWNER);
-        }
         Table t = getSchema().findTableOrView(session, newTableName);
-        if (t != null && hidden && newTableName.equals(oldTable.getName())) {
+        if (t != null && hidden && newTableName.equals(table.getName())) {
             if (!t.isHidden()) {
                 t.setHidden(hidden);
-                oldTable.setHidden(true);
-                db.updateMeta(session, oldTable);
+                table.setHidden(true);
+                db.updateMeta(session, table);
             }
             return 0;
         }
-        if (t != null || newTableName.equals(oldTable.getName())) {
+        if (t != null || newTableName.equals(table.getName())) {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, newTableName);
         }
-        if (oldTable.isTemporary()) {
+        if (table.isTemporary()) {
             throw DbException.getUnsupportedException("temp table");
         }
-        db.renameSchemaObject(session, oldTable, newTableName);
+        db.renameSchemaObject(session, table, newTableName);
         return 0;
     }
 

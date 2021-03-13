@@ -15,23 +15,19 @@ import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
+import org.h2.table.Table;
 
 /**
  * This class represents the statement
  * ALTER TABLE RENAME CONSTRAINT
  */
-public class AlterTableRenameConstraint extends SchemaCommand {
+public class AlterTableRenameConstraint extends AlterTable {
 
-    private String tableName;
     private String constraintName;
     private String newConstraintName;
 
     public AlterTableRenameConstraint(SessionLocal session, Schema schema) {
         super(session, schema);
-    }
-
-    public void setTableName(String string) {
-        tableName = string;
     }
 
     public void setConstraintName(String string) {
@@ -43,11 +39,10 @@ public class AlterTableRenameConstraint extends SchemaCommand {
     }
 
     @Override
-    public long update() {
+    public long update(Table table) {
         Constraint constraint = getSchema().findConstraint(session, constraintName);
         Database db = session.getDatabase();
-        if (constraint == null || constraint.getConstraintType() == Type.DOMAIN
-                || !db.equalsIdentifiers(constraint.getTable().getName(), tableName)) {
+        if (constraint == null || constraint.getConstraintType() == Type.DOMAIN || constraint.getTable() != table) {
             throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
         }
         if (getSchema().findConstraint(session, newConstraintName) != null
@@ -55,8 +50,10 @@ public class AlterTableRenameConstraint extends SchemaCommand {
             throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, newConstraintName);
         }
         User user = session.getUser();
-        user.checkTableRight(constraint.getTable(), Right.SCHEMA_OWNER);
-        user.checkTableRight(constraint.getRefTable(), Right.SCHEMA_OWNER);
+        Table refTable = constraint.getRefTable();
+        if (refTable != table) {
+            user.checkTableRight(refTable, Right.SCHEMA_OWNER);
+        }
         db.renameSchemaObject(session, constraint, newConstraintName);
         return 0;
     }

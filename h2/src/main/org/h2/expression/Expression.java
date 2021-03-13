@@ -21,7 +21,6 @@ import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Typed;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
 
 /**

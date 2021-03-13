@@ -20,7 +20,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 
 /**
  * A check constraint.

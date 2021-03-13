@@ -59,7 +59,6 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
 
 /**

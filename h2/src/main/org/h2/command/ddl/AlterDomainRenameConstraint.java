@@ -9,29 +9,34 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.Constraint.Type;
+import org.h2.constraint.ConstraintDomain;
 import org.h2.engine.Database;
-import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
-import org.h2.engine.User;
 import org.h2.message.DbException;
+import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 
 /**
  * This class represents the statement
- * ALTER TABLE RENAME CONSTRAINT
+ * ALTER DOMAIN RENAME CONSTRAINT
  */
-public class AlterTableRenameConstraint extends SchemaCommand {
+public class AlterDomainRenameConstraint extends SchemaOwnerCommand {
 
-    private String tableName;
+    private boolean ifDomainExists;
+    private String domainName;
     private String constraintName;
     private String newConstraintName;
 
-    public AlterTableRenameConstraint(SessionLocal session, Schema schema) {
+    public AlterDomainRenameConstraint(SessionLocal session, Schema schema) {
         super(session, schema);
     }
 
-    public void setTableName(String string) {
-        tableName = string;
+    public void setIfDomainExists(boolean b) {
+        ifDomainExists = b;
+    }
+
+    public void setDomainName(String string) {
+        domainName = string;
     }
 
     public void setConstraintName(String string) {
@@ -43,27 +48,31 @@ public class AlterTableRenameConstraint extends SchemaCommand {
     }
 
     @Override
-    public long update() {
-        Constraint constraint = getSchema().findConstraint(session, constraintName);
+    long update(Schema schema) {
         Database db = session.getDatabase();
-        if (constraint == null || constraint.getConstraintType() == Type.DOMAIN
-                || !db.equalsIdentifiers(constraint.getTable().getName(), tableName)) {
+        Domain domain = schema.findDomain(domainName);
+        if (domain == null) {
+            if (ifDomainExists) {
+                return 0;
+            }
+            throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, domainName);
+        }
+        Constraint constraint = getSchema().findConstraint(session, constraintName);
+        if (constraint == null || constraint.getConstraintType() != Type.DOMAIN
+                || !((ConstraintDomain) constraint).getDomain().equals(domain)) {
             throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
         }
         if (getSchema().findConstraint(session, newConstraintName) != null
                 || newConstraintName.equals(constraintName)) {
             throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, newConstraintName);
         }
-        User user = session.getUser();
-        user.checkTableRight(constraint.getTable(), Right.SCHEMA_OWNER);
-        user.checkTableRight(constraint.getRefTable(), Right.SCHEMA_OWNER);
         db.renameSchemaObject(session, constraint, newConstraintName);
         return 0;
     }
 
     @Override
     public int getType() {
-        return CommandInterface.ALTER_TABLE_RENAME_CONSTRAINT;
+        return CommandInterface.ALTER_DOMAIN_RENAME_CONSTRAINT;
     }
 
 }

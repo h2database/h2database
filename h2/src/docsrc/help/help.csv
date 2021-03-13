@@ -438,6 +438,17 @@ This command commits an open transaction in this connection.
 ALTER DOMAIN TEST RENAME TO MY_TYPE
 "
 
+"Commands (DDL)","ALTER DOMAIN RENAME CONSTRAINT","
+@h2@ ALTER DOMAIN [ IF EXISTS ] [schemaName.]domainName
+@h2@ RENAME CONSTRAINT [schemaName.]oldConstraintName
+@h2@ TO newConstraintName
+","
+Renames a constraint.
+This command commits an open transaction in this connection.
+","
+ALTER DOMAIN D RENAME CONSTRAINT FOO TO BAR
+"
+
 "Commands (DDL)","ALTER INDEX RENAME","
 @h2@ ALTER INDEX [ IF EXISTS ] [schemaName.]indexName RENAME TO newIndexName
 ","

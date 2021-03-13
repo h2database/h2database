@@ -10,7 +10,6 @@ import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.Constraint.Type;
 import org.h2.constraint.ConstraintDomain;
-import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Domain;
@@ -20,23 +19,13 @@ import org.h2.schema.Schema;
  * This class represents the statement
  * ALTER DOMAIN RENAME CONSTRAINT
  */
-public class AlterDomainRenameConstraint extends SchemaOwnerCommand {
+public class AlterDomainRenameConstraint extends AlterDomain {
 
-    private boolean ifDomainExists;
-    private String domainName;
     private String constraintName;
     private String newConstraintName;
 
     public AlterDomainRenameConstraint(SessionLocal session, Schema schema) {
         super(session, schema);
-    }
-
-    public void setIfDomainExists(boolean b) {
-        ifDomainExists = b;
-    }
-
-    public void setDomainName(String string) {
-        domainName = string;
     }
 
     public void setConstraintName(String string) {
@@ -48,25 +37,17 @@ public class AlterDomainRenameConstraint extends SchemaOwnerCommand {
     }
 
     @Override
-    long update(Schema schema) {
-        Database db = session.getDatabase();
-        Domain domain = schema.findDomain(domainName);
-        if (domain == null) {
-            if (ifDomainExists) {
-                return 0;
-            }
-            throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, domainName);
-        }
+    long update(Schema schema, Domain domain) {
         Constraint constraint = getSchema().findConstraint(session, constraintName);
         if (constraint == null || constraint.getConstraintType() != Type.DOMAIN
-                || !((ConstraintDomain) constraint).getDomain().equals(domain)) {
+                || ((ConstraintDomain) constraint).getDomain() != domain) {
             throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
         }
         if (getSchema().findConstraint(session, newConstraintName) != null
                 || newConstraintName.equals(constraintName)) {
             throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, newConstraintName);
         }
-        db.renameSchemaObject(session, constraint, newConstraintName);
+        session.getDatabase().renameSchemaObject(session, constraint, newConstraintName);
         return 0;
     }
 

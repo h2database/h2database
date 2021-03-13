@@ -23,10 +23,8 @@ import org.h2.table.Table;
 /**
  * This class represents the statement DROP DOMAIN
  */
-public class DropDomain extends SchemaOwnerCommand {
+public class DropDomain extends AlterDomain {
 
-    private String typeName;
-    private boolean ifExists;
     private ConstraintActionType dropAction;
 
     public DropDomain(SessionLocal session, Schema schema) {
@@ -35,32 +33,21 @@ public class DropDomain extends SchemaOwnerCommand {
                 : ConstraintActionType.CASCADE;
     }
 
-    public void setIfExists(boolean ifExists) {
-        this.ifExists = ifExists;
-    }
-
     public void setDropAction(ConstraintActionType dropAction) {
         this.dropAction = dropAction;
     }
 
     @Override
-    long update(Schema schema) {
-        Domain domain = schema.findDomain(typeName);
-        if (domain == null) {
-            if (!ifExists) {
-                throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, typeName);
-            }
-        } else {
-            AlterDomain.forAllDependencies(session, domain, this::copyColumn, this::copyDomain, true);
-            session.getDatabase().removeSchemaObject(session, domain);
-        }
+    long update(Schema schema, Domain domain) {
+        forAllDependencies(session, domain, this::copyColumn, this::copyDomain, true);
+        session.getDatabase().removeSchemaObject(session, domain);
         return 0;
     }
 
     private boolean copyColumn(Domain domain, Column targetColumn) {
         Table targetTable = targetColumn.getTable();
         if (dropAction == ConstraintActionType.RESTRICT) {
-            throw DbException.get(ErrorCode.CANNOT_DROP_2, typeName, targetTable.getCreateSQL());
+            throw DbException.get(ErrorCode.CANNOT_DROP_2, domainName, targetTable.getCreateSQL());
         }
         String columnName = targetColumn.getName();
         ArrayList<ConstraintDomain> constraints = domain.getConstraints();
@@ -80,7 +67,7 @@ public class DropDomain extends SchemaOwnerCommand {
 
     private boolean copyDomain(Domain domain, Domain targetDomain) {
         if (dropAction == ConstraintActionType.RESTRICT) {
-            throw DbException.get(ErrorCode.CANNOT_DROP_2, typeName, targetDomain.getTraceSQL());
+            throw DbException.get(ErrorCode.CANNOT_DROP_2, domainName, targetDomain.getTraceSQL());
         }
         ArrayList<ConstraintDomain> constraints = domain.getConstraints();
         if (constraints != null && !constraints.isEmpty()) {
@@ -111,10 +98,6 @@ public class DropDomain extends SchemaOwnerCommand {
             modified = true;
         }
         return modified;
-    }
-
-    public void setTypeName(String name) {
-        this.typeName = name;
     }
 
     @Override

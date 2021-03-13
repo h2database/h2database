@@ -120,7 +120,7 @@ import java.util.TreeSet;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
-import org.h2.command.ddl.AlterDomain;
+import org.h2.command.ddl.AlterDomainExpressions;
 import org.h2.command.ddl.AlterDomainAddConstraint;
 import org.h2.command.ddl.AlterDomainDropConstraint;
 import org.h2.command.ddl.AlterDomainRename;
@@ -2625,9 +2625,9 @@ public class Parser {
         boolean ifExists = readIfExists(false);
         String domainName = readIdentifierWithSchema();
         DropDomain command = new DropDomain(session, getSchema());
-        command.setTypeName(domainName);
+        command.setDomainName(domainName);
         ifExists = readIfExists(ifExists);
-        command.setIfExists(ifExists);
+        command.setIfDomainExists(ifExists);
         ConstraintActionType dropAction = parseCascadeOrRestrict();
         if (dropAction != null) {
             command.setDropAction(dropAction);
@@ -8610,10 +8610,6 @@ public class Parser {
         boolean ifDomainExists = readIfExists(false);
         String domainName = readIdentifierWithSchema();
         Schema schema = getSchema();
-        Domain domain = schema.findDomain(domainName);
-        if (domain == null && !ifDomainExists) {
-            throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, domainName);
-        }
         if (readIf("ADD")) {
             boolean ifNotExists = false;
             String constraintName = null;
@@ -8655,14 +8651,16 @@ public class Parser {
                 command.setIfDomainExists(ifDomainExists);
                 return command;
             } else if (readIf(DEFAULT)) {
-                AlterDomain command = new AlterDomain(session, schema, CommandInterface.ALTER_DOMAIN_DEFAULT);
+                AlterDomainExpressions command = new AlterDomainExpressions(session, schema,
+                        CommandInterface.ALTER_DOMAIN_DEFAULT);
                 command.setDomainName(domainName);
                 command.setIfDomainExists(ifDomainExists);
                 command.setExpression(null);
                 return command;
             } else if (readIf(ON)) {
                 read("UPDATE");
-                AlterDomain command = new AlterDomain(session, schema, CommandInterface.ALTER_DOMAIN_ON_UPDATE);
+                AlterDomainExpressions command = new AlterDomainExpressions(session, schema,
+                        CommandInterface.ALTER_DOMAIN_ON_UPDATE);
                 command.setDomainName(domainName);
                 command.setIfDomainExists(ifDomainExists);
                 command.setExpression(null);
@@ -8684,21 +8682,23 @@ public class Parser {
             String newName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             AlterDomainRename command = new AlterDomainRename(session, getSchema());
-            command.setOldDomainName(domainName);
+            command.setDomainName(domainName);
             command.setIfDomainExists(ifDomainExists);
             command.setNewDomainName(newName);
             return command;
         } else {
             read(SET);
             if (readIf(DEFAULT)) {
-                AlterDomain command = new AlterDomain(session, schema, CommandInterface.ALTER_DOMAIN_DEFAULT);
+                AlterDomainExpressions command = new AlterDomainExpressions(session, schema,
+                        CommandInterface.ALTER_DOMAIN_DEFAULT);
                 command.setDomainName(domainName);
                 command.setIfDomainExists(ifDomainExists);
                 command.setExpression(readExpression());
                 return command;
             } else if (readIf(ON)) {
                 read("UPDATE");
-                AlterDomain command = new AlterDomain(session, schema, CommandInterface.ALTER_DOMAIN_ON_UPDATE);
+                AlterDomainExpressions command = new AlterDomainExpressions(session, schema,
+                        CommandInterface.ALTER_DOMAIN_ON_UPDATE);
                 command.setDomainName(domainName);
                 command.setIfDomainExists(ifDomainExists);
                 command.setExpression(readExpression());

@@ -2897,10 +2897,8 @@ AES
 dataTypeOrDomain @h2@ [ VISIBLE | INVISIBLE ]
 [ { DEFAULT expression
     | GENERATED ALWAYS AS (generatedColumnExpression)
-    | @c@ { AS (generatedColumnExpression) }
     | GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequenceOption [...])]} ]
-@h2@ [ ON UPDATE expression ] @c@ [ [ NOT ] NULL ]
-@c@ [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
+@h2@ [ ON UPDATE expression ]
 @h2@ [ DEFAULT ON NULL ]
 @h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
 [ columnConstraintDefinition ] [...]
@@ -2945,7 +2943,7 @@ CREATE TABLE TEST(ID BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
 "Other Grammar","Column Constraint Definition","
 [ constraintNameDefinition ]
-NOT NULL | @c@ { NULL } | PRIMARY KEY @c@ [ HASH ] | UNIQUE | referencesSpecification | CHECK (condition)
+NOT NULL | PRIMARY KEY | UNIQUE | referencesSpecification | CHECK (condition)
 ","
 NOT NULL disallows NULL value for a column.
 

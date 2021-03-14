@@ -6939,27 +6939,17 @@ public class Parser {
 
     private Column parseColumnForTable(String columnName, boolean defaultNullable) {
         Column column;
-        boolean isIdentity = readIf("IDENTITY");
-        if (isIdentity || readIf("BIGSERIAL")) {
-            // Check if any of them are disallowed in the current Mode
-            if (isIdentity && database.getMode().
-                    disallowedTypes.contains("IDENTITY")) {
-                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
-                        currentToken);
-            }
+        Mode mode = database.getMode();
+        if (mode.identityDataType && readIf("IDENTITY")) {
             column = new Column(columnName, TypeInfo.TYPE_BIGINT);
             parseCompatibilityIdentityOptions(column);
-            // PostgreSQL compatibility
-            if (!database.getMode().serialColumnIsNotPK) {
-                column.setPrimaryKey(true);
-            }
-        } else if (readIf("SERIAL")) {
+            column.setPrimaryKey(true);
+        } else if (mode.serialDataTypes && readIf("BIGSERIAL")) {
+            column = new Column(columnName, TypeInfo.TYPE_BIGINT);
+            column.setIdentityOptions(new SequenceOptions(), false);
+        } else if (mode.serialDataTypes && readIf("SERIAL")) {
             column = new Column(columnName, TypeInfo.TYPE_INTEGER);
-            parseCompatibilityIdentityOptions(column);
-            // PostgreSQL compatibility
-            if (!database.getMode().serialColumnIsNotPK) {
-                column.setPrimaryKey(true);
-            }
+            column.setIdentityOptions(new SequenceOptions(), false);
         } else {
             column = parseColumnWithType(columnName);
         }
@@ -7006,12 +6996,7 @@ public class Parser {
                 column.setOnUpdateExpression(session, readExpression());
             }
             nullConstraint = parseNotNullConstraint(nullConstraint);
-            if (readIf("AUTO_INCREMENT")) {
-                parseCompatibilityIdentityOptions(column);
-                nullConstraint = parseNotNullConstraint(nullConstraint);
-            } else if (readIf("IDENTITY")) {
-                parseCompatibilityIdentityOptions(column);
-                column.setPrimaryKey(true);
+            if (parseCompatibilityIdentity(column, mode)) {
                 nullConstraint = parseNotNullConstraint(nullConstraint);
             }
         }
@@ -7054,7 +7039,7 @@ public class Parser {
         if (readIf("SELECTIVITY")) {
             column.setSelectivity(readNonNegativeInt());
         }
-        if (database.getMode().getEnum() == ModeEnum.MySQL) {
+        if (mode.getEnum() == ModeEnum.MySQL) {
             if (readIf("CHARACTER")) {
                 readIf(SET);
                 readMySQLCharset();
@@ -10401,6 +10386,7 @@ public class Parser {
         String comment = column.getComment();
         boolean hasPrimaryKey = false, hasNotNull = false;
         NullConstraintType nullType;
+        Mode mode = database.getMode();
         for (;;) {
             String constraintName;
             if (readIf(CONSTRAINT)) {
@@ -10423,18 +10409,6 @@ public class Parser {
                 pk.setTableName(tableName);
                 pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
                 command.addConstraintCommand(pk);
-                if (readIf("AUTO_INCREMENT")) {
-                    parseCompatibilityIdentityOptions(column);
-                }
-                if (database.getMode().identityInPrimaryKey) {
-                    if (readIf(NOT)) {
-                        read(NULL);
-                        column.setNullable(false);
-                    }
-                    if (readIf("IDENTITY")) {
-                        parseCompatibilityIdentityOptions(column);
-                    }
-                }
             } else if (readIf(UNIQUE)) {
                 AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema,
                         CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE, false);
@@ -10469,11 +10443,25 @@ public class Parser {
                 parseReferences(ref, schema, tableName);
                 command.addConstraintCommand(ref);
             } else if (constraintName == null) {
-                return;
+                if (column.getIdentityOptions() != null || !parseCompatibilityIdentity(column, mode)) {
+                    return;
+                }
             } else {
                 throw getSyntaxError();
             }
         }
+    }
+
+    private boolean parseCompatibilityIdentity(Column column, Mode mode) {
+        if (mode.autoIncrementClause && readIf("AUTO_INCREMENT")) {
+            parseCompatibilityIdentityOptions(column);
+            return true;
+        }
+        if (mode.identityClause && readIf("IDENTITY")) {
+            parseCompatibilityIdentityOptions(column);
+            return true;
+        }
+        return false;
     }
 
     private void parseCreateTableMySQLTableOptions(CreateTable command) {

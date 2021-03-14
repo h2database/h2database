@@ -64,7 +64,7 @@ public class CacheLongKeyLIRS<V> {
     /*
      * Used as null value for ConcurrentSkipListSet
      */
-    private static final Entry<V> ENTRY_NULL = new Entry<>();
+    private final Entry<V> ENTRY_NULL = new Entry<>();
 
     /**
      * Create a new cache with the given memory size.

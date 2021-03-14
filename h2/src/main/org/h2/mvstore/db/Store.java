@@ -123,6 +123,9 @@ public final class Store {
             // otherwise background thread would compete for store lock
             // with maps opening procedure
             builder.autoCommitDisabled();
+
+            builder.cacheConcurrency(db.getSettings().cacheConcurrency);
+            builder.autoCommitBufferSize(db.getSettings().autoCommitBufferSize);
         }
         this.encrypted = encrypted;
         try {

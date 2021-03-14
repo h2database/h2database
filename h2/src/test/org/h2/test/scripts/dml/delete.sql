@@ -65,3 +65,39 @@ TABLE TEST;
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(id int) AS SELECT x FROM system_range(1, 100);
+> ok
+
+SET MODE MSSQLServer;
+> ok
+
+DELETE TOP 10 FROM TEST;
+> update count: 10
+
+SET MODE Regular;
+> ok
+
+SELECT COUNT(*) FROM TEST;
+>> 90
+
+DELETE FROM TEST LIMIT ((SELECT COUNT(*) FROM TEST) / 10);
+> update count: 9
+
+SELECT COUNT(*) FROM TEST;
+>> 81
+
+EXPLAIN DELETE FROM TEST LIMIT ((SELECT COUNT(*) FROM TEST) / 10);
+>> DELETE FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ FETCH FIRST (SELECT COUNT(*) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ /* direct lookup */) / 10 ROWS ONLY
+
+DELETE FROM TEST LIMIT ?;
+{
+10
+};
+> update count: 10
+
+SELECT COUNT(*) FROM TEST;
+>> 71
+
+DROP TABLE TEST;
+> ok

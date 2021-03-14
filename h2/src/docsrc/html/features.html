@@ -877,6 +877,7 @@ or the SQL statement <code>SET MODE DB2</code>.
 </li><li>Timestamps with dash between date and time are supported.
 </li><li>Datetime value functions return the same value within a command.
 </li><li>Second and third arguments of TRANSLATE() function are swapped.
+</li><li>LIMIT / OFFSET clauses are supported.
 </li></ul>
 
 <h3>Derby Compatibility Mode</h3>
@@ -901,6 +902,8 @@ or the SQL statement <code>SET MODE HSQLDB</code>.
 <ul><li>Text can be concatenated using '+'.
 </li><li>NULL value works like DEFAULT value is assignments to identity columns.
 </li><li>Datetime value functions return the same value within a command.
+</li><li>TOP clause in SELECT is supported.
+</li><li>LIMIT / OFFSET clauses are supported.
 </li></ul>
 
 <h3>MS SQL Server Compatibility Mode</h3>
@@ -923,6 +926,7 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
 </li><li>Datetime value functions return the same value within a command.
 </li><li>0x literals are parsed as binary string literals.
 </li><li>TRUNCATE TABLE restarts next values of generated columns.
+</li><li>TOP clause in SELECT, UPDATE, and DELETE is supported.
 </li></ul>
 
 <h3>MariaDB Compatibility Mode</h3>
@@ -952,6 +956,8 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
 </li><li>If value of an identity column was manually specified, its sequence is updated to generate values after
 inserted.
 </li><li>NULL value works like DEFAULT value is assignments to identity columns.
+</li><li>LIMIT / OFFSET clauses are supported.
+</li><li>AUTO_INCREMENT clause can be used.
 </li><li>YEAR data type is treated like SMALLINT data type.
 </li></ul>
 <p>
@@ -989,6 +995,8 @@ inserted.
 </li><li>NULL value works like DEFAULT value is assignments to identity columns.
 </li><li>Referential constraints don't require an existing primary key or unique constraint on referenced columns
 and create a unique constraint automatically if such constraint doesn't exist.
+</li><li>LIMIT / OFFSET clauses are supported.
+</li><li>AUTO_INCREMENT clause can be used.
 </li><li>YEAR data type is treated like SMALLINT data type.
 </li></ul>
 <p>
@@ -1041,6 +1049,8 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
     <li>does not throw an exception when the <code>flagsString</code> parameter contains a 'g';</li>
     <li>replaces only the first matched substring in the absence of the 'g' flag in the <code>flagsString</code> parameter.</li>
     </ul>
+</li><li>LIMIT / OFFSET clauses are supported.
+</li><li>Legacy SERIAL and BIGSERIAL data types are supported.
 </li><li>ON CONFLICT DO NOTHING is supported in INSERT statements.
 </li><li>Spaces are trimmed from the right side of CHAR values, but CHAR values in result sets are right-padded with
     spaces to the declared length.

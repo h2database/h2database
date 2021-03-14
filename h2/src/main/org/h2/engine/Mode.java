@@ -201,11 +201,6 @@ public class Mode {
     public boolean regexpReplaceBackslashReferences;
 
     /**
-     * SERIAL and BIGSERIAL columns are not automatically primary keys.
-     */
-    public boolean serialColumnIsNotPK;
-
-    /**
      * Swap the parameters of the CONVERT function.
      */
     public boolean swapConvertFunctionParameters;
@@ -260,11 +255,6 @@ public class Mode {
      * Discard SQLServer table hints (e.g. "SELECT * FROM table WITH (NOLOCK)")
      */
     public boolean discardWithTableHints;
-
-    /**
-     * Whether IDENTITY may be specified after inline PRIMARY KEY constraint.
-     */
-    public boolean identityInPrimaryKey;
 
     /**
      * If {@code true}, datetime value function return the same value within a
@@ -394,6 +384,41 @@ public class Mode {
     public ViewExpressionNames viewExpressionNames = ViewExpressionNames.AS_IS;
 
     /**
+     * Whether TOP clause in SELECT queries is supported.
+     */
+    public boolean topInSelect;
+
+    /**
+     * Whether TOP clause in DML commands is supported.
+     */
+    public boolean topInDML;
+
+    /**
+     * Whether LIMIT / OFFSET clauses are supported.
+     */
+    public boolean limit;
+
+    /**
+     * Whether IDENTITY pseudo data type is supported.
+     */
+    public boolean identityDataType;
+
+    /**
+     * Whether SERIAL and BIGSERIAL pseudo data types are supported.
+     */
+    public boolean serialDataTypes;
+
+    /**
+     * Whether SQL Server-style IDENTITY clause is supported.
+     */
+    public boolean identityClause;
+
+    /**
+     * Whether MySQL-style AUTO_INCREMENT clause is supported.
+     */
+    public boolean autoIncrementClause;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -413,6 +438,10 @@ public class Mode {
         Mode mode = new Mode(ModeEnum.REGULAR);
         mode.allowEmptyInPredicate = true;
         mode.dateTimeValueWithinTransaction = true;
+        mode.topInSelect = true;
+        mode.limit = true;
+        mode.identityDataType = true;
+        mode.autoIncrementClause = true;
         add(mode);
 
         mode = new Mode(ModeEnum.DB2);
@@ -430,6 +459,7 @@ public class Mode {
         mode.takeInsertedIdentity = true;
         mode.expressionNames = ExpressionNames.NUMBER;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
+        mode.limit = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Derby);
@@ -452,6 +482,8 @@ public class Mode {
         // http://hsqldb.org/doc/apidocs/org/hsqldb/jdbc/JDBCConnection.html#setClientInfo-java.lang.String-java.lang.String-
         mode.supportedClientInfoPropertiesRegEx = null;
         mode.expressionNames = ExpressionNames.C_NUMBER;
+        mode.topInSelect = true;
+        mode.limit = true;
         add(mode);
 
         mode = new Mode(ModeEnum.MSSQLServer);
@@ -463,7 +495,6 @@ public class Mode {
         mode.swapConvertFunctionParameters = true;
         mode.supportPoundSymbolForColumnNames = true;
         mode.discardWithTableHints = true;
-        mode.identityInPrimaryKey = true;
         // MS SQL Server does not support client info properties. See
         // https://msdn.microsoft.com/en-Us/library/dd571296%28v=sql.110%29.aspx
         mode.supportedClientInfoPropertiesRegEx = null;
@@ -484,6 +515,9 @@ public class Mode {
         mode.allowEmptySchemaValuesAsDefaultSchema = true;
         mode.expressionNames = ExpressionNames.EMPTY;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
+        mode.topInSelect = true;
+        mode.topInDML = true;
+        mode.identityClause = true;
         add(mode);
 
         mode = new Mode(ModeEnum.MariaDB);
@@ -505,6 +539,8 @@ public class Mode {
         mode.identityColumnsHaveDefaultOnNull = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
+        mode.limit = true;
+        mode.autoIncrementClause = true;
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
         add(mode);
 
@@ -530,6 +566,8 @@ public class Mode {
         mode.createUniqueConstraintForReferencedColumns = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
+        mode.limit = true;
+        mode.autoIncrementClause = true;
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
         add(mode);
 
@@ -565,7 +603,6 @@ public class Mode {
         mode.systemColumns = true;
         mode.logIsLogBase10 = true;
         mode.regexpReplaceBackslashReferences = true;
-        mode.serialColumnIsNotPK = true;
         mode.insertOnConflict = true;
         // PostgreSQL only supports the ApplicationName property. See
         // https://github.com/hhru/postgres-jdbc/blob/master/postgresql-jdbc-9.2-1002.src/
@@ -577,6 +614,8 @@ public class Mode {
         mode.takeGeneratedSequenceValue = true;
         mode.expressionNames = ExpressionNames.POSTGRESQL_STYLE;
         mode.allowUsingFromClauseInUpdateStatement = true;
+        mode.limit = true;
+        mode.serialDataTypes = true;
         // Enumerate all H2 types NOT supported by PostgreSQL:
         Set<String> disallowedTypes = new java.util.HashSet<>();
         disallowedTypes.add("NUMBER");

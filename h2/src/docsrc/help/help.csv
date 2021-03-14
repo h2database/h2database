@@ -5,8 +5,7 @@
 "SECTION","TOPIC","SYNTAX","TEXT","EXAMPLE"
 
 "Commands (DML)","SELECT","
-SELECT @c@ [ TOP term [ PERCENT ] [ WITH TIES ] ]
-[ DISTINCT @h2@ [ ON ( expression [,...] ) ] | ALL ]
+SELECT [ DISTINCT @h2@ [ ON ( expression [,...] ) ] | ALL ]
 selectExpression [,...]
 [ FROM tableExpression [,...] ]
 [ WHERE expression ]
@@ -18,7 +17,6 @@ selectExpression [,...]
 [ OFFSET expression { ROW | ROWS } ]
 [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
     { ONLY | WITH TIES } ]
-@c@ [ LIMIT expression [ OFFSET expression ] ]
 @h2@ [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
@@ -56,12 +54,10 @@ For compatibility with other databases and future versions of H2 please use pare
 
 10. ORDER BY sorts the result by the given column(s) or expression(s).
 
-11. Number of rows in output can be limited either with standard OFFSET / FETCH,
-with non-standard LIMIT / OFFSET, or with non-standard TOP clauses.
-Different clauses cannot be used together.
+11. Number of rows in output can be limited with OFFSET and FETCH clauses.
 OFFSET specifies how many rows to skip.
 Please note that queries with high offset values can be slow.
-FETCH FIRST/NEXT, LIMIT or TOP limits the number of rows returned by the query (no limit if null or smaller than zero).
+FETCH FIRST/NEXT limits the number of rows returned by the query (no limit if null or smaller than zero).
 If PERCENT is specified number of rows is specified as a percent of the total number of rows
 and should be an integer value between 0 and 100 inclusive.
 WITH TIES can be used only together with ORDER BY and means that all additional rows that have the same sorting position
@@ -2897,10 +2893,8 @@ AES
 dataTypeOrDomain @h2@ [ VISIBLE | INVISIBLE ]
 [ { DEFAULT expression
     | GENERATED ALWAYS AS (generatedColumnExpression)
-    | @c@ { AS (generatedColumnExpression) }
     | GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequenceOption [...])]} ]
-@h2@ [ ON UPDATE expression ] @c@ [ [ NOT ] NULL ]
-@c@ [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
+@h2@ [ ON UPDATE expression ]
 @h2@ [ DEFAULT ON NULL ]
 @h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
 [ columnConstraintDefinition ] [...]
@@ -2945,7 +2939,7 @@ CREATE TABLE TEST(ID BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
 "Other Grammar","Column Constraint Definition","
 [ constraintNameDefinition ]
-NOT NULL | @c@ { NULL } | PRIMARY KEY @c@ [ HASH ] | UNIQUE | referencesSpecification | CHECK (condition)
+NOT NULL | PRIMARY KEY | UNIQUE | referencesSpecification | CHECK (condition)
 ","
 NOT NULL disallows NULL value for a column.
 
